@@ -17,6 +17,7 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
+import { resolveCoursePageLayeredDrawerEntries } from '@/lib/layered-graph';
 import {
   UNIT_1_1_LESSON_STEPS,
   UNIT_1_1_COURSE_SUBTITLE,
@@ -90,6 +91,25 @@ export function UNIT_1_1TeacherPage({
   });
 
   const step = UNIT_1_1_LESSON_STEPS[activeIndex];
+  const orderedStepIds = useMemo(
+    () => UNIT_1_1_LESSON_STEPS.map((item) => item.id),
+    [],
+  );
+  // Layered Teaching Projection drawer path (#1273 / PR #1286).
+  const layeredDrawerEntries = useMemo(
+    () =>
+      resolveCoursePageLayeredDrawerEntries({
+        lessonRuntime,
+        currentStepId: step.id,
+        orderedStepIds,
+        scope: {
+          scopeId: `course:${UNIT_1_1_LESSON_KEY}`,
+          lessonKey: UNIT_1_1_LESSON_KEY,
+          stepId: step.id,
+        },
+      }),
+    [lessonRuntime, orderedStepIds, step.id],
+  );
 
   // Compute teacherSyncState from teacherStates
   const teacherSyncState = useMemo(() => {
@@ -274,9 +294,10 @@ export function UNIT_1_1TeacherPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_1_1_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={orderedStepIds}
             title="页面知识卡片"
             inlineTool
+            layeredDrawerEntries={layeredDrawerEntries}
           />
         </>
       }

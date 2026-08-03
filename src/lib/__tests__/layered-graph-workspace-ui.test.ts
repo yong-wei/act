@@ -75,6 +75,23 @@ describe('layered graph workspace UI contracts (#1273)', () => {
     expect(drawer).toContain('兼容来源');
   });
 
+  it('unit-1-1 course pages wire layered resolver into StepKnowledgeDrawer', () => {
+    const student = readRepoFile(
+      'src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx',
+    );
+    const teacher = readRepoFile(
+      'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx',
+    );
+    const consumers = readRepoFile('src/lib/layered-graph/consumers.ts');
+
+    expect(consumers).toContain('resolveCoursePageLayeredDrawerEntries');
+    expect(consumers).toContain('resolveClassroomStepDrawerEntries');
+    expect(student).toContain('resolveCoursePageLayeredDrawerEntries');
+    expect(student).toContain('layeredDrawerEntries={layeredDrawerEntries}');
+    expect(teacher).toContain('resolveCoursePageLayeredDrawerEntries');
+    expect(teacher).toContain('layeredDrawerEntries={layeredDrawerEntries}');
+  });
+
   it('does not change engineering predicate rendering contracts', () => {
     const relationContract = readRepoFile(
       'src/features/knowledge/graph/relation-contract.ts',

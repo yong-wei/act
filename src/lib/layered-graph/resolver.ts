@@ -375,7 +375,13 @@ export function resolveTeachingProjectionForScope(input: {
       });
     } catch (error) {
       // Candidate missing → explicit unavailable, then pin/Legacy only.
-      const pin = tryPinnedFallback(request, scope, requiredAuthority);
+      // Must pass projectionPaths so a valid pin can load artifacts.
+      const pin = tryPinnedFallback(
+        request,
+        scope,
+        requiredAuthority,
+        projectionPaths,
+      );
       if (pin) return pin;
       if (request.allowLegacyFallback && input.legacyProjection) {
         return legacyFallback(input.legacyProjection, scope, [
@@ -408,7 +414,12 @@ export function resolveTeachingProjectionForScope(input: {
       && manifest.authorityReleaseId !== requiredAuthority
     ) {
       // Fail closed for teaching layer; do not mix with another release.
-      const pin = tryPinnedFallback(request, scope, requiredAuthority);
+      const pin = tryPinnedFallback(
+        request,
+        scope,
+        requiredAuthority,
+        projectionPaths,
+      );
       if (pin) return pin;
       return emptyProjection({
         status: 'identity-drift',
@@ -510,7 +521,63 @@ function tryPinnedFallback(
           scopeId: scope?.scopeId ?? null,
         });
       }
+      if (
+        staged.projectionId
+        && request.pinnedProjectionId
+        && staged.projectionId !== request.pinnedProjectionId
+      ) {
+        return emptyProjection({
+          status: 'identity-drift',
+          source: 'pinned',
+          reasons: [
+            'pinned-projection-id-mismatch',
+            `expected:${request.pinnedProjectionId}`,
+            `actual:${staged.projectionId}`,
+          ],
+          authorityReleaseId: requiredAuthority,
+          scopeId: scope?.scopeId ?? null,
+        });
+      }
+
       const manifest = staged.artifacts.manifest;
+
+      // Fail closed before returning artifacts when pin identity drifts from
+      // the required Authority / requested scope.
+      if (
+        requiredAuthority
+        && manifest.authorityReleaseId
+        && manifest.authorityReleaseId !== requiredAuthority
+      ) {
+        return emptyProjection({
+          status: 'identity-drift',
+          source: 'pinned',
+          reasons: [
+            'pinned-authority-release-mismatch',
+            `required:${requiredAuthority}`,
+            `actual:${manifest.authorityReleaseId}`,
+          ],
+          authorityReleaseId: requiredAuthority,
+          scopeId: scope?.scopeId ?? null,
+        });
+      }
+      if (
+        scope?.scopeId
+        && manifest.scopeId
+        && scope.scopeId !== manifest.scopeId
+      ) {
+        return emptyProjection({
+          status: 'NOT_PROJECTED',
+          source: 'pinned',
+          reasons: [
+            'pinned-scope-mismatch',
+            `requested:${scope.scopeId}`,
+            `projection:${manifest.scopeId}`,
+          ],
+          authorityReleaseId: manifest.authorityReleaseId,
+          scopeId: scope.scopeId,
+        });
+      }
+
       const fallback: LayeredGraphFallbackProvenance = {
         kind: 'pinned-previous',
         adapterId: 'pinned-previous-projection',

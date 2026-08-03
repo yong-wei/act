@@ -232,7 +232,19 @@ export function buildLayeredNodeInspectorSections(input: {
 }
 
 /**
+ * Layers that surface teaching content (ready or explicit fallback) must share
+ * a single Authority/projection identity. Absent/unavailable layers are ignored.
+ */
+function layerCarriesComparableIdentity(
+  status: LayeredGraphPayload['teachingResources']['identity']['status'],
+): boolean {
+  return status === 'ready' || status === 'fallback';
+}
+
+/**
  * Assert layers do not mix identities (used by tests and fail-closed gates).
+ * Covers both ready and fallback teaching layers so a pinned/legacy fallback
+ * cannot silently pair with a different Engineering Authority release.
  */
 export function assertNoLayerIdentityMixing(payload: LayeredGraphPayload): {
   ok: boolean;
@@ -242,12 +254,19 @@ export function assertNoLayerIdentityMixing(payload: LayeredGraphPayload): {
   const engRelease = payload.engineering.identity.authorityReleaseId;
   const teachRelease = payload.teachingResources.identity.authorityReleaseId;
   const prereqRelease = payload.teachingPrerequisites.identity.authorityReleaseId;
+  const teachActive = layerCarriesComparableIdentity(
+    payload.teachingResources.identity.status,
+  );
+  const prereqActive = layerCarriesComparableIdentity(
+    payload.teachingPrerequisites.identity.status,
+  );
 
   if (
     engRelease
     && teachRelease
     && engRelease !== teachRelease
-    && payload.teachingResources.identity.status === 'ready'
+    && teachActive
+    && payload.engineering.identity.status === 'ready'
   ) {
     violations.push(
       `engineering-teaching-release-mismatch:${engRelease}!=${teachRelease}`,
@@ -257,8 +276,8 @@ export function assertNoLayerIdentityMixing(payload: LayeredGraphPayload): {
     teachRelease
     && prereqRelease
     && teachRelease !== prereqRelease
-    && payload.teachingPrerequisites.identity.status === 'ready'
-    && payload.teachingResources.identity.status === 'ready'
+    && prereqActive
+    && teachActive
   ) {
     violations.push(
       `prerequisite-resource-release-mismatch:${prereqRelease}!=${teachRelease}`,
@@ -271,11 +290,35 @@ export function assertNoLayerIdentityMixing(payload: LayeredGraphPayload): {
     teachProj
     && prereqProj
     && teachProj !== prereqProj
-    && payload.teachingResources.identity.status === 'ready'
-    && payload.teachingPrerequisites.identity.status === 'ready'
+    && teachActive
+    && prereqActive
   ) {
     violations.push(
       `prerequisite-resource-projection-mismatch:${prereqProj}!=${teachProj}`,
+    );
+  }
+
+  // Fallback provenance must agree with teaching layer identity when present.
+  if (
+    payload.fallback
+    && teachActive
+    && payload.fallback.authorityReleaseId
+    && teachRelease
+    && payload.fallback.authorityReleaseId !== teachRelease
+  ) {
+    violations.push(
+      `fallback-teaching-release-mismatch:${payload.fallback.authorityReleaseId}!=${teachRelease}`,
+    );
+  }
+  if (
+    payload.fallback
+    && teachActive
+    && payload.fallback.projectionId
+    && teachProj
+    && payload.fallback.projectionId !== teachProj
+  ) {
+    violations.push(
+      `fallback-teaching-projection-mismatch:${payload.fallback.projectionId}!=${teachProj}`,
     );
   }
 

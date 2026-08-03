@@ -2,7 +2,7 @@
  * Layered graph payload, scope resolver, workspace, and course drawer (#1273).
  */
 
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -15,24 +15,20 @@ import {
   type AuthoritativeKnowledgeSnapshot,
   type AuthorityStorePaths,
 } from '../authoritative-knowledge';
-import {
-  activateTeachingProjection,
-  buildTeachingProjection,
-  resolveTeachingProjectionStorePaths,
-  stageTeachingProjection,
-  type TeachingProjectionAuthoringInput,
-  type TeachingProjectionStorePaths,
-} from '../teaching-projection';
+import type { RuntimeLessonEntryBundle } from '../course-runtime';
 import {
   assertNoLayerIdentityMixing,
   buildLayeredGraphPayload,
   buildLayeredGraphWorkspaceFilterState,
   buildLayeredInspectorEvidenceGroups,
   buildLayeredNodeInspectorSections,
+  buildLessonRuntimeLayeredPayload,
+  extractStepKnowledgeRefsFromLessonRuntime,
   filterProjectionToScope,
   layeredStatusLabel,
   resolveClassroomStepDrawer,
   resolveCourseLayeredGraph,
+  resolveCoursePageLayeredDrawerEntries,
   resolveCourseScopeResources,
   resolveEngineeringOnlyLayeredGraph,
   resolveLayeredGraphAuthorityInput,
@@ -43,6 +39,14 @@ import {
   type LayeredGraphAuthorityInput,
   type LayeredGraphProjectionInput,
 } from '../layered-graph';
+import {
+  activateTeachingProjection,
+  buildTeachingProjection,
+  resolveTeachingProjectionStorePaths,
+  stageTeachingProjection,
+  type TeachingProjectionAuthoringInput,
+  type TeachingProjectionStorePaths,
+} from '../teaching-projection';
 
 const hash = 'a'.repeat(64);
 const commit = 'b'.repeat(40);
@@ -589,6 +593,69 @@ describe('Scope-aware Teaching Projection resolver (#1273)', () => {
     expect(projection.projectionId).toBe(staged.projectionId);
     expect(projection.bindings.length).toBeGreaterThan(0);
   });
+
+  it('loads pinned projection when candidateProjectionId is missing', () => {
+    const projectionPaths = tempProjectionRoot();
+    const staged = stageTeachingProjection(projectionPaths, boundAuthoring());
+
+    const projection = resolveTeachingProjectionForScope({
+      projectionPaths,
+      request: {
+        scope: { scopeId: 'course-unit-1' },
+        includeTeaching: true,
+        candidateProjectionId: 'missing-candidate-projection',
+        pinnedProjectionId: staged.projectionId,
+        pinnedProjectionHash: staged.projectionHash,
+        requiredAuthorityReleaseId: releaseId,
+      },
+    });
+
+    expect(projection.status).toBe('fallback');
+    expect(projection.source).toBe('pinned');
+    expect(projection.projectionId).toBe(staged.projectionId);
+    expect(projection.bindings.length).toBeGreaterThan(0);
+    expect(projection.fallback?.kind).toBe('pinned-previous');
+  });
+
+  it('fails closed when pinned projection Authority or scope drifts', () => {
+    const projectionPaths = tempProjectionRoot();
+    const wrongAuthority = stageTeachingProjection(
+      projectionPaths,
+      boundAuthoring({ authorityReleaseId: 'ctr:release:other-authority' }),
+    );
+    const wrongScope = stageTeachingProjection(
+      projectionPaths,
+      boundAuthoring({ scopeId: 'other-course-scope' }),
+    );
+
+    const authorityDrift = resolveTeachingProjectionForScope({
+      projectionPaths,
+      request: {
+        scope: { scopeId: 'course-unit-1' },
+        includeTeaching: true,
+        pinnedProjectionId: wrongAuthority.projectionId,
+        pinnedProjectionHash: wrongAuthority.projectionHash,
+        requiredAuthorityReleaseId: releaseId,
+      },
+    });
+    expect(authorityDrift.status).toBe('identity-drift');
+    expect(authorityDrift.bindings).toEqual([]);
+    expect(authorityDrift.reasons.join(' ')).toMatch(/pinned-authority-release-mismatch/);
+
+    const scopeDrift = resolveTeachingProjectionForScope({
+      projectionPaths,
+      request: {
+        scope: { scopeId: 'course-unit-1' },
+        includeTeaching: true,
+        pinnedProjectionId: wrongScope.projectionId,
+        pinnedProjectionHash: wrongScope.projectionHash,
+        requiredAuthorityReleaseId: releaseId,
+      },
+    });
+    expect(scopeDrift.status).toBe('NOT_PROJECTED');
+    expect(scopeDrift.bindings).toEqual([]);
+    expect(scopeDrift.reasons.join(' ')).toMatch(/pinned-scope-mismatch/);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -981,5 +1048,225 @@ describe('Authority input adapter (#1273)', () => {
     const input = resolveLayeredGraphAuthorityInput(authorityPaths);
     expect(input.status).toBe('unavailable');
     expect(input.engineering).toBeNull();
+  });
+});
+
+describe('assertNoLayerIdentityMixing covers fallback layers (#1273 P1)', () => {
+  it('flags Authority release mixing on fallback teaching layers', () => {
+    const payload = buildLayeredGraphPayload({
+      authority: {
+        status: 'ready',
+        releaseId,
+        releaseSetId: 'set-eng-1',
+        snapshotId: 'snap-1',
+        snapshotHash: hash,
+        engineering: { objects: [], relations: [] },
+      },
+      projection: {
+        status: 'fallback',
+        source: 'pinned',
+        projectionId: 'pin-proj',
+        projectionHash: hash,
+        authorityReleaseId: 'ctr:release:other',
+        scopeId: 'course-unit-1',
+        resources: [],
+        bindings: [],
+        prerequisites: [],
+        coreNodes: [],
+        cards: [],
+        notProjectedCanonicalIds: [],
+        reasons: ['pinned-previous-projection'],
+        fallback: {
+          kind: 'pinned-previous',
+          adapterId: 'pinned-previous-projection',
+          authorityReleaseId: 'ctr:release:other',
+          projectionId: 'pin-proj',
+          projectionHash: hash,
+          scopeId: 'course-unit-1',
+          reasons: ['using-pinned-previous-projection'],
+        },
+      },
+      request: {
+        scope: { scopeId: 'course-unit-1' },
+        includeTeaching: true,
+        requiredAuthorityReleaseId: releaseId,
+      },
+    });
+
+    const result = assertNoLayerIdentityMixing(payload);
+    expect(result.ok).toBe(false);
+    expect(result.violations.some((v) => v.includes('engineering-teaching-release-mismatch'))).toBe(
+      true,
+    );
+  });
+});
+
+describe('Course page layered drawer entry (#1273 P1)', () => {
+  function minimalLessonRuntime(): RuntimeLessonEntryBundle {
+    return {
+      lesson: {
+        lesson_id: '1-1',
+        title: '看见控制全貌',
+        card_order: ['反馈_1_1'],
+      },
+      graphOverlay: {
+        lesson_id: '1-1',
+        focus_node_ids: ['反馈_1_1'],
+        card_order: ['反馈_1_1'],
+        groups: [
+          {
+            group_name: '反馈',
+            step_ids: ['step-09'],
+            node_ids: ['反馈_1_1', '闭环控制_1_1'],
+          },
+        ],
+        nodes: [
+          {
+            id: '反馈_1_1',
+            name: '反馈',
+            nodeType: 'THEORY',
+            description: '反馈思想',
+            positionX: 0,
+            positionY: 0,
+            positionZ: 0,
+            resources: [],
+            frontContent: '反馈思想',
+          },
+          {
+            id: '闭环控制_1_1',
+            name: '闭环控制',
+            nodeType: 'THEORY',
+            description: '闭环',
+            positionX: 0,
+            positionY: 0,
+            positionZ: 0,
+            resources: [],
+            frontContent: '闭环',
+          },
+        ],
+        links: [],
+      },
+      handoutPath: '',
+      handoutSourcePath: '',
+      handoutPdfPath: null,
+      handoutPreview: '',
+      handoutSummary: '',
+      mediaResources: [],
+      interactiveManifest: null,
+    };
+  }
+
+  it('extracts step knowledgeRefs and resolves layered drawer entries for page path', () => {
+    const lessonRuntime = minimalLessonRuntime();
+    const orderedStepIds = ['step-09'];
+    const refs = extractStepKnowledgeRefsFromLessonRuntime(
+      lessonRuntime,
+      'step-09',
+      orderedStepIds,
+    );
+    expect(refs).toEqual(['反馈_1_1', '闭环控制_1_1']);
+
+    const entries = resolveCoursePageLayeredDrawerEntries({
+      lessonRuntime,
+      currentStepId: 'step-09',
+      orderedStepIds,
+      scope: {
+        scopeId: 'course:1-1',
+        lessonKey: '1-1',
+        stepId: 'step-09',
+      },
+    });
+
+    expect(entries.length).toBe(2);
+    expect(entries.every((entry) => entry.nodeNotFound === false)).toBe(true);
+    expect(entries[0]?.summary.title).toBe('反馈');
+    expect(entries[0]?.fallback?.adapterId).toBe('legacy-lesson-runtime-graph-overlay');
+    expect(buildLessonRuntimeLayeredPayload({
+      lessonRuntime,
+      scope: { scopeId: 'course:1-1', lessonKey: '1-1' },
+    }).teachingResources.identity.status).toBe('fallback');
+  });
+
+  it('uses Teaching Projection payload when provided to the course page helper', () => {
+    const authorityPaths = tempAuthorityRoot();
+    activateAuthority(authorityPaths);
+    const projectionPaths = tempProjectionRoot();
+    activateProjection(projectionPaths);
+
+    const payload = resolveCourseLayeredGraph({
+      authorityPaths,
+      projectionPaths,
+      scope: {
+        scopeId: 'course-unit-1',
+        knowledgeRefs: ['node-a'],
+      },
+    });
+
+    const lessonRuntime = minimalLessonRuntime();
+    // Override overlay refs to teaching projection canonical ids.
+    lessonRuntime.graphOverlay.groups = [
+      {
+        group_name: 'practice',
+        step_ids: ['step-09'],
+        node_ids: ['node-a'],
+      },
+    ];
+    lessonRuntime.graphOverlay.nodes = [
+      {
+        id: 'node-a',
+        name: '稳定性',
+        nodeType: 'THEORY',
+        description: 'from overlay',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        resources: [],
+        frontContent: 'from overlay',
+      },
+    ];
+
+    const entries = resolveCoursePageLayeredDrawerEntries({
+      lessonRuntime,
+      currentStepId: 'step-09',
+      orderedStepIds: ['step-09'],
+      scope: { scopeId: 'course-unit-1', stepId: 'step-09' },
+      payload,
+      resourceLaunchTargets: {
+        'act:handout:lesson-02': '/courses/lesson-02/handout',
+      },
+    });
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0]?.canonicalId).toBe('node-a');
+    expect(entries[0]?.cardStatus).toBe('active-card');
+    expect(entries[0]?.nodeNotFound).toBe(false);
+  });
+
+  it('ships unit-1-1 student and teacher pages through layered drawer entries', () => {
+    const repoRoot = process.cwd();
+    const student = readFileSync(
+      path.join(repoRoot, 'src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx'),
+      'utf8',
+    );
+    const teacher = readFileSync(
+      path.join(repoRoot, 'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx'),
+      'utf8',
+    );
+    const studentRoute = readFileSync(
+      path.join(
+        repoRoot,
+        'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
+      ),
+      'utf8',
+    );
+
+    for (const source of [student, teacher]) {
+      expect(source).toContain('resolveCoursePageLayeredDrawerEntries');
+      expect(source).toContain('layeredDrawerEntries={layeredDrawerEntries}');
+      expect(source).toContain('StepKnowledgeDrawer');
+    }
+    // Shipped App Router entry mounts the student page that uses the layered path.
+    expect(studentRoute).toContain('UNIT_1_1StudentPage');
+    expect(studentRoute).toContain("loadLessonRuntimeEntry('1-1')");
   });
 });

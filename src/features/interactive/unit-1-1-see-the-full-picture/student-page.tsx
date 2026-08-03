@@ -18,6 +18,7 @@ import {
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
+import { resolveCoursePageLayeredDrawerEntries } from '@/lib/layered-graph';
 import {
   isUNIT_1_1InteractivePageType,
   UNIT_1_1_COURSE_SUBTITLE,
@@ -100,6 +101,26 @@ export function UNIT_1_1StudentPage({
   const step = UNIT_1_1_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
   const savedResponse = courseState.responses[step.id];
+  const orderedStepIds = useMemo(
+    () => UNIT_1_1_LESSON_STEPS.map((item) => item.id),
+    [],
+  );
+  // Layered Teaching Projection drawer path (#1273 / PR #1286):
+  // step.knowledgeRefs → canonicalId → optional card via course-page consumer.
+  const layeredDrawerEntries = useMemo(
+    () =>
+      resolveCoursePageLayeredDrawerEntries({
+        lessonRuntime,
+        currentStepId: step.id,
+        orderedStepIds,
+        scope: {
+          scopeId: `course:${UNIT_1_1_LESSON_KEY}`,
+          lessonKey: UNIT_1_1_LESSON_KEY,
+          stepId: step.id,
+        },
+      }),
+    [lessonRuntime, orderedStepIds, step.id],
+  );
 
   // Global AI context update
   const { updatePageContext } = useGlobalAI();
@@ -223,9 +244,10 @@ export function UNIT_1_1StudentPage({
         <StepKnowledgeDrawer
           lessonRuntime={lessonRuntime}
           currentStepId={step.id}
-          orderedStepIds={UNIT_1_1_LESSON_STEPS.map((item) => item.id)}
+          orderedStepIds={orderedStepIds}
           title="页面知识卡片"
           inlineTool
+          layeredDrawerEntries={layeredDrawerEntries}
         />
       }
       runtimeAttributes={{
