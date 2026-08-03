@@ -1,8 +1,5 @@
-# konling-kaq-graph-context Specification
+## MODIFIED Requirements
 
-## Purpose
-Define the server-owned K/A/Q graph grounding contract that Konling uses when explaining graph-aware paths, resources, overlays, citations, and versioned learning context.
-## Requirements
 ### Requirement: Konling graph context is server-owned
 The system SHALL provide a server-owned graph context payload for Konling graph-aware advice. Graph context MUST resolve Authority, Teaching Projection, course scope, current Canonical IDs, linked resources, prerequisite neighborhood, and optional card through a server-owned contract. The client MAY provide a hint but MUST NOT provide authoritative teaching data.
 
@@ -43,12 +40,3 @@ Konling graph-aware answers SHALL expose the evidence basis for path, graph, and
 - **WHEN** a response explains why a course resource is recommended
 - **THEN** it SHALL cite the ACT prerequisite/resource evidence and projection identity
 - **AND** it SHALL not represent the relation as an ActKG engineering predicate
-
-### Requirement: Konling graph context is not evidence writeback
-Konling graph context SHALL remain a grounding and explanation contract, not a direct mastery writeback channel.
-
-#### Scenario: Assistant narrative mentions mastery
-- **WHEN** Konling emits graph-grounded prose about learner understanding or capability
-- **THEN** that narrative SHALL NOT directly mutate learner or class overlay state
-- **AND** only governed tool outcomes, approved grading, path execution, simulation, Arena, or other materialized evidence may affect K/A/Q overlay state.
-
