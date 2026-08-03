@@ -1173,6 +1173,88 @@ describe('Consumer wiring and scope guards (#1276)', () => {
     ).toMatch(/unknown-consumer/);
   });
 
+  it('fails authority-absent staging unless every consumer pins prior', () => {
+    const paths = tempActivationRoot();
+    // Only one prior → not full pin map → stage must fail.
+    expect(() =>
+      stageConsumerActivation(paths, {
+        artifacts: completeArtifacts({
+          authority: {
+            present: false,
+            releaseId: null,
+            snapshotId: null,
+            snapshotHash: null,
+            captureRevision: null,
+            artifactHashes: {},
+          },
+          projection: {
+            present: false,
+            projectionId: null,
+            projectionHash: null,
+            authorityReleaseId: null,
+            captureRevision: null,
+            gatePassed: false,
+            artifactHashes: {},
+            hasResources: false,
+            hasCardsIndex: false,
+            hasPrerequisites: false,
+            hasImpactReport: false,
+          },
+        }),
+        priorConsumers: priorTeachingPins().slice(0, 1),
+        stagedAt: '2026-08-04T10:00:00.000Z',
+        activationId: 'activation-partial-prior',
+      }),
+    ).toThrow(/authority-absent-requires-full-prior-pins|stage-failed/i);
+
+    // Full prior map for all six consumers → pin-only stage succeeds.
+    const fullPriors: PriorConsumerState[] = CONSUMER_ACTIVATION_IDS.map(
+      (consumerId) => ({
+        consumerId,
+        combination: {
+          authorityReleaseId: 'ctr:release:eng-v0',
+          authoritySnapshotId: 'snap-old',
+          authoritySnapshotHash: hashF,
+          projectionId: consumerId.startsWith('engineering') ? null : 'proj-old',
+          projectionHash: consumerId.startsWith('engineering') ? null : hashE,
+          scopeId: null,
+          captureRevision: commitB,
+        },
+      }),
+    );
+    const staged = stageConsumerActivation(paths, {
+      artifacts: completeArtifacts({
+        authority: {
+          present: false,
+          releaseId: null,
+          snapshotId: null,
+          snapshotHash: null,
+          captureRevision: null,
+          artifactHashes: {},
+        },
+        projection: {
+          present: false,
+          projectionId: null,
+          projectionHash: null,
+          authorityReleaseId: null,
+          captureRevision: null,
+          gatePassed: false,
+          artifactHashes: {},
+          hasResources: false,
+          hasCardsIndex: false,
+          hasPrerequisites: false,
+          hasImpactReport: false,
+        },
+      }),
+      priorConsumers: fullPriors,
+      stagedAt: '2026-08-04T10:01:00.000Z',
+      activationId: 'activation-full-prior-pins',
+    });
+    expect(staged.manifest.consumers.every((c) => c.status === 'PINNED_PREVIOUS')).toBe(
+      true,
+    );
+  });
+
   it('treats corrupted activation pointer as unavailable not absent', () => {
     const prev = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
     const paths = tempActivationRoot();

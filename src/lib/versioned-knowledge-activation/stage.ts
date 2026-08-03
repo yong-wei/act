@@ -25,6 +25,7 @@ import type {
 
 import {
   CONSUMER_ACTIVATION_CONTRACT,
+  CONSUMER_ACTIVATION_IDS,
   CONSUMER_ACTIVATION_STAGE_RECEIPT_CONTRACT,
   ConsumerActivationError,
   isConsumerActivationStatus,
@@ -534,8 +535,8 @@ export function validateStagedArtifactSet(
   reasons.push(...validateArtifactFileDigests(artifacts));
 
   // Hard fail: tampered / mixed capture that claims both sides present.
-  // Note: `authority-absent-for-stage` is intentionally soft (pin-only staging
-  // when Authority is temporarily unavailable) and must not hard-fail.
+  // `authority-absent-for-stage` is soft only when callers later prove every
+  // consumer successfully pins a prior combination (checked in build).
   const hardFail = reasons.some((r) => {
     if (r === 'authority-absent-for-stage') return false;
     return (
@@ -653,13 +654,29 @@ export function buildStagedActivationManifest(
     };
   }
 
+  // Authority-absent is soft only when every named consumer is PINNED_PREVIOUS
+  // (complete prior map). Partial priors leave blocked consumers and must fail.
+  const authorityAbsent = validation.reasons.includes('authority-absent-for-stage');
+  const allConsumersPinned =
+    consumers.length === CONSUMER_ACTIVATION_IDS.length
+    && consumers.every((row) => row.status === 'PINNED_PREVIOUS');
+  const authorityAbsentNotFullyPinned =
+    authorityAbsent && !allConsumersPinned;
+
   // Fail closed when staging validation hard-fails (mixed/tampered) or shadow
   // report integrity fails.
-  if (!validation.ok || shadowMerge.reasons.length > 0) {
+  if (
+    !validation.ok
+    || shadowMerge.reasons.length > 0
+    || authorityAbsentNotFullyPinned
+  ) {
     const reasons = [
       ...(validation.ok ? [] : ['staged-artifact-set-invalid']),
       ...validation.reasons,
       ...shadowMerge.reasons,
+      ...(authorityAbsentNotFullyPinned
+        ? ['authority-absent-requires-full-prior-pins']
+        : []),
     ];
     return {
       status: 'failed',
