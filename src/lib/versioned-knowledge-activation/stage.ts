@@ -534,20 +534,28 @@ export function validateStagedArtifactSet(
   reasons.push(...validateArtifactFileDigests(artifacts));
 
   // Hard fail: tampered / mixed capture that claims both sides present.
-  const hardFail = reasons.some((r) =>
-    r.includes('mismatch')
-    || r.includes('drift')
-    || r.includes('invalid')
-    || r.includes('hash-missing')
-    || r.includes('id-missing')
-    || r.includes('path-missing')
-    || r.includes('file-missing')
-    || r.includes('file-unreadable')
-    || r.includes('absent')
-    || r.includes('incomplete')
-    || r.includes('verifier-failed')
-    || r.includes('unreadable'),
-  );
+  // Note: `authority-absent-for-stage` is intentionally soft (pin-only staging
+  // when Authority is temporarily unavailable) and must not hard-fail.
+  const hardFail = reasons.some((r) => {
+    if (r === 'authority-absent-for-stage') return false;
+    return (
+      r.includes('mismatch')
+      || r.includes('drift')
+      || r.includes('invalid')
+      || r.includes('hash-missing')
+      || r.includes('id-missing')
+      || r.includes('path-missing')
+      || r.includes('file-missing')
+      || r.includes('file-unreadable')
+      || r.includes('authoring-revision-absent')
+      || r.includes('snapshot-id-absent')
+      || r.includes('snapshot-hash-absent')
+      || r.includes('release-id-absent')
+      || r.includes('incomplete')
+      || r.includes('verifier-failed')
+      || r.includes('unreadable')
+    );
+  });
 
   return { ok: !hardFail, reasons };
 }
