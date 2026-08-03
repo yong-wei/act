@@ -44,6 +44,7 @@ export const TEXTBOOK_SLICE_FAILURE_CODES = [
   'unknown-canonical',
   'capture-drift',
   'authority-drift',
+  'inventory-identity-mismatch',
   'schema-invalid',
   'raw-text-forbidden',
 ] as const;

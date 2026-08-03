@@ -4,7 +4,8 @@
  * Exercises shipped inventory, crosswalk, builder, and consumer functions.
  */
 
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -17,6 +18,7 @@ import {
   deriveTextbookResourceId,
   deriveTextbookSectionResourceId,
   loadActkgSourceLocatorInventory,
+  loadAndBuildTextbookLocatorProjection,
   loadSourceResourceCrosswalk,
   loadV012BundleIdentity,
   parseActkgSourceLocatorStubs,
@@ -27,6 +29,7 @@ import {
   type ActkgSourceLocatorInventory,
   type SourceResourceCrosswalkRow,
   type TextbookLocatorAuthorityBinding,
+  TextbookLocatorInventoryError,
 } from '../teaching-projection';
 
 const REPO_ROOT = process.cwd();
@@ -324,6 +327,41 @@ describe('Textbook locator failure fixtures (#1269)', () => {
     expect(consumers.registryRows).toEqual([]);
   });
 
+  it('load→project boundary converts missing/unreadable/invalid sidecar into REVIEW_REQUIRED', () => {
+    const tempDir = mkdtempSync(path.join(tmpdir(), 'tbloc-sidecar-'));
+    const missingPath = path.join(tempDir, 'does-not-exist.jsonl');
+    const emptyPath = path.join(tempDir, 'empty.jsonl');
+    const invalidPath = path.join(tempDir, 'invalid.jsonl');
+    writeFileSync(emptyPath, '   \n', 'utf8');
+    writeFileSync(invalidPath, '{not-valid-json\n', 'utf8');
+
+    for (const [label, crosswalkPath, expectedCode] of [
+      ['missing', missingPath, 'missing-crosswalk'],
+      ['empty', emptyPath, 'missing-crosswalk'],
+      ['invalid-json', invalidPath, 'schema-invalid'],
+    ] as const) {
+      const projection = loadAndBuildTextbookLocatorProjection({
+        scopeId: `fixture-boundary-${label}`,
+        repoRoot: REPO_ROOT,
+        crosswalkPath,
+        projectionBuildId: `build-boundary-${label}`,
+      });
+      expect(projection.sliceStatus, label).toBe('REVIEW_REQUIRED');
+      expect(projection.blocksTextbookSliceOnly, label).toBe(true);
+      expect(projection.resources, label).toEqual([]);
+      expect(projection.bindings, label).toEqual([]);
+      expect(
+        projection.failures.some((f) => f.code === expectedCode),
+        `${label} expected ${expectedCode}`,
+      ).toBe(true);
+
+      const consumers = projectTextbookLocatorConsumers(projection);
+      expect(consumers.textbookSliceSelectable, label).toBe(false);
+      expect(consumers.authoritySelectable, label).toBe(true);
+      expect(consumers.otherTeachingResourcesSelectable, label).toBe(true);
+    }
+  });
+
   it('fails duplicate anchor rows', () => {
     const inventory = loadShippedInventory();
     const row = baseRow(inventory, {
@@ -459,6 +497,46 @@ describe('Consumer boundaries (#1269)', () => {
     }
   });
 
+  it('defaults to refusing merge of unpublished / partial textbook slices', () => {
+    const inventory = loadShippedInventory();
+    // One valid row + one unknown-Canonical row → REVIEW_REQUIRED with partial resources.
+    const good = baseRow(inventory, {
+      canonicalIds: ['ctc:fixture-canonical-a'],
+      rowNumber: 1,
+    });
+    const bad = baseRow(inventory, {
+      sourceAnchorId: inventory.sourceAnchors[1]!.sourceAnchorId,
+      sourceDocumentId: inventory.sourceAnchors[1]!.sourceDocumentId,
+      canonicalIds: ['ctc:not-in-authority'],
+      rowNumber: 2,
+    });
+    const projection = buildTextbookLocatorProjection({
+      scopeId: 'fixture-partial-refuse',
+      inventory,
+      crosswalkRows: [good, bad],
+      authorityCanonicalIds: new Set(['ctc:fixture-canonical-a']),
+      projectionBuildId: 'build-partial-refuse',
+    });
+    expect(projection.sliceStatus).toBe('REVIEW_REQUIRED');
+    expect(projection.resources.length).toBeGreaterThan(0);
+    expect(projection.failures.some((f) => f.code === 'unknown-canonical')).toBe(true);
+
+    // Safe default: omit requirePublishedSlice → fail closed, no partial merge.
+    const defaultMerge = textbookProjectionToTeachingAuthoring({ projection });
+    expect(defaultMerge.included).toBe(false);
+    expect(defaultMerge.resources).toEqual([]);
+    expect(defaultMerge.bindings).toEqual([]);
+    expect(defaultMerge.reason).toMatch(/REVIEW_REQUIRED|blocked/i);
+
+    // Explicit force still allowed for review/debug only.
+    const forced = textbookProjectionToTeachingAuthoring({
+      projection,
+      requirePublishedSlice: false,
+    });
+    expect(forced.included).toBe(true);
+    expect(forced.resources.length).toBeGreaterThan(0);
+  });
+
   it('sidecar failure blocks only textbook projection; other teaching resources remain selectable', () => {
     const inventory = loadShippedInventory();
     const failedTextbook = buildTextbookLocatorProjection({
@@ -470,9 +548,9 @@ describe('Consumer boundaries (#1269)', () => {
     });
     expect(failedTextbook.sliceStatus).toBe('REVIEW_REQUIRED');
 
+    // Default fail-closed (no requirePublishedSlice flag required).
     const textbookAuthoring = textbookProjectionToTeachingAuthoring({
       projection: failedTextbook,
-      requirePublishedSlice: true,
     });
     expect(textbookAuthoring.included).toBe(false);
     expect(textbookAuthoring.resources).toEqual([]);
@@ -603,5 +681,105 @@ describe('Inventory parse guards (#1269)', () => {
       inventory.sourceDocuments.map((d) => d.sourceDocumentId),
     );
     expect(reparsed.sourceAnchors.length).toBe(inventory.sourceAnchors.length);
+  });
+
+  it('validates inventory file identity against authority binding before labeling Authority', () => {
+    const inventory = loadShippedInventory();
+    const boundPath = inventory.authority.sourceInventory.componentPath;
+    // Happy path already exercised by loadShippedInventory; assert path pin.
+    expect(boundPath.length).toBeGreaterThan(0);
+    expect(inventory.authority.sourceInventory.componentReleaseHash).toMatch(/^[a-f0-9]{64}$/u);
+
+    // Wrong path (different file) fail closed — never label as current Authority.
+    const wrongPath = path.join(
+      REPO_ROOT,
+      'course-content/authoring/knowledge/teaching-projection/textbook-locators/authority-binding.json',
+    );
+    expect(() =>
+      loadActkgSourceLocatorInventory({
+        repoRoot: REPO_ROOT,
+        stubsPath: wrongPath,
+      }),
+    ).toThrow(TextbookLocatorInventoryError);
+
+    try {
+      loadActkgSourceLocatorInventory({
+        repoRoot: REPO_ROOT,
+        stubsPath: wrongPath,
+      });
+      expect.unreachable('expected inventory identity mismatch');
+    } catch (error) {
+      expect(error).toBeInstanceOf(TextbookLocatorInventoryError);
+      expect((error as TextbookLocatorInventoryError).code).toBe(
+        'inventory-identity-mismatch',
+      );
+    }
+
+    // Synthetic binding + stubs whose componentReleaseHash is not in the v0.12
+    // bundle pin → fail closed (do not label as current Authority inventory).
+    const tempDir = mkdtempSync(path.join(tmpdir(), 'tbloc-inv-'));
+    const fakeRelative = 'fake-stubs/root-locus.json';
+    const fakeAbs = path.join(tempDir, fakeRelative);
+    mkdirSync(path.dirname(fakeAbs), { recursive: true });
+    writeFileSync(
+      fakeAbs,
+      JSON.stringify({
+        release_hash: '0'.repeat(64),
+        evidence_segment_stubs: [],
+        source_object_stubs: [],
+      }),
+      'utf8',
+    );
+    const fakeBindingPath = path.join(tempDir, 'authority-binding.json');
+    writeFileSync(
+      fakeBindingPath,
+      JSON.stringify({
+        ...inventory.authority,
+        sourceInventory: {
+          ...inventory.authority.sourceInventory,
+          componentPath: fakeRelative,
+          componentReleaseHash: '0'.repeat(64),
+        },
+      }),
+      'utf8',
+    );
+
+    // Binding pin itself drifts from the real v0.12 bundle → fail closed.
+    expect(() =>
+      loadActkgSourceLocatorInventory({
+        repoRoot: tempDir,
+        authorityBindingPath: fakeBindingPath,
+        stubsPath: fakeAbs,
+        bundleManifestPath: path.join(
+          REPO_ROOT,
+          'course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/bundle-manifest.json',
+        ),
+      }),
+    ).toThrow(/inventory-identity-mismatch|Authority pin|component/i);
+
+    // Boundary maps inventory identity failure to textbook-slice REVIEW_REQUIRED.
+    const failed = loadAndBuildTextbookLocatorProjection({
+      scopeId: 'fixture-inv-identity',
+      repoRoot: tempDir,
+      authorityBindingPath: fakeBindingPath,
+      stubsPath: fakeAbs,
+      bundleManifestPath: path.join(
+        REPO_ROOT,
+        'course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/bundle-manifest.json',
+      ),
+      crosswalkPath: path.join(
+        REPO_ROOT,
+        'course-content/authoring/knowledge/teaching-projection/textbook-locators/source-resource-crosswalk.jsonl',
+      ),
+      projectionBuildId: 'build-inv-identity',
+    });
+    expect(failed.sliceStatus).toBe('REVIEW_REQUIRED');
+    expect(failed.resources).toEqual([]);
+    expect(
+      failed.failures.some(
+        (f) => f.code === 'inventory-identity-mismatch' || f.code === 'schema-invalid',
+      ),
+    ).toBe(true);
+    expect(failed.blocksTextbookSliceOnly).toBe(true);
   });
 });

@@ -3,8 +3,11 @@
  *
  * Uses public evidence-segment and source-object stubs (no textbook body).
  * Binds inventory to the pinned v0.12 Authority / bundle / capture identity.
+ * Inventory file identity (path, release_hash, raw sha256, bundle pin) is
+ * verified before any rows are labeled as current Authority.
  */
 
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -63,15 +66,45 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function readJsonFile(filePath: string): unknown {
+function readBinaryFile(filePath: string): Buffer {
   try {
-    return JSON.parse(readFileSync(filePath, 'utf8')) as unknown;
+    return readFileSync(filePath);
   } catch (error) {
     throw new TextbookLocatorInventoryError(
       'inventory-unreadable',
       `failed to read inventory file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
+}
+
+function readTextFile(filePath: string): string {
+  return readBinaryFile(filePath).toString('utf8');
+}
+
+function readJsonFile(filePath: string): unknown {
+  const text = readTextFile(filePath);
+  try {
+    return JSON.parse(text) as unknown;
+  } catch (error) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-unreadable',
+      `failed to parse inventory JSON ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
+function requiredInventoryString(
+  inventory: Record<string, unknown>,
+  key: string,
+): string {
+  const value = inventory[key];
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      `authority-binding.sourceInventory.${key} must be a non-empty string`,
+    );
+  }
+  return value;
 }
 
 export function loadTextbookLocatorAuthorityBinding(
@@ -121,18 +154,133 @@ export function loadTextbookLocatorAuthorityBinding(
     captureTag: typeof raw.captureTag === 'string' ? raw.captureTag : null,
     sourceInventory: {
       kind: typeof inventory.kind === 'string' ? inventory.kind : 'actkg-public-source-stubs',
-      componentReleaseId: typeof inventory.componentReleaseId === 'string'
-        ? inventory.componentReleaseId
-        : '',
-      componentReleaseHash: typeof inventory.componentReleaseHash === 'string'
-        ? inventory.componentReleaseHash
-        : '',
-      componentPath: typeof inventory.componentPath === 'string'
-        ? inventory.componentPath
-        : '',
+      componentReleaseId: requiredInventoryString(inventory, 'componentReleaseId'),
+      componentReleaseHash: requiredInventoryString(inventory, 'componentReleaseHash'),
+      componentPath: requiredInventoryString(inventory, 'componentPath'),
       sourceDocumentIds: [...sourceDocumentIds].sort(compareCodePoint),
     },
   };
+}
+
+/**
+ * Fail closed before labeling stubs as the current Authority inventory:
+ * path, component release_hash, raw file sha256, and bundle pin must match.
+ */
+export function assertSourceInventoryFileIdentity(input: {
+  repoRoot: string;
+  authority: TextbookLocatorAuthorityBinding;
+  stubsPath: string;
+  stubsBytes: Buffer;
+  stubsPayload: unknown;
+  bundleManifestPath?: string;
+}): void {
+  const { authority, stubsBytes, stubsPayload } = input;
+  const inv = authority.sourceInventory;
+  const expectedPath = path.normalize(path.resolve(input.repoRoot, inv.componentPath));
+  const actualPath = path.normalize(path.resolve(input.stubsPath));
+  if (actualPath !== expectedPath) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `stubs path ${actualPath} does not match authority-binding.sourceInventory.componentPath ${expectedPath}`,
+    );
+  }
+
+  if (!isRecord(stubsPayload)) {
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      'ActKG stubs payload must be an object',
+    );
+  }
+
+  const releaseHash = stubsPayload.release_hash;
+  if (typeof releaseHash !== 'string' || releaseHash.trim().length === 0) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      'ActKG stubs payload is missing release_hash',
+    );
+  }
+  if (releaseHash !== inv.componentReleaseHash) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `stubs release_hash ${releaseHash} does not match authority-binding componentReleaseHash ${inv.componentReleaseHash}`,
+    );
+  }
+
+  const rawSha256 = createHash('sha256').update(stubsBytes).digest('hex');
+  const bundlePath = input.bundleManifestPath
+    ?? path.join(input.repoRoot, DEFAULT_V012_BUNDLE_MANIFEST_RELATIVE);
+  const bundleRaw = readJsonFile(bundlePath);
+  if (!isRecord(bundleRaw)) {
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      'bundle-manifest must be an object',
+    );
+  }
+
+  const release = bundleRaw.release;
+  const sourceRevision = bundleRaw.source_revision;
+  if (!isRecord(release) || !isRecord(sourceRevision)) {
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      'bundle-manifest must include release and source_revision objects',
+    );
+  }
+
+  const bundleReleaseHash = release.release_hash;
+  const bundleDigest = bundleRaw.bundle_digest;
+  const bundleCapture = sourceRevision.commit;
+  if (
+    typeof bundleReleaseHash !== 'string'
+    || bundleReleaseHash !== authority.authorityReleaseHash
+    || typeof bundleDigest !== 'string'
+    || bundleDigest !== authority.bundleDigest
+    || typeof bundleCapture !== 'string'
+    || bundleCapture !== authority.captureRevision
+  ) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      'authority-binding Authority pin does not match the v0.12 bundle manifest',
+    );
+  }
+
+  const components = bundleRaw.components;
+  if (!Array.isArray(components)) {
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      'bundle-manifest.components must be an array',
+    );
+  }
+
+  const component = components.find((entry) => {
+    if (!isRecord(entry)) return false;
+    return entry.release_id === inv.componentReleaseId
+      || entry.release_hash === inv.componentReleaseHash;
+  });
+  if (!isRecord(component)) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `bundle-manifest has no component for ${inv.componentReleaseId}`,
+    );
+  }
+
+  if (component.release_hash !== inv.componentReleaseHash) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `bundle component release_hash does not match authority-binding componentReleaseHash`,
+    );
+  }
+  if (component.release_id !== inv.componentReleaseId) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `bundle component release_id ${String(component.release_id)} does not match authority-binding componentReleaseId ${inv.componentReleaseId}`,
+    );
+  }
+  if (component.release_raw_sha256 !== rawSha256) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `stubs file sha256 ${rawSha256} does not match bundle component release_raw_sha256 ${String(component.release_raw_sha256)}`,
+    );
+  }
 }
 
 /**
@@ -296,15 +444,41 @@ export function loadActkgSourceLocatorInventory(input?: {
   repoRoot?: string;
   authorityBindingPath?: string;
   stubsPath?: string;
+  bundleManifestPath?: string;
 }): ActkgSourceLocatorInventory {
   const root = input?.repoRoot ?? process.cwd();
   const authorityPath = input?.authorityBindingPath
     ?? path.join(root, DEFAULT_TEXTBOOK_LOCATOR_AUTHORING_RELATIVE, 'authority-binding.json');
-  const stubsPath = input?.stubsPath
-    ?? path.join(root, DEFAULT_ACTKG_SOURCE_STUBS_RELATIVE);
 
   const authority = loadTextbookLocatorAuthorityBinding(authorityPath);
-  const stubsPayload = readJsonFile(stubsPath);
+
+  // Prefer the path pinned on the authority binding; fall back only if absent
+  // (binding loader now requires componentPath, so this is belt-and-suspenders).
+  const boundRelative = authority.sourceInventory.componentPath
+    || DEFAULT_ACTKG_SOURCE_STUBS_RELATIVE;
+  const stubsPath = input?.stubsPath
+    ?? path.join(root, boundRelative);
+
+  const stubsBytes = readBinaryFile(stubsPath);
+  let stubsPayload: unknown;
+  try {
+    stubsPayload = JSON.parse(stubsBytes.toString('utf8')) as unknown;
+  } catch (error) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-unreadable',
+      `failed to parse inventory JSON ${stubsPath}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  assertSourceInventoryFileIdentity({
+    repoRoot: root,
+    authority,
+    stubsPath,
+    stubsBytes,
+    stubsPayload,
+    bundleManifestPath: input?.bundleManifestPath,
+  });
+
   return parseActkgSourceLocatorStubs({ stubsPayload, authority });
 }
 
