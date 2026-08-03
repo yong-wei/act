@@ -18,6 +18,7 @@ import {
   type PrerequisiteEdgesAuthoringDocument,
   type PrerequisiteGateFinding,
 } from './contracts';
+import { computeDecisionInputDigest } from './publication';
 
 export class PrerequisiteEdgeError extends Error {
   readonly code: string;
@@ -452,6 +453,35 @@ export function materializePrerequisiteEdges(
           });
           status = 'REVIEW_REQUIRED';
         } else {
+          const expectedEdgeKey = edgeIdentityKey({
+            sourceNodeId,
+            targetNodeId,
+            strength: raw.strength,
+            scopeId,
+          });
+          const expectedInputDigest = computeDecisionInputDigest({
+            sourceNodeId,
+            targetNodeId,
+            strength: raw.strength,
+            scopeId,
+            evidenceRefs,
+            curatorRationale,
+          });
+          if (
+            decision.edgeKey !== expectedEdgeKey
+            || decision.scopeId !== scopeId
+            || decision.inputDigest !== expectedInputDigest
+          ) {
+            findings.push({
+              code: 'decision-binding-mismatch',
+              severity: 'error',
+              message:
+                `edge ${edgeId} authorDecision ${authorDecisionId} is not bound to this edge `
+                + `(edgeKey/scopeId/inputDigest must match recomputed edge evidence)`,
+              edgeId,
+            });
+            status = 'REVIEW_REQUIRED';
+          }
           if (decision.authorityReleaseId !== ctx.authorityReleaseId) {
             findings.push({
               code: 'capture-drift',
@@ -524,9 +554,12 @@ export function materializePrerequisiteEdges(
     });
   }
 
-  // REQUIRED cycle detection over edges that are not self-loops.
+  // REQUIRED cycle detection only over PUBLISHED edges (candidates must not
+  // block publication or enter the hard-dependency graph).
   const cycleSources = published.filter(
-    (e) => e.sourceNodeId !== e.targetNodeId,
+    (e) =>
+      e.sourceNodeId !== e.targetNodeId
+      && e.status === 'PUBLISHED',
   );
   for (const cycle of detectRequiredCycles(cycleSources)) {
     findings.push({

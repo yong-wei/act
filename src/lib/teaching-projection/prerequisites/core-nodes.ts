@@ -236,9 +236,20 @@ export function selectCoreNodeDenominator(
   return sortBy([...byId.values()], (n) => n.canonicalId);
 }
 
+/**
+ * Normalize and publish core nodes. Every row must belong to the build scope
+ * and resolve to a usable Authority endpoint — unreferenced invalid cores fail
+ * closed rather than relying on later edge endpoint checks.
+ */
 export function publishCoreNodes(
   rows: readonly CoreNodeAuthoringRow[],
+  options: {
+    scopeId: string;
+    authorityNodes: readonly AuthorityNodeIndexEntry[];
+  },
 ): CoreNodePublished[] {
+  const scopeId = assertNonEmpty(options.scopeId, 'scopeId');
+  const index = authorityIndex(options.authorityNodes);
   const seen = new Set<string>();
   const published: CoreNodePublished[] = [];
   for (const raw of rows) {
@@ -247,6 +258,18 @@ export function publishCoreNodes(
       throw new CoreNodeError(
         'duplicate-core-node',
         `duplicate core-node ${row.canonicalId}`,
+      );
+    }
+    if (row.scopeId !== scopeId) {
+      throw new CoreNodeError(
+        'scope-mismatch',
+        `core-node ${row.canonicalId} scope ${row.scopeId} != ${scopeId}`,
+      );
+    }
+    if (!isUsableAuthority(index.get(row.canonicalId))) {
+      throw new CoreNodeError(
+        'invalid-endpoint',
+        `core-node ${row.canonicalId} is not a usable Authority endpoint`,
       );
     }
     seen.add(row.canonicalId);

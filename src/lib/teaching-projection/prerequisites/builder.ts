@@ -69,17 +69,17 @@ function buildDerivedViews(
     status: string;
   }[],
 ): PrerequisiteDerivedViews {
-  // Derived views use all non-self-loop edges that are not pure candidates.
-  // REQUIRED path order only includes REQUIRED edges (any status that passed
-  // materialization is included for advisory topo of recommended too).
+  // Hard-dependency derived views only consume PUBLISHED REQUIRED edges.
+  // CANDIDATE edges must never auto-enter teaching prerequisite closure/order.
   const requiredEdges = edges.filter(
     (e) =>
       e.strength === 'REQUIRED'
       && e.sourceNodeId !== e.targetNodeId
-      && (e.status === 'PUBLISHED' || e.status === 'CANDIDATE'),
+      && e.status === 'PUBLISHED',
   );
+  // Advisory order may still include non-self-loop published/recommended edges.
   const allForAdvisory = edges.filter(
-    (e) => e.sourceNodeId !== e.targetNodeId,
+    (e) => e.sourceNodeId !== e.targetNodeId && e.status === 'PUBLISHED',
   );
 
   let requiredTopologicalOrder: string[] = [];
@@ -217,7 +217,10 @@ export function buildPrerequisitePublication(
       );
     }
 
-    const coreNodes = publishCoreNodes(input.coreNodes);
+    const coreNodes = publishCoreNodes(input.coreNodes, {
+      scopeId: input.scopeId,
+      authorityNodes: input.authorityNodes,
+    });
     const candidates = normalizeCandidates(input.candidates ?? []);
     const decisions = [...(input.decisions ?? [])].sort((a, b) =>
       compareCodePoint(a.decisionId, b.decisionId),

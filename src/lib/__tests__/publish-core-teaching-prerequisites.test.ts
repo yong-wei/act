@@ -117,7 +117,7 @@ function decisionFor(edge: {
   targetNodeId: string;
   strength: 'REQUIRED' | 'RECOMMENDED';
   evidenceRefs?: string[];
-  curatorRationale?: string;
+  curatorRationale?: string | null;
 }) {
   return createPrerequisiteAuthorDecision({
     sourceNodeId: edge.sourceNodeId,
@@ -125,7 +125,8 @@ function decisionFor(edge: {
     strength: edge.strength,
     scopeId: SCOPE,
     evidenceRefs: edge.evidenceRefs ?? ['evidence/a.md'],
-    curatorRationale: edge.curatorRationale ?? 'Teacher confirmed dependency',
+    // Must match the edge payload used at materialization time (null if omitted).
+    curatorRationale: edge.curatorRationale ?? null,
     curatorId: 'teacher.core-path',
     rationale: 'Author decision for publication',
     authorityReleaseId: AUTHORITY,
@@ -316,8 +317,9 @@ describe('Prerequisite edge schema and DAG (#1270)', () => {
   it('rejects self-loops, dangling endpoints, duplicates, and REQUIRED cycles fail-closed', () => {
     const baseDecision = decisionFor({
       sourceNodeId: 'node.laplace-transform',
-      targetNodeId: 'node.transfer-function',
+      targetNodeId: 'node.laplace-transform',
       strength: 'REQUIRED',
+      evidenceRefs: ['e.md'],
     });
 
     const selfLoop = buildPrerequisitePublicationFailClosed({
@@ -370,21 +372,25 @@ describe('Prerequisite edge schema and DAG (#1270)', () => {
       sourceNodeId: 'node.laplace-transform',
       targetNodeId: 'node.transfer-function',
       strength: 'REQUIRED',
+      evidenceRefs: ['e1.md'],
     });
     const d2 = decisionFor({
       sourceNodeId: 'node.transfer-function',
       targetNodeId: 'node.block-diagram',
       strength: 'REQUIRED',
+      evidenceRefs: ['e2.md'],
     });
     const d3 = decisionFor({
       sourceNodeId: 'node.block-diagram',
       targetNodeId: 'node.laplace-transform',
       strength: 'REQUIRED',
+      evidenceRefs: ['e3.md'],
     });
     const cycle = buildPrerequisitePublicationFailClosed({
       scopeId: SCOPE,
       authoringRevision: commitA,
       authorityReleaseId: AUTHORITY,
+      projectionCaptureId: 'proj-capture-1',
       authorityNodes: authorityNodes(),
       coreNodes: coreInventory(),
       edges: [
@@ -445,11 +451,13 @@ describe('Prerequisite edge schema and DAG (#1270)', () => {
       sourceNodeId: 'node.laplace-transform',
       targetNodeId: 'node.transfer-function',
       strength: 'REQUIRED',
+      evidenceRefs: ['e1.md'],
     });
     const recommendedDecision = decisionFor({
       sourceNodeId: 'node.transfer-function',
       targetNodeId: 'node.block-diagram',
       strength: 'RECOMMENDED',
+      evidenceRefs: ['e2.md'],
     });
     const artifacts = buildPrerequisitePublication({
       scopeId: SCOPE,
@@ -640,6 +648,133 @@ describe('Publication gate, evidence, and fail-closed store (#1270)', () => {
     ).toBe(true);
   });
 
+  it('rejects reusing another edge authorDecisionId (edgeKey/scopeId/inputDigest)', () => {
+    // Decision is authored for a -> b, but attached to b -> c with different evidence.
+    const decisionForAB = decisionFor({
+      sourceNodeId: 'node.laplace-transform',
+      targetNodeId: 'node.transfer-function',
+      strength: 'REQUIRED',
+      evidenceRefs: ['evidence/a-to-b.md'],
+      curatorRationale: 'A before B',
+    });
+    const reused = buildPrerequisitePublicationFailClosed({
+      scopeId: SCOPE,
+      authoringRevision: commitA,
+      authorityReleaseId: AUTHORITY,
+      projectionCaptureId: 'proj-capture-1',
+      authorityNodes: authorityNodes(),
+      coreNodes: coreInventory(),
+      edges: [
+        {
+          sourceNodeId: 'node.transfer-function',
+          targetNodeId: 'node.block-diagram',
+          strength: 'REQUIRED',
+          scopeId: SCOPE,
+          evidenceRefs: ['evidence/b-to-c.md'],
+          curatorRationale: 'B before C',
+          status: 'PUBLISHED',
+          authorDecisionId: decisionForAB.decisionId,
+        },
+      ],
+      decisions: [decisionForAB],
+    });
+    expect(reused.ok).toBe(false);
+    expect(
+      reused.findings.some((f) => f.code === 'decision-binding-mismatch'),
+    ).toBe(true);
+  });
+
+  it('excludes CANDIDATE REQUIRED edges from hard-dependency views and cycle gate', () => {
+    const artifacts = buildPrerequisitePublication({
+      scopeId: SCOPE,
+      authoringRevision: commitA,
+      authorityReleaseId: AUTHORITY,
+      authorityNodes: authorityNodes(),
+      coreNodes: coreInventory(),
+      edges: [
+        {
+          sourceNodeId: 'node.laplace-transform',
+          targetNodeId: 'node.transfer-function',
+          strength: 'REQUIRED',
+          scopeId: SCOPE,
+          evidenceRefs: ['candidate/a.md'],
+          status: 'CANDIDATE',
+        },
+        {
+          sourceNodeId: 'node.transfer-function',
+          targetNodeId: 'node.block-diagram',
+          strength: 'REQUIRED',
+          scopeId: SCOPE,
+          evidenceRefs: ['candidate/b.md'],
+          status: 'CANDIDATE',
+        },
+        {
+          sourceNodeId: 'node.block-diagram',
+          targetNodeId: 'node.laplace-transform',
+          strength: 'REQUIRED',
+          scopeId: SCOPE,
+          evidenceRefs: ['candidate/c.md'],
+          status: 'CANDIDATE',
+        },
+      ],
+    });
+
+    expect(artifacts.gate.passed).toBe(true);
+    expect(artifacts.manifest.publishedEdgeCount).toBe(0);
+    expect(artifacts.gate.findings.some((f) => f.code === 'required-cycle')).toBe(
+      false,
+    );
+    expect(artifacts.derived.requiredTopologicalOrder).toEqual([]);
+    expect(Object.keys(artifacts.derived.requiredClosure)).toEqual([]);
+  });
+
+  it('fail-closes unreferenced core nodes outside Authority or build scope', () => {
+    const missingAuthority = buildPrerequisitePublicationFailClosed({
+      scopeId: SCOPE,
+      authoringRevision: commitA,
+      authorityReleaseId: AUTHORITY,
+      authorityNodes: authorityNodes(),
+      coreNodes: [
+        ...coreInventory(),
+        {
+          canonicalId: 'node.missing',
+          scopeId: SCOPE,
+          pathEligible: true,
+          cardPolicy: 'OPTIONAL',
+          moduleId: null,
+          rationale: 'Unreferenced invalid core',
+          sourceKind: 'TEACHER_CURATION',
+          sourceEvidence: ['curator:invalid'],
+        },
+      ],
+      edges: [],
+    });
+    expect(missingAuthority.ok).toBe(false);
+    expect(missingAuthority.errorMessage).toMatch(/node\.missing|Authority/i);
+
+    const wrongScope = buildPrerequisitePublicationFailClosed({
+      scopeId: SCOPE,
+      authoringRevision: commitA,
+      authorityReleaseId: AUTHORITY,
+      authorityNodes: authorityNodes(),
+      coreNodes: [
+        {
+          canonicalId: 'node.laplace-transform',
+          scopeId: 'other-scope',
+          pathEligible: true,
+          cardPolicy: 'REQUIRED',
+          moduleId: null,
+          rationale: 'Wrong scope core',
+          sourceKind: 'TEACHER_CURATION',
+          sourceEvidence: ['curator:wrong-scope'],
+        },
+      ],
+      edges: [],
+    });
+    expect(wrongScope.ok).toBe(false);
+    expect(wrongScope.errorMessage).toMatch(/scope/i);
+  });
+
   it('binds published edges to Authority/Projection capture and preserves digests', () => {
     const first = validPublishedBuild();
     const second = validPublishedBuild();
@@ -713,6 +848,8 @@ describe('Publication gate, evidence, and fail-closed store (#1270)', () => {
 
   it('is byte-deterministic across repeated builds and stages', () => {
     const paths = tempStore();
+    const evidenceRefs = ['authoring/handouts/1-1/laplace-to-tf.md'];
+    const curatorRationale = 'Hard teaching dependency';
     const input = {
       scopeId: SCOPE,
       authoringRevision: commitA,
@@ -726,9 +863,9 @@ describe('Publication gate, evidence, and fail-closed store (#1270)', () => {
           targetNodeId: 'node.transfer-function',
           strength: 'REQUIRED' as const,
           scopeId: SCOPE,
-          evidenceRefs: ['authoring/handouts/1-1/laplace-to-tf.md'],
+          evidenceRefs,
           curatorId: 'teacher.core-path',
-          curatorRationale: 'Hard teaching dependency',
+          curatorRationale,
           status: 'PUBLISHED' as const,
           authorDecisionId: '',
         },
@@ -739,7 +876,8 @@ describe('Publication gate, evidence, and fail-closed store (#1270)', () => {
       sourceNodeId: 'node.laplace-transform',
       targetNodeId: 'node.transfer-function',
       strength: 'REQUIRED',
-      evidenceRefs: ['authoring/handouts/1-1/laplace-to-tf.md'],
+      evidenceRefs,
+      curatorRationale,
     });
     input.edges[0]!.authorDecisionId = decision.decisionId;
     input.decisions = [decision];
