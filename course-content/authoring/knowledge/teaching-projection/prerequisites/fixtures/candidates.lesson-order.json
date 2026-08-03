@@ -1,0 +1,18 @@
+{
+  "description": "Lesson/course sequence order produces advisory candidates only.",
+  "scopeId": "act-control-theory-core",
+  "pairs": [
+    {
+      "earlierId": "node.laplace-transform",
+      "laterId": "node.transfer-function",
+      "scopeId": "act-control-theory-core",
+      "lessonKey": "1-1"
+    },
+    {
+      "earlierId": "node.block-diagram",
+      "laterId": "node.feedback-control",
+      "scopeId": "act-control-theory-core",
+      "lessonKey": "2-1"
+    }
+  ]
+}
