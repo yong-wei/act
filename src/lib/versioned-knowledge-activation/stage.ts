@@ -103,79 +103,99 @@ export function verifyArtifactFileHash(
  * for required artifact keys so malformed/missing/cross-capture files cannot
  * become READY.
  */
+/**
+ * Consumer-required projection artifacts that readiness depends on.
+ * Every declared hash for these (and any other declared key) must have a real
+ * path and rehash successfully — inventing SHA-256 alone cannot mark READY.
+ */
+const AUTHORITY_REQUIRED_ARTIFACTS = [
+  'manifest.json',
+  'engineering.json',
+] as const;
+
+const PROJECTION_REQUIRED_ARTIFACTS = [
+  'projection-manifest.json',
+  'resources.jsonl',
+  'bindings.jsonl',
+  'cards-index.json',
+  'prerequisites.jsonl',
+] as const;
+
+function rehashDeclaredArtifacts(
+  kind: 'authority' | 'projection',
+  artifactHashes: Record<string, string>,
+  artifactPaths: Record<string, string> | undefined,
+  requiredNames: readonly string[],
+): string[] {
+  const reasons: string[] = [];
+  const declaredNames = new Set([
+    ...requiredNames,
+    ...Object.keys(artifactHashes),
+  ]);
+  for (const name of [...declaredNames].sort()) {
+    const label = `${kind}-${name.replace(/[^a-z0-9]+/gi, '-')}`;
+    const declared = artifactHashes[name];
+    const filePath = artifactPaths?.[name];
+    const isRequired = (requiredNames as readonly string[]).includes(name);
+
+    // Required consumer artifacts must be declared when that side is present.
+    if (isRequired && (!declared || !isSha256Hex(declared))) {
+      reasons.push(`${label}-hash-missing`);
+      continue;
+    }
+    // Every declared digest (required or optional) must rehash a real file.
+    if (declared) {
+      if (!filePath) {
+        reasons.push(`${label}-path-missing`);
+        continue;
+      }
+      const failure = verifyArtifactFileHash(filePath, declared, label);
+      if (failure) reasons.push(failure);
+    }
+  }
+  return reasons;
+}
+
 export function validateArtifactFileDigests(
   artifacts: StagedActivationArtifactSet,
 ): string[] {
   const reasons: string[] = [];
   const authority = artifacts.authority;
   if (authority?.present) {
-    const required = ['manifest.json', 'engineering.json'] as const;
-    for (const name of required) {
-      const declared = authority.artifactHashes[name];
-      const filePath = authority.artifactPaths?.[name];
-      if (!declared || !isSha256Hex(declared)) {
-        reasons.push(`authority-${name.replace('.', '-')}-hash-missing`);
-        continue;
-      }
-      // Require a real path for declared hashes so inventing hex digests alone
-      // cannot stage READY consumers.
-      if (!filePath) {
-        reasons.push(`authority-${name.replace('.', '-')}-path-missing`);
-        continue;
-      }
-      const failure = verifyArtifactFileHash(
-        filePath,
-        declared,
-        `authority-${name.replace('.', '-')}`,
-      );
-      if (failure) reasons.push(failure);
-    }
-    // Any additional declared hashes with paths are also rehashed.
-    for (const [name, declared] of Object.entries(authority.artifactHashes)) {
-      if ((required as readonly string[]).includes(name)) continue;
-      const filePath = authority.artifactPaths?.[name];
-      if (!filePath) continue;
-      const failure = verifyArtifactFileHash(
-        filePath,
-        declared,
-        `authority-${name.replace(/[^a-z0-9]+/gi, '-')}`,
-      );
-      if (failure) reasons.push(failure);
-    }
+    reasons.push(
+      ...rehashDeclaredArtifacts(
+        'authority',
+        authority.artifactHashes,
+        authority.artifactPaths,
+        AUTHORITY_REQUIRED_ARTIFACTS,
+      ),
+    );
   }
 
   const projection = artifacts.projection;
   if (projection?.present) {
-    const required = ['projection-manifest.json'] as const;
-    for (const name of required) {
-      const declared = projection.artifactHashes[name];
-      const filePath = projection.artifactPaths?.[name];
-      if (!declared || !isSha256Hex(declared)) {
-        reasons.push(`projection-${name.replace('.', '-')}-hash-missing`);
-        continue;
-      }
-      if (!filePath) {
-        reasons.push(`projection-${name.replace('.', '-')}-path-missing`);
-        continue;
-      }
-      const failure = verifyArtifactFileHash(
-        filePath,
-        declared,
-        `projection-${name.replace('.', '-')}`,
-      );
-      if (failure) reasons.push(failure);
+    // Always rehash all declared projection hashes. Also require the consumer
+    // readiness set when the corresponding has* flags claim presence.
+    const required = new Set<string>(['projection-manifest.json']);
+    if (projection.hasResources) {
+      required.add('resources.jsonl');
+      required.add('bindings.jsonl');
     }
-    for (const [name, declared] of Object.entries(projection.artifactHashes)) {
-      if ((required as readonly string[]).includes(name)) continue;
-      const filePath = projection.artifactPaths?.[name];
-      if (!filePath) continue;
-      const failure = verifyArtifactFileHash(
-        filePath,
-        declared,
-        `projection-${name.replace(/[^a-z0-9]+/gi, '-')}`,
-      );
-      if (failure) reasons.push(failure);
-    }
+    if (projection.hasCardsIndex) required.add('cards-index.json');
+    if (projection.hasPrerequisites) required.add('prerequisites.jsonl');
+    if (projection.hasImpactReport) required.add('impact-report.json');
+    // Union with the full teaching readiness set so inventing only
+    // projection-manifest cannot unlock READY teaching consumers.
+    for (const name of PROJECTION_REQUIRED_ARTIFACTS) required.add(name);
+
+    reasons.push(
+      ...rehashDeclaredArtifacts(
+        'projection',
+        projection.artifactHashes,
+        projection.artifactPaths,
+        [...required],
+      ),
+    );
   }
 
   return reasons;

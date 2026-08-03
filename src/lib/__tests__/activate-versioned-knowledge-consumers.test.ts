@@ -1035,6 +1035,54 @@ describe('Consumer wiring and scope guards (#1276)', () => {
     ).toMatch(/unknown-consumer/);
   });
 
+  it('treats corrupted activation pointer as unavailable not absent', () => {
+    const prev = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+    const paths = tempActivationRoot();
+    process.env.ACT_CONSUMER_ACTIVATION_ROOT = paths.root;
+    try {
+      // Corrupt current.json present → unavailable (fail closed), not absent.
+      mkdirSync(paths.root, { recursive: true });
+      writeFileSync(paths.currentPointer, '{not-json', 'utf8');
+      const selection = resolveEngineeringGraphProductionSelection();
+      expect(selection.mode).toBe('unavailable');
+      expect(selection.mode).not.toBe('absent');
+    } finally {
+      if (prev === undefined) delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+      else process.env.ACT_CONSUMER_ACTIVATION_ROOT = prev;
+    }
+  });
+
+  it('rejects activation whose prior does not match the current pointer (P2)', () => {
+    const paths = tempActivationRoot();
+    const v1 = stageConsumerActivation(paths, {
+      artifacts: completeArtifacts(),
+      stagedAt: '2026-08-04T09:00:00.000Z',
+      activationId: 'activation-prior-v1',
+    });
+    activateConsumerActivation(paths, {
+      activationId: v1.activationId,
+      activationReceiptId: 'receipt-prior-v1',
+    });
+
+    // Stage v2 claiming a non-current prior.
+    const v2 = stageConsumerActivation(paths, {
+      artifacts: completeArtifacts(),
+      priorActivationId: 'activation-someone-else',
+      priorActivationHash: hashA,
+      stagedAt: '2026-08-04T09:10:00.000Z',
+      activationId: 'activation-prior-v2',
+    });
+    const failed = activateConsumerActivation(paths, {
+      activationId: v2.activationId,
+      activationReceiptId: 'receipt-prior-v2',
+    });
+    expect(failed.status).toBe('failed');
+    expect(failed.receipt.reasons).toContain('prior-activation-mismatch');
+    expect(readCurrentConsumerActivationPointer(paths)?.activationId).toBe(
+      'activation-prior-v1',
+    );
+  });
+
   it('rejects invented digests without real staged artifact files (P1-2)', () => {
     const fake = completeArtifacts(
       {

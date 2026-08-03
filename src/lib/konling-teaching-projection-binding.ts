@@ -243,16 +243,23 @@ export function resolveKonlingTeachingProjectionBinding(input: {
   let pinnedProjectionId = input.pinnedProjectionId;
   let pinnedProjectionHash = input.pinnedProjectionHash;
   let candidateProjectionId = input.candidateProjectionId ?? null;
-  if (konlingActivation.mode === 'use-combination' && konlingPins.projectionId) {
-    candidateProjectionId = candidateProjectionId ?? konlingPins.projectionId;
-    pinnedProjectionId = pinnedProjectionId ?? konlingPins.projectionId;
-    pinnedProjectionHash = pinnedProjectionHash ?? konlingPins.projectionHash;
-  } else if (
-    konlingActivation.mode === 'pin-combination'
-    && konlingPins.projectionId
+  let authoritySnapshotId: string | null = null;
+  let authoritySnapshotHash: string | null = null;
+  let authorityReleaseId: string | null = null;
+  if (
+    konlingActivation.mode === 'use-combination'
+    || konlingActivation.mode === 'pin-combination'
   ) {
-    pinnedProjectionId = pinnedProjectionId ?? konlingPins.projectionId;
-    pinnedProjectionHash = pinnedProjectionHash ?? konlingPins.projectionHash;
+    if (konlingPins.projectionId) {
+      if (konlingActivation.mode === 'use-combination') {
+        candidateProjectionId = candidateProjectionId ?? konlingPins.projectionId;
+      }
+      pinnedProjectionId = pinnedProjectionId ?? konlingPins.projectionId;
+      pinnedProjectionHash = pinnedProjectionHash ?? konlingPins.projectionHash;
+    }
+    authoritySnapshotId = konlingPins.authoritySnapshotId;
+    authoritySnapshotHash = konlingPins.authoritySnapshotHash;
+    authorityReleaseId = konlingPins.authorityReleaseId;
   }
 
   try {
@@ -262,6 +269,11 @@ export function resolveKonlingTeachingProjectionBinding(input: {
       pinnedProjectionId,
       pinnedProjectionHash,
       candidateProjectionId,
+      authoritySnapshotId,
+      authoritySnapshotHash,
+      authorityReleaseId,
+      // Use Konling's own selection so course-runtime does not override it.
+      consumerActivationSelection: konlingActivation,
       repoRoot,
       authorityRoot,
       projectionRoot,

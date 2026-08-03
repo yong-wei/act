@@ -252,17 +252,21 @@ export function resolveConsumerProductionSelection(
   resolved: ResolvedConsumerActivation,
 ): ConsumerProductionSelection {
   if (resolved.status === 'unavailable') {
-    const absent =
-      resolved.reasons.some(
+    // Only a truly missing pointer is "absent" (legacy fallthrough). Corrupted
+    // / unreadable / mismatched activation evidence must stay unavailable so
+    // production consumers fail closed instead of silently using global pins.
+    const trulyAbsent = resolved.reasons.every(
+      (reason) =>
+        reason === 'current-pointer-missing'
+        || reason === 'activation-unavailable',
+    )
+      && resolved.reasons.some(
         (reason) =>
           reason === 'current-pointer-missing'
-          || reason === 'activation-unavailable'
-          || reason.includes('current pointer')
-          || reason.includes('pointer-missing')
-          || reason.includes('no matching activation'),
+          || reason === 'activation-unavailable',
       )
-      || resolved.activationId === null;
-    if (absent && !resolved.reasons.some((r) => r.startsWith('unknown-consumer'))) {
+      && !resolved.reasons.some((r) => r.startsWith('unknown-consumer'));
+    if (trulyAbsent) {
       return {
         mode: 'absent',
         consumerId: resolved.consumerId,

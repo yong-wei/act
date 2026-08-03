@@ -486,6 +486,53 @@ export function activateConsumerActivation(
   const blocked = staged.manifest.impact.blockedConsumerIds;
   const shadow = staged.manifest.impact.shadowConsumerIds;
 
+  // Bind staged prior* fields to the actual previous pointer so rollback can
+  // only restore the real predecessor of this activation (P2).
+  if (previous) {
+    if (
+      staged.manifest.priorActivationId !== previous.activationId
+      || staged.manifest.priorActivationHash !== previous.activationHash
+    ) {
+      return failActivation({
+        paths,
+        activationReceiptId,
+        activationId: staged.activationId,
+        activationHash: staged.activationHash,
+        previous,
+        activatedAt,
+        advancedConsumerIds: ready,
+        pinnedConsumerIds: pinned,
+        blockedConsumerIds: blocked,
+        shadowConsumerIds: shadow,
+        reasons: [
+          'prior-activation-mismatch',
+          `expected:${previous.activationId}`,
+          `manifest:${staged.manifest.priorActivationId ?? 'null'}`,
+        ],
+      });
+    }
+  } else if (
+    staged.manifest.priorActivationId
+    || staged.manifest.priorActivationHash
+  ) {
+    return failActivation({
+      paths,
+      activationReceiptId,
+      activationId: staged.activationId,
+      activationHash: staged.activationHash,
+      previous,
+      activatedAt,
+      advancedConsumerIds: ready,
+      pinnedConsumerIds: pinned,
+      blockedConsumerIds: blocked,
+      shadowConsumerIds: shadow,
+      reasons: [
+        'prior-activation-unexpected',
+        'no-current-pointer-but-manifest-declares-prior',
+      ],
+    });
+  }
+
   if (
     input.requireActionableConsumers !== false
     && ready.length === 0
