@@ -26,6 +26,14 @@ import {
 } from 'node:fs';
 import { dirname, join } from 'node:path';
 
+/**
+ * Thin FS seam for atomic publish. Tests may intercept renameSync to simulate
+ * concurrent stage races without mocking the entire node:fs binding graph.
+ */
+export const authorityStoreFs = {
+  renameSync,
+};
+
 import {
   AUTHORITY_ACTIVATION_RECEIPT_CONTRACT,
   AUTHORITY_CURRENT_POINTER_CONTRACT,
@@ -223,7 +231,46 @@ export function stageAuthoritySnapshot(
       manifest: readJsonFile(join(stagingDir, 'manifest.json')),
       engineering: readJsonFile(join(stagingDir, 'engineering.json')),
     });
-    renameSync(stagingDir, dir);
+    try {
+      authorityStoreFs.renameSync(stagingDir, dir);
+    } catch (renameError) {
+      // Concurrent stage of the same snapshotId: if an identical published
+      // directory already exists, reuse it instead of failing open races.
+      if (existsSync(manifestPath) && existsSync(engineeringPath)) {
+        rmSync(stagingDir, { recursive: true, force: true });
+        const existingManifest = readJsonFile<AuthoritySnapshotManifest>(manifestPath);
+        const existingEngineering = readJsonFile<AuthorityEngineeringBody>(engineeringPath);
+        verifyMaterializedSnapshot({
+          manifest: existingManifest,
+          engineering: existingEngineering,
+        });
+        if (
+          existingManifest.snapshotHash !== snapshotHash
+          || existingManifest.snapshotId !== snapshotId
+          || authorityCanonicalJson(existingEngineering) !== authorityCanonicalJson(engineering)
+        ) {
+          throw new AuthoritySnapshotError(
+            'hash-invalid',
+            'concurrent staged snapshot identity conflicts with recomputed digest',
+          );
+        }
+        const existingReceipt = existsSync(stageReceiptPath)
+          ? readJsonFile<AuthorityStageReceipt>(stageReceiptPath)
+          : null;
+        return {
+          snapshotId,
+          snapshotHash,
+          manifestPath,
+          engineeringPath,
+          stageReceiptPath,
+          manifest: existingManifest,
+          engineering: existingEngineering,
+          stageReceipt: existingReceipt ?? stageReceipt,
+          reused: true,
+        };
+      }
+      throw renameError;
+    }
   } catch (error) {
     rmSync(stagingDir, { recursive: true, force: true });
     if (error instanceof AuthoritySnapshotError) throw error;
@@ -591,31 +638,43 @@ export function activateAuthoritySnapshot(
       'engineering-consumers-only',
     ],
   };
-  writeJsonAtomic(join(paths.activationsDir, `${activationReceiptId}.json`), receipt);
 
-  // Mark prior active snapshot lifecycle as superseded (best-effort metadata).
-  if (previous && previous.snapshotId !== staged.snapshotId) {
-    try {
-      const prior = loadStagedAuthoritySnapshot(paths, previous.snapshotId);
-      const superseded: AuthoritySnapshotManifest = {
-        ...prior.manifest,
-        lifecycle: 'superseded',
-      };
-      writeJsonAtomic(join(releaseDir(paths, previous.snapshotId), 'manifest.json'), superseded);
-    } catch {
-      // Prior snapshot immutability of engineering body is preserved; lifecycle
-      // annotation is best-effort and must not fail activation.
-    }
-  }
+  // Visible current pointer must always bind a persisted activation receipt.
+  // If receipt write fails after pointer replace, restore the prior pointer.
   try {
-    const activeManifest: AuthoritySnapshotManifest = {
-      ...staged.manifest,
-      lifecycle: 'active',
-    };
-    writeJsonAtomic(join(releaseDir(paths, staged.snapshotId), 'manifest.json'), activeManifest);
-  } catch {
-    // non-fatal
+    writeJsonAtomic(join(paths.activationsDir, `${activationReceiptId}.json`), receipt);
+  } catch (error) {
+    try {
+      if (previous) {
+        atomicWriteFile(
+          paths.currentPointer,
+          `${JSON.stringify(previous, null, 2)}\n`,
+        );
+      } else if (existsSync(paths.currentPointer)) {
+        rmSync(paths.currentPointer);
+      }
+    } catch {
+      // restore failure leaves an operator-visible inconsistent state
+    }
+    return failActivation({
+      paths,
+      activationReceiptId,
+      snapshotId: staged.snapshotId,
+      snapshotHash: staged.snapshotHash,
+      previous,
+      activatedAt,
+      teachingBefore,
+      reasons: [
+        'activation-receipt-write-failed',
+        error instanceof Error ? error.message : 'activation receipt write failed',
+        'pointer-restored-to-prior',
+      ],
+    });
   }
+
+  // Published snapshot manifests remain immutable. Active vs superseded is
+  // derived from authority/current.json (and optional external meta), never by
+  // rewriting released manifest.json lifecycle fields.
 
   return { status: 'activated', receipt, pointer };
 }
@@ -820,7 +879,33 @@ export function rollbackAuthorityPointer(
     priorSnapshotPreserved: true,
     reasons: ['one-pointer-rollback', 'prior-snapshot-immutable'],
   };
-  writeJsonAtomic(join(paths.rollbacksDir, `${rollbackReceiptId}.json`), receipt);
+
+  // Pointer must always bind a persisted rollback receipt. Restore prior
+  // pointer if receipt persistence fails after the pointer replace.
+  try {
+    writeJsonAtomic(join(paths.rollbacksDir, `${rollbackReceiptId}.json`), receipt);
+  } catch (error) {
+    try {
+      atomicWriteFile(paths.currentPointer, `${JSON.stringify(current, null, 2)}\n`);
+    } catch {
+      // restore failure leaves an operator-visible inconsistent state
+    }
+    return failRollback({
+      paths,
+      rollbackReceiptId,
+      fromSnapshotId: current.snapshotId,
+      fromSnapshotHash: current.snapshotHash,
+      toSnapshotId: target.snapshotId,
+      toSnapshotHash: target.snapshotHash,
+      rolledBackAt,
+      reasons: [
+        'rollback-receipt-write-failed',
+        error instanceof Error ? error.message : 'rollback receipt write failed',
+        'pointer-restored-to-prior',
+      ],
+    });
+  }
+
   return { status: 'rolled-back', receipt, pointer };
 }
 

@@ -1,4 +1,12 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import {
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  renameSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -22,6 +30,8 @@ import {
   resolveEngineeringGraphAuthority,
   resolveEngineeringRagAuthority,
   rollbackAuthorityPointer,
+  authorityStoreFs,
+  stageAuthorityAfterValidatedBundleImport,
   stageAuthoritySnapshot,
   stagedSnapshotNormalizedBytes,
   type AuthoritativeKnowledgeSnapshot,
@@ -144,6 +154,81 @@ function baseSnapshot(overrides: Partial<AuthoritativeKnowledgeSnapshot> = {}): 
     sourceMappings: [],
     sourceObjects: [],
     evidence: [],
+    releaseEntries: [
+      {
+        releaseId: 'ctr:release:control-theory-engineering-v0.12',
+        entityId: 'node-a',
+        ordinal: 0,
+        releaseTier: 'core',
+        entityRole: 'concept',
+        inclusionReason: 'aggregate-membership',
+        payload: { source: 'release-entry' },
+      },
+    ],
+    upstreamRagReferences: [
+      {
+        releaseId: 'ctr:release:control-theory-engineering-v0.12',
+        ordinal: 0,
+        publishedEntityId: 'node-a',
+        retrievalChunkId: 'chunk-stability-1',
+        citationTargetId: 'cite-stability-1',
+      },
+    ],
+    releaseComponents: [
+      {
+        releaseId: 'ctr:release:control-theory-engineering-v0.12',
+        ordinal: 0,
+        componentReleaseId: 'ctr:component:core-v0.12',
+        releaseVersion: 'v0.12',
+        protocol: 'actkg-component/1',
+        controlledPath: 'components/core',
+        releaseHash: hash,
+        releaseRawSha256: hash,
+        sha256sumsSha256: hash,
+        referenceKind: 'aggregate-member',
+        componentRole: 'core',
+        componentBundleId: 'bundle-core',
+        componentBundleDigest: hash,
+        componentManifestSha256: hash,
+        payload: { role: 'core' },
+      },
+    ],
+    projectionIdentities: [
+      {
+        releaseId: 'ctr:release:control-theory-engineering-v0.12',
+        projectionId: 'proj-runtime-1',
+        ordinal: 0,
+        profile: 'runtime',
+        projectionProfile: 'runtime',
+        versionDigest: 'c'.repeat(64),
+        sourceRelease: 'ctr:release:control-theory-engineering-v0.12',
+        sourceReleaseHash: hash,
+        sourceDatasetHash: 'd'.repeat(64),
+        nodeCount: 2,
+        linkCount: 1,
+        artifactPath: 'projections/runtime.jsonl',
+        artifactSha256: hash,
+        isRuntime: true,
+        bundleReceiptId: null,
+      },
+    ],
+    linkMetadata: [
+      {
+        releaseId: 'ctr:release:control-theory-engineering-v0.12',
+        relationId: 'rel-1',
+        ordinal: 0,
+        releaseTier: 'core',
+        sourceRelease: 'ctr:release:control-theory-engineering-v0.12',
+        sourceReleaseHash: hash,
+        evidenceRefs: [{ kind: 'predicate', id: 'ev-1' }],
+        sourceComponentRelease: 'ctr:component:core-v0.12',
+        targetComponentRelease: 'ctr:component:core-v0.12',
+        relationComponentRelease: 'ctr:component:core-v0.12',
+        profiles: ['runtime'],
+        payload: { strength: 1 },
+        bundleReceiptId: null,
+      },
+    ],
     ...overrides,
   };
 }
@@ -510,5 +595,332 @@ describe('Engineering consumers and Repository active resolution (#1266)', () =>
       x: 1,
       a: 2,
     })))).toBe(authorityDigest({ a: 2, x: 1 }));
+  });
+});
+
+describe('Codex review remediation (#1279)', () => {
+  it('P1-1: post-import helper stages snapshot without activating pointer', () => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthorityAfterValidatedBundleImport({
+      paths,
+      repositorySnapshot: baseSnapshot(),
+      deltaReceiptIds: ['delta-receipt:post-import'],
+      captureRevision: commit,
+    });
+
+    expect(staged.snapshotId).toMatch(/^snap-[a-f0-9]{64}$/);
+    expect(existsSync(path.join(paths.releasesDir, staged.snapshotId, 'manifest.json'))).toBe(true);
+    expect(existsSync(path.join(paths.releasesDir, staged.snapshotId, 'engineering.json'))).toBe(true);
+    expect(readCurrentAuthorityPointer(paths)).toBeNull();
+    expect(staged.stageReceipt.engineeringAuthorityAdvanced).toBe(false);
+    expect(staged.manifest.deltaReceiptIds).toEqual(['delta-receipt:post-import']);
+    expect(resolveActiveAuthoritySnapshot(paths).status).toBe('unavailable');
+  });
+
+  it('P1-1: import script wires the post-import staging helper', () => {
+    const scriptPath = path.resolve(
+      process.cwd(),
+      'scripts/db/import-compatible-actkg-public-bundle.ts',
+    );
+    const source = readFileSync(scriptPath, 'utf8');
+    expect(source).toMatch(/stageAuthorityAfterValidatedBundleImport/);
+    expect(source).toMatch(/authorityStage/);
+    // Import path must stage only; activation remains a separate transaction.
+    expect(source).not.toMatch(/activateAuthoritySnapshot|activateEngineeringAuthority/);
+  });
+
+  it('P1-2: full engineering semantic sets survive stage → load active round-trip', () => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    expect(staged.engineering.upstreamRagReferences).toHaveLength(1);
+    expect(staged.engineering.linkMetadata).toHaveLength(1);
+    expect(staged.engineering.releaseEntries).toHaveLength(1);
+    expect(staged.engineering.releaseComponents).toHaveLength(1);
+    expect(staged.engineering.projectionIdentities).toHaveLength(1);
+    expect(staged.manifest.provenance.upstreamRagReferenceCount).toBe(1);
+    expect(staged.manifest.provenance.linkMetadataCount).toBe(1);
+    expect(staged.manifest.provenance.releaseEntryCount).toBe(1);
+    expect(staged.manifest.provenance.releaseComponentCount).toBe(1);
+    expect(staged.manifest.provenance.projectionIdentityCount).toBe(1);
+
+    activateAuthoritySnapshot(paths, { snapshotId: staged.snapshotId });
+    const active = resolveActiveAuthoritySnapshot(paths);
+    expect(active.status).toBe('available');
+    if (active.status !== 'available') return;
+
+    expect(active.snapshot.engineering.upstreamRagReferences[0]).toMatchObject({
+      publishedEntityId: 'node-a',
+      retrievalChunkId: 'chunk-stability-1',
+      citationTargetId: 'cite-stability-1',
+    });
+    expect(active.snapshot.engineering.linkMetadata[0]).toMatchObject({
+      relationId: 'rel-1',
+      evidenceRefs: [{ kind: 'predicate', id: 'ev-1' }],
+    });
+    expect(active.snapshot.engineering.releaseEntries[0]?.entityId).toBe('node-a');
+    expect(active.snapshot.engineering.releaseComponents[0]?.componentReleaseId)
+      .toBe('ctr:component:core-v0.12');
+    expect(active.snapshot.engineering.projectionIdentities[0]?.projectionId)
+      .toBe('proj-runtime-1');
+
+    // Repository active view must re-surface the same semantic sets.
+    const repository = new AuthoritativeKnowledgeRepository(
+      { $transaction: async () => {
+        throw new Error('active path must not query database');
+      } } as never,
+      { authorityStorePaths: paths },
+    );
+    return repository.read({ authorityState: 'active' }).then((result) => {
+      expect(result.status).toBe('available');
+      if (result.status !== 'available') return;
+      expect(result.snapshot.upstreamRagReferences?.[0]?.retrievalChunkId)
+        .toBe('chunk-stability-1');
+      expect(result.snapshot.linkMetadata?.[0]?.relationId).toBe('rel-1');
+      expect(result.snapshot.releaseEntries?.[0]?.entityId).toBe('node-a');
+      expect(result.snapshot.releaseComponents?.[0]?.componentReleaseId)
+        .toBe('ctr:component:core-v0.12');
+      expect(result.snapshot.projectionIdentities?.[0]?.isRuntime).toBe(true);
+    });
+  });
+
+  it('P1-3: capture revision mismatch fails closed before staging', () => {
+    expect(() => materializeAuthoritySnapshot({
+      snapshot: baseSnapshot({
+        receipt: {
+          ...baseSnapshot().receipt!,
+          captureRevision: 'c'.repeat(40),
+        },
+      }),
+      captureRevision: commit,
+    })).toThrow(/capture revision|capture-revision/i);
+
+    expect(() => materializeAuthoritySnapshot({
+      snapshot: baseSnapshot({
+        release: {
+          ...baseSnapshot().release!,
+          captureRevision: 'd'.repeat(40),
+        },
+      }),
+    })).toThrow(/capture revision|capture-revision/i);
+
+    // Caller override must not silently win over a differing receipt revision.
+    expect(() => stageAuthoritySnapshot(tempAuthorityRoot(), {
+      snapshot: baseSnapshot(),
+      captureRevision: 'e'.repeat(40),
+    })).toThrow(/capture revision|capture-revision/i);
+  });
+
+  it('P1-4: restores prior pointer when activation receipt write fails', () => {
+    const paths = tempAuthorityRoot();
+    const first = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    const activated = activateAuthoritySnapshot(paths, {
+      snapshotId: first.snapshotId,
+      activationReceiptId: 'activation-prior',
+    });
+    expect(activated.status).toBe('activated');
+    const prior = readCurrentAuthorityPointer(paths);
+
+    const secondSnapshot = baseSnapshot({
+      objects: [
+        ...baseSnapshot().objects,
+        {
+          releaseId: 'ctr:release:control-theory-engineering-v0.12',
+          canonicalId: 'node-receipt-fail',
+          ordinal: 2,
+          canonicalType: 'DomainConcept',
+          semanticName: 'Receipt fail',
+          reviewStatus: 'approved',
+          publicationStatus: 'published',
+          lifecycleStatus: 'active',
+          payload: {},
+        },
+      ],
+      receipt: {
+        ...baseSnapshot().receipt!,
+        objectCount: 3,
+      },
+    });
+    const second = stageAuthoritySnapshot(paths, { snapshot: secondSnapshot });
+
+    // Occupy the receipt destination so atomic rename after pointer write fails.
+    const activationReceiptId = 'activation-should-fail';
+    mkdirSync(path.join(paths.activationsDir, `${activationReceiptId}.json`), {
+      recursive: true,
+    });
+
+    const failed = activateAuthoritySnapshot(paths, {
+      snapshotId: second.snapshotId,
+      activationReceiptId,
+    });
+    expect(failed.status).toBe('failed');
+    expect(failed.receipt.reasons.join(' ')).toMatch(/receipt-write-failed|pointer-restored/i);
+    expect(readCurrentAuthorityPointer(paths)).toEqual(prior);
+  });
+
+  it('P1-4: restores prior pointer when rollback receipt write fails', () => {
+    const paths = tempAuthorityRoot();
+    const first = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    activateAuthoritySnapshot(paths, { snapshotId: first.snapshotId });
+
+    const secondSnapshot = baseSnapshot({
+      objects: [
+        ...baseSnapshot().objects,
+        {
+          releaseId: 'ctr:release:control-theory-engineering-v0.12',
+          canonicalId: 'node-rb',
+          ordinal: 2,
+          canonicalType: 'DomainConcept',
+          semanticName: 'Rollback',
+          reviewStatus: 'approved',
+          publicationStatus: 'published',
+          lifecycleStatus: 'active',
+          payload: {},
+        },
+      ],
+      receipt: {
+        ...baseSnapshot().receipt!,
+        objectCount: 3,
+      },
+    });
+    const second = stageAuthoritySnapshot(paths, { snapshot: secondSnapshot });
+    activateAuthoritySnapshot(paths, { snapshotId: second.snapshotId });
+    expect(readCurrentAuthorityPointer(paths)?.snapshotId).toBe(second.snapshotId);
+
+    // Preserve uses `${id}-from.json`; final receipt uses `${id}.json`. Occupy
+    // only the final receipt path so pointer write can succeed then fail closed.
+    const rollbackReceiptId = 'rollback-should-fail';
+    mkdirSync(path.join(paths.rollbacksDir, `${rollbackReceiptId}.json`), {
+      recursive: true,
+    });
+
+    const failed = rollbackAuthorityPointer(paths, {
+      toSnapshotId: first.snapshotId,
+      toSnapshotHash: first.snapshotHash,
+      rollbackReceiptId,
+    });
+    expect(failed.status).toBe('failed');
+    expect(failed.receipt.reasons.join(' ')).toMatch(/receipt-write-failed|pointer-restored/i);
+    expect(readCurrentAuthorityPointer(paths)?.snapshotId).toBe(second.snapshotId);
+  });
+
+  it('P2-1: published snapshot manifests stay immutable after activation', () => {
+    const paths = tempAuthorityRoot();
+    const first = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    const firstManifestPath = path.join(paths.releasesDir, first.snapshotId, 'manifest.json');
+    const firstManifestBefore = readFileSync(firstManifestPath, 'utf8');
+    activateAuthoritySnapshot(paths, { snapshotId: first.snapshotId });
+
+    const secondSnapshot = baseSnapshot({
+      objects: [
+        ...baseSnapshot().objects,
+        {
+          releaseId: 'ctr:release:control-theory-engineering-v0.12',
+          canonicalId: 'node-immutable',
+          ordinal: 2,
+          canonicalType: 'DomainConcept',
+          semanticName: 'Immutable',
+          reviewStatus: 'approved',
+          publicationStatus: 'published',
+          lifecycleStatus: 'active',
+          payload: {},
+        },
+      ],
+      receipt: {
+        ...baseSnapshot().receipt!,
+        objectCount: 3,
+      },
+    });
+    const second = stageAuthoritySnapshot(paths, { snapshot: secondSnapshot });
+    const secondManifestPath = path.join(paths.releasesDir, second.snapshotId, 'manifest.json');
+    const secondManifestBefore = readFileSync(secondManifestPath, 'utf8');
+    activateAuthoritySnapshot(paths, { snapshotId: second.snapshotId });
+
+    expect(readFileSync(firstManifestPath, 'utf8')).toBe(firstManifestBefore);
+    expect(readFileSync(secondManifestPath, 'utf8')).toBe(secondManifestBefore);
+    expect(JSON.parse(firstManifestBefore).lifecycle).toBe('staged');
+    expect(JSON.parse(secondManifestBefore).lifecycle).toBe('staged');
+    // Active vs superseded is derived from the pointer, not rewritten manifests.
+    expect(readCurrentAuthorityPointer(paths)?.snapshotId).toBe(second.snapshotId);
+    expect(loadStagedAuthoritySnapshot(paths, first.snapshotId).manifest.lifecycle).toBe('staged');
+  });
+
+  it('P2-2: concurrent stage rename conflict reuses identical published snapshot', () => {
+    const paths = tempAuthorityRoot();
+    const input = { snapshot: baseSnapshot(), deltaReceiptIds: ['delta-receipt:race'] as const };
+    const first = stageAuthoritySnapshot(paths, input);
+    const releasePath = path.join(paths.releasesDir, first.snapshotId);
+    const parked = `${releasePath}.parked`;
+    renameSync(releasePath, parked);
+
+    const originalRename = authorityStoreFs.renameSync;
+    authorityStoreFs.renameSync = ((from: string, to: string) => {
+      // Simulate another process publishing the same snapshotId first.
+      if (
+        path.resolve(to) === path.resolve(releasePath)
+        && String(from).includes('.staging-')
+        && existsSync(parked)
+      ) {
+        originalRename(parked, releasePath);
+      }
+      return originalRename(from, to);
+    }) as typeof authorityStoreFs.renameSync;
+
+    try {
+      const concurrent = stageAuthoritySnapshot(paths, input);
+      expect(concurrent.reused).toBe(true);
+      expect(concurrent.snapshotId).toBe(first.snapshotId);
+      expect(concurrent.snapshotHash).toBe(first.snapshotHash);
+      expect(readCurrentAuthorityPointer(paths)).toBeNull();
+    } finally {
+      authorityStoreFs.renameSync = originalRename;
+      if (existsSync(parked)) {
+        try {
+          renameSync(parked, releasePath);
+        } catch {
+          rmSync(parked, { recursive: true, force: true });
+        }
+      }
+    }
+  });
+
+  it('P2-2: concurrent rename conflict with mismatched content fails closed', () => {
+    const paths = tempAuthorityRoot();
+    const first = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    const releasePath = path.join(paths.releasesDir, first.snapshotId);
+    const parked = `${releasePath}.parked-mismatch`;
+    renameSync(releasePath, parked);
+
+    // Corrupt the parked published snapshot so digest no longer matches.
+    const engineeringPath = path.join(parked, 'engineering.json');
+    const engineering = JSON.parse(readFileSync(engineeringPath, 'utf8')) as {
+      objects: Array<{ canonicalId: string }>;
+    };
+    engineering.objects[0]!.canonicalId = 'tampered-node';
+    writeFileSync(engineeringPath, `${JSON.stringify(engineering, null, 2)}\n`);
+
+    const originalRename = authorityStoreFs.renameSync;
+    authorityStoreFs.renameSync = ((from: string, to: string) => {
+      if (
+        path.resolve(to) === path.resolve(releasePath)
+        && String(from).includes('.staging-')
+        && existsSync(parked)
+      ) {
+        originalRename(parked, releasePath);
+      }
+      return originalRename(from, to);
+    }) as typeof authorityStoreFs.renameSync;
+
+    try {
+      // Mismatched published content must fail closed (digest/count/endpoint).
+      expect(() => stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() })).toThrow(
+        AuthoritySnapshotError,
+      );
+      expect(readCurrentAuthorityPointer(paths)).toBeNull();
+    } finally {
+      authorityStoreFs.renameSync = originalRename;
+      if (existsSync(parked)) {
+        rmSync(parked, { recursive: true, force: true });
+      }
+    }
   });
 });

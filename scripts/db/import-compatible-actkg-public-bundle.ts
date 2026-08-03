@@ -6,6 +6,9 @@ import path from 'node:path';
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
   AuthoritativeKnowledgeRepository,
+  DEFAULT_AUTHORITY_ROOT_RELATIVE,
+  resolveAuthorityStorePaths,
+  stageAuthorityAfterValidatedBundleImport,
   type AuthoritativeKnowledgeDatabase,
 } from '../../src/lib/authoritative-knowledge';
 import { loadAndValidatePublicBundleV1 } from '../actkg-release/public-bundle-v1';
@@ -146,6 +149,34 @@ async function main(): Promise<void> {
       expectedCaptureRevision: captureRevision ?? validated.captureRevision,
     });
 
+    // After successful DB import + Repository validation + Delta, stage the
+    // immutable Authority Snapshot. Import never activates the current pointer.
+    let authorityStage: {
+      snapshotId: string;
+      snapshotHash: string;
+      reused: boolean;
+      releaseDir: string;
+      pointerUnchanged: true;
+    } | null = null;
+    if (!verifyOnly && result.status === 'available') {
+      const authorityPaths = resolveAuthorityStorePaths(
+        path.resolve(root, DEFAULT_AUTHORITY_ROOT_RELATIVE),
+      );
+      const staged = stageAuthorityAfterValidatedBundleImport({
+        paths: authorityPaths,
+        repositorySnapshot: result.snapshot,
+        deltaReceiptIds: [delta.persisted.receiptId],
+        captureRevision: captureRevision ?? validated.captureRevision,
+      });
+      authorityStage = {
+        snapshotId: staged.snapshotId,
+        snapshotHash: staged.snapshotHash,
+        reused: staged.reused,
+        releaseDir: path.join(authorityPaths.releasesDir, staged.snapshotId),
+        pointerUnchanged: true,
+      };
+    }
+
     console.log(JSON.stringify({
       mode: verifyOnly ? 'verify-only' : 'import',
       import: counts ?? null,
@@ -166,6 +197,7 @@ async function main(): Promise<void> {
         upstreamCrosscheckStatus: delta.persisted.upstreamCrosscheckStatus,
         selectorsUnchanged: delta.persisted.selectorsUnchanged,
       },
+      authorityStage,
     }));
 
     if (delta.computed.authorizationState !== 'ACCEPTED') {

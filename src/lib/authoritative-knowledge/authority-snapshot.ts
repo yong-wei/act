@@ -31,6 +31,7 @@ export const DEFAULT_AUTHORITY_ROOT_RELATIVE =
   'course-content/authoring/knowledge/authority' as const;
 
 const SHA256 = /^[a-f0-9]{64}$/u;
+const GIT_COMMIT_SHA = /^[a-f0-9]{40}$/u;
 
 export type AuthoritySnapshotLifecycle =
   | 'staged'
@@ -66,6 +67,11 @@ export interface AuthorityProvenanceSummary {
   sourceMappingCount: number;
   sourceObjectCount: number;
   evidenceSegmentCount: number;
+  releaseEntryCount: number;
+  upstreamRagReferenceCount: number;
+  releaseComponentCount: number;
+  projectionIdentityCount: number;
+  linkMetadataCount: number;
   importReceiptId: string | null;
   bundleReceiptId: string | null;
   bundleId: string | null;
@@ -94,6 +100,67 @@ export interface AuthorityEngineeringBody {
     evidenceId: string;
     ordinal: number;
     payload: unknown;
+  }>;
+  /** Full engineering semantic sets retained for RAG/citation and relation evidence. */
+  releaseEntries: Array<{
+    entityId: string;
+    ordinal: number;
+    releaseTier: string;
+    entityRole: string;
+    inclusionReason: string;
+    payload: unknown;
+  }>;
+  upstreamRagReferences: Array<{
+    ordinal: number;
+    publishedEntityId: string;
+    retrievalChunkId: string;
+    citationTargetId: string;
+  }>;
+  releaseComponents: Array<{
+    ordinal: number;
+    componentReleaseId: string;
+    releaseVersion: string;
+    protocol: string;
+    controlledPath: string;
+    releaseHash: string;
+    releaseRawSha256: string | null;
+    sha256sumsSha256: string | null;
+    referenceKind: string | null;
+    componentRole: string | null;
+    componentBundleId: string | null;
+    componentBundleDigest: string | null;
+    componentManifestSha256: string | null;
+    payload: unknown;
+  }>;
+  projectionIdentities: Array<{
+    projectionId: string;
+    ordinal: number;
+    profile: string;
+    projectionProfile: string;
+    versionDigest: string;
+    sourceRelease: string;
+    sourceReleaseHash: string;
+    sourceDatasetHash: string;
+    nodeCount: number;
+    linkCount: number;
+    artifactPath: string;
+    artifactSha256: string;
+    isRuntime: boolean;
+    bundleReceiptId: string | null;
+  }>;
+  linkMetadata: Array<{
+    relationId: string;
+    ordinal: number;
+    releaseTier: string;
+    sourceRelease: string;
+    sourceReleaseHash: string;
+    evidenceRefs: unknown;
+    sourceComponentRelease: string | null;
+    targetComponentRelease: string | null;
+    relationComponentRelease: string | null;
+    profiles: unknown;
+    payload: unknown;
+    bundleReceiptId: string | null;
   }>;
 }
 
@@ -442,7 +509,152 @@ export function buildAuthorityEngineeringBody(
       left.ordinal - right.ordinal || left.evidenceId.localeCompare(right.evidenceId)
     ));
 
-  return { objects, relations, sourceMappings, sourceObjects, evidence };
+  const releaseEntries = (snapshot.releaseEntries ?? [])
+    .map((row) => ({
+      entityId: row.entityId,
+      ordinal: row.ordinal,
+      releaseTier: row.releaseTier,
+      entityRole: row.entityRole,
+      inclusionReason: row.inclusionReason,
+      payload: normalizePayload(row.payload),
+    }))
+    .sort((left, right) => (
+      left.ordinal - right.ordinal || left.entityId.localeCompare(right.entityId)
+    ));
+
+  const upstreamRagReferences = (snapshot.upstreamRagReferences ?? [])
+    .map((row) => ({
+      ordinal: row.ordinal,
+      publishedEntityId: row.publishedEntityId,
+      retrievalChunkId: row.retrievalChunkId,
+      citationTargetId: row.citationTargetId,
+    }))
+    .sort((left, right) => (
+      left.ordinal - right.ordinal
+      || left.publishedEntityId.localeCompare(right.publishedEntityId)
+      || left.retrievalChunkId.localeCompare(right.retrievalChunkId)
+      || left.citationTargetId.localeCompare(right.citationTargetId)
+    ));
+
+  const releaseComponents = (snapshot.releaseComponents ?? [])
+    .map((row) => ({
+      ordinal: row.ordinal,
+      componentReleaseId: row.componentReleaseId,
+      releaseVersion: row.releaseVersion,
+      protocol: row.protocol,
+      controlledPath: row.controlledPath,
+      releaseHash: row.releaseHash,
+      releaseRawSha256: row.releaseRawSha256,
+      sha256sumsSha256: row.sha256sumsSha256,
+      referenceKind: row.referenceKind ?? null,
+      componentRole: row.componentRole ?? null,
+      componentBundleId: row.componentBundleId ?? null,
+      componentBundleDigest: row.componentBundleDigest ?? null,
+      componentManifestSha256: row.componentManifestSha256 ?? null,
+      payload: normalizePayload(row.payload),
+    }))
+    .sort((left, right) => (
+      left.ordinal - right.ordinal
+      || left.componentReleaseId.localeCompare(right.componentReleaseId)
+    ));
+
+  const projectionIdentities = (snapshot.projectionIdentities ?? [])
+    .map((row) => ({
+      projectionId: row.projectionId,
+      ordinal: row.ordinal,
+      profile: row.profile,
+      projectionProfile: row.projectionProfile,
+      versionDigest: row.versionDigest,
+      sourceRelease: row.sourceRelease,
+      sourceReleaseHash: row.sourceReleaseHash,
+      sourceDatasetHash: row.sourceDatasetHash,
+      nodeCount: row.nodeCount,
+      linkCount: row.linkCount,
+      artifactPath: row.artifactPath,
+      artifactSha256: row.artifactSha256,
+      isRuntime: row.isRuntime,
+      bundleReceiptId: row.bundleReceiptId,
+    }))
+    .sort((left, right) => (
+      left.ordinal - right.ordinal || left.projectionId.localeCompare(right.projectionId)
+    ));
+
+  const linkMetadata = (snapshot.linkMetadata ?? [])
+    .map((row) => ({
+      relationId: row.relationId,
+      ordinal: row.ordinal,
+      releaseTier: row.releaseTier,
+      sourceRelease: row.sourceRelease,
+      sourceReleaseHash: row.sourceReleaseHash,
+      evidenceRefs: normalizePayload(row.evidenceRefs),
+      sourceComponentRelease: row.sourceComponentRelease,
+      targetComponentRelease: row.targetComponentRelease,
+      relationComponentRelease: row.relationComponentRelease,
+      profiles: normalizePayload(row.profiles),
+      payload: normalizePayload(row.payload),
+      bundleReceiptId: row.bundleReceiptId,
+    }))
+    .sort((left, right) => (
+      left.ordinal - right.ordinal || left.relationId.localeCompare(right.relationId)
+    ));
+
+  return {
+    objects,
+    relations,
+    sourceMappings,
+    sourceObjects,
+    evidence,
+    releaseEntries,
+    upstreamRagReferences,
+    releaseComponents,
+    projectionIdentities,
+    linkMetadata,
+  };
+}
+
+/**
+ * All non-empty capture revisions among caller override, bundle/import/release
+ * receipts must agree. Silent override is forbidden; mismatch fails closed.
+ */
+export function resolveConsistentCaptureRevision(input: {
+  captureRevision?: string | null;
+  snapshot: AuthoritativeKnowledgeSnapshot;
+}): string | null {
+  const candidates: Array<{ source: string; value: string }> = [];
+  const push = (source: string, value: string | null | undefined): void => {
+    if (typeof value !== 'string') return;
+    const trimmed = value.trim();
+    if (trimmed.length === 0) return;
+    candidates.push({ source, value: trimmed });
+  };
+
+  push('caller', input.captureRevision);
+  push('bundleReceipt', input.snapshot.bundleReceipt?.captureRevision);
+  push('importReceipt', input.snapshot.receipt?.captureRevision);
+  push('release', input.snapshot.release?.captureRevision);
+
+  if (candidates.length === 0) return null;
+
+  const expected = candidates[0]!.value;
+  for (const candidate of candidates) {
+    if (candidate.value !== expected) {
+      const detail = candidates
+        .map((row) => `${row.source}=${row.value}`)
+        .join(', ');
+      throw new AuthoritySnapshotError(
+        'capture-revision-mismatch',
+        `capture revisions disagree among inputs: ${detail}`,
+      );
+    }
+  }
+
+  if (!GIT_COMMIT_SHA.test(expected)) {
+    throw new AuthoritySnapshotError(
+      'capture-revision-invalid',
+      'captureRevision must be a 40-character lowercase Git SHA',
+    );
+  }
+  return expected;
 }
 
 function mapObjects(rows: AuthoritativeObjectRecord[]): AuthorityEngineeringObject[] {
@@ -538,20 +750,41 @@ export function materializeAuthoritySnapshot(
     }
   }
 
+  assertUniqueIds(engineering.releaseEntries.map((row) => row.entityId), 'releaseEntries');
+  assertUniqueIds(
+    engineering.projectionIdentities.map((row) => row.projectionId),
+    'projectionIdentities',
+  );
+  assertUniqueIds(
+    engineering.releaseComponents.map((row) => row.componentReleaseId),
+    'releaseComponents',
+  );
+  assertUniqueIds(engineering.linkMetadata.map((row) => row.relationId), 'linkMetadata');
+  assertUniqueIds(
+    engineering.upstreamRagReferences.map(
+      (row) => `${row.publishedEntityId}\0${row.retrievalChunkId}\0${row.citationTargetId}`,
+    ),
+    'upstreamRagReferences',
+  );
+
   const engineeringDigest = authorityDigest(engineering);
+  const captureRevision = resolveConsistentCaptureRevision({
+    captureRevision: input.captureRevision,
+    snapshot,
+  });
   const provenance: AuthorityProvenanceSummary = {
     sourceMappingCount: engineering.sourceMappings.length,
     sourceObjectCount: engineering.sourceObjects.length,
     evidenceSegmentCount: engineering.evidence.length,
+    releaseEntryCount: engineering.releaseEntries.length,
+    upstreamRagReferenceCount: engineering.upstreamRagReferences.length,
+    releaseComponentCount: engineering.releaseComponents.length,
+    projectionIdentityCount: engineering.projectionIdentities.length,
+    linkMetadataCount: engineering.linkMetadata.length,
     importReceiptId: snapshot.receipt?.id ?? null,
     bundleReceiptId: snapshot.bundleReceipt?.id ?? null,
     bundleId: snapshot.bundleReceipt?.bundleId ?? null,
-    captureRevision:
-      input.captureRevision
-      ?? snapshot.bundleReceipt?.captureRevision
-      ?? snapshot.receipt?.captureRevision
-      ?? snapshot.release.captureRevision
-      ?? null,
+    captureRevision,
     lockRawHash:
       snapshot.bundleReceipt?.lockRawSha256
       ?? snapshot.receipt?.lockRawHash
@@ -624,6 +857,22 @@ export function verifyMaterializedSnapshot(input: {
     engineering.relations,
     new Set(engineering.objects.map((row) => row.canonicalId)),
   );
+  assertUniqueIds(engineering.releaseEntries.map((row) => row.entityId), 'releaseEntries');
+  assertUniqueIds(
+    engineering.projectionIdentities.map((row) => row.projectionId),
+    'projectionIdentities',
+  );
+  assertUniqueIds(
+    engineering.releaseComponents.map((row) => row.componentReleaseId),
+    'releaseComponents',
+  );
+  assertUniqueIds(engineering.linkMetadata.map((row) => row.relationId), 'linkMetadata');
+  assertUniqueIds(
+    engineering.upstreamRagReferences.map(
+      (row) => `${row.publishedEntityId}\0${row.retrievalChunkId}\0${row.citationTargetId}`,
+    ),
+    'upstreamRagReferences',
+  );
 
   const engineeringDigest = authorityDigest(engineering);
   if (engineeringDigest !== manifest.engineeringDigest) {
@@ -639,6 +888,19 @@ export function verifyMaterializedSnapshot(input: {
     throw new AuthoritySnapshotError(
       'count-mismatch',
       'manifest object/relation counts do not match engineering body',
+    );
+  }
+  const provenance = manifest.provenance;
+  if (
+    engineering.releaseEntries.length !== provenance.releaseEntryCount
+    || engineering.upstreamRagReferences.length !== provenance.upstreamRagReferenceCount
+    || engineering.releaseComponents.length !== provenance.releaseComponentCount
+    || engineering.projectionIdentities.length !== provenance.projectionIdentityCount
+    || engineering.linkMetadata.length !== provenance.linkMetadataCount
+  ) {
+    throw new AuthoritySnapshotError(
+      'count-mismatch',
+      'manifest provenance semantic-set counts do not match engineering body',
     );
   }
 
@@ -807,6 +1069,71 @@ export function authoritySnapshotToRepositoryView(input: {
       segmentType: 'authority-snapshot',
       contentHash: manifest.snapshotHash,
       payload: row.payload,
+    })),
+    releaseEntries: engineering.releaseEntries.map((row) => ({
+      releaseId: manifest.releaseId,
+      entityId: row.entityId,
+      ordinal: row.ordinal,
+      releaseTier: row.releaseTier,
+      entityRole: row.entityRole,
+      inclusionReason: row.inclusionReason,
+      payload: row.payload,
+    })),
+    upstreamRagReferences: engineering.upstreamRagReferences.map((row) => ({
+      releaseId: manifest.releaseId,
+      ordinal: row.ordinal,
+      publishedEntityId: row.publishedEntityId,
+      retrievalChunkId: row.retrievalChunkId,
+      citationTargetId: row.citationTargetId,
+    })),
+    releaseComponents: engineering.releaseComponents.map((row) => ({
+      releaseId: manifest.releaseId,
+      ordinal: row.ordinal,
+      componentReleaseId: row.componentReleaseId,
+      releaseVersion: row.releaseVersion,
+      protocol: row.protocol,
+      controlledPath: row.controlledPath,
+      releaseHash: row.releaseHash,
+      releaseRawSha256: row.releaseRawSha256,
+      sha256sumsSha256: row.sha256sumsSha256,
+      referenceKind: row.referenceKind,
+      componentRole: row.componentRole,
+      componentBundleId: row.componentBundleId,
+      componentBundleDigest: row.componentBundleDigest,
+      componentManifestSha256: row.componentManifestSha256,
+      payload: row.payload,
+    })),
+    projectionIdentities: engineering.projectionIdentities.map((row) => ({
+      releaseId: manifest.releaseId,
+      projectionId: row.projectionId,
+      ordinal: row.ordinal,
+      profile: row.profile,
+      projectionProfile: row.projectionProfile,
+      versionDigest: row.versionDigest,
+      sourceRelease: row.sourceRelease,
+      sourceReleaseHash: row.sourceReleaseHash,
+      sourceDatasetHash: row.sourceDatasetHash,
+      nodeCount: row.nodeCount,
+      linkCount: row.linkCount,
+      artifactPath: row.artifactPath,
+      artifactSha256: row.artifactSha256,
+      isRuntime: row.isRuntime,
+      bundleReceiptId: row.bundleReceiptId,
+    })),
+    linkMetadata: engineering.linkMetadata.map((row) => ({
+      releaseId: manifest.releaseId,
+      relationId: row.relationId,
+      ordinal: row.ordinal,
+      releaseTier: row.releaseTier,
+      sourceRelease: row.sourceRelease,
+      sourceReleaseHash: row.sourceReleaseHash,
+      evidenceRefs: row.evidenceRefs,
+      sourceComponentRelease: row.sourceComponentRelease,
+      targetComponentRelease: row.targetComponentRelease,
+      relationComponentRelease: row.relationComponentRelease,
+      profiles: row.profiles,
+      payload: row.payload,
+      bundleReceiptId: row.bundleReceiptId,
     })),
     bundleReceipt: manifest.bundleDigest && manifest.bundleReceiptId
       ? {

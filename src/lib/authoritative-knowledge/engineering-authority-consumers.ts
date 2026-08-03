@@ -111,6 +111,37 @@ export function stageAuthorityFromRepositorySnapshot(
 }
 
 /**
+ * Post-import helper used by the standard Bundle import path after DB import,
+ * Repository validation, and Delta binding succeed. Stages a complete immutable
+ * Authority Snapshot under authority/releases/<snapshotId> and never activates
+ * the current Authority pointer as a side effect of import.
+ */
+export function stageAuthorityAfterValidatedBundleImport(input: {
+  paths: AuthorityStorePaths;
+  repositorySnapshot: AuthoritativeKnowledgeSnapshot;
+  deltaReceiptIds?: readonly string[];
+  predecessorReleaseId?: string | null;
+  captureRevision?: string | null;
+  stagedAt?: string;
+  receiptId?: string;
+}): StagedAuthoritySnapshotFiles {
+  return stageAuthoritySnapshot(
+    input.paths,
+    {
+      snapshot: input.repositorySnapshot,
+      deltaReceiptIds: input.deltaReceiptIds,
+      predecessorReleaseId: input.predecessorReleaseId,
+      captureRevision: input.captureRevision,
+      stagedAt: input.stagedAt,
+    },
+    {
+      stagedAt: input.stagedAt,
+      receiptId: input.receiptId,
+    },
+  );
+}
+
+/**
  * Activate a staged snapshot for engineering consumers only.
  * Proves teaching selectors are unchanged by requiring equal fingerprints.
  */
