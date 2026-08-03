@@ -184,7 +184,16 @@ Reviewed resource projections used by path planning or Konling grounding SHALL h
 - **AND** the rest of the RAG/Teaching Projection SHALL remain unchanged
 
 ### Requirement: Reviewed knowledge visuals expose citation-safe grounding
-Reviewed knowledge cards and infographs SHALL provide citation-safe grounding metadata when used by Konling or path rationale.
+Card retrieval MUST resolve by Canonical ID and retain card/resource/projection identity, source hash, review state, citation target, and optional-card status. A missing optional card MUST NOT be represented as a missing Canonical node. Reviewed knowledge cards and infographs SHALL provide citation-safe grounding metadata when used by Konling or path rationale.
+
+#### Scenario: Canonical card is retrieved
+- **WHEN** a teaching or Konling query resolves an active card for a Canonical ID
+- **THEN** the retrieval record SHALL carry the Canonical ID, card ID, projection ID, and citation-safe provenance
+
+#### Scenario: Card is optional and absent
+- **WHEN** no active card exists for an optional Canonical ID
+- **THEN** RAG SHALL continue with the Canonical summary or other authorized resource
+- **AND** it SHALL report the absence without fabricating card content
 
 #### Scenario: Knowledge visual grounds an answer
 - **WHEN** a reviewed knowledge card or infograph is retrieved for a Konling explanation or path rationale
@@ -231,7 +240,12 @@ Canonical summaries, relations, and upstream RAG references MUST NOT directly sa
 - **THEN** the answer SHALL cite independently retrieved and verified ACT content rather than the object summary
 
 ### Requirement: Canonical RAG remains shadow before cutover
-The RAG authority selector MUST remain on Legacy production retrieval until the final downtime cutover activates all formal consumers together.
+The RAG authority selector MUST remain on Legacy production retrieval until the final downtime cutover activates all formal consumers together. Card migration MUST not switch formal RAG authority by itself. Until the consumer activation gate passes, card queries SHALL use the explicit Legacy/pinned fallback combination and expose migration/fallback provenance.
+
+#### Scenario: Legacy fallback is used
+- **WHEN** a step still resolves through a legacy card crosswalk
+- **THEN** RAG SHALL record the fallback hit and legacy identity
+- **AND** it SHALL not write a new Canonical authority selector
 
 #### Scenario: Canonical shadow retrieval succeeds
 - **WHEN** Canonical entity alignment and citations pass validation before cutover

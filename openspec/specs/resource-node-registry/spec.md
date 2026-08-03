@@ -328,7 +328,16 @@ Textbook search-document rows SHALL remain citation-support records unless a rev
 - **AND** the helper SHALL report the parent-section dependency separately from citation-anchor gaps.
 
 ### Requirement: Knowledge cards and infographs are reviewed in semantic shards
-Knowledge-card and infograph resources SHALL be eligible for path planning or Konling grounding only after deterministic shard-based implementing-agent semantic review.
+Canonical-keyed knowledge cards MUST remain governed teaching resources and MUST carry one Canonical ID, reviewed source/version evidence, citation metadata, and explicit path/grounding disposition. Card migration MUST NOT make a card an engineering graph entity or require one for every Canonical node. Knowledge-card and infograph resources SHALL be eligible for path planning or Konling grounding only after deterministic shard-based implementing-agent semantic review.
+
+#### Scenario: Core card is active
+- **WHEN** a card is selected for a core node with `cardPolicy: REQUIRED`
+- **THEN** the card SHALL pass existing semantic/citation review and appear once in the Canonical card index
+
+#### Scenario: Non-core node has no card
+- **WHEN** a non-core Canonical node has no active card
+- **THEN** the ResourceNode projection SHALL remain valid if other resource evidence is present
+- **AND** no card-readiness gate SHALL be synthesized
 
 #### Scenario: Knowledge visual shard is selected
 - **WHEN** the helper reports knowledge-card or infograph resources with missing semantic review, path disposition, graph binding, citation, or evidence fields
@@ -346,7 +355,12 @@ Knowledge-card and infograph resources SHALL be eligible for path planning or Ko
 - **AND** it SHALL not become an independent PathNode without a reviewed launch target and evidence contract.
 
 ### Requirement: ResourceNode registry exposes a planner-consumable projection
-The ResourceNode governance layer SHALL provide a planner-consumable projection that matches the resource center inventory boundary.
+The ResourceNode governance layer SHALL provide a planner-consumable projection that matches the resource center inventory boundary. The ResourceNode projection MUST identify Canonical-keyed card resources, optional-card absence, legacy fallback status, projection identity, source hash, review state, and launch/evidence policy without exposing raw hidden card content.
+
+#### Scenario: Step resolves an optional card
+- **WHEN** a step references a Canonical ID whose active card is absent
+- **THEN** the projection SHALL return the Canonical/resource identity and an explicit optional-card-missing state
+- **AND** path consumers SHALL be able to use other eligible resources
 
 #### Scenario: Planner projection is built
 - **WHEN** the planner requests governed resource candidates
@@ -359,7 +373,12 @@ The ResourceNode governance layer SHALL provide a planner-consumable projection 
 - **AND** it SHALL NOT receive raw textbook content, raw media bytes, hidden assessment internals, or private learner evidence.
 
 ### Requirement: Core registered and knowledge resources have complete reviewed semantics
-Registered resources, knowledge cards, and knowledge infographs SHALL be semantically reviewed before they affect path planning, Konling grounding, or governed citation coverage.
+Registered resources, knowledge cards, and knowledge infographs SHALL be semantically reviewed before they affect path planning, Konling grounding, or governed citation coverage. Only cards required by selected core-node/card-policy records MUST block the corresponding projection. A duplicate, split, or unmapped card MUST retain a machine-readable classification and cannot silently become active.
+
+#### Scenario: Duplicate active cards exist
+- **WHEN** two cards claim ACTIVE status for one Canonical ID
+- **THEN** card-index publication SHALL fail closed
+- **AND** the affected card consumer SHALL remain on its prior valid state
 
 #### Scenario: Core resource is reviewed
 - **WHEN** a registered resource, knowledge card, or knowledge infograph is processed in the core completion batch

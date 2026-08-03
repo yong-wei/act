@@ -911,6 +911,17 @@ describe('Publication gate, evidence, and fail-closed store (#1270)', () => {
     );
     expect(artifacts.projectionPrerequisites).toHaveLength(1);
 
+    // #1271: cardPolicy REQUIRED core nodes need an active card for projection gate.
+    const requiredCards = artifacts.projectionCoreNodes
+      .filter((n) => n.cardPolicy === 'required')
+      .map((n) => ({
+        cardId: `card-${n.canonicalId}`,
+        canonicalId: n.canonicalId,
+        active: true,
+        required: true,
+        title: n.canonicalId,
+      }));
+
     const projection = buildTeachingProjection({
       contract: 'act-teaching-projection-authoring/v1',
       scopeId: SCOPE,
@@ -921,7 +932,7 @@ describe('Publication gate, evidence, and fail-closed store (#1270)', () => {
       bindings: [],
       coreNodes: artifacts.projectionCoreNodes,
       prerequisites: artifacts.projectionPrerequisites,
-      cards: [],
+      cards: requiredCards,
     });
     expect(projection.coreNodes.length).toBe(3);
     expect(projection.prerequisites.length).toBe(1);
