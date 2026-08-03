@@ -294,6 +294,44 @@ describe('downstream readiness and consumer gates (#1265)', () => {
     expect(readiness.kaq.ready).toBe(false);
   });
 
+  it('fails closed on teaching and dependent consumers when Bundle integrity is INVALID', () => {
+    const readiness = buildDownstreamReadinessDiagnostics({
+      capture: CAPTURE,
+      coverageEntries: [],
+      crosswalks: [],
+      unresolvedUpstreamCount: 0,
+      shadowPublishedBindingCount: 1,
+      bundleIntegrity: 'INVALID',
+      teachingScope: 'PUBLISHED',
+      explicitAuthorityActivation: true,
+    });
+    expect(readiness.engineeringAuthority?.state).toBe('REJECTED_INTEGRITY');
+    expect(readiness.engineeringAuthority?.activeEligible).toBe(false);
+    expect(readiness.teachingProjection).toMatchObject({
+      ready: false,
+      blocked: true,
+      reason: 'bundle-integrity-invalid',
+    });
+    expect(readiness.rag.ready).toBe(false);
+    expect(readiness.kaq.ready).toBe(false);
+    expect(readiness.sar.ready).toBe(false);
+    expect(readiness.path).toMatchObject({
+      ready: false,
+      blocked: true,
+      reason: 'bundle-integrity-invalid',
+    });
+  });
+
+  it('rejects duplicate ACT teaching-scope identities before unique collapse', () => {
+    expect(() => selectActTeachingScopeMembership({
+      actBoundCanonicalIds: ['ctc:a', 'ctc:a'],
+    })).toThrow(/duplicate ACT-bound identity ctc:a/);
+
+    expect(() => buildActTeachingScopeWorklistItems({
+      actBoundCanonicalIds: ['ctc:a', 'ctc:a'],
+    })).toThrow(/duplicate ACT-bound identity ctc:a/);
+  });
+
   it('scopes resource binding blockers to the consumer package only', () => {
     const inventory = buildResourceBindingInventory([unresolvedObservation('res-a')]);
     const readiness = evaluateCanonicalResourceCutoverReadiness({

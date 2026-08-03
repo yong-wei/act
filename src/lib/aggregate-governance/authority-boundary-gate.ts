@@ -292,7 +292,22 @@ export function resolveActTeachingDenominator(input: {
   unprojectedUpstream: string[];
   empty: boolean;
 } {
-  const act = uniqueSorted(input.actBoundCanonicalIds);
+  // Fail closed before uniqueSorted so duplicate ACT-bound IDs cannot collapse
+  // into a false-valid teaching denominator (#1265 review P2).
+  const rawAct = input.actBoundCanonicalIds
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+  const seenAct = new Set<string>();
+  for (const id of rawAct) {
+    if (seenAct.has(id)) {
+      throw new Error(
+        `ACT teaching denominator rejected: duplicate ACT-bound identity ${id}`,
+      );
+    }
+    seenAct.add(id);
+  }
+
+  const act = uniqueSorted(rawAct);
   const upstream = new Set(
     input.upstreamCanonicalIds.map((id) => id.trim()).filter((id) => id.length > 0),
   );

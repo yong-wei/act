@@ -103,7 +103,20 @@ export function selectActTeachingScopeMembership(input: {
   /** Full upstream Release/projection IDs for reporting unprojected members. */
   upstreamCanonicalIds?: readonly string[];
 }): ActTeachingScopeMembership {
-  const bound = uniqueSorted(input.actBoundCanonicalIds);
+  // Fail closed on duplicate ACT-bound identities before uniqueSorted collapse
+  // so Teaching Projection worklist assembly cannot silently drop dups (#1265).
+  const rawBound = input.actBoundCanonicalIds.filter(Boolean);
+  const seenBound = new Set<string>();
+  for (const id of rawBound) {
+    if (seenBound.has(id)) {
+      throw new Error(
+        `ACT teaching scope rejected: duplicate ACT-bound identity ${id}`,
+      );
+    }
+    seenBound.add(id);
+  }
+
+  const bound = uniqueSorted(rawBound);
   const upstream = uniqueSorted(input.upstreamCanonicalIds ?? []);
   const boundSet = new Set(bound);
   const unprojectedUpstream = upstream.filter((id) => !boundSet.has(id));

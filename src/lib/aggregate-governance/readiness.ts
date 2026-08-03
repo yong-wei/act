@@ -51,6 +51,18 @@ export function buildDownstreamReadinessDiagnostics(input: {
     teachingScope,
     historicalDeferPresent: false,
   });
+  // Integrity failures fail closed for Authority and every dependent consumer
+  // package, including Teaching Projection readiness diagnostics (#1265).
+  const integrityFailed = authorityDecision.authority === 'REJECTED_INTEGRITY';
+  const teachingPublished = authorityDecision.teachingProjection === 'PUBLISHED';
+  const teachingReady = !integrityFailed && teachingPublished;
+  const teachingReason = integrityFailed
+    ? 'bundle-integrity-invalid'
+    : teachingPublished
+      ? 'teaching-projection-published'
+      : authorityDecision.teachingProjection === 'REVIEW_REQUIRED'
+        ? 'teaching-projection-review-required'
+        : 'formal-teaching-projection-not-available';
 
   return {
     schemaVersion: 'aggregate-downstream-readiness/v1',
@@ -59,45 +71,51 @@ export function buildDownstreamReadinessDiagnostics(input: {
     releaseId: input.capture.releaseId,
     deltaReceiptId: input.capture.deltaReceiptId,
     rag: {
-      ready: ragReady,
-      requires: 'valid-act-structural-unit-crosswalk',
+      ready: !integrityFailed && ragReady,
+      requires: integrityFailed
+        ? 'bundle-integrity'
+        : 'valid-act-structural-unit-crosswalk',
       validCrosswalkCount: validCrosswalks,
       unresolvedUpstreamCount: input.unresolvedUpstreamCount,
     },
     kaq: {
-      ready: kaqReady,
-      requires: 'course-coverage',
+      ready: !integrityFailed && kaqReady,
+      requires: integrityFailed ? 'bundle-integrity' : 'course-coverage',
       coveredObjectCount: covered.length,
       excludedObjectCount: excluded,
     },
     sar: {
-      ready: sarReady,
-      requires: 'reviewed-bindings-and-kaq',
+      ready: !integrityFailed && sarReady,
+      requires: integrityFailed
+        ? 'bundle-integrity'
+        : 'reviewed-bindings-and-kaq',
       shadowPublishedBindingCount: input.shadowPublishedBindingCount,
     },
     teachingProjection: {
-      ready: authorityDecision.teachingProjection === 'PUBLISHED',
-      blocked: authorityDecision.teachingProjection !== 'PUBLISHED',
-      reason: authorityDecision.teachingProjection === 'PUBLISHED'
-        ? 'teaching-projection-published'
-        : authorityDecision.teachingProjection === 'REVIEW_REQUIRED'
-          ? 'teaching-projection-review-required'
-          : 'formal-teaching-projection-not-available',
+      ready: teachingReady,
+      blocked: !teachingReady,
+      reason: teachingReason,
     },
     path: {
       ready: false,
       blocked: true,
-      reason: 'awaits-formal-teaching-projection',
+      reason: integrityFailed
+        ? 'bundle-integrity-invalid'
+        : 'awaits-formal-teaching-projection',
     },
     facts: {
       ready: false,
       blocked: true,
-      reason: 'awaits-formal-teaching-projection',
+      reason: integrityFailed
+        ? 'bundle-integrity-invalid'
+        : 'awaits-formal-teaching-projection',
     },
     cutover: {
       ready: false,
       blocked: true,
-      reason: 'production-selectors-remain-legacy',
+      reason: integrityFailed
+        ? 'bundle-integrity-invalid'
+        : 'production-selectors-remain-legacy',
     },
     productionSelectors: {
       candidateUnchanged: true,
