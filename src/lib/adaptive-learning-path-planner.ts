@@ -758,6 +758,12 @@ export interface AdaptiveLearningPathRecommendationProvenance {
   nextAction: string | null;
 }
 
+export type AdaptiveLearningPathPersistedPathOption = Record<string, unknown> & {
+  optionId?: string;
+  nodeIds?: string[];
+  recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
+};
+
 export interface AdaptiveLearningPathCapabilityEvidence {
   target: AdaptiveLearningCapabilityTarget;
   observedEvidence: {
@@ -805,6 +811,7 @@ export interface AdaptiveLearningPathPlan {
   policyFamily: AdaptiveLearningPathPolicyFamily;
   policyMetadata: AdaptiveLearningPathPolicyDefinition;
   policyBundle?: AdaptiveLearningPathPolicyBundle;
+  pathOptions?: AdaptiveLearningPathPersistedPathOption[];
   excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'];
   status: AdaptiveLearningPathStatus;
   currentNodeId: string | null;
@@ -849,7 +856,7 @@ export interface AdaptiveLearningPathPersistenceRecord {
     currentNodeId: string | null;
     score: AdaptiveLearningPathScore;
     confidence: AdaptiveLearningPathPlan['confidence'];
-    pathOptions?: Array<Record<string, unknown>>;
+    pathOptions?: AdaptiveLearningPathPersistedPathOption[];
     planNodes: AdaptiveLearningPathPlanNode[];
     alternatives: AdaptiveLearningPathAlternative[];
     explanations: AdaptiveLearningPathExplanation;
@@ -2372,7 +2379,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
   };
 }
 
-function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Array<Record<string, unknown>> {
+function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathPersistedPathOption[] {
   if (plan.policyBundle?.paths.length) {
     const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
     return plan.policyBundle.paths.map((path, index) => ({
@@ -5059,16 +5066,18 @@ export function buildAdaptivePathRecommendationProvenance(input: {
       affectedResourceTitles: affectedNodes.map((node) => node.title),
     };
   });
-  const hasLowConfidenceEntry = entries.some((entry) => entry.confidence === 'low');
+  const hasLowConfidenceDeficit = input.deficits.some((deficit) =>
+    recommendationEntryConfidence(deficit) === 'low'
+  );
   const hasUnmatchedEntry = entries.some((entry) =>
     entry.confidence !== 'low' && entry.affectedResourceTitles.length === 0
   );
-  const confidence = input.confidence === 'low' || entries.length === 0 || hasLowConfidenceEntry
+  const confidence = input.confidence === 'low' || entries.length === 0 || hasLowConfidenceDeficit
     ? 'low'
     : input.confidence;
   const limitations = unique([
     entries.length === 0 ? '当前没有可用于形成个性化判断的有效学习证据。' : null,
-    hasLowConfidenceEntry ? '部分判断的有效证据仍然不足。' : null,
+    hasLowConfidenceDeficit ? '部分判断的有效证据仍然不足。' : null,
     hasUnmatchedEntry ? '部分判断缺少可核验的推荐资源关联。' : null,
   ]);
   return {
@@ -5081,7 +5090,7 @@ export function buildAdaptivePathRecommendationProvenance(input: {
     entries,
     evidenceReviewHref: '/profile/evidence',
     limitations,
-    nextAction: confidence === 'low' || hasLowConfidenceEntry
+    nextAction: confidence === 'low' || hasLowConfidenceDeficit
       ? '完成诊断或练习，补充有效学习证据。'
       : null,
   };

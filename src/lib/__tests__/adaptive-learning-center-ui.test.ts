@@ -192,6 +192,26 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
     stage: 'stage-1-rules-graph',
     policyFamily: 'rules-plus-graph-search',
     policyMetadata: ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES['rules-plus-graph-search'],
+    pathOptions: [{
+      optionId: 'path-option-1',
+      nodeIds: ['node-1'],
+      recommendationProvenance: {
+        summary: '依据 相位裕度 的学习证据安排本路径。',
+        confidence: 'low',
+        entries: [{
+          targetLabel: '相位裕度',
+          targetKind: 'knowledge',
+          confidence: 'medium',
+          evidenceSummary: '掌握状态 42%，来自 3 条有效证据，置信度 60%。',
+          judgment: '当前状态仍有提升空间，因此优先安排 相位裕度映射练习。',
+          affectedNodeIds: ['node-1'],
+          affectedResourceTitles: ['相位裕度映射练习'],
+        }],
+        evidenceReviewHref: '/profile/evidence',
+        limitations: ['部分判断的有效证据仍然不足。'],
+        nextAction: '完成诊断或练习，补充有效学习证据。',
+      },
+    }],
     excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
     status: 'ready',
     currentNodeId: 'node-1',
@@ -345,15 +365,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(JSON.stringify(provenance)).not.toContain('targetId');
   });
 
-  it('keeps legacy generated paths without an evidence snapshot usable', () => {
-    const plan = pathPlan();
-    const legacyPlan = {
-      ...plan,
-      visualization: {
-        ...plan.visualization,
-        evidence: undefined,
-      },
-    } as unknown as AdaptiveLearningPathPlan;
+  it('does not synthesize provenance for legacy paths that only retain learner evidence', () => {
+    const legacyPlan = pathPlan();
+    delete legacyPlan.pathOptions;
     const view = buildControlCorrectionLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
       learnerState: learnerState(),
@@ -362,7 +376,10 @@ describe('adaptive learning center UI contracts', () => {
     const currentPath = view.panels.find((panel) => panel.region === 'current-path');
     const pathOptions = (currentPath?.payload as { pathOptions?: Array<Record<string, unknown>> })?.pathOptions ?? [];
 
-    expect(pathOptions[0]).toMatchObject({ targetDeficits: [] });
+    expect(legacyPlan.visualization.evidence?.learnerStateDeficits).toHaveLength(1);
+    expect(pathOptions[0]).toMatchObject({
+      targetDeficits: [expect.objectContaining({ targetId: 'phase-margin' })],
+    });
     expect(pathOptions[0]?.recommendationProvenance).toBeUndefined();
   });
 

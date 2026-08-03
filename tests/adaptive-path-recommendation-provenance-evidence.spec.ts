@@ -11,6 +11,7 @@ const productionSourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/adaptive/adaptive-learning-center-contracts.ts',
   'src/lib/adaptive-learning-path-planner.ts',
+  'src/lib/adaptive-path-round-restore.ts',
   'src/lib/adaptive-path-option-display.ts',
 ];
 const trackedSourceFiles = [generatorFile, ...productionSourceFiles];

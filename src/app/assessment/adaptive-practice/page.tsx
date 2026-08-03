@@ -204,6 +204,9 @@ type PathOptionView = AdaptivePathOptionWriteOption;
 type PathRecommendationProvenanceEntry = NonNullable<
   AdaptivePathOptionWriteOption['recommendationProvenance']
 >['entries'][number];
+type PathRecommendationProvenance = NonNullable<
+  AdaptivePathOptionWriteOption['recommendationProvenance']
+>;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
 type PathDifferenceStatus = 'ready' | 'no-material-difference' | 'insufficient-data';
 
@@ -523,6 +526,43 @@ const DEMO_CONTROL_CORRECTION_PATH_NODES = [
   },
 ] as unknown as AdaptiveLearningPathPlan['mainPath'];
 
+const DEMO_RECOMMENDATION_PROVENANCE = {
+  summary: '依据相位裕度的学习证据安排本路径。',
+  confidence: 'medium',
+  entries: [{
+    targetLabel: '相位裕度',
+    targetKind: 'knowledge',
+    confidence: 'medium',
+    evidenceSummary: '掌握状态 42%，来自 3 条有效证据，置信度 68%。',
+    judgment: '当前状态仍有提升空间，因此优先安排频域到时域检查题。',
+    affectedNodeIds: ['demo-current-quiz'],
+    affectedResourceTitles: ['完成频域到时域检查题'],
+  }],
+  evidenceReviewHref: '/profile/evidence',
+  limitations: [],
+  nextAction: null,
+} satisfies PathRecommendationProvenance;
+
+const DEMO_LOW_EVIDENCE_RECOMMENDATION_PROVENANCE = {
+  summary: '当前证据较少，本路径主要依据课程结构、先修规则和可用资源生成。',
+  confidence: 'low',
+  entries: [
+    ...DEMO_RECOMMENDATION_PROVENANCE.entries,
+    {
+      targetLabel: '参数设计',
+      targetKind: 'competency',
+      confidence: 'low',
+      evidenceSummary: '能力状态 38%，来自 1 条有效证据，置信度 40%。',
+      judgment: '暂时不能确认该项为稳定薄弱点，本路径主要依据课程结构、先修规则和可用资源安排。',
+      affectedNodeIds: [],
+      affectedResourceTitles: [],
+    },
+  ],
+  evidenceReviewHref: '/profile/evidence',
+  limitations: ['部分判断的有效证据仍然不足。'],
+  nextAction: '完成诊断或练习，补充有效学习证据。',
+} satisfies PathRecommendationProvenance;
+
 const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
   id: 'demo-control-correction-path',
   userId: 'demo-student',
@@ -541,6 +581,11 @@ const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
     constraints: ['terminal-validation-last'],
     fallbackSemantics: 'use available starter path',
   },
+  pathOptions: [{
+    optionId: 'path-option-1',
+    nodeIds: DEMO_CONTROL_CORRECTION_PATH_NODES.map((node) => node.nodeId),
+    recommendationProvenance: DEMO_RECOMMENDATION_PROVENANCE,
+  }],
   excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
   status: 'ready',
   currentNodeId: 'demo-current-quiz',
@@ -605,6 +650,11 @@ const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
 
 const DEMO_LOW_EVIDENCE_PATH_PLAN = {
   ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
+  pathOptions: [{
+    optionId: 'path-option-1',
+    nodeIds: DEMO_CONTROL_CORRECTION_PATH_NODES.map((node) => node.nodeId),
+    recommendationProvenance: DEMO_LOW_EVIDENCE_RECOMMENDATION_PROVENANCE,
+  }],
   confidence: {
     level: 'high',
     score: 0.82,
@@ -631,10 +681,7 @@ const DEMO_LOW_EVIDENCE_PATH_PLAN = {
 
 const DEMO_LEGACY_PATH_PLAN = {
   ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
-  visualization: {
-    ...DEMO_CONTROL_CORRECTION_PATH_PLAN.visualization,
-    evidence: undefined,
-  },
+  pathOptions: undefined,
 } as unknown as AdaptiveLearningPathPlan;
 
 type RecommendationProvenanceFixture = 'sufficient' | 'low' | 'legacy';

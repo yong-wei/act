@@ -8,10 +8,9 @@ import type {
   PlatformStatusDomain,
   PlatformStatusPayload,
 } from '@/components/platform/platform-ui-contracts';
-import {
-  buildAdaptivePathRecommendationProvenance,
-  type AdaptiveLearningPathDeficit,
-  type AdaptiveLearningPathPlan,
+import type {
+  AdaptiveLearningPathDeficit,
+  AdaptiveLearningPathPlan,
 } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 
@@ -1328,6 +1327,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
       .filter((node) => node.terminalConstraints.includes('terminal-validation'))
       .map((node) => node.nodeId);
     const generationEvidenceDeficits = pathPlan.visualization?.evidence?.learnerStateDeficits;
+    const persistedProvenance = pathPlan.pathOptions?.[0]?.recommendationProvenance;
     return [{
       optionId: 'path-option-1',
       label: '推荐学习路径',
@@ -1353,15 +1353,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
         message: node.readiness?.message ?? '准备条件待确认。',
       })),
       targetDeficits: generationEvidenceDeficits?.map(toStudentDeficit) ?? [],
-      ...(generationEvidenceDeficits
-        ? {
-            recommendationProvenance: buildAdaptivePathRecommendationProvenance({
-              path: pathPlan.mainPath,
-              deficits: generationEvidenceDeficits,
-              confidence: pathPlan.confidence.level,
-            }),
-          }
-        : {}),
+      ...(persistedProvenance ? { recommendationProvenance: persistedProvenance } : {}),
       evidenceBasis: pathPlan.confidence.level === 'low'
         ? ['当前证据较少，路径会从基础资源开始。']
         : ['路径已结合你的近期学习证据。'],
