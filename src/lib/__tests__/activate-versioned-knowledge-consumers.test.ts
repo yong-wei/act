@@ -1314,7 +1314,8 @@ describe('Consumer wiring and scope guards (#1276)', () => {
     );
     manifest.impact = {
       readyConsumerIds: [],
-      pinnedConsumerIds: [manifest.consumers[0].consumerId],
+      // Duplicate the same id six times to attempt to fake a full pin set by length.
+      pinnedConsumerIds: Array.from({ length: 6 }, () => manifest.consumers[0].consumerId),
       blockedConsumerIds: manifest.consumers.slice(1).map((c: { consumerId: string }) => c.consumerId),
       shadowConsumerIds: [],
     };

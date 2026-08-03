@@ -558,13 +558,33 @@ export function activateConsumerActivation(
   }
 
   // Authority-absent / pin-only activations may replace current.json only when
-  // every consumer is PINNED_PREVIOUS. Partial prior maps leave other consumers
-  // BLOCKED and must not become production current (Codex P1).
-  if (
-    ready.length === 0
-    && pinned.length > 0
-    && pinned.length < CONSUMER_ACTIVATION_IDS.length
-  ) {
+  // every distinct consumer record is PINNED_PREVIOUS. Recompute from
+  // consumers[] (not impact array lengths) so duplicated impact IDs cannot
+  // fake a full pin set (Codex P1).
+  const readyFromRecords = new Set(
+    staged.manifest.consumers
+      .filter((row) => row.status === 'READY')
+      .map((row) => row.consumerId),
+  );
+  const pinnedFromRecords = new Set(
+    staged.manifest.consumers
+      .filter((row) => row.status === 'PINNED_PREVIOUS')
+      .map((row) => row.consumerId),
+  );
+  const requiredConsumerSet = new Set(CONSUMER_ACTIVATION_IDS);
+  const allConsumersPresent =
+    staged.manifest.consumers.length === CONSUMER_ACTIVATION_IDS.length
+    && staged.manifest.consumers.every((row) =>
+      requiredConsumerSet.has(row.consumerId),
+    )
+    && new Set(staged.manifest.consumers.map((row) => row.consumerId)).size
+      === CONSUMER_ACTIVATION_IDS.length;
+  const fullPinOnly =
+    readyFromRecords.size === 0
+    && allConsumersPresent
+    && pinnedFromRecords.size === CONSUMER_ACTIVATION_IDS.length
+    && CONSUMER_ACTIVATION_IDS.every((id) => pinnedFromRecords.has(id));
+  if (readyFromRecords.size === 0 && pinnedFromRecords.size > 0 && !fullPinOnly) {
     return failActivation({
       paths,
       activationReceiptId,
@@ -579,7 +599,7 @@ export function activateConsumerActivation(
       reasons: [
         'partial-prior-pin-forbidden',
         'authority-absent-requires-full-prior-pins',
-        `pinned:${pinned.length}`,
+        `pinned-unique:${pinnedFromRecords.size}`,
         `required:${CONSUMER_ACTIVATION_IDS.length}`,
       ],
     });
