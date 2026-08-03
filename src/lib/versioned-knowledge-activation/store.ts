@@ -27,6 +27,7 @@ import {
 import { dirname, join } from 'node:path';
 
 import {
+  CONSUMER_ACTIVATION_IDS,
   CONSUMER_ACTIVATION_POINTER_CONTRACT,
   CONSUMER_ACTIVATION_RECEIPT_CONTRACT,
   CONSUMER_ACTIVATION_ROLLBACK_RECEIPT_CONTRACT,
@@ -552,6 +553,34 @@ export function activateConsumerActivation(
       reasons: [
         'no-actionable-consumers',
         'all-consumers-blocked-or-shadow',
+      ],
+    });
+  }
+
+  // Authority-absent / pin-only activations may replace current.json only when
+  // every consumer is PINNED_PREVIOUS. Partial prior maps leave other consumers
+  // BLOCKED and must not become production current (Codex P1).
+  if (
+    ready.length === 0
+    && pinned.length > 0
+    && pinned.length < CONSUMER_ACTIVATION_IDS.length
+  ) {
+    return failActivation({
+      paths,
+      activationReceiptId,
+      activationId: staged.activationId,
+      activationHash: staged.activationHash,
+      previous,
+      activatedAt,
+      advancedConsumerIds: [],
+      pinnedConsumerIds: pinned,
+      blockedConsumerIds: blocked,
+      shadowConsumerIds: shadow,
+      reasons: [
+        'partial-prior-pin-forbidden',
+        'authority-absent-requires-full-prior-pins',
+        `pinned:${pinned.length}`,
+        `required:${CONSUMER_ACTIVATION_IDS.length}`,
       ],
     });
   }

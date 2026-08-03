@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
+import { activationDigest } from '../versioned-knowledge-activation/hash';
 
 import {
   stageAuthoritySnapshot,
@@ -1255,7 +1256,83 @@ describe('Consumer wiring and scope guards (#1276)', () => {
     );
   });
 
-  it('treats corrupted activation pointer as unavailable not absent', () => {
+    it('refuses activate when only a partial prior-pin set is staged', () => {
+    const paths = tempActivationRoot();
+    // Craft a staged release that skipped stage-time checks (defense in depth).
+    const partialPriors: PriorConsumerState[] = priorTeachingPins().slice(0, 1);
+    // Stage a normal ready activation first so we have a baseline pointer optional.
+    const fullPriors: PriorConsumerState[] = CONSUMER_ACTIVATION_IDS.map(
+      (consumerId) => ({
+        consumerId,
+        combination: {
+          authorityReleaseId: 'ctr:release:eng-v0',
+          authoritySnapshotId: 'snap-old',
+          authoritySnapshotHash: hashF,
+          projectionId: consumerId.startsWith('engineering') ? null : 'proj-old',
+          projectionHash: consumerId.startsWith('engineering') ? null : hashE,
+          scopeId: null,
+          captureRevision: commitB,
+        },
+      }),
+    );
+    const pinOnly = stageConsumerActivation(paths, {
+      artifacts: completeArtifacts({
+        authority: {
+          present: false,
+          releaseId: null,
+          snapshotId: null,
+          snapshotHash: null,
+          captureRevision: null,
+          artifactHashes: {},
+        },
+        projection: {
+          present: false,
+          projectionId: null,
+          projectionHash: null,
+          authorityReleaseId: null,
+          captureRevision: null,
+          gatePassed: false,
+          artifactHashes: {},
+          hasResources: false,
+          hasCardsIndex: false,
+          hasPrerequisites: false,
+          hasImpactReport: false,
+        },
+      }),
+      priorConsumers: fullPriors,
+      stagedAt: '2026-08-04T11:00:00.000Z',
+      activationId: 'activation-full-pins-for-activate',
+    });
+    // Mutate on-disk manifest to a partial pin set (simulates bypass/tamper).
+    const releaseDir = path.join(paths.releasesDir, pinOnly.activationId);
+    const manifestPath = path.join(releaseDir, 'activation.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    manifest.consumers = manifest.consumers.map((row: { consumerId: string; status: string }, idx: number) =>
+      idx === 0
+        ? { ...row, status: 'PINNED_PREVIOUS' }
+        : { ...row, status: 'BLOCKED_LOCAL_DEPENDENCY' },
+    );
+    manifest.impact = {
+      readyConsumerIds: [],
+      pinnedConsumerIds: [manifest.consumers[0].consumerId],
+      blockedConsumerIds: manifest.consumers.slice(1).map((c: { consumerId: string }) => c.consumerId),
+      shadowConsumerIds: [],
+    };
+    // Re-digest after mutation so verifyActivationManifest accepts the file.
+    const { activationHash: _drop, ...body } = manifest;
+    manifest.activationHash = activationDigest(body);
+    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+    const result = activateConsumerActivation(paths, {
+      activationId: pinOnly.activationId,
+    });
+    expect(result.status).toBe('failed');
+    expect(result.receipt.reasons.join(' ')).toMatch(
+      /partial-prior-pin-forbidden|authority-absent-requires-full-prior-pins/,
+    );
+  });
+
+it('treats corrupted activation pointer as unavailable not absent', () => {
     const prev = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
     const paths = tempActivationRoot();
     process.env.ACT_CONSUMER_ACTIVATION_ROOT = paths.root;
