@@ -489,21 +489,26 @@ export function buildShadowLearningFactAdmission(input: {
   const derived = collectProjectedMembershipFromResourceBindings(
     input.resourceBindingResult,
   );
+  // Empty arrays must not nullish-coalesce as intentional "no bindings" when
+  // governed resourceBindingResult still has CURRENT pairs (P2).
   const projectedResourceBindings =
-    input.projectedResourceBindings
-    ?? (derived.projectedResourceBindings.length > 0
-      ? derived.projectedResourceBindings
-      : undefined);
+    input.projectedResourceBindings && input.projectedResourceBindings.length > 0
+      ? input.projectedResourceBindings
+      : (derived.projectedResourceBindings.length > 0
+        ? derived.projectedResourceBindings
+        : undefined);
   const accessibleResourceIds =
-    input.accessibleResourceIds
-    ?? (derived.accessibleResourceIds.length > 0
-      ? derived.accessibleResourceIds
-      : undefined);
+    input.accessibleResourceIds && input.accessibleResourceIds.length > 0
+      ? input.accessibleResourceIds
+      : (derived.accessibleResourceIds.length > 0
+        ? derived.accessibleResourceIds
+        : undefined);
   const projectedCanonicalIds =
-    input.projectedCanonicalIds
-    ?? (derived.projectedCanonicalIds.length > 0
-      ? derived.projectedCanonicalIds
-      : undefined);
+    input.projectedCanonicalIds && input.projectedCanonicalIds.length > 0
+      ? input.projectedCanonicalIds
+      : (derived.projectedCanonicalIds.length > 0
+        ? derived.projectedCanonicalIds
+        : undefined);
   const requireProjectionBoundResourceIdentity =
     input.requireProjectionBoundResourceIdentity
     ?? (Boolean(projectedResourceBindings && projectedResourceBindings.length > 0)
