@@ -542,7 +542,11 @@ export function validateStagedArtifactSet(
     || r.includes('id-missing')
     || r.includes('path-missing')
     || r.includes('file-missing')
-    || r.includes('file-unreadable'),
+    || r.includes('file-unreadable')
+    || r.includes('absent')
+    || r.includes('incomplete')
+    || r.includes('verifier-failed')
+    || r.includes('unreadable'),
   );
 
   return { ok: !hardFail, reasons };
