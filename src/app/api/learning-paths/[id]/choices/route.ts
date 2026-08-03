@@ -55,10 +55,42 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       return NextResponse.json({ error: '路径选择动作不符合契约' }, { status: 400 });
     }
 
+    const batchId = nullableString(body.batchId);
+    const candidateId = nullableString(body.candidateId);
+    if (Boolean(batchId) !== Boolean(candidateId)) {
+      return NextResponse.json({ error: 'Candidate batch and candidate identities must be provided together' }, { status: 400 });
+    }
+    let persistedCandidateStyleId: string | null = null;
+    if (batchId && candidateId) {
+      const batch = await (prisma as any).adaptivePathCandidateBatch.findUnique({
+        where: { id: batchId },
+        include: { candidates: { where: { id: candidateId }, take: 1 } },
+      });
+      const candidate = batch?.candidates[0];
+      if (
+        !batch
+        || batch.status !== 'succeeded'
+        || batch.sourcePathId !== params.id
+        || batch.userId !== path.userId
+        || batch.goalId !== path.goalId
+        || !candidate
+      ) {
+        return NextResponse.json({ error: 'Candidate does not belong to this path batch' }, { status: 404 });
+      }
+      const snapshot = readRecord(candidate.snapshot);
+      if (nullableString(snapshot.styleId) !== candidate.styleId) {
+        return NextResponse.json({ error: 'Candidate snapshot identity is invalid' }, { status: 409 });
+      }
+      persistedCandidateStyleId = candidate.styleId;
+    }
+
     const pathOptions = readPathOptions(path.pathPayload);
     const styleIds = new Set(Array.from(pathOptions.values()).map((option) => option.styleId));
     const selectedOption = resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId);
     const selectedStyleId = selectedOption?.styleId ?? null;
+    if (persistedCandidateStyleId && persistedCandidateStyleId !== selectedStyleId) {
+      return NextResponse.json({ error: 'Selected option does not match the candidate identity' }, { status: 409 });
+    }
     const previousStyleId = nullableString(body.previousStyleId);
     const rejectedStyleIds = [
       ...readStringArray(body.rejectedStyleIds),

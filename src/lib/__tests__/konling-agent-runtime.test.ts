@@ -9318,6 +9318,14 @@ describe('konling agent runtime', () => {
       generationRequestId: 'path-gen-1',
       candidateIds: expect.arrayContaining([expect.stringMatching(/^path-candidate_/)]),
     });
+    expect(result.pathId).toMatch(/^adaptive-path:student-1:control-correction:candidate_[a-f0-9]{24}$/);
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: result.pathId },
+      create: expect.objectContaining({ id: result.pathId, pathStatus: 'candidate' }),
+    }));
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ sourcePathId: result.pathId }),
+    }));
     expect(result.pathOptions).toEqual(expect.arrayContaining([
       expect.objectContaining({ candidateId: expect.stringMatching(/^path-candidate_/) }),
     ]));

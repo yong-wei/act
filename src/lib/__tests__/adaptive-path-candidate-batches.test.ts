@@ -156,6 +156,10 @@ describe('adaptive path candidate batches', () => {
       'arena-simulation-sprint',
     ]);
     expect(new Set(batch.candidates.map((candidate) => candidate.id)).size).toBe(2);
+    expect(batch.candidates.map((candidate) => candidate.snapshot.optionId)).toEqual([
+      'path-option-1',
+      'path-option-2',
+    ]);
     expect(create).toHaveBeenCalledOnce();
     expect(learningPathUpdate).not.toHaveBeenCalled();
   });
@@ -187,5 +191,6 @@ describe('adaptive path candidate batches', () => {
 
     expect(buildCandidateSnapshots(original, 'batch-1')[0].id)
       .toBe(buildCandidateSnapshots(renamed, 'batch-1')[0].id);
+    expect(buildCandidateSnapshots(original, 'batch-1')[0].snapshot.optionId).toBe('path-option-1');
   });
 });

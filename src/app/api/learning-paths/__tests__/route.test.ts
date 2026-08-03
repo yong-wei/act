@@ -35,6 +35,9 @@ const mocks = vi.hoisted(() => ({
     adaptiveAssessmentAnswer: {
       findFirst: vi.fn(),
     },
+    adaptivePathCandidateBatch: {
+      findUnique: vi.fn(),
+    },
     studentProfile: {
       findUnique: vi.fn(),
     },
@@ -3168,6 +3171,32 @@ describe('learning path round API routes', () => {
       }),
       idempotencyKey: 'choice-option-key',
     }));
+  });
+
+  it('rejects a candidate identity that is not bound to the selected path batch', async () => {
+    mocks.prisma.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'another-path',
+      status: 'succeeded',
+      candidates: [{
+        id: 'candidate-1',
+        styleId: 'foundation-remediation',
+        snapshot: { styleId: 'foundation-remediation' },
+      }],
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'candidate-mismatch-key',
+    }), params);
+
+    expect(response.status).toBe(404);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
   });
 
   it('records choices from persisted fallback pathOptions when no policy bundle paths exist', async () => {

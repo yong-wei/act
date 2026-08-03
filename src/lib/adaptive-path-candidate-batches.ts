@@ -147,14 +147,22 @@ export function buildCandidateSnapshots(
   if (candidates.length === 0) {
     throw new AdaptivePathCandidateBatchValidationError('Candidate batch requires at least one executable candidate');
   }
-  return candidates.map((candidate, ordinal) => ({
-    id: stableId('path-candidate', `${batchId}:${candidate.styleId}:${ordinal}`),
-    ordinal,
-    styleId: candidate.styleId,
-    policyFamily: candidate.policyFamily,
-    label: candidate.label,
-    snapshot: jsonSnapshot(candidate.snapshot),
-  }));
+  return candidates.map((candidate, ordinal) => {
+    const snapshot = candidate.snapshot as Record<string, unknown>;
+    return {
+      id: stableId('path-candidate', `${batchId}:${candidate.styleId}:${ordinal}`),
+      ordinal,
+      styleId: candidate.styleId,
+      policyFamily: candidate.policyFamily,
+      label: candidate.label,
+      snapshot: jsonSnapshot({
+        ...snapshot,
+        optionId: typeof snapshot.optionId === 'string'
+          ? snapshot.optionId
+          : `path-option-${ordinal + 1}`,
+      }),
+    };
+  });
 }
 
 export function toBatchView(record: CandidateBatchRecord): AdaptivePathCandidateBatchView {

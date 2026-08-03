@@ -980,7 +980,7 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
     expect(source).toContain("? 'avoid-learning-record' : undefined");
-    expect(source).toContain('{!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (');
+    expect(source).toContain('{!showPathContextRecovery && (showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (');
     expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ||');
     expect(source).toContain('data-adaptive-path-route-map="compact"');
     expect(source).toContain('data-adaptive-path-progress-summary="essential"');

@@ -4044,6 +4044,15 @@ async function buildAdaptivePathToolOutput(
     candidatePoolDiagnostics,
   });
   const hasPersistablePath = plan.mainPath.length > 0;
+  const persistedPlan = operation === 'generated'
+    ? {
+        ...plan,
+        id: `${plan.id}:candidate_${createHash('sha256')
+          .update(args.idempotencyKey)
+          .digest('hex')
+          .slice(0, 24)}`,
+      }
+    : plan;
   const candidatePoolLimitationCodes = candidatePoolDiagnostics.sourceFamilies
     .map((source) => source.reason)
     .filter((reason): reason is string => Boolean(reason));
@@ -4054,7 +4063,7 @@ async function buildAdaptivePathToolOutput(
   };
   if (hasPersistablePath) {
     await persistLearningPathRound(input.db as any, {
-      plan,
+      plan: persistedPlan,
       pathStatus: operation === 'generated' ? 'candidate' : undefined,
       classId: input.scope.classId ?? null,
       learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
@@ -4088,7 +4097,7 @@ async function buildAdaptivePathToolOutput(
   ) {
     candidateBatch = await persistAdaptivePathCandidateBatch(input.db as any, {
       generationRequestId: args.idempotencyKey,
-      plan,
+      plan: persistedPlan,
       classId: input.scope.classId ?? null,
     });
   }
@@ -4149,7 +4158,7 @@ async function buildAdaptivePathToolOutput(
       preferredStyleId: args.preferredStyleId ?? null,
       requestedAt: args.requestedAt ?? null,
     },
-    pathId: hasPersistablePath ? plan.id : null,
+    pathId: hasPersistablePath ? persistedPlan.id : null,
     candidateBatch: candidateBatch ? {
       id: candidateBatch.id,
       generationRequestId: candidateBatch.generationRequestId,

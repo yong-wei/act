@@ -100,7 +100,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain("const showPresetGoalCards = isPresetGoalLanding && pathLandingState === 'cold-start';");
     expect(source).toContain("showSelectionWorkspace && !showPathContextRecovery ? (");
-    expect(source).toContain("!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("!showPathContextRecovery && (showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
     expect(source).toContain("!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)");
     expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (");
     expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
@@ -311,8 +311,11 @@ describe('adaptive practice page entry states', () => {
 
     expect(source).toContain("requestedCandidateId && !requestedBatchId");
     expect(source).toContain('pathOptions.find((option) => option.optionId === display.id)?.candidateId === focusedCandidateId');
+    expect(source).toContain('batchId: option.candidateId ? option.batchId : null');
+    expect(source).toContain('candidateId: option.candidateId ?? null');
     expect(source).toContain("? activeCandidateBatch?.sourcePathId");
     expect(source).toContain("compareAllCandidateQuery.delete('candidate')");
     expect(source).toContain('data-learning-path-compare-all');
+    expect(source).toContain('(showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
   });
 });

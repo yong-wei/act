@@ -200,7 +200,7 @@ interface LearningPathRoundResponse {
 
 type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
-type PathOptionView = AdaptivePathOptionWriteOption & { candidateId?: string };
+type PathOptionView = AdaptivePathOptionWriteOption & { batchId?: string; candidateId?: string };
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
 type PathDifferenceStatus = 'ready' | 'no-material-difference' | 'insufficient-data';
 
@@ -1165,7 +1165,7 @@ function getCandidateBatchPathOptions(batch: AdaptivePathCandidateBatchView | nu
       panels: [{ region: 'current-path', payload: { pathOptions: [candidate.snapshot] } }],
     } as ControlCorrectionLearningCenterView)[0];
     return projected && projected.optionId !== 'unknown-option'
-      ? [{ ...projected, candidateId: candidate.id }]
+      ? [{ ...projected, batchId: batch.id, candidateId: candidate.id }]
       : [];
   });
 }
@@ -1817,6 +1817,8 @@ function buildChoiceBody(
       : [option.optionId];
   return {
     action,
+    batchId: option.candidateId ? option.batchId : null,
+    candidateId: option.candidateId ?? null,
     selectedOptionId: action === 'rejection' ? null : option.optionId,
     previousStyleId: action === 'switch' ? latestSelection?.selectedStyleId ?? null : null,
     rejectedOptionIds,
@@ -4644,9 +4646,9 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
+          {!showPathContextRecovery && (showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
             <section className="order-20 grid min-w-0 w-full gap-4">
-              {showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
+              {showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
               <PathWorkspaceModule
                 moduleId="current-path"
                 openModuleId={openPathModuleId}
