@@ -18,6 +18,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  ACTIVE_INVENTORY_IDENTITY_REGISTRY_PATH,
   ActiveCourseInventoryError,
   assertInventoryBytesMatchAuthoringRevision,
   assertNoLegacyGraphIdsInAuthoring,
@@ -25,6 +26,7 @@ import {
   buildActiveCourseInventory,
   buildPackageAuthoringFromMigration,
   buildTeachingProjection,
+  collectInventoryBindingPaths,
   computeMappingInputDigest,
   createAuthorSemanticDecision,
   isLegacyLocalGraphNodeId,
@@ -35,6 +37,7 @@ import {
   normalizeExactLabel,
   parseLegacyCrosswalkDocument,
   readLegacyCrosswalkIds,
+  resolveIdentityDenominatorPaths,
   runActiveCourseMigration,
   selectAuthorDecision,
   upsertAuthorDecision,
@@ -404,6 +407,146 @@ describe('project-active-course-resources-to-canonical (#1268)', () => {
           sourcePaths: [lessonPath],
         }),
       ).toThrow(ActiveCourseInventoryError);
+    });
+
+    it('resolves identity denominator paths from registry + @/lib imports', () => {
+      const paths = resolveIdentityDenominatorPaths(repoRoot);
+      expect(paths).toContain(ACTIVE_INVENTORY_IDENTITY_REGISTRY_PATH);
+      expect(paths).toContain('src/lib/cruise-course.ts');
+      expect(paths).toContain('src/lib/unit-1-1-course.ts');
+      expect(paths.length).toBeGreaterThan(10);
+      // collectInventoryBindingPaths merges package content + identity sources.
+      const bound = collectInventoryBindingPaths({
+        repoRoot,
+        packageSourcePaths: [
+          'course-content/runtime/lessons/1-1/interactive-manifest.json',
+        ],
+        includeIdentityDenominator: true,
+      });
+      expect(bound).toContain(ACTIVE_INVENTORY_IDENTITY_REGISTRY_PATH);
+      expect(bound).toContain(
+        'course-content/runtime/lessons/1-1/interactive-manifest.json',
+      );
+      expect(
+        collectInventoryBindingPaths({
+          repoRoot,
+          packageSourcePaths: ['course-content/runtime/lessons/1-1/lesson.json'],
+          includeIdentityDenominator: false,
+        }),
+      ).toEqual(['course-content/runtime/lessons/1-1/lesson.json']);
+    });
+
+    it('fails closed when identity registry is dirty even if remaining package bytes match HEAD', () => {
+      // Simulates packagesFromRegistry after a dirty edit drops a course: only
+      // keep-me remains in the package list, keep-me content still matches HEAD,
+      // but the registry file no longer matches authoringRevision.
+      const registryPath = ACTIVE_INVENTORY_IDENTITY_REGISTRY_PATH;
+      const keepLesson =
+        'course-content/runtime/lessons/keep-me/interactive-manifest.json';
+      const keepLessonJson =
+        'course-content/runtime/lessons/keep-me/lesson.json';
+      const dropLesson =
+        'course-content/runtime/lessons/drop-me/interactive-manifest.json';
+      const dropLessonJson =
+        'course-content/runtime/lessons/drop-me/lesson.json';
+      const registryAtHead = [
+        "export const INTERACTIVE_LESSON_IDENTITY_REGISTRY = [",
+        "  { canonicalId: 'keep-me', routeSegments: ['keep-me'], runtimeLessonDir: 'keep-me', lessonKeys: [], presetKeys: [], planTitleAliases: [], evidenceAliases: [] },",
+        "  { canonicalId: 'drop-me', routeSegments: ['drop-me'], runtimeLessonDir: 'drop-me', lessonKeys: [], presetKeys: [], planTitleAliases: [], evidenceAliases: [] },",
+        '];',
+        '',
+      ].join('\n');
+      const dirtyRegistry = [
+        "export const INTERACTIVE_LESSON_IDENTITY_REGISTRY = [",
+        "  { canonicalId: 'keep-me', routeSegments: ['keep-me'], runtimeLessonDir: 'keep-me', lessonKeys: [], presetKeys: [], planTitleAliases: [], evidenceAliases: [] },",
+        '];',
+        '',
+      ].join('\n');
+
+      const { dir, head } = createTempInventoryRepo({
+        [registryPath]: registryAtHead,
+        [keepLesson]: JSON.stringify({
+          steps: { 'step-01': { title: 'Keep' } },
+        }),
+        [keepLessonJson]: JSON.stringify({ title: 'Keep me' }),
+        [dropLesson]: JSON.stringify({
+          steps: { 'step-01': { title: 'Drop' } },
+        }),
+        [dropLessonJson]: JSON.stringify({ title: 'Drop me' }),
+      });
+
+      // Clean binding with both packages succeeds and includes identity path.
+      const clean = buildActiveCourseInventory({
+        repoRoot: dir,
+        authoringRevision: head,
+        includeIdentityDenominator: true,
+        packages: [
+          {
+            packageId: 'keep-me',
+            runtimeLessonDir: 'keep-me',
+            lessonKey: 'keep-me',
+          },
+          {
+            packageId: 'drop-me',
+            runtimeLessonDir: 'drop-me',
+            lessonKey: 'drop-me',
+          },
+        ],
+      });
+      expect(clean.packageCount).toBe(2);
+
+      // Dirty registry drops drop-me from the denominator while keep-me bytes
+      // still match HEAD — without identity binding this would silently pass.
+      writeFileSync(path.join(dir, registryPath), dirtyRegistry, 'utf8');
+      expect(() =>
+        buildActiveCourseInventory({
+          repoRoot: dir,
+          authoringRevision: head,
+          includeIdentityDenominator: true,
+          packages: [
+            {
+              packageId: 'keep-me',
+              runtimeLessonDir: 'keep-me',
+              lessonKey: 'keep-me',
+            },
+          ],
+        }),
+      ).toThrow(/dirty|mixed capture|authoringRevision|interactive-lesson-identity/i);
+
+      // Without identity denominator binding, the incomplete package list would
+      // still bind to HEAD (documents why includeIdentityDenominator is required).
+      const incompleteWithoutIdentity = buildActiveCourseInventory({
+        repoRoot: dir,
+        authoringRevision: head,
+        includeIdentityDenominator: false,
+        packages: [
+          {
+            packageId: 'keep-me',
+            runtimeLessonDir: 'keep-me',
+            lessonKey: 'keep-me',
+          },
+        ],
+      });
+      expect(incompleteWithoutIdentity.packageCount).toBe(1);
+      expect(
+        incompleteWithoutIdentity.packages.map((p) => p.packageId),
+      ).toEqual(['keep-me']);
+    });
+
+    it('binds identity denominator by default when packages come from the registry', () => {
+      const authoringRevision = gitHead();
+      // Registry-driven inventory (no packages override) must include identity
+      // paths in revision binding. On a clean tree this succeeds; the identity
+      // path set is non-empty and includes the registry module.
+      const identityPaths = resolveIdentityDenominatorPaths(repoRoot);
+      expect(identityPaths).toContain(ACTIVE_INVENTORY_IDENTITY_REGISTRY_PATH);
+
+      const inventory = buildActiveCourseInventory({
+        repoRoot,
+        authoringRevision,
+      });
+      expect(inventory.packageCount).toBeGreaterThan(0);
+      expect(inventory.authoringRevision).toBe(authoringRevision);
     });
   });
 

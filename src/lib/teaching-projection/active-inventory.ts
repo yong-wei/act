@@ -46,6 +46,10 @@ export class ActiveCourseInventoryError extends Error {
   }
 }
 
+/** Registry module that determines the active-course inventory denominator. */
+export const ACTIVE_INVENTORY_IDENTITY_REGISTRY_PATH =
+  'src/lib/interactive-lesson-identity.ts';
+
 export interface InventoryBuildOptions {
   repoRoot: string;
   authoringRevision: string;
@@ -59,6 +63,15 @@ export interface InventoryBuildOptions {
    * Only for synthetic fixture / temp-dir unit tests. Production callers must leave this false.
    */
   allowWorkingTreeBytes?: boolean;
+  /**
+   * When true, include the interactive-lesson-identity registry and its
+   * identity-determining deps in clean-tree + git-show digest checks.
+   * Defaults to true when `packages` is omitted (registry-driven denominator),
+   * so a dirty registry cannot silently drop courses while remaining package
+   * content still matches authoringRevision. Explicit package lists (tests)
+   * default to false unless this is set.
+   */
+  includeIdentityDenominator?: boolean;
 }
 
 export interface InventoryPackageSpec {
@@ -166,6 +179,41 @@ function packagesFromRegistry(): InventoryPackageSpec[] {
     lessonKey: record.runtimeLessonDir,
     title: record.planTitleAliases[0] ?? record.canonicalId,
   }));
+}
+
+/**
+ * Paths that determine which packages enter the inventory denominator when
+ * reading from INTERACTIVE_LESSON_IDENTITY_REGISTRY.
+ *
+ * Includes the registry itself plus its direct `@/lib/*` imports (unit/cruise
+ * course modules). Dirty or revision-mismatched identity sources fail closed
+ * so a worktree edit cannot drop courses while still binding authoringRevision.
+ */
+export function resolveIdentityDenominatorPaths(repoRoot: string): string[] {
+  const paths = new Set<string>([ACTIVE_INVENTORY_IDENTITY_REGISTRY_PATH]);
+  const registryAbs = join(repoRoot, ACTIVE_INVENTORY_IDENTITY_REGISTRY_PATH);
+  if (!existsSync(registryAbs)) {
+    return [...paths].sort();
+  }
+
+  const source = readFileSync(registryAbs, 'utf8');
+  const importRe = /from\s+['"]@\/lib\/([^'"]+)['"]/g;
+  for (const match of source.matchAll(importRe)) {
+    const mod = match[1];
+    if (!mod || mod.includes('..') || mod.startsWith('/')) continue;
+    const tsRel = `src/lib/${mod}.ts`;
+    const tsxRel = `src/lib/${mod}.tsx`;
+    if (existsSync(join(repoRoot, tsRel))) {
+      paths.add(tsRel);
+    } else if (existsSync(join(repoRoot, tsxRel))) {
+      paths.add(tsxRel);
+    } else {
+      // Still bind the conventional .ts path so missing/dirty identity deps fail closed.
+      paths.add(tsRel);
+    }
+  }
+
+  return [...paths].sort();
 }
 
 function parseProjectionMode(
@@ -592,7 +640,8 @@ function gitShowBytes(repoRoot: string, revision: string, rel: string): Buffer {
  *
  * Practical binding:
  * 1. authoringRevision must be a resolvable 40-char git commit
- * 2. inventoried paths must be clean in the working tree (no mixed capture)
+ * 2. inventoried paths (including identity denominator when enabled) must be
+ *    clean in the working tree (no mixed capture)
  * 3. working-tree bytes for each path must equal `git show <rev>:<path>`
  */
 export function assertInventoryBytesMatchAuthoringRevision(input: {
@@ -665,6 +714,22 @@ export function assertInventoryBytesMatchAuthoringRevision(input: {
 }
 
 /**
+ * Collect revision-bound paths for an inventory build: package content sources
+ * plus optional identity-denominator sources (registry + deps).
+ */
+export function collectInventoryBindingPaths(input: {
+  repoRoot: string;
+  packageSourcePaths: readonly string[];
+  includeIdentityDenominator: boolean;
+}): string[] {
+  const paths = [...input.packageSourcePaths];
+  if (input.includeIdentityDenominator) {
+    paths.push(...resolveIdentityDenominatorPaths(input.repoRoot));
+  }
+  return [...new Set(paths.map(sourcePathWithoutFragment).filter((p) => p.length > 0))].sort();
+}
+
+/**
  * Enumerate currently published/used interactive course packages and their
  * reachable runtime resources with source digests.
  */
@@ -672,6 +737,9 @@ export function buildActiveCourseInventory(
   options: InventoryBuildOptions,
 ): ActiveCourseInventory {
   const skipMissing = options.skipMissingRuntime !== false;
+  const usingRegistry = options.packages == null;
+  const includeIdentityDenominator =
+    options.includeIdentityDenominator ?? usingRegistry;
   const specs = options.packages ?? packagesFromRegistry();
   const packages: ActiveCoursePackageInventory[] = [];
 
@@ -692,7 +760,11 @@ export function buildActiveCourseInventory(
   );
 
   if (options.allowWorkingTreeBytes !== true) {
-    const sourcePaths = packages.flatMap((p) => p.sourcePaths);
+    const sourcePaths = collectInventoryBindingPaths({
+      repoRoot: options.repoRoot,
+      packageSourcePaths: packages.flatMap((p) => p.sourcePaths),
+      includeIdentityDenominator,
+    });
     assertInventoryBytesMatchAuthoringRevision({
       repoRoot: options.repoRoot,
       authoringRevision: options.authoringRevision,
