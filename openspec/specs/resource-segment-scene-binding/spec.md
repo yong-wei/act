@@ -46,7 +46,7 @@ The system SHALL support graph-aware and scene-aware resource segment metadata f
 - **AND** missing transcript, anchor, graph binding, citation policy, or AI-use permission SHALL prevent verified citation readiness.
 
 ### Requirement: Textbook sections and reviewed media projections bind to graph nodes and usage scenes
-The system SHALL support graph-aware and scene-aware resource segment metadata for registered teaching resources.
+The system SHALL support graph-aware and scene-aware resource segment metadata for registered teaching resources. An ACT textbook section binding MUST reference public ActKG `SourceDocument` and `SourceAnchor` identities, exact locator metadata, the current Canonical ID, Authority release, and projection capture. The binding MUST preserve `EXPLAINS` as an ACT teaching role and MUST NOT rewrite upstream graph relations.
 
 #### Scenario: Textbook section is grounded
 - **WHEN** a textbook section candidate is completed for grounding
@@ -58,6 +58,15 @@ The system SHALL support graph-aware and scene-aware resource segment metadata f
 - **THEN** the segment SHALL include anchor metadata, transcript or description refs where applicable, graph refs, scene availability, citation readiness, AI-use permission, authority, privacy scope, review state, source version, tool/version metadata where applicable, input scope, output hash, retention rule, and limitation state
 - **AND** external-tool or local-model generated semantics SHALL remain provisional until reviewed
 - **AND** this capability SHALL NOT ingest raw audio, video, image, or slide files directly.
+
+#### Scenario: One section explains multiple nodes
+- **WHEN** one valid section locator lists multiple Canonical IDs
+- **THEN** the builder SHALL emit one deterministic binding per Canonical ID
+- **AND** all rows SHALL retain the same section identity and evidence
+
+#### Scenario: Locator crosses captures
+- **WHEN** the source document, anchor, or sidecar row belongs to another release/capture
+- **THEN** the binding SHALL fail closed and remain out of the active projection
 
 ### Requirement: Textbook and media segment retrieval does not imply path eligibility
 ResourceSegment, RetrievalChunk, and CitationTarget SHALL NOT automatically become PathNodes.
@@ -71,3 +80,4 @@ ResourceSegment, RetrievalChunk, and CitationTarget SHALL NOT automatically beco
 - **WHEN** a course or resource references media that has no validated media ingestion projection
 - **THEN** the grounding workflow SHALL emit a limitation
 - **AND** it SHALL NOT create a substitute private media segment parser or mark the media path-eligible.
+
