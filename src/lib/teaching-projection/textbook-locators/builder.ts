@@ -39,6 +39,7 @@ import {
 } from './identity';
 import {
   loadActkgSourceLocatorInventory,
+  loadAuthorityCanonicalIdsFromSnapshot,
   loadTextbookLocatorAuthorityBinding,
   TextbookLocatorInventoryError,
 } from './inventory';
@@ -441,7 +442,14 @@ export function loadAndBuildTextbookLocatorProjection(input: {
   stubsPath?: string;
   crosswalkPath?: string;
   bundleManifestPath?: string;
+  /**
+   * Canonical IDs known in the pinned Authority release.
+   * When omitted, load from the fixed Authority release snapshot
+   * (never from the crosswalk sidecar under validation).
+   */
   authorityCanonicalIds?: TextbookLocatorBuildInput['authorityCanonicalIds'];
+  /** Override path to Authority release.json when auto-loading Canonical IDs. */
+  authorityReleasePath?: string;
   projectionBuildId?: string;
 }): TextbookLocatorProjection {
   const root = input.repoRoot ?? process.cwd();
@@ -494,14 +502,29 @@ export function loadAndBuildTextbookLocatorProjection(input: {
     });
   }
 
-  const authorityCanonicalIds = input.authorityCanonicalIds
-    ?? (() => {
-      const ids = new Set<string>();
-      for (const row of crosswalkRows) {
-        for (const id of row.canonicalIds) ids.add(id);
-      }
-      return ids;
-    })();
+  // Fail closed: Authority Canonical membership comes from the caller or the
+  // fixed Authority snapshot — never from the crosswalk being validated.
+  let authorityCanonicalIds: TextbookLocatorBuildInput['authorityCanonicalIds'];
+  if (input.authorityCanonicalIds !== undefined) {
+    authorityCanonicalIds = input.authorityCanonicalIds;
+  } else {
+    try {
+      authorityCanonicalIds = loadAuthorityCanonicalIdsFromSnapshot({
+        repoRoot: root,
+        authority,
+        authorityReleasePath: input.authorityReleasePath,
+      });
+    } catch (error) {
+      return buildFailedTextbookLocatorProjection({
+        scopeId: input.scopeId,
+        authority,
+        inventory,
+        crosswalkRowCount: crosswalkRows.length,
+        failures: [mapLoadErrorToSliceFailure(error)],
+        projectionBuildId: input.projectionBuildId,
+      });
+    }
+  }
 
   return buildTextbookLocatorProjection({
     scopeId: input.scopeId,

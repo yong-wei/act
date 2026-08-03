@@ -4,6 +4,7 @@
  * Exercises shipped inventory, crosswalk, builder, and consumer functions.
  */
 
+import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -11,6 +12,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  assertSourceInventoryFileIdentity,
   buildTeachingProjection,
   buildTextbookLocatorProjection,
   deriveTextbookChapterResourceId,
@@ -19,11 +21,13 @@ import {
   deriveTextbookSectionResourceId,
   loadActkgSourceLocatorInventory,
   loadAndBuildTextbookLocatorProjection,
+  loadAuthorityCanonicalIdsFromSnapshot,
   loadSourceResourceCrosswalk,
   loadV012BundleIdentity,
   parseActkgSourceLocatorStubs,
   parseSourceResourceCrosswalkText,
   projectTextbookLocatorConsumers,
+  recomputeBundleDigest,
   textbookLocatorToRagProvenance,
   textbookProjectionToTeachingAuthoring,
   type ActkgSourceLocatorInventory,
@@ -781,5 +785,151 @@ describe('Inventory parse guards (#1269)', () => {
       ),
     ).toBe(true);
     expect(failed.blocksTextbookSliceOnly).toBe(true);
+  });
+
+  it('rejects forged bundle manifests whose self-reported bundle_digest is not recomputable', () => {
+    const inventory = loadShippedInventory();
+    const stubsRelative = inventory.authority.sourceInventory.componentPath;
+    const stubsSrc = path.join(REPO_ROOT, stubsRelative);
+    const manifestSrc = path.join(
+      REPO_ROOT,
+      'course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/bundle-manifest.json',
+    );
+
+    const tempDir = mkdtempSync(path.join(tmpdir(), 'tbloc-digest-'));
+    const stubsAbs = path.join(tempDir, stubsRelative);
+    mkdirSync(path.dirname(stubsAbs), { recursive: true });
+
+    // Inject a synthetic anchor into stubs; recompute only the component raw sha.
+    const stubsPayload = JSON.parse(readFileSync(stubsSrc, 'utf8')) as Record<string, unknown>;
+    const segments = Array.isArray(stubsPayload.evidence_segment_stubs)
+      ? [...(stubsPayload.evidence_segment_stubs as unknown[])]
+      : [];
+    segments.push({
+      id: 'cts:section-forged-anchor-p1',
+      source_edition_id: 'dorf-modern-control-systems-14th-root-locus',
+      content_hash: 'a'.repeat(64),
+      segment_type: 'section',
+    });
+    stubsPayload.evidence_segment_stubs = segments;
+    const stubsBytes = Buffer.from(`${JSON.stringify(stubsPayload)}\n`, 'utf8');
+    writeFileSync(stubsAbs, stubsBytes);
+
+    const forgedRawSha = createHash('sha256').update(stubsBytes).digest('hex');
+    const manifest = JSON.parse(readFileSync(manifestSrc, 'utf8')) as Record<string, unknown>;
+    const originalDigest = String(manifest.bundle_digest);
+    const components = Array.isArray(manifest.components)
+      ? (manifest.components as Array<Record<string, unknown>>)
+      : [];
+    const component = components.find(
+      (entry) => entry.release_id === inventory.authority.sourceInventory.componentReleaseId,
+    );
+    expect(component).toBeTruthy();
+    component!.release_raw_sha256 = forgedRawSha;
+    // Keep the original self-reported digest (the P1 bypass).
+    manifest.bundle_digest = originalDigest;
+    expect(recomputeBundleDigest(manifest)).not.toBe(originalDigest);
+
+    const forgedManifestPath = path.join(tempDir, 'forged-bundle-manifest.json');
+    writeFileSync(forgedManifestPath, `${JSON.stringify(manifest)}\n`, 'utf8');
+
+    const bindingPath = path.join(tempDir, 'authority-binding.json');
+    writeFileSync(
+      bindingPath,
+      JSON.stringify({
+        ...inventory.authority,
+        sourceInventory: {
+          ...inventory.authority.sourceInventory,
+          componentPath: stubsRelative,
+        },
+      }),
+      'utf8',
+    );
+
+    expect(() =>
+      assertSourceInventoryFileIdentity({
+        repoRoot: tempDir,
+        authority: {
+          ...inventory.authority,
+          sourceInventory: {
+            ...inventory.authority.sourceInventory,
+            componentPath: stubsRelative,
+          },
+        },
+        stubsPath: stubsAbs,
+        stubsBytes,
+        stubsPayload,
+        bundleManifestPath: forgedManifestPath,
+      }),
+    ).toThrow(/bundle_digest mismatch|inventory-identity-mismatch/i);
+
+    expect(() =>
+      loadActkgSourceLocatorInventory({
+        repoRoot: tempDir,
+        authorityBindingPath: bindingPath,
+        stubsPath: stubsAbs,
+        bundleManifestPath: forgedManifestPath,
+      }),
+    ).toThrow(TextbookLocatorInventoryError);
+
+    // Shipped happy path still recomputes cleanly.
+    const shippedManifest = JSON.parse(readFileSync(manifestSrc, 'utf8')) as Record<string, unknown>;
+    expect(recomputeBundleDigest(shippedManifest)).toBe(String(shippedManifest.bundle_digest));
+  });
+});
+
+describe('Authority Canonical membership (#1281 P1)', () => {
+  it('does not treat crosswalk-declared IDs as Authority when authorityCanonicalIds is omitted', () => {
+    const inventory = loadShippedInventory();
+    const rows = loadShippedCrosswalk();
+    const base = rows[0]!;
+    const unknownId = 'ctc:not-in-authority-p1-unknown';
+
+    const tempDir = mkdtempSync(path.join(tmpdir(), 'tbloc-canon-'));
+    const crosswalkPath = path.join(tempDir, 'source-resource-crosswalk.jsonl');
+    // First Canonical is unknown; remaining stay from shipped row so the file is otherwise valid.
+    const forgedRow = {
+      ...base,
+      canonicalIds: [unknownId, ...base.canonicalIds],
+    };
+    writeFileSync(crosswalkPath, `${JSON.stringify(forgedRow)}\n`, 'utf8');
+
+    // Omitted authorityCanonicalIds must load the fixed Authority snapshot — not the crosswalk.
+    const projection = loadAndBuildTextbookLocatorProjection({
+      scopeId: 'fixture-unknown-canonical-boundary',
+      repoRoot: REPO_ROOT,
+      crosswalkPath,
+      projectionBuildId: 'build-unknown-boundary',
+    });
+
+    expect(projection.sliceStatus).toBe('REVIEW_REQUIRED');
+    expect(
+      projection.failures.some(
+        (f) => f.code === 'unknown-canonical' && f.canonicalId === unknownId,
+      ),
+    ).toBe(true);
+    // Unknown ID must never produce a binding that would merge into Teaching Projection.
+    expect(projection.bindings.every((b) => b.canonicalId !== unknownId)).toBe(true);
+    expect(projection.blocksTextbookSliceOnly).toBe(true);
+
+    const merged = textbookProjectionToTeachingAuthoring({ projection });
+    expect(merged.included).toBe(false);
+    expect(merged.bindings).toEqual([]);
+  });
+
+  it('loads Canonical IDs from the fixed Authority release snapshot', () => {
+    const inventory = loadShippedInventory();
+    const ids = loadAuthorityCanonicalIdsFromSnapshot({
+      repoRoot: REPO_ROOT,
+      authority: inventory.authority,
+    });
+    expect(ids.size).toBeGreaterThan(1000);
+    // Shipped crosswalk endpoints must be present in the pinned Authority snapshot.
+    for (const row of loadShippedCrosswalk()) {
+      for (const id of row.canonicalIds) {
+        expect(ids.has(id)).toBe(true);
+      }
+    }
+    expect(ids.has('ctc:not-in-authority-p1-unknown')).toBe(false);
   });
 });

@@ -11,6 +11,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { projectionCanonicalJson, projectionSha256 } from '../hash';
 import {
   DEFAULT_ACTKG_SOURCE_STUBS_RELATIVE,
   DEFAULT_TEXTBOOK_LOCATOR_AUTHORING_RELATIVE,
@@ -163,8 +164,20 @@ export function loadTextbookLocatorAuthorityBinding(
 }
 
 /**
+ * Recompute aggregate bundle_digest with the repo canonical algorithm:
+ * sha256(canonicalJson(manifest without self-reported bundle_digest)).
+ * Never trust a self-reported digest alone when granting Authority identity.
+ */
+export function recomputeBundleDigest(manifest: Record<string, unknown>): string {
+  const digestBody = structuredClone(manifest) as Record<string, unknown>;
+  delete digestBody.bundle_digest;
+  return projectionSha256(projectionCanonicalJson(digestBody));
+}
+
+/**
  * Fail closed before labeling stubs as the current Authority inventory:
- * path, component release_hash, raw file sha256, and bundle pin must match.
+ * path, component release_hash, raw file sha256, recomputed bundle digest,
+ * and Authority pin must match.
  */
 export function assertSourceInventoryFileIdentity(input: {
   repoRoot: string;
@@ -227,19 +240,35 @@ export function assertSourceInventoryFileIdentity(input: {
   }
 
   const bundleReleaseHash = release.release_hash;
-  const bundleDigest = bundleRaw.bundle_digest;
+  const declaredBundleDigest = bundleRaw.bundle_digest;
   const bundleCapture = sourceRevision.commit;
   if (
     typeof bundleReleaseHash !== 'string'
     || bundleReleaseHash !== authority.authorityReleaseHash
-    || typeof bundleDigest !== 'string'
-    || bundleDigest !== authority.bundleDigest
+    || typeof declaredBundleDigest !== 'string'
+    || declaredBundleDigest !== authority.bundleDigest
     || typeof bundleCapture !== 'string'
     || bundleCapture !== authority.captureRevision
   ) {
     throw new TextbookLocatorInventoryError(
       'inventory-identity-mismatch',
       'authority-binding Authority pin does not match the v0.12 bundle manifest',
+    );
+  }
+
+  // Recompute digest over manifest content; self-reported bundle_digest alone
+  // cannot grant Authority identity (forged component hashes would otherwise pass).
+  const recomputedBundleDigest = recomputeBundleDigest(bundleRaw);
+  if (recomputedBundleDigest !== declaredBundleDigest) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `bundle_digest mismatch: declared ${declaredBundleDigest}, recomputed ${recomputedBundleDigest}`,
+    );
+  }
+  if (recomputedBundleDigest !== authority.bundleDigest) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `recomputed bundle_digest ${recomputedBundleDigest} does not match authority-binding bundleDigest ${authority.bundleDigest}`,
     );
   }
 
@@ -281,6 +310,81 @@ export function assertSourceInventoryFileIdentity(input: {
       `stubs file sha256 ${rawSha256} does not match bundle component release_raw_sha256 ${String(component.release_raw_sha256)}`,
     );
   }
+}
+
+/**
+ * Load Canonical IDs from the fixed Authority release snapshot pinned by
+ * authority-binding (release.json included_entities). Never derived from
+ * the untrusted textbook sidecar / crosswalk under validation.
+ */
+export function loadAuthorityCanonicalIdsFromSnapshot(input: {
+  repoRoot: string;
+  authority: TextbookLocatorAuthorityBinding;
+  authorityReleasePath?: string;
+}): Set<string> {
+  const version = input.authority.authorityReleaseVersion;
+  if (typeof version !== 'string' || version.trim().length === 0) {
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      'authority-binding.authorityReleaseVersion is required to load Authority Canonical IDs',
+    );
+  }
+  const releasePath = input.authorityReleasePath
+    ?? path.join(
+      input.repoRoot,
+      'course-content/authoring/knowledge/releases',
+      version,
+      'release.json',
+    );
+
+  const raw = readJsonFile(releasePath);
+  if (!isRecord(raw)) {
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      `Authority release snapshot must be an object: ${releasePath}`,
+    );
+  }
+
+  const releaseHash = raw.release_hash;
+  if (typeof releaseHash !== 'string' || releaseHash.trim().length === 0) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `Authority release snapshot missing release_hash: ${releasePath}`,
+    );
+  }
+  if (releaseHash !== input.authority.authorityReleaseHash) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `Authority release_hash ${releaseHash} does not match authority-binding ${input.authority.authorityReleaseHash}`,
+    );
+  }
+
+  const included = raw.included_entities;
+  if (!Array.isArray(included)) {
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      `Authority release snapshot missing included_entities[]: ${releasePath}`,
+    );
+  }
+
+  const ids = new Set<string>();
+  for (const entry of included) {
+    if (typeof entry === 'string' && entry.trim().length > 0) {
+      ids.add(entry);
+      continue;
+    }
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      `Authority release included_entities must be non-empty strings: ${releasePath}`,
+    );
+  }
+  if (ids.size === 0) {
+    throw new TextbookLocatorInventoryError(
+      'schema-invalid',
+      `Authority release snapshot has empty included_entities: ${releasePath}`,
+    );
+  }
+  return ids;
 }
 
 /**
