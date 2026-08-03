@@ -34,5 +34,5 @@
 
 ## 6. 提交与 PR
 
-- [ ] 6.1 将 grill 决策文档、OpenSpec change 与实现代码一并提交
-- [ ] 6.2 更新 issue #1167 状态并创建关联 PR
+- [x] 6.1 将 grill 决策文档、OpenSpec change 与实现代码一并提交
+- [x] 6.2 更新 issue #1167 状态并创建关联 PR

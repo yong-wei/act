@@ -459,6 +459,158 @@ const DEMO_CONTROL_CORRECTION_PATH_NODES = [
   },
 ] as unknown as AdaptiveLearningPathPlan['mainPath'];
 
+const DEMO_UNLOCK_CHAIN_PATH_NODES = [
+  ...DEMO_CONTROL_CORRECTION_PATH_NODES.slice(0, 2),
+  {
+    ...DEMO_CONTROL_CORRECTION_PATH_NODES[2],
+    readiness: {
+      state: 'locked',
+      message: '完成检查题并补充仿真证据后解锁。',
+      unlockMessage: '完成检查题并补充仿真证据后解锁。',
+      reasonCodes: ['readiness-required-completion', 'readiness-minimum-evidence', 'readiness-minimum-competency'],
+      fallbackNodeIds: ['demo-current-quiz'],
+      missingCompetencies: ['simulationValidation'],
+      missingEvidenceCount: 2,
+      missingCompletedNodeIds: ['demo-current-quiz'],
+      missingOutcomeRefs: ['outcome:simulation-validation'],
+    },
+  },
+  {
+    nodeId: 'demo-prerequisite-target',
+    title: '进入闭环校正 Arena 终测',
+    type: 'arena_task',
+    pathNodeType: 'challenge',
+    displayName: 'Arena',
+    iconKey: 'arena-task',
+    shapeHint: 'rounded',
+    evidenceBehavior: 'judged-submission',
+    evidenceStatus: 'instrumented',
+    externalResource: null,
+    checkpoint: null,
+    sourceKind: 'arena_task',
+    sourceRef: 'demo-prerequisite-target',
+    target: '/arena/challenges/task-second-order-lead-pid?journeyFixture=1',
+    estimatedTimeMinutes: 40,
+    prerequisiteNodeIds: ['demo-current-quiz'],
+    knowledgeCoverage: ['闭环校正', '参数验证'],
+    teacherPolicy: 'default',
+    privacyLevel: 'learner-private',
+    terminalConstraints: ['terminal-validation'],
+    score: 0.82,
+    reasonCodes: ['policy-simulation-driven'],
+    status: 'locked',
+    readiness: {
+      state: 'locked',
+      message: '完成当前检查题后会解锁 Arena。',
+      unlockMessage: null,
+      reasonCodes: ['readiness-fallback'],
+      fallbackNodeIds: ['demo-current-quiz'],
+      missingCompetencies: [],
+      missingEvidenceCount: 0,
+      missingCompletedNodeIds: [],
+      missingOutcomeRefs: [],
+    },
+  },
+  {
+    nodeId: 'demo-prerequisite-text',
+    title: '完成课程同步复盘',
+    type: 'reflection',
+    pathNodeType: 'reflection',
+    displayName: '反思复盘',
+    iconKey: 'reflection',
+    shapeHint: 'rounded',
+    evidenceBehavior: 'instrumented',
+    evidenceStatus: 'instrumented',
+    externalResource: null,
+    checkpoint: null,
+    sourceKind: 'reflection',
+    sourceRef: 'demo-prerequisite-text',
+    target: '/profile/evidence',
+    estimatedTimeMinutes: 20,
+    prerequisiteNodeIds: ['demo-missing-target'],
+    knowledgeCoverage: ['复盘记录'],
+    teacherPolicy: 'default',
+    privacyLevel: 'learner-private',
+    terminalConstraints: [],
+    score: 0.76,
+    reasonCodes: ['policy-reflection-driven'],
+    status: 'locked',
+    readiness: {
+      state: 'locked',
+      message: '完成未知前置复盘节点后会解锁。',
+      unlockMessage: null,
+      reasonCodes: ['readiness-fallback'],
+      fallbackNodeIds: ['demo-missing-target'],
+      missingCompetencies: [],
+      missingEvidenceCount: 0,
+      missingCompletedNodeIds: [],
+      missingOutcomeRefs: [],
+    },
+  },
+  {
+    nodeId: 'demo-unlock-message-fallback',
+    title: '等待 Arena 终测开放',
+    type: 'arena_task',
+    pathNodeType: 'challenge',
+    displayName: 'Arena',
+    iconKey: 'arena-task',
+    shapeHint: 'rounded',
+    evidenceBehavior: 'judged-submission',
+    evidenceStatus: 'instrumented',
+    externalResource: null,
+    checkpoint: null,
+    sourceKind: 'arena_task',
+    sourceRef: 'demo-unlock-message-fallback',
+    target: '/arena/challenges/task-second-order-lead-pid?journeyFixture=1',
+    estimatedTimeMinutes: 35,
+    prerequisiteNodeIds: [],
+    knowledgeCoverage: ['闭环验证'],
+    teacherPolicy: 'default',
+    privacyLevel: 'learner-private',
+    terminalConstraints: ['terminal-validation'],
+    score: 0.8,
+    reasonCodes: ['policy-simulation-driven'],
+    status: 'locked',
+    readiness: {
+      state: 'locked',
+      message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+      unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+      reasonCodes: ['readiness-metadata-missing'],
+      fallbackNodeIds: [],
+      missingCompetencies: [],
+      missingEvidenceCount: 0,
+      missingCompletedNodeIds: [],
+      missingOutcomeRefs: [],
+    },
+  },
+  {
+    nodeId: 'demo-unavailable',
+    title: '完成教师批注后的复盘节点',
+    type: 'reflection',
+    pathNodeType: 'reflection',
+    displayName: '反思复盘',
+    iconKey: 'reflection',
+    shapeHint: 'rounded',
+    evidenceBehavior: 'instrumented',
+    evidenceStatus: 'instrumented',
+    externalResource: null,
+    checkpoint: null,
+    sourceKind: 'reflection',
+    sourceRef: 'demo-unavailable',
+    target: '/profile/evidence',
+    estimatedTimeMinutes: 20,
+    prerequisiteNodeIds: [],
+    knowledgeCoverage: ['教师批注复盘'],
+    teacherPolicy: 'default',
+    privacyLevel: 'learner-private',
+    terminalConstraints: [],
+    score: 0.74,
+    reasonCodes: ['readiness-metadata-missing'],
+    status: 'locked',
+    readiness: null,
+  },
+] as unknown as AdaptiveLearningPathPlan['mainPath'];
+
 const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
   id: 'demo-control-correction-path',
   userId: 'demo-student',
@@ -515,6 +667,19 @@ const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
     graph: { nodes: [], edges: [] },
     timeline: { generatedAt: '2026-06-16T09:00:00+08:00', items: [] },
     badges: [],
+  },
+} as unknown as AdaptiveLearningPathPlan;
+
+const DEMO_UNLOCK_CHAIN_PATH_PLAN = {
+  ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
+  id: 'demo-unlock-chain-path',
+  currentNodeId: 'demo-current-quiz',
+  mainPath: DEMO_UNLOCK_CHAIN_PATH_NODES,
+  executionStatus: {
+    adopted: true,
+    completedNodeIds: ['demo-foundation-card'],
+    activeNodeId: 'demo-current-quiz',
+    updatedAt: '2026-06-16T09:00:00+08:00',
   },
 } as unknown as AdaptiveLearningPathPlan;
 
@@ -1495,6 +1660,7 @@ export default function AdaptivePracticePage() {
   const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
   const isArenaJourneyDemo = isDemoMode && searchParams.get('arenaJourneyFixture') === '1';
+  const isUnlockChainDemo = isDemoMode && searchParams.get('unlockChainScene') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
   const localFeedbackContext = buildFeedbackTaskContext({
@@ -1975,15 +2141,23 @@ export default function AdaptivePracticePage() {
     setSelectedOption(demoData.defaultSelectedOption);
     setFeedback(demoData.feedback);
     setActivePathPlan(activeGoal === 'control-correction'
-      ? (isArenaJourneyDemo ? DEMO_ARENA_JOURNEY_PATH_PLAN : DEMO_CONTROL_CORRECTION_PATH_PLAN)
+      ? (isArenaJourneyDemo
+          ? DEMO_ARENA_JOURNEY_PATH_PLAN
+          : isUnlockChainDemo
+            ? DEMO_UNLOCK_CHAIN_PATH_PLAN
+            : DEMO_CONTROL_CORRECTION_PATH_PLAN)
       : null);
     setActivePathRound(activeGoal === 'control-correction'
-      ? (isArenaJourneyDemo ? DEMO_ARENA_JOURNEY_PATH_ROUND : DEMO_CONTROL_CORRECTION_PATH_ROUND)
+      ? (isArenaJourneyDemo
+          ? DEMO_ARENA_JOURNEY_PATH_ROUND
+          : isUnlockChainDemo
+            ? null
+            : DEMO_CONTROL_CORRECTION_PATH_ROUND)
       : null);
     setQuestionStartAt(Date.now());
     setLoading(false);
     setError(null);
-  }, [activeGoal, isArenaJourneyDemo]);
+  }, [activeGoal, isArenaJourneyDemo, isUnlockChainDemo]);
 
   const loadDiagnostic = useCallback(async () => {
     const response = await fetch('/api/assessment/diagnostic');
