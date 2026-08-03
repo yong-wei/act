@@ -978,12 +978,25 @@ describe('production Authority/Projection packaging (#1274 P1)', () => {
     }
   });
 
-  it('Dockerfile and dockerignore package Authority/Projection store roots', () => {
+  it('Dockerfile, dockerignore, and deploy path wire Authority/Projection stores', () => {
     const root = path.resolve(import.meta.dirname, '../../..');
     const dockerfile = fs.readFileSync(path.join(root, 'Dockerfile'), 'utf8');
     const dockerignore = fs.readFileSync(path.join(root, '.dockerignore'), 'utf8');
+    const deploy = fs.readFileSync(
+      path.join(root, 'deploy/podman/deploy.sh'),
+      'utf8',
+    );
     expect(dockerfile).toContain('course-content/authoring/knowledge/authority');
     expect(dockerfile).toContain('course-content/runtime/knowledge/projection');
     expect(dockerignore).toContain('!course-content/runtime/knowledge/projection');
+    expect(deploy).toContain('ACT_AUTHORITY_STORE_ROOT');
+    expect(deploy).toContain('ACT_TEACHING_PROJECTION_STORE_ROOT');
+    expect(deploy).toContain('require_actkg_activation_store_pointers');
+    expect(deploy).toContain(
+      'AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}',
+    );
+    expect(deploy).toContain(
+      'knowledge/projection',
+    );
   });
 });

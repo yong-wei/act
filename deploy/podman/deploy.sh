@@ -176,6 +176,13 @@ if [ -z "$RUN_MIGRATIONS_ON_START" ]; then
   RUN_MIGRATIONS_ON_START="1"
 fi
 RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/course-content/runtime}"
+# Activation-gate Authority / Teaching Projection stores (#1274).
+# Projection lives under the host runtime mount so the whole-runtime volume
+# overlay does not hide image-packaged empty scaffolds.
+AUTHORITY_STORE_DIR="${AUTHORITY_STORE_DIR:-${PROJECT_DIR}/course-content/authoring/knowledge/authority}"
+TEACHING_PROJECTION_STORE_DIR="${TEACHING_PROJECTION_STORE_DIR:-${RUNTIME_CONTENT_DIR}/knowledge/projection}"
+ACT_AUTHORITY_STORE_ROOT="${ACT_AUTHORITY_STORE_ROOT:-/app/course-content/authoring/knowledge/authority}"
+ACT_TEACHING_PROJECTION_STORE_ROOT="${ACT_TEACHING_PROJECTION_STORE_ROOT:-/app/course-content/runtime/knowledge/projection}"
 START_WRAPPER_PATH="${START_WRAPPER_PATH:-${PROJECT_DIR}/scripts/container-start-wrapper.sh}"
 if [ ! -f "$START_WRAPPER_PATH" ] && [ -f "${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh" ]; then
   START_WRAPPER_PATH="${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh"
@@ -206,6 +213,33 @@ require_konling_mode_context_secret() {
     echo "请在远端环境文件中配置非占位密钥后重新部署应用容器。" >&2
     exit 1
   fi
+}
+
+ensure_actkg_activation_store_dirs() {
+  mkdir -p "$AUTHORITY_STORE_DIR" "$TEACHING_PROJECTION_STORE_DIR"
+}
+
+require_actkg_activation_store_pointers() {
+  # Production Konling teaching projection requires activation-gate current.json
+  # pointers on the host mounts that containers actually see (#1274).
+  if [ "$NODE_ENV" != "production" ]; then
+    return 0
+  fi
+  local missing=0
+  if [ ! -f "${AUTHORITY_STORE_DIR}/current.json" ]; then
+    echo "ERROR: production 缺少 Authority activation 指针: ${AUTHORITY_STORE_DIR}/current.json" >&2
+    missing=1
+  fi
+  if [ ! -f "${TEACHING_PROJECTION_STORE_DIR}/current.json" ]; then
+    echo "ERROR: production 缺少 Teaching Projection activation 指针: ${TEACHING_PROJECTION_STORE_DIR}/current.json" >&2
+    missing=1
+  fi
+  if [ "$missing" -ne 0 ]; then
+    echo "请先运行 activation gate 将 Authority/Projection 工件同步到部署主机，再重新部署。" >&2
+    exit 1
+  fi
+  echo "- Authority store: ${AUTHORITY_STORE_DIR} -> ${ACT_AUTHORITY_STORE_ROOT}"
+  echo "- Teaching Projection store: ${TEACHING_PROJECTION_STORE_DIR} -> ${ACT_TEACHING_PROJECTION_STORE_ROOT}"
 }
 
 require_grading_audit_secret() {
@@ -550,6 +584,10 @@ DB_NAME=$DB_NAME
 DB_USER=$DB_USER
 DB_HOST=$DB_HOST_ALIAS
 RUNTIME_CONTENT_DIR=$RUNTIME_CONTENT_DIR
+AUTHORITY_STORE_DIR=$AUTHORITY_STORE_DIR
+TEACHING_PROJECTION_STORE_DIR=$TEACHING_PROJECTION_STORE_DIR
+ACT_AUTHORITY_STORE_ROOT=$ACT_AUTHORITY_STORE_ROOT
+ACT_TEACHING_PROJECTION_STORE_ROOT=$ACT_TEACHING_PROJECTION_STORE_ROOT
 EOF
   echo "- 运行参数已写入: $RUNTIME_ENV_FILE"
 }
@@ -650,6 +688,8 @@ echo "- Redis 镜像: $REDIS_IMAGE"
 
 ensure_network_and_volume
 mkdir -p "$RUNTIME_CONTENT_DIR"
+ensure_actkg_activation_store_dirs
+require_actkg_activation_store_pointers
 
 if [ ! -f "$START_WRAPPER_PATH" ]; then
   echo "ERROR: 缺少启动包装脚本: $START_WRAPPER_PATH" >&2
@@ -818,6 +858,8 @@ APP_ENV_ARGS=(
   "${SHARED_ENV_ARGS[@]}"
   "${GRADING_AUDIT_ENV_ARGS[@]}"
   "${APP_STORAGE_ENV_ARGS[@]}"
+  -e ACT_AUTHORITY_STORE_ROOT="$ACT_AUTHORITY_STORE_ROOT"
+  -e ACT_TEACHING_PROJECTION_STORE_ROOT="$ACT_TEACHING_PROJECTION_STORE_ROOT"
   -e SMART_COURSEWARE_ORDERING_SECRET="$SMART_COURSEWARE_ORDERING_SECRET"
   -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
   -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
@@ -930,6 +972,7 @@ run_detached_container "$APP_CONTAINER" podman run -d \
   --entrypoint /bin/sh \
   -p "${APP_PORT}:${APP_CONTAINER_PORT}" \
   -v "${RUNTIME_CONTENT_DIR}:/app/course-content/runtime:ro" \
+  -v "${AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}:ro" \
   -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" \
   "${DB_HOST_ARGS[@]}" \
   "${REDIS_HOST_ARGS[@]}" \
@@ -979,5 +1022,7 @@ echo "[4-deploy] 部署完成。"
 echo "- 公网访问: http://121.40.124.135:${APP_PORT}"
 echo "- 目标域名: http://${APP_DOMAIN} (需在 Nginx 配置反向代理到 127.0.0.1:${APP_PORT})"
 echo "- 运行时资源目录: ${RUNTIME_CONTENT_DIR} -> /app/course-content/runtime"
+echo "- Authority store: ${AUTHORITY_STORE_DIR} -> ${ACT_AUTHORITY_STORE_ROOT}"
+echo "- Teaching Projection store: ${TEACHING_PROJECTION_STORE_DIR} -> ${ACT_TEACHING_PROJECTION_STORE_ROOT}"
 echo
 podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}' | grep -E "NAMES|${APP_CONTAINER}|${DB_CONTAINER}|${REDIS_CONTAINER}|${WORKER_CONTAINER}|${SUBMISSION_SCANNER_CONTAINER}|${SUBMISSION_GC_CONTAINER}" || true
