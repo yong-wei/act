@@ -1,5 +1,14 @@
 import { prisma } from '@/lib/prisma';
+import path from 'node:path';
 
+import {
+  DEFAULT_AUTHORITY_ROOT_RELATIVE,
+} from './authority-snapshot';
+import {
+  resolveAuthorityStorePaths,
+  type AuthorityStorePaths,
+} from './authority-store';
+import { readActiveAuthorityRepositoryResult } from './engineering-authority-consumers';
 import {
   ACCEPTED_CANDIDATE_STATE,
   CURRENT_AGGREGATE_RELEASE_SET_ID,
@@ -684,20 +693,41 @@ function diagnoseSnapshot(snapshot: AuthoritativeKnowledgeSnapshot): RepositoryD
   return diagnostics;
 }
 
+export interface AuthoritativeKnowledgeRepositoryOptions {
+  /**
+   * Root directory for immutable Authority Snapshots and `current.json`.
+   * Defaults to `course-content/authoring/knowledge/authority` under cwd.
+   */
+  authorityRoot?: string;
+  /** Pre-resolved store paths (preferred in tests). */
+  authorityStorePaths?: AuthorityStorePaths;
+}
+
 export class AuthoritativeKnowledgeRepository {
+  private readonly authorityStorePaths: AuthorityStorePaths;
+
   constructor(
     private readonly database: AuthoritativeKnowledgeDatabase =
       prisma as unknown as AuthoritativeKnowledgeDatabase,
-  ) {}
+    options: AuthoritativeKnowledgeRepositoryOptions = {},
+  ) {
+    this.authorityStorePaths = options.authorityStorePaths
+      ?? resolveAuthorityStorePaths(
+        options.authorityRoot
+          ?? path.resolve(process.cwd(), DEFAULT_AUTHORITY_ROOT_RELATIVE),
+      );
+  }
+
+  /** Authority store paths used for active Engineering Authority resolution. */
+  getAuthorityStorePaths(): AuthorityStorePaths {
+    return this.authorityStorePaths;
+  }
 
   async read(selector: AuthoritySelector): Promise<RepositoryResult> {
     if (selector.authorityState === 'active') {
-      return {
-        status: 'unavailable',
-        selector,
-        reason: 'active-pointer-unavailable',
-        diagnostics: [],
-      };
+      // Active Authority is resolved from the immutable filesystem pointer and
+      // snapshot — never by falling back to an arbitrary candidate row set.
+      return readActiveAuthorityRepositoryResult(this.authorityStorePaths);
     }
     if (selector.authorityState === 'legacy') {
       return {
