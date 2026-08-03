@@ -19,3 +19,13 @@ export * from './review-workflow';
 export * from './latest-aggregate-authority';
 export * from './current-course-coverage-review';
 export * from './current-course-coverage-review-io';
+export * from './authority-boundary-states';
+export * from './authority-boundary-gate';
+export * from './legacy-course-coverage-audit';
+export {
+  evaluateDeclaredSnapshotAuthorityActivation,
+  validateDeclaredAuthoritativeSnapshotReceipt,
+  type DeclaredSnapshotAuthorityActivationInput,
+  type DeclaredSnapshotAuthorityActivationDiagnostics,
+  type DeclaredEngineeringAuthorityLifecycle,
+} from './declared-authoritative-snapshot';

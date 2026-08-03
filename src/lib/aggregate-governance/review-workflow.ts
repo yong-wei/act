@@ -519,6 +519,8 @@ export function assembleCoverageFromReview(input: {
     releaseHash: worklist.releaseHash,
     sourceDatasetHash: worklist.sourceDatasetHash,
     mode: 'baseline',
+    // Historical full-worklist baseline tooling only; not an Authority gate.
+    coverageDenominator: 'historical-release',
     requireExhaustive: true,
   });
 

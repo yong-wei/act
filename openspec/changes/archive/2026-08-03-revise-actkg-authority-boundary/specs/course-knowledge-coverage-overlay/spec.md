@@ -1,8 +1,5 @@
-# course-knowledge-coverage-overlay Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change add-course-knowledge-coverage-overlay. Update Purpose after archive.
-## Requirements
 ### Requirement: Complete Release import and course activation are separate
 The system MUST keep every integrity-valid ActKG Release available for engineering Authority browsing and engineering consumers, while ACT teaching consumers use only the explicitly scoped, version-matched Teaching Projection records. A missing, empty, or unresolved ACT overlay MUST NOT make the engineering Release invalid.
 
@@ -24,46 +21,6 @@ The system MUST keep every integrity-valid ActKG Release available for engineeri
 - **WHEN** one course/resource binding is `REVIEW_REQUIRED` or missing
 - **THEN** only that affected teaching consumer SHALL be blocked
 - **AND** engineering browsing and Engineering RAG SHALL remain available from Authority
-
-### Requirement: Coverage uses three explicit roles
-Each active coverage entry MUST identify exactly one of `formal_objective`, `necessary_prerequisite`, or `explicit_extension`, together with the course, Canonical ID, and pinned Release.
-
-#### Scenario: Valid entry is imported
-- **WHEN** a reviewed authoring entry names a valid course, object, Release, and allowed role
-- **THEN** the runtime projection SHALL admit that object for the declared course role
-
-#### Scenario: Unsupported role is supplied
-- **WHEN** an entry uses an unregistered role or an object outside the pinned Release
-- **THEN** the Overlay import SHALL fail without changing the active projection
-
-### Requirement: Course coverage has a Git-governed authoring source
-The coverage implementation MUST use structured repository authoring data reviewed through Git and deterministically imported into the database, with every record bound to one candidate ReleaseSet, ReleaseSet Delta Receipt and clean ACT capture revision.
-
-#### Scenario: Authoring data changes
-- **WHEN** a reviewed Git revision changes the coverage source
-- **THEN** deployment SHALL validate and transactionally replace the corresponding runtime projection for the exact ReleaseSet and Delta identity
-
-#### Scenario: Runtime user attempts direct edit
-- **WHEN** a teacher or administrator attempts to change coverage through the running application
-- **THEN** the system SHALL provide no direct mutation endpoint in this change
-
-#### Scenario: Inputs come from mixed captures
-- **WHEN** coverage source, ReleaseSet, Delta Receipt, resource index, Git revision, or database watermark do not belong to one coherent capture
-- **THEN** import SHALL fail without changing the prior shadow projection
-
-### Requirement: Evidence and model output cannot self-activate coverage
-Resource occurrence, textbook mention, vector similarity, and model suggestions MUST remain candidates until a reviewed authoring change admits them.
-
-#### Scenario: Model proposes an extension
-- **WHEN** a model identifies a Canonical Object as relevant to the course
-- **THEN** the system SHALL record or export a candidate without activating it
-
-### Requirement: Overlay versions are auditable
-Every runtime coverage projection MUST identify its authoring revision, import version, candidate ReleaseSet, ReleaseSet Delta Receipt, source hashes, capture revision and baseline-or-incremental mode.
-
-#### Scenario: Consumer queries coverage
-- **WHEN** a formal or shadow consumer receives covered objects
-- **THEN** the response or diagnostic SHALL expose the corresponding Overlay, ReleaseSet and Delta identities for audit
 
 ### Requirement: Coverage baseline is exhaustive
 The system MUST NOT require every member of an ActKG Release to receive an ACT course role or exclusion. The denominator SHALL be the current ACT resource/core-node scope selected for Teaching Projection, and each in-scope resource SHALL have `BOUND`, `EXPLICIT_NONE`, or `REVIEW_REQUIRED` status with a deterministic reason. Exhaustive Release-member coverage is no longer an Engineering Authority gate.
@@ -109,11 +66,3 @@ After Authority changes, ACT SHALL compute impact only for changed Canonical ide
 - **WHEN** a ReleaseSet Delta adds objects with no ACT binding
 - **THEN** ACT SHALL emit zero teaching-review items for those objects
 - **AND** the engineering Release may activate after integrity validation
-
-### Requirement: Coverage does not create teaching relations
-Course roles and exclusions MUST NOT create prerequisite, containment, sequence, association, or other Teaching Projection relations.
-
-#### Scenario: Object is a necessary prerequisite
-- **WHEN** an object receives the course role `necessary_prerequisite`
-- **THEN** that role SHALL permit course consumption but SHALL NOT create a graph prerequisite edge
-

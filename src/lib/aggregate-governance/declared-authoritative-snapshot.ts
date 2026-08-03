@@ -9,6 +9,7 @@ import {
   type CoverageWorklistItem,
   type CoverageWorklistDocument,
 } from './review-workflow';
+import { evaluateEngineeringAuthorityActivation } from './authority-boundary-gate';
 
 export const DECLARED_AUTHORITATIVE_SNAPSHOT_RECEIPT_SCHEMA =
   'declared-authoritative-snapshot-receipt/v1' as const;
@@ -117,8 +118,19 @@ const DECLARED_SNAPSHOT_DELTA_BINDINGS = [
   },
 ] as const;
 
+/**
+ * Historical #1117 frozen receipt state. Snapshot materialization remains
+ * selector-neutral; Engineering Authority activation is a separate explicit
+ * transaction evaluated by `evaluateDeclaredSnapshotAuthorityActivation`.
+ */
 export type DeclaredSnapshotState = 'ACCEPTED_CANDIDATE';
 export type BlockedState = 'BLOCKED' | 'BLOCKED_OR_LEGACY';
+
+/** Engineering Authority lifecycle independent of the frozen candidate receipt. */
+export type DeclaredEngineeringAuthorityLifecycle =
+  | 'VALIDATED'
+  | 'ACTIVE'
+  | 'REJECTED_INTEGRITY';
 
 export interface DeclaredSnapshotDeltaReceipt {
   id: string;
@@ -1314,4 +1326,74 @@ export function assertDeclaredAuthoritativeSnapshotReceipt(
   if (!result.valid) {
     throw new Error(`Declared authoritative snapshot rejected: ${result.errors.join('; ')}`);
   }
+}
+
+export interface DeclaredSnapshotAuthorityActivationInput {
+  /**
+   * Whether frozen identities / digests / receipts still match. When false,
+   * Authority becomes REJECTED_INTEGRITY and no consumer may advance.
+   */
+  integrityValid: boolean;
+  /** Explicit Authority activation transaction (not snapshot creation). */
+  explicitActivationRequested: boolean;
+  /**
+   * ACT Teaching Projection status. Empty / absent teaching does not block
+   * Engineering Authority.
+   */
+  teachingProjection:
+    | 'PUBLISHED'
+    | 'REVIEW_REQUIRED'
+    | 'NOT_PROJECTED'
+    | 'EMPTY';
+  /** Historical CourseCoverage DEFER presence is audit-only. */
+  historicalDeferPresent?: boolean;
+}
+
+export interface DeclaredSnapshotAuthorityActivationDiagnostics {
+  /** Snapshot creation never mutates selectors. */
+  snapshotSelectorNeutral: true;
+  /** Frozen #1117 candidate receipt remains evidence, not a permanent prod block. */
+  candidateOnlyProdBlock: false;
+  engineeringAuthority: DeclaredEngineeringAuthorityLifecycle;
+  authorityActiveEligible: boolean;
+  teachingProjection: 'PUBLISHED' | 'REVIEW_REQUIRED' | 'NOT_PROJECTED';
+  teachingDoesNotGateAuthority: true;
+  courseCoverageRequiredForAuthority: false;
+  selectorsChanged: 0;
+  reasons: string[];
+}
+
+/**
+ * Independent Authority vs teaching diagnostics for a declared ActKG snapshot.
+ * Replaces the candidate-only / global prod-blocking rule with explicit
+ * activation eligibility (#1265). Does not mutate the frozen receipt bytes.
+ */
+export function evaluateDeclaredSnapshotAuthorityActivation(
+  input: DeclaredSnapshotAuthorityActivationInput,
+): DeclaredSnapshotAuthorityActivationDiagnostics {
+  const teachingScope = input.teachingProjection === 'EMPTY'
+    || input.teachingProjection === 'NOT_PROJECTED'
+    ? 'EMPTY' as const
+    : input.teachingProjection === 'PUBLISHED'
+      ? 'PUBLISHED' as const
+      : 'REVIEW_REQUIRED' as const;
+
+  const decision = evaluateEngineeringAuthorityActivation({
+    bundleIntegrity: input.integrityValid ? 'VALID' : 'INVALID',
+    explicitActivationRequested: input.explicitActivationRequested,
+    teachingScope,
+    historicalDeferPresent: input.historicalDeferPresent,
+  });
+
+  return {
+    snapshotSelectorNeutral: true,
+    candidateOnlyProdBlock: false,
+    engineeringAuthority: decision.authority,
+    authorityActiveEligible: decision.authorityActiveEligible,
+    teachingProjection: decision.teachingProjection,
+    teachingDoesNotGateAuthority: true,
+    courseCoverageRequiredForAuthority: false,
+    selectorsChanged: 0,
+    reasons: decision.reasons,
+  };
 }
