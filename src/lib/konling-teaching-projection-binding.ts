@@ -4,10 +4,20 @@
  * Server-side only: resolves Authority + Teaching Projection into a layered
  * payload for Konling runtime entry points. Client hints remain advisory;
  * authorization is revalidated against the resolved scope.
+ *
+ * Production artifact roots (in order):
+ * 1. explicit layeredGraphPayload from a trusted server caller
+ * 2. ACT_AUTHORITY_STORE_ROOT / ACT_TEACHING_PROJECTION_STORE_ROOT env mounts
+ * 3. image-packaged defaults under course-content/... (activation-gate output)
  */
+
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 import {
   buildCoursePackageLayeredScope,
+  resolveConfiguredAuthorityRoot,
+  resolveConfiguredTeachingProjectionRoot,
   resolveCoursePageLayeredGraphContext,
 } from '@/lib/layered-graph/course-page-context';
 import type { LayeredGraphPayload, LayeredGraphScope } from '@/lib/layered-graph/contracts';
@@ -25,8 +35,16 @@ export interface KonlingTeachingProjectionBinding {
     | 'explicit-payload'
     | 'course-page-layered-graph'
     | 'absent-no-course'
+    | 'production-artifacts-missing'
     | 'resolve-failed';
   reasons: string[];
+  /** Resolved production store roots (for diagnostics / tests). */
+  authorityRoot?: string | null;
+  projectionRoot?: string | null;
+}
+
+function storePointerPresent(root: string): boolean {
+  return existsSync(join(root, 'current.json'));
 }
 
 function resolvePackageCanonicalId(courseId: string): {
@@ -185,6 +203,35 @@ export function resolveKonlingTeachingProjectionBinding(input: {
     };
   }
 
+  const repoRoot = input.repoRoot ?? process.cwd();
+  const authorityRoot = resolveConfiguredAuthorityRoot(repoRoot);
+  const projectionRoot = resolveConfiguredTeachingProjectionRoot(repoRoot);
+
+  // Fail closed with an explicit production-artifacts reason when neither
+  // image-packaged stores nor env mounts expose activation-gate outputs.
+  const authorityReady = storePointerPresent(authorityRoot);
+  const projectionReady = storePointerPresent(projectionRoot);
+  if (!authorityReady || !projectionReady) {
+    return {
+      payload: null,
+      scope,
+      permittedScopeIds: scope.scopeId ? [scope.scopeId] : [],
+      authorized,
+      source: 'production-artifacts-missing',
+      authorityRoot,
+      projectionRoot,
+      reasons: [
+        !authorityReady
+          ? `authority-store-missing:${authorityRoot}`
+          : 'authority-store-present',
+        !projectionReady
+          ? `teaching-projection-store-missing:${projectionRoot}`
+          : 'teaching-projection-store-present',
+        'package-or-mount-activation-gate-artifacts',
+      ],
+    };
+  }
+
   try {
     const context = resolveCoursePageLayeredGraphContext({
       scope,
@@ -192,7 +239,9 @@ export function resolveKonlingTeachingProjectionBinding(input: {
       pinnedProjectionId: input.pinnedProjectionId,
       pinnedProjectionHash: input.pinnedProjectionHash,
       candidateProjectionId: input.candidateProjectionId,
-      repoRoot: input.repoRoot,
+      repoRoot,
+      authorityRoot,
+      projectionRoot,
     });
     return {
       payload: context.payload,
@@ -200,9 +249,11 @@ export function resolveKonlingTeachingProjectionBinding(input: {
       permittedScopeIds: context.scope.scopeId ? [context.scope.scopeId] : [],
       authorized,
       source: 'course-page-layered-graph',
+      authorityRoot,
+      projectionRoot,
       reasons: context.hasTeachingProjection
-        ? ['teaching-projection-resolved']
-        : ['teaching-projection-absent-or-fallback-only'],
+        ? ['teaching-projection-resolved', 'production-default-store-paths']
+        : ['teaching-projection-absent-or-fallback-only', 'production-default-store-paths'],
     };
   } catch (error) {
     return {
@@ -211,6 +262,8 @@ export function resolveKonlingTeachingProjectionBinding(input: {
       permittedScopeIds: scope.scopeId ? [scope.scopeId] : [],
       authorized,
       source: 'resolve-failed',
+      authorityRoot,
+      projectionRoot,
       reasons: [
         `teaching-projection-resolve-failed:${
           error instanceof Error ? error.message : 'unknown'

@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 /**
  * Konling Teaching Projection context + dual-domain RAG composition (#1274).
  */
@@ -24,6 +27,7 @@ import {
   projectKonlingTeachingProjectionAnswerProvenance,
   resolveKonlingTeachingProjectionContext,
 } from '@/lib/konling-teaching-projection-context';
+import { resolveKonlingTeachingProjectionBinding } from '@/lib/konling-teaching-projection-binding';
 import { LAYERED_GRAPH_PAYLOAD_CONTRACT } from '@/lib/layered-graph/contracts';
 import type { LayeredGraphPayload } from '@/lib/layered-graph/contracts';
 
@@ -929,5 +933,57 @@ describe('4. Production binding and prompt assembly', () => {
     expect(context).toContain('teaching_projection_context');
     expect(context).toContain('dual_domain_provenance');
     expect(pathAdvisor).toContain('teachingProjectionContext: graphRuntimeContext.teachingProjectionContext');
+  });
+});
+
+
+describe('production Authority/Projection packaging (#1274 P1)', () => {
+  it('uses production-default store roots and reports missing activation artifacts explicitly', () => {
+    const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'konling-prod-paths-'));
+    try {
+      const authorityRoot = path.join(repoRoot, 'course-content/authoring/knowledge/authority');
+      const projectionRoot = path.join(repoRoot, 'course-content/runtime/knowledge/projection');
+      fs.mkdirSync(authorityRoot, { recursive: true });
+      fs.mkdirSync(projectionRoot, { recursive: true });
+
+      const missing = resolveKonlingTeachingProjectionBinding({
+        courseId: 'unit-1-1',
+        pageId: 'overview',
+        repoRoot,
+        authorized: true,
+      });
+      expect(missing.source).toBe('production-artifacts-missing');
+      expect(missing.payload).toBeNull();
+      expect(missing.authorityRoot).toBe(authorityRoot);
+      expect(missing.projectionRoot).toBe(projectionRoot);
+      expect(missing.reasons.some((r) => r.startsWith('authority-store-missing:'))).toBe(true);
+      expect(missing.reasons.some((r) => r.startsWith('teaching-projection-store-missing:'))).toBe(true);
+
+      fs.writeFileSync(path.join(authorityRoot, 'current.json'), '{"contract":"act-authority-current/v1"}');
+      fs.writeFileSync(path.join(projectionRoot, 'current.json'), '{"contract":"act-teaching-projection-current/v1"}');
+
+      // With pointers present, binding proceeds past packaging gate (may still
+      // fail closed later if releases are incomplete — not packaging miss).
+      const withPointers = resolveKonlingTeachingProjectionBinding({
+        courseId: 'unit-1-1',
+        pageId: 'overview',
+        repoRoot,
+        authorized: true,
+      });
+      expect(withPointers.source).not.toBe('production-artifacts-missing');
+      expect(withPointers.authorityRoot).toBe(authorityRoot);
+      expect(withPointers.projectionRoot).toBe(projectionRoot);
+    } finally {
+      fs.rmSync(repoRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('Dockerfile and dockerignore package Authority/Projection store roots', () => {
+    const root = path.resolve(import.meta.dirname, '../../..');
+    const dockerfile = fs.readFileSync(path.join(root, 'Dockerfile'), 'utf8');
+    const dockerignore = fs.readFileSync(path.join(root, '.dockerignore'), 'utf8');
+    expect(dockerfile).toContain('course-content/authoring/knowledge/authority');
+    expect(dockerfile).toContain('course-content/runtime/knowledge/projection');
+    expect(dockerignore).toContain('!course-content/runtime/knowledge/projection');
   });
 });

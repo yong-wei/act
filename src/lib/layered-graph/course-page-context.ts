@@ -81,17 +81,43 @@ export function buildCoursePackageLayeredScope(input: {
   };
 }
 
+/**
+ * Production-preferred Authority root:
+ * 1) ACT_AUTHORITY_STORE_ROOT / AUTHORITY_STORE_ROOT env (volume mount)
+ * 2) repo default relative path (image-packaged activation gate output)
+ */
+export function resolveConfiguredAuthorityRoot(repoRoot = process.cwd()): string {
+  const fromEnv =
+    process.env.ACT_AUTHORITY_STORE_ROOT?.trim()
+    || process.env.AUTHORITY_STORE_ROOT?.trim();
+  if (fromEnv) return path.resolve(fromEnv);
+  return path.resolve(repoRoot, DEFAULT_AUTHORITY_ROOT_RELATIVE);
+}
+
+/**
+ * Production-preferred Teaching Projection root:
+ * 1) ACT_TEACHING_PROJECTION_STORE_ROOT / TEACHING_PROJECTION_STORE_ROOT env
+ * 2) repo default runtime relative path (image-packaged activation gate output)
+ */
+export function resolveConfiguredTeachingProjectionRoot(
+  repoRoot = process.cwd(),
+): string {
+  const fromEnv =
+    process.env.ACT_TEACHING_PROJECTION_STORE_ROOT?.trim()
+    || process.env.TEACHING_PROJECTION_STORE_ROOT?.trim();
+  if (fromEnv) return path.resolve(fromEnv);
+  return path.resolve(repoRoot, DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE);
+}
+
 export function resolveDefaultAuthorityStorePaths(repoRoot = process.cwd()) {
-  return resolveAuthorityStorePaths(
-    path.resolve(repoRoot, DEFAULT_AUTHORITY_ROOT_RELATIVE),
-  );
+  return resolveAuthorityStorePaths(resolveConfiguredAuthorityRoot(repoRoot));
 }
 
 export function resolveDefaultTeachingProjectionStorePaths(
   repoRoot = process.cwd(),
 ) {
   return resolveTeachingProjectionStorePaths(
-    path.resolve(repoRoot, DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE),
+    resolveConfiguredTeachingProjectionRoot(repoRoot),
   );
 }
 
@@ -238,13 +264,13 @@ export function resolveCoursePageLayeredGraphContext(
     input.authorityPaths
     ?? resolveAuthorityStorePaths(
       input.authorityRoot
-        ?? path.resolve(repoRoot, DEFAULT_AUTHORITY_ROOT_RELATIVE),
+        ?? resolveConfiguredAuthorityRoot(repoRoot),
     );
   const projectionPaths =
     input.projectionPaths
     ?? resolveTeachingProjectionStorePaths(
       input.projectionRoot
-        ?? path.resolve(repoRoot, DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE),
+        ?? resolveConfiguredTeachingProjectionRoot(repoRoot),
     );
 
   const allowLegacyFallback = input.allowLegacyFallback !== false;
