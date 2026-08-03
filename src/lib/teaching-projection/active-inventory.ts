@@ -56,7 +56,13 @@ export interface InventoryBuildOptions {
   capturedAt?: string | null;
   /** Override packages (tests). Defaults to interactive lesson identity registry. */
   packages?: readonly InventoryPackageSpec[];
-  /** When true, skip packages whose runtime lesson dir is missing. Default true. */
+  /**
+   * When true, skip packages whose runtime lesson dir is missing.
+   * Only honored when `allowWorkingTreeBytes` is true (synthetic fixture builds).
+   * Revision-bound builds always fail closed on missing declared runtime paths so
+   * incomplete inventory cannot bind `authoringRevision` (e.g. deleted lesson dir
+   * still listed by the identity registry). Default: true only for fixture builds.
+   */
   skipMissingRuntime?: boolean;
   /**
    * When true, skip git revision ↔ inventory-byte binding.
@@ -736,7 +742,13 @@ export function collectInventoryBindingPaths(input: {
 export function buildActiveCourseInventory(
   options: InventoryBuildOptions,
 ): ActiveCourseInventory {
-  const skipMissing = options.skipMissingRuntime !== false;
+  const revisionBound = options.allowWorkingTreeBytes !== true;
+  // Revision-bound builds must never silently drop declared packages when their
+  // runtime lesson dir is missing: skipped packages leave no sourcePaths, so git
+  // cleanliness/byte checks cannot detect the hole and inventory still binds
+  // authoringRevision. skipMissingRuntime is fixture-only (allowWorkingTreeBytes).
+  const skipMissing =
+    !revisionBound && options.skipMissingRuntime !== false;
   const usingRegistry = options.packages == null;
   const includeIdentityDenominator =
     options.includeIdentityDenominator ?? usingRegistry;

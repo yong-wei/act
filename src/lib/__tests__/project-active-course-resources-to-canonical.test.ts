@@ -548,6 +548,96 @@ describe('project-active-course-resources-to-canonical (#1268)', () => {
       expect(inventory.packageCount).toBeGreaterThan(0);
       expect(inventory.authoringRevision).toBe(authoringRevision);
     });
+
+    it('fails closed when a declared runtime lesson directory is missing under revision binding', () => {
+      // Registry still lists drop-rt, but the whole runtime dir is deleted from
+      // the worktree. Previously skipMissingRuntime=true dropped the package
+      // before sourcePaths collection, so git checks never saw the hole and the
+      // incomplete inventory still bound authoringRevision.
+      const keepLesson =
+        'course-content/runtime/lessons/keep-rt/interactive-manifest.json';
+      const keepLessonJson =
+        'course-content/runtime/lessons/keep-rt/lesson.json';
+      const dropLesson =
+        'course-content/runtime/lessons/drop-rt/interactive-manifest.json';
+      const dropLessonJson =
+        'course-content/runtime/lessons/drop-rt/lesson.json';
+
+      const { dir, head } = createTempInventoryRepo({
+        [keepLesson]: JSON.stringify({
+          steps: { 'step-01': { title: 'Keep' } },
+        }),
+        [keepLessonJson]: JSON.stringify({ title: 'Keep runtime' }),
+        [dropLesson]: JSON.stringify({
+          steps: { 'step-01': { title: 'Drop' } },
+        }),
+        [dropLessonJson]: JSON.stringify({ title: 'Drop runtime' }),
+      });
+
+      const packages = [
+        {
+          packageId: 'keep-rt',
+          runtimeLessonDir: 'keep-rt',
+          lessonKey: 'keep-rt',
+        },
+        {
+          packageId: 'drop-rt',
+          runtimeLessonDir: 'drop-rt',
+          lessonKey: 'drop-rt',
+        },
+      ] as const;
+
+      const clean = buildActiveCourseInventory({
+        repoRoot: dir,
+        authoringRevision: head,
+        packages,
+      });
+      expect(clean.packageCount).toBe(2);
+
+      rmSync(path.join(dir, 'course-content/runtime/lessons/drop-rt'), {
+        recursive: true,
+        force: true,
+      });
+
+      // Even an explicit skipMissingRuntime=true must not bypass fail-closed
+      // for revision-bound inventory.
+      expect(() =>
+        buildActiveCourseInventory({
+          repoRoot: dir,
+          authoringRevision: head,
+          packages,
+          skipMissingRuntime: true,
+        }),
+      ).toThrow(ActiveCourseInventoryError);
+
+      try {
+        buildActiveCourseInventory({
+          repoRoot: dir,
+          authoringRevision: head,
+          packages,
+          skipMissingRuntime: true,
+        });
+        expect.unreachable(
+          'expected missing declared runtime to fail closed under revision binding',
+        );
+      } catch (error) {
+        expect(error).toBeInstanceOf(ActiveCourseInventoryError);
+        expect((error as ActiveCourseInventoryError).code).toBe(
+          'runtime-missing',
+        );
+        expect((error as Error).message).toMatch(/drop-rt/);
+      }
+
+      // Fixture builds with allowWorkingTreeBytes may still skip missing runtimes.
+      const skipped = buildActiveCourseInventory({
+        repoRoot: dir,
+        authoringRevision: head,
+        allowWorkingTreeBytes: true,
+        packages,
+      });
+      expect(skipped.packageCount).toBe(1);
+      expect(skipped.packages.map((p) => p.packageId)).toEqual(['keep-rt']);
+    });
   });
 
   describe('2. Deterministic mapping fixtures', () => {
