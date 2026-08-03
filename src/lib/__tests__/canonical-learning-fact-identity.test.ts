@@ -19,6 +19,7 @@ import {
   LearningFactCutoverActivationError,
   listGovernedKnowledgeScopedProducers,
   projectCoexistingLearningFactIdentities,
+  readVerifiedLearningFactAdmission,
   resolveHistoricalLearningFactDisplayContext,
   runCanonicalLearningFactShadowValidation,
   runCanonicalLearningFactShadowValidationAsync,
@@ -550,24 +551,30 @@ describe('canonical-learning-fact-identity (#1116 remediation)', () => {
     });
 
     it('fails closed when Projection-bound writer lacks resource identity', () => {
-      const admission = mintFormalWriteLearningFactAdmissionForTests({
-        pinned: pinned(),
+      // Managed capability path must forward projection/resource gates through
+      // readVerifiedLearningFactAdmission — not only hand-built admission fields.
+      const writeCapability = mintCanonicalLearningFactWriteCapabilityForTests({
+        pinned: pinned([
+          'ctr:object:feedback-loop',
+          'ctr:object:engineering-only',
+        ]),
         allowedSourcePrefixes: ['arena-official'],
-        resourceOrKaqSupportedCanonicalIds: ['ctr:object:feedback-loop'],
+        resourceOrKaqSupportedCanonicalIds: [
+          'ctr:object:feedback-loop',
+          'ctr:object:engineering-only',
+        ],
         projectionId: PROJECTION_ID,
-      });
-      const fields = {
-        admittedCanonicalIds: admission.admittedCanonicalIds,
-        resourceOrKaqSupportedCanonicalIds: admission.resourceOrKaqSupportedCanonicalIds,
-        expectedReleaseSetId: admission.expectedReleaseSetId,
-        expectedReleaseId: admission.expectedReleaseId,
-        expectedProjectionId: admission.expectedProjectionId,
-        expectedKnowledgeRevisionRef: admission.expectedKnowledgeRevisionRef,
-        allowedSourcePrefixes: admission.allowedSourcePrefixes,
+        releasePublicationState: 'ACTIVE',
         requireProjectionBoundResourceIdentity: true,
         projectedCanonicalIds: ['ctr:object:feedback-loop'],
         accessibleResourceIds: ['lesson:feedback-loop'],
-      };
+      });
+      // Simulate formal writer: only fields exposed by the capability view.
+      const fields = readVerifiedLearningFactAdmission(writeCapability.admission);
+
+      expect(fields.requireProjectionBoundResourceIdentity).toBe(true);
+      expect(fields.projectedCanonicalIds).toEqual(['ctr:object:feedback-loop']);
+      expect(fields.accessibleResourceIds).toEqual(['lesson:feedback-loop']);
 
       expect(evaluateCanonicalLearningFactWrite({
         rows: [baseRow()],
@@ -587,18 +594,30 @@ describe('canonical-learning-fact-identity (#1116 remediation)', () => {
           resourceId: 'lesson:feedback-loop',
           canonicalObjectId: 'ctr:object:engineering-only',
         }),
-        admission: {
-          ...fields,
-          admittedCanonicalIds: [
-            ...fields.admittedCanonicalIds,
-            'ctr:object:engineering-only',
-          ],
-          resourceOrKaqSupportedCanonicalIds: [
-            ...fields.resourceOrKaqSupportedCanonicalIds,
-            'ctr:object:engineering-only',
-          ],
-        },
+        admission: fields,
       }).rejectionCodes).toContain('node-not-projected');
+    });
+
+    it('rejects Projection-bound formal writes missing resourceId via managed capability', async () => {
+      const { sink } = memorySink();
+      const writeCapability = mintCanonicalLearningFactWriteCapabilityForTests({
+        pinned: pinned(),
+        allowedSourcePrefixes: ['arena-official'],
+        resourceOrKaqSupportedCanonicalIds: ['ctr:object:feedback-loop'],
+        projectionId: PROJECTION_ID,
+        releasePublicationState: 'ACTIVE',
+        requireProjectionBoundResourceIdentity: true,
+        projectedCanonicalIds: ['ctr:object:feedback-loop'],
+        accessibleResourceIds: ['lesson:feedback-loop'],
+      });
+
+      await expect(
+        writeCanonicalKnowledgeScopedLearningFacts(sink, {
+          rows: [baseRow()],
+          identity: identity({ resourceId: null }),
+          writeCapability,
+        }),
+      ).rejects.toMatchObject({ code: 'resource-identity-missing' });
     });
 
     it('resolves historical Legacy facts through crosswalk without mutation or backfill', () => {

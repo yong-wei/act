@@ -259,6 +259,29 @@ function collectSupportedCanonicalIds(input: {
   return [...supported].sort();
 }
 
+/**
+ * Accessible projected resource IDs from governed CURRENT+SHADOW_PUBLISHED
+ * binding decisions. Used to seal Projection-bound resource identity gates.
+ */
+function collectAccessibleResourceIds(
+  resourceBindingResult: BindingGovernanceResult | null | undefined,
+): string[] {
+  if (!resourceBindingResult) return [];
+  const governed = assertGovernedResourceBindingResult(resourceBindingResult);
+  const resources = new Set<string>();
+  for (const decision of governed.decisions) {
+    if (
+      decision.lifecycleState === 'CURRENT'
+      && decision.publicationState === 'SHADOW_PUBLISHED'
+      && typeof decision.resourceId === 'string'
+      && decision.resourceId.trim()
+    ) {
+      resources.add(decision.resourceId.trim());
+    }
+  }
+  return [...resources].sort();
+}
+
 function mintAdmission(input: {
   mode: LearningFactAdmissionMode;
   productionWriteAuthorized: boolean;
@@ -272,6 +295,15 @@ function mintAdmission(input: {
    */
   projectionId: string;
   releasePublicationState?: AggregateReleasePublicationState;
+  /**
+   * Projection-bound resource identity gates (#1275). When any of these are
+   * provided (or requireProjectionBoundResourceIdentity is true), managed
+   * writers enforce resourceId + projected-node membership via admission —
+   * not optional caller-side fields.
+   */
+  projectedCanonicalIds?: readonly string[];
+  accessibleResourceIds?: readonly string[];
+  requireProjectionBoundResourceIdentity?: boolean;
 }): VerifiedLearningFactAdmission {
   assertVerifiedKaqPinnedContext(input.pinned);
   const pinned = input.pinned;
@@ -320,6 +352,25 @@ function mintAdmission(input: {
     }
   }
 
+  const projectedCanonicalIds =
+    input.projectedCanonicalIds && input.projectedCanonicalIds.length > 0
+      ? Object.freeze(
+          [...new Set(input.projectedCanonicalIds.map((id) => id.trim()).filter(Boolean))].sort(),
+        ) as readonly string[]
+      : undefined;
+  const accessibleResourceIds =
+    input.accessibleResourceIds && input.accessibleResourceIds.length > 0
+      ? Object.freeze(
+          [...new Set(input.accessibleResourceIds.map((id) => id.trim()).filter(Boolean))].sort(),
+        ) as readonly string[]
+      : undefined;
+  const requireProjectionBoundResourceIdentity =
+    input.requireProjectionBoundResourceIdentity === true
+    || (projectedCanonicalIds != null && projectedCanonicalIds.length > 0)
+    || (accessibleResourceIds != null && accessibleResourceIds.length > 0)
+      ? true
+      : undefined;
+
   const admission = {
     schemaVersion: VERIFIED_LEARNING_FACT_ADMISSION_VERSION,
     mode: input.mode,
@@ -334,6 +385,11 @@ function mintAdmission(input: {
       [...input.allowedSourcePrefixes],
     ) as readonly string[],
     releasePublicationStateHint: input.releasePublicationState ?? 'CANDIDATE',
+    ...(projectedCanonicalIds ? { projectedCanonicalIds } : {}),
+    ...(accessibleResourceIds ? { accessibleResourceIds } : {}),
+    ...(requireProjectionBoundResourceIdentity
+      ? { requireProjectionBoundResourceIdentity: true as const }
+      : {}),
   } as VerifiedLearningFactAdmission;
 
   return sealRegister(admission, ADMISSION_BRAND, ADMISSION_REGISTRY);
@@ -350,12 +406,36 @@ export function buildShadowLearningFactAdmission(input: {
   projectionId: string;
   reviewedKaqBindings?: readonly KaqCanonicalBinding[];
   resourceBindingResult?: BindingGovernanceResult | null;
+  /**
+   * Teaching Projection-bound membership. When omitted and resource bindings
+   * are present, projected IDs default to supported canonicals and resource
+   * IDs are derived from CURRENT+SHADOW_PUBLISHED decisions.
+   */
+  projectedCanonicalIds?: readonly string[];
+  accessibleResourceIds?: readonly string[];
+  requireProjectionBoundResourceIdentity?: boolean;
 }): VerifiedLearningFactAdmission {
   const supported = collectSupportedCanonicalIds({
     pinned: input.pinned,
     reviewedKaqBindings: input.reviewedKaqBindings,
     resourceBindingResult: input.resourceBindingResult,
   });
+  const derivedResourceIds = collectAccessibleResourceIds(
+    input.resourceBindingResult,
+  );
+  const accessibleResourceIds =
+    input.accessibleResourceIds
+    ?? (derivedResourceIds.length > 0 ? derivedResourceIds : undefined);
+  const projectedCanonicalIds =
+    input.projectedCanonicalIds
+    ?? (accessibleResourceIds && accessibleResourceIds.length > 0
+      ? supported
+      : undefined);
+  const requireProjectionBoundResourceIdentity =
+    input.requireProjectionBoundResourceIdentity
+    ?? (Boolean(accessibleResourceIds && accessibleResourceIds.length > 0)
+      || Boolean(projectedCanonicalIds && projectedCanonicalIds.length > 0)
+      || undefined);
   return mintAdmission({
     mode: 'SHADOW',
     productionWriteAuthorized: false,
@@ -364,6 +444,9 @@ export function buildShadowLearningFactAdmission(input: {
     allowedSourcePrefixes: input.allowedSourcePrefixes,
     projectionId: input.projectionId,
     releasePublicationState: 'CANDIDATE',
+    projectedCanonicalIds,
+    accessibleResourceIds,
+    requireProjectionBoundResourceIdentity,
   });
 }
 
@@ -380,6 +463,18 @@ export function readVerifiedLearningFactAdmission(
     expectedProjectionId: admission.expectedProjectionId,
     expectedKnowledgeRevisionRef: admission.expectedKnowledgeRevisionRef,
     allowedSourcePrefixes: admission.allowedSourcePrefixes,
+    ...(admission.projectedCanonicalIds
+      ? { projectedCanonicalIds: admission.projectedCanonicalIds }
+      : {}),
+    ...(admission.accessibleResourceIds
+      ? { accessibleResourceIds: admission.accessibleResourceIds }
+      : {}),
+    ...(admission.requireProjectionBoundResourceIdentity
+      ? {
+          requireProjectionBoundResourceIdentity:
+            admission.requireProjectionBoundResourceIdentity,
+        }
+      : {}),
   };
 }
 
@@ -416,6 +511,9 @@ export function mintFormalWriteLearningFactAdmissionForTests(input: {
   resourceOrKaqSupportedCanonicalIds: readonly string[];
   projectionId: string;
   releasePublicationState?: AggregateReleasePublicationState;
+  projectedCanonicalIds?: readonly string[];
+  accessibleResourceIds?: readonly string[];
+  requireProjectionBoundResourceIdentity?: boolean;
 }): VerifiedLearningFactAdmission {
   assertTestOnly('mintFormalWriteLearningFactAdmissionForTests');
   return mintAdmission({
@@ -426,6 +524,10 @@ export function mintFormalWriteLearningFactAdmissionForTests(input: {
     allowedSourcePrefixes: input.allowedSourcePrefixes,
     projectionId: input.projectionId,
     releasePublicationState: input.releasePublicationState ?? 'ACTIVE',
+    projectedCanonicalIds: input.projectedCanonicalIds,
+    accessibleResourceIds: input.accessibleResourceIds,
+    requireProjectionBoundResourceIdentity:
+      input.requireProjectionBoundResourceIdentity,
   });
 }
 
@@ -435,6 +537,9 @@ export function mintCanonicalLearningFactWriteCapabilityForTests(input: {
   resourceOrKaqSupportedCanonicalIds: readonly string[];
   projectionId: string;
   releasePublicationState?: AggregateReleasePublicationState;
+  projectedCanonicalIds?: readonly string[];
+  accessibleResourceIds?: readonly string[];
+  requireProjectionBoundResourceIdentity?: boolean;
 }): CanonicalLearningFactWriteCapability {
   assertTestOnly('mintCanonicalLearningFactWriteCapabilityForTests');
   const selector = mintCanonicalLearningFactSelectorForTests();

@@ -469,4 +469,107 @@ describe('readiness and resource selection (#1275)', () => {
     expect(result.blocked.map((b) => b.code)).toContain('required-cycle');
     expect(result.nodes).toEqual([]);
   });
+
+  it('ignores non-PUBLISHED and stale-capture REQUIRED edges from full publication artifacts', () => {
+    const published = {
+      ...requiredEdge('node.laplace-transform', 'node.transfer-function'),
+      status: 'PUBLISHED' as const,
+      authorityReleaseId: AUTHORITY,
+      projectionCaptureId: 'prereq-pub-1',
+      edgeDigest: 'digest-published',
+      authoringRevision: 'rev-1',
+      curatorId: null,
+      curatorRationale: null,
+      authorDecisionId: null,
+      candidateOrigin: null,
+    };
+    const candidate = {
+      ...requiredEdge('node.extra-candidate', 'node.transfer-function'),
+      edgeId: 'edge:candidate',
+      status: 'CANDIDATE' as const,
+      authorityReleaseId: AUTHORITY,
+      projectionCaptureId: 'prereq-pub-1',
+      edgeDigest: 'digest-candidate',
+      authoringRevision: 'rev-1',
+      curatorId: null,
+      curatorRationale: null,
+      authorDecisionId: null,
+      candidateOrigin: 'AUTHOR',
+    };
+    const staleCapture = {
+      ...requiredEdge('node.stale-upstream', 'node.transfer-function'),
+      edgeId: 'edge:stale-capture',
+      status: 'PUBLISHED' as const,
+      authorityReleaseId: AUTHORITY,
+      projectionCaptureId: 'prereq-pub-OLD',
+      edgeDigest: 'digest-stale',
+      authoringRevision: 'rev-0',
+      curatorId: null,
+      curatorRationale: null,
+      authorDecisionId: null,
+      candidateOrigin: null,
+    };
+
+    const result = planActPrerequisitePath(
+      baseInput({
+        prerequisites: [published, candidate, staleCapture],
+        coreNodes: [
+          core('node.laplace-transform'),
+          core('node.transfer-function'),
+          core('node.extra-candidate'),
+          core('node.stale-upstream'),
+        ],
+        resources: [
+          resource('lesson:laplace', 'lesson'),
+          resource('lesson:tf', 'lesson'),
+          resource('lesson:extra', 'lesson'),
+          resource('lesson:stale', 'lesson'),
+        ],
+        bindings: [
+          binding('lesson:laplace', 'node.laplace-transform'),
+          binding('lesson:tf', 'node.transfer-function'),
+          binding('lesson:extra', 'node.extra-candidate'),
+          binding('lesson:stale', 'node.stale-upstream'),
+        ],
+      }),
+    );
+
+    expect(result.status).toBe('ready');
+    expect(result.nodes.map((n) => n.canonicalId)).toEqual([
+      'node.laplace-transform',
+      'node.transfer-function',
+    ]);
+    expect(result.nodes.map((n) => n.canonicalId)).not.toContain(
+      'node.extra-candidate',
+    );
+    expect(result.nodes.map((n) => n.canonicalId)).not.toContain(
+      'node.stale-upstream',
+    );
+    expect(result.diagnostics.requiredEdgeCount).toBe(1);
+  });
+
+  it('does not borrow another node\'s canonical-tagged resources when current node has none', () => {
+    const result = planActPrerequisitePath(
+      baseInput({
+        resources: [
+          // Only goal has a tagged resource; prerequisite has none.
+          resource('lesson:tf', 'lesson', {
+            canonicalId: 'node.transfer-function',
+          }),
+        ],
+        bindings: [],
+        cards: [],
+      }),
+    );
+    expect(result.status).toBe('blocked');
+    expect(result.nodes).toEqual([]);
+    expect(result.blocked).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'no-accessible-resource',
+          canonicalId: 'node.laplace-transform',
+        }),
+      ]),
+    );
+  });
 });

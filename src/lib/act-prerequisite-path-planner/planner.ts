@@ -34,6 +34,10 @@ interface NormalizedEdge {
   evidenceRef: string | null;
   rationale: string | null;
   scopeId: string | null;
+  /** Present on PrerequisiteEdgePublished; runtime edges may omit. */
+  status: string | null;
+  authorityReleaseId: string | null;
+  projectionCaptureId: string | null;
 }
 
 interface NormalizedCoreNode {
@@ -89,6 +93,9 @@ function normalizeEdge(raw: ActPathPlannerInput['prerequisites'][number]): Norma
     evidenceRef,
     rationale: readString(row.rationale) ?? readString(row.curatorRationale),
     scopeId: readString(row.scopeId),
+    status: readString(row.status),
+    authorityReleaseId: readString(row.authorityReleaseId),
+    projectionCaptureId: readString(row.projectionCaptureId),
   };
 }
 
@@ -118,6 +125,53 @@ function isActTeachingRecommended(edge: NormalizedEdge): boolean {
   if (edge.strength !== 'RECOMMENDED') return false;
   if (edge.layer !== 'ACT_TEACHING') return false;
   return true;
+}
+
+/**
+ * Hard/advisory edges must bind the current Projection scope/capture.
+ * PrerequisiteEdgePublished always carries status; only PUBLISHED is accepted.
+ * Runtime TeachingPrerequisiteRuntime edges omit status and are treated as
+ * already gate-filtered by the projection builder.
+ */
+function isBoundToCurrentProjection(
+  edge: NormalizedEdge,
+  projection: NonNullable<ActPathPlannerInput['projection']>,
+): boolean {
+  if (edge.status != null && edge.status !== 'PUBLISHED') {
+    return false;
+  }
+  if (edge.scopeId != null && edge.scopeId !== projection.scopeId) {
+    return false;
+  }
+  if (
+    edge.authorityReleaseId != null
+    && edge.authorityReleaseId !== projection.authorityReleaseId
+  ) {
+    return false;
+  }
+  if (edge.projectionCaptureId != null) {
+    const capture =
+      projection.prerequisitePublicationId?.trim()
+      || null;
+    if (!capture || edge.projectionCaptureId !== capture) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isHardRequiredEdge(
+  edge: NormalizedEdge,
+  projection: NonNullable<ActPathPlannerInput['projection']>,
+): boolean {
+  return isActTeachingRequired(edge) && isBoundToCurrentProjection(edge, projection);
+}
+
+function isAdvisoryRecommendedEdge(
+  edge: NormalizedEdge,
+  projection: NonNullable<ActPathPlannerInput['projection']>,
+): boolean {
+  return isActTeachingRecommended(edge) && isBoundToCurrentProjection(edge, projection);
 }
 
 /**
@@ -320,11 +374,18 @@ function collectCandidatesForNode(input: {
     }
   }
 
-  // When the caller already scoped the candidate list to one node (no bindings
-  // and no cards), accept the list as-is. Multi-node inventories must use
-  // bindings, cards, or per-candidate canonicalId.
+  // Untagged single-node fallback: only when EVERY candidate lacks canonical
+  // ownership and no multi-node binding/card inventory was supplied. When any
+  // candidate carries canonicalId, missing matches must fail closed instead of
+  // borrowing another node's resources.
+  const anyCanonicalTagged = input.resources.some(
+    (resource) =>
+      typeof resource.canonicalId === 'string'
+      && resource.canonicalId.trim().length > 0,
+  );
   if (
     out.size === 0
+    && !anyCanonicalTagged
     && (input.bindings == null || input.bindings.length === 0)
     && (input.cards == null || input.cards.length === 0)
   ) {
@@ -374,14 +435,16 @@ export function planActPrerequisitePath(
   const edges = input.prerequisites
     .map(normalizeEdge)
     .filter((edge): edge is NormalizedEdge => edge != null);
-  const requiredEdges = edges.filter(isActTeachingRequired);
-  const recommendedEdges = edges.filter(isActTeachingRecommended);
+
+  // Diagnostics before projection identity: count raw ACT_TEACHING shapes only.
+  const rawRequiredCount = edges.filter(isActTeachingRequired).length;
+  const rawRecommendedCount = edges.filter(isActTeachingRecommended).length;
 
   const baseDiagnostics = {
     reverseTraversalCount: 0,
     masteredExcludedCount: 0,
-    requiredEdgeCount: requiredEdges.length,
-    recommendedEdgeCount: recommendedEdges.length,
+    requiredEdgeCount: rawRequiredCount,
+    recommendedEdgeCount: rawRecommendedCount,
     engineeringRelationCount: engineeringContext.length,
   };
 
@@ -460,6 +523,17 @@ export function planActPrerequisitePath(
       engineeringContext,
     );
   }
+
+  // Only PUBLISHED edges bound to the current Projection scope/capture are hard
+  // or advisory path edges. CANDIDATE / STALE / REVIEW_REQUIRED and stale
+  // captures are ignored (never promoted).
+  const projection = input.projection;
+  const requiredEdges = edges.filter((edge) => isHardRequiredEdge(edge, projection));
+  const recommendedEdges = edges.filter((edge) =>
+    isAdvisoryRecommendedEdge(edge, projection),
+  );
+  baseDiagnostics.requiredEdgeCount = requiredEdges.length;
+  baseDiagnostics.recommendedEdgeCount = recommendedEdges.length;
 
   if (!goalCanonicalId) {
     return buildEmptyResult(
