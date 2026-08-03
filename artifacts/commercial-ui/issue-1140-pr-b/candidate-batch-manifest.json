@@ -1,0 +1,32 @@
+{
+  "capturedAt": "2026-08-03T05:41:24.192Z",
+  "commitSha": "5024f41050df355c4715125ba9598719dbbc834f",
+  "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140",
+  "sourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "7bb355343247921d511281edec9b93db9ed886dc9dd42476300e777b7e31f32a",
+    "src/lib/adaptive-path-candidate-batches.ts": "134a30fc640c88f7d065b311fa8a0615bb213476028d366ffa787e63716ba63e",
+    "tests/adaptive-path-candidate-batches.spec.ts": "a5a823c67f6f61ae4b0e666df6f080bc6ee96ccb0122b206a6c9a0dd0cda1ec3"
+  },
+  "screenshots": [
+    {
+      "file": "artifacts/commercial-ui/issue-1140-pr-b/candidate-batch-desktop-1440.png",
+      "sha256": "96ff5318c6464105793b6e5d70636ab69b088ca197a616c7f45aa45fe750ad09",
+      "width": 1440,
+      "height": 1000,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": "path-candidate-batch_issue1140",
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1140-pr-b/candidate-batch-mobile-320.png",
+      "sha256": "affdd18a3cef2a12b74366da6262ffe67bd9156d4bab02970e7f81f9b89cd83b",
+      "width": 320,
+      "height": 900,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": "path-candidate-batch_issue1140",
+      "noHorizontalOverflow": true
+    }
+  ]
+}

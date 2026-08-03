@@ -26,5 +26,5 @@
 ## 5. Verification And Evidence
 
 - [x] 5.1 Run focused unit and route tests, Prisma validation, lint, full typecheck, and `git diff --check`.
-- [ ] 5.2 Create a code checkpoint commit, capture 1440px and 320px browser evidence with a hash-bound manifest, and verify it in non-update mode.
-- [ ] 5.3 Update Issue 1140 phase B evidence documentation, OpenSpec task status, and OpenWolf handoff state.
+- [x] 5.2 Create a code checkpoint commit, capture 1440px and 320px browser evidence with a hash-bound manifest, and verify it in non-update mode.
+- [x] 5.3 Update Issue 1140 phase B evidence documentation, OpenSpec task status, and OpenWolf handoff state.
