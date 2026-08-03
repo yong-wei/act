@@ -572,4 +572,32 @@ describe('readiness and resource selection (#1275)', () => {
       ]),
     );
   });
+
+  it('rejects published edges whose capture id is null when projection has a publication id', () => {
+    const unboundCapturePublished = {
+      ...requiredEdge('node.laplace-transform', 'node.transfer-function'),
+      status: 'PUBLISHED' as const,
+      authorityReleaseId: AUTHORITY,
+      projectionCaptureId: null,
+      edgeDigest: 'digest-null-capture',
+      authoringRevision: 'rev-1',
+      curatorId: null,
+      curatorRationale: null,
+      authorDecisionId: null,
+      candidateOrigin: null,
+    };
+    const result = planActPrerequisitePath(
+      baseInput({
+        prerequisites: [unboundCapturePublished],
+      }),
+    );
+    // Goal alone may still plan if it has resources, but the unbound published
+    // REQUIRED edge must not pull in the upstream prerequisite node.
+    expect(result.diagnostics.requiredEdgeCount).toBe(0);
+    if (result.status === 'ready') {
+      expect(result.nodes.map((n) => n.canonicalId)).toEqual([
+        'node.transfer-function',
+      ]);
+    }
+  });
 });

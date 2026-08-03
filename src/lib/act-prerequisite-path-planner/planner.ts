@@ -129,15 +129,17 @@ function isActTeachingRecommended(edge: NormalizedEdge): boolean {
 
 /**
  * Hard/advisory edges must bind the current Projection scope/capture.
- * PrerequisiteEdgePublished always carries status; only PUBLISHED is accepted.
- * Runtime TeachingPrerequisiteRuntime edges omit status and are treated as
+ * PrerequisiteEdgePublished always carries `status`; only PUBLISHED is accepted
+ * and capture identity must match strictly (including null === null).
+ * Runtime TeachingPrerequisiteRuntime edges omit `status` and are treated as
  * already gate-filtered by the projection builder.
  */
 function isBoundToCurrentProjection(
   edge: NormalizedEdge,
   projection: NonNullable<ActPathPlannerInput['projection']>,
 ): boolean {
-  if (edge.status != null && edge.status !== 'PUBLISHED') {
+  const isPublishedForm = edge.status != null;
+  if (isPublishedForm && edge.status !== 'PUBLISHED') {
     return false;
   }
   if (edge.scopeId != null && edge.scopeId !== projection.scopeId) {
@@ -149,11 +151,14 @@ function isBoundToCurrentProjection(
   ) {
     return false;
   }
-  if (edge.projectionCaptureId != null) {
+  if (isPublishedForm) {
+    // Published edges always close capture identity against the current
+    // Projection prerequisite publication id (null only matches null).
     const capture =
       projection.prerequisitePublicationId?.trim()
       || null;
-    if (!capture || edge.projectionCaptureId !== capture) {
+    const edgeCapture = edge.projectionCaptureId;
+    if (edgeCapture !== capture) {
       return false;
     }
   }

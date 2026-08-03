@@ -260,26 +260,40 @@ function collectSupportedCanonicalIds(input: {
 }
 
 /**
- * Accessible projected resource IDs from governed CURRENT+SHADOW_PUBLISHED
- * binding decisions. Used to seal Projection-bound resource identity gates.
+ * Projected canonical IDs + accessible resource IDs from governed
+ * CURRENT+SHADOW_PUBLISHED resource binding decisions only.
+ * Does NOT include KAQ-only support nodes (those are not projection members).
  */
-function collectAccessibleResourceIds(
+function collectProjectedMembershipFromResourceBindings(
   resourceBindingResult: BindingGovernanceResult | null | undefined,
-): string[] {
-  if (!resourceBindingResult) return [];
+): {
+  projectedCanonicalIds: string[];
+  accessibleResourceIds: string[];
+} {
+  if (!resourceBindingResult) {
+    return { projectedCanonicalIds: [], accessibleResourceIds: [] };
+  }
   const governed = assertGovernedResourceBindingResult(resourceBindingResult);
+  const projected = new Set<string>();
   const resources = new Set<string>();
   for (const decision of governed.decisions) {
     if (
-      decision.lifecycleState === 'CURRENT'
-      && decision.publicationState === 'SHADOW_PUBLISHED'
-      && typeof decision.resourceId === 'string'
-      && decision.resourceId.trim()
+      decision.lifecycleState !== 'CURRENT'
+      || decision.publicationState !== 'SHADOW_PUBLISHED'
     ) {
+      continue;
+    }
+    if (typeof decision.canonicalId === 'string' && decision.canonicalId.trim()) {
+      projected.add(decision.canonicalId.trim());
+    }
+    if (typeof decision.resourceId === 'string' && decision.resourceId.trim()) {
       resources.add(decision.resourceId.trim());
     }
   }
-  return [...resources].sort();
+  return {
+    projectedCanonicalIds: [...projected].sort(),
+    accessibleResourceIds: [...resources].sort(),
+  };
 }
 
 function mintAdmission(input: {
@@ -420,16 +434,20 @@ export function buildShadowLearningFactAdmission(input: {
     reviewedKaqBindings: input.reviewedKaqBindings,
     resourceBindingResult: input.resourceBindingResult,
   });
-  const derivedResourceIds = collectAccessibleResourceIds(
+  // Projection membership is derived only from resource binding decisions —
+  // never from the full KAQ+resource support union (P2).
+  const derived = collectProjectedMembershipFromResourceBindings(
     input.resourceBindingResult,
   );
   const accessibleResourceIds =
     input.accessibleResourceIds
-    ?? (derivedResourceIds.length > 0 ? derivedResourceIds : undefined);
+    ?? (derived.accessibleResourceIds.length > 0
+      ? derived.accessibleResourceIds
+      : undefined);
   const projectedCanonicalIds =
     input.projectedCanonicalIds
-    ?? (accessibleResourceIds && accessibleResourceIds.length > 0
-      ? supported
+    ?? (derived.projectedCanonicalIds.length > 0
+      ? derived.projectedCanonicalIds
       : undefined);
   const requireProjectionBoundResourceIdentity =
     input.requireProjectionBoundResourceIdentity
