@@ -6,6 +6,7 @@
  * Historical or unreachable lessons stay out of the projection gate.
  */
 
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -15,9 +16,15 @@ import {
   type InteractiveLessonIdentityRecord,
 } from '@/lib/interactive-lesson-identity';
 
+import {
+  TEACHING_PROJECTION_MODES,
+  TEACHING_PROJECTION_ROLES,
+  type TeachingProjectionMode,
+  type TeachingProjectionRole,
+  type TeachingResourceType,
+} from './contracts';
 import { deriveResourceId } from './identity';
 import { projectionDigest } from './hash';
-import type { TeachingProjectionMode, TeachingResourceType } from './contracts';
 import {
   ACTIVE_COURSE_INVENTORY_CONTRACT,
   type ActiveCourseInventory,
@@ -27,6 +34,18 @@ import {
   type TeachingKnowledgeRefAuthoring,
 } from './migration-contracts';
 
+const GIT_COMMIT = /^[a-f0-9]{40}$/u;
+
+export class ActiveCourseInventoryError extends Error {
+  readonly code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.name = 'ActiveCourseInventoryError';
+    this.code = code;
+  }
+}
+
 export interface InventoryBuildOptions {
   repoRoot: string;
   authoringRevision: string;
@@ -35,6 +54,11 @@ export interface InventoryBuildOptions {
   packages?: readonly InventoryPackageSpec[];
   /** When true, skip packages whose runtime lesson dir is missing. Default true. */
   skipMissingRuntime?: boolean;
+  /**
+   * When true, skip git revision ↔ inventory-byte binding.
+   * Only for synthetic fixture / temp-dir unit tests. Production callers must leave this false.
+   */
+  allowWorkingTreeBytes?: boolean;
 }
 
 export interface InventoryPackageSpec {
@@ -50,16 +74,43 @@ export interface InventoryPackageSpec {
   defaultStepMode?: TeachingProjectionMode;
 }
 
+interface ExtractedStep {
+  stepId: string;
+  title: string | null;
+  projectionMode: TeachingProjectionMode | null;
+  knowledgeRefs: TeachingKnowledgeRefAuthoring[];
+}
+
 function sha256Buffer(buf: Buffer | string): string {
   return createHash('sha256').update(buf).digest('hex');
 }
 
-function readJsonIfExists(path: string): unknown | null {
+/**
+ * Read JSON when the file is optional. Missing → null.
+ * Existing but unreadable / invalid JSON → fail closed (never silent null).
+ */
+function readOptionalJson(path: string, label: string): unknown | null {
   if (!existsSync(path)) return null;
+  let raw: string;
   try {
-    return JSON.parse(readFileSync(path, 'utf8')) as unknown;
-  } catch {
-    return null;
+    raw = readFileSync(path, 'utf8');
+  } catch (error) {
+    throw new ActiveCourseInventoryError(
+      'json-read-failed',
+      `active course inventory rejected: cannot read ${label} at ${path}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch (error) {
+    throw new ActiveCourseInventoryError(
+      'json-parse-failed',
+      `active course inventory rejected: invalid JSON for ${label} at ${path}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
 }
 
@@ -87,6 +138,11 @@ function fileDigest(absPath: string): string {
   return sha256Buffer(readFileSync(absPath));
 }
 
+function sourcePathWithoutFragment(sourcePath: string): string {
+  const hash = sourcePath.indexOf('#');
+  return hash >= 0 ? sourcePath.slice(0, hash) : sourcePath;
+}
+
 function buildResourceId(input: {
   resourceType: TeachingResourceType;
   lessonKey: string;
@@ -112,7 +168,67 @@ function packagesFromRegistry(): InventoryPackageSpec[] {
   }));
 }
 
-function extractStepIds(manifest: unknown): Array<{ stepId: string; title: string | null }> {
+function parseProjectionMode(
+  value: unknown,
+  label: string,
+): TeachingProjectionMode | null {
+  if (value == null) return null;
+  if (
+    typeof value === 'string'
+    && (TEACHING_PROJECTION_MODES as readonly string[]).includes(value)
+  ) {
+    return value as TeachingProjectionMode;
+  }
+  throw new ActiveCourseInventoryError(
+    'invalid-projection-mode',
+    `active course inventory rejected: invalid projectionMode ${String(value)} on ${label}`,
+  );
+}
+
+function parseKnowledgeRefs(
+  value: unknown,
+  label: string,
+): TeachingKnowledgeRefAuthoring[] {
+  if (value == null) return [];
+  if (!Array.isArray(value)) {
+    throw new ActiveCourseInventoryError(
+      'invalid-knowledge-refs',
+      `active course inventory rejected: knowledgeRefs must be an array on ${label}`,
+    );
+  }
+  const refs: TeachingKnowledgeRefAuthoring[] = [];
+  for (let i = 0; i < value.length; i += 1) {
+    const rec = asRecord(value[i]);
+    const canonicalId =
+      typeof rec.canonicalId === 'string' && rec.canonicalId.length > 0
+        ? rec.canonicalId
+        : null;
+    const roleRaw = typeof rec.role === 'string' ? rec.role : null;
+    if (!canonicalId || !roleRaw) {
+      throw new ActiveCourseInventoryError(
+        'invalid-knowledge-refs',
+        `active course inventory rejected: knowledgeRefs[${i}] on ${label} requires canonicalId and role`,
+      );
+    }
+    if (!(TEACHING_PROJECTION_ROLES as readonly string[]).includes(roleRaw)) {
+      throw new ActiveCourseInventoryError(
+        'invalid-knowledge-refs',
+        `active course inventory rejected: invalid role ${roleRaw} on ${label} knowledgeRefs[${i}]`,
+      );
+    }
+    const ref: TeachingKnowledgeRefAuthoring = {
+      canonicalId,
+      role: roleRaw as TeachingProjectionRole,
+    };
+    if (rec.primary === true) ref.primary = true;
+    if (typeof rec.rationale === 'string') ref.rationale = rec.rationale;
+    if (typeof rec.sourcePath === 'string') ref.sourcePath = rec.sourcePath;
+    refs.push(ref);
+  }
+  return refs;
+}
+
+function extractSteps(manifest: unknown): ExtractedStep[] {
   const root = asRecord(manifest);
   const steps = root.steps;
   if (!steps) return [];
@@ -129,7 +245,13 @@ function extractStepIds(manifest: unknown): Array<{ stepId: string; title: strin
               ? rec.stepId
               : `step-${String(index + 1).padStart(2, '0')}`;
         const title = typeof rec.title === 'string' ? rec.title : null;
-        return { stepId, title };
+        const label = `step ${stepId}`;
+        return {
+          stepId,
+          title,
+          projectionMode: parseProjectionMode(rec.projectionMode, label),
+          knowledgeRefs: parseKnowledgeRefs(rec.knowledgeRefs, label),
+        };
       })
       .filter((s) => s.stepId.length > 0);
   }
@@ -138,7 +260,13 @@ function extractStepIds(manifest: unknown): Array<{ stepId: string; title: strin
     return Object.entries(steps as Record<string, unknown>).map(([stepId, step]) => {
       const rec = asRecord(step);
       const title = typeof rec.title === 'string' ? rec.title : null;
-      return { stepId, title };
+      const label = `step ${stepId}`;
+      return {
+        stepId,
+        title,
+        projectionMode: parseProjectionMode(rec.projectionMode, label),
+        knowledgeRefs: parseKnowledgeRefs(rec.knowledgeRefs, label),
+      };
     });
   }
 
@@ -289,9 +417,16 @@ function inventPackage(
   const manifestPath = join(runtimeDir, 'interactive-manifest.json');
   const overlayPath = join(runtimeDir, 'graph-overlay.json');
 
-  const lessonJson = readJsonIfExists(lessonPath);
-  const manifestJson = readJsonIfExists(manifestPath);
-  const overlayJson = readJsonIfExists(overlayPath);
+  // Fail closed on corrupt JSON for any present inventory input file.
+  const lessonJson = readOptionalJson(lessonPath, `lesson.json (${spec.packageId})`);
+  const manifestJson = readOptionalJson(
+    manifestPath,
+    `interactive-manifest.json (${spec.packageId})`,
+  );
+  const overlayJson = readOptionalJson(
+    overlayPath,
+    `graph-overlay.json (${spec.packageId})`,
+  );
 
   const lessonRec = asRecord(lessonJson);
   const title =
@@ -350,13 +485,13 @@ function inventPackage(
     );
   }
 
-  // Interactive steps
+  // Interactive steps — per-step projectionMode / knowledgeRefs from records.
   if (existsSync(manifestPath)) {
     const sourcePath = relPath(repoRoot, manifestPath);
     sourcePaths.push(sourcePath);
     const digest = fileDigest(manifestPath);
-    const steps = extractStepIds(manifestJson);
-    const stepMode = spec.defaultStepMode ?? 'REQUIRED';
+    const steps = extractSteps(manifestJson);
+    const defaultStepMode = spec.defaultStepMode ?? 'REQUIRED';
 
     for (const step of steps) {
       const legacyIds = extracted.stepNodeMap.get(step.stepId) ?? [];
@@ -371,13 +506,14 @@ function inventPackage(
           stepId: step.stepId,
           scopeId,
           packageId: spec.packageId,
-          projectionMode: stepMode,
+          projectionMode: step.projectionMode ?? defaultStepMode,
           title: step.title,
           sourcePath: `${sourcePath}#${step.stepId}`,
           sourceDigest: sha256Buffer(`${digest}:${step.stepId}`),
           legacyIds,
           labels,
           cardIds: legacyIds,
+          knowledgeRefs: step.knowledgeRefs,
         }),
       );
     }
@@ -402,6 +538,132 @@ function inventPackage(
   };
 }
 
+function gitSync(repoRoot: string, args: string[]): string {
+  try {
+    return execFileSync('git', args, {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 16 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).trim();
+  } catch (error) {
+    const err = error as { stderr?: string | Buffer; message?: string };
+    const stderr =
+      typeof err.stderr === 'string'
+        ? err.stderr
+        : Buffer.isBuffer(err.stderr)
+          ? err.stderr.toString('utf8')
+          : '';
+    throw new ActiveCourseInventoryError(
+      'git-failed',
+      `active course inventory rejected: git ${args.join(' ')} failed: ${
+        stderr.trim() || err.message || String(error)
+      }`,
+    );
+  }
+}
+
+function gitShowBytes(repoRoot: string, revision: string, rel: string): Buffer {
+  try {
+    return execFileSync('git', ['show', `${revision}:${rel}`], {
+      cwd: repoRoot,
+      maxBuffer: 32 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }) as Buffer;
+  } catch (error) {
+    const err = error as { stderr?: string | Buffer; message?: string };
+    const stderr =
+      typeof err.stderr === 'string'
+        ? err.stderr
+        : Buffer.isBuffer(err.stderr)
+          ? err.stderr.toString('utf8')
+          : '';
+    throw new ActiveCourseInventoryError(
+      'revision-path-missing',
+      `active course inventory rejected: path ${rel} is not present at authoringRevision ${revision}: ${
+        stderr.trim() || err.message || String(error)
+      }`,
+    );
+  }
+}
+
+/**
+ * Fail closed when inventory bytes do not match the declared authoringRevision.
+ *
+ * Practical binding:
+ * 1. authoringRevision must be a resolvable 40-char git commit
+ * 2. inventoried paths must be clean in the working tree (no mixed capture)
+ * 3. working-tree bytes for each path must equal `git show <rev>:<path>`
+ */
+export function assertInventoryBytesMatchAuthoringRevision(input: {
+  repoRoot: string;
+  authoringRevision: string;
+  sourcePaths: readonly string[];
+}): void {
+  const revision = input.authoringRevision.trim();
+  if (!GIT_COMMIT.test(revision)) {
+    throw new ActiveCourseInventoryError(
+      'invalid-authoring-revision',
+      `active course inventory rejected: authoringRevision must be a 40-char lowercase git commit, got ${input.authoringRevision}`,
+    );
+  }
+
+  // Ensure the commit object exists.
+  try {
+    gitSync(input.repoRoot, ['cat-file', '-e', `${revision}^{commit}`]);
+  } catch (error) {
+    if (error instanceof ActiveCourseInventoryError) {
+      throw new ActiveCourseInventoryError(
+        'unresolvable-authoring-revision',
+        `active course inventory rejected: authoringRevision ${revision} is not a resolvable git commit`,
+      );
+    }
+    throw error;
+  }
+
+  const uniquePaths = [...new Set(
+    input.sourcePaths
+      .map(sourcePathWithoutFragment)
+      .filter((p) => p.length > 0),
+  )].sort();
+
+  if (uniquePaths.length === 0) return;
+
+  // Dirty / untracked inventoried paths → mixed capture, fail closed.
+  const dirty = gitSync(input.repoRoot, [
+    'status',
+    '--porcelain=v1',
+    '--untracked-files=all',
+    '--',
+    ...uniquePaths,
+  ]);
+  if (dirty.length > 0) {
+    throw new ActiveCourseInventoryError(
+      'dirty-inventory-paths',
+      `active course inventory rejected: inventoried paths are dirty relative to the working tree (cannot bind authoringRevision ${revision}):\n${dirty}`,
+    );
+  }
+
+  // Byte-level match against the declared revision (not just cleanliness at HEAD).
+  for (const rel of uniquePaths) {
+    const abs = join(input.repoRoot, rel);
+    if (!existsSync(abs)) {
+      throw new ActiveCourseInventoryError(
+        'missing-inventory-path',
+        `active course inventory rejected: inventoried path missing on disk: ${rel}`,
+      );
+    }
+    const worktreeDigest = sha256Buffer(readFileSync(abs));
+    const revisionDigest = sha256Buffer(gitShowBytes(input.repoRoot, revision, rel));
+    if (worktreeDigest !== revisionDigest) {
+      throw new ActiveCourseInventoryError(
+        'revision-byte-mismatch',
+        `active course inventory rejected: path ${rel} bytes differ from authoringRevision ${revision} (mixed capture)`,
+      );
+    }
+  }
+}
+
 /**
  * Enumerate currently published/used interactive course packages and their
  * reachable runtime resources with source digests.
@@ -417,7 +679,8 @@ export function buildActiveCourseInventory(
     const pkg = inventPackage(options.repoRoot, spec);
     if (!pkg) {
       if (skipMissing) continue;
-      throw new Error(
+      throw new ActiveCourseInventoryError(
+        'runtime-missing',
         `active course package runtime missing: ${spec.runtimeLessonDir}`,
       );
     }
@@ -427,6 +690,15 @@ export function buildActiveCourseInventory(
   packages.sort((a, b) =>
     a.packageId < b.packageId ? -1 : a.packageId > b.packageId ? 1 : 0,
   );
+
+  if (options.allowWorkingTreeBytes !== true) {
+    const sourcePaths = packages.flatMap((p) => p.sourcePaths);
+    assertInventoryBytesMatchAuthoringRevision({
+      repoRoot: options.repoRoot,
+      authoringRevision: options.authoringRevision,
+      sourcePaths,
+    });
+  }
 
   const resourceCount = packages.reduce((n, p) => n + p.resources.length, 0);
   const inventoryDigest = projectionDigest({

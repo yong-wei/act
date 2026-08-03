@@ -4,12 +4,22 @@
  * Tests run against shipped teaching-projection functions (not stubs).
  */
 
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  ActiveCourseInventoryError,
+  assertInventoryBytesMatchAuthoringRevision,
   assertNoLegacyGraphIdsInAuthoring,
   assertPackageIsolation,
   buildActiveCourseInventory,
@@ -39,6 +49,47 @@ const fixturePath = path.join(
   repoRoot,
   'course-content/authoring/knowledge/teaching-projection/fixtures/migration/mapping-cases.json',
 );
+
+function gitHead(cwd: string = repoRoot): string {
+  return execFileSync('git', ['rev-parse', 'HEAD'], {
+    cwd,
+    encoding: 'utf8',
+  }).trim();
+}
+
+function git(cwd: string, args: string[]): string {
+  return execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
+}
+
+const tempDirs: string[] = [];
+
+afterEach(() => {
+  while (tempDirs.length > 0) {
+    const dir = tempDirs.pop();
+    if (dir) rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+function createTempInventoryRepo(files: Record<string, string>): {
+  dir: string;
+  head: string;
+} {
+  const dir = mkdtempSync(path.join(tmpdir(), 'act-active-inventory-'));
+  tempDirs.push(dir);
+  for (const [relative, content] of Object.entries(files)) {
+    const absolute = path.join(dir, relative);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    writeFileSync(absolute, content, 'utf8');
+  }
+  git(dir, ['init']);
+  git(dir, ['config', 'user.email', 'inventory-test@example.com']);
+  git(dir, ['config', 'user.name', 'inventory-test']);
+  git(dir, ['add', '-A']);
+  git(dir, ['commit', '-m', 'init inventory fixture']);
+  const head = git(dir, ['rev-parse', 'HEAD']);
+  expect(head).toMatch(/^[0-9a-f]{40}$/u);
+  return { dir, head };
+}
 
 function loadFixture() {
   return JSON.parse(readFileSync(fixturePath, 'utf8')) as {
@@ -119,13 +170,15 @@ function mappingContextFromFixture(
 describe('project-active-course-resources-to-canonical (#1268)', () => {
   describe('1. Active inventory', () => {
     it('enumerates published interactive packages with digests for lessons/handouts/steps', () => {
+      const authoringRevision = gitHead();
       const inventory = buildActiveCourseInventory({
         repoRoot,
-        authoringRevision: 'a'.repeat(40),
+        authoringRevision,
         capturedAt: '2026-08-04T00:00:00.000Z',
       });
 
       expect(inventory.contract).toBe('act-active-course-inventory/v1');
+      expect(inventory.authoringRevision).toBe(authoringRevision);
       expect(inventory.packageCount).toBeGreaterThan(10);
       expect(inventory.resourceCount).toBeGreaterThan(20);
       expect(inventory.inventoryDigest).toMatch(/^[a-f0-9]{64}$/u);
@@ -148,16 +201,209 @@ describe('project-active-course-resources-to-canonical (#1268)', () => {
     });
 
     it('is deterministic for identical revision + sources', () => {
+      const authoringRevision = gitHead();
       const a = buildActiveCourseInventory({
         repoRoot,
-        authoringRevision: 'b'.repeat(40),
+        authoringRevision,
       });
       const b = buildActiveCourseInventory({
         repoRoot,
-        authoringRevision: 'b'.repeat(40),
+        authoringRevision,
       });
       expect(a.inventoryDigest).toBe(b.inventoryDigest);
       expect(a.packageCount).toBe(b.packageCount);
+    });
+
+    it('fails closed when interactive-manifest.json exists but is invalid JSON', () => {
+      const dir = mkdtempSync(path.join(tmpdir(), 'act-inventory-bad-manifest-'));
+      tempDirs.push(dir);
+      const lessonDir = path.join(
+        dir,
+        'course-content/runtime/lessons/bad-pkg',
+      );
+      mkdirSync(lessonDir, { recursive: true });
+      writeFileSync(
+        path.join(lessonDir, 'lesson.json'),
+        JSON.stringify({ title: 'Bad package' }),
+        'utf8',
+      );
+      writeFileSync(
+        path.join(lessonDir, 'interactive-manifest.json'),
+        '{ not-valid-json',
+        'utf8',
+      );
+
+      expect(() =>
+        buildActiveCourseInventory({
+          repoRoot: dir,
+          authoringRevision: 'a'.repeat(40),
+          allowWorkingTreeBytes: true,
+          packages: [
+            {
+              packageId: 'bad-pkg',
+              runtimeLessonDir: 'bad-pkg',
+              lessonKey: 'bad-pkg',
+            },
+          ],
+        }),
+      ).toThrow(ActiveCourseInventoryError);
+
+      try {
+        buildActiveCourseInventory({
+          repoRoot: dir,
+          authoringRevision: 'a'.repeat(40),
+          allowWorkingTreeBytes: true,
+          packages: [
+            {
+              packageId: 'bad-pkg',
+              runtimeLessonDir: 'bad-pkg',
+              lessonKey: 'bad-pkg',
+            },
+          ],
+        });
+        expect.unreachable('expected inventory build to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ActiveCourseInventoryError);
+        expect((error as ActiveCourseInventoryError).code).toBe('json-parse-failed');
+        expect((error as Error).message).toMatch(/interactive-manifest\.json/i);
+      }
+    });
+
+    it('reads per-step projectionMode and knowledgeRefs into inventory resources', () => {
+      const dir = mkdtempSync(path.join(tmpdir(), 'act-inventory-step-fields-'));
+      tempDirs.push(dir);
+      const lessonDir = path.join(
+        dir,
+        'course-content/runtime/lessons/step-fields',
+      );
+      mkdirSync(lessonDir, { recursive: true });
+      writeFileSync(
+        path.join(lessonDir, 'lesson.json'),
+        JSON.stringify({ title: 'Step fields package' }),
+        'utf8',
+      );
+      writeFileSync(
+        path.join(lessonDir, 'interactive-manifest.json'),
+        JSON.stringify({
+          steps: {
+            'step-none': {
+              title: 'Explicit none',
+              projectionMode: 'NONE',
+            },
+            'step-bound': {
+              title: 'Manifest refs',
+              projectionMode: 'REQUIRED',
+              knowledgeRefs: [
+                {
+                  canonicalId: 'ctc:exact-stability',
+                  role: 'PRACTICES',
+                  primary: true,
+                  rationale: 'step-level knowledgeRefs',
+                },
+              ],
+            },
+            'step-default': {
+              title: 'Default mode',
+            },
+          },
+        }),
+        'utf8',
+      );
+
+      const inventory = buildActiveCourseInventory({
+        repoRoot: dir,
+        authoringRevision: 'b'.repeat(40),
+        allowWorkingTreeBytes: true,
+        packages: [
+          {
+            packageId: 'step-fields',
+            runtimeLessonDir: 'step-fields',
+            lessonKey: 'step-fields',
+            defaultStepMode: 'REQUIRED',
+          },
+        ],
+      });
+
+      const steps = inventory.packages[0]!.resources.filter(
+        (r) => r.resourceType === 'step',
+      );
+      const byId = Object.fromEntries(steps.map((s) => [s.stepId, s]));
+
+      expect(byId['step-none']?.projectionMode).toBe('NONE');
+      expect(byId['step-none']?.knowledgeRefs).toEqual([]);
+
+      expect(byId['step-bound']?.projectionMode).toBe('REQUIRED');
+      expect(byId['step-bound']?.knowledgeRefs).toEqual([
+        expect.objectContaining({
+          canonicalId: 'ctc:exact-stability',
+          role: 'PRACTICES',
+          primary: true,
+        }),
+      ]);
+      expect(byId['step-bound']?.manifestKnowledge?.canonicalIds).toEqual([
+        'ctc:exact-stability',
+      ]);
+
+      // Absent step projectionMode falls back to package default (REQUIRED).
+      expect(byId['step-default']?.projectionMode).toBe('REQUIRED');
+    });
+
+    it('rejects inventory when authoringRevision does not match inventoried bytes', () => {
+      const lessonPath =
+        'course-content/runtime/lessons/rev-bind/interactive-manifest.json';
+      const { dir, head } = createTempInventoryRepo({
+        [lessonPath]: JSON.stringify({
+          steps: { 'step-01': { title: 'Bound step' } },
+        }),
+        'course-content/runtime/lessons/rev-bind/lesson.json': JSON.stringify({
+          title: 'Revision bind',
+        }),
+      });
+
+      // Clean HEAD binding succeeds.
+      const clean = buildActiveCourseInventory({
+        repoRoot: dir,
+        authoringRevision: head,
+        packages: [
+          {
+            packageId: 'rev-bind',
+            runtimeLessonDir: 'rev-bind',
+            lessonKey: 'rev-bind',
+          },
+        ],
+      });
+      expect(clean.packageCount).toBe(1);
+
+      // Dirty inventoried path → fail closed (mixed capture).
+      writeFileSync(
+        path.join(dir, lessonPath),
+        JSON.stringify({
+          steps: { 'step-01': { title: 'Dirty step' } },
+        }),
+        'utf8',
+      );
+      expect(() =>
+        buildActiveCourseInventory({
+          repoRoot: dir,
+          authoringRevision: head,
+          packages: [
+            {
+              packageId: 'rev-bind',
+              runtimeLessonDir: 'rev-bind',
+              lessonKey: 'rev-bind',
+            },
+          ],
+        }),
+      ).toThrow(/dirty|mixed capture|authoringRevision/i);
+
+      // Forged revision fails closed even when allowWorkingTreeBytes is off.
+      expect(() =>
+        assertInventoryBytesMatchAuthoringRevision({
+          repoRoot: dir,
+          authoringRevision: 'c'.repeat(40),
+          sourcePaths: [lessonPath],
+        }),
+      ).toThrow(ActiveCourseInventoryError);
     });
   });
 
