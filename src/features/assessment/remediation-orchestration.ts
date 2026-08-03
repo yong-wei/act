@@ -1,3 +1,11 @@
+import {
+  evaluateAssessmentEvidenceSnapshotAuthority,
+  type AssessmentEvidenceCatalogSnapshot,
+} from '@/features/adaptive-assessment/assessment-evidence-authority';
+import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import type { ResourceNode } from '@/lib/resource-node-registry';
+import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
+
 export const REMEDIATION_ORCHESTRATOR_VERSION = 'remediation-orchestrator.v1';
 export const REMEDIATION_MANUAL_PRACTICE_PATH = '/student/practice';
 
@@ -27,9 +35,20 @@ interface KnowledgeNodeRow {
 interface ResourceRow {
   id: string;
   title: string;
+  displayName: string | null;
+  description: string | null;
+  type: string;
+  registryId: string | null;
+  content: string | null;
+  category: string | null;
   teacherOnly: boolean;
   config: unknown;
-  knowledgeNodes: Array<{ id: string }>;
+  knowledgeNodes: Array<{
+    id: string;
+    name: string;
+    resources: unknown;
+    tags: string[];
+  }>;
 }
 
 interface ValidationItemRow {
@@ -113,12 +132,20 @@ interface RemediationTaskSnapshot {
   };
 }
 
+interface RemediationTaskProjection {
+  version: RemediationTaskSnapshot['version'];
+  goal: string;
+  estimatedMinutes: number;
+  resources: RemediationTaskSnapshot['resources'];
+  validationQuestion: RemediationTaskSnapshot['validationQuestion'];
+}
+
 export type RemediationOrchestrationProjection =
   | {
     id: string;
     status: 'AVAILABLE';
     orchestratorVersion: string;
-    task: RemediationTaskSnapshot;
+    task: RemediationTaskProjection;
     createdAt: string;
   }
   | {
@@ -157,24 +184,55 @@ function governedActionPath(value: unknown): string | null {
   return path?.startsWith('/') && !path.startsWith('//') ? path : null;
 }
 
+function resourceSelect() {
+  return {
+    id: true,
+    title: true,
+    displayName: true,
+    description: true,
+    type: true,
+    registryId: true,
+    content: true,
+    category: true,
+    teacherOnly: true,
+    config: true,
+    knowledgeNodes: {
+      select: {
+        id: true,
+        name: true,
+        resources: true,
+        tags: true,
+      },
+    },
+  };
+}
+
 function parseResource(
   row: ResourceRow,
+  authorityNode: ResourceNode | null,
   knowledgeNodeId: string,
   misconceptionTag: string,
 ): GovernedResource | null {
   const remediation = record(record(row.config)?.remediation);
-  const version = nonEmptyString(remediation?.version);
-  const estimatedMinutes = governedMinutes(remediation?.estimatedMinutes);
-  const actionPath = governedActionPath(remediation?.actionPath);
+  const disposition = authorityNode?.planningMetadata.pathDisposition;
+  const version = nonEmptyString(disposition?.sourceVersionRef);
+  const estimatedMinutes = governedMinutes(authorityNode?.planningMetadata.estimatedTimeMinutes);
+  const actionPath = governedActionPath(authorityNode?.launchTarget ?? authorityNode?.renderTarget);
   const misconceptionTags = stringArray(remediation?.misconceptionTags);
   const prerequisiteKnowledgeNodeIds = stringArray(remediation?.prerequisiteKnowledgeNodeIds);
-  const exactNode = row.knowledgeNodes.some((node) => node.id === knowledgeNodeId);
+  const exactNode = authorityNode?.planningMetadata.knowledgeCoverage.includes(knowledgeNodeId) ?? false;
   const exactMisconception = misconceptionTags?.includes(misconceptionTag) ?? false;
   const prerequisite = prerequisiteKnowledgeNodeIds?.includes(knowledgeNodeId) ?? false;
 
   if (
     row.teacherOnly ||
-    remediation?.learnerVisible !== true ||
+    !authorityNode?.eligibility.pathEligible ||
+    authorityNode.planningMetadata.privacyLevel !== 'student-visible' ||
+    authorityNode.planningMetadata.availability !== 'available' ||
+    authorityNode.planningMetadata.teacherPolicy !== 'allowed' ||
+    authorityNode.planningMetadata.evidenceInstrumentation.length === 0 ||
+    disposition?.kind !== 'path-plannable' ||
+    disposition.reviewStatus !== 'human-confirmed' ||
     !version ||
     !estimatedMinutes ||
     !actionPath ||
@@ -187,7 +245,7 @@ function parseResource(
 
   return {
     id: row.id,
-    title: row.title,
+    title: authorityNode.title,
     version,
     estimatedMinutes,
     actionPath,
@@ -202,9 +260,10 @@ function parseValidationItem(
   misconceptionTag: string,
 ): GovernedValidationItem | null {
   const metadata = record(row.metadata);
+  const catalogSnapshotValue = record(metadata?.adaptiveAssessmentItemRef);
   const validation = record(metadata?.remediationValidation);
   const relationship = record(validation?.relationship);
-  const version = nonEmptyString(validation?.version);
+  const version = nonEmptyString(catalogSnapshotValue?.snapshotVersion);
   const estimatedMinutes = governedMinutes(validation?.estimatedMinutes);
   const actionPath = governedActionPath(validation?.actionPath);
   const graphNodeIds = stringArray(validation?.graphNodeIds);
@@ -215,10 +274,19 @@ function parseValidationItem(
     relationshipKind === 'isomorphic' || relationshipKind === 'variant'
   ) && (sourceQuestionIds?.includes(sourceQuestionId) ?? false);
   const misconceptionMatches = misconceptionTags?.includes(misconceptionTag) ?? false;
+  const authority = evaluateAssessmentEvidenceSnapshotAuthority(
+    catalogSnapshotValue as unknown as AssessmentEvidenceCatalogSnapshot,
+    {
+      requestedStage: 'remediation',
+      knownGraphNodeIds: [knowledgeNodeId],
+    },
+  );
 
   if (
     row.questionId === sourceQuestionId ||
     validation?.learnerVisible !== true ||
+    !authority.remediation ||
+    catalogSnapshotValue?.contentHash !== row.contentHash ||
     !version ||
     !estimatedMinutes ||
     !actionPath ||
@@ -251,6 +319,16 @@ function orderedResources(resources: GovernedResource[]): GovernedResource[] {
 function orderedValidationItems(items: GovernedValidationItem[]): GovernedValidationItem[] {
   return [...items].sort((left, right) =>
     left.version.localeCompare(right.version) || left.id.localeCompare(right.id));
+}
+
+function resourceAuthorityByTeachingResourceId(rows: ResourceRow[]): Map<string, ResourceNode> {
+  const registry = buildResourceNodeRegistryFromTeachingResources(
+    rows,
+    getAllRegisteredResourceMetadata(),
+  );
+  return new Map(registry.nodes
+    .filter((node) => node.sourceKind === 'teaching_resource')
+    .map((node) => [node.sourceRef, node]));
 }
 
 function selectMinimalResourceSet(
@@ -341,6 +419,16 @@ function unavailableProjection(
   };
 }
 
+function learnerTaskProjection(task: RemediationTaskSnapshot): RemediationTaskProjection {
+  return {
+    version: task.version,
+    goal: task.goal,
+    estimatedMinutes: task.estimatedMinutes,
+    resources: task.resources.map((resource) => ({ ...resource })),
+    validationQuestion: { ...task.validationQuestion },
+  };
+}
+
 function parseTaskSnapshot(value: unknown): RemediationTaskSnapshot | null {
   const snapshot = record(value);
   if (snapshot?.version !== 'remediation-task-snapshot.v1') return null;
@@ -412,13 +500,18 @@ async function projectResult(
 
   const resources = await db.teachingResource.findMany({
     where: { id: { in: task.resources.map((resource) => resource.id) } },
-    select: { id: true, title: true, teacherOnly: true, config: true, knowledgeNodes: { select: { id: true } } },
+    select: resourceSelect(),
   });
   if (resources.length !== task.resources.length) return unavailableProjection(row, 'REFERENCE_DRIFT');
+  const authorityById = resourceAuthorityByTeachingResourceId(resources);
   for (const stored of task.resources) {
     const current = resources.find((resource) => resource.id === stored.id);
-    const parsed = current && parseResource(current, task.knowledgeNodeId, task.misconceptionTag);
-    if (current?.teacherOnly || record(record(current?.config)?.remediation)?.learnerVisible !== true) {
+    const authorityNode = authorityById.get(stored.id) ?? null;
+    const parsed = current && parseResource(current, authorityNode, task.knowledgeNodeId, task.misconceptionTag);
+    if (
+      current?.teacherOnly ||
+      (authorityNode && authorityNode.planningMetadata.privacyLevel !== 'student-visible')
+    ) {
       return unavailableProjection(row, 'ACCESS_REVOKED');
     }
     if (
@@ -460,7 +553,7 @@ async function projectResult(
     id: row.id,
     status: 'AVAILABLE',
     orchestratorVersion: row.orchestratorVersion,
-    task,
+    task: learnerTaskProjection(task),
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -526,10 +619,16 @@ export async function orchestrateRemediation(input: {
         { config: { path: ['remediation', 'prerequisiteKnowledgeNodeIds'], array_contains: [knowledgeNodeId] } },
       ],
     },
-    select: { id: true, title: true, teacherOnly: true, config: true, knowledgeNodes: { select: { id: true } } },
+    select: resourceSelect(),
   });
+  const authorityById = resourceAuthorityByTeachingResourceId(resourceRows);
   const resources = orderedResources(resourceRows
-    .map((row) => parseResource(row, knowledgeNodeId, misconceptionTag))
+    .map((row) => parseResource(
+      row,
+      authorityById.get(row.id) ?? null,
+      knowledgeNodeId,
+      misconceptionTag,
+    ))
     .filter((resource): resource is GovernedResource => resource !== null));
   if (resources.length === 0) {
     return unavailableProjection(await persistUnavailable({

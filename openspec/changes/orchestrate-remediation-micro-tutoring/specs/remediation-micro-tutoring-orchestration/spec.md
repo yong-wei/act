@@ -23,7 +23,7 @@ The system SHALL persist at most one immutable orchestration result for each wro
 - **THEN** the system persists an `UNAVAILABLE` result containing only a controlled reason, a governed generic practice path and version information
 
 ### Requirement: Deterministic governed remediation resources
-The system SHALL select only learner-visible resources with explicit immutable versions, estimated duration and governed semantic bindings, ordered by exact knowledge-node and misconception match, then knowledge-node match, then prerequisite match, with stable tie-breaking.
+The system SHALL select only resources whose existing ResourceNode/PlanningUnit projection is audited path-eligible, learner-visible, available, launchable, evidence-complete and bound to reviewed immutable version and duration metadata. Remediation-specific relevance tags MUST NOT independently grant eligibility. Eligible resources SHALL be ordered by exact knowledge-node and misconception match, then knowledge-node match, then prerequisite match, with stable tie-breaking.
 
 #### Scenario: Multiple eligible resources
 - **WHEN** multiple resources are eligible for the same attribution and catalog revision
@@ -34,7 +34,7 @@ The system SHALL select only learner-visible resources with explicit immutable v
 - **THEN** the system persists a sanitized `UNAVAILABLE` result and does not persist candidate resource references
 
 ### Requirement: Existing governed validation question
-The system SHALL use an existing accessible assessment item that differs from the original question, targets the same canonical knowledge node, and declares either an isomorphic/variant relationship or the same misconception tag. The system MUST NOT generate or rewrite the formal validation question.
+The system SHALL use an existing accessible assessment item that differs from the original question, targets the same canonical knowledge node, and declares either an isomorphic/variant relationship or the same misconception tag. The item's real assessment-catalog snapshot MUST have current remediation authority, human semantic review, path eligibility, immutable content-hash agreement and remediation-stage permission. Self-declared remediation metadata MUST NOT grant catalog authority, and the system MUST NOT generate or rewrite the formal validation question.
 
 #### Scenario: Governed variant exists
 - **WHEN** an eligible version-bound variant or isomorphic assessment item exists
@@ -67,7 +67,7 @@ The system SHALL validate resource and validation-item access during creation an
 - **THEN** the system returns a sanitized unavailable projection identifying reference drift without returning stale content
 
 ### Requirement: Sensitive data exclusion
-The learner-facing orchestration projection SHALL NOT contain raw answers, option payloads, correct answers, explanations, private teacher data or rejected candidate metadata.
+The learner-facing orchestration projection SHALL be constructed separately from the stored task snapshot and SHALL NOT contain the source question ID, internal knowledge-node ID, misconception tag, raw answers, option payloads, correct answers, explanations, private teacher data or rejected candidate metadata.
 
 #### Scenario: Successful task projection
 - **WHEN** the system returns an available micro-tutoring task

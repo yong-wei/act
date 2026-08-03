@@ -29,13 +29,15 @@ The current resource and assessment models carry extensible governed metadata in
 
 Alternative considered: compute on every read. Rejected because catalog changes would silently alter prior decisions and prevent reliable drift detection.
 
-### Parse governed candidate metadata at the orchestration boundary
+### Consume existing ResourceNode and assessment-catalog authority
 
-Eligible resources declare remediation metadata in `TeachingResource.config.remediation`: immutable `version`, `estimatedMinutes`, misconception tags, prerequisite knowledge-node IDs, learner visibility and action path. Eligible validation items declare immutable relationship and duration metadata in `AdaptiveAssessmentItemRef.metadata.remediationValidation` while retaining the existing item `contentHash`.
+`TeachingResource.config.remediation` may contribute only remediation-specific relevance tags. It cannot grant eligibility, visibility, duration, version or launch authority. The orchestrator builds the existing ResourceNode registry projection and accepts only audited `pathEligible` PlanningUnits with a verified launch/render target, `student-visible` privacy, available/allowed policy, complete evidence instrumentation, reviewed path-plannable disposition, governed estimated time and source version.
 
-Malformed or incomplete metadata excludes the candidate. No candidate data is inferred from titles or free text.
+Validation items may declare their isomorphic/variant relationship and duration in `AdaptiveAssessmentItemRef.metadata.remediationValidation`, but formal eligibility comes exclusively from the real `metadata.adaptiveAssessmentItemRef` catalog snapshot. The orchestrator calls `evaluateAssessmentEvidenceSnapshotAuthority(..., { requestedStage: 'remediation' })` and requires remediation authority, current content-hash agreement, human semantic review, `path-eligible` state and stage permission.
 
-Alternative considered: add dedicated catalog tables in this issue. Rejected because the existing models already own versioned resource/item metadata and a second catalog would create synchronization risk.
+Malformed, provisional, stale, private, broken or incomplete authority excludes the candidate. No candidate data is inferred from titles or free text, and neither remediation metadata block can create a parallel eligibility path.
+
+Alternative considered: add dedicated catalog tables or self-asserted eligibility fields in this issue. Rejected because the existing ResourceNode and assessment catalog already own authoritative versioning, audit and eligibility semantics.
 
 ### Select candidates with deterministic tiers and a strict time budget
 
@@ -47,7 +49,7 @@ Alternative considered: model-based ranking. Rejected because it is not reproduc
 
 ### Separate stored evidence from learner projection
 
-The persisted task contains opaque IDs, immutable versions/hashes, goal text derived from governed node metadata, duration and action paths. The response projection excludes correct answers, explanations, options, raw answer payloads and teacher-only fields. `UNAVAILABLE` results expose only a reason enum and a configured generic practice path.
+The persisted task contains opaque IDs, immutable versions/hashes, goal text derived from governed node metadata, duration and action paths. A separate learner projection copies only task version, goal, duration, learner resource actions and the validation-question reference; it excludes the source question ID, internal knowledge-node ID, misconception tag, correct answers, explanations, options, raw answer payloads and teacher-only fields. `UNAVAILABLE` results expose only a reason enum and a configured generic practice path.
 
 ### Authorize both creation and retrieval
 

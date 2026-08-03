@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   orchestrateRemediation,
   readRemediationOrchestration,
@@ -16,20 +17,59 @@ function resource(input: {
   version?: string;
   learnerVisible?: boolean;
   teacherOnly?: boolean;
+  pathEligible?: boolean;
+  brokenTarget?: boolean;
+  evidenceComplete?: boolean;
 }) {
+  const version = input.version ?? 'resource.v1';
   return {
     id: input.id,
     title: `Resource ${input.id}`,
+    displayName: null,
+    description: null,
+    type: 'STATIC_TEXT',
+    registryId: null,
+    content: input.brokenTarget ? null : `Resource content ${input.id}`,
+    category: null,
     teacherOnly: input.teacherOnly ?? false,
-    knowledgeNodes: (input.knowledgeNodeIds ?? ['node-1']).map((id) => ({ id })),
+    knowledgeNodes: (input.knowledgeNodeIds ?? ['node-1']).map((id) => ({
+      id,
+      name: `Knowledge ${id}`,
+      resources: [],
+      tags: [],
+    })),
     config: {
       remediation: {
-        version: input.version ?? 'resource.v1',
-        estimatedMinutes: input.minutes,
-        actionPath: `/resources/${input.id}`,
-        learnerVisible: input.learnerVisible ?? true,
         misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
         prerequisiteKnowledgeNodeIds: input.prerequisiteKnowledgeNodeIds ?? [],
+      },
+      resourceNodePlanning: {
+        estimatedTimeMinutes: input.minutes,
+        abilityImpact: { 'ability-remediation': 0.25 },
+        availability: 'available',
+        teacherPolicy: 'allowed',
+        privacyLevel: input.learnerVisible === false ? 'teacher-scoped' : 'student-visible',
+        evidenceInstrumentation: input.evidenceComplete === false ? [] : ['TeachingResource.interactionLogs'],
+        pathDisposition: {
+          kind: 'path-plannable',
+          reviewStatus: input.pathEligible === false ? 'generated-provisional' : 'human-confirmed',
+          rationale: 'Reviewed for learner remediation.',
+          sourceFamily: 'teaching-resource',
+          stableSourceRef: input.id,
+          sourceVersionRef: version,
+          parentResourceNodeId: null,
+          reviewedAt: '2026-08-03T00:00:00.000Z',
+          reviewerId: 'resource-governance-reviewer',
+          reviewBatchId: 'review-batch-1',
+        },
+        readiness: {
+          minimumCompetency: {},
+          minimumEvidenceCount: 1,
+          requiredCompletedNodeIds: [],
+          requiredOutcomeRefs: [],
+          unlockMessage: 'Ready',
+          fallbackNodeIds: [],
+        },
       },
     },
   };
@@ -44,15 +84,88 @@ function validation(input: {
   learnerVisible?: boolean;
   misconceptionTags?: string[];
   sourceQuestionIds?: string[];
+  reviewState?: string;
+  stage?: 'remediation' | 'checkpoint';
+  reviewSourceHash?: string;
 }) {
   const id = input.id ?? 'validation-1';
+  const questionId = input.questionId ?? 'question-variant';
+  const contentHash = input.contentHash ?? HASH_A;
+  const stage = input.stage ?? 'remediation';
+  const decisionWithoutHash = {
+    catalogItemId: `catalog-${id}`,
+    decisionKind: 'human-review' as const,
+    outcome: 'approved' as const,
+    reviewerId: 'assessment-reviewer',
+    reviewedAt: '2026-08-03T00:00:00.000Z',
+    reviewBatchId: 'remediation-validation.v1',
+    sourceContentHash: contentHash,
+    selectedLearningGoalIds: ['learning-goal-1'],
+    selectedKaqObjectiveIds: ['kaq-1'],
+    selectedGraphNodeIds: ['node-1'],
+    selectedStagePurpose: stage,
+    difficulty: 0.5,
+    cognitiveLevel: 'apply',
+    misconceptionRefs: input.misconceptionTags ?? ['misconception-1'],
+    remediationRefs: ['teaching-resource:exact'],
+    metadataVersionRefs: { catalogVersion: 'catalog.v1' },
+    notes: 'Reviewed remediation validation item.',
+  };
+  const reviewDecision = {
+    ...decisionWithoutHash,
+    reviewSourceHash: input.reviewSourceHash ?? assessmentItemSemanticReviewSourceHash(decisionWithoutHash),
+  };
   return {
     id,
-    questionId: input.questionId ?? 'question-variant',
-    contentHash: input.contentHash ?? HASH_A,
+    questionId,
+    contentHash,
     metadata: {
+      adaptiveAssessmentItemRef: {
+        catalogBacked: true,
+        catalogItemId: `catalog-${id}`,
+        snapshotVersion: input.version ?? 'validation.v1',
+        contentHash,
+        contentHashAlgorithm: 'sha256',
+        sourceFamily: 'preset-adaptive-question',
+        sourceId: questionId,
+        sourceAnchor: `test:${questionId}`,
+        sourceLineage: {
+          sourceFamily: 'preset-adaptive-question',
+          sourceId: questionId,
+          sourcePath: 'test/remediation.ts',
+          sourceHash: contentHash,
+        },
+        reviewState: input.reviewState ?? 'path-eligible',
+        eligibilityState: input.reviewState ?? 'path-eligible',
+        allowedStages: [stage],
+        questionRefs: {
+          stem: 'Private governed stem',
+          answerKey: ['PRIVATE_CORRECT_ANSWER'],
+          rubricRef: 'rubric:remediation',
+        },
+        semanticRefs: {
+          learningGoalIds: ['learning-goal-1'],
+          kaqObjectiveIds: ['kaq-1'],
+          graphNodeIds: ['node-1'],
+          knowledgeTags: ['frequency-response'],
+          misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
+          remediationResourceNodeIds: ['teaching-resource:exact'],
+          difficulty: 0.5,
+          cognitiveLevel: 'apply',
+          assessmentStage: stage,
+        },
+        limitations: [],
+        reviewDecision,
+        versionRefs: { catalogVersion: 'catalog.v1' },
+        relationship: {
+          relationship: 'answer-time-snapshot',
+          immutable: true,
+          mayReferenceCatalogItemId: true,
+          mayReferenceContentHash: true,
+          catalogUpdatesRewriteHistoricalAnswers: false,
+        },
+      },
       remediationValidation: {
-        version: input.version ?? 'validation.v1',
         estimatedMinutes: input.minutes ?? 2,
         actionPath: `/assessment/items/${id}`,
         learnerVisible: input.learnerVisible ?? true,
@@ -146,7 +259,23 @@ describe('remediation orchestration', () => {
         validationQuestion: { itemRefId: 'validation-1', contentHash: HASH_A },
       },
     });
+    if (!result || result.status !== 'AVAILABLE') throw new Error('Expected available remediation task');
+    expect(Object.keys(result.task).sort()).toEqual([
+      'estimatedMinutes',
+      'goal',
+      'resources',
+      'validationQuestion',
+      'version',
+    ]);
+    expect(result.task).not.toHaveProperty('sourceQuestionId');
+    expect(result.task).not.toHaveProperty('knowledgeNodeId');
+    expect(result.task).not.toHaveProperty('misconceptionTag');
     const create = mocks.remediationOrchestrationResult.upsert.mock.calls[0][0].create;
+    expect(create.taskSnapshot).toEqual(expect.objectContaining({
+      sourceQuestionId: 'question-original',
+      knowledgeNodeId: 'node-1',
+      misconceptionTag: 'misconception-1',
+    }));
     expect(create.taskSnapshot.resources.map((item: any) => item.id)).toEqual(['exact']);
     expect(JSON.stringify(result)).not.toContain('correctAnswer');
     expect(JSON.stringify(result)).not.toContain('explanation');
@@ -167,7 +296,7 @@ describe('remediation orchestration', () => {
         title: 'Resource exact',
         version: 'resource.v1',
         estimatedMinutes: 3,
-        actionPath: '/resources/exact',
+        actionPath: '/interactive-learning/resources/exact',
       }],
       validationQuestion: {
         itemRefId: 'validation-1',
@@ -206,6 +335,14 @@ describe('remediation orchestration', () => {
     const result = await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
 
     expect(result).toMatchObject({ status: 'UNAVAILABLE', unavailableReason: 'ATTRIBUTION_UNCERTAIN' });
+    expect(Object.keys(result ?? {}).sort()).toEqual([
+      'createdAt',
+      'id',
+      'manualPracticePath',
+      'orchestratorVersion',
+      'status',
+      'unavailableReason',
+    ]);
     expect(mocks.remediationOrchestrationResult.upsert.mock.calls[0][0].create).toEqual(expect.objectContaining({
       status: 'UNAVAILABLE',
       unavailableReason: 'ATTRIBUTION_UNCERTAIN',
@@ -231,6 +368,42 @@ describe('remediation orchestration', () => {
     const result = await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
 
     expect(result).toMatchObject({ status: 'UNAVAILABLE', unavailableReason: reason });
+  });
+
+  it.each([
+    ['path-ineligible', { pathEligible: false }],
+    ['broken-target', { brokenTarget: true }],
+    ['private', { learnerVisible: false }],
+    ['missing-evidence', { evidenceComplete: false }],
+  ] as const)('fails closed for a %s ResourceNode authority result', async (_label, overrides) => {
+    const { db, mocks } = createDb();
+    mocks.teachingResource.findMany.mockResolvedValue([resource({
+      id: 'blocked',
+      minutes: 3,
+      ...overrides,
+    })]);
+
+    const result = await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
+
+    expect(result).toMatchObject({ status: 'UNAVAILABLE', unavailableReason: 'RESOURCE_UNAVAILABLE' });
+  });
+
+  it.each([
+    ['generated-provisional', { reviewState: 'generated-provisional' }],
+    ['imported-unreviewed', { reviewState: 'imported-unreviewed' }],
+    ['deprecated', { reviewState: 'deprecated' }],
+    ['stale-review', { reviewSourceHash: 'stale-review-hash' }],
+    ['wrong-stage', { stage: 'checkpoint' as const }],
+  ])('fails closed for a %s validation catalog snapshot', async (_label, overrides) => {
+    const { db, mocks } = createDb();
+    mocks.adaptiveAssessmentItemRef.findMany.mockResolvedValue([validation(overrides)]);
+
+    const result = await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
+
+    expect(result).toMatchObject({
+      status: 'UNAVAILABLE',
+      unavailableReason: 'VALIDATION_QUESTION_UNAVAILABLE',
+    });
   });
 
   it('does not reveal an attribution owned by another learner', async () => {
