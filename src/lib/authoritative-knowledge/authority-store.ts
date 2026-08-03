@@ -27,11 +27,16 @@ import {
 import { dirname, join } from 'node:path';
 
 /**
- * Thin FS seam for atomic publish. Tests may intercept renameSync to simulate
- * concurrent stage races without mocking the entire node:fs binding graph.
+ * Thin FS seam for atomic publish/receipt writes. Tests may intercept
+ * renameSync (concurrent stage races) or writeSync (receipt write failures)
+ * without mocking the entire node:fs binding graph.
  */
 export const authorityStoreFs = {
   renameSync,
+  writeSync,
+  openSync,
+  closeSync,
+  fsyncSync,
 };
 
 import {
@@ -91,21 +96,21 @@ export function atomicWriteFile(
   const fsync = options.fsync !== false;
   mkdirSync(dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
-  const fd = openSync(tempPath, 'w');
+  const fd = authorityStoreFs.openSync(tempPath, 'w');
   try {
-    writeSync(fd, content, undefined, 'utf8');
-    if (fsync) fsyncSync(fd);
+    authorityStoreFs.writeSync(fd, content, undefined, 'utf8');
+    if (fsync) authorityStoreFs.fsyncSync(fd);
   } finally {
-    closeSync(fd);
+    authorityStoreFs.closeSync(fd);
   }
-  renameSync(tempPath, filePath);
+  authorityStoreFs.renameSync(tempPath, filePath);
   if (fsync) {
     try {
-      const dirFd = openSync(dirname(filePath), 'r');
+      const dirFd = authorityStoreFs.openSync(dirname(filePath), 'r');
       try {
-        fsyncSync(dirFd);
+        authorityStoreFs.fsyncSync(dirFd);
       } finally {
-        closeSync(dirFd);
+        authorityStoreFs.closeSync(dirFd);
       }
     } catch {
       // Directory fsync is best-effort (not always supported).

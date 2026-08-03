@@ -7,7 +7,6 @@ import {
   existsSync,
   mkdirSync,
   renameSync,
-  chmodSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -953,8 +952,40 @@ describe('Codex review remediation (#1279)', () => {
   it('does not replace the pointer when activation receipt write fails first', () => {
     const paths = tempAuthorityRoot();
     const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
-    // Make activations directory non-writable so receipt write fails before pointer replace.
-    chmodSync(paths.activationsDir, 0o555);
+    // Inject write failure via FS seam (works even when process is root).
+    // Track temp paths opened under activations/ and fail only those writes.
+    const openPathByFd = new Map<number, string>();
+    const originalOpenSync = authorityStoreFs.openSync;
+    const originalWriteSync = authorityStoreFs.writeSync;
+    const originalCloseSync = authorityStoreFs.closeSync;
+    authorityStoreFs.openSync = ((filePath: string, flags: string) => {
+      const fd = originalOpenSync(filePath, flags);
+      openPathByFd.set(fd, filePath);
+      return fd;
+    }) as typeof authorityStoreFs.openSync;
+    authorityStoreFs.writeSync = ((
+      fd: number,
+      buffer: string | NodeJS.ArrayBufferView,
+      offset?: number,
+      encoding?: BufferEncoding,
+    ) => {
+      const opened = openPathByFd.get(fd) ?? '';
+      if (opened.includes(`${path.sep}activations${path.sep}`) && opened.endsWith('.tmp')) {
+        throw Object.assign(new Error('ENOSPC simulated activation receipt'), {
+          code: 'ENOSPC',
+        });
+      }
+      return (originalWriteSync as (
+        fd: number,
+        buffer: string | NodeJS.ArrayBufferView,
+        offset?: number,
+        encoding?: BufferEncoding,
+      ) => number)(fd, buffer, offset, encoding);
+    }) as typeof authorityStoreFs.writeSync;
+    authorityStoreFs.closeSync = ((fd: number) => {
+      openPathByFd.delete(fd);
+      return originalCloseSync(fd);
+    }) as typeof authorityStoreFs.closeSync;
     try {
       const result = activateAuthoritySnapshot(paths, { snapshotId: staged.snapshotId });
       expect(result.status).toBe('failed');
@@ -962,7 +993,9 @@ describe('Codex review remediation (#1279)', () => {
       expect(result.receipt.reasons).toContain('prior-pointer-untouched');
       expect(readCurrentAuthorityPointer(paths)).toBeNull();
     } finally {
-      chmodSync(paths.activationsDir, 0o755);
+      authorityStoreFs.openSync = originalOpenSync;
+      authorityStoreFs.writeSync = originalWriteSync;
+      authorityStoreFs.closeSync = originalCloseSync;
     }
   });
 
