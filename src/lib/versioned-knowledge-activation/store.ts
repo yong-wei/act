@@ -584,7 +584,13 @@ export function activateConsumerActivation(
     && allConsumersPresent
     && pinnedFromRecords.size === CONSUMER_ACTIVATION_IDS.length
     && CONSUMER_ACTIVATION_IDS.every((id) => pinnedFromRecords.has(id));
-  if (readyFromRecords.size === 0 && pinnedFromRecords.size > 0 && !fullPinOnly) {
+  // Pin-only path requires a complete unique PINNED set derived from records.
+  // If impact arrays claim pins/ready but records disagree, fail closed.
+  if (
+    input.requireActionableConsumers !== false
+    && readyFromRecords.size === 0
+    && !fullPinOnly
+  ) {
     return failActivation({
       paths,
       activationReceiptId,
@@ -599,6 +605,7 @@ export function activateConsumerActivation(
       reasons: [
         'partial-prior-pin-forbidden',
         'authority-absent-requires-full-prior-pins',
+        `ready-from-records:${readyFromRecords.size}`,
         `pinned-unique:${pinnedFromRecords.size}`,
         `required:${CONSUMER_ACTIVATION_IDS.length}`,
       ],
