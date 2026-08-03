@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-teaching-projection-authoring/v1",
+  "title": "ACT Teaching Projection Authoring",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "scopeId",
+    "authoringRevision",
+    "authorityReleaseId"
+  ],
+  "properties": {
+    "contract": { "const": "act-teaching-projection-authoring/v1" },
+    "scopeId": { "type": "string", "minLength": 1 },
+    "authoringRevision": { "type": "string", "minLength": 1 },
+    "authorityReleaseId": { "type": "string", "minLength": 1 },
+    "authorityReleaseSetId": { "type": ["string", "null"] },
+    "authoritySnapshotId": { "type": ["string", "null"] },
+    "authoritySnapshotHash": {
+      "type": ["string", "null"],
+      "pattern": "^([a-f0-9]{64})?$"
+    },
+    "resources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/resource" }
+    },
+    "bindings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/binding" }
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/prerequisite" }
+    },
+    "coreNodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/coreNode" }
+    },
+    "cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/card" }
+    },
+    "authorityNodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/authorityNode" }
+    }
+  },
+  "$defs": {
+    "projectionMode": {
+      "type": "string",
+      "enum": ["REQUIRED", "OPTIONAL", "NONE"]
+    },
+    "role": {
+      "type": "string",
+      "enum": ["COVERS", "EXPLAINS", "PRACTICES", "ASSESSES"]
+    },
+    "resourceType": {
+      "type": "string",
+      "enum": [
+        "lesson",
+        "handout",
+        "step",
+        "textbook",
+        "textbook-section",
+        "card"
+      ]
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "projectionMode", "scopeId"],
+      "properties": {
+        "resourceId": {
+          "type": "string",
+          "pattern": "^act:(lesson|handout|step|textbook|textbook-section|card):.+"
+        },
+        "resourceType": { "$ref": "#/$defs/resourceType" },
+        "lessonKey": { "type": "string", "minLength": 1 },
+        "stepId": { "type": "string", "minLength": 1 },
+        "sourceDocumentId": { "type": "string", "minLength": 1 },
+        "sectionId": { "type": "string", "minLength": 1 },
+        "cardId": { "type": "string", "minLength": 1 },
+        "projectionMode": { "$ref": "#/$defs/projectionMode" },
+        "scopeId": { "type": "string", "minLength": 1 },
+        "title": { "type": "string" },
+        "sourcePath": { "type": "string" },
+        "legacyCrosswalkRef": { "type": ["string", "null"] }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceId", "canonicalId", "role", "scopeId"],
+      "properties": {
+        "resourceId": {
+          "type": "string",
+          "pattern": "^act:(lesson|handout|step|textbook|textbook-section|card):.+"
+        },
+        "canonicalId": { "type": "string", "minLength": 1 },
+        "role": { "$ref": "#/$defs/role" },
+        "scopeId": { "type": "string", "minLength": 1 },
+        "sourcePath": { "type": "string" },
+        "primary": { "type": "boolean" },
+        "rationale": { "type": "string" }
+      }
+    },
+    "prerequisite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCanonicalId", "targetCanonicalId", "strength"],
+      "properties": {
+        "prerequisiteId": { "type": "string", "minLength": 1 },
+        "sourceCanonicalId": { "type": "string", "minLength": 1 },
+        "targetCanonicalId": { "type": "string", "minLength": 1 },
+        "strength": { "type": "string", "enum": ["REQUIRED", "RECOMMENDED"] },
+        "evidenceRef": { "type": ["string", "null"] },
+        "rationale": { "type": ["string", "null"] },
+        "scopeId": { "type": "string" }
+      }
+    },
+    "coreNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalId", "pathEligible", "cardPolicy", "scopeId"],
+      "properties": {
+        "canonicalId": { "type": "string", "minLength": 1 },
+        "pathEligible": { "type": "boolean" },
+        "cardPolicy": {
+          "type": "string",
+          "enum": ["required", "optional", "none"]
+        },
+        "moduleId": { "type": ["string", "null"] },
+        "scopeId": { "type": "string", "minLength": 1 },
+        "rationale": { "type": ["string", "null"] }
+      }
+    },
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cardId", "canonicalId", "active", "required"],
+      "properties": {
+        "cardId": { "type": "string", "minLength": 1 },
+        "canonicalId": { "type": "string", "minLength": 1 },
+        "active": { "type": "boolean" },
+        "required": { "type": "boolean" },
+        "sourcePath": { "type": "string" },
+        "title": { "type": "string" }
+      }
+    },
+    "authorityNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalId", "lifecycleStatus"],
+      "properties": {
+        "canonicalId": { "type": "string", "minLength": 1 },
+        "lifecycleStatus": { "type": "string", "minLength": 1 },
+        "successorCanonicalId": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
