@@ -18,17 +18,20 @@ import {
 import type { RuntimeLessonEntryBundle } from '../course-runtime';
 import {
   assertNoLayerIdentityMixing,
+  buildCoursePackageLayeredScope,
   buildLayeredGraphPayload,
   buildLayeredGraphWorkspaceFilterState,
   buildLayeredInspectorEvidenceGroups,
   buildLayeredNodeInspectorSections,
   buildLessonRuntimeLayeredPayload,
+  buildTeachingResourceLaunchMaps,
   extractStepKnowledgeRefsFromLessonRuntime,
   filterProjectionToScope,
   layeredStatusLabel,
   resolveClassroomStepDrawer,
   resolveCourseLayeredGraph,
   resolveCoursePageLayeredDrawerEntries,
+  resolveCoursePageLayeredGraphContext,
   resolveCourseScopeResources,
   resolveEngineeringOnlyLayeredGraph,
   resolveLayeredGraphAuthorityInput,
@@ -1259,14 +1262,225 @@ describe('Course page layered drawer entry (#1273 P1)', () => {
       ),
       'utf8',
     );
+    const teacherRoute = readFileSync(
+      path.join(
+        repoRoot,
+        'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx',
+      ),
+      'utf8',
+    );
 
     for (const source of [student, teacher]) {
       expect(source).toContain('resolveCoursePageLayeredDrawerEntries');
       expect(source).toContain('layeredDrawerEntries={layeredDrawerEntries}');
       expect(source).toContain('StepKnowledgeDrawer');
+      expect(source).toContain('payload: layeredGraphPayload');
+      expect(source).toContain('resourceLaunchTargets: layeredResourceLaunchTargets');
+      expect(source).toContain('resourceRegistryIds: layeredResourceRegistryIds');
+      expect(source).toContain('buildCoursePackageLayeredScope');
     }
-    // Shipped App Router entry mounts the student page that uses the layered path.
+    // Shipped App Router entries resolve Teaching Projection server-side.
+    for (const route of [studentRoute, teacherRoute]) {
+      expect(route).toContain('resolveCoursePageLayeredGraphContext');
+      expect(route).toContain('layeredGraphPayload={layeredGraphContext.payload}');
+      expect(route).toContain('layeredResourceLaunchTargets=');
+      expect(route).toContain('layeredResourceRegistryIds=');
+    }
     expect(studentRoute).toContain('UNIT_1_1StudentPage');
     expect(studentRoute).toContain("loadLessonRuntimeEntry('1-1')");
+    expect(teacherRoute).toContain('UNIT_1_1TeacherPage');
+  });
+
+  it('server page context resolves non-empty active Teaching Projection payload with launch targets', () => {
+    const authorityPaths = tempAuthorityRoot();
+    activateAuthority(authorityPaths);
+    const projectionPaths = tempProjectionRoot();
+    activateProjection(
+      projectionPaths,
+      boundAuthoring({
+        scopeId: 'course-package:1-1',
+        resources: [
+          {
+            resourceType: 'step',
+            lessonKey: '1-1',
+            stepId: 'step-09',
+            projectionMode: 'REQUIRED',
+            scopeId: 'course-package:1-1',
+            title: '反馈练习',
+          },
+          {
+            resourceType: 'handout',
+            lessonKey: '1-1',
+            projectionMode: 'OPTIONAL',
+            scopeId: 'course-package:1-1',
+            title: '1-1 讲义',
+          },
+          {
+            resourceType: 'card',
+            cardId: 'card-feedback',
+            projectionMode: 'OPTIONAL',
+            scopeId: 'course-package:1-1',
+            title: '反馈卡片',
+          },
+        ],
+        bindings: [
+          {
+            resourceId: 'act:step:1-1:step-09',
+            canonicalId: 'node-a',
+            role: 'PRACTICES',
+            scopeId: 'course-package:1-1',
+            primary: true,
+          },
+          {
+            resourceId: 'act:handout:1-1',
+            canonicalId: 'node-a',
+            role: 'EXPLAINS',
+            scopeId: 'course-package:1-1',
+            primary: false,
+          },
+          {
+            resourceId: 'act:card:card-feedback',
+            canonicalId: 'node-a',
+            role: 'COVERS',
+            scopeId: 'course-package:1-1',
+            primary: false,
+          },
+        ],
+        coreNodes: [
+          {
+            canonicalId: 'node-a',
+            pathEligible: true,
+            cardPolicy: 'optional',
+            scopeId: 'course-package:1-1',
+          },
+        ],
+        cards: [
+          {
+            cardId: 'card-feedback',
+            canonicalId: 'node-a',
+            active: true,
+            required: false,
+            title: '反馈卡片',
+          },
+        ],
+      }),
+    );
+
+    const scope = buildCoursePackageLayeredScope({
+      packageCanonicalId: '1-1',
+      lessonKey: '1-1',
+      stepId: 'step-09',
+      knowledgeRefs: ['node-a'],
+    });
+
+    const context = resolveCoursePageLayeredGraphContext({
+      scope,
+      authorityPaths,
+      projectionPaths,
+      allowLegacyFallback: false,
+    });
+
+    expect(context.hasTeachingProjection).toBe(true);
+    expect(context.payload.teachingResources.identity.status).toBe('ready');
+    expect(context.payload.teachingResources.resources.length).toBeGreaterThan(0);
+    expect(context.payload.teachingResources.bindings.length).toBeGreaterThan(0);
+    expect(context.payload.teachingResources.cards.length).toBeGreaterThan(0);
+    expect(context.payload.engineering.identity.status).toBe('ready');
+    // Not the empty lesson-runtime Legacy adapter.
+    expect(context.payload.fallback).toBeNull();
+    expect(context.payload.teachingResources.identity.projectionId).not.toMatch(
+      /^legacy-runtime-graph-overlay:/,
+    );
+
+    expect(context.resourceLaunchTargets['act:handout:1-1']).toBe(
+      '/interactive-learning/lessons/1-1/handout-print',
+    );
+    expect(context.resourceLaunchTargets['act:step:1-1:step-09']).toContain(
+      '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo?step=step-09',
+    );
+    expect(context.resourceRegistryIds['act:step:1-1:step-09']).toBe(
+      'unit-1-1-see-the-full-picture:step-09',
+    );
+
+    const lessonRuntime = minimalLessonRuntime();
+    lessonRuntime.graphOverlay.groups = [
+      {
+        group_name: 'practice',
+        step_ids: ['step-09'],
+        node_ids: ['node-a'],
+      },
+    ];
+    lessonRuntime.graphOverlay.nodes = [
+      {
+        id: 'node-a',
+        name: '稳定性',
+        nodeType: 'THEORY',
+        description: 'from overlay',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        resources: [],
+        frontContent: 'from overlay',
+      },
+    ];
+
+    const entries = resolveCoursePageLayeredDrawerEntries({
+      lessonRuntime,
+      currentStepId: 'step-09',
+      orderedStepIds: ['step-09'],
+      scope,
+      payload: context.payload,
+      resourceLaunchTargets: context.resourceLaunchTargets,
+      resourceRegistryIds: context.resourceRegistryIds,
+    });
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0]?.cardStatus).toBe('active-card');
+    expect(entries[0]?.fallback).toBeNull();
+    expect(entries[0]?.linkedResources.length).toBeGreaterThan(0);
+    const handout = entries[0]?.linkedResources.find(
+      (resource) => resource.resourceId === 'act:handout:1-1',
+    );
+    expect(handout?.launch.href).toBe('/interactive-learning/lessons/1-1/handout-print');
+    expect(handout?.launch.registryId).toBe('handout:1-1');
+  });
+
+  it('buildTeachingResourceLaunchMaps uses registry routes and never Canonical node IDs', () => {
+    const maps = buildTeachingResourceLaunchMaps([
+      {
+        resourceId: 'act:lesson:1-1',
+        resourceType: 'lesson',
+        projectionMode: 'OPTIONAL',
+        scopeId: 'course-package:1-1',
+        title: '1-1',
+        sourcePath: null,
+        legacyCrosswalkRef: null,
+        bindingCount: 0,
+        bindingStatus: 'BOUND',
+        projectionStatus: 'BOUND',
+        bindingDigest: null,
+      },
+      {
+        resourceId: 'act:step:1-1:step-01',
+        resourceType: 'step',
+        projectionMode: 'OPTIONAL',
+        scopeId: 'course-package:1-1',
+        title: 'step',
+        sourcePath: null,
+        legacyCrosswalkRef: null,
+        bindingCount: 0,
+        bindingStatus: 'BOUND',
+        projectionStatus: 'BOUND',
+        bindingDigest: null,
+      },
+    ]);
+
+    expect(maps.resourceLaunchTargets['act:lesson:1-1']).toBe(
+      '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+    );
+    expect(maps.resourceLaunchTargets['act:step:1-1:step-01']).not.toBe('node-a');
+    expect(maps.resourceLaunchTargets['act:step:1-1:step-01']).not.toMatch(
+      /^\/knowledge\//,
+    );
   });
 });

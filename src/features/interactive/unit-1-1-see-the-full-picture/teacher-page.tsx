@@ -17,7 +17,11 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
-import { resolveCoursePageLayeredDrawerEntries } from '@/lib/layered-graph';
+import {
+  buildCoursePackageLayeredScope,
+  resolveCoursePageLayeredDrawerEntries,
+  type LayeredGraphPayload,
+} from '@/lib/layered-graph';
 import {
   UNIT_1_1_LESSON_STEPS,
   UNIT_1_1_COURSE_SUBTITLE,
@@ -44,9 +48,16 @@ import {
 export function UNIT_1_1TeacherPage({
   sessionId,
   lessonRuntime,
+  layeredGraphPayload,
+  layeredResourceLaunchTargets,
+  layeredResourceRegistryIds,
 }: {
   sessionId: string;
   lessonRuntime: RuntimeLessonEntryBundle;
+  /** Server-resolved Teaching Projection layered payload (active/candidate/pin). */
+  layeredGraphPayload?: LayeredGraphPayload | null;
+  layeredResourceLaunchTargets?: Record<string, string | null>;
+  layeredResourceRegistryIds?: Record<string, string>;
 }) {
   const router = useRouter();
   const [endingSession, setEndingSession] = useState(false);
@@ -95,7 +106,8 @@ export function UNIT_1_1TeacherPage({
     () => UNIT_1_1_LESSON_STEPS.map((item) => item.id),
     [],
   );
-  // Layered Teaching Projection drawer path (#1273 / PR #1286).
+  // Layered Teaching Projection drawer path (#1273 / PR #1286):
+  // server resolves active/candidate payload; client scopes step.knowledgeRefs.
   const layeredDrawerEntries = useMemo(
     () =>
       resolveCoursePageLayeredDrawerEntries({
@@ -103,12 +115,24 @@ export function UNIT_1_1TeacherPage({
         currentStepId: step.id,
         orderedStepIds,
         scope: {
-          scopeId: `course:${UNIT_1_1_LESSON_KEY}`,
-          lessonKey: UNIT_1_1_LESSON_KEY,
-          stepId: step.id,
+          ...buildCoursePackageLayeredScope({
+            packageCanonicalId: '1-1',
+            lessonKey: '1-1',
+            stepId: step.id,
+          }),
         },
+        payload: layeredGraphPayload,
+        resourceLaunchTargets: layeredResourceLaunchTargets,
+        resourceRegistryIds: layeredResourceRegistryIds,
       }),
-    [lessonRuntime, orderedStepIds, step.id],
+    [
+      layeredGraphPayload,
+      layeredResourceLaunchTargets,
+      layeredResourceRegistryIds,
+      lessonRuntime,
+      orderedStepIds,
+      step.id,
+    ],
   );
 
   // Compute teacherSyncState from teacherStates

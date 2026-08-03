@@ -264,16 +264,20 @@ export function buildLessonRuntimeLayeredPayload(input: {
  * Course/classroom page entry: resolve layered drawer entries for the current
  * step via step.knowledgeRefs → canonicalId → optional card.
  *
- * When a Teaching Projection `payload` is provided it is used; otherwise the
- * lesson-runtime graph overlay is adapted as an explicit Legacy fallback so the
- * shipped StepKnowledgeDrawer path still exercises the layered resolver.
+ * Shipped course pages MUST pass a server-resolved Teaching Projection
+ * `payload` from `resolveCoursePageLayeredGraphContext` (active/candidate/pin)
+ * together with registry/launch targets. The lesson-runtime graph overlay
+ * adapter remains only as an explicit last-resort when no payload is provided.
  */
 export function resolveCoursePageLayeredDrawerEntries(input: {
   lessonRuntime: RuntimeLessonEntryBundle;
   currentStepId: string;
   orderedStepIds: readonly string[];
   scope: LayeredGraphScope;
-  /** Optional pre-resolved Teaching Projection layered payload. */
+  /**
+   * Server-resolved Teaching Projection layered payload. Prefer this over the
+   * empty lesson-runtime Legacy adapter so cards/resources/launch work.
+   */
   payload?: LayeredGraphPayload | null;
   resourceLaunchTargets?: ResolveStepDrawerInput['resourceLaunchTargets'];
   resourceRegistryIds?: ResolveStepDrawerInput['resourceRegistryIds'];

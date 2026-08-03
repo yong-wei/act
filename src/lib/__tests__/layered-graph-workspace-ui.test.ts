@@ -82,14 +82,26 @@ describe('layered graph workspace UI contracts (#1273)', () => {
     const teacher = readRepoFile(
       'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx',
     );
+    const studentRoute = readRepoFile(
+      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
+    );
+    const teacherRoute = readRepoFile(
+      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx',
+    );
     const consumers = readRepoFile('src/lib/layered-graph/consumers.ts');
+    const pageContext = readRepoFile('src/lib/layered-graph/course-page-context.ts');
 
     expect(consumers).toContain('resolveCoursePageLayeredDrawerEntries');
     expect(consumers).toContain('resolveClassroomStepDrawerEntries');
+    expect(pageContext).toContain('resolveCoursePageLayeredGraphContext');
     expect(student).toContain('resolveCoursePageLayeredDrawerEntries');
+    expect(student).toContain('payload: layeredGraphPayload');
     expect(student).toContain('layeredDrawerEntries={layeredDrawerEntries}');
     expect(teacher).toContain('resolveCoursePageLayeredDrawerEntries');
+    expect(teacher).toContain('payload: layeredGraphPayload');
     expect(teacher).toContain('layeredDrawerEntries={layeredDrawerEntries}');
+    expect(studentRoute).toContain('resolveCoursePageLayeredGraphContext');
+    expect(teacherRoute).toContain('resolveCoursePageLayeredGraphContext');
   });
 
   it('does not change engineering predicate rendering contracts', () => {
