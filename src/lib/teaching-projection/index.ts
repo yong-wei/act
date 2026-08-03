@@ -11,6 +11,7 @@ export * from './legacy-id-policy';
 export * from './mapping';
 export * from './migration-contracts';
 export * from './package-migration';
+export * from './prerequisites';
 export * from './rebase';
 export * from './store';
 export * from './textbook-locators';

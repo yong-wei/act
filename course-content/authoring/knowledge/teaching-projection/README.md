@@ -15,6 +15,8 @@ ACT-owned, file-based Teaching Projection authoring inputs for issues #1267 / #1
 | `schemas/activation.schema.json` | `act-teaching-projection-activation/v1` |
 | `schemas/legacy-crosswalk.schema.json` | `act-legacy-id-crosswalk/v1` |
 | `schemas/migration-status.schema.json` | `act-active-course-migration-status/v1` |
+| `prerequisites/schemas/core-nodes.schema.json` | `act-teaching-core-nodes/v1` (#1270) |
+| `prerequisites/schemas/prerequisite-edges.schema.json` | `act-teaching-prerequisite-edges/v1` (#1270) |
 
 ## Active-course migration (#1268)
 
@@ -29,6 +31,12 @@ ACT-owned, file-based Teaching Projection authoring inputs for issues #1267 / #1
 - `fixtures/empty-projection.json` — legal empty projection (Authority nodes remain `NOT_PROJECTED`).
 - `fixtures/bound-step-projection.json` — synthetic step binding with optional lesson and `NONE` handout.
 - `fixtures/migration/mapping-cases.json` — duplicate / split / merge / fuzzy / stale / exact mapping signals.
+
+## Core teaching prerequisites (#1270)
+
+- Authoring: `prerequisites/inventory/core-nodes.yaml`, `prerequisites/inventory/edges.yaml`
+- Builder/store: `src/lib/teaching-projection/prerequisites/`
+- Engineering relations, textbook order, and lesson order remain candidates only; publication requires ACT evidence or teacher-curation rationale plus one author decision bound to the Authority/Projection capture.
 
 ## Non-goals
 
