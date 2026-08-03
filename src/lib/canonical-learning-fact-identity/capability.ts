@@ -259,6 +259,58 @@ function collectSupportedCanonicalIds(input: {
   return [...supported].sort();
 }
 
+/**
+ * Projected membership from governed CURRENT+SHADOW_PUBLISHED resource binding
+ * decisions only (not KAQ-only support). Preserves exact (canonical, resource)
+ * pairs so writers cannot cross-apply resources across nodes.
+ */
+function collectProjectedMembershipFromResourceBindings(
+  resourceBindingResult: BindingGovernanceResult | null | undefined,
+): {
+  projectedCanonicalIds: string[];
+  accessibleResourceIds: string[];
+  projectedResourceBindings: Array<{ canonicalId: string; resourceId: string }>;
+} {
+  if (!resourceBindingResult) {
+    return {
+      projectedCanonicalIds: [],
+      accessibleResourceIds: [],
+      projectedResourceBindings: [],
+    };
+  }
+  const governed = assertGovernedResourceBindingResult(resourceBindingResult);
+  const projected = new Set<string>();
+  const resources = new Set<string>();
+  const pairs = new Map<string, { canonicalId: string; resourceId: string }>();
+  for (const decision of governed.decisions) {
+    if (
+      decision.lifecycleState !== 'CURRENT'
+      || decision.publicationState !== 'SHADOW_PUBLISHED'
+    ) {
+      continue;
+    }
+    const canonicalId =
+      typeof decision.canonicalId === 'string' ? decision.canonicalId.trim() : '';
+    const resourceId =
+      typeof decision.resourceId === 'string' ? decision.resourceId.trim() : '';
+    if (canonicalId) projected.add(canonicalId);
+    if (resourceId) resources.add(resourceId);
+    if (canonicalId && resourceId) {
+      pairs.set(`${canonicalId}\u001f${resourceId}`, { canonicalId, resourceId });
+    }
+  }
+  return {
+    projectedCanonicalIds: [...projected].sort(),
+    accessibleResourceIds: [...resources].sort(),
+    projectedResourceBindings: [...pairs.values()].sort((a, b) => {
+      const byCanonical = a.canonicalId.localeCompare(b.canonicalId);
+      return byCanonical !== 0
+        ? byCanonical
+        : a.resourceId.localeCompare(b.resourceId);
+    }),
+  };
+}
+
 function mintAdmission(input: {
   mode: LearningFactAdmissionMode;
   productionWriteAuthorized: boolean;
@@ -272,6 +324,19 @@ function mintAdmission(input: {
    */
   projectionId: string;
   releasePublicationState?: AggregateReleasePublicationState;
+  /**
+   * Projection-bound resource identity gates (#1275). When any of these are
+   * provided (or requireProjectionBoundResourceIdentity is true), managed
+   * writers enforce resourceId + projected-node membership via admission —
+   * not optional caller-side fields.
+   */
+  projectedCanonicalIds?: readonly string[];
+  accessibleResourceIds?: readonly string[];
+  projectedResourceBindings?: readonly {
+    canonicalId: string;
+    resourceId: string;
+  }[];
+  requireProjectionBoundResourceIdentity?: boolean;
 }): VerifiedLearningFactAdmission {
   assertVerifiedKaqPinnedContext(input.pinned);
   const pinned = input.pinned;
@@ -320,6 +385,51 @@ function mintAdmission(input: {
     }
   }
 
+  const projectedResourceBindings =
+    input.projectedResourceBindings && input.projectedResourceBindings.length > 0
+      ? Object.freeze(
+          input.projectedResourceBindings
+            .map((binding) => ({
+              canonicalId: binding.canonicalId.trim(),
+              resourceId: binding.resourceId.trim(),
+            }))
+            .filter((binding) => binding.canonicalId && binding.resourceId)
+            .sort((a, b) => {
+              const byCanonical = a.canonicalId.localeCompare(b.canonicalId);
+              return byCanonical !== 0
+                ? byCanonical
+                : a.resourceId.localeCompare(b.resourceId);
+            }),
+        ) as readonly { canonicalId: string; resourceId: string }[]
+      : undefined;
+  const projectedCanonicalIds =
+    input.projectedCanonicalIds && input.projectedCanonicalIds.length > 0
+      ? Object.freeze(
+          [...new Set(input.projectedCanonicalIds.map((id) => id.trim()).filter(Boolean))].sort(),
+        ) as readonly string[]
+      : projectedResourceBindings
+        ? Object.freeze(
+            [...new Set(projectedResourceBindings.map((b) => b.canonicalId))].sort(),
+          ) as readonly string[]
+        : undefined;
+  const accessibleResourceIds =
+    input.accessibleResourceIds && input.accessibleResourceIds.length > 0
+      ? Object.freeze(
+          [...new Set(input.accessibleResourceIds.map((id) => id.trim()).filter(Boolean))].sort(),
+        ) as readonly string[]
+      : projectedResourceBindings
+        ? Object.freeze(
+            [...new Set(projectedResourceBindings.map((b) => b.resourceId))].sort(),
+          ) as readonly string[]
+        : undefined;
+  const requireProjectionBoundResourceIdentity =
+    input.requireProjectionBoundResourceIdentity === true
+    || (projectedCanonicalIds != null && projectedCanonicalIds.length > 0)
+    || (accessibleResourceIds != null && accessibleResourceIds.length > 0)
+    || (projectedResourceBindings != null && projectedResourceBindings.length > 0)
+      ? true
+      : undefined;
+
   const admission = {
     schemaVersion: VERIFIED_LEARNING_FACT_ADMISSION_VERSION,
     mode: input.mode,
@@ -334,6 +444,12 @@ function mintAdmission(input: {
       [...input.allowedSourcePrefixes],
     ) as readonly string[],
     releasePublicationStateHint: input.releasePublicationState ?? 'CANDIDATE',
+    ...(projectedCanonicalIds ? { projectedCanonicalIds } : {}),
+    ...(accessibleResourceIds ? { accessibleResourceIds } : {}),
+    ...(projectedResourceBindings ? { projectedResourceBindings } : {}),
+    ...(requireProjectionBoundResourceIdentity
+      ? { requireProjectionBoundResourceIdentity: true as const }
+      : {}),
   } as VerifiedLearningFactAdmission;
 
   return sealRegister(admission, ADMISSION_BRAND, ADMISSION_REGISTRY);
@@ -350,12 +466,55 @@ export function buildShadowLearningFactAdmission(input: {
   projectionId: string;
   reviewedKaqBindings?: readonly KaqCanonicalBinding[];
   resourceBindingResult?: BindingGovernanceResult | null;
+  /**
+   * Teaching Projection-bound membership. When omitted and resource bindings
+   * are present, projected IDs default to supported canonicals and resource
+   * IDs are derived from CURRENT+SHADOW_PUBLISHED decisions.
+   */
+  projectedCanonicalIds?: readonly string[];
+  accessibleResourceIds?: readonly string[];
+  projectedResourceBindings?: readonly {
+    canonicalId: string;
+    resourceId: string;
+  }[];
+  requireProjectionBoundResourceIdentity?: boolean;
 }): VerifiedLearningFactAdmission {
   const supported = collectSupportedCanonicalIds({
     pinned: input.pinned,
     reviewedKaqBindings: input.reviewedKaqBindings,
     resourceBindingResult: input.resourceBindingResult,
   });
+  // Projection membership is derived only from resource binding decisions —
+  // never from the full KAQ+resource support union (P2).
+  const derived = collectProjectedMembershipFromResourceBindings(
+    input.resourceBindingResult,
+  );
+  // Empty arrays must not nullish-coalesce as intentional "no bindings" when
+  // governed resourceBindingResult still has CURRENT pairs (P2).
+  const projectedResourceBindings =
+    input.projectedResourceBindings && input.projectedResourceBindings.length > 0
+      ? input.projectedResourceBindings
+      : (derived.projectedResourceBindings.length > 0
+        ? derived.projectedResourceBindings
+        : undefined);
+  const accessibleResourceIds =
+    input.accessibleResourceIds && input.accessibleResourceIds.length > 0
+      ? input.accessibleResourceIds
+      : (derived.accessibleResourceIds.length > 0
+        ? derived.accessibleResourceIds
+        : undefined);
+  const projectedCanonicalIds =
+    input.projectedCanonicalIds && input.projectedCanonicalIds.length > 0
+      ? input.projectedCanonicalIds
+      : (derived.projectedCanonicalIds.length > 0
+        ? derived.projectedCanonicalIds
+        : undefined);
+  const requireProjectionBoundResourceIdentity =
+    input.requireProjectionBoundResourceIdentity
+    ?? (Boolean(projectedResourceBindings && projectedResourceBindings.length > 0)
+      || Boolean(accessibleResourceIds && accessibleResourceIds.length > 0)
+      || Boolean(projectedCanonicalIds && projectedCanonicalIds.length > 0)
+      || undefined);
   return mintAdmission({
     mode: 'SHADOW',
     productionWriteAuthorized: false,
@@ -364,6 +523,10 @@ export function buildShadowLearningFactAdmission(input: {
     allowedSourcePrefixes: input.allowedSourcePrefixes,
     projectionId: input.projectionId,
     releasePublicationState: 'CANDIDATE',
+    projectedCanonicalIds,
+    accessibleResourceIds,
+    projectedResourceBindings,
+    requireProjectionBoundResourceIdentity,
   });
 }
 
@@ -380,6 +543,21 @@ export function readVerifiedLearningFactAdmission(
     expectedProjectionId: admission.expectedProjectionId,
     expectedKnowledgeRevisionRef: admission.expectedKnowledgeRevisionRef,
     allowedSourcePrefixes: admission.allowedSourcePrefixes,
+    ...(admission.projectedCanonicalIds
+      ? { projectedCanonicalIds: admission.projectedCanonicalIds }
+      : {}),
+    ...(admission.accessibleResourceIds
+      ? { accessibleResourceIds: admission.accessibleResourceIds }
+      : {}),
+    ...(admission.projectedResourceBindings
+      ? { projectedResourceBindings: admission.projectedResourceBindings }
+      : {}),
+    ...(admission.requireProjectionBoundResourceIdentity
+      ? {
+          requireProjectionBoundResourceIdentity:
+            admission.requireProjectionBoundResourceIdentity,
+        }
+      : {}),
   };
 }
 
@@ -416,6 +594,13 @@ export function mintFormalWriteLearningFactAdmissionForTests(input: {
   resourceOrKaqSupportedCanonicalIds: readonly string[];
   projectionId: string;
   releasePublicationState?: AggregateReleasePublicationState;
+  projectedCanonicalIds?: readonly string[];
+  accessibleResourceIds?: readonly string[];
+  projectedResourceBindings?: readonly {
+    canonicalId: string;
+    resourceId: string;
+  }[];
+  requireProjectionBoundResourceIdentity?: boolean;
 }): VerifiedLearningFactAdmission {
   assertTestOnly('mintFormalWriteLearningFactAdmissionForTests');
   return mintAdmission({
@@ -426,6 +611,11 @@ export function mintFormalWriteLearningFactAdmissionForTests(input: {
     allowedSourcePrefixes: input.allowedSourcePrefixes,
     projectionId: input.projectionId,
     releasePublicationState: input.releasePublicationState ?? 'ACTIVE',
+    projectedCanonicalIds: input.projectedCanonicalIds,
+    accessibleResourceIds: input.accessibleResourceIds,
+    projectedResourceBindings: input.projectedResourceBindings,
+    requireProjectionBoundResourceIdentity:
+      input.requireProjectionBoundResourceIdentity,
   });
 }
 
@@ -435,6 +625,13 @@ export function mintCanonicalLearningFactWriteCapabilityForTests(input: {
   resourceOrKaqSupportedCanonicalIds: readonly string[];
   projectionId: string;
   releasePublicationState?: AggregateReleasePublicationState;
+  projectedCanonicalIds?: readonly string[];
+  accessibleResourceIds?: readonly string[];
+  projectedResourceBindings?: readonly {
+    canonicalId: string;
+    resourceId: string;
+  }[];
+  requireProjectionBoundResourceIdentity?: boolean;
 }): CanonicalLearningFactWriteCapability {
   assertTestOnly('mintCanonicalLearningFactWriteCapabilityForTests');
   const selector = mintCanonicalLearningFactSelectorForTests();
