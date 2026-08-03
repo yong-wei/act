@@ -1,0 +1,414 @@
+/**
+ * Deterministic textbook locator projection builder (#1269).
+ *
+ * TEXTBOOK → CHAPTER → SECTION resources + EXPLAINS bindings.
+ * Sidecar failure marks only the textbook slice REVIEW_REQUIRED.
+ */
+
+import { projectionDigest } from '../hash';
+import {
+  TEXTBOOK_LOCATOR_BUILDER_VERSION,
+  TEXTBOOK_LOCATOR_CONTRACT,
+  type TextbookExplainsBinding,
+  type TextbookLocatorBuildInput,
+  type TextbookLocatorProjection,
+  type TextbookProjectedResource,
+  type TextbookRagCitationCandidate,
+  type TextbookResourceLocator,
+  type TextbookResourceProvenance,
+  type TextbookSliceFailure,
+} from './contracts';
+import { validateCrosswalkAgainstInventory } from './crosswalk';
+import {
+  deriveTextbookChapterResourceId,
+  deriveTextbookExplainsBindingId,
+  deriveTextbookResourceId,
+  deriveTextbookSectionResourceId,
+} from './identity';
+
+function compareCodePoint(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+function sortBy<T>(items: T[], keyFn: (item: T) => string): T[] {
+  return [...items].sort((a, b) => compareCodePoint(keyFn(a), keyFn(b)));
+}
+
+function toCanonicalSet(
+  value: TextbookLocatorBuildInput['authorityCanonicalIds'],
+): Set<string> {
+  if (value instanceof Set) return value;
+  return new Set(value);
+}
+
+function buildProjectionBuildId(input: TextbookLocatorBuildInput): string {
+  if (input.projectionBuildId) return input.projectionBuildId;
+  return `tbloc-${projectionDigest({
+    scopeId: input.scopeId,
+    authorityReleaseHash: input.inventory.authority.authorityReleaseHash,
+    bundleDigest: input.inventory.authority.bundleDigest,
+    captureRevision: input.inventory.authority.captureRevision,
+    crosswalk: input.crosswalkRows,
+    builderVersion: TEXTBOOK_LOCATOR_BUILDER_VERSION,
+  }).slice(0, 32)}`;
+}
+
+/**
+ * Project ActKG public locators + ACT crosswalk into textbook resources.
+ * Never includes raw textbook text. Failures isolate to the textbook slice.
+ */
+export function buildTextbookLocatorProjection(
+  input: TextbookLocatorBuildInput,
+): TextbookLocatorProjection {
+  const authority = input.inventory.authority;
+  const projectionBuildId = buildProjectionBuildId(input);
+  const authorityCanonicalIds = toCanonicalSet(input.authorityCanonicalIds);
+
+  const sourceDocumentIds = new Set(
+    input.inventory.sourceDocuments.map((d) => d.sourceDocumentId),
+  );
+  const sourceAnchorIds = new Set(
+    input.inventory.sourceAnchors.map((a) => a.sourceAnchorId),
+  );
+  const anchorDocumentById = new Map(
+    input.inventory.sourceAnchors.map((a) => [a.sourceAnchorId, a.sourceDocumentId]),
+  );
+  const anchorById = new Map(
+    input.inventory.sourceAnchors.map((a) => [a.sourceAnchorId, a]),
+  );
+  const documentById = new Map(
+    input.inventory.sourceDocuments.map((d) => [d.sourceDocumentId, d]),
+  );
+
+  const validated = validateCrosswalkAgainstInventory({
+    rows: input.crosswalkRows,
+    authority,
+    sourceDocumentIds,
+    sourceAnchorIds,
+    anchorDocumentById,
+  });
+
+  const failures: TextbookSliceFailure[] = [...validated.failures];
+  const resourcesById = new Map<string, TextbookProjectedResource>();
+  const bindings: TextbookExplainsBinding[] = [];
+  const ragCandidates: TextbookRagCitationCandidate[] = [];
+
+  const makeProvenance = (
+    sourceEditionId: string | null,
+    contentHashes: string[],
+    authorizedContentRef: string | null,
+  ): TextbookResourceProvenance => ({
+    authorityReleaseId: authority.authorityReleaseId,
+    authorityReleaseHash: authority.authorityReleaseHash,
+    bundleDigest: authority.bundleDigest,
+    captureRevision: authority.captureRevision,
+    projectionBuildId,
+    builderVersion: TEXTBOOK_LOCATOR_BUILDER_VERSION,
+    sourceEditionId,
+    contentHashes,
+    authorizedContentRef,
+  });
+
+  const ensureResource = (resource: TextbookProjectedResource): void => {
+    const existing = resourcesById.get(resource.resourceId);
+    if (existing) {
+      // Same identity must remain byte-stable; conflict is a slice failure.
+      if (
+        existing.resourceType !== resource.resourceType
+        || existing.parentResourceId !== resource.parentResourceId
+        || existing.accessMode !== resource.accessMode
+      ) {
+        failures.push({
+          code: 'duplicate-resource-id',
+          message: `conflicting definitions for resource ${resource.resourceId}`,
+          resourceId: resource.resourceId,
+          sourceDocumentId: resource.locator.sourceDocumentId,
+          sourceAnchorId: resource.locator.sourceAnchorId ?? undefined,
+        });
+      }
+      return;
+    }
+    resourcesById.set(resource.resourceId, resource);
+  };
+
+  for (const row of validated.rows) {
+    const doc = documentById.get(row.sourceDocumentId);
+    const anchor = anchorById.get(row.sourceAnchorId);
+    if (!doc || !anchor) {
+      // validateCrosswalkAgainstInventory should have filtered these.
+      failures.push({
+        code: !doc ? 'missing-source-document' : 'missing-source-anchor',
+        message: `row ${row.rowNumber ?? '?'}: inventory lookup failed after validation`,
+        rowNumber: row.rowNumber,
+        sourceDocumentId: row.sourceDocumentId,
+        sourceAnchorId: row.sourceAnchorId,
+      });
+      continue;
+    }
+
+    const knownCanonicals: string[] = [];
+    for (const canonicalId of row.canonicalIds) {
+      if (!authorityCanonicalIds.has(canonicalId)) {
+        failures.push({
+          code: 'unknown-canonical',
+          message: `row ${row.rowNumber ?? '?'}: Canonical ID ${canonicalId} is not in the pinned Authority`,
+          rowNumber: row.rowNumber,
+          sourceDocumentId: row.sourceDocumentId,
+          sourceAnchorId: row.sourceAnchorId,
+          canonicalId,
+        });
+        continue;
+      }
+      knownCanonicals.push(canonicalId);
+    }
+
+    // If every Canonical failed, do not emit resources for this row.
+    if (knownCanonicals.length === 0) {
+      continue;
+    }
+
+    const textbookResourceId = deriveTextbookResourceId(row.sourceDocumentId);
+    const chapterResourceId = deriveTextbookChapterResourceId(
+      row.sourceDocumentId,
+      row.chapterKey,
+    );
+    const sectionResourceId = deriveTextbookSectionResourceId(row.sourceAnchorId);
+
+    const sectionLocator: TextbookResourceLocator = {
+      sourceDocumentId: row.sourceDocumentId,
+      sourceAnchorId: row.sourceAnchorId,
+      chapterKey: row.chapterKey,
+      sectionKey: row.sectionKey,
+      pageStart: row.pageStart,
+      pageEnd: row.pageEnd,
+    };
+    const chapterLocator: TextbookResourceLocator = {
+      sourceDocumentId: row.sourceDocumentId,
+      sourceAnchorId: null,
+      chapterKey: row.chapterKey,
+      sectionKey: null,
+      pageStart: null,
+      pageEnd: null,
+    };
+    const bookLocator: TextbookResourceLocator = {
+      sourceDocumentId: row.sourceDocumentId,
+      sourceAnchorId: null,
+      chapterKey: null,
+      sectionKey: null,
+      pageStart: null,
+      pageEnd: null,
+    };
+
+    const provenance = makeProvenance(
+      anchor.sourceEditionId,
+      anchor.contentHashes,
+      row.authorizedContentRef ?? null,
+    );
+
+    // Book and chapter default to REFERENCE_ONLY containers.
+    ensureResource({
+      resourceId: textbookResourceId,
+      resourceType: 'textbook',
+      grain: 'TEXTBOOK',
+      parentResourceId: null,
+      title: doc.title,
+      accessMode: 'REFERENCE_ONLY',
+      pathEligible: false,
+      locator: bookLocator,
+      provenance: makeProvenance(doc.sourceEditionId, [], null),
+    });
+
+    ensureResource({
+      resourceId: chapterResourceId,
+      resourceType: 'textbook-chapter',
+      grain: 'CHAPTER',
+      parentResourceId: textbookResourceId,
+      title: `${doc.title ?? row.sourceDocumentId} / ${row.chapterKey}`,
+      accessMode: 'REFERENCE_ONLY',
+      pathEligible: false,
+      locator: chapterLocator,
+      provenance: makeProvenance(doc.sourceEditionId, [], null),
+    });
+
+    ensureResource({
+      resourceId: sectionResourceId,
+      resourceType: 'textbook-section',
+      grain: 'SECTION',
+      parentResourceId: chapterResourceId,
+      title: row.sectionKey,
+      accessMode: row.accessMode,
+      pathEligible: false,
+      locator: sectionLocator,
+      provenance,
+    });
+
+    for (const canonicalId of knownCanonicals) {
+      const bindingId = deriveTextbookExplainsBindingId({
+        resourceId: sectionResourceId,
+        canonicalId,
+        scopeId: input.scopeId,
+      });
+      bindings.push({
+        bindingId,
+        resourceId: sectionResourceId,
+        canonicalId,
+        role: 'EXPLAINS',
+        scopeId: input.scopeId,
+        sourceDocumentId: row.sourceDocumentId,
+        sourceAnchorId: row.sourceAnchorId,
+        locator: sectionLocator,
+        provenance,
+      });
+
+      const authorizedBody = row.accessMode !== 'REFERENCE_ONLY'
+        && Boolean(row.authorizedContentRef);
+      ragCandidates.push({
+        resourceId: sectionResourceId,
+        sourceDocumentId: row.sourceDocumentId,
+        sourceAnchorId: row.sourceAnchorId,
+        canonicalId,
+        accessMode: row.accessMode,
+        locator: sectionLocator,
+        provenance,
+        rawContentAvailable: false,
+        authorizedBody,
+      });
+    }
+  }
+
+  const resources = sortBy([...resourcesById.values()], (r) => r.resourceId);
+  const sortedBindings = sortBy(bindings, (b) => b.bindingId);
+  const sortedRag = sortBy(
+    ragCandidates,
+    (c) => `${c.resourceId}\u001f${c.canonicalId}`,
+  );
+  const sortedFailures = sortBy(
+    failures,
+    (f) => `${f.code}\u001f${f.rowNumber ?? ''}\u001f${f.sourceAnchorId ?? ''}\u001f${f.canonicalId ?? ''}\u001f${f.message}`,
+  );
+
+  const sliceStatus = sortedFailures.length > 0 ? 'REVIEW_REQUIRED' : 'PUBLISHED';
+
+  return {
+    contract: TEXTBOOK_LOCATOR_CONTRACT,
+    builderVersion: TEXTBOOK_LOCATOR_BUILDER_VERSION,
+    scopeId: input.scopeId,
+    projectionBuildId,
+    authority,
+    sliceStatus,
+    resources,
+    bindings: sortedBindings,
+    ragCandidates: sortedRag,
+    failures: sortedFailures,
+    blocksTextbookSliceOnly: true,
+    summary: {
+      sourceDocumentCount: input.inventory.sourceDocuments.length,
+      sourceAnchorCount: input.inventory.sourceAnchors.length,
+      crosswalkRowCount: input.crosswalkRows.length,
+      resourceCount: resources.length,
+      bindingCount: sortedBindings.length,
+      failureCount: sortedFailures.length,
+    },
+  };
+}
+
+/**
+ * Convert textbook section bindings into Teaching Projection authoring inputs.
+ * Used to merge the textbook slice into the broader ACT Teaching Projection.
+ */
+export function textbookProjectionToTeachingAuthoring(input: {
+  projection: TextbookLocatorProjection;
+  /** When true, only emit rows if the textbook slice is PUBLISHED. */
+  requirePublishedSlice?: boolean;
+}): {
+  resources: Array<{
+    resourceId: string;
+    resourceType: 'textbook' | 'textbook-chapter' | 'textbook-section';
+    sourceDocumentId?: string;
+    chapterKey?: string;
+    sectionId?: string;
+    projectionMode: 'OPTIONAL';
+    scopeId: string;
+    title?: string;
+    sourcePath?: string;
+  }>;
+  bindings: Array<{
+    resourceId: string;
+    canonicalId: string;
+    role: 'EXPLAINS';
+    scopeId: string;
+    sourcePath?: string;
+    primary?: boolean;
+  }>;
+  included: boolean;
+  reason: string | null;
+} {
+  const { projection } = input;
+  if (input.requirePublishedSlice && projection.sliceStatus !== 'PUBLISHED') {
+    return {
+      resources: [],
+      bindings: [],
+      included: false,
+      reason: `textbook slice is ${projection.sliceStatus}; blocked from Teaching Projection merge`,
+    };
+  }
+
+  const resources = projection.resources.map((r) => {
+    if (r.resourceType === 'textbook') {
+      return {
+        resourceId: r.resourceId,
+        resourceType: 'textbook' as const,
+        sourceDocumentId: r.locator.sourceDocumentId,
+        projectionMode: 'OPTIONAL' as const,
+        scopeId: projection.scopeId,
+        title: r.title ?? undefined,
+        sourcePath: `actkg-textbook-locator:${r.locator.sourceDocumentId}`,
+      };
+    }
+    if (r.resourceType === 'textbook-chapter') {
+      return {
+        resourceId: r.resourceId,
+        resourceType: 'textbook-chapter' as const,
+        sourceDocumentId: r.locator.sourceDocumentId,
+        chapterKey: r.locator.chapterKey ?? undefined,
+        projectionMode: 'OPTIONAL' as const,
+        scopeId: projection.scopeId,
+        title: r.title ?? undefined,
+        sourcePath: r.locator.chapterKey
+          ? `actkg-textbook-locator:${r.locator.sourceDocumentId}:${r.locator.chapterKey}`
+          : undefined,
+      };
+    }
+    return {
+      resourceId: r.resourceId,
+      resourceType: 'textbook-section' as const,
+      sectionId: r.locator.sourceAnchorId
+        ? r.locator.sourceAnchorId.replace(/:/g, '.')
+        : undefined,
+      projectionMode: 'OPTIONAL' as const,
+      scopeId: projection.scopeId,
+      title: r.title ?? undefined,
+      sourcePath: r.locator.sourceAnchorId
+        ? `actkg-textbook-locator:${r.locator.sourceDocumentId}:${r.locator.sourceAnchorId}`
+        : undefined,
+    };
+  });
+
+  const bindings = projection.bindings.map((b) => ({
+    resourceId: b.resourceId,
+    canonicalId: b.canonicalId,
+    role: 'EXPLAINS' as const,
+    scopeId: b.scopeId,
+    sourcePath: `actkg-textbook-locator:${b.sourceDocumentId}:${b.sourceAnchorId}`,
+    primary: false,
+  }));
+
+  return {
+    resources,
+    bindings,
+    included: true,
+    reason: null,
+  };
+}
