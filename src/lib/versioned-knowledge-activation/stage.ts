@@ -8,6 +8,22 @@
 import { existsSync, readFileSync } from 'node:fs';
 
 import {
+  verifyMaterializedSnapshot,
+  type AuthorityEngineeringBody,
+  type AuthoritySnapshotManifest,
+} from '@/lib/authoritative-knowledge/authority-snapshot';
+import { verifyTeachingProjectionArtifacts } from '@/lib/teaching-projection/builder';
+import type {
+  TeachingBindingRuntime,
+  TeachingCardIndexEntry,
+  TeachingCoreNodeRuntime,
+  TeachingPrerequisiteRuntime,
+  TeachingProjectionArtifacts,
+  TeachingProjectionManifest,
+  TeachingResourceRuntime,
+} from '@/lib/teaching-projection/contracts';
+
+import {
   CONSUMER_ACTIVATION_CONTRACT,
   CONSUMER_ACTIVATION_STAGE_RECEIPT_CONTRACT,
   ConsumerActivationError,
@@ -119,6 +135,9 @@ const PROJECTION_REQUIRED_ARTIFACTS = [
   'bindings.jsonl',
   'cards-index.json',
   'prerequisites.jsonl',
+  'core-nodes.json',
+  'impact-report.json',
+  'gate.json',
 ] as const;
 
 function rehashDeclaredArtifacts(
@@ -177,10 +196,19 @@ function asString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function readJsonlArray(filePath: string | undefined): unknown[] {
+  if (!filePath || !existsSync(filePath)) return [];
+  const text = readFileSync(filePath, 'utf8');
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as unknown);
+}
+
 /**
- * After byte rehash, bind real Authority/Projection manifests to the declared
- * combination identity (snapshot/projection/release/capture). Prevents pairing
- * valid digests of unrelated captures with invented combination ids.
+ * After byte rehash, run the real Authority/Projection verifiers and bind
+ * declared combination identity to verified manifest fields.
  */
 export function validateArtifactIdentityBinding(
   artifacts: StagedActivationArtifactSet,
@@ -189,111 +217,142 @@ export function validateArtifactIdentityBinding(
   const authority = artifacts.authority;
   if (authority?.present) {
     const manifestPath = authority.artifactPaths?.['manifest.json'];
-    const parsed = readJsonObject(manifestPath);
-    if (!parsed.ok) {
-      reasons.push(`authority-manifest-${parsed.reason}`);
+    const engineeringPath = authority.artifactPaths?.['engineering.json'];
+    const manifestParsed = readJsonObject(manifestPath);
+    const engineeringParsed = readJsonObject(engineeringPath);
+    if (!manifestParsed.ok) {
+      reasons.push(`authority-manifest-${manifestParsed.reason}`);
+    } else if (!engineeringParsed.ok) {
+      reasons.push(`authority-engineering-${engineeringParsed.reason}`);
     } else {
-      const body = parsed.value;
-      const snapshotId =
-        asString(body.snapshotId) ?? asString(body.authoritySnapshotId);
-      const releaseId =
-        asString(body.releaseId) ?? asString(body.authorityReleaseId);
-      const snapshotHash =
-        asString(body.snapshotHash) ?? asString(body.authoritySnapshotHash);
-      const captureRevision =
-        asString(body.captureRevision) ?? asString(body.gitRevision);
+      const manifest = manifestParsed.value as unknown as AuthoritySnapshotManifest;
+      const engineering =
+        engineeringParsed.value as unknown as AuthorityEngineeringBody;
+      try {
+        verifyMaterializedSnapshot({ manifest, engineering });
+      } catch (error) {
+        reasons.push(
+          `authority-verifier-failed:${
+            error instanceof Error ? error.message : 'verify-failed'
+          }`,
+        );
+      }
 
-      if (authority.snapshotId && snapshotId && authority.snapshotId !== snapshotId) {
+      if (
+        authority.snapshotId
+        && manifest.snapshotId
+        && authority.snapshotId !== manifest.snapshotId
+      ) {
         reasons.push('authority-manifest-snapshot-id-mismatch');
       }
-      if (authority.releaseId && releaseId && authority.releaseId !== releaseId) {
+      if (
+        authority.releaseId
+        && manifest.releaseId
+        && authority.releaseId !== manifest.releaseId
+      ) {
         reasons.push('authority-manifest-release-id-mismatch');
       }
       if (
         authority.snapshotHash
-        && snapshotHash
-        && authority.snapshotHash !== snapshotHash
+        && manifest.snapshotHash
+        && authority.snapshotHash !== manifest.snapshotHash
       ) {
         reasons.push('authority-manifest-snapshot-hash-mismatch');
       }
       if (
         authority.captureRevision
-        && captureRevision
-        && authority.captureRevision !== captureRevision
+        && manifest.captureRevision
+        && authority.captureRevision !== manifest.captureRevision
       ) {
         reasons.push('authority-manifest-capture-revision-mismatch');
       }
       if (
         artifacts.captureRevision
-        && captureRevision
-        && artifacts.captureRevision !== captureRevision
+        && manifest.captureRevision
+        && artifacts.captureRevision !== manifest.captureRevision
       ) {
         reasons.push('authority-manifest-shared-capture-mismatch');
       }
-      // Require at least snapshot + release identity fields in the real file.
-      if (!snapshotId) reasons.push('authority-manifest-snapshot-id-absent');
-      if (!releaseId) reasons.push('authority-manifest-release-id-absent');
     }
   }
 
   const projection = artifacts.projection;
   if (projection?.present) {
-    const manifestPath = projection.artifactPaths?.['projection-manifest.json'];
-    const parsed = readJsonObject(manifestPath);
-    if (!parsed.ok) {
-      reasons.push(`projection-manifest-${parsed.reason}`);
+    const paths = projection.artifactPaths ?? {};
+    const manifestParsed = readJsonObject(paths['projection-manifest.json']);
+    if (!manifestParsed.ok) {
+      reasons.push(`projection-manifest-${manifestParsed.reason}`);
     } else {
-      const body = parsed.value;
-      const projectionId = asString(body.projectionId);
-      const projectionHash = asString(body.projectionHash);
-      const authorityReleaseId = asString(body.authorityReleaseId);
-      const captureRevision =
-        asString(body.captureRevision) ?? asString(body.gitRevision);
+      try {
+        const manifest =
+          manifestParsed.value as unknown as TeachingProjectionManifest;
+        const coreNodesFile = readJsonObject(paths['core-nodes.json']);
+        const cardsIndexFile = readJsonObject(paths['cards-index.json']);
+        const impactFile = readJsonObject(paths['impact-report.json']);
+        const gateFile = readJsonObject(paths['gate.json']);
+        if (
+          !coreNodesFile.ok
+          || !cardsIndexFile.ok
+          || !impactFile.ok
+          || !gateFile.ok
+        ) {
+          reasons.push('projection-full-artifact-set-incomplete');
+        } else {
+          const artifactsForVerify = {
+            resources: readJsonlArray(paths['resources.jsonl']) as TeachingResourceRuntime[],
+            bindings: readJsonlArray(paths['bindings.jsonl']) as TeachingBindingRuntime[],
+            prerequisites: readJsonlArray(
+              paths['prerequisites.jsonl'],
+            ) as TeachingPrerequisiteRuntime[],
+            coreNodes: (
+              (coreNodesFile.value as { nodes?: TeachingCoreNodeRuntime[] }).nodes
+              ?? (coreNodesFile.value as unknown as TeachingCoreNodeRuntime[])
+            ),
+            cardsIndex: cardsIndexFile.value as unknown as TeachingProjectionArtifacts['cardsIndex'],
+            manifest,
+            impactReport:
+              impactFile.value as unknown as TeachingProjectionArtifacts['impactReport'],
+            gate: gateFile.value as unknown as TeachingProjectionArtifacts['gate'],
+          } satisfies TeachingProjectionArtifacts;
+          verifyTeachingProjectionArtifacts(artifactsForVerify);
 
-      if (
-        projection.projectionId
-        && projectionId
-        && projection.projectionId !== projectionId
-      ) {
-        reasons.push('projection-manifest-id-mismatch');
+          if (
+            projection.projectionId
+            && manifest.projectionId
+            && projection.projectionId !== manifest.projectionId
+          ) {
+            reasons.push('projection-manifest-id-mismatch');
+          }
+          if (
+            projection.projectionHash
+            && manifest.projectionHash
+            && projection.projectionHash !== manifest.projectionHash
+          ) {
+            reasons.push('projection-manifest-hash-mismatch');
+          }
+          if (
+            projection.authorityReleaseId
+            && manifest.authorityReleaseId
+            && projection.authorityReleaseId !== manifest.authorityReleaseId
+          ) {
+            reasons.push('projection-manifest-authority-release-mismatch');
+          }
+          if (
+            artifacts.authority?.present
+            && artifacts.authority.releaseId
+            && manifest.authorityReleaseId
+            && artifacts.authority.releaseId !== manifest.authorityReleaseId
+          ) {
+            reasons.push('projection-manifest-authority-release-cross-mismatch');
+          }
+        }
+      } catch (error) {
+        reasons.push(
+          `projection-verifier-failed:${
+            error instanceof Error ? error.message : 'verify-failed'
+          }`,
+        );
       }
-      if (
-        projection.projectionHash
-        && projectionHash
-        && projection.projectionHash !== projectionHash
-      ) {
-        reasons.push('projection-manifest-hash-mismatch');
-      }
-      if (
-        projection.authorityReleaseId
-        && authorityReleaseId
-        && projection.authorityReleaseId !== authorityReleaseId
-      ) {
-        reasons.push('projection-manifest-authority-release-mismatch');
-      }
-      if (
-        projection.captureRevision
-        && captureRevision
-        && projection.captureRevision !== captureRevision
-      ) {
-        reasons.push('projection-manifest-capture-revision-mismatch');
-      }
-      if (
-        artifacts.captureRevision
-        && captureRevision
-        && artifacts.captureRevision !== captureRevision
-      ) {
-        reasons.push('projection-manifest-shared-capture-mismatch');
-      }
-      if (
-        artifacts.authority?.present
-        && artifacts.authority.releaseId
-        && authorityReleaseId
-        && artifacts.authority.releaseId !== authorityReleaseId
-      ) {
-        reasons.push('projection-manifest-authority-release-cross-mismatch');
-      }
-      if (!projectionId) reasons.push('projection-manifest-id-absent');
     }
   }
 

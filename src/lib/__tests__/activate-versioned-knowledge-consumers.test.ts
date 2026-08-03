@@ -19,6 +19,16 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  stageAuthoritySnapshot,
+  resolveAuthorityStorePaths,
+  type AuthoritativeKnowledgeSnapshot,
+} from '../authoritative-knowledge';
+import {
+  stageTeachingProjection,
+  resolveTeachingProjectionStorePaths,
+} from '../teaching-projection';
+import type { TeachingProjectionAuthoringInput } from '../teaching-projection/contracts';
+import {
   CONSUMER_ACTIVATION_CONTRACT,
   CONSUMER_ACTIVATION_IDS,
   activateConsumerActivation,
@@ -58,6 +68,7 @@ function sha256(content: string | Buffer): string {
 
 const commitA = '1'.repeat(40);
 const commitB = '2'.repeat(40);
+const fixedHash = 'a'.repeat(64);
 
 const tempRoots: string[] = [];
 
@@ -74,159 +85,377 @@ function tempActivationRoot(): ConsumerActivationStorePaths {
   return resolveConsumerActivationStorePaths(root);
 }
 
-function tempArtifactRoot(): string {
-  const root = mkdtempSync(path.join(tmpdir(), 'act-activation-artifacts-'));
-  tempRoots.push(root);
-  return root;
+function fileSha(filePath: string): string {
+  return sha256(readFileSync(filePath));
 }
 
-function writeArtifact(
-  root: string,
-  relativeName: string,
-  content: string,
-): { path: string; hash: string } {
-  const filePath = path.join(root, relativeName);
-  mkdirSync(path.dirname(filePath), { recursive: true });
-  writeFileSync(filePath, content, 'utf8');
-  return { path: filePath, hash: sha256(content) };
+function baseAuthoritySnapshot(
+  releaseId = 'ctr:release:eng-v1',
+): AuthoritativeKnowledgeSnapshot {
+  return {
+    authorityState: 'candidate',
+    productionAuthoritative: false,
+    historical: false,
+    releaseSet: {
+      id: 'set-eng-1',
+      controlledPath: 'course-content/authoring/knowledge/releases/lock.json',
+      lockVersion: 'actkg-release-set-lock/v1',
+      candidateState: 'ACCEPTED_CANDIDATE',
+    },
+    release: {
+      id: releaseId,
+      releaseSetId: 'set-eng-1',
+      releaseVersion: 'v0.12',
+      releaseStatus: 'RELEASED',
+      protocol: 'actkg-public-bundle/1',
+      authority: 'ActKG',
+      scope: 'engineering',
+      contractHash: fixedHash,
+      releaseHash: fixedHash,
+      schemaRawHash: fixedHash,
+      releaseRawHash: fixedHash,
+      notesRawHash: fixedHash,
+      captureRevision: commitA,
+      lockRawHash: fixedHash,
+      schemaVersion: '0.2.0',
+      projectionId: 'proj-runtime-1',
+      projectionDigest: 'c'.repeat(64),
+      sourceDatasetHash: 'd'.repeat(64),
+    },
+    receipt: {
+      id: 'receipt:eng-1',
+      releaseSetId: 'set-eng-1',
+      releaseId,
+      sourceRun: null,
+      sourceImplementationCommit: null,
+      captureRevision: commitA,
+      lockRawHash: fixedHash,
+      ctkgDatasetAvailability: 'UNAVAILABLE',
+      ctkgDatasetHash: null,
+      ctkgDatasetPublicationIdentity: null,
+      ctkgDatasetResolvableLocation: null,
+      revisionRegistryAvailability: 'UNAVAILABLE',
+      revisionRegistryVersion: null,
+      revisionRegistryHash: null,
+      objectCount: 2,
+      sourceMappingCount: 0,
+      goldRelationCount: 1,
+      silverRelationCount: 0,
+      sourceObjectCount: 0,
+      evidenceSegmentCount: 0,
+      candidateState: 'ACCEPTED_CANDIDATE',
+      importedAt: new Date('2026-08-03T00:00:00.000Z'),
+    },
+    objects: [
+      {
+        releaseId,
+        canonicalId: 'node-a',
+        ordinal: 0,
+        canonicalType: 'DomainConcept',
+        semanticName: 'Stability',
+        reviewStatus: 'approved',
+        publicationStatus: 'published',
+        lifecycleStatus: 'active',
+        payload: { formula: 'Routh-Hurwitz' },
+      },
+      {
+        releaseId,
+        canonicalId: 'node-b',
+        ordinal: 1,
+        canonicalType: 'Formula',
+        semanticName: 'Characteristic equation',
+        reviewStatus: 'approved',
+        publicationStatus: 'published',
+        lifecycleStatus: 'active',
+        payload: { latex: '1+G(s)H(s)=0' },
+      },
+    ],
+    relations: [
+      {
+        releaseId,
+        relationId: 'rel-1',
+        ordinal: 0,
+        qualityTier: 'GOLD',
+        sourceId: 'node-a',
+        targetId: 'node-b',
+        relationType: 'has_formula',
+        reviewStatus: 'approved',
+        publicationStatus: 'published',
+        direct: true,
+        payload: { note: 'exact-predicate' },
+      },
+    ],
+    sourceMappings: [],
+    sourceObjects: [],
+    evidence: [],
+    releaseEntries: [
+      {
+        releaseId,
+        entityId: 'node-a',
+        ordinal: 0,
+        releaseTier: 'core',
+        entityRole: 'concept',
+        inclusionReason: 'aggregate-membership',
+        payload: { source: 'release-entry' },
+      },
+    ],
+    upstreamRagReferences: [
+      {
+        releaseId,
+        ordinal: 0,
+        publishedEntityId: 'node-a',
+        retrievalChunkId: 'chunk-stability-1',
+        citationTargetId: 'cite-stability-1',
+      },
+    ],
+    releaseComponents: [
+      {
+        releaseId,
+        ordinal: 0,
+        componentReleaseId: 'ctr:component:core-v0.12',
+        releaseVersion: 'v0.12',
+        protocol: 'actkg-component/1',
+        controlledPath: 'components/core',
+        releaseHash: fixedHash,
+        releaseRawSha256: fixedHash,
+        sha256sumsSha256: fixedHash,
+        referenceKind: 'aggregate-member',
+        componentRole: 'core',
+        componentBundleId: 'bundle-core',
+        componentBundleDigest: fixedHash,
+        componentManifestSha256: fixedHash,
+        payload: { role: 'core' },
+      },
+    ],
+    projectionIdentities: [
+      {
+        releaseId,
+        projectionId: 'proj-runtime-1',
+        ordinal: 0,
+        profile: 'runtime',
+        projectionProfile: 'runtime',
+        versionDigest: 'c'.repeat(64),
+        sourceRelease: releaseId,
+        sourceReleaseHash: fixedHash,
+        sourceDatasetHash: 'd'.repeat(64),
+        nodeCount: 2,
+        linkCount: 1,
+        artifactPath: 'projections/runtime.jsonl',
+        artifactSha256: fixedHash,
+        isRuntime: true,
+        bundleReceiptId: null,
+      },
+    ],
+    linkMetadata: [
+      {
+        releaseId,
+        relationId: 'rel-1',
+        ordinal: 0,
+        releaseTier: 'core',
+        sourceRelease: releaseId,
+        sourceReleaseHash: fixedHash,
+        evidenceRefs: [{ kind: 'predicate', id: 'ev-1' }],
+        sourceComponentRelease: 'ctr:component:core-v0.12',
+        targetComponentRelease: 'ctr:component:core-v0.12',
+        relationComponentRelease: 'ctr:component:core-v0.12',
+        profiles: ['runtime'],
+        payload: { strength: 1 },
+        bundleReceiptId: null,
+      },
+    ],
+  };
+}
+
+function baseTeachingAuthoring(
+  authorityReleaseId: string,
+  authoritySnapshotHash: string,
+): TeachingProjectionAuthoringInput {
+  return {
+    contract: 'act-teaching-projection-authoring/v1',
+    scopeId: 'course-package:fixture',
+    authoringRevision: commitA,
+    authorityReleaseId,
+    authorityReleaseSetId: 'set-eng-1',
+    authoritySnapshotHash,
+    resources: [
+      {
+        resourceType: 'step',
+        lessonKey: 'lesson-02',
+        stepId: 'practice-1',
+        projectionMode: 'REQUIRED',
+        scopeId: 'course-package:fixture',
+        title: 'Practice step',
+        sourcePath: 'authoring/lessons/lesson-02/steps/practice-1.json',
+      },
+      {
+        resourceType: 'lesson',
+        lessonKey: 'lesson-02',
+        projectionMode: 'OPTIONAL',
+        scopeId: 'course-package:fixture',
+      },
+    ],
+    bindings: [
+      {
+        resourceId: 'act:step:lesson-02:practice-1',
+        canonicalId: 'node-a',
+        role: 'PRACTICES',
+        scopeId: 'course-package:fixture',
+        sourcePath: 'authoring/lessons/lesson-02/steps/practice-1.json',
+        primary: true,
+      },
+    ],
+    prerequisites: [
+      {
+        sourceCanonicalId: 'node-b',
+        targetCanonicalId: 'node-a',
+        strength: 'REQUIRED',
+        scopeId: 'course-package:fixture',
+      },
+    ],
+    coreNodes: [
+      {
+        canonicalId: 'node-a',
+        pathEligible: true,
+        cardPolicy: 'optional',
+        scopeId: 'course-package:fixture',
+      },
+      {
+        canonicalId: 'node-b',
+        pathEligible: true,
+        cardPolicy: 'optional',
+        scopeId: 'course-package:fixture',
+      },
+    ],
+    cards: [
+      {
+        cardId: 'card-a',
+        canonicalId: 'node-a',
+        active: true,
+        required: false,
+      },
+    ],
+    authorityNodes: [
+      { canonicalId: 'node-a', lifecycleStatus: 'active', successorCanonicalId: null },
+      { canonicalId: 'node-b', lifecycleStatus: 'active', successorCanonicalId: null },
+    ],
+  };
 }
 
 /**
- * Build a complete artifact set backed by real staged files whose digests
- * match artifactHashes (required for stage validation after P1-2).
+ * Build a complete artifact set backed by real Authority/Projection releases
+ * that pass the full verifiers used by staging validation.
  */
 function completeArtifacts(
   overrides: Partial<StagedActivationArtifactSet> = {},
-  options: { artifactRoot?: string; withFiles?: boolean } = {},
+  options: { withFiles?: boolean; releaseId?: string } = {},
 ): StagedActivationArtifactSet {
   const withFiles = options.withFiles !== false;
-  const artifactRoot = options.artifactRoot ?? (withFiles ? tempArtifactRoot() : '');
+  if (!withFiles) {
+    const fakeAuthority = {
+      present: true as const,
+      releaseId: 'ctr:release:eng-v1',
+      snapshotId: 'snap-eng-1',
+      snapshotHash: 'a'.repeat(64),
+      captureRevision: commitA,
+      artifactHashes: {
+        'manifest.json': 'b'.repeat(64),
+        'engineering.json': 'c'.repeat(64),
+      },
+    };
+    const fakeProjection = {
+      present: true as const,
+      projectionId: 'proj-1',
+      projectionHash: 'd'.repeat(64),
+      authorityReleaseId: 'ctr:release:eng-v1',
+      captureRevision: commitA,
+      gatePassed: true,
+      artifactHashes: {
+        'projection-manifest.json': 'e'.repeat(64),
+        'resources.jsonl': 'f'.repeat(64),
+        'bindings.jsonl': 'a'.repeat(64),
+        'cards-index.json': 'b'.repeat(64),
+        'prerequisites.jsonl': 'c'.repeat(64),
+      },
+      hasResources: true,
+      hasCardsIndex: true,
+      hasPrerequisites: true,
+      hasImpactReport: false,
+    };
+    return {
+      captureRevision: commitA,
+      ...overrides,
+      authority:
+        overrides.authority === undefined ? fakeAuthority : overrides.authority,
+      projection:
+        overrides.projection === undefined
+          ? fakeProjection
+          : overrides.projection,
+    };
+  }
 
-  const snapshotId = 'snap-eng-1';
-  const releaseId = 'ctr:release:eng-v1';
-  const projectionId = 'proj-1';
-  const snapshotHash = sha256(snapshotId);
-  const projectionHash = sha256(projectionId);
-  const authorityFiles = withFiles
-    ? {
-        'manifest.json': writeArtifact(
-          artifactRoot,
-          'authority/manifest.json',
-          JSON.stringify({
-            releaseId,
-            snapshotId,
-            snapshotHash,
-            captureRevision: commitA,
-          }),
-        ),
-        'engineering.json': writeArtifact(
-          artifactRoot,
-          'authority/engineering.json',
-          JSON.stringify({ objects: [], relations: [] }),
-        ),
-      }
-    : null;
-  const projectionFiles = withFiles
-    ? {
-        'projection-manifest.json': writeArtifact(
-          artifactRoot,
-          'projection/projection-manifest.json',
-          JSON.stringify({
-            projectionId,
-            projectionHash,
-            authorityReleaseId: releaseId,
-            captureRevision: commitA,
-          }),
-        ),
-        'resources.jsonl': writeArtifact(
-          artifactRoot,
-          'projection/resources.jsonl',
-          '{"resourceId":"r1"}\n',
-        ),
-        'bindings.jsonl': writeArtifact(
-          artifactRoot,
-          'projection/bindings.jsonl',
-          '{"bindingId":"b1"}\n',
-        ),
-        'cards-index.json': writeArtifact(
-          artifactRoot,
-          'projection/cards-index.json',
-          JSON.stringify({ cards: [] }),
-        ),
-        'prerequisites.jsonl': writeArtifact(
-          artifactRoot,
-          'projection/prerequisites.jsonl',
-          '{"edgeId":"e1"}\n',
-        ),
-        'impact-report.json': writeArtifact(
-          artifactRoot,
-          'projection/impact-report.json',
-          JSON.stringify({ impact: true }),
-        ),
-      }
-    : null;
+  const releaseId = options.releaseId ?? 'ctr:release:eng-v1';
+  const authRoot = mkdtempSync(path.join(tmpdir(), 'act-auth-'));
+  const projRoot = mkdtempSync(path.join(tmpdir(), 'act-proj-'));
+  tempRoots.push(authRoot, projRoot);
+
+  const authPaths = resolveAuthorityStorePaths(authRoot);
+  const stagedAuth = stageAuthoritySnapshot(authPaths, {
+    snapshot: baseAuthoritySnapshot(releaseId),
+    captureRevision: commitA,
+  }, {
+    stagedAt: '2026-08-04T00:00:00.000Z',
+  });
+
+  const projPaths = resolveTeachingProjectionStorePaths(projRoot);
+  const stagedProj = stageTeachingProjection(
+    projPaths,
+    baseTeachingAuthoring(releaseId, stagedAuth.snapshotHash),
+  );
+  const projDir = stagedProj.releaseDir;
+
+  const authorityFiles = {
+    'manifest.json': stagedAuth.manifestPath,
+    'engineering.json': stagedAuth.engineeringPath,
+  };
+  const projectionFiles = {
+    'projection-manifest.json': path.join(projDir, 'projection-manifest.json'),
+    'resources.jsonl': path.join(projDir, 'resources.jsonl'),
+    'bindings.jsonl': path.join(projDir, 'bindings.jsonl'),
+    'cards-index.json': path.join(projDir, 'cards-index.json'),
+    'prerequisites.jsonl': path.join(projDir, 'prerequisites.jsonl'),
+    'core-nodes.json': path.join(projDir, 'core-nodes.json'),
+    'impact-report.json': path.join(projDir, 'impact-report.json'),
+    'gate.json': path.join(projDir, 'gate.json'),
+  };
 
   const base: StagedActivationArtifactSet = {
     captureRevision: commitA,
     authority: {
       present: true,
-      releaseId,
-      snapshotId,
-      snapshotHash: authorityFiles ? snapshotHash : 'a'.repeat(64),
-      captureRevision: commitA,
+      releaseId: stagedAuth.manifest.releaseId,
+      snapshotId: stagedAuth.snapshotId,
+      snapshotHash: stagedAuth.snapshotHash,
+      captureRevision: stagedAuth.manifest.captureRevision ?? commitA,
       artifactHashes: {
-        'manifest.json': authorityFiles
-          ? authorityFiles['manifest.json'].hash
-          : 'b'.repeat(64),
-        'engineering.json': authorityFiles
-          ? authorityFiles['engineering.json'].hash
-          : 'c'.repeat(64),
+        'manifest.json': fileSha(authorityFiles['manifest.json']),
+        'engineering.json': fileSha(authorityFiles['engineering.json']),
       },
-      artifactPaths: authorityFiles
-        ? {
-            'manifest.json': authorityFiles['manifest.json'].path,
-            'engineering.json': authorityFiles['engineering.json'].path,
-          }
-        : undefined,
+      artifactPaths: authorityFiles,
     },
     projection: {
       present: true,
-      projectionId,
-      projectionHash: projectionFiles ? projectionHash : 'd'.repeat(64),
-      authorityReleaseId: releaseId,
+      projectionId: stagedProj.projectionId,
+      projectionHash: stagedProj.projectionHash,
+      authorityReleaseId: stagedProj.artifacts.manifest.authorityReleaseId,
       captureRevision: commitA,
-      gatePassed: true,
-      artifactHashes: {
-        'projection-manifest.json': projectionFiles
-          ? projectionFiles['projection-manifest.json'].hash
-          : 'e'.repeat(64),
-        'resources.jsonl': projectionFiles
-          ? projectionFiles['resources.jsonl'].hash
-          : 'f'.repeat(64),
-        'bindings.jsonl': projectionFiles
-          ? projectionFiles['bindings.jsonl'].hash
-          : 'a'.repeat(64),
-        'cards-index.json': projectionFiles
-          ? projectionFiles['cards-index.json'].hash
-          : 'b'.repeat(64),
-        'prerequisites.jsonl': projectionFiles
-          ? projectionFiles['prerequisites.jsonl'].hash
-          : 'c'.repeat(64),
-        'impact-report.json': projectionFiles
-          ? projectionFiles['impact-report.json'].hash
-          : 'd'.repeat(64),
-      },
-      artifactPaths: projectionFiles
-        ? {
-            'projection-manifest.json':
-              projectionFiles['projection-manifest.json'].path,
-            'resources.jsonl': projectionFiles['resources.jsonl'].path,
-            'bindings.jsonl': projectionFiles['bindings.jsonl'].path,
-            'cards-index.json': projectionFiles['cards-index.json'].path,
-            'prerequisites.jsonl': projectionFiles['prerequisites.jsonl'].path,
-            'impact-report.json': projectionFiles['impact-report.json'].path,
-          }
-        : undefined,
+      gatePassed: stagedProj.artifacts.manifest.gatePassed === true,
+      artifactHashes: Object.fromEntries(
+        Object.entries(projectionFiles).map(([name, filePath]) => [
+          name,
+          fileSha(filePath),
+        ]),
+      ),
+      artifactPaths: projectionFiles,
       hasResources: true,
       hasCardsIndex: true,
       hasPrerequisites: true,
@@ -234,11 +463,6 @@ function completeArtifacts(
     },
   };
 
-  // When overrides replace authority/projection, merge fields but do not
-  // reintroduce omitted artifactHashes keys (missing-artifact fixtures).
-  // Custom artifactHashes without matching paths intentionally drop base paths
-  // so callers can build deliberate invalid-hash fixtures; staging then fails
-  // closed on path-missing / hash-mismatch as required by P1-2.
   const authority =
     overrides.authority === undefined
       ? base.authority
@@ -674,96 +898,9 @@ describe('Staged activation and atomic pointer (#1276)', () => {
     });
     expect(a1.status).toBe('activated');
 
-    // Second staged set uses different real files so digests differ.
-    const v2Root = tempArtifactRoot();
-    const v2SnapshotHash = sha256('snap-eng-2');
-    const v2ProjectionHash = sha256('proj-2');
-    const v2Manifest = writeArtifact(
-      v2Root,
-      'authority/manifest.json',
-      JSON.stringify({
-        releaseId: 'ctr:release:eng-v2',
-        snapshotId: 'snap-eng-2',
-        snapshotHash: v2SnapshotHash,
-        captureRevision: commitA,
-      }),
-    );
-    const v2Engineering = writeArtifact(
-      v2Root,
-      'authority/engineering.json',
-      JSON.stringify({ objects: [{ id: 'n2' }], relations: [] }),
-    );
-    const v2ProjManifest = writeArtifact(
-      v2Root,
-      'projection/projection-manifest.json',
-      JSON.stringify({
-        projectionId: 'proj-2',
-        projectionHash: v2ProjectionHash,
-        authorityReleaseId: 'ctr:release:eng-v2',
-        captureRevision: commitA,
-      }),
-    );
-    const v2Resources = writeArtifact(v2Root, 'projection/resources.jsonl', '{"resourceId":"r2"}\n');
-    const v2Bindings = writeArtifact(v2Root, 'projection/bindings.jsonl', '{"bindingId":"b2"}\n');
-    const v2Cards = writeArtifact(
-      v2Root,
-      'projection/cards-index.json',
-      JSON.stringify({ cards: [{ id: 'c2' }] }),
-    );
-    const v2Prereq = writeArtifact(v2Root, 'projection/prerequisites.jsonl', '{"edgeId":"e2"}\n');
-    const v2Impact = writeArtifact(
-      v2Root,
-      'projection/impact-report.json',
-      JSON.stringify({ impact: 'v2' }),
-    );
-    const v2Artifacts: StagedActivationArtifactSet = {
-      captureRevision: commitA,
-      authority: {
-        present: true,
-        releaseId: 'ctr:release:eng-v2',
-        snapshotId: 'snap-eng-2',
-        snapshotHash: v2SnapshotHash,
-        captureRevision: commitA,
-        artifactHashes: {
-          'manifest.json': v2Manifest.hash,
-          'engineering.json': v2Engineering.hash,
-        },
-        artifactPaths: {
-          'manifest.json': v2Manifest.path,
-          'engineering.json': v2Engineering.path,
-        },
-      },
-      projection: {
-        present: true,
-        projectionId: 'proj-2',
-        projectionHash: v2ProjectionHash,
-        authorityReleaseId: 'ctr:release:eng-v2',
-        captureRevision: commitA,
-        gatePassed: true,
-        artifactHashes: {
-          'projection-manifest.json': v2ProjManifest.hash,
-          'resources.jsonl': v2Resources.hash,
-          'bindings.jsonl': v2Bindings.hash,
-          'cards-index.json': v2Cards.hash,
-          'prerequisites.jsonl': v2Prereq.hash,
-          'impact-report.json': v2Impact.hash,
-        },
-        artifactPaths: {
-          'projection-manifest.json': v2ProjManifest.path,
-          'resources.jsonl': v2Resources.path,
-          'bindings.jsonl': v2Bindings.path,
-          'cards-index.json': v2Cards.path,
-          'prerequisites.jsonl': v2Prereq.path,
-          'impact-report.json': v2Impact.path,
-        },
-        hasResources: true,
-        hasCardsIndex: true,
-        hasPrerequisites: true,
-        hasImpactReport: true,
-      },
-    };
+    // Second staged set uses a different Authority release so digests differ.
     const v2 = stageConsumerActivation(paths, {
-      artifacts: v2Artifacts,
+      artifacts: completeArtifacts({}, { releaseId: 'ctr:release:eng-v2' }),
       priorActivationId: v1.activationId,
       priorActivationHash: v1.activationHash,
       stagedAt: '2026-08-04T03:10:00.000Z',
@@ -1019,9 +1156,9 @@ describe('Consumer wiring and scope guards (#1276)', () => {
     expect(resolveConsumerActivation(paths, 'course-runtime').status).toBe(
       'ready',
     );
-    expect(resolveLearningPathActivation(paths).combination?.projectionId).toBe(
-      'proj-1',
-    );
+    expect(
+      resolveLearningPathActivation(paths).combination?.projectionId,
+    ).toMatch(/^proj-/);
     expect(resolveConsumerActivation(paths, 'not-a-consumer').status).toBe(
       'unavailable',
     );
