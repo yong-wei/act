@@ -293,15 +293,19 @@ export function runEngineeringRagQuery(input: {
       continue;
     }
 
-    const predicates = seed.predicates.filter(
-      (predicate) => !allowed || allowed.has(predicate),
-    );
-    if (predicates.length === 0 && seed.predicates.length > 0 && allowed) {
+    // Keep predicate and relationId paired by index; never attach a filtered
+    // predicate to an unrelated original relationIds[0].
+    const pairedRelations = seed.predicates.map((predicate, index) => ({
+      predicate,
+      relationId: seed.relationIds[index] ?? null,
+    })).filter((pair) => !allowed || allowed.has(pair.predicate));
+    if (pairedRelations.length === 0 && seed.predicates.length > 0 && allowed) {
       continue;
     }
 
-    const predicate = predicates[0] ?? seed.predicates[0] ?? null;
-    const relationId = seed.relationIds[0] ?? null;
+    const selected = pairedRelations[0] ?? null;
+    const predicate = selected?.predicate ?? null;
+    const relationId = selected?.relationId ?? null;
     hits.push({
       domain: 'engineering',
       canonicalId: seed.canonicalId,
@@ -379,7 +383,8 @@ export function runTeachingResourceRagQuery(input: {
     return unavailableTeaching(query, ['teaching-projection-id-missing']);
   }
 
-  // Projection identity drift: corpus vs query.
+  // Reject non-empty identity mismatches before any hits. Never relabel
+  // corpus evidence under a different Authority / Projection / scope.
   if (
     query.projectionId
     && corpus.projectionId
@@ -404,16 +409,46 @@ export function runTeachingResourceRagQuery(input: {
       'identity-drift',
     );
   }
+  if (
+    query.authorityReleaseId
+    && corpus.authorityReleaseId
+    && query.authorityReleaseId !== corpus.authorityReleaseId
+  ) {
+    return unavailableTeaching(
+      query,
+      [
+        `teaching-authority-drift:query=${query.authorityReleaseId}:corpus=${corpus.authorityReleaseId}`,
+      ],
+      'identity-drift',
+    );
+  }
+  if (
+    query.scopeId
+    && corpus.scopeId
+    && query.scopeId !== corpus.scopeId
+  ) {
+    return unavailableTeaching(
+      query,
+      [
+        `teaching-scope-drift:query=${query.scopeId}:corpus=${corpus.scopeId}`,
+      ],
+      'identity-drift',
+    );
+  }
 
-  const projectionId = query.projectionId ?? corpus.projectionId;
-  const projectionHash = query.projectionHash ?? corpus.projectionHash;
+  // Prefer corpus identities for provenance of actual hits (validated above).
+  const projectionId = corpus.projectionId ?? query.projectionId;
+  const projectionHash = corpus.projectionHash ?? query.projectionHash;
   const authorityReleaseId =
-    query.authorityReleaseId ?? corpus.authorityReleaseId;
-  const scopeId = query.scopeId ?? corpus.scopeId;
+    corpus.authorityReleaseId ?? query.authorityReleaseId;
+  const scopeId = corpus.scopeId ?? query.scopeId;
   const focus = query.canonicalIds ? new Set(query.canonicalIds) : null;
   const typeFilter = query.resourceTypes
     ? new Set(query.resourceTypes)
     : null;
+  const resourceScopeById = new Map(
+    corpus.resources.map((resource) => [resource.resourceId, resource.scopeId]),
+  );
 
   const hits: TeachingResourceRagHit[] = [];
   let optionalCardStatus: TeachingResourceRagResult['optionalCardStatus'] =
@@ -473,14 +508,18 @@ export function runTeachingResourceRagQuery(input: {
   }
 
   if (query.includeOptionalCards !== false && focus) {
-    const scopedCards = corpus.cards.filter((card) => focus.has(card.canonicalId));
+    const scopedCards = corpus.cards.filter((card) => {
+      if (!focus.has(card.canonicalId)) return false;
+      if (!scopeId) return true;
+      const resourceScope = resourceScopeById.get(card.resourceId);
+      // Cards whose resource is out of scope, or has no resolvable scope while
+      // the query is scoped, are excluded from teaching evidence.
+      if (!resourceScope) return false;
+      return resourceScope === scopeId;
+    });
     if (scopedCards.length === 0 && focus.size > 0) {
       optionalCardStatus = 'absent';
       // Card absence is reported without hiding other resources.
-      for (const canonicalId of focus) {
-        if (hits.some((hit) => hit.canonicalId === canonicalId)) continue;
-        // Do not invent a resource; only annotate absence via metadata.
-      }
     } else if (scopedCards.some((card) => card.active)) {
       optionalCardStatus = 'active';
       for (const card of scopedCards.filter((c) => c.active)) {

@@ -553,6 +553,133 @@ describe('2. RAG domain split', () => {
     expect(engDrift.metadata.availability).toBe('identity-drift');
   });
 
+  it('2.4 rejects authority/scope identity drift before any teaching hits', () => {
+    const corpus = teachingCorpusFromLayeredPayload(basePayload())!;
+    const authorityDrift = runTeachingResourceRagQuery({
+      query: {
+        domain: 'teaching-resource',
+        query: '卡片',
+        projectionId,
+        authorityReleaseId: 'ctr:release:other',
+        scopeId,
+        canonicalIds: ['node-a'],
+        includeOptionalCards: true,
+      },
+      corpus: {
+        ...corpus,
+        cards: [
+          {
+            cardId: 'card:node-a',
+            resourceId: 'act:handout:1-1',
+            canonicalId: 'node-a',
+            active: true,
+            required: false,
+            sourcePath: null,
+            title: '稳定性卡片',
+          },
+        ],
+      },
+    });
+    expect(authorityDrift.metadata.availability).toBe('identity-drift');
+    expect(authorityDrift.hits).toEqual([]);
+    expect(authorityDrift.metadata.reasons[0]).toMatch(/teaching-authority-drift/);
+
+    const scopeDrift = runTeachingResourceRagQuery({
+      query: {
+        domain: 'teaching-resource',
+        query: '卡片',
+        projectionId,
+        authorityReleaseId: releaseId,
+        scopeId: 'course-package:other',
+        canonicalIds: ['node-a'],
+        includeOptionalCards: true,
+      },
+      corpus: {
+        ...corpus,
+        cards: [
+          {
+            cardId: 'card:node-a',
+            resourceId: 'act:handout:1-1',
+            canonicalId: 'node-a',
+            active: true,
+            required: false,
+            sourcePath: null,
+            title: '稳定性卡片',
+          },
+        ],
+      },
+    });
+    expect(scopeDrift.metadata.availability).toBe('identity-drift');
+    expect(scopeDrift.hits).toEqual([]);
+    expect(scopeDrift.metadata.reasons[0]).toMatch(/teaching-scope-drift/);
+  });
+
+  it('2.5 filters out-of-scope cards and pairs predicates with relation IDs', () => {
+    const corpus = teachingCorpusFromLayeredPayload(basePayload())!;
+    const cardQuery = runTeachingResourceRagQuery({
+      query: {
+        domain: 'teaching-resource',
+        query: '卡片',
+        projectionId,
+        authorityReleaseId: releaseId,
+        scopeId,
+        canonicalIds: ['node-a'],
+        includeOptionalCards: true,
+      },
+      corpus: {
+        ...corpus,
+        cards: [
+          {
+            cardId: 'card:in-scope',
+            resourceId: 'act:handout:1-1',
+            canonicalId: 'node-a',
+            active: true,
+            required: false,
+            sourcePath: null,
+            title: '课内卡片',
+          },
+          {
+            cardId: 'card:cross-course',
+            resourceId: 'act:handout:other-course',
+            canonicalId: 'node-a',
+            active: true,
+            required: false,
+            sourcePath: null,
+            title: '跨课卡片',
+          },
+        ],
+      },
+    });
+    expect(cardQuery.optionalCardStatus).toBe('active');
+    expect(cardQuery.hits.map((hit) => hit.cardId)).toEqual(['card:in-scope']);
+    expect(cardQuery.hits.every((hit) => hit.citation.scopeId === scopeId)).toBe(true);
+    expect(cardQuery.hits.every((hit) => hit.citation.authorityReleaseId === releaseId)).toBe(
+      true,
+    );
+
+    const engineering = runEngineeringRagQuery({
+      query: {
+        domain: 'engineering',
+        query: '稳定性',
+        authorityReleaseId: releaseId,
+        allowedPredicates: ['is_a'],
+      },
+      corpus: [
+        {
+          canonicalId: 'node-a',
+          label: '稳定性',
+          predicates: ['part_of', 'is_a'],
+          relationIds: ['rel-part', 'rel-is-a'],
+          authorityReleaseId: releaseId,
+        },
+      ],
+    });
+    expect(engineering.hits).toHaveLength(1);
+    expect(engineering.hits[0]?.predicate).toBe('is_a');
+    expect(engineering.hits[0]?.relationId).toBe('rel-is-a');
+    expect(engineering.hits[0]?.citation.relationId).toBe('rel-is-a');
+  });
+
   it('2.3 textbook locator and card-fallback citations stay teaching-domain', () => {
     const locator = teachingTextbookLocatorCitation({
       resourceId: 'act:textbook-section:dorf:ch2',
@@ -573,6 +700,7 @@ describe('2. RAG domain split', () => {
         domain: 'teaching-resource',
         query: '卡片',
         projectionId,
+        authorityReleaseId: releaseId,
         scopeId,
         canonicalIds: ['node-a'],
         includeOptionalCards: true,
@@ -582,7 +710,8 @@ describe('2. RAG domain split', () => {
         cards: [
           {
             cardId: 'card:node-a',
-            resourceId: 'act:card:node-a',
+            // Must resolve to an in-scope resource; unscoped card resources are excluded.
+            resourceId: 'act:handout:1-1',
             canonicalId: 'node-a',
             active: true,
             required: false,
@@ -696,5 +825,109 @@ describe('3. Konling grounding wiring', () => {
       },
     });
     expect(graphContext.teachingProjectionContext).toBeNull();
+  });
+});
+
+describe('4. Production binding and prompt assembly', () => {
+  it('4.1 resolves production binding from explicit payload and builds dual-domain metadata', async () => {
+    const {
+      resolveKonlingTeachingProjectionBinding,
+      extractKonlingTeachingProjectionClientHints,
+    } = await import('../konling-teaching-projection-binding');
+    const {
+      buildKonlingDualDomainProvenanceMetadataPayload,
+      buildKonlingTeachingProjectionToolGrounding,
+    } = await import('../konling-agent-runtime');
+    const { buildKonlingSystemPrompt } = await import('../ai-prompt-builder');
+
+    const binding = resolveKonlingTeachingProjectionBinding({
+      courseId: '1-1',
+      pageId: 'step-1',
+      layeredGraphPayload: basePayload(),
+      authorized: true,
+    });
+    expect(binding.source).toBe('explicit-payload');
+    expect(binding.payload).not.toBeNull();
+    expect(binding.permittedScopeIds).toContain(scopeId);
+
+    const hints = extractKonlingTeachingProjectionClientHints({
+      projectionId,
+      authorityReleaseId: releaseId,
+      canonicalIds: ['node-a'],
+    });
+    expect(hints?.projectionId).toBe(projectionId);
+
+    const teaching = resolveKonlingTeachingProjectionContext({
+      payload: binding.payload,
+      focusCanonicalIds: ['node-a'],
+      clientHints: hints,
+      authorized: true,
+      permittedScopeIds: binding.permittedScopeIds,
+    });
+    const runtime = {
+      teachingProjectionContext: teaching,
+      graphContext: {
+        teachingProjectionContext: teaching,
+      },
+    } as Parameters<typeof buildKonlingDualDomainProvenanceMetadataPayload>[0];
+
+    const provenance = buildKonlingDualDomainProvenanceMetadataPayload(runtime);
+    expect(provenance?.source).toBe('teaching-projection-dual-domain');
+    expect(provenance?.relationWriteback).toBe(false);
+    expect(provenance?.teaching.projectionId).toBe(projectionId);
+    expect(buildKonlingTeachingProjectionToolGrounding(runtime as never).length).toBeGreaterThan(
+      0,
+    );
+
+    const prompt = buildKonlingSystemPrompt({
+      page: {
+        courseId: '1-1',
+        courseTitle: 'unit-1-1',
+        pageType: 'lesson',
+        stepId: 'step-1',
+        topic: '稳定性',
+      } as never,
+      user: {
+        userId: 'student-1',
+        name: '同学',
+      } as never,
+      adaptiveRuntime: {
+        teachingProjectionContext: teaching,
+        graphContext: {
+          status: 'complete',
+          confidence: 'high',
+          teachingProjectionContext: teaching,
+        },
+      },
+    });
+    expect(prompt).toContain('Teaching Projection grounding');
+    expect(prompt).toContain(`projectionId=${projectionId}`);
+    expect(prompt).toContain('不得写成 ActKG 工程谓词');
+  });
+
+  it('4.2 production routes reference dual-domain provenance assembly', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const root = process.cwd();
+    const chat = readFileSync(join(root, 'src/app/api/ai/chat/route.ts'), 'utf8');
+    const messages = readFileSync(
+      join(root, 'src/app/api/ai/sessions/[id]/messages/route.ts'),
+      'utf8',
+    );
+    const context = readFileSync(join(root, 'src/app/api/ai/konling-context/route.ts'), 'utf8');
+    const pathAdvisor = readFileSync(
+      join(root, 'src/app/api/adaptive/path-advisor-tool/route.ts'),
+      'utf8',
+    );
+    const runtime = readFileSync(join(root, 'src/lib/konling-agent-runtime.ts'), 'utf8');
+
+    expect(runtime).toContain('resolveKonlingTeachingProjectionBinding');
+    expect(chat).toContain('buildKonlingDualDomainProvenanceMetadataPayload');
+    expect(chat).toContain('konlingDualDomainProvenance');
+    expect(messages).toContain('buildKonlingDualDomainProvenanceMetadataPayload');
+    expect(messages).toContain('konlingDualDomainProvenance');
+    expect(context).toContain('teaching_projection_context');
+    expect(context).toContain('dual_domain_provenance');
+    expect(pathAdvisor).toContain('teachingProjectionContext: graphRuntimeContext.teachingProjectionContext');
   });
 });
