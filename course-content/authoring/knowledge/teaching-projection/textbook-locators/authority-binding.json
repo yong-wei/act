@@ -1,0 +1,22 @@
+{
+  "contract": "act-textbook-locator-authority-binding/v1",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.12",
+  "authorityReleaseVersion": "control-theory-engineering-v0.12",
+  "authorityReleaseHash": "71468134864abdf9337acdd5e322a9fb9ed52a590a0ea6561b731b700fe914d5",
+  "sourceDatasetHash": "7dff295cf5b9a8b48181c59c27bf3c64f941ad703f686e0265fff86a49a3fddb",
+  "bundleId": "ctb:control-theory-engineering-v0.12:r1",
+  "bundleDigest": "23deced2b83b7a051d819573530f7c847e8d5a563fc4c705d1abc4c180e8622b",
+  "captureRevision": "14148d4ddd335d82a6e5d9aadad8f2bfba7242b7",
+  "captureTag": "control-theory-engineering-v0.12-source",
+  "sourceInventory": {
+    "kind": "actkg-public-source-stubs",
+    "componentReleaseId": "ctr:root-locus-engineering-v0.1",
+    "componentReleaseHash": "8b1e3832f10d4142db0c395c3b6b2188af6f400faab56f0870502e39c9493e74",
+    "componentPath": "course-content/authoring/knowledge/releases/root-locus-engineering-v0.1/root-locus-engineering-v0.1.json",
+    "sourceDocumentIds": [
+      "dorf-modern-control-systems-14th",
+      "franklin-feedback-control-7th",
+      "hu-shousong-auto-control-8th"
+    ]
+  }
+}

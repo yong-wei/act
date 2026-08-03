@@ -27,6 +27,7 @@ const RESOURCE_ID_PATTERNS: Record<TeachingResourceType, RegExp> = {
   handout: /^act:handout:[^:\s]+$/u,
   step: /^act:step:[^:\s]+:[^:\s]+$/u,
   textbook: /^act:textbook:[^:\s]+$/u,
+  'textbook-chapter': /^act:textbook-chapter:[^:\s]+:[^:\s]+$/u,
   'textbook-section': /^act:textbook-section:[^:\s]+$/u,
   card: /^act:card:[^:\s]+$/u,
 };
@@ -63,6 +64,7 @@ export function assertNonEmptyToken(value: string | undefined, label: string): s
  * - act:handout:<lesson-key>
  * - act:step:<lesson-key>:<step-id>
  * - act:textbook:<source-document-id>
+ * - act:textbook-chapter:<document-id>:<chapter-key>
  * - act:textbook-section:<section-id>
  * - act:card:<stable-card-id>
  */
@@ -81,6 +83,8 @@ export function deriveResourceId(input: TeachingResourceAuthoring): string {
       return `act:step:${assertNonEmptyToken(input.lessonKey, 'lessonKey')}:${assertNonEmptyToken(input.stepId, 'stepId')}`;
     case 'textbook':
       return `act:textbook:${assertNonEmptyToken(input.sourceDocumentId, 'sourceDocumentId')}`;
+    case 'textbook-chapter':
+      return `act:textbook-chapter:${assertNonEmptyToken(input.sourceDocumentId, 'sourceDocumentId')}:${assertNonEmptyToken(input.chapterKey, 'chapterKey')}`;
     case 'textbook-section':
       return `act:textbook-section:${assertNonEmptyToken(input.sectionId, 'sectionId')}`;
     case 'card':

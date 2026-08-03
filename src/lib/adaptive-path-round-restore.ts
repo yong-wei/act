@@ -66,6 +66,9 @@ export function restoreAdaptiveLearningPathPlanFromRound(
       : 'rules-plus-graph-search',
     policyMetadata: payload.policyMetadata as AdaptiveLearningPathPlan['policyMetadata'],
     policyBundle: restoredReferences.policyBundle as AdaptiveLearningPathPlan['policyBundle'],
+    pathOptions: Array.isArray(payload.pathOptions)
+      ? payload.pathOptions as AdaptiveLearningPathPlan['pathOptions']
+      : undefined,
     excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
     status: restoredArenaTargets.blocked
       ? 'fallback'

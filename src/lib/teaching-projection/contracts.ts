@@ -47,6 +47,7 @@ export const TEACHING_RESOURCE_TYPES = [
   'handout',
   'step',
   'textbook',
+  'textbook-chapter',
   'textbook-section',
   'card',
 ] as const;
@@ -84,6 +85,7 @@ export interface TeachingResourceAuthoring {
   lessonKey?: string;
   stepId?: string;
   sourceDocumentId?: string;
+  chapterKey?: string;
   sectionId?: string;
   cardId?: string;
   projectionMode: TeachingProjectionMode;
