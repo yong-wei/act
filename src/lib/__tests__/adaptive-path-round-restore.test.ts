@@ -55,6 +55,35 @@ describe('adaptive path round restore', () => {
     })).toBeNull();
   });
 
+  it('restores persisted recommendation provenance snapshots with path options', () => {
+    const recommendationProvenance = {
+      summary: 'Persisted recommendation basis',
+      confidence: 'medium' as const,
+      entries: [],
+      evidenceReviewHref: '/profile/evidence' as const,
+      limitations: [],
+      nextAction: null,
+    };
+    const plan = restoreAdaptiveLearningPathPlanFromRound({
+      id: 'round-with-recommendation-provenance',
+      userId: 'student-1',
+      title: 'Persisted path',
+      goalId: 'simulation-validation-practice',
+      pathStatus: 'active',
+      pathPayload: {
+        planNodes: [],
+        alternatives: [],
+        pathOptions: [{
+          optionId: 'path-option-1',
+          nodeIds: [],
+          recommendationProvenance,
+        }],
+      },
+    });
+
+    expect(plan?.pathOptions?.[0]?.recommendationProvenance).toEqual(recommendationProvenance);
+  });
+
   it('unwraps persisted explanation payloads so SAR basis survives restore', () => {
     const plan = restoreAdaptiveLearningPathPlanFromRound({
       id: 'round-sar-path',
