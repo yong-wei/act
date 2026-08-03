@@ -247,6 +247,8 @@ export interface TeachingProjectionSourceHashes {
   cards: string;
   authorityNodes: string;
   authoringBody: string;
+  /** Full digest of gate.json so gate tampering cannot keep projectionHash. */
+  gate: string;
 }
 
 export interface TeachingProjectionManifestBody {

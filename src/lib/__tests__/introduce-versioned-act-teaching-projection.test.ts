@@ -369,6 +369,134 @@ describe('Deterministic builder (#1267)', () => {
     );
   });
 
+  it('rejects tampered gate.json or impact-report.json while projectionHash is kept', () => {
+    const paths = tempProjectionRoot();
+    const staged = stageTeachingProjection(paths, boundStepAuthoring());
+
+    const gatePath = path.join(staged.releaseDir, 'gate.json');
+    const originalGate = JSON.parse(readFileSync(gatePath, 'utf8')) as {
+      passed: boolean;
+      status: string;
+      findings: unknown[];
+    };
+    writeFileSync(
+      gatePath,
+      JSON.stringify({
+        ...originalGate,
+        findings: [
+          ...((originalGate.findings as unknown[]) ?? []),
+          {
+            code: 'tampered-finding',
+            severity: 'info',
+            message: 'injected after stage',
+          },
+        ],
+      }),
+    );
+    expect(() => loadStagedTeachingProjection(paths, staged.projectionId)).toThrow(
+      /gate|source-drift|does not match/i,
+    );
+
+    // Restore gate, tamper impact-report content only.
+    writeFileSync(gatePath, JSON.stringify(originalGate));
+    const impactPath = path.join(staged.releaseDir, 'impact-report.json');
+    const originalImpact = JSON.parse(readFileSync(impactPath, 'utf8')) as {
+      projectionHash: string;
+      records: unknown[];
+      summary: Record<string, number>;
+      contract: string;
+      projectionId: string;
+    };
+    writeFileSync(
+      impactPath,
+      JSON.stringify({
+        ...originalImpact,
+        // Keep projectionHash so only full-content check catches this.
+        records: [
+          ...originalImpact.records,
+          {
+            kind: 'resource',
+            id: 'tampered-record',
+            effect: 'diagnostic',
+            detail: 'injected after stage',
+          },
+        ],
+      }),
+    );
+    expect(() => loadStagedTeachingProjection(paths, staged.projectionId)).toThrow(
+      /impact|does not match/i,
+    );
+  });
+
+  it('sorts non-ASCII IDs with locale-independent code-point order', () => {
+    const shared = {
+      projectionMode: 'OPTIONAL' as const,
+      scopeId: 'fixture-non-ascii',
+    };
+    const resourcesA = [
+      {
+        resourceId: 'act:lesson:ö-zeta',
+        resourceType: 'lesson' as const,
+        ...shared,
+        title: 'ö-zeta',
+      },
+      {
+        resourceId: 'act:lesson:ä-alpha',
+        resourceType: 'lesson' as const,
+        ...shared,
+        title: 'ä-alpha',
+      },
+      {
+        resourceId: 'act:lesson:中文-课',
+        resourceType: 'lesson' as const,
+        ...shared,
+        title: '中文',
+      },
+      {
+        resourceId: 'act:lesson:Z-ascii',
+        resourceType: 'lesson' as const,
+        ...shared,
+        title: 'Z',
+      },
+    ];
+    const resourcesB = [...resourcesA].reverse();
+
+    const hashA = buildTeachingProjection(
+      emptyAuthoring({
+        scopeId: 'fixture-non-ascii',
+        resources: resourcesA,
+        authorityNodes: [],
+      }),
+    ).manifest.projectionHash;
+    const hashB = buildTeachingProjection(
+      emptyAuthoring({
+        scopeId: 'fixture-non-ascii',
+        resources: resourcesB,
+        authorityNodes: [],
+      }),
+    ).manifest.projectionHash;
+
+    expect(hashA).toBe(hashB);
+
+    const sortedIds = buildTeachingProjection(
+      emptyAuthoring({
+        scopeId: 'fixture-non-ascii',
+        resources: resourcesB,
+        authorityNodes: [],
+      }),
+    ).resources.map((r) => r.resourceId);
+
+    // Code-point / UTF-16 unit order (not locale-sensitive collation).
+    const expected = [...resourcesA.map((r) => r.resourceId)].sort((a, b) => {
+      if (a < b) return -1;
+      if (a > b) return 1;
+      return 0;
+    });
+    expect(sortedIds).toEqual(expected);
+    // localeCompare can reorder non-ASCII differently; ensure we did not use it.
+    expect(sortedIds.join('|')).toBe(expected.join('|'));
+  });
+
   it('writes staged artifact filenames expected by the design', () => {
     const paths = tempProjectionRoot();
     const staged = stageTeachingProjection(paths, boundStepAuthoring());
@@ -406,6 +534,61 @@ describe('Projection gate semantics (#1267)', () => {
     });
     expect(activation.status).toBe('failed');
     expect(readCurrentTeachingProjectionPointer(paths)).toBeNull();
+  });
+
+  it('bindings for scope B do not satisfy REQUIRED resources in scope A', () => {
+    // Authoring consistency: resource/binding scope mismatch fails closed.
+    expect(() =>
+      buildTeachingProjection(
+        boundStepAuthoring({
+          bindings: [
+            {
+              resourceId: 'act:step:lesson-02:practice-1',
+              canonicalId: 'node-a',
+              role: 'PRACTICES',
+              scopeId: 'scope-B-other',
+            },
+          ],
+        }),
+      ),
+    ).toThrow(/scope/i);
+
+    // Gate/runtime counting is also scope-keyed even if artifacts are assembled manually.
+    const gate = evaluateTeachingProjectionGate({
+      resources: [
+        {
+          resourceId: 'act:step:lesson-02:practice-1',
+          resourceType: 'step',
+          projectionMode: 'REQUIRED',
+          scopeId: 'scope-A',
+          title: null,
+          sourcePath: null,
+          legacyCrosswalkRef: null,
+          bindingCount: 0,
+          bindingStatus: 'UNBOUND',
+        },
+      ],
+      bindings: [
+        {
+          bindingId: 'b1',
+          resourceId: 'act:step:lesson-02:practice-1',
+          canonicalId: 'node-a',
+          role: 'PRACTICES',
+          scopeId: 'scope-B',
+          sourcePath: null,
+          primary: false,
+          rationale: null,
+        },
+      ],
+      prerequisites: [],
+      coreNodes: [],
+      cards: [],
+      authorityNodes: baseAuthorityNodes(),
+    });
+    expect(gate.passed).toBe(false);
+    expect(gate.unboundRequiredResourceIds).toContain(
+      'act:step:lesson-02:practice-1',
+    );
   });
 
   it('OPTIONAL or NONE unbound resources do not block publication', () => {
@@ -649,6 +832,34 @@ describe('Consumer activation combinations (#1267)', () => {
       activation.consumers.find((c) => c.consumerId === 'teaching-resource-rag')
         ?.projectionId,
     ).toBe(prior.manifest.projectionId);
+  });
+
+  it('external projectionGatePassed:true cannot override failed manifest gate', () => {
+    const prior = buildTeachingProjection(boundStepAuthoring());
+    const failed = buildTeachingProjection(
+      boundStepAuthoring({ bindings: [] }),
+    );
+    expect(failed.manifest.gatePassed).toBe(false);
+
+    const activation = buildTeachingProjectionActivationManifest({
+      projection: failed.manifest,
+      // Contradictory external claim — must not become READY.
+      projectionGatePassed: true,
+      consumers: defaultConsumerCombinationInputs({
+        authorityReleaseId: failed.manifest.authorityReleaseId,
+        pinnedProjectionId: prior.manifest.projectionId,
+        pinnedProjectionHash: prior.manifest.projectionHash,
+      }),
+    });
+
+    const teaching = activation.consumers.filter((c) => c.requiresProjection);
+    expect(teaching.every((c) => c.readiness !== 'READY')).toBe(true);
+    expect(
+      teaching.find((c) => c.consumerId === 'teaching-resource-rag')?.readiness,
+    ).toBe('PINNED_PREVIOUS');
+    expect(
+      teaching.some((c) => c.reasons.includes('projection-gate-failed')),
+    ).toBe(true);
   });
 
   it('activateTeachingProjection updates current pointer without touching prior release immutability', () => {

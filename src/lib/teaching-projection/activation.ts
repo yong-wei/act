@@ -140,9 +140,11 @@ function readinessFor(input: {
 export function buildTeachingProjectionActivationManifest(
   input: BuildActivationManifestInput,
 ): TeachingProjectionActivationManifest {
-  const projectionGatePassed = input.projectionGatePassed ?? (
-    input.projection ? input.projection.gatePassed : false
-  );
+  // Manifest gate is the authority. An external flag may only tighten to fail,
+  // never override a failed manifest gate into READY.
+  const manifestGatePassed = input.projection?.gatePassed === true;
+  const projectionGatePassed =
+    manifestGatePassed && input.projectionGatePassed !== false;
 
   const consumers: TeachingProjectionConsumerActivation[] = [...input.consumers]
     .map((consumer) => {
@@ -166,7 +168,11 @@ export function buildTeachingProjectionActivationManifest(
         reasons: resolved.reasons,
       };
     })
-    .sort((a, b) => a.consumerId.localeCompare(b.consumerId));
+    .sort((a, b) => {
+      if (a.consumerId < b.consumerId) return -1;
+      if (a.consumerId > b.consumerId) return 1;
+      return 0;
+    });
 
   const body = {
     contract: TEACHING_PROJECTION_ACTIVATION_CONTRACT,

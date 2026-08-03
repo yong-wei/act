@@ -43,7 +43,8 @@
         "coreNodes",
         "cards",
         "authorityNodes",
-        "authoringBody"
+        "authoringBody",
+        "gate"
       ],
       "properties": {
         "resources": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
@@ -52,7 +53,8 @@
         "coreNodes": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "cards": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "authorityNodes": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "authoringBody": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        "authoringBody": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "gate": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     },
     "resourceCount": { "type": "integer", "minimum": 0 },

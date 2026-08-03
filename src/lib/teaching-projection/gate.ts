@@ -131,7 +131,10 @@ export function evaluateTeachingProjectionGate(
   const unboundOptionalResourceIds: string[] = [];
 
   for (const resource of input.resources) {
-    const bound = (bindingsByResource.get(resource.resourceId) ?? []).length > 0;
+    // Bindings for a different teaching scope must not satisfy this resource.
+    const bound = (bindingsByResource.get(resource.resourceId) ?? []).some(
+      (binding) => binding.scopeId === resource.scopeId,
+    );
 
     if (resource.projectionMode === 'REQUIRED' && !bound) {
       unboundRequiredResourceIds.push(resource.resourceId);

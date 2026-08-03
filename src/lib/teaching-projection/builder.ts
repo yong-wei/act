@@ -46,8 +46,22 @@ export class TeachingProjectionBuildError extends Error {
   }
 }
 
+/**
+ * Locale-independent stable sort by key (UTF-16 code-unit / code-point order).
+ * Avoids localeCompare so projection digests stay deterministic across locales.
+ */
+function compareCodePoint(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
 function sortBy<T>(items: T[], keyFn: (item: T) => string): T[] {
-  return [...items].sort((a, b) => keyFn(a).localeCompare(keyFn(b)));
+  return [...items].sort((a, b) => compareCodePoint(keyFn(a), keyFn(b)));
+}
+
+function bindingScopeKey(resourceId: string, scopeId: string): string {
+  return `${resourceId}\u001f${scopeId}`;
 }
 
 function assertProjectionMode(value: unknown, resourceLabel: string): void {
@@ -103,7 +117,8 @@ function buildResources(
       );
     }
 
-    const bindingCount = bindingCounts.get(resourceId) ?? 0;
+    // Only bindings that share this resource's teaching scope satisfy it.
+    const bindingCount = bindingCounts.get(bindingScopeKey(resourceId, raw.scopeId)) ?? 0;
     let bindingStatus: TeachingResourceRuntime['bindingStatus'];
     if (raw.projectionMode === 'NONE') {
       bindingStatus = bindingCount > 0 ? 'BOUND' : 'NONE';
@@ -292,6 +307,7 @@ function computeSourceHashes(input: {
   cards: TeachingCardIndexEntry[];
   authorityNodes: ReturnType<typeof normalizeAuthorityNodes>;
   authoringBody: unknown;
+  gate: ReturnType<typeof evaluateTeachingProjectionGate>;
 }): TeachingProjectionSourceHashes {
   return {
     resources: projectionDigest(input.resources),
@@ -301,6 +317,8 @@ function computeSourceHashes(input: {
     cards: projectionDigest(input.cards),
     authorityNodes: projectionDigest(input.authorityNodes ?? []),
     authoringBody: projectionDigest(input.authoringBody),
+    // Full gate artifact integrity: tampering gate.json must invalidate projectionHash.
+    gate: projectionDigest(input.gate),
   };
 }
 
@@ -465,7 +483,8 @@ export function buildTeachingProjection(
   const bindings = buildBindings(input);
   const bindingCounts = new Map<string, number>();
   for (const binding of bindings) {
-    bindingCounts.set(binding.resourceId, (bindingCounts.get(binding.resourceId) ?? 0) + 1);
+    const key = bindingScopeKey(binding.resourceId, binding.scopeId);
+    bindingCounts.set(key, (bindingCounts.get(key) ?? 0) + 1);
   }
 
   const resources = buildResources(input, bindingCounts);
@@ -474,9 +493,18 @@ export function buildTeachingProjection(
   const cards = buildCardsIndex(input);
 
   // Fail closed if bindings reference unknown resources (unless card-only binding targets).
-  const resourceIds = new Set(resources.map((r) => r.resourceId));
+  // Also enforce resource/binding teaching-scope consistency.
+  const resourceById = new Map(resources.map((r) => [r.resourceId, r]));
   for (const binding of bindings) {
-    if (!resourceIds.has(binding.resourceId)) {
+    const resource = resourceById.get(binding.resourceId);
+    if (resource) {
+      if (resource.scopeId !== binding.scopeId) {
+        throw new TeachingProjectionBuildError(
+          'scope-mismatch',
+          `binding ${binding.bindingId} scope ${binding.scopeId} does not match resource ${binding.resourceId} scope ${resource.scopeId}`,
+        );
+      }
+    } else {
       // Allow bindings to card resource IDs declared only via cards index.
       const cardMatch = cards.some((c) => c.resourceId === binding.resourceId);
       if (!cardMatch) {
@@ -524,6 +552,7 @@ export function buildTeachingProjection(
     cards,
     authorityNodes,
     authoringBody,
+    gate,
   });
 
   const manifestBody: TeachingProjectionManifestBody = {
@@ -583,6 +612,7 @@ export function buildTeachingProjection(
 /**
  * Verify that loaded runtime artifacts match their manifest hashes.
  * Rejects source/projection drift before activation.
+ * Gate and impact content are fully integrity-checked (not only projectionHash fields).
  */
 export function verifyTeachingProjectionArtifacts(
   artifacts: TeachingProjectionArtifacts,
@@ -594,6 +624,7 @@ export function verifyTeachingProjectionArtifacts(
   const recomputedPrerequisites = projectionDigest(artifacts.prerequisites);
   const recomputedCoreNodes = projectionDigest(artifacts.coreNodes);
   const recomputedCards = projectionDigest(artifacts.cardsIndex.cards);
+  const recomputedGate = projectionDigest(artifacts.gate);
 
   if (recomputedResources !== manifest.sourceHashes.resources) {
     throw new TeachingProjectionBuildError(
@@ -623,6 +654,24 @@ export function verifyTeachingProjectionArtifacts(
     throw new TeachingProjectionBuildError(
       'source-drift',
       'cards-index artifact does not match manifest source hash',
+    );
+  }
+  if (
+    !manifest.sourceHashes.gate
+    || recomputedGate !== manifest.sourceHashes.gate
+  ) {
+    throw new TeachingProjectionBuildError(
+      'source-drift',
+      'gate artifact does not match manifest source hash',
+    );
+  }
+  if (
+    artifacts.gate.passed !== manifest.gatePassed
+    || artifacts.gate.status !== manifest.gateStatus
+  ) {
+    throw new TeachingProjectionBuildError(
+      'gate-manifest-mismatch',
+      'gate.json status/passed does not match projection-manifest',
     );
   }
 
@@ -662,6 +711,24 @@ export function verifyTeachingProjectionArtifacts(
     throw new TeachingProjectionBuildError(
       'impact-hash-mismatch',
       'impact-report projectionHash does not match manifest',
+    );
+  }
+
+  // Full impact-report integrity: recompute from verified artifacts and compare.
+  const expectedImpact = buildImpactReport({
+    projectionId: manifest.projectionId,
+    projectionHash: manifest.projectionHash,
+    resources: artifacts.resources,
+    bindings: artifacts.bindings,
+    prerequisites: artifacts.prerequisites,
+    coreNodes: artifacts.coreNodes,
+    cards: artifacts.cardsIndex.cards,
+    gate: artifacts.gate,
+  });
+  if (projectionDigest(expectedImpact) !== projectionDigest(artifacts.impactReport)) {
+    throw new TeachingProjectionBuildError(
+      'impact-content-mismatch',
+      'impact-report.json content does not match recomputed impact from artifacts',
     );
   }
 }
