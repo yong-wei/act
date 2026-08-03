@@ -4,7 +4,7 @@ This directory records governed browser evidence for persisted adaptive-path can
 
 - Route: `/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140`
 - Viewports: 1440 x 1000 and 320 x 900
-- Checkpoint commit: `5024f41050df355c4715125ba9598719dbbc834f`
+- Checkpoint commit: `b30883e`
 - Manifest: `candidate-batch-manifest.json`
 
 The run verifies that the active path remains independent, persisted candidates retain planner order, a focused candidate link displays only the requested server-owned identity, compare-all restores the complete batch, and neither viewport has horizontal overflow. The manifest binds both screenshots and the relevant source files to the checkpoint commit using SHA-256 hashes.
