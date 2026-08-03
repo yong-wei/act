@@ -18,6 +18,11 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
+  buildCoursePackageLayeredScope,
+  resolveCoursePageLayeredDrawerEntries,
+  type LayeredGraphPayload,
+} from '@/lib/layered-graph';
+import {
   UNIT_1_1_LESSON_STEPS,
   UNIT_1_1_COURSE_SUBTITLE,
   UNIT_1_1_COURSE_TITLE,
@@ -43,9 +48,16 @@ import {
 export function UNIT_1_1TeacherPage({
   sessionId,
   lessonRuntime,
+  layeredGraphPayload,
+  layeredResourceLaunchTargets,
+  layeredResourceRegistryIds,
 }: {
   sessionId: string;
   lessonRuntime: RuntimeLessonEntryBundle;
+  /** Server-resolved Teaching Projection layered payload (active/candidate/pin). */
+  layeredGraphPayload?: LayeredGraphPayload | null;
+  layeredResourceLaunchTargets?: Record<string, string | null>;
+  layeredResourceRegistryIds?: Record<string, string>;
 }) {
   const router = useRouter();
   const [endingSession, setEndingSession] = useState(false);
@@ -90,6 +102,38 @@ export function UNIT_1_1TeacherPage({
   });
 
   const step = UNIT_1_1_LESSON_STEPS[activeIndex];
+  const orderedStepIds = useMemo(
+    () => UNIT_1_1_LESSON_STEPS.map((item) => item.id),
+    [],
+  );
+  // Layered Teaching Projection drawer path (#1273 / PR #1286):
+  // server resolves active/candidate payload; client scopes step.knowledgeRefs.
+  const layeredDrawerEntries = useMemo(
+    () =>
+      resolveCoursePageLayeredDrawerEntries({
+        lessonRuntime,
+        currentStepId: step.id,
+        orderedStepIds,
+        scope: {
+          ...buildCoursePackageLayeredScope({
+            packageCanonicalId: '1-1',
+            lessonKey: '1-1',
+            stepId: step.id,
+          }),
+        },
+        payload: layeredGraphPayload,
+        resourceLaunchTargets: layeredResourceLaunchTargets,
+        resourceRegistryIds: layeredResourceRegistryIds,
+      }),
+    [
+      layeredGraphPayload,
+      layeredResourceLaunchTargets,
+      layeredResourceRegistryIds,
+      lessonRuntime,
+      orderedStepIds,
+      step.id,
+    ],
+  );
 
   // Compute teacherSyncState from teacherStates
   const teacherSyncState = useMemo(() => {
@@ -274,9 +318,10 @@ export function UNIT_1_1TeacherPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_1_1_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={orderedStepIds}
             title="页面知识卡片"
             inlineTool
+            layeredDrawerEntries={layeredDrawerEntries}
           />
         </>
       }
