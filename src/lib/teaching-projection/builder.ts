@@ -64,6 +64,70 @@ function bindingScopeKey(resourceId: string, scopeId: string): string {
   return `${resourceId}\u001f${scopeId}`;
 }
 
+/**
+ * Expand authoring knowledgeRefs on resources into binding rows (#1268).
+ * Existing explicit bindings win on duplicate identity.
+ */
+function expandKnowledgeRefsIntoBindings(
+  input: TeachingProjectionAuthoringInput,
+): TeachingProjectionAuthoringInput {
+  const existing = [...(input.bindings ?? [])];
+  const seen = new Set(
+    existing.map((b) => [b.resourceId, b.canonicalId, b.role, b.scopeId].join('\u001f')),
+  );
+
+  for (const raw of input.resources ?? []) {
+    const refs = raw.knowledgeRefs ?? [];
+    if (refs.length === 0) continue;
+    let resourceId: string;
+    try {
+      resourceId = deriveResourceId(raw);
+    } catch {
+      continue;
+    }
+    for (const ref of refs) {
+      const key = [resourceId, ref.canonicalId, ref.role, raw.scopeId].join('\u001f');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      existing.push({
+        resourceId,
+        canonicalId: ref.canonicalId,
+        role: ref.role,
+        scopeId: raw.scopeId,
+        sourcePath: ref.sourcePath ?? raw.sourcePath,
+        primary: ref.primary,
+        rationale: ref.rationale,
+      });
+    }
+  }
+
+  return { ...input, bindings: existing };
+}
+
+function attachBindingDigests(
+  resources: TeachingResourceRuntime[],
+  bindings: readonly TeachingBindingRuntime[],
+): void {
+  const byResource = new Map<string, TeachingBindingRuntime[]>();
+  for (const binding of bindings) {
+    const list = byResource.get(binding.resourceId) ?? [];
+    list.push(binding);
+    byResource.set(binding.resourceId, list);
+  }
+
+  for (const resource of resources) {
+    const list = (byResource.get(resource.resourceId) ?? [])
+      .filter((b) => b.scopeId === resource.scopeId)
+      .map((b) => ({ canonicalId: b.canonicalId, role: b.role }))
+      .sort((a, b) => {
+        const byId = compareCodePoint(a.canonicalId, b.canonicalId);
+        if (byId !== 0) return byId;
+        return compareCodePoint(a.role, b.role);
+      });
+    resource.bindingDigest = list.length > 0 ? projectionDigest(list) : null;
+  }
+}
+
 function assertProjectionMode(value: unknown, resourceLabel: string): void {
   if (typeof value !== 'string' || !(TEACHING_PROJECTION_MODES as readonly string[]).includes(value)) {
     throw new TeachingProjectionBuildError(
@@ -126,6 +190,15 @@ function buildResources(
       bindingStatus = bindingCount > 0 ? 'BOUND' : 'UNBOUND';
     }
 
+    let projectionStatus: TeachingResourceRuntime['projectionStatus'];
+    if (bindingCount > 0) {
+      projectionStatus = 'BOUND';
+    } else if (raw.projectionMode === 'NONE' || raw.projectionMode === 'OPTIONAL') {
+      projectionStatus = 'EXPLICIT_NONE';
+    } else {
+      projectionStatus = 'UNBOUND';
+    }
+
     resources.push({
       resourceId,
       resourceType: raw.resourceType,
@@ -136,6 +209,9 @@ function buildResources(
       legacyCrosswalkRef: raw.legacyCrosswalkRef ?? null,
       bindingCount,
       bindingStatus,
+      projectionStatus,
+      // Filled after bindings are known for this resource (see finalize below).
+      bindingDigest: null,
     });
   }
 
@@ -480,17 +556,20 @@ export function buildTeachingProjection(
   }
 
   const authorityNodes = normalizeAuthorityNodes(input);
-  const bindings = buildBindings(input);
+  // Expand resource.knowledgeRefs into binding authoring before build (#1268).
+  const inputWithExpandedBindings = expandKnowledgeRefsIntoBindings(input);
+  const bindings = buildBindings(inputWithExpandedBindings);
   const bindingCounts = new Map<string, number>();
   for (const binding of bindings) {
     const key = bindingScopeKey(binding.resourceId, binding.scopeId);
     bindingCounts.set(key, (bindingCounts.get(key) ?? 0) + 1);
   }
 
-  const resources = buildResources(input, bindingCounts);
-  const prerequisites = buildPrerequisites(input);
-  const coreNodes = buildCoreNodes(input);
-  const cards = buildCardsIndex(input);
+  const resources = buildResources(inputWithExpandedBindings, bindingCounts);
+  attachBindingDigests(resources, bindings);
+  const prerequisites = buildPrerequisites(inputWithExpandedBindings);
+  const coreNodes = buildCoreNodes(inputWithExpandedBindings);
+  const cards = buildCardsIndex(inputWithExpandedBindings);
 
   // Fail closed if bindings reference unknown resources (unless card-only binding targets).
   // Also enforce resource/binding teaching-scope consistency.

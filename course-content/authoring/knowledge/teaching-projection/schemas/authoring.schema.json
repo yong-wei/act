@@ -85,7 +85,24 @@
         "scopeId": { "type": "string", "minLength": 1 },
         "title": { "type": "string" },
         "sourcePath": { "type": "string" },
-        "legacyCrosswalkRef": { "type": ["string", "null"] }
+        "legacyCrosswalkRef": { "type": ["string", "null"] },
+        "knowledgeRefs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/knowledgeRef" },
+          "description": "Authoring Canonical bindings (#1268); expanded into runtime bindings by the builder."
+        }
+      }
+    },
+    "knowledgeRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalId", "role"],
+      "properties": {
+        "canonicalId": { "type": "string", "minLength": 1 },
+        "role": { "$ref": "#/$defs/role" },
+        "primary": { "type": "boolean" },
+        "rationale": { "type": "string" },
+        "sourcePath": { "type": "string" }
       }
     },
     "binding": {
