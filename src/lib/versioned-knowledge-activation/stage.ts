@@ -337,13 +337,78 @@ export function validateArtifactIdentityBinding(
           ) {
             reasons.push('projection-manifest-authority-release-mismatch');
           }
-          if (
-            artifacts.authority?.present
-            && artifacts.authority.releaseId
-            && manifest.authorityReleaseId
-            && artifacts.authority.releaseId !== manifest.authorityReleaseId
-          ) {
-            reasons.push('projection-manifest-authority-release-cross-mismatch');
+          // Bind Projection to the same Authority snapshot + capture, not only
+          // releaseId (two valid snapshots under one release must not mix).
+          if (artifacts.authority?.present) {
+            const auth = artifacts.authority;
+            if (
+              auth.releaseId
+              && manifest.authorityReleaseId
+              && auth.releaseId !== manifest.authorityReleaseId
+            ) {
+              reasons.push(
+                'projection-manifest-authority-release-cross-mismatch',
+              );
+            }
+            if (
+              auth.snapshotId
+              && manifest.authoritySnapshotId
+              && auth.snapshotId !== manifest.authoritySnapshotId
+            ) {
+              reasons.push(
+                'projection-manifest-authority-snapshot-id-mismatch',
+              );
+            }
+            if (
+              auth.snapshotHash
+              && manifest.authoritySnapshotHash
+              && auth.snapshotHash !== manifest.authoritySnapshotHash
+            ) {
+              reasons.push(
+                'projection-manifest-authority-snapshot-hash-mismatch',
+              );
+            }
+            // authoringRevision / capture must match the staged capture when
+            // present on either side.
+            const projectionCapture =
+              asString(
+                (manifest as unknown as { authoringRevision?: unknown })
+                  .authoringRevision,
+              )
+              ?? asString(
+                (manifest as unknown as { captureRevision?: unknown })
+                  .captureRevision,
+              );
+            if (
+              auth.captureRevision
+              && projectionCapture
+              && auth.captureRevision !== projectionCapture
+            ) {
+              reasons.push(
+                'projection-manifest-authority-capture-mismatch',
+              );
+            }
+            if (
+              artifacts.captureRevision
+              && projectionCapture
+              && artifacts.captureRevision !== projectionCapture
+            ) {
+              reasons.push(
+                'projection-manifest-shared-capture-mismatch',
+              );
+            }
+            // When Authority is present, require Projection to pin the same
+            // snapshot identity fields when the manifest supports them.
+            if (auth.snapshotId && !manifest.authoritySnapshotId) {
+              reasons.push(
+                'projection-manifest-authority-snapshot-id-absent',
+              );
+            }
+            if (auth.snapshotHash && !manifest.authoritySnapshotHash) {
+              reasons.push(
+                'projection-manifest-authority-snapshot-hash-absent',
+              );
+            }
           }
         }
       } catch (error) {

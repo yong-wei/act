@@ -269,6 +269,7 @@ function baseAuthoritySnapshot(
 function baseTeachingAuthoring(
   authorityReleaseId: string,
   authoritySnapshotHash: string,
+  authoritySnapshotId?: string | null,
 ): TeachingProjectionAuthoringInput {
   return {
     contract: 'act-teaching-projection-authoring/v1',
@@ -276,6 +277,7 @@ function baseTeachingAuthoring(
     authoringRevision: commitA,
     authorityReleaseId,
     authorityReleaseSetId: 'set-eng-1',
+    authoritySnapshotId: authoritySnapshotId ?? null,
     authoritySnapshotHash,
     resources: [
       {
@@ -409,7 +411,11 @@ function completeArtifacts(
   const projPaths = resolveTeachingProjectionStorePaths(projRoot);
   const stagedProj = stageTeachingProjection(
     projPaths,
-    baseTeachingAuthoring(releaseId, stagedAuth.snapshotHash),
+    baseTeachingAuthoring(
+      releaseId,
+      stagedAuth.snapshotHash,
+      stagedAuth.snapshotId,
+    ),
   );
   const projDir = stagedProj.releaseDir;
 
