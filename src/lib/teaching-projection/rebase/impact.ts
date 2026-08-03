@@ -83,13 +83,16 @@ function itemKey(item: ActImpactItem): string {
   ].join('\u001f');
 }
 
+/**
+ * AUTO_REBASE requires proven type compatibility: both base and candidate
+ * types must be present and equal. Missing type evidence fails closed to
+ * REVIEW_REQUIRED (ReleaseSet Delta details only carry IDs by default).
+ */
 function isTypeCompatible(change: ActDeltaChangeEvent): boolean {
   const base = change.baseType ?? null;
   const cand = change.candidateType ?? null;
   if (base == null || cand == null) {
-    // Missing type metadata: treat as compatible only for pure REPLACED_BY
-    // with a single successor (conservative types fail closed only when both present and differ).
-    return true;
+    return false;
   }
   return base === cand;
 }

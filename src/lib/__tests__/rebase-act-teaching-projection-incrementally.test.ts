@@ -242,17 +242,77 @@ describe('Delta inventory → ACT change events (#1272)', () => {
     expect(byCat('REMOVED_WITHOUT_SUCCESSOR').map((e) => e.identity)).toEqual(['node-gone']);
   });
 
-  it('maps relation add/change/retire as generic engineering signals', () => {
+  it('maps relation add/change/retire as generic engineering signals with endpoints', () => {
     const details = emptyDetails();
     details.relations.added = ['rel-1'];
     details.relations.removed = ['rel-2'];
     details.relations.predicateChanged = ['rel-3'];
-    const events = inventoryDeltaDetailsForAct(details);
+    const events = inventoryDeltaDetailsForAct(details, {
+      baseRelations: {
+        'rel-2': { sourceId: 'node-a', targetId: 'node-b' },
+        'rel-3': { sourceId: 'node-a', targetId: 'node-b' },
+      },
+      candidateRelations: {
+        'rel-1': { sourceId: 'eng-x', targetId: 'eng-y' },
+        'rel-3': { sourceId: 'node-a', targetId: 'node-b' },
+      },
+    });
     expect(events.map((e) => e.category).sort()).toEqual([
       'RELATION_ADDED',
       'RELATION_CHANGED',
       'RELATION_RETIRED',
     ]);
+    expect(events.find((e) => e.category === 'RELATION_CHANGED')).toMatchObject({
+      identity: 'rel-3',
+      relationSourceId: 'node-a',
+      relationTargetId: 'node-b',
+    });
+    expect(events.find((e) => e.category === 'RELATION_RETIRED')).toMatchObject({
+      identity: 'rel-2',
+      relationSourceId: 'node-a',
+      relationTargetId: 'node-b',
+    });
+  });
+
+  it('fails closed when changed/retired relation endpoints are unresolvable', () => {
+    const details = emptyDetails();
+    details.relations.removed = ['rel-missing'];
+    expect(() => inventoryDeltaDetailsForAct(details)).toThrow(
+      /relation-endpoints-unresolvable|cannot resolve endpoints/i,
+    );
+    details.relations.removed = [];
+    details.relations.predicateChanged = ['rel-changed'];
+    expect(() => inventoryDeltaDetailsForAct(details)).toThrow(
+      TeachingProjectionRebaseError,
+    );
+  });
+
+  it('fills relation endpoints so bound RELATION_CHANGED enters teaching review', () => {
+    const details = emptyDetails();
+    details.relations.predicateChanged = ['rel-prereq'];
+    const events = inventoryDeltaDetailsForAct(details, {
+      baseRelations: {
+        'rel-prereq': { sourceId: 'node-a', targetId: 'node-b' },
+      },
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      category: 'RELATION_CHANGED',
+      relationSourceId: 'node-a',
+      relationTargetId: 'node-b',
+    });
+
+    const prior = buildTeachingProjection(boundProjectionAuthoring());
+    const impact = calculateImpactOnly({
+      artifacts: prior,
+      changes: events,
+      authorityReleaseId: 'ctr:release:eng-v2',
+    });
+    // Bound endpoints expand to REVIEW_REQUIRED rather than ENGINEERING_ONLY.
+    expect(impact.summary.engineeringOnlyCount).toBe(0);
+    expect(impact.summary.reviewRequiredCount).toBeGreaterThan(0);
+    expect(impact.items.some((i) =>
+      i.subjectKind === 'prerequisite' && i.disposition === 'REVIEW_REQUIRED')).toBe(true);
   });
 
   it('accepts explicit source-anchor / source-document fixtures', () => {
@@ -429,6 +489,24 @@ describe('Impact set calculator (#1272)', () => {
         successors: ['node-a2'],
         baseType: 'Concept',
         candidateType: 'Relation',
+      })],
+      authorityReleaseId: 'ctr:release:eng-v2',
+    });
+    expect(impact.items.some((i) =>
+      i.subjectKind === 'binding' && i.disposition === 'AUTO_REBASE_CANDIDATE')).toBe(false);
+    expect(impact.items.some((i) =>
+      i.subjectKind === 'binding' && i.disposition === 'REVIEW_REQUIRED')).toBe(true);
+  });
+
+  it('missing type evidence fails closed to REVIEW_REQUIRED (not AUTO_REBASE)', () => {
+    const impact = calculateImpactOnly({
+      artifacts: prior,
+      changes: [actDeltaChange({
+        category: 'REPLACED_BY',
+        identity: 'node-a',
+        successors: ['node-a2'],
+        predecessors: ['node-a'],
+        // baseType/candidateType omitted — default inventory path
       })],
       authorityReleaseId: 'ctr:release:eng-v2',
     });
@@ -808,6 +886,57 @@ describe('Complete projection rebuild (#1272)', () => {
       });
       expect(activation.status).toBe('failed');
     }
+  });
+
+  it('unresolved SOURCE_DOCUMENT_CHANGED REVIEW_REQUIRED fails activation gate', () => {
+    // Structural Authority gate can still pass for textbook source changes; rebase
+    // must fail-close activation when teaching review items remain unresolved.
+    const paths = tempProjectionRoot();
+    const authoring = boundProjectionAuthoring();
+    const stagedPrior = stageTeachingProjection(paths, authoring);
+    activateTeachingProjection(paths, {
+      projectionId: stagedPrior.projectionId,
+      activatedAt: '2026-08-03T00:00:00.000Z',
+    });
+
+    const rebase = rebaseTeachingProjection({
+      priorArtifacts: stagedPrior.artifacts,
+      priorAuthoring: authoring,
+      changes: [actDeltaChange({
+        category: 'SOURCE_DOCUMENT_CHANGED',
+        identity: 'dorf-ch1',
+        sourceDocumentId: 'dorf-ch1',
+      })],
+      targetAuthority: {
+        authorityReleaseId: 'ctr:release:eng-v2',
+        authoritySnapshotHash: hashB,
+        authorityNodes: baseAuthorityNodes(),
+      },
+      authoringRevision: commitB,
+      deltaOutputDigest: 's'.repeat(64),
+    });
+
+    expect(rebase.report.unresolvedReviewRequired.length).toBeGreaterThan(0);
+    expect(rebase.report.unresolvedReviewRequired.some((u) =>
+      u.disposition === 'REVIEW_REQUIRED'
+      && (u.subjectKind === 'resource' || u.subjectKind === 'textbook-locator'))).toBe(true);
+    expect(rebase.report.gatePassed).toBe(false);
+    expect(rebase.artifacts!.gate.passed).toBe(false);
+    expect(rebase.artifacts!.manifest.gatePassed).toBe(false);
+    expect(rebase.artifacts!.gate.findings.some((f) =>
+      f.code === 'rebase-review-required')).toBe(true);
+
+    const staged = stageRebasedTeachingProjection(paths, rebase);
+    expect(staged.staged).not.toBeNull();
+    expect(staged.currentPointerUnchanged).toBe(true);
+
+    const activation = activateTeachingProjection(paths, {
+      projectionId: staged.staged!.projectionId,
+    });
+    expect(activation.status).toBe('failed');
+    expect(activation.reasons.some((r) => r.includes('gate'))).toBe(true);
+    expect(readCurrentTeachingProjectionPointer(paths)?.projectionId)
+      .toBe(stagedPrior.projectionId);
   });
 
   it('does not patch prior runtime directory contents', () => {

@@ -15,13 +15,18 @@ import {
   type TeachingProjectionAuthoringInput,
   type TeachingResourceAuthoring,
 } from '../contracts';
-import { buildTeachingProjection } from '../builder';
+import {
+  applyTeachingProjectionGateFindings,
+  buildTeachingProjection,
+} from '../builder';
+import type { TeachingProjectionGateFinding } from '../contracts';
 import { deriveBindingId } from '../identity';
 import { projectionDigest } from '../hash';
 import {
   ACT_TEACHING_PROJECTION_REBASE_ENGINE_VERSION,
   ACT_TEACHING_PROJECTION_REBASE_REPORT_CONTRACT,
   type ActDeltaChangeEvent,
+  type ActImpactItem,
   type CarriedForwardDigestEntry,
   type RebaseDecisionRecord,
   type TeachingProjectionRebaseReport,
@@ -392,7 +397,16 @@ export function rebaseTeachingProjection(
     authorityNodes: [...input.targetAuthority.authorityNodes],
   };
 
-  const artifacts = buildTeachingProjection(authoring);
+  const built = buildTeachingProjection(authoring);
+
+  // Unresolved REVIEW_REQUIRED must fail the activation gate even when the
+  // structural Authority gate would otherwise pass (e.g. source-anchor changes).
+  const rebaseGateFindings = rebaseReviewRequiredGateFindings(blockingUnresolved);
+  const artifacts = applyTeachingProjectionGateFindings(
+    built,
+    rebaseGateFindings,
+    { forceFail: blockingUnresolved.length > 0 },
+  );
 
   const affected = {
     resources: new Set(
@@ -436,6 +450,11 @@ export function rebaseTeachingProjection(
   }
   reasons.push('complete-rebuild');
 
+  const gatePassed =
+    artifacts.gate.passed
+    && artifacts.manifest.gatePassed
+    && blockingUnresolved.length === 0;
+
   const report: TeachingProjectionRebaseReport = {
     contract: ACT_TEACHING_PROJECTION_REBASE_REPORT_CONTRACT,
     engineVersion: ACT_TEACHING_PROJECTION_REBASE_ENGINE_VERSION,
@@ -453,7 +472,7 @@ export function rebaseTeachingProjection(
     unresolvedReviewRequired: resolved.unresolved,
     carriedForward,
     rebuildCompleted: true,
-    gatePassed: artifacts.gate.passed,
+    gatePassed,
     reasons: reasons.sort(compareCodePoint),
     rollback: {
       projectionId: priorManifest.projectionId,
@@ -469,6 +488,35 @@ export function rebaseTeachingProjection(
     artifacts,
     priorManifest,
   };
+}
+
+function rebaseReviewRequiredGateFindings(
+  unresolved: readonly ActImpactItem[],
+): TeachingProjectionGateFinding[] {
+  return unresolved
+    .filter((u) => u.disposition === 'REVIEW_REQUIRED')
+    .map((u) => {
+      const finding: TeachingProjectionGateFinding = {
+        code: 'rebase-review-required',
+        severity: 'error',
+        message: `unresolved rebase REVIEW_REQUIRED for ${u.subjectKind} ${u.subjectId}`,
+      };
+      if (u.canonicalId) finding.canonicalId = u.canonicalId;
+      if (u.subjectKind === 'resource' || u.subjectKind === 'textbook-locator') {
+        finding.resourceId = u.subjectId;
+      } else if (u.subjectKind === 'binding') {
+        finding.bindingId = u.subjectId;
+      } else if (u.subjectKind === 'prerequisite') {
+        finding.prerequisiteId = u.subjectId;
+      } else if (u.subjectKind === 'card') {
+        finding.cardId = u.subjectId;
+      }
+      return finding;
+    })
+    .sort((a, b) => compareCodePoint(
+      `${a.code}:${a.message}`,
+      `${b.code}:${b.message}`,
+    ));
 }
 
 /**

@@ -49,7 +49,31 @@ export interface DeltaObjectTypeIndex {
   candidateTypes?: ReadonlyMap<string, string> | Record<string, string>;
 }
 
-export interface InventoryReleaseSetDeltaOptions extends DeltaObjectTypeIndex {
+/** Relation endpoint pair used to fill ACT impact source/target IDs. */
+export interface ActRelationEndpointView {
+  sourceId: string;
+  targetId: string;
+}
+
+export interface DeltaRelationEndpointIndex {
+  /**
+   * Base (pre-delta) relation index: relationId → endpoints.
+   * Required to resolve RELATION_RETIRED / RELATION_CHANGED when candidate omits the row.
+   */
+  baseRelations?:
+    | ReadonlyMap<string, ActRelationEndpointView>
+    | Record<string, ActRelationEndpointView>;
+  /**
+   * Candidate (post-delta) relation index: relationId → endpoints.
+   * Preferred for RELATION_ADDED / RELATION_CHANGED.
+   */
+  candidateRelations?:
+    | ReadonlyMap<string, ActRelationEndpointView>
+    | Record<string, ActRelationEndpointView>;
+}
+
+export interface InventoryReleaseSetDeltaOptions
+  extends DeltaObjectTypeIndex, DeltaRelationEndpointIndex {
   /**
    * Canonical IDs whose payload change is label/alias-only
    * (display rebuild; binding identity unchanged).
@@ -68,6 +92,49 @@ function asMap(
   if (!value) return new Map();
   if (value instanceof Map) return new Map(value);
   return new Map(Object.entries(value));
+}
+
+function asRelationMap(
+  value:
+    | ReadonlyMap<string, ActRelationEndpointView>
+    | Record<string, ActRelationEndpointView>
+    | undefined,
+): Map<string, ActRelationEndpointView> {
+  if (!value) return new Map();
+  if (value instanceof Map) return new Map(value);
+  return new Map(Object.entries(value));
+}
+
+function resolveRelationEndpoints(
+  relationId: string,
+  category: 'RELATION_ADDED' | 'RELATION_CHANGED' | 'RELATION_RETIRED',
+  indexes: {
+    base: Map<string, ActRelationEndpointView>;
+    candidate: Map<string, ActRelationEndpointView>;
+  },
+): { sourceId: string; targetId: string } {
+  const preferred =
+    category === 'RELATION_RETIRED'
+      ? indexes.base.get(relationId) ?? indexes.candidate.get(relationId)
+      : indexes.candidate.get(relationId) ?? indexes.base.get(relationId);
+
+  const sourceId = preferred?.sourceId?.trim() ?? '';
+  const targetId = preferred?.targetId?.trim() ?? '';
+
+  if (!sourceId || !targetId) {
+    // Fail closed for changed/retired: without endpoints impact cannot detect
+    // ACT-bound prerequisites and would silently treat them as ENGINEERING_ONLY.
+    if (category === 'RELATION_CHANGED' || category === 'RELATION_RETIRED') {
+      throw new TeachingProjectionRebaseError(
+        'relation-endpoints-unresolvable',
+        `cannot resolve endpoints for ${category} relation ${relationId}; provide baseRelations/candidateRelations`,
+      );
+    }
+    // RELATION_ADDED without index: emit null endpoints (engineering-only unless filled).
+    return { sourceId: '', targetId: '' };
+  }
+
+  return { sourceId, targetId };
 }
 
 function asSet(
@@ -274,21 +341,33 @@ function inventoryObjects(
   return events;
 }
 
-function inventoryRelations(relations: ActRelationDeltaChangesView): ActDeltaChangeEvent[] {
+function inventoryRelations(
+  relations: ActRelationDeltaChangesView,
+  relationIndexes: {
+    base: Map<string, ActRelationEndpointView>;
+    candidate: Map<string, ActRelationEndpointView>;
+  },
+): ActDeltaChangeEvent[] {
   const events: ActDeltaChangeEvent[] = [];
 
   for (const id of relations.added) {
+    const endpoints = resolveRelationEndpoints(id, 'RELATION_ADDED', relationIndexes);
     events.push(event({
       category: 'RELATION_ADDED',
       identity: id,
       deltaIdentity: `relation:added:${id}`,
+      relationSourceId: endpoints.sourceId || null,
+      relationTargetId: endpoints.targetId || null,
     }));
   }
   for (const id of relations.removed) {
+    const endpoints = resolveRelationEndpoints(id, 'RELATION_RETIRED', relationIndexes);
     events.push(event({
       category: 'RELATION_RETIRED',
       identity: id,
       deltaIdentity: `relation:removed:${id}`,
+      relationSourceId: endpoints.sourceId,
+      relationTargetId: endpoints.targetId,
     }));
   }
 
@@ -299,10 +378,13 @@ function inventoryRelations(relations: ActRelationDeltaChangesView): ActDeltaCha
     ...relations.endpointChanged,
   ]);
   for (const id of [...changed].sort(compareCodePoint)) {
+    const endpoints = resolveRelationEndpoints(id, 'RELATION_CHANGED', relationIndexes);
     events.push(event({
       category: 'RELATION_CHANGED',
       identity: id,
       deltaIdentity: `relation:changed:${id}`,
+      relationSourceId: endpoints.sourceId,
+      relationTargetId: endpoints.targetId,
     }));
   }
 
@@ -321,11 +403,15 @@ export function inventoryDeltaDetailsForAct(
     base: asMap(options.baseTypes),
     candidate: asMap(options.candidateTypes),
   };
+  const relationIndexes = {
+    base: asRelationMap(options.baseRelations),
+    candidate: asRelationMap(options.candidateRelations),
+  };
   const labelAliasOnly = asSet(options.labelAliasOnlyIds);
 
   const events = [
     ...inventoryObjects(details.objects, types, labelAliasOnly),
-    ...inventoryRelations(details.relations),
+    ...inventoryRelations(details.relations, relationIndexes),
     ...(options.sourceChanges ?? []),
   ];
 
