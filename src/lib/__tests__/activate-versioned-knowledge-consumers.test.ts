@@ -102,12 +102,22 @@ function completeArtifacts(
   const withFiles = options.withFiles !== false;
   const artifactRoot = options.artifactRoot ?? (withFiles ? tempArtifactRoot() : '');
 
+  const snapshotId = 'snap-eng-1';
+  const releaseId = 'ctr:release:eng-v1';
+  const projectionId = 'proj-1';
+  const snapshotHash = sha256(snapshotId);
+  const projectionHash = sha256(projectionId);
   const authorityFiles = withFiles
     ? {
         'manifest.json': writeArtifact(
           artifactRoot,
           'authority/manifest.json',
-          JSON.stringify({ releaseId: 'ctr:release:eng-v1', snapshotId: 'snap-eng-1' }),
+          JSON.stringify({
+            releaseId,
+            snapshotId,
+            snapshotHash,
+            captureRevision: commitA,
+          }),
         ),
         'engineering.json': writeArtifact(
           artifactRoot,
@@ -121,7 +131,12 @@ function completeArtifacts(
         'projection-manifest.json': writeArtifact(
           artifactRoot,
           'projection/projection-manifest.json',
-          JSON.stringify({ projectionId: 'proj-1' }),
+          JSON.stringify({
+            projectionId,
+            projectionHash,
+            authorityReleaseId: releaseId,
+            captureRevision: commitA,
+          }),
         ),
         'resources.jsonl': writeArtifact(
           artifactRoot,
@@ -151,38 +166,13 @@ function completeArtifacts(
       }
     : null;
 
-  const hashA = authorityFiles
-    ? authorityFiles['manifest.json'].hash
-    : 'a'.repeat(64);
-  // Keep stable secondary digests for prior pins in tests without files.
-  const hashF = projectionFiles
-    ? projectionFiles['resources.jsonl'].hash
-    : 'f'.repeat(64);
-  const hashE = projectionFiles
-    ? projectionFiles['projection-manifest.json'].hash
-    : 'e'.repeat(64);
-  const hashD = projectionFiles
-    ? projectionFiles['impact-report.json'].hash
-    : 'd'.repeat(64);
-  const hashC = authorityFiles
-    ? authorityFiles['engineering.json'].hash
-    : 'c'.repeat(64);
-  const hashB = projectionFiles
-    ? projectionFiles['cards-index.json'].hash
-    : 'b'.repeat(64);
-
-  void hashA;
-  void hashF;
-
   const base: StagedActivationArtifactSet = {
     captureRevision: commitA,
     authority: {
       present: true,
-      releaseId: 'ctr:release:eng-v1',
-      snapshotId: 'snap-eng-1',
-      snapshotHash: authorityFiles
-        ? sha256('snap-eng-1')
-        : 'a'.repeat(64),
+      releaseId,
+      snapshotId,
+      snapshotHash: authorityFiles ? snapshotHash : 'a'.repeat(64),
       captureRevision: commitA,
       artifactHashes: {
         'manifest.json': authorityFiles
@@ -201,11 +191,9 @@ function completeArtifacts(
     },
     projection: {
       present: true,
-      projectionId: 'proj-1',
-      projectionHash: projectionFiles
-        ? projectionFiles['projection-manifest.json'].hash
-        : 'd'.repeat(64),
-      authorityReleaseId: 'ctr:release:eng-v1',
+      projectionId,
+      projectionHash: projectionFiles ? projectionHash : 'd'.repeat(64),
+      authorityReleaseId: releaseId,
       captureRevision: commitA,
       gatePassed: true,
       artifactHashes: {
@@ -287,11 +275,6 @@ function completeArtifacts(
                 ? undefined
                 : base.projection?.artifactPaths),
           };
-
-  void hashB;
-  void hashC;
-  void hashD;
-  void hashE;
 
   return {
     ...base,
@@ -693,10 +676,17 @@ describe('Staged activation and atomic pointer (#1276)', () => {
 
     // Second staged set uses different real files so digests differ.
     const v2Root = tempArtifactRoot();
+    const v2SnapshotHash = sha256('snap-eng-2');
+    const v2ProjectionHash = sha256('proj-2');
     const v2Manifest = writeArtifact(
       v2Root,
       'authority/manifest.json',
-      JSON.stringify({ releaseId: 'ctr:release:eng-v2', snapshotId: 'snap-eng-2' }),
+      JSON.stringify({
+        releaseId: 'ctr:release:eng-v2',
+        snapshotId: 'snap-eng-2',
+        snapshotHash: v2SnapshotHash,
+        captureRevision: commitA,
+      }),
     );
     const v2Engineering = writeArtifact(
       v2Root,
@@ -706,7 +696,12 @@ describe('Staged activation and atomic pointer (#1276)', () => {
     const v2ProjManifest = writeArtifact(
       v2Root,
       'projection/projection-manifest.json',
-      JSON.stringify({ projectionId: 'proj-2' }),
+      JSON.stringify({
+        projectionId: 'proj-2',
+        projectionHash: v2ProjectionHash,
+        authorityReleaseId: 'ctr:release:eng-v2',
+        captureRevision: commitA,
+      }),
     );
     const v2Resources = writeArtifact(v2Root, 'projection/resources.jsonl', '{"resourceId":"r2"}\n');
     const v2Bindings = writeArtifact(v2Root, 'projection/bindings.jsonl', '{"bindingId":"b2"}\n');
@@ -727,7 +722,7 @@ describe('Staged activation and atomic pointer (#1276)', () => {
         present: true,
         releaseId: 'ctr:release:eng-v2',
         snapshotId: 'snap-eng-2',
-        snapshotHash: sha256('snap-eng-2'),
+        snapshotHash: v2SnapshotHash,
         captureRevision: commitA,
         artifactHashes: {
           'manifest.json': v2Manifest.hash,
@@ -741,7 +736,7 @@ describe('Staged activation and atomic pointer (#1276)', () => {
       projection: {
         present: true,
         projectionId: 'proj-2',
-        projectionHash: v2ProjManifest.hash,
+        projectionHash: v2ProjectionHash,
         authorityReleaseId: 'ctr:release:eng-v2',
         captureRevision: commitA,
         gatePassed: true,

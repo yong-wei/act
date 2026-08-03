@@ -262,26 +262,35 @@ export function applyEngineeringRagConsumerActivation(
     repoRoot?: string;
     activationSelection?: ConsumerProductionSelection;
   } = {},
-): EngineeringRagQueryInput & { activationMode: ConsumerProductionSelection['mode'] } {
+): EngineeringRagQueryInput & {
+  activationMode: ConsumerProductionSelection['mode'];
+  activationBlocked?: boolean;
+  activationReasons?: string[];
+} {
   const selection =
     options.activationSelection
     ?? resolveEngineeringRagProductionSelection({ repoRoot: options.repoRoot });
   const pins = projectionPinsFromSelection(selection);
-  if (selection.mode === 'absent' || selection.mode === 'unavailable') {
+  if (selection.mode === 'absent') {
     return { ...query, activationMode: selection.mode };
   }
-  // Activation selection wins when the caller did not pin a specific release,
-  // or when the activation is a production pin that must override drift.
-  const authorityReleaseId =
-    selection.mode === 'use-combination' || selection.mode === 'pin-combination'
-      ? (pins.authorityReleaseId ?? query.authorityReleaseId)
-      : query.authorityReleaseId;
+  if (selection.mode === 'unavailable') {
+    // Fail closed: strip identity so the query cannot succeed on global data.
+    return {
+      ...query,
+      authorityReleaseId: null,
+      activationMode: selection.mode,
+      activationBlocked: true,
+      activationReasons: selection.reasons,
+    };
+  }
+  // Activation selection forces the consumer combination (caller cannot keep
+  // a different production release when pin/use is active).
+  const authorityReleaseId = pins.authorityReleaseId ?? null;
   const mode =
     selection.mode === 'pin-combination'
       ? (query.mode === 'shadow' ? 'shadow' : 'pinned')
-      : selection.mode === 'use-combination'
-        ? (query.mode ?? 'production')
-        : query.mode;
+      : (query.mode ?? 'production');
   return {
     ...query,
     authorityReleaseId,
@@ -301,6 +310,8 @@ export function applyTeachingResourceRagConsumerActivation(
   } = {},
 ): TeachingResourceRagQueryInput & {
   activationMode: ConsumerProductionSelection['mode'];
+  activationBlocked?: boolean;
+  activationReasons?: string[];
 } {
   const selection =
     options.activationSelection
@@ -308,20 +319,29 @@ export function applyTeachingResourceRagConsumerActivation(
       repoRoot: options.repoRoot,
     });
   const pins = projectionPinsFromSelection(selection);
-  if (selection.mode === 'absent' || selection.mode === 'unavailable') {
+  if (selection.mode === 'absent') {
     return { ...query, activationMode: selection.mode };
+  }
+  if (selection.mode === 'unavailable') {
+    return {
+      ...query,
+      projectionId: null,
+      projectionHash: null,
+      authorityReleaseId: null,
+      activationMode: selection.mode,
+      activationBlocked: true,
+      activationReasons: selection.reasons,
+    };
   }
   return {
     ...query,
-    projectionId: pins.projectionId ?? query.projectionId,
-    projectionHash: pins.projectionHash ?? query.projectionHash ?? null,
-    authorityReleaseId: pins.authorityReleaseId ?? query.authorityReleaseId ?? null,
+    projectionId: pins.projectionId ?? null,
+    projectionHash: pins.projectionHash ?? null,
+    authorityReleaseId: pins.authorityReleaseId ?? null,
     mode:
       selection.mode === 'pin-combination'
         ? (query.mode === 'shadow' ? 'shadow' : 'pinned')
-        : selection.mode === 'use-combination'
-          ? (query.mode ?? 'production')
-          : query.mode,
+        : (query.mode ?? 'production'),
     activationMode: selection.mode,
   };
 }
@@ -342,6 +362,12 @@ export function runEngineeringRagQuery(input: {
     activationSelection: input.activationSelection,
   });
   const { corpus } = input;
+  if (query.activationBlocked) {
+    return unavailableEngineering(query, [
+      'consumer-activation-unavailable',
+      ...(query.activationReasons ?? []),
+    ]);
+  }
   if (!query.authorityReleaseId) {
     return unavailableEngineering(query, ['engineering-authority-missing']);
   }
@@ -459,6 +485,12 @@ export function runTeachingResourceRagQuery(input: {
     activationSelection: input.activationSelection,
   });
   const { corpus } = input;
+  if (query.activationBlocked) {
+    return unavailableTeaching(query, [
+      'consumer-activation-unavailable',
+      ...(query.activationReasons ?? []),
+    ]);
+  }
   if (!corpus) {
     return unavailableTeaching(query, ['teaching-corpus-missing']);
   }

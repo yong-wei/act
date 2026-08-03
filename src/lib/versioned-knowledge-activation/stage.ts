@@ -156,6 +156,150 @@ function rehashDeclaredArtifacts(
   return reasons;
 }
 
+function readJsonObject(
+  filePath: string | undefined,
+): { ok: true; value: Record<string, unknown> } | { ok: false; reason: string } {
+  if (!filePath || !existsSync(filePath)) {
+    return { ok: false, reason: 'file-missing' };
+  }
+  try {
+    const value = JSON.parse(readFileSync(filePath, 'utf8')) as unknown;
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return { ok: false, reason: 'not-object' };
+    }
+    return { ok: true, value: value as Record<string, unknown> };
+  } catch {
+    return { ok: false, reason: 'unreadable' };
+  }
+}
+
+function asString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+/**
+ * After byte rehash, bind real Authority/Projection manifests to the declared
+ * combination identity (snapshot/projection/release/capture). Prevents pairing
+ * valid digests of unrelated captures with invented combination ids.
+ */
+export function validateArtifactIdentityBinding(
+  artifacts: StagedActivationArtifactSet,
+): string[] {
+  const reasons: string[] = [];
+  const authority = artifacts.authority;
+  if (authority?.present) {
+    const manifestPath = authority.artifactPaths?.['manifest.json'];
+    const parsed = readJsonObject(manifestPath);
+    if (!parsed.ok) {
+      reasons.push(`authority-manifest-${parsed.reason}`);
+    } else {
+      const body = parsed.value;
+      const snapshotId =
+        asString(body.snapshotId) ?? asString(body.authoritySnapshotId);
+      const releaseId =
+        asString(body.releaseId) ?? asString(body.authorityReleaseId);
+      const snapshotHash =
+        asString(body.snapshotHash) ?? asString(body.authoritySnapshotHash);
+      const captureRevision =
+        asString(body.captureRevision) ?? asString(body.gitRevision);
+
+      if (authority.snapshotId && snapshotId && authority.snapshotId !== snapshotId) {
+        reasons.push('authority-manifest-snapshot-id-mismatch');
+      }
+      if (authority.releaseId && releaseId && authority.releaseId !== releaseId) {
+        reasons.push('authority-manifest-release-id-mismatch');
+      }
+      if (
+        authority.snapshotHash
+        && snapshotHash
+        && authority.snapshotHash !== snapshotHash
+      ) {
+        reasons.push('authority-manifest-snapshot-hash-mismatch');
+      }
+      if (
+        authority.captureRevision
+        && captureRevision
+        && authority.captureRevision !== captureRevision
+      ) {
+        reasons.push('authority-manifest-capture-revision-mismatch');
+      }
+      if (
+        artifacts.captureRevision
+        && captureRevision
+        && artifacts.captureRevision !== captureRevision
+      ) {
+        reasons.push('authority-manifest-shared-capture-mismatch');
+      }
+      // Require at least snapshot + release identity fields in the real file.
+      if (!snapshotId) reasons.push('authority-manifest-snapshot-id-absent');
+      if (!releaseId) reasons.push('authority-manifest-release-id-absent');
+    }
+  }
+
+  const projection = artifacts.projection;
+  if (projection?.present) {
+    const manifestPath = projection.artifactPaths?.['projection-manifest.json'];
+    const parsed = readJsonObject(manifestPath);
+    if (!parsed.ok) {
+      reasons.push(`projection-manifest-${parsed.reason}`);
+    } else {
+      const body = parsed.value;
+      const projectionId = asString(body.projectionId);
+      const projectionHash = asString(body.projectionHash);
+      const authorityReleaseId = asString(body.authorityReleaseId);
+      const captureRevision =
+        asString(body.captureRevision) ?? asString(body.gitRevision);
+
+      if (
+        projection.projectionId
+        && projectionId
+        && projection.projectionId !== projectionId
+      ) {
+        reasons.push('projection-manifest-id-mismatch');
+      }
+      if (
+        projection.projectionHash
+        && projectionHash
+        && projection.projectionHash !== projectionHash
+      ) {
+        reasons.push('projection-manifest-hash-mismatch');
+      }
+      if (
+        projection.authorityReleaseId
+        && authorityReleaseId
+        && projection.authorityReleaseId !== authorityReleaseId
+      ) {
+        reasons.push('projection-manifest-authority-release-mismatch');
+      }
+      if (
+        projection.captureRevision
+        && captureRevision
+        && projection.captureRevision !== captureRevision
+      ) {
+        reasons.push('projection-manifest-capture-revision-mismatch');
+      }
+      if (
+        artifacts.captureRevision
+        && captureRevision
+        && artifacts.captureRevision !== captureRevision
+      ) {
+        reasons.push('projection-manifest-shared-capture-mismatch');
+      }
+      if (
+        artifacts.authority?.present
+        && artifacts.authority.releaseId
+        && authorityReleaseId
+        && artifacts.authority.releaseId !== authorityReleaseId
+      ) {
+        reasons.push('projection-manifest-authority-release-cross-mismatch');
+      }
+      if (!projectionId) reasons.push('projection-manifest-id-absent');
+    }
+  }
+
+  return reasons;
+}
+
 export function validateArtifactFileDigests(
   artifacts: StagedActivationArtifactSet,
 ): string[] {
@@ -197,6 +341,10 @@ export function validateArtifactFileDigests(
       ),
     );
   }
+
+  // Identity binding only makes sense after files exist/rehash; still always
+  // run so missing/mismatched manifests fail closed.
+  reasons.push(...validateArtifactIdentityBinding(artifacts));
 
   return reasons;
 }

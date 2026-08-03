@@ -453,11 +453,23 @@ export function applyLearningPathConsumerActivation(
     options.activationSelection
     ?? resolveLearningPathProductionSelection({ repoRoot: options.repoRoot });
   const pins = projectionPinsFromSelection(selection);
-  if (selection.mode === 'absent' || selection.mode === 'unavailable') {
+  if (selection.mode === 'absent') {
     return {
       projection,
       activationMode: selection.mode,
       reasons: selection.reasons,
+    };
+  }
+  if (selection.mode === 'unavailable') {
+    // Fail closed: clear projection identity so the planner cannot execute
+    // against a global/caller combination while activation evidence is bad.
+    return {
+      projection: null,
+      activationMode: selection.mode,
+      reasons: [
+        'learning-path-activation-unavailable',
+        ...selection.reasons,
+      ],
     };
   }
   if (!pins.projectionId || !pins.authorityReleaseId) {
@@ -470,49 +482,26 @@ export function applyLearningPathConsumerActivation(
       ],
     };
   }
-  if (!projection) {
-    return {
-      projection: {
-        authorityReleaseId: pins.authorityReleaseId,
-        projectionId: pins.projectionId,
-        projectionHash: pins.projectionHash,
-        scopeId: selection.combination?.scopeId ?? 'unscoped',
-      },
-      activationMode: selection.mode,
-      reasons: [...selection.reasons, 'learning-path-activation-applied'],
-    };
-  }
-  // Fail closed on identity drift between caller and activation selection.
-  if (
-    projection.projectionId
-    && pins.projectionId
-    && projection.projectionId !== pins.projectionId
-    && (selection.mode === 'use-combination' || selection.mode === 'pin-combination')
-  ) {
-    // Prefer activation combination for production consistency.
-    return {
-      projection: {
-        ...projection,
-        authorityReleaseId: pins.authorityReleaseId,
-        projectionId: pins.projectionId,
-        projectionHash: pins.projectionHash ?? projection.projectionHash,
-      },
-      activationMode: selection.mode,
-      reasons: [
-        ...selection.reasons,
-        'learning-path-activation-overrides-caller-projection',
-      ],
-    };
-  }
+  // Force activation combination for both READY and pinned/shadow/blocked.
   return {
     projection: {
-      ...projection,
-      authorityReleaseId: pins.authorityReleaseId ?? projection.authorityReleaseId,
-      projectionId: pins.projectionId ?? projection.projectionId,
-      projectionHash: pins.projectionHash ?? projection.projectionHash,
+      authorityReleaseId: pins.authorityReleaseId,
+      projectionId: pins.projectionId,
+      projectionHash: pins.projectionHash,
+      scopeId:
+        selection.combination?.scopeId
+        ?? projection?.scopeId
+        ?? 'unscoped',
+      prerequisitePublicationId: projection?.prerequisitePublicationId,
+      prerequisiteGraphIdentity: projection?.prerequisiteGraphIdentity,
     },
     activationMode: selection.mode,
-    reasons: [...selection.reasons, 'learning-path-activation-merged'],
+    reasons: [
+      ...selection.reasons,
+      selection.mode === 'pin-combination'
+        ? 'learning-path-activation-forced-pin'
+        : 'learning-path-activation-forced-combination',
+    ],
   };
 }
 

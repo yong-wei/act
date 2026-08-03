@@ -240,22 +240,46 @@ export function resolveKonlingTeachingProjectionBinding(input: {
   // the activation pointer so replacing current.json changes Konling reads.
   const konlingActivation = resolveKonlingProductionSelection({ repoRoot });
   const konlingPins = projectionPinsFromSelection(konlingActivation);
-  let pinnedProjectionId = input.pinnedProjectionId;
-  let pinnedProjectionHash = input.pinnedProjectionHash;
+
+  if (konlingActivation.mode === 'unavailable') {
+    return {
+      payload: null,
+      scope,
+      permittedScopeIds: scope.scopeId ? [scope.scopeId] : [],
+      authorized,
+      source: 'resolve-failed',
+      authorityRoot,
+      projectionRoot,
+      reasons: [
+        'konling-activation-unavailable',
+        ...konlingActivation.reasons,
+      ],
+    };
+  }
+
+  let pinnedProjectionId = input.pinnedProjectionId ?? null;
+  let pinnedProjectionHash = input.pinnedProjectionHash ?? null;
   let candidateProjectionId = input.candidateProjectionId ?? null;
   let authoritySnapshotId: string | null = null;
   let authoritySnapshotHash: string | null = null;
   let authorityReleaseId: string | null = null;
-  if (
-    konlingActivation.mode === 'use-combination'
-    || konlingActivation.mode === 'pin-combination'
-  ) {
+
+  if (konlingActivation.mode === 'use-combination') {
+    // Force selected combination; do not let caller override READY pins.
     if (konlingPins.projectionId) {
-      if (konlingActivation.mode === 'use-combination') {
-        candidateProjectionId = candidateProjectionId ?? konlingPins.projectionId;
-      }
-      pinnedProjectionId = pinnedProjectionId ?? konlingPins.projectionId;
-      pinnedProjectionHash = pinnedProjectionHash ?? konlingPins.projectionHash;
+      candidateProjectionId = konlingPins.projectionId;
+      pinnedProjectionId = konlingPins.projectionId;
+      pinnedProjectionHash = konlingPins.projectionHash;
+    }
+    authoritySnapshotId = konlingPins.authoritySnapshotId;
+    authoritySnapshotHash = konlingPins.authoritySnapshotHash;
+    authorityReleaseId = konlingPins.authorityReleaseId;
+  } else if (konlingActivation.mode === 'pin-combination') {
+    // Force prior combination; clear candidates and ignore caller projection.
+    candidateProjectionId = null;
+    if (konlingPins.projectionId) {
+      pinnedProjectionId = konlingPins.projectionId;
+      pinnedProjectionHash = konlingPins.projectionHash;
     }
     authoritySnapshotId = konlingPins.authoritySnapshotId;
     authoritySnapshotHash = konlingPins.authoritySnapshotHash;
