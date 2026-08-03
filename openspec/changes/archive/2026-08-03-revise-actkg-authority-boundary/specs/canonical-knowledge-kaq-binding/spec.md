@@ -8,6 +8,11 @@ ActKG MUST remain the authority for engineering entities and engineering relatio
 - **THEN** the system SHALL not infer teaching relations from engineering predicates or CourseCoverage
 - **AND** scoped reviewed ACT/KAQ teaching relations MAY remain available under their existing authority
 
+#### Scenario: Teaching relation conflicts with KAQ
+- **WHEN** a released ACT Teaching Projection relation conflicts with an active KAQ knowledge-to-knowledge relation
+- **THEN** the system SHALL require one-time review and retire the corresponding KAQ relation after ACT acceptance of the projection edge
+- **AND** ActKG engineering relations SHALL remain unchanged by that teaching conflict
+
 #### Scenario: Teaching Projection is released
 - **WHEN** a versioned ACT Teaching Projection is published with an explicit consumer scope
 - **THEN** only its contained teaching relations SHALL supersede the corresponding scoped fallback
@@ -15,6 +20,14 @@ ActKG MUST remain the authority for engineering entities and engineering relatio
 
 ### Requirement: Canonical KAQ bindings remain shadow before cutover
 KAQ and teaching consumers SHALL retain their existing Legacy or pinned combination until their own ACT Teaching Projection, resource binding, and consumer readiness gates pass. Engineering Authority activation alone SHALL NOT switch KAQ selectors.
+
+#### Scenario: Reviewed Canonical bindings exist before cutover
+- **WHEN** KAQ roles have complete reviewed Canonical bindings but the consumer's Teaching Projection or readiness gate has not passed
+- **THEN** formal diagnosis, recommendation, and planning consumers SHALL continue using Legacy or an explicit pinned prior combination while Canonical bindings remain migration-review data
+
+#### Scenario: Final selector activates
+- **WHEN** the consumer's own Teaching Projection, resource binding, and readiness gates pass in the later activation transaction
+- **THEN** active KAQ roles SHALL resolve only through reviewed Canonical bindings and the explicit teaching relations owned by that projection
 
 #### Scenario: Engineering Authority activates first
 - **WHEN** ActKG Authority is `ACTIVE` but a KAQ/teaching projection is absent or unresolved
