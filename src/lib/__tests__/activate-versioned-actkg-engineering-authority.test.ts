@@ -1,11 +1,13 @@
 import {
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
   existsSync,
   mkdirSync,
   renameSync,
+  chmodSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -31,6 +33,7 @@ import {
   resolveEngineeringRagAuthority,
   rollbackAuthorityPointer,
   authorityStoreFs,
+  shouldStageAuthorityAfterDelta,
   stageAuthorityAfterValidatedBundleImport,
   stageAuthoritySnapshot,
   stagedSnapshotNormalizedBytes,
@@ -922,5 +925,62 @@ describe('Codex review remediation (#1279)', () => {
         rmSync(parked, { recursive: true, force: true });
       }
     }
+  });
+
+  it('fails closed when current pointer lacks a matching activation receipt', () => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    // Forge a pointer without writing an activation receipt.
+    writeFileSync(
+      paths.currentPointer,
+      `${JSON.stringify({
+        contract: 'actkg-engineering-authority-current/v1',
+        snapshotId: staged.snapshotId,
+        snapshotHash: staged.snapshotHash,
+        releaseId: staged.manifest.releaseId,
+        releaseSetId: staged.manifest.releaseSetId,
+        activationReceiptId: 'activation-missing-receipt',
+        activatedAt: new Date().toISOString(),
+      }, null, 2)}\n`,
+    );
+    const resolved = resolveActiveAuthoritySnapshot(paths);
+    expect(resolved.status).toBe('unavailable');
+    if (resolved.status === 'unavailable') {
+      expect(resolved.detail).toMatch(/no matching activation\/rollback receipt/);
+    }
+  });
+
+  it('does not replace the pointer when activation receipt write fails first', () => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    // Make activations directory non-writable so receipt write fails before pointer replace.
+    chmodSync(paths.activationsDir, 0o555);
+    try {
+      const result = activateAuthoritySnapshot(paths, { snapshotId: staged.snapshotId });
+      expect(result.status).toBe('failed');
+      expect(result.receipt.reasons.some((r) => r.includes('activation-receipt-write-failed'))).toBe(true);
+      expect(result.receipt.reasons).toContain('prior-pointer-untouched');
+      expect(readCurrentAuthorityPointer(paths)).toBeNull();
+    } finally {
+      chmodSync(paths.activationsDir, 0o755);
+    }
+  });
+
+  it('stages after validated import only when Delta authorization is ACCEPTED', () => {
+    // Gate used by the real import script: rejected Delta must not stage.
+    expect(shouldStageAuthorityAfterDelta('ACCEPTED')).toBe(true);
+    expect(shouldStageAuthorityAfterDelta('REJECTED_UPSTREAM')).toBe(false);
+    expect(shouldStageAuthorityAfterDelta('REJECTED_IDENTITY')).toBe(false);
+
+    const paths = tempAuthorityRoot();
+    if (shouldStageAuthorityAfterDelta('REJECTED_UPSTREAM')) {
+      stageAuthorityAfterValidatedBundleImport({
+        paths,
+        repositorySnapshot: baseSnapshot(),
+        deltaReceiptIds: ['delta-rejected'],
+      });
+    }
+    expect(readCurrentAuthorityPointer(paths)).toBeNull();
+    expect(existsSync(paths.releasesDir) ? readdirSync(paths.releasesDir) : []).toEqual([]);
   });
 });

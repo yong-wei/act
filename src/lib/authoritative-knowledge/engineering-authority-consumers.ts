@@ -103,6 +103,14 @@ export function resolveEngineeringRagAuthority(
  * Stage from a Repository candidate snapshot without activation.
  * Import/stage remains selector-neutral.
  */
+/**
+ * Import-path gate: only ACCEPTED ReleaseSet Delta receipts may produce a
+ * staged Authority Snapshot eligible for later activation (#1266 review).
+ */
+export function shouldStageAuthorityAfterDelta(authorizationState: string): boolean {
+  return authorizationState === 'ACCEPTED';
+}
+
 export function stageAuthorityFromRepositorySnapshot(
   paths: AuthorityStorePaths,
   input: MaterializeAuthoritySnapshotInput,

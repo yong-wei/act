@@ -423,6 +423,57 @@ export function resolveActiveAuthoritySnapshot(
         detail: 'manifest digest mismatch',
       };
     }
+    // Visible active Authority must bind a persisted activation/rollback receipt.
+    // Missing or mismatched receipts fail closed so Graph/RAG never observe a
+    // pointer that lacks an auditable success receipt.
+    if (!pointer.activationReceiptId) {
+      return {
+        status: 'unavailable',
+        reason: 'active-pointer-unavailable',
+        detail: 'current pointer missing activationReceiptId',
+      };
+    }
+    const activationPath = join(
+      paths.activationsDir,
+      `${pointer.activationReceiptId}.json`,
+    );
+    const rollbackPath = join(
+      paths.rollbacksDir,
+      `${pointer.activationReceiptId}.json`,
+    );
+    let receiptOk = false;
+    if (existsSync(activationPath)) {
+      try {
+        const activation = readJsonFile<AuthorityActivationReceipt>(activationPath);
+        receiptOk = (
+          activation.receiptId === pointer.activationReceiptId
+          && activation.status === 'activated'
+          && activation.snapshotId === pointer.snapshotId
+          && activation.snapshotHash === pointer.snapshotHash
+        );
+      } catch {
+        receiptOk = false;
+      }
+    } else if (existsSync(rollbackPath)) {
+      try {
+        const rollback = readJsonFile<AuthorityRollbackReceipt>(rollbackPath);
+        receiptOk = (
+          rollback.receiptId === pointer.activationReceiptId
+          && rollback.status === 'rolled-back'
+          && rollback.toSnapshotId === pointer.snapshotId
+          && rollback.toSnapshotHash === pointer.snapshotHash
+        );
+      } catch {
+        receiptOk = false;
+      }
+    }
+    if (!receiptOk) {
+      return {
+        status: 'unavailable',
+        reason: 'active-pointer-unavailable',
+        detail: 'current pointer has no matching activation/rollback receipt',
+      };
+    }
     return { status: 'available', pointer, snapshot };
   } catch (error) {
     return {
@@ -534,73 +585,6 @@ export function activateAuthoritySnapshot(
     });
   }
 
-  const pointer: AuthorityCurrentPointer = {
-    contract: AUTHORITY_CURRENT_POINTER_CONTRACT,
-    snapshotId: staged.snapshotId,
-    snapshotHash: staged.snapshotHash,
-    releaseId: staged.manifest.releaseId,
-    releaseSetId: staged.manifest.releaseSetId,
-    activationReceiptId,
-    activatedAt,
-  };
-
-  try {
-    atomicWriteFile(
-      paths.currentPointer,
-      `${JSON.stringify(pointer, null, 2)}\n`,
-    );
-  } catch (error) {
-    return failActivation({
-      paths,
-      activationReceiptId,
-      snapshotId: staged.snapshotId,
-      snapshotHash: staged.snapshotHash,
-      previous,
-      activatedAt,
-      teachingBefore,
-      reasons: [
-        'pointer-write-failed',
-        error instanceof Error ? error.message : 'pointer write failed',
-      ],
-    });
-  }
-
-  // Post-write verification: pointer must re-resolve to the same digest.
-  const resolved = resolveActiveAuthoritySnapshot(paths);
-  if (
-    resolved.status !== 'available'
-    || resolved.pointer.snapshotId !== staged.snapshotId
-    || resolved.pointer.snapshotHash !== staged.snapshotHash
-  ) {
-    // Attempt to restore previous pointer if we still have it.
-    if (previous) {
-      try {
-        atomicWriteFile(
-          paths.currentPointer,
-          `${JSON.stringify(previous, null, 2)}\n`,
-        );
-      } catch {
-        // leave failed state for operator intervention
-      }
-    } else if (existsSync(paths.currentPointer)) {
-      try {
-        rmSync(paths.currentPointer);
-      } catch {
-        // ignore
-      }
-    }
-    return failActivation({
-      paths,
-      activationReceiptId,
-      snapshotId: staged.snapshotId,
-      snapshotHash: staged.snapshotHash,
-      previous,
-      activatedAt,
-      teachingBefore,
-      reasons: ['post-activation-pointer-mismatch'],
-    });
-  }
-
   const teachingAfter = teachingBefore;
   if (!teachingSelectorsEqual(teachingBefore, teachingAfter)) {
     // Defensive: fingerprints are caller-supplied and immutable in this path.
@@ -615,6 +599,16 @@ export function activateAuthoritySnapshot(
       reasons: ['teaching-selector-drift'],
     });
   }
+
+  const pointer: AuthorityCurrentPointer = {
+    contract: AUTHORITY_CURRENT_POINTER_CONTRACT,
+    snapshotId: staged.snapshotId,
+    snapshotHash: staged.snapshotHash,
+    releaseId: staged.manifest.releaseId,
+    releaseSetId: staged.manifest.releaseSetId,
+    activationReceiptId,
+    activatedAt,
+  };
 
   const receipt: AuthorityActivationReceipt = {
     contract: AUTHORITY_ACTIVATION_RECEIPT_CONTRACT,
@@ -639,23 +633,12 @@ export function activateAuthoritySnapshot(
     ],
   };
 
-  // Visible current pointer must always bind a persisted activation receipt.
-  // If receipt write fails after pointer replace, restore the prior pointer.
+  // Transaction protocol: persist the activation receipt BEFORE replacing the
+  // current pointer. If receipt write fails, the prior pointer remains
+  // untouched. resolveActiveAuthoritySnapshot requires a matching receipt.
   try {
     writeJsonAtomic(join(paths.activationsDir, `${activationReceiptId}.json`), receipt);
   } catch (error) {
-    try {
-      if (previous) {
-        atomicWriteFile(
-          paths.currentPointer,
-          `${JSON.stringify(previous, null, 2)}\n`,
-        );
-      } else if (existsSync(paths.currentPointer)) {
-        rmSync(paths.currentPointer);
-      }
-    } catch {
-      // restore failure leaves an operator-visible inconsistent state
-    }
     return failActivation({
       paths,
       activationReceiptId,
@@ -667,7 +650,65 @@ export function activateAuthoritySnapshot(
       reasons: [
         'activation-receipt-write-failed',
         error instanceof Error ? error.message : 'activation receipt write failed',
-        'pointer-restored-to-prior',
+        'prior-pointer-untouched',
+      ],
+    });
+  }
+
+  try {
+    atomicWriteFile(paths.currentPointer, `${JSON.stringify(pointer, null, 2)}\n`);
+  } catch (error) {
+    // Receipt exists but pointer still points at prior Authority — safe fail closed.
+    return failActivation({
+      paths,
+      activationReceiptId,
+      snapshotId: staged.snapshotId,
+      snapshotHash: staged.snapshotHash,
+      previous,
+      activatedAt,
+      teachingBefore,
+      reasons: [
+        'pointer-write-failed-after-receipt',
+        error instanceof Error ? error.message : 'pointer write failed',
+        'prior-pointer-untouched',
+      ],
+    });
+  }
+
+  // Post-write verification: pointer must re-resolve to the same digest and
+  // bind the just-written activation receipt.
+  const resolved = resolveActiveAuthoritySnapshot(paths);
+  if (
+    resolved.status !== 'available'
+    || resolved.pointer.snapshotId !== staged.snapshotId
+    || resolved.pointer.snapshotHash !== staged.snapshotHash
+    || resolved.pointer.activationReceiptId !== activationReceiptId
+  ) {
+    // Restore prior pointer; if restore fails, readers fail closed without receipt match.
+    let restoreFailed = false;
+    try {
+      if (previous) {
+        atomicWriteFile(
+          paths.currentPointer,
+          `${JSON.stringify(previous, null, 2)}\n`,
+        );
+      } else if (existsSync(paths.currentPointer)) {
+        rmSync(paths.currentPointer);
+      }
+    } catch {
+      restoreFailed = true;
+    }
+    return failActivation({
+      paths,
+      activationReceiptId,
+      snapshotId: staged.snapshotId,
+      snapshotHash: staged.snapshotHash,
+      previous,
+      activatedAt,
+      teachingBefore,
+      reasons: [
+        'post-activation-pointer-mismatch',
+        restoreFailed ? 'prior-pointer-restore-failed' : 'prior-pointer-restored',
       ],
     });
   }
@@ -826,6 +867,40 @@ export function rollbackAuthorityPointer(
     preservedAt: rolledBackAt,
   });
 
+  const receipt: AuthorityRollbackReceipt = {
+    contract: AUTHORITY_ROLLBACK_RECEIPT_CONTRACT,
+    receiptId: rollbackReceiptId,
+    fromSnapshotId: current.snapshotId,
+    fromSnapshotHash: current.snapshotHash,
+    toSnapshotId: target.snapshotId,
+    toSnapshotHash: target.snapshotHash,
+    rolledBackAt,
+    status: 'rolled-back',
+    priorSnapshotPreserved: true,
+    reasons: ['one-pointer-rollback', 'prior-snapshot-immutable'],
+  };
+
+  // Transaction protocol: write rollback receipt before pointer replace so a
+  // receipt failure leaves the prior pointer untouched.
+  try {
+    writeJsonAtomic(join(paths.rollbacksDir, `${rollbackReceiptId}.json`), receipt);
+  } catch (error) {
+    return failRollback({
+      paths,
+      rollbackReceiptId,
+      fromSnapshotId: current.snapshotId,
+      fromSnapshotHash: current.snapshotHash,
+      toSnapshotId: target.snapshotId,
+      toSnapshotHash: target.snapshotHash,
+      rolledBackAt,
+      reasons: [
+        'rollback-receipt-write-failed',
+        error instanceof Error ? error.message : 'rollback receipt write failed',
+        'prior-pointer-untouched',
+      ],
+    });
+  }
+
   try {
     atomicWriteFile(paths.currentPointer, `${JSON.stringify(pointer, null, 2)}\n`);
   } catch (error) {
@@ -840,6 +915,7 @@ export function rollbackAuthorityPointer(
       reasons: [
         'rollback-pointer-write-failed',
         error instanceof Error ? error.message : 'pointer write failed',
+        'prior-pointer-untouched',
       ],
     });
   }
@@ -850,45 +926,11 @@ export function rollbackAuthorityPointer(
     || resolved.pointer.snapshotId !== target.snapshotId
     || resolved.pointer.snapshotHash !== target.snapshotHash
   ) {
+    let restoreFailed = false;
     try {
       atomicWriteFile(paths.currentPointer, `${JSON.stringify(current, null, 2)}\n`);
     } catch {
-      // ignore restore failure
-    }
-    return failRollback({
-      paths,
-      rollbackReceiptId,
-      fromSnapshotId: current.snapshotId,
-      fromSnapshotHash: current.snapshotHash,
-      toSnapshotId: target.snapshotId,
-      toSnapshotHash: target.snapshotHash,
-      rolledBackAt,
-      reasons: ['post-rollback-pointer-mismatch'],
-    });
-  }
-
-  const receipt: AuthorityRollbackReceipt = {
-    contract: AUTHORITY_ROLLBACK_RECEIPT_CONTRACT,
-    receiptId: rollbackReceiptId,
-    fromSnapshotId: current.snapshotId,
-    fromSnapshotHash: current.snapshotHash,
-    toSnapshotId: target.snapshotId,
-    toSnapshotHash: target.snapshotHash,
-    rolledBackAt,
-    status: 'rolled-back',
-    priorSnapshotPreserved: true,
-    reasons: ['one-pointer-rollback', 'prior-snapshot-immutable'],
-  };
-
-  // Pointer must always bind a persisted rollback receipt. Restore prior
-  // pointer if receipt persistence fails after the pointer replace.
-  try {
-    writeJsonAtomic(join(paths.rollbacksDir, `${rollbackReceiptId}.json`), receipt);
-  } catch (error) {
-    try {
-      atomicWriteFile(paths.currentPointer, `${JSON.stringify(current, null, 2)}\n`);
-    } catch {
-      // restore failure leaves an operator-visible inconsistent state
+      restoreFailed = true;
     }
     return failRollback({
       paths,
@@ -899,9 +941,8 @@ export function rollbackAuthorityPointer(
       toSnapshotHash: target.snapshotHash,
       rolledBackAt,
       reasons: [
-        'rollback-receipt-write-failed',
-        error instanceof Error ? error.message : 'rollback receipt write failed',
-        'pointer-restored-to-prior',
+        'post-rollback-pointer-mismatch',
+        restoreFailed ? 'prior-pointer-restore-failed' : 'prior-pointer-restored',
       ],
     });
   }

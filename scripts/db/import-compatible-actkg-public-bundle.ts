@@ -8,6 +8,7 @@ import {
   AuthoritativeKnowledgeRepository,
   DEFAULT_AUTHORITY_ROOT_RELATIVE,
   resolveAuthorityStorePaths,
+  shouldStageAuthorityAfterDelta,
   stageAuthorityAfterValidatedBundleImport,
   type AuthoritativeKnowledgeDatabase,
 } from '../../src/lib/authoritative-knowledge';
@@ -149,32 +150,45 @@ async function main(): Promise<void> {
       expectedCaptureRevision: captureRevision ?? validated.captureRevision,
     });
 
-    // After successful DB import + Repository validation + Delta, stage the
-    // immutable Authority Snapshot. Import never activates the current pointer.
+    // After successful DB import + Repository validation + ACCEPTED Delta only,
+    // stage the immutable Authority Snapshot. Rejected Delta receipts must not
+    // produce an activatable snapshot. Import never activates the current pointer.
     let authorityStage: {
       snapshotId: string;
       snapshotHash: string;
       reused: boolean;
       releaseDir: string;
       pointerUnchanged: true;
+      skippedReason?: string;
     } | null = null;
     if (!verifyOnly && result.status === 'available') {
-      const authorityPaths = resolveAuthorityStorePaths(
-        path.resolve(root, DEFAULT_AUTHORITY_ROOT_RELATIVE),
-      );
-      const staged = stageAuthorityAfterValidatedBundleImport({
-        paths: authorityPaths,
-        repositorySnapshot: result.snapshot,
-        deltaReceiptIds: [delta.persisted.receiptId],
-        captureRevision: captureRevision ?? validated.captureRevision,
-      });
-      authorityStage = {
-        snapshotId: staged.snapshotId,
-        snapshotHash: staged.snapshotHash,
-        reused: staged.reused,
-        releaseDir: path.join(authorityPaths.releasesDir, staged.snapshotId),
-        pointerUnchanged: true,
-      };
+      if (!shouldStageAuthorityAfterDelta(delta.computed.authorizationState)) {
+        authorityStage = {
+          snapshotId: '',
+          snapshotHash: '',
+          reused: false,
+          releaseDir: '',
+          pointerUnchanged: true,
+          skippedReason: `delta-not-accepted:${delta.computed.authorizationState}`,
+        };
+      } else {
+        const authorityPaths = resolveAuthorityStorePaths(
+          path.resolve(root, DEFAULT_AUTHORITY_ROOT_RELATIVE),
+        );
+        const staged = stageAuthorityAfterValidatedBundleImport({
+          paths: authorityPaths,
+          repositorySnapshot: result.snapshot,
+          deltaReceiptIds: [delta.persisted.receiptId],
+          captureRevision: captureRevision ?? validated.captureRevision,
+        });
+        authorityStage = {
+          snapshotId: staged.snapshotId,
+          snapshotHash: staged.snapshotHash,
+          reused: staged.reused,
+          releaseDir: path.join(authorityPaths.releasesDir, staged.snapshotId),
+          pointerUnchanged: true,
+        };
+      }
     }
 
     console.log(JSON.stringify({
