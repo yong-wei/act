@@ -19,6 +19,7 @@ import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
   buildKonlingCitationRetrievalSources,
+  buildKonlingDualDomainProvenanceMetadataPayload,
   buildKonlingRuntimeContext,
   buildKonlingSarAssociatedGroundingMetadataPayload,
   buildKonlingTeachingAssistantRuntimeContract,
@@ -477,6 +478,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
       modeContract.groundingContext.sarAssociatedGrounding,
     );
+    const dualDomainProvenanceMetadataPayload = buildKonlingDualDomainProvenanceMetadataPayload(
+      modeRuntimeContext,
+    );
 
     // 添加助手回复
     const assistantParts: Message['parts'] = structuredAssistant.message.parts
@@ -505,6 +509,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           citations: citationGuard.citations.map(serializeKonlingCitationMetadata),
         },
         konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+        konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
         konlingStructuredCorrection: {
           status: structuredCorrectionStatus,
           attempts: structuredCorrectionStatus === 'not-required' ? 0 : 1,

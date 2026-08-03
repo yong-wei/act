@@ -174,10 +174,12 @@ export async function POST(request: Request) {
       : baseRuntimeContext;
     const runtimeContext = {
       ...graphRuntimeContext,
+      teachingProjectionContext: graphRuntimeContext.teachingProjectionContext,
       graphContext: buildKonlingRuntimeGraphContext({
         scope: scopeResult.scope,
         runtimeContext: graphRuntimeContext,
         clientHints: clientContextHints,
+        teachingProjectionContext: graphRuntimeContext.teachingProjectionContext,
       }),
     };
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({
