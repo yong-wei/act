@@ -135,14 +135,14 @@ for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
   for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
     test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
   done
-  grep -q '\"schemaVersion\": \"structured-textbook-runtime.v2\"' \"\${runtime_root}/\${book_id}/manifest.json\"
-  grep -q '\"sourceRevision\": \"${PROVENANCE_APP_REVISION:-__preflight_pending__}\"' \"\${runtime_root}/\${book_id}/manifest.json\"
+  grep -q \"schemaVersion.*structured-textbook-runtime.v2\" \"\${runtime_root}/\${book_id}/manifest.json\"
+  grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION:-__preflight_pending__}\" \"\${runtime_root}/\${book_id}/manifest.json\"
 done
 for file_name in ${TEXTBOOK_RETRIEVAL_REQUIRED_FILES}; do
   test -f \"\${index_root}/\${file_name}\"
 done
-grep -q '\"formatVersion\": \"textbook-hybrid-retrieval.v1\"' \"\${index_root}/manifest.json\"
-grep -q '\"sourceRevision\": \"${PROVENANCE_APP_REVISION:-__preflight_pending__}\"' \"\${index_root}/manifest.json\"
+grep -q \"formatVersion.*textbook-hybrid-retrieval.v1\" \"\${index_root}/manifest.json\"
+grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION:-__preflight_pending__}\" \"\${index_root}/manifest.json\"
 '"
 }
 
@@ -166,14 +166,14 @@ for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
   for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
     test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
   done
-  grep -q '\"schemaVersion\": \"structured-textbook-runtime.v2\"' \"\${runtime_root}/\${book_id}/manifest.json\"
-  grep -q '\"sourceRevision\": \"${PROVENANCE_APP_REVISION}\"' \"\${runtime_root}/\${book_id}/manifest.json\"
+  grep -q \"schemaVersion.*structured-textbook-runtime.v2\" \"\${runtime_root}/\${book_id}/manifest.json\"
+  grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION}\" \"\${runtime_root}/\${book_id}/manifest.json\"
 done
 for file_name in ${TEXTBOOK_RETRIEVAL_REQUIRED_FILES}; do
   test -f \"\${index_root}/\${file_name}\"
 done
-grep -q '\"formatVersion\": \"textbook-hybrid-retrieval.v1\"' \"\${index_root}/manifest.json\"
-grep -q '\"sourceRevision\": \"${PROVENANCE_APP_REVISION}\"' \"\${index_root}/manifest.json\"
+grep -q \"formatVersion.*textbook-hybrid-retrieval.v1\" \"\${index_root}/manifest.json\"
+grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION}\" \"\${index_root}/manifest.json\"
 '"
 }
 

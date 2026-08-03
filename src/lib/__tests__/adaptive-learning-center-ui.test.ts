@@ -236,6 +236,7 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
       selectedReasons: ['low-mastery-target'],
       rejectedAlternatives: [],
       fallbackReasons: [],
+      configurationFulfillment: [],
     },
     executionStatus: {
       adopted: true,
@@ -289,6 +290,38 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
 }
 
 describe('adaptive learning center UI contracts', () => {
+  it('projects configuration fulfillment into the current-path panel', () => {
+    const plan = pathPlan();
+    plan.explanations.configurationFulfillment = [{
+      key: 'resource-preferences',
+      status: 'applied',
+      source: 'request',
+      effect: '已优先选择匹配的资源类型。',
+      message: '已优先选择匹配的资源类型。',
+      limitationCode: 'internal-only-code',
+    }];
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: plan,
+    });
+
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    expect(currentPath?.payload).toMatchObject({
+      configurationFulfillment: [
+        expect.objectContaining({ key: 'resource-preferences', status: 'applied' }),
+      ],
+    });
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('internal-only-code');
+    expect((currentPath?.payload as { configurationFulfillment?: Array<Record<string, unknown>> })
+      .configurationFulfillment?.[0]).toEqual({
+      key: 'resource-preferences',
+      status: 'applied',
+      effect: '已优先选择匹配的资源类型。',
+      message: '已优先选择匹配的资源类型。',
+    });
+  });
+
   it('defines the unified center regions and keeps legacy surfaces available when the feature flag is disabled', () => {
     expect(ADAPTIVE_LEARNING_CENTER_REGIONS).toEqual([
       'overview',
@@ -741,7 +774,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-adaptive-path-generation-ready="catalog"');
     expect(source).toContain('withFeedbackTaskHref(goal.hrefs.generation)');
     expect(source).toContain("const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';");
-    expect(source).toContain('const showPresetGoalCards = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
+    expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain('useGlobalAI');
     expect(source).toContain('openPathGenerationAdvisor');
     expect(source).toContain('const hasInvalidRequestedGoal = requestedGoal !== null && !explicitGoal');
@@ -752,7 +785,6 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
     expect(source).toContain('data-adaptive-path-workspace-intent={workspaceIntent}');
     expect(source).toContain("showGenerationWorkspace ? (");
-    expect(source).toContain('{showPresetGoalCards ? (');
     expect(source).toContain('value={pathGenerationPanel.goalId}');
     expect(source).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
     expect(source).toContain('window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel))');
@@ -769,6 +801,7 @@ describe('adaptive learning center UI contracts', () => {
   it('builds editable path generation requests from panel controls', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
     const routeSource = readFileSync(join(repoRoot, 'src/app/api/adaptive/path-advisor-tool/route.ts'), 'utf8');
+    const sidebarSource = readFileSync(join(repoRoot, 'src/components/ai/global-ai-sidebar.tsx'), 'utf8');
     const helperSource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-generation-panel.ts'), 'utf8');
 
     expect(pageSource).toContain('data-adaptive-path-generation-panel="editable"');
@@ -794,6 +827,18 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('excludedNodeIds: operation ===');
     expect(pageSource).toContain('preferredOptionId: operation !==');
     expect(pageSource).toContain('requestedAt: new Date().toISOString()');
+    expect(pageSource).toContain('generationRequestId,');
+    expect(pageSource).toContain('type PathGenerationRequestStatus,');
+    expect(pageSource).toContain('const startPathGenerationFromAdvisor = useCallback');
+    expect(pageSource).toContain('onClick={startPathGenerationFromAdvisor}');
+    expect(pageSource).toContain('claimPathGenerationRequest(');
+    expect(pageSource).toContain('pathGenerationRequestLifecycleRef.current = claim.lifecycle');
+    expect(pageSource).toContain("if (payload.generationRequest?.status === 'failed')");
+    expect(pageSource).not.toContain('window.location.assign(withFeedbackTaskHref(`/assessment/adaptive-practice?${selectionQuery.toString()}`))');
+    expect(pageSource).toContain("disabled={pathGenerationRequestStatus === 'pending' || pathGenerationRequestStatus === 'running'}");
+    expect(pageSource).toContain("window.dispatchEvent(new CustomEvent('konling:path-generation-status'");
+    expect(sidebarSource).toContain("window.addEventListener('konling:path-generation-status'");
+    expect(sidebarSource).toContain("if (assistantEntryPoint?.mode !== 'path-advisor') return");
     expect(pageSource).toContain('setPathAdvisorAgentSessionId(null)');
     expect(pageSource).toContain('const handlePathGenerationGoalChange = useCallback');
     expect(pageSource).toContain('pathGenerationPanelFromSearchParams(new URLSearchParams(searchParamsKey), activeGoal)');
@@ -816,6 +861,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).not.toContain('Konling parameters');
 
     expect(routeSource).toContain('runtime.generateLearningPath(toolInput)');
+    expect(routeSource).toContain('path-generation-request:${generationRequestId}');
+    expect(routeSource).toContain('readPathGenerationRequestStatus(result)');
     expect(routeSource).toContain('runtime.reviseLearningPathOptions(toolInput)');
     expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
     expect(routeSource).toContain('modeContextToken');
@@ -830,7 +877,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain("reason: 'advisor-forbidden'");
     expect(routeSource).toContain('graphNodeId: signedGraphNodeId');
     expect(routeSource).toContain('readPathOptionStyleLookup');
-    expect(routeSource).toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
+    expect(routeSource).not.toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
     expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
     expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
     expect(routeSource).toContain('requestedAt: typeof body.requestedAt');
@@ -850,6 +897,33 @@ describe('adaptive learning center UI contracts', () => {
       .toContain('currentNodeId: input.context.planContext?.activeNodeId ?? null');
     expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
       .toContain('selectedGraphNodeIds: normalizeAdaptivePathSelectedGraphNodeIds');
+  });
+
+  it('renders server-owned path difference facts and invalidates stale explanations', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const runtimeSource = readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8');
+
+    expect(pageSource).toContain('readPathDifferenceExplanation(payload.result?.comparison)');
+    expect(pageSource).toContain('data-learning-path-difference-explanation={explanation.pathId}');
+    expect(pageSource).toContain('正在比较：{left.label} ↔ {right.label}');
+    expect(pageSource).toContain('共同节点');
+    expect(pageSource).toContain('独有节点');
+    expect(pageSource).toContain('顺序差异');
+    expect(pageSource).toContain('方案取舍');
+    expect(pageSource).toContain('比较限制');
+    expect(pageSource).toContain('const pathOptionVersionKey = useMemo');
+    expect(pageSource).toContain('const pathOptionVersionKeyRef = useRef(pathOptionVersionKey)');
+    expect(pageSource).toContain('explanationRequestVersionKey !== pathOptionVersionKeyRef.current');
+    expect(pageSource).toContain('differenceExplanation.pathId !== currentPathId');
+    expect(pageSource).toContain('setPathDifferenceExplanations({})');
+    expect(pageSource).toContain('准备度明细');
+    expect(pageSource).toContain('terminalValidationNodeIds: getStringArray(metrics.terminalValidationNodeIds)');
+    expect(pageSource).toContain('min-w-0 space-y-3');
+    expect(pageSource).toContain('break-words');
+    expect(runtimeSource).toContain('buildAdaptivePathDifferenceExplanation(path.id, selectedOption, comparedOption)');
+    expect(runtimeSource).toContain("'insufficient-data'");
+    expect(runtimeSource).toContain("'no-material-difference'");
+    expect(runtimeSource).not.toContain('路径差异主要来自学习时间、资源类型、检查点密度和当前证据覆盖。');
   });
 
   it('preserves empty path generation resource preference through goal-change URLs', () => {
@@ -906,7 +980,8 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
     expect(source).toContain("? 'avoid-learning-record' : undefined");
-    expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null : (');
+    expect(source).toContain('{!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (');
+    expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ||');
     expect(source).toContain('data-adaptive-path-route-map="compact"');
     expect(source).toContain('data-adaptive-path-progress-summary="essential"');
     expect(source).toContain('<AdaptivePathTimeline');
@@ -1552,7 +1627,11 @@ describe('adaptive learning center UI contracts', () => {
             estimatedEffortByPolicy: { 'foundation-remediation': 15 },
             terminalValidationDifference: 0,
           },
-          fallbackReasons: ['path-diversity-insufficient', 'terminal-validation-diversity-insufficient'],
+          fallbackReasons: [
+            'path-diversity-insufficient',
+            'terminal-validation-diversity-insufficient',
+            'policy-option-diversity-unavailable',
+          ],
         },
         feedbackEvents: [
           {
@@ -1582,7 +1661,7 @@ describe('adaptive learning center UI contracts', () => {
       ],
       pathOptionFallback: {
         status: 'low-resource-fallback',
-        fallbackReasons: ['路径差异不足', '终点检验差异不足'],
+        fallbackReasons: ['路径差异不足', '终点检验差异不足', '当前资源只能形成单一推荐方案'],
         diversity: {
           resourceOverlap: 1,
           modalityDistance: 0,
@@ -2207,6 +2286,7 @@ describe('adaptive learning center UI contracts', () => {
           selectedReasons: [],
           rejectedAlternatives: [],
           fallbackReasons: ['learner-state-missing'],
+          configurationFulfillment: [],
         },
       }),
     });

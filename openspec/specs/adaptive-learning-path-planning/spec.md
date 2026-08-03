@@ -192,12 +192,22 @@ Student path selection and outcomes SHALL update governed preference and strateg
 - **AND** the original selection alone SHALL NOT be treated as mastery evidence.
 
 ### Requirement: Path bundles remain explainable
-Displayed path bundles SHALL expose why options differ and what tradeoffs they make.
+Displayed path bundles SHALL expose why two current options differ and what measurable trade-offs they make. A comparison SHALL be derived deterministically from the two specified options in the same saved path version and SHALL NOT alter, reorder or regenerate either option.
 
 #### Scenario: User compares path options
-- **WHEN** a student or authorized teacher compares path options
-- **THEN** the response SHALL include overlap, modality mix, estimated effort, expected target lift, terminal validation difference, and evidence limitations
-- **AND** all personalized claims SHALL cite authorized diagnosis, learner-state, path, or resource evidence.
+- **WHEN** a student or authorized teacher compares two valid options from the same current saved path
+- **THEN** the response SHALL identify both options and include ordered common nodes, ordered option-only nodes, shared-node order differences, modality or resource mix, estimated effort, checkpoint and readiness facts, locked nodes, terminal validation differences, trade-offs, and evidence limitations
+- **AND** personalized claims SHALL be limited to authorized diagnosis, learner-state, path, or resource evidence.
+
+#### Scenario: Compared options have no material difference
+- **WHEN** the two specified options have the same ordered nodes and no material metric difference
+- **THEN** the response SHALL state that no material difference is present
+- **AND** it SHALL retain the compared option identities so the result remains auditable.
+
+#### Scenario: Stored option facts are insufficient
+- **WHEN** either option lacks the ordered node identities or student-safe node summaries required for a reliable comparison
+- **THEN** the response SHALL state that a reliable difference explanation is unavailable and identify the comparison limitation
+- **AND** it SHALL NOT replace the missing facts with generic or model-inferred claims.
 
 #### Scenario: Diagnosis and Konling consume path option context
 - **WHEN** diagnosis surfaces or the Konling path-advisor read the current control-correction path context
@@ -650,4 +660,86 @@ Adaptive path diagnostics SHALL prove that each path-ready LearningGoal can gene
 - **WHEN** a LearningGoal cannot generate meaningful governed paths after closure
 - **THEN** diagnostics SHALL identify a specific reviewed blocker such as missing source artifact, unresolved route, missing terminal-validation authority, or unavailable evidence lineage
 - **AND** the student-facing surface SHALL not show cosmetic identical path options.
+
+### Requirement: Unfinished Legacy paths stop at authority cutover
+Every unfinished path whose steps reference Legacy knowledge MUST stop execution at production authority cutover and remain available as an immutable historical record.
+
+#### Scenario: Learner has an active Legacy path
+- **WHEN** the cutover transaction runs
+- **THEN** the path SHALL enter a read-only stopped state and no Legacy step SHALL execute afterward
+
+### Requirement: Path goals survive without step mapping
+The system SHALL preserve the declared learning goal or user intent of a stopped Legacy path without mapping its node sequence to Canonical Objects.
+
+#### Scenario: Goal is preserved
+- **WHEN** a stopped path contains a valid goal or intent
+- **THEN** that goal SHALL remain available as input to later replanning while the Legacy steps remain historical
+
+### Requirement: Canonical paths are independently regenerated
+When a formal ActKG Teaching Projection is active, the planner SHALL generate a new path identity from the preserved goal, current cumulative portrait, version-matched CourseCoverage, reviewed KAQ bindings, and supported Canonical teaching relations. An engineering-only ReleaseSet without formal Teaching Projection MUST NOT satisfy this gate.
+
+#### Scenario: Teaching semantics are ready
+- **WHEN** all required Canonical planning inputs pass validation
+- **THEN** the planner SHALL create a new path with Canonical IDs and versions and no inherited Legacy progress
+
+#### Scenario: Teaching semantics are unavailable
+- **WHEN** the released graph lacks a formal Teaching Projection or required teaching relations
+- **THEN** the planner SHALL keep the goal pending and MUST NOT infer a path from engineering relations or Legacy fallback
+
+### Requirement: Planner honors explicit personalized path configuration
+The adaptive learning path planner SHALL treat request-level resource preferences, difficulty rhythm, checkpoint preference, and external-resource permission as planning inputs that affect candidate selection or path assembly. Goal boundaries, prerequisites, readiness, teacher policy, privacy, terminal validation, evidence policy, and safety constraints SHALL remain higher-priority constraints.
+
+#### Scenario: Request-level resource preference overrides stored preference
+- **WHEN** a request explicitly provides one or more resource types that differ from stored learner preferences
+- **THEN** the planner SHALL use the request-level resource types for that generation
+- **AND** it SHALL use stored preferences only when the corresponding request value is omitted.
+
+#### Scenario: Feasible contrasting configurations are generated
+- **WHEN** the same learner state and resource pool contain feasible alternatives for two contrasting configurations
+- **THEN** the resulting paths SHALL differ in at least one non-mandatory instructional resource or in the retained option count
+- **AND** a scoring or explanation-text difference alone SHALL NOT satisfy this requirement.
+
+#### Scenario: A requested configuration cannot be fulfilled
+- **WHEN** a request-level configuration conflicts with higher-priority constraints or the audited resource pool cannot satisfy it
+- **THEN** the planner SHALL retain the higher-priority constraints
+- **AND** it SHALL return a structured unmet-configuration reason rather than silently treating the configuration as a weak score signal.
+
+### Requirement: Planner maps free-text intent to governed planning concepts
+The planner SHALL accept free-text path intent only through deterministic mappings to supported resource types, difficulty rhythm, checkpoint density, external-resource permission, registered goals, or graph targets. Client text SHALL NOT expand resource access, evidence authority, graph boundaries, or permissions.
+
+#### Scenario: Free-text intent maps to supported concepts
+- **WHEN** a student's free-text intent matches supported planning vocabulary
+- **THEN** the request SHALL produce typed planning inputs with mapping evidence
+- **AND** those inputs SHALL follow the same fulfillment and higher-priority-constraint rules as structured configuration.
+
+#### Scenario: Free-text intent is unsupported or infeasible
+- **WHEN** free-text intent cannot be mapped deterministically or cannot be satisfied by audited resources and constraints
+- **THEN** the planner SHALL return a structured unmet reason in student-safe form
+- **AND** it SHALL NOT pass raw text to an unrestricted semantic planner or claim that the intent changed the path.
+
+### Requirement: Policy bundles select meaningful path alternatives during generation
+When generating multiple policy-family options, the planner SHALL generate options in deterministic priority order and avoid the differentiable instructional resources already retained by earlier options. Mandatory prerequisite and terminal-validation resources MAY be shared.
+
+#### Scenario: Later policy option has a feasible alternative
+- **WHEN** a later policy family has an alternative path that satisfies all required constraints without reusing every differentiable instructional resource of an earlier retained option
+- **THEN** the planner SHALL retain that alternative
+- **AND** the bundle SHALL identify its differentiable-resource distinction through its normal comparison data.
+
+#### Scenario: Later policy option has no meaningful alternative
+- **WHEN** a later policy family cannot satisfy goal, prerequisite, readiness, terminal-validation, and personalization constraints without cosmetic reuse
+- **THEN** the planner SHALL omit that option
+- **AND** it SHALL return a student-safe limitation explaining the reduced option count.
+
+#### Scenario: Mandatory nodes are shared
+- **WHEN** multiple retained options require the same prerequisite repair or terminal-validation node
+- **THEN** the planner MAY retain that shared node in each option
+- **AND** it SHALL evaluate meaningful distinction on the remaining differentiable instructional resources.
+
+### Requirement: Planner preserves requested budget when validation is required
+The planner SHALL preserve the student's requested time budget as the request constraint. When mandatory terminal validation makes the request infeasible, it SHALL return the minimum executable duration and a structured budget limitation instead of silently increasing the requested budget or removing validation.
+
+#### Scenario: Requested budget is below the executable minimum
+- **WHEN** a registered goal requires terminal validation and the requested budget is below the minimum feasible duration
+- **THEN** the planner SHALL not generate a path that represents the higher duration as requested
+- **AND** it SHALL return the requested duration, the minimum executable duration, and a student-safe corrective action.
 

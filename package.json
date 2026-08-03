@@ -1,6 +1,6 @@
 {
   "name": "ai-obe-platform",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "private": true,
   "packageManager": "npm@11.12.1",
   "engines": {
@@ -80,6 +80,8 @@
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
     "test:runtime-log-delta": "node ./scripts/tests/test-runtime-log-delta.mjs",
     "test:commercial-ui-governance": "npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",
+    "test:teacher-diagnosis-report-history-evidence": "npx --yes tsx ./scripts/tests/teacher-diagnosis-report-history-evidence.ts",
+    "capture:teacher-diagnosis-report-history-evidence": "cross-env TEACHER_DIAGNOSIS_REPORT_EVIDENCE_CAPTURE=1 NEXTAUTH_SECRET=teacher-diagnosis-evidence-secret NEXTAUTH_URL=http://127.0.0.1:3200 playwright test tests/teacher-diagnosis-report-history-evidence.spec.ts --workers=1",
     "test:simulation-runtime-noise": "npx --yes tsx ./scripts/tests/capture-simulation-runtime-noise.ts",
     "test:react-doctor:ui-errors": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .",
     "test:react-doctor:owned-errors": "node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=errors",
@@ -110,8 +112,11 @@
     "test:aggregate-governance-postgres": "tsx ./scripts/tests/test-aggregate-governance-postgres.ts",
     "db:run-aggregate-course-resource-governance": "tsx ./scripts/db/run-aggregate-course-resource-governance.ts",
     "db:import-course-coverage-overlay": "tsx ./scripts/db/import-course-coverage-overlay.ts",
+    "course-coverage:current-review": "tsx ./scripts/course-coverage/generate-current-course-coverage-review.ts",
+    "course-coverage:review-batch": "tsx ./scripts/course-coverage/review-current-course-coverage-batch.ts",
     "db:import-canonical-resource-binding-shadow": "tsx ./scripts/db/import-canonical-resource-binding-shadow.ts",
     "db:verify-authoritative-knowledge-deployment": "tsx ./scripts/db/import-authoritative-actkg-release.ts --verify-only && tsx ./scripts/db/import-course-coverage-overlay.ts --verify-only && tsx ./scripts/db/import-canonical-resource-binding-shadow.ts --verify-only",
+    "verify:canonical-learning-fact-identity": "tsx ./scripts/data-governance/verify-canonical-learning-fact-identity.mjs",
     "db:backfill-cumulative-attainment": "tsx ./scripts/db/backfill-cumulative-attainment.ts",
     "db:reconcile-teacher-default-classes": "tsx ./scripts/db/reconcile-teacher-default-classes.ts",
     "test:teacher-default-class-postgres": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=react-server\" tsx ./scripts/tests/test-teacher-default-class-postgres.ts",

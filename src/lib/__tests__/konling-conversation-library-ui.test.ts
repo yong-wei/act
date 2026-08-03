@@ -5,7 +5,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildKonlingConversationListUrl,
+  readKonlingConversationAssistantBinding,
   visibleKonlingMessages,
+  writeKonlingConversationAssistantBinding,
 } from '@/hooks/useKonlingConversationLibrary';
 import type { Message } from '@/types/ai-message';
 
@@ -65,9 +67,58 @@ describe('Konling conversation library UI contracts', () => {
     expect(sidebarSource).toContain('conversationId: activeConversationId ?? undefined');
     expect(sidebarSource).toContain('{ ...chatBody, conversationId: conversation.id }');
     expect(sidebarSource).toContain('agentSessionId: agentSessionId ?? undefined');
-    expect(sidebarSource).toContain('modeClientContextHints: effectiveServerContext');
+    expect(sidebarSource).toContain('modeClientContextHints: activeAssistantBinding?.modeClientContextHints');
     expect(sidebarSource).toContain('refreshActiveConversation(),');
     expect(legacyChatSource).toContain('{ body: { ...bodyRef.current, ...requestBody } }');
+  });
+
+  it('creates and sends one-shot assistant requests in a separate conversation', () => {
+    expect(providerSource).toContain('startAssistantConversation');
+    expect(providerSource).toContain('pendingAssistantRequest');
+    expect(sidebarSource).toContain('await createConversation(binding)');
+    expect(sidebarSource).toContain("await append(");
+    expect(sidebarSource).toContain('completeAssistantRequest(pendingAssistantRequest.id)');
+    expect(sidebarSource).toContain('failAssistantRequest(pendingAssistantRequest.id, cause)');
+  });
+
+  it('keeps assistant mode and controlled hints isolated when conversations are switched', () => {
+    const values = new Map<string, string>();
+    const originalWindow = globalThis.window;
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        sessionStorage: {
+          getItem: (key: string) => values.get(key) ?? null,
+          setItem: (key: string, value: string) => values.set(key, value),
+          removeItem: (key: string) => values.delete(key),
+        },
+      },
+    });
+
+    try {
+      writeKonlingConversationAssistantBinding('diagnosis', {
+        teachingAssistantModeId: 'diagnosis-explainer',
+        modeClientContextHints: { answerId: 'answer-1102' },
+      });
+      writeKonlingConversationAssistantBinding('path', {
+        teachingAssistantModeId: 'path-advisor',
+        modeClientContextHints: { graphNodeId: 'node-1' },
+      });
+
+      expect(readKonlingConversationAssistantBinding('diagnosis')).toEqual({
+        teachingAssistantModeId: 'diagnosis-explainer',
+        modeClientContextHints: { answerId: 'answer-1102' },
+      });
+      expect(readKonlingConversationAssistantBinding('path')).toEqual({
+        teachingAssistantModeId: 'path-advisor',
+        modeClientContextHints: { graphNodeId: 'node-1' },
+      });
+      expect(readKonlingConversationAssistantBinding('ordinary')).toBeNull();
+      expect(sidebarSource).toContain('teachingAssistantModeId: activeAssistantBinding?.teachingAssistantModeId');
+      expect(sidebarSource).not.toContain('teachingAssistantModeId: assistantEntryPoint?.mode');
+    } finally {
+      Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow });
+    }
   });
 
   it('does not restore a stale conversation snapshot when streaming finishes', () => {
@@ -110,7 +161,7 @@ describe('Konling conversation library UI contracts', () => {
 
     expect(deleteHandler).toContain('const deletedActiveConversation = await deleteConversation(conversationId)');
     expect(deleteHandler).toContain('if (deletedActiveConversation)');
-    expect(deleteHandler).toContain('await createConversation()');
+    expect(deleteHandler).toContain('await createConversation(null)');
     expect(deleteHandler).toContain('setMessages([])');
   });
 });

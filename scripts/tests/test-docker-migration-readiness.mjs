@@ -24,6 +24,7 @@ function runNode(script, options = {}) {
 function main() {
   const dockerfile = read('Dockerfile');
   const dockerignore = read('.dockerignore');
+  const mathCalcRequirements = read('scripts/math-calc/requirements.txt');
   const wasmBuildScript = read('scripts/wasm/build-control-engine.mjs');
   const appPrismaClientFactory = read('src/lib/prisma-client.ts');
   const scriptPrismaClientFactory = read('scripts/lib/prisma-client.mjs');
@@ -123,6 +124,32 @@ function main() {
 
   assert.match(
     dockerfile,
+    /COPY --from=builder \/app\/scripts\/math-calc \.\/scripts\/math-calc/,
+    'Dockerfile 必须把 math-calc 计算脚本从 builder 复制到运行镜像',
+  );
+  assert.match(
+    dockerfile,
+    /RUN python3 -c '[\s\S]*scripts\/math-calc\/calc\.py[\s\S]*payload\["status"\] == "ok"[\s\S]*payload\["steps"\]\[0\]\["operation"\] == "identify"[\s\S]*'/,
+    'Dockerfile 必须在 runner 阶段执行 calc.py 的真实 SymPy/LaTeX 烟测',
+  );
+  assert.match(
+    dockerfile,
+    /COPY scripts\/math-calc\/requirements\.txt \/tmp\/math-calc-requirements\.txt[\s\S]*pip install[\s\S]*-r \/tmp\/math-calc-requirements\.txt/,
+    'Dockerfile 必须从 math-calc requirements 安装固定依赖',
+  );
+  assert.match(
+    mathCalcRequirements,
+    /^sympy==1\.13\.3$/m,
+    'math-calc requirements 必须固定 SymPy 1.13.3',
+  );
+  assert.match(
+    mathCalcRequirements,
+    /^antlr4-python3-runtime==4\.11\.1$/m,
+    'math-calc requirements 必须固定 antlr4-python3-runtime 4.11.1',
+  );
+
+  assert.match(
+    dockerfile,
     /COPY --from=builder \/app\/scripts\/db \.\/scripts\/db/,
     'Dockerfile 必须把生产数据回填脚本复制到运行镜像'
   );
@@ -175,8 +202,20 @@ function main() {
 
   assert.match(
     dockerfile,
-    /ENV NODE_OPTIONS=--max-old-space-size=4096/,
-    'Dockerfile builder 阶段必须提高 Node heap，避免容器内 Next 构建因默认堆内存不足失败'
+    /ARG NODE_MAX_OLD_SPACE_SIZE=12288/,
+    'Dockerfile builder 阶段必须提供可传入的 Node heap 默认值，避免容器内 Next 构建因默认堆内存不足失败'
+  );
+
+  assert.match(
+    dockerfile,
+    /ENV NODE_OPTIONS=--max-old-space-size=\$\{NODE_MAX_OLD_SPACE_SIZE\}/,
+    'Dockerfile builder 阶段必须将 Node heap build arg 应用于 NODE_OPTIONS'
+  );
+
+  assert.match(
+    dockerfile,
+    /ENV NODE_MAX_OLD_SPACE_SIZE=\$\{NODE_MAX_OLD_SPACE_SIZE\}/,
+    'Dockerfile builder 阶段必须将 Node heap build arg 传给统一构建脚本'
   );
 
   const packageBuildScript = packageJson.scripts.build;
@@ -242,6 +281,16 @@ function main() {
     dockerignore,
     /!scripts\/lib\//,
     '.dockerignore 必须保留 scripts/lib Prisma 工厂进入镜像构建上下文'
+  );
+  assert.match(
+    dockerignore,
+    /!scripts\/math-calc\//,
+    '.dockerignore 必须保留 scripts/math-calc 目录进入镜像构建上下文',
+  );
+  assert.match(
+    dockerignore,
+    /!scripts\/math-calc\/\*\*/,
+    '.dockerignore 必须保留 scripts/math-calc 下的计算脚本与依赖清单进入镜像构建上下文',
   );
   for (const requiredPath of [
     '!scripts/actkg-release/**',
@@ -449,6 +498,52 @@ function main() {
 
   assert.match(
     localImageBuildScript,
+    /NODE_MAX_OLD_SPACE_SIZE="\$\{NODE_MAX_OLD_SPACE_SIZE:-12288\}"/,
+    'release build 必须为本地与容器构建设置一致的默认 Node heap',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /--build-arg "NODE_MAX_OLD_SPACE_SIZE=\$\{NODE_MAX_OLD_SPACE_SIZE\}"/,
+    'release build 必须向 Docker builder 传递 Node heap build arg',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /docker info --format '\{\{\.MemTotal\}\}'/,
+    'release build 必须在构建前读取 Docker VM 内存',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /DOCKER_MIN_MEMORY_BYTES=\$\(\(20 \* 1024 \* 1024 \* 1024\)\)/,
+    'release build 必须以 20 GiB 作为 Docker VM 最低内存门槛',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /DOCKER_MEMORY_BYTES.*\^\[1-9\]\[0-9\]\*\$/,
+    'release build 必须严格校验 Docker VM 内存为正整数',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /Docker Desktop 配置为至少 24 GiB/,
+    'Docker VM 内存门禁失败时必须提示 Docker Desktop 至少配置 24 GiB',
+  );
+
+  const dockerMemoryCheckIndex = localImageBuildScript.indexOf(
+    "docker info --format '{{.MemTotal}}'",
+  );
+  assert.ok(
+    dockerMemoryCheckIndex >= 0
+      && dockerMemoryCheckIndex < localImageBuildScript.indexOf('\nnpm run build\n')
+      && dockerMemoryCheckIndex < localImageBuildScript.indexOf('docker buildx build'),
+    'Docker VM 内存门禁必须早于本地 npm build 与 Docker build',
+  );
+
+  assert.match(
+    localImageBuildScript,
     /BUILD_ARGS=\(/,
     '构建脚本必须集中维护 Docker build args'
   );
@@ -530,8 +625,8 @@ function main() {
   );
   assert.match(
     resourceBindingImportCli,
-    /buildResourceBindingInventory\(observations\)/,
-    '资源绑定 CLI 必须从同一捕获身份的 observation 生成完整逐项清单',
+    /buildCurrentInventory\(db\)/,
+    '资源绑定 CLI 必须使用共享实现从同一捕获身份生成完整逐项清单',
   );
   assert.match(
     prismaSchema,

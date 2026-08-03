@@ -22,15 +22,19 @@
 
 - 项目命名子代理位于 `.codex/agents/*.toml`；角色、权限和路由真源见 `.codex/agents/README.md`、`.codex/agents/ROUTING.md` 与 `.codex/agents/HARNESS.md`。
 - 用户已授权子代理时，只要存在匹配的项目命名角色，就必须使用该角色；不得以自由派发替代命名角色。自由派发仅用于没有匹配角色且运行时能够显式控制模型与推理强度的情况。
-- 所有命名代理和自由派发统一使用 `gpt-5.6-sol`：窄执行用 `low`；复合任务、主协调、常规审核和一般任务终审用 `medium`；高风险任务和高风险终审用 `high`。不使用其他模型或 `xhigh`、`max`、`ultra`。
-- 写任务优先交给 `spark-coder`、`patch-worker` 或 `test-engineer`，以隔离实现上下文；写代理必须串行，并报告全部修改文件和验证结果。
-- `long-context-investigator` 只处理常规窄调查不足以承载的仓库级探索、大文件审阅和长上下文证据汇集，不承担日常实现。
-- 普通代码产出和一般任务终审由 `independent-reviewer` 审查；`critical-reviewer` 仅用于高风险、架构回归、安全敏感或发布关键终审。
+- 模型与推理档位遵循全局路由；项目层只通过 TOML 固定角色当前配置，并补充 ACT 的职责、权限、领域和验证约束，不在本文件维护第二套通用模型矩阵。
+- 派发使用完整、非重叠工作包；默认一次派发、一次最终回报，禁止轮询和常规进度汇报。子代理返回 `COMPLETE` / `BLOCKED`、修改文件或提交、验证结果、残余风险和待裁决事项。
+- 写任务优先交给 `spark-coder`、`patch-worker` 或 `test-engineer`，以隔离实现上下文；写代理必须串行，并报告全部修改文件和验证结果。父线程不得无证据重复可信代理已完成的探索、实现或聚焦验证。
+- `deep-debugger` 使用 Terra Max 汇集复杂排障证据；遇到架构、并发、权限、数据完整性、迁移或范围取舍等高影响决策时，由主线程形成紧凑决策包后调用只读 `decision-advisor`（Sol Medium）。顾问不写代码、不派发代理、不承担最终审查，每个工作包原则上最多调用一次。
+- `long-context-investigator` 只处理常规窄调查不足以承载、且上下文规模与歧义同时显著的仓库级探索、大文件审阅和长上下文证据汇集，不承担日常实现。
+- 领域 reviewer 只检查被分配的领域风险，不执行重叠的完整审查；默认最多追加一个主要领域 reviewer，只有两个独立高风险面同时存在时才使用第二个。
+- 普通代码产出和一般任务终审由 `independent-reviewer` 审查；以安全或发布为主要风险时，可明确指定 `security-reviewer` 或 `release-sentinel` 代替通用终审；`critical-reviewer` 仅用于仍未解决的安全、隐私、数据丢失、发布或架构关键终审，不与普通终审机械叠加。
 - 审核对当前 diff 给出清场结论后，只要没有新增变动，该结论可直接沿用到提交、推送和开 PR；提交 hook、推送 hook 或流程阶段变化不得触发重复审核。
 - 课程作者态/runtime、AI 上下文、数据治理、Arena、Rust/WASM、Prisma、课堂同步与生产部署按 `.codex/agents/ROUTING.md` 追加对应领域 reviewer；领域事实优先于通用审查意见。
-- 派发时必须确认子线程元数据中的 `agent_role` 非空且模型、推理强度符合对应 TOML；若运行时无法调用命名角色，应停止派发并报告，不得静默退化为继承主线程配置的自由代理。
+- 派发时必须确认子线程元数据中的 `agent_role` 非空且模型、推理强度和 sandbox 符合对应 TOML；若运行时无法调用命名角色，应停止派发并报告，不得静默退化为继承主线程配置的自由代理。
+- 在 `act-dev1`、`act-dev2`、`act-resource` 永久隔离工作树中派发前，必须先核对当前工作树职责、分支、远端差异和 dirty ownership；永久工作树本身就是隔离边界，不再嵌套创建工作树，也不得跨工作树修改同一任务。
 - 审核 finding 是待裁决主张；修复前由主线程按 ACCEPT / REJECT / DEFER 分类。只有存在违反 spec/不变量、可达失败路径、行为回归或安全、隐私、数据风险的 finding 才能阻断。
-- 相关 finding 先按根因聚类，再一次性修复完整风险面；自动 fix-and-re-review 最多一轮，同类问题再次出现时停止局部补丁并复核设计不变量。
+- 相关 finding 先按根因聚类，再一次性修复完整风险面；整改后恢复同一 reviewer，仅核验已接受 finding、整改变更及其直接引入的新 P0/P1；自动 fix-and-re-review 最多一轮，同类问题再次出现时停止局部补丁并复核设计不变量。
 - reviewer 只报告，不编辑代码、不扩大 OpenSpec 范围，也不以获得“clean”回复作为继续审核的理由。
 - 已请求的 GitHub Codex Review 必须在当前 HEAD 上完成后再合并；同一 HEAD 不重复触发。合并后迟到的审查仅对已接受的 P0/P1 建立 follow-up。
 

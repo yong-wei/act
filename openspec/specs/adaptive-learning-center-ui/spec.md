@@ -663,3 +663,47 @@ The adaptive learning center SHALL distinguish pre-generation starter examples f
 - **THEN** the UI SHALL identify them as examples rather than formal comparable paths
 - **AND** it SHALL NOT apply generated-node ordering, overlap, uniqueness, or formal selection semantics to them
 
+### Requirement: Adaptive path comparison exposes configuration fulfillment
+The adaptive learning center SHALL render a student-safe configuration-fulfillment summary with generated path options. The summary SHALL identify which requested settings were applied, their planning effect where available, and which settings were unmet with an actionable reason; it SHALL not expose internal reason codes or raw free-text input.
+
+#### Scenario: Generated options honor configuration
+- **WHEN** path generation returns one or more options with fulfilled configuration entries
+- **THEN** the comparison interface SHALL show the applied settings and their path effect in student-facing language
+- **AND** the information SHALL remain associated with the generation result rather than only server diagnostics.
+
+#### Scenario: Configuration or intent is unmet
+- **WHEN** the planner returns an unmet configuration or unsupported free-text intent entry
+- **THEN** the interface SHALL show a student-safe explanation and a corrective action where one exists
+- **AND** it SHALL not claim that the unmet entry personalized the displayed options.
+
+#### Scenario: Option count is reduced for lack of diversity
+- **WHEN** the planner returns fewer than the preferred number of options because no meaningful alternative is feasible
+- **THEN** the interface SHALL present the retained options as valid choices
+- **AND** it SHALL explain the reduced count without rendering cosmetic placeholder options.
+
+#### Scenario: Requested time is insufficient
+- **WHEN** generation returns a minimum executable duration that exceeds the student's requested budget
+- **THEN** the interface SHALL show the requested and minimum durations in student-facing language
+- **AND** it SHALL offer an adjustment action without implying that the requested budget was silently changed.
+
+### Requirement: Path difference actions display the compared path facts
+The adaptive learning center SHALL render the server-owned structured result of an “解释差异” action inside the selected option's decision module and SHALL identify both compared paths.
+
+#### Scenario: Student explains a non-recommended option
+- **WHEN** a student requests an explanation for an option that is not the recommended option
+- **THEN** the page SHALL compare it with the recommended option and show both path names
+- **AND** the result SHALL render common nodes, each option's unique nodes, order differences, metrics, trade-offs and limitations supplied by the server.
+
+#### Scenario: Student explains the recommended option
+- **WHEN** a student requests an explanation for the recommended option
+- **THEN** the page SHALL compare it with the next ordered candidate option and show both path names.
+
+#### Scenario: Candidate path set changes
+- **WHEN** path generation or revision changes the active path id or the ordered candidate node identities
+- **THEN** the page SHALL remove explanations from the previous candidate path set
+- **AND** it SHALL NOT present a stale result as a comparison of the new options.
+
+#### Scenario: Difference result is read on a narrow viewport
+- **WHEN** the structured explanation is displayed at a 320px viewport width
+- **THEN** path names, node lists, metric labels, values, units, trade-offs and limitations SHALL remain readable without page-level horizontal overflow.
+

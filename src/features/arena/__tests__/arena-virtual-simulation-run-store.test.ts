@@ -178,6 +178,12 @@ describe('prismaArenaVirtualSimulationRunStore', () => {
         modelVersion: previewReplay.modelVersion,
         summary: expect.objectContaining({
           trackingError: preview.summary.trackingError,
+          arenaTraining: {
+            taskId: preview.taskId,
+            scenarioId: preview.scenarioId,
+            evaluationVisibility: 'preview',
+            officialEligible: false,
+          },
           previewBoundary: expect.objectContaining({
             evaluationVisibility: 'preview',
             officialEligible: false,

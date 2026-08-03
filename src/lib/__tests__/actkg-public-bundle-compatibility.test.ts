@@ -14,6 +14,7 @@ import {
   CTKG_SCHEMA_RAW_SHA256,
   CTKG_SCHEMA_VERSION,
   PUBLIC_BUNDLE_CONTRACT_VERSION,
+  PROJECTION_AGGREGATION_POLICIES,
   REVIEWED_V0_3_R2_IDENTITIES,
 } from '../../../scripts/actkg-release/bundle-compatibility-registry';
 import { PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS } from '../../../scripts/actkg-release/capture-revision';
@@ -596,6 +597,66 @@ async function expectRejection(
 }
 
 describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
+  it('recomputes authoritative M1H and M1K release-tier policy vectors and rejects prior policies', () => {
+    const cases: Array<{
+      projection: JsonObject;
+      profile: string;
+      aggregationPolicy: string;
+      priorPolicy: string;
+      expectedDigest: string;
+    }> = [
+      {
+        projection: {
+          projection_profile: 'ctr:profile:control-theory-engineering-v0.6:act-v2',
+          source_release: 'ctr:release:control-theory-engineering-v0.6',
+          source_release_hash: '4cd57e594a5d329e848cbf871d5f4beb6e0a92a1dd68518102d4d658497165cf',
+          source_dataset_hash: '3dbe28cab90ed8d663abcfeec15c82e1caf7dd4bb17394fc605aaab71b7e5e0b',
+          nodes: [{ id: 'ctc:release-tier-vector' }],
+          links: [],
+          hidden_entities: [],
+        },
+        profile: 'runtime',
+        aggregationPolicy: 'm1h-v1f-release-tier-preserving',
+        priorPolicy: 'm1i-v1e-release-tier-preserving',
+        expectedDigest: '7d2f4ea18504292768b5a413dfeaa57d7d612d607b327e530dc66b06c2e62aff',
+      },
+      {
+        projection: {
+          projection_profile: 'ctr:profile:control-theory-engineering-v0.8:domain-v2',
+          source_release: 'ctr:release:control-theory-engineering-v0.8',
+          source_release_hash: 'caf4cf31b54675952cb65d635a29e07fa4a5729686b9875f78db3904a6497beb',
+          source_dataset_hash: 'cbd8839ba61026696e853d514b9b82fbc892804c00e418f7ede885204fe38f9b',
+          nodes: [{ id: 'ctc:release-tier-vector' }],
+          links: [],
+          hidden_entities: [],
+        },
+        profile: 'domain',
+        aggregationPolicy: 'm1k-v1d-release-tier-preserving',
+        priorPolicy: 'm1h-v1f-release-tier-preserving',
+        expectedDigest: 'f2a1678d58c42e2e79ac0981292d5507341a0be5be62fbf00f083682ce8e80eb',
+      },
+    ];
+    for (const entry of cases) {
+      expect(PROJECTION_AGGREGATION_POLICIES).toContain(entry.aggregationPolicy);
+      expect(
+        computeProjectionVersionDigest(
+          entry.projection,
+          null,
+          entry.profile,
+          entry.aggregationPolicy,
+        ),
+      ).toBe(entry.expectedDigest);
+      expect(
+        computeProjectionVersionDigest(
+          entry.projection,
+          null,
+          entry.profile,
+          entry.priorPolicy,
+        ),
+      ).not.toBe(entry.expectedDigest);
+    }
+  });
+
   it('carries reserved Manifest and SHA256SUMS as first-class rawArtifacts with descriptors', async () => {
     // Pure packaging evidence helper — does not require a clean capture worktree.
     const manifestOnDisk = await readFile(path.join(root, R2_PATH, 'bundle-manifest.json'));
@@ -781,8 +842,24 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
           gitRoot: fixture,
         }),
         'INTEGRITY_REJECTED',
-        /graph_rag_runtime_intake must remain BLOCKED/u,
+        /graph_rag_runtime_intake must remain fail-closed/u,
       );
+    } finally {
+      await rm(fixture, { recursive: true, force: true });
+    }
+  });
+
+  it('accepts the M1K UNCHANGED_BLOCKED Graph-RAG runtime disposition', async () => {
+    const fixture = await m1gFixtureRoot('UNCHANGED_BLOCKED');
+    try {
+      const validated = await loadAndValidatePublicBundleV1({
+        root: fixture,
+        lockPath: V5_LOCK,
+        bundlePath: V5_PATH,
+        captureRevision: realGitHead(fixture),
+        gitRoot: fixture,
+      });
+      expect(validated.graphRagRuntimeIntakeBlocked).toBe(true);
     } finally {
       await rm(fixture, { recursive: true, force: true });
     }

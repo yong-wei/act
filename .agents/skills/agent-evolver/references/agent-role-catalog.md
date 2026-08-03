@@ -1,24 +1,22 @@
 # Agent Role Catalog
 
-## Sol Low：窄执行与窄读扫
+## Luna：机械读扫、实现与测试
 
-- `spark-coder`：简单、局部、可快速验证的写任务。
-- `explorer-librarian`、`code-mapper`、`test-engineer`：窄读扫、路径定位和聚焦测试。
+- Luna `high`：`explorer-librarian`、`code-mapper`，用于机械、低风险、可直接验证的读扫和映射。
+- Luna `xhigh`：`spark-coder`、`test-engineer`，用于局部实现、复现和回归测试。
+- Luna `max`：`patch-worker`，用于边界明确但跨文件、状态非平凡或返工代价较高的实现。
 
-## Sol Medium：复合任务、主协调和常规审核
+## Terra：长上下文、复合规划和领域审查
 
-- `agent-router`：复杂任务角色选择和主协调建议。
-- `patch-worker`、`deep-debugger`、`long-context-investigator`：复合实现、复杂排障和长上下文调查。
-- `ui-flow-reviewer`、`retro-analyst`：常规 UI 审核与失败复盘。
-- `spec-planner`、`independent-reviewer` 及常规领域 reviewer：规划、常规审核和一般任务终审。
+- Terra `xhigh`：`agent-router`、`spec-planner`、`ui-flow-reviewer`、`retro-analyst`、`course-pedagogy-reviewer`、`performance-reviewer`、`ai-context-reviewer`、`data-governance-reviewer`、`simulation-domain-reviewer`。
+- Terra `max`：`deep-debugger`、`long-context-investigator`；前者负责复杂证据和根因定位，后者仅用于上下文规模与任务歧义同时显著的调查。
 
-## Sol High：高风险任务与终审
+## Sol：困难风险判断与独立终审
 
-- `security-reviewer`、`release-sentinel`：安全敏感和发布关键审查。
-- `critical-reviewer`：只用于高风险、架构回归、安全敏感或发布关键终审。
-- 一般任务终审仍使用 `independent-reviewer` 的 Sol `medium`。
+- Sol `medium`：`decision-advisor`、`security-reviewer`、`release-sentinel`、`independent-reviewer`。
+- Sol `high`：`critical-reviewer`，只用于仍未解决的安全、隐私、数据丢失、发布或架构关键风险。
 
-所有角色只使用 `gpt-5.6-sol`，不使用 `xhigh`、`max` 或 `ultra`。
+所有角色均不使用 `ultra`。
 
 ## 权限
 

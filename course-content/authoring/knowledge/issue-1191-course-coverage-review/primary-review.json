@@ -1,0 +1,1205 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "c3fa63179e847ed1f2e2b6c1",
+    "manifestBatchIndex": 1,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:classical-control-design-engineering-v0.1::entityType:Formula",
+    "memberCount": 98,
+    "memberDigest": "ceebf1c62b71689304b36603dbd3da2e76a5b15ac08102f969441021c7f3d933",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-primary-issue-1191",
+    "provider": "grok-4.5-build",
+    "sessionId": "7fa4de90-5d8a-4978-8e65-6682951cf4ac",
+    "promptVersion": "course-coverage-primary/1"
+  },
+  "reviewInputDigest": "8c8c9dd6b7c234a3eef824ae832b7b385761c5265753c714a194d9cfebb5bf17",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-00522d5cbbf120f3632dc634",
+      "canonicalRevision": "9e65e96f49ea8e29ac01d5cb773a02637a701e7d978e76898db1ac45b6e20529",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e3a6ad6dbc90876a37111f2c",
+        "canonicalId:ctkg:v3e-object-00522d5cbbf120f3632dc634"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "eef7df368d359cf21024869db1cb363fd7abb33c9e1c056d8f4544253b4a20c9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0119ece12aeb1dba9adb5b05",
+      "canonicalRevision": "68d67cb748c88961744ef5b36ff57dc771592e053ffeed2531e63da1ca1d7e74",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-34d0921f5cdff17d27bd21dd",
+        "canonicalId:ctkg:v3e-object-0119ece12aeb1dba9adb5b05"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "29d13ab611aae531f0f76f3b3320aadda1d410fc17afc20daffebe598df80b85"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-014628822414ff77cc960d28",
+      "canonicalRevision": "45930e3f16315d6fcd12ec82e06bccd671c05c07c685ae39ce76164f5377d80c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c6cc5a9bdd623aa28167b97f",
+        "canonicalId:ctkg:v3e-object-014628822414ff77cc960d28"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "2f09469a4587c6227f3d8345ed1bd11d8b423b76ba4e43b51e3c66bc94e0e019"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-03b6dadb5df97fb99cfa01d5",
+      "canonicalRevision": "6f6b2ff926559edcaa77ccdf0ba57ef424f5deba0f970bfcc7634e40f0543937",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-54fb58e1387081316599bd63",
+        "canonicalId:ctkg:v3e-object-03b6dadb5df97fb99cfa01d5"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "a0268cdcb1e973db8b004878ad30a03fd695b229a33dbc1f875b9247be39113c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-04bbce5dcf24c658208269ba",
+      "canonicalRevision": "24d59dc67d1f6edd8846c0942ad3a61b8ff87b8409d3b9769338cbaf953245b9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-dec750a4f19b60f9a76f8e94",
+        "canonicalId:ctkg:v3e-object-04bbce5dcf24c658208269ba"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "c8144d39feddb098eb943ccd65577edac1e07e5950407ac39508d6f611fecde6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-09e26f2cba654842e42ab138",
+      "canonicalRevision": "1fa362e5c06c0d1cf7e49ed337aaf6dc85e4e695800365be0647e711dcca39e9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-18190f79a1f5ddc9091c2beb",
+        "canonicalId:ctkg:v3e-object-09e26f2cba654842e42ab138"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "a3e79672e23463b6b51fd69e8ef2047c353b6803dcc569451254bc05adef6166"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0b09d61b466a81111799244b",
+      "canonicalRevision": "aba29406e3ca3354bf189a4c2f087d5f1deeace66f4f5cab231dbd54837ad8a3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ebe7e88e246e478bb0a68e88",
+        "canonicalId:ctkg:v3e-object-0b09d61b466a81111799244b"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "56038a09e153dfa550b21265ed60059ec369fa6fe9ac60562ec7c792bfb67714"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0bfca2559204de920fde4c51",
+      "canonicalRevision": "7048d5c25e6d52d1c29bfd1751c68c8c10b91b72151937d399af83b4c7aeb4b6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2b42c1c7c2fd447cd717beb9",
+        "canonicalId:ctkg:v3e-object-0bfca2559204de920fde4c51"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "8c2ef97da0f5febdcf84e77c73110b1a4946dba4d684ff73244d8c0efc2b9d7f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0c747172cf0fe92e2d59fd46",
+      "canonicalRevision": "3efe61067e4cadd69194b3de0f741d9aab5b0d5707206ac757f9e1d32f0cbdef",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-933cd3d2e33414bae1599f25",
+        "canonicalId:ctkg:v3e-object-0c747172cf0fe92e2d59fd46"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "6bcade8a7b469c97d335f059e0ea2a76806ad53f02d968166c70ac5e8010cd7b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0e749c4984b02b7a995991cc",
+      "canonicalRevision": "8416b3c30e5b05ca44b4fd1f81306c67a2a89239203efe963d2358cdb136e9ae",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b186b3a6f9e234197fdbff5f",
+        "canonicalId:ctkg:v3e-object-0e749c4984b02b7a995991cc"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "2f169d472066d735e36339b9445ccbf49393f5179ef337446452eb6e8664995c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-147bf5c4a7db5867bdd6f395",
+      "canonicalRevision": "d55ebcf6722057d2dc584230b52d5cfcb8e10a0f333b502d54b3edfaf5c740f9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-57b78a26ab786920328792fd",
+        "canonicalId:ctkg:v3e-object-147bf5c4a7db5867bdd6f395"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "33a7d04bc5538f0dfd0af6b3dffbe56998ed65f17b38516ae9a43a4fa7531ef4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1d953bebf32218b0b0ce163a",
+      "canonicalRevision": "4332fc11658c8c125ab9c48dbc2a7783a7604b126c025b2e0277c477b4ae56b2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-316f1f8b1bd7cd6ed37e8e4b",
+        "canonicalId:ctkg:v3e-object-1d953bebf32218b0b0ce163a"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "64c90187e316c38e8d60918de25f99cd772c124dcd3e81bb4e4997d8f3a06df4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1f6defb8b71f0749305b4474",
+      "canonicalRevision": "5bbc0e25d2120145256541dc56101b842faa01457aa7a7787b4e3b35a99fbd7d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-eabfeb3c96cbe81cf9e14027",
+        "canonicalId:ctkg:v3e-object-1f6defb8b71f0749305b4474"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "043dcf5ef150aebee3c3ae39f02d28ee0c1c4ea172b8b426ba6e23532303555b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-21036048df4455b98cefdaa6",
+      "canonicalRevision": "454bf4390db418de15a71c46790f528b0d509853b2fafb35387e8fe080e61b16",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-662f4f415f01036acfa0894c",
+        "canonicalId:ctkg:v3e-object-21036048df4455b98cefdaa6"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "5d2972acaf5495cf9faef548c2682f2eb687180d3c37462310fbe4ea6b040ecc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2118937a41fec1b6468c596e",
+      "canonicalRevision": "ea6f3e5bf69e7293d144373a43a57bf6edce2818a1bb2711f8170f22b634c090",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a2d971435e744c7f4420e4a6",
+        "canonicalId:ctkg:v3e-object-2118937a41fec1b6468c596e"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "36a5bab7b576040012e477f31eb44bfd1f433bf39eaa11ebcd2620069aa3838e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-25803ca8f913fdbbacd13942",
+      "canonicalRevision": "8fdffc6630de2851c219b063782b7a2adcde783dc989e136133e7d1ce74f9ad3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ed1a8134dbd6bea42ef2b372",
+        "evidence:ctr:m1i-v1e-release-evidence-280ea65ea66ebdc045850012",
+        "canonicalId:ctkg:v3e-object-25803ca8f913fdbbacd13942"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "b7cdbbe0878fea73c71424033a0f1e7f437534c93fca96a7506ecbd28cfbf7f0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-28ceed19450a3ebfc6e519fa",
+      "canonicalRevision": "000f78cf34deff6671eb914e2a086382419513641723495d7464dd7ec4f2d9cc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d8d07b2fb4bf1cf5d18f9cae",
+        "canonicalId:ctkg:v3e-object-28ceed19450a3ebfc6e519fa"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "6f286b4bed755592e428ae84a9dad94570fd8300d9ccbae19abb17a7ea8b8eff"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2970f2bf84a1ea5a9a2001c9",
+      "canonicalRevision": "4394df5d3715d07eb07e3359c2cb8470d30a50a57c7243e7166966843c798d9a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ee3e95cb597479cc4c32130e",
+        "canonicalId:ctkg:v3e-object-2970f2bf84a1ea5a9a2001c9"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "8ce61d0b4c0cacec37beb5c173d9d52661350922161cb4a6c53892f8d9662c9b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-299c94b983d1c04b76b6c577",
+      "canonicalRevision": "18236b5410dea1e09505813fa53a53db191932d8b217871fa90aabf8d59317b1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a4490754875e53bfd8fc6f6e",
+        "canonicalId:ctkg:v3e-object-299c94b983d1c04b76b6c577"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "cb5edad429583e3f6f7b5eb987de11e067ca1b3e16be4a54f7ee46136eb386d7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2a2cbd5950c141aa1aa48bb8",
+      "canonicalRevision": "c9c62484a959272d100df294dca26a381c900ab267b696d4d16598ce840fe887",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f084b02edebeb94e008fa84b",
+        "canonicalId:ctkg:v3e-object-2a2cbd5950c141aa1aa48bb8"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "9be4b44ef7099d4db89eaaace2ebe3b0ac88c8f5fb2a0ef8a88fa94dbb413acf"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-330683f8159e36196248c641",
+      "canonicalRevision": "231a7e1526d9277ad1a7fd8a5191f10ac0594ff6cee7c9cf3d3a3332d49eddde",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-54989b37086ca928f0fd84cf",
+        "canonicalId:ctkg:v3e-object-330683f8159e36196248c641"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "2002a2a8eccc6668b00a1628e34a61d8cc5f7655067b8e0bdd38e965e60a16b7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3338b255c948214fffe922c1",
+      "canonicalRevision": "f707f3c56b690504722a043b481845544eb2e2ee89279cd34adea32a096db7ff",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-367ea1bea567919dc0232a05",
+        "canonicalId:ctkg:v3e-object-3338b255c948214fffe922c1"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "2ee61c20b4c5cdb3a0829af1fd810c493aab99d0469192f2729cf0d334e256b5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-346a55a69fa33a973cb038e7",
+      "canonicalRevision": "dbd65988434edf23999af7cad98c4e6205200124c2986ac00f6e8e3fda570643",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9e67ed3135f493939af9a366",
+        "canonicalId:ctkg:v3e-object-346a55a69fa33a973cb038e7"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "33e3cc9b8534f970a5b1eb1a1c1fd6b950329e6e0fcb3a5916e4cee0c82dbb48"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-36248d3bcd599d05b5622773",
+      "canonicalRevision": "122ced1b6a8d17586b0b7b54adc3f5ad396af69382a590885a028fc73ce59ebf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0fd014cb428882498984f969",
+        "canonicalId:ctkg:v3e-object-36248d3bcd599d05b5622773"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "6de0dbb650c6440923a837d53f75ecb723b249fba5e9c9f53f11155616c6d9e7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-39267f7a5a6a9b9dfe7b3d0b",
+      "canonicalRevision": "de59b2008aa98c04f2a7e1a87dfe9ab3fdefe11716c77f205eb36de50a1fe3cd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ea334e8f983306143076818e",
+        "canonicalId:ctkg:v3e-object-39267f7a5a6a9b9dfe7b3d0b"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "a9c6cd8d6a1c558d5f8aa22081890ecf56aa1bafa6d896008b71e2362f5b81a5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3b044da7298dd3a374585e4e",
+      "canonicalRevision": "1b2d101ea665668722f82f72e96c56ac8a9d280343f04428731f74f961e142ca",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-db621b9924e0dc192c2eaff8",
+        "canonicalId:ctkg:v3e-object-3b044da7298dd3a374585e4e"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "54cef59a035c415c57dbb22fe31da1ceb0f4cdc843223382e27fd08408c0a84b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3b49d01163caaf4aa973ff8e",
+      "canonicalRevision": "615f0ffddba8f7c8ce53263d81a304a48cd0364d5ac1e1f3bdf9a0f94992cd44",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-33b3cebadfd6b094291a965a",
+        "canonicalId:ctkg:v3e-object-3b49d01163caaf4aa973ff8e"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "f84ca39f5d0a89f1f0f75cddbcadadb7258af58de60d1c2595655973bab910f5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3dd372b6fd1445a16544f175",
+      "canonicalRevision": "882121cb1f6bb18152bbd5823c8423e00ed1bbb51308034644d77eb48a35d95b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-dbeac963983f619b20f200a0",
+        "canonicalId:ctkg:v3e-object-3dd372b6fd1445a16544f175"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "d19d99b0d01c9c027c2893b1410a95b06d33dc23e771cbf23477b61b5b3a09a9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-41a0526e4b4056ff3516a9b4",
+      "canonicalRevision": "b42188352c9e8335b69ceb6ec771e91bf746952f23c3d3d7db21994a134fd623",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8c43bd6a2d4657f222b8aa5b",
+        "canonicalId:ctkg:v3e-object-41a0526e4b4056ff3516a9b4"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "928485cc1f20a04bba2b40c1d6d713a844398ad0513bce6c7ec0a1d15f407fac"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4227f9f81472b4598986da7c",
+      "canonicalRevision": "ca54fc0d88dd1d92c1f4cca0388e6394a924fc72072eb71efe6f980f78602003",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-130dbc30a9e48e53c5e9f319",
+        "canonicalId:ctkg:v3e-object-4227f9f81472b4598986da7c"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "3626cbbc36951b5af747aa051afac83ad4283be1b8dbb902e4dccfec8df8ae98"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-438a7a9f5df42d3b61858b52",
+      "canonicalRevision": "e6490efb50ec62b937e263c61b2eb783fd98944773e885ccc774b9417ca0b941",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8b1fe60e1e5abc2edc1649d3",
+        "canonicalId:ctkg:v3e-object-438a7a9f5df42d3b61858b52"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "680e9c31f52197de0565f9672fe3e99ff02a4145e6578e7a9977e656ed6b09aa"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4bbfe0c9b47eeb4afcec5e9b",
+      "canonicalRevision": "4ee23a979e44b46438c9afc1a75bfb14462b873dabb17ebe92db6f8bd8c9fff2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-65c04f6c738b4f573de1487e",
+        "canonicalId:ctkg:v3e-object-4bbfe0c9b47eeb4afcec5e9b"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "4501e5a3e92757ec3bd02205e1a8c5d0d434d4477ccbff0bdb6c4f05b52b7d1c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4c1d2ed287aea3539b0c56de",
+      "canonicalRevision": "b6b7d17dca3ced91fb35668328e6cd4b26b3e4884340599096825e04de60e5ed",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-35811e956391d7748571e5de",
+        "evidence:ctr:m1i-v1e-release-evidence-212b3b007ee4f1d399340cd7",
+        "canonicalId:ctkg:v3e-object-4c1d2ed287aea3539b0c56de"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "a3e76883f30b7ae0fefa933b4d9e8a894b50658c344b5cd3fdadb1ee26e72dab"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4c40e4320b3cfa28cfa43429",
+      "canonicalRevision": "8bbe5e3b95cd3ed0e7899773d3d051b7a3b504d70b18e5a04e3b62402023c586",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6afa1b0feb9e0982e5adc6e1",
+        "canonicalId:ctkg:v3e-object-4c40e4320b3cfa28cfa43429"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "25bab7adf6dbb05c7b8d17256eac41759517dd461a5643a40e7fee2bc18ab80b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4ca8809af27537380b7b1e19",
+      "canonicalRevision": "e4811d461423500e0fdb74edd7eef5dccfec46019e50d60ceb5594eba1071903",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1f5a4d45b36db3205c2bf0fb",
+        "canonicalId:ctkg:v3e-object-4ca8809af27537380b7b1e19"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "14b9584b78ef9849ddbbc9775477c7a1fc4d5783e0709b5f7959e42c1b82310e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-580ffc07cee18ff633fd6ef1",
+      "canonicalRevision": "0f1e38784fae9065afd2d8d0ecd222d61c9a4133f49ba61312c1ffcb01f7ac0f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-32a0bbb46823007019fe9008",
+        "canonicalId:ctkg:v3e-object-580ffc07cee18ff633fd6ef1"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "f2c4d67d02f9ec82f0ae6a07e0bae5bd9fddf63543aed25e36b50c2ad65766ba"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-59bc4ccc8fbba25b73ce54aa",
+      "canonicalRevision": "0a5e795e786050b585fdb80ac7d8557a2fedb60ba2e5f4819f2dc2792c8f102f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ff9bcce83c059a25e2c18b48",
+        "canonicalId:ctkg:v3e-object-59bc4ccc8fbba25b73ce54aa"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "8e1d69585fced47a9d03a9f789d8c2fddf8c1e6d9c26d5ec474f85cc9d3f833d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5ae299280fb065cf7028e3ae",
+      "canonicalRevision": "cc1f273ab283e1ff1c6f4be6dab8dd74b788817ac0f89077354e6f904d2fec38",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-31650218323550e06a23df4b",
+        "evidence:ctr:m1i-v1e-release-evidence-942e114d4d034940f30e5f7d",
+        "canonicalId:ctkg:v3e-object-5ae299280fb065cf7028e3ae"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "046184b3876bd41d7e4f1ec5c5fa0d7a16a3781167acc76c26d226df567929e3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5b8c6af0e4998923cea89805",
+      "canonicalRevision": "07233eee49f237fa324ea53ea79cf73e4edfac647bd732b77a89a1616655b01e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f5f5010ec0e036f3d51b316b",
+        "canonicalId:ctkg:v3e-object-5b8c6af0e4998923cea89805"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "fc2a7ff764f4c1f351487f1071deff70d16c6e303f227a596ba1fb35d5232ec6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e705121c3d0f56ce3b99f01",
+      "canonicalRevision": "e986194d2ebc04a31ac1da1dce22dd6bc59f57adb1b159f12e6996f6e153aa9f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d213ac761a25650164e7c3b5",
+        "canonicalId:ctkg:v3e-object-5e705121c3d0f56ce3b99f01"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "2643053b1c88a7ce3873ed61f3e8f3ba27431d7dcd72ffcabb85f9904514ff02"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-600d6ff2371e4444f9025abe",
+      "canonicalRevision": "97cdefd9fc4cf522b6f7bcb09d86e54f4b3b371e7bdf4ae85ad3f3476292ff9b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2698f7afd095943ed746dba1",
+        "canonicalId:ctkg:v3e-object-600d6ff2371e4444f9025abe"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "2ddc64ede7670b4f6534fa764ba4449e35f9fd12c78613873949499193450bb0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6236a1a4230962c63a571d1d",
+      "canonicalRevision": "bd38dc6400c617a2a2b754113ab3ffba00aa12b90f2346781dd23df3aa7e9784",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8f04feeaf749207ecedaf042",
+        "canonicalId:ctkg:v3e-object-6236a1a4230962c63a571d1d"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "c5a88b45f7b479fbd27b036441c5f0a9fa0c7b39c3c8de4fd15631c3442201ba"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6928182da1fdd10b561ce022",
+      "canonicalRevision": "8f2d23f4dd061285d8df6a4672adcd9a8327978eceb7e8c56ed77525353fb913",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6bf3e0eb09e8b77d44e5e5f0",
+        "canonicalId:ctkg:v3e-object-6928182da1fdd10b561ce022"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "a82fe361138b1b7154687b34a4d70b91fca58dba74f0becfab2a41cb1d4d60c5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6d3426329e70fc2da1d4ea05",
+      "canonicalRevision": "9c39f8a66553eefc4c2f4cbb9e73e3c4d79cf82b863db2fd20ad1883786fcfe3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6eff5213beb29382295d01be",
+        "canonicalId:ctkg:v3e-object-6d3426329e70fc2da1d4ea05"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "08360b885dd09fd70e499e74a2a6140db166ae0ed2d18646a38c246c32dc0cc7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-717bc3a350bcbca49be4dfbd",
+      "canonicalRevision": "8627e977a7a43e3d830c6e1201dc0332900be3769d59e4dada0a23537bd837bc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6b714b37e45300c846111955",
+        "canonicalId:ctkg:v3e-object-717bc3a350bcbca49be4dfbd"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "924206d63a3654e3dd4ba5947a34e40c2e9eb7a73025011b136190552e934a90"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-72e197845de6b26b346409e4",
+      "canonicalRevision": "685783a5112b2a5574816d7a105e5be4189ef7d2bb1251f9c682253bb251498f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-72d31922ad51a9bf3f4710fd",
+        "canonicalId:ctkg:v3e-object-72e197845de6b26b346409e4"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "b6f6e535ec845d7bdb88fe54ce3341067cf6dabcda42b21c9f5196f87f756eba"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-74a1574360382f2ddc25febc",
+      "canonicalRevision": "1c72d9a713370a4c79f1ac8e6487076bfc7e1ade7e40f08576bd429e9e90bdfa",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-68ff502afd3fc2d071483d91",
+        "canonicalId:ctkg:v3e-object-74a1574360382f2ddc25febc"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "67a07d1bb055e0096648bf55fb13ac3e7860dae552a29507ea88feff705729be"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-779067b678c555a7ac125ec9",
+      "canonicalRevision": "4927faff14fb13a6e7f55d2ae973168f0cc4f463b0faa1154d53bec0831d12bf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9450beef96e28cde6c92396a",
+        "canonicalId:ctkg:v3e-object-779067b678c555a7ac125ec9"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "d889a4619af109ded4f656723376a23a4c5a0464324ddab91b0c64349cf18b0c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-78d98effc4692778eb81c5e3",
+      "canonicalRevision": "8bcd6b2c4cf191b411a4e51426179fdf60794648871ef7f8626b6a1a728e14e4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7d1f8c708ccd842f88eafb44",
+        "canonicalId:ctkg:v3e-object-78d98effc4692778eb81c5e3"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "d90a6efdfb2618369683d961b83012e1858b6091f97eacd9639dac438bf7528a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7ca3e1f55b65dfee24a7fa39",
+      "canonicalRevision": "02f0c73141ac51a5a6a38043c6456e4dee3463e47534e8de818abb4d630eeff2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6a0eaca2a0b6741417563428",
+        "canonicalId:ctkg:v3e-object-7ca3e1f55b65dfee24a7fa39"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "3c18de9bd76f3299d44862c3acbacca0e2205d2cd00da6b84caed42237c25629"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7f3c011f94ad894d0d0ab4a5",
+      "canonicalRevision": "33fa649e88f96964c6d1285e62ed7d281bf9273a3dc459bfafdf2ec407a73ed1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-49fdba7bf0f233199e3a10fd",
+        "canonicalId:ctkg:v3e-object-7f3c011f94ad894d0d0ab4a5"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "a8d26d471cb922e9d8380dac376743174f23cde87d6046e2b02b6889c9055969"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-810557d8851df38212938469",
+      "canonicalRevision": "f1d7cee9b32d7ee951e50c4c9cc5d52173c4059bad5a095ddabe5a8ea23a20da",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-62950b122e7821871a1796ae",
+        "canonicalId:ctkg:v3e-object-810557d8851df38212938469"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "8c6327bab3fe9234af6589d93b83053637320660c39b31e79cb3ed23cad1fec0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8459d4505c692da29a5a7d9d",
+      "canonicalRevision": "fdf3fb1d01e5ddb7ba99b4cb8bfa9bcda51e0afc7dc7ddd445f634806a3bdb07",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aedf8242b8e926a5be097d1b",
+        "canonicalId:ctkg:v3e-object-8459d4505c692da29a5a7d9d"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "e4c07caa6f9e4c160f8dbc4422e65186587abd1bc561fe0cdf4310e6d2fe71e7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-877184b13ee2ec45b6f157f8",
+      "canonicalRevision": "8f036cf3f01f2265e7aec8152d6f8367f4b42b5bde23194f5bec93822b43ab1f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1b10302e1daad77549bdba63",
+        "canonicalId:ctkg:v3e-object-877184b13ee2ec45b6f157f8"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "dbcdbebcdf2ebb54b1381a83c331d63171df397d7c66bf80a36ee670576d2734"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-87c3e98f30ff75bbebe8c26a",
+      "canonicalRevision": "66d6b6c60459ee63a4148f940e0a2903f16c886e687cd0db3acb60a46e1c3a7f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5736d8fbca3716b5ea6632f5",
+        "canonicalId:ctkg:v3e-object-87c3e98f30ff75bbebe8c26a"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "a67d4a3fd4257b1c62320fb3d320493f32c7ddfcb30bfe03192ace93ffc21f14"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8bc79b76c8f4b4da96795268",
+      "canonicalRevision": "9716604c91d07dbf81fc4e3627c35f1440a9a3b318e9c2d7ba1b371a1856180d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-edd51dbd298d1f1d1c3edbd9",
+        "canonicalId:ctkg:v3e-object-8bc79b76c8f4b4da96795268"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "fd8c8eaf37bdadb96a81dd5e871b03bc18c79a4d825d563ff3881a30f6a9f6e6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-916697ae7da377b71da79c32",
+      "canonicalRevision": "f464e56b7872611affadd3473adfae57f84d313c81ef762dd6731ec5c178fcc7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3c7073d08af731746cd01429",
+        "canonicalId:ctkg:v3e-object-916697ae7da377b71da79c32"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "87c75588d3b93a897c3e48f561fd4937619eb926c5d56ca6058b60f9f362f8a7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-952d855f6a7a51bafa02d115",
+      "canonicalRevision": "9e7a7da0bfdf309c315b45006a04653abbd5df783712c4e5e68ba4813279fc1e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-899201bc52d7bd902d1375d6",
+        "canonicalId:ctkg:v3e-object-952d855f6a7a51bafa02d115"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "743c533030586bf98a1284df1ddb19838b442538aaf5a9b10b411bda35bbac2a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-95b3daa983615e72c190c5f7",
+      "canonicalRevision": "d7afacf48d13a53ad8c1070c77482cf877e8268a26716a97cf2d3552a51acb19",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-dadc26e4d78631f5e12cb464",
+        "canonicalId:ctkg:v3e-object-95b3daa983615e72c190c5f7"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "ee37053ea9732cbbf7cbfd646f0737e1b7d864058543a647133781c6cdbaba23"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9769bf24f7e4aee74232c2bf",
+      "canonicalRevision": "e45ebb510f484b928afa8c65abce7adf54afbe351e11a17a6dd8dd40ed2ec415",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e5f8330d63636c9aba4377be",
+        "canonicalId:ctkg:v3e-object-9769bf24f7e4aee74232c2bf"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "4413714c0a90e82018aa52100da17363a7c6ac6f338280f6d1c5b28f49a9780f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-98d316c63c4835e8d16b519b",
+      "canonicalRevision": "18b6557bd8c7c6c822f5572c441506ae5a656b033d8ce918225782a39696b369",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d63c9cfc2358bb6bf30d2a77",
+        "canonicalId:ctkg:v3e-object-98d316c63c4835e8d16b519b"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "9168f021afcd69d298955cd91340873b7c2db0c2893a56f11de6795353450dba"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9bfb3258bd5aef70b4fc7c90",
+      "canonicalRevision": "a3fb81a8dfab893a9fe3fd3811da9bb3fba3a5c8fe73b01d6abaec9d10e7d6da",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c3557cd7e8f903ae4160bd01",
+        "canonicalId:ctkg:v3e-object-9bfb3258bd5aef70b4fc7c90"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "ccf52e0a03ccf4db3113e71872d470c869f004b67ba255bcb6a43f866a9f0639"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9c8dd43e95c55ff152c2edb3",
+      "canonicalRevision": "7d95ff996c8010ac3bab29c272d4f764bffb98a46f09ca441d690d3d61db1f1d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f7739e1a9788ce9c9c4ec48d",
+        "canonicalId:ctkg:v3e-object-9c8dd43e95c55ff152c2edb3"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "415c65739cbc49807100a84d5291016f4a4e0c30726ff9bf537a9e3cb075757a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9ed01dd4a6be5e1d8258219b",
+      "canonicalRevision": "5b5fed4a9e1644a58ee6f7fe9485f4cdb3bba986bd91230ddcd9aecbe73aa13d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2fe2e4757c4c505d08a950e6",
+        "canonicalId:ctkg:v3e-object-9ed01dd4a6be5e1d8258219b"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "dbbe9779f8badc73b72b8dd32b3c316f983b0b366b8328e31feabd4618d68804"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9ed45f1ebc24a7f1b10fd81b",
+      "canonicalRevision": "21dc4f5178310b9a4a583d059c055cabb08b3c6fad8bc9f58a9887824e857fe6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2bf8f76c1ec80a9d11bd587e",
+        "canonicalId:ctkg:v3e-object-9ed45f1ebc24a7f1b10fd81b"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "5c955b697062b152c95a98ebfb5fea1aa6d1ae21cd0dc504a4081fb29baaacb1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a2fa9ae10476dfeaa26ed871",
+      "canonicalRevision": "04544681f773453298a91ccd9dc98239a5f19010a56e8b1d5a55a6180285a7a8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2e1e100d62e71de0daf3cfd1",
+        "canonicalId:ctkg:v3e-object-a2fa9ae10476dfeaa26ed871"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "dfb7d6ab313fe9b61defa6f7f1b8ae49ac774eb8f47b328930df2cf95b4b9172"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a539cb4912e9f368cda3b219",
+      "canonicalRevision": "38eec66ec466137409475ba35c86fd90c703fb2e230f3c68d6eda324f7706971",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1bdecc33276948bfc567a180",
+        "canonicalId:ctkg:v3e-object-a539cb4912e9f368cda3b219"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "47e004d5632df83495984ecf1e7b33f14ab2f0cdca30dc08c8e0c3be29d01588"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a625229838764c4f567be8a3",
+      "canonicalRevision": "ce98459c2f91c9b744962725e71ffb5d73800331819536489b2404d80e943b0f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-40665578b7dad895038f0bc8",
+        "canonicalId:ctkg:v3e-object-a625229838764c4f567be8a3"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "88c391c7801080bfa56851fb7b8ec5ebe6c713ee3466107bec29109661748410"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-abe3dcacfeb5904aabe6414e",
+      "canonicalRevision": "f904b1e687050788ec78ebafcf850dc6fb6cd9c3eb5c6efadea255244562d369",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3da01ddeeac08cd216571cf2",
+        "canonicalId:ctkg:v3e-object-abe3dcacfeb5904aabe6414e"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "2292874d58621009fd7f79b9162b2567788967ac2bd31a3ba4960a22c08ec558"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-adf0e6d52b20f134ba03045c",
+      "canonicalRevision": "da92b2ed15620cb8957cc578d4d91e916fde96e6efd6a7ca153258247cc1ebc6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0a0380257f3ea7f63e5026cb",
+        "canonicalId:ctkg:v3e-object-adf0e6d52b20f134ba03045c"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "c781e3e3db957ba880eb28d87ebe9747e2c0fe7063a61a146251610b4e768d51"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b4a11432bd45d80b157d67ff",
+      "canonicalRevision": "f01d2ccb3c2dcfeb7d3b4022bb9ccffdaa2ae2f15f2475d43e6a7b5d017b606e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-246d042c4f5d5854dbc406f4",
+        "canonicalId:ctkg:v3e-object-b4a11432bd45d80b157d67ff"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "021ac07f0dcab69582ca60237ae3a0885550ba8edfe70038b42fbb4106ccba29"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b6fdb84db27272216607472c",
+      "canonicalRevision": "56d26bf78992a7d812ca08833f52d118f0841031ca5201a861287acbdfb90e54",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aa15e447c1ecd8a7eb55e476",
+        "canonicalId:ctkg:v3e-object-b6fdb84db27272216607472c"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "ebfc59fb2b1a3fe263083cc70686a7ea9dd3981f68610233c01fcf43cd3d841c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b76075b193d3d300312dee41",
+      "canonicalRevision": "b7eae24570e1c33a34cbb5b9988eb0005b4ef19114edcda24f7e7869cd3a1879",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d9eb3a577a349654081f53e7",
+        "canonicalId:ctkg:v3e-object-b76075b193d3d300312dee41"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "c7e2d386990c6a069b6c7c3ec020e9acead7ac5bcdd285511afb94beca6209d2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b90b2975061cf6a31e7ab058",
+      "canonicalRevision": "f3f3e9815e2d2e91d04348305af0d113625a561cf7b8e07e26c47b91fed0f08f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aa932745965176862129c357",
+        "canonicalId:ctkg:v3e-object-b90b2975061cf6a31e7ab058"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "fe8789e9a00accd2b886a2f604857b01a2b7c210064cf4d5282a5325662964e0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bbcef891a2738d2b76a36f72",
+      "canonicalRevision": "36446146cec7f6c829e724eeca171e6ab4c2b609f178fb99e21add911b7a639d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aef0e06bbd105e221b0570ae",
+        "canonicalId:ctkg:v3e-object-bbcef891a2738d2b76a36f72"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "6cf61d783de4b9ea8561086c46116956fcf68b5b8efe516f71a70037ee2994ad"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bd2b615ffcc777ad58288217",
+      "canonicalRevision": "e0931b3857ae6c249f3a120797e740867202530f6104cbc29643b77749715e4f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cb75855fe7ab6d271eea0e17",
+        "canonicalId:ctkg:v3e-object-bd2b615ffcc777ad58288217"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "fc158936a9a2461f21c11029233982792d6aef2ffdec136f533ffd5b4d21779f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c1d27215d38c7449b2d57929",
+      "canonicalRevision": "b10c8e07eb2d085ffb2bab280f6c5af9d2d979e5ff1d99c3353168e3ec91704a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cc89fde110bc5b00469f1f7c",
+        "canonicalId:ctkg:v3e-object-c1d27215d38c7449b2d57929"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "d6c153341a6722a249392ecd2686723e2b09d7afee15d819d93cc797d7c9b657"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c2b20e5650ff12bd3796dbb1",
+      "canonicalRevision": "31cfaebb6141acbeb7900cc3ee6f32c43374cd08e7d8d087dc8492618454bef9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fbd6261134ccc33231657866",
+        "canonicalId:ctkg:v3e-object-c2b20e5650ff12bd3796dbb1"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "e04bb95a2be5200870ec21d7c413807d9b5a51671208fb1431c49402b7bde8dc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c3874c539f383975b11a990d",
+      "canonicalRevision": "bbe80203498d137b9e1d2b4cb80c1056bf8acd9e6daa3fc93d5498a7b83bdb52",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-84e3efe214389094bdd39cfa",
+        "canonicalId:ctkg:v3e-object-c3874c539f383975b11a990d"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "89f311051f675c6f7e2474ba90ef2e9714632b0821f162d8246fd717883e6c45"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c5cf09bca6770b695056e387",
+      "canonicalRevision": "b3500c6065540714d0c8348222bdfbe0fa987623a425b1797c001b301520f7a4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0c2a5f77fad1b16dcebfa309",
+        "canonicalId:ctkg:v3e-object-c5cf09bca6770b695056e387"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "f5964ebc343f5f0a3d8510249768a85896bf9ae88821ef271f23c3d694da11bb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc1ecbf4e18b36e4a64eaaa6",
+      "canonicalRevision": "d3d298bbfd48bfb6ad4660c9ecb4e03f227523a475f195fe0d8c3559c8b93180",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3a575dc364fe7e84194b5d15",
+        "canonicalId:ctkg:v3e-object-cc1ecbf4e18b36e4a64eaaa6"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "fbbace3cee394f4892fc860ef3dfb3140b22fae4aa520f7f5e87a93ffd1fb86a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd59afe2907cc324234f9ba1",
+      "canonicalRevision": "6f18e72a5aabc730adb34f050db15375f834fb618dcdc3829057e90a095232fa",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-63acba83818c7c72eead88f6",
+        "canonicalId:ctkg:v3e-object-cd59afe2907cc324234f9ba1"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "928e6a71565f5425297f9157a73b55af63defe0d4587106f27eb94fbbfd11596"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d6a2c19c72c6192a465c47d6",
+      "canonicalRevision": "676bcf02fd049e50b04efb42ce223888f6254693bc143854c9675677512a5aa6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9bd747f739e416b8cef2b001",
+        "canonicalId:ctkg:v3e-object-d6a2c19c72c6192a465c47d6"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "5c05cc238d321355b900473dae04420f90d2b4717ec703e9274057cce3a4d325"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-daed58f9ba4651e7344901e0",
+      "canonicalRevision": "640a614cd527be6a9f4fe9ac03aafaeda9ec5f33e75ed4cf94f45cf00c8407f9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d5bc74ece7334451105aae60",
+        "canonicalId:ctkg:v3e-object-daed58f9ba4651e7344901e0"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "d6af4d6f7a3e43b5c5cc06057bb57c031eefb3a6c4d8162790f5be5de22715a1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dd150d2a617f630448ba5250",
+      "canonicalRevision": "c462fc20ee2daaf32b90574c1aa7f67818c332c29c13b38dba3a76b373678206",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-122effa8e09ab850b47f3969",
+        "canonicalId:ctkg:v3e-object-dd150d2a617f630448ba5250"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "17d4b284b8e106254285fa7f70462a0d7d3d29981b7c7dc6e63fe5722d844e6b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e59c28da566dddff74314933",
+      "canonicalRevision": "59834ceee21272a945f971433950cbc8d5e2fd23ba08846a151e26c7d09cf6f1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3a02086887cc79a5f422dc56",
+        "canonicalId:ctkg:v3e-object-e59c28da566dddff74314933"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "92072890b3216f6b6a5a434a5b58bd9da184ccd88be826578968c00e517111d0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e63e88140ed77fdd2a79d79e",
+      "canonicalRevision": "b8befed4d417e5ca3364877ff8cebadfc37f29452445d31c41b21a7eec727daf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-94ec7563cfeafe7b031177c9",
+        "canonicalId:ctkg:v3e-object-e63e88140ed77fdd2a79d79e"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "3a8b9c60f86f940c21b54fc6efb50c0d200b2a3848b6b3b8b4b31eeef23e7c86"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e816cfc57507b90e8fe412f2",
+      "canonicalRevision": "835aa60516d17a0a304f6a62e200f64282e439d7cab083108b17a951134c3c2c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8951b894d3cd7f865a6d0d88",
+        "canonicalId:ctkg:v3e-object-e816cfc57507b90e8fe412f2"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "6c57d3b1f73fb80cd5af40dba57f60e8ea00344b67b023109a4bdb44ada55bfb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e9929d3c11bc2a6b82d1db73",
+      "canonicalRevision": "238bffed11960426d58e1fbfde86e5c3326cd0c6d02c2cb714e85ae8ed72ea56",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9889f3d1695497a319c627ad",
+        "canonicalId:ctkg:v3e-object-e9929d3c11bc2a6b82d1db73"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "783cce4b48f8807c206b3a3572a5302ceb673d4ad524034b7e3d385981f41c61"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e9a5172695e312f588a6ee1c",
+      "canonicalRevision": "68fdc803c5dbe0354c851a0ed5ab74ab3c255a97935e1b52c37a3348a4a20048",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4ddd57a0f72fe7db078495d3",
+        "canonicalId:ctkg:v3e-object-e9a5172695e312f588a6ee1c"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "ac3812e6307a1e5a552187a1237d2e2e795011f52955f08017bc48c73fac5eb8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ee9cd73056ee7ed93020e169",
+      "canonicalRevision": "f813625913248151b3501a2c2123ee5880864d158bbe9eb17380a80a5877e3cf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bd4aca32ff12b38b1ddee8bb",
+        "canonicalId:ctkg:v3e-object-ee9cd73056ee7ed93020e169"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "005d5c2d6608c0a7ea036b563accd95c99bd46b7e18ba0680873b2b2fb63f48e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f13355e4bc918abc388667e6",
+      "canonicalRevision": "ce70d6cf2a3dca54a247c0bbdb3504fe73790c57fd91b8dc7961cefacf4de6d6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1d6c34801cdfe3c8e90e12f0",
+        "canonicalId:ctkg:v3e-object-f13355e4bc918abc388667e6"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "98923d192050733c4d487d828e1ddbe64c9152a16795acf59b05fa499107c554"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f25e1a4e8a5f26e52b40bdc3",
+      "canonicalRevision": "305d356afb048e98645acd332645623a4471c03368d293376a034cdfe496f989",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-40ee367551badba8b253b629",
+        "canonicalId:ctkg:v3e-object-f25e1a4e8a5f26e52b40bdc3"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "ec7efe808506be704c669c2f26d79ae9760f17ab8c2ca8a3306a2d3e69a2488a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f499160daa993a86eeca68f5",
+      "canonicalRevision": "504cc3d5bc5fc487caff4a1334ec466e1b49f3b405b7f57768103f8cd14c2838",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-51e669e73964f426262809cc",
+        "canonicalId:ctkg:v3e-object-f499160daa993a86eeca68f5"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "8ed6d477f98664e981fb5fa507fb93fd75ac9ea1e59b1d4f5f47e31f32690134"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f7265b8e875c666329809b02",
+      "canonicalRevision": "9526b892e3b44b00bbbfc7bf0577a61f72b03904c3cdbb4b94b64c74de9f8da4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a6c1a85784c9eb60d595bf23",
+        "canonicalId:ctkg:v3e-object-f7265b8e875c666329809b02"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "56064b8ec7d38c9a774db5c92324bce9d870a792096cb8cba39994742e68b83d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f7ffaaaa39ea5e65ac308680",
+      "canonicalRevision": "365dad8af9f2e806828611f913ae166a720db2ac08cd401c103bc73e33add297",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-983de56935af38049820fe76",
+        "canonicalId:ctkg:v3e-object-f7ffaaaa39ea5e65ac308680"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "6d186eb37bd4b28c8f1901468dc4b676ddde4b60b9889202e1c165905c82036f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc96cb65b627e400b4ca6c4e",
+      "canonicalRevision": "6af3c49499b111bab443830a9e179d3d85df15ba4786fc1164999e5b77853e38",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-63b85510199dde466d77a5b8",
+        "canonicalId:ctkg:v3e-object-fc96cb65b627e400b4ca6c4e"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "99fca4f0362a1a7e6f17d51520a2a5df3ce720e0e9e99abe768475d90787a717"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fe1232c6f7435563aef66a1a",
+      "canonicalRevision": "f8e50c13e5baa9f71be8f55b21212e4fdb9a980d785f7f5f9cd302dcd854c097",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ffb21826bc582fd6af932065",
+        "canonicalId:ctkg:v3e-object-fe1232c6f7435563aef66a1a"
+      ],
+      "rationale": "profileOnly：冻结证据仅aggregate/profile，无independent-course，不能INCLUDE/EXCLUDE。",
+      "decisionDigest": "f9216e66ab26ab1815c38a13011d7ee4dbd12b371fc260b732d430a30a6b2e89"
+    }
+  ],
+  "documentDigest": "85c80549beb6bae023cce4b0793fe24d540838a4009f60909e1239785232cb87"
+}

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "edaaa5e622fe34eac8d7a53c",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "879329df-13f0-4b66-98d5-852013b537dc",
+    "permission": "read-only",
+    "reviewSessionId": "879329df-13f0-4b66-98d5-852013b537dc",
+    "reviewSessionScope": "act:issue-1222:primary-recovery-review",
+    "sourceWriterSessionId": "879329df-13f0-4b66-98d5-852013b537dc",
+    "sourceWriterPermission": "read-only",
+    "sourceWriterScope": "act:issue-1222:primary-recovery-review",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "49a2ade31249c31b57093cd6ce41c012743751538efacbb600b462a242d692ea",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "84eabc830f13310740ccde1f5ee97fc5438cf9f135fa9b1a68b68b6746d994c4",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 1
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored PRIMARY conclusions without producing semantic conclusions.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "49a2ade31249c31b57093cd6ce41c012743751538efacbb600b462a242d692ea",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "879329df-13f0-4b66-98d5-852013b537dc"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad",
+    "permission": "read-only",
+    "reviewSessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad",
+    "reviewSessionScope": "act:issue-1222:challenger-recovery-review",
+    "sourceWriterSessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad",
+    "sourceWriterPermission": "read-only",
+    "sourceWriterScope": "act:issue-1222:challenger-recovery-review",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "84a27e0daf6c1c0dbc3eab0d316ba7ee51142312c6642690c3f8edf62879038f",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "c0d87524a7c950e135385e2e2af6c3266b39aa72431b0c30e773bf806c5343e0",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 1
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored CHALLENGER conclusions without producing semantic conclusions.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "84a27e0daf6c1c0dbc3eab0d316ba7ee51142312c6642690c3f8edf62879038f",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad"
+    },
+    "didNotReadPrimaryArtifact": true,
+    "sessionAuditPrimaryPathMentions": 0
+  }
+}

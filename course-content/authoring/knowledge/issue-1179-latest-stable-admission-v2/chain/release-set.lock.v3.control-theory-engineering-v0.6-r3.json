@@ -1,0 +1,74 @@
+{
+  "lock_version": "actkg-release-set-lock/v3",
+  "release_set_id": "actkg-authoritative-candidate-ba1e2b23e9c38b85c7d67fc00322ae1029082afef9658e2e46ce6334f28b19c7",
+  "bundle": {
+    "controlled_path": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/releases/control-theory-engineering-v0.6",
+    "bundle_id": "ctb:control-theory-engineering-v0.6:r3",
+    "bundle_revision": 3,
+    "bundle_digest": "ba1e2b23e9c38b85c7d67fc00322ae1029082afef9658e2e46ce6334f28b19c7",
+    "manifest_raw_sha256": "02a2156b5626ec483793a5b785581d38a9cd8dc321bc60bd1ed27c479a2988df"
+  },
+  "release": {
+    "release_id": "ctr:release:control-theory-engineering-v0.6",
+    "release_version": "control-theory-engineering-v0.6",
+    "release_hash": "4cd57e594a5d329e848cbf871d5f4beb6e0a92a1dd68518102d4d658497165cf",
+    "source_dataset_hash": "3dbe28cab90ed8d663abcfeec15c82e1caf7dd4bb17394fc605aaab71b7e5e0b"
+  },
+  "compatibility": {
+    "bundle_contract_version": "actkg-public-bundle/1",
+    "schema_version": "0.2.0",
+    "schema_sha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de"
+  },
+  "source_revision": {
+    "commit": "c9a717044deeaac280cfc638a210e2d77dab462f",
+    "tag": "control-theory-engineering-v0.6-r3-source"
+  },
+  "components": [
+    {
+      "reference_kind": "legacy_exact",
+      "release_id": "ctr:root-locus-engineering-v0.1",
+      "controlled_path": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/releases/root-locus-engineering-v0.1",
+      "release_json_name": "root-locus-engineering-v0.1.json",
+      "release_raw_sha256": "9a88ce87b4b728c36291b923f69e0647722f1e191501306c33c2c1fed2654eae"
+    },
+    {
+      "reference_kind": "legacy_exact",
+      "release_id": "ctr:release:system-modeling-engineering-v0.1",
+      "controlled_path": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/releases/system-modeling-engineering-v0.1",
+      "release_json_name": "system-modeling-engineering-v0.1.release.json",
+      "release_raw_sha256": "b94417c7598982f144612496114d4c205dc797f622c556e931c64d26cb6974de"
+    },
+    {
+      "reference_kind": "standard_bundle",
+      "release_id": "ctr:release:time-domain-analysis-engineering-v0.1",
+      "controlled_path": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/releases/time-domain-analysis-engineering-v0.1",
+      "bundle_id": "ctb:time-domain-analysis-engineering-v0.1:r1",
+      "bundle_digest": "20807dfe406903bd9a8a4a238717d49f4abbacb3e041dab5be6068d126ec7eeb",
+      "manifest_raw_sha256": "5fa0eee0ebe24dba77cec9c48777082705ff01d6e384e57b1d2f8bf4f00e1103"
+    },
+    {
+      "reference_kind": "standard_bundle",
+      "release_id": "ctr:release:stability-analysis-engineering-v0.1",
+      "controlled_path": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/releases/stability-analysis-engineering-v0.1",
+      "bundle_id": "ctb:stability-analysis-engineering-v0.1:r1",
+      "bundle_digest": "0c484509f524d10a9ad1c6b273c93cdb885327ce951a084a26fcfc1cf5965e67",
+      "manifest_raw_sha256": "ee0dfb7d3d97b8f64da1d59edfca48b5415f9c2c16a1ac96f3cfc163666c3923"
+    },
+    {
+      "reference_kind": "standard_bundle",
+      "release_id": "ctr:release:frequency-domain-analysis-engineering-v0.1",
+      "controlled_path": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/releases/frequency-domain-analysis-engineering-v0.1",
+      "bundle_id": "ctb:frequency-domain-analysis-engineering-v0.1:r1",
+      "bundle_digest": "5622d73dd005d65a3863482f0af325ba16e994cf8fa233e08a5127b58da3c000",
+      "manifest_raw_sha256": "945f1be38b0bc967c29977464234a71985def3b299cfcbbaa1a6101406fbd4a6"
+    },
+    {
+      "reference_kind": "standard_bundle",
+      "release_id": "ctr:release:control-theory-integration-v0.4",
+      "controlled_path": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/releases/control-theory-integration-v0.4",
+      "bundle_id": "ctb:control-theory-integration-v0.4:r1",
+      "bundle_digest": "270acebe6f54a38bffbb208da363f075e9c180c03304cefd33fe6782a49adc6e",
+      "manifest_raw_sha256": "122d9a7fddf894c3a241c77605458351a91199fafa21c00fac12da5283eab4ad"
+    }
+  ]
+}

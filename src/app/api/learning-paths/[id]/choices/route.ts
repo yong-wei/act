@@ -3,13 +3,18 @@ import { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { LEGACY_STOPPED_PATH_STATUS } from '@/lib/canonical-learning-path-transition/contracts';
+import { throwIfLearningPathNotWritable } from '@/lib/canonical-learning-path-transition/mutation-guard';
+import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import {
   recordPathChoiceEvidence,
   type PathChoiceEvidenceAction,
 } from '@/lib/control-correction-path-rounds';
 import {
   assertCanWriteStudentPath,
+  assertPathMutableForWrite,
   getLearningPathRequester,
+  learningPathMutationBlockedResponse,
   readPathForAccess,
   refreshPathEvidenceFeatureCache,
   requireIdempotencyKey,
@@ -40,6 +45,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (path instanceof NextResponse) return path;
     const denied = assertCanWriteStudentPath(requester, path);
     if (denied) return denied;
+    const stopped = assertPathMutableForWrite(path);
+    if (stopped) return stopped;
 
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
@@ -130,6 +137,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     return NextResponse.json({ choice, pathUpdate, cacheRefresh });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    const blocked = learningPathMutationBlockedResponse(error);
+    if (blocked) return blocked;
     console.error('[LearningPathChoice] Error:', error);
     return NextResponse.json({ error: '记录路径选择失败' }, { status: 500 });
   }
@@ -218,61 +227,79 @@ async function adoptSelectedPathOption(
   path: any,
   option: ServerPathChoiceOption,
 ): Promise<{ selectedOptionId: string; selectedStyleId: string; currentNodeId: string | null; nodeIds: string[] }> {
-  const latestPath = await prisma.learningPath.findUnique({
-    where: { id: path.id },
-    select: {
-      pathPayload: true,
-      lastExecutionMetadata: true,
-      terminalValidation: true,
-    },
-  });
-  const pathPayload = readRecord(latestPath?.pathPayload ?? path.pathPayload);
-  const selectedNodeState = readSelectedExecutionNodeState(latestPath ?? path, pathPayload);
-  const currentNodeId = resolveSelectedPathCurrentNodeId(option, selectedNodeState);
-  const selectedPlanNodes = normalizeSelectedPlanNodes(option.planNodes, currentNodeId);
-  const updatedAt = new Date().toISOString();
-  const pathPayloadUpdate = {
-    ...pathPayload,
-    selectedOptionId: option.optionId,
-    selectedStyleId: option.styleId,
-    selectedPolicyFamily: option.policyFamily,
-    currentNodeId,
-    mainPathNodeIds: option.nodeIds,
-    planNodes: selectedPlanNodes,
-    executionStatus: updateSelectedPathExecutionStatus(pathPayload.executionStatus, option.nodeIds, currentNodeId, updatedAt, selectedNodeState),
-    visualization: updateSelectedPathVisualization(pathPayload.visualization, option.nodeIds, currentNodeId, selectedNodeState),
-  };
-  const lastExecutionMetadata = updateSelectedPathExecutionMetadata(
-    latestPath?.lastExecutionMetadata ?? path.lastExecutionMetadata,
-    option.nodeIds,
-    currentNodeId,
-    option,
-    selectedNodeState,
-  );
-  const terminalValidation = buildSelectedPathTerminalValidation(
-    latestPath?.terminalValidation ?? path.terminalValidation,
-    option,
-    selectedPlanNodes,
-    selectedNodeState,
-  );
-  const pathStatus = resolveSelectedPathStatus(option.nodeIds, currentNodeId, selectedNodeState, terminalValidation);
-  await prisma.learningPath.update({
-    where: { id: path.id },
-    data: {
-      nodeIds: option.nodeIds,
+  // Post-choice adopt must re-read + update under the same stop fence so a cutover
+  // between evidence write and path mutation cannot reactivate a stopped Legacy path.
+  return runWithLearningPathWriteFence(prisma as any, path.id, async (tx) => {
+    if (typeof tx.learningPath.findFirst !== 'function') {
+      throw new Error('LearningPath findFirst must be available on the write-fence transaction client');
+    }
+    if (typeof tx.learningPath.update !== 'function') {
+      throw new Error('LearningPath update must be available on the write-fence transaction client');
+    }
+
+    const latestPath = await tx.learningPath.findFirst({
+      where: { id: path.id },
+      select: {
+        id: true,
+        pathStatus: true,
+        pathPayload: true,
+        lastExecutionMetadata: true,
+        terminalValidation: true,
+      },
+    });
+    throwIfLearningPathNotWritable(latestPath ?? {
+      id: path.id,
+      pathStatus: LEGACY_STOPPED_PATH_STATUS,
+    });
+
+    const pathPayload = readRecord(latestPath?.pathPayload ?? path.pathPayload);
+    const selectedNodeState = readSelectedExecutionNodeState(latestPath ?? path, pathPayload);
+    const currentNodeId = resolveSelectedPathCurrentNodeId(option, selectedNodeState);
+    const selectedPlanNodes = normalizeSelectedPlanNodes(option.planNodes, currentNodeId);
+    const updatedAt = new Date().toISOString();
+    const pathPayloadUpdate = {
+      ...pathPayload,
+      selectedOptionId: option.optionId,
+      selectedStyleId: option.styleId,
+      selectedPolicyFamily: option.policyFamily,
       currentNodeId,
-      pathStatus,
-      pathPayload: pathPayloadUpdate as unknown as Prisma.InputJsonValue,
-      lastExecutionMetadata: lastExecutionMetadata as unknown as Prisma.InputJsonValue,
-      terminalValidation: terminalValidation as unknown as Prisma.InputJsonValue,
-    },
+      mainPathNodeIds: option.nodeIds,
+      planNodes: selectedPlanNodes,
+      executionStatus: updateSelectedPathExecutionStatus(pathPayload.executionStatus, option.nodeIds, currentNodeId, updatedAt, selectedNodeState),
+      visualization: updateSelectedPathVisualization(pathPayload.visualization, option.nodeIds, currentNodeId, selectedNodeState),
+    };
+    const lastExecutionMetadata = updateSelectedPathExecutionMetadata(
+      latestPath?.lastExecutionMetadata ?? path.lastExecutionMetadata,
+      option.nodeIds,
+      currentNodeId,
+      option,
+      selectedNodeState,
+    );
+    const terminalValidation = buildSelectedPathTerminalValidation(
+      latestPath?.terminalValidation ?? path.terminalValidation,
+      option,
+      selectedPlanNodes,
+      selectedNodeState,
+    );
+    const pathStatus = resolveSelectedPathStatus(option.nodeIds, currentNodeId, selectedNodeState, terminalValidation);
+    await tx.learningPath.update({
+      where: { id: path.id },
+      data: {
+        nodeIds: option.nodeIds,
+        currentNodeId,
+        pathStatus,
+        pathPayload: pathPayloadUpdate as unknown as Prisma.InputJsonValue,
+        lastExecutionMetadata: lastExecutionMetadata as unknown as Prisma.InputJsonValue,
+        terminalValidation: terminalValidation as unknown as Prisma.InputJsonValue,
+      },
+    });
+    return {
+      selectedOptionId: option.optionId,
+      selectedStyleId: option.styleId,
+      currentNodeId,
+      nodeIds: option.nodeIds,
+    };
   });
-  return {
-    selectedOptionId: option.optionId,
-    selectedStyleId: option.styleId,
-    currentNodeId,
-    nodeIds: option.nodeIds,
-  };
 }
 
 function findExistingChoiceByIdempotencyKey(

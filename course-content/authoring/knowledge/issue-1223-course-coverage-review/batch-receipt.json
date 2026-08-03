@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "current-course-coverage-batch-receipt/v1",
+  "protocol": "current-course-coverage-batch-review/1",
+  "status": "DEFERRED_EVIDENCE_BLOCKED",
+  "batchBinding": {
+    "batchId": "84aa72597e8fe1d9ee6f0602",
+    "manifestBatchIndex": 33,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 1,
+    "memberDigest": "8ee4109996fc05d510290a3620c6172e8107421e9695a1aa79c13e5cbe4040e4",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "orderedMembers": [
+    {
+      "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+      "canonicalRevision": "d43c4e7c9a96a3b2f5b5f5f71bd20b145a6c4d07c563371902ccd33854830430"
+    }
+  ],
+  "stageDocuments": {
+    "primaryDigest": "48b8e434628b78ff268dec6b4802f1888c7343bb013e75ea9aae8a76af1c11bc",
+    "challengerDigest": "e01af4ed1c33106865d78559fafac460cc0ea6dd000e2eabb8ccbf6d6b70dd5a",
+    "thirdDigest": null
+  },
+  "stageRecords": {
+    "primary": {
+      "schemaVersion": "current-course-coverage-stage-review/v2",
+      "batchBinding": {
+        "batchId": "84aa72597e8fe1d9ee6f0602",
+        "manifestBatchIndex": 33,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:SystemModel",
+        "memberCount": 1,
+        "memberDigest": "8ee4109996fc05d510290a3620c6172e8107421e9695a1aa79c13e5cbe4040e4",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "PRIMARY",
+      "reviewer": {
+        "identity": "grok-independent-primary",
+        "provider": "grok-4.5-build",
+        "sessionId": "5b2678f1-d651-4046-a1d1-6691280ac762",
+        "promptVersion": "issue-1223-primary-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/primary-independent-stage-source.json",
+        "artifactSha256": "068447628380c57b5bd38d2397c1ac58ceb584f67caa2a8309ffe10b1e0fd342",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "PRIMARY",
+        "writerSessionId": "5b2678f1-d651-4046-a1d1-6691280ac762"
+      },
+      "reviewInputDigest": "d9ce2f983a332170c8fde25824e34e2995c5bac32ffdc9546ce22f32027e899f",
+      "decisions": [
+        {
+          "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+          "canonicalRevision": "d43c4e7c9a96a3b2f5b5f5f71bd20b145a6c4d07c563371902ccd33854830430",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctr:c017d99634d38d5b97730906",
+            "evidence:ctr:fc21f12ca7add7a360e6aa50",
+            "topic:transfer function",
+            "canonicalId:ctm:v11g-6b66a370b1cd788194b0f8ab"
+          ],
+          "evidenceIds": [
+            "4720bc25816a80b9284352bf0d9be61e",
+            "e9b59a0f36a47ae3deaceca0e9ae7063",
+            "5ab5da9bd3b2647768c42f06ae1a33e1",
+            "0e1df03545c39c4ef3567b4965678117"
+          ],
+          "rationale": "profileOnly/highRisk 成员，冻结证据仅有聚合投影、词表与规范 profile，无独立课程权威证据，无法判定覆盖角色。",
+          "decisionDigest": "a559f5a1dcd5bb0a97d0d0ab2d9f73109845b88b89746d26d57d4ddfb147db73"
+        }
+      ],
+      "documentDigest": "48b8e434628b78ff268dec6b4802f1888c7343bb013e75ea9aae8a76af1c11bc"
+    },
+    "challenger": {
+      "schemaVersion": "current-course-coverage-stage-review/v2",
+      "batchBinding": {
+        "batchId": "84aa72597e8fe1d9ee6f0602",
+        "manifestBatchIndex": 33,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:SystemModel",
+        "memberCount": 1,
+        "memberDigest": "8ee4109996fc05d510290a3620c6172e8107421e9695a1aa79c13e5cbe4040e4",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "CHALLENGER",
+      "reviewer": {
+        "identity": "grok-independent-challenger",
+        "provider": "grok-4.5-build",
+        "sessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238",
+        "promptVersion": "issue-1223-challenger-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/challenger-independent-stage-source.json",
+        "artifactSha256": "f37589b26a5cdb4e4935600e58e406f19904906340b72a7d5f1b0f119553d24c",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "CHALLENGER",
+        "writerSessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238"
+      },
+      "reviewInputDigest": "2adfd015c76462a45c0739ae3fd702199814241dfe752e9c2d7b8043a5e6818a",
+      "decisions": [
+        {
+          "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+          "canonicalRevision": "d43c4e7c9a96a3b2f5b5f5f71bd20b145a6c4d07c563371902ccd33854830430",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctr:c017d99634d38d5b97730906",
+            "evidence:ctr:fc21f12ca7add7a360e6aa50",
+            "topic:transfer function",
+            "canonicalId:ctm:v11g-6b66a370b1cd788194b0f8ab"
+          ],
+          "evidenceIds": [
+            "4720bc25816a80b9284352bf0d9be61e",
+            "e9b59a0f36a47ae3deaceca0e9ae7063",
+            "5ab5da9bd3b2647768c42f06ae1a33e1",
+            "0e1df03545c39c4ef3567b4965678117"
+          ],
+          "rationale": "profileOnly/highRisk 成员仅有聚合投影与词表/档案证据，缺少独立课程权威材料，无法判定覆盖角色。",
+          "decisionDigest": "5ac45707602a57eaf36fe6ab0d8b6b9025b551ea29e1b47c5241856bfff815d4"
+        }
+      ],
+      "documentDigest": "e01af4ed1c33106865d78559fafac460cc0ea6dd000e2eabb8ccbf6d6b70dd5a"
+    },
+    "third": null
+  },
+  "terminalMembers": [
+    {
+      "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+      "canonicalRevision": "d43c4e7c9a96a3b2f5b5f5f71bd20b145a6c4d07c563371902ccd33854830430",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "a559f5a1dcd5bb0a97d0d0ab2d9f73109845b88b89746d26d57d4ddfb147db73",
+        "5ac45707602a57eaf36fe6ab0d8b6b9025b551ea29e1b47c5241856bfff815d4"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    }
+  ],
+  "counts": {
+    "members": 1,
+    "included": 0,
+    "excluded": 0,
+    "deferredEvidenceBlocked": 1,
+    "conflicts": 0,
+    "thirdReviewed": 0
+  },
+  "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+  "productionBoundaries": {
+    "currentCoverageDecisionWritten": false,
+    "productionSelectorChanged": false,
+    "graphRagSelectorChanged": false,
+    "writerFenceChanged": false
+  },
+  "productionBoundaryProof": {
+    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
+    "receiptPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/batch-receipt.json",
+    "attestationPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/batch-boundary-attestation.json",
+    "headBefore": "3c21570b69c8503b2625dd5b22e80126969d6773",
+    "protectedPaths": [
+      "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+      "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+      "src/lib/canonical-rag/authority.ts",
+      "src/lib/canonical-learning-fact-identity/authority.ts",
+      "src/lib/canonical-learning-fact-identity/capability.ts",
+      "src/lib/canonical-learning-fact-identity/writer.ts"
+    ],
+    "protectedPathSnapshots": [
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+        "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+        "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+      },
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+        "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+        "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+      },
+      {
+        "relativePath": "src/lib/canonical-rag/authority.ts",
+        "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+        "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+        "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+        "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+        "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+        "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+        "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+        "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+      }
+    ],
+    "statusBefore": [],
+    "authoritySnapshotBeforeDigest": "eda3465b454009b31ed80fe8c83d7e0695dfd3fbcc9d8d357901f457f115458a",
+    "gitDiffCheck": "PASS",
+    "mutationFlags": {
+      "currentCoverageDecisionWritten": false,
+      "productionSelectorChanged": false,
+      "graphRagSelectorChanged": false,
+      "writerFenceChanged": false
+    }
+  },
+  "reviewProvenanceBinding": {
+    "provenancePath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/review-provenance.json",
+    "provenanceSha256": "68e6d23863f645c8e6d4258200677a396d36ef580da4a83ee65e07139a2b1101",
+    "independenceAudit": {
+      "protocol": {
+        "primaryCouldReadChallengerArtifact": false,
+        "challengerCouldReadPrimaryArtifact": false,
+        "normalizedStageArtifactsExistedDuringReviews": false,
+        "sourceArtifactsCreatedByIndependentWriters": true,
+        "sourceArtifactsBoundToNormalizedReviews": true,
+        "semanticConclusionsGeneratedByAssembler": false
+      },
+      "primary": {
+        "stage": "PRIMARY",
+        "provider": "grok-4.5-build",
+        "sessionId": "5b2678f1-d651-4046-a1d1-6691280ac762",
+        "reviewSessionId": "5b2678f1-d651-4046-a1d1-6691280ac762",
+        "reviewSessionScope": "act:issue-1223:primary-review",
+        "sourceWriterSessionId": "5b2678f1-d651-4046-a1d1-6691280ac762",
+        "sourceWriterScope": "act:issue-1223:primary-review",
+        "sourceArtifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/primary-independent-stage-source.json",
+        "sourceArtifactSha256": "068447628380c57b5bd38d2397c1ac58ceb584f67caa2a8309ffe10b1e0fd342",
+        "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/primary-review.json",
+        "normalizedDocumentDigest": "48b8e434628b78ff268dec6b4802f1888c7343bb013e75ea9aae8a76af1c11bc"
+      },
+      "challenger": {
+        "stage": "CHALLENGER",
+        "provider": "grok-4.5-build",
+        "sessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238",
+        "reviewSessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238",
+        "reviewSessionScope": "act:issue-1223:challenger-review",
+        "sourceWriterSessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238",
+        "sourceWriterScope": "act:issue-1223:challenger-review",
+        "sourceArtifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/challenger-independent-stage-source.json",
+        "sourceArtifactSha256": "f37589b26a5cdb4e4935600e58e406f19904906340b72a7d5f1b0f119553d24c",
+        "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/challenger-review.json",
+        "normalizedDocumentDigest": "e01af4ed1c33106865d78559fafac460cc0ea6dd000e2eabb8ccbf6d6b70dd5a",
+        "didNotReadPrimaryArtifact": true,
+        "sessionAuditPrimaryPathMentions": 0
+      },
+      "third": null
+    }
+  },
+  "receiptDigest": "54841a0bcdbb701a319ce6063762a93718f7b0d447030a254871928a65694e79"
+}

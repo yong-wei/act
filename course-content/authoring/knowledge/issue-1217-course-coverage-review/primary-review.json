@@ -1,0 +1,923 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v2",
+  "batchBinding": {
+    "batchId": "5b8e00646810a496b097f9a9",
+    "manifestBatchIndex": 27,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:time-domain-analysis-engineering-v0.1::entityType:Formula",
+    "memberCount": 55,
+    "memberDigest": "8ca5694397ffa1f382c30b4d7a42ebc19aa00d5d3075bf1de394547cab7048fd",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-independent-primary",
+    "provider": "grok-cli",
+    "sessionId": "4c070f03-56e8-45c0-af4d-b5eace9d6c1f",
+    "promptVersion": "issue-1217-primary-independent-stage/v1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1217-course-coverage-review/primary-independent-stage-source.json",
+    "artifactSha256": "9f000fe492c60254f5f72c01f6fc98bc43f0b0ec035d355b901b808637570907",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "PRIMARY",
+    "writerSessionId": "4c070f03-56e8-45c0-af4d-b5eace9d6c1f"
+  },
+  "reviewInputDigest": "a41aa737b90fbfb72c7351d2f75509d87828e80ac582964650a31af869681951",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-007799d5b4d125879882854f",
+      "canonicalRevision": "b4eeb83de31a6b823951a607d84f29779d037e722de88cfc6e3c0b3035c6bd36",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-b6e9d71d8055ea7c564421da",
+        "evidence:ctkg:v3e-release-evidence-ed479d1f72fbdc72be95fdfa",
+        "canonicalId:ctkg:v3e-canonical-007799d5b4d125879882854f"
+      ],
+      "evidenceIds": [
+        "bcbc01d7c42c88e4405c64b909619dd2",
+        "06773d0ccdc4f28cd1d493c6b84c10cd",
+        "41da34cc2316fc9091f320d180068114"
+      ],
+      "rationale": "成员 ordinal=0（canonicalId=ctkg:v3e-canonical-007799d5b4d125879882854f，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 3 条：aggregate=2、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-b6e9d71d8055ea7c564421da)；aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-ed479d1f72fbdc72be95fdfa)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-007799d5b4d125879882854f)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "ed8fa223a8744aa3e348e91151f1abedefc98750d4e0a0f9b262e88831d8cb78"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-03264a3676161da1337552ef",
+      "canonicalRevision": "919d1a6c17167649dd151eddb2556400b10a4aa13a3958853142021bc1011f45",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-db12c115fb3762dc351e93d6",
+        "canonicalId:ctkg:v3e-canonical-03264a3676161da1337552ef"
+      ],
+      "evidenceIds": [
+        "395d302bab1829aacfb8b7863587a5d5",
+        "337b0bba3b6f2a07da38752a86701d78"
+      ],
+      "rationale": "成员 ordinal=1（canonicalId=ctkg:v3e-canonical-03264a3676161da1337552ef，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-db12c115fb3762dc351e93d6)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-03264a3676161da1337552ef)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "0fd3d9dea189b5497b71546e41e3cf3ee856e9f5fba318ef7c88148760242f4d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-084896e156b2e398daf4bf5f",
+      "canonicalRevision": "2b5027e25932ad24a84c1b1eca5f5f65ba67ca7cfe236441bc07ab21c0695dfe",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-163945a130a96c16965f45d6",
+        "evidence:ctkg:v3e-release-evidence-9e5809be7431fcd803e24f1d",
+        "canonicalId:ctkg:v3e-canonical-084896e156b2e398daf4bf5f"
+      ],
+      "evidenceIds": [
+        "a2c1648c5b18afe761c2202b798753f1",
+        "47c92e82751c1057723406d96c666efa",
+        "ced9c6999390a3746f00fd353359f1cc"
+      ],
+      "rationale": "成员 ordinal=2（canonicalId=ctkg:v3e-canonical-084896e156b2e398daf4bf5f，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 3 条：aggregate=2、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-163945a130a96c16965f45d6)；aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-9e5809be7431fcd803e24f1d)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-084896e156b2e398daf4bf5f)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "489a271c57f30b062c0f03c98d98fd5d32465456eaaab02f1866d0c3b48b69b2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0f2eaa1cf95080b59a3ffe66",
+      "canonicalRevision": "75a177fedc3386668f37d76169b31750078a9e749164bcd48b0ed1472252e9db",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-7e3cae1904c73a1f18c11505",
+        "canonicalId:ctkg:v3e-canonical-0f2eaa1cf95080b59a3ffe66"
+      ],
+      "evidenceIds": [
+        "835edc3c16b149d7d22748805b37f06f",
+        "fe01aa446b463073fc7e897ce01b896a"
+      ],
+      "rationale": "成员 ordinal=3（canonicalId=ctkg:v3e-canonical-0f2eaa1cf95080b59a3ffe66，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-7e3cae1904c73a1f18c11505)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-0f2eaa1cf95080b59a3ffe66)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "338af644b76e6124fa00d7f1f1f596cbe079bf76776a529fff6c25f7225330d8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-11187d3e2ac65861c2da3c85",
+      "canonicalRevision": "0b39dd7986cf59c3ea22d0a1d067292c5162be784237850abf7954b621ec85b9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-5e7fd44483dc1344b0ef2b85",
+        "canonicalId:ctkg:v3e-canonical-11187d3e2ac65861c2da3c85"
+      ],
+      "evidenceIds": [
+        "22abeda27286c801a88a752637d9627d",
+        "fed0032c12af040f63ec2ce36abf7fba"
+      ],
+      "rationale": "成员 ordinal=4（canonicalId=ctkg:v3e-canonical-11187d3e2ac65861c2da3c85，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-5e7fd44483dc1344b0ef2b85)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-11187d3e2ac65861c2da3c85)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "be10f548e80b1b8013f0162e718f9400524aee8b7212054b10d326605c5c4ffd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-16376009771524bddba667c2",
+      "canonicalRevision": "23ab533d000ca03c48ca7deba85d0c7ec2b8e11b0910b059165ad2a68016058f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-57c854c8100803a638cf4a7e",
+        "canonicalId:ctkg:v3e-canonical-16376009771524bddba667c2"
+      ],
+      "evidenceIds": [
+        "1653e6e5ee3258373a31365bb200dfc6",
+        "3cf9aecb4675fe98d3e04a49264e5296"
+      ],
+      "rationale": "成员 ordinal=5（canonicalId=ctkg:v3e-canonical-16376009771524bddba667c2，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-57c854c8100803a638cf4a7e)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-16376009771524bddba667c2)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "b021bdb0ca4bbb960bab4a7c93fe74f067f3498de14236d30c5970d275d481a7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-16acde69d922a767729cbe8f",
+      "canonicalRevision": "fd2413a7b27e8d5822f0ffdfaa56e617b9a5b2c36384948bca4c0fc0e90afa0b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-dc97e263c442f9317f2299b0",
+        "canonicalId:ctkg:v3e-canonical-16acde69d922a767729cbe8f"
+      ],
+      "evidenceIds": [
+        "6d2c74a16124fe3eb65dc883c955e6d0",
+        "9a4e4643d0ca6658a647e918b6feb5c7"
+      ],
+      "rationale": "成员 ordinal=6（canonicalId=ctkg:v3e-canonical-16acde69d922a767729cbe8f，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-dc97e263c442f9317f2299b0)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-16acde69d922a767729cbe8f)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "4f8349fcfa43a9f6be70c289e8ad8e4569077642d2b1b44d9066e3ff956dbf4b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-1a017353778e783a5210118b",
+      "canonicalRevision": "7c0db066b453e835e4e513f36859f47b127ce39e0ae3b3f6269117b8102b7359",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-7b0b8526cb0ab120097fde05",
+        "evidence:ctkg:v3e-release-evidence-df473716cdf31ccbd3168655",
+        "canonicalId:ctkg:v3e-canonical-1a017353778e783a5210118b"
+      ],
+      "evidenceIds": [
+        "3d6a3336fb0759565f4de2c49fca4058",
+        "d8ce404f1f645ff0f23cc19db84aa9df",
+        "28b01a4534f55f20fb7ead49c740191e"
+      ],
+      "rationale": "成员 ordinal=7（canonicalId=ctkg:v3e-canonical-1a017353778e783a5210118b，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 3 条：aggregate=2、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-7b0b8526cb0ab120097fde05)；aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-df473716cdf31ccbd3168655)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-1a017353778e783a5210118b)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "3957e80d2f936b68713bad43e4fd7a1a333237e9d9b3e2c8620a7d5aefc9ad26"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-1b69beabc13d01f2ee97f5cc",
+      "canonicalRevision": "aad6fbc2468263e3bbca9bbba1ac059f1f93367cd3c8169150aca4be963259a0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-ee2db965d5b0fe2f034ba23e",
+        "canonicalId:ctkg:v3e-canonical-1b69beabc13d01f2ee97f5cc"
+      ],
+      "evidenceIds": [
+        "099bb45f0968c2a8637288ad40122606",
+        "b686d00f7873615864934717355a0434"
+      ],
+      "rationale": "成员 ordinal=8（canonicalId=ctkg:v3e-canonical-1b69beabc13d01f2ee97f5cc，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-ee2db965d5b0fe2f034ba23e)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-1b69beabc13d01f2ee97f5cc)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "202db08d83e9c775b7649c9f39b55e5b91660c23a6a7300a6f754161232d7d58"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-1f2c451e16fe646c6541b3c7",
+      "canonicalRevision": "d2153ab93ac6406d7cb5aa400b0becf8382848ccc524332109ef345a7514e946",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-af4ac7842fb6f4c8a5257551",
+        "canonicalId:ctkg:v3e-canonical-1f2c451e16fe646c6541b3c7"
+      ],
+      "evidenceIds": [
+        "719eec0aea2921c5dd4fe41138af57a3",
+        "24bdefd0d29020499942f93418a86214"
+      ],
+      "rationale": "成员 ordinal=9（canonicalId=ctkg:v3e-canonical-1f2c451e16fe646c6541b3c7，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-af4ac7842fb6f4c8a5257551)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-1f2c451e16fe646c6541b3c7)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "e5637bde4f0f51ea917fff5f6e0d0155cc0e8dad93f83f3bf1ea8284195b30b4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-260e6740bec8ec0f5e00fe4e",
+      "canonicalRevision": "425f45a97a89ceacc8b4950ff12d5912931124f3aed2906e620f1222ae168e36",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-6894d2db2e8651a3df882b57",
+        "canonicalId:ctkg:v3e-canonical-260e6740bec8ec0f5e00fe4e"
+      ],
+      "evidenceIds": [
+        "7c0aff6265693ee52c82d872c2e2d15a",
+        "563dbe3f465e4006a3da5bbf9a0fef84"
+      ],
+      "rationale": "成员 ordinal=10（canonicalId=ctkg:v3e-canonical-260e6740bec8ec0f5e00fe4e，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-6894d2db2e8651a3df882b57)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-260e6740bec8ec0f5e00fe4e)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "17a7c6c63af518ef3f445538468196ca4fec85ca6717af8e89723fbdfa12af21"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-2e74fc31d28b72beec3eb5b9",
+      "canonicalRevision": "44a6ce2c54d5957f195f7ff1fe674994bd840ed2bcd0269f156a0b22450f7852",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-427be5a28b072c7714ee7c0d",
+        "canonicalId:ctkg:v3e-canonical-2e74fc31d28b72beec3eb5b9"
+      ],
+      "evidenceIds": [
+        "f59fa90ae2ba03f61fcf839a715a418a",
+        "62339590938d416604b532df6c0f344c"
+      ],
+      "rationale": "成员 ordinal=11（canonicalId=ctkg:v3e-canonical-2e74fc31d28b72beec3eb5b9，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-427be5a28b072c7714ee7c0d)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-2e74fc31d28b72beec3eb5b9)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "79ba2ccd565fba8a3b34f99f816aac01db2552a1d77140da8a0116263758360b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-2f3aa308e9db423022fa6d8c",
+      "canonicalRevision": "ff8a6de9454b5ab6ec21a86cd750e3716403581d273a97f00a80797de9fe66b8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-45441ca0e6ca16ffe8f1bce6",
+        "canonicalId:ctkg:v3e-canonical-2f3aa308e9db423022fa6d8c"
+      ],
+      "evidenceIds": [
+        "b02ffffb26abf4cad85c440616be14aa",
+        "8e4e684efc97b6239afa5117134ecee3"
+      ],
+      "rationale": "成员 ordinal=12（canonicalId=ctkg:v3e-canonical-2f3aa308e9db423022fa6d8c，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-45441ca0e6ca16ffe8f1bce6)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-2f3aa308e9db423022fa6d8c)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "26f15b3eb08614a973e2103e5b6ffe5cfb6df3980d8d88c1a8c4982d633fbe2f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3117807f723c7befb67a55c9",
+      "canonicalRevision": "f2f864df8f64f7c04f22c72d9d04fdbdc3364a09155cf0f326f23d88908b0b4b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-fc9dfb829c216d6b793ef118",
+        "evidence:ctkg:v3e-release-evidence-ff788f64f371b73831d18459",
+        "canonicalId:ctkg:v3e-canonical-3117807f723c7befb67a55c9"
+      ],
+      "evidenceIds": [
+        "af532bb8eef7603326fb5bcbd842bfb3",
+        "561f00d6f0e72e592d5e63591ee27cf3",
+        "f5f3462bb62563d39606a56b4b36beff"
+      ],
+      "rationale": "成员 ordinal=13（canonicalId=ctkg:v3e-canonical-3117807f723c7befb67a55c9，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 3 条：aggregate=2、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-fc9dfb829c216d6b793ef118)；aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-ff788f64f371b73831d18459)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-3117807f723c7befb67a55c9)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "7e7983db6bbe1d2485d07c44545fa8a4c7bfba55a254fb2ea5d29238a3274f64"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-395200cb430c46a0a3b97c8a",
+      "canonicalRevision": "419e3032b5ebbf733acea1da8112283084010fb612edd1a28d08904dd891a347",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-0c9d3010e73be7169a5b91be",
+        "canonicalId:ctkg:v3e-canonical-395200cb430c46a0a3b97c8a"
+      ],
+      "evidenceIds": [
+        "970122970a329c886f5971810a3b73ef",
+        "59fa1e8999ef84ea1acf6007b8699b73"
+      ],
+      "rationale": "成员 ordinal=14（canonicalId=ctkg:v3e-canonical-395200cb430c46a0a3b97c8a，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-0c9d3010e73be7169a5b91be)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-395200cb430c46a0a3b97c8a)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "5fb6ac7fbde5f7e76400d06ea982b54bf01582c9b38088bf42a73cb4917d097d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3b7f357d3842ce18560a54cf",
+      "canonicalRevision": "b8c96060b98457f6d320995ae7a00fd8a5139d617ee1e80de3a1f2a3e8f9e127",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-354ac663b226494b479f6924",
+        "canonicalId:ctkg:v3e-canonical-3b7f357d3842ce18560a54cf"
+      ],
+      "evidenceIds": [
+        "503f9c9c9f813504cfc0400337f7b729",
+        "4f78e9947d6d5d8e434a5e6eafb935c0"
+      ],
+      "rationale": "成员 ordinal=15（canonicalId=ctkg:v3e-canonical-3b7f357d3842ce18560a54cf，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-354ac663b226494b479f6924)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-3b7f357d3842ce18560a54cf)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "602f26ae09c48d40ff7b4c097fd77538bd1dbdad6516318c6b26b9e42364653b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-40d893d71d5bdc9aa38ebe8b",
+      "canonicalRevision": "517767dd2c7491c950f2bdb9e149543c037082d00a7577944c3bb8279746c3c4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-7e0d1c9719f49270f3744a0b",
+        "canonicalId:ctkg:v3e-canonical-40d893d71d5bdc9aa38ebe8b"
+      ],
+      "evidenceIds": [
+        "ed580f8956a6931f0417f5daefe2a0be",
+        "78126ad7c7c9795f2f328bf6f7369da8"
+      ],
+      "rationale": "成员 ordinal=16（canonicalId=ctkg:v3e-canonical-40d893d71d5bdc9aa38ebe8b，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-7e0d1c9719f49270f3744a0b)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-40d893d71d5bdc9aa38ebe8b)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "eac3a46dbd39bfc6693d91c55e2b64148334bad1e224e464430e228bc392dfe9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-468080b3ba0074ce0b892ff0",
+      "canonicalRevision": "6425044c6069c8cc301b50aa69ab598f4ea9b14cd700051782824702530810fc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-d7ae1b00eeb76dc2627c2406",
+        "canonicalId:ctkg:v3e-canonical-468080b3ba0074ce0b892ff0"
+      ],
+      "evidenceIds": [
+        "be3955666c0ce2f18772ff75dbe22b19",
+        "a1076981d36673b37651e07b5d5b0cdd"
+      ],
+      "rationale": "成员 ordinal=17（canonicalId=ctkg:v3e-canonical-468080b3ba0074ce0b892ff0，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-d7ae1b00eeb76dc2627c2406)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-468080b3ba0074ce0b892ff0)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "0e5e772c084eb3d22d924a82adb4cd4c5e67a3787c8f3e9f51e70803974e13fb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-485fe66ce6a726e61f4137f8",
+      "canonicalRevision": "18b0cd01f4076e19b49187cf56ed63d2a4ec19505bd23008ad73d109a1c97793",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-d81049e5db408aa28ffc448f",
+        "canonicalId:ctkg:v3e-canonical-485fe66ce6a726e61f4137f8"
+      ],
+      "evidenceIds": [
+        "a6fc2fcf3870b384011438282affef52",
+        "0f8d3614b780776bfbdfcb3edb5014d3"
+      ],
+      "rationale": "成员 ordinal=18（canonicalId=ctkg:v3e-canonical-485fe66ce6a726e61f4137f8，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-d81049e5db408aa28ffc448f)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-485fe66ce6a726e61f4137f8)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "252335fba6bde8e2193c4ea6406cd12f1875ebc9bf12537f7ab78fc6f559cd6c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4c2706daf2555d5857b6afd8",
+      "canonicalRevision": "2768662cae72c38c39c64c0b317a8c67173ece9ed689b52ca630d3a3be2587e6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-a09041285fe2569ef2f76408",
+        "canonicalId:ctkg:v3e-canonical-4c2706daf2555d5857b6afd8"
+      ],
+      "evidenceIds": [
+        "3173bc444b662761762a20bd4f487889",
+        "73c05e7d932ccae841e076c0c6ac4898"
+      ],
+      "rationale": "成员 ordinal=19（canonicalId=ctkg:v3e-canonical-4c2706daf2555d5857b6afd8，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-a09041285fe2569ef2f76408)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-4c2706daf2555d5857b6afd8)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "10b31d79346615d4a1360aa172aeb1c547207bc79f389584ee6b8521390d832e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4d0e170722aa863bed64ba4b",
+      "canonicalRevision": "57ed1e9cb2ff338836a232477e75d51ea101d25c99e43336f4dc8959e1bf51e9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-e6a4880e22443b52a4467455",
+        "canonicalId:ctkg:v3e-canonical-4d0e170722aa863bed64ba4b"
+      ],
+      "evidenceIds": [
+        "d07254eaeef6da295a3f47daac59345d",
+        "ba91e57318e5b75cf1fdaf4a9725edb7"
+      ],
+      "rationale": "成员 ordinal=20（canonicalId=ctkg:v3e-canonical-4d0e170722aa863bed64ba4b，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-e6a4880e22443b52a4467455)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-4d0e170722aa863bed64ba4b)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "04a61ca36248db83a2f82b05287b1d9a05acc992d54137efdeb7521150fb0c13"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-5ddb2a666a91a4caa13e3ec6",
+      "canonicalRevision": "ef1a02959f2ebd79d7b2cad75e6f27b4bb6ca06abc60a78bfcd30af3a7d7bc16",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-d9d6b7936281c3c05112892c",
+        "canonicalId:ctkg:v3e-canonical-5ddb2a666a91a4caa13e3ec6"
+      ],
+      "evidenceIds": [
+        "1bbb3f61828c5002f13ac6647355b035",
+        "de38f5a98bac0b2f7587d720016f5180"
+      ],
+      "rationale": "成员 ordinal=21（canonicalId=ctkg:v3e-canonical-5ddb2a666a91a4caa13e3ec6，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-d9d6b7936281c3c05112892c)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-5ddb2a666a91a4caa13e3ec6)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "16ae371a75a85e45b6947786b7b856556207dc8c1b6cc59ba9e58a452e8fc35b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-68222fcdb496e57e50a92119",
+      "canonicalRevision": "a3221e0a1f55caede95a52b1ff75db45e99db3eb90827f07d47a50949cbe6352",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-db3d243c4129435725fb1a6f",
+        "canonicalId:ctkg:v3e-canonical-68222fcdb496e57e50a92119"
+      ],
+      "evidenceIds": [
+        "e1d4a4823b9083b4c8fe0849aa851327",
+        "43789ab97ce0db02b5a5e2b50af81e6b"
+      ],
+      "rationale": "成员 ordinal=22（canonicalId=ctkg:v3e-canonical-68222fcdb496e57e50a92119，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-db3d243c4129435725fb1a6f)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-68222fcdb496e57e50a92119)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "27657306aac2f5062b88d9124129bd505667c5e118c597b459705b07736d074a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-69502652432189e5919fcad9",
+      "canonicalRevision": "50a2b62526ee8af70d0fecb841dc8c77e90291097e337eea0233b28d701157d1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-62ee784af9c19b7854429578",
+        "canonicalId:ctkg:v3e-canonical-69502652432189e5919fcad9"
+      ],
+      "evidenceIds": [
+        "2b64922a6b1b09252edb920fe84bd773",
+        "e63c94aff55e2041bc82c37c4178e314"
+      ],
+      "rationale": "成员 ordinal=23（canonicalId=ctkg:v3e-canonical-69502652432189e5919fcad9，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-62ee784af9c19b7854429578)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-69502652432189e5919fcad9)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "2eba6fc52464f99625aebb12ced261acab76bdb38e441b94659e724b4c0450cd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6a650f096afeb7565a4cd2af",
+      "canonicalRevision": "14d37bc70cf80b6f168d915be815ff0e80623fa14747f9d38a2d26a8c78a5062",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-fe2ae0b664b241ea8b3db109",
+        "canonicalId:ctkg:v3e-canonical-6a650f096afeb7565a4cd2af"
+      ],
+      "evidenceIds": [
+        "92047e330b55976b3177e3bb9f66e64d",
+        "967de1e1933a36e4a65605f6c2f0fb07"
+      ],
+      "rationale": "成员 ordinal=24（canonicalId=ctkg:v3e-canonical-6a650f096afeb7565a4cd2af，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-fe2ae0b664b241ea8b3db109)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-6a650f096afeb7565a4cd2af)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "414c52b666a34bfd7629858ee2d990d62961974c445dda484ffbc9adad7a653e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7300bcbce011fb12913abe74",
+      "canonicalRevision": "8ed2cc114a05eaf795f4982572966746ac7fccdc830983494ba09d2f86d2a2b3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-8f2f55d50adc3b7ee884258b",
+        "canonicalId:ctkg:v3e-canonical-7300bcbce011fb12913abe74"
+      ],
+      "evidenceIds": [
+        "786f69b53480e269dd01a5b2866d7b96",
+        "1cbace2dc7e716050cb52558992501a1"
+      ],
+      "rationale": "成员 ordinal=25（canonicalId=ctkg:v3e-canonical-7300bcbce011fb12913abe74，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-8f2f55d50adc3b7ee884258b)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-7300bcbce011fb12913abe74)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "fb5a7188334415bfbdf795668b0c50fbb3995b52e5f511abc1b5bb0668d3bdfa"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7483619c46554c1dcc32dd6c",
+      "canonicalRevision": "c665d7c8b93e9f45562347ebb005a446315a638adf998fafc6d570856002c6ae",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-1f9242d4bbaf8bcefdaaa28b",
+        "canonicalId:ctkg:v3e-canonical-7483619c46554c1dcc32dd6c"
+      ],
+      "evidenceIds": [
+        "e24b6ada3541fcfcf9899c18ecb78f7f",
+        "ad638163f70ae70bb39b2b70edd90346"
+      ],
+      "rationale": "成员 ordinal=26（canonicalId=ctkg:v3e-canonical-7483619c46554c1dcc32dd6c，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-1f9242d4bbaf8bcefdaaa28b)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-7483619c46554c1dcc32dd6c)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "6337aff441947aae763a1813d4d9e1c2b98d2e79a29bc0dfb501723415e47b01"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-78b19e9e861f8cbe512f2186",
+      "canonicalRevision": "8d61b2e61e1cc77d4496f9a266a370867dcbbcf571f9e0a287ca3b5f406b845e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-aa14d538fc29c6a6f2fecec1",
+        "canonicalId:ctkg:v3e-canonical-78b19e9e861f8cbe512f2186"
+      ],
+      "evidenceIds": [
+        "a95bab1f196598fa1d48711afa9957ec",
+        "26912b2d9350711717d9a93bd5786490"
+      ],
+      "rationale": "成员 ordinal=27（canonicalId=ctkg:v3e-canonical-78b19e9e861f8cbe512f2186，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-aa14d538fc29c6a6f2fecec1)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-78b19e9e861f8cbe512f2186)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "b457dc0d41b206c40c334d713245d3375c6a50372559e77cf703a66eef4be36d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7969aba55f0c5988556ff477",
+      "canonicalRevision": "098e45841139e36e2a57b8b7f9cd931bb798e4b23afe6c6022ba1e99b3eb9bff",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-7909e1994155183817af5124",
+        "canonicalId:ctkg:v3e-canonical-7969aba55f0c5988556ff477"
+      ],
+      "evidenceIds": [
+        "93f356daef3ea0ed948371a40307874e",
+        "9ba2f12eff0f4ed05eafaf53d91520d4"
+      ],
+      "rationale": "成员 ordinal=28（canonicalId=ctkg:v3e-canonical-7969aba55f0c5988556ff477，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-7909e1994155183817af5124)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-7969aba55f0c5988556ff477)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "f32974ca9bf1fbc78d2c5892c7eb93fa330ca622a7971c7f1859517c8887bf27"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7e86922f1b9753df271ca77c",
+      "canonicalRevision": "556523b10359dcfd3949df0d92516d7888dd3b70d4edea46c2da8f9cd549724f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-09267db6118b740946b33642",
+        "canonicalId:ctkg:v3e-canonical-7e86922f1b9753df271ca77c"
+      ],
+      "evidenceIds": [
+        "0326ca27b7212a61dc284f9cf89a27ce",
+        "57c2e205273ae62614f3e8c148fbb4f2"
+      ],
+      "rationale": "成员 ordinal=29（canonicalId=ctkg:v3e-canonical-7e86922f1b9753df271ca77c，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-09267db6118b740946b33642)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-7e86922f1b9753df271ca77c)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "f1ecc31dcd85e048f94b0546104289b58a501d916c4d9eaaf6339d91f6033208"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7eb56b6027626aa033f41fa3",
+      "canonicalRevision": "ef6698db06612efd1cdb07ac0974dcb1901a46a5e4d52fba861f879e66dce202",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-e54dd06df65f00f465357700",
+        "canonicalId:ctkg:v3e-canonical-7eb56b6027626aa033f41fa3"
+      ],
+      "evidenceIds": [
+        "b263aa1147dd1ea1edd4d033814e25c1",
+        "e49651d10f13aaa356b7dd914e495fe5"
+      ],
+      "rationale": "成员 ordinal=30（canonicalId=ctkg:v3e-canonical-7eb56b6027626aa033f41fa3，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-e54dd06df65f00f465357700)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-7eb56b6027626aa033f41fa3)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "38858eba056f922759638171142caa9ed1380a6f06c884679c116c1e95bed2d8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-81b601f5f7c9c8ed4c47981b",
+      "canonicalRevision": "d5d27cc207a1ce1154381cc849257293a077a4af29cfb52810d4614d3886c1f4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-3b3cf8c6ae703d5fecd625ac",
+        "canonicalId:ctkg:v3e-canonical-81b601f5f7c9c8ed4c47981b"
+      ],
+      "evidenceIds": [
+        "5701da212f57f4ca7ec67a2221cc7589",
+        "bde64354ecdbcbca9ab9f30094f9800e"
+      ],
+      "rationale": "成员 ordinal=31（canonicalId=ctkg:v3e-canonical-81b601f5f7c9c8ed4c47981b，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-3b3cf8c6ae703d5fecd625ac)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-81b601f5f7c9c8ed4c47981b)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "fdba817672ff049bde081d3d469f362b05d61b519be83ded4669f15cef103df0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-85269ce217a71a30976f744a",
+      "canonicalRevision": "f106bc72494851f296b79653b5564781301ec67f7a6c9a88d910383cf83a59a2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-181010489189fbbf50235c5b",
+        "canonicalId:ctkg:v3e-canonical-85269ce217a71a30976f744a"
+      ],
+      "evidenceIds": [
+        "5a7845ccc1830a37aca0107f8f5922b8",
+        "a4fc60f97999621b06404675f391c3a7"
+      ],
+      "rationale": "成员 ordinal=32（canonicalId=ctkg:v3e-canonical-85269ce217a71a30976f744a，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-181010489189fbbf50235c5b)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-85269ce217a71a30976f744a)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "ef453e78c443fc6e08857a58f3eea1993cc2b0d307d63f5ff3fc540f6598b8f3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-8cf1931a8a07320f2d8cdacd",
+      "canonicalRevision": "aca9306587d6003b46315b3b997f6854d3b6eac374a0f34c76c39f85a793460c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-400a4affef0d6712a8ce0d4a",
+        "canonicalId:ctkg:v3e-canonical-8cf1931a8a07320f2d8cdacd"
+      ],
+      "evidenceIds": [
+        "c03f1af3894ceaa2d84483b469356dea",
+        "7f62ae716a775e36230a02ffeedf09af"
+      ],
+      "rationale": "成员 ordinal=33（canonicalId=ctkg:v3e-canonical-8cf1931a8a07320f2d8cdacd，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-400a4affef0d6712a8ce0d4a)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-8cf1931a8a07320f2d8cdacd)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "8c0c0b4698dc03a83a96518285774654904f1eceb1bfc23d2d73a23dd16b2e38"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-94b02ab44ed7f41fcc23eb93",
+      "canonicalRevision": "913bd23419a7e66d728ccbb814c7ec835216cd72af89b799e2a37f1767aed75e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-5fcaf0d0fe8cd2e6f3860fa1",
+        "evidence:ctkg:v3e-release-evidence-8bab73056f89f0388a0bd727",
+        "canonicalId:ctkg:v3e-canonical-94b02ab44ed7f41fcc23eb93"
+      ],
+      "evidenceIds": [
+        "17b0584df2485a0a4d205f54f553f66b",
+        "6fae1a81c0598ade20fef68f5e934d1d",
+        "badd8c867b19c4edd76215f090ff1b33"
+      ],
+      "rationale": "成员 ordinal=34（canonicalId=ctkg:v3e-canonical-94b02ab44ed7f41fcc23eb93，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 3 条：aggregate=2、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-5fcaf0d0fe8cd2e6f3860fa1)；aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-8bab73056f89f0388a0bd727)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-94b02ab44ed7f41fcc23eb93)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "4055fb73421d3388a173d06a4cb2bcd7e6bdd35f1624acd0051f464d617de9ab"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-a02d9e2acb9e7a61e8adc382",
+      "canonicalRevision": "cda451ef50a4a8db59c8747bb96950c158bf2277fd8c25474d554c61cb9413ea",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-7de7d66316158f1dc8986778",
+        "canonicalId:ctkg:v3e-canonical-a02d9e2acb9e7a61e8adc382"
+      ],
+      "evidenceIds": [
+        "1c72ca21c7c1877195f6402f2b0ea28d",
+        "948662a62eea826c49e03df431746717"
+      ],
+      "rationale": "成员 ordinal=35（canonicalId=ctkg:v3e-canonical-a02d9e2acb9e7a61e8adc382，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-7de7d66316158f1dc8986778)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-a02d9e2acb9e7a61e8adc382)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "bb10da4ad85aeec3e754d0aadc2ca49f11d490c046e6a56062584331de4e6874"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-a0dfb9088ef25ed170ade8e7",
+      "canonicalRevision": "b222960e24f0832cacada9bbbcffe682e381939632150368ae3d869b9fe2f871",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-3b905de83abc2ccd52d38b89",
+        "canonicalId:ctkg:v3e-canonical-a0dfb9088ef25ed170ade8e7"
+      ],
+      "evidenceIds": [
+        "e6b0177576f40664388a88c6e7674c85",
+        "2085f32fc0ffc4dea4408e2d46da2e36"
+      ],
+      "rationale": "成员 ordinal=36（canonicalId=ctkg:v3e-canonical-a0dfb9088ef25ed170ade8e7，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-3b905de83abc2ccd52d38b89)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-a0dfb9088ef25ed170ade8e7)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "c2ffe562566b9fb5fb0f76dca59d1a9aa7210a05a9e17185ee43940c43dc01dd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-a12b0604ee370b215fe208b6",
+      "canonicalRevision": "2aafec499f7a8ef4a79d5cef0d359543a5cef90d4d8d0fee078088cfd505c450",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-df92948c00c3c5381d46c809",
+        "canonicalId:ctkg:v3e-canonical-a12b0604ee370b215fe208b6"
+      ],
+      "evidenceIds": [
+        "acf1af1e87abb17a04105327daf15c8c",
+        "6c0a765ddf8db5c8335c307b4e273d79"
+      ],
+      "rationale": "成员 ordinal=37（canonicalId=ctkg:v3e-canonical-a12b0604ee370b215fe208b6，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-df92948c00c3c5381d46c809)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-a12b0604ee370b215fe208b6)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "c4e9017d456fa9664f17e02bc86d9f11f52b8813901ed20cc5ddcb113ccbe1ff"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ba4aed575d4bcd4941b219da",
+      "canonicalRevision": "c9d4efa165a1f820f183b37ada46a62aaf491a564f68ddc7f728fed4f0758dcd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-cb17e374e53c94e2e0d239f2",
+        "canonicalId:ctkg:v3e-canonical-ba4aed575d4bcd4941b219da"
+      ],
+      "evidenceIds": [
+        "f91a399acc3ea7e65447c9b3462624ef",
+        "6ab02cf3de769444e1987a5a4aa1cde6"
+      ],
+      "rationale": "成员 ordinal=38（canonicalId=ctkg:v3e-canonical-ba4aed575d4bcd4941b219da，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-cb17e374e53c94e2e0d239f2)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-ba4aed575d4bcd4941b219da)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "de1b59c0310f8260c66fc175bf5e5479c1f7a81d8be0b839d37281ddf86a4b3a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ba860b007a01e3fafd5d82d7",
+      "canonicalRevision": "016d47548ce4df378024a0e3c939f647e824eaf23280f060a8b4c6f087fca789",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-06985571ab8b0f78731cdeee",
+        "canonicalId:ctkg:v3e-canonical-ba860b007a01e3fafd5d82d7"
+      ],
+      "evidenceIds": [
+        "9e2c5eda56a6fb4c4d32813cac817edf",
+        "6f62bbda83274f13798f222e385f0b21"
+      ],
+      "rationale": "成员 ordinal=39（canonicalId=ctkg:v3e-canonical-ba860b007a01e3fafd5d82d7，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-06985571ab8b0f78731cdeee)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-ba860b007a01e3fafd5d82d7)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "fdb24dd00cb4eccffc83a6df920c1a6388e4c2795ff437bde6f8fe92d37895c2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bac5a9db66fe6dda521e6af0",
+      "canonicalRevision": "4a4f2ec9f7e4df9a007109668b4ed2a75e17acf92c0c0a40a107ad2e73aaf86c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-ec67cda5a2408b4cb7dedb44",
+        "canonicalId:ctkg:v3e-canonical-bac5a9db66fe6dda521e6af0"
+      ],
+      "evidenceIds": [
+        "e3f45453a64a72e173c83f2ff7acb779",
+        "dbe016b32a3f7ca0222a0cfd7f685468"
+      ],
+      "rationale": "成员 ordinal=40（canonicalId=ctkg:v3e-canonical-bac5a9db66fe6dda521e6af0，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-ec67cda5a2408b4cb7dedb44)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-bac5a9db66fe6dda521e6af0)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "6876dc62fbaa13c5947bc9d84ce4e50e8c33ffcfc3e77334f8dfbe736f73a1b2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bda3898a8225fd807f82857b",
+      "canonicalRevision": "d6c123618e6e967cfcb1411cd042eedf02c350fc7254b29de14906773e74a920",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-e84d3cdcc60b696eb1980d23",
+        "canonicalId:ctkg:v3e-canonical-bda3898a8225fd807f82857b"
+      ],
+      "evidenceIds": [
+        "5181f57505d367c7b2e685f584ad1f8d",
+        "7b1b1c383fd4fd4db164c0258053dbb3"
+      ],
+      "rationale": "成员 ordinal=41（canonicalId=ctkg:v3e-canonical-bda3898a8225fd807f82857b，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-e84d3cdcc60b696eb1980d23)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-bda3898a8225fd807f82857b)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "8b2ac280d94c6e62a4c5a66434a9d7f77ca2f3286ebb24262da8c6c4d0ff11c1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bed3b365e33fa8ebe70d2ad1",
+      "canonicalRevision": "9711eeab6e896ee888cc5de29a96c9e203d6e744835695bfc8d3f6b1e4dcc723",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-9974b4479714715e491a5ce9",
+        "canonicalId:ctkg:v3e-canonical-bed3b365e33fa8ebe70d2ad1"
+      ],
+      "evidenceIds": [
+        "5dacf0dda090ec643702b194f7e561b3",
+        "fdc562a3329b0a53e7a8486e0eea5412"
+      ],
+      "rationale": "成员 ordinal=42（canonicalId=ctkg:v3e-canonical-bed3b365e33fa8ebe70d2ad1，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-9974b4479714715e491a5ce9)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-bed3b365e33fa8ebe70d2ad1)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "d97783a6a1a46d6c0ceb0188e0401427dab73945148e8784b8e6ad92d986f0b5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ca204ab596c0ca5d0ab6e457",
+      "canonicalRevision": "d1582f04281347263b6f1dfe6d15fbe0793631cf3b8060b89bd226c6a6c12b3f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-034c6c5c20b16eea70d28916",
+        "canonicalId:ctkg:v3e-canonical-ca204ab596c0ca5d0ab6e457"
+      ],
+      "evidenceIds": [
+        "6c5d7581189cd4283eeaeaa7c8866c6e",
+        "ce8db5c58d673a268593be2d7c4f79bc"
+      ],
+      "rationale": "成员 ordinal=43（canonicalId=ctkg:v3e-canonical-ca204ab596c0ca5d0ab6e457，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-034c6c5c20b16eea70d28916)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-ca204ab596c0ca5d0ab6e457)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "6d292faf9c27713fd1d701141c6458cbed10df4fb81a06f4fff572df5f08279c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-cc43c84b7b721f5ee961a4b0",
+      "canonicalRevision": "279ca004cddb2421b4a6f5abdbd57f00f87ef69b90cc469ff5d195865f5172e9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-53d7a543649bdb7c2113b027",
+        "canonicalId:ctkg:v3e-canonical-cc43c84b7b721f5ee961a4b0"
+      ],
+      "evidenceIds": [
+        "884d789758c7c8c33d6c29a88a4c9adc",
+        "9569cf051243316ef8beb0aa34d42101"
+      ],
+      "rationale": "成员 ordinal=44（canonicalId=ctkg:v3e-canonical-cc43c84b7b721f5ee961a4b0，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-53d7a543649bdb7c2113b027)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-cc43c84b7b721f5ee961a4b0)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "fec50eb93e4ea96b1fc10d9f683f8c7cb1a16fa2dec4db6881d713a14ac16c97"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-d8962634d3a4c7e2631d179c",
+      "canonicalRevision": "6c37bd75d60b01950b7cbc92ec7a59207d4d8e1417a7e3aad15ec731a2b8bfd5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-294daceeb72d13bbd43b9403",
+        "canonicalId:ctkg:v3e-canonical-d8962634d3a4c7e2631d179c"
+      ],
+      "evidenceIds": [
+        "960eb1bf7392f044d3c6d55b0d39ce65",
+        "33177a2b4c3a5bc4590dd30e9b7dd664"
+      ],
+      "rationale": "成员 ordinal=45（canonicalId=ctkg:v3e-canonical-d8962634d3a4c7e2631d179c，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-294daceeb72d13bbd43b9403)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-d8962634d3a4c7e2631d179c)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "df755bfa5c95fc2691a2aeca28c7fe5c96d69e6b03bf740bbbb04ae3ee5fbcdf"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-dcd5d73bc1340db67b5a1531",
+      "canonicalRevision": "26ee9bebe11f3c3760c6497b7b830a0fd4a1fb022db2153cb3a958adecdddf00",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-5f6f70c36f85735cb17e0a61",
+        "canonicalId:ctkg:v3e-canonical-dcd5d73bc1340db67b5a1531"
+      ],
+      "evidenceIds": [
+        "823b103404a681c0d1ea4d9f3999a797",
+        "7926671fe92f3d8c17f404e240826cca"
+      ],
+      "rationale": "成员 ordinal=46（canonicalId=ctkg:v3e-canonical-dcd5d73bc1340db67b5a1531，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-5f6f70c36f85735cb17e0a61)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-dcd5d73bc1340db67b5a1531)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "f586548a58ddfd76e493a3ff601d3e0aa33c1a5ffe04608a76049a55b293226d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-dd17885a65541a8180c2e65b",
+      "canonicalRevision": "c45716df88c2b0056327ba3db6b93eba4051862aade99d1b864cd0d250d9ade8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-236b1b6399f485fe1d761412",
+        "canonicalId:ctkg:v3e-canonical-dd17885a65541a8180c2e65b"
+      ],
+      "evidenceIds": [
+        "0824008edab99e8d30867b64a6ead411",
+        "f9c68550c39c7e4ef0cdb26c2b10df6d"
+      ],
+      "rationale": "成员 ordinal=47（canonicalId=ctkg:v3e-canonical-dd17885a65541a8180c2e65b，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-236b1b6399f485fe1d761412)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-dd17885a65541a8180c2e65b)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "87abfc16a9d9655791242de88af0d19f987e5b08a1fc9d1368e5cb9fdf5033aa"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-dd3b912a7ca627640cc89ddb",
+      "canonicalRevision": "4e1ffc7fa525487fb6f4dbd90f7b9d014c0049ccc467e0562b02f1b23da80e41",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-ba1a580f68192bb28a9d20a4",
+        "canonicalId:ctkg:v3e-canonical-dd3b912a7ca627640cc89ddb"
+      ],
+      "evidenceIds": [
+        "13d976eb6c14fa0abfdd49c6a3398912",
+        "2b5d090339d6128b44525d075d150875"
+      ],
+      "rationale": "成员 ordinal=48（canonicalId=ctkg:v3e-canonical-dd3b912a7ca627640cc89ddb，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-ba1a580f68192bb28a9d20a4)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-dd3b912a7ca627640cc89ddb)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "ecb79e53ab3785d483c2c797f1a8918e2ec54309ae9f5548fcb44c10fcc6e09a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-e25de70c1c6aeae7be4ae1a8",
+      "canonicalRevision": "4a4e4d3011f36b2449dd2346e90482a343141a3376b0dd9188f37dbde2fc9edd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-e2a9dc043373e45430053d90",
+        "canonicalId:ctkg:v3e-canonical-e25de70c1c6aeae7be4ae1a8"
+      ],
+      "evidenceIds": [
+        "7f811c765657875898ca18660fcf40a9",
+        "45c64fc1a0994be66d5c153bceca5893"
+      ],
+      "rationale": "成员 ordinal=49（canonicalId=ctkg:v3e-canonical-e25de70c1c6aeae7be4ae1a8，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-e2a9dc043373e45430053d90)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-e25de70c1c6aeae7be4ae1a8)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "c2ab27b708a3ef28e340267899254038ecffab34cc37a07d829310aa9c499d77"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-efafb83f6137f68fc9f5a8bc",
+      "canonicalRevision": "5e9aa47c0f53a35cd4bae7f5f12566369cc22651fa4f4348b1e4111af839c503",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-afbc1fe18b5349d9d7d2a3b1",
+        "canonicalId:ctkg:v3e-canonical-efafb83f6137f68fc9f5a8bc"
+      ],
+      "evidenceIds": [
+        "29d56086bdb877d1fa242eebff5cb28d",
+        "cf30168a3b2dce48369de8fda3ed0aef"
+      ],
+      "rationale": "成员 ordinal=50（canonicalId=ctkg:v3e-canonical-efafb83f6137f68fc9f5a8bc，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-afbc1fe18b5349d9d7d2a3b1)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-efafb83f6137f68fc9f5a8bc)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "fdd1f21b7a46fb28b8ab64cae1e1de2d74524ba231901f899d2b98d1e6c6b2f8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-f104952401c7d35312633a75",
+      "canonicalRevision": "72b13a8a9c2dfea4c252c691260a7a75892706aae4857bdee768485af8088b00",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-134fe712be35f97a527acfc6",
+        "canonicalId:ctkg:v3e-canonical-f104952401c7d35312633a75"
+      ],
+      "evidenceIds": [
+        "d8ba5042af7c1fdbb3a16317d46fbdaf",
+        "0a2eb9d4c1c3aa29110a5547e6a9b3ad"
+      ],
+      "rationale": "成员 ordinal=51（canonicalId=ctkg:v3e-canonical-f104952401c7d35312633a75，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-134fe712be35f97a527acfc6)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-f104952401c7d35312633a75)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "6500a4f96a7267e0cd6df5542ed57697409c3375327614dd11348b45e16451ab"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-fd29899c27442fd9302e6653",
+      "canonicalRevision": "51cc2310ed68536e1c05b1acc647243a15f8ca66908bd146913a2776b3c44c99",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-6f3b9e5f44d78882b8030d98",
+        "canonicalId:ctkg:v3e-canonical-fd29899c27442fd9302e6653"
+      ],
+      "evidenceIds": [
+        "82d97d90f7d9aa1910deeb82a1cf0e7d",
+        "c9e40376b8ac63222d190ecced559f6e"
+      ],
+      "rationale": "成员 ordinal=52（canonicalId=ctkg:v3e-canonical-fd29899c27442fd9302e6653，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-6f3b9e5f44d78882b8030d98)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-fd29899c27442fd9302e6653)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "1544b7dbe081ecfc7cc995310a2e19486c3ff4899d32c5483e2b39e998bcb69d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-fdb1e3fc6aa4e5a0166a78fc",
+      "canonicalRevision": "35d2997c115addbec66317ca16ccf41530da6fcf1a41df22687011b2381cb8e5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-d0ea5b3a69e32647761568c3",
+        "canonicalId:ctkg:v3e-canonical-fdb1e3fc6aa4e5a0166a78fc"
+      ],
+      "evidenceIds": [
+        "0a13ff2f5d4f68c095987398378d0d7e",
+        "5d33d0133af5cb2d14d7e4182783e38c"
+      ],
+      "rationale": "成员 ordinal=53（canonicalId=ctkg:v3e-canonical-fdb1e3fc6aa4e5a0166a78fc，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-d0ea5b3a69e32647761568c3)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-fdb1e3fc6aa4e5a0166a78fc)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "c8d1fbef5b398f0bb50674078b717b7c82a841867308626cf0b88b90591a7330"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-fdbb7f0afb0d1f35e0ab3e68",
+      "canonicalRevision": "b7d22c7edafb7d8157845588c16f2f304c56df0169ed26595381cc29a8c78fde",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-release-evidence-c09a685d8ad5c105522c4452",
+        "canonicalId:ctkg:v3e-canonical-fdbb7f0afb0d1f35e0ab3e68"
+      ],
+      "evidenceIds": [
+        "768a1362fca931305527ecaa40742133",
+        "f62471f5f0de56f3d82c798aabb93933"
+      ],
+      "rationale": "成员 ordinal=54（canonicalId=ctkg:v3e-canonical-fdbb7f0afb0d1f35e0ab3e68，entityType=Formula，module=ctr:release:time-domain-analysis-engineering-v0.1，profileOnly=true）的冻结 evidenceRefs 共 2 条：aggregate=1、profile=1、independent-course=0。逐条边界为：aggregate/aggregate-evidence(evidence:ctkg:v3e-release-evidence-c09a685d8ad5c105522c4452)；profile/canonical-profile(canonicalId:ctkg:v3e-canonical-fdbb7f0afb0d1f35e0ab3e68)。按独立课程覆盖审核规则，INCLUDE/EXCLUDE 只能由 boundary=independent-course 的充分当前课程证据支持；aggregate 与 profile 证据不得作为独立课程证据。本成员冻结选择器中不存在 independent-course 证据，因此证据不足以支持纳入或排除结论，stageConclusion=DEFER，evidenceSufficiency=INSUFFICIENT，且不指派 role。",
+      "decisionDigest": "aacc788adb4c520a9a4f74b847ed413c5386520956e293ce2f3ab6a941ac3f0d"
+    }
+  ],
+  "documentDigest": "1144d4bdaf3abb8d1d3e1ce1ece77c62a2af29aa4a8b6de57f45b576ca9b93ef"
+}

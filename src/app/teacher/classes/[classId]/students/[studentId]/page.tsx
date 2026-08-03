@@ -16,6 +16,7 @@ import {
 
 import type { TeacherStudentInsightsPayload } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
+import { TeacherDiagnosisReportHistory } from '@/features/teacher/teacher-diagnosis-report-history';
 
 type PortraitRefreshState = 'idle' | 'submitted' | 'processing' | 'completed' | 'failed';
 
@@ -412,6 +413,12 @@ export default function TeacherStudentInsightsPage() {
             description="专项诊断是累计七维能力达成的从属入口，不替代整体画像。"
           />
         </section>
+
+        <TeacherDiagnosisReportHistory
+          classId={classId}
+          targetStudentId={studentId}
+          subjectLabel={`${data.student.name} · ${data.student.className}`}
+        />
       </main>
     </div>
   );

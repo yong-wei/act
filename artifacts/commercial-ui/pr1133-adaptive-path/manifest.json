@@ -1,0 +1,433 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "status": "passed",
+  "backendE2EStatus": "blocked-by-local-schema-drift",
+  "capturedAt": "2026-08-01T09:23:08.156Z",
+  "sourceRevision": "31a4bb90a8fede96ad1a4382e4e0a1beda7a7aa4",
+  "generator": "artifacts/commercial-ui/pr1133-adaptive-path/capture-ui-evidence.mjs",
+  "generatorSha256": "289dd40636e978c92718da3220d254e59cc457983e9438a653b38522153baa72",
+  "sourceFiles": {
+    "src/app/assessment/adaptive-practice/page.tsx": "066666c61d7d2b7b7d4919e63b02648fd9f2306c968b20a65278d52ddc0f68e3",
+    "src/features/adaptive/adaptive-learning-center-contracts.ts": "1726d5ae0a711ee858ce85cfb9dc8144eece62043a49aa7ac60f091118ddd659",
+    "src/lib/adaptive-path-option-display.ts": "50547c9dd73e8f83003ef6505ffc62b48df99280bea7b46eb86c7db6a7f65553",
+    "src/lib/adaptive-path-round-restore.ts": "94ca0b929be6d6b2675ffbba3fa6d19905b9f765823b9cf62a8dd9151b8e26b4"
+  },
+  "baseUrl": "http://127.0.0.1:3063",
+  "environmentOperations": {
+    "scope": "local-only",
+    "demoProfileBinding": {
+      "original": {
+        "classId": null,
+        "className": null
+      },
+      "temporaryTarget": "audit-class-runtime",
+      "restoredBeforeCapture": true,
+      "restoredAfterCaptureVerified": true
+    },
+    "schemaProbe": {
+      "columnsTemporarilyAdded": [
+        "LearningFact.knowledgeIdentityNamespace",
+        "LearningFact.canonicalObjectId",
+        "LearningFact.aggregateReleaseSetId",
+        "LearningFact.aggregateReleaseId",
+        "LearningFact.knowledgeProjectionId",
+        "LearningFact.knowledgeRevisionRef",
+        "StudentRiskFlag.evidenceObservedAt"
+      ],
+      "droppedAfterProbe": true,
+      "restorationVerified": true
+    },
+    "remoteOrProductionMutation": false
+  },
+  "realBackendEvidence": {
+    "status": "blocked",
+    "reason": "local database schema is behind current HEAD; learner-state API returns 500 and unauthenticated/demo account lacks class binding",
+    "screenshots": [
+      "artifacts/commercial-ui/pr1133-adaptive-path/real-backend-blocked-1440.png",
+      "artifacts/commercial-ui/pr1133-adaptive-path/real-backend-blocked-320.png"
+    ]
+  },
+  "projectionFixtureEvidence": {
+    "status": "ui-projection-only",
+    "note": "Playwright route fulfillment supplies student-safe learner/path payloads to exercise current-head rendering. This is not backend or production E2E evidence.",
+    "screenshots": [
+      "artifacts/commercial-ui/pr1133-adaptive-path/current-head-projection-1440.png",
+      "artifacts/commercial-ui/pr1133-adaptive-path/current-head-projection-320.png"
+    ]
+  },
+  "blockedGenerationEvidence": {
+    "status": "ui-projection-only",
+    "note": "Playwright route fulfillment supplies a blocked-generation response to exercise the student-visible low-budget message. This is not backend or production E2E evidence.",
+    "screenshots": [
+      "artifacts/commercial-ui/pr1133-adaptive-path/low-budget-blocked-generation-1440.png",
+      "artifacts/commercial-ui/pr1133-adaptive-path/low-budget-blocked-generation-320.png"
+    ]
+  },
+  "results": [
+    {
+      "name": "real-backend-blocked-1440",
+      "mode": "real-backend",
+      "viewport": {
+        "width": 1440,
+        "height": 1100
+      },
+      "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
+      "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/real-backend-blocked-1440.png",
+      "screenshotSha256": "6c43d5296242ed2c5024c72b488c2f20ff8d7a8374b705b9713201bbb957c08f",
+      "responses": [
+        {
+          "url": "/api/adaptive/path-advisor-context?goal=control-correction",
+          "status": 403
+        }
+      ],
+      "textIncludes": {
+        "missingClassBinding": false,
+        "learnerStateUnavailable": true
+      },
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentScrollWidth": 1440,
+        "horizontalOverflow": false,
+        "controls": [
+          {
+            "label": "展开平台导航",
+            "left": 12,
+            "right": 52
+          },
+          {
+            "label": "首页",
+            "left": 8,
+            "right": 62
+          },
+          {
+            "label": "知识资源",
+            "left": 8,
+            "right": 62
+          },
+          {
+            "label": "互动学习",
+            "left": 8,
+            "right": 62
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "real-backend-blocked-320",
+      "mode": "real-backend",
+      "viewport": {
+        "width": 320,
+        "height": 1000
+      },
+      "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
+      "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/real-backend-blocked-320.png",
+      "screenshotSha256": "4802ff0329b36f31c08e08e8777438f5c578917915b57d02f17c45487f647c75",
+      "responses": [
+        {
+          "url": "/api/adaptive/path-advisor-context?goal=control-correction",
+          "status": 403
+        },
+        {
+          "url": "/api/adaptive/learner-state?goal=control-correction",
+          "status": 500
+        },
+        {
+          "url": "/api/adaptive/path-advisor-context?goal=control-correction",
+          "status": 403
+        },
+        {
+          "url": "/api/adaptive/learner-state?goal=control-correction",
+          "status": 500
+        }
+      ],
+      "textIncludes": {
+        "missingClassBinding": true,
+        "learnerStateUnavailable": false
+      },
+      "geometry": {
+        "viewportWidth": 320,
+        "documentClientWidth": 320,
+        "documentScrollWidth": 320,
+        "horizontalOverflow": false,
+        "controls": [
+          {
+            "label": "首页",
+            "left": 16,
+            "right": 39.0625
+          },
+          {
+            "label": "切换到深色模式",
+            "left": 178,
+            "right": 214
+          },
+          {
+            "label": "个人中心",
+            "left": 222,
+            "right": 304
+          },
+          {
+            "label": "打开平台导航",
+            "left": 16,
+            "right": 94
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "current-head-projection-1440",
+      "mode": "current-head-ui-projection-fixture",
+      "fixtureTokenPresent": true,
+      "viewport": {
+        "width": 1440,
+        "height": 1300
+      },
+      "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=pr1133-ui-fixture-path",
+      "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/current-head-projection-1440.png",
+      "screenshotSha256": "c785c983ffadf7288b483d9cd2dfe4f68af2ea8b31e395a0d0ce549989292747",
+      "routeModules": 2,
+      "domRouteModules": 4,
+      "visibleText": {
+        "applied": true,
+        "unmet": true,
+        "fewerOptions": true,
+        "lowBudget": false
+      },
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentScrollWidth": 1440,
+        "horizontalOverflow": false,
+        "controls": [
+          {
+            "label": "展开平台导航",
+            "left": 12,
+            "right": 52
+          },
+          {
+            "label": "首页",
+            "left": 8,
+            "right": 62
+          },
+          {
+            "label": "知识资源",
+            "left": 8,
+            "right": 62
+          },
+          {
+            "label": "互动学习",
+            "left": 8,
+            "right": 62
+          }
+        ]
+      },
+      "controls": {
+        "chooseFirstVisible": true,
+        "explainFirstVisible": true
+      },
+      "passed": true
+    },
+    {
+      "name": "current-head-projection-320",
+      "mode": "current-head-ui-projection-fixture",
+      "fixtureTokenPresent": true,
+      "viewport": {
+        "width": 320,
+        "height": 1100
+      },
+      "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=pr1133-ui-fixture-path",
+      "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/current-head-projection-320.png",
+      "screenshotSha256": "d91a4bb67196f2a9b15058163b600633b7250c4d6584973f01cdd5578363055d",
+      "routeModules": 2,
+      "domRouteModules": 4,
+      "visibleText": {
+        "applied": true,
+        "unmet": true,
+        "fewerOptions": true,
+        "lowBudget": false
+      },
+      "geometry": {
+        "viewportWidth": 320,
+        "documentClientWidth": 320,
+        "documentScrollWidth": 320,
+        "horizontalOverflow": false,
+        "controls": [
+          {
+            "label": "首页",
+            "left": 16,
+            "right": 39.0625
+          },
+          {
+            "label": "切换到深色模式",
+            "left": 178,
+            "right": 214
+          },
+          {
+            "label": "个人中心",
+            "left": 222,
+            "right": 304
+          },
+          {
+            "label": "打开平台导航",
+            "left": 16,
+            "right": 94
+          }
+        ]
+      },
+      "controls": {
+        "chooseFirstVisible": true,
+        "explainFirstVisible": true
+      },
+      "passed": true
+    },
+    {
+      "name": "low-budget-blocked-generation-1440",
+      "mode": "current-head-low-budget-blocked-generation-fixture",
+      "fixtureTokenPresent": true,
+      "viewport": {
+        "width": 1440,
+        "height": 1300
+      },
+      "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&pathTime=30",
+      "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/low-budget-blocked-generation-1440.png",
+      "screenshotSha256": "db8ef7944fdde2d47de740a6d1b5e457a06b2f4eee14eef62b8dd62992d00af0",
+      "responses": [
+        {
+          "url": "/api/adaptive/path-advisor-context?goal=control-correction",
+          "status": 200
+        },
+        {
+          "url": "/api/adaptive/learner-state?goal=control-correction",
+          "status": 200
+        },
+        {
+          "url": "/api/adaptive/path-advisor-context?goal=control-correction",
+          "status": 200
+        },
+        {
+          "url": "/api/adaptive/learner-state?goal=control-correction",
+          "status": 200
+        },
+        {
+          "url": "/api/adaptive/path-advisor-tool",
+          "status": 200
+        }
+      ],
+      "visibleText": {
+        "lowBudgetBlocked": true
+      },
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentScrollWidth": 1440,
+        "horizontalOverflow": false,
+        "controls": [
+          {
+            "label": "展开平台导航",
+            "left": 12,
+            "right": 52
+          },
+          {
+            "label": "首页",
+            "left": 8,
+            "right": 62
+          },
+          {
+            "label": "知识资源",
+            "left": 8,
+            "right": 62
+          },
+          {
+            "label": "互动学习",
+            "left": 8,
+            "right": 62
+          }
+        ]
+      },
+      "controls": {
+        "submitVisible": true
+      },
+      "passed": true
+    },
+    {
+      "name": "low-budget-blocked-generation-320",
+      "mode": "current-head-low-budget-blocked-generation-fixture",
+      "fixtureTokenPresent": true,
+      "viewport": {
+        "width": 320,
+        "height": 1100
+      },
+      "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&pathTime=30",
+      "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/low-budget-blocked-generation-320.png",
+      "screenshotSha256": "a1c2074b68a918ba1aa47183446b90337bc4358e5a3b0df94699a5535d8d7d8c",
+      "responses": [
+        {
+          "url": "/api/adaptive/path-advisor-context?goal=control-correction",
+          "status": 200
+        },
+        {
+          "url": "/api/adaptive/learner-state?goal=control-correction",
+          "status": 200
+        },
+        {
+          "url": "/api/adaptive/path-advisor-context?goal=control-correction",
+          "status": 200
+        },
+        {
+          "url": "/api/adaptive/learner-state?goal=control-correction",
+          "status": 200
+        },
+        {
+          "url": "/api/adaptive/path-advisor-tool",
+          "status": 200
+        }
+      ],
+      "visibleText": {
+        "lowBudgetBlocked": true
+      },
+      "geometry": {
+        "viewportWidth": 320,
+        "documentClientWidth": 320,
+        "documentScrollWidth": 320,
+        "horizontalOverflow": false,
+        "controls": [
+          {
+            "label": "首页",
+            "left": 16,
+            "right": 39.0625
+          },
+          {
+            "label": "切换到深色模式",
+            "left": 178,
+            "right": 214
+          },
+          {
+            "label": "个人中心",
+            "left": 222,
+            "right": 304
+          },
+          {
+            "label": "打开平台导航",
+            "left": 16,
+            "right": 94
+          }
+        ]
+      },
+      "controls": {
+        "submitVisible": true
+      },
+      "passed": true
+    }
+  ],
+  "claims": {
+    "configurationAppliedVisible": true,
+    "configurationUnmetVisible": true,
+    "fewerOptionsExplanationVisible": true,
+    "criticalControlsReachable": true,
+    "noPageLevelHorizontalOverflow": true,
+    "currentPathBudgetProjectionVisible": false,
+    "lowBudgetBlockedGenerationVisible": true
+  }
+}

@@ -1297,9 +1297,23 @@ function currentPathPanel(pathPlan: AdaptiveLearningPathPlan | null): AdaptiveLe
           alternatives: pathPlan.alternatives.map(toStudentPathAlternative),
           pathOptions: buildPathOptionSummaries(pathPlan),
           pathOptionFallback: buildPathOptionFallback(pathPlan),
+          configurationFulfillment: (pathPlan.explanations.configurationFulfillment ?? []).map(
+            toStudentConfigurationFulfillment,
+          ),
           selectionHistory: buildPathSelectionHistory(pathPlan),
         }
       : null,
+  };
+}
+
+function toStudentConfigurationFulfillment(
+  fulfillment: AdaptiveLearningPathPlan['explanations']['configurationFulfillment'][number],
+) {
+  return {
+    key: fulfillment.key,
+    status: fulfillment.status,
+    effect: fulfillment.effect,
+    message: fulfillment.message,
   };
 }
 
@@ -1579,6 +1593,7 @@ function toStudentPathReason(reason: string): string {
     'path-modality-diversity-insufficient': '资源形式差异不足',
     'path-effort-diversity-insufficient': '学习时长差异不足',
     'terminal-validation-diversity-insufficient': '终点检验差异不足',
+    'policy-option-diversity-unavailable': '当前资源只能形成单一推荐方案',
     'policy-path-resource-missing': '路径资源不足',
     'policy-paths-identical': '路径选项过于接近',
     'terminal-validation-missing': '需要完成终点检验',

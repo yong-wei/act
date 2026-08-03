@@ -32,31 +32,32 @@ class AgentEvolverToolTests(unittest.TestCase):
         result = self.run_python(VALIDATE_SCRIPT, "--root", str(REPO_ROOT))
         self.assertEqual(result.returncode, 0, msg=result.stderr or result.stdout)
         self.assertIn("validated", result.stdout)
-        self.assertIn("20 agent files", result.stdout)
+        self.assertIn("21 agent files", result.stdout)
 
     def test_repository_agents_use_approved_gpt_56_assignments(self) -> None:
         self.require_local_agent_configuration()
         expected_assignments = {
-            "agent-router": ("gpt-5.6-sol", "medium"),
-            "ai-context-reviewer": ("gpt-5.6-sol", "medium"),
-            "code-mapper": ("gpt-5.6-sol", "low"),
-            "course-pedagogy-reviewer": ("gpt-5.6-sol", "medium"),
+            "agent-router": ("gpt-5.6-terra", "xhigh"),
+            "ai-context-reviewer": ("gpt-5.6-terra", "xhigh"),
+            "code-mapper": ("gpt-5.6-luna", "high"),
+            "course-pedagogy-reviewer": ("gpt-5.6-terra", "xhigh"),
             "critical-reviewer": ("gpt-5.6-sol", "high"),
-            "data-governance-reviewer": ("gpt-5.6-sol", "medium"),
-            "deep-debugger": ("gpt-5.6-sol", "medium"),
-            "explorer-librarian": ("gpt-5.6-sol", "low"),
+            "data-governance-reviewer": ("gpt-5.6-terra", "xhigh"),
+            "decision-advisor": ("gpt-5.6-sol", "medium"),
+            "deep-debugger": ("gpt-5.6-terra", "max"),
+            "explorer-librarian": ("gpt-5.6-luna", "high"),
             "independent-reviewer": ("gpt-5.6-sol", "medium"),
-            "long-context-investigator": ("gpt-5.6-sol", "medium"),
-            "patch-worker": ("gpt-5.6-sol", "medium"),
-            "performance-reviewer": ("gpt-5.6-sol", "medium"),
-            "release-sentinel": ("gpt-5.6-sol", "high"),
-            "retro-analyst": ("gpt-5.6-sol", "medium"),
-            "security-reviewer": ("gpt-5.6-sol", "high"),
-            "simulation-domain-reviewer": ("gpt-5.6-sol", "medium"),
-            "spark-coder": ("gpt-5.6-sol", "low"),
-            "spec-planner": ("gpt-5.6-sol", "medium"),
-            "test-engineer": ("gpt-5.6-sol", "low"),
-            "ui-flow-reviewer": ("gpt-5.6-sol", "medium"),
+            "long-context-investigator": ("gpt-5.6-terra", "max"),
+            "patch-worker": ("gpt-5.6-luna", "max"),
+            "performance-reviewer": ("gpt-5.6-terra", "xhigh"),
+            "release-sentinel": ("gpt-5.6-sol", "medium"),
+            "retro-analyst": ("gpt-5.6-terra", "xhigh"),
+            "security-reviewer": ("gpt-5.6-sol", "medium"),
+            "simulation-domain-reviewer": ("gpt-5.6-terra", "xhigh"),
+            "spark-coder": ("gpt-5.6-luna", "xhigh"),
+            "spec-planner": ("gpt-5.6-terra", "xhigh"),
+            "test-engineer": ("gpt-5.6-luna", "xhigh"),
+            "ui-flow-reviewer": ("gpt-5.6-terra", "xhigh"),
         }
         agent_files = sorted((REPO_ROOT / ".codex" / "agents").glob("*.toml"))
         actual_assignments = {}
@@ -70,16 +71,64 @@ class AgentEvolverToolTests(unittest.TestCase):
 
         self.assertEqual(actual_assignments, expected_assignments)
 
+    def test_repository_agents_use_declared_sandbox_contract(self) -> None:
+        self.require_local_agent_configuration()
+        expected_sandboxes = {
+            agent_name: "read-only"
+            for agent_name in (
+                "agent-router",
+                "ai-context-reviewer",
+                "code-mapper",
+                "course-pedagogy-reviewer",
+                "critical-reviewer",
+                "data-governance-reviewer",
+                "decision-advisor",
+                "explorer-librarian",
+                "independent-reviewer",
+                "long-context-investigator",
+                "performance-reviewer",
+                "release-sentinel",
+                "retro-analyst",
+                "security-reviewer",
+                "simulation-domain-reviewer",
+                "spec-planner",
+                "ui-flow-reviewer",
+            )
+        }
+        expected_sandboxes.update(
+            {
+                "deep-debugger": "workspace-write",
+                "patch-worker": "workspace-write",
+                "spark-coder": "workspace-write",
+                "test-engineer": "workspace-write",
+            }
+        )
+        actual_sandboxes = {}
+        for agent_file in sorted((REPO_ROOT / ".codex" / "agents").glob("*.toml")):
+            with agent_file.open("rb") as file_handle:
+                agent_config = tomllib.load(file_handle)
+            actual_sandboxes[agent_config["name"]] = agent_config.get("sandbox_mode")
+
+        self.assertEqual(actual_sandboxes, expected_sandboxes)
+
     def test_reasoning_effort_is_checked_against_model_capabilities(self) -> None:
         cases = [
-            ("gpt-5.6-sol", "low", True),
             ("gpt-5.6-sol", "medium", True),
             ("gpt-5.6-sol", "high", True),
+            ("gpt-5.6-sol", "low", False),
             ("gpt-5.6-sol", "xhigh", False),
             ("gpt-5.6-sol", "max", False),
             ("gpt-5.6-sol", "ultra", False),
+            ("gpt-5.6-luna", "high", True),
+            ("gpt-5.6-luna", "xhigh", True),
+            ("gpt-5.6-luna", "max", True),
             ("gpt-5.6-luna", "low", False),
+            ("gpt-5.6-luna", "ultra", False),
+            ("gpt-5.6-terra", "xhigh", True),
+            ("gpt-5.6-terra", "max", True),
+            ("gpt-5.6-terra", "high", False),
             ("gpt-5.6-terra", "medium", False),
+            ("gpt-5.6-terra", "ultra", False),
             ("gpt-5.5", "medium", False),
             ("gpt-unknown", "medium", False),
         ]

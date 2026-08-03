@@ -67,6 +67,9 @@ let testUrl = '';
 function withSchema(url: string, schema: string): string {
   const parsed = new URL(url);
   parsed.searchParams.set('schema', schema);
+  // Keep unqualified sealed-trigger lookups on the isolated schema as well as
+  // Prisma's generated relation queries.
+  parsed.searchParams.set('options', `-csearch_path=${schema},public`);
   return parsed.toString();
 }
 
@@ -126,7 +129,7 @@ async function main(): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     if (
       isolated.mode === 'schema'
-      && /ActkgImportReceipt does not exist|does not exist in the current database/u.test(message)
+      && /ActkgImportReceipt does not exist|does not exist in the current database|ActKG authoritative candidate content is sealed by its import receipt/u.test(message)
     ) {
       const required = process.env.ACTKG_POSTGRES_REQUIRED === '1';
       const exitCode = actkgPostgresSkipExitCode(required);

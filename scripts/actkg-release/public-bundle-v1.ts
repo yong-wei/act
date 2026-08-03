@@ -9,9 +9,12 @@ import {
   computeCanonicalReleaseHash,
   computeProjectionVersionDigest,
 } from './actkg-canonical-digests';
+import {
+  validateAggregateManifestIntegrity,
+  type AggregateIntegrityArtifact,
+} from './public-bundle-aggregate-integrity';
 import { canonicalJson, sha256 } from './authoritative-release';
 import {
-  ARTIFACT_CONTRACTS,
   CONTRACT_SCHEMA_RAW_HASHES,
   CTKG_SCHEMA_RAW_SHA256,
   CTKG_SCHEMA_VERSION,
@@ -1233,8 +1236,6 @@ export async function loadAndValidatePublicBundleV1(options: {
   }
 
   const claimedDigest = hash(manifest.bundle_digest, 'manifest.bundle_digest');
-  const actualDigest = computeBundleDigest(manifest);
-  if (claimedDigest !== actualDigest) integrity('bundle_digest mismatch');
   if (claimedDigest !== lock.bundle.bundle_digest) integrity('bundle_digest does not match the ReleaseSet lock');
   if (string(manifest.bundle_id, 'manifest.bundle_id') !== lock.bundle.bundle_id) {
     integrity('bundle_id does not match the ReleaseSet lock');
@@ -1323,30 +1324,6 @@ export async function loadAndValidatePublicBundleV1(options: {
     descriptors.push(descriptor);
   }
 
-  // Enforce registry requiredForAggregate: each required role+contract must exist
-  // and declare required:true. Projection/metadata profile closure is checked later.
-  for (const registration of ARTIFACT_CONTRACTS) {
-    if (!registration.requiredForAggregate) continue;
-    const matches = descriptors.filter(
-      (descriptor) => (
-        descriptor.role === registration.role
-        && descriptor.contractVersion === registration.contractVersion
-      ),
-    );
-    if (matches.length === 0) {
-      integrity(
-        `required aggregate Artifact missing: ${registration.role}@${registration.contractVersion}`,
-      );
-    }
-    for (const match of matches) {
-      if (!match.required) {
-        integrity(
-          `required aggregate Artifact must declare required:true: ${registration.role}@${registration.contractVersion} at ${match.path}`,
-        );
-      }
-    }
-  }
-
   const expectedFiles = new Set([...declaredPaths, MANIFEST_NAME, SHA256SUMS_NAME]);
   const actualFiles = new Set(onDisk);
   if (canonicalJson([...expectedFiles].sort()) !== canonicalJson([...actualFiles].sort())) {
@@ -1390,6 +1367,32 @@ export async function loadAndValidatePublicBundleV1(options: {
     integrity(`public privacy boundary violated: ${privacyFindings.join(', ')}`);
   }
 
+  let aggregateIntegrity: ReturnType<typeof validateAggregateManifestIntegrity>;
+  try {
+    const aggregateArtifacts: AggregateIntegrityArtifact[] = declaredArtifacts.map(({ descriptor, bytes }) => ({
+      descriptor: {
+        role: descriptor.role,
+        contractVersion: descriptor.contractVersion,
+        required: descriptor.required,
+        path: descriptor.path,
+        mediaType: descriptor.mediaType,
+        sha256: descriptor.sha256,
+        byteLength: descriptor.byteLength,
+        recordCount: descriptor.recordCount,
+      },
+      bytes,
+    }));
+    aggregateIntegrity = validateAggregateManifestIntegrity({
+      manifest,
+      manifestBytes,
+      artifacts: aggregateArtifacts,
+      expectedRelease: lock.release,
+      requireStable: false,
+    });
+  } catch (error) {
+    integrity(error instanceof Error ? error.message.replace(/^Aggregate public Bundle integrity failed: /u, '') : String(error));
+  }
+
   // Reserved package files are public Bundle members. They are not Manifest
   // Artifact rows, but packaging persistence/round-trip must carry their raw
   // bytes and descriptors so the complete on-disk package can be reconstructed.
@@ -1420,7 +1423,7 @@ export async function loadAndValidatePublicBundleV1(options: {
   }
   const ctkgValidators = compileCtkgValidators(schema);
 
-  const release = loadJson(releaseArtifacts[0]!.bytes, releaseArtifacts[0]!.descriptor.path);
+  const release = aggregateIntegrity.release;
   if (!ctkgValidators.release(release)) schemaFailure('Release', ctkgValidators.release.errors);
   assertPayloadSchemaVersion(release, 'Release');
   if (
@@ -1430,10 +1433,6 @@ export async function loadAndValidatePublicBundleV1(options: {
     || hash(release.source_dataset_hash, 'release.source_dataset_hash') !== lock.release.source_dataset_hash
   ) {
     integrity('Manifest and Release identities differ');
-  }
-  // ActKG authoritative Release self-hash (public_bundle / frozen loaders).
-  if (computeCanonicalReleaseHash(release) !== lock.release.release_hash) {
-    integrity('canonical Release hash drift');
   }
 
   const entries = records(release.entries, 'release.entries');
@@ -1851,14 +1850,18 @@ export async function loadAndValidatePublicBundleV1(options: {
       provenanceArtifacts[0]!.descriptor.path,
     );
     const graphRagRuntimeIntake = provenance.graph_rag_runtime_intake;
-    if (graphRagRuntimeIntake !== undefined && graphRagRuntimeIntake !== 'BLOCKED') {
+    if (
+      graphRagRuntimeIntake !== undefined
+      && graphRagRuntimeIntake !== 'BLOCKED'
+      && graphRagRuntimeIntake !== 'UNCHANGED_BLOCKED'
+    ) {
       integrity(
-        `provenance graph_rag_runtime_intake must remain BLOCKED, received ${String(graphRagRuntimeIntake)}`,
+        `provenance graph_rag_runtime_intake must remain fail-closed, received ${String(graphRagRuntimeIntake)}`,
       );
     }
   }
   // Older compatible Bundles may omit the explicit disposition. They remain
-  // fail-closed, and a supplied disposition is accepted only when BLOCKED.
+  // fail-closed. BLOCKED and M1K's UNCHANGED_BLOCKED both prohibit intake.
   const graphRagRuntimeIntakeBlocked = true as const;
 
   const reportArtifacts = byRole.get('validation_report') ?? [];

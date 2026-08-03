@@ -66,6 +66,10 @@ const mocks = vi.hoisted(() => {
       learningFact: {
         findMany: vi.fn(),
       },
+      arenaVirtualSimulationRun: {
+        count: vi.fn(),
+        findMany: vi.fn(),
+      },
       studentEvidenceFeatureCache: {
         findUnique: vi.fn(),
       },
@@ -197,6 +201,47 @@ function arenaSubmission(overrides: Record<string, unknown> = {}) {
     submittedAt: overrides.submittedAt ?? '2026-05-16T08:20:00.000Z',
     reusedEvaluation: false,
   };
+}
+
+function arenaTrainingRun(overrides: Record<string, unknown> = {}) {
+  const id = typeof overrides.id === 'string' ? overrides.id : 'arena-training-1';
+  return {
+    id,
+    userId: 'student-1',
+    taskId: 'task-cruise-roll-blackbox-identification',
+    scenarioId: 'cruise-roll-controller-preview',
+    simulationRunId: 'canonical-run-1',
+    payload: {
+      summary: {
+        trackingError: 0.2,
+        maxDeviation: 0.3,
+        controlEnergy: 0.4,
+        safetyViolations: 0,
+        smoothness: 0.8,
+      },
+      metadata: {
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+      },
+    },
+    createdAt: new Date('2026-05-16T08:40:00.000Z'),
+    ...overrides,
+  };
+}
+
+function damagedArenaTrainingRun(overrides: Record<string, unknown> = {}) {
+  return arenaTrainingRun({
+    payload: {
+      summary: {
+        trackingError: Number.NaN,
+      },
+      metadata: {
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+      },
+    },
+    ...overrides,
+  });
 }
 
 function profileEvidenceCache(overrides: Record<string, unknown> = {}) {
@@ -599,6 +644,9 @@ describe('GET /api/user/profile', () => {
       }),
     ]);
 
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValue([arenaTrainingRun()]);
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(1);
+
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(profileEvidenceCache());
 
     mocks.prisma.studentState.findMany.mockResolvedValue([
@@ -796,6 +844,85 @@ describe('GET /api/user/profile', () => {
       actionUrl: '/assessment/adaptive-practice?intent=practice',
     });
     expect(body.arenaPortfolio.submissionSummary.total).toBe(2);
+    expect(mocks.prisma.arenaVirtualSimulationRun.count).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+    });
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith({
+      where: {
+        userId: 'student-1',
+        taskId: { not: '' },
+        scenarioId: { not: '' },
+        AND: [
+          {
+            OR: [
+              { simulationRun: null },
+              {
+                simulationRun: {
+                  is: {
+                    status: { in: ['completed', 'succeeded', 'success'] },
+                  },
+                },
+              },
+            ],
+          },
+          {
+            OR: [
+              { simulationRun: { is: { summary: { path: ['arenaTraining', 'evaluationVisibility'], equals: 'preview' } } } },
+              { simulationRun: { is: { summary: { path: ['previewBoundary', 'evaluationVisibility'], equals: 'preview' } } } },
+              { payload: { path: ['summary', 'arenaTraining', 'evaluationVisibility'], equals: 'preview' } },
+              { payload: { path: ['metadata', 'evaluationVisibility'], equals: 'preview' } },
+              { payload: { path: ['previewBoundary', 'evaluationVisibility'], equals: 'preview' } },
+            ],
+          },
+          {
+            OR: [
+              { simulationRun: { is: { summary: { path: ['arenaTraining', 'officialEligible'], equals: false } } } },
+              { simulationRun: { is: { summary: { path: ['previewBoundary', 'officialEligible'], equals: false } } } },
+              { payload: { path: ['summary', 'arenaTraining', 'officialEligible'], equals: false } },
+              { payload: { path: ['metadata', 'officialEligible'], equals: false } },
+              { payload: { path: ['previewBoundary', 'officialEligible'], equals: false } },
+            ],
+          },
+        ],
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 100,
+      select: {
+        id: true,
+        userId: true,
+        taskId: true,
+        scenarioId: true,
+        simulationRunId: true,
+        payload: true,
+        createdAt: true,
+        simulationRun: {
+          select: {
+            status: true,
+            completedAt: true,
+            summary: true,
+          },
+        },
+      },
+    });
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(1);
+    expect(body.arenaPortfolio.trainingSummary).toMatchObject({
+      total: 1,
+      previewCount: 1,
+      evidenceConfidence: 'low',
+      recentRuns: [expect.objectContaining({
+        taskId: 'task-cruise-roll-blackbox-identification',
+        qualityMetrics: {
+          trackingError: 0.2,
+          maxDeviation: 0.3,
+          controlEnergy: 0.4,
+          safetyViolations: 0,
+          smoothness: 0.8,
+        },
+        preview: true,
+        officialEligible: false,
+        confidence: 'low',
+      })],
+    });
     expect(body.arenaPortfolio.growth).toMatchObject({
       evidenceAvailable: true,
       capabilityCoverage: {
@@ -822,6 +949,289 @@ describe('GET /api/user/profile', () => {
     expect(mocks.prisma.studentProfileSummary.findUnique).not.toHaveBeenCalled();
     expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).not.toHaveBeenCalled();
     expect(mocks.generateRecommendations).not.toHaveBeenCalled();
+  });
+
+  it('reads Arena training count and bounded runs from one RepeatableRead transaction snapshot', async () => {
+    const transactionClient = {
+      arenaVirtualSimulationRun: {
+        count: vi.fn().mockResolvedValue(17),
+        findMany: vi.fn().mockResolvedValue([arenaTrainingRun()]),
+      },
+    };
+    mocks.prisma.$transaction.mockImplementationOnce(async (callback, options) => {
+      expect(options).toEqual({ isolationLevel: 'RepeatableRead' });
+      return callback(transactionClient);
+    });
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary).toMatchObject({
+      total: 17,
+      previewCount: 17,
+      recentRuns: [expect.objectContaining({ id: 'arena-training-1' })],
+    });
+    expect(mocks.prisma.$transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { isolationLevel: 'RepeatableRead' },
+    );
+    expect(transactionClient.arenaVirtualSimulationRun.count).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+    });
+    expect(transactionClient.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: 'student-1' }),
+        take: 100,
+      }),
+    );
+    expect(mocks.prisma.arenaVirtualSimulationRun.count).not.toHaveBeenCalled();
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).not.toHaveBeenCalled();
+  });
+
+  it('bounds the scan to the first one hundred candidates and keeps the total count independent', async () => {
+    const firstHundred = Array.from({ length: 100 }, (_, index) => damagedArenaTrainingRun({
+      id: `training-damaged-${index + 1}`,
+      createdAt: new Date('2026-05-16T08:40:00.000Z'),
+    }));
+    const oneHundredFirst = arenaTrainingRun({
+      id: 'training-complete-101',
+      createdAt: new Date('2026-05-16T08:40:00.000Z'),
+    });
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(101);
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValueOnce([
+      ...firstHundred,
+      oneHundredFirst,
+    ]);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary).toMatchObject({
+      total: 101,
+      previewCount: 101,
+      recentRuns: [],
+    });
+    expect(body.arenaPortfolio.trainingSummary.recentRuns).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'training-complete-101' })]),
+    );
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany.mock.calls[0]?.[0]).toMatchObject({
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 100,
+    });
+  });
+
+  it('returns at most five complete displayable training rows from the bounded window', async () => {
+    const page = [
+      ...Array.from({ length: 95 }, (_, index) => damagedArenaTrainingRun({
+        id: `training-damaged-${index + 1}`,
+      })),
+      ...Array.from({ length: 5 }, (_, index) => arenaTrainingRun({
+        id: `training-complete-${index + 1}`,
+      })),
+    ];
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(100);
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValueOnce(page);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary.recentRuns).toHaveLength(5);
+    expect(body.arenaPortfolio.trainingSummary.recentRuns.every(
+      (run: { confidence: string }) => run.confidence === 'low',
+    )).toBe(true);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('accepts dispersed canonical and historical preview boundary paths', async () => {
+    const runs = [
+      arenaTrainingRun({
+        id: 'training-canonical-arena',
+        payload: {
+          summary: {
+            trackingError: 0.2,
+            maxDeviation: 0.3,
+            controlEnergy: 0.4,
+            safetyViolations: 0,
+            smoothness: 0.8,
+          },
+          metadata: {
+            officialEligible: false,
+          },
+        },
+        simulationRun: {
+          status: 'completed',
+          completedAt: new Date('2026-05-16T08:40:00.000Z'),
+          summary: {
+            arenaTraining: {
+              evaluationVisibility: 'preview',
+            },
+          },
+        },
+      }),
+      arenaTrainingRun({
+        id: 'training-canonical-boundary',
+        payload: {
+          summary: {
+            trackingError: 0.2,
+            maxDeviation: 0.3,
+            controlEnergy: 0.4,
+            safetyViolations: 0,
+            smoothness: 0.8,
+          },
+          metadata: {},
+        },
+        simulationRun: {
+          status: 'completed',
+          completedAt: new Date('2026-05-16T08:40:00.000Z'),
+          summary: {
+            previewBoundary: {
+              evaluationVisibility: 'preview',
+              officialEligible: false,
+            },
+          },
+        },
+      }),
+      arenaTrainingRun({
+        id: 'training-payload-summary',
+        simulationRunId: null,
+        simulationRun: null,
+        payload: {
+          summary: {
+            trackingError: 0.2,
+            maxDeviation: 0.3,
+            controlEnergy: 0.4,
+            safetyViolations: 0,
+            smoothness: 0.8,
+            arenaTraining: {
+              evaluationVisibility: 'preview',
+              officialEligible: false,
+            },
+          },
+        },
+      }),
+      arenaTrainingRun({
+        id: 'training-payload-metadata',
+        simulationRunId: null,
+        simulationRun: null,
+        payload: {
+          summary: {
+            trackingError: 0.2,
+            maxDeviation: 0.3,
+            controlEnergy: 0.4,
+            safetyViolations: 0,
+            smoothness: 0.8,
+          },
+          metadata: {
+            evaluationVisibility: 'preview',
+            officialEligible: false,
+          },
+        },
+      }),
+      arenaTrainingRun({
+        id: 'training-payload-boundary',
+        simulationRunId: null,
+        simulationRun: null,
+        payload: {
+          summary: {
+            trackingError: 0.2,
+            maxDeviation: 0.3,
+            controlEnergy: 0.4,
+            safetyViolations: 0,
+            smoothness: 0.8,
+          },
+          previewBoundary: {
+            evaluationVisibility: 'preview',
+            officialEligible: false,
+          },
+        },
+      }),
+    ];
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(runs.length);
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValueOnce(runs);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary.recentRuns).toHaveLength(5);
+    expect(body.arenaPortfolio.trainingSummary.recentRuns.map((run: { id: string }) => run.id)).toEqual(
+      expect.arrayContaining(runs.map((run) => run.id)),
+    );
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects canonical boundary conflicts even when historical payload is preview-eligible', async () => {
+    const conflictingRun = arenaTrainingRun({
+      id: 'training-canonical-conflict',
+      payload: {
+        summary: {
+          trackingError: 0.2,
+          maxDeviation: 0.3,
+          controlEnergy: 0.4,
+          safetyViolations: 0,
+          smoothness: 0.8,
+        },
+        metadata: {
+          evaluationVisibility: 'preview',
+          officialEligible: false,
+        },
+      },
+      simulationRun: {
+        status: 'completed',
+        completedAt: new Date('2026-05-16T08:40:00.000Z'),
+        summary: {
+          arenaTraining: {
+            evaluationVisibility: 'preview',
+            officialEligible: true,
+          },
+        },
+      },
+    });
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(1);
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValueOnce([conflictingRun]);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary.recentRuns).toEqual([]);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps simulationRun-null historical payload evidence when its boundary is explicit', async () => {
+    const historicalRun = arenaTrainingRun({
+      id: 'training-historical-null',
+      simulationRunId: null,
+      simulationRun: null,
+      payload: {
+        summary: {
+          trackingError: 0.2,
+          maxDeviation: 0.3,
+          controlEnergy: 0.4,
+          safetyViolations: 0,
+          smoothness: 0.8,
+        },
+        metadata: {
+          evaluationVisibility: 'preview',
+          officialEligible: false,
+        },
+      },
+    });
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(1);
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValueOnce([historicalRun]);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary.recentRuns).toEqual([
+      expect.objectContaining({ id: 'training-historical-null', confidence: 'low' }),
+    ]);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('keeps a historical cumulative portrait visible after more than 30 days without new facts', async () => {

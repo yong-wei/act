@@ -1,12 +1,30 @@
 # Independent Visual Review
 
+Review status: passed — the refreshed 13-state capture has completed independent Grok visual review.
+
 Change: `govern-adaptive-path-product-qa`
 
-Reviewer: `ui-flow-reviewer`
+Reviewer: use-grok high
 
-Reviewer session: `019eccd3-4a79-71d1-be53-df4f89c4f334`
+Reviewer session: `4b80d9bf-38d2-4f7e-a138-0e50bc5cb019`
 
-Final verdict: PASS
+Final verdict: PASS — no P0/P1 blocking findings.
+
+## Current refresh
+
+The 13-state PNG matrix, capture manifest, visual signals, and final product evidence were regenerated against clean source HEAD `7a059c80459d65de5b45e0fb658e9fb020062373`. Independent review verified 13/13 screenshot hashes against both manifest and final evidence, all provenance hashes, theme signals, and the absence of horizontal overflow or forbidden diagnostics. Desktop and 320px mobile states cover generation, cold start, comparison, execution, node detail, skip confirmation, history, and the shared dock across light and dark themes.
+
+Blocking findings: none.
+
+No unresolved BLOCK findings remain.
+
+Non-blocking residuals are limited to the product-facing generation dependency bar, the demo dock remaining collapsed, the mobile selector-crop dock signal, and the lack of a dedicated formula-capacity-error UI frame. The source change is bound through the current `konling-agent-runtime.ts` hash; no sensitive runtime diagnostic, overlap, or visual regression was observed.
+
+## 2026-08-01 PR #1152 Refresh
+
+The 13-state adaptive-path matrix was recaptured after the cold-start explanation change. The reviewer confirmed that the recommendation basis and improvement guidance remain readable at desktop and 320px widths, the mobile navigation entry is visible, all mobile signals remain free of horizontal overflow, and the existing comparison, execution, skip-confirmation, and learning-record states remain usable. No P0/P1 regression introduced by PR #1152 was found.
+
+The initial concern that the `contextual-recommendation` demo showed an unavailable path-advisor dependency was rejected as a PR blocker: that external demo dependency state predates this change, PR #1152 does not modify path generation, and its declared scope is the student-facing cold-start explanation. The dedicated checkout-bound `cold-start-1151` capture separately verifies that the landing-intent generation action is visible and enabled at 1440px and 320px. Expanding the mobile navigation drawer and exercising a real backend generation-to-execution journey remain non-blocking acceptance gaps outside this display-only change.
 
 ## 2026-07-11 Source Refresh
 

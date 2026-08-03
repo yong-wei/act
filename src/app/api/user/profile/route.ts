@@ -5,6 +5,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
@@ -30,7 +31,13 @@ import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
 } from '@/features/assessment/adaptive-persistence';
-import { buildArenaStudentPortfolio, type ArenaStudentPortfolio } from '@/features/arena/profile';
+import {
+  ARENA_PORTFOLIO_RECENT_LIMIT,
+  buildArenaStudentPortfolio,
+  projectArenaPortfolioRecentTrainingRun,
+  type ArenaStudentPortfolio,
+  type ArenaVirtualTrainingRunRecord,
+} from '@/features/arena/profile';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import {
   buildArenaStudentEvidenceSummary,
@@ -39,6 +46,9 @@ import {
 import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
 
 export const dynamic = 'force-dynamic';
+
+const ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT = 100;
+const ARENA_COMPLETED_SIMULATION_STATUSES = ['completed', 'succeeded', 'success'];
 
 export interface UserProfileResponse {
   user: {
@@ -123,6 +133,92 @@ export interface UserProfileResponse {
   };
   arenaPortfolio: ArenaStudentPortfolio;
   arenaSummary: ArenaStudentEvidenceSummary;
+}
+
+interface ArenaPortfolioTrainingSnapshot {
+  total: number;
+  runs: ArenaVirtualTrainingRunRecord[];
+}
+
+async function readArenaPortfolioTrainingRuns(
+  tx: Prisma.TransactionClient,
+  userId: string,
+): Promise<ArenaVirtualTrainingRunRecord[]> {
+  const collected: ArenaVirtualTrainingRunRecord[] = [];
+  const candidates: ArenaVirtualTrainingRunRecord[] = await tx.arenaVirtualSimulationRun.findMany({
+    where: {
+      userId,
+      taskId: { not: '' },
+      scenarioId: { not: '' },
+      AND: [
+        {
+          OR: [
+            { simulationRun: null },
+            {
+              simulationRun: {
+                is: {
+                  status: { in: ARENA_COMPLETED_SIMULATION_STATUSES },
+                },
+              },
+            },
+          ],
+        },
+        {
+          OR: [
+            { simulationRun: { is: { summary: { path: ['arenaTraining', 'evaluationVisibility'], equals: 'preview' } } } },
+            { simulationRun: { is: { summary: { path: ['previewBoundary', 'evaluationVisibility'], equals: 'preview' } } } },
+            { payload: { path: ['summary', 'arenaTraining', 'evaluationVisibility'], equals: 'preview' } },
+            { payload: { path: ['metadata', 'evaluationVisibility'], equals: 'preview' } },
+            { payload: { path: ['previewBoundary', 'evaluationVisibility'], equals: 'preview' } },
+          ],
+        },
+        {
+          OR: [
+            { simulationRun: { is: { summary: { path: ['arenaTraining', 'officialEligible'], equals: false } } } },
+            { simulationRun: { is: { summary: { path: ['previewBoundary', 'officialEligible'], equals: false } } } },
+            { payload: { path: ['summary', 'arenaTraining', 'officialEligible'], equals: false } },
+            { payload: { path: ['metadata', 'officialEligible'], equals: false } },
+            { payload: { path: ['previewBoundary', 'officialEligible'], equals: false } },
+          ],
+        },
+      ],
+    },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    take: ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT,
+    select: {
+      id: true,
+      userId: true,
+      taskId: true,
+      scenarioId: true,
+      simulationRunId: true,
+      payload: true,
+      createdAt: true,
+      simulationRun: {
+        select: {
+          status: true,
+          completedAt: true,
+          summary: true,
+        },
+      },
+    },
+  }) as ArenaVirtualTrainingRunRecord[];
+
+  for (const run of candidates.slice(0, ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT)) {
+    if (projectArenaPortfolioRecentTrainingRun(run)) collected.push(run);
+    if (collected.length >= ARENA_PORTFOLIO_RECENT_LIMIT) break;
+  }
+
+  return collected;
+}
+
+async function readArenaPortfolioTrainingSnapshot(userId: string): Promise<ArenaPortfolioTrainingSnapshot> {
+  return prisma.$transaction(async (tx) => {
+    const [total, runs] = await Promise.all([
+      tx.arenaVirtualSimulationRun.count({ where: { userId } }),
+      readArenaPortfolioTrainingRuns(tx, userId),
+    ]);
+    return { total, runs };
+  }, { isolationLevel: 'RepeatableRead' });
 }
 
 function describeFactOutcome(outcome: string) {
@@ -295,6 +391,7 @@ export async function GET() {
       learningFacts,
       studentStates,
       userArenaSubmissions,
+      userArenaVirtualSimulationSnapshot,
     ] = await Promise.all([
       prisma.studentProfile.findUnique({
         where: { userId },
@@ -387,6 +484,7 @@ export async function GET() {
         },
       }),
       prismaArenaSubmissionStore.listSubmissions({ userId }),
+      readArenaPortfolioTrainingSnapshot(userId),
     ]);
 
     const arenaTaskIds = Array.from(new Set(userArenaSubmissions.map((submission) => submission.taskId)));
@@ -591,7 +689,12 @@ export async function GET() {
           recommendedFocus: adaptiveDiagnostic?.recommendedFocus ?? [],
         }),
       },
-      arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId),
+      arenaPortfolio: buildArenaStudentPortfolio(
+        arenaPortfolioSubmissions,
+        userId,
+        userArenaVirtualSimulationSnapshot.runs,
+        userArenaVirtualSimulationSnapshot.total,
+      ),
       arenaSummary: buildArenaStudentEvidenceSummary({
         userId,
         submissions: userArenaSubmissions,

@@ -7,6 +7,7 @@ import {
   createKonlingContextEvent,
   createKonlingMessageId,
   deriveKonlingConversationTitle,
+  normalizeKonlingConversationAssistantBinding,
   KonlingConversationTurnConflictError,
   mergeLegacyKonlingStructuredActionToolRuns,
   prepareKonlingConversationTurn,
@@ -71,6 +72,117 @@ function statefulConversationDb(initial = conversation()) {
 }
 
 describe('Konling conversation library', () => {
+  it('restores a persisted diagnosis binding in a new client', () => {
+    const binding = normalizeKonlingConversationAssistantBinding({
+      modeId: 'diagnosis-explainer',
+      clientContextHints: { answerId: 'answer-1102', forged: 'discard-me' },
+    });
+    const prepared = prepareKonlingConversationTurn({
+      conversation: conversation(),
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-1', role: 'user', content: '解释这次作答' },
+      assistantBinding: binding,
+    });
+
+    expect(serializeKonlingConversation(conversation({ messages: prepared.modelMessages as never })))
+      .toMatchObject({
+        assistantBinding: {
+          teachingAssistantModeId: 'diagnosis-explainer',
+          modeClientContextHints: { answerId: 'answer-1102' },
+        },
+      });
+  });
+
+  it('does not leak a binding into an ordinary conversation', () => {
+    const diagnosis = prepareKonlingConversationTurn({
+      conversation: conversation(),
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-1', role: 'user', content: '解释' },
+      assistantBinding: normalizeKonlingConversationAssistantBinding({
+        modeId: 'diagnosis-explainer',
+        clientContextHints: { answerId: 'answer-1102' },
+      }),
+    });
+    const ordinary = serializeKonlingConversation(conversation({ id: 'ordinary', messages: [] }));
+
+    expect(serializeKonlingConversation(conversation({ messages: diagnosis.modelMessages as never })).assistantBinding)
+      .not.toBeNull();
+    expect(ordinary.assistantBinding).toBeNull();
+  });
+
+  it('does not persist client hints for teacher diagnosis', () => {
+    expect(normalizeKonlingConversationAssistantBinding({
+      modeId: 'teacher-diagnosis',
+      clientContextHints: { classId: 'forged-class', diagnosisId: 'forged-diagnosis' },
+    })).toEqual({
+      teachingAssistantModeId: 'teacher-diagnosis',
+      modeClientContextHints: {},
+    });
+  });
+
+  it('restores only verified, allowlisted path-advisor hints', () => {
+    expect(normalizeKonlingConversationAssistantBinding({
+      modeId: 'path-advisor',
+      clientContextHints: { goalId: 'control-correction', graphNodeId: 'node-1' },
+      validatedModeContext: {},
+    })).toBeNull();
+
+    const binding = normalizeKonlingConversationAssistantBinding({
+      modeId: 'path-advisor',
+      clientContextHints: {
+        goalId: 'control-correction',
+        graphNodeId: 'node-1',
+        modeContextToken: 'signed-token',
+        arbitraryPayload: 'discard-me',
+      },
+      validatedModeContext: { 'student-path-center': true },
+    });
+    const prepared = prepareKonlingConversationTurn({
+      conversation: conversation(),
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-1', role: 'user', content: '规划路径' },
+      assistantBinding: binding,
+    });
+
+    expect(serializeKonlingConversation(conversation({ messages: prepared.modelMessages as never })).assistantBinding)
+      .toEqual({
+        teachingAssistantModeId: 'path-advisor',
+        modeClientContextHints: {
+          goalId: 'control-correction',
+          graphNodeId: 'node-1',
+          modeContextToken: 'signed-token',
+        },
+    });
+  });
+
+  it('persists teacher diagnosis while discarding every client hint', () => {
+    const binding = normalizeKonlingConversationAssistantBinding({
+      modeId: 'teacher-diagnosis',
+      clientContextHints: {
+        classId: 'forged-class',
+        answerId: 'forged-answer',
+        arbitraryPayload: 'discard-me',
+      },
+    });
+    expect(binding).toEqual({
+      teachingAssistantModeId: 'teacher-diagnosis',
+      modeClientContextHints: {},
+    });
+
+    const prepared = prepareKonlingConversationTurn({
+      conversation: conversation(),
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-1', role: 'user', content: '查看班级诊断' },
+      assistantBinding: binding,
+    });
+
+    expect(serializeKonlingConversation(conversation({ messages: prepared.modelMessages as never })).assistantBinding)
+      .toEqual({
+        teachingAssistantModeId: 'teacher-diagnosis',
+        modeClientContextHints: {},
+      });
+  });
+
   it('safely compresses an orphaned persisted tool call before a reloaded continuation', async () => {
     const persisted = conversation({
       messages: [

@@ -38,6 +38,9 @@ async function isInsideGitWorkTree(cwd: string): Promise<boolean> {
     throw new Error(`unexpected Git work tree response: ${result || '<empty>'}`);
   } catch (error) {
     const commandError = error as CommandError;
+    if (commandError.code === 'ENOENT') {
+      return false;
+    }
     if (
       commandError.code === 128
       && commandError.stderr?.includes('not a git repository')

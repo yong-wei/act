@@ -18,7 +18,9 @@ import {
 } from '@/lib/control-correction-path-rounds';
 import {
   assertCanWriteStudentPath,
+  assertPathMutableForWrite,
   getLearningPathRequester,
+  learningPathMutationBlockedResponse,
   readPathForAccess,
   readPathNodeIds,
   refreshPathEvidenceFeatureCache,
@@ -73,6 +75,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const path = canonicalPath.path;
     const denied = assertCanWriteStudentPath(requester, path);
     if (denied) return denied;
+    const stopped = assertPathMutableForWrite(path);
+    if (stopped) return stopped;
 
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
@@ -265,6 +269,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh, journey });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    const blocked = learningPathMutationBlockedResponse(error);
+    if (blocked) return blocked;
     console.error('[LearningPathExecute] Error:', error);
     return NextResponse.json({ error: '记录路径执行失败' }, { status: 500 });
   }

@@ -12,6 +12,7 @@ import { getRecommendedScaffolding } from './risk-detector';
 import {
   readStudentEvidenceFeatures,
   type StudentEvidenceCoverageState,
+  type StudentEvidenceKnowledgeIdentityCoverage,
   type StudentEvidenceStatusMarker,
   type StudentSimulationArenaFeatureSummary,
   type StudentSimulationArenaWeakMetric,
@@ -149,6 +150,13 @@ interface RecommendationEvidenceContext {
     score: number;
   };
   statusMarkers: StudentEvidenceStatusMarker[];
+  /** Multi-era LearningFact identity diagnostics (#1116). */
+  knowledgeIdentityCoverage?: StudentEvidenceKnowledgeIdentityCoverage | null;
+  /**
+   * False when LearningFact contributions span multiple identity namespaces or
+   * revisions; recommendation must not treat the merged score as single-version.
+   */
+  singleVersionComparable: boolean;
   simulationArena?: StudentSimulationArenaFeatureSummary;
   pathExecution?: StudentPathEvidenceFeatureSummary;
 }
@@ -875,6 +883,47 @@ function buildRecommendationEvidenceContext(input: {
   if (input.featureCache) {
     const sourceCounts = getObject(input.featureCache.sourceCounts);
     const confidence = normalizeConfidence(input.featureCache.confidenceMarkers);
+    // Prefer diagnostics persisted inside features JSON (real cache column);
+    // fall back to top-level only for pure in-memory/test payload shapes.
+    const featuresObject = getObject(input.featureCache.features);
+    const knowledgeIdentityCoverage = normalizeKnowledgeIdentityCoverage(
+      featuresObject.knowledgeIdentityCoverage
+      ?? input.featureCache.knowledgeIdentityCoverage,
+    );
+    const statusMarkers = normalizeStatusMarkers(input.featureCache.statusMarkers);
+    // Three states for #1116 identity diagnostics on a feature-cache path:
+    // 1) missing diagnostics (v4/old) → fail closed partial
+    // 2) non-empty mixed/non-comparable LearningFacts → mixed + partial + confidence cap
+    // 3) explicit empty coverage (no LearningFacts) → keep empty; do not invent mixed
+    //    markers or cap otherwise-valid path-only evidence
+    const hasCoverageDiagnostics = knowledgeIdentityCoverage != null;
+    const isEmptyLearningFactCoverage = hasCoverageDiagnostics
+      && knowledgeIdentityCoverage.availability === 'empty'
+      && knowledgeIdentityCoverage.totalFacts === 0;
+    const isMixedNonComparable = hasCoverageDiagnostics
+      && !isEmptyLearningFactCoverage
+      && knowledgeIdentityCoverage.singleVersionComparable !== true;
+    const isMissingDiagnostics = !hasCoverageDiagnostics;
+    const requiresIdentityFailClosed = isMissingDiagnostics || isMixedNonComparable;
+    // Empty coverage is not a multi-version conflict: path-only evidence remains comparable.
+    const singleVersionComparable = isEmptyLearningFactCoverage
+      ? true
+      : (
+        hasCoverageDiagnostics
+        && knowledgeIdentityCoverage.singleVersionComparable === true
+      );
+    if (requiresIdentityFailClosed) {
+      if (!statusMarkers.includes('mixed-knowledge-identity')) {
+        statusMarkers.push('mixed-knowledge-identity');
+      }
+      if (!statusMarkers.includes('partial')) {
+        statusMarkers.push('partial');
+      }
+    }
+    // Cap confidence only for missing diagnostics or non-empty mixed eras.
+    const confidenceLevel = requiresIdentityFailClosed
+      ? (confidence.level === 'none' ? 'none' : 'low')
+      : confidence.level;
     return {
       basis: 'student-evidence-feature-cache',
       readState: input.featureReadState,
@@ -882,10 +931,14 @@ function buildRecommendationEvidenceContext(input: {
       evidenceCount: confidence.evidenceCount || numberValue(sourceCounts.LearningFact),
       sourceCoverage: normalizeSourceCoverage(input.featureCache.sourceCoverage),
       confidence: {
-        level: confidence.level,
-        score: confidence.score,
+        level: confidenceLevel,
+        score: requiresIdentityFailClosed
+          ? Math.min(confidence.score, 0.45)
+          : confidence.score,
       },
-      statusMarkers: normalizeStatusMarkers(input.featureCache.statusMarkers),
+      statusMarkers,
+      knowledgeIdentityCoverage,
+      singleVersionComparable,
       simulationArena: normalizeSimulationArenaFeature(input.featureCache.features),
       pathExecution: normalizePathExecutionFeature(input.featureCache.features),
     };
@@ -911,6 +964,8 @@ function buildRecommendationEvidenceContext(input: {
       score: input.hasSnapshot || evidenceCount > 0 ? 0.25 : 0,
     },
     statusMarkers: ['missing-source'],
+    knowledgeIdentityCoverage: null,
+    singleVersionComparable: true,
   };
 }
 
@@ -974,6 +1029,8 @@ function buildPortraitRecommendationEvidenceContext(
       StudentProfileSummary: 'missing',
     },
     confidence: { level: confidenceLevel, score: confidenceScore },
+    knowledgeIdentityCoverage: null,
+    singleVersionComparable: true,
     statusMarkers: evidenceCount > 0 ? statusMarkers : ['missing-source'],
   };
 }
@@ -1404,6 +1461,45 @@ function normalizeConfidence(value: unknown): {
   };
 }
 
+function normalizeKnowledgeIdentityCoverage(
+  value: unknown,
+): StudentEvidenceKnowledgeIdentityCoverage | null {
+  const record = getObject(value);
+  if (!record || Object.keys(record).length === 0) return null;
+  const byNamespaceRaw = getObject(record.byNamespace);
+  const byNamespace = {
+    LEGACY: numberValue(byNamespaceRaw.LEGACY),
+    CANONICAL: numberValue(byNamespaceRaw.CANONICAL),
+    LEGACY_UNVERSIONED: numberValue(byNamespaceRaw.LEGACY_UNVERSIONED),
+  };
+  const distinctRevisionRefs = Array.isArray(record.distinctRevisionRefs)
+    ? record.distinctRevisionRefs.filter((item): item is string => typeof item === 'string')
+    : [];
+  const totalFacts = numberValue(record.totalFacts);
+  const mixedNamespaces = record.mixedNamespaces === true;
+  const mixedRevisions = record.mixedRevisions === true;
+  const singleVersionComparable = record.singleVersionComparable === true
+    || (totalFacts > 0 && !mixedNamespaces && !mixedRevisions && record.singleVersionComparable !== false);
+  const availability = record.availability === 'single-version'
+    || record.availability === 'mixed-version'
+    || record.availability === 'empty'
+    ? record.availability
+    : totalFacts === 0
+      ? 'empty'
+      : singleVersionComparable
+        ? 'single-version'
+        : 'mixed-version';
+  return {
+    totalFacts,
+    byNamespace,
+    distinctRevisionRefs,
+    mixedNamespaces,
+    mixedRevisions,
+    singleVersionComparable: totalFacts > 0 && singleVersionComparable,
+    availability,
+  };
+}
+
 function normalizeStatusMarkers(value: unknown): StudentEvidenceStatusMarker[] {
   if (!Array.isArray(value)) {
     return [];
@@ -1413,13 +1509,26 @@ function normalizeStatusMarkers(value: unknown): StudentEvidenceStatusMarker[] {
     item === 'stale' ||
     item === 'partial' ||
     item === 'low-confidence' ||
-    item === 'missing-source'
+    item === 'missing-source' ||
+    item === 'mixed-knowledge-identity'
   );
 }
 
 function resolveConfidenceState(evidence: RecommendationEvidenceContext): RecommendationConfidenceState {
-  if (evidence.readState === 'missing' || evidence.readState === 'stale') {
-    return evidence.readState;
+  if (evidence.readState === 'missing') {
+    return 'missing';
+  }
+  // Identity non-comparability (mixed eras or missing #1116 diagnostics on a
+  // feature-cache path) takes precedence over age/schema stale so undiagnosed
+  // multi-era merges are never presented as single-version ready evidence.
+  if (
+    evidence.singleVersionComparable === false
+    || evidence.statusMarkers.includes('mixed-knowledge-identity')
+  ) {
+    return 'partial';
+  }
+  if (evidence.readState === 'stale') {
+    return 'stale';
   }
   if (evidence.statusMarkers.includes('partial')) {
     return 'partial';

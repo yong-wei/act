@@ -16,6 +16,7 @@
 - [0035](0035-review-identity-changes-and-record-same-name-revisions.md)、[0036](0036-archive-published-concepts-instead-of-deleting-them.md)、[0037](0037-govern-the-initial-rebuild-as-an-offline-change-series.md)、[0038](0038-use-repository-authoring-data-as-the-only-knowledge-source.md)、[0039](0039-use-the-database-as-the-only-runtime-knowledge-read-model.md)
 - [0040](0040-block-unresolved-semantic-duplicate-candidates.md)、[0041](0041-use-a-flat-controlled-vocabulary-of-top-level-domains.md)、[0042](0042-require-markdown-cards-and-select-visual-cards-by-value.md)、[0043](0043-migrate-unambiguous-resource-bindings-and-review-the-rest.md)、[0044](0044-do-not-waive-core-knowledge-base-release-gates.md)
 - [0045](0045-freeze-historical-facts-at-their-original-knowledge-revision.md)：历史事实保留原修订，仅迁移活跃引用，并要求切换后的新事实绑定唯一活动修订。
+ - [0046](0046-kaq-sympy-formula-derivation.md)：使用 Next.js API 路由 + SymPy 子进程作为 KA-Q 系统公式推导引擎。
 
 逐文件摘要与聚合摘要规则见 [课程知识基座治理来源与派生契约](../proposals/course-knowledge-base-governance-source-derivation-contract.md)。
 
