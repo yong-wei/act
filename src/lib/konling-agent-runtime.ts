@@ -43,6 +43,10 @@ import {
   recordPathChoiceEvidence,
   recordPathIntervention,
 } from '@/lib/control-correction-path-rounds';
+import {
+  persistAdaptivePathCandidateBatch,
+  type AdaptivePathCandidateBatchView,
+} from '@/lib/adaptive-path-candidate-batches';
 import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-runtime';
 import {
   loadAllTextbookStructureRuntimeCatalogEntries,
@@ -4051,6 +4055,7 @@ async function buildAdaptivePathToolOutput(
   if (hasPersistablePath) {
     await persistLearningPathRound(input.db as any, {
       plan,
+      pathStatus: operation === 'generated' ? 'candidate' : undefined,
       classId: input.scope.classId ?? null,
       learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
       inputSnapshot: {
@@ -4070,6 +4075,21 @@ async function buildAdaptivePathToolOutput(
         minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
         timeBudgetInsufficient: timeBudget.insufficient,
       },
+    });
+  }
+  let candidateBatch: AdaptivePathCandidateBatchView | null = null;
+  const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
+  if (
+    operation === 'generated' &&
+    hasPersistablePath &&
+    candidateBatchStore &&
+    typeof candidateBatchStore.findUnique === 'function' &&
+    typeof candidateBatchStore.create === 'function'
+  ) {
+    candidateBatch = await persistAdaptivePathCandidateBatch(input.db as any, {
+      generationRequestId: args.idempotencyKey,
+      plan,
+      classId: input.scope.classId ?? null,
     });
   }
   if (operation === 'revised' && hasPersistablePath) {
@@ -4096,7 +4116,13 @@ async function buildAdaptivePathToolOutput(
       actorRole: input.scope.role,
     });
   }
-  const pathOptions = hasPersistablePath ? buildStudentSafePathOptions(plan) : [];
+  const candidateIdsByStyle = new Map(candidateBatch?.candidates.map((candidate) => [candidate.styleId, candidate.id]) ?? []);
+  const pathOptions = hasPersistablePath
+    ? buildStudentSafePathOptions(plan).map((option) => ({
+        ...option,
+        candidateId: candidateIdsByStyle.get(option.styleId) ?? null,
+      }))
+    : [];
   const fallbackReasons = uniqueStringList([
     ...plan.explanations.fallbackReasons,
     ...(plan.policyBundle?.fallbackReasons ?? []),
@@ -4124,6 +4150,11 @@ async function buildAdaptivePathToolOutput(
       requestedAt: args.requestedAt ?? null,
     },
     pathId: hasPersistablePath ? plan.id : null,
+    candidateBatch: candidateBatch ? {
+      id: candidateBatch.id,
+      generationRequestId: candidateBatch.generationRequestId,
+      candidateIds: candidateBatch.candidates.map((candidate) => candidate.id),
+    } : null,
     pathOptions,
     configurationFulfillment: plan.explanations.configurationFulfillment.map(
       toStudentConfigurationFulfillment,

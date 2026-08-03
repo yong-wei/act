@@ -200,9 +200,26 @@ interface LearningPathRoundResponse {
 
 type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
-type PathOptionView = AdaptivePathOptionWriteOption;
+type PathOptionView = AdaptivePathOptionWriteOption & { candidateId?: string };
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
 type PathDifferenceStatus = 'ready' | 'no-material-difference' | 'insufficient-data';
+
+interface AdaptivePathCandidateBatchView {
+  id: string;
+  goalId: string;
+  sourcePathId: string;
+  candidates: Array<{
+    id: string;
+    styleId: string;
+    label: string;
+    snapshot: Record<string, unknown>;
+  }>;
+}
+
+type CandidateBatchLoadResult =
+  | { status: 'loaded'; batch: AdaptivePathCandidateBatchView }
+  | { status: 'missing' }
+  | { status: 'failed' };
 
 interface PathDifferenceNode {
   nodeId: string;
@@ -936,6 +953,25 @@ async function fetchLatestLearningPathRound(
   }
 }
 
+async function fetchCandidateBatch(
+  goalId: AdaptivePracticeGoalId,
+  batchId?: string | null,
+  candidateId?: string | null,
+): Promise<CandidateBatchLoadResult> {
+  try {
+    const href = batchId
+      ? `/api/learning-paths/candidate-batches/${encodeURIComponent(batchId)}${candidateId ? `?candidate=${encodeURIComponent(candidateId)}` : ''}`
+      : `/api/learning-paths/candidate-batches/latest?goal=${encodeURIComponent(goalId)}`;
+    const response = await fetch(href);
+    if (!response.ok) return response.status === 404 ? { status: 'missing' } : { status: 'failed' };
+    const payload = (await response.json()) as { batch?: AdaptivePathCandidateBatchView | null };
+    if (!payload.batch || payload.batch.goalId !== goalId) return { status: 'missing' };
+    return { status: 'loaded', batch: payload.batch };
+  } catch {
+    return { status: 'failed' };
+  }
+}
+
 function controlCorrectionAlternativeCount(view: ControlCorrectionLearningCenterView): number {
   const currentPath = view.panels.find((panel) => panel.region === 'current-path');
   const payload = currentPath?.payload;
@@ -1119,6 +1155,18 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       expectedTargetLift: typeof option.expectedTargetLift === 'number' ? option.expectedTargetLift : undefined,
       limitations: getStringArray(option.limitations),
     };
+  });
+}
+
+function getCandidateBatchPathOptions(batch: AdaptivePathCandidateBatchView | null): PathOptionView[] {
+  if (!batch) return [];
+  return batch.candidates.flatMap((candidate) => {
+    const projected = getPathOptions({
+      panels: [{ region: 'current-path', payload: { pathOptions: [candidate.snapshot] } }],
+    } as ControlCorrectionLearningCenterView)[0];
+    return projected && projected.optionId !== 'unknown-option'
+      ? [{ ...projected, candidateId: candidate.id }]
+      : [];
   });
 }
 
@@ -1846,14 +1894,23 @@ export default function AdaptivePracticePage() {
   const activeNodeId = searchParams.get('nodeId');
   const activeGraphNodeId = searchParams.get('graphNodeId');
   const activeOptionId = searchParams.get('optionId');
+  const requestedBatchId = searchParams.get('batch');
+  const requestedCandidateId = searchParams.get('candidate');
   const activeGoalQuery = activeGoal ? new URLSearchParams({ goal: activeGoal, intent: routeIntent }) : null;
   if (activeGoalQuery && activePathId) activeGoalQuery.set('pathId', activePathId);
   if (activeGoalQuery && activeNodeId) activeGoalQuery.set('nodeId', activeNodeId);
   if (activeGoalQuery && activeGraphNodeId) activeGoalQuery.set('graphNodeId', activeGraphNodeId);
   if (activeGoalQuery && activeOptionId) activeGoalQuery.set('optionId', activeOptionId);
+  if (activeGoalQuery && requestedBatchId) activeGoalQuery.set('batch', requestedBatchId);
+  if (activeGoalQuery && requestedCandidateId) activeGoalQuery.set('candidate', requestedCandidateId);
   const activeGoalContextHref = withFeedbackTaskHref(activeGoal
     ? `/assessment/adaptive-practice?${activeGoalQuery?.toString() ?? ''}`
     : '/assessment/adaptive-practice');
+  const compareAllCandidateQuery = new URLSearchParams(searchParams.toString());
+  compareAllCandidateQuery.delete('candidate');
+  const compareAllCandidateHref = withFeedbackTaskHref(
+    `/assessment/adaptive-practice?${compareAllCandidateQuery.toString()}`,
+  );
   const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';
   const feedbackGenericPathGenerationHref = withFeedbackTaskHref(genericPathGenerationHref);
   const entryIntents = getCommercialStudentEntryIntentGroups();
@@ -1889,6 +1946,9 @@ export default function AdaptivePracticePage() {
   const [learnerStateLoadState, setLearnerStateLoadState] = useState<AdaptiveLearnerStateLoadState>('idle');
   const [activePathPlan, setActivePathPlan] = useState<AdaptiveLearningPathPlan | null>(null);
   const [activePathRound, setActivePathRound] = useState<LearningPathRoundView | null>(null);
+  const [activeCandidateBatch, setActiveCandidateBatch] = useState<AdaptivePathCandidateBatchView | null>(null);
+  const [candidateBatchLoadState, setCandidateBatchLoadState] = useState<AdaptivePathContextLoadState>('idle');
+  const [focusedCandidateId, setFocusedCandidateId] = useState<string | null>(requestedCandidateId);
   const [pathContextLoadState, setPathContextLoadState] = useState<AdaptivePathContextLoadState>('idle');
   const [loadedPathContextKey, setLoadedPathContextKey] = useState<string | null>(null);
   const [pathContextReloadKey, setPathContextReloadKey] = useState(0);
@@ -1951,7 +2011,12 @@ export default function AdaptivePracticePage() {
         questionAvailable: Boolean(questionState),
       })
     : null, [activeGoal, activeGoalLabel, activeLearnerState, activePathPlan, error, questionState, routeIntent]);
-  const pathOptions = useMemo(() => getPathOptions(adaptivePathCenter), [adaptivePathCenter]);
+  const currentPathOptions = useMemo(() => getPathOptions(adaptivePathCenter), [adaptivePathCenter]);
+  const candidatePathOptions = useMemo(
+    () => getCandidateBatchPathOptions(activeCandidateBatch),
+    [activeCandidateBatch],
+  );
+  const pathOptions = candidatePathOptions.length > 0 ? candidatePathOptions : currentPathOptions;
   const pathOptionVersionKey = useMemo(() => [
     activePathRound?.id ?? activePathPlan?.id ?? 'no-path',
     ...pathOptions.map((option) => `${option.optionId}:${option.nodeIds?.join(',') ?? ''}`),
@@ -1963,10 +2028,14 @@ export default function AdaptivePracticePage() {
     () => hasPathComparisonDiversityLimitation(pathOptionFallback),
     [pathOptionFallback],
   );
-  const visiblePathOptions = useMemo(
-    () => buildAdaptivePathOptionDisplays(pathOptions, { diversityLimited: pathComparisonDiversityLimited }),
-    [pathComparisonDiversityLimited, pathOptions],
-  );
+  const visiblePathOptions = useMemo(() => {
+    const displays = buildAdaptivePathOptionDisplays(pathOptions, { diversityLimited: pathComparisonDiversityLimited });
+    return focusedCandidateId
+      ? displays.filter((display) => (
+          pathOptions.find((option) => option.optionId === display.id)?.candidateId === focusedCandidateId
+        ))
+      : displays;
+  }, [focusedCandidateId, pathComparisonDiversityLimited, pathOptions]);
   const hasGeneratedPathOptions = pathOptions.length > 0;
 
   useEffect(() => {
@@ -2514,6 +2583,38 @@ export default function AdaptivePracticePage() {
   }, [activeGoal, activeGoalLabel, activePathId, authStatus, isDemoMode, pathContextReloadKey, requestedPathContextKey, showEvidenceWorkspace, showExecutionWorkspace, showSelectionWorkspace]);
 
   useEffect(() => {
+    setFocusedCandidateId(requestedCandidateId);
+  }, [requestedCandidateId]);
+
+  useEffect(() => {
+    if (!activeGoal || (!isDemoMode && authStatus !== 'authenticated') || (!showSelectionWorkspace && !showGenerationWorkspace)) {
+      setActiveCandidateBatch(null);
+      setCandidateBatchLoadState('idle');
+      return;
+    }
+    if (requestedCandidateId && !requestedBatchId) {
+      setActiveCandidateBatch(null);
+      setCandidateBatchLoadState('missing');
+      return;
+    }
+    let cancelled = false;
+    setCandidateBatchLoadState('loading');
+    void fetchCandidateBatch(activeGoal, requestedBatchId, requestedCandidateId).then((result) => {
+      if (cancelled) return;
+      if (result.status === 'loaded') {
+        setActiveCandidateBatch(result.batch);
+        setCandidateBatchLoadState('ready');
+      } else {
+        setActiveCandidateBatch(null);
+        setCandidateBatchLoadState(result.status);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeGoal, authStatus, isDemoMode, requestedBatchId, requestedCandidateId, showGenerationWorkspace, showSelectionWorkspace]);
+
+  useEffect(() => {
     if (activeGoal || !pathAdvisorContextGoal || !showGenerationWorkspace || isDemoMode) return;
 
     if (authStatus === 'loading') {
@@ -2824,6 +2925,20 @@ export default function AdaptivePracticePage() {
         return;
       }
       if (operation !== 'explain') {
+        const generatedBatchId = operation === 'generate' && typeof payload.result?.candidateBatch?.id === 'string'
+          ? payload.result.candidateBatch.id
+          : null;
+        if (generatedBatchId && activeGoal) {
+          const loadedBatch = await fetchCandidateBatch(activeGoal, generatedBatchId);
+          if (loadedBatch.status === 'loaded') {
+            setActiveCandidateBatch(loadedBatch.batch);
+            setCandidateBatchLoadState('ready');
+            const nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.set('batch', loadedBatch.batch.id);
+            nextUrl.searchParams.delete('candidate');
+            window.history.replaceState(window.history.state, '', nextUrl);
+          }
+        }
         await refreshLatestLearningPathAfterKonling();
         window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
           detail: {
@@ -2914,6 +3029,7 @@ export default function AdaptivePracticePage() {
       setPathGenerationPending(null);
     }
   }, [
+    activeGoal,
     activeGraphNodeId,
     activePathId,
     assistantEntryPoint,
@@ -2952,7 +3068,9 @@ export default function AdaptivePracticePage() {
     option: PathOptionView,
     helpful?: boolean,
   ) => {
-    const pathId = activePathRound?.id ?? activePathPlan?.id;
+    const pathId = option.candidateId
+      ? activeCandidateBatch?.sourcePathId
+      : activePathRound?.id ?? activePathPlan?.id;
     if (!pathId) {
       setPathChoiceMessage('当前没有可写入的学习路径。');
       return;
@@ -3009,6 +3127,7 @@ export default function AdaptivePracticePage() {
     }
   }, [
     activeGoal,
+    activeCandidateBatch,
     activePathPlan,
     activePathRound,
     pathOptions,
@@ -4096,9 +4215,27 @@ export default function AdaptivePracticePage() {
                 : '生成正式学习路径后，系统会展示具体资源、顺序和方案差异。'}
               className="order-40"
               trailing={(
+                <div className="flex items-center gap-2">
+                  {focusedCandidateId && activeCandidateBatch ? (
+                    <Link
+                      href={compareAllCandidateHref}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        window.history.pushState(window.history.state, '', compareAllCandidateHref);
+                        setFocusedCandidateId(null);
+                        setOpenPathModuleId('path-selection');
+                      }}
+                      className="text-xs font-medium text-primary hover:underline"
+                      data-learning-path-compare-all
+                    >
+                      比较全部路径
+                    </Link>
+                  ) : null}
                 <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
                   {hasGeneratedPathOptions ? `${visiblePathOptions.length} 条可比较路径` : `${visiblePathOptions.length} 个学习方式示例`}
                 </span>
+                </div>
               )}
               data-learning-path-product-surface="path-options-selection-history-terminal-validation"
               data-learning-path-options-slot={hasGeneratedPathOptions ? 'three-style' : 'starter-examples'}

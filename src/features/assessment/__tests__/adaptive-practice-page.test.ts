@@ -295,4 +295,24 @@ describe('adaptive practice page entry states', () => {
     expect(moduleBlock).toContain('data-adaptive-path-execution-error="visible"');
     expect(moduleBlock).toContain('setPathExecutionError(null); void reloadActiveLearningPath()');
   });
+
+  it('loads candidate batches separately from the active learning path', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('const [activeCandidateBatch, setActiveCandidateBatch]');
+    expect(source).toContain('fetchCandidateBatch(activeGoal, requestedBatchId, requestedCandidateId)');
+    expect(source).toContain('getCandidateBatchPathOptions(activeCandidateBatch)');
+    expect(source).not.toContain('setActivePathPlan(loadedBatch');
+    expect(source).not.toContain('setActivePathRound(loadedBatch');
+  });
+
+  it('keeps candidate identity fail-closed and writes selections to the source path', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("requestedCandidateId && !requestedBatchId");
+    expect(source).toContain('pathOptions.find((option) => option.optionId === display.id)?.candidateId === focusedCandidateId');
+    expect(source).toContain("? activeCandidateBatch?.sourcePathId");
+    expect(source).toContain("compareAllCandidateQuery.delete('candidate')");
+    expect(source).toContain('data-learning-path-compare-all');
+  });
 });
