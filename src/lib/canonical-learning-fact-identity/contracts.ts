@@ -69,7 +69,13 @@ export type AggregateReleasePublicationState =
 
 /**
  * Complete fixed Canonical identity atom for one knowledge-scoped fact.
- * All fields are required for formal Canonical writes.
+ * All fields are required for formal Canonical / Projection-bound writes.
+ *
+ * Spec aliases (#1275):
+ * - canonicalId → canonicalObjectId
+ * - authorityReleaseId → aggregateReleaseId
+ * - projectionId → knowledgeProjectionId
+ * - resourceId → resourceId (required for Projection-bound path/resource facts)
  */
 export interface CanonicalLearningFactIdentity {
   schemaVersion: typeof CANONICAL_LEARNING_FACT_IDENTITY_VERSION;
@@ -81,6 +87,18 @@ export interface CanonicalLearningFactIdentity {
   knowledgeProjectionId: string | null;
   /** Knowledge truth revision or projection digest. */
   knowledgeRevisionRef: string;
+  /**
+   * Governed projected resource identity for Projection-bound path/resource
+   * activities. Required for formal Projection-bound writes (#1275).
+   * Stored on the identity atom and stamped into contextJson (no schema expand).
+   */
+  resourceId?: string | null;
+  /**
+   * Teaching resource role/scope snapshot for admission diagnostics.
+   * Does not replace ResourceNode registry authority.
+   */
+  resourceRole?: string | null;
+  resourceScopeId?: string | null;
   /** Governed source identity (namespaced). */
   sourceEventId: string | null;
   sourceLogId: string | null;
@@ -107,6 +125,8 @@ export type CanonicalWriteRejectionCode =
   | 'identity-drift'
   | 'not-in-course-coverage'
   | 'resource-or-kaq-support-missing'
+  | 'resource-identity-missing'
+  | 'node-not-projected'
   | 'source-identity-missing'
   | 'source-identity-mismatch'
   | 'dual-write-forbidden'
@@ -122,6 +142,21 @@ export interface CanonicalWriteAdmissionContext {
    * (SHADOW_PUBLISHED / CURRENT) or reviewed KAQ producer contract.
    */
   resourceOrKaqSupportedCanonicalIds: readonly string[];
+  /**
+   * Canonical IDs admitted by the active ACT Teaching Projection.
+   * Engineering-only / unprojected nodes fail formal knowledge facts (#1275).
+   */
+  projectedCanonicalIds?: readonly string[];
+  /**
+   * Accessible projected resource IDs under the active Teaching Projection.
+   * When provided, identity.resourceId must be a member.
+   */
+  accessibleResourceIds?: readonly string[];
+  /**
+   * When true (default for Projection-bound path/resource producers), require
+   * identity.resourceId and knowledgeProjectionId.
+   */
+  requireProjectionBoundResourceIdentity?: boolean;
   /**
    * Expected aggregate identity from verified pinned context.
    * Drift against write identity fails closed.
@@ -209,7 +244,34 @@ export interface LearningFactServingIdentity {
   aggregateReleaseSetId: string | null;
   aggregateReleaseId: string | null;
   knowledgeProjectionId: string | null;
+  resourceId: string | null;
   legacyKnowledgeNodeIds: readonly string[];
   /** True when interpretation must not use the current Canonical graph. */
   historicalRevisionBound: true;
+}
+
+/**
+ * Read-time display resolution for historical Legacy facts via immutable
+ * old-ID → Canonical crosswalk. Never mutates stored fact bytes.
+ */
+export interface HistoricalLearningFactDisplayContext {
+  factId: string;
+  identityNamespace: LearningFactIdentityNamespace | 'LEGACY_UNVERSIONED';
+  knowledgeRevisionRef: string;
+  /** Original Legacy node ids from the fact (unchanged). */
+  legacyKnowledgeNodeIds: readonly string[];
+  /** Display-only Canonical IDs resolved through crosswalk. */
+  displayCanonicalIds: readonly string[];
+  /** Display resource context when crosswalk rows carry role/evidence. */
+  displayResourceContext: ReadonlyArray<{
+    legacyId: string;
+    canonicalId: string;
+    role: string | null;
+    sourceEvidence: string | null;
+    stale: boolean;
+  }>;
+  /** Always true: original fact bytes and authority revision stay intact. */
+  originalFactUnchanged: true;
+  crosswalkApplied: boolean;
+  unresolvedLegacyIds: readonly string[];
 }

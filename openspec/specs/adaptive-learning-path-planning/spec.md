@@ -4,13 +4,23 @@
 Defines the Stage 1 adaptive learning path planner contract: deterministic rules plus graph search over learner state and ResourceNodes, explainable scoring, visualization payloads, and feedback/correction records without contextual bandit or reinforcement learning.
 ## Requirements
 ### Requirement: Path planner generates constrained explainable paths
-The system SHALL generate adaptive learning paths from learner state, the ResourceNode graph, registered LearningGoal strategy, teacher policy, planning constraints, ranked resource candidates, and bounded repair output where available.
+The system SHALL generate adaptive learning paths from learner state, the ResourceNode graph, registered LearningGoal strategy, teacher policy, planning constraints, ranked resource candidates, and bounded repair output where available. For Projection-bound formal paths, the planner MUST traverse only ACT Teaching Projection `ACT_TEACHING` prerequisites with `REQUIRED` strength for hard dependencies, exclude learner-mastered nodes, topologically order the remainder, and choose current accessible Teaching Projection resources. ActKG engineering relations and textbook/lesson order MAY be rationale only and MUST NOT become hard edges.
 
 #### Scenario: Planner creates a feasible path
 - **WHEN** a student requests a learning path with a time budget and registered learning goal
 - **THEN** the planner SHALL infer deficits when evidence exists, otherwise apply the goal's starter-path policy
 - **AND** it SHALL filter ResourceNodes and apply prerequisites, availability, teacher policy, privacy, device, risk-intervention, and time constraints for both personalized and starter paths
 - **AND** it SHALL return a feasible plan DAG with current node, next nodes, alternatives, estimates, and explanations.
+
+#### Scenario: Goal has required prerequisites
+- **WHEN** a path-eligible goal has a valid current Projection and required prerequisite DAG
+- **THEN** the planner SHALL reverse-traverse unmet REQUIRED nodes and return a deterministic topological path
+- **AND** each emitted node SHALL have at least one accessible projected resource
+
+#### Scenario: Engineering relation is present
+- **WHEN** an ActKG engineering relation connects two nodes but no ACT REQUIRED edge exists
+- **THEN** the planner SHALL not add that relation as a prerequisite
+- **AND** it SHALL preserve the relation only as optional explanation/context
 
 #### Scenario: Planner repairs a graph-driven draft path
 - **WHEN** graph search produces a draft path with bounded alternatives
@@ -239,12 +249,17 @@ The system SHALL persist learning path rounds across registered goals.
 - **AND** it SHALL be resumable without recomputing the original graph/resource basis.
 
 ### Requirement: Generated paths use governed resource nodes
-Adaptive path generation SHALL use only audited resource nodes and checkpoint nodes with registered path semantics, even when ranking consumes retrieval or citation projections as semantic signals.
+Adaptive path generation SHALL use only audited resource nodes and checkpoint nodes with registered path semantics, even when ranking consumes retrieval or citation projections as semantic signals. Path nodes MUST reference registered ResourceNodes from the active Teaching Projection and MUST preserve resource role, scope, source/provenance, and Projection identity. The planner MUST NOT synthesize a PathNode directly from a raw ActKG node, engineering edge, or unreviewed textbook locator.
 
 #### Scenario: Ranked retrieval chunk lacks ResourceNode audit
 - **WHEN** a RetrievalChunk or CitationTarget ranks highly for graph relevance
 - **THEN** the planner SHALL NOT turn it into a PathNode unless an audited ResourceNode or checkpoint contract authorizes it
 - **AND** diagnostics SHALL distinguish retrieval relevance from path eligibility.
+
+#### Scenario: Projected lesson is selected
+- **WHEN** a governed lesson or interactive resource is selected for a Canonical prerequisite
+- **THEN** the path node SHALL carry its ResourceNode identity and launch target
+- **AND** the path rationale SHALL identify the Canonical and prerequisite evidence
 
 ### Requirement: Planner accepts Konling path-generation requests
 The adaptive path planner SHALL accept governed Konling tool requests as one path generation input channel.
@@ -275,13 +290,23 @@ Path execution records SHALL preserve distinct learner actions for execution and
 ### Requirement: Planner gates active path nodes by learner readiness
 The adaptive path planner SHALL evaluate learner readiness using portrait v2
 learner-state signals before placing a ResourceNode into the immediately
-executable portion of a generated path.
+executable portion of a generated path. Every formal path node MUST have `pathEligible=true`, a valid current Authority/Projection identity, and at least one accessible projected resource. A node with no resource or an unresolved required binding MUST be excluded or returned as an explicit blocked diagnostic.
 
 #### Scenario: Student lacks readiness for a heavy node
 - **WHEN** a student requests a path and the portrait v2 learner-state slice is below a node's readiness threshold
 - **THEN** the planner SHALL exclude that node from `activeNodeIds`
 - **AND** it SHALL include preparation nodes or fallback nodes before the locked node when such nodes are available
 - **AND** it SHALL keep the locked node out of current or next executable actions.
+
+#### Scenario: Node has no accessible resource
+- **WHEN** an unmet prerequisite node has no accessible lesson, handout, step, card, textbook, or other projected resource
+- **THEN** the planner SHALL not emit an executable node
+- **AND** it SHALL report the exact readiness blocker
+
+#### Scenario: Optional card is missing
+- **WHEN** a node has an accessible handout/step but no optional card
+- **THEN** the node SHALL remain path-eligible
+- **AND** the planner SHALL choose the other resource and annotate card absence
 
 #### Scenario: Low-readiness control-correction learner requests a path
 - **WHEN** student `20230010102601` or an equivalent learner has low portrait v2 readiness for control modeling/representation and controller design/synthesis

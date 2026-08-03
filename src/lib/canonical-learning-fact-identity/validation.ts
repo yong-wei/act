@@ -261,6 +261,70 @@ export function assertResourceOrKaqSupport(
   }
 }
 
+/**
+ * Projection-bound path/resource facts must carry complete
+ * canonical/Authority/Projection/resource identity (#1275).
+ */
+export function assertProjectionBoundResourceIdentity(
+  identity: CanonicalLearningFactIdentity,
+  admission: CanonicalWriteAdmissionContext,
+): void {
+  const requireResource =
+    admission.requireProjectionBoundResourceIdentity === true
+    || (admission.accessibleResourceIds != null
+      && admission.accessibleResourceIds.length > 0)
+    || (admission.projectedCanonicalIds != null
+      && admission.projectedCanonicalIds.length > 0);
+
+  if (!requireResource) return;
+
+  if (!nonEmpty(identity.knowledgeProjectionId)) {
+    throw new CanonicalLearningFactWriteError(
+      'incomplete-identity',
+      'Projection-bound LearningFact requires projectionId (knowledgeProjectionId)',
+    );
+  }
+  if (!nonEmpty(identity.resourceId)) {
+    throw new CanonicalLearningFactWriteError(
+      'resource-identity-missing',
+      'Projection-bound LearningFact requires resourceId alongside canonical/Authority/Projection identity',
+    );
+  }
+  if (
+    admission.accessibleResourceIds
+    && admission.accessibleResourceIds.length > 0
+    && !admission.accessibleResourceIds.includes(identity.resourceId)
+  ) {
+    throw new CanonicalLearningFactWriteError(
+      'resource-or-kaq-support-missing',
+      `Resource ${identity.resourceId} is not accessible under the active Teaching Projection`,
+    );
+  }
+}
+
+/**
+ * Formal knowledge facts require ACT Teaching Projection admission.
+ * Engineering-only / unprojected browsing must not authorize a fact (#1275).
+ */
+export function assertTeachingProjectionAdmission(
+  identity: CanonicalLearningFactIdentity,
+  admission: CanonicalWriteAdmissionContext,
+): void {
+  if (
+    admission.projectedCanonicalIds == null
+    || admission.projectedCanonicalIds.length === 0
+  ) {
+    return;
+  }
+  const projected = new Set(admission.projectedCanonicalIds);
+  if (!projected.has(identity.canonicalObjectId)) {
+    throw new CanonicalLearningFactWriteError(
+      'node-not-projected',
+      `Canonical object ${identity.canonicalObjectId} is browsable but not admitted by the active ACT Teaching Projection`,
+    );
+  }
+}
+
 export function assertSourceIdentity(
   identity: CanonicalLearningFactIdentity,
   rows: readonly LearningFactWriteRow[],
@@ -338,6 +402,8 @@ export function validateCanonicalLearningFactWrite(input: {
   assertIdentityMatchesAdmission(identity, input.admission);
   assertInCourseCoverage(identity, input.admission);
   assertResourceOrKaqSupport(identity, input.admission);
+  assertTeachingProjectionAdmission(identity, input.admission);
+  assertProjectionBoundResourceIdentity(identity, input.admission);
   assertSourceIdentity(identity, input.rows, input.admission);
 
   const dualIssues = detectDualKnowledgeIdentity({
@@ -390,17 +456,37 @@ export function stampCanonicalIdentityOnRows(
   rows: readonly LearningFactWriteRow[],
   identity: CanonicalLearningFactIdentity,
 ): LearningFactWriteRow[] {
-  return rows.map((row) => ({
-    ...row,
-    knowledgeIdentityNamespace: 'CANONICAL' as const,
-    canonicalObjectId: identity.canonicalObjectId,
-    aggregateReleaseSetId: identity.aggregateReleaseSetId,
-    aggregateReleaseId: identity.aggregateReleaseId,
-    knowledgeProjectionId: identity.knowledgeProjectionId,
-    knowledgeRevisionRef: identity.knowledgeRevisionRef,
-    sourceEventId: row.sourceEventId ?? identity.sourceEventId,
-    sourceLogId: row.sourceLogId ?? identity.sourceLogId,
-  }));
+  return rows.map((row) => {
+    const context = readContextRecord(row.contextJson);
+    const nextContext: Record<string, unknown> = {
+      ...context,
+      // Spec field aliases (#1275) kept in context without schema expansion.
+      canonicalId: identity.canonicalObjectId,
+      authorityReleaseId: identity.aggregateReleaseId,
+      projectionId: identity.knowledgeProjectionId,
+    };
+    if (nonEmpty(identity.resourceId)) {
+      nextContext.resourceId = identity.resourceId;
+    }
+    if (nonEmpty(identity.resourceRole)) {
+      nextContext.resourceRole = identity.resourceRole;
+    }
+    if (nonEmpty(identity.resourceScopeId)) {
+      nextContext.resourceScopeId = identity.resourceScopeId;
+    }
+    return {
+      ...row,
+      knowledgeIdentityNamespace: 'CANONICAL' as const,
+      canonicalObjectId: identity.canonicalObjectId,
+      aggregateReleaseSetId: identity.aggregateReleaseSetId,
+      aggregateReleaseId: identity.aggregateReleaseId,
+      knowledgeProjectionId: identity.knowledgeProjectionId,
+      knowledgeRevisionRef: identity.knowledgeRevisionRef,
+      sourceEventId: row.sourceEventId ?? identity.sourceEventId,
+      sourceLogId: row.sourceLogId ?? identity.sourceLogId,
+      contextJson: nextContext,
+    };
+  });
 }
 
 export function stampLegacyIdentityOnRows(

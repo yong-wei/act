@@ -8,6 +8,7 @@ import {
   PINNED_LEARNING_FACT_AGGREGATE_RELEASE_SET_ID,
   PINNED_LEARNING_FACT_COVERAGE_OVERLAY_ID,
   assertFormalLearningFactSelectorUnchanged,
+  assertHistoricalFactBytesUnchanged,
   assertRegisteredLearningFactSelector,
   assertShadowCannotActivateLearningFactCutover,
   assertVerifiedLearningFactAdmission,
@@ -18,6 +19,7 @@ import {
   LearningFactCutoverActivationError,
   listGovernedKnowledgeScopedProducers,
   projectCoexistingLearningFactIdentities,
+  resolveHistoricalLearningFactDisplayContext,
   runCanonicalLearningFactShadowValidation,
   runCanonicalLearningFactShadowValidationAsync,
   runLearningFactProducerStaticGate,
@@ -516,6 +518,140 @@ describe('canonical-learning-fact-identity (#1116 remediation)', () => {
       const revision = await resolveActiveKnowledgeRevision();
       expect(revision.authority).toBe('LEGACY');
       expect(revision.id.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Projection-bound identity and historical crosswalk (#1275)', () => {
+    it('accepts Projection-bound facts with complete four-field identity and stamps context aliases', async () => {
+      const { sink, rows } = memorySink();
+      const writeCapability = formalWriteCapability();
+      const result = await writeCanonicalKnowledgeScopedLearningFacts(sink, {
+        rows: [baseRow()],
+        identity: identity({
+          resourceId: 'lesson:feedback-loop',
+          resourceRole: 'COVERS',
+          resourceScopeId: 'act-control-theory-core',
+        }),
+        writeCapability,
+      });
+      expect(result.written).toBe(1);
+      expect(rows[0]).toMatchObject({
+        knowledgeIdentityNamespace: 'CANONICAL',
+        canonicalObjectId: 'ctr:object:feedback-loop',
+        knowledgeProjectionId: PROJECTION_ID,
+        contextJson: expect.objectContaining({
+          canonicalId: 'ctr:object:feedback-loop',
+          authorityReleaseId: PINNED_LEARNING_FACT_AGGREGATE_RELEASE_ID,
+          projectionId: PROJECTION_ID,
+          resourceId: 'lesson:feedback-loop',
+          resourceRole: 'COVERS',
+        }),
+      });
+    });
+
+    it('fails closed when Projection-bound writer lacks resource identity', () => {
+      const admission = mintFormalWriteLearningFactAdmissionForTests({
+        pinned: pinned(),
+        allowedSourcePrefixes: ['arena-official'],
+        resourceOrKaqSupportedCanonicalIds: ['ctr:object:feedback-loop'],
+        projectionId: PROJECTION_ID,
+      });
+      const fields = {
+        admittedCanonicalIds: admission.admittedCanonicalIds,
+        resourceOrKaqSupportedCanonicalIds: admission.resourceOrKaqSupportedCanonicalIds,
+        expectedReleaseSetId: admission.expectedReleaseSetId,
+        expectedReleaseId: admission.expectedReleaseId,
+        expectedProjectionId: admission.expectedProjectionId,
+        expectedKnowledgeRevisionRef: admission.expectedKnowledgeRevisionRef,
+        allowedSourcePrefixes: admission.allowedSourcePrefixes,
+        requireProjectionBoundResourceIdentity: true,
+        projectedCanonicalIds: ['ctr:object:feedback-loop'],
+        accessibleResourceIds: ['lesson:feedback-loop'],
+      };
+
+      expect(evaluateCanonicalLearningFactWrite({
+        rows: [baseRow()],
+        identity: identity({ resourceId: null }),
+        admission: fields,
+      }).rejectionCodes).toContain('resource-identity-missing');
+
+      expect(evaluateCanonicalLearningFactWrite({
+        rows: [baseRow()],
+        identity: identity({ resourceId: 'lesson:other' }),
+        admission: fields,
+      }).rejectionCodes).toContain('resource-or-kaq-support-missing');
+
+      expect(evaluateCanonicalLearningFactWrite({
+        rows: [baseRow()],
+        identity: identity({
+          resourceId: 'lesson:feedback-loop',
+          canonicalObjectId: 'ctr:object:engineering-only',
+        }),
+        admission: {
+          ...fields,
+          admittedCanonicalIds: [
+            ...fields.admittedCanonicalIds,
+            'ctr:object:engineering-only',
+          ],
+          resourceOrKaqSupportedCanonicalIds: [
+            ...fields.resourceOrKaqSupportedCanonicalIds,
+            'ctr:object:engineering-only',
+          ],
+        },
+      }).rejectionCodes).toContain('node-not-projected');
+    });
+
+    it('resolves historical Legacy facts through crosswalk without mutation or backfill', () => {
+      const historical = {
+        id: 'hist-1',
+        knowledgeIdentityNamespace: 'LEGACY' as const,
+        knowledgeRevisionRef: 'legacy-rev-pre-cutover',
+        canonicalObjectId: null,
+        aggregateReleaseSetId: null,
+        aggregateReleaseId: null,
+        knowledgeProjectionId: null,
+        contextJson: {
+          knowledgeNodeIds: ['反馈_1_1', 'unknown-legacy'],
+          knowledgeRevisionRef: 'legacy-rev-pre-cutover',
+        },
+      };
+      const before = structuredClone(historical);
+      const display = resolveHistoricalLearningFactDisplayContext({
+        fact: historical,
+        crosswalk: [
+          {
+            legacyId: '反馈_1_1',
+            canonicalId: 'ctr:object:feedback-loop',
+            role: 'COVERS',
+            sourceEvidence: 'crosswalk/feedback.md',
+            stale: false,
+          },
+        ],
+      });
+
+      expect(display).toMatchObject({
+        factId: 'hist-1',
+        identityNamespace: 'LEGACY',
+        knowledgeRevisionRef: 'legacy-rev-pre-cutover',
+        legacyKnowledgeNodeIds: ['反馈_1_1', 'unknown-legacy'],
+        displayCanonicalIds: ['ctr:object:feedback-loop'],
+        originalFactUnchanged: true,
+        crosswalkApplied: true,
+        unresolvedLegacyIds: ['unknown-legacy'],
+      });
+      expect(display.displayResourceContext).toEqual([
+        expect.objectContaining({
+          legacyId: '反馈_1_1',
+          canonicalId: 'ctr:object:feedback-loop',
+          role: 'COVERS',
+        }),
+      ]);
+
+      // Source fact bytes remain unchanged (no backfill).
+      assertHistoricalFactBytesUnchanged({ before, after: historical });
+      expect(historical.canonicalObjectId).toBeNull();
+      expect(historical.knowledgeIdentityNamespace).toBe('LEGACY');
+      expect(historical.knowledgeProjectionId).toBeNull();
     });
   });
 });
