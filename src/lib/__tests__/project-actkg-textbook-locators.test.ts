@@ -11,6 +11,7 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { computeCanonicalReleaseHash } from '../../../scripts/actkg-release/actkg-canonical-digests';
 import {
   assertSourceInventoryFileIdentity,
   buildTeachingProjection,
@@ -19,6 +20,7 @@ import {
   deriveTextbookExplainsBindingId,
   deriveTextbookResourceId,
   deriveTextbookSectionResourceId,
+  fromResourceIdToken,
   loadActkgSourceLocatorInventory,
   loadAndBuildTextbookLocatorProjection,
   loadAuthorityCanonicalIdsFromSnapshot,
@@ -31,6 +33,7 @@ import {
   recomputeBundleDigest,
   textbookLocatorToRagProvenance,
   textbookProjectionToTeachingAuthoring,
+  toResourceIdToken,
   type ActkgSourceLocatorInventory,
   type SourceResourceCrosswalkRow,
   type TextbookLocatorAuthorityBinding,
@@ -184,6 +187,21 @@ describe('Textbook resource identities and EXPLAINS bindings (#1269)', () => {
     ).toBe('act:textbook-chapter:dorf-modern-control-systems-14th:ch07');
     expect(deriveTextbookSectionResourceId('cts:section-014c3e3883bffdf7704d49ae')).toBe(
       'act:textbook-section:cts.section-014c3e3883bffdf7704d49ae',
+    );
+  });
+
+  it('uses reversible SourceAnchor token encoding so cts:x and cts.x never collide', () => {
+    const colonId = 'cts:x';
+    const dotId = 'cts.x';
+    const colonToken = toResourceIdToken(colonId, 'sourceAnchorId');
+    const dotToken = toResourceIdToken(dotId, 'sourceAnchorId');
+    expect(colonToken).toBe('cts.x');
+    expect(dotToken).toBe('cts..x');
+    expect(colonToken).not.toBe(dotToken);
+    expect(fromResourceIdToken(colonToken)).toBe(colonId);
+    expect(fromResourceIdToken(dotToken)).toBe(dotId);
+    expect(deriveTextbookSectionResourceId(colonId)).not.toBe(
+      deriveTextbookSectionResourceId(dotId),
     );
   });
 
@@ -934,6 +952,37 @@ describe('Authority Canonical membership (#1281 P1)', () => {
     expect(ids.has('ctc:not-in-authority-p1-unknown')).toBe(false);
     // Relation / non-knowledge_object IDs must not pass as Canonical members.
     expect(ids.has('ctr:048b56346548481862bb4e18')).toBe(false);
+
+    // Prove membership is knowledge_object-only: relation appears in included_entities
+    // and entries, but never in the Canonical set used for EXPLAINS endpoints.
+    const release = JSON.parse(
+      readFileSync(
+        path.join(
+          REPO_ROOT,
+          'course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/release.json',
+        ),
+        'utf8',
+      ),
+    ) as {
+      included_entities?: string[];
+      entries?: Array<{ entity?: string; entity_role?: string }>;
+    };
+    const included = new Set(release.included_entities ?? []);
+    expect(included.has('ctr:048b56346548481862bb4e18')).toBe(true);
+    const relationEntry = (release.entries ?? []).find(
+      (e) => e.entity === 'ctr:048b56346548481862bb4e18',
+    );
+    expect(relationEntry?.entity_role).toBe('relation');
+    const knowledgeObjectIds = new Set(
+      (release.entries ?? [])
+        .filter((e) => e.entity_role === 'knowledge_object' && typeof e.entity === 'string')
+        .map((e) => e.entity as string),
+    );
+    expect(knowledgeObjectIds.has('ctr:048b56346548481862bb4e18')).toBe(false);
+    expect(ids.size).toBe(knowledgeObjectIds.size);
+    for (const id of ids) {
+      expect(knowledgeObjectIds.has(id)).toBe(true);
+    }
   });
 
   it('rejects forged Authority snapshots whose self-reported release_hash is not recomputable', () => {
@@ -945,6 +994,9 @@ describe('Authority Canonical membership (#1281 P1)', () => {
     const release = JSON.parse(readFileSync(releaseSrc, 'utf8')) as Record<string, unknown>;
     const originalHash = String(release.release_hash);
     expect(recomputeAuthorityReleaseHash(release)).toBe(originalHash);
+    // Must use the repo canonical ActKG algorithm.
+    expect(recomputeAuthorityReleaseHash(release)).toBe(computeCanonicalReleaseHash(release));
+    expect(computeCanonicalReleaseHash(release)).toBe(originalHash);
 
     const entries = Array.isArray(release.entries)
       ? [...(release.entries as unknown[])]
@@ -958,6 +1010,7 @@ describe('Authority Canonical membership (#1281 P1)', () => {
     release.entries = entries;
     // Keep the original self-reported hash (the P1 bypass).
     release.release_hash = originalHash;
+    expect(computeCanonicalReleaseHash(release)).not.toBe(originalHash);
     expect(recomputeAuthorityReleaseHash(release)).not.toBe(originalHash);
 
     const tempDir = mkdtempSync(path.join(tmpdir(), 'tbloc-relhash-'));
@@ -978,6 +1031,18 @@ describe('Authority Canonical membership (#1281 P1)', () => {
     const rows = loadShippedCrosswalk();
     const base = rows[0]!;
     const relationId = 'ctr:048b56346548481862bb4e18';
+
+    // Relation is present on the Authority release included_entities list.
+    const release = JSON.parse(
+      readFileSync(
+        path.join(
+          REPO_ROOT,
+          'course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/release.json',
+        ),
+        'utf8',
+      ),
+    ) as { included_entities?: string[] };
+    expect(new Set(release.included_entities ?? []).has(relationId)).toBe(true);
 
     const tempDir = mkdtempSync(path.join(tmpdir(), 'tbloc-rel-id-'));
     const crosswalkPath = path.join(tempDir, 'source-resource-crosswalk.jsonl');
@@ -1000,6 +1065,151 @@ describe('Authority Canonical membership (#1281 P1)', () => {
         (f) => f.code === 'unknown-canonical' && f.canonicalId === relationId,
       ),
     ).toBe(true);
+    // No EXPLAINS binding may target a relation entity.
     expect(projection.bindings).toEqual([]);
+    expect(projection.bindings.every((b) => b.canonicalId !== relationId)).toBe(true);
+
+    const merged = textbookProjectionToTeachingAuthoring({ projection });
+    expect(merged.included).toBe(false);
+    expect(merged.bindings).toEqual([]);
+  });
+
+  it('rejects authority-binding when full Authority identity fields drift from bundle', () => {
+    const inventory = loadShippedInventory();
+    const stubsRelative = inventory.authority.sourceInventory.componentPath;
+    const stubsSrc = path.join(REPO_ROOT, stubsRelative);
+    const manifestSrc = path.join(
+      REPO_ROOT,
+      'course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/bundle-manifest.json',
+    );
+    const stubsBytes = readFileSync(stubsSrc);
+    const stubsPayload = JSON.parse(stubsBytes.toString('utf8')) as unknown;
+
+    const forgedFields: Array<Partial<TextbookLocatorAuthorityBinding>> = [
+      { authorityReleaseId: 'ctr:release:forged-identity-id' },
+      { authorityReleaseVersion: 'forged-identity-version' },
+      { sourceDatasetHash: 'f'.repeat(64) },
+      { bundleId: 'ctb:forged-bundle-id' },
+    ];
+
+    for (const override of forgedFields) {
+      const forgedAuthority = cloneAuthority(inventory.authority, override);
+      expect(() =>
+        assertSourceInventoryFileIdentity({
+          repoRoot: REPO_ROOT,
+          authority: forgedAuthority,
+          stubsPath: stubsSrc,
+          stubsBytes,
+          stubsPayload,
+          bundleManifestPath: manifestSrc,
+        }),
+      ).toThrow(/inventory-identity-mismatch|Authority identity/i);
+
+      const tempDir = mkdtempSync(path.join(tmpdir(), 'tbloc-full-id-'));
+      const bindingPath = path.join(tempDir, 'authority-binding.json');
+      writeFileSync(
+        bindingPath,
+        JSON.stringify({
+          ...forgedAuthority,
+          sourceInventory: forgedAuthority.sourceInventory,
+        }),
+        'utf8',
+      );
+      const failed = loadAndBuildTextbookLocatorProjection({
+        scopeId: 'fixture-full-authority-identity',
+        repoRoot: REPO_ROOT,
+        authorityBindingPath: bindingPath,
+        stubsPath: stubsSrc,
+        bundleManifestPath: manifestSrc,
+        projectionBuildId: 'build-full-identity',
+      });
+      expect(failed.sliceStatus).toBe('REVIEW_REQUIRED');
+      expect(failed.resources).toEqual([]);
+      expect(
+        failed.failures.some(
+          (f) => f.code === 'inventory-identity-mismatch' || f.code === 'schema-invalid',
+        ),
+      ).toBe(true);
+      // Provenance must not be published with a forged release identity.
+      expect(
+        failed.resources.every(
+          (r) => r.provenance.authorityReleaseId !== 'ctr:release:forged-identity-id',
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it('projects cts:x and cts.x as distinct section resources (no silent merge)', () => {
+    const inventory = loadShippedInventory();
+    const doc = inventory.sourceDocuments[0]!;
+    // Inventory that would collide under naive colon→dot replacement.
+    const syntheticInventory: ActkgSourceLocatorInventory = {
+      ...inventory,
+      sourceAnchors: [
+        {
+          sourceAnchorId: 'cts:x',
+          sourceDocumentId: doc.sourceDocumentId,
+          sourceEditionId: doc.sourceEditionId,
+          contentHashes: ['a'.repeat(64)],
+          segmentTypes: ['section'],
+        },
+        {
+          sourceAnchorId: 'cts.x',
+          sourceDocumentId: doc.sourceDocumentId,
+          sourceEditionId: doc.sourceEditionId,
+          contentHashes: ['b'.repeat(64)],
+          segmentTypes: ['section'],
+        },
+      ],
+    };
+
+    const rows: SourceResourceCrosswalkRow[] = [
+      baseRow(syntheticInventory, {
+        sourceDocumentId: doc.sourceDocumentId,
+        sourceAnchorId: 'cts:x',
+        chapterKey: 'ch-colon',
+        sectionKey: 'sec-colon',
+        canonicalIds: ['ctc:collision-canonical'],
+        rowNumber: 1,
+      }),
+      baseRow(syntheticInventory, {
+        sourceDocumentId: doc.sourceDocumentId,
+        sourceAnchorId: 'cts.x',
+        chapterKey: 'ch-dot',
+        sectionKey: 'sec-dot',
+        canonicalIds: ['ctc:collision-canonical'],
+        rowNumber: 2,
+      }),
+    ];
+
+    const projection = buildTextbookLocatorProjection({
+      scopeId: 'fixture-anchor-token-collision',
+      inventory: syntheticInventory,
+      crosswalkRows: rows,
+      authorityCanonicalIds: new Set(['ctc:collision-canonical']),
+      projectionBuildId: 'build-anchor-token-collision',
+    });
+
+    // Reversible encoding keeps them distinct → both may publish.
+    expect(projection.sliceStatus).toBe('PUBLISHED');
+    expect(projection.failures).toEqual([]);
+    const sectionIds = projection.resources
+      .filter((r) => r.resourceType === 'textbook-section')
+      .map((r) => r.resourceId)
+      .sort();
+    expect(sectionIds).toEqual([
+      deriveTextbookSectionResourceId('cts.x'),
+      deriveTextbookSectionResourceId('cts:x'),
+    ].sort());
+    expect(sectionIds[0]).not.toBe(sectionIds[1]);
+    // Each resource retains its original SourceAnchor on locator/provenance path.
+    const byAnchor = new Map(
+      projection.resources
+        .filter((r) => r.resourceType === 'textbook-section')
+        .map((r) => [r.locator.sourceAnchorId, r.resourceId]),
+    );
+    expect(byAnchor.get('cts:x')).toBe(deriveTextbookSectionResourceId('cts:x'));
+    expect(byAnchor.get('cts.x')).toBe(deriveTextbookSectionResourceId('cts.x'));
+    expect(byAnchor.get('cts:x')).not.toBe(byAnchor.get('cts.x'));
   });
 });

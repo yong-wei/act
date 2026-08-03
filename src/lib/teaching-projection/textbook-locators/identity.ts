@@ -7,6 +7,11 @@
  *
  * ActKG CURIEs (cts:section-…) are normalized to colon-free tokens for the
  * resource ID path; original CURIEs are preserved on locator/provenance.
+ *
+ * Token encoding is reversible so `cts:x` and `cts.x` never collide:
+ *   1. escape every `.` as `..`
+ *   2. replace every `:` with `.`
+ * CURIEs without embedded dots keep the historical `cts.section-…` shape.
  */
 
 import {
@@ -21,7 +26,10 @@ const TEXTBOOK_SECTION_PATTERN = /^act:textbook-section:[^:\s]+$/u;
 
 /**
  * Convert an ActKG CURIE or free token into a resource-ID path token.
- * `cts:section-abc` → `cts.section-abc`
+ *
+ * Reversible encoding (`.` → `..`, then `:` → `.`):
+ * - `cts:section-abc` → `cts.section-abc`
+ * - `cts.x` → `cts..x`  (distinct from `cts:x` → `cts.x`)
  */
 export function toResourceIdToken(value: string, label: string): string {
   if (typeof value !== 'string' || value.trim().length === 0) {
@@ -36,7 +44,8 @@ export function toResourceIdToken(value: string, label: string): string {
       `${label} must not contain whitespace`,
     );
   }
-  const token = value.replace(/:/g, '.');
+  // Escape dots first so colon→dot cannot collide with a literal dot in the id.
+  const token = value.replace(/\./g, '..').replace(/:/g, '.');
   if (token.includes(':') || token.length === 0) {
     throw new TeachingProjectionIdentityError(
       'schema-invalid',
@@ -44,6 +53,28 @@ export function toResourceIdToken(value: string, label: string): string {
     );
   }
   return token;
+}
+
+/**
+ * Inverse of {@link toResourceIdToken}. Used by tests and diagnostics.
+ * Single `.` → `:`, doubled `..` → `.`.
+ */
+export function fromResourceIdToken(token: string): string {
+  let out = '';
+  for (let i = 0; i < token.length; i += 1) {
+    const ch = token[i]!;
+    if (ch === '.') {
+      if (token[i + 1] === '.') {
+        out += '.';
+        i += 1;
+      } else {
+        out += ':';
+      }
+    } else {
+      out += ch;
+    }
+  }
+  return out;
 }
 
 export function deriveTextbookResourceId(sourceDocumentId: string): string {

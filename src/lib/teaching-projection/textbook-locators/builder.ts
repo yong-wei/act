@@ -133,14 +133,27 @@ export function buildTextbookLocatorProjection(
     const existing = resourcesById.get(resource.resourceId);
     if (existing) {
       // Same identity must remain byte-stable; conflict is a slice failure.
+      // Distinct SourceAnchors that collide after token normalization are also
+      // treated as duplicate identity (REVIEW_REQUIRED).
       if (
         existing.resourceType !== resource.resourceType
         || existing.parentResourceId !== resource.parentResourceId
         || existing.accessMode !== resource.accessMode
+        || existing.locator.sourceDocumentId !== resource.locator.sourceDocumentId
+        || existing.locator.sourceAnchorId !== resource.locator.sourceAnchorId
+        || existing.locator.chapterKey !== resource.locator.chapterKey
+        || existing.locator.sectionKey !== resource.locator.sectionKey
       ) {
         failures.push({
           code: 'duplicate-resource-id',
-          message: `conflicting definitions for resource ${resource.resourceId}`,
+          message: `conflicting definitions for resource ${resource.resourceId}`
+            + (
+              existing.locator.sourceAnchorId
+              && resource.locator.sourceAnchorId
+              && existing.locator.sourceAnchorId !== resource.locator.sourceAnchorId
+                ? ` (sourceAnchor collision: ${existing.locator.sourceAnchorId} vs ${resource.locator.sourceAnchorId})`
+                : ''
+            ),
           resourceId: resource.resourceId,
           sourceDocumentId: resource.locator.sourceDocumentId,
           sourceAnchorId: resource.locator.sourceAnchorId ?? undefined,

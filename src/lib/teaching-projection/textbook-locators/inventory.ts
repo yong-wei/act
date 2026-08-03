@@ -11,6 +11,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { computeCanonicalReleaseHash } from '../../../../scripts/actkg-release/actkg-canonical-digests';
 import { projectionCanonicalJson, projectionSha256 } from '../hash';
 import {
   DEFAULT_ACTKG_SOURCE_STUBS_RELATIVE,
@@ -177,7 +178,7 @@ export function recomputeBundleDigest(manifest: Record<string, unknown>): string
 /**
  * Fail closed before labeling stubs as the current Authority inventory:
  * path, component release_hash, raw file sha256, recomputed bundle digest,
- * and Authority pin must match.
+ * and the full Authority identity pin must match the bundle manifest.
  */
 export function assertSourceInventoryFileIdentity(input: {
   repoRoot: string;
@@ -239,20 +240,91 @@ export function assertSourceInventoryFileIdentity(input: {
     );
   }
 
-  const bundleReleaseHash = release.release_hash;
-  const declaredBundleDigest = bundleRaw.bundle_digest;
-  const bundleCapture = sourceRevision.commit;
-  if (
-    typeof bundleReleaseHash !== 'string'
-    || bundleReleaseHash !== authority.authorityReleaseHash
-    || typeof declaredBundleDigest !== 'string'
-    || declaredBundleDigest !== authority.bundleDigest
-    || typeof bundleCapture !== 'string'
-    || bundleCapture !== authority.captureRevision
-  ) {
+  const requiredManifestString = (
+    obj: Record<string, unknown>,
+    key: string,
+    label: string,
+  ): string => {
+    const value = obj[key];
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      throw new TextbookLocatorInventoryError(
+        'schema-invalid',
+        `bundle-manifest missing ${label}`,
+      );
+    }
+    return value;
+  };
+
+  // Full Authority identity — hashes alone are not sufficient; forged releaseId /
+  // version / datasetHash / bundleId must also fail closed.
+  const bundleReleaseId = requiredManifestString(release, 'release_id', 'release.release_id');
+  const bundleReleaseVersion = requiredManifestString(
+    release,
+    'release_version',
+    'release.release_version',
+  );
+  const bundleReleaseHash = requiredManifestString(
+    release,
+    'release_hash',
+    'release.release_hash',
+  );
+  const bundleSourceDatasetHash = requiredManifestString(
+    release,
+    'source_dataset_hash',
+    'release.source_dataset_hash',
+  );
+  const bundleId = requiredManifestString(bundleRaw, 'bundle_id', 'bundle_id');
+  const declaredBundleDigest = requiredManifestString(
+    bundleRaw,
+    'bundle_digest',
+    'bundle_digest',
+  );
+  const bundleCapture = requiredManifestString(
+    sourceRevision,
+    'commit',
+    'source_revision.commit',
+  );
+
+  const identityMismatches: string[] = [];
+  if (bundleReleaseId !== authority.authorityReleaseId) {
+    identityMismatches.push(
+      `authorityReleaseId (binding ${authority.authorityReleaseId} vs manifest ${bundleReleaseId})`,
+    );
+  }
+  if (bundleReleaseVersion !== authority.authorityReleaseVersion) {
+    identityMismatches.push(
+      `authorityReleaseVersion (binding ${authority.authorityReleaseVersion} vs manifest ${bundleReleaseVersion})`,
+    );
+  }
+  if (bundleReleaseHash !== authority.authorityReleaseHash) {
+    identityMismatches.push(
+      `authorityReleaseHash (binding ${authority.authorityReleaseHash} vs manifest ${bundleReleaseHash})`,
+    );
+  }
+  if (bundleSourceDatasetHash !== authority.sourceDatasetHash) {
+    identityMismatches.push(
+      `sourceDatasetHash (binding ${authority.sourceDatasetHash} vs manifest ${bundleSourceDatasetHash})`,
+    );
+  }
+  if (bundleId !== authority.bundleId) {
+    identityMismatches.push(
+      `bundleId (binding ${authority.bundleId} vs manifest ${bundleId})`,
+    );
+  }
+  if (declaredBundleDigest !== authority.bundleDigest) {
+    identityMismatches.push(
+      `bundleDigest (binding ${authority.bundleDigest} vs manifest ${declaredBundleDigest})`,
+    );
+  }
+  if (bundleCapture !== authority.captureRevision) {
+    identityMismatches.push(
+      `captureRevision (binding ${authority.captureRevision} vs manifest ${bundleCapture})`,
+    );
+  }
+  if (identityMismatches.length > 0) {
     throw new TextbookLocatorInventoryError(
       'inventory-identity-mismatch',
-      'authority-binding Authority pin does not match the v0.12 bundle manifest',
+      `authority-binding Authority identity does not match the v0.12 bundle manifest: ${identityMismatches.join('; ')}`,
     );
   }
 
@@ -313,13 +385,12 @@ export function assertSourceInventoryFileIdentity(input: {
 }
 
 /**
- * ActKG Release self-hash: sha256(canonicalJson(release without release_hash)).
- * Never trust a self-reported release_hash alone when loading Canonical membership.
+ * ActKG Release self-hash via the repo canonical algorithm
+ * (`computeCanonicalReleaseHash`). Never trust a self-reported release_hash
+ * alone when loading Canonical membership.
  */
 export function recomputeAuthorityReleaseHash(release: Record<string, unknown>): string {
-  const body = structuredClone(release) as Record<string, unknown>;
-  delete body.release_hash;
-  return projectionSha256(projectionCanonicalJson(body));
+  return computeCanonicalReleaseHash(release);
 }
 
 /**
@@ -359,6 +430,42 @@ export function loadAuthorityCanonicalIdsFromSnapshot(input: {
     );
   }
 
+  // Cross-check release identity fields against the authority-binding pin before
+  // trusting membership (hash alone is insufficient).
+  const declaredReleaseId = raw.release_id;
+  const declaredReleaseVersion = raw.release_version;
+  const declaredSourceDatasetHash = raw.source_dataset_hash;
+  if (
+    typeof declaredReleaseId === 'string'
+    && declaredReleaseId.trim().length > 0
+    && declaredReleaseId !== input.authority.authorityReleaseId
+  ) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `Authority release_id ${declaredReleaseId} does not match authority-binding ${input.authority.authorityReleaseId}`,
+    );
+  }
+  if (
+    typeof declaredReleaseVersion === 'string'
+    && declaredReleaseVersion.trim().length > 0
+    && declaredReleaseVersion !== input.authority.authorityReleaseVersion
+  ) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `Authority release_version ${declaredReleaseVersion} does not match authority-binding ${input.authority.authorityReleaseVersion}`,
+    );
+  }
+  if (
+    typeof declaredSourceDatasetHash === 'string'
+    && declaredSourceDatasetHash.trim().length > 0
+    && declaredSourceDatasetHash !== input.authority.sourceDatasetHash
+  ) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `Authority source_dataset_hash ${declaredSourceDatasetHash} does not match authority-binding ${input.authority.sourceDatasetHash}`,
+    );
+  }
+
   const declaredReleaseHash = raw.release_hash;
   if (typeof declaredReleaseHash !== 'string' || declaredReleaseHash.trim().length === 0) {
     throw new TextbookLocatorInventoryError(
@@ -373,7 +480,8 @@ export function loadAuthorityCanonicalIdsFromSnapshot(input: {
     );
   }
 
-  const recomputedReleaseHash = recomputeAuthorityReleaseHash(raw);
+  // Recompute with computeCanonicalReleaseHash before trusting membership.
+  const recomputedReleaseHash = computeCanonicalReleaseHash(raw);
   if (recomputedReleaseHash !== declaredReleaseHash) {
     throw new TextbookLocatorInventoryError(
       'inventory-identity-mismatch',
