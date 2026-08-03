@@ -313,9 +313,23 @@ export function assertSourceInventoryFileIdentity(input: {
 }
 
 /**
+ * ActKG Release self-hash: sha256(canonicalJson(release without release_hash)).
+ * Never trust a self-reported release_hash alone when loading Canonical membership.
+ */
+export function recomputeAuthorityReleaseHash(release: Record<string, unknown>): string {
+  const body = structuredClone(release) as Record<string, unknown>;
+  delete body.release_hash;
+  return projectionSha256(projectionCanonicalJson(body));
+}
+
+/**
  * Load Canonical IDs from the fixed Authority release snapshot pinned by
- * authority-binding (release.json included_entities). Never derived from
- * the untrusted textbook sidecar / crosswalk under validation.
+ * authority-binding. Never derived from the untrusted textbook sidecar /
+ * crosswalk under validation.
+ *
+ * Membership is taken from release.entries with entity_role=knowledge_object
+ * (Canonical graph nodes), not every included_entities id (relations/evidence).
+ * Release self-hash is recomputed before the membership set is trusted.
  */
 export function loadAuthorityCanonicalIdsFromSnapshot(input: {
   repoRoot: string;
@@ -345,43 +359,66 @@ export function loadAuthorityCanonicalIdsFromSnapshot(input: {
     );
   }
 
-  const releaseHash = raw.release_hash;
-  if (typeof releaseHash !== 'string' || releaseHash.trim().length === 0) {
+  const declaredReleaseHash = raw.release_hash;
+  if (typeof declaredReleaseHash !== 'string' || declaredReleaseHash.trim().length === 0) {
     throw new TextbookLocatorInventoryError(
       'inventory-identity-mismatch',
       `Authority release snapshot missing release_hash: ${releasePath}`,
     );
   }
-  if (releaseHash !== input.authority.authorityReleaseHash) {
+  if (declaredReleaseHash !== input.authority.authorityReleaseHash) {
     throw new TextbookLocatorInventoryError(
       'inventory-identity-mismatch',
-      `Authority release_hash ${releaseHash} does not match authority-binding ${input.authority.authorityReleaseHash}`,
+      `Authority release_hash ${declaredReleaseHash} does not match authority-binding ${input.authority.authorityReleaseHash}`,
     );
   }
 
-  const included = raw.included_entities;
-  if (!Array.isArray(included)) {
+  const recomputedReleaseHash = recomputeAuthorityReleaseHash(raw);
+  if (recomputedReleaseHash !== declaredReleaseHash) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `Authority release_hash mismatch: declared ${declaredReleaseHash}, recomputed ${recomputedReleaseHash}`,
+    );
+  }
+  if (recomputedReleaseHash !== input.authority.authorityReleaseHash) {
+    throw new TextbookLocatorInventoryError(
+      'inventory-identity-mismatch',
+      `recomputed Authority release_hash ${recomputedReleaseHash} does not match authority-binding ${input.authority.authorityReleaseHash}`,
+    );
+  }
+
+  // Membership = knowledge_object entries only (Canonical graph nodes). Relation /
+  // evidence / governance included_entities must not pass as Canonical endpoints.
+  const entries = raw.entries;
+  if (!Array.isArray(entries)) {
     throw new TextbookLocatorInventoryError(
       'schema-invalid',
-      `Authority release snapshot missing included_entities[]: ${releasePath}`,
+      `Authority release snapshot missing entries[]: ${releasePath}`,
     );
   }
-
   const ids = new Set<string>();
-  for (const entry of included) {
-    if (typeof entry === 'string' && entry.trim().length > 0) {
-      ids.add(entry);
-      continue;
+  for (const entry of entries) {
+    if (!isRecord(entry)) {
+      throw new TextbookLocatorInventoryError(
+        'schema-invalid',
+        `Authority release entries must be objects: ${releasePath}`,
+      );
     }
-    throw new TextbookLocatorInventoryError(
-      'schema-invalid',
-      `Authority release included_entities must be non-empty strings: ${releasePath}`,
-    );
+    if (entry.entity_role !== 'knowledge_object') continue;
+    const entityId = entry.entity;
+    if (typeof entityId !== 'string' || entityId.trim().length === 0) {
+      throw new TextbookLocatorInventoryError(
+        'schema-invalid',
+        `Authority knowledge_object entry missing entity id: ${releasePath}`,
+      );
+    }
+    ids.add(entityId);
   }
+
   if (ids.size === 0) {
     throw new TextbookLocatorInventoryError(
       'schema-invalid',
-      `Authority release snapshot has empty included_entities: ${releasePath}`,
+      `Authority release snapshot has no Canonical knowledge_object members: ${releasePath}`,
     );
   }
   return ids;

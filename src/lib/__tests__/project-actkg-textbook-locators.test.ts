@@ -27,6 +27,7 @@ import {
   parseActkgSourceLocatorStubs,
   parseSourceResourceCrosswalkText,
   projectTextbookLocatorConsumers,
+  recomputeAuthorityReleaseHash,
   recomputeBundleDigest,
   textbookLocatorToRagProvenance,
   textbookProjectionToTeachingAuthoring,
@@ -931,5 +932,74 @@ describe('Authority Canonical membership (#1281 P1)', () => {
       }
     }
     expect(ids.has('ctc:not-in-authority-p1-unknown')).toBe(false);
+    // Relation / non-knowledge_object IDs must not pass as Canonical members.
+    expect(ids.has('ctr:048b56346548481862bb4e18')).toBe(false);
+  });
+
+  it('rejects forged Authority snapshots whose self-reported release_hash is not recomputable', () => {
+    const inventory = loadShippedInventory();
+    const releaseSrc = path.join(
+      REPO_ROOT,
+      'course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/release.json',
+    );
+    const release = JSON.parse(readFileSync(releaseSrc, 'utf8')) as Record<string, unknown>;
+    const originalHash = String(release.release_hash);
+    expect(recomputeAuthorityReleaseHash(release)).toBe(originalHash);
+
+    const entries = Array.isArray(release.entries)
+      ? [...(release.entries as unknown[])]
+      : [];
+    entries.push({
+      entity: 'ctc:forged-canonical-not-in-authority',
+      entity_role: 'knowledge_object',
+      inclusion_reason: 'forged',
+      release_tier: 'gold',
+    });
+    release.entries = entries;
+    // Keep the original self-reported hash (the P1 bypass).
+    release.release_hash = originalHash;
+    expect(recomputeAuthorityReleaseHash(release)).not.toBe(originalHash);
+
+    const tempDir = mkdtempSync(path.join(tmpdir(), 'tbloc-relhash-'));
+    const forgedReleasePath = path.join(tempDir, 'release.json');
+    writeFileSync(forgedReleasePath, `${JSON.stringify(release)}\n`, 'utf8');
+
+    expect(() =>
+      loadAuthorityCanonicalIdsFromSnapshot({
+        repoRoot: REPO_ROOT,
+        authority: inventory.authority,
+        authorityReleasePath: forgedReleasePath,
+      }),
+    ).toThrow(/release_hash mismatch|inventory-identity-mismatch/i);
+  });
+
+  it('rejects relation IDs that appear in included_entities but are not knowledge_object nodes', () => {
+    const inventory = loadShippedInventory();
+    const rows = loadShippedCrosswalk();
+    const base = rows[0]!;
+    const relationId = 'ctr:048b56346548481862bb4e18';
+
+    const tempDir = mkdtempSync(path.join(tmpdir(), 'tbloc-rel-id-'));
+    const crosswalkPath = path.join(tempDir, 'source-resource-crosswalk.jsonl');
+    writeFileSync(
+      crosswalkPath,
+      `${JSON.stringify({ ...base, canonicalIds: [relationId] })}\n`,
+      'utf8',
+    );
+
+    const projection = loadAndBuildTextbookLocatorProjection({
+      scopeId: 'fixture-relation-not-canonical',
+      repoRoot: REPO_ROOT,
+      crosswalkPath,
+      projectionBuildId: 'build-relation-not-canonical',
+    });
+
+    expect(projection.sliceStatus).toBe('REVIEW_REQUIRED');
+    expect(
+      projection.failures.some(
+        (f) => f.code === 'unknown-canonical' && f.canonicalId === relationId,
+      ),
+    ).toBe(true);
+    expect(projection.bindings).toEqual([]);
   });
 });
