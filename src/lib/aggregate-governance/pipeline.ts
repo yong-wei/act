@@ -469,6 +469,10 @@ export function runAggregateGovernance(
     releaseHash: input.capture.releaseHash,
     sourceDatasetHash: input.capture.sourceDatasetHash,
     mode: coverageMode,
+    // Historical aggregate packaging still may pass full membership; ACT teaching
+    // selectors use coverageDenominator: 'act-teaching' and must not treat this
+    // path as an Engineering Authority gate (#1265).
+    coverageDenominator: 'historical-release',
     requireExhaustive: coverageMode === 'baseline',
   });
 

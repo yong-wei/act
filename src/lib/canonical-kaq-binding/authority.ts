@@ -195,3 +195,76 @@ export function migrationReviewSeesCanonicalReadiness(
     && selector.productionAuthoritative === false
   );
 }
+
+/**
+ * #1265: Engineering Authority activation alone never switches KAQ selectors.
+ * Until the consumer's own Teaching Projection / binding / readiness gates pass,
+ * formal consumers remain on Legacy or an explicit pinned prior combination.
+ */
+export function evaluateKaqConsumerBoundary(input: {
+  engineeringAuthority: 'VALIDATED' | 'ACTIVE' | 'REJECTED_INTEGRITY';
+  teachingProjection: TeachingProjectionAvailability | {
+    available: boolean;
+    state?: 'PUBLISHED' | 'REVIEW_REQUIRED' | 'NOT_PROJECTED';
+  };
+  localBindingsReady: boolean;
+  pinnedPrevious?: boolean;
+}): {
+  consumerState: 'READY' | 'PINNED_PREVIOUS' | 'BLOCKED_LOCAL_DEPENDENCY';
+  authority: 'LEGACY' | 'CANONICAL_SHADOW';
+  engineeringAuthoritySwitchesKaq: false;
+  globalSelectorAdvanced: false;
+  reasons: string[];
+} {
+  const reasons: string[] = [];
+  if (input.engineeringAuthority === 'ACTIVE') {
+    reasons.push('engineering-authority-active');
+  } else if (input.engineeringAuthority === 'REJECTED_INTEGRITY') {
+    reasons.push('engineering-authority-rejected-integrity');
+  } else {
+    reasons.push('engineering-authority-validated-only');
+  }
+
+  const teachingAvailable = Boolean(input.teachingProjection.available);
+  if (!teachingAvailable) {
+    reasons.push('teaching-projection-absent-or-unresolved');
+    return {
+      consumerState: input.pinnedPrevious ? 'PINNED_PREVIOUS' : 'BLOCKED_LOCAL_DEPENDENCY',
+      authority: 'LEGACY',
+      engineeringAuthoritySwitchesKaq: false,
+      globalSelectorAdvanced: false,
+      reasons,
+    };
+  }
+  if (!input.localBindingsReady) {
+    reasons.push('local-kaq-bindings-unresolved');
+    return {
+      consumerState: input.pinnedPrevious ? 'PINNED_PREVIOUS' : 'BLOCKED_LOCAL_DEPENDENCY',
+      authority: 'LEGACY',
+      engineeringAuthoritySwitchesKaq: false,
+      globalSelectorAdvanced: false,
+      reasons,
+    };
+  }
+  if (input.engineeringAuthority !== 'ACTIVE') {
+    reasons.push('engineering-authority-not-active');
+    return {
+      consumerState: input.pinnedPrevious ? 'PINNED_PREVIOUS' : 'BLOCKED_LOCAL_DEPENDENCY',
+      authority: 'LEGACY',
+      engineeringAuthoritySwitchesKaq: false,
+      globalSelectorAdvanced: false,
+      reasons,
+    };
+  }
+
+  // Local readiness may be complete, but this boundary change still does not
+  // implement production cutover; keep formal authority on LEGACY.
+  reasons.push('local-readiness-complete-cutover-not-implemented');
+  return {
+    consumerState: input.pinnedPrevious ? 'PINNED_PREVIOUS' : 'BLOCKED_LOCAL_DEPENDENCY',
+    authority: 'LEGACY',
+    engineeringAuthoritySwitchesKaq: false,
+    globalSelectorAdvanced: false,
+    reasons,
+  };
+}

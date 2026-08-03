@@ -1,13 +1,23 @@
 /**
- * Current CourseCoverage review-input contract (#1180).
+ * Current CourseCoverage review-input contract (#1180 / #1265).
  *
  * This module is deliberately separate from review-workflow.ts.  The latter
  * owns the historical v1 worklist and its final-decision assembler; this
- * module only freezes a provenance-bound current denominator and the batches
- * that a later B1..Bn review may consume.
+ * module freezes a provenance-bound current denominator and the batches that
+ * a later B1..Bn review may consume.
+ *
+ * #1265: the ACT teaching denominator is the explicitly selected ACT resource /
+ * core-node scope and MAY be empty. Full Release membership and historical
+ * DEFER rows are not Authority gates. Use `selectActTeachingScopeMembership`
+ * / `buildActTeachingScopeWorklistItems` for new teaching selectors; the
+ * historical `buildCurrentCourseCoverageWorklist` remains for frozen batch
+ * tooling and audit reproducibility.
  */
 import { sha256Canonical, stableStringify } from './hash';
-import { selectCanonicalObjectMembership } from './membership';
+import {
+  selectActTeachingScopeMembership,
+  selectCanonicalObjectMembership,
+} from './membership';
 
 export const CURRENT_COURSE_COVERAGE_REVIEW_SCHEMA_VERSION =
   'current-course-coverage-review/v2' as const;
@@ -755,6 +765,64 @@ export function buildCurrentCourseCoverageWorklist(input: {
   const result = { ...withoutWorklistDigest, worklistDigest };
   assertNoCurrentCoverageDecisions(result, 'current worklist');
   return result;
+}
+
+/**
+ * ACT teaching-scope worklist denominator (#1265).
+ *
+ * Enumerates only explicitly selected ACT-bound resources/core nodes. Empty
+ * scope is valid (Teaching Projection NOT_PROJECTED) and does not invalidate
+ * the upstream engineering Release. Unprojected upstream IDs are reported but
+ * never enter the denominator. Prior decision refs remain provenance-only.
+ */
+export function buildActTeachingScopeWorklistItems(input: {
+  actBoundCanonicalIds: readonly string[];
+  upstreamCanonicalIds?: readonly string[];
+  priorDecisionRefs?: ReadonlyMap<string, readonly CurrentPriorDecisionRef[]>
+    | Record<string, readonly CurrentPriorDecisionRef[]>;
+}): {
+  membership: ReturnType<typeof selectActTeachingScopeMembership>;
+  items: Array<{
+    canonicalId: string;
+    priorDecisionRefs: CurrentPriorDecisionRef[];
+    inActDenominator: true;
+  }>;
+  teachingProjection: 'NOT_PROJECTED' | 'REVIEW_REQUIRED';
+  blocksEngineeringAuthority: false;
+} {
+  const membership = selectActTeachingScopeMembership({
+    actBoundCanonicalIds: input.actBoundCanonicalIds,
+    upstreamCanonicalIds: input.upstreamCanonicalIds,
+  });
+  const lookupPrior = (id: string): readonly CurrentPriorDecisionRef[] => {
+    if (!input.priorDecisionRefs) return [];
+    if (input.priorDecisionRefs instanceof Map) {
+      return input.priorDecisionRefs.get(id) ?? [];
+    }
+    return (input.priorDecisionRefs as Record<string, readonly CurrentPriorDecisionRef[]>)[id] ?? [];
+  };
+  // Fail closed on duplicate ACT-bound identities within the selected scope.
+  const seen = new Set<string>();
+  for (const id of membership.canonicalIds) {
+    if (seen.has(id)) {
+      throw new Error(
+        `ACT teaching worklist rejected: duplicate ACT-bound identity ${id}`,
+      );
+    }
+    seen.add(id);
+  }
+  const items = membership.canonicalIds.map((canonicalId) => ({
+    canonicalId,
+    priorDecisionRefs: priorRefsFor(lookupPrior(canonicalId)),
+    inActDenominator: true as const,
+  }));
+  assertNoCurrentCoverageDecisions({ items }, 'act teaching worklist');
+  return {
+    membership,
+    items,
+    teachingProjection: membership.empty ? 'NOT_PROJECTED' : 'REVIEW_REQUIRED',
+    blocksEngineeringAuthority: false,
+  };
 }
 
 export function currentReviewPolicy(): CurrentReviewPolicy {

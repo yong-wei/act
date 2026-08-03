@@ -314,9 +314,12 @@ export interface DownstreamReadinessDiagnostics {
     shadowPublishedBindingCount: number;
   };
   teachingProjection: {
-    ready: false;
-    blocked: true;
-    reason: 'formal-teaching-projection-not-available';
+    ready: boolean;
+    blocked: boolean;
+    reason:
+      | 'formal-teaching-projection-not-available'
+      | 'teaching-projection-review-required'
+      | 'teaching-projection-published';
   };
   path: {
     ready: false;
@@ -337,6 +340,17 @@ export interface DownstreamReadinessDiagnostics {
     candidateUnchanged: true;
     activeUnchanged: true;
     legacyUnchanged: true;
+  };
+  /**
+   * Independent Engineering Authority diagnostics (#1265).
+   * CourseCoverage / teaching readiness never gate Authority activation eligibility.
+   */
+  engineeringAuthority?: {
+    state: 'VALIDATED' | 'ACTIVE' | 'REJECTED_INTEGRITY';
+    activeEligible: boolean;
+    teachingProjection: 'PUBLISHED' | 'REVIEW_REQUIRED' | 'NOT_PROJECTED';
+    independentOfCourseCoverage: true;
+    reasons: string[];
   };
 }
 

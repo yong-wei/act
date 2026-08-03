@@ -83,3 +83,39 @@ export function selectCanonicalObjectMembership(input: {
  * NEVER use as a production membership gate.
  */
 export const V03_R2_FIXTURE_OBJECT_COUNT = 744;
+
+/**
+ * ACT teaching-scope membership (#1265).
+ *
+ * Unlike Release object membership, the ACT teaching denominator is the
+ * explicitly selected ACT-bound resource/core-node set and MAY be empty.
+ * Aggregate/profile-only upstream IDs without an ACT binding stay outside.
+ */
+export interface ActTeachingScopeMembership {
+  canonicalIds: string[];
+  source: 'act-teaching-scope';
+  empty: boolean;
+  unprojectedUpstream: string[];
+}
+
+export function selectActTeachingScopeMembership(input: {
+  actBoundCanonicalIds: readonly string[];
+  /** Full upstream Release/projection IDs for reporting unprojected members. */
+  upstreamCanonicalIds?: readonly string[];
+}): ActTeachingScopeMembership {
+  const bound = uniqueSorted(input.actBoundCanonicalIds);
+  const upstream = uniqueSorted(input.upstreamCanonicalIds ?? []);
+  const boundSet = new Set(bound);
+  const unprojectedUpstream = upstream.filter((id) => !boundSet.has(id));
+  // Bound IDs that do not appear upstream are still retained as selected scope
+  // only when no upstream list is supplied; otherwise filter to intersection.
+  const canonicalIds = upstream.length === 0
+    ? bound
+    : bound.filter((id) => new Set(upstream).has(id));
+  return {
+    canonicalIds,
+    source: 'act-teaching-scope',
+    empty: canonicalIds.length === 0,
+    unprojectedUpstream,
+  };
+}

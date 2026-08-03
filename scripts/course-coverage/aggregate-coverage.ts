@@ -444,6 +444,10 @@ export function validateBaselineAuthoring(
     releaseHash: overlay.releaseHash,
     sourceDatasetHash: overlay.sourceDatasetHash,
     mode: 'baseline',
+    // Historical aggregate tooling may still pass a full membership list.
+    // ACT teaching selectors use act-teaching denominator (#1265).
+    coverageDenominator: 'historical-release',
+    requireExhaustive: true,
   });
 }
 
