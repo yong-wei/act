@@ -586,11 +586,8 @@ export function activateConsumerActivation(
     && CONSUMER_ACTIVATION_IDS.every((id) => pinnedFromRecords.has(id));
   // Pin-only path requires a complete unique PINNED set derived from records.
   // If impact arrays claim pins/ready but records disagree, fail closed.
-  if (
-    input.requireActionableConsumers !== false
-    && readyFromRecords.size === 0
-    && !fullPinOnly
-  ) {
+  // This gate is NOT optional: requireActionableConsumers must not bypass it.
+  if (readyFromRecords.size === 0 && !fullPinOnly) {
     return failActivation({
       paths,
       activationReceiptId,
