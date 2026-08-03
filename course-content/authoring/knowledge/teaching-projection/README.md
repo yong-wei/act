@@ -38,6 +38,15 @@ ACT-owned, file-based Teaching Projection authoring inputs for issues #1267 / #1
 - Builder/store: `src/lib/teaching-projection/prerequisites/`
 - Engineering relations, textbook order, and lesson order remain candidates only; publication requires ACT evidence or teacher-curation rationale plus one author decision bound to the Authority/Projection capture.
 
+## Knowledge card migration (#1271)
+
+- Inventory: active + legacy card files under `course-content/authoring|runtime/knowledge/cards/nodes/`.
+- Crosswalk: `cards/card-crosswalk.jsonl` (old graph ID → Canonical); classifications: one-to-one, duplicate, split, unmapped, course-specific.
+- Runtime index: `canonicalId → at most one ACTIVE card`; builder at `src/lib/teaching-projection/cards/`.
+- Step resolution: `step → canonicalId → optional card`; only core `cardPolicy: REQUIRED` gates; optional absence is non-blocking.
+- Legacy fallback hits emit telemetry; old IDs remain read-only compatibility inputs.
+- Fixtures: `cards/fixtures/migration-cases.json`.
+
 ## Non-goals
 
 No Prisma tables, in-app editor, remote deployment, or upstream ActKG semantic review in these changes.

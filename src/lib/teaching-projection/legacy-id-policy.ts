@@ -66,7 +66,7 @@ function collectLegacyIdsFromBindings(
  * Crosswalk `legacyId` columns are intentionally not checked here.
  */
 export function assertNoLegacyGraphIdsInAuthoring(
-  input: Pick<TeachingProjectionAuthoringInput, 'bindings' | 'resources'> & {
+  input: Pick<TeachingProjectionAuthoringInput, 'bindings' | 'resources' | 'cards'> & {
     knowledgeRefsByResource?: ReadonlyMap<string, readonly TeachingKnowledgeRefAuthoring[]>;
   },
 ): void {
@@ -83,6 +83,13 @@ export function assertNoLegacyGraphIdsInAuthoring(
   if (input.knowledgeRefsByResource) {
     for (const refs of input.knowledgeRefsByResource.values()) {
       collectLegacyIdsFromRefs(refs, found);
+    }
+  }
+
+  // Card authoring Canonical field must not receive legacy graph IDs (#1271).
+  for (const card of input.cards ?? []) {
+    if (isLegacyLocalGraphNodeId(card.canonicalId)) {
+      found.add(card.canonicalId);
     }
   }
 
