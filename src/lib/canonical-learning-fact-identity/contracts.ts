@@ -153,6 +153,15 @@ export interface CanonicalWriteAdmissionContext {
    */
   accessibleResourceIds?: readonly string[];
   /**
+   * Exact (canonicalId, resourceId) pairs from governed projection bindings.
+   * When present, identity must match a pair — not just set membership —
+   * so resources cannot be cross-applied across nodes (#1275).
+   */
+  projectedResourceBindings?: readonly {
+    canonicalId: string;
+    resourceId: string;
+  }[];
+  /**
    * When true (default for Projection-bound path/resource producers), require
    * identity.resourceId and knowledgeProjectionId.
    */

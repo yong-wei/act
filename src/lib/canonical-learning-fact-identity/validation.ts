@@ -274,7 +274,9 @@ export function assertProjectionBoundResourceIdentity(
     || (admission.accessibleResourceIds != null
       && admission.accessibleResourceIds.length > 0)
     || (admission.projectedCanonicalIds != null
-      && admission.projectedCanonicalIds.length > 0);
+      && admission.projectedCanonicalIds.length > 0)
+    || (admission.projectedResourceBindings != null
+      && admission.projectedResourceBindings.length > 0);
 
   if (!requireResource) return;
 
@@ -289,6 +291,24 @@ export function assertProjectionBoundResourceIdentity(
       'resource-identity-missing',
       'Projection-bound LearningFact requires resourceId alongside canonical/Authority/Projection identity',
     );
+  }
+  // Prefer exact (canonical, resource) pairs when admission sealed them.
+  if (
+    admission.projectedResourceBindings
+    && admission.projectedResourceBindings.length > 0
+  ) {
+    const matched = admission.projectedResourceBindings.some(
+      (binding) =>
+        binding.canonicalId === identity.canonicalObjectId
+        && binding.resourceId === identity.resourceId,
+    );
+    if (!matched) {
+      throw new CanonicalLearningFactWriteError(
+        'resource-or-kaq-support-missing',
+        `Resource ${identity.resourceId} is not bound to canonical ${identity.canonicalObjectId} under the active Teaching Projection`,
+      );
+    }
+    return;
   }
   if (
     admission.accessibleResourceIds

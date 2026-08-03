@@ -557,24 +557,55 @@ describe('canonical-learning-fact-identity (#1116 remediation)', () => {
         pinned: pinned([
           'ctr:object:feedback-loop',
           'ctr:object:engineering-only',
+          'ctr:object:transfer-function',
         ]),
         allowedSourcePrefixes: ['arena-official'],
         resourceOrKaqSupportedCanonicalIds: [
           'ctr:object:feedback-loop',
           'ctr:object:engineering-only',
+          'ctr:object:transfer-function',
         ],
         projectionId: PROJECTION_ID,
         releasePublicationState: 'ACTIVE',
         requireProjectionBoundResourceIdentity: true,
-        projectedCanonicalIds: ['ctr:object:feedback-loop'],
-        accessibleResourceIds: ['lesson:feedback-loop'],
+        projectedCanonicalIds: [
+          'ctr:object:feedback-loop',
+          'ctr:object:transfer-function',
+        ],
+        accessibleResourceIds: ['lesson:feedback-loop', 'lesson:tf'],
+        projectedResourceBindings: [
+          {
+            canonicalId: 'ctr:object:feedback-loop',
+            resourceId: 'lesson:feedback-loop',
+          },
+          {
+            canonicalId: 'ctr:object:transfer-function',
+            resourceId: 'lesson:tf',
+          },
+        ],
       });
       // Simulate formal writer: only fields exposed by the capability view.
       const fields = readVerifiedLearningFactAdmission(writeCapability.admission);
 
       expect(fields.requireProjectionBoundResourceIdentity).toBe(true);
-      expect(fields.projectedCanonicalIds).toEqual(['ctr:object:feedback-loop']);
-      expect(fields.accessibleResourceIds).toEqual(['lesson:feedback-loop']);
+      expect(fields.projectedCanonicalIds).toEqual([
+        'ctr:object:feedback-loop',
+        'ctr:object:transfer-function',
+      ]);
+      expect(fields.accessibleResourceIds).toEqual([
+        'lesson:feedback-loop',
+        'lesson:tf',
+      ]);
+      expect(fields.projectedResourceBindings).toEqual([
+        {
+          canonicalId: 'ctr:object:feedback-loop',
+          resourceId: 'lesson:feedback-loop',
+        },
+        {
+          canonicalId: 'ctr:object:transfer-function',
+          resourceId: 'lesson:tf',
+        },
+      ]);
 
       expect(evaluateCanonicalLearningFactWrite({
         rows: [baseRow()],
@@ -585,6 +616,16 @@ describe('canonical-learning-fact-identity (#1116 remediation)', () => {
       expect(evaluateCanonicalLearningFactWrite({
         rows: [baseRow()],
         identity: identity({ resourceId: 'lesson:other' }),
+        admission: fields,
+      }).rejectionCodes).toContain('resource-or-kaq-support-missing');
+
+      // Cross-pairing an existing resource onto the wrong canonical fails closed.
+      expect(evaluateCanonicalLearningFactWrite({
+        rows: [baseRow()],
+        identity: identity({
+          resourceId: 'lesson:tf',
+          canonicalObjectId: 'ctr:object:feedback-loop',
+        }),
         admission: fields,
       }).rejectionCodes).toContain('resource-or-kaq-support-missing');
 
