@@ -16,6 +16,7 @@ import {
   type TeachingPrerequisiteRuntime,
   type TeachingProjectionArtifacts,
   type TeachingProjectionAuthoringInput,
+  type TeachingProjectionGateFinding,
   type TeachingProjectionImpactRecord,
   type TeachingProjectionImpactReport,
   type TeachingProjectionManifest,
@@ -603,6 +604,88 @@ export function buildTeachingProjection(
       contract: 'act-teaching-projection-cards-index/v1',
       cards,
     },
+    manifest,
+    impactReport,
+    gate,
+  };
+}
+
+/**
+ * Force additional gate findings that fail activation (e.g. unresolved rebase
+ * REVIEW_REQUIRED items). Re-seals gate/sourceHashes/manifest/impact so
+ * verifyTeachingProjectionArtifacts remains consistent.
+ *
+ * When `extraFindings` is empty and the existing gate already fails, returns
+ * the input unchanged. When extra findings exist (or forceFail), always marks
+ * gate passed=false and status=REVIEW_REQUIRED.
+ */
+export function applyTeachingProjectionGateFindings(
+  artifacts: TeachingProjectionArtifacts,
+  extraFindings: readonly TeachingProjectionGateFinding[],
+  options: { forceFail?: boolean } = {},
+): TeachingProjectionArtifacts {
+  const forceFail = options.forceFail === true || extraFindings.length > 0;
+  if (!forceFail) {
+    return artifacts;
+  }
+
+  const findings = sortBy(
+    [...artifacts.gate.findings, ...extraFindings],
+    (f) => `${f.severity}:${f.code}:${f.message}:${f.resourceId ?? ''}:${f.bindingId ?? ''}:${f.canonicalId ?? ''}`,
+  );
+
+  const gate = {
+    ...artifacts.gate,
+    status: 'REVIEW_REQUIRED' as const,
+    passed: false,
+    findings,
+  };
+
+  const sourceHashes: TeachingProjectionSourceHashes = {
+    ...artifacts.manifest.sourceHashes,
+    gate: projectionDigest(gate),
+  };
+
+  const manifestBody: TeachingProjectionManifestBody = {
+    contract: artifacts.manifest.contract,
+    builderVersion: artifacts.manifest.builderVersion,
+    scopeId: artifacts.manifest.scopeId,
+    authoringRevision: artifacts.manifest.authoringRevision,
+    authorityReleaseId: artifacts.manifest.authorityReleaseId,
+    authorityReleaseSetId: artifacts.manifest.authorityReleaseSetId,
+    authoritySnapshotId: artifacts.manifest.authoritySnapshotId,
+    authoritySnapshotHash: artifacts.manifest.authoritySnapshotHash,
+    sourceHashes,
+    resourceCount: artifacts.manifest.resourceCount,
+    bindingCount: artifacts.manifest.bindingCount,
+    prerequisiteCount: artifacts.manifest.prerequisiteCount,
+    coreNodeCount: artifacts.manifest.coreNodeCount,
+    cardCount: artifacts.manifest.cardCount,
+    gateStatus: gate.status,
+    gatePassed: false,
+  };
+
+  const projectionHash = projectionDigest(manifestBody);
+  const projectionId = projectionIdFromHash(projectionHash);
+  const manifest: TeachingProjectionManifest = {
+    ...manifestBody,
+    projectionId,
+    projectionHash,
+  };
+
+  const impactReport = buildImpactReport({
+    projectionId,
+    projectionHash,
+    resources: artifacts.resources,
+    bindings: artifacts.bindings,
+    prerequisites: artifacts.prerequisites,
+    coreNodes: artifacts.coreNodes,
+    cards: artifacts.cardsIndex.cards,
+    gate,
+  });
+
+  return {
+    ...artifacts,
     manifest,
     impactReport,
     gate,
