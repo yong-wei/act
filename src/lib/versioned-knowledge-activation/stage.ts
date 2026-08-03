@@ -368,34 +368,29 @@ export function validateArtifactIdentityBinding(
                 'projection-manifest-authority-snapshot-hash-mismatch',
               );
             }
-            // authoringRevision / capture must match the staged capture when
-            // present on either side.
-            const projectionCapture =
-              asString(
-                (manifest as unknown as { authoringRevision?: unknown })
-                  .authoringRevision,
-              )
-              ?? asString(
-                (manifest as unknown as { captureRevision?: unknown })
-                  .captureRevision,
-              );
-            if (
-              auth.captureRevision
-              && projectionCapture
-              && auth.captureRevision !== projectionCapture
-            ) {
-              reasons.push(
-                'projection-manifest-authority-capture-mismatch',
-              );
-            }
-            if (
-              artifacts.captureRevision
-              && projectionCapture
-              && artifacts.captureRevision !== projectionCapture
-            ) {
-              reasons.push(
-                'projection-manifest-shared-capture-mismatch',
-              );
+            // authoringRevision is a contract field on the Projection
+            // manifest. Do not fall back to non-contract captureRevision
+            // extensions that are outside the projectionHash seal.
+            const authoringRevision = asString(manifest.authoringRevision);
+            if (!authoringRevision) {
+              reasons.push('projection-manifest-authoring-revision-absent');
+            } else {
+              if (
+                auth.captureRevision
+                && auth.captureRevision !== authoringRevision
+              ) {
+                reasons.push(
+                  'projection-manifest-authority-capture-mismatch',
+                );
+              }
+              if (
+                artifacts.captureRevision
+                && artifacts.captureRevision !== authoringRevision
+              ) {
+                reasons.push(
+                  'projection-manifest-shared-capture-mismatch',
+                );
+              }
             }
             // When Authority is present, require Projection to pin the same
             // snapshot identity fields when the manifest supports them.
