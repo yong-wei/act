@@ -22,6 +22,10 @@ import {
 } from '@/lib/layered-graph/course-page-context';
 import type { LayeredGraphPayload, LayeredGraphScope } from '@/lib/layered-graph/contracts';
 import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
+import {
+  projectionPinsFromSelection,
+  resolveKonlingProductionSelection,
+} from '@/lib/versioned-knowledge-activation';
 
 import type { KonlingTeachingProjectionClientHints } from '@/lib/konling-teaching-projection-context';
 
@@ -232,13 +236,68 @@ export function resolveKonlingTeachingProjectionBinding(input: {
     };
   }
 
+  // #1276 konling consumer activation: pin / select Authority+Projection from
+  // the activation pointer so replacing current.json changes Konling reads.
+  const konlingActivation = resolveKonlingProductionSelection({ repoRoot });
+  const konlingPins = projectionPinsFromSelection(konlingActivation);
+
+  if (konlingActivation.mode === 'unavailable') {
+    return {
+      payload: null,
+      scope,
+      permittedScopeIds: scope.scopeId ? [scope.scopeId] : [],
+      authorized,
+      source: 'resolve-failed',
+      authorityRoot,
+      projectionRoot,
+      reasons: [
+        'konling-activation-unavailable',
+        ...konlingActivation.reasons,
+      ],
+    };
+  }
+
+  let pinnedProjectionId = input.pinnedProjectionId ?? null;
+  let pinnedProjectionHash = input.pinnedProjectionHash ?? null;
+  let candidateProjectionId = input.candidateProjectionId ?? null;
+  let authoritySnapshotId: string | null = null;
+  let authoritySnapshotHash: string | null = null;
+  let authorityReleaseId: string | null = null;
+
+  if (konlingActivation.mode === 'use-combination') {
+    // Force selected combination; do not let caller override READY pins.
+    if (konlingPins.projectionId) {
+      candidateProjectionId = konlingPins.projectionId;
+      pinnedProjectionId = konlingPins.projectionId;
+      pinnedProjectionHash = konlingPins.projectionHash;
+    }
+    authoritySnapshotId = konlingPins.authoritySnapshotId;
+    authoritySnapshotHash = konlingPins.authoritySnapshotHash;
+    authorityReleaseId = konlingPins.authorityReleaseId;
+  } else if (konlingActivation.mode === 'pin-combination') {
+    // Force prior combination; clear candidates and ignore caller projection.
+    candidateProjectionId = null;
+    if (konlingPins.projectionId) {
+      pinnedProjectionId = konlingPins.projectionId;
+      pinnedProjectionHash = konlingPins.projectionHash;
+    }
+    authoritySnapshotId = konlingPins.authoritySnapshotId;
+    authoritySnapshotHash = konlingPins.authoritySnapshotHash;
+    authorityReleaseId = konlingPins.authorityReleaseId;
+  }
+
   try {
     const context = resolveCoursePageLayeredGraphContext({
       scope,
       allowLegacyFallback: input.allowLegacyFallback ?? true,
-      pinnedProjectionId: input.pinnedProjectionId,
-      pinnedProjectionHash: input.pinnedProjectionHash,
-      candidateProjectionId: input.candidateProjectionId,
+      pinnedProjectionId,
+      pinnedProjectionHash,
+      candidateProjectionId,
+      authoritySnapshotId,
+      authoritySnapshotHash,
+      authorityReleaseId,
+      // Use Konling's own selection so course-runtime does not override it.
+      consumerActivationSelection: konlingActivation,
       repoRoot,
       authorityRoot,
       projectionRoot,
@@ -251,9 +310,14 @@ export function resolveKonlingTeachingProjectionBinding(input: {
       source: 'course-page-layered-graph',
       authorityRoot,
       projectionRoot,
-      reasons: context.hasTeachingProjection
-        ? ['teaching-projection-resolved', 'production-default-store-paths']
-        : ['teaching-projection-absent-or-fallback-only', 'production-default-store-paths'],
+      reasons: [
+        ...(context.hasTeachingProjection
+          ? ['teaching-projection-resolved', 'production-default-store-paths']
+          : ['teaching-projection-absent-or-fallback-only', 'production-default-store-paths']),
+        ...(konlingActivation.mode !== 'absent'
+          ? [`konling-activation:${konlingActivation.mode}`]
+          : []),
+      ],
     };
   } catch (error) {
     return {

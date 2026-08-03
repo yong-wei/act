@@ -7,6 +7,7 @@
  */
 
 import type { AuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
+import { loadStagedAuthoritySnapshot } from '@/lib/authoritative-knowledge/authority-store';
 import { resolveEngineeringGraphAuthority } from '@/lib/authoritative-knowledge/engineering-authority-consumers';
 import type {
   TeachingBindingRuntime,
@@ -30,9 +31,84 @@ import type {
   TeachingResourceBindingView,
 } from './contracts';
 
+export interface LayeredGraphAuthorityPin {
+  /** Explicit Authority snapshot from a non-engineering consumer activation. */
+  authoritySnapshotId?: string | null;
+  authoritySnapshotHash?: string | null;
+  authorityReleaseId?: string | null;
+}
+
 export function resolveLayeredGraphAuthorityInput(
   authorityPaths: AuthorityStorePaths,
+  pin?: LayeredGraphAuthorityPin | null,
 ): LayeredGraphAuthorityInput {
+  // When a teaching/course consumer activation selects a specific Authority
+  // snapshot, load that combination instead of the engineering-graph selection.
+  if (pin?.authoritySnapshotId) {
+    try {
+      const snapshot = loadStagedAuthoritySnapshot(
+        authorityPaths,
+        pin.authoritySnapshotId,
+      );
+      if (
+        pin.authoritySnapshotHash
+        && snapshot.snapshotHash !== pin.authoritySnapshotHash
+      ) {
+        return {
+          status: 'unavailable',
+          releaseId: pin.authorityReleaseId ?? null,
+          releaseSetId: null,
+          snapshotId: pin.authoritySnapshotId,
+          snapshotHash: pin.authoritySnapshotHash,
+          engineering: null,
+          manifest: null,
+          reason: 'consumer-activation-authority-hash-mismatch',
+        };
+      }
+      if (
+        pin.authorityReleaseId
+        && snapshot.manifest.releaseId !== pin.authorityReleaseId
+      ) {
+        return {
+          status: 'unavailable',
+          releaseId: pin.authorityReleaseId,
+          releaseSetId: snapshot.manifest.releaseSetId,
+          snapshotId: snapshot.snapshotId,
+          snapshotHash: snapshot.snapshotHash,
+          engineering: null,
+          manifest: snapshot.manifest,
+          reason: 'consumer-activation-authority-release-mismatch',
+        };
+      }
+      return {
+        status: 'ready',
+        releaseId: snapshot.manifest.releaseId,
+        releaseSetId: snapshot.manifest.releaseSetId,
+        snapshotId: snapshot.snapshotId,
+        snapshotHash: snapshot.snapshotHash,
+        engineering: {
+          objects: snapshot.engineering.objects,
+          relations: snapshot.engineering.relations,
+        },
+        manifest: snapshot.manifest,
+      };
+    } catch (error) {
+      return {
+        status: 'unavailable',
+        releaseId: pin.authorityReleaseId ?? null,
+        releaseSetId: null,
+        snapshotId: pin.authoritySnapshotId,
+        snapshotHash: pin.authoritySnapshotHash ?? null,
+        engineering: null,
+        manifest: null,
+        reason:
+          error instanceof Error
+            ? `consumer-activation-authority-load-failed:${error.message}`
+            : 'consumer-activation-authority-load-failed',
+      };
+    }
+  }
+
   const resolved = resolveEngineeringGraphAuthority(authorityPaths);
   if (resolved.status !== 'ready' || !resolved.engineering) {
     return {

@@ -23,6 +23,10 @@ import {
   type TeachingResourceRuntime,
 } from '@/lib/teaching-projection/contracts';
 import { resolveTeachingProjectionStorePaths } from '@/lib/teaching-projection/store';
+import {
+  projectionPinsFromSelection,
+  resolveCourseRuntimeProductionSelection,
+} from '@/lib/versioned-knowledge-activation';
 
 import type {
   LayeredGraphPayload,
@@ -57,6 +61,17 @@ export interface ResolveCoursePageLayeredGraphContextInput {
   pinnedProjectionId?: string | null;
   pinnedProjectionHash?: string | null;
   candidateProjectionId?: string | null;
+  /** Optional Authority pin from a teaching consumer activation (#1276). */
+  authoritySnapshotId?: string | null;
+  authoritySnapshotHash?: string | null;
+  authorityReleaseId?: string | null;
+  /**
+   * When provided, use this consumer production selection instead of the
+   * default course-runtime selection (e.g. Konling injects its own).
+   */
+  consumerActivationSelection?: ReturnType<
+    typeof resolveCourseRuntimeProductionSelection
+  > | null;
   /**
    * When true (default), absent projection may fall back to lesson-runtime
    * overlay as an explicit Legacy adapter — never mixed with another release.
@@ -273,6 +288,69 @@ export function resolveCoursePageLayeredGraphContext(
         ?? resolveConfiguredTeachingProjectionRoot(repoRoot),
     );
 
+  // #1276 course-runtime consumer activation: replacing consumer current.json
+  // changes the Authority/Projection combination used by course pages.
+  // Prefer an explicit consumer selection injected by Konling (or tests).
+  const courseActivation =
+    input.consumerActivationSelection
+    ?? resolveCourseRuntimeProductionSelection({ repoRoot });
+  const coursePins = projectionPinsFromSelection(courseActivation);
+
+  // Corrupted / mismatched activation evidence must fail closed — never fall
+  // through to global Authority/Projection current pointers.
+  if (courseActivation.mode === 'unavailable') {
+    const payload = resolveCourseLayeredGraph({
+      authorityPaths,
+      projectionPaths,
+      scope: input.scope,
+      // Impossible pins force Authority/Projection load failure.
+      candidateProjectionId: '__consumer-activation-unavailable__',
+      allowLegacyFallback: false,
+      legacyProjection: null,
+      authoritySnapshotId: '__consumer-activation-unavailable__',
+      authoritySnapshotHash: '0'.repeat(64),
+      authorityReleaseId: '__consumer-activation-unavailable__',
+    });
+    return {
+      payload,
+      scope: input.scope,
+      resourceLaunchTargets: {},
+      resourceRegistryIds: {},
+      hasTeachingProjection: false,
+    };
+  }
+
+  let pinnedProjectionId = input.pinnedProjectionId ?? null;
+  let pinnedProjectionHash = input.pinnedProjectionHash ?? null;
+  let candidateProjectionId = input.candidateProjectionId ?? null;
+  let authoritySnapshotId = input.authoritySnapshotId ?? null;
+  let authoritySnapshotHash = input.authoritySnapshotHash ?? null;
+  let authorityReleaseId = input.authorityReleaseId ?? null;
+
+  if (courseActivation.mode === 'use-combination') {
+    // READY combination: force the selected Authority+Projection pair.
+    if (coursePins.projectionId) {
+      candidateProjectionId = coursePins.projectionId;
+      pinnedProjectionId = coursePins.projectionId;
+      pinnedProjectionHash = coursePins.projectionHash;
+    }
+    authoritySnapshotId = coursePins.authoritySnapshotId;
+    authoritySnapshotHash = coursePins.authoritySnapshotHash;
+    authorityReleaseId = coursePins.authorityReleaseId;
+  } else if (courseActivation.mode === 'pin-combination') {
+    // PINNED/SHADOW/BLOCKED: force prior combination; clear candidates so
+    // resolver cannot prefer a newer projection over the pin.
+    candidateProjectionId = null;
+    if (coursePins.projectionId) {
+      pinnedProjectionId = coursePins.projectionId;
+      pinnedProjectionHash = coursePins.projectionHash;
+    }
+    authoritySnapshotId = coursePins.authoritySnapshotId;
+    authoritySnapshotHash = coursePins.authoritySnapshotHash;
+    authorityReleaseId = coursePins.authorityReleaseId;
+  }
+  // mode === 'absent': keep caller / global defaults (no activation store).
+
   const allowLegacyFallback = input.allowLegacyFallback !== false;
   const legacyProjection =
     allowLegacyFallback && input.lessonRuntime
@@ -286,9 +364,12 @@ export function resolveCoursePageLayeredGraphContext(
     authorityPaths,
     projectionPaths,
     scope: input.scope,
-    pinnedProjectionId: input.pinnedProjectionId,
-    pinnedProjectionHash: input.pinnedProjectionHash,
-    candidateProjectionId: input.candidateProjectionId,
+    pinnedProjectionId,
+    pinnedProjectionHash,
+    candidateProjectionId,
+    authoritySnapshotId,
+    authoritySnapshotHash,
+    authorityReleaseId,
     allowLegacyFallback: Boolean(legacyProjection),
     legacyProjection,
   });

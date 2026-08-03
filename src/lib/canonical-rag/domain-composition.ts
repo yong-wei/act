@@ -3,8 +3,8 @@
  *
  * Domains stay separately governed. Composition is query-time only, records
  * dual provenance, and never writes ACT teaching edges into ActKG or mixes
- * Authority/Projection versions. Shadow-only: production selectors remain
- * pinned until consumer activation.
+ * Authority/Projection versions. Production selectors follow per-consumer
+ * activation (#1276) when a consumer-activation pointer is present.
  */
 
 import type {
@@ -15,6 +15,12 @@ import type {
   TeachingCardIndexEntry,
   TeachingResourceType,
 } from '@/lib/teaching-projection/contracts';
+import {
+  projectionPinsFromSelection,
+  resolveEngineeringRagProductionSelection,
+  resolveTeachingResourceRagProductionSelection,
+  type ConsumerProductionSelection,
+} from '@/lib/versioned-knowledge-activation';
 
 export const RAG_DOMAIN_COMPOSITION_CONTRACT =
   'act-rag-domain-composition/v1' as const;
@@ -246,14 +252,122 @@ function unavailableTeaching(
 }
 
 /**
+ * Apply engineering-rag consumer activation to a query identity.
+ * Replacing consumer-activation current.json changes the Authority combination
+ * used for production engineering RAG reads.
+ */
+export function applyEngineeringRagConsumerActivation(
+  query: EngineeringRagQueryInput,
+  options: {
+    repoRoot?: string;
+    activationSelection?: ConsumerProductionSelection;
+  } = {},
+): EngineeringRagQueryInput & {
+  activationMode: ConsumerProductionSelection['mode'];
+  activationBlocked?: boolean;
+  activationReasons?: string[];
+} {
+  const selection =
+    options.activationSelection
+    ?? resolveEngineeringRagProductionSelection({ repoRoot: options.repoRoot });
+  const pins = projectionPinsFromSelection(selection);
+  if (selection.mode === 'absent') {
+    return { ...query, activationMode: selection.mode };
+  }
+  if (selection.mode === 'unavailable') {
+    // Fail closed: strip identity so the query cannot succeed on global data.
+    return {
+      ...query,
+      authorityReleaseId: null,
+      activationMode: selection.mode,
+      activationBlocked: true,
+      activationReasons: selection.reasons,
+    };
+  }
+  // Activation selection forces the consumer combination (caller cannot keep
+  // a different production release when pin/use is active).
+  const authorityReleaseId = pins.authorityReleaseId ?? null;
+  const mode =
+    selection.mode === 'pin-combination'
+      ? (query.mode === 'shadow' ? 'shadow' : 'pinned')
+      : (query.mode ?? 'production');
+  return {
+    ...query,
+    authorityReleaseId,
+    mode,
+    activationMode: selection.mode,
+  };
+}
+
+/**
+ * Apply teaching-resource-rag consumer activation to a query identity.
+ */
+export function applyTeachingResourceRagConsumerActivation(
+  query: TeachingResourceRagQueryInput,
+  options: {
+    repoRoot?: string;
+    activationSelection?: ConsumerProductionSelection;
+  } = {},
+): TeachingResourceRagQueryInput & {
+  activationMode: ConsumerProductionSelection['mode'];
+  activationBlocked?: boolean;
+  activationReasons?: string[];
+} {
+  const selection =
+    options.activationSelection
+    ?? resolveTeachingResourceRagProductionSelection({
+      repoRoot: options.repoRoot,
+    });
+  const pins = projectionPinsFromSelection(selection);
+  if (selection.mode === 'absent') {
+    return { ...query, activationMode: selection.mode };
+  }
+  if (selection.mode === 'unavailable') {
+    return {
+      ...query,
+      projectionId: null,
+      projectionHash: null,
+      authorityReleaseId: null,
+      activationMode: selection.mode,
+      activationBlocked: true,
+      activationReasons: selection.reasons,
+    };
+  }
+  return {
+    ...query,
+    projectionId: pins.projectionId ?? null,
+    projectionHash: pins.projectionHash ?? null,
+    authorityReleaseId: pins.authorityReleaseId ?? null,
+    mode:
+      selection.mode === 'pin-combination'
+        ? (query.mode === 'shadow' ? 'shadow' : 'pinned')
+        : (query.mode ?? 'production'),
+    activationMode: selection.mode,
+  };
+}
+
+/**
  * Engineering-only RAG: ActKG nodes, exact engineering relations, public
  * provenance under Authority. Does not require Teaching Projection.
  */
 export function runEngineeringRagQuery(input: {
   query: EngineeringRagQueryInput;
   corpus: readonly EngineeringRagCorpusSeed[] | null | undefined;
+  /** Optional repo root for consumer-activation resolution (#1276). */
+  repoRoot?: string;
+  activationSelection?: ConsumerProductionSelection;
 }): EngineeringRagResult {
-  const { query, corpus } = input;
+  const query = applyEngineeringRagConsumerActivation(input.query, {
+    repoRoot: input.repoRoot,
+    activationSelection: input.activationSelection,
+  });
+  const { corpus } = input;
+  if (query.activationBlocked) {
+    return unavailableEngineering(query, [
+      'consumer-activation-unavailable',
+      ...(query.activationReasons ?? []),
+    ]);
+  }
   if (!query.authorityReleaseId) {
     return unavailableEngineering(query, ['engineering-authority-missing']);
   }
@@ -362,8 +476,21 @@ export function runEngineeringRagQuery(input: {
 export function runTeachingResourceRagQuery(input: {
   query: TeachingResourceRagQueryInput;
   corpus: TeachingResourceRagCorpusSeed | null | undefined;
+  /** Optional repo root for consumer-activation resolution (#1276). */
+  repoRoot?: string;
+  activationSelection?: ConsumerProductionSelection;
 }): TeachingResourceRagResult {
-  const { query, corpus } = input;
+  const query = applyTeachingResourceRagConsumerActivation(input.query, {
+    repoRoot: input.repoRoot,
+    activationSelection: input.activationSelection,
+  });
+  const { corpus } = input;
+  if (query.activationBlocked) {
+    return unavailableTeaching(query, [
+      'consumer-activation-unavailable',
+      ...(query.activationReasons ?? []),
+    ]);
+  }
   if (!corpus) {
     return unavailableTeaching(query, ['teaching-corpus-missing']);
   }

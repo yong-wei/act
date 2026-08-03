@@ -33,6 +33,14 @@ export interface CourseLayeredGraphConsumerInput {
   pinnedProjectionId?: string | null;
   pinnedProjectionHash?: string | null;
   candidateProjectionId?: string | null;
+  /**
+   * Authority combination from a teaching consumer activation (course-runtime /
+   * konling). When set, Authority is loaded from this snapshot instead of the
+   * engineering-graph consumer selection.
+   */
+  authoritySnapshotId?: string | null;
+  authoritySnapshotHash?: string | null;
+  authorityReleaseId?: string | null;
   allowLegacyFallback?: boolean;
   legacyProjection?: Parameters<
     typeof resolveTeachingProjectionForScope
@@ -42,11 +50,17 @@ export interface CourseLayeredGraphConsumerInput {
 /**
  * Resolve a course/classroom scoped layered payload.
  * Engineering loads independently; teaching is scoped and never mixed.
+ * When a teaching consumer activation pin is provided, both Authority and
+ * Projection follow that consumer's combination.
  */
 export function resolveCourseLayeredGraph(
   input: CourseLayeredGraphConsumerInput,
 ): LayeredGraphPayload {
-  const authority = resolveLayeredGraphAuthorityInput(input.authorityPaths);
+  const authority = resolveLayeredGraphAuthorityInput(input.authorityPaths, {
+    authoritySnapshotId: input.authoritySnapshotId,
+    authoritySnapshotHash: input.authoritySnapshotHash,
+    authorityReleaseId: input.authorityReleaseId,
+  });
   const request: LayeredGraphResolveRequest = {
     scope: input.scope,
     includeTeaching: true,
@@ -54,7 +68,8 @@ export function resolveCourseLayeredGraph(
     pinnedProjectionHash: input.pinnedProjectionHash,
     candidateProjectionId: input.candidateProjectionId,
     allowLegacyFallback: input.allowLegacyFallback ?? false,
-    requiredAuthorityReleaseId: authority.releaseId,
+    requiredAuthorityReleaseId:
+      input.authorityReleaseId ?? authority.releaseId,
   };
   const projection = resolveTeachingProjectionForScope({
     projectionPaths: input.projectionPaths,
