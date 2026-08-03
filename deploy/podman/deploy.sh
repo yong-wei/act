@@ -689,7 +689,6 @@ echo "- Redis 镜像: $REDIS_IMAGE"
 ensure_network_and_volume
 mkdir -p "$RUNTIME_CONTENT_DIR"
 ensure_actkg_activation_store_dirs
-require_actkg_activation_store_pointers
 
 if [ ! -f "$START_WRAPPER_PATH" ]; then
   echo "ERROR: 缺少启动包装脚本: $START_WRAPPER_PATH" >&2
@@ -700,6 +699,8 @@ fi
 # container.  A bad secret or provider configuration must not turn a failed
 # preflight into an avoidable outage.
 if [ "$MODE" != "--db-only" ]; then
+  # Application-only: do not block --db-only database recovery paths (#1274 P2).
+  require_actkg_activation_store_pointers
   require_konling_mode_context_secret
   if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
     require_grading_audit_secret
@@ -973,6 +974,7 @@ run_detached_container "$APP_CONTAINER" podman run -d \
   -p "${APP_PORT}:${APP_CONTAINER_PORT}" \
   -v "${RUNTIME_CONTENT_DIR}:/app/course-content/runtime:ro" \
   -v "${AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}:ro" \
+  -v "${TEACHING_PROJECTION_STORE_DIR}:${ACT_TEACHING_PROJECTION_STORE_ROOT}:ro" \
   -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" \
   "${DB_HOST_ARGS[@]}" \
   "${REDIS_HOST_ARGS[@]}" \

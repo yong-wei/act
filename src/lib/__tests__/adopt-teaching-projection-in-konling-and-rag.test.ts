@@ -996,7 +996,11 @@ describe('production Authority/Projection packaging (#1274 P1)', () => {
       'AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}',
     );
     expect(deploy).toContain(
-      'knowledge/projection',
+      'TEACHING_PROJECTION_STORE_DIR}:${ACT_TEACHING_PROJECTION_STORE_ROOT}',
+    );
+    // Application artifact precheck must not run in --db-only mode.
+    expect(deploy).toMatch(
+      /MODE" != "--db-only"[\s\S]*require_actkg_activation_store_pointers/,
     );
   });
 });
