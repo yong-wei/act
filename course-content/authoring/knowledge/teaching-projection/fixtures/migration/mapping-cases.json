@@ -1,0 +1,81 @@
+{
+  "contract": "act-active-course-migration-fixtures/v1",
+  "description": "Fixture signals for duplicate/split/merge/fuzzy/stale/exact mapping cases (#1268).",
+  "authorityNodes": [
+    { "canonicalId": "ctc:exact-stability", "lifecycleStatus": "active" },
+    { "canonicalId": "ctc:exact-bode", "lifecycleStatus": "active" },
+    { "canonicalId": "ctc:split-a", "lifecycleStatus": "active" },
+    { "canonicalId": "ctc:split-b", "lifecycleStatus": "active" },
+    { "canonicalId": "ctc:merge-target", "lifecycleStatus": "active" },
+    { "canonicalId": "ctc:card-node", "lifecycleStatus": "active" },
+    { "canonicalId": "ctc:label-feedback", "lifecycleStatus": "active" },
+    { "canonicalId": "ctc:stale-missing", "lifecycleStatus": "retired", "successorCanonicalId": null }
+  ],
+  "crosswalk": [
+    {
+      "legacyId": "稳定性_1_1",
+      "canonicalId": "ctc:exact-stability",
+      "role": "PRACTICES",
+      "sourceEvidence": "fixture-exact"
+    },
+    {
+      "legacyId": "Bode图_1_1",
+      "canonicalId": "ctc:split-a",
+      "role": "EXPLAINS",
+      "sourceEvidence": "fixture-split-a"
+    },
+    {
+      "legacyId": "Bode图_1_1",
+      "canonicalId": "ctc:split-b",
+      "role": "EXPLAINS",
+      "sourceEvidence": "fixture-split-b"
+    },
+    {
+      "legacyId": "开环控制_1_1",
+      "canonicalId": "ctc:merge-target",
+      "role": "COVERS",
+      "sourceEvidence": "fixture-merge-a"
+    },
+    {
+      "legacyId": "闭环控制_1_1",
+      "canonicalId": "ctc:merge-target",
+      "role": "COVERS",
+      "sourceEvidence": "fixture-merge-b"
+    },
+    {
+      "legacyId": "过时节点_9_9",
+      "canonicalId": "ctc:ghost-not-in-authority",
+      "role": "EXPLAINS",
+      "sourceEvidence": "fixture-stale",
+      "stale": true
+    }
+  ],
+  "cards": [
+    {
+      "cardId": "card-feedback",
+      "canonicalId": "ctc:card-node",
+      "active": true,
+      "legacyNodeId": "反馈_fixture",
+      "title": "Feedback card"
+    },
+    {
+      "cardId": "card-feedback-dup",
+      "canonicalId": "ctc:exact-bode",
+      "active": true,
+      "legacyNodeId": "反馈_fixture",
+      "title": "Duplicate active card for same legacy"
+    }
+  ],
+  "authorityLabels": [
+    {
+      "canonicalId": "ctc:label-feedback",
+      "labels": ["反馈", "Feedback", "feedback"],
+      "lifecycleStatus": "active"
+    },
+    {
+      "canonicalId": "ctc:exact-bode",
+      "labels": ["Bode图", "bode plot"],
+      "lifecycleStatus": "active"
+    }
+  ]
+}
