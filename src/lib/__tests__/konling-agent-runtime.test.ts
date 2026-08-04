@@ -9392,6 +9392,36 @@ describe('konling agent runtime', () => {
       }),
     }));
 
+    const persistedBatchData = db.adaptivePathCandidateBatch.create.mock.calls[0][0].data;
+    db.learningPath.findFirst.mockResolvedValue(createdPath);
+    db.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      ...persistedBatchData,
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      candidates: persistedBatchData.candidates.create,
+    });
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...createdRun, id: 'tool-run-path-retry' });
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValueOnce([]);
+
+    const retryResult = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-1',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
+      timeBudgetMinutes: 30,
+      difficultyRhythm: 'steady',
+      naturalLanguageIntent: '我想先补相位裕度，再做仿真验证。',
+    }) as typeof result;
+
+    expect(db.learningPath.upsert).toHaveBeenCalledOnce();
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledOnce();
+    expect(retryResult.generationStatus).toBe('persisted');
+    expect(retryResult.pathId).toBe(result.pathId);
+    expect(retryResult.candidateBatch).toEqual(result.candidateBatch);
+    expect(retryResult.pathOptions).toEqual(result.pathOptions);
+
+    db.adaptivePathCandidateBatch.findUnique.mockResolvedValue(null);
+    db.learningPath.findFirst.mockResolvedValue(null);
     db.agentToolRun.findFirst
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce({ ...createdRun, idempotencyKey: 'path-gen-low-budget' });

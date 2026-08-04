@@ -167,9 +167,17 @@ describe('adaptive path candidate batches', () => {
   it('reuses the same batch and candidate identities for a repeated request', async () => {
     const { db, create } = dbFixture();
     const first = await persistAdaptivePathCandidateBatch(db, { generationRequestId: 'request-1', plan: plan() });
-    const second = await persistAdaptivePathCandidateBatch(db, { generationRequestId: 'request-1', plan: plan() });
+    const changedPlan = plan();
+    changedPlan.policyBundle!.paths[0].nodeIds = ['planner-output-b'];
+    changedPlan.policyBundle!.paths[0].label = '重试后的不同方案';
+    const second = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'request-1',
+      plan: changedPlan,
+    });
 
     expect(second).toEqual(first);
+    expect(second.candidates[0].snapshot).toEqual(first.candidates[0].snapshot);
+    expect(second.candidates[0].snapshot).not.toMatchObject({ nodeIds: ['planner-output-b'] });
     expect(create).toHaveBeenCalledOnce();
   });
 
@@ -182,6 +190,48 @@ describe('adaptive path candidate batches', () => {
       generationRequestId: 'request-1',
       plan: conflicting,
     })).rejects.toBeInstanceOf(AdaptivePathCandidateBatchConflictError);
+  });
+
+  it('converges concurrent differing planner outputs on one immutable batch', async () => {
+    let stored: any = null;
+    let transactionReads = 0;
+    let releaseTransactionReads!: () => void;
+    const transactionReadsReady = new Promise<void>((resolve) => {
+      releaseTransactionReads = resolve;
+    });
+    const create = vi.fn(async ({ data }: any) => {
+      if (stored) throw Object.assign(new Error('unique generation request'), { code: 'P2002' });
+      stored = {
+        ...data,
+        createdAt: new Date('2026-08-03T00:00:00.000Z'),
+        candidates: data.candidates.create,
+      };
+      return stored;
+    });
+    const db: any = {
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn(async () => {
+          if (stored) return stored;
+          transactionReads += 1;
+          if (transactionReads >= 4) releaseTransactionReads();
+          if (transactionReads >= 3) await transactionReadsReady;
+          return null;
+        }),
+        findFirst: vi.fn(async () => stored),
+        create,
+      },
+      $transaction: vi.fn(async (callback: any) => callback(db)),
+    };
+    const changedPlan = plan();
+    changedPlan.policyBundle!.paths[0].nodeIds = ['planner-output-b'];
+
+    const [first, second] = await Promise.all([
+      persistAdaptivePathCandidateBatch(db, { generationRequestId: 'request-race', plan: plan() }),
+      persistAdaptivePathCandidateBatch(db, { generationRequestId: 'request-race', plan: changedPlan }),
+    ]);
+
+    expect(second).toEqual(first);
+    expect(first.candidates[0].snapshot).not.toMatchObject({ nodeIds: ['planner-output-b'] });
   });
 
   it('derives candidate identity from batch and planner identity rather than labels', () => {

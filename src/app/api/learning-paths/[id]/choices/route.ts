@@ -60,7 +60,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (Boolean(batchId) !== Boolean(candidateId)) {
       return NextResponse.json({ error: 'Candidate batch and candidate identities must be provided together' }, { status: 400 });
     }
-    let persistedCandidateStyleId: string | null = null;
+    let persistedCandidateOption: ServerPathChoiceOption | null = null;
     if (batchId && candidateId) {
       const batch = await (prisma as any).adaptivePathCandidateBatch.findUnique({
         where: { id: batchId },
@@ -81,16 +81,33 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       if (nullableString(snapshot.styleId) !== candidate.styleId) {
         return NextResponse.json({ error: 'Candidate snapshot identity is invalid' }, { status: 409 });
       }
-      persistedCandidateStyleId = candidate.styleId;
+      const candidateOptions = readPathOptions({ pathOptions: [snapshot] });
+      persistedCandidateOption = resolveChoiceOption(
+        candidateOptions,
+        snapshot.optionId,
+        snapshot.styleId,
+      );
+      if (!persistedCandidateOption || persistedCandidateOption.styleId !== candidate.styleId) {
+        return NextResponse.json({ error: 'Candidate snapshot payload is invalid' }, { status: 409 });
+      }
+      const requestedOptionId = nullableString(body.selectedOptionId);
+      const requestedStyleId = nullableString(body.selectedStyleId);
+      if (
+        (requestedOptionId && requestedOptionId !== persistedCandidateOption.optionId) ||
+        (requestedStyleId && requestedStyleId !== persistedCandidateOption.styleId)
+      ) {
+        return NextResponse.json({ error: 'Selected option does not match the candidate identity' }, { status: 409 });
+      }
     }
 
     const pathOptions = readPathOptions(path.pathPayload);
-    const styleIds = new Set(Array.from(pathOptions.values()).map((option) => option.styleId));
-    const selectedOption = resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId);
+    const styleIds = new Set([
+      ...Array.from(pathOptions.values()).map((option) => option.styleId),
+      ...(persistedCandidateOption ? [persistedCandidateOption.styleId] : []),
+    ]);
+    const selectedOption = persistedCandidateOption
+      ?? resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId);
     const selectedStyleId = selectedOption?.styleId ?? null;
-    if (persistedCandidateStyleId && persistedCandidateStyleId !== selectedStyleId) {
-      return NextResponse.json({ error: 'Selected option does not match the candidate identity' }, { status: 409 });
-    }
     const previousStyleId = nullableString(body.previousStyleId);
     const rejectedStyleIds = [
       ...readStringArray(body.rejectedStyleIds),

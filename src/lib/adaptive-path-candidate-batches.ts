@@ -213,6 +213,14 @@ export async function readAdaptivePathCandidateBatch(
   return record ? toBatchView(record) : null;
 }
 
+export async function readAdaptivePathCandidateBatchByGenerationRequest(
+  db: AdaptivePathCandidateBatchDb,
+  generationRequestId: string,
+): Promise<AdaptivePathCandidateBatchView | null> {
+  const record = await findByGenerationRequest(db, generationRequestId);
+  return record ? toBatchView(record) : null;
+}
+
 export async function readLatestAdaptivePathCandidateBatch(
   db: AdaptivePathCandidateBatchDb,
   input: { userId: string; goalId: string; classId?: string | null },

@@ -3199,6 +3199,61 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
   });
 
+  it('executes the immutable candidate snapshot instead of mutable source path options', async () => {
+    mocks.prisma.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      status: 'succeeded',
+      candidates: [{
+        id: 'candidate-1',
+        styleId: 'foundation-remediation',
+        snapshot: {
+          optionId: 'path-option-a',
+          styleId: 'foundation-remediation',
+          policyFamily: 'foundation-remediation',
+          nodeIds: ['snapshot-a-1', 'snapshot-a-2'],
+          activeNodeIds: ['snapshot-a-1'],
+          planNodes: [
+            { nodeId: 'snapshot-a-1', type: 'knowledge_card', target: '/knowledge/snapshot-a-1' },
+            { nodeId: 'snapshot-a-2', type: 'adaptive_quiz', target: '/assessment/snapshot-a-2' },
+          ],
+          resourceMix: { knowledge_card: 1, adaptive_quiz: 1 },
+          evidenceBasis: ['candidate-snapshot-a'],
+          terminalValidationNodeIds: [],
+        },
+      }],
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      selectedOptionId: 'path-option-a',
+      selectedStyleId: 'foundation-remediation',
+      idempotencyKey: 'candidate-snapshot-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      resourceMix: { knowledge_card: 1, adaptive_quiz: 1 },
+      rationaleMetadata: expect.objectContaining({ evidenceBasis: ['candidate-snapshot-a'] }),
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        nodeIds: ['snapshot-a-1', 'snapshot-a-2'],
+        currentNodeId: 'snapshot-a-1',
+        pathPayload: expect.objectContaining({
+          selectedOptionId: 'path-option-a',
+          selectedStyleId: 'foundation-remediation',
+        }),
+      }),
+    }));
+    expect(JSON.stringify(mocks.prisma.learningPath.update.mock.calls)).not.toContain('knowledge-card:targets');
+  });
+
   it('records choices from persisted fallback pathOptions when no policy bundle paths exist', async () => {
     const fallbackPath = {
       id: 'path-1',
