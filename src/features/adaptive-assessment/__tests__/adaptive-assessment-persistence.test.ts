@@ -228,8 +228,13 @@ describe('K/A/Q adaptive assessment persistence', () => {
     );
     expect(itemRefUpdate).toEqual({});
 
-    const factPayload = db.learningFact.createMany.mock.calls[0][0].data[0].contextJson.adaptiveAssessment.kaqQuizEvidence;
-    const adaptiveAssessmentRef = db.learningFact.createMany.mock.calls[0][0].data[0].contextJson.adaptiveAssessment.adaptiveAssessmentRef;
+    const learningFact = db.learningFact.createMany.mock.calls[0][0].data[0];
+    const factPayload = learningFact.contextJson.adaptiveAssessment.kaqQuizEvidence;
+    const adaptiveAssessmentRef = learningFact.contextJson.adaptiveAssessment.adaptiveAssessmentRef;
+    expect(learningFact.competencyContribution).toEqual({
+      controlModeling: 0.8,
+      crossDomainTransfer: 0.5,
+    });
     expect(adaptiveAssessmentRef).toMatchObject({
       kind: 'AdaptiveAssessmentAnswer',
       provenance: 'official',

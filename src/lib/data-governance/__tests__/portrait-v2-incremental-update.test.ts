@@ -283,6 +283,29 @@ describe('portrait v2 incremental updates', () => {
     expect(mapped.mappingIssues).toEqual(['unknown-portrait-dimension:futureDimension']);
   });
 
+  it('does not produce profile evidence or change scores for a materialized client fact without a contribution', () => {
+    const previous = baseline();
+    const mapped = mapLearningFactsToPortraitEvidence([
+      fact('forged-client-contribution', {}, {
+        interactiveQuiz: { score: 100, cards: [{ cardId: 'q1', answered: true, isCorrect: true }] },
+      }),
+    ]);
+    const result = updatePortraitV2Incrementally({
+      userId: previous.userId,
+      previous,
+      evidence: mapped.evidence,
+      generatedAt: '2026-05-02T00:00:00.000Z',
+    });
+
+    expect(mapped.evidence).toHaveLength(1);
+    expect(mapped.evidence[0]?.contributions).toEqual({});
+    expect(mapped.evidence.filter(isPortraitV2ProfileEvidence)).toEqual([]);
+    expect(result.affectedDimensions).toEqual([]);
+    expect(result.payload.dimensions.map((item) => item.score)).toEqual(
+      previous.dimensions.map((item) => item.score),
+    );
+  });
+
   it('keeps a Yang Fan-style rich baseline intact when a sparse path-selection fact is context-only', () => {
     const previous = baseline();
     const mapped = mapLearningFactsToPortraitEvidence([

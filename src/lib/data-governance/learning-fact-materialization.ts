@@ -32,6 +32,15 @@ export interface LearningFactPersistenceResult {
   actionType: string;
 }
 
+const authorizedCompetencyContributionEvents = new WeakSet<LearningEvent>();
+
+export function authorizeServerVerifiedCompetencyContribution(
+  event: LearningEvent,
+): LearningEvent {
+  authorizedCompetencyContributionEvents.add(event);
+  return event;
+}
+
 function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
 }
@@ -496,11 +505,9 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
       ? { ...payload, score }
       : payload;
   const evidenceGovernance = resolveLearningFactEvidenceGovernance(actionType, payload);
-  const policyReason = readRecord(evidenceGovernance)?.policyReason;
   const suppressCompetencyContribution =
-    policyReason === 'arena_client_evaluation_context_only' ||
-    policyReason === 'adaptive_assessment_provisional_context_only' ||
-    policyReason === 'adaptive_assessment_missing_kaq_context_only';
+    !authorizedCompetencyContributionEvents.has(event) ||
+    readRecord(evidenceGovernance)?.skipProfileContribution === true;
   const fact: Prisma.LearningFactCreateManyInput & { contextJson?: Prisma.InputJsonValue } = {
     userId: event.userId,
     factType: mapActionTypeToFactType(actionType),
