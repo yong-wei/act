@@ -57,14 +57,12 @@ function assertClean(label: string): void {
 function readSourceHashes(head: string): CaptureState {
   const paths = [generatorPath, ...sourceFiles];
   const hashes = Object.fromEntries(paths.map((path) => {
-    const worktreeBytes = readFileSync(join(process.cwd(), path));
-    const committedBytes = git(['show', `HEAD:${path}`]);
-    const worktreeHash = sha256(worktreeBytes);
-    const committedHash = sha256(committedBytes);
-    if (worktreeHash !== committedHash) {
+    const worktreeBlob = git(['hash-object', '--path', path, path]).toString('utf8').trim();
+    const committedBlob = git(['rev-parse', `HEAD:${path}`]).toString('utf8').trim();
+    if (worktreeBlob !== committedBlob) {
       throw new Error(`capture source drift: ${path}`);
     }
-    return [path, worktreeHash];
+    return [path, worktreeBlob];
   }));
 
   return {
