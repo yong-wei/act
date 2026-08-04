@@ -289,6 +289,8 @@ export function resolveKonlingTeachingProjectionBinding(input: {
   try {
     const context = resolveCoursePageLayeredGraphContext({
       scope,
+      // #1277: course-page context enforces the retirement gate; default remains
+      // permissive only until production dual-authority is retired.
       allowLegacyFallback: input.allowLegacyFallback ?? true,
       pinnedProjectionId,
       pinnedProjectionHash,

@@ -24,6 +24,10 @@ import {
 } from '@/lib/teaching-projection/contracts';
 import { resolveTeachingProjectionStorePaths } from '@/lib/teaching-projection/store';
 import {
+  isLegacyGraphOverlayReaderPermitted,
+  isProductionLegacyFallbackPermitted,
+} from '@/lib/legacy-knowledge-runtime-retirement';
+import {
   projectionPinsFromSelection,
   resolveCourseRuntimeProductionSelection,
 } from '@/lib/versioned-knowledge-activation';
@@ -351,7 +355,13 @@ export function resolveCoursePageLayeredGraphContext(
   }
   // mode === 'absent': keep caller / global defaults (no activation store).
 
-  const allowLegacyFallback = input.allowLegacyFallback !== false;
+  // #1277: after legacy retirement, production dual-authority is refuse-closed.
+  // Historical adapters remain available via explicit historical/audit modes.
+  const retirementAllowsLegacy =
+    isProductionLegacyFallbackPermitted()
+    && isLegacyGraphOverlayReaderPermitted();
+  const allowLegacyFallback =
+    retirementAllowsLegacy && input.allowLegacyFallback !== false;
   const legacyProjection =
     allowLegacyFallback && input.lessonRuntime
       ? buildLessonRuntimeLegacyProjection({
