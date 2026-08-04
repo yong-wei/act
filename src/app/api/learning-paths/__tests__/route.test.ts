@@ -3254,6 +3254,49 @@ describe('learning path round API routes', () => {
     expect(JSON.stringify(mocks.prisma.learningPath.update.mock.calls)).not.toContain('knowledge-card:targets');
   });
 
+  it('records an immutable candidate rejection without selecting or adopting it', async () => {
+    mocks.prisma.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      status: 'succeeded',
+      candidates: [{
+        id: 'candidate-1',
+        styleId: 'foundation-remediation',
+        snapshot: {
+          optionId: 'path-option-a',
+          styleId: 'foundation-remediation',
+          policyFamily: 'foundation-remediation',
+          nodeIds: ['snapshot-a-1'],
+          activeNodeIds: ['snapshot-a-1'],
+          planNodes: [
+            { nodeId: 'snapshot-a-1', type: 'knowledge_card', target: '/knowledge/snapshot-a-1' },
+          ],
+          resourceMix: { knowledge_card: 1 },
+          evidenceBasis: ['candidate-snapshot-a'],
+          terminalValidationNodeIds: [],
+        },
+      }],
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'rejection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      rejectedOptionIds: ['path-option-a'],
+      idempotencyKey: 'candidate-rejection-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      selectedStyleId: null,
+      selectedPolicyFamily: null,
+      rejectedStyleIds: ['foundation-remediation'],
+    }));
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
   it('records choices from persisted fallback pathOptions when no policy bundle paths exist', async () => {
     const fallbackPath = {
       id: 'path-1',

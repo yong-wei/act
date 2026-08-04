@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto';
 
-import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import {
+  buildSerializablePathOptions,
+  type AdaptiveLearningPathPlan,
+} from '@/lib/adaptive-learning-path-planner';
 
 export interface AdaptivePathCandidateSnapshot {
   id: string;
@@ -120,30 +123,18 @@ export function buildCandidateSnapshots(
   plan: AdaptiveLearningPathPlan,
   batchId: string,
 ): AdaptivePathCandidateSnapshot[] {
-  const policyCandidates = plan.policyBundle?.paths
-    .filter((candidate) => candidate.nodeIds.length > 0)
+  const serializedCandidates = buildSerializablePathOptions(plan)
+    .filter((candidate) => candidate.nodeIds.length > 0);
+  const executableCandidates = serializedCandidates.length > 0
+    ? serializedCandidates
+    : buildSerializablePathOptions({ ...plan, policyBundle: undefined });
+  const candidates = executableCandidates
     .map((candidate) => ({
       styleId: candidate.styleId,
       policyFamily: candidate.policyFamily,
       label: candidate.label,
       snapshot: candidate as unknown as Record<string, unknown>,
-    })) ?? [];
-  const candidates = policyCandidates.length > 0 ? policyCandidates : plan.mainPath.length > 0
-    ? [{
-        styleId: 'recommended',
-        policyFamily: plan.policyFamily,
-        label: '推荐学习路径',
-        snapshot: {
-          styleId: 'recommended',
-          policyFamily: plan.policyFamily,
-          label: '推荐学习路径',
-          nodeIds: plan.mainPath.map((node) => node.nodeId),
-          activeNodeIds: plan.mainPath.map((node) => node.nodeId),
-          planNodes: plan.mainPath,
-          limitations: plan.explanations.fallbackReasons,
-        },
-      }]
-    : [];
+    }));
   if (candidates.length === 0) {
     throw new AdaptivePathCandidateBatchValidationError('Candidate batch requires at least one executable candidate');
   }

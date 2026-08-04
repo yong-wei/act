@@ -7,6 +7,7 @@ import {
 } from '@/lib/adaptive-path-candidate-batches';
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
+  buildSerializablePathOptions,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPolicyFamily,
   type AdaptiveLearningPathStyleId,
@@ -242,5 +243,40 @@ describe('adaptive path candidate batches', () => {
     expect(buildCandidateSnapshots(original, 'batch-1')[0].id)
       .toBe(buildCandidateSnapshots(renamed, 'batch-1')[0].id);
     expect(buildCandidateSnapshots(original, 'batch-1')[0].snapshot.optionId).toBe('path-option-1');
+  });
+
+  it('preserves the complete planner snapshot for a single executable fallback candidate', () => {
+    const fallbackPlan = plan();
+    fallbackPlan.policyBundle = { ...fallbackPlan.policyBundle!, paths: [] };
+    fallbackPlan.visualization = {
+      ...fallbackPlan.visualization,
+      evidence: {
+        learnerStateDeficits: [{
+          targetId: 'k1',
+          kind: 'knowledge',
+          value: 0.4,
+          confidence: 0.8,
+          evidenceCount: 2,
+          reasonCode: 'knowledge-deficit',
+        }],
+      } as never,
+    };
+
+    const [candidate] = buildCandidateSnapshots(fallbackPlan, 'batch-fallback');
+    const [serializedOption] = buildSerializablePathOptions(fallbackPlan);
+
+    expect(candidate.snapshot).toEqual(serializedOption);
+    expect(candidate.snapshot).toMatchObject({
+      optionId: 'path-option-1',
+      nodeSummaries: expect.any(Array),
+      readinessSummary: expect.any(Array),
+      effort: expect.any(Object),
+      resourceMix: { knowledge_card: 1 },
+      targetDeficits: expect.any(Array),
+      evidenceBasis: expect.any(Array),
+      terminalValidationNodeIds: expect.any(Array),
+      terminalValidationStrategy: expect.any(Object),
+      recommendationProvenance: expect.any(Object),
+    });
   });
 });

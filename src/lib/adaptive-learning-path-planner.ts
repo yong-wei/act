@@ -764,6 +764,14 @@ export type AdaptiveLearningPathPersistedPathOption = Record<string, unknown> & 
   recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
 };
 
+export type AdaptiveLearningPathSerializablePathOption = AdaptiveLearningPathPersistedPathOption & {
+  optionId: string;
+  styleId: string;
+  policyFamily: AdaptiveLearningPathPolicyFamily;
+  label: string;
+  nodeIds: string[];
+};
+
 export interface AdaptiveLearningPathCapabilityEvidence {
   target: AdaptiveLearningCapabilityTarget;
   observedEvidence: {
@@ -2379,7 +2387,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
   };
 }
 
-function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathPersistedPathOption[] {
+export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathSerializablePathOption[] {
   if (plan.policyBundle?.paths.length) {
     const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
     return plan.policyBundle.paths.map((path, index) => ({

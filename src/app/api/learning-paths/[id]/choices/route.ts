@@ -105,13 +105,19 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       ...Array.from(pathOptions.values()).map((option) => option.styleId),
       ...(persistedCandidateOption ? [persistedCandidateOption.styleId] : []),
     ]);
-    const selectedOption = persistedCandidateOption
-      ?? resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId);
+    const selectedOption = body.action === 'rejection'
+      ? resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId)
+      : persistedCandidateOption
+        ?? resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId);
     const selectedStyleId = selectedOption?.styleId ?? null;
     const previousStyleId = nullableString(body.previousStyleId);
     const rejectedStyleIds = [
       ...readStringArray(body.rejectedStyleIds),
-      ...readStringArray(body.rejectedOptionIds).map((optionId) => pathOptions.get(optionId)?.styleId ?? optionId),
+      ...readStringArray(body.rejectedOptionIds).map((optionId) => (
+        optionId === persistedCandidateOption?.optionId
+          ? persistedCandidateOption.styleId
+          : pathOptions.get(optionId)?.styleId ?? optionId
+      )),
     ];
     const hasUnknownStyle = [
       selectedStyleId,
