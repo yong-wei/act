@@ -36,6 +36,19 @@ The authenticated intervention generation path SHALL resolve the submitted Arena
 - **THEN** the server SHALL derive metric bounds and method guidance from the registry
 - **AND** it SHALL not use client-supplied metric thresholds or instructional labels.
 
+### Requirement: Arena companion cooldowns are isolated by task and method
+The system SHALL derive a governed intervention identity from the server-resolved Arena task and method. It SHALL use that identity for cooldown lookup, intervention persistence, and traceable evidence context.
+
+#### Scenario: A repeated request uses the same Arena method
+- **WHEN** a student submits another practice observation for the same task and selected method while a prior intervention is in its cooldown period
+- **THEN** the system SHALL return the cooldown result
+- **AND** it SHALL not create another intervention for that task-method identity.
+
+#### Scenario: A student switches to another allowed method
+- **WHEN** a student has a cooling-down intervention for one allowed method and submits a practice observation using another allowed method for the same task
+- **THEN** the system SHALL evaluate the newly selected method's guidance
+- **AND** the persisted intervention and evidence SHALL identify the selected task-method context.
+
 ### Requirement: Companion guidance remains advisory and evidence-limited
 The system SHALL distinguish an observed practice metric from an official Arena result and a governed wrong-answer attribution. Guidance SHALL not assert an unverified error cause or write an official score, LearningFact, portrait, ranking, or attribution record.
 
