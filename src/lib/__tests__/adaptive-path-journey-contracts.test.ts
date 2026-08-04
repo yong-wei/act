@@ -185,7 +185,37 @@ describe('adaptive path journey contracts', () => {
     expect(JSON.stringify(path)).toBe(before);
   });
 
-  it('projects a read-only correction after a recorded skip when both nodes are unfinished', () => {
+  it('projects a read-only correction when a failed checkpoint has an eligible governed prerequisite', () => {
+    const path = buildPath({
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed', estimatedTimeMinutes: 10 },
+          { nodeId: 'node-2', title: '校正检查点', type: 'checkpoint', target: '/assessment/adaptive-practice', status: 'current', checkpoint: true, prerequisiteNodeIds: ['node-3'], estimatedTimeMinutes: 15, readiness: { state: 'ready' } },
+          { nodeId: 'node-3', title: '误差复习', type: 'knowledge_card', target: '/knowledge/card-2', status: 'next', estimatedTimeMinutes: 20, readiness: { state: 'ready' } },
+        ],
+      },
+      terminalValidation: { nodeId: 'node-2', state: 'failed' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
+    });
+    const before = JSON.stringify(path);
+
+    const journey = buildAuthorizedAdaptivePathJourney(path, { requestedNodeId: 'node-2' });
+
+    expect(journey.correction).toMatchObject({
+      proposal: {
+        trigger: { kind: 'failed-checkpoint', nodeId: 'node-2' },
+        proposedRemaining: [{ nodeId: 'node-3' }, { nodeId: 'node-2' }],
+        changes: [{ kind: 'reordered', nodeId: 'node-2', movedAfterNodeId: 'node-3' }],
+      },
+      unavailableReason: null,
+    });
+    expect(JSON.stringify(path)).toBe(before);
+  });
+
+  it('projects a read-only removal after a recorded skip when both nodes are unfinished', () => {
     const path = buildPath({
       currentNodeId: 'node-2',
       lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
@@ -198,13 +228,14 @@ describe('adaptive path journey contracts', () => {
       proposal: {
         trigger: { kind: 'deviation', nodeId: 'node-1' },
         originalRemaining: [{ nodeId: 'node-1' }, { nodeId: 'node-2' }],
-        proposedRemaining: [{ nodeId: 'node-2' }, { nodeId: 'node-1' }],
+        proposedRemaining: [{ nodeId: 'node-2' }],
+        changes: [{ kind: 'removed', nodeId: 'node-1' }],
       },
       unavailableReason: null,
     });
   });
 
-  it('does not present a correction when a deviation would keep the remaining sequence unchanged', () => {
+  it('fails closed when a skip record does not name the skipped current node as its target', () => {
     const journey = buildAuthorizedAdaptivePathJourney(buildPath({
       currentNodeId: 'node-2',
       lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
@@ -214,6 +245,27 @@ describe('adaptive path journey contracts', () => {
     expect(journey.correction).toEqual({
       proposal: null,
       unavailableReason: '候选调整与当前未完成路径没有实质差异。',
+    });
+  });
+
+  it('fails closed when removing a skipped node would violate an unfinished prerequisite', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1', 'node-2'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', title: '先修复习', type: 'knowledge_card', target: '/knowledge/card-1', status: 'current', readiness: { state: 'ready' } },
+          { nodeId: 'node-2', title: '校正练习', type: 'adaptive_quiz', target: '/assessment/adaptive-practice', status: 'next', prerequisiteNodeIds: ['node-1'], readiness: { state: 'ready' } },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+      deviations: [{ deviationType: 'skip', priorNodeId: 'node-1', targetNodeId: 'node-1' }],
+    }), { requestedNodeId: 'node-1' });
+
+    expect(journey.correction).toEqual({
+      proposal: null,
+      unavailableReason: '已记录偏离会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。',
     });
   });
 

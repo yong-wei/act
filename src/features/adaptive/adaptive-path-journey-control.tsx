@@ -12,6 +12,7 @@ import {
 } from './adaptive-learning-center-contracts';
 import type {
   AdaptivePathCorrectionNode,
+  AdaptivePathCorrectionProposal,
   AdaptivePathJourneyNextActionState,
   AuthorizedAdaptivePathJourney,
 } from './adaptive-path-journey-contracts';
@@ -281,6 +282,11 @@ export function AdaptivePathJourneyControl({
             <PathCorrectionSequence title="当前未完成路径" nodes={correction.proposal.originalRemaining} />
             <PathCorrectionSequence title="建议顺序" nodes={correction.proposal.proposedRemaining} />
           </div>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-platform-fg-secondary">
+            {correction.proposal.changes.map((change) => (
+              <li key={`${change.kind}-${change.nodeId}`}>{formatPathCorrectionChange(change)}</li>
+            ))}
+          </ul>
           <p className="mt-3 text-xs text-platform-fg-secondary">
             触发依据：{correction.proposal.trigger.reason}
           </p>
@@ -301,6 +307,14 @@ export function AdaptivePathJourneyControl({
       ) : null}
     </section>
   );
+}
+
+function formatPathCorrectionChange(
+  change: AdaptivePathCorrectionProposal['changes'][number],
+): string {
+  if (change.kind === 'reordered') return `将“${change.title}”调整到“${change.movedAfterNodeId}”之后。`;
+  if (change.kind === 'replaced') return `将“${change.title}”替换为“${change.replacementTitle}”。`;
+  return `移除“${change.title}”：${change.reason}`;
 }
 
 function PathCorrectionSequence({

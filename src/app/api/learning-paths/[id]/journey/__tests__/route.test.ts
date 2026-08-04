@@ -144,7 +144,8 @@ describe('GET /api/learning-paths/[id]/journey', () => {
       proposal: {
         trigger: { kind: 'deviation', nodeId: 'node-1' },
         originalRemaining: [{ nodeId: 'node-1' }, { nodeId: 'node-2' }],
-        proposedRemaining: [{ nodeId: 'node-2' }, { nodeId: 'node-1' }],
+        proposedRemaining: [{ nodeId: 'node-2' }],
+        changes: [{ kind: 'removed', nodeId: 'node-1' }],
       },
       unavailableReason: null,
     });
