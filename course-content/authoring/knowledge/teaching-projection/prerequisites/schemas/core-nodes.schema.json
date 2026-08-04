@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-teaching-core-nodes/v1",
+  "title": "ACT Teaching Core Nodes Authoring",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "scopeId", "nodes"],
+  "properties": {
+    "contract": { "const": "act-teaching-core-nodes/v1" },
+    "scopeId": { "type": "string", "minLength": 1 },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/coreNode" }
+    }
+  },
+  "$defs": {
+    "coreNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonicalId",
+        "scopeId",
+        "pathEligible",
+        "cardPolicy",
+        "rationale",
+        "sourceKind",
+        "sourceEvidence"
+      ],
+      "properties": {
+        "canonicalId": { "type": "string", "minLength": 1 },
+        "scopeId": { "type": "string", "minLength": 1 },
+        "pathEligible": { "type": "boolean" },
+        "cardPolicy": { "type": "string", "enum": ["REQUIRED", "OPTIONAL"] },
+        "moduleId": { "type": ["string", "null"] },
+        "rationale": { "type": "string", "minLength": 1 },
+        "sourceKind": {
+          "type": "string",
+          "enum": [
+            "OBJECTIVE",
+            "PRIMARY_COVERS",
+            "PREREQUISITE_ENDPOINT",
+            "TEACHER_CURATION"
+          ]
+        },
+        "sourceEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

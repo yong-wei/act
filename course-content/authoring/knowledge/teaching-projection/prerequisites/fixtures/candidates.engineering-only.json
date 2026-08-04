@@ -1,0 +1,24 @@
+{
+  "description": "Engineering ActKG relations must remain candidates and never auto-publish.",
+  "scopeId": "act-control-theory-core",
+  "relations": [
+    {
+      "sourceId": "node.laplace-transform",
+      "targetId": "node.transfer-function",
+      "predicate": "derived_from",
+      "scopeId": "act-control-theory-core"
+    },
+    {
+      "sourceId": "node.block-diagram",
+      "targetId": "node.transfer-function",
+      "predicate": "has_component",
+      "scopeId": "act-control-theory-core"
+    },
+    {
+      "sourceId": "node.feedback-control",
+      "targetId": "node.stability-concept",
+      "predicate": "association",
+      "scopeId": "act-control-theory-core"
+    }
+  ]
+}

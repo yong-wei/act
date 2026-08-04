@@ -16,6 +16,12 @@ export interface CourseCoverageAdmissionProjection {
   audit: CourseCoverageAuditIdentity | null;
   diagnostics: CourseCoverageResult['diagnostics'];
   productionAuthoritative: false;
+  /**
+   * #1265: historical DEFER / incomplete CourseCoverage never invents a global
+   * Engineering Authority block from this admission projection.
+   */
+  blocksEngineeringAuthority: false;
+  historicalDeferBlocksAuthority: false;
 }
 
 export function buildCourseCoverageAdmissionProjection(
@@ -29,6 +35,8 @@ export function buildCourseCoverageAdmissionProjection(
       audit: result.status === 'drift' ? result.audit : null,
       diagnostics: result.diagnostics,
       productionAuthoritative: false,
+      blocksEngineeringAuthority: false,
+      historicalDeferBlocksAuthority: false,
     };
   }
   return {
@@ -37,5 +45,7 @@ export function buildCourseCoverageAdmissionProjection(
     audit: result.audit,
     diagnostics: [],
     productionAuthoritative: false,
+    blocksEngineeringAuthority: false,
+    historicalDeferBlocksAuthority: false,
   };
 }

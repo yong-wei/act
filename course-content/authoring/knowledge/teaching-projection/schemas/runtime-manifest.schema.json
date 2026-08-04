@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-teaching-projection-manifest/v1",
+  "title": "ACT Teaching Projection Runtime Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "builderVersion",
+    "scopeId",
+    "authoringRevision",
+    "authorityReleaseId",
+    "sourceHashes",
+    "resourceCount",
+    "bindingCount",
+    "prerequisiteCount",
+    "coreNodeCount",
+    "cardCount",
+    "gateStatus",
+    "gatePassed",
+    "projectionId",
+    "projectionHash"
+  ],
+  "properties": {
+    "contract": { "const": "act-teaching-projection-manifest/v1" },
+    "builderVersion": { "const": "act-teaching-projection-builder/v1" },
+    "scopeId": { "type": "string", "minLength": 1 },
+    "authoringRevision": { "type": "string", "minLength": 1 },
+    "authorityReleaseId": { "type": "string", "minLength": 1 },
+    "authorityReleaseSetId": { "type": ["string", "null"] },
+    "authoritySnapshotId": { "type": ["string", "null"] },
+    "authoritySnapshotHash": {
+      "type": ["string", "null"],
+      "pattern": "^([a-f0-9]{64})?$"
+    },
+    "sourceHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resources",
+        "bindings",
+        "prerequisites",
+        "coreNodes",
+        "cards",
+        "authorityNodes",
+        "authoringBody",
+        "gate"
+      ],
+      "properties": {
+        "resources": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "bindings": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "prerequisites": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "coreNodes": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "cards": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "authorityNodes": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "authoringBody": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "gate": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "resourceCount": { "type": "integer", "minimum": 0 },
+    "bindingCount": { "type": "integer", "minimum": 0 },
+    "prerequisiteCount": { "type": "integer", "minimum": 0 },
+    "coreNodeCount": { "type": "integer", "minimum": 0 },
+    "cardCount": { "type": "integer", "minimum": 0 },
+    "gateStatus": {
+      "type": "string",
+      "enum": ["PUBLISHED", "REVIEW_REQUIRED", "NOT_PROJECTED"]
+    },
+    "gatePassed": { "type": "boolean" },
+    "projectionId": {
+      "type": "string",
+      "pattern": "^proj-[a-f0-9]{64}$"
+    },
+    "projectionHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

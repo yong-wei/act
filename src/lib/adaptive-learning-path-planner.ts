@@ -657,6 +657,7 @@ export interface AdaptiveLearningPathPolicyBundle {
     planNodes?: AdaptiveLearningPathPlanNode[];
     nodeSummaries: AdaptiveLearningPathOptionNodeSummary[];
     targetDeficits: AdaptiveLearningPathDeficit[];
+    recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
     evidenceBasis: string[];
     estimatedMinutes: number;
     modalityMix: Record<string, number>;
@@ -738,6 +739,31 @@ export interface AdaptiveLearningPathDeficit {
   portraitDimensionIds?: PortraitV2DimensionId[];
 }
 
+export interface AdaptiveLearningPathRecommendationProvenanceEntry {
+  targetLabel: string;
+  targetKind: 'knowledge' | 'competency';
+  confidence: 'low' | 'medium' | 'high';
+  evidenceSummary: string;
+  judgment: string;
+  affectedNodeIds: string[];
+  affectedResourceTitles: string[];
+}
+
+export interface AdaptiveLearningPathRecommendationProvenance {
+  summary: string;
+  confidence: 'low' | 'medium' | 'high';
+  entries: AdaptiveLearningPathRecommendationProvenanceEntry[];
+  evidenceReviewHref: '/profile/evidence';
+  limitations: string[];
+  nextAction: string | null;
+}
+
+export type AdaptiveLearningPathPersistedPathOption = Record<string, unknown> & {
+  optionId?: string;
+  nodeIds?: string[];
+  recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
+};
+
 export interface AdaptiveLearningPathCapabilityEvidence {
   target: AdaptiveLearningCapabilityTarget;
   observedEvidence: {
@@ -785,6 +811,7 @@ export interface AdaptiveLearningPathPlan {
   policyFamily: AdaptiveLearningPathPolicyFamily;
   policyMetadata: AdaptiveLearningPathPolicyDefinition;
   policyBundle?: AdaptiveLearningPathPolicyBundle;
+  pathOptions?: AdaptiveLearningPathPersistedPathOption[];
   excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'];
   status: AdaptiveLearningPathStatus;
   currentNodeId: string | null;
@@ -829,7 +856,7 @@ export interface AdaptiveLearningPathPersistenceRecord {
     currentNodeId: string | null;
     score: AdaptiveLearningPathScore;
     confidence: AdaptiveLearningPathPlan['confidence'];
-    pathOptions?: Array<Record<string, unknown>>;
+    pathOptions?: AdaptiveLearningPathPersistedPathOption[];
     planNodes: AdaptiveLearningPathPlanNode[];
     alternatives: AdaptiveLearningPathAlternative[];
     explanations: AdaptiveLearningPathExplanation;
@@ -2352,7 +2379,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
   };
 }
 
-function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Array<Record<string, unknown>> {
+function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathPersistedPathOption[] {
   if (plan.policyBundle?.paths.length) {
     const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
     return plan.policyBundle.paths.map((path, index) => ({
@@ -2369,6 +2396,10 @@ function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Array<Rec
     .filter((node) => node.terminalConstraints.includes('terminal-validation'))
     .map((node) => node.nodeId);
   const resourceMix = buildModalityMix(plan.mainPath);
+  const targetDeficits = deficitsForPath(
+    plan.mainPath,
+    plan.visualization.evidence.learnerStateDeficits,
+  );
   return [{
     optionId: 'path-option-1',
     styleId: 'recommended',
@@ -2381,7 +2412,12 @@ function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Array<Rec
     unlockMessages: policyUnlockMessages(plan.mainPath),
     planNodes: plan.mainPath,
     nodeSummaries: plan.mainPath.map(toPathOptionNodeSummary),
-    targetDeficits: [],
+    targetDeficits,
+    recommendationProvenance: buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: targetDeficits,
+      confidence: plan.confidence.level,
+    }),
     evidenceBasis: plan.confidence.level === 'low'
       ? ['learner-evidence-low-confidence']
       : ['adaptive-learner-state'],
@@ -4598,6 +4634,7 @@ function buildPolicyBundle(
       .filter((node) => node.terminalConstraints.includes('terminal-validation'))
       .map((node) => node.nodeId);
     const checkpointNodeIds = selectCheckpointNodeIds(mainPath, registeredGoal);
+    const targetDeficits = deficitsForPath(mainPath, deficits);
     paths.push({
       styleId: styleIdForPolicyFamily(policyFamily),
       policyFamily,
@@ -4609,7 +4646,12 @@ function buildPolicyBundle(
       unlockMessages: policyUnlockMessages(mainPath),
       planNodes: mainPath,
       nodeSummaries: mainPath.map(toPathOptionNodeSummary),
-      targetDeficits: deficitsForPath(mainPath, deficits),
+      targetDeficits,
+      recommendationProvenance: buildAdaptivePathRecommendationProvenance({
+        path: mainPath,
+        deficits: targetDeficits,
+        confidence: plan.confidence.level,
+      }),
       evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
       estimatedMinutes: remainingEstimatedMinutes(mainPath),
       modalityMix,
@@ -4979,6 +5021,107 @@ function deficitsForPath(
   }
   const selected = deficits.filter((deficit) => coveredTargets.has(deficit.targetId));
   return selected.length > 0 ? selected : deficits.slice(0, 3);
+}
+
+const RECOMMENDATION_TARGET_LABELS: Record<string, string> = {
+  controlModeling: '控制建模',
+  parameterDesign: '参数设计',
+  crossDomainTransfer: '跨域迁移',
+  engineeringDecision: '工程决策',
+  inquiryReflection: '探究反思',
+  selfDirectedLearning: '自主学习',
+  'control-correction:time-domain-targets': '时域性能目标',
+  'control-correction:root-locus-design': '根轨迹校正设计',
+  'control-correction:simulation-validation': '仿真验证',
+  'control-correction:arena-transfer': 'Arena 迁移应用',
+  'kn-bode': 'Bode 图基础',
+};
+
+export function buildAdaptivePathRecommendationProvenance(input: {
+  path: AdaptiveLearningPathPlanNode[];
+  deficits: AdaptiveLearningPathDeficit[];
+  confidence: AdaptiveLearningPathPlan['confidence']['level'];
+}): AdaptiveLearningPathRecommendationProvenance {
+  const entries = input.deficits.slice(0, 3).map((deficit) => {
+    const confidence = recommendationEntryConfidence(deficit);
+    const affectedNodes = confidence === 'low'
+      ? []
+      : input.path.filter((node) => nodeMatchesRecommendationTarget(node, deficit));
+    const targetLabel = recommendationTargetLabel(deficit.targetId);
+    const evidenceSummary = deficit.evidenceCount > 0
+      ? `${deficit.kind === 'knowledge' ? '掌握状态' : '能力状态'} ${Math.round(deficit.value * 100)}%，来自 ${deficit.evidenceCount} 条有效证据，置信度 ${Math.round(deficit.confidence * 100)}%。`
+      : '当前没有足够的有效学习证据支持个性化判断。';
+    const judgment = confidence === 'low'
+      ? '暂不能确认该项为稳定薄弱点，本路径主要依据课程结构、先修规则和可用资源安排。'
+      : affectedNodes.length > 0
+        ? `当前状态仍有提升空间，因此优先安排 ${affectedNodes.map((node) => node.title).join('、')}。`
+        : '现有路径事实不足以确认该项具体影响了哪些推荐资源。';
+    return {
+      targetLabel,
+      targetKind: deficit.kind,
+      confidence,
+      evidenceSummary,
+      judgment,
+      affectedNodeIds: affectedNodes.map((node) => node.nodeId),
+      affectedResourceTitles: affectedNodes.map((node) => node.title),
+    };
+  });
+  const hasLowConfidenceDeficit = input.deficits.some((deficit) =>
+    recommendationEntryConfidence(deficit) === 'low'
+  );
+  const hasUnmatchedEntry = entries.some((entry) =>
+    entry.confidence !== 'low' && entry.affectedResourceTitles.length === 0
+  );
+  const confidence = input.confidence === 'low' || entries.length === 0 || hasLowConfidenceDeficit
+    ? 'low'
+    : input.confidence;
+  const limitations = unique([
+    entries.length === 0 ? '当前没有可用于形成个性化判断的有效学习证据。' : null,
+    hasLowConfidenceDeficit ? '部分判断的有效证据仍然不足。' : null,
+    hasUnmatchedEntry ? '部分判断缺少可核验的推荐资源关联。' : null,
+  ]);
+  return {
+    summary: confidence === 'low'
+      ? '当前证据较少，本路径主要依据课程结构、先修规则和可用资源生成。'
+      : entries.length === 1
+        ? `依据 ${entries[0].targetLabel} 的学习证据安排本路径。`
+        : `依据 ${entries[0].targetLabel} 等 ${entries.length} 项学习证据安排本路径。`,
+    confidence,
+    entries,
+    evidenceReviewHref: '/profile/evidence',
+    limitations,
+    nextAction: confidence === 'low' || hasLowConfidenceDeficit
+      ? '完成诊断或练习，补充有效学习证据。'
+      : null,
+  };
+}
+
+function recommendationEntryConfidence(
+  deficit: AdaptiveLearningPathDeficit,
+): AdaptiveLearningPathRecommendationProvenanceEntry['confidence'] {
+  if (deficit.evidenceCount < 2 || deficit.confidence < 0.5) return 'low';
+  if (deficit.evidenceCount < 5 || deficit.confidence < 0.75) return 'medium';
+  return 'high';
+}
+
+function nodeMatchesRecommendationTarget(
+  node: AdaptiveLearningPathPlanNode,
+  deficit: AdaptiveLearningPathDeficit,
+): boolean {
+  return deficit.kind === 'knowledge'
+    ? node.knowledgeCoverage.includes(deficit.targetId)
+    : node.capabilityTargets?.includes(deficit.targetId) ?? false;
+}
+
+function recommendationTargetLabel(targetId: string): string {
+  const knownLabel = RECOMMENDATION_TARGET_LABELS[targetId];
+  if (knownLabel) return knownLabel;
+  const finalSegment = targetId.split(':').at(-1) ?? targetId;
+  const normalized = finalSegment
+    .replace(/_[0-9]+_[a-z0-9]+$/i, '')
+    .replaceAll('-', ' ')
+    .trim();
+  return /[\u3400-\u9fff]/u.test(normalized) ? normalized : '当前学习目标';
 }
 
 function buildPathEvidenceBasis(

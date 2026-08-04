@@ -1336,6 +1336,8 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     const terminalValidationNodeIds = pathPlan.mainPath
       .filter((node) => node.terminalConstraints.includes('terminal-validation'))
       .map((node) => node.nodeId);
+    const generationEvidenceDeficits = pathPlan.visualization?.evidence?.learnerStateDeficits;
+    const persistedProvenance = pathPlan.pathOptions?.[0]?.recommendationProvenance;
     return [{
       optionId: 'path-option-1',
       label: '推荐学习路径',
@@ -1361,7 +1363,8 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
         message: node.readiness?.message ?? '准备条件待确认。',
       })),
       readinessDetails: pathReadinessDetails(pathPlan),
-      targetDeficits: [],
+      targetDeficits: generationEvidenceDeficits?.map(toStudentDeficit) ?? [],
+      ...(persistedProvenance ? { recommendationProvenance: persistedProvenance } : {}),
       evidenceBasis: pathPlan.confidence.level === 'low'
         ? ['当前证据较少，路径会从基础资源开始。']
         : ['路径已结合你的近期学习证据。'],
@@ -1398,6 +1401,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     readinessSummary: path.readinessSummary,
     readinessDetails: pathReadinessDetails(pathPlan),
     targetDeficits: path.targetDeficits.map(toStudentDeficit),
+    recommendationProvenance: path.recommendationProvenance,
     evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
     resourceMix: path.resourceMix,
     overlap: path.overlap,

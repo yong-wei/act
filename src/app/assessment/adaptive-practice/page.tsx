@@ -206,6 +206,12 @@ interface LearningPathRoundResponse {
 type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
+type PathRecommendationProvenanceEntry = NonNullable<
+  AdaptivePathOptionWriteOption['recommendationProvenance']
+>['entries'][number];
+type PathRecommendationProvenance = NonNullable<
+  AdaptivePathOptionWriteOption['recommendationProvenance']
+>;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
 type PathDifferenceStatus = 'ready' | 'no-material-difference' | 'insufficient-data';
 
@@ -677,6 +683,42 @@ const DEMO_UNLOCK_CHAIN_PATH_NODES = [
     readiness: null,
   },
 ] as unknown as AdaptiveLearningPathPlan['mainPath'];
+const DEMO_RECOMMENDATION_PROVENANCE = {
+  summary: '依据相位裕度的学习证据安排本路径。',
+  confidence: 'medium',
+  entries: [{
+    targetLabel: '相位裕度',
+    targetKind: 'knowledge',
+    confidence: 'medium',
+    evidenceSummary: '掌握状态 42%，来自 3 条有效证据，置信度 68%。',
+    judgment: '当前状态仍有提升空间，因此优先安排频域到时域检查题。',
+    affectedNodeIds: ['demo-current-quiz'],
+    affectedResourceTitles: ['完成频域到时域检查题'],
+  }],
+  evidenceReviewHref: '/profile/evidence',
+  limitations: [],
+  nextAction: null,
+} satisfies PathRecommendationProvenance;
+
+const DEMO_LOW_EVIDENCE_RECOMMENDATION_PROVENANCE = {
+  summary: '当前证据较少，本路径主要依据课程结构、先修规则和可用资源生成。',
+  confidence: 'low',
+  entries: [
+    ...DEMO_RECOMMENDATION_PROVENANCE.entries,
+    {
+      targetLabel: '参数设计',
+      targetKind: 'competency',
+      confidence: 'low',
+      evidenceSummary: '能力状态 38%，来自 1 条有效证据，置信度 40%。',
+      judgment: '暂时不能确认该项为稳定薄弱点，本路径主要依据课程结构、先修规则和可用资源安排。',
+      affectedNodeIds: [],
+      affectedResourceTitles: [],
+    },
+  ],
+  evidenceReviewHref: '/profile/evidence',
+  limitations: ['部分判断的有效证据仍然不足。'],
+  nextAction: '完成诊断或练习，补充有效学习证据。',
+} satisfies PathRecommendationProvenance;
 
 const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
   id: 'demo-control-correction-path',
@@ -696,6 +738,11 @@ const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
     constraints: ['terminal-validation-last'],
     fallbackSemantics: 'use available starter path',
   },
+  pathOptions: [{
+    optionId: 'path-option-1',
+    nodeIds: DEMO_CONTROL_CORRECTION_PATH_NODES.map((node) => node.nodeId),
+    recommendationProvenance: DEMO_RECOMMENDATION_PROVENANCE,
+  }],
   excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
   status: 'ready',
   currentNodeId: 'demo-current-quiz',
@@ -734,6 +781,27 @@ const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
     graph: { nodes: [], edges: [] },
     timeline: { generatedAt: '2026-06-16T09:00:00+08:00', items: [] },
     badges: [],
+    evidence: {
+      evidenceBasis: 'adaptive-learner-state',
+      confidence: {
+        level: 'medium',
+        score: 0.76,
+        sourceCoverage: 0.68,
+      },
+      sourceCoverage: {},
+      learnerStateDeficits: [{
+        targetId: '相位裕度',
+        kind: 'knowledge',
+        value: 0.42,
+        confidence: 0.68,
+        evidenceCount: 3,
+        reasonCode: 'low-mastery-target',
+      }],
+      capabilityEvidence: [],
+      prerequisiteReasons: [],
+      teacherPolicy: [],
+      alternatives: [],
+    },
   },
 } as unknown as AdaptiveLearningPathPlan;
 
@@ -749,6 +817,57 @@ const DEMO_UNLOCK_CHAIN_PATH_PLAN = {
     updatedAt: '2026-06-16T09:00:00+08:00',
   },
 } as unknown as AdaptiveLearningPathPlan;
+
+const DEMO_LOW_EVIDENCE_PATH_PLAN = {
+  ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
+  pathOptions: [{
+    optionId: 'path-option-1',
+    nodeIds: DEMO_CONTROL_CORRECTION_PATH_NODES.map((node) => node.nodeId),
+    recommendationProvenance: DEMO_LOW_EVIDENCE_RECOMMENDATION_PROVENANCE,
+  }],
+  confidence: {
+    level: 'high',
+    score: 0.82,
+    sourceCoverage: 0.72,
+  },
+  visualization: {
+    ...DEMO_CONTROL_CORRECTION_PATH_PLAN.visualization,
+    evidence: {
+      ...DEMO_CONTROL_CORRECTION_PATH_PLAN.visualization.evidence,
+      learnerStateDeficits: [
+        ...DEMO_CONTROL_CORRECTION_PATH_PLAN.visualization.evidence.learnerStateDeficits,
+        {
+          targetId: 'parameterDesign',
+          kind: 'competency',
+          value: 0.38,
+          confidence: 0.4,
+          evidenceCount: 1,
+          reasonCode: 'low-confidence-competency',
+        },
+      ],
+    },
+  },
+} as unknown as AdaptiveLearningPathPlan;
+
+const DEMO_LEGACY_PATH_PLAN = {
+  ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
+  pathOptions: undefined,
+} as unknown as AdaptiveLearningPathPlan;
+
+type RecommendationProvenanceFixture = 'sufficient' | 'low' | 'legacy';
+
+function resolveRecommendationProvenanceFixture(value: string | null): RecommendationProvenanceFixture {
+  if (value === 'low' || value === 'legacy') return value;
+  return 'sufficient';
+}
+
+function demoRecommendationProvenancePlan(
+  fixture: RecommendationProvenanceFixture,
+): AdaptiveLearningPathPlan {
+  if (fixture === 'low') return DEMO_LOW_EVIDENCE_PATH_PLAN;
+  if (fixture === 'legacy') return DEMO_LEGACY_PATH_PLAN;
+  return DEMO_CONTROL_CORRECTION_PATH_PLAN;
+}
 
 const DEMO_CONTROL_CORRECTION_PATH_ROUND = {
   id: 'demo-control-correction-round',
@@ -888,6 +1007,80 @@ const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = 
   checkpoint: Flag,
   konling: MessageSquare,
 };
+
+function recommendationConfidenceLabel(confidence: 'low' | 'medium' | 'high'): string {
+  if (confidence === 'high') return '高置信度';
+  if (confidence === 'medium') return '中等置信度';
+  return '低置信度';
+}
+
+function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDisplay }) {
+  const provenance = option.recommendationProvenance;
+  if (!option.isGenerated || !provenance) return null;
+
+  return (
+    <section
+      className="mt-3 min-w-0 rounded-lg border border-primary/25 bg-primary/5 p-3"
+      data-learning-path-recommendation-provenance={option.id}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-semibold text-foreground">推荐依据</p>
+        <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
+          {recommendationConfidenceLabel(provenance.confidence)}
+        </span>
+      </div>
+      <p className="mt-2 break-words text-sm leading-6 text-foreground">{provenance.summary}</p>
+      <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-recommendation-disclosure={option.id}>
+        <summary className="cursor-pointer font-medium text-foreground">查看推荐依据</summary>
+        <div className="mt-3 grid min-w-0 gap-3">
+          {provenance.entries.map((entry, index) => (
+            <article
+              key={`${option.id}:${entry.targetLabel}:${index}`}
+              className="min-w-0 rounded-lg border border-border bg-background/65 p-3"
+              data-learning-path-recommendation-entry={entry.targetKind}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="break-words text-sm font-semibold text-foreground">{entry.targetLabel}</h4>
+                <span className="text-xs text-subtle">{recommendationConfidenceLabel(entry.confidence)}</span>
+              </div>
+              <dl className="mt-3 grid min-w-0 gap-2 text-xs leading-5">
+                <div>
+                  <dt className="font-medium text-foreground">学习证据</dt>
+                  <dd className="mt-1 break-words text-subtle">{entry.evidenceSummary}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-foreground">能力判断与路径影响</dt>
+                  <dd className="mt-1 break-words text-subtle">{entry.judgment}</dd>
+                </div>
+                {entry.affectedResourceTitles.length > 0 ? (
+                  <div>
+                    <dt className="font-medium text-foreground">受影响的推荐资源</dt>
+                    <dd className="mt-1 break-words text-subtle">{entry.affectedResourceTitles.join('、')}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </article>
+          ))}
+          {provenance.limitations.length > 0 ? (
+            <div className="rounded-lg border border-border bg-muted/35 p-3 text-xs leading-5 text-subtle">
+              {provenance.limitations.map((limitation) => <p key={limitation}>{limitation}</p>)}
+            </div>
+          ) : null}
+          {provenance.nextAction ? (
+            <p className="break-words text-xs leading-5 text-foreground">下一步：{provenance.nextAction}</p>
+          ) : null}
+          <Link
+            href={provenance.evidenceReviewHref}
+            className="inline-flex w-fit max-w-full items-center gap-1 break-words text-xs font-medium text-primary hover:underline"
+          >
+            查看学习记录并复核证据
+            <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
+          </Link>
+        </div>
+      </details>
+    </section>
+  );
+}
 
 function PathOptionRoutePreview({ option }: { option: AdaptivePathOptionDisplay }) {
   if (!option.isGenerated) return null;
@@ -1303,8 +1496,52 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       },
       expectedTargetLift: typeof option.expectedTargetLift === 'number' ? option.expectedTargetLift : undefined,
       limitations: getStringArray(option.limitations),
+      recommendationProvenance: getPathRecommendationProvenance(option.recommendationProvenance),
     };
   });
+}
+
+function getPathRecommendationProvenance(
+  value: unknown,
+): AdaptivePathOptionWriteOption['recommendationProvenance'] {
+  const provenance = getRecord(value);
+  const confidence = provenance.confidence;
+  if (typeof provenance.summary !== 'string' ||
+    (confidence !== 'low' && confidence !== 'medium' && confidence !== 'high') ||
+    provenance.evidenceReviewHref !== '/profile/evidence') {
+    return undefined;
+  }
+  const entries = (Array.isArray(provenance.entries) ? provenance.entries : [])
+    .map(getRecord)
+    .map((entry): PathRecommendationProvenanceEntry | null => {
+      const entryConfidence = entry.confidence;
+      const targetKind = entry.targetKind;
+      if (typeof entry.targetLabel !== 'string' ||
+        typeof entry.evidenceSummary !== 'string' ||
+        typeof entry.judgment !== 'string' ||
+        (entryConfidence !== 'low' && entryConfidence !== 'medium' && entryConfidence !== 'high') ||
+        (targetKind !== 'knowledge' && targetKind !== 'competency')) {
+        return null;
+      }
+      return {
+        targetLabel: entry.targetLabel,
+        targetKind,
+        confidence: entryConfidence,
+        evidenceSummary: entry.evidenceSummary,
+        judgment: entry.judgment,
+        affectedNodeIds: getStringArray(entry.affectedNodeIds),
+        affectedResourceTitles: getStringArray(entry.affectedResourceTitles),
+      };
+    })
+    .filter((entry): entry is PathRecommendationProvenanceEntry => entry !== null);
+  return {
+    summary: provenance.summary,
+    confidence,
+    entries,
+    evidenceReviewHref: '/profile/evidence',
+    limitations: getStringArray(provenance.limitations),
+    nextAction: typeof provenance.nextAction === 'string' ? provenance.nextAction : null,
+  };
 }
 
 function getPathSelectionHistory(view: ControlCorrectionLearningCenterView | null): PathSelectionHistoryView[] {
@@ -2011,6 +2248,9 @@ export default function AdaptivePracticePage() {
   const isDemoMode = searchParams.get('demo') === '1';
   const isArenaJourneyDemo = isDemoMode && searchParams.get('arenaJourneyFixture') === '1';
   const isUnlockChainDemo = isDemoMode && searchParams.get('unlockChainScene') === '1';
+  const recommendationProvenanceFixture = resolveRecommendationProvenanceFixture(
+    searchParams.get('provenanceFixture'),
+  );
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
   const localFeedbackContext = buildFeedbackTaskContext({
@@ -2544,7 +2784,7 @@ export default function AdaptivePracticePage() {
           ? DEMO_ARENA_JOURNEY_PATH_PLAN
           : isUnlockChainDemo
             ? DEMO_UNLOCK_CHAIN_PATH_PLAN
-            : DEMO_CONTROL_CORRECTION_PATH_PLAN)
+            : demoRecommendationProvenancePlan(recommendationProvenanceFixture))
       : null);
     setActivePathRound(activeGoal === 'control-correction'
       ? (isArenaJourneyDemo
@@ -2556,7 +2796,7 @@ export default function AdaptivePracticePage() {
     setQuestionStartAt(Date.now());
     setLoading(false);
     setError(null);
-  }, [activeGoal, isArenaJourneyDemo, isUnlockChainDemo]);
+  }, [activeGoal, isArenaJourneyDemo, isUnlockChainDemo, recommendationProvenanceFixture]);
 
   const loadDiagnostic = useCallback(async () => {
     const response = await fetch('/api/assessment/diagnostic');
@@ -4390,6 +4630,7 @@ export default function AdaptivePracticePage() {
                     ) : null}
                   </div>
                   <PathOptionRoutePreview option={option} />
+                  <PathRecommendationProvenance option={option} />
                   <div className="mt-3 grid gap-2 text-sm">
                     {[
                       ['预计时长', option.estimatedTime],
@@ -4559,6 +4800,7 @@ export default function AdaptivePracticePage() {
                     </span>
                   </div>
                   <PathOptionRoutePreview option={option} />
+                  <PathRecommendationProvenance option={option} />
                   <div className="mt-3 space-y-2 rounded-lg border border-border bg-background/60 p-3 text-sm">
                     <p className="leading-6 text-foreground">{option.reason}</p>
                     <div className="flex flex-wrap gap-1.5 text-xs text-subtle">

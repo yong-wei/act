@@ -1,0 +1,195 @@
+{
+  "contract": "act-knowledge-card-migration-fixtures/v1",
+  "description": "Fixture cards for one-to-one, duplicate, split, unmapped, course-specific, required-core, and legacy fallback (#1271).",
+  "authorityCanonicalIds": [
+    "ctc:transfer-function",
+    "ctc:feedback",
+    "ctc:bode-plot",
+    "ctc:split-a",
+    "ctc:split-b",
+    "ctc:course-local",
+    "ctc:required-core"
+  ],
+  "crosswalk": [
+    {
+      "legacyNodeId": "传递函数_1_1",
+      "canonicalId": "ctc:transfer-function",
+      "cardId": "card-tf",
+      "sourceEvidence": "fixture-1to1"
+    },
+    {
+      "legacyNodeId": "反馈_1_1",
+      "canonicalId": "ctc:feedback",
+      "cardId": "card-feedback-a",
+      "sourceEvidence": "fixture-dup-a"
+    },
+    {
+      "legacyNodeId": "反馈_legacy_dup",
+      "canonicalId": "ctc:feedback",
+      "cardId": "card-feedback-b",
+      "sourceEvidence": "fixture-dup-b"
+    },
+    {
+      "legacyNodeId": "Bode图_1_1",
+      "canonicalId": "ctc:split-a",
+      "cardId": "card-bode",
+      "sourceEvidence": "fixture-split-a"
+    },
+    {
+      "legacyNodeId": "Bode图_1_1",
+      "canonicalId": "ctc:split-b",
+      "cardId": "card-bode",
+      "sourceEvidence": "fixture-split-b"
+    },
+    {
+      "legacyNodeId": "课程专属节点_1_1",
+      "canonicalId": "ctc:course-local",
+      "cardId": "card-course",
+      "sourceEvidence": "fixture-course",
+      "courseSpecific": true,
+      "scopeId": "course-package:1-1"
+    },
+    {
+      "legacyNodeId": "核心稳定性_1_1",
+      "canonicalId": "ctc:required-core",
+      "cardId": "card-required",
+      "sourceEvidence": "fixture-required"
+    }
+  ],
+  "inventory": [
+    {
+      "cardId": "card-tf",
+      "legacyNodeId": "传递函数_1_1",
+      "title": "传递函数",
+      "authoringPath": "cards/nodes/传递函数_1_1.md",
+      "runtimePath": "cards/nodes/传递函数_1_1.md",
+      "sourceHash": "aa11111111111111111111111111111111111111111111111111111111111111",
+      "reviewStatus": "reviewed",
+      "cardVersion": 1,
+      "lessonUnits": ["1-1"],
+      "tags": ["模型"],
+      "declaredCanonicalId": null,
+      "usageRefs": ["lesson-sequence:1-1:card_order"],
+      "legacyOnly": false
+    },
+    {
+      "cardId": "card-feedback-a",
+      "legacyNodeId": "反馈_1_1",
+      "title": "反馈 A",
+      "authoringPath": "cards/nodes/反馈_1_1.md",
+      "runtimePath": null,
+      "sourceHash": "bb22222222222222222222222222222222222222222222222222222222222222",
+      "reviewStatus": "reviewed",
+      "cardVersion": 1,
+      "lessonUnits": ["1-1"],
+      "tags": ["反馈"],
+      "declaredCanonicalId": null,
+      "usageRefs": ["lesson-sequence:1-1:step:step-09"],
+      "legacyOnly": false
+    },
+    {
+      "cardId": "card-feedback-b",
+      "legacyNodeId": "反馈_legacy_dup",
+      "title": "反馈 B",
+      "authoringPath": "cards/nodes/反馈_legacy_dup.md",
+      "runtimePath": null,
+      "sourceHash": "cc33333333333333333333333333333333333333333333333333333333333333",
+      "reviewStatus": "pending",
+      "cardVersion": 1,
+      "lessonUnits": ["1-1"],
+      "tags": ["反馈"],
+      "declaredCanonicalId": null,
+      "usageRefs": [],
+      "legacyOnly": false
+    },
+    {
+      "cardId": "card-bode",
+      "legacyNodeId": "Bode图_1_1",
+      "title": "Bode图",
+      "authoringPath": "cards/nodes/Bode图_1_1.md",
+      "runtimePath": "cards/nodes/Bode图_1_1.md",
+      "sourceHash": "dd44444444444444444444444444444444444444444444444444444444444444",
+      "reviewStatus": "reviewed",
+      "cardVersion": 1,
+      "lessonUnits": ["1-1"],
+      "tags": ["频域"],
+      "declaredCanonicalId": null,
+      "usageRefs": ["lesson-sequence:1-1:card_order"],
+      "legacyOnly": false
+    },
+    {
+      "cardId": "card-unmapped",
+      "legacyNodeId": "未映射节点_9_9",
+      "title": "未映射",
+      "authoringPath": "cards/nodes/未映射节点_9_9.md",
+      "runtimePath": null,
+      "sourceHash": "ee55555555555555555555555555555555555555555555555555555555555555",
+      "reviewStatus": "unknown",
+      "cardVersion": 1,
+      "lessonUnits": [],
+      "tags": [],
+      "declaredCanonicalId": null,
+      "usageRefs": [],
+      "legacyOnly": false
+    },
+    {
+      "cardId": "card-course",
+      "legacyNodeId": "课程专属节点_1_1",
+      "title": "课程专属",
+      "authoringPath": "cards/nodes/课程专属节点_1_1.md",
+      "runtimePath": null,
+      "sourceHash": "ff66666666666666666666666666666666666666666666666666666666666666",
+      "reviewStatus": "reviewed",
+      "cardVersion": 1,
+      "lessonUnits": ["1-1"],
+      "tags": [],
+      "declaredCanonicalId": null,
+      "usageRefs": ["lesson-sequence:1-1:step:step-01"],
+      "legacyOnly": false
+    },
+    {
+      "cardId": "card-required",
+      "legacyNodeId": "核心稳定性_1_1",
+      "title": "稳定性（核心）",
+      "authoringPath": "cards/nodes/核心稳定性_1_1.md",
+      "runtimePath": "cards/nodes/核心稳定性_1_1.md",
+      "sourceHash": "1122222222222222222222222222222222222222222222222222222222222222",
+      "reviewStatus": "reviewed",
+      "cardVersion": 1,
+      "lessonUnits": ["1-1"],
+      "tags": ["稳定性"],
+      "declaredCanonicalId": null,
+      "usageRefs": ["core-node:ctc:required-core"],
+      "legacyOnly": false
+    }
+  ],
+  "coreNodes": [
+    {
+      "canonicalId": "ctc:required-core",
+      "pathEligible": true,
+      "cardPolicy": "required",
+      "moduleId": "mod-stability",
+      "scopeId": "act-control-theory-core",
+      "rationale": "fixture required core",
+      "projectionStatus": "PROJECTED"
+    },
+    {
+      "canonicalId": "ctc:transfer-function",
+      "pathEligible": true,
+      "cardPolicy": "optional",
+      "moduleId": "mod-model",
+      "scopeId": "act-control-theory-core",
+      "rationale": "fixture optional core",
+      "projectionStatus": "PROJECTED"
+    },
+    {
+      "canonicalId": "ctc:bode-plot",
+      "pathEligible": false,
+      "cardPolicy": "none",
+      "moduleId": null,
+      "scopeId": "act-control-theory-core",
+      "rationale": "non-core cardless node",
+      "projectionStatus": "PROJECTED"
+    }
+  ]
+}

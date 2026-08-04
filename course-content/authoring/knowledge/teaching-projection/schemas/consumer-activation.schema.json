@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-versioned-knowledge-consumer-activation/v1",
+  "title": "Versioned Knowledge Consumer Activation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "activationId",
+    "activationHash",
+    "captureRevision",
+    "stagedAt",
+    "consumers",
+    "impact",
+    "shadowReportHash",
+    "priorActivationId",
+    "priorActivationHash"
+  ],
+  "properties": {
+    "contract": { "const": "act-versioned-knowledge-consumer-activation/v1" },
+    "activationId": { "type": "string", "minLength": 1 },
+    "activationHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "captureRevision": { "type": ["string", "null"] },
+    "stagedAt": { "type": "string", "minLength": 1 },
+    "consumers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "consumerId",
+          "status",
+          "combination",
+          "priorCombination",
+          "artifactHashes",
+          "reasons",
+          "activatedAt"
+        ],
+        "properties": {
+          "consumerId": {
+            "type": "string",
+            "enum": [
+              "engineering-graph",
+              "engineering-rag",
+              "course-runtime",
+              "konling",
+              "teaching-resource-rag",
+              "learning-path"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "READY",
+              "PINNED_PREVIOUS",
+              "BLOCKED_LOCAL_DEPENDENCY",
+              "SHADOW"
+            ]
+          },
+          "combination": { "$ref": "#/$defs/combination" },
+          "priorCombination": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/$defs/combination" }
+            ]
+          },
+          "artifactHashes": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          },
+          "reasons": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "activatedAt": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readyConsumerIds",
+        "pinnedConsumerIds",
+        "blockedConsumerIds",
+        "shadowConsumerIds"
+      ],
+      "properties": {
+        "readyConsumerIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "pinnedConsumerIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "blockedConsumerIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "shadowConsumerIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "shadowReportHash": {
+      "type": ["string", "null"],
+      "pattern": "^([a-f0-9]{64})?$"
+    },
+    "priorActivationId": { "type": ["string", "null"] },
+    "priorActivationHash": {
+      "type": ["string", "null"],
+      "pattern": "^([a-f0-9]{64})?$"
+    }
+  },
+  "$defs": {
+    "combination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityReleaseId",
+        "authoritySnapshotId",
+        "authoritySnapshotHash",
+        "projectionId",
+        "projectionHash",
+        "scopeId",
+        "captureRevision"
+      ],
+      "properties": {
+        "authorityReleaseId": { "type": ["string", "null"] },
+        "authoritySnapshotId": { "type": ["string", "null"] },
+        "authoritySnapshotHash": {
+          "type": ["string", "null"],
+          "pattern": "^([a-f0-9]{64})?$"
+        },
+        "projectionId": { "type": ["string", "null"] },
+        "projectionHash": {
+          "type": ["string", "null"],
+          "pattern": "^([a-f0-9]{64})?$"
+        },
+        "scopeId": { "type": ["string", "null"] },
+        "captureRevision": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

@@ -43,6 +43,25 @@ function gitHead() {
   return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
 }
 
+function assertSourceFilesMatchGitHead(gitSha) {
+  for (const sourcePath of sourceFiles) {
+    const absolutePath = path.join(repoRoot, sourcePath);
+    let worktreeBytes;
+    let gitBlobBytes;
+    try {
+      worktreeBytes = readFileSync(absolutePath);
+      gitBlobBytes = execFileSync('git', ['show', `${gitSha}:${sourcePath}`], { cwd: repoRoot });
+    } catch (error) {
+      throw new Error(
+        `Cannot bind evidence source ${sourcePath} to ${gitSha}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    if (!worktreeBytes.equals(gitBlobBytes)) {
+      throw new Error(`Evidence source drifted from ${gitSha}: ${sourcePath}`);
+    }
+  }
+}
+
 function requiredSignal(signals, id) {
   if (!signals || typeof signals !== 'object') throw new Error(`missing signal entry: ${id}`);
   return signals;
@@ -294,6 +313,8 @@ function assertCase(caseEntry, signals) {
 }
 
 async function main() {
+  const capturedGitSha = gitHead();
+  assertSourceFilesMatchGitHead(capturedGitSha);
   mkdirSync(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const captures = [];
@@ -349,11 +370,12 @@ async function main() {
   }
 
   const failedAssertions = assertions.filter((assertion) => !assertion.passed);
+  assertSourceFilesMatchGitHead(capturedGitSha);
   const manifest = {
     change: 'add-adaptive-path-unlock-chain-explanation',
     pr: 1169,
     capturedAt: new Date().toISOString(),
-    gitSha: gitHead(),
+    gitSha: capturedGitSha,
     sourceFiles,
     sourceWorktreeSha256: sourceWorktreeSha256(),
     baseUrl,

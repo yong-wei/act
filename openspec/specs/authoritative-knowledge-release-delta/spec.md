@@ -55,7 +55,7 @@ The system MUST classify a new Bundle as a packaging revision when Release ID/ha
 - **THEN** the Delta SHALL record `COMPATIBLE_PACKAGING_REVISION` with an empty semantic change set
 
 ### Requirement: Delta Receipt is immutable and idempotent
-Each `ReleaseSetDeltaReceipt` MUST bind base/candidate Bundle, ReleaseSet, Release and Projection identities, all input digests, algorithm version, ACT capture revision, classification, detailed changes and summary counts. Recomputing the same inputs MUST return the same semantic receipt without duplicates.
+Each `ReleaseSetDeltaReceipt` MUST bind base/candidate Bundle, ReleaseSet, Release and Projection identities, all input digests, algorithm version, ACT capture revision, classification, detailed changes and summary counts. Recomputing the same inputs MUST return the same semantic receipt without duplicates. Each Authority Snapshot MUST bind the accepted Delta receipt chain and MUST produce the same snapshot identity for the same validated base, candidate, and capture. Recomputing Delta or materializing a snapshot MUST NOT create CourseCoverage work merely because an engineering object is added.
 
 #### Scenario: Same Delta is computed twice
 - **WHEN** identical base/candidate identities and input digests are submitted concurrently or repeatedly
@@ -65,8 +65,18 @@ Each `ReleaseSetDeltaReceipt` MUST bind base/candidate Bundle, ReleaseSet, Relea
 - **WHEN** an existing receipt key is reused with different inputs or output digest
 - **THEN** the system SHALL reject the conflict and preserve the original receipt
 
+#### Scenario: Same ReleaseSet is imported again
+- **WHEN** the same base/candidate ReleaseSet and Delta receipts are processed again
+- **THEN** the existing snapshot identity MAY be reused
+- **AND** no duplicate snapshot or teaching-review item SHALL be created
+
+#### Scenario: Unrelated object is added
+- **WHEN** a Delta adds an ActKG object with no ACT binding
+- **THEN** the Delta SHALL record the engineering addition
+- **AND** Authority materialization SHALL not require a teaching review
+
 ### Requirement: Delta emits generic downstream signals
-An accepted semantic Delta SHALL emit stable object-, relation-, Crosswalk-, component-, Projection-, and vocabulary-scoped candidate or invalidation signals. These signals MUST describe affected identities and reasons without deciding course coverage, resource roles, teaching relations, or consumer activation.
+An accepted semantic Delta SHALL emit stable object-, relation-, Crosswalk-, component-, Projection-, and vocabulary-scoped candidate or invalidation signals. These signals MUST describe affected identities and reasons without deciding course coverage, resource roles, teaching relations, or consumer activation. ReleaseSet Delta MUST expose stable identity, category, predecessor/successor, relation, and source-anchor changes as generic downstream signals. It MUST NOT require ACT course review for unbound additions or decide whether a teaching consumer should activate; ACT projection rebase owns that scoped impact calculation.
 
 #### Scenario: Object payload changes
 - **WHEN** a valid Canonical Object payload changes without breaking identity
@@ -76,10 +86,30 @@ An accepted semantic Delta SHALL emit stable object-, relation-, Crosswalk-, com
 - **WHEN** a Crosswalk triple present in the base is absent from the candidate
 - **THEN** the system SHALL emit a Crosswalk invalidation signal and SHALL NOT itself select or delete an ACT structural-unit binding
 
+#### Scenario: Downstream ACT consumer reads Delta
+- **WHEN** a validated Delta is available for a new Authority Snapshot
+- **THEN** the consumer SHALL receive exact changed identities and categories
+- **AND** it SHALL calculate its own ACT impact set without changing Delta authority
+
+#### Scenario: Delta has unbound additions
+- **WHEN** only unbound engineering objects are added
+- **THEN** the Delta SHALL remain valid
+- **AND** no global CourseCoverage or Teaching Projection review SHALL be synthesized
+
 ### Requirement: Delta processing does not activate authority
-Generating or accepting a Delta Receipt MUST NOT move candidate, active, or Legacy selectors and MUST NOT directly run a production consumer migration.
+Generating or accepting a Delta Receipt MUST NOT move candidate, active, or Legacy selectors and MUST NOT directly run a production consumer migration. Delta computation SHALL remain a pure validated input to staged Authority Snapshot materialization. Delta processing and ACT rebase MUST leave current Authority and consumer pointers unchanged until explicit activation of a fully materialized snapshot. Current Authority and consumer pointers SHALL change only through the explicit atomic activation operation.
 
 #### Scenario: Delta Receipt is accepted
 - **WHEN** recomputation and upstream cross-validation pass
 - **THEN** the candidate ReleaseSet SHALL remain non-production and all production consumers SHALL retain their existing authority
+
+#### Scenario: Delta succeeds before activation
+- **WHEN** a Delta receipt is valid but activation has not been requested
+- **THEN** the candidate snapshot SHALL remain staged/non-current
+- **AND** existing consumers SHALL continue using their prior pointer
+
+#### Scenario: Rebase is staged
+- **WHEN** ACT computes an impact set and rebuilt projection for a Delta
+- **THEN** current consumers SHALL continue using their prior combination
+- **AND** staged failures SHALL not partially replace runtime artifacts
 

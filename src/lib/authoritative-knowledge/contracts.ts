@@ -454,7 +454,14 @@ export interface AuthoritativeProjectionLinkMetadataRecord {
 }
 
 export interface AuthoritativeKnowledgeSnapshot {
-  authorityState: 'candidate';
+  /**
+   * Repository authority state for this view.
+   * - `candidate`: explicit ReleaseSet/Release selection (DB-backed)
+   * - `active`: Engineering Authority current pointer (immutable snapshot)
+   * Staged/rejected Authority Snapshots are store lifecycle states, not
+   * returned as `active` through implicit fallback.
+   */
+  authorityState: 'candidate' | 'active';
   productionAuthoritative: false;
   /** True for every ReleaseSet other than the pinned aggregate ReleaseSet. */
   historical: boolean;
@@ -485,7 +492,7 @@ export interface AuthoritativeKnowledgeSnapshot {
 export type RepositoryResult =
   | {
       status: 'available';
-      selector: Extract<AuthoritySelector, { authorityState: 'candidate' }>;
+      selector: Extract<AuthoritySelector, { authorityState: 'candidate' | 'active' }>;
       snapshot: AuthoritativeKnowledgeSnapshot;
       diagnostics: [];
     }
@@ -605,7 +612,11 @@ export type CourseCoverageResult =
   | {
       status: 'unavailable';
       selector: CourseCoverageSelector | null;
-      reason: 'missing-selector' | 'coverage-not-found';
+      reason:
+        | 'missing-selector'
+        | 'coverage-not-found'
+        /** #1277: global CourseCoverage runtime selector retired. */
+        | 'global-course-coverage-runtime-selector-retired';
       diagnostics: [];
       productionAuthoritative: false;
     };
