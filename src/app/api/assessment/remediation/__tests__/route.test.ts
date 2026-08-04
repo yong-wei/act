@@ -1,0 +1,100 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const mocks = vi.hoisted(() => ({
+  getServerAuthSession: vi.fn(),
+  orchestrateRemediation: vi.fn(),
+  readRemediationOrchestration: vi.fn(),
+}));
+
+vi.mock('@/lib/auth', () => ({ getServerAuthSession: mocks.getServerAuthSession }));
+vi.mock('@/lib/prisma', () => ({ prisma: {} }));
+vi.mock('@/features/assessment/remediation-orchestration', () => ({
+  orchestrateRemediation: mocks.orchestrateRemediation,
+  readRemediationOrchestration: mocks.readRemediationOrchestration,
+}));
+
+import { GET, POST } from '../route';
+
+describe('assessment remediation route', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'learner-1', role: 'STUDENT' } });
+  });
+
+  it('requires an authenticated learner', async () => {
+    mocks.getServerAuthSession.mockResolvedValue(null);
+
+    const response = await POST(new Request('http://localhost/api/assessment/remediation', {
+      method: 'POST',
+      body: JSON.stringify({ attributionId: 'attribution-1' }),
+    }));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: 'UNAUTHENTICATED' });
+    expect(mocks.orchestrateRemediation).not.toHaveBeenCalled();
+  });
+
+  it('rejects teacher-triggered orchestration', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+
+    const response = await POST(new Request('http://localhost/api/assessment/remediation', {
+      method: 'POST',
+      body: JSON.stringify({ attributionId: 'attribution-1' }),
+    }));
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: 'LEARNER_REQUIRED' });
+  });
+
+  it('does not disclose an absent or foreign attribution', async () => {
+    mocks.orchestrateRemediation.mockResolvedValue(null);
+
+    const response = await POST(new Request('http://localhost/api/assessment/remediation', {
+      method: 'POST',
+      body: JSON.stringify({ attributionId: 'foreign-attribution' }),
+    }));
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: 'ATTRIBUTION_NOT_FOUND' });
+    expect(mocks.orchestrateRemediation).toHaveBeenCalledWith(expect.objectContaining({
+      authenticatedUserId: 'learner-1',
+      attributionId: 'foreign-attribution',
+    }));
+  });
+
+  it('returns only the sanitized orchestration projection', async () => {
+    mocks.orchestrateRemediation.mockResolvedValue({
+      id: 'result-1',
+      status: 'UNAVAILABLE',
+      orchestratorVersion: 'remediation-orchestrator.v1',
+      unavailableReason: 'RESOURCE_UNAVAILABLE',
+      manualPracticePath: '/student/practice',
+      createdAt: '2026-08-03T00:00:00.000Z',
+    });
+
+    const response = await POST(new Request('http://localhost/api/assessment/remediation', {
+      method: 'POST',
+      body: JSON.stringify({ attributionId: 'attribution-1', selectedAnswer: 'secret' }),
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual(expect.objectContaining({ status: 'UNAVAILABLE' }));
+    expect(JSON.stringify(payload)).not.toContain('secret');
+  });
+
+  it('reads only a result scoped to the authenticated learner', async () => {
+    mocks.readRemediationOrchestration.mockResolvedValue(null);
+
+    const response = await GET(new Request(
+      'http://localhost/api/assessment/remediation?resultId=foreign-result',
+    ));
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: 'REMEDIATION_RESULT_NOT_FOUND' });
+    expect(mocks.readRemediationOrchestration).toHaveBeenCalledWith(expect.objectContaining({
+      authenticatedUserId: 'learner-1',
+      resultId: 'foreign-result',
+    }));
+  });
+});
