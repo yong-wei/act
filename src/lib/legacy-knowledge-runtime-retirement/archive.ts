@@ -243,38 +243,141 @@ export function verifyArchiveArtifactContents(
         break;
       }
       case 'old-to-canonical-crosswalk': {
-        if (!Array.isArray(record.entries) || record.entries.length === 0) {
-          reasons.push('archive-content-crosswalk-entries-missing');
-        }
         if (
           typeof record.contract !== 'string'
           || !record.contract.includes('crosswalk')
         ) {
           reasons.push('archive-content-crosswalk-contract-missing');
         }
+        if (!Array.isArray(record.entries) || record.entries.length === 0) {
+          reasons.push('archive-content-crosswalk-entries-missing');
+          break;
+        }
+        for (const [index, raw] of record.entries.entries()) {
+          if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+            reasons.push(`archive-content-crosswalk-entry-invalid:${index}`);
+            continue;
+          }
+          const entry = raw as Record<string, unknown>;
+          if (
+            typeof entry.legacyId !== 'string'
+            || entry.legacyId.trim().length === 0
+          ) {
+            reasons.push(`archive-content-crosswalk-legacyId-missing:${index}`);
+          }
+          if (
+            typeof entry.canonicalId !== 'string'
+            || entry.canonicalId.trim().length === 0
+            || entry.canonicalId.includes(' ')
+          ) {
+            reasons.push(
+              `archive-content-crosswalk-canonicalId-missing:${index}`,
+            );
+          }
+        }
         break;
       }
       case 'historical-authority-projection-snapshots': {
         if (!Array.isArray(record.snapshots) || record.snapshots.length === 0) {
           reasons.push('archive-content-snapshots-missing');
+          break;
         }
-        if (!isSha256Hex(String(record.snapshotSetDigest ?? ''))) {
-          reasons.push('archive-content-snapshots-digest-missing');
+        const normalized: Array<Record<string, string>> = [];
+        for (const [index, raw] of record.snapshots.entries()) {
+          if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+            reasons.push(`archive-content-snapshot-invalid:${index}`);
+            continue;
+          }
+          const snap = raw as Record<string, unknown>;
+          const snapshotId =
+            typeof snap.snapshotId === 'string' ? snap.snapshotId.trim() : '';
+          const projectionId =
+            typeof snap.projectionId === 'string' ? snap.projectionId.trim() : '';
+          const digest =
+            typeof snap.digest === 'string' ? snap.digest.trim() : '';
+          if (!snapshotId) {
+            reasons.push(`archive-content-snapshotId-missing:${index}`);
+          }
+          if (!projectionId) {
+            reasons.push(`archive-content-projectionId-missing:${index}`);
+          }
+          if (!isSha256Hex(digest)) {
+            reasons.push(`archive-content-snapshot-digest-invalid:${index}`);
+          }
+          normalized.push({ snapshotId, projectionId, digest });
+        }
+        const expectedSetDigest = retirementDigest({ snapshots: normalized });
+        if (record.snapshotSetDigest !== expectedSetDigest) {
+          reasons.push('archive-content-snapshots-digest-mismatch');
         }
         break;
       }
       case 'learning-fact-revision-metadata': {
         if (!Array.isArray(record.revisions) || record.revisions.length === 0) {
           reasons.push('archive-content-revisions-missing');
+          break;
+        }
+        for (const [index, raw] of record.revisions.entries()) {
+          if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+            reasons.push(`archive-content-revision-invalid:${index}`);
+            continue;
+          }
+          const rev = raw as Record<string, unknown>;
+          if (
+            typeof rev.knowledgeRevisionRef !== 'string'
+            || rev.knowledgeRevisionRef.trim().length === 0
+          ) {
+            reasons.push(
+              `archive-content-revision-ref-missing:${index}`,
+            );
+          }
+          if (
+            rev.identityNamespace !== 'LEGACY'
+            && rev.identityNamespace !== 'LEGACY_UNVERSIONED'
+            && rev.identityNamespace !== 'CANONICAL'
+          ) {
+            reasons.push(
+              `archive-content-revision-namespace-invalid:${index}`,
+            );
+          }
         }
         break;
       }
       case 'digest-verified-rollback-archive': {
-        if (!isSha256Hex(String(record.rollbackArchiveDigest ?? ''))) {
-          reasons.push('archive-content-rollback-digest-missing');
-        }
         if (!Array.isArray(record.targets) || record.targets.length === 0) {
           reasons.push('archive-content-rollback-targets-missing');
+          break;
+        }
+        const targets: Array<Record<string, string>> = [];
+        for (const [index, raw] of record.targets.entries()) {
+          if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+            reasons.push(`archive-content-rollback-target-invalid:${index}`);
+            continue;
+          }
+          const target = raw as Record<string, unknown>;
+          const activationId =
+            typeof target.activationId === 'string'
+              ? target.activationId.trim()
+              : '';
+          const activationHash =
+            typeof target.activationHash === 'string'
+              ? target.activationHash.trim()
+              : '';
+          if (!activationId) {
+            reasons.push(
+              `archive-content-rollback-activationId-missing:${index}`,
+            );
+          }
+          if (!isSha256Hex(activationHash)) {
+            reasons.push(
+              `archive-content-rollback-activationHash-invalid:${index}`,
+            );
+          }
+          targets.push({ activationId, activationHash });
+        }
+        const expectedRollbackDigest = retirementDigest({ targets });
+        if (record.rollbackArchiveDigest !== expectedRollbackDigest) {
+          reasons.push('archive-content-rollback-digest-mismatch');
         }
         break;
       }
@@ -282,8 +385,13 @@ export function verifyArchiveArtifactContents(
         if (record.adapter !== 'historical-learning-fact-crosswalk') {
           reasons.push('archive-content-adapter-id-missing');
         }
-        if (record.mutatesFacts === true || record.createsActiveSelector === true) {
-          reasons.push('archive-content-adapter-unsafe');
+        if (record.mutatesFacts !== false) {
+          reasons.push('archive-content-adapter-mutatesFacts-not-false');
+        }
+        if (record.createsActiveSelector !== false) {
+          reasons.push(
+            'archive-content-adapter-createsActiveSelector-not-false',
+          );
         }
         break;
       }

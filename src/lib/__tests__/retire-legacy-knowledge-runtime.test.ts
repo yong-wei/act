@@ -53,6 +53,7 @@ import {
   listRetainedHistoricalArtifacts,
   readHistoricalLearningFactContext,
   resolveRetirementStorePaths,
+  retirementDigest,
   runOldIdScan,
   verifyActivationIdentities,
   verifyIncrementalUpgradeReceipt,
@@ -110,6 +111,20 @@ function completeArchiveArtifacts(): ArchiveArtifactInput[] {
   const auditContent = readFileSync(auditPath, 'utf8');
   const fixed = fixedHash;
 
+  const snapshots = [
+    {
+      snapshotId: 'snap-1',
+      projectionId: 'proj-1',
+      digest: fixed,
+    },
+  ];
+  const rollbackTargets = [
+    {
+      activationId: 'activation-prior',
+      activationHash: fixed,
+    },
+  ];
+
   const byId: Record<string, string> = {
     'legacy-course-coverage-audit-manifest': auditContent,
     'old-to-canonical-crosswalk': JSON.stringify({
@@ -123,14 +138,8 @@ function completeArchiveArtifacts(): ArchiveArtifactInput[] {
       ],
     }),
     'historical-authority-projection-snapshots': JSON.stringify({
-      snapshots: [
-        {
-          snapshotId: 'snap-1',
-          projectionId: 'proj-1',
-          digest: fixed,
-        },
-      ],
-      snapshotSetDigest: fixed,
+      snapshots,
+      snapshotSetDigest: retirementDigest({ snapshots }),
     }),
     'learning-fact-revision-metadata': JSON.stringify({
       revisions: [
@@ -141,13 +150,8 @@ function completeArchiveArtifacts(): ArchiveArtifactInput[] {
       ],
     }),
     'digest-verified-rollback-archive': JSON.stringify({
-      rollbackArchiveDigest: fixedHashB,
-      targets: [
-        {
-          activationId: 'activation-prior',
-          activationHash: fixed,
-        },
-      ],
+      rollbackArchiveDigest: retirementDigest({ targets: rollbackTargets }),
+      targets: rollbackTargets,
     }),
     'historical-learning-fact-crosswalk-adapter': JSON.stringify({
       adapter: 'historical-learning-fact-crosswalk',
