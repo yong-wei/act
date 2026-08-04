@@ -270,34 +270,52 @@ export function verifyEvidenceContracts(input: {
             digest?: string;
           }>;
         };
-        const snapshotIds = new Set(
-          (body.snapshots ?? [])
-            .map((s) => s.snapshotId)
-            .filter((id): id is string => typeof id === 'string' && id.length > 0),
+        const snapshots = (body.snapshots ?? []).filter(
+          (s): s is {
+            snapshotId: string;
+            projectionId: string;
+            digest: string;
+          } =>
+            typeof s?.snapshotId === 'string'
+            && s.snapshotId.length > 0
+            && typeof s.projectionId === 'string'
+            && s.projectionId.length > 0
+            && typeof s.digest === 'string'
+            && isSha256Hex(s.digest),
         );
-        const projectionIds = new Set(
-          (body.snapshots ?? [])
-            .map((s) => s.projectionId)
-            .filter((id): id is string => typeof id === 'string' && id.length > 0),
+        const bySnapshotId = new Map(
+          snapshots.map((s) => [s.snapshotId, s]),
         );
+        const byProjectionId = new Map<string, typeof snapshots>();
+        for (const snap of snapshots) {
+          const list = byProjectionId.get(snap.projectionId) ?? [];
+          list.push(snap);
+          byProjectionId.set(snap.projectionId, list);
+        }
+
         for (const identity of input.activationIdentities) {
-          if (
-            identity.authoritySnapshotId
-            && !snapshotIds.has(identity.authoritySnapshotId)
-          ) {
-            reasons.push(
-              `archive-snapshot-missing-activation:${identity.consumerId}:${identity.authoritySnapshotId}`,
-            );
+          if (identity.authoritySnapshotId) {
+            const snap = bySnapshotId.get(identity.authoritySnapshotId);
+            if (!snap) {
+              reasons.push(
+                `archive-snapshot-missing-activation:${identity.consumerId}:${identity.authoritySnapshotId}`,
+              );
+            }
           }
           if (
             identity.projectionId
+            && identity.projectionHash
             && identity.readyUnderVersionedCombination
-            && !projectionIds.has(identity.projectionId)
           ) {
-            // Engineering consumers may omit projection; only require when present.
-            reasons.push(
-              `archive-projection-missing-activation:${identity.consumerId}:${identity.projectionId}`,
+            const matches = byProjectionId.get(identity.projectionId) ?? [];
+            const bound = matches.find(
+              (snap) => snap.digest === identity.projectionHash,
             );
+            if (!bound) {
+              reasons.push(
+                `archive-projection-digest-unbound:${identity.consumerId}:${identity.projectionId}`,
+              );
+            }
           }
         }
       } catch {
