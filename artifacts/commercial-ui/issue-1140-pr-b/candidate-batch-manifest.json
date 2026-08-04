@@ -1,16 +1,16 @@
 {
-  "capturedAt": "2026-08-03T07:30:17.377Z",
-  "commitSha": "b30883ec9c9e63fcceb69bf91044a319f7cf8b26",
+  "capturedAt": "2026-08-04T07:08:36.590Z",
+  "commitSha": "2e2a0c91168002a5eb0eca747e6f0e6fc587bd49",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "da782538930b949289db13cf5ac466cf06d91b6e2fdcece2f5d60261bcef4bc3",
-    "src/lib/adaptive-path-candidate-batches.ts": "0514a7cab7531bac8a88ab4d1a4c1cdd3cd6ef2443bd79cbc1ff381c51533477",
+    "src/app/assessment/adaptive-practice/page.tsx": "54a91d59553ddb90bfa246ce299bd579e7287b3763bc488eac138086a06886ba",
+    "src/lib/adaptive-path-candidate-batches.ts": "2b50e6d694533e0500f9c93b200574230659433b3e1fea0f026956a3e69c853c",
     "tests/adaptive-path-candidate-batches.spec.ts": "a5a823c67f6f61ae4b0e666df6f080bc6ee96ccb0122b206a6c9a0dd0cda1ec3"
   },
   "screenshots": [
     {
       "file": "artifacts/commercial-ui/issue-1140-pr-b/candidate-batch-desktop-1440.png",
-      "sha256": "375c1a210b883e465b6ff543d757432a5a7e2522f5c8d112cdead5d1afd5d90b",
+      "sha256": "ba52a0dc85e34dbadc951218ca01fdb4e22f0f96b57d111f8623266e4f42b354",
       "width": 1440,
       "height": 1000,
       "activePathId": "active-path-before-generation",
@@ -20,7 +20,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1140-pr-b/candidate-batch-mobile-320.png",
-      "sha256": "02a46175f540b0464ff770877c185465551efcbda14aaf7322dbd414789d71e2",
+      "sha256": "51b29b630b53c5bcb15863f2c0ac0c9a12ba72b0c846513c7101217e4aebf34d",
       "width": 320,
       "height": 900,
       "activePathId": "active-path-before-generation",
