@@ -48,6 +48,8 @@ export interface AdaptivePathUnlockChainContextNode {
   nodeId: string;
   title?: string | null;
   target?: string | null;
+  type?: string | null;
+  status?: string | null;
 }
 
 const UNAVAILABLE_MESSAGE = '暂时无法展示具体解锁条件，请联系教师或重新生成路径。';
@@ -182,7 +184,7 @@ function buildNextAction(
   if (firstNodeCondition) {
     const nodeId = firstNodeCondition.id.slice('completed-node:'.length);
     const title = titleFor(nodeId, nodeById) ?? '前置节点';
-    const target = nodeById.get(nodeId)?.target || undefined;
+    const target = authorizedTarget(nodeById.get(nodeId));
     return {
       title: `完成「${title}」后解锁`,
       ...(target ? { target } : {}),
@@ -193,7 +195,7 @@ function buildNextAction(
   if (firstPrerequisite) {
     const nodeId = firstPrerequisite.id.slice('prerequisite:'.length);
     const title = titleFor(nodeId, nodeById) ?? '前置节点';
-    const target = nodeById.get(nodeId)?.target || undefined;
+    const target = authorizedTarget(nodeById.get(nodeId));
     return {
       title: `完成「${title}」后解锁`,
       ...(target ? { target } : {}),
@@ -214,6 +216,13 @@ function readNonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function authorizedTarget(node: AdaptivePathUnlockChainContextNode | undefined): string | undefined {
+  if (!node || node.status === 'locked') return undefined;
+  const target = readNonEmptyString(node.target);
+  if (!target || !node.type) return undefined;
+  return resolveAdaptivePathJourneyTargetDisposition(node.type, target) === 'blocked' ? undefined : target;
+}
+
 function titleFor(
   nodeId: string,
   nodeById: Map<string, AdaptivePathUnlockChainContextNode>,
@@ -224,3 +233,4 @@ function titleFor(
 function unique(values: readonly string[]): string[] {
   return [...new Set(values)];
 }
+import { resolveAdaptivePathJourneyTargetDisposition } from '@/features/adaptive/adaptive-path-journey-contracts';

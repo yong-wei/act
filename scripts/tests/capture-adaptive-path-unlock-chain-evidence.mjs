@@ -57,27 +57,7 @@ function assertSourceFilesMatchGitHead(gitSha) {
       );
     }
     if (!worktreeBytes.equals(gitBlobBytes)) {
-      let worktreeBlobOid;
-      let headBlobOid;
-      try {
-        worktreeBlobOid = execFileSync(
-          'git',
-          ['hash-object', '--path', sourcePath, '--stdin'],
-          { cwd: repoRoot, input: worktreeBytes, encoding: 'utf8' },
-        ).trim();
-        headBlobOid = execFileSync(
-          'git',
-          ['rev-parse', `${gitSha}:${sourcePath}`],
-          { cwd: repoRoot, encoding: 'utf8' },
-        ).trim();
-      } catch (error) {
-        throw new Error(
-          `Cannot verify filtered source ${sourcePath} against ${gitSha}: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-      if (worktreeBlobOid !== headBlobOid) {
-        throw new Error(`Evidence source drifted from ${gitSha}: ${sourcePath}`);
-      }
+      throw new Error(`Evidence source bytes drifted from ${gitSha}: ${sourcePath}`);
     }
   }
 }

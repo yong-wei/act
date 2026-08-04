@@ -39,7 +39,7 @@ describe('buildAdaptivePathUnlockChain', () => {
         fallbackNodeIds: [],
       },
     }), [
-      { nodeId: 'card:bode', title: 'Bode 图知识卡', target: '/knowledge/cards/bode' },
+      { nodeId: 'card:bode', title: 'Bode 图知识卡', target: '/knowledge/cards/bode', type: 'knowledge_card' },
       { nodeId: 'node-e', title: '节点 E', target: '/simulations/node-e' },
     ]);
 
@@ -78,6 +78,30 @@ describe('buildAdaptivePathUnlockChain', () => {
     expect(chain.missingConditions[0].title).toBe('完成「准备知识卡」');
     expect(chain.nextAction?.title).toBe('完成「准备知识卡」后解锁');
     expect(chain.nextAction?.target).toBeUndefined();
+  });
+
+  it('does not link unauthorized or locked prerequisite targets', () => {
+    const lockedChain = buildAdaptivePathUnlockChain(node({
+      readiness: { state: 'locked', missingCompletedNodeIds: ['card:locked'] },
+    }), [{
+      nodeId: 'card:locked',
+      title: 'Locked card',
+      target: '/knowledge/cards/bode',
+      type: 'knowledge_card',
+      status: 'locked',
+    }]);
+    const restrictedChain = buildAdaptivePathUnlockChain(node({
+      readiness: { state: 'locked', missingCompletedNodeIds: ['card:restricted'] },
+    }), [{
+      nodeId: 'card:restricted',
+      title: 'Restricted card',
+      target: '/admin',
+      type: 'knowledge_card',
+      status: 'available',
+    }]);
+
+    expect(lockedChain.nextAction?.target).toBeUndefined();
+    expect(restrictedChain.nextAction?.target).toBeUndefined();
   });
 
   it('falls back to unlockMessage without fabricating a chain', () => {
@@ -146,6 +170,7 @@ describe('adaptive path option unlock chain display', () => {
           nodeId: 'card:bode',
           title: 'Bode 图知识卡',
           target: '/knowledge/cards/bode',
+          type: 'knowledge_card',
         },
       ],
       targetDeficits: [],
