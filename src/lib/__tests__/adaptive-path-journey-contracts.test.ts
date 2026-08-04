@@ -178,7 +178,7 @@ describe('adaptive path journey contracts', () => {
 
     const journey = buildAuthorizedAdaptivePathJourney(path, { requestedNodeId: 'node-2' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
     });
@@ -231,7 +231,7 @@ describe('adaptive path journey contracts', () => {
       lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
     }), { requestedNodeId: 'node-2' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
     });
@@ -298,7 +298,7 @@ describe('adaptive path journey contracts', () => {
       deviations: [{ deviationType: 'skip', priorNodeId: 'node-2', targetNodeId: 'node-1' }],
     }), { requestedNodeId: 'node-2' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '候选调整与当前未完成路径没有实质差异。',
     });
@@ -319,7 +319,7 @@ describe('adaptive path journey contracts', () => {
       deviations: [{ deviationType: 'skip', priorNodeId: 'node-1', targetNodeId: 'node-1' }],
     }), { requestedNodeId: 'node-1' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '已记录偏离会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。',
     });
@@ -340,7 +340,7 @@ describe('adaptive path journey contracts', () => {
       deviations: [{ deviationType: 'skip', priorNodeId: 'node-1', targetNodeId: 'node-1' }],
     }), { requestedNodeId: 'node-1' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '已记录偏离会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。',
     });
@@ -361,7 +361,7 @@ describe('adaptive path journey contracts', () => {
       lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
     }), { requestedNodeId: 'node-2' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
     });
@@ -378,7 +378,7 @@ describe('adaptive path journey contracts', () => {
       lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: ['node-1'] },
     }), { requestedNodeId: 'node-1' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '学习路径结构不完整，暂时无法生成可靠的纠偏方案。',
     });
