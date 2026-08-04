@@ -181,3 +181,117 @@ export function assertRetirementArchiveIntact(
     );
   }
 }
+
+/**
+ * Type-aware validation of archived artifact bytes. Placeholder
+ * `{"artifactId":...,"retained":true}` documents fail closed.
+ */
+export function verifyArchiveArtifactContents(
+  artifacts: readonly ArchiveArtifactInput[],
+): { ok: boolean; reasons: string[] } {
+  const reasons: string[] = [];
+  const byId = new Map(artifacts.map((a) => [a.artifactId, a]));
+
+  for (const required of RETAINED_HISTORICAL_ARTIFACTS) {
+    if (!byId.has(required)) {
+      reasons.push(`archive-content-missing:${required}`);
+    }
+  }
+
+  for (const artifact of artifacts) {
+    const text =
+      typeof artifact.content === 'string'
+        ? artifact.content
+        : artifact.content.toString('utf8');
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      reasons.push(`archive-content-not-json:${artifact.artifactId}`);
+      continue;
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      reasons.push(`archive-content-not-object:${artifact.artifactId}`);
+      continue;
+    }
+    const record = parsed as Record<string, unknown>;
+
+    // Reject the trivial placeholder used only as a negative test fixture shape.
+    if (
+      record.retained === true
+      && record.artifactId === artifact.artifactId
+      && Object.keys(record).length <= 2
+    ) {
+      reasons.push(`archive-content-placeholder:${artifact.artifactId}`);
+      continue;
+    }
+
+    switch (artifact.artifactId) {
+      case 'legacy-course-coverage-audit-manifest': {
+        try {
+          const result = archiveLegacyAuditManifest(parsed);
+          if (result.digest !== LEGACY_COURSE_COVERAGE_AUDIT_MANIFEST_DIGEST) {
+            reasons.push('archive-content-audit-digest-mismatch');
+          }
+        } catch (error) {
+          reasons.push(
+            error instanceof Error
+              ? `archive-content-audit:${error.message}`
+              : 'archive-content-audit-failed',
+          );
+        }
+        break;
+      }
+      case 'old-to-canonical-crosswalk': {
+        if (!Array.isArray(record.entries) || record.entries.length === 0) {
+          reasons.push('archive-content-crosswalk-entries-missing');
+        }
+        if (
+          typeof record.contract !== 'string'
+          || !record.contract.includes('crosswalk')
+        ) {
+          reasons.push('archive-content-crosswalk-contract-missing');
+        }
+        break;
+      }
+      case 'historical-authority-projection-snapshots': {
+        if (!Array.isArray(record.snapshots) || record.snapshots.length === 0) {
+          reasons.push('archive-content-snapshots-missing');
+        }
+        if (!isSha256Hex(String(record.snapshotSetDigest ?? ''))) {
+          reasons.push('archive-content-snapshots-digest-missing');
+        }
+        break;
+      }
+      case 'learning-fact-revision-metadata': {
+        if (!Array.isArray(record.revisions) || record.revisions.length === 0) {
+          reasons.push('archive-content-revisions-missing');
+        }
+        break;
+      }
+      case 'digest-verified-rollback-archive': {
+        if (!isSha256Hex(String(record.rollbackArchiveDigest ?? ''))) {
+          reasons.push('archive-content-rollback-digest-missing');
+        }
+        if (!Array.isArray(record.targets) || record.targets.length === 0) {
+          reasons.push('archive-content-rollback-targets-missing');
+        }
+        break;
+      }
+      case 'historical-learning-fact-crosswalk-adapter': {
+        if (record.adapter !== 'historical-learning-fact-crosswalk') {
+          reasons.push('archive-content-adapter-id-missing');
+        }
+        if (record.mutatesFacts === true || record.createsActiveSelector === true) {
+          reasons.push('archive-content-adapter-unsafe');
+        }
+        break;
+      }
+      default:
+        // Unknown retained ids still need non-placeholder JSON.
+        break;
+    }
+  }
+
+  return { ok: reasons.length === 0, reasons };
+}

@@ -5,7 +5,7 @@
  * retention, and no dual authority after retire.
  */
 
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -103,10 +103,63 @@ function completeUpgradeReceipt() {
 }
 
 function completeArchiveArtifacts(): ArchiveArtifactInput[] {
+  const auditPath = path.resolve(
+    process.cwd(),
+    'course-content/authoring/knowledge/legacy-course-coverage-audit/legacy-audit-manifest.json',
+  );
+  const auditContent = readFileSync(auditPath, 'utf8');
+  const fixed = fixedHash;
+
+  const byId: Record<string, string> = {
+    'legacy-course-coverage-audit-manifest': auditContent,
+    'old-to-canonical-crosswalk': JSON.stringify({
+      contract: 'act-legacy-id-crosswalk/v1',
+      entries: [
+        {
+          legacyId: '反馈_1_1',
+          canonicalId: 'ctr:object:feedback',
+          stale: false,
+        },
+      ],
+    }),
+    'historical-authority-projection-snapshots': JSON.stringify({
+      snapshots: [
+        {
+          snapshotId: 'snap-1',
+          projectionId: 'proj-1',
+          digest: fixed,
+        },
+      ],
+      snapshotSetDigest: fixed,
+    }),
+    'learning-fact-revision-metadata': JSON.stringify({
+      revisions: [
+        {
+          knowledgeRevisionRef: 'legacy-rev-1',
+          identityNamespace: 'LEGACY',
+        },
+      ],
+    }),
+    'digest-verified-rollback-archive': JSON.stringify({
+      rollbackArchiveDigest: fixedHashB,
+      targets: [
+        {
+          activationId: 'activation-prior',
+          activationHash: fixed,
+        },
+      ],
+    }),
+    'historical-learning-fact-crosswalk-adapter': JSON.stringify({
+      adapter: 'historical-learning-fact-crosswalk',
+      mutatesFacts: false,
+      createsActiveSelector: false,
+    }),
+  };
+
   return RETAINED_HISTORICAL_ARTIFACTS.map((artifactId) => ({
     artifactId,
     path: `archive/${artifactId}.json`,
-    content: JSON.stringify({ artifactId, retained: true }),
+    content: byId[artifactId]!,
   }));
 }
 

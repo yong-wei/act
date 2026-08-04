@@ -39,7 +39,10 @@ import {
 } from './inventory';
 import { assertZeroOldIdViolations } from './old-id-scan';
 import type { ArchiveArtifactInput } from './archive';
-import { verifyRetirementArchive } from './archive';
+import {
+  verifyArchiveArtifactContents,
+  verifyRetirementArchive,
+} from './archive';
 
 const RETIREMENT_INVARIANTS = {
   doesNotModifyActivationPointers: true as const,
@@ -209,6 +212,10 @@ export function verifyEvidenceContracts(input: {
     );
     if (!verified.ok) {
       reasons.push(...verified.reasons.map((r) => `archive-bytes:${r}`));
+    }
+    const content = verifyArchiveArtifactContents(input.archiveArtifacts);
+    if (!content.ok) {
+      reasons.push(...content.reasons.map((r) => `archive-content:${r}`));
     }
   } else {
     // Ready-for-removal requires byte-level archive verification.
