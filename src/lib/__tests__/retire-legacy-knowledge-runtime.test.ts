@@ -149,18 +149,21 @@ function zeroFallback() {
 }
 
 function readyManifest(markRemoved = false) {
+  const rev = 'c'.repeat(40);
   const inventory = buildRetirementConsumerInventory({
-    captureRevision: 'c'.repeat(40),
+    captureRevision: rev,
   });
+  const artifacts = completeArchiveArtifacts();
   return buildRetirementManifest({
     retirementId: 'retire-1',
-    captureRevision: 'c'.repeat(40),
-    headRevision: 'd'.repeat(40),
+    captureRevision: rev,
+    headRevision: rev,
     reviewedAt: '2026-08-04T12:00:00.000Z',
     inventory,
     oldIdScan: cleanScan(),
     fallbackExport: zeroFallback(),
     archive: completeArchive(),
+    archiveArtifacts: artifacts,
     upgradeReceipt: completeUpgradeReceipt(),
     activationIdentities: readyIdentities(),
     markRemoved,
@@ -385,9 +388,12 @@ describe('Retirement archive and manifest gate (#1277)', () => {
   });
 
   it('blocks retirement when preconditions are missing', () => {
-    const inventory = buildRetirementConsumerInventory();
+    const rev = 'c'.repeat(40);
+    const inventory = buildRetirementConsumerInventory({ captureRevision: rev });
     const blocked = buildRetirementManifest({
       retirementId: 'retire-blocked',
+      captureRevision: rev,
+      headRevision: rev,
       inventory,
       oldIdScan: runOldIdScan({
         files: [
@@ -396,6 +402,7 @@ describe('Retirement archive and manifest gate (#1277)', () => {
             content: 'uses 反馈_1_1\n',
           },
         ],
+        captureRevision: rev,
       }),
       fallbackExport: exportFallbackTelemetry({
         hits: [
@@ -411,6 +418,7 @@ describe('Retirement archive and manifest gate (#1277)', () => {
         },
       }),
       archive: completeArchive(),
+      archiveArtifacts: completeArchiveArtifacts(),
       upgradeReceipt: buildIncrementalUpgradeReceipt({
         receiptId: 'upgrade-partial',
         deltaIdentity: 'delta:x',
@@ -715,8 +723,9 @@ describe('Production store load and evidence integrity (#1277 P1)', () => {
   });
 
   it('blocks ready-for-removal when evidence digests are tampered', () => {
+    const rev = 'c'.repeat(40);
     const inventory = buildRetirementConsumerInventory({
-      captureRevision: 'c'.repeat(40),
+      captureRevision: rev,
     });
     // Start from a scan that actually has hits so clearing them changes the body.
     const dirty = runOldIdScan({
@@ -727,7 +736,7 @@ describe('Production store load and evidence integrity (#1277 P1)', () => {
         },
       ],
       scannedRoots: ['course-content/authoring'],
-      captureRevision: 'c'.repeat(40),
+      captureRevision: rev,
     });
     expect(dirty.hitCount).toBeGreaterThan(0);
 
@@ -742,11 +751,13 @@ describe('Production store load and evidence integrity (#1277 P1)', () => {
 
     const blocked = buildRetirementManifest({
       retirementId: 'retire-tamper',
-      captureRevision: 'c'.repeat(40),
+      captureRevision: rev,
+      headRevision: rev,
       inventory,
       oldIdScan: forged,
       fallbackExport: zeroFallback(),
       archive: completeArchive(),
+      archiveArtifacts: completeArchiveArtifacts(),
       upgradeReceipt: completeUpgradeReceipt(),
       activationIdentities: readyIdentities(),
     });
@@ -767,17 +778,81 @@ describe('Production store load and evidence integrity (#1277 P1)', () => {
     );
     const blockedIdentity = buildRetirementManifest({
       retirementId: 'retire-forged-ready',
-      captureRevision: 'c'.repeat(40),
+      captureRevision: rev,
+      headRevision: rev,
       inventory,
       oldIdScan: cleanScan(),
       fallbackExport: zeroFallback(),
       archive: completeArchive(),
+      archiveArtifacts: completeArchiveArtifacts(),
       upgradeReceipt: completeUpgradeReceipt(),
       activationIdentities: forgedIdentity,
     });
     expect(blockedIdentity.status).toBe('blocked');
     expect(
       blockedIdentity.reasons.some((r) => r.includes('konling')),
+    ).toBe(true);
+  });
+
+  it('requires captureRevision === headRevision and archive byte verification', () => {
+    const rev = 'c'.repeat(40);
+    const inventory = buildRetirementConsumerInventory({ captureRevision: rev });
+    const artifacts = completeArchiveArtifacts();
+
+    // Stale evidence revision vs current head.
+    const stale = buildRetirementManifest({
+      retirementId: 'retire-stale',
+      captureRevision: rev,
+      headRevision: 'd'.repeat(40),
+      inventory,
+      oldIdScan: cleanScan(),
+      fallbackExport: zeroFallback(),
+      archive: completeArchive(),
+      archiveArtifacts: artifacts,
+      upgradeReceipt: completeUpgradeReceipt(),
+      activationIdentities: readyIdentities(),
+    });
+    expect(stale.status).toBe('blocked');
+    expect(stale.reasons).toEqual(
+      expect.arrayContaining(['capture-head-revision-mismatch']),
+    );
+
+    // Missing archive bytes.
+    const noBytes = buildRetirementManifest({
+      retirementId: 'retire-no-bytes',
+      captureRevision: rev,
+      headRevision: rev,
+      inventory,
+      oldIdScan: cleanScan(),
+      fallbackExport: zeroFallback(),
+      archive: completeArchive(),
+      upgradeReceipt: completeUpgradeReceipt(),
+      activationIdentities: readyIdentities(),
+    });
+    expect(noBytes.status).toBe('blocked');
+    expect(noBytes.reasons).toEqual(
+      expect.arrayContaining(['archive-artifacts-required']),
+    );
+
+    // Tampered archive bytes.
+    const tamperedBytes = artifacts.map((a, i) =>
+      i === 0 ? { ...a, content: 'tampered-bytes' } : a,
+    );
+    const badBytes = buildRetirementManifest({
+      retirementId: 'retire-bad-bytes',
+      captureRevision: rev,
+      headRevision: rev,
+      inventory,
+      oldIdScan: cleanScan(),
+      fallbackExport: zeroFallback(),
+      archive: completeArchive(),
+      archiveArtifacts: tamperedBytes,
+      upgradeReceipt: completeUpgradeReceipt(),
+      activationIdentities: readyIdentities(),
+    });
+    expect(badBytes.status).toBe('blocked');
+    expect(
+      badBytes.reasons.some((r) => r.startsWith('archive-bytes:')),
     ).toBe(true);
   });
 

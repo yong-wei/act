@@ -4,11 +4,14 @@
  * Fail closed on missing evidence or activation coupling.
  */
 
+import { LEGACY_COURSE_COVERAGE_AUDIT_MANIFEST_DIGEST } from '@/lib/aggregate-governance/legacy-course-coverage-audit';
+
 import {
   LEGACY_RETIREMENT_BUILDER_VERSION,
   LEGACY_RETIREMENT_MANIFEST_CONTRACT,
   LEGACY_RETIREMENT_REMOVAL_RECEIPT_CONTRACT,
   LegacyRetirementGateError,
+  RETAINED_HISTORICAL_ARTIFACTS,
   RETIREABLE_RUNTIME_DEPENDENCIES,
   type ActivationIdentityEvidence,
   type FallbackTelemetryExport,
@@ -31,7 +34,12 @@ import {
   verifyIncrementalUpgradeReceipt,
 } from './preflight';
 import { assertZeroFallbackHits } from './fallback-export';
+import {
+  assertInventoryCoversRetireableDependencies,
+} from './inventory';
 import { assertZeroOldIdViolations } from './old-id-scan';
+import type { ArchiveArtifactInput } from './archive';
+import { verifyRetirementArchive } from './archive';
 
 const RETIREMENT_INVARIANTS = {
   doesNotModifyActivationPointers: true as const,
@@ -99,10 +107,23 @@ function defaultRemovedDependencies(
   }));
 }
 
+const GIT_SHA1_RE = /^[a-f0-9]{40}$/u;
+
+function isGitRevision(value: string | null | undefined): value is string {
+  return typeof value === 'string' && GIT_SHA1_RE.test(value);
+}
+
 export interface BuildRetirementManifestInput {
   retirementId: string;
-  captureRevision?: string | null;
-  headRevision?: string | null;
+  /**
+   * Required capture Git revision (40-char sha1). Must equal headRevision and
+   * every evidence document captureRevision.
+   */
+  captureRevision: string;
+  /**
+   * Required current HEAD Git revision. Must equal captureRevision.
+   */
+  headRevision: string;
   reviewedAt?: string | null;
   inventory: RetirementConsumerInventory;
   oldIdScan: OldIdScanReport;
@@ -111,11 +132,90 @@ export interface BuildRetirementManifestInput {
   upgradeReceipt: IncrementalUpgradeReceipt;
   activationIdentities: readonly ActivationIdentityEvidence[];
   /**
+   * Optional raw archive artifact bytes used to re-verify content digests
+   * against the archive document (fail closed when provided and mismatched;
+   * required for ready-for-removal).
+   */
+  archiveArtifacts?: readonly ArchiveArtifactInput[];
+  /**
    * When true, mark dependencies as removed in the manifest (post-gate).
    * Default false — preflight only.
    */
   markRemoved?: boolean;
   changeSurface?: RetirementChangeSurface;
+}
+
+/**
+ * Structural inventory + archive contracts beyond self-digest equality.
+ */
+export function verifyEvidenceContracts(input: {
+  inventory: RetirementConsumerInventory;
+  archive: RetirementArchive;
+  archiveArtifacts?: readonly ArchiveArtifactInput[] | null;
+}): string[] {
+  const reasons: string[] = [];
+
+  try {
+    assertInventoryCoversRetireableDependencies(input.inventory);
+  } catch (error) {
+    reasons.push(
+      error instanceof Error
+        ? `inventory-contract:${error.message}`
+        : 'inventory-contract-failed',
+    );
+  }
+
+  if (input.inventory.entries.length === 0) {
+    reasons.push('inventory-entries-empty');
+  }
+
+  const retainedPresent = new Set(
+    input.inventory.entries
+      .filter((e) => e.retainedAfterRetirement)
+      .map((e) => e.id),
+  );
+  for (const artifactId of RETAINED_HISTORICAL_ARTIFACTS) {
+    if (!retainedPresent.has(artifactId)) {
+      reasons.push(`inventory-missing-retained:${artifactId}`);
+    }
+  }
+
+  if (
+    input.archive.legacyAuditManifestDigest
+    !== LEGACY_COURSE_COVERAGE_AUDIT_MANIFEST_DIGEST
+  ) {
+    reasons.push('archive-legacy-audit-digest-not-frozen');
+  }
+
+  const archiveIds = new Set(input.archive.entries.map((e) => e.artifactId));
+  for (const artifactId of RETAINED_HISTORICAL_ARTIFACTS) {
+    if (!archiveIds.has(artifactId)) {
+      reasons.push(`archive-missing-retained:${artifactId}`);
+    }
+  }
+  for (const entry of input.archive.entries) {
+    if (!isSha256Hex(entry.contentDigest)) {
+      reasons.push(`archive-entry-digest-invalid:${entry.artifactId}`);
+    }
+    if (entry.immutable !== true) {
+      reasons.push(`archive-entry-not-immutable:${entry.artifactId}`);
+    }
+  }
+
+  if (input.archiveArtifacts) {
+    const verified = verifyRetirementArchive(
+      input.archive,
+      input.archiveArtifacts,
+    );
+    if (!verified.ok) {
+      reasons.push(...verified.reasons.map((r) => `archive-bytes:${r}`));
+    }
+  } else {
+    // Ready-for-removal requires byte-level archive verification.
+    reasons.push('archive-artifacts-required');
+  }
+
+  return reasons;
 }
 
 /**
@@ -201,22 +301,51 @@ export function buildRetirementManifest(
     reasons.push('upgrade-receipt-digest-missing');
   }
 
-  // Capture revision must bind inventory / scan / archive to one Git revision.
-  const captureRevisions = [
+  // Capture + HEAD revisions are mandatory and must match every evidence doc.
+  if (!isGitRevision(input.captureRevision)) {
+    reasons.push('capture-revision-invalid');
+  }
+  if (!isGitRevision(input.headRevision)) {
+    reasons.push('head-revision-invalid');
+  }
+  if (
+    isGitRevision(input.captureRevision)
+    && isGitRevision(input.headRevision)
+    && input.captureRevision !== input.headRevision
+  ) {
+    reasons.push('capture-head-revision-mismatch');
+  }
+
+  const expectedRevision =
+    isGitRevision(input.captureRevision) && isGitRevision(input.headRevision)
+    && input.captureRevision === input.headRevision
+      ? input.captureRevision
+      : null;
+
+  const evidenceRevisions = [
     input.inventory.captureRevision,
     input.oldIdScan.captureRevision,
     input.archive.captureRevision,
-  ].filter((value): value is string => typeof value === 'string' && value.length > 0);
-  if (captureRevisions.length < 3) {
+  ];
+  if (evidenceRevisions.some((value) => !isGitRevision(value))) {
     reasons.push('capture-revision-incomplete');
-  } else if (new Set(captureRevisions).size !== 1) {
+  } else if (new Set(evidenceRevisions).size !== 1) {
     reasons.push('capture-revision-mismatch');
   } else if (
-    input.captureRevision
-    && input.captureRevision !== captureRevisions[0]
+    expectedRevision
+    && evidenceRevisions[0] !== expectedRevision
   ) {
-    reasons.push('capture-revision-head-mismatch');
+    reasons.push('capture-revision-not-current-head');
   }
+
+  // Full inventory / archive structural + optional byte verification.
+  reasons.push(
+    ...verifyEvidenceContracts({
+      inventory: input.inventory,
+      archive: input.archive,
+      archiveArtifacts: input.archiveArtifacts,
+    }),
+  );
 
   try {
     assertZeroOldIdViolations(input.oldIdScan);
@@ -278,8 +407,8 @@ export function buildRetirementManifest(
     contract: LEGACY_RETIREMENT_MANIFEST_CONTRACT as typeof LEGACY_RETIREMENT_MANIFEST_CONTRACT,
     builderVersion: LEGACY_RETIREMENT_BUILDER_VERSION as typeof LEGACY_RETIREMENT_BUILDER_VERSION,
     retirementId: input.retirementId,
-    captureRevision: input.captureRevision ?? null,
-    headRevision: input.headRevision ?? null,
+    captureRevision: input.captureRevision,
+    headRevision: input.headRevision,
     reviewedAt: input.reviewedAt ?? null,
     inventoryDigest: input.inventory.inventoryDigest,
     oldIdScanDigest: input.oldIdScan.scanDigest,
