@@ -1,12 +1,12 @@
 {
-  "capturedAt": "2026-08-04T08:14:02.646Z",
-  "commitSha": "cf578105b4c3797ce61e2f31ffc66851a2385f4c",
+  "capturedAt": "2026-08-04T09:18:18.611Z",
+  "commitSha": "002b743aa9506499066cafedb91ed67261740e58",
   "generator": {
     "file": "tests/adaptive-path-correction-proposal.spec.ts",
     "sha256": "88bf728203f35fafa4d01b576a6d366cc6a7e40e31afbfb39b371aa6fcfcd239"
   },
   "productionSourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "0b822dbfd5f654e1b73a8d7d3dda403490c7314f6ce3a1e10196aa2992c9ae07",
+    "src/app/assessment/adaptive-practice/page.tsx": "54a91d59553ddb90bfa246ce299bd579e7287b3763bc488eac138086a06886ba",
     "src/features/adaptive/adaptive-path-journey-control.tsx": "b01a7192dc627b5034ac82d943790c4d8071aed265b2606df020ca75e8ad2258",
     "src/features/adaptive/adaptive-path-journey-contracts.ts": "f8fafb11e1f7979482064543383864a47ab93cc62e9bb94a3d0254565b3a509e"
   },
