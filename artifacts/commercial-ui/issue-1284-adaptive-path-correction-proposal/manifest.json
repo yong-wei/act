@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-08-04T05:57:56.302Z",
-  "commitSha": "3c8f2dbe1f4b83b82ec49c6d07e1cc479cddc743",
+  "capturedAt": "2026-08-04T06:46:03.678Z",
+  "commitSha": "7c51872cc2b2431939b8c7f7f9a7931a46acc33c",
   "generator": {
     "file": "tests/adaptive-path-correction-proposal.spec.ts",
     "sha256": "88bf728203f35fafa4d01b576a6d366cc6a7e40e31afbfb39b371aa6fcfcd239"
@@ -8,7 +8,7 @@
   "productionSourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "0b822dbfd5f654e1b73a8d7d3dda403490c7314f6ce3a1e10196aa2992c9ae07",
     "src/features/adaptive/adaptive-path-journey-control.tsx": "b01a7192dc627b5034ac82d943790c4d8071aed265b2606df020ca75e8ad2258",
-    "src/features/adaptive/adaptive-path-journey-contracts.ts": "11e074a5f0d0169f338df4ee6dcb54583040dc66476a4a443767b6cfa460ebee"
+    "src/features/adaptive/adaptive-path-journey-contracts.ts": "5a5e3a039a7875162ad9c08803273359fae6b863fe0820037c114e05c7e862fd"
   },
   "routes": [
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=checkpoint-1&correctionFixture=failed-checkpoint",
