@@ -47,6 +47,10 @@ function currentHead(): string {
   return git(['rev-parse', 'HEAD']).toString('utf8').trim();
 }
 
+function repositoryPath(path: string): string {
+  return relative(process.cwd(), path).replaceAll('\\', '/');
+}
+
 function assertClean(label: string): void {
   const status = git(['status', '--porcelain', '--untracked-files=all']).toString('utf8');
   if (status.trim().length > 0) {
@@ -144,6 +148,19 @@ async function recordPracticeAndGenerate(
   await expect(panel.getByText('介入判定：需要介入', { exact: false })).toBeVisible();
 }
 
+async function selectMethodAndWaitForField(
+  methodSelect: ReturnType<Page['getByRole']>,
+  panel: ReturnType<Page['locator']>,
+  method: string,
+  expectedField: string,
+) {
+  await expect(async () => {
+    await methodSelect.selectOption(method);
+    await expect(methodSelect).toHaveValue(method);
+    await expect(panel.getByText(expectedField, { exact: true })).toBeVisible();
+  }).toPass({ timeout: 30_000 });
+}
+
 test.describe.configure({ timeout: 180_000, mode: 'serial' });
 
 test('Issue 1181 captures task-aware companion guidance across representative control methods', async ({ page }) => {
@@ -220,11 +237,13 @@ test('Issue 1181 captures task-aware companion guidance across representative co
           await expect(methodSelect).toBeVisible();
           await methodSelect.focus();
           await expect(methodSelect).toBeFocused();
-          await methodSelect.selectOption(scenario.initialMethod);
-          await expect(methodSelect).toHaveValue(scenario.initialMethod);
-          await expect(panel.getByText('Kp', { exact: true })).toBeVisible();
-          await methodSelect.selectOption(scenario.selectedMethod);
-          await expect(methodSelect).toHaveValue(scenario.selectedMethod);
+          await selectMethodAndWaitForField(methodSelect, panel, scenario.initialMethod, 'Kp');
+          await selectMethodAndWaitForField(
+            methodSelect,
+            panel,
+            scenario.selectedMethod,
+            scenario.expectedParameter,
+          );
           await expect(panel.getByText('Kp', { exact: true })).toHaveCount(0);
           domAssertions[scenario.id]![`methodSwitch:${viewport.width}`] = true;
         } else {
@@ -251,7 +270,7 @@ test('Issue 1181 captures task-aware companion guidance across representative co
           const screenshotPath = join(evidenceDir, `${scenario.id}-${viewport.width}x${viewport.height}.png`);
           await page.screenshot({ path: screenshotPath, fullPage: true });
           screenshots.push({
-            path: relative(process.cwd(), screenshotPath),
+            path: repositoryPath(screenshotPath),
             sha256: sha256(readFileSync(screenshotPath)),
             viewport,
             scenario: scenario.id,
@@ -294,7 +313,7 @@ test('Issue 1181 captures task-aware companion guidance across representative co
       assertScreenshotBundle(screenshots);
       assertOnlyExpectedEvidenceChanges([
         ...screenshots.map((screenshot) => screenshot.path),
-        relative(process.cwd(), manifestPath),
+        repositoryPath(manifestPath),
       ]);
     }
   } catch (error) {
