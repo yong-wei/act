@@ -19,4 +19,4 @@
 
 - [x] 4.1 Run targeted unit and route tests, typecheck, lint for modified files, and strict OpenSpec validation.
 - [x] 4.2 Run the issue worktree locally and capture desktop and narrow-viewport browser evidence for the correction proposal.
-- [ ] 4.3 Run git diff --check and record verification results in the pull request description.
+- [x] 4.3 Run git diff --check and record verification results in the pull request description.
