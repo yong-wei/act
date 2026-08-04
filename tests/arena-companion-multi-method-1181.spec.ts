@@ -32,7 +32,8 @@ type ScreenshotRecord = {
 type CaptureState = {
   sourceRevision: string;
   generatorSha256: string;
-  sourceHashes: Record<string, string>;
+  generatorBlobId: string;
+  sourceBlobIds: Record<string, string>;
 };
 
 function sha256(bytes: Buffer): string {
@@ -71,8 +72,9 @@ function readSourceHashes(head: string): CaptureState {
 
   return {
     sourceRevision: head,
-    generatorSha256: hashes[generatorPath]!,
-    sourceHashes: Object.fromEntries(sourceFiles.map((path) => [path, hashes[path]!])),
+    generatorSha256: sha256(readFileSync(join(process.cwd(), generatorPath))),
+    generatorBlobId: hashes[generatorPath]!,
+    sourceBlobIds: Object.fromEntries(sourceFiles.map((path) => [path, hashes[path]!])),
   };
 }
 
@@ -287,7 +289,8 @@ test('Issue 1181 captures task-aware companion guidance across representative co
       }
       const finalHashes = readSourceHashes(captureAfterHead);
       if (finalHashes.generatorSha256 !== captureState.generatorSha256
-        || JSON.stringify(finalHashes.sourceHashes) !== JSON.stringify(captureState.sourceHashes)) {
+        || finalHashes.generatorBlobId !== captureState.generatorBlobId
+        || JSON.stringify(finalHashes.sourceBlobIds) !== JSON.stringify(captureState.sourceBlobIds)) {
         throw new Error('capture source hashes changed during browser verification');
       }
       const manifestPath = join(evidenceDir, 'manifest.json');
@@ -296,8 +299,9 @@ test('Issue 1181 captures task-aware companion guidance across representative co
         capturedAt: new Date().toISOString(),
         generatorPath,
         generatorSha256: captureState.generatorSha256,
+        generatorBlobId: captureState.generatorBlobId,
         sourceRevision: captureState.sourceRevision,
-        sourceFiles: finalHashes.sourceHashes,
+        sourceGitBlobIds: finalHashes.sourceBlobIds,
         route: '/interactive-learning/control-workbench',
         scenarios: scenarios.map((scenario) => ({
           id: scenario.id,
