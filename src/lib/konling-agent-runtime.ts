@@ -131,6 +131,7 @@ import {
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
+import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
 import {
@@ -1869,6 +1870,7 @@ interface KonlingMemoryCreateInput {
 interface KonlingInterventionInput {
   scope: KonlingRuntimeScope;
   studentState: StudentState;
+  arenaContext?: ArenaCompanionContext;
   now?: Date;
 }
 
@@ -7660,8 +7662,8 @@ export async function createGovernedKonlingIntervention(
     };
   }
 
-  const decision = shouldIntervene(input.studentState);
-  const payload = generateIntervention(decision, input.studentState);
+  const decision = shouldIntervene(input.studentState, {}, input.arenaContext);
+  const payload = generateIntervention(decision, input.studentState, input.arenaContext);
   if (!decision.shouldIntervene) {
     return {
       id: '',
