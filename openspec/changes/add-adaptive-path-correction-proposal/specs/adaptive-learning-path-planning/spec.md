@@ -13,6 +13,11 @@ The system SHALL derive a student-visible candidate correction proposal when a p
 - **THEN** the path journey SHALL expose a candidate correction proposal that identifies the recorded deviation as its trigger
 - **AND** it SHALL NOT automatically apply the proposal.
 
+#### Scenario: Recorded deviation takes precedence over a residual failed checkpoint
+- **WHEN** a valid recorded skip, replacement, or abandonment deviation exists for unfinished nodes after a checkpoint failure remains in execution metadata
+- **THEN** the path journey SHALL derive the candidate from the recorded deviation and identify that deviation as its trigger
+- **AND** it SHALL NOT present the residual failed checkpoint as the candidate trigger.
+
 #### Scenario: Correction cannot be generated reliably
 - **WHEN** trusted execution facts, eligible governed resources, prerequisite relationships, or a material path difference are insufficient
 - **THEN** the path journey SHALL expose a student-safe unavailable reason

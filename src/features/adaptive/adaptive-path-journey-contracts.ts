@@ -455,6 +455,32 @@ function buildAdaptivePathJourneyCorrection(input: {
     return { proposal: null, unavailableReason: hasCorrectionTrigger(input) ? '路径中的未完成节点信息不完整，暂时无法生成可靠的纠偏方案。' : null };
   }
 
+  const deviation = findCorrectableDeviation(input.deviations, originalRemaining);
+  if (deviation) {
+    return correctionFromDeviation({
+      originalRemaining,
+      trigger: {
+        kind: 'deviation',
+        node: deviation.priorNode,
+        reason: deviation.reason,
+      },
+      deviation,
+      completedNodeIds: input.completedNodeIds,
+      supportingFacts: [
+        deviation.reason,
+        '候选差异仅来自已记录的路径执行事实和当前未完成的受治理节点。',
+      ],
+    });
+  }
+  if (hasRelevantDeviation(input.deviations)) {
+    return {
+      proposal: null,
+      unavailableReason: hasNoMaterialDeviation(input.deviations, originalRemaining)
+        ? '候选调整与当前未完成路径没有实质差异。'
+        : '偏离记录缺少可核验的未完成节点对应关系，暂时无法生成可靠的纠偏方案。',
+    };
+  }
+
   const failedCheckpoint = originalRemaining.find((node) =>
     input.failedNodeIds.has(node.nodeId) && node.checkpoint,
   ) ?? (
@@ -486,31 +512,7 @@ function buildAdaptivePathJourneyCorrection(input: {
         };
   }
 
-  const deviation = findCorrectableDeviation(input.deviations, originalRemaining);
-  if (!deviation) {
-    return {
-      proposal: null,
-      unavailableReason: hasNoMaterialDeviation(input.deviations, originalRemaining)
-        ? '候选调整与当前未完成路径没有实质差异。'
-        : hasRelevantDeviation(input.deviations)
-          ? '偏离记录缺少可核验的未完成节点对应关系，暂时无法生成可靠的纠偏方案。'
-          : null,
-    };
-  }
-  return correctionFromDeviation({
-    originalRemaining,
-    trigger: {
-      kind: 'deviation',
-      node: deviation.priorNode,
-      reason: deviation.reason,
-    },
-    deviation,
-    completedNodeIds: input.completedNodeIds,
-    supportingFacts: [
-      deviation.reason,
-      '候选差异仅来自已记录的路径执行事实和当前未完成的受治理节点。',
-    ],
-  });
+  return { proposal: null, unavailableReason: null };
 }
 
 function findFailedCheckpointPreparation(

@@ -257,6 +257,40 @@ describe('adaptive path journey contracts', () => {
     });
   });
 
+  it.each([
+    ['skip', 'node-2', 'removed'],
+    ['replacement', 'node-3', 'replaced'],
+    ['abandonment', 'node-3', 'removed'],
+  ] as const)('uses a recorded %s deviation instead of a residual failed checkpoint', (
+    deviationType,
+    targetNodeId,
+    changeKind,
+  ) => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          { nodeId: 'node-2', title: '校正检查点', type: 'checkpoint', target: '/assessment/adaptive-practice', status: 'current', checkpoint: true, readiness: { state: 'ready' } },
+          { nodeId: 'node-3', title: '误差复习', type: 'knowledge_card', target: '/knowledge/card-2', status: 'next', readiness: { state: 'ready' } },
+        ],
+      },
+      terminalValidation: { nodeId: 'node-2', state: 'failed' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
+      deviations: [{ deviationType, priorNodeId: 'node-2', targetNodeId }],
+    }), { requestedNodeId: 'node-2' });
+
+    expect(journey.correction).toMatchObject({
+      proposal: {
+        trigger: { kind: 'deviation', nodeId: 'node-2' },
+        changes: [{ kind: changeKind, nodeId: 'node-2' }],
+      },
+      unavailableReason: null,
+    });
+  });
+
   it('fails closed when a skip record does not name the skipped current node as its target', () => {
     const journey = buildAuthorizedAdaptivePathJourney(buildPath({
       currentNodeId: 'node-2',
