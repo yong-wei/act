@@ -1,0 +1,101 @@
+{
+  "capturedAt": "2026-08-04T04:53:51.838Z",
+  "commitSha": "851cb751786512ddd0e3e8924e993717b58f5a89",
+  "generator": {
+    "file": "tests/adaptive-path-correction-proposal.spec.ts",
+    "sha256": "88bf728203f35fafa4d01b576a6d366cc6a7e40e31afbfb39b371aa6fcfcd239"
+  },
+  "productionSourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "0b822dbfd5f654e1b73a8d7d3dda403490c7314f6ce3a1e10196aa2992c9ae07",
+    "src/features/adaptive/adaptive-path-journey-control.tsx": "760e735a7450456407681787f058b3bfa1688541253c86a2c8091adac60584d6",
+    "src/features/adaptive/adaptive-path-journey-contracts.ts": "33144855d69442b1f64cb606220f7da0f90c608999d7b4645882dadc08325446"
+  },
+  "routes": [
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=checkpoint-1&correctionFixture=failed-checkpoint",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=checkpoint-1&correctionFixture=recorded-deviation"
+  ],
+  "assertions": [
+    {
+      "viewport": "desktop-1440",
+      "fixture": "failed-checkpoint",
+      "passed": true,
+      "checks": [
+        "failed checkpoint is unavailable without a verifiable remediation relationship",
+        "no proposal rendered",
+        "no apply interaction",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "fixture": "recorded-deviation",
+      "passed": true,
+      "checks": [
+        "recorded deviation renders a reliable proposal",
+        "original path remains a read-only comparison",
+        "no apply interaction",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "fixture": "failed-checkpoint",
+      "passed": true,
+      "checks": [
+        "failed checkpoint is unavailable without a verifiable remediation relationship",
+        "no proposal rendered",
+        "no apply interaction",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "fixture": "recorded-deviation",
+      "passed": true,
+      "checks": [
+        "recorded deviation renders a reliable proposal",
+        "original path remains a read-only comparison",
+        "no apply interaction",
+        "no horizontal overflow"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "fixture": "failed-checkpoint",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-adaptive-path-correction-proposal/failed-checkpoint-desktop-1440.png",
+      "sha256": "ed1a1a6acfa2c0921b48a86c827b4dab96ee24489138edffb7a00fe5d914e31f",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "recorded-deviation",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-adaptive-path-correction-proposal/recorded-deviation-desktop-1440.png",
+      "sha256": "5f30ec36889680519c14eb942979bb5300d1a6b63bd538fbd573c71f96dcf909",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "failed-checkpoint",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-adaptive-path-correction-proposal/failed-checkpoint-mobile-320.png",
+      "sha256": "5bfcc6fe9782e160cd631b562675bcb81fa79a028bfedf241f8eac0364f422ef",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "recorded-deviation",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-adaptive-path-correction-proposal/recorded-deviation-mobile-320.png",
+      "sha256": "5c676bfe3401632faa8ebc53d19caddbfff3e0c8d27e63a420d22b050991f9b5",
+      "noHorizontalOverflow": true
+    }
+  ]
+}
