@@ -286,34 +286,37 @@ export function verifyEvidenceContracts(input: {
         const bySnapshotId = new Map(
           snapshots.map((s) => [s.snapshotId, s]),
         );
-        const byProjectionId = new Map<string, typeof snapshots>();
-        for (const snap of snapshots) {
-          const list = byProjectionId.get(snap.projectionId) ?? [];
-          list.push(snap);
-          byProjectionId.set(snap.projectionId, list);
-        }
 
         for (const identity of input.activationIdentities) {
-          if (identity.authoritySnapshotId) {
-            const snap = bySnapshotId.get(identity.authoritySnapshotId);
-            if (!snap) {
+          if (!identity.authoritySnapshotId) {
+            if (identity.readyUnderVersionedCombination) {
               reasons.push(
-                `archive-snapshot-missing-activation:${identity.consumerId}:${identity.authoritySnapshotId}`,
+                `archive-snapshot-id-required:${identity.consumerId}`,
               );
             }
+            continue;
           }
+          const snap = bySnapshotId.get(identity.authoritySnapshotId);
+          if (!snap) {
+            reasons.push(
+              `archive-snapshot-missing-activation:${identity.consumerId}:${identity.authoritySnapshotId}`,
+            );
+            continue;
+          }
+          // Same snapshot row must carry the consumer's Projection combination.
           if (
             identity.projectionId
             && identity.projectionHash
             && identity.readyUnderVersionedCombination
           ) {
-            const matches = byProjectionId.get(identity.projectionId) ?? [];
-            const bound = matches.find(
-              (snap) => snap.digest === identity.projectionHash,
-            );
-            if (!bound) {
+            if (snap.projectionId !== identity.projectionId) {
               reasons.push(
-                `archive-projection-digest-unbound:${identity.consumerId}:${identity.projectionId}`,
+                `archive-snapshot-projection-mismatch:${identity.consumerId}:${identity.authoritySnapshotId}`,
+              );
+            }
+            if (snap.digest !== identity.projectionHash) {
+              reasons.push(
+                `archive-snapshot-digest-mismatch:${identity.consumerId}:${identity.authoritySnapshotId}`,
               );
             }
           }
