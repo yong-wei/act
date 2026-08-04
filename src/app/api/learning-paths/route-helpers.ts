@@ -51,8 +51,10 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
       terminalValidation: true,
       lastExecutionMetadata: true,
       deviations: {
+        orderBy: { createdAt: 'desc' },
         select: {
           id: true,
+          deviationType: true,
           priorNodeId: true,
           targetNodeId: true,
         },
