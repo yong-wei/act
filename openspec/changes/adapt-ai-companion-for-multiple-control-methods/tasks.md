@@ -23,5 +23,5 @@
 ## 5. Review remediation
 
 - [x] 5.1 Add failing runtime tests proving that a cooldown applies to the same Arena task-method identity but not another allowed method, then persist the resolved task-method reference with the intervention.
-- [ ] 5.2 Capture fail-closed Control Workbench browser evidence for representative PID, MPC, and black-box contexts at 1440px and 320px, including method switching, keyboard focus, requests, and overflow checks.
+- [x] 5.2 Capture fail-closed Control Workbench browser evidence for representative PID, MPC, and black-box contexts at 1440px and 320px, including method switching, keyboard focus, requests, and overflow checks.
 - [ ] 5.3 Reconcile the PR with the latest `integration` baseline and rerun the remediation verification suite.

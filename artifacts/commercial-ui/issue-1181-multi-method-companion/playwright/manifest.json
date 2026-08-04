@@ -1,0 +1,166 @@
+{
+  "status": "passed",
+  "capturedAt": "2026-08-04T08:05:20.245Z",
+  "generatorPath": "tests/arena-companion-multi-method-1181.spec.ts",
+  "generatorSha256": "1e2fb5b92e1b626ea4c14bee3570228544ca1570",
+  "sourceRevision": "6340ff32451893aeab140d5d90a4aedbfe6cd1da",
+  "sourceFiles": {
+    "src/features/ai/companion/ai-companion-panel.tsx": "87f23a8a417f64461c2df22a23249d9d4a0a66cf",
+    "src/features/ai/companion/arena-companion-context.ts": "9a4dd02eb26eb0c4b3b14ec905542e79e246bd72",
+    "src/features/ai/companion/intervention-engine.ts": "ea6a0e86d960e136cd88ed7493fafb36571aa74e",
+    "src/features/control-workbench/shell/control-workbench-shell.tsx": "61654bc7952d7447c7e2181aa26b2b727be3fb21",
+    "src/app/api/ai/intervention/generate/route.ts": "b08285c4d5b6d3e11d9b57fc9bbb00b9f2b8df27",
+    "src/lib/konling-agent-runtime.ts": "281e2121fef1ce6eba77920c5f50c2119a60474b"
+  },
+  "route": "/interactive-learning/control-workbench",
+  "scenarios": [
+    {
+      "id": "multi-method",
+      "taskId": "task-second-order-lead-pid",
+      "selectedMethod": "serial-compensator"
+    },
+    {
+      "id": "mpc",
+      "taskId": "task-ship-roll-mpc-hidden-scenarios",
+      "selectedMethod": "mpc"
+    },
+    {
+      "id": "black-box",
+      "taskId": "task-cruise-roll-blackbox-identification",
+      "selectedMethod": "black-box-control"
+    }
+  ],
+  "captureBeforeHead": "6340ff32451893aeab140d5d90a4aedbfe6cd1da",
+  "captureAfterHead": "6340ff32451893aeab140d5d90a4aedbfe6cd1da",
+  "screenshots": [
+    {
+      "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/multi-method-1440x1000.png",
+      "sha256": "2870395f942525508c7259ada0f98e0b33acb3941d5946f5e65ec18604504dd5",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "scenario": "multi-method",
+      "overflowMetrics": {
+        "innerWidth": 1440,
+        "bodyScrollWidth": 1440,
+        "documentScrollWidth": 1440
+      }
+    },
+    {
+      "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/multi-method-320x900.png",
+      "sha256": "996bcb676eec5de748b84ae0963be431f1c9cfbf8dc81c74e30faad4f38279f1",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "scenario": "multi-method",
+      "overflowMetrics": {
+        "innerWidth": 320,
+        "bodyScrollWidth": 320,
+        "documentScrollWidth": 320
+      }
+    },
+    {
+      "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/mpc-1440x1000.png",
+      "sha256": "122048c6cf23861833559d6e13a1a459b38bd2691fd0b6cda3d3ded94964daed",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "scenario": "mpc",
+      "overflowMetrics": {
+        "innerWidth": 1440,
+        "bodyScrollWidth": 1440,
+        "documentScrollWidth": 1440
+      }
+    },
+    {
+      "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/mpc-320x900.png",
+      "sha256": "a0d765aaf51dd5e803633bd1e0b7451f12058d28ccdcf9e9373ec116621ee8c4",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "scenario": "mpc",
+      "overflowMetrics": {
+        "innerWidth": 320,
+        "bodyScrollWidth": 320,
+        "documentScrollWidth": 320
+      }
+    },
+    {
+      "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/black-box-1440x1000.png",
+      "sha256": "74ad4206aa70bf0fc56f017a4c3560775156133b88704ce7a059f357e6213548",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "scenario": "black-box",
+      "overflowMetrics": {
+        "innerWidth": 1440,
+        "bodyScrollWidth": 1440,
+        "documentScrollWidth": 1440
+      }
+    },
+    {
+      "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/black-box-320x900.png",
+      "sha256": "a0647dabf88dcaccda05abd88871095c00e9e77edc93ea3be8bfe25da63bbdde",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "scenario": "black-box",
+      "overflowMetrics": {
+        "innerWidth": 320,
+        "bodyScrollWidth": 320,
+        "documentScrollWidth": 320
+      }
+    }
+  ],
+  "requestCount": 6,
+  "domAssertions": {
+    "multi-method": {
+      "methodSwitch:1440": true,
+      "panelVisible:1440": true,
+      "methodSpecificFields:1440": true,
+      "generateRequest:1440": true,
+      "keyboardFocus:1440": true,
+      "noHorizontalOverflow:1440": true,
+      "methodSwitch:320": true,
+      "panelVisible:320": true,
+      "methodSpecificFields:320": true,
+      "generateRequest:320": true,
+      "keyboardFocus:320": true,
+      "noHorizontalOverflow:320": true
+    },
+    "mpc": {
+      "singleMethod:1440": true,
+      "panelVisible:1440": true,
+      "methodSpecificFields:1440": true,
+      "generateRequest:1440": true,
+      "keyboardFocus:1440": true,
+      "noHorizontalOverflow:1440": true,
+      "singleMethod:320": true,
+      "panelVisible:320": true,
+      "methodSpecificFields:320": true,
+      "generateRequest:320": true,
+      "keyboardFocus:320": true,
+      "noHorizontalOverflow:320": true
+    },
+    "black-box": {
+      "singleMethod:1440": true,
+      "panelVisible:1440": true,
+      "methodSpecificFields:1440": true,
+      "generateRequest:1440": true,
+      "keyboardFocus:1440": true,
+      "noHorizontalOverflow:1440": true,
+      "singleMethod:320": true,
+      "panelVisible:320": true,
+      "methodSpecificFields:320": true,
+      "generateRequest:320": true,
+      "keyboardFocus:320": true,
+      "noHorizontalOverflow:320": true
+    }
+  }
+}
