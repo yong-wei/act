@@ -1,10 +1,11 @@
 {
   "status": "passed",
-  "capturedAt": "2026-08-04T08:05:20.245Z",
+  "capturedAt": "2026-08-04T08:27:46.094Z",
   "generatorPath": "tests/arena-companion-multi-method-1181.spec.ts",
-  "generatorSha256": "1e2fb5b92e1b626ea4c14bee3570228544ca1570",
-  "sourceRevision": "6340ff32451893aeab140d5d90a4aedbfe6cd1da",
-  "sourceFiles": {
+  "generatorSha256": "2807e64eea68af3a5c03a808016a7ac2ddeddd7b772e34217312dd1dd0ee32dc",
+  "generatorBlobId": "0ffd2ca05dd144bf12a89a880b785b1d2acaed65",
+  "sourceRevision": "0290cf7c83364923137eb66c045c11bb1f9d371d",
+  "sourceGitBlobIds": {
     "src/features/ai/companion/ai-companion-panel.tsx": "87f23a8a417f64461c2df22a23249d9d4a0a66cf",
     "src/features/ai/companion/arena-companion-context.ts": "9a4dd02eb26eb0c4b3b14ec905542e79e246bd72",
     "src/features/ai/companion/intervention-engine.ts": "ea6a0e86d960e136cd88ed7493fafb36571aa74e",
@@ -30,8 +31,8 @@
       "selectedMethod": "black-box-control"
     }
   ],
-  "captureBeforeHead": "6340ff32451893aeab140d5d90a4aedbfe6cd1da",
-  "captureAfterHead": "6340ff32451893aeab140d5d90a4aedbfe6cd1da",
+  "captureBeforeHead": "0290cf7c83364923137eb66c045c11bb1f9d371d",
+  "captureAfterHead": "0290cf7c83364923137eb66c045c11bb1f9d371d",
   "screenshots": [
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/multi-method-1440x1000.png",
@@ -49,7 +50,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/multi-method-320x900.png",
-      "sha256": "996bcb676eec5de748b84ae0963be431f1c9cfbf8dc81c74e30faad4f38279f1",
+      "sha256": "570fa5b6f5340cb0a80b039336798f55a04d58b42f08a22695dd39790020b8e5",
       "viewport": {
         "width": 320,
         "height": 900
@@ -63,7 +64,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/mpc-1440x1000.png",
-      "sha256": "122048c6cf23861833559d6e13a1a459b38bd2691fd0b6cda3d3ded94964daed",
+      "sha256": "7dd06e13a549c9fb7ad5a97b33496ce8c6342f80b95337c9812368f824123d54",
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -77,7 +78,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/mpc-320x900.png",
-      "sha256": "a0d765aaf51dd5e803633bd1e0b7451f12058d28ccdcf9e9373ec116621ee8c4",
+      "sha256": "1c44230fde918871e4d0eab70908f1da2b0d5614a78e490ad97ce49d219deb0d",
       "viewport": {
         "width": 320,
         "height": 900
@@ -91,7 +92,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/black-box-1440x1000.png",
-      "sha256": "74ad4206aa70bf0fc56f017a4c3560775156133b88704ce7a059f357e6213548",
+      "sha256": "dcd5bdc3d1aafec149b0cf0044d1c70384c4d0d84617045f37072b4dd705d81a",
       "viewport": {
         "width": 1440,
         "height": 1000
