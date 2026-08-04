@@ -612,7 +612,11 @@ export type CourseCoverageResult =
   | {
       status: 'unavailable';
       selector: CourseCoverageSelector | null;
-      reason: 'missing-selector' | 'coverage-not-found';
+      reason:
+        | 'missing-selector'
+        | 'coverage-not-found'
+        /** #1277: global CourseCoverage runtime selector retired. */
+        | 'global-course-coverage-runtime-selector-retired';
       diagnostics: [];
       productionAuthoritative: false;
     };

@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import path from 'node:path';
 
+import { isGlobalCourseCoverageRuntimeSelectorPermitted } from '@/lib/legacy-knowledge-runtime-retirement';
+
 import {
   DEFAULT_AUTHORITY_ROOT_RELATIVE,
 } from './authority-snapshot';
@@ -984,6 +986,19 @@ export class AuthoritativeKnowledgeRepository {
         status: 'unavailable',
         selector: null,
         reason: 'missing-selector',
+        diagnostics: [],
+        productionAuthoritative: false,
+      };
+    }
+
+    // #1277: global CourseCoverage overlay is no longer a production runtime
+    // selector after legacy retirement. Audit manifests remain readable via
+    // the retained legacy-course-coverage-audit path.
+    if (!isGlobalCourseCoverageRuntimeSelectorPermitted()) {
+      return {
+        status: 'unavailable',
+        selector,
+        reason: 'global-course-coverage-runtime-selector-retired',
         diagnostics: [],
         productionAuthoritative: false,
       };

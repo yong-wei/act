@@ -59,6 +59,11 @@ function contextKnowledgeRevision(contextJson: unknown): string | null {
   );
 }
 
+function contextResourceId(contextJson: unknown): string | null {
+  const context = readRecord(contextJson);
+  return readString(context.resourceId);
+}
+
 /**
  * Project one stored fact into a serving identity that preserves its era.
  * Does not consult the current Canonical graph or rewrite the source row.
@@ -82,6 +87,7 @@ export function projectLearningFactServingIdentity(
       aggregateReleaseSetId: readString(fact.aggregateReleaseSetId),
       aggregateReleaseId: readString(fact.aggregateReleaseId),
       knowledgeProjectionId: readString(fact.knowledgeProjectionId),
+      resourceId: contextResourceId(fact.contextJson),
       legacyKnowledgeNodeIds: [],
       historicalRevisionBound: true,
     };
@@ -100,6 +106,7 @@ export function projectLearningFactServingIdentity(
       aggregateReleaseSetId: null,
       aggregateReleaseId: null,
       knowledgeProjectionId: null,
+      resourceId: null,
       legacyKnowledgeNodeIds: legacyKnowledgeNodeIdsFromContext(fact.contextJson),
       historicalRevisionBound: true,
     };
@@ -117,6 +124,7 @@ export function projectLearningFactServingIdentity(
     aggregateReleaseSetId: null,
     aggregateReleaseId: null,
     knowledgeProjectionId: null,
+    resourceId: null,
     legacyKnowledgeNodeIds: legacyKnowledgeNodeIdsFromContext(fact.contextJson),
     historicalRevisionBound: true,
   };

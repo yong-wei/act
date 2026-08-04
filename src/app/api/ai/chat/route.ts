@@ -34,6 +34,7 @@ import {
 import {
   buildKonlingCitationGuard,
   buildKonlingCitationRetrievalSources,
+  buildKonlingDualDomainProvenanceMetadataPayload,
   buildKonlingStreamingCitationGuard,
   buildKonlingRuntimeContext,
   buildKonlingSarAssociatedGroundingMetadataPayload,
@@ -329,6 +330,7 @@ export async function POST(request: Request) {
     let citationGuardMetadataContext: { missingContext: string[] } | null = null;
     let citationGuardMetadataPayload: ReturnType<typeof buildCitationGuardMetadataPayload> | null = null;
     let sarAssociatedGroundingMetadataPayload: ReturnType<typeof buildKonlingSarAssociatedGroundingMetadataPayload> | null = null;
+    let dualDomainProvenanceMetadataPayload: ReturnType<typeof buildKonlingDualDomainProvenanceMetadataPayload> | null = null;
     let buildFinalCitationGuardMetadataPayload: ((assistantContent: string) => ReturnType<typeof buildCitationGuardMetadataPayload>) | null = null;
     let getAssignedCitationTable: (() => KonlingAssignedCitation[]) | null = null;
     let getTextbookOptimizations:
@@ -549,6 +551,9 @@ export async function POST(request: Request) {
       sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
         modeContract.groundingContext.sarAssociatedGrounding,
       );
+      dualDomainProvenanceMetadataPayload = buildKonlingDualDomainProvenanceMetadataPayload(
+        modeRuntimeContext,
+      );
       buildFinalCitationGuardMetadataPayload = (assistantContent: string) => {
         const finalRuntimeContext = mergeCandidateAssignedCitations(
           modeRuntimeContext,
@@ -631,6 +636,7 @@ export async function POST(request: Request) {
           modeStatus: modeContract.status,
           konlingCitationGuard: citationGuardMetadataPayload,
           konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+          konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
         },
         permittedTools,
         smartPrepBinding,
@@ -659,6 +665,7 @@ export async function POST(request: Request) {
             modeStatus: modeContract.status,
             konlingCitationGuard: citationGuardMetadataPayload,
             konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+            konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
             ...(smartPrepBinding ? {
               smartPrepBinding: {
                 taskId: smartPrepBinding.taskId,
@@ -856,6 +863,7 @@ export async function POST(request: Request) {
         return {
           konlingCitationGuard: citationGuardMetadataPayload,
           konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+          konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
         };
       },
       onError: (error) => {
@@ -871,7 +879,10 @@ export async function POST(request: Request) {
       ? appendFinalCitationGuardMetadata(
           uiMessageStream,
           buildFinalCitationGuardMetadataPayload,
-          { konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload },
+          {
+            konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+            konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
+          },
         )
       : uiMessageStream;
     const structuredActionStream = createKonlingStructuredActionStream({
@@ -954,6 +965,9 @@ export async function POST(request: Request) {
               konlingCitationGuard: finalCitationMetadata,
               ...(sarAssociatedGroundingMetadataPayload ? {
                 konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+              } : {}),
+              ...(dualDomainProvenanceMetadataPayload ? {
+                konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
               } : {}),
               konlingMessageRevision: {
                 revision: 1,
@@ -1083,6 +1097,9 @@ export async function POST(request: Request) {
               konlingCitationGuard: finalCitationMetadata,
               ...(sarAssociatedGroundingMetadataPayload ? {
                 konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+              } : {}),
+              ...(dualDomainProvenanceMetadataPayload ? {
+                konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
               } : {}),
               konlingMessageRevision: {
                 revision: 2,

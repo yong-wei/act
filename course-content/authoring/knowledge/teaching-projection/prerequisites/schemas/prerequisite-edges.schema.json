@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-teaching-prerequisite-edges/v1",
+  "title": "ACT Teaching Prerequisite Edges Authoring",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "scopeId", "edges"],
+  "properties": {
+    "contract": { "const": "act-teaching-prerequisite-edges/v1" },
+    "scopeId": { "type": "string", "minLength": 1 },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" }
+    }
+  },
+  "$defs": {
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceNodeId", "targetNodeId", "strength", "scopeId"],
+      "properties": {
+        "edgeId": { "type": "string", "minLength": 1 },
+        "sourceNodeId": { "type": "string", "minLength": 1 },
+        "targetNodeId": { "type": "string", "minLength": 1 },
+        "strength": { "type": "string", "enum": ["REQUIRED", "RECOMMENDED"] },
+        "scopeId": { "type": "string", "minLength": 1 },
+        "evidenceRefs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "curatorId": { "type": ["string", "null"] },
+        "curatorRationale": { "type": ["string", "null"] },
+        "status": {
+          "type": "string",
+          "enum": ["CANDIDATE", "PUBLISHED", "STALE", "REVIEW_REQUIRED"]
+        },
+        "authorDecisionId": { "type": ["string", "null"] },
+        "candidateOrigin": {
+          "type": ["string", "null"],
+          "enum": [
+            "ENGINEERING_RELATION",
+            "TEXTBOOK_ORDER",
+            "LESSON_ORDER",
+            "LEGACY_GRAPH",
+            "HANDOUT_LANGUAGE",
+            "INTERACTIVE_METADATA",
+            "TEACHER_PROPOSAL",
+            "MODEL_SIMILARITY",
+            null
+          ]
+        }
+      }
+    }
+  }
+}

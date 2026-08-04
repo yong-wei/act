@@ -1,7 +1,18 @@
 /**
  * Engineering Graph / Engineering RAG consumers of the active Authority
  * Snapshot (#1266). Teaching selectors remain independent.
+ *
+ * When a versioned consumer-activation pointer is present (#1276), each
+ * engineering consumer reads the Authority combination selected for that
+ * consumer (possibly a pinned prior snapshot) instead of always following the
+ * global Authority current.json.
  */
+
+import {
+  resolveEngineeringGraphProductionSelection,
+  resolveEngineeringRagProductionSelection,
+  type ConsumerProductionSelection,
+} from '@/lib/versioned-knowledge-activation';
 
 import {
   authoritySnapshotToRepositoryView,
@@ -12,6 +23,7 @@ import {
 } from './authority-snapshot';
 import {
   activateAuthoritySnapshot,
+  loadStagedAuthoritySnapshot,
   resolveActiveAuthoritySnapshot,
   stageAuthoritySnapshot,
   type ActivateAuthoritySnapshotResult,
@@ -43,35 +55,43 @@ export interface EngineeringAuthorityResolveResult {
   /** Teaching projection emptiness never blocks engineering readiness. */
   teachingProjectionRequired: false;
   reason?: string;
+  /** How the Authority combination was selected (#1276). */
+  activationMode?: ConsumerProductionSelection['mode'];
 }
 
-/**
- * Resolve the active Authority Snapshot for an engineering-only consumer.
- * Fail closed when the pointer is missing or digest-mismatched.
- */
-export function resolveEngineeringAuthorityConsumer(
-  paths: AuthorityStorePaths,
+function unavailableEngineering(
   consumerId: EngineeringAuthorityConsumerId,
+  reason: string,
+  activationMode?: ConsumerProductionSelection['mode'],
 ): EngineeringAuthorityResolveResult {
-  const resolved = resolveActiveAuthoritySnapshot(paths);
-  if (resolved.status !== 'available') {
-    return {
-      status: 'unavailable',
-      consumerId,
-      snapshotId: null,
-      snapshotHash: null,
-      releaseId: null,
-      releaseSetId: null,
-      objectCount: 0,
-      relationCount: 0,
-      engineering: null,
-      manifest: null,
-      teachingProjectionRequired: false,
-      reason: resolved.detail,
-    };
-  }
+  return {
+    status: 'unavailable',
+    consumerId,
+    snapshotId: null,
+    snapshotHash: null,
+    releaseId: null,
+    releaseSetId: null,
+    objectCount: 0,
+    relationCount: 0,
+    engineering: null,
+    manifest: null,
+    teachingProjectionRequired: false,
+    reason,
+    activationMode,
+  };
+}
 
-  const { snapshot } = resolved;
+function readyFromSnapshot(
+  consumerId: EngineeringAuthorityConsumerId,
+  snapshot: {
+    snapshotId: string;
+    snapshotHash: string;
+    manifest: AuthoritySnapshotManifest;
+    engineering: AuthorityEngineeringBody;
+  },
+  activationMode: ConsumerProductionSelection['mode'],
+  reason?: string,
+): EngineeringAuthorityResolveResult {
   return {
     status: 'ready',
     consumerId,
@@ -84,7 +104,124 @@ export function resolveEngineeringAuthorityConsumer(
     engineering: snapshot.engineering,
     manifest: snapshot.manifest,
     teachingProjectionRequired: false,
+    reason,
+    activationMode,
   };
+}
+
+function resolveViaConsumerActivation(
+  paths: AuthorityStorePaths,
+  consumerId: EngineeringAuthorityConsumerId,
+  selection: ConsumerProductionSelection,
+): EngineeringAuthorityResolveResult | null {
+  if (selection.mode === 'absent') {
+    // No consumer-activation pointer — keep legacy global Authority pointer.
+    return null;
+  }
+
+  if (selection.mode === 'unavailable') {
+    return unavailableEngineering(
+      consumerId,
+      selection.reasons.join('; ') || 'consumer-activation-unavailable',
+      selection.mode,
+    );
+  }
+
+  const combination = selection.combination;
+  if (!combination?.authoritySnapshotId) {
+    return unavailableEngineering(
+      consumerId,
+      'consumer-activation-missing-authority-snapshot',
+      selection.mode,
+    );
+  }
+
+  try {
+    const snapshot = loadStagedAuthoritySnapshot(
+      paths,
+      combination.authoritySnapshotId,
+    );
+    if (
+      combination.authoritySnapshotHash
+      && snapshot.snapshotHash !== combination.authoritySnapshotHash
+    ) {
+      return unavailableEngineering(
+        consumerId,
+        'consumer-activation-authority-hash-mismatch',
+        selection.mode,
+      );
+    }
+    if (
+      combination.authorityReleaseId
+      && snapshot.manifest.releaseId !== combination.authorityReleaseId
+    ) {
+      return unavailableEngineering(
+        consumerId,
+        'consumer-activation-authority-release-mismatch',
+        selection.mode,
+      );
+    }
+    return readyFromSnapshot(
+      consumerId,
+      snapshot,
+      selection.mode,
+      selection.mode === 'pin-combination'
+        ? 'consumer-activation-pinned-authority'
+        : 'consumer-activation-selected-authority',
+    );
+  } catch (error) {
+    return unavailableEngineering(
+      consumerId,
+      error instanceof Error
+        ? `consumer-activation-authority-load-failed:${error.message}`
+        : 'consumer-activation-authority-load-failed',
+      selection.mode,
+    );
+  }
+}
+
+/**
+ * Resolve the active Authority Snapshot for an engineering-only consumer.
+ * Prefer the per-consumer activation combination (#1276) when present; otherwise
+ * fall back to the global Authority current pointer. Fail closed on mismatch.
+ */
+export function resolveEngineeringAuthorityConsumer(
+  paths: AuthorityStorePaths,
+  consumerId: EngineeringAuthorityConsumerId,
+  options: {
+    repoRoot?: string;
+    /** Injected for tests; production reads the configured activation root. */
+    activationSelection?: ConsumerProductionSelection;
+  } = {},
+): EngineeringAuthorityResolveResult {
+  const selection =
+    options.activationSelection
+    ?? (consumerId === 'engineering-graph'
+      ? resolveEngineeringGraphProductionSelection({ repoRoot: options.repoRoot })
+      : resolveEngineeringRagProductionSelection({ repoRoot: options.repoRoot }));
+
+  const fromActivation = resolveViaConsumerActivation(
+    paths,
+    consumerId,
+    selection,
+  );
+  if (fromActivation) return fromActivation;
+
+  const resolved = resolveActiveAuthoritySnapshot(paths);
+  if (resolved.status !== 'available') {
+    return unavailableEngineering(
+      consumerId,
+      resolved.detail ?? 'authority-unavailable',
+      'absent',
+    );
+  }
+
+  return readyFromSnapshot(
+    consumerId,
+    resolved.snapshot,
+    'absent',
+    'global-authority-current-pointer',
+  );
 }
 
 export function resolveEngineeringGraphAuthority(

@@ -3,12 +3,22 @@
 Define the state-aware Konling runtime that loads server-owned adaptive context, exposes scoped learning tools, persists governed memory, and records corrective or remedial intervention outcomes.
 ## Requirements
 ### Requirement: Konling reads server-owned adaptive context
-Konling SHALL build runtime context from server-owned page context, learner state, plan context, graph context, and scoped memory rather than default or client-provided profile values.
+Konling SHALL build runtime context from server-owned page context, learner state, plan context, graph context, and scoped memory rather than default or client-provided profile values. Konling MUST resolve the current Authority/Teaching Projection combination on the server and MAY include `authorityReleaseId`, `projectionId`, scoped Canonical IDs, linked teaching resources, prerequisite ancestors/successors, and optional card metadata. Client-supplied IDs MUST be revalidated and MUST NOT select another learner's or course's projection.
 
 #### Scenario: Graph-aware Konling context is loaded
 - **WHEN** Konling starts or receives a message on a graph-aware path, graph-center, diagnosis, or prep-pack surface
 - **THEN** it SHALL load the available Konling graph context in addition to page context, learner state, current plan context, recent evidence, memory summaries, and permitted tools
 - **AND** missing graph context classes SHALL be visible to prompt construction, tool input preparation, and response rationale.
+
+#### Scenario: Course context is valid
+- **WHEN** an authenticated learner asks within a current lesson scope
+- **THEN** Konling SHALL carry the server-resolved Authority/Projection identities and scoped resources
+- **AND** the context SHALL include only permitted prerequisite/card metadata
+
+#### Scenario: Projection is unavailable
+- **WHEN** the requested Teaching Projection is missing, stale, or unauthorized
+- **THEN** Konling SHALL return explicit unavailable or Legacy/pinned fallback status
+- **AND** it SHALL not infer teaching resources from raw ActKG labels
 
 ### Requirement: Konling exposes adaptive-learning tools
 Konling SHALL expose tools for page, learner, plan, memory, knowledge graph, next action, simulation status, intervention, attempt analysis, and adaptive path generation.
@@ -305,7 +315,7 @@ Konling path-advisor tools SHALL consume the generation panel's structured param
 - **AND** the textarea SHALL be editable in the UI.
 
 ### Requirement: Konling grounds answers in knowledge and capability context
-Konling SHALL ground supported teaching-assistant answers in server-owned knowledge node, capability target, resource, learner, path, and citation context where available.
+Konling SHALL ground supported teaching-assistant answers in server-owned knowledge node, capability target, resource, learner, path, and citation context where available. Knowledge answers MUST distinguish Engineering Authority facts from Teaching Resource evidence and retain domain, Authority, Projection, Canonical, resource, and citation identities. Teaching prerequisites MUST NOT be written back to ActKG through answer generation or tool calls.
 
 #### Scenario: Concept explanation is requested
 - **WHEN** a student asks for a factual course concept explanation
@@ -321,6 +331,16 @@ Konling SHALL ground supported teaching-assistant answers in server-owned knowle
 - **WHEN** Konling generates grading explanation, mastery advice, or diagnosis-affecting output
 - **THEN** generated text SHALL remain explanatory unless a governed tool run, approved grading workflow, or materialized evidence summary records the outcome
 - **AND** raw assistant narrative SHALL NOT directly update learner mastery.
+
+#### Scenario: Engineering and teaching sources are composed
+- **WHEN** a response uses both engineering relations and a course handout/card
+- **THEN** the answer metadata SHALL retain separate domain provenance and citations
+- **AND** no cross-domain teaching edge SHALL be persisted
+
+#### Scenario: Optional card is absent
+- **WHEN** a Canonical ID has no active optional card
+- **THEN** Konling MAY use node summary or other projected resource evidence
+- **AND** it SHALL not claim that the Canonical node is absent
 
 ### Requirement: Konling path-advisor entrypoints follow registered LearningGoals
 Konling SHALL expose adaptive path-advisor entrypoints for every registered `path-ready` LearningGoal that the adaptive path center can display.

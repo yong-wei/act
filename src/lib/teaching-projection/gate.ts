@@ -248,6 +248,7 @@ export function evaluateTeachingProjectionGate(
   }
 
   // Core nodes reference validity (invalid core-node endpoints fail).
+  // cardPolicy REQUIRED (#1271): only explicit core records gate on an active card.
   for (const core of input.coreNodes) {
     const endpoint = isUsableAuthorityEndpoint(index.get(core.canonicalId), index);
     if (!endpoint.ok) {
@@ -257,6 +258,27 @@ export function evaluateTeachingProjectionGate(
         message: `core-node ${core.canonicalId} is not a usable Authority endpoint`,
         canonicalId: core.canonicalId,
       });
+    }
+    if (core.cardPolicy === 'required') {
+      const actives = activeByCanonical.get(core.canonicalId) ?? [];
+      if (actives.length === 0) {
+        findings.push({
+          code: 'required-core-card-missing',
+          severity: 'error',
+          message: `core-node ${core.canonicalId} has cardPolicy REQUIRED but no active card`,
+          canonicalId: core.canonicalId,
+        });
+      }
+    } else if (core.cardPolicy === 'optional') {
+      const actives = activeByCanonical.get(core.canonicalId) ?? [];
+      if (actives.length === 0) {
+        findings.push({
+          code: 'optional-card-absent',
+          severity: 'info',
+          message: `optional card absent for core-node ${core.canonicalId}`,
+          canonicalId: core.canonicalId,
+        });
+      }
     }
   }
 

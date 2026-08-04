@@ -9,6 +9,11 @@ import {
   KnowledgeCard,
   normalizeKnowledgeMetadata,
 } from '@/features/knowledge/knowledge-card';
+import {
+  teachingResourceTypeLabel,
+  teachingRoleLabel,
+  type StepDrawerResolution,
+} from '@/features/knowledge/layered-graph-workspace-contracts';
 import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-runtime';
 
 function buildStepNodeMap(
@@ -52,18 +57,38 @@ function buildStepNodeMap(
   return fallbackMap;
 }
 
+function layeredEntryByCanonical(
+  entries: readonly StepDrawerResolution[] | undefined,
+  canonicalId: string,
+): StepDrawerResolution | null {
+  if (!entries?.length) return null;
+  return entries.find((entry) => entry.canonicalId === canonicalId) ?? null;
+}
+
+/**
+ * Step knowledge drawer. Legacy path uses lesson runtime graph overlay nodes.
+ * When `layeredDrawerEntries` is provided (from Teaching Projection consumers),
+ * optional-card absence shows node summary / linked resources instead of a
+ * node-not-found error (#1273).
+ */
 export function StepKnowledgeDrawer({
   lessonRuntime,
   currentStepId,
   orderedStepIds,
   title = '页面知识卡片',
   inlineTool = false,
+  layeredDrawerEntries,
 }: {
   lessonRuntime: RuntimeLessonEntryBundle;
   currentStepId: string;
   orderedStepIds: string[];
   title?: string;
   inlineTool?: boolean;
+  /**
+   * Optional pre-resolved Teaching Projection drawer entries for this step
+   * (step.knowledgeRefs → canonicalId → optional card).
+   */
+  layeredDrawerEntries?: readonly StepDrawerResolution[];
 }) {
   const { registerControl } = usePageFloatingControls();
   const [isOpen, setIsOpen] = useState(false);
@@ -75,19 +100,51 @@ export function StepKnowledgeDrawer({
   );
 
   const stepNodeIds = useMemo(() => {
+    if (layeredDrawerEntries && layeredDrawerEntries.length > 0) {
+      return layeredDrawerEntries.map((entry) => entry.canonicalId);
+    }
     const map = buildStepNodeMap(lessonRuntime, orderedStepIds);
     return map.get(currentStepId) ?? [];
-  }, [currentStepId, lessonRuntime, orderedStepIds]);
+  }, [currentStepId, layeredDrawerEntries, lessonRuntime, orderedStepIds]);
 
-  const nodes = useMemo(
-    () => stepNodeIds.map((nodeId) => nodesById.get(nodeId)).filter((node): node is RuntimeLessonEntryNode => Boolean(node)),
-    [nodesById, stepNodeIds],
-  );
+  const nodes = useMemo(() => {
+    if (layeredDrawerEntries && layeredDrawerEntries.length > 0) {
+      return layeredDrawerEntries.map((entry) => {
+        const runtimeNode = nodesById.get(entry.canonicalId);
+        if (runtimeNode) return runtimeNode;
+        // Card-absent path: synthesize a summary node from layered resolution.
+        // Never surface node-not-found when Canonical summary exists.
+        return {
+          id: entry.canonicalId,
+          name: entry.summary.title ?? entry.canonicalId,
+          nodeType: entry.summary.engineeringType ?? 'THEORY',
+          description: entry.summary.description ?? entry.studentMessage,
+          positionX: 0,
+          positionY: 0,
+          positionZ: 0,
+          resources: entry.linkedResources.map((resource) => ({
+            id: resource.resourceId,
+            title: resource.title ?? teachingResourceTypeLabel(resource.resourceType),
+            href: resource.launch.href,
+            role: teachingRoleLabel(resource.role),
+          })),
+        } as RuntimeLessonEntryNode;
+      });
+    }
+    return stepNodeIds
+      .map((nodeId) => nodesById.get(nodeId))
+      .filter((node): node is RuntimeLessonEntryNode => Boolean(node));
+  }, [layeredDrawerEntries, nodesById, stepNodeIds]);
 
   const selectedNode = useMemo(() => {
     if (!nodes.length) return null;
     return nodes.find((node) => node.id === selectedNodeId) ?? nodes[0];
   }, [nodes, selectedNodeId]);
+
+  const selectedLayered = useMemo(
+    () => (selectedNode ? layeredEntryByCanonical(layeredDrawerEntries, selectedNode.id) : null),
+    [layeredDrawerEntries, selectedNode],
+  );
 
   useEffect(() => {
     if (!nodes.length) return undefined;
@@ -172,7 +229,39 @@ export function StepKnowledgeDrawer({
             </div>
 
             <div className="overflow-y-auto p-4 md:p-6">
-              {selectedNode ? (
+              {selectedLayered && selectedLayered.cardStatus !== 'active-card' ? (
+                <div
+                  className="space-y-4"
+                  data-step-knowledge-layered="summary"
+                  data-card-status={selectedLayered.cardStatus}
+                  data-node-not-found={selectedLayered.nodeNotFound ? 'true' : 'false'}
+                >
+                  <div className="rounded-md border border-platform-border bg-platform-surface-muted px-3 py-3 text-sm text-platform-fg-secondary">
+                    {selectedLayered.studentMessage}
+                    {selectedLayered.fallback ? (
+                      <div className="mt-2 text-xs text-platform-fg-secondary" data-fallback-adapter={selectedLayered.fallback.adapterId}>
+                        兼容来源：{selectedLayered.fallback.adapterId}
+                      </div>
+                    ) : null}
+                  </div>
+                  <KnowledgeCard
+                    name={selectedLayered.summary.title ?? selectedLayered.canonicalId}
+                    description={selectedLayered.summary.description ?? selectedLayered.studentMessage}
+                    nodeType={selectedLayered.summary.engineeringType ?? 'THEORY'}
+                    metadata={normalizeKnowledgeMetadata({
+                      description: selectedLayered.summary.description ?? selectedLayered.studentMessage,
+                    })}
+                    resources={selectedLayered.linkedResources.map((resource) => ({
+                      id: resource.resourceId,
+                      title: resource.title ?? teachingResourceTypeLabel(resource.resourceType),
+                      href: resource.launch.href,
+                      role: teachingRoleLabel(resource.role),
+                    }))}
+                    variant="compact"
+                    className="premium-lesson-surface-elevated shadow-none"
+                  />
+                </div>
+              ) : selectedNode ? (
                 <KnowledgeCard
                   name={selectedNode.name}
                   description={selectedNode.description}

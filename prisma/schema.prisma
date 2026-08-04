@@ -3975,12 +3975,30 @@ model WrongAnswerAttribution {
   nextAction         String
   createdAt          DateTime @default(now())
 
-  answer AdaptiveAssessmentAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  answer             AdaptiveAssessmentAnswer           @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  remediationResults RemediationOrchestrationResult[]
 
   @@unique([answerId, attributionVersion])
   @@index([userId, createdAt])
   @@index([sessionId, createdAt])
   @@index([questionRefId])
+}
+
+model RemediationOrchestrationResult {
+  id                       String   @id @default(cuid())
+  wrongAnswerAttributionId String
+  orchestratorVersion      String
+  userId                   String
+  status                   String
+  unavailableReason        String?
+  manualPracticePath       String?
+  taskSnapshot             Json?
+  createdAt                DateTime @default(now())
+
+  wrongAnswerAttribution WrongAnswerAttribution @relation(fields: [wrongAnswerAttributionId], references: [id], onDelete: Cascade)
+
+  @@unique([wrongAnswerAttributionId, orchestratorVersion])
+  @@index([userId, createdAt])
 }
 
 model AdaptiveAssessmentAbilityEstimate {

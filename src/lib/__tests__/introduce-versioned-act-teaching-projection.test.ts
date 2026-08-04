@@ -362,6 +362,8 @@ describe('Deterministic builder (#1267)', () => {
         legacyCrosswalkRef: null,
         bindingCount: 0,
         bindingStatus: 'UNBOUND',
+        projectionStatus: 'EXPLICIT_NONE',
+        bindingDigest: null,
       },
     ];
     expect(() => verifyTeachingProjectionArtifacts(artifacts)).toThrow(
@@ -566,6 +568,8 @@ describe('Projection gate semantics (#1267)', () => {
           legacyCrosswalkRef: null,
           bindingCount: 0,
           bindingStatus: 'UNBOUND',
+          projectionStatus: 'UNBOUND',
+          bindingDigest: null,
         },
       ],
       bindings: [

@@ -16,6 +16,7 @@ import {
   type TeachingPrerequisiteRuntime,
   type TeachingProjectionArtifacts,
   type TeachingProjectionAuthoringInput,
+  type TeachingProjectionGateFinding,
   type TeachingProjectionImpactRecord,
   type TeachingProjectionImpactReport,
   type TeachingProjectionManifest,
@@ -62,6 +63,70 @@ function sortBy<T>(items: T[], keyFn: (item: T) => string): T[] {
 
 function bindingScopeKey(resourceId: string, scopeId: string): string {
   return `${resourceId}\u001f${scopeId}`;
+}
+
+/**
+ * Expand authoring knowledgeRefs on resources into binding rows (#1268).
+ * Existing explicit bindings win on duplicate identity.
+ */
+function expandKnowledgeRefsIntoBindings(
+  input: TeachingProjectionAuthoringInput,
+): TeachingProjectionAuthoringInput {
+  const existing = [...(input.bindings ?? [])];
+  const seen = new Set(
+    existing.map((b) => [b.resourceId, b.canonicalId, b.role, b.scopeId].join('\u001f')),
+  );
+
+  for (const raw of input.resources ?? []) {
+    const refs = raw.knowledgeRefs ?? [];
+    if (refs.length === 0) continue;
+    let resourceId: string;
+    try {
+      resourceId = deriveResourceId(raw);
+    } catch {
+      continue;
+    }
+    for (const ref of refs) {
+      const key = [resourceId, ref.canonicalId, ref.role, raw.scopeId].join('\u001f');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      existing.push({
+        resourceId,
+        canonicalId: ref.canonicalId,
+        role: ref.role,
+        scopeId: raw.scopeId,
+        sourcePath: ref.sourcePath ?? raw.sourcePath,
+        primary: ref.primary,
+        rationale: ref.rationale,
+      });
+    }
+  }
+
+  return { ...input, bindings: existing };
+}
+
+function attachBindingDigests(
+  resources: TeachingResourceRuntime[],
+  bindings: readonly TeachingBindingRuntime[],
+): void {
+  const byResource = new Map<string, TeachingBindingRuntime[]>();
+  for (const binding of bindings) {
+    const list = byResource.get(binding.resourceId) ?? [];
+    list.push(binding);
+    byResource.set(binding.resourceId, list);
+  }
+
+  for (const resource of resources) {
+    const list = (byResource.get(resource.resourceId) ?? [])
+      .filter((b) => b.scopeId === resource.scopeId)
+      .map((b) => ({ canonicalId: b.canonicalId, role: b.role }))
+      .sort((a, b) => {
+        const byId = compareCodePoint(a.canonicalId, b.canonicalId);
+        if (byId !== 0) return byId;
+        return compareCodePoint(a.role, b.role);
+      });
+    resource.bindingDigest = list.length > 0 ? projectionDigest(list) : null;
+  }
 }
 
 function assertProjectionMode(value: unknown, resourceLabel: string): void {
@@ -126,6 +191,15 @@ function buildResources(
       bindingStatus = bindingCount > 0 ? 'BOUND' : 'UNBOUND';
     }
 
+    let projectionStatus: TeachingResourceRuntime['projectionStatus'];
+    if (bindingCount > 0) {
+      projectionStatus = 'BOUND';
+    } else if (raw.projectionMode === 'NONE' || raw.projectionMode === 'OPTIONAL') {
+      projectionStatus = 'EXPLICIT_NONE';
+    } else {
+      projectionStatus = 'UNBOUND';
+    }
+
     resources.push({
       resourceId,
       resourceType: raw.resourceType,
@@ -136,6 +210,9 @@ function buildResources(
       legacyCrosswalkRef: raw.legacyCrosswalkRef ?? null,
       bindingCount,
       bindingStatus,
+      projectionStatus,
+      // Filled after bindings are known for this resource (see finalize below).
+      bindingDigest: null,
     });
   }
 
@@ -480,17 +557,20 @@ export function buildTeachingProjection(
   }
 
   const authorityNodes = normalizeAuthorityNodes(input);
-  const bindings = buildBindings(input);
+  // Expand resource.knowledgeRefs into binding authoring before build (#1268).
+  const inputWithExpandedBindings = expandKnowledgeRefsIntoBindings(input);
+  const bindings = buildBindings(inputWithExpandedBindings);
   const bindingCounts = new Map<string, number>();
   for (const binding of bindings) {
     const key = bindingScopeKey(binding.resourceId, binding.scopeId);
     bindingCounts.set(key, (bindingCounts.get(key) ?? 0) + 1);
   }
 
-  const resources = buildResources(input, bindingCounts);
-  const prerequisites = buildPrerequisites(input);
-  const coreNodes = buildCoreNodes(input);
-  const cards = buildCardsIndex(input);
+  const resources = buildResources(inputWithExpandedBindings, bindingCounts);
+  attachBindingDigests(resources, bindings);
+  const prerequisites = buildPrerequisites(inputWithExpandedBindings);
+  const coreNodes = buildCoreNodes(inputWithExpandedBindings);
+  const cards = buildCardsIndex(inputWithExpandedBindings);
 
   // Fail closed if bindings reference unknown resources (unless card-only binding targets).
   // Also enforce resource/binding teaching-scope consistency.
@@ -603,6 +683,88 @@ export function buildTeachingProjection(
       contract: 'act-teaching-projection-cards-index/v1',
       cards,
     },
+    manifest,
+    impactReport,
+    gate,
+  };
+}
+
+/**
+ * Force additional gate findings that fail activation (e.g. unresolved rebase
+ * REVIEW_REQUIRED items). Re-seals gate/sourceHashes/manifest/impact so
+ * verifyTeachingProjectionArtifacts remains consistent.
+ *
+ * When `extraFindings` is empty and the existing gate already fails, returns
+ * the input unchanged. When extra findings exist (or forceFail), always marks
+ * gate passed=false and status=REVIEW_REQUIRED.
+ */
+export function applyTeachingProjectionGateFindings(
+  artifacts: TeachingProjectionArtifacts,
+  extraFindings: readonly TeachingProjectionGateFinding[],
+  options: { forceFail?: boolean } = {},
+): TeachingProjectionArtifacts {
+  const forceFail = options.forceFail === true || extraFindings.length > 0;
+  if (!forceFail) {
+    return artifacts;
+  }
+
+  const findings = sortBy(
+    [...artifacts.gate.findings, ...extraFindings],
+    (f) => `${f.severity}:${f.code}:${f.message}:${f.resourceId ?? ''}:${f.bindingId ?? ''}:${f.canonicalId ?? ''}`,
+  );
+
+  const gate = {
+    ...artifacts.gate,
+    status: 'REVIEW_REQUIRED' as const,
+    passed: false,
+    findings,
+  };
+
+  const sourceHashes: TeachingProjectionSourceHashes = {
+    ...artifacts.manifest.sourceHashes,
+    gate: projectionDigest(gate),
+  };
+
+  const manifestBody: TeachingProjectionManifestBody = {
+    contract: artifacts.manifest.contract,
+    builderVersion: artifacts.manifest.builderVersion,
+    scopeId: artifacts.manifest.scopeId,
+    authoringRevision: artifacts.manifest.authoringRevision,
+    authorityReleaseId: artifacts.manifest.authorityReleaseId,
+    authorityReleaseSetId: artifacts.manifest.authorityReleaseSetId,
+    authoritySnapshotId: artifacts.manifest.authoritySnapshotId,
+    authoritySnapshotHash: artifacts.manifest.authoritySnapshotHash,
+    sourceHashes,
+    resourceCount: artifacts.manifest.resourceCount,
+    bindingCount: artifacts.manifest.bindingCount,
+    prerequisiteCount: artifacts.manifest.prerequisiteCount,
+    coreNodeCount: artifacts.manifest.coreNodeCount,
+    cardCount: artifacts.manifest.cardCount,
+    gateStatus: gate.status,
+    gatePassed: false,
+  };
+
+  const projectionHash = projectionDigest(manifestBody);
+  const projectionId = projectionIdFromHash(projectionHash);
+  const manifest: TeachingProjectionManifest = {
+    ...manifestBody,
+    projectionId,
+    projectionHash,
+  };
+
+  const impactReport = buildImpactReport({
+    projectionId,
+    projectionHash,
+    resources: artifacts.resources,
+    bindings: artifacts.bindings,
+    prerequisites: artifacts.prerequisites,
+    coreNodes: artifacts.coreNodes,
+    cards: artifacts.cardsIndex.cards,
+    gate,
+  });
+
+  return {
+    ...artifacts,
     manifest,
     impactReport,
     gate,

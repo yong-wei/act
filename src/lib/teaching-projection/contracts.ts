@@ -47,6 +47,7 @@ export const TEACHING_RESOURCE_TYPES = [
   'handout',
   'step',
   'textbook',
+  'textbook-chapter',
   'textbook-section',
   'card',
 ] as const;
@@ -68,6 +69,15 @@ export type AuthorityNodeLifecycle = (typeof AUTHORITY_NODE_LIFECYCLES)[number];
 // Authoring inputs (decision source)
 // ---------------------------------------------------------------------------
 
+/** Authoring knowledgeRefs entry on course/handout/lesson/step records (#1268). */
+export interface TeachingKnowledgeRefAuthoring {
+  canonicalId: string;
+  role: TeachingProjectionRole;
+  primary?: boolean;
+  rationale?: string;
+  sourcePath?: string;
+}
+
 export interface TeachingResourceAuthoring {
   /** Precomputed stable resource ID, or keys used to derive it. */
   resourceId?: string;
@@ -75,6 +85,7 @@ export interface TeachingResourceAuthoring {
   lessonKey?: string;
   stepId?: string;
   sourceDocumentId?: string;
+  chapterKey?: string;
   sectionId?: string;
   cardId?: string;
   projectionMode: TeachingProjectionMode;
@@ -85,6 +96,11 @@ export interface TeachingResourceAuthoring {
   sourcePath?: string;
   /** Legacy crosswalk reference (preserved, not inferred). */
   legacyCrosswalkRef?: string | null;
+  /**
+   * Explicit Canonical bindings decided in authoring (#1268).
+   * Migration expands these into runtime bindings; do not hand-edit runtime.
+   */
+  knowledgeRefs?: TeachingKnowledgeRefAuthoring[];
 }
 
 export interface TeachingBindingAuthoring {
@@ -163,6 +179,16 @@ export interface TeachingProjectionAuthoringInput {
 // Runtime records (generated)
 // ---------------------------------------------------------------------------
 
+/**
+ * Runtime resource status projected from authoring (#1268).
+ * BOUND = has binding; EXPLICIT_NONE = NONE mode or optional unbound;
+ * REVIEW_REQUIRED is package-gate level (REQUIRED unbound).
+ */
+export type TeachingResourceProjectionStatus =
+  | 'BOUND'
+  | 'EXPLICIT_NONE'
+  | 'UNBOUND';
+
 export interface TeachingResourceRuntime {
   resourceId: string;
   resourceType: TeachingResourceType;
@@ -173,6 +199,10 @@ export interface TeachingResourceRuntime {
   legacyCrosswalkRef: string | null;
   bindingCount: number;
   bindingStatus: 'BOUND' | 'UNBOUND' | 'NONE';
+  /** Deterministic status field for consumers (#1268). */
+  projectionStatus: TeachingResourceProjectionStatus;
+  /** Digest of bound Canonical IDs + roles for this resource (empty when unbound). */
+  bindingDigest: string | null;
 }
 
 export interface TeachingBindingRuntime {

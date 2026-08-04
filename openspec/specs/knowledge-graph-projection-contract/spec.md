@@ -46,6 +46,8 @@ The relation contract SHALL register a canonical relation type `association` map
 ### Requirement: ActKG graph projection loads as a gated graph source
 The candidate knowledge graph source layer SHALL load a selected accepted candidate only through the aggregate Repository candidate selector. For #1125 it SHALL retain the frozen CTKG 0.2 GraphProjection V2 adapter; for a standard Bundle it SHALL map the one compatibility-validated runtime Projection to the existing candidate payload without semantic coercion. The Legacy source selection SHALL remain unchanged for production consumers until final cutover.
 
+The graph projection MUST also expose Engineering Authority as one independent layer and MUST NOT treat ACT teaching/resource coverage as a prerequisite for loading it. ACT teaching prerequisites and resource bindings MAY be attached as separately gated layers with their own projection/scope identity.
+
 #### Scenario: Valid projection maps into unified payload
 - **WHEN** the Repository returns the locked `control-theory-engineering-v0.2` projection conforming to the pinned CTKG 0.2 contract
 - **THEN** the adapter SHALL emit a candidate payload containing all 744 nodes and 97 links with their upstream identities, types, tiers, predicates, directions, families, evidence state, and projection provenance
@@ -70,8 +72,20 @@ The candidate knowledge graph source layer SHALL load a selected accepted candid
 - **WHEN** a formal graph consumer has not explicitly entered the candidate V2 path
 - **THEN** the existing production source selection SHALL remain unchanged
 
+#### Scenario: Authority is active and Teaching Projection is absent
+- **WHEN** a graph request targets Engineering Authority and no teaching projection exists
+- **THEN** engineering nodes and exact engineering relations SHALL load
+- **AND** teaching/resource layers SHALL report absent or `NOT_PROJECTED` without blocking the graph
+
+#### Scenario: Teaching layer is requested
+- **WHEN** a caller requests a valid course scope and Teaching Projection combination
+- **THEN** the payload SHALL include only scoped ACT prerequisite/resource records
+- **AND** it SHALL not rewrite or union them into ActKG engineering relations
+
 ### Requirement: Projection version binds to graph version identity
 For every candidate adapter, the ReleaseSet identity, Release identity, source release hash, source dataset hash, runtime Projection profile and version digest SHALL jointly identify the payload, caches, progressive shards and stored layout state.
+
+Every layered graph response MUST identify the Authority release and, when present, Teaching Projection ID/scope and resource/prerequisite layer versions. Consumers MUST NOT silently combine records from different identities.
 
 #### Scenario: Digest binds to shard identity
 - **WHEN** the adapter loads a projection with version digest D from aggregate ReleaseSet R
@@ -85,8 +99,15 @@ For every candidate adapter, the ReleaseSet identity, Release identity, source r
 - **WHEN** the selected ReleaseSet, Release, runtime profile or version digest differs from stored state
 - **THEN** candidate caches and stored runtime coordinates for the prior identity SHALL be invalidated through the existing version-change path
 
+#### Scenario: One layer drifts
+- **WHEN** the requested Authority or Projection identity/hash does not match its manifest
+- **THEN** that layer SHALL fail closed
+- **AND** the response SHALL retain unaffected valid layers with explicit status
+
 ### Requirement: Candidate authoritative projection is isolated from Legacy projection
 The projection layer MUST expose `act.canvas.v2` and `act.node-detail.v2` as contracts derived from one selected candidate ReleaseSet, and MUST keep the existing Legacy projection unchanged during migration.
+
+Course and classroom consumers MAY read a named candidate/pinned combination for shadow or compatibility, but formal selectors MUST resolve either one validated combination or an explicit Legacy fallback.
 
 #### Scenario: Candidate projection is requested
 - **WHEN** the client requests a specific candidate ReleaseSet
@@ -95,6 +116,11 @@ The projection layer MUST expose `act.canvas.v2` and `act.node-detail.v2` as con
 #### Scenario: Legacy projection is requested
 - **WHEN** the migration-period client selects the old graph
 - **THEN** the existing Legacy DTO SHALL be returned without Canonical candidate objects
+
+#### Scenario: Projection candidate is unavailable
+- **WHEN** a course scope requests a missing candidate projection
+- **THEN** the resolver SHALL return explicit unavailable/fallback status
+- **AND** it SHALL not mix candidate resources with Legacy prerequisite or card data
 
 ### Requirement: Projected relation semantics match the pinned contract
 Every candidate projected link MUST preserve its upstream predicate, direction, relation family and endpoints. The #1125 adapter MUST enforce its pinned CTKG 0.2 semantic table, while a standard candidate MUST enforce the registered Schema and Artifact contracts carried by its validated import. No adapter may repair, infer or coerce a conflicting relation.
