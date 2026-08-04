@@ -89,6 +89,19 @@ function readyIdentities(): ActivationIdentityEvidence[] {
   );
 }
 
+function rollbackTargets() {
+  return [
+    {
+      activationId: 'activation-prior',
+      activationHash: fixedHash,
+    },
+  ];
+}
+
+function rollbackArchiveDigest() {
+  return retirementDigest({ targets: rollbackTargets() });
+}
+
 function completeUpgradeReceipt() {
   return buildIncrementalUpgradeReceipt({
     receiptId: 'upgrade-1',
@@ -98,7 +111,7 @@ function completeUpgradeReceipt() {
     projectionRebuildCompleted: true,
     consumerActivationCompleted: true,
     rollbackEvidenceCompleted: true,
-    rollbackArchiveDigest: fixedHashB,
+    rollbackArchiveDigest: rollbackArchiveDigest(),
     completedAt: '2026-08-04T00:00:00.000Z',
   });
 }
@@ -118,13 +131,6 @@ function completeArchiveArtifacts(): ArchiveArtifactInput[] {
       digest: fixed,
     },
   ];
-  const rollbackTargets = [
-    {
-      activationId: 'activation-prior',
-      activationHash: fixed,
-    },
-  ];
-
   const byId: Record<string, string> = {
     'legacy-course-coverage-audit-manifest': auditContent,
     'old-to-canonical-crosswalk': JSON.stringify({
@@ -150,8 +156,8 @@ function completeArchiveArtifacts(): ArchiveArtifactInput[] {
       ],
     }),
     'digest-verified-rollback-archive': JSON.stringify({
-      rollbackArchiveDigest: retirementDigest({ targets: rollbackTargets }),
-      targets: rollbackTargets,
+      rollbackArchiveDigest: rollbackArchiveDigest(),
+      targets: rollbackTargets(),
     }),
     'historical-learning-fact-crosswalk-adapter': JSON.stringify({
       adapter: 'historical-learning-fact-crosswalk',

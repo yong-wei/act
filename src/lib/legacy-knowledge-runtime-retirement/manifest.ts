@@ -155,6 +155,8 @@ export function verifyEvidenceContracts(input: {
   inventory: RetirementConsumerInventory;
   archive: RetirementArchive;
   archiveArtifacts?: readonly ArchiveArtifactInput[] | null;
+  upgradeReceipt?: IncrementalUpgradeReceipt | null;
+  activationIdentities?: readonly ActivationIdentityEvidence[] | null;
 }): string[] {
   const reasons: string[] = [];
 
@@ -216,6 +218,91 @@ export function verifyEvidenceContracts(input: {
     const content = verifyArchiveArtifactContents(input.archiveArtifacts);
     if (!content.ok) {
       reasons.push(...content.reasons.map((r) => `archive-content:${r}`));
+    }
+
+    // Bind rollback archive digest to the incremental upgrade receipt.
+    const rollbackArtifact = input.archiveArtifacts.find(
+      (a) => a.artifactId === 'digest-verified-rollback-archive',
+    );
+    if (rollbackArtifact && input.upgradeReceipt) {
+      try {
+        const text =
+          typeof rollbackArtifact.content === 'string'
+            ? rollbackArtifact.content
+            : rollbackArtifact.content.toString('utf8');
+        const body = JSON.parse(text) as {
+          rollbackArchiveDigest?: string;
+          targets?: Array<{ activationId?: string; activationHash?: string }>;
+        };
+        if (
+          body.rollbackArchiveDigest
+          !== input.upgradeReceipt.rollbackArchiveDigest
+        ) {
+          reasons.push('archive-rollback-digest-not-bound-to-upgrade-receipt');
+        }
+        const targetIds = new Set(
+          (body.targets ?? [])
+            .map((t) => t.activationId)
+            .filter((id): id is string => typeof id === 'string' && id.length > 0),
+        );
+        if (targetIds.size === 0) {
+          reasons.push('archive-rollback-targets-empty-after-parse');
+        }
+      } catch {
+        reasons.push('archive-rollback-bind-parse-failed');
+      }
+    }
+
+    // Bind historical snapshots to activation authority snapshot identities.
+    const snapshotArtifact = input.archiveArtifacts.find(
+      (a) => a.artifactId === 'historical-authority-projection-snapshots',
+    );
+    if (snapshotArtifact && input.activationIdentities) {
+      try {
+        const text =
+          typeof snapshotArtifact.content === 'string'
+            ? snapshotArtifact.content
+            : snapshotArtifact.content.toString('utf8');
+        const body = JSON.parse(text) as {
+          snapshots?: Array<{
+            snapshotId?: string;
+            projectionId?: string;
+            digest?: string;
+          }>;
+        };
+        const snapshotIds = new Set(
+          (body.snapshots ?? [])
+            .map((s) => s.snapshotId)
+            .filter((id): id is string => typeof id === 'string' && id.length > 0),
+        );
+        const projectionIds = new Set(
+          (body.snapshots ?? [])
+            .map((s) => s.projectionId)
+            .filter((id): id is string => typeof id === 'string' && id.length > 0),
+        );
+        for (const identity of input.activationIdentities) {
+          if (
+            identity.authoritySnapshotId
+            && !snapshotIds.has(identity.authoritySnapshotId)
+          ) {
+            reasons.push(
+              `archive-snapshot-missing-activation:${identity.consumerId}:${identity.authoritySnapshotId}`,
+            );
+          }
+          if (
+            identity.projectionId
+            && identity.readyUnderVersionedCombination
+            && !projectionIds.has(identity.projectionId)
+          ) {
+            // Engineering consumers may omit projection; only require when present.
+            reasons.push(
+              `archive-projection-missing-activation:${identity.consumerId}:${identity.projectionId}`,
+            );
+          }
+        }
+      } catch {
+        reasons.push('archive-snapshot-bind-parse-failed');
+      }
     }
   } else {
     // Ready-for-removal requires byte-level archive verification.
@@ -345,15 +432,6 @@ export function buildRetirementManifest(
     reasons.push('capture-revision-not-current-head');
   }
 
-  // Full inventory / archive structural + optional byte verification.
-  reasons.push(
-    ...verifyEvidenceContracts({
-      inventory: input.inventory,
-      archive: input.archive,
-      archiveArtifacts: input.archiveArtifacts,
-    }),
-  );
-
   try {
     assertZeroOldIdViolations(input.oldIdScan);
   } catch (error) {
@@ -399,6 +477,17 @@ export function buildRetirementManifest(
   if (input.activationIdentities.length === 0) {
     reasons.push('activation-identities-absent');
   }
+
+  // Inventory/archive structural + byte + content + binding to upgrade/activation.
+  reasons.push(
+    ...verifyEvidenceContracts({
+      inventory: input.inventory,
+      archive: input.archive,
+      archiveArtifacts: input.archiveArtifacts,
+      upgradeReceipt: input.upgradeReceipt,
+      activationIdentities: recomputedIdentities,
+    }),
+  );
 
   const markRemoved = input.markRemoved === true && reasons.length === 0;
   const status: RetirementManifest['status'] =
