@@ -229,7 +229,8 @@ export function resolveCardForStep(
   if (!canonicalId) return null;
 
   // When canonical path is known but a legacy id was also supplied, still
-  // record fallback if the card itself is on legacy status.
+  // record fallback if the card itself is on legacy status — only while the
+  // production legacy card reader remains permitted (#1277).
   const active = getActiveCardForCanonical(input.index, canonicalId);
   const inactive =
     !active
@@ -238,7 +239,9 @@ export function resolveCardForStep(
       ) ?? null
       : null;
   const legacyCard =
-    !active && !inactive
+    productionLegacyCardReaderAllowed
+    && !active
+    && !inactive
       ? input.index.entries.find(
         (e) => e.canonicalId === canonicalId && e.legacyFallback,
       ) ?? null
@@ -259,7 +262,10 @@ export function resolveCardForStep(
     };
   }
 
-  if (legacyCard || (inactive && inactive.legacyFallback)) {
+  if (
+    productionLegacyCardReaderAllowed
+    && (legacyCard || (inactive && inactive.legacyFallback))
+  ) {
     const card = legacyCard ?? inactive;
     if (!legacyHit) {
       legacyHit = recordHit({
@@ -289,7 +295,9 @@ export function resolveCardForStep(
     };
   }
 
-  if (inactive) {
+  // After retirement: ignore legacyFallback-only cards on the Canonical path
+  // and treat them as absent (node summary / required-missing), not dual authority.
+  if (inactive && !inactive.legacyFallback) {
     return {
       stepId: input.stepId ?? null,
       canonicalId,

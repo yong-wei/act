@@ -15,3 +15,4 @@ export * from './archive';
 export * from './manifest';
 export * from './gate';
 export * from './historical';
+export * from './store';

@@ -5,6 +5,10 @@
  * retention, and no dual authority after retire.
  */
 
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -12,6 +16,8 @@ import {
   LEGACY_AUDIT_EXPECTED_COUNTS,
 } from '@/lib/aggregate-governance/legacy-course-coverage-audit';
 import { CONSUMER_ACTIVATION_IDS } from '@/lib/versioned-knowledge-activation/contracts';
+import { resolveCardForStep } from '@/lib/teaching-projection/cards/resolve';
+import type { CanonicalCardActiveIndex } from '@/lib/teaching-projection/cards/contracts';
 
 import {
   RETAINED_HISTORICAL_ARTIFACTS,
@@ -33,6 +39,7 @@ import {
   cardHitsToFallbackInputs,
   clearRetirementGate,
   deriveRetirementGateState,
+  ensureRetirementGateLoaded,
   exportFallbackTelemetry,
   extractLegacyIdCandidates,
   getRetirementGateState,
@@ -45,9 +52,11 @@ import {
   issueRemovalReceipt,
   listRetainedHistoricalArtifacts,
   readHistoricalLearningFactContext,
+  resolveRetirementStorePaths,
   runOldIdScan,
   verifyActivationIdentities,
   verifyIncrementalUpgradeReceipt,
+  writeRetirementStore,
   type ActivationIdentityEvidence,
   type ArchiveArtifactInput,
   type RetirementChangeSurface,
@@ -636,5 +645,188 @@ describe('Retirement non-goals (#1277)', () => {
     });
     expect(receipt.status).toBe('removed');
     expect(JSON.stringify(receipt)).not.toContain('activationPointer');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// P1 remediations: store load, digest re-verify, canonical legacy card
+// ---------------------------------------------------------------------------
+
+describe('Production store load and evidence integrity (#1277 P1)', () => {
+  const tempRoots: string[] = [];
+
+  afterEach(() => {
+    while (tempRoots.length > 0) {
+      const root = tempRoots.pop();
+      if (root) rmSync(root, { recursive: true, force: true });
+    }
+    clearRetirementGate();
+  });
+
+  it('loads reviewed retirement store on production permission check', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'act-retirement-store-'));
+    tempRoots.push(root);
+    const paths = resolveRetirementStorePaths(root);
+    const manifest = readyManifest(true);
+    const receipt = issueRemovalReceipt({
+      receiptId: 'removal-store',
+      manifest,
+      removedAt: '2026-08-04T16:00:00.000Z',
+    });
+    writeRetirementStore({ paths, manifest, removalReceipt: receipt });
+
+    clearRetirementGate();
+    // Lazy production load via permission API.
+    const loaded = ensureRetirementGateLoaded({ paths, forceReload: true });
+    expect(loaded.retired).toBe(true);
+    expect(isProductionLegacyFallbackPermitted()).toBe(false);
+    expect(isLegacyCardDirectReaderPermitted()).toBe(false);
+    expect(isGlobalCourseCoverageRuntimeSelectorPermitted()).toBe(false);
+  });
+
+  it('absent store keeps legacy available; invalid store fails closed', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'act-retirement-absent-'));
+    tempRoots.push(root);
+    const paths = resolveRetirementStorePaths(root);
+
+    clearRetirementGate();
+    const absent = ensureRetirementGateLoaded({ paths, forceReload: true });
+    expect(absent.retired).toBe(false);
+    expect(isProductionLegacyFallbackPermitted()).toBe(true);
+
+    // Write a pointer without a manifest file → invalid → fail closed.
+    const { writeFileSync, mkdirSync } = require('node:fs') as typeof import('node:fs');
+    mkdirSync(paths.root, { recursive: true });
+    writeFileSync(
+      paths.currentPointer,
+      JSON.stringify({
+        contract: 'act-legacy-knowledge-runtime-retirement-current/v1',
+        retirementId: 'missing-release',
+        manifestDigest: fixedHash,
+        removalReceiptId: null,
+        appliedAt: '2026-08-04T00:00:00.000Z',
+      }),
+      'utf8',
+    );
+    clearRetirementGate();
+    const invalid = ensureRetirementGateLoaded({ paths, forceReload: true });
+    expect(invalid.retired).toBe(true);
+    expect(isProductionLegacyFallbackPermitted()).toBe(false);
+  });
+
+  it('blocks ready-for-removal when evidence digests are tampered', () => {
+    const inventory = buildRetirementConsumerInventory({
+      captureRevision: 'c'.repeat(40),
+    });
+    // Start from a scan that actually has hits so clearing them changes the body.
+    const dirty = runOldIdScan({
+      files: [
+        {
+          path: 'course-content/authoring/lessons/1-1/notes/bad.md',
+          content: 'legacy 反馈_1_1\n',
+        },
+      ],
+      scannedRoots: ['course-content/authoring'],
+      captureRevision: 'c'.repeat(40),
+    });
+    expect(dirty.hitCount).toBeGreaterThan(0);
+
+    // Tamper: clear hits / claim zero violations but keep original digest.
+    const forged = {
+      ...dirty,
+      zeroViolations: true,
+      hits: [],
+      hitCount: 0,
+      scanDigest: dirty.scanDigest,
+    };
+
+    const blocked = buildRetirementManifest({
+      retirementId: 'retire-tamper',
+      captureRevision: 'c'.repeat(40),
+      inventory,
+      oldIdScan: forged,
+      fallbackExport: zeroFallback(),
+      archive: completeArchive(),
+      upgradeReceipt: completeUpgradeReceipt(),
+      activationIdentities: readyIdentities(),
+    });
+    expect(blocked.status).toBe('blocked');
+    expect(blocked.reasons).toEqual(
+      expect.arrayContaining(['old-id-scan-digest-tamper']),
+    );
+
+    // Forged readyUnderVersionedCombination must not pass.
+    const forgedIdentity = readyIdentities().map((row) =>
+      row.consumerId === 'konling'
+        ? {
+            ...row,
+            status: 'PINNED_PREVIOUS',
+            readyUnderVersionedCombination: true,
+          }
+        : row,
+    );
+    const blockedIdentity = buildRetirementManifest({
+      retirementId: 'retire-forged-ready',
+      captureRevision: 'c'.repeat(40),
+      inventory,
+      oldIdScan: cleanScan(),
+      fallbackExport: zeroFallback(),
+      archive: completeArchive(),
+      upgradeReceipt: completeUpgradeReceipt(),
+      activationIdentities: forgedIdentity,
+    });
+    expect(blockedIdentity.status).toBe('blocked');
+    expect(
+      blockedIdentity.reasons.some((r) => r.includes('konling')),
+    ).toBe(true);
+  });
+
+  it('blocks production Canonical-path legacyFallback cards after retirement', () => {
+    const index: CanonicalCardActiveIndex = {
+      contract: 'act-knowledge-card-active-index/v1',
+      builderVersion: 'act-knowledge-card-migration-builder/v1',
+      projectionScope: null,
+      entries: [
+        {
+          cardId: 'card-legacy-only',
+          resourceId: 'res-1',
+          canonicalId: 'ctr:object:feedback',
+          status: 'ACTIVE',
+          active: false,
+          required: false,
+          sourceHash: fixedHash,
+          sourcePath: null,
+          title: 'legacy only',
+          cardVersion: 1,
+          projectionScope: null,
+          legacyAliases: ['反馈_1_1'],
+          legacyFallback: true,
+        },
+      ],
+      activeByCanonical: [],
+      indexDigest: fixedHash,
+    };
+
+    // Before retirement: legacy-fallback path is usable.
+    clearRetirementGate();
+    const before = resolveCardForStep({
+      canonicalIds: ['ctr:object:feedback'],
+      index,
+      consumer: 'course-runtime',
+    });
+    expect(before?.outcome).toBe('legacy-fallback');
+    expect(before?.legacyFallback).toBe(true);
+
+    // After retirement: Canonical path must not return legacy dual authority.
+    const manifest = readyManifest(true);
+    applyRetirementGate(deriveRetirementGateState({ manifest }));
+    const after = resolveCardForStep({
+      canonicalIds: ['ctr:object:feedback'],
+      index,
+      consumer: 'course-runtime',
+    });
+    expect(after?.outcome).not.toBe('legacy-fallback');
+    expect(after?.legacyFallback).toBe(false);
+    expect(after?.card).toBeNull();
   });
 });

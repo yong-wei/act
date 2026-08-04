@@ -26,6 +26,7 @@ import { isSha256Hex, retirementDigest } from './hash';
 import {
   assertActivationIdentitiesReady,
   assertIncrementalUpgradeComplete,
+  buildActivationIdentityEvidence,
   verifyActivationIdentities,
   verifyIncrementalUpgradeReceipt,
 } from './preflight';
@@ -40,6 +41,15 @@ const RETIREMENT_INVARIANTS = {
   doesNotIncludeUpstreamSemanticReview: true as const,
   failClosedOnMissingEvidence: true as const,
 };
+
+/** Recompute digest over a document body excluding the terminal digest field. */
+function recomputeTerminalDigest(
+  doc: Record<string, unknown>,
+  digestField: string,
+): string {
+  const { [digestField]: _ignored, ...rest } = doc;
+  return retirementDigest(rest);
+}
 
 /**
  * Reject activation+retirement coupling (must be separate change/PR).
@@ -122,26 +132,90 @@ export function buildRetirementManifest(
 
   const reasons: string[] = [];
 
-  if (!input.inventory.inventoryDigest || !isSha256Hex(input.inventory.inventoryDigest)) {
-    reasons.push('inventory-digest-missing');
-  }
-  if (!input.oldIdScan.scanDigest || !isSha256Hex(input.oldIdScan.scanDigest)) {
-    reasons.push('old-id-scan-digest-missing');
-  }
+  // Recompute evidence digests from full document bodies (fail closed on tamper).
+  const inventoryDigestExpected = recomputeTerminalDigest(
+    input.inventory as unknown as Record<string, unknown>,
+    'inventoryDigest',
+  );
   if (
-    !input.fallbackExport.exportDigest
-    || !isSha256Hex(input.fallbackExport.exportDigest)
+    !isSha256Hex(input.inventory.inventoryDigest)
+    || input.inventory.inventoryDigest !== inventoryDigestExpected
   ) {
-    reasons.push('fallback-export-digest-missing');
+    reasons.push(
+      !isSha256Hex(input.inventory.inventoryDigest)
+        ? 'inventory-digest-missing'
+        : 'inventory-digest-tamper',
+    );
   }
-  if (!input.archive.archiveDigest || !isSha256Hex(input.archive.archiveDigest)) {
-    reasons.push('archive-digest-missing');
+
+  const scanDigestExpected = recomputeTerminalDigest(
+    input.oldIdScan as unknown as Record<string, unknown>,
+    'scanDigest',
+  );
+  if (
+    !isSha256Hex(input.oldIdScan.scanDigest)
+    || input.oldIdScan.scanDigest !== scanDigestExpected
+  ) {
+    reasons.push(
+      !isSha256Hex(input.oldIdScan.scanDigest)
+        ? 'old-id-scan-digest-missing'
+        : 'old-id-scan-digest-tamper',
+    );
   }
+
+  const fallbackDigestExpected = recomputeTerminalDigest(
+    input.fallbackExport as unknown as Record<string, unknown>,
+    'exportDigest',
+  );
+  if (
+    !isSha256Hex(input.fallbackExport.exportDigest)
+    || input.fallbackExport.exportDigest !== fallbackDigestExpected
+  ) {
+    reasons.push(
+      !isSha256Hex(input.fallbackExport.exportDigest)
+        ? 'fallback-export-digest-missing'
+        : 'fallback-export-digest-tamper',
+    );
+  }
+
+  const archiveDigestExpected = recomputeTerminalDigest(
+    input.archive as unknown as Record<string, unknown>,
+    'archiveDigest',
+  );
+  if (
+    !isSha256Hex(input.archive.archiveDigest)
+    || input.archive.archiveDigest !== archiveDigestExpected
+  ) {
+    reasons.push(
+      !isSha256Hex(input.archive.archiveDigest)
+        ? 'archive-digest-missing'
+        : 'archive-digest-tamper',
+    );
+  }
+
+  // Upgrade receipt already has verifyIncrementalUpgradeReceipt which recomputes.
   if (
     !input.upgradeReceipt.receiptDigest
     || !isSha256Hex(input.upgradeReceipt.receiptDigest)
   ) {
     reasons.push('upgrade-receipt-digest-missing');
+  }
+
+  // Capture revision must bind inventory / scan / archive to one Git revision.
+  const captureRevisions = [
+    input.inventory.captureRevision,
+    input.oldIdScan.captureRevision,
+    input.archive.captureRevision,
+  ].filter((value): value is string => typeof value === 'string' && value.length > 0);
+  if (captureRevisions.length < 3) {
+    reasons.push('capture-revision-incomplete');
+  } else if (new Set(captureRevisions).size !== 1) {
+    reasons.push('capture-revision-mismatch');
+  } else if (
+    input.captureRevision
+    && input.captureRevision !== captureRevisions[0]
+  ) {
+    reasons.push('capture-revision-head-mismatch');
   }
 
   try {
@@ -164,7 +238,18 @@ export function buildRetirementManifest(
     }
   }
 
-  const activation = verifyActivationIdentities(input.activationIdentities);
+  // Re-evaluate readiness from raw identity fields (do not trust a forged flag).
+  const recomputedIdentities = input.activationIdentities.map((row) =>
+    buildActivationIdentityEvidence({
+      consumerId: row.consumerId,
+      status: row.status,
+      authorityReleaseId: row.authorityReleaseId,
+      authoritySnapshotId: row.authoritySnapshotId,
+      projectionId: row.projectionId,
+      projectionHash: row.projectionHash,
+    }),
+  );
+  const activation = verifyActivationIdentities(recomputedIdentities);
   if (!activation.ok) {
     reasons.push(...activation.reasons);
   }
@@ -201,7 +286,7 @@ export function buildRetirementManifest(
     fallbackExportDigest: input.fallbackExport.exportDigest,
     archiveDigest: input.archive.archiveDigest,
     incrementalUpgradeReceiptDigest: input.upgradeReceipt.receiptDigest,
-    activationIdentities: [...input.activationIdentities].sort((a, b) =>
+    activationIdentities: [...recomputedIdentities].sort((a, b) =>
       String(a.consumerId) < String(b.consumerId)
         ? -1
         : String(a.consumerId) > String(b.consumerId)

@@ -4,6 +4,9 @@
  * Production consumers consult this gate before using legacy readers,
  * global CourseCoverage selectors, or allowLegacyFallback paths.
  * Historical adapters remain reachable via explicit historical mode.
+ *
+ * Production assembly: first permission check lazy-loads the reviewed
+ * retirement store (current.json + manifest) and applies the gate.
  */
 
 import {
@@ -14,6 +17,11 @@ import {
   type RetirementManifest,
 } from './contracts';
 import { assertRetirementManifestReady } from './manifest';
+import {
+  loadCurrentRetirementStore,
+  resolveDefaultRetirementStorePaths,
+  type RetirementStorePaths,
+} from './store';
 
 export type LegacyRuntimeAccessMode =
   | 'production'
@@ -38,6 +46,8 @@ const EMPTY_GATE: RetirementGateState = {
 };
 
 let activeGate: RetirementGateState = { ...EMPTY_GATE };
+/** Whether ensureRetirementGateLoaded has attempted a production store load. */
+let productionLoadAttempted = false;
 
 /**
  * Derive gate state from a reviewed retirement manifest + optional removal
@@ -111,10 +121,16 @@ export function applyRetirementGate(state: RetirementGateState): void {
     removedDependencies: [...state.removedDependencies],
     reasons: [...state.reasons],
   };
+  productionLoadAttempted = true;
 }
 
 export function clearRetirementGate(): void {
-  activeGate = { ...EMPTY_GATE, removedDependencies: [], reasons: ['retirement-not-applied'] };
+  activeGate = {
+    ...EMPTY_GATE,
+    removedDependencies: [],
+    reasons: ['retirement-not-applied'],
+  };
+  productionLoadAttempted = false;
 }
 
 export function getRetirementGateState(): RetirementGateState {
@@ -127,12 +143,80 @@ export function getRetirementGateState(): RetirementGateState {
   };
 }
 
+/**
+ * Load the reviewed retirement store and apply the gate once per process.
+ *
+ * - absent pointer → not retired (legacy still available until authorized)
+ * - available ready/removed manifest → production dual authority disabled
+ * - invalid / tampered store → fail closed: treat as retired with empty
+ *   reasons so production dual-authority paths are refused
+ */
+export function ensureRetirementGateLoaded(options: {
+  repoRoot?: string;
+  paths?: RetirementStorePaths;
+  forceReload?: boolean;
+} = {}): RetirementGateState {
+  if (productionLoadAttempted && !options.forceReload) {
+    return getRetirementGateState();
+  }
+
+  const paths =
+    options.paths
+    ?? resolveDefaultRetirementStorePaths(options.repoRoot);
+  const loaded = loadCurrentRetirementStore(paths);
+  productionLoadAttempted = true;
+
+  if (loaded.status === 'absent') {
+    activeGate = {
+      ...EMPTY_GATE,
+      reasons: ['retirement-store-absent'],
+    };
+    return getRetirementGateState();
+  }
+
+  if (loaded.status === 'invalid' || !loaded.manifest) {
+    // Fail closed: tampered retirement store must not re-open dual authority.
+    activeGate = {
+      retired: true,
+      retirementId: loaded.pointer?.retirementId ?? null,
+      manifestDigest: loaded.pointer?.manifestDigest ?? null,
+      removedDependencies: [...RETIREABLE_RUNTIME_DEPENDENCIES],
+      reasons: [
+        'retirement-store-invalid-fail-closed',
+        ...loaded.reasons,
+      ],
+    };
+    return getRetirementGateState();
+  }
+
+  const state = deriveRetirementGateState({
+    manifest: loaded.manifest,
+    removalReceipt: loaded.removalReceipt,
+  });
+  activeGate = {
+    retired: state.retired,
+    retirementId: state.retirementId,
+    manifestDigest: state.manifestDigest,
+    removedDependencies: [...state.removedDependencies],
+    reasons: [...state.reasons],
+  };
+  return getRetirementGateState();
+}
+
+function ensureLoadedForProductionCheck(): void {
+  if (!productionLoadAttempted) {
+    ensureRetirementGateLoaded();
+  }
+}
+
 export function isRuntimeDependencyRetired(
   dependencyId: RetireableRuntimeDependency,
-  state: RetirementGateState = activeGate,
+  state?: RetirementGateState,
 ): boolean {
-  if (!state.retired) return false;
-  return state.removedDependencies.includes(dependencyId);
+  if (!state) ensureLoadedForProductionCheck();
+  const resolved = state ?? activeGate;
+  if (!resolved.retired) return false;
+  return resolved.removedDependencies.includes(dependencyId);
 }
 
 /**
@@ -144,6 +228,7 @@ export function assertLegacyRuntimeAccess(input: {
   mode: LegacyRuntimeAccessMode;
   state?: RetirementGateState;
 }): void {
+  if (!input.state) ensureLoadedForProductionCheck();
   const state = input.state ?? activeGate;
   if (input.mode === 'historical' || input.mode === 'audit') {
     return;
@@ -165,10 +250,12 @@ export function assertLegacyRuntimeAccess(input: {
  * After retirement: false (fail closed — no dual authority).
  */
 export function isProductionLegacyFallbackPermitted(
-  state: RetirementGateState = activeGate,
+  state?: RetirementGateState,
 ): boolean {
-  if (!state.retired) return true;
-  return !isRuntimeDependencyRetired('production-legacy-fallback-path', state);
+  if (!state) ensureLoadedForProductionCheck();
+  const resolved = state ?? activeGate;
+  if (!resolved.retired) return true;
+  return !isRuntimeDependencyRetired('production-legacy-fallback-path', resolved);
 }
 
 /**
@@ -176,12 +263,14 @@ export function isProductionLegacyFallbackPermitted(
  * production authority selection. Audit reads remain separate.
  */
 export function isGlobalCourseCoverageRuntimeSelectorPermitted(
-  state: RetirementGateState = activeGate,
+  state?: RetirementGateState,
 ): boolean {
-  if (!state.retired) return true;
+  if (!state) ensureLoadedForProductionCheck();
+  const resolved = state ?? activeGate;
+  if (!resolved.retired) return true;
   return !isRuntimeDependencyRetired(
     'global-course-coverage-runtime-selector',
-    state,
+    resolved,
   );
 }
 
@@ -190,12 +279,14 @@ export function isGlobalCourseCoverageRuntimeSelectorPermitted(
  * dual-authority source.
  */
 export function isLegacyGraphOverlayReaderPermitted(
-  state: RetirementGateState = activeGate,
+  state?: RetirementGateState,
 ): boolean {
-  if (!state.retired) return true;
+  if (!state) ensureLoadedForProductionCheck();
+  const resolved = state ?? activeGate;
+  if (!resolved.retired) return true;
   return !isRuntimeDependencyRetired(
     'legacy-runtime-graph-overlay-reader',
-    state,
+    resolved,
   );
 }
 
@@ -204,10 +295,12 @@ export function isLegacyGraphOverlayReaderPermitted(
  * Historical LearningFact crosswalk adapter remains available.
  */
 export function isLegacyCardDirectReaderPermitted(
-  state: RetirementGateState = activeGate,
+  state?: RetirementGateState,
 ): boolean {
-  if (!state.retired) return true;
-  return !isRuntimeDependencyRetired('legacy-card-direct-reader', state);
+  if (!state) ensureLoadedForProductionCheck();
+  const resolved = state ?? activeGate;
+  if (!resolved.retired) return true;
+  return !isRuntimeDependencyRetired('legacy-card-direct-reader', resolved);
 }
 
 /**
@@ -220,6 +313,7 @@ export function assertNoProductionDualAuthority(input: {
   usingLegacyCardReader: boolean;
   state?: RetirementGateState;
 }): void {
+  if (!input.state) ensureLoadedForProductionCheck();
   const state = input.state ?? activeGate;
   if (!state.retired) return;
 
