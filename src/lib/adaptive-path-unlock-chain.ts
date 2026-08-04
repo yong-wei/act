@@ -217,7 +217,7 @@ function readNonEmptyString(value: unknown): string | null {
 }
 
 function authorizedTarget(node: AdaptivePathUnlockChainContextNode | undefined): string | undefined {
-  if (!node || node.status === 'locked') return undefined;
+  if (!node || node.status === 'locked' || node.status === 'blocked') return undefined;
   const target = readNonEmptyString(node.target);
   if (!target || !node.type) return undefined;
   return resolveAdaptivePathJourneyTargetDisposition(node.type, target) === 'blocked' ? undefined : target;

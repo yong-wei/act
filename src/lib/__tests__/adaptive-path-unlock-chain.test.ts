@@ -80,7 +80,7 @@ describe('buildAdaptivePathUnlockChain', () => {
     expect(chain.nextAction?.target).toBeUndefined();
   });
 
-  it('does not link unauthorized or locked prerequisite targets', () => {
+  it('does not link unauthorized, locked, or blocked prerequisite targets', () => {
     const lockedChain = buildAdaptivePathUnlockChain(node({
       readiness: { state: 'locked', missingCompletedNodeIds: ['card:locked'] },
     }), [{
@@ -99,9 +99,19 @@ describe('buildAdaptivePathUnlockChain', () => {
       type: 'knowledge_card',
       status: 'available',
     }]);
+    const blockedChain = buildAdaptivePathUnlockChain(node({
+      readiness: { state: 'locked', missingCompletedNodeIds: ['quiz:blocked'] },
+    }), [{
+      nodeId: 'quiz:blocked',
+      title: 'Blocked quiz',
+      target: '/assessment/adaptive-practice',
+      type: 'adaptive_quiz',
+      status: 'blocked',
+    }]);
 
     expect(lockedChain.nextAction?.target).toBeUndefined();
     expect(restrictedChain.nextAction?.target).toBeUndefined();
+    expect(blockedChain.nextAction?.target).toBeUndefined();
   });
 
   it('falls back to unlockMessage without fabricating a chain', () => {
