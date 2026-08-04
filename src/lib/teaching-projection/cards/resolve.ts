@@ -5,6 +5,8 @@
  * recorded with card identity, crosswalk outcome, consumer, and projection.
  */
 
+import { isLegacyCardDirectReaderPermitted } from '@/lib/legacy-knowledge-runtime-retirement';
+
 import { projectionDigest } from '../hash';
 import { isLegacyLocalGraphNodeId } from '../legacy-id-policy';
 import {
@@ -175,10 +177,12 @@ export function resolveCardForStep(
   let legacyHit: LegacyCardFallbackHit | null = null;
 
   // Compatibility: misfiled legacy in knowledgeRefs or explicit legacyIds.
-  const legacyCandidates = [
-    ...misfiledLegacy,
-    ...legacyIds,
-  ];
+  // #1277: production legacy card direct reader is retired after the gate;
+  // historical LearningFact reads use the retained crosswalk adapter instead.
+  const productionLegacyCardReaderAllowed = isLegacyCardDirectReaderPermitted();
+  const legacyCandidates = productionLegacyCardReaderAllowed
+    ? [...misfiledLegacy, ...legacyIds]
+    : [];
 
   if (!canonicalId && legacyCandidates.length > 0) {
     const legacyId = legacyCandidates[0]!;
