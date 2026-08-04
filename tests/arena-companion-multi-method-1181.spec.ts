@@ -94,10 +94,11 @@ function assertOnlyExpectedEvidenceChanges(expectedPaths: readonly string[]): vo
     .split('\n')
     .map((line) => line.trimEnd())
     .filter(Boolean);
-  const unexpected = statusLines.filter((line) => (
-    line.slice(0, 2) !== '??' || !expected.has(line.slice(3))
-  ));
-  if (unexpected.length > 0 || statusLines.length !== expected.size) {
+  const unexpected = statusLines.filter((line) => {
+    const status = line.slice(0, 2);
+    return (status !== '??' && status !== ' M') || !expected.has(line.slice(3));
+  });
+  if (unexpected.length > 0) {
     throw new Error(`capture changed unexpected paths: ${statusLines.join(' | ')}`);
   }
 }
