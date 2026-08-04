@@ -43,6 +43,13 @@ import {
   recordPathChoiceEvidence,
   recordPathIntervention,
 } from '@/lib/control-correction-path-rounds';
+import {
+  AdaptivePathCandidateBatchConflictError,
+  persistAdaptivePathCandidateBatch,
+  readAdaptivePathCandidateBatchByGenerationRequest,
+  type AdaptivePathCandidateBatchView,
+} from '@/lib/adaptive-path-candidate-batches';
+import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-runtime';
 import {
   loadAllTextbookStructureRuntimeCatalogEntries,
@@ -4191,6 +4198,15 @@ async function buildAdaptivePathToolOutput(
     candidatePoolDiagnostics,
   });
   const hasPersistablePath = plan.mainPath.length > 0;
+  const persistedPlan = operation === 'generated'
+    ? {
+        ...plan,
+        id: `${plan.id}:candidate_${createHash('sha256')
+          .update(args.idempotencyKey)
+          .digest('hex')
+          .slice(0, 24)}`,
+      }
+    : plan;
   const candidatePoolLimitationCodes = candidatePoolDiagnostics.sourceFamilies
     .map((source) => source.reason)
     .filter((reason): reason is string => Boolean(reason));
@@ -4199,29 +4215,94 @@ async function buildAdaptivePathToolOutput(
     limited: candidatePoolLimited,
     limitationCodes: candidatePoolLimitationCodes,
   };
-  if (hasPersistablePath) {
-    await persistLearningPathRound(input.db as any, {
-      plan,
-      classId: input.scope.classId ?? null,
-      learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
-      inputSnapshot: {
-        source: 'konling-tool',
-        operation,
-        toolScope,
-        candidatePoolLimited,
-        candidatePoolLimitationCodes,
-        request: requestSnapshot,
-      },
-      pathPayloadMetadata: {
-        candidatePoolLimited,
-        candidatePoolLimitationCodes,
-        candidatePoolStatus,
-        configurationFulfillment: plan.explanations.configurationFulfillment,
-        requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
-        minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
-        timeBudgetInsufficient: timeBudget.insufficient,
-      },
-    });
+  const persistSourcePath = (db: any) => persistLearningPathRound(db, {
+    plan: persistedPlan,
+    pathStatus: operation === 'generated' ? 'candidate' : undefined,
+    classId: input.scope.classId ?? null,
+    learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
+    inputSnapshot: {
+      source: 'konling-tool',
+      operation,
+      toolScope,
+      candidatePoolLimited,
+      candidatePoolLimitationCodes,
+      request: requestSnapshot,
+    },
+    pathPayloadMetadata: {
+      candidatePoolLimited,
+      candidatePoolLimitationCodes,
+      candidatePoolStatus,
+      configurationFulfillment: plan.explanations.configurationFulfillment,
+      requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
+      minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+      timeBudgetInsufficient: timeBudget.insufficient,
+    },
+  });
+  let candidateBatch: AdaptivePathCandidateBatchView | null = null;
+  const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
+  const canPersistCandidateBatch = operation === 'generated'
+    && candidateBatchStore
+    && typeof candidateBatchStore.findUnique === 'function'
+    && typeof candidateBatchStore.create === 'function';
+  if (canPersistCandidateBatch) {
+    const readExistingBatch = async () => {
+      const existingBatch = await readAdaptivePathCandidateBatchByGenerationRequest(
+        input.db as any,
+        args.idempotencyKey,
+      );
+      if (
+        existingBatch
+        && (existingBatch.userId !== persistedPlan.userId || existingBatch.goalId !== persistedPlan.goal.id)
+      ) {
+        throw new AdaptivePathCandidateBatchConflictError(
+          'Generation request identity is bound to a different learner or goal',
+        );
+      }
+      return existingBatch;
+    };
+    candidateBatch = await readExistingBatch();
+    if (!candidateBatch && hasPersistablePath) {
+      try {
+        candidateBatch = await runWithLearningPathWriteFence(
+          input.db as any,
+          persistedPlan.id,
+          async (tx, existingPath) => {
+            const existingBatch = await readAdaptivePathCandidateBatchByGenerationRequest(
+              tx as any,
+              args.idempotencyKey,
+            );
+            if (existingBatch) {
+              if (
+                existingBatch.userId !== persistedPlan.userId
+                || existingBatch.goalId !== persistedPlan.goal.id
+              ) {
+                throw new AdaptivePathCandidateBatchConflictError(
+                  'Generation request identity is bound to a different learner or goal',
+                );
+              }
+              return existingBatch;
+            }
+            if (existingPath) {
+              throw new AdaptivePathCandidateBatchConflictError(
+                'Candidate source path exists without its immutable candidate batch',
+              );
+            }
+            await persistSourcePath(tx);
+            return persistAdaptivePathCandidateBatch(tx as any, {
+              generationRequestId: args.idempotencyKey,
+              plan: persistedPlan,
+              classId: input.scope.classId ?? null,
+            });
+          },
+          { requireWritable: false },
+        );
+      } catch (error) {
+        candidateBatch = await readExistingBatch();
+        if (!candidateBatch) throw error;
+      }
+    }
+  } else if (hasPersistablePath) {
+    await persistSourcePath(input.db as any);
   }
   if (operation === 'revised' && hasPersistablePath) {
     await recordPathChoiceEvidence(input.db as any, {
@@ -4247,7 +4328,18 @@ async function buildAdaptivePathToolOutput(
       actorRole: input.scope.role,
     });
   }
-  const pathOptions = hasPersistablePath ? buildStudentSafePathOptions(plan) : [];
+  const hasPersistedOutput = hasPersistablePath || Boolean(candidateBatch);
+  const pathOptions = candidateBatch
+    ? candidateBatch.candidates.map((candidate) => ({
+          ...buildStudentSafeCandidatePathOption(candidate.snapshot),
+          candidateId: candidate.id,
+        }))
+    : hasPersistablePath
+      ? buildStudentSafePathOptions(plan).map((option) => ({
+          ...option,
+          candidateId: null,
+        }))
+      : [];
   const fallbackReasons = uniqueStringList([
     ...plan.explanations.fallbackReasons,
     ...(plan.policyBundle?.fallbackReasons ?? []),
@@ -4257,7 +4349,7 @@ async function buildAdaptivePathToolOutput(
   return {
     operation,
     scope: toolScope,
-    generationStatus: hasPersistablePath ? 'persisted' : 'blocked',
+    generationStatus: hasPersistedOutput ? 'persisted' : 'blocked',
     request: {
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
@@ -4274,7 +4366,12 @@ async function buildAdaptivePathToolOutput(
       preferredStyleId: args.preferredStyleId ?? null,
       requestedAt: args.requestedAt ?? null,
     },
-    pathId: hasPersistablePath ? plan.id : null,
+    pathId: candidateBatch?.sourcePathId ?? (hasPersistablePath ? persistedPlan.id : null),
+    candidateBatch: candidateBatch ? {
+      id: candidateBatch.id,
+      generationRequestId: candidateBatch.generationRequestId,
+      candidateIds: candidateBatch.candidates.map((candidate) => candidate.id),
+    } : null,
     pathOptions,
     configurationFulfillment: plan.explanations.configurationFulfillment.map(
       toStudentConfigurationFulfillment,
@@ -4758,6 +4855,58 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
       ? ['当前可用证据或资源不足，建议先完成基础节点。']
       : [],
   }];
+}
+
+function buildStudentSafeCandidatePathOption(snapshot: Record<string, unknown>) {
+  const optionId = typeof snapshot.optionId === 'string' ? snapshot.optionId : null;
+  const styleId = typeof snapshot.styleId === 'string' ? snapshot.styleId : null;
+  const label = typeof snapshot.label === 'string' ? snapshot.label : null;
+  const effort = snapshot.effort && typeof snapshot.effort === 'object'
+    ? snapshot.effort as Record<string, unknown>
+    : {};
+  const nodeSummaries = Array.isArray(snapshot.nodeSummaries) ? snapshot.nodeSummaries : [];
+  const targetDeficits = Array.isArray(snapshot.targetDeficits) ? snapshot.targetDeficits : [];
+  const terminalValidationStrategy = snapshot.terminalValidationStrategy
+    && typeof snapshot.terminalValidationStrategy === 'object'
+    ? snapshot.terminalValidationStrategy as Record<string, unknown>
+    : {};
+  const terminalNodeIds = Array.isArray(terminalValidationStrategy.nodeIds)
+    ? terminalValidationStrategy.nodeIds.filter((value): value is string => typeof value === 'string')
+    : [];
+  return {
+    optionId,
+    styleId,
+    label,
+    estimatedMinutes: typeof effort.estimatedMinutes === 'number' ? effort.estimatedMinutes : null,
+    effort: typeof effort.relative === 'string' ? effort.relative : null,
+    nodeSummaries: nodeSummaries.map((value) => {
+      const node = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+      return {
+        nodeId: typeof node.nodeId === 'string' ? node.nodeId : null,
+        title: typeof node.title === 'string' ? node.title : null,
+        resourceType: typeof node.pathNodeType === 'string' ? node.pathNodeType : null,
+        estimatedTimeMinutes: typeof node.estimatedTimeMinutes === 'number' ? node.estimatedTimeMinutes : null,
+        knowledgeCoverage: [],
+      };
+    }),
+    targetDeficits: targetDeficits.flatMap((value) => {
+      if (!value || typeof value !== 'object') return [];
+      const targetId = (value as Record<string, unknown>).targetId;
+      return typeof targetId === 'string' ? [targetId] : [];
+    }),
+    evidenceBasis: buildStudentSafeEvidenceBasis(
+      Array.isArray(snapshot.evidenceBasis)
+        ? snapshot.evidenceBasis.filter((value): value is string => typeof value === 'string')
+        : [],
+    ),
+    lockedNodeIds: Array.isArray(snapshot.lockedNodeIds) ? snapshot.lockedNodeIds : [],
+    readinessSummary: Array.isArray(snapshot.readinessSummary) ? snapshot.readinessSummary : [],
+    limitations: Array.isArray(snapshot.limitations) ? snapshot.limitations : [],
+    terminalValidation: {
+      required: terminalNodeIds.length > 0,
+      nodeIds: terminalNodeIds,
+    },
+  };
 }
 
 function buildStudentSafeEvidenceBasis(values: string[]) {

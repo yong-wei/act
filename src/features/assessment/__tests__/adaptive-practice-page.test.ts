@@ -100,7 +100,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain("const showPresetGoalCards = isPresetGoalLanding && pathLandingState === 'cold-start';");
     expect(source).toContain("showSelectionWorkspace && !showPathContextRecovery ? (");
-    expect(source).toContain("!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("!showPathContextRecovery && (showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
     expect(source).toContain("!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)");
     expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (");
     expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
@@ -294,5 +294,28 @@ describe('adaptive practice page entry states', () => {
     expect(moduleBlock).toContain('pathExecutionError ?');
     expect(moduleBlock).toContain('data-adaptive-path-execution-error="visible"');
     expect(moduleBlock).toContain('setPathExecutionError(null); void reloadActiveLearningPath()');
+  });
+
+  it('loads candidate batches separately from the active learning path', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('const [activeCandidateBatch, setActiveCandidateBatch]');
+    expect(source).toContain('fetchCandidateBatch(activeGoal, requestedBatchId, requestedCandidateId)');
+    expect(source).toContain('getCandidateBatchPathOptions(activeCandidateBatch)');
+    expect(source).not.toContain('setActivePathPlan(loadedBatch');
+    expect(source).not.toContain('setActivePathRound(loadedBatch');
+  });
+
+  it('keeps candidate identity fail-closed and writes selections to the source path', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("requestedCandidateId && !requestedBatchId");
+    expect(source).toContain('pathOptions.find((option) => option.optionId === display.id)?.candidateId === focusedCandidateId');
+    expect(source).toContain('batchId: option.candidateId ? option.batchId : null');
+    expect(source).toContain('candidateId: option.candidateId ?? null');
+    expect(source).toContain("? activeCandidateBatch?.sourcePathId");
+    expect(source).toContain("compareAllCandidateQuery.delete('candidate')");
+    expect(source).toContain('data-learning-path-compare-all');
+    expect(source).toContain('(showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
   });
 });

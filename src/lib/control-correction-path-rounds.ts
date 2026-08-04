@@ -64,6 +64,7 @@ interface AppendOnlyDelegate {
 
 export interface PersistControlCorrectionPathRoundInput {
   plan: AdaptiveLearningPathPlan;
+  pathStatus?: 'active' | 'fallback' | 'candidate';
   learnerStateRef?: string | null;
   inputSnapshot?: Record<string, unknown> | null;
   pathPayloadMetadata?: Record<string, unknown> | null;
@@ -192,6 +193,7 @@ export async function persistLearningPathRound(
 ): Promise<any> {
   validateLearningPathPlanForPersistence(input.plan);
   const record = serializeLearningPathPlan(input.plan);
+  const pathStatus = input.pathStatus ?? (input.plan.status === 'ready' ? 'active' : 'fallback');
 
   // Existing-path read, conflict check, payload merge, and upsert must share one
   // Serializable/FOR UPDATE fence so cutover cannot stop a Legacy path between
@@ -264,7 +266,7 @@ export async function persistLearningPathRound(
       isAiGenerated: true,
       goalId: input.plan.goal.id,
       plannerVersion: input.plan.stage,
-      pathStatus: input.plan.status === 'ready' ? 'active' : 'fallback',
+      pathStatus,
       currentNodeId: input.plan.currentNodeId,
       learnerStateRef: input.learnerStateRef ?? null,
       classId: input.classId ?? null,
@@ -282,7 +284,7 @@ export async function persistLearningPathRound(
         estimatedTime: record.estimatedTime,
         nodeIds: record.nodeIds,
         isAiGenerated: true,
-        pathStatus: input.plan.status === 'ready' ? 'active' : 'fallback',
+        pathStatus,
         currentNodeId: input.plan.currentNodeId,
       }),
     };
