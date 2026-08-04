@@ -1,8 +1,8 @@
 {
   "change": "add-adaptive-path-unlock-chain-explanation",
   "pr": 1169,
-  "capturedAt": "2026-08-04T03:03:18.592Z",
-  "gitSha": "50f5d7a6adddb5aa8e8ca7e642ee8ece12170841",
+  "capturedAt": "2026-08-04T06:03:16.807Z",
+  "gitSha": "1243351d33971d1f9ce1ff602e7eea2270f93c8d",
   "sourceFiles": [
     "src/app/assessment/adaptive-practice/page.tsx",
     "src/features/adaptive/adaptive-learning-center-contracts.ts",
@@ -12,7 +12,7 @@
     "scripts/tests/capture-adaptive-path-unlock-chain-evidence.mjs",
     "openspec/changes/add-adaptive-path-unlock-chain-explanation/tasks.md"
   ],
-  "sourceWorktreeSha256": "065fe7bf99eb68ba5392baf7c46048fc6df1540d59f504d4a80f3d4a7a0c27eb",
+  "sourceWorktreeSha256": "8721a8f541fef1167e4f44c48f96dd3a8eae8b1eaade44f1e45a681b5e1b5898",
   "baseUrl": "http://localhost:3001",
   "captures": [
     {
@@ -22,7 +22,7 @@
       "height": 1200,
       "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&unlockChainScene=1&goal=control-correction&intent=path-selection",
       "screenshot": "artifacts/commercial-ui/adaptive-path-unlock-chain-1169/path-option-preview-desktop-1440.png",
-      "screenshotSha256": "1c33d07f95c43e43c2585a732afe50d7ad4dce00b4ee9dc3be4a45918fb530e6",
+      "screenshotSha256": "71f3c0a03712531fa2836337c76b799798cf2d1209cf0c0efaa023ad48ce8709",
       "screenshotPath": "artifacts/commercial-ui/adaptive-path-unlock-chain-1169/path-option-preview-desktop-1440.png",
       "scrollWidth": 1440,
       "clientWidth": 1440,
