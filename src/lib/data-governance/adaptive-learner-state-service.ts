@@ -45,6 +45,7 @@ import {
   projectStudentSafeEvidenceSource,
   type StudentSafeEvidenceEventReference,
 } from './evidence-timeline';
+import { hasCompleteLearningFactEvidenceGovernance } from './learning-fact-quality-weight';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -850,6 +851,7 @@ export async function readAdaptiveLearnerState(
   const controlCorrectionArenaSubmissionsWithWriteback = shouldBuildControlCorrectionGoalSlice
     ? await attachPersistedArenaWritebacks(db, controlCorrectionArenaSubmissions)
     : controlCorrectionArenaSubmissions;
+  const governedFacts = facts.filter((fact) => hasCompleteLearningFactEvidenceGovernance(fact.contextJson));
   const portraitConsumer = portraitConsumerForInput(input);
   const supportsFencedCumulativePortrait = Boolean(
     db.cumulativePortraitCutoverFence?.findUnique &&
@@ -973,8 +975,8 @@ export async function readAdaptiveLearnerState(
     secondaryDimensions,
     knowledgeMastery,
     masteryTraceability,
-    resourcePreference: buildResourcePreference(facts),
-    mediaAbsorption: buildMediaAbsorption(facts),
+    resourcePreference: buildResourcePreference(governedFacts),
+    mediaAbsorption: buildMediaAbsorption(governedFacts),
     pathContext: buildPathContext(paths, activeControlCorrectionPaths[0] ?? null),
     risks: buildRiskState(profileSummary, riskFlags, input.role),
     assessmentState: {
@@ -2527,7 +2529,9 @@ async function readPagedControlCorrectionLearningFacts(input: {
       take: CONTROL_CORRECTION_FACT_TAKE,
       ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
     });
-    facts.push(...rows.filter(input.filter));
+    facts.push(...rows.filter((fact) =>
+      input.filter(fact) && hasCompleteLearningFactEvidenceGovernance(fact.contextJson),
+    ));
     if (facts.length >= CONTROL_CORRECTION_FACT_TAKE || rows.length < CONTROL_CORRECTION_FACT_TAKE) {
       break;
     }

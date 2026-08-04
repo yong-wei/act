@@ -10,6 +10,10 @@ import {
   type CompetencyDimension,
 } from './competency-model';
 import {
+  hasCompleteLearningFactEvidenceGovernance,
+  resolveLearningFactProfileWeight,
+} from './learning-fact-quality-weight';
+import {
   PORTRAIT_V2_PAYLOAD_VERSION,
   validatePortraitV2Payload,
   type PortraitV2PayloadShape,
@@ -480,7 +484,9 @@ export function buildStudentEvidenceFeaturePayload(
 ): StudentEvidenceFeaturePayload {
   const now = input.now ?? new Date();
   const staleAfterDays = input.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS;
-  const facts = [...input.facts].sort(compareFacts);
+  const facts = input.facts
+    .filter((fact) => hasCompleteLearningFactEvidenceGovernance(fact.contextJson))
+    .sort(compareFacts);
   const factsWithSource = facts.filter((item) => Boolean(item.sourceEventId || item.sourceLogId));
   const recentFacts = filterRecentFacts(facts, now, STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS);
   const firstFact = facts[0] ?? null;
@@ -1490,7 +1496,9 @@ function buildCompetencyContributions(
   for (const dimension of COMPETENCY_DIMENSIONS) {
     const dimensionValues = facts
       .map((item) => ({
-        value: numberValue(isObject(item.competencyContribution) ? item.competencyContribution[dimension] : undefined),
+        value: numberValue(
+          isObject(item.competencyContribution) ? item.competencyContribution[dimension] : undefined,
+        ) * resolveLearningFactProfileWeight(item.contextJson),
         startedAt: item.startedAt,
       }))
       .filter((item) => item.value !== 0);
@@ -1997,6 +2005,7 @@ function filterRecentFacts(
 
 function filterContributionFacts(facts: StudentEvidenceFeatureLearningFact[]): StudentEvidenceFeatureLearningFact[] {
   return facts.filter((fact) => {
+    if (resolveLearningFactProfileWeight(fact.contextJson) <= 0) return false;
     const contribution = isObject(fact.competencyContribution) ? fact.competencyContribution : {};
     return COMPETENCY_DIMENSIONS.some((dimension) => numberValue(contribution[dimension]) !== 0);
   });

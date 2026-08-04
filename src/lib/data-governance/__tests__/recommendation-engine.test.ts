@@ -452,6 +452,21 @@ describe('generateRecommendations', () => {
     vi.useRealTimers();
   });
 
+  it('excludes ungoverned LearningFacts from recommendation activity evidence', async () => {
+    mocks.prisma.learningFact.findMany.mockResolvedValue([{
+      factType: 'question',
+      outcome: 'success',
+      startedAt: new Date('2026-05-20T10:00:00.000Z'),
+      score: 100,
+      contextJson: {},
+    }]);
+
+    const recommendations = await generateRecommendations('student-1');
+
+    expect(recommendations.length).toBeGreaterThan(0);
+    expect(recommendations.every((item) => item.rationale.evidenceCount === 0)).toBe(true);
+  });
+
   it('fails closed on pre-#1116 v4 feature caches without knowledge identity diagnostics', async () => {
     // Explicitly omit knowledgeIdentityCoverage / layers so missing diagnostics
     // cannot be treated as single-version comparable after #1116 rollout.

@@ -36,6 +36,7 @@ import {
   type PortraitV2ProjectedPayload,
 } from './portrait-v2-model';
 import { mapLegacyCompetencyDimensionToPortraitV2 } from './kaq-objective-taxonomy';
+import { hasCompleteLearningFactEvidenceGovernance } from './learning-fact-quality-weight';
 
 export type RecommendationType = 'immediate' | 'weekly' | 'challenge';
 export type RecommendationEvidenceBasis =
@@ -538,10 +539,10 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
   const [
     snapshot,
     riskFlags,
-    recentFacts,
+    recentFactRows,
     totalMissions,
     completedMissions,
-    lastFact,
+    lastFactRows,
   ] = await Promise.all([
     cachedVector
       ? Promise.resolve(null)
@@ -567,6 +568,7 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
         outcome: true,
         startedAt: true,
         score: true,
+        contextJson: true,
       },
     }),
     prisma.userProgress.count({
@@ -575,13 +577,20 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
     prisma.userProgress.count({
       where: { userId, status: 'COMPLETED' },
     }),
-    prisma.learningFact.findFirst({
+    prisma.learningFact.findMany({
       where: { userId },
       orderBy: { startedAt: 'desc' },
-      select: { startedAt: true },
+      take: 50,
+      select: { startedAt: true, contextJson: true },
     }),
   ]);
 
+  const recentFacts = recentFactRows.filter((fact) =>
+    hasCompleteLearningFactEvidenceGovernance(fact.contextJson),
+  );
+  const lastFact = lastFactRows.find((fact) =>
+    hasCompleteLearningFactEvidenceGovernance(fact.contextJson),
+  ) ?? null;
   const streakDays = calculateStreak(recentFacts.map(f => f.startedAt));
   const learnerStateUsable = isLearnerStateUsableForDirectPersonalization(learnerState);
   const learnerStateVector = learnerStateUsable

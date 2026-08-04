@@ -146,7 +146,7 @@ function createDb(overrides: Record<string, unknown> = {}) {
           outcome: 'success',
           score: 86,
           timeSpent: 180,
-          contextJson: { adaptiveAssessment: { knowledgeTags: ['root-locus'] } },
+          contextJson: governedContext({ adaptiveAssessment: { knowledgeTags: ['root-locus'] } }),
         },
         {
           id: 'fact-media',
@@ -158,7 +158,7 @@ function createDb(overrides: Record<string, unknown> = {}) {
           outcome: 'partial',
           score: 55,
           timeSpent: 600,
-          contextJson: { media: { mediaType: 'video', progress: 0.58 } },
+          contextJson: governedContext({ media: { mediaType: 'video', progress: 0.58 } }),
         },
         {
           id: 'fact-sim',
@@ -170,7 +170,7 @@ function createDb(overrides: Record<string, unknown> = {}) {
           outcome: 'success',
           score: 72,
           timeSpent: 720,
-          contextJson: { simulation: { launchMode: 'course-resource' } },
+          contextJson: governedContext({ simulation: { launchMode: 'course-resource' } }),
         },
       ],
     },
@@ -324,19 +324,42 @@ function pathExecutionFeature(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function governedContext(context: Record<string, unknown> = {}) {
+  const declaredGovernance = context.evidenceGovernance;
+  const evidenceGovernance = declaredGovernance && typeof declaredGovernance === 'object' && !Array.isArray(declaredGovernance)
+    ? declaredGovernance
+    : {};
+  return {
+    ...context,
+    evidenceGovernance: {
+      evidenceQuality: 'rich',
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'rich_objective_evidence',
+      ...evidenceGovernance,
+    },
+  };
+}
+
 function controlCorrectionFact(
   factType: string,
   startedAt: string,
   score: number,
   overrides: Record<string, unknown> = {},
 ) {
+  const { contextJson, ...rest } = overrides;
   return {
     id: `fact-${factType}-${startedAt}`,
     factType,
     startedAt: new Date(startedAt),
     score,
-    contextJson: { goalId: 'control-correction' },
-    ...overrides,
+    contextJson: governedContext({
+      goalId: 'control-correction',
+      ...(contextJson && typeof contextJson === 'object' && !Array.isArray(contextJson)
+        ? contextJson as Record<string, unknown>
+        : {}),
+    }),
+    ...rest,
   };
 }
 
@@ -542,6 +565,22 @@ describe('adaptive learner state service', () => {
       privacyScope: 'student-visible',
       confidencePolicy: 'assessment-backed-mastery',
     });
+  });
+
+  it('excludes ungoverned facts from resource preference and media absorption', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [{
+          id: 'unmanaged-media', factType: 'media', moduleId: 'unit-3-4',
+          startedAt: new Date('2026-05-19T00:00:00.000Z'), finishedAt: new Date('2026-05-19T00:10:00.000Z'),
+          outcome: 'success', score: 80, timeSpent: 600,
+          contextJson: { media: { mediaType: 'video', progress: 0.9 } },
+        }],
+      },
+    }), { userId: 'student-1', role: 'student', now: new Date('2026-05-20T03:00:00.000Z') });
+
+    expect(state.resourcePreference.preferredModalities).toEqual([]);
+    expect(state.mediaAbsorption.mediaFactCount).toBe(0);
   });
 
   it.each([
@@ -750,7 +789,10 @@ describe('adaptive learner state service', () => {
               },
             },
           },
-        ],
+        ].map((fact) => ({
+          ...fact,
+          contextJson: governedContext(fact.contextJson),
+        })),
       },
     }), {
       userId: 'student-1',

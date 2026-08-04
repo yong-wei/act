@@ -161,6 +161,12 @@ describe('simulation agent evidence materialization', () => {
       courseId: 'course-1',
       sessionId: 'session-1',
       contextJson: {
+        evidenceGovernance: {
+          evidenceQuality: 'partial',
+          profileWeight: 0,
+          skipProfileContribution: true,
+          policyReason: 'unmanaged_learning_fact_context_only',
+        },
         simulation: {
           runId: 'run-1',
           traceReference: 'SimulationTrace:trace-1',

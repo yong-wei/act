@@ -20,7 +20,28 @@ import {
   STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
 } from '../student-evidence-feature-cache';
 
+function governedContext(context: unknown) {
+  const base = context && typeof context === 'object' && !Array.isArray(context)
+    ? context as Record<string, unknown>
+    : {};
+  const declaredGovernance = base.evidenceGovernance;
+  const evidenceGovernance = declaredGovernance && typeof declaredGovernance === 'object' && !Array.isArray(declaredGovernance)
+    ? declaredGovernance
+    : {};
+  return {
+    ...base,
+    evidenceGovernance: {
+      evidenceQuality: 'rich',
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'rich_objective_evidence',
+      ...evidenceGovernance,
+    },
+  };
+}
+
 function fact(overrides: Partial<LearningFact> = {}): LearningFact {
+  const { contextJson, ...rest } = overrides;
   return {
     id: 'fact-1',
     userId: 'student-1',
@@ -37,7 +58,7 @@ function fact(overrides: Partial<LearningFact> = {}): LearningFact {
     sourceLogId: 'log-1',
     courseId: 'course-1',
     lessonId: 'lesson-1',
-    contextJson: {},
+    contextJson: governedContext(contextJson),
     knowledgeIdentityNamespace: null,
     canonicalObjectId: null,
     aggregateReleaseSetId: null,
@@ -45,7 +66,7 @@ function fact(overrides: Partial<LearningFact> = {}): LearningFact {
     knowledgeProjectionId: null,
     knowledgeRevisionRef: null,
     createdAt: new Date('2026-05-01T10:05:00.000Z'),
-    ...overrides,
+    ...rest,
   };
 }
 
@@ -77,6 +98,17 @@ function clientArenaEvaluationEvent(overrides: Partial<LearningEvent> = {}): Lea
 }
 
 describe('buildStudentEvidenceFeaturePayload', () => {
+  it('excludes ungoverned facts from source activity and competency features', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      facts: [{ ...fact(), contextJson: {} }],
+      now: new Date('2026-05-21T00:00:00.000Z'),
+    });
+
+    expect(payload.sourceCounts.LearningFact).toBe(0);
+    expect(payload.features.competencyContributions.controlModeling.evidenceCount).toBe(0);
+  });
+
   it('reports multi-era knowledge identity coverage without reinterpreting historical scores', () => {
     const now = new Date('2026-07-30T00:00:00.000Z');
     const mixedFacts = [

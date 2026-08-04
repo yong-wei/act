@@ -2481,7 +2481,11 @@ describe('document rubric grading routes', () => {
     const fact: any = { id: 'fact-low-weight-full', createdAt: now, ...buildPipelineReviewFacts({ run, edits: [], reviewedAt: now })[0] };
     expect(fact.competencyContribution.controlModeling).toBe(1);
     expect(fact.contextJson.rubricWeight).toBe(0.1);
-    expect(fact.contextJson.evidenceGovernance).not.toHaveProperty('profileWeight');
+    expect(fact.contextJson.evidenceGovernance).toMatchObject({
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'adaptive_assessment_evidence',
+    });
     expect(calculateCompetencyVector([fact], 'all').controlModeling.score).toBe(100);
     expect(mapLearningFactsToPortraitEvidence([fact]).evidence[0].contributions.controlModelingRepresentation).toBe(1);
   });
