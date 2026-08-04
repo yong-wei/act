@@ -1,17 +1,17 @@
 {
   "status": "passed",
-  "capturedAt": "2026-08-04T08:27:46.094Z",
+  "capturedAt": "2026-08-04T09:57:48.793Z",
   "generatorPath": "tests/arena-companion-multi-method-1181.spec.ts",
-  "generatorSha256": "2807e64eea68af3a5c03a808016a7ac2ddeddd7b772e34217312dd1dd0ee32dc",
+  "generatorSha256": "c959b59cc663153ff4244469176a03b18f1dfc6428370381424eb6ca9aaa18c3",
   "generatorBlobId": "0ffd2ca05dd144bf12a89a880b785b1d2acaed65",
-  "sourceRevision": "0290cf7c83364923137eb66c045c11bb1f9d371d",
+  "sourceRevision": "39905a9f389f70d14c0ecc8ec9ed7925671b4250",
   "sourceGitBlobIds": {
     "src/features/ai/companion/ai-companion-panel.tsx": "87f23a8a417f64461c2df22a23249d9d4a0a66cf",
     "src/features/ai/companion/arena-companion-context.ts": "9a4dd02eb26eb0c4b3b14ec905542e79e246bd72",
     "src/features/ai/companion/intervention-engine.ts": "ea6a0e86d960e136cd88ed7493fafb36571aa74e",
     "src/features/control-workbench/shell/control-workbench-shell.tsx": "61654bc7952d7447c7e2181aa26b2b727be3fb21",
     "src/app/api/ai/intervention/generate/route.ts": "b08285c4d5b6d3e11d9b57fc9bbb00b9f2b8df27",
-    "src/lib/konling-agent-runtime.ts": "281e2121fef1ce6eba77920c5f50c2119a60474b"
+    "src/lib/konling-agent-runtime.ts": "bb16227c0b051e08ba50421be6196b4623c33aa0"
   },
   "route": "/interactive-learning/control-workbench",
   "scenarios": [
@@ -31,12 +31,12 @@
       "selectedMethod": "black-box-control"
     }
   ],
-  "captureBeforeHead": "0290cf7c83364923137eb66c045c11bb1f9d371d",
-  "captureAfterHead": "0290cf7c83364923137eb66c045c11bb1f9d371d",
+  "captureBeforeHead": "39905a9f389f70d14c0ecc8ec9ed7925671b4250",
+  "captureAfterHead": "39905a9f389f70d14c0ecc8ec9ed7925671b4250",
   "screenshots": [
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/multi-method-1440x1000.png",
-      "sha256": "2870395f942525508c7259ada0f98e0b33acb3941d5946f5e65ec18604504dd5",
+      "sha256": "ac8562b8f4458d663266d49e499fc13e0acce551649b5ca10051270c73b74814",
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -50,7 +50,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/multi-method-320x900.png",
-      "sha256": "570fa5b6f5340cb0a80b039336798f55a04d58b42f08a22695dd39790020b8e5",
+      "sha256": "02c80ae3fc15ea51a4ec26fcd0a2084832f917353fa007ff468d9dab931ddd7d",
       "viewport": {
         "width": 320,
         "height": 900
@@ -64,7 +64,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/mpc-1440x1000.png",
-      "sha256": "7dd06e13a549c9fb7ad5a97b33496ce8c6342f80b95337c9812368f824123d54",
+      "sha256": "122048c6cf23861833559d6e13a1a459b38bd2691fd0b6cda3d3ded94964daed",
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -78,7 +78,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/mpc-320x900.png",
-      "sha256": "1c44230fde918871e4d0eab70908f1da2b0d5614a78e490ad97ce49d219deb0d",
+      "sha256": "f9fd84f225b69d6ce06c3a0d9d08197ecdf670f35b2087576b3209b64433d853",
       "viewport": {
         "width": 320,
         "height": 900
@@ -92,7 +92,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/black-box-1440x1000.png",
-      "sha256": "dcd5bdc3d1aafec149b0cf0044d1c70384c4d0d84617045f37072b4dd705d81a",
+      "sha256": "2b0000e20eea9538ec31050e3db771ca4a1bbaca9e0d00d3a4240c332490c992",
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -106,7 +106,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1181-multi-method-companion/playwright/black-box-320x900.png",
-      "sha256": "a0647dabf88dcaccda05abd88871095c00e9e77edc93ea3be8bfe25da63bbdde",
+      "sha256": "bdd8b5ae7c94c3bb81f83a200a58dcbc7a4c1e811ee32ae2f1a8041ac209fd7d",
       "viewport": {
         "width": 320,
         "height": 900
