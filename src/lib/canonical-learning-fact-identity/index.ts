@@ -22,6 +22,7 @@ export {
   type LearningFactAdmissionMode,
 } from './capability';
 export * from './contracts';
+export * from './crosswalk-serving';
 export * from './inventory';
 export * from './serving';
 export * from './static-gate';

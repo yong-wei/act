@@ -7,6 +7,10 @@
 import type { AIContext, PageContext, UserProfile, LearningStyle, KnowledgeType, PromptBuilderOptions } from '@/types/ai-context';
 import { KONLING_BRAND } from './ai-branding';
 import type { KaqArtifactVersionRefs } from './kaq-artifact-versioning';
+import {
+  buildKonlingTeachingProjectionGroundingLines,
+  type KonlingTeachingProjectionContext,
+} from './konling-teaching-projection-context';
 
 interface KonlingPromptRuntimeContext {
   learnerState?: unknown;
@@ -15,6 +19,7 @@ interface KonlingPromptRuntimeContext {
     nextNodeIds?: string[];
     status?: string;
   };
+  teachingProjectionContext?: KonlingTeachingProjectionContext | null;
   memory?: Array<{
     memoryType: string;
     summary: string;
@@ -90,6 +95,7 @@ interface KonlingPromptRuntimeContext {
       reason?: string;
       severity?: string;
     }>;
+    teachingProjectionContext?: KonlingTeachingProjectionContext | null;
   } | null;
   citationContext?: {
     required?: boolean;
@@ -373,6 +379,23 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     }
     if (graph.missingGrounding?.length) {
       lines.push(`  - graph grounding 限制: ${graph.missingGrounding.map((item) => `${item.class}:${item.reason}`).join(', ')}`);
+    }
+  }
+  {
+    const teachingProjection =
+      runtime.teachingProjectionContext
+      ?? runtime.graphContext?.teachingProjectionContext
+      ?? null;
+    const teachingLines = buildKonlingTeachingProjectionGroundingLines(teachingProjection);
+    if (teachingLines.length > 0) {
+      lines.push('- Teaching Projection grounding (server-owned):');
+      for (const line of teachingLines.slice(0, 12)) {
+        lines.push(`  - ${line}`);
+      }
+      lines.push('  - 教学先修/资源关系仅来自 ACT Teaching Projection，不得写成 ActKG 工程谓词，不得写回图谱。');
+      if (teachingProjection?.optionalCardStatus === 'absent') {
+        lines.push('  - 可选知识卡缺失时，使用 Canonical 摘要或其他已投影资源，不得声称节点不存在。');
+      }
     }
   }
   if (runtime.citationContext?.required) {

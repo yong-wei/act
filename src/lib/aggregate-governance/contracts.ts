@@ -298,45 +298,60 @@ export interface DownstreamReadinessDiagnostics {
   deltaReceiptId: string;
   rag: {
     ready: boolean;
-    requires: 'valid-act-structural-unit-crosswalk';
+    requires: 'valid-act-structural-unit-crosswalk' | 'bundle-integrity';
     validCrosswalkCount: number;
     unresolvedUpstreamCount: number;
   };
   kaq: {
     ready: boolean;
-    requires: 'course-coverage';
+    requires: 'course-coverage' | 'bundle-integrity';
     coveredObjectCount: number;
     excludedObjectCount: number;
   };
   sar: {
     ready: boolean;
-    requires: 'reviewed-bindings-and-kaq';
+    requires: 'reviewed-bindings-and-kaq' | 'bundle-integrity';
     shadowPublishedBindingCount: number;
   };
   teachingProjection: {
-    ready: false;
-    blocked: true;
-    reason: 'formal-teaching-projection-not-available';
+    ready: boolean;
+    blocked: boolean;
+    reason:
+      | 'formal-teaching-projection-not-available'
+      | 'teaching-projection-review-required'
+      | 'teaching-projection-published'
+      | 'bundle-integrity-invalid';
   };
   path: {
     ready: false;
     blocked: true;
-    reason: 'awaits-formal-teaching-projection';
+    reason: 'awaits-formal-teaching-projection' | 'bundle-integrity-invalid';
   };
   facts: {
     ready: false;
     blocked: true;
-    reason: 'awaits-formal-teaching-projection';
+    reason: 'awaits-formal-teaching-projection' | 'bundle-integrity-invalid';
   };
   cutover: {
     ready: false;
     blocked: true;
-    reason: 'production-selectors-remain-legacy';
+    reason: 'production-selectors-remain-legacy' | 'bundle-integrity-invalid';
   };
   productionSelectors: {
     candidateUnchanged: true;
     activeUnchanged: true;
     legacyUnchanged: true;
+  };
+  /**
+   * Independent Engineering Authority diagnostics (#1265).
+   * CourseCoverage / teaching readiness never gate Authority activation eligibility.
+   */
+  engineeringAuthority?: {
+    state: 'VALIDATED' | 'ACTIVE' | 'REJECTED_INTEGRITY';
+    activeEligible: boolean;
+    teachingProjection: 'PUBLISHED' | 'REVIEW_REQUIRED' | 'NOT_PROJECTED';
+    independentOfCourseCoverage: true;
+    reasons: string[];
   };
 }
 

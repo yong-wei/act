@@ -1,0 +1,55 @@
+# ACT core teaching-node candidate inventory (#1270).
+# Denominator sources: formal objectives, primary COVERS, prerequisite endpoints,
+# and explicit teacher curation. Upstream-only ActKG / textbook mentions are excluded.
+contract: act-teaching-core-nodes/v1
+scopeId: act-control-theory-core
+nodes:
+  - canonicalId: node.laplace-transform
+    scopeId: act-control-theory-core
+    pathEligible: true
+    cardPolicy: REQUIRED
+    moduleId: module-1-modeling
+    rationale: Formal objective — students must master Laplace transforms before system modeling.
+    sourceKind: OBJECTIVE
+    sourceEvidence:
+      - authoring/objectives/module-1-laplace.md
+
+  - canonicalId: node.transfer-function
+    scopeId: act-control-theory-core
+    pathEligible: true
+    cardPolicy: REQUIRED
+    moduleId: module-1-modeling
+    rationale: Primary COVERS binding from unit 1-1 interactive package.
+    sourceKind: PRIMARY_COVERS
+    sourceEvidence:
+      - act:step:unit-1-1:transfer-function-practice
+
+  - canonicalId: node.block-diagram
+    scopeId: act-control-theory-core
+    pathEligible: true
+    cardPolicy: REQUIRED
+    moduleId: module-1-modeling
+    rationale: Teacher-curated backbone node for modeling path.
+    sourceKind: TEACHER_CURATION
+    sourceEvidence:
+      - curator:teacher-backbone-v1
+
+  - canonicalId: node.stability-concept
+    scopeId: act-control-theory-core
+    pathEligible: true
+    cardPolicy: OPTIONAL
+    moduleId: module-2-stability
+    rationale: Prerequisite endpoint for stability analysis path.
+    sourceKind: PREREQUISITE_ENDPOINT
+    sourceEvidence:
+      - prerequisite-endpoint:node.stability-concept
+
+  - canonicalId: node.feedback-control
+    scopeId: act-control-theory-core
+    pathEligible: true
+    cardPolicy: REQUIRED
+    moduleId: module-2-stability
+    rationale: Formal objective for closed-loop feedback.
+    sourceKind: OBJECTIVE
+    sourceEvidence:
+      - authoring/objectives/module-2-feedback.md

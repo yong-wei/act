@@ -22,15 +22,22 @@ The KAQ graph SHALL continue to own knowledge-to-capability, capability-to-quali
 - **THEN** its capability, quality, objective, and runtime teaching relations SHALL remain KAQ-owned
 
 ### Requirement: Teaching Projection becomes knowledge-relation authority
-When ActKG formally releases a Teaching Projection, it MUST become the authority for knowledge-to-knowledge contains, prerequisite, association, and other released teaching predicates.
+ActKG MUST remain the authority for engineering entities and engineering relations. A formally released ACT Teaching Projection, rather than ActKG engineering data or the historical aggregate CourseCoverage, MUST become authoritative only for the ACT-owned teaching relations it explicitly contains. Until such a projection is released, existing reviewed ACT/KAQ teaching relations remain the scoped fallback.
 
 #### Scenario: No Teaching Projection is released
-- **WHEN** the Engineering Release lacks formal teaching relations
-- **THEN** the system SHALL retain reviewed KAQ teaching relations and MUST NOT infer replacements from engineering predicates
+- **WHEN** the Engineering Release is valid but no ACT Teaching Projection is published
+- **THEN** the system SHALL not infer teaching relations from engineering predicates or CourseCoverage
+- **AND** scoped reviewed ACT/KAQ teaching relations MAY remain available under their existing authority
 
 #### Scenario: Teaching relation conflicts with KAQ
-- **WHEN** a released ActKG teaching relation conflicts with an active KAQ knowledge-to-knowledge relation
-- **THEN** the system SHALL require one-time review and retire the corresponding KAQ relation after ActKG acceptance
+- **WHEN** a released ACT Teaching Projection relation conflicts with an active KAQ knowledge-to-knowledge relation
+- **THEN** the system SHALL require one-time review and retire the corresponding KAQ relation after ACT acceptance of the projection edge
+- **AND** ActKG engineering relations SHALL remain unchanged by that teaching conflict
+
+#### Scenario: Teaching Projection is released
+- **WHEN** a versioned ACT Teaching Projection is published with an explicit consumer scope
+- **THEN** only its contained teaching relations SHALL supersede the corresponding scoped fallback
+- **AND** engineering relations SHALL remain ActKG-owned and unchanged
 
 ### Requirement: Conflicting teaching relations cannot remain jointly active
 Path and recommendation consumers MUST NOT consume two conflicting knowledge-to-knowledge teaching relations from ActKG and KAQ.
@@ -47,13 +54,18 @@ KAQ Canonical bindings MUST apply to active consumers and MUST NOT rewrite histo
 - **THEN** historical facts SHALL retain their Legacy knowledge revision and no Canonical sidecar SHALL be created
 
 ### Requirement: Canonical KAQ bindings remain shadow before cutover
-The KAQ authority selector MUST keep formal KAQ consumers on Legacy knowledge identity until the final production cutover.
+KAQ and teaching consumers SHALL retain their existing Legacy or pinned combination until their own ACT Teaching Projection, resource binding, and consumer readiness gates pass. Engineering Authority activation alone SHALL NOT switch KAQ selectors.
 
 #### Scenario: Reviewed Canonical bindings exist before cutover
-- **WHEN** KAQ roles have complete reviewed Canonical bindings but Legacy remains active
-- **THEN** formal diagnosis, recommendation, and planning consumers SHALL continue using Legacy KAQ knowledge identity while Canonical bindings remain migration-review data
+- **WHEN** KAQ roles have complete reviewed Canonical bindings but the consumer's Teaching Projection or readiness gate has not passed
+- **THEN** formal diagnosis, recommendation, and planning consumers SHALL continue using Legacy or an explicit pinned prior combination while Canonical bindings remain migration-review data
 
 #### Scenario: Final selector activates
-- **WHEN** the final downtime transaction activates Canonical KAQ together with all formal consumers
-- **THEN** active KAQ roles SHALL resolve only through reviewed Canonical bindings and supported Teaching Projection relations
+- **WHEN** the consumer's own Teaching Projection, resource binding, and readiness gates pass in the later activation transaction
+- **THEN** active KAQ roles SHALL resolve only through reviewed Canonical bindings and the explicit teaching relations owned by that projection
+
+#### Scenario: Engineering Authority activates first
+- **WHEN** ActKG Authority is `ACTIVE` but a KAQ/teaching projection is absent or unresolved
+- **THEN** KAQ consumers SHALL remain on their prior valid combination
+- **AND** no global selector SHALL be advanced
 

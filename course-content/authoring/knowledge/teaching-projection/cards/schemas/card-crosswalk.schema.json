@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-knowledge-card-crosswalk/v1",
+  "title": "ACT Knowledge Card Crosswalk",
+  "type": "object",
+  "required": ["contract", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "contract": {
+      "const": "act-knowledge-card-crosswalk/v1"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["legacyNodeId", "canonicalId"],
+        "additionalProperties": false,
+        "properties": {
+          "legacyNodeId": { "type": "string", "minLength": 1 },
+          "canonicalId": { "type": "string", "minLength": 1 },
+          "cardId": { "type": ["string", "null"] },
+          "sourceEvidence": { "type": ["string", "null"] },
+          "stale": { "type": "boolean" },
+          "courseSpecific": { "type": "boolean" },
+          "scopeId": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,3 @@
+# ACT knowledge card → Canonical crosswalk (#1271).
+# New authoring must not write legacyNodeId values as Canonical endpoints.
+# Rows seed fixture/history mappings; production rows are added with evidence.

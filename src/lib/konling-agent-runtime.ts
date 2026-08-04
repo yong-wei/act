@@ -89,6 +89,18 @@ import {
   type KonlingCanonicalRagShadowContext,
   type KonlingCanonicalRagShadowDiagnostic,
 } from '@/lib/canonical-rag/konling-integration';
+import type { LayeredGraphPayload } from '@/lib/layered-graph/contracts';
+import {
+  extractKonlingTeachingProjectionClientHints,
+  resolveKonlingTeachingProjectionBinding,
+} from '@/lib/konling-teaching-projection-binding';
+import {
+  buildKonlingTeachingProjectionGroundingLines,
+  projectKonlingTeachingProjectionAnswerProvenance,
+  resolveKonlingTeachingProjectionContext,
+  type KonlingTeachingProjectionClientHints,
+  type KonlingTeachingProjectionContext,
+} from '@/lib/konling-teaching-projection-context';
 import {
   assignKonlingCitationDisplayNumbers,
   buildKonlingCitationCanonicalKey,
@@ -418,6 +430,11 @@ export interface KonlingRuntimeContext {
   knowledgeCapabilityContext?: KonlingKnowledgeCapabilityContext;
   sarAssociatedGrounding?: KonlingSarAssociatedGroundingContext | null;
   graphContext?: KonlingKaqGraphContext | null;
+  /**
+   * Server-owned Authority / Teaching Projection combination for dual-domain
+   * grounding (#1274). Absent when no layered payload was supplied.
+   */
+  teachingProjectionContext?: KonlingTeachingProjectionContext | null;
   citationContext?: KonlingCitationContext;
   permittedTools: KonlingToolName[];
   missingContext: string[];
@@ -1816,6 +1833,17 @@ interface KonlingRuntimeInput {
   currentUserQuery?: string | null;
   trustedContentContext?: boolean;
   now?: Date;
+  /**
+   * Optional server-resolved layered graph payload for Authority/Projection
+   * grounding. Client hints alone never authorize teaching resources (#1274).
+   */
+  layeredGraphPayload?: LayeredGraphPayload | null;
+  teachingProjectionClientHints?: KonlingTeachingProjectionClientHints | null;
+  teachingProjectionAuthorized?: boolean;
+  permittedTeachingScopeIds?: readonly string[] | null;
+  requiredAuthorityReleaseId?: string | null;
+  requiredProjectionId?: string | null;
+  evidenceCutoff?: string | null;
 }
 
 interface KonlingMemoryCreateInput {
@@ -3148,13 +3176,54 @@ export async function buildKonlingRuntimeContext(
       strategyMemory: process.env.KONLING_STRATEGY_MEMORY_ENABLED === 'true',
     },
   };
+  const teachingProjectionBinding = resolveKonlingTeachingProjectionBinding({
+    courseId: scope.courseId,
+    pageId: scope.pageId,
+    resourceId: scope.resourceId,
+    layeredGraphPayload: input.layeredGraphPayload,
+    authorized: input.teachingProjectionAuthorized,
+    pinnedProjectionId: input.requiredProjectionId ?? null,
+  });
+  const teachingProjectionClientHints =
+    input.teachingProjectionClientHints
+    ?? extractKonlingTeachingProjectionClientHints(input.pageContextHint)
+    ?? extractKonlingTeachingProjectionClientHints(
+      input.teachingAssistantServerModeContext,
+    );
+  const teachingProjectionContext = resolveKonlingTeachingProjectionContext({
+    payload: teachingProjectionBinding.payload,
+    focusCanonicalIds: knowledgeWorkspace?.selected_node?.id
+      ? [knowledgeWorkspace.selected_node.id]
+      : teachingProjectionClientHints?.canonicalIds
+        ?? teachingProjectionClientHints?.signedCanonicalIds
+        ?? null,
+    clientHints: teachingProjectionClientHints,
+    authorized: teachingProjectionBinding.authorized,
+    permittedScopeIds:
+      input.permittedTeachingScopeIds
+      ?? teachingProjectionBinding.permittedScopeIds,
+    requiredAuthorityReleaseId: input.requiredAuthorityReleaseId,
+    requiredProjectionId: input.requiredProjectionId,
+    evidenceCutoff: input.evidenceCutoff,
+  });
   const graphContext = buildKonlingRuntimeGraphContext({
     scope,
     runtimeContext: baseRuntimeContext,
     classOverlayInput,
     clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : null,
+    layeredGraphPayload: teachingProjectionBinding.payload,
+    teachingProjectionClientHints,
+    teachingProjectionAuthorized: teachingProjectionBinding.authorized,
+    permittedTeachingScopeIds:
+      input.permittedTeachingScopeIds
+      ?? teachingProjectionBinding.permittedScopeIds,
+    requiredAuthorityReleaseId: input.requiredAuthorityReleaseId,
+    requiredProjectionId: input.requiredProjectionId,
+    evidenceCutoff: input.evidenceCutoff,
+    teachingProjectionContext,
   });
   baseRuntimeContext.graphContext = graphContext;
+  baseRuntimeContext.teachingProjectionContext = teachingProjectionContext;
   const knowledgeCapabilityContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: baseRuntimeContext,
     scope,
@@ -3178,6 +3247,7 @@ export async function buildKonlingRuntimeContext(
     knowledgeCapabilityContext,
     sarAssociatedGrounding: knowledgeCapabilityContext.sarAssociatedGrounding,
     graphContext,
+    teachingProjectionContext,
     citationContext,
     permittedTools: runtimePermittedTools,
     missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext, pageContext, knowledgeWorkspace, graphContext }),
@@ -3194,6 +3264,14 @@ export function buildKonlingRuntimeGraphContext(input: {
   runtimeContext: KonlingRuntimeContext;
   classOverlayInput?: GraphCenterClassOverlayInput | null;
   clientHints?: Record<string, unknown> | null;
+  layeredGraphPayload?: LayeredGraphPayload | null;
+  teachingProjectionClientHints?: KonlingTeachingProjectionClientHints | null;
+  teachingProjectionAuthorized?: boolean;
+  permittedTeachingScopeIds?: readonly string[] | null;
+  requiredAuthorityReleaseId?: string | null;
+  requiredProjectionId?: string | null;
+  evidenceCutoff?: string | null;
+  teachingProjectionContext?: KonlingTeachingProjectionContext | null;
 }): KonlingKaqGraphContext {
   return buildKonlingKaqGraphContext({
     scope: input.scope,
@@ -3213,7 +3291,80 @@ export function buildKonlingRuntimeGraphContext(input: {
     planContext: input.runtimeContext.planContext,
     citationContext: input.runtimeContext.citationContext,
     clientHints: input.clientHints,
+    layeredGraphPayload: input.layeredGraphPayload,
+    teachingProjectionClientHints: input.teachingProjectionClientHints,
+    teachingProjectionAuthorized: input.teachingProjectionAuthorized,
+    permittedTeachingScopeIds: input.permittedTeachingScopeIds,
+    requiredAuthorityReleaseId: input.requiredAuthorityReleaseId,
+    requiredProjectionId: input.requiredProjectionId,
+    evidenceCutoff: input.evidenceCutoff,
+    teachingProjectionContext: input.teachingProjectionContext,
   });
+}
+
+/**
+ * Bounded teaching-projection grounding lines for tools/prompts (#1274).
+ * Does not expose store paths, writer APIs, or engineering predicates as
+ * teaching prerequisites.
+ */
+export function buildKonlingTeachingProjectionToolGrounding(
+  context: KonlingRuntimeContext | null | undefined,
+): string[] {
+  return buildKonlingTeachingProjectionGroundingLines(
+    context?.teachingProjectionContext
+      ?? context?.graphContext?.teachingProjectionContext
+      ?? null,
+  );
+}
+
+/**
+ * Dual-domain answer provenance retained through assembly (#1274).
+ */
+export function buildKonlingDualDomainAnswerProvenance(
+  context: KonlingRuntimeContext | null | undefined,
+): {
+  teaching: ReturnType<typeof projectKonlingTeachingProjectionAnswerProvenance>;
+  engineeringAuthorityReleaseId: string | null;
+  relationWriteback: false;
+} {
+  const teaching =
+    context?.teachingProjectionContext
+    ?? context?.graphContext?.teachingProjectionContext
+    ?? null;
+  return {
+    teaching: projectKonlingTeachingProjectionAnswerProvenance(teaching),
+    engineeringAuthorityReleaseId: teaching?.authorityReleaseId ?? null,
+    relationWriteback: false,
+  };
+}
+
+export interface KonlingDualDomainProvenanceMetadataPayload {
+  source: 'teaching-projection-dual-domain';
+  relationWriteback: false;
+  engineeringAuthorityReleaseId: string | null;
+  teaching: ReturnType<typeof projectKonlingTeachingProjectionAnswerProvenance>;
+  groundingLines: string[];
+}
+
+/**
+ * Metadata retained in answer assembly / streaming for dual-domain provenance.
+ */
+export function buildKonlingDualDomainProvenanceMetadataPayload(
+  context: KonlingRuntimeContext | null | undefined,
+): KonlingDualDomainProvenanceMetadataPayload | null {
+  const teaching =
+    context?.teachingProjectionContext
+    ?? context?.graphContext?.teachingProjectionContext
+    ?? null;
+  if (!teaching) return null;
+  const provenance = buildKonlingDualDomainAnswerProvenance(context);
+  return {
+    source: 'teaching-projection-dual-domain',
+    relationWriteback: false,
+    engineeringAuthorityReleaseId: provenance.engineeringAuthorityReleaseId,
+    teaching: provenance.teaching,
+    groundingLines: buildKonlingTeachingProjectionGroundingLines(teaching),
+  };
 }
 
 export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {

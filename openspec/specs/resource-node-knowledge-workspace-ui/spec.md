@@ -5,17 +5,36 @@ Define the ResourceNode-aware knowledge workspace UI contract that connects grap
 ### Requirement: Knowledge workspace supports ResourceNode-aware exploration
 The system SHALL preserve ordinary ResourceNode detail and resource exploration without exposing persisted path eligibility in the knowledge graph workspace.
 
+The workspace MUST distinguish Engineering Authority nodes/relations from ACT teaching prerequisites and teaching resource bindings. Resource links, scope, projection identity, and fallback status SHALL be shown as separate evidence groups.
+
 #### Scenario: ResourceNode mapping exists
 - **WHEN** a selected knowledge node or resource has a ResourceNode mapping
 - **THEN** the UI SHALL show source reference, knowledge coverage, prerequisites, availability, privacy level, teacher policy, and evidence instrumentation where role scope permits
 - **AND** `/knowledge` SHALL NOT display ResourceNode path eligibility or use it to derive layout, corridor, animation, or inspector state.
 
+#### Scenario: Node has teaching resources
+- **WHEN** a selected Canonical node has scoped bindings
+- **THEN** the inspector SHALL show course/handout/step/textbook/card resources with role and projection provenance
+- **AND** engineering relation details SHALL remain exact and separate
+
+#### Scenario: Node is not projected to a course
+- **WHEN** a valid Authority node has no binding in the current course scope
+- **THEN** the workspace SHALL show `NOT_PROJECTED` for that scope
+- **AND** it SHALL not imply an upstream graph defect
+
 ### Requirement: Partial ResourceNode coverage is explicit
 The system SHALL make missing or partial ResourceNode coverage visible.
+
+Missing teaching resources or cards MUST be represented as scoped status, not as missing Canonical nodes. The workspace MAY use a Legacy/pinned fallback only when the status identifies the fallback identity.
 
 #### Scenario: Resource lacks a required mapping
 - **WHEN** a resource lacks render target, launch target, knowledge mapping, availability, privacy policy, or evidence instrumentation
 - **THEN** the workspace SHALL show a warning or unavailable state with a reason suitable for the current role.
+
+#### Scenario: Optional card is absent
+- **WHEN** a step Canonical ref has no active optional card
+- **THEN** the drawer SHALL show the node summary or other linked resources
+- **AND** it SHALL not display a node-not-found error
 
 ### Requirement: Resource launch actions preserve source ownership
 The system SHALL launch mapped resources through existing source-owned launcher contracts without treating launchability as graph path projection.
@@ -88,10 +107,17 @@ The ResourceNode workspace SHALL coordinate filters, legends, node panels, launc
 ### Requirement: Knowledge workspace launches real learning resources
 The ResourceNode knowledge workspace SHALL connect graph exploration to actual learning resources and evidence review while keeping canonical graph corridors separate from persisted personalized paths.
 
+Course/resource actions MUST carry the active course scope and projection identity to the existing resource route, and a fallback action MUST preserve its explicit Legacy/pinned provenance.
+
 #### Scenario: Knowledge node with launchable resource is selected
 - **WHEN** a selected node has a registered ResourceNode, course resource, simulation, lesson entry, or evidence target
 - **THEN** the UI SHALL expose the source-owned launch action and return path
 - **AND** the canonical corridor MAY explain authored prerequisite order but SHALL NOT inspect or project a persisted LearningPath.
+
+#### Scenario: Resource action opens
+- **WHEN** a learner opens a projected handout or interactive step
+- **THEN** the target SHALL resolve through the existing course/resource registry
+- **AND** the action SHALL not invent a route from an ActKG node ID
 
 ### Requirement: Knowledge graph tools are collapsible local tools
 The knowledge workspace SHALL expose chapter directory, node metadata filters, view and layout controls, and resource inspector as collapsible local tools while relation-family visibility remains in the compact canvas legend.

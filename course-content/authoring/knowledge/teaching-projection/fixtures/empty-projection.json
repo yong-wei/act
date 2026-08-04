@@ -1,0 +1,26 @@
+{
+  "contract": "act-teaching-projection-authoring/v1",
+  "scopeId": "fixture-empty",
+  "authoringRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.12",
+  "authorityReleaseSetId": "set-eng-1",
+  "authoritySnapshotId": null,
+  "authoritySnapshotHash": null,
+  "resources": [],
+  "bindings": [],
+  "prerequisites": [],
+  "coreNodes": [],
+  "cards": [],
+  "authorityNodes": [
+    {
+      "canonicalId": "node-unrelated-a",
+      "lifecycleStatus": "active",
+      "successorCanonicalId": null
+    },
+    {
+      "canonicalId": "node-unrelated-b",
+      "lifecycleStatus": "active",
+      "successorCanonicalId": null
+    }
+  ]
+}

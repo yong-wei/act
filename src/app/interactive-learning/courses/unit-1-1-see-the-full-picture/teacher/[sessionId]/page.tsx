@@ -4,6 +4,10 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_1_1TeacherPage } from '@/features/interactive/unit-1-1-see-the-full-picture/teacher-page';
+import {
+  buildCoursePackageLayeredScope,
+  resolveCoursePageLayeredGraphContext,
+} from '@/lib/layered-graph';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,5 +23,21 @@ export default async function UNIT_1_1SeeTheFullPictureTeacherRoute(
   }
 
   const lessonRuntime = await loadLessonRuntimeEntry('1-1');
-  return <UNIT_1_1TeacherPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
+  const layeredGraphContext = resolveCoursePageLayeredGraphContext({
+    scope: buildCoursePackageLayeredScope({
+      packageCanonicalId: '1-1',
+      lessonKey: '1-1',
+    }),
+    lessonRuntime,
+  });
+
+  return (
+    <UNIT_1_1TeacherPage
+      sessionId={params.sessionId}
+      lessonRuntime={lessonRuntime}
+      layeredGraphPayload={layeredGraphContext.payload}
+      layeredResourceLaunchTargets={layeredGraphContext.resourceLaunchTargets}
+      layeredResourceRegistryIds={layeredGraphContext.resourceRegistryIds}
+    />
+  );
 }

@@ -4,7 +4,7 @@
 Define the server-owned K/A/Q graph grounding contract that Konling uses when explaining graph-aware paths, resources, overlays, citations, and versioned learning context.
 ## Requirements
 ### Requirement: Konling graph context is server-owned
-The system SHALL provide a server-owned graph context payload for Konling graph-aware advice.
+The system SHALL provide a server-owned graph context payload for Konling graph-aware advice. Graph context MUST resolve Authority, Teaching Projection, course scope, current Canonical IDs, linked resources, prerequisite neighborhood, and optional card through a server-owned contract. The client MAY provide a hint but MUST NOT provide authoritative teaching data.
 
 #### Scenario: Graph context is assembled
 - **WHEN** Konling starts from a path, graph-center, diagnosis, or prep-pack surface that supports graph-aware advice
@@ -16,8 +16,18 @@ The system SHALL provide a server-owned graph context payload for Konling graph-
 - **THEN** the context SHALL include explicit missing-grounding limitations
 - **AND** the assistant SHALL degrade or avoid the personalized claim rather than presenting generic advice as graph-grounded.
 
+#### Scenario: Signed context is valid
+- **WHEN** a graph-aware request carries a valid scoped context token
+- **THEN** the server SHALL re-resolve the listed IDs and include matching Authority/Projection identities
+- **AND** it SHALL reject mismatched or out-of-scope IDs before tool execution
+
+#### Scenario: Teaching layer is absent
+- **WHEN** the Authority is valid but no teaching projection is available
+- **THEN** the context SHALL expose that status
+- **AND** engineering graph context MAY continue without synthesized teaching edges
+
 ### Requirement: Graph-aware answers expose grounding
-Konling graph-aware answers SHALL expose the evidence basis for path, graph, and resource claims.
+Konling graph-aware answers SHALL expose the evidence basis for path, graph, and resource claims. Graph-aware answers MUST identify whether a claim came from Engineering Authority, Teaching Resource Projection, prerequisite data, or an optional card and MUST preserve citation-safe source identities.
 
 #### Scenario: Path advice is generated
 - **WHEN** Konling explains why a graph-driven path or path node is recommended
@@ -29,6 +39,11 @@ Konling graph-aware answers SHALL expose the evidence basis for path, graph, and
 - **THEN** the recommendation SHALL distinguish path eligibility, retrieval/citation readiness, evidence capability, and resource coverage state
 - **AND** it SHALL NOT treat a retrievable chunk as a path-eligible resource unless ResourceNode or checkpoint audit authorizes it.
 
+#### Scenario: Claim uses a teaching prerequisite
+- **WHEN** a response explains why a course resource is recommended
+- **THEN** it SHALL cite the ACT prerequisite/resource evidence and projection identity
+- **AND** it SHALL not represent the relation as an ActKG engineering predicate
+
 ### Requirement: Konling graph context is not evidence writeback
 Konling graph context SHALL remain a grounding and explanation contract, not a direct mastery writeback channel.
 
@@ -36,3 +51,4 @@ Konling graph context SHALL remain a grounding and explanation contract, not a d
 - **WHEN** Konling emits graph-grounded prose about learner understanding or capability
 - **THEN** that narrative SHALL NOT directly mutate learner or class overlay state
 - **AND** only governed tool outcomes, approved grading, path execution, simulation, Arena, or other materialized evidence may affect K/A/Q overlay state.
+
