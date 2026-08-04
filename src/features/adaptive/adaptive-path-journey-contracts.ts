@@ -474,6 +474,7 @@ function buildAdaptivePathJourneyCorrection(input: {
           },
           movedNode: failedCheckpoint,
           anchorNode: preparation,
+          completedNodeIds: input.completedNodeIds,
           supportingFacts: [
             `“${failedCheckpoint.title}”的检查点结果未通过。`,
             `“${preparation.title}”是该检查点的可核验先修节点，且当前处于可用状态。`,
@@ -504,6 +505,7 @@ function buildAdaptivePathJourneyCorrection(input: {
       reason: deviation.reason,
     },
     deviation,
+    completedNodeIds: input.completedNodeIds,
     supportingFacts: [
       deviation.reason,
       '候选差异仅来自已记录的路径执行事实和当前未完成的受治理节点。',
@@ -527,7 +529,7 @@ function findFailedCheckpointPreparation(
 function isEligibleCorrectionNode(node: JourneyNodeRecord): boolean {
   if (node.status === 'locked') return false;
   const readinessState = readNonEmptyString(readRecord(node.readiness).state);
-  return readinessState === null || readinessState === 'ready';
+  return readinessState === 'ready';
 }
 
 function findCorrectableDeviation(
@@ -568,10 +570,11 @@ function correctionFromDeviation(input: {
   originalRemaining: JourneyNodeRecord[];
   trigger: { kind: 'deviation'; node: JourneyNodeRecord; reason: string };
   deviation: NonNullable<ReturnType<typeof findCorrectableDeviation>>;
+  completedNodeIds: Set<string>;
   supportingFacts: string[];
 }): AdaptivePathJourneyCorrection {
   const proposedNodes = input.originalRemaining.filter((node) => node.nodeId !== input.deviation.priorNode.nodeId);
-  if (!hasValidPrerequisiteOrder(proposedNodes, input.originalRemaining)) {
+  if (!hasValidPrerequisiteOrder(proposedNodes, input.originalRemaining, input.completedNodeIds)) {
     return { proposal: null, unavailableReason: '已记录偏离会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。' };
   }
   if (sameNodeSequence(input.originalRemaining, proposedNodes)) {
@@ -605,6 +608,7 @@ function correctionFromReordering(input: {
   trigger: { kind: 'failed-checkpoint' | 'deviation'; node: JourneyNodeRecord; reason: string };
   movedNode: JourneyNodeRecord;
   anchorNode: JourneyNodeRecord;
+  completedNodeIds: Set<string>;
   supportingFacts: string[];
 }): AdaptivePathJourneyCorrection {
   const proposedNodes = input.originalRemaining.filter((node) => node.nodeId !== input.movedNode.nodeId);
@@ -613,7 +617,7 @@ function correctionFromReordering(input: {
     return { proposal: null, unavailableReason: '候选纠偏缺少可核验的目标节点，暂时无法生成。' };
   }
   proposedNodes.splice(anchorIndex + 1, 0, input.movedNode);
-  if (!hasValidPrerequisiteOrder(proposedNodes, input.originalRemaining)) {
+  if (!hasValidPrerequisiteOrder(proposedNodes, input.originalRemaining, input.completedNodeIds)) {
     return { proposal: null, unavailableReason: '候选调整会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。' };
   }
   if (sameNodeSequence(input.originalRemaining, proposedNodes)) {
@@ -636,13 +640,15 @@ function correctionFromReordering(input: {
 function hasValidPrerequisiteOrder(
   nodes: JourneyNodeRecord[],
   originalRemaining: JourneyNodeRecord[],
+  completedNodeIds: Set<string>,
 ): boolean {
   const indexByNodeId = new Map(nodes.map((node, index) => [node.nodeId, index]));
   const originalNodeIds = new Set(originalRemaining.map((node) => node.nodeId));
   return nodes.every((node, index) => node.prerequisiteNodeIds.every((prerequisiteNodeId) => {
     const prerequisiteIndex = indexByNodeId.get(prerequisiteNodeId);
-    return !originalNodeIds.has(prerequisiteNodeId) ||
-      (prerequisiteIndex !== undefined && prerequisiteIndex < index);
+    return originalNodeIds.has(prerequisiteNodeId)
+      ? prerequisiteIndex !== undefined && prerequisiteIndex < index
+      : completedNodeIds.has(prerequisiteNodeId);
   }));
 }
 

@@ -215,6 +215,28 @@ describe('adaptive path journey contracts', () => {
     expect(JSON.stringify(path)).toBe(before);
   });
 
+  it('fails closed when a failed checkpoint prerequisite has unknown readiness', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          { nodeId: 'node-2', title: '校正检查点', type: 'checkpoint', target: '/assessment/adaptive-practice', status: 'current', checkpoint: true, prerequisiteNodeIds: ['node-3'], readiness: { state: 'ready' } },
+          { nodeId: 'node-3', title: '误差复习', type: 'knowledge_card', target: '/knowledge/card-2', status: 'next' },
+        ],
+      },
+      terminalValidation: { nodeId: 'node-2', state: 'failed' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
+    }), { requestedNodeId: 'node-2' });
+
+    expect(journey.correction).toEqual({
+      proposal: null,
+      unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
+    });
+  });
+
   it('projects a read-only removal after a recorded skip when both nodes are unfinished', () => {
     const path = buildPath({
       currentNodeId: 'node-2',
@@ -257,6 +279,27 @@ describe('adaptive path journey contracts', () => {
         planNodes: [
           { nodeId: 'node-1', title: '先修复习', type: 'knowledge_card', target: '/knowledge/card-1', status: 'current', readiness: { state: 'ready' } },
           { nodeId: 'node-2', title: '校正练习', type: 'adaptive_quiz', target: '/assessment/adaptive-practice', status: 'next', prerequisiteNodeIds: ['node-1'], readiness: { state: 'ready' } },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+      deviations: [{ deviationType: 'skip', priorNodeId: 'node-1', targetNodeId: 'node-1' }],
+    }), { requestedNodeId: 'node-1' });
+
+    expect(journey.correction).toEqual({
+      proposal: null,
+      unavailableReason: '已记录偏离会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。',
+    });
+  });
+
+  it('fails closed when a remaining node has an unverified prerequisite outside the path', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1', 'node-2'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', title: '可跳过复习', type: 'knowledge_card', target: '/knowledge/card-1', status: 'current', readiness: { state: 'ready' } },
+          { nodeId: 'node-2', title: '校正练习', type: 'adaptive_quiz', target: '/assessment/adaptive-practice', status: 'next', prerequisiteNodeIds: ['missing-prerequisite'], readiness: { state: 'ready' } },
         ],
       },
       lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },

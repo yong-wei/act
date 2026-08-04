@@ -104,7 +104,7 @@ export interface PathDeviationInput {
   pathId: string;
   userId: string;
   goalId?: string | null;
-  deviationType: 'skip' | 'timeout' | 'manual-jump' | 'resource-failure' | 'abandonment' | 'help-request';
+  deviationType: 'skip' | 'timeout' | 'manual-jump' | 'resource-failure' | 'replacement' | 'abandonment' | 'help-request';
   priorNodeId?: string | null;
   targetNodeId?: string | null;
   context?: Record<string, unknown>;

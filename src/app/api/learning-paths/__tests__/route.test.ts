@@ -1115,6 +1115,24 @@ describe('learning path round API routes', () => {
     });
   });
 
+  it('accepts a governed replacement deviation for the student owner', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(journeyPathRecord());
+    const response = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'replacement',
+      priorNodeId: 'node-1',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'replacement-dev-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathDeviation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      deviationType: 'replacement',
+      priorNodeId: 'node-1',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'replacement-dev-key',
+    }));
+  });
+
   it('keeps a sanitized simple resource completion result for governed path advancement', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValueOnce({
       id: 'path-1',
