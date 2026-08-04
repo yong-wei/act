@@ -45,7 +45,7 @@ import {
   projectStudentSafeEvidenceSource,
   type StudentSafeEvidenceEventReference,
 } from './evidence-timeline';
-import { hasCompleteLearningFactEvidenceGovernance } from './learning-fact-quality-weight';
+import { isLearningFactEligibleForPersonalization } from './learning-fact-quality-weight';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -851,7 +851,7 @@ export async function readAdaptiveLearnerState(
   const controlCorrectionArenaSubmissionsWithWriteback = shouldBuildControlCorrectionGoalSlice
     ? await attachPersistedArenaWritebacks(db, controlCorrectionArenaSubmissions)
     : controlCorrectionArenaSubmissions;
-  const governedFacts = facts.filter((fact) => hasCompleteLearningFactEvidenceGovernance(fact.contextJson));
+  const governedFacts = facts.filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson));
   const portraitConsumer = portraitConsumerForInput(input);
   const supportsFencedCumulativePortrait = Boolean(
     db.cumulativePortraitCutoverFence?.findUnique &&
@@ -2530,7 +2530,7 @@ async function readPagedControlCorrectionLearningFacts(input: {
       ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
     });
     facts.push(...rows.filter((fact) =>
-      input.filter(fact) && hasCompleteLearningFactEvidenceGovernance(fact.contextJson),
+      input.filter(fact) && isLearningFactEligibleForPersonalization(fact.contextJson),
     ));
     if (facts.length >= CONTROL_CORRECTION_FACT_TAKE || rows.length < CONTROL_CORRECTION_FACT_TAKE) {
       break;

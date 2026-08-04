@@ -36,7 +36,7 @@ import {
   type PortraitV2ProjectedPayload,
 } from './portrait-v2-model';
 import { mapLegacyCompetencyDimensionToPortraitV2 } from './kaq-objective-taxonomy';
-import { hasCompleteLearningFactEvidenceGovernance } from './learning-fact-quality-weight';
+import { isLearningFactEligibleForPersonalization } from './learning-fact-quality-weight';
 
 export type RecommendationType = 'immediate' | 'weekly' | 'challenge';
 export type RecommendationEvidenceBasis =
@@ -586,10 +586,10 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
   ]);
 
   const recentFacts = recentFactRows.filter((fact) =>
-    hasCompleteLearningFactEvidenceGovernance(fact.contextJson),
+    isLearningFactEligibleForPersonalization(fact.contextJson),
   );
   const lastFact = lastFactRows.find((fact) =>
-    hasCompleteLearningFactEvidenceGovernance(fact.contextJson),
+    isLearningFactEligibleForPersonalization(fact.contextJson),
   ) ?? null;
   const streakDays = calculateStreak(recentFacts.map(f => f.startedAt));
   const learnerStateUsable = isLearnerStateUsableForDirectPersonalization(learnerState);

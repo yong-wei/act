@@ -235,6 +235,11 @@ export function hasCompleteLearningFactEvidenceGovernance(contextJson: unknown):
     && readNonEmptyString(governance.policyReason) !== null;
 }
 
+export function isLearningFactEligibleForPersonalization(contextJson: unknown): boolean {
+  return hasCompleteLearningFactEvidenceGovernance(contextJson)
+    && resolveLearningFactProfileWeight(contextJson) > 0;
+}
+
 export function resolveLearningFactProfileWeight(contextJson: unknown): number {
   if (!hasCompleteLearningFactEvidenceGovernance(contextJson)) return 0;
   const governance = readRecord(readRecord(contextJson).evidenceGovernance);

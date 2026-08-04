@@ -583,6 +583,41 @@ describe('adaptive learner state service', () => {
     expect(state.mediaAbsorption.mediaFactCount).toBe(0);
   });
 
+  it('excludes zero-weight and skipped facts from resource preference and media absorption', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [
+          {
+            id: 'context-only-media', factType: 'media', moduleId: 'unit-3-4',
+            startedAt: new Date('2026-05-19T00:00:00.000Z'), finishedAt: new Date('2026-05-19T00:10:00.000Z'),
+            outcome: 'success', score: 80, timeSpent: 600,
+            contextJson: {
+              media: { mediaType: 'video', progress: 0.9 },
+              evidenceGovernance: {
+                evidenceQuality: 'context-only', profileWeight: 0,
+                skipProfileContribution: false, policyReason: 'context-only-source',
+              },
+            },
+          },
+          {
+            id: 'skipped-simulation', factType: 'simulation', moduleId: 'unit-3-4',
+            startedAt: new Date('2026-05-19T00:00:00.000Z'), finishedAt: new Date('2026-05-19T00:10:00.000Z'),
+            outcome: 'success', score: 80, timeSpent: 600,
+            contextJson: {
+              evidenceGovernance: {
+                evidenceQuality: 'context-only', profileWeight: 1,
+                skipProfileContribution: true, policyReason: 'context-only-source',
+              },
+            },
+          },
+        ],
+      },
+    }), { userId: 'student-1', role: 'student', now: new Date('2026-05-20T03:00:00.000Z') });
+
+    expect(state.resourcePreference.preferredModalities).toEqual([]);
+    expect(state.mediaAbsorption.mediaFactCount).toBe(0);
+  });
+
   it.each([
     ['migration-in-progress', undefined],
     ['current-state-unavailable', null],
@@ -1667,7 +1702,7 @@ describe('adaptive learner state service', () => {
     });
   });
 
-  it('counts approved materialized AgentToolRun learning facts from the simulation agent materializer', async () => {
+  it('keeps approved materialized AgentToolRun facts out of personalized goal evidence', async () => {
     const materialized = buildSimulationAgentEvidenceMaterialization({
       agentToolRuns: [
         {
@@ -1704,6 +1739,13 @@ describe('adaptive learner state service', () => {
     expect(materialized.learningFacts).toHaveLength(1);
 
     const fact = materialized.learningFacts[0] as Record<string, unknown>;
+    expect(fact.contextJson).toMatchObject({
+      evidenceGovernance: {
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'unmanaged_learning_fact_context_only',
+      },
+    });
     const state = await readAdaptiveLearnerState(createDb({
       learningFact: {
         findMany: async () => [
@@ -1725,9 +1767,9 @@ describe('adaptive learner state service', () => {
     expect(slice).toBeDefined();
     if (!slice) throw new Error('expected control-correction goal slice');
     expect(slice.dimensions.find((dimension) => dimension.id === 'ai-collaboration')).toMatchObject({
-      evidenceCount: 1,
-      sourceCoverage: expect.objectContaining({ aiCollaboration: 'available' }),
-      evidenceProvenance: expect.objectContaining({ aiCollaboration: 'governed-ai-collaboration' }),
+      evidenceCount: 0,
+      sourceCoverage: expect.objectContaining({ aiCollaboration: 'missing' }),
+      evidenceProvenance: expect.objectContaining({ aiCollaboration: 'missing' }),
     });
   });
 

@@ -10,7 +10,7 @@ import {
   type CompetencyDimension,
 } from './competency-model';
 import {
-  hasCompleteLearningFactEvidenceGovernance,
+  isLearningFactEligibleForPersonalization,
   resolveLearningFactProfileWeight,
 } from './learning-fact-quality-weight';
 import {
@@ -485,7 +485,7 @@ export function buildStudentEvidenceFeaturePayload(
   const now = input.now ?? new Date();
   const staleAfterDays = input.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS;
   const facts = input.facts
-    .filter((fact) => hasCompleteLearningFactEvidenceGovernance(fact.contextJson))
+    .filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson))
     .sort(compareFacts);
   const factsWithSource = facts.filter((item) => Boolean(item.sourceEventId || item.sourceLogId));
   const recentFacts = filterRecentFacts(facts, now, STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS);

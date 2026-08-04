@@ -109,6 +109,37 @@ describe('buildStudentEvidenceFeaturePayload', () => {
     expect(payload.features.competencyContributions.controlModeling.evidenceCount).toBe(0);
   });
 
+  it('excludes context-only facts from feature activity and evidence windows', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      facts: [
+        fact({
+          id: 'zero-weight',
+          contextJson: governedContext({
+            evidenceGovernance: { profileWeight: 0 },
+          }),
+        }),
+        fact({
+          id: 'skipped',
+          factType: 'media',
+          startedAt: new Date('2026-05-20T10:00:00.000Z'),
+          contextJson: governedContext({
+            evidenceGovernance: { skipProfileContribution: true },
+          }),
+        }),
+      ],
+      now: new Date('2026-05-21T00:00:00.000Z'),
+    });
+
+    expect(payload.sourceCounts.LearningFact).toBe(0);
+    expect(payload.evidenceWindow).toEqual({
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    });
+    expect(payload.features.activity.totalFacts).toBe(0);
+  });
+
   it('reports multi-era knowledge identity coverage without reinterpreting historical scores', () => {
     const now = new Date('2026-07-30T00:00:00.000Z');
     const mixedFacts = [
@@ -959,13 +990,15 @@ describe('buildStudentEvidenceFeaturePayload', () => {
     });
   });
 
-  it('does not count client-materialized Arena evaluation events as official writeback evidence', () => {
+  it('excludes client-materialized Arena evaluation events from personalized evidence', () => {
     const materialized = eventToLearningFactInput(clientArenaEvaluationEvent());
 
     expect(materialized).toMatchObject({
       sourceEventId: 'client-event:arena_evaluation_complete:fake',
       contextJson: {
         evidenceGovernance: {
+          profileWeight: 0,
+          skipProfileContribution: true,
           policyReason: 'arena_client_evaluation_context_only',
         },
       },
@@ -978,8 +1011,8 @@ describe('buildStudentEvidenceFeaturePayload', () => {
     });
 
     expect((payload.features as any).simulationArena.recent30d).toMatchObject({
-      evidenceCount: 1,
-      completedCount: 1,
+      evidenceCount: 0,
+      completedCount: 0,
       officialCount: 0,
     });
   });

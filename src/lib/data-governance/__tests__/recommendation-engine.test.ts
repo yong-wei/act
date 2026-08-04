@@ -467,6 +467,30 @@ describe('generateRecommendations', () => {
     expect(recommendations.every((item) => item.rationale.evidenceCount === 0)).toBe(true);
   });
 
+  it('does not let context-only facts create activity coverage or a learning streak', async () => {
+    const contextOnlyGovernance = {
+      evidenceGovernance: {
+        evidenceQuality: 'context-only',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'context-only-source',
+      },
+    };
+    const recentFacts = Array.from({ length: 7 }, (_, index) => ({
+      factType: 'question',
+      outcome: 'success',
+      startedAt: new Date(`2026-05-${20 - index}T10:00:00.000Z`),
+      score: 100,
+      contextJson: contextOnlyGovernance,
+    }));
+    mocks.prisma.learningFact.findMany.mockResolvedValue(recentFacts);
+
+    const recommendations = await generateRecommendations('student-1');
+
+    expect(recommendations.every((item) => item.rationale.evidenceCount === 0)).toBe(true);
+    expect(recommendations.find((item) => item.id === 'self-directed-project')).toBeUndefined();
+  });
+
   it('fails closed on pre-#1116 v4 feature caches without knowledge identity diagnostics', async () => {
     // Explicitly omit knowledgeIdentityCoverage / layers so missing diagnostics
     // cannot be treated as single-version comparable after #1116 rollout.
