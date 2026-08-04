@@ -159,6 +159,106 @@ describe('adaptive path journey contracts', () => {
     });
   });
 
+  it('projects a read-only correction after a failed checkpoint by reordering governed unfinished nodes', () => {
+    const path = buildPath({
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed', estimatedTimeMinutes: 10 },
+          { nodeId: 'node-2', title: '校正检查点', type: 'checkpoint', target: '/assessment/adaptive-practice', status: 'current', checkpoint: true, estimatedTimeMinutes: 15, readiness: { state: 'ready' } },
+          { nodeId: 'node-3', title: '误差复习', type: 'knowledge_card', target: '/knowledge/card-2', status: 'next', estimatedTimeMinutes: 20, readiness: { state: 'ready' } },
+        ],
+      },
+      terminalValidation: { nodeId: 'node-2', state: 'failed' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
+    });
+    const before = JSON.stringify(path);
+
+    const journey = buildAuthorizedAdaptivePathJourney(path, { requestedNodeId: 'node-2' });
+
+    expect(journey.correction).toMatchObject({
+      proposal: {
+        trigger: { kind: 'failed-checkpoint', nodeId: 'node-2' },
+        originalRemaining: [{ nodeId: 'node-2' }, { nodeId: 'node-3' }],
+        proposedRemaining: [{ nodeId: 'node-3' }, { nodeId: 'node-2' }],
+        estimatedRemainingWork: { originalMinutes: 35, proposedMinutes: 35, differenceMinutes: 0 },
+      },
+      unavailableReason: null,
+    });
+    expect(JSON.stringify(path)).toBe(before);
+  });
+
+  it('projects a read-only correction after a recorded skip when both nodes are unfinished', () => {
+    const path = buildPath({
+      currentNodeId: 'node-2',
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+      deviations: [{ deviationType: 'skip', priorNodeId: 'node-1', targetNodeId: 'node-1' }],
+    });
+
+    const journey = buildAuthorizedAdaptivePathJourney(path, { requestedNodeId: 'node-2' });
+
+    expect(journey.correction).toMatchObject({
+      proposal: {
+        trigger: { kind: 'deviation', nodeId: 'node-1' },
+        originalRemaining: [{ nodeId: 'node-1' }, { nodeId: 'node-2' }],
+        proposedRemaining: [{ nodeId: 'node-2' }, { nodeId: 'node-1' }],
+      },
+      unavailableReason: null,
+    });
+  });
+
+  it('does not present a correction when a deviation would keep the remaining sequence unchanged', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: 'node-2',
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+      deviations: [{ deviationType: 'skip', priorNodeId: 'node-2', targetNodeId: 'node-1' }],
+    }), { requestedNodeId: 'node-2' });
+
+    expect(journey.correction).toEqual({
+      proposal: null,
+      unavailableReason: '候选调整与当前未完成路径没有实质差异。',
+    });
+  });
+
+  it('returns a student-safe unavailable reason when a failed checkpoint has no governed node to reorder', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: 'node-2',
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          { nodeId: 'node-2', title: '校正检查点', type: 'checkpoint', target: '/assessment/adaptive-practice', status: 'current', checkpoint: true, readiness: { state: 'ready' } },
+        ],
+      },
+      terminalValidation: { nodeId: 'node-2', state: 'failed' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
+    }), { requestedNodeId: 'node-2' });
+
+    expect(journey.correction).toEqual({
+      proposal: null,
+      unavailableReason: '检查点未通过，但路径中没有可用于调整顺序的受治理复习节点。',
+    });
+  });
+
+  it('does not derive a correction from an incomplete path structure', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: 'node-1',
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        planNodes: [{ nodeId: 'node-1', type: 'checkpoint', target: '/assessment/adaptive-practice' }],
+      },
+      terminalValidation: { nodeId: 'node-1', state: 'failed' },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: ['node-1'] },
+    }), { requestedNodeId: 'node-1' });
+
+    expect(journey.correction).toEqual({
+      proposal: null,
+      unavailableReason: '学习路径结构不完整，暂时无法生成可靠的纠偏方案。',
+    });
+  });
+
   it('normalizes all-complete paths without terminal validation to path-complete', () => {
     const journey = buildAuthorizedAdaptivePathJourney(buildPath({
       currentNodeId: 'node-2',

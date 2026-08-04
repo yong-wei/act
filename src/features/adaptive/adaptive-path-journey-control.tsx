@@ -11,6 +11,7 @@ import {
   type AdaptivePathLaunchContext,
 } from './adaptive-learning-center-contracts';
 import type {
+  AdaptivePathCorrectionNode,
   AdaptivePathJourneyNextActionState,
   AuthorizedAdaptivePathJourney,
 } from './adaptive-path-journey-contracts';
@@ -178,6 +179,7 @@ export function AdaptivePathJourneyControl({
   const state = journey?.nextAction.state ?? (status === 'error' ? 'blocked' : 'pending-result');
   const returnAction = journey?.return ?? { label: '返回学习路径', href: launchContext.returnHref };
   const nextAction = journey?.nextAction ?? null;
+  const correction = journey?.correction ?? null;
   const nextActionDuplicatesReturn = nextAction?.href
     ? areEquivalentJourneyActions(returnAction, { label: nextAction.title, href: nextAction.href })
     : false;
@@ -267,8 +269,69 @@ export function AdaptivePathJourneyControl({
           )}
         </div>
       </div>
+      {correction?.proposal ? (
+        <details
+          className="mt-3 border-t border-platform-border pt-3"
+          data-adaptive-path-correction="available"
+        >
+          <summary className="cursor-pointer text-sm font-medium text-platform-action-primary">
+            查看纠偏方案
+          </summary>
+          <div className="mt-3 grid gap-3 text-sm text-platform-fg-secondary lg:grid-cols-2">
+            <PathCorrectionSequence title="当前未完成路径" nodes={correction.proposal.originalRemaining} />
+            <PathCorrectionSequence title="建议顺序" nodes={correction.proposal.proposedRemaining} />
+          </div>
+          <p className="mt-3 text-xs text-platform-fg-secondary">
+            触发依据：{correction.proposal.trigger.reason}
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-platform-fg-tertiary">
+            {correction.proposal.supportingFacts.map((fact) => <li key={fact}>{fact}</li>)}
+          </ul>
+          <p className="mt-3 text-xs text-platform-fg-tertiary">
+            预计剩余学习量：{formatEstimatedRemainingWork(correction.proposal.estimatedRemainingWork)}。本方案仅供查看，尚未应用到当前学习路径。
+          </p>
+        </details>
+      ) : correction?.unavailableReason ? (
+        <p
+          className="mt-3 border-t border-platform-border pt-3 text-xs text-platform-fg-tertiary"
+          data-adaptive-path-correction="unavailable"
+        >
+          暂无法生成纠偏方案：{correction.unavailableReason}
+        </p>
+      ) : null}
     </section>
   );
+}
+
+function PathCorrectionSequence({
+  title,
+  nodes,
+}: {
+  title: string;
+  nodes: AdaptivePathCorrectionNode[];
+}) {
+  return (
+    <div>
+      <p className="font-medium text-platform-fg-primary">{title}</p>
+      <ol className="mt-1 space-y-1 text-xs">
+        {nodes.map((node, index) => (
+          <li key={node.nodeId}>{index + 1}. {node.title}</li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function formatEstimatedRemainingWork(value: {
+  originalMinutes: number | null;
+  proposedMinutes: number | null;
+  differenceMinutes: number | null;
+}): string {
+  if (value.originalMinutes === null || value.proposedMinutes === null) return '现有节点未提供完整时长估计';
+  if (value.differenceMinutes === null) return `由 ${value.originalMinutes} 分钟变为 ${value.proposedMinutes} 分钟`;
+  if (value.differenceMinutes === 0) return `保持 ${value.originalMinutes} 分钟不变`;
+  const direction = value.differenceMinutes > 0 ? '增加' : '减少';
+  return `由 ${value.originalMinutes} 分钟变为 ${value.proposedMinutes} 分钟（${direction} ${Math.abs(value.differenceMinutes)} 分钟）`;
 }
 
 function areEquivalentJourneyActions(
