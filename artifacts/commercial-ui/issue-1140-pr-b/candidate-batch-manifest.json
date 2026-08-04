@@ -1,10 +1,10 @@
 {
-  "capturedAt": "2026-08-04T07:08:36.590Z",
-  "commitSha": "2e2a0c91168002a5eb0eca747e6f0e6fc587bd49",
+  "capturedAt": "2026-08-04T08:06:04.667Z",
+  "commitSha": "4fa380463e35b5807505497bb22b4b77e0cf4b1a",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140",
   "sourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "54a91d59553ddb90bfa246ce299bd579e7287b3763bc488eac138086a06886ba",
-    "src/lib/adaptive-path-candidate-batches.ts": "2b50e6d694533e0500f9c93b200574230659433b3e1fea0f026956a3e69c853c",
+    "src/lib/adaptive-path-candidate-batches.ts": "13a96ebb7dfb6f5b2f61b464e7404c5277a8a67b305cc4a15e66a2ee6918a795",
     "tests/adaptive-path-candidate-batches.spec.ts": "a5a823c67f6f61ae4b0e666df6f080bc6ee96ccb0122b206a6c9a0dd0cda1ec3"
   },
   "screenshots": [
@@ -20,7 +20,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1140-pr-b/candidate-batch-mobile-320.png",
-      "sha256": "51b29b630b53c5bcb15863f2c0ac0c9a12ba72b0c846513c7101217e4aebf34d",
+      "sha256": "02a46175f540b0464ff770877c185465551efcbda14aaf7322dbd414789d71e2",
       "width": 320,
       "height": 900,
       "activePathId": "active-path-before-generation",
