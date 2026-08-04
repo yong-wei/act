@@ -446,27 +446,10 @@ function buildAdaptivePathJourneyCorrection(input: {
       : null
   );
   if (failedCheckpoint) {
-    const preparationNode = findPreparationNodeAfter(failedCheckpoint.nodeId, originalRemaining);
-    if (!preparationNode) {
-      return {
-        proposal: null,
-        unavailableReason: '检查点未通过，但路径中没有可用于调整顺序的受治理复习节点。',
-      };
-    }
-    return correctionFromReordering({
-      originalRemaining,
-      trigger: {
-        kind: 'failed-checkpoint',
-        node: failedCheckpoint,
-        reason: '检查点结果未通过。',
-      },
-      movedNode: failedCheckpoint,
-      anchorNode: preparationNode,
-      supportingFacts: [
-        `“${failedCheckpoint.title}”的检查点结果未通过。`,
-        `“${preparationNode.title}”是当前路径中尚未完成的受治理学习节点。`,
-      ],
-    });
+    return {
+      proposal: null,
+      unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
+    };
   }
 
   const deviation = findCorrectableDeviation(input.deviations, originalRemaining);
@@ -494,17 +477,6 @@ function buildAdaptivePathJourneyCorrection(input: {
       `“${deviation.anchorNode.title}”是当前路径中尚未完成的受治理节点。`,
     ],
   });
-}
-
-function findPreparationNodeAfter(
-  failedNodeId: string,
-  remainingNodes: JourneyNodeRecord[],
-): JourneyNodeRecord | null {
-  const failedIndex = remainingNodes.findIndex((node) => node.nodeId === failedNodeId);
-  if (failedIndex < 0) return null;
-  return remainingNodes.slice(failedIndex + 1).find((node) =>
-    ['knowledge_card', 'knowledge_node', 'handout', 'textbook_section', 'interactive_lesson', 'simulation'].includes(node.type),
-  ) ?? null;
 }
 
 function findCorrectableDeviation(

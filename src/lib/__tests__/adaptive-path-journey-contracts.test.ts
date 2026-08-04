@@ -159,7 +159,7 @@ describe('adaptive path journey contracts', () => {
     });
   });
 
-  it('projects a read-only correction after a failed checkpoint by reordering governed unfinished nodes', () => {
+  it('fails closed when a failed checkpoint has only an unrelated later learning node', () => {
     const path = buildPath({
       currentNodeId: 'node-2',
       nodeIds: ['node-1', 'node-2', 'node-3'],
@@ -178,14 +178,9 @@ describe('adaptive path journey contracts', () => {
 
     const journey = buildAuthorizedAdaptivePathJourney(path, { requestedNodeId: 'node-2' });
 
-    expect(journey.correction).toMatchObject({
-      proposal: {
-        trigger: { kind: 'failed-checkpoint', nodeId: 'node-2' },
-        originalRemaining: [{ nodeId: 'node-2' }, { nodeId: 'node-3' }],
-        proposedRemaining: [{ nodeId: 'node-3' }, { nodeId: 'node-2' }],
-        estimatedRemainingWork: { originalMinutes: 35, proposedMinutes: 35, differenceMinutes: 0 },
-      },
-      unavailableReason: null,
+    expect(journey.correction).toEqual({
+      proposal: null,
+      unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
     });
     expect(JSON.stringify(path)).toBe(before);
   });
@@ -222,14 +217,15 @@ describe('adaptive path journey contracts', () => {
     });
   });
 
-  it('returns a student-safe unavailable reason when a failed checkpoint has no governed node to reorder', () => {
+  it('fails closed when a failed checkpoint is followed by an ineligible resource', () => {
     const journey = buildAuthorizedAdaptivePathJourney(buildPath({
       currentNodeId: 'node-2',
       pathPayload: {
-        mainPathNodeIds: ['node-1', 'node-2'],
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
         planNodes: [
           { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
           { nodeId: 'node-2', title: '校正检查点', type: 'checkpoint', target: '/assessment/adaptive-practice', status: 'current', checkpoint: true, readiness: { state: 'ready' } },
+          { nodeId: 'node-3', title: '未解锁复习', type: 'knowledge_card', target: '/knowledge/card-2', status: 'locked', readiness: { state: 'locked' } },
         ],
       },
       terminalValidation: { nodeId: 'node-2', state: 'failed' },
@@ -238,7 +234,7 @@ describe('adaptive path journey contracts', () => {
 
     expect(journey.correction).toEqual({
       proposal: null,
-      unavailableReason: '检查点未通过，但路径中没有可用于调整顺序的受治理复习节点。',
+      unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
     });
   });
 
