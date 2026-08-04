@@ -1,4 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  findAdaptiveAssessmentCatalogSnapshot,
+  type AdaptiveAssessmentCatalogSnapshot,
+} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import type { AdaptiveAssessmentCatalogReviewState } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   orchestrateRemediation,
@@ -7,6 +12,12 @@ import {
 } from '../remediation-orchestration';
 
 const HASH_A = 'a'.repeat(64);
+const currentCatalogSnapshots = new Map<string, AdaptiveAssessmentCatalogSnapshot>();
+
+vi.mock('@/features/adaptive-assessment/adaptive-assessment-catalog-selector', () => ({
+  findAdaptiveAssessmentCatalogSnapshot: vi.fn((questionId: string) =>
+    currentCatalogSnapshots.get(questionId) ?? null),
+}));
 
 function resource(input: {
   id: string;
@@ -80,17 +91,20 @@ function validation(input: {
   minutes?: number;
   questionId?: string;
   contentHash?: string;
+  catalogContentHash?: string;
   version?: string;
   learnerVisible?: boolean;
   misconceptionTags?: string[];
   sourceQuestionIds?: string[];
-  reviewState?: string;
+  reviewState?: AdaptiveAssessmentCatalogReviewState;
   stage?: 'remediation' | 'checkpoint';
   reviewSourceHash?: string;
+  omitRemediationValidation?: boolean;
 }) {
   const id = input.id ?? 'validation-1';
   const questionId = input.questionId ?? 'question-variant';
   const contentHash = input.contentHash ?? HASH_A;
+  const catalogContentHash = input.catalogContentHash ?? HASH_A;
   const stage = input.stage ?? 'remediation';
   const decisionWithoutHash = {
     catalogItemId: `catalog-${id}`,
@@ -99,7 +113,7 @@ function validation(input: {
     reviewerId: 'assessment-reviewer',
     reviewedAt: '2026-08-03T00:00:00.000Z',
     reviewBatchId: 'remediation-validation.v1',
-    sourceContentHash: contentHash,
+    sourceContentHash: catalogContentHash,
     selectedLearningGoalIds: ['learning-goal-1'],
     selectedKaqObjectiveIds: ['kaq-1'],
     selectedGraphNodeIds: ['node-1'],
@@ -108,13 +122,63 @@ function validation(input: {
     cognitiveLevel: 'apply',
     misconceptionRefs: input.misconceptionTags ?? ['misconception-1'],
     remediationRefs: ['teaching-resource:exact'],
-    metadataVersionRefs: { catalogVersion: 'catalog.v1' },
+    metadataVersionRefs: {
+      catalogVersion: 'catalog.v1',
+      adaptiveAssessmentSnapshotVersion: input.version ?? 'validation.v1',
+    },
     notes: 'Reviewed remediation validation item.',
   };
   const reviewDecision = {
     ...decisionWithoutHash,
     reviewSourceHash: input.reviewSourceHash ?? assessmentItemSemanticReviewSourceHash(decisionWithoutHash),
   };
+  const catalogSnapshot: AdaptiveAssessmentCatalogSnapshot = {
+    catalogItemId: `catalog-${id}`,
+    sourceFamily: 'preset-adaptive-question',
+    sourceId: questionId,
+    sourceAnchor: `test:${questionId}`,
+    sourceLineage: {
+      sourceFamily: 'preset-adaptive-question',
+      sourceId: questionId,
+      sourcePath: 'test/remediation.ts',
+      sourceHash: catalogContentHash,
+    },
+    contentHash: catalogContentHash,
+    contentHashAlgorithm: 'sha256',
+    reviewState: input.reviewState ?? 'path-eligible',
+    eligibilityState: input.reviewState ?? 'path-eligible',
+    allowedStages: [stage],
+    questionRefs: {
+      stem: 'Private governed stem',
+      answerKey: ['PRIVATE_CORRECT_ANSWER'],
+      rubricRef: 'rubric:remediation',
+    },
+    semanticRefs: {
+      learningGoalIds: ['learning-goal-1'],
+      kaqObjectiveIds: ['kaq-1'],
+      graphNodeIds: ['node-1'],
+      knowledgeTags: ['frequency-response'],
+      misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
+      remediationResourceNodeIds: ['teaching-resource:exact'],
+      difficulty: 0.5,
+      cognitiveLevel: 'apply',
+      assessmentStage: stage,
+    },
+    limitations: [],
+    reviewDecision,
+    versionRefs: {
+      catalogVersion: 'catalog.v1',
+      adaptiveAssessmentSnapshotVersion: input.version ?? 'validation.v1',
+    },
+    relationship: {
+      relationship: 'answer-time-snapshot',
+      immutable: true,
+      mayReferenceCatalogItemId: true,
+      mayReferenceContentHash: true,
+      catalogUpdatesRewriteHistoricalAnswers: false,
+    },
+  };
+  currentCatalogSnapshots.set(questionId, catalogSnapshot);
   return {
     id,
     questionId,
@@ -122,50 +186,10 @@ function validation(input: {
     metadata: {
       adaptiveAssessmentItemRef: {
         catalogBacked: true,
-        catalogItemId: `catalog-${id}`,
         snapshotVersion: input.version ?? 'validation.v1',
-        contentHash,
-        contentHashAlgorithm: 'sha256',
-        sourceFamily: 'preset-adaptive-question',
-        sourceId: questionId,
-        sourceAnchor: `test:${questionId}`,
-        sourceLineage: {
-          sourceFamily: 'preset-adaptive-question',
-          sourceId: questionId,
-          sourcePath: 'test/remediation.ts',
-          sourceHash: contentHash,
-        },
-        reviewState: input.reviewState ?? 'path-eligible',
-        eligibilityState: input.reviewState ?? 'path-eligible',
-        allowedStages: [stage],
-        questionRefs: {
-          stem: 'Private governed stem',
-          answerKey: ['PRIVATE_CORRECT_ANSWER'],
-          rubricRef: 'rubric:remediation',
-        },
-        semanticRefs: {
-          learningGoalIds: ['learning-goal-1'],
-          kaqObjectiveIds: ['kaq-1'],
-          graphNodeIds: ['node-1'],
-          knowledgeTags: ['frequency-response'],
-          misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
-          remediationResourceNodeIds: ['teaching-resource:exact'],
-          difficulty: 0.5,
-          cognitiveLevel: 'apply',
-          assessmentStage: stage,
-        },
-        limitations: [],
-        reviewDecision,
-        versionRefs: { catalogVersion: 'catalog.v1' },
-        relationship: {
-          relationship: 'answer-time-snapshot',
-          immutable: true,
-          mayReferenceCatalogItemId: true,
-          mayReferenceContentHash: true,
-          catalogUpdatesRewriteHistoricalAnswers: false,
-        },
+        ...catalogSnapshot,
       },
-      remediationValidation: {
+      ...(!input.omitRemediationValidation ? { remediationValidation: {
         estimatedMinutes: input.minutes ?? 2,
         actionPath: `/assessment/items/${id}`,
         learnerVisible: input.learnerVisible ?? true,
@@ -175,7 +199,7 @@ function validation(input: {
           kind: 'variant',
           sourceQuestionIds: input.sourceQuestionIds ?? ['question-original'],
         },
-      },
+      } } : {}),
     },
   };
 }
@@ -230,7 +254,12 @@ function createDb() {
 }
 
 describe('remediation orchestration', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    currentCatalogSnapshots.clear();
+    vi.mocked(findAdaptiveAssessmentCatalogSnapshot).mockImplementation((questionId) =>
+      currentCatalogSnapshots.get(questionId) ?? null);
+  });
 
   it('persists a deterministic governed 5–10 minute task without answer material', async () => {
     const { db, mocks, resources } = createDb();
@@ -250,13 +279,16 @@ describe('remediation orchestration', () => {
       authenticatedUserId: 'learner-1',
       attributionId: 'attribution-1',
     });
-
     expect(result).toMatchObject({
       status: 'AVAILABLE',
       task: {
         estimatedMinutes: 5,
         resources: [{ id: 'exact' }],
-        validationQuestion: { itemRefId: 'validation-1', contentHash: HASH_A },
+        validationQuestion: {
+          itemRefId: 'validation-1',
+          contentHash: HASH_A,
+          actionPath: '/assessment/adaptive-practice',
+        },
       },
     });
     if (!result || result.status !== 'AVAILABLE') throw new Error('Expected available remediation task');
@@ -304,7 +336,7 @@ describe('remediation orchestration', () => {
         contentHash: HASH_A,
         version: 'validation.v1',
         estimatedMinutes: 2,
-        actionPath: '/assessment/items/validation-1',
+        actionPath: '/assessment/adaptive-practice',
       },
     };
     mocks.remediationOrchestrationResult.findFirst.mockResolvedValue(persisted({
@@ -319,6 +351,40 @@ describe('remediation orchestration', () => {
 
     expect(result?.status).toBe('AVAILABLE');
     expect(mocks.remediationOrchestrationResult.upsert).not.toHaveBeenCalled();
+  });
+
+  it('discovers a production catalog item without remediationValidation metadata', async () => {
+    const { db, mocks, validations } = createDb();
+    validations[0] = validation({
+      contentHash: 'b'.repeat(64),
+      catalogContentHash: HASH_A,
+      omitRemediationValidation: true,
+    });
+
+    const result = await orchestrateRemediation({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+    });
+    expect(result).toMatchObject({
+      status: 'AVAILABLE',
+      task: {
+        estimatedMinutes: 5,
+        validationQuestion: {
+          contentHash: 'b'.repeat(64),
+          estimatedMinutes: 2,
+          actionPath: '/assessment/adaptive-practice',
+        },
+      },
+    });
+    expect(mocks.adaptiveAssessmentItemRef.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        metadata: {
+          path: ['adaptiveAssessmentItemRef', 'semanticRefs', 'graphNodeIds'],
+          array_contains: ['node-1'],
+        },
+      }),
+    }));
   });
 
   it('fails closed for an uncertain attribution without storing candidate references', async () => {
@@ -394,7 +460,7 @@ describe('remediation orchestration', () => {
     ['deprecated', { reviewState: 'deprecated' }],
     ['stale-review', { reviewSourceHash: 'stale-review-hash' }],
     ['wrong-stage', { stage: 'checkpoint' as const }],
-  ])('fails closed for a %s validation catalog snapshot', async (_label, overrides) => {
+  ] as const)('fails closed for a %s validation catalog snapshot', async (_label, overrides) => {
     const { db, mocks } = createDb();
     mocks.adaptiveAssessmentItemRef.findMany.mockResolvedValue([validation(overrides)]);
 
@@ -445,6 +511,22 @@ describe('remediation orchestration', () => {
     validations[0] = validation({ contentHash: 'b'.repeat(64) });
 
     const result = await readRemediationOrchestration({ db, authenticatedUserId: 'learner-1', resultId: 'result-1' });
+
+    expect(result).toMatchObject({ status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT' });
+  });
+
+  it('fails closed when current catalog authority is revoked after orchestration', async () => {
+    const { db, mocks } = createDb();
+    await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
+    const row = await mocks.remediationOrchestrationResult.upsert.mock.results[0].value;
+    mocks.remediationOrchestrationResult.findFirst.mockResolvedValue(row);
+    currentCatalogSnapshots.delete('question-variant');
+
+    const result = await readRemediationOrchestration({
+      db,
+      authenticatedUserId: 'learner-1',
+      resultId: 'result-1',
+    });
 
     expect(result).toMatchObject({ status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT' });
   });

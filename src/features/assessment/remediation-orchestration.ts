@@ -1,13 +1,16 @@
 import {
-  evaluateAssessmentEvidenceSnapshotAuthority,
+  evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
   type AssessmentEvidenceCatalogSnapshot,
 } from '@/features/adaptive-assessment/assessment-evidence-authority';
+import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import type { ResourceNode } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
 
 export const REMEDIATION_ORCHESTRATOR_VERSION = 'remediation-orchestrator.v1';
 export const REMEDIATION_MANUAL_PRACTICE_PATH = '/student/practice';
+const REMEDIATION_VALIDATION_ESTIMATED_MINUTES = 2;
+const REMEDIATION_VALIDATION_ACTION_PATH = '/assessment/adaptive-practice';
 
 export type RemediationUnavailableReason =
   | 'ATTRIBUTION_UNCERTAIN'
@@ -263,19 +266,26 @@ function parseValidationItem(
   const catalogSnapshotValue = record(metadata?.adaptiveAssessmentItemRef);
   const validation = record(metadata?.remediationValidation);
   const relationship = record(validation?.relationship);
-  const version = nonEmptyString(catalogSnapshotValue?.snapshotVersion);
-  const estimatedMinutes = governedMinutes(validation?.estimatedMinutes);
-  const actionPath = governedActionPath(validation?.actionPath);
-  const graphNodeIds = stringArray(validation?.graphNodeIds);
-  const misconceptionTags = stringArray(validation?.misconceptionTags);
+  const currentCatalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(row.questionId);
+  const version = nonEmptyString(
+    currentCatalogSnapshot?.versionRefs.adaptiveAssessmentSnapshotVersion ??
+      catalogSnapshotValue?.snapshotVersion,
+  );
+  const estimatedMinutes = governedMinutes(
+    validation?.estimatedMinutes ?? REMEDIATION_VALIDATION_ESTIMATED_MINUTES,
+  );
+  const actionPath = governedActionPath(REMEDIATION_VALIDATION_ACTION_PATH);
+  const graphNodeIds = currentCatalogSnapshot?.semanticRefs.graphNodeIds;
+  const misconceptionTags = currentCatalogSnapshot?.semanticRefs.misconceptionTags;
   const sourceQuestionIds = stringArray(relationship?.sourceQuestionIds);
   const relationshipKind = nonEmptyString(relationship?.kind);
   const relationshipMatches = (
     relationshipKind === 'isomorphic' || relationshipKind === 'variant'
   ) && (sourceQuestionIds?.includes(sourceQuestionId) ?? false);
   const misconceptionMatches = misconceptionTags?.includes(misconceptionTag) ?? false;
-  const authority = evaluateAssessmentEvidenceSnapshotAuthority(
+  const authority = evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority(
     catalogSnapshotValue as unknown as AssessmentEvidenceCatalogSnapshot,
+    currentCatalogSnapshot,
     {
       requestedStage: 'remediation',
       knownGraphNodeIds: [knowledgeNodeId],
@@ -284,15 +294,13 @@ function parseValidationItem(
 
   if (
     row.questionId === sourceQuestionId ||
-    validation?.learnerVisible !== true ||
+    validation?.learnerVisible === false ||
     !authority.remediation ||
-    catalogSnapshotValue?.contentHash !== row.contentHash ||
     !version ||
     !estimatedMinutes ||
     !actionPath ||
     !graphNodeIds?.includes(knowledgeNodeId) ||
     !misconceptionTags ||
-    !sourceQuestionIds ||
     (!relationshipMatches && !misconceptionMatches) ||
     !/^[a-f0-9]{64}$/.test(row.contentHash)
   ) {
@@ -530,7 +538,7 @@ async function projectResult(
   });
   if (!validation) return unavailableProjection(row, 'REFERENCE_DRIFT');
   const validationMetadata = record(validation?.metadata)?.remediationValidation;
-  if (record(validationMetadata)?.learnerVisible !== true) {
+  if (record(validationMetadata)?.learnerVisible === false) {
     return unavailableProjection(row, 'ACCESS_REVOKED');
   }
   const parsedValidation = validation && parseValidationItem(
@@ -641,7 +649,10 @@ export async function orchestrateRemediation(input: {
   const validationRows = await input.db.adaptiveAssessmentItemRef.findMany({
     where: {
       NOT: { questionId: attribution.questionId },
-      metadata: { path: ['remediationValidation', 'graphNodeIds'], array_contains: [knowledgeNodeId] },
+      metadata: {
+        path: ['adaptiveAssessmentItemRef', 'semanticRefs', 'graphNodeIds'],
+        array_contains: [knowledgeNodeId],
+      },
     },
     select: { id: true, questionId: true, contentHash: true, metadata: true },
   });

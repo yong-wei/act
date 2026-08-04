@@ -6,7 +6,7 @@
 ## 2. Orchestration service
 
 - [x] 2.1 Implement ownership checks and sanitized unavailable-result persistence.
-- [x] 2.2 Reuse ResourceNode and assessment-catalog authority for deterministic candidate selection within the 5–10 minute budget.
+- [x] 2.2 Discover validation candidates through production catalog semantics and reuse current ResourceNode and assessment-catalog authority for deterministic selection within the 5–10 minute budget.
 - [x] 2.3 Implement idempotent available-task persistence, a separate learner projection and read-time authorization/version drift validation.
 
 ## 3. Learner API
@@ -16,6 +16,6 @@
 
 ## 4. Verification
 
-- [x] 4.1 Add unit coverage for success, deterministic ordering, idempotency, uncertainty, missing inputs, ResourceNode blockers and catalog-authority failures.
+- [x] 4.1 Add unit coverage for success, deterministic ordering, idempotency, uncertainty, missing inputs, production items without remediation extensions, ResourceNode blockers and current-catalog authority failures.
 - [x] 4.2 Add route/read coverage for ownership, authorization revocation, version drift and exact learner-projection shape.
 - [x] 4.3 Run Prisma validation, targeted tests, TypeScript checks and final repository gates; update task status and inspect the final diff.

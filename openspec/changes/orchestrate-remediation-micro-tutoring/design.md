@@ -33,7 +33,7 @@ Alternative considered: compute on every read. Rejected because catalog changes 
 
 `TeachingResource.config.remediation` may contribute only remediation-specific relevance tags. It cannot grant eligibility, visibility, duration, version or launch authority. The orchestrator builds the existing ResourceNode registry projection and accepts only audited `pathEligible` PlanningUnits with a verified launch/render target, `student-visible` privacy, available/allowed policy, complete evidence instrumentation, reviewed path-plannable disposition, governed estimated time and source version.
 
-Validation items may declare their isomorphic/variant relationship and duration in `AdaptiveAssessmentItemRef.metadata.remediationValidation`, but formal eligibility comes exclusively from the real `metadata.adaptiveAssessmentItemRef` catalog snapshot. The orchestrator calls `evaluateAssessmentEvidenceSnapshotAuthority(..., { requestedStage: 'remediation' })` and requires remediation authority, current content-hash agreement, human semantic review, `path-eligible` state and stage permission.
+Validation candidates are discovered through the production-written `metadata.adaptiveAssessmentItemRef.semanticRefs.graphNodeIds`, not through optional remediation extensions. The persisted answer-time snapshot is rebound to `findAdaptiveAssessmentCatalogSnapshot(questionId)` and checked with `evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority(..., { requestedStage: 'remediation' })`. The current catalog must retain remediation authority, content and version agreement, human semantic review, `path-eligible` state and stage permission. Optional `metadata.remediationValidation` fields may refine relationship or duration but cannot establish candidate existence or authority; absent optional metadata uses the versioned orchestrator's canonical adaptive-practice launch and validation duration.
 
 Malformed, provisional, stale, private, broken or incomplete authority excludes the candidate. No candidate data is inferred from titles or free text, and neither remediation metadata block can create a parallel eligibility path.
 
@@ -43,7 +43,7 @@ Alternative considered: add dedicated catalog tables or self-asserted eligibilit
 
 Resources are ordered by: exact knowledge-node plus misconception match, exact knowledge-node match, then declared prerequisite match. Stable version and ID resolve ties. The orchestrator chooses the first deterministic resource combination whose resource minutes plus validation minutes total 5–10 minutes.
 
-Validation items must differ from the source question, target the same canonical node, and declare either an isomorphic/variant relationship to the source item or the same misconception tag. Stable ID resolves ties.
+Validation items must differ from the source question, target the same canonical node, and have either an optional isomorphic/variant relationship to the source item or the same reviewed catalog misconception reference. Stable ID resolves ties.
 
 Alternative considered: model-based ranking. Rejected because it is not reproducible or suitable for governed validation.
 

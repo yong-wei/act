@@ -34,11 +34,19 @@ The system SHALL select only resources whose existing ResourceNode/PlanningUnit 
 - **THEN** the system persists a sanitized `UNAVAILABLE` result and does not persist candidate resource references
 
 ### Requirement: Existing governed validation question
-The system SHALL use an existing accessible assessment item that differs from the original question, targets the same canonical knowledge node, and declares either an isomorphic/variant relationship or the same misconception tag. The item's real assessment-catalog snapshot MUST have current remediation authority, human semantic review, path eligibility, immutable content-hash agreement and remediation-stage permission. Self-declared remediation metadata MUST NOT grant catalog authority, and the system MUST NOT generate or rewrite the formal validation question.
+The system SHALL discover existing assessment items from the production-written assessment-catalog semantic references, without requiring optional remediation metadata. The selected item SHALL differ from the original question, target the same canonical knowledge node, and have either an isomorphic/variant relationship or the same reviewed catalog misconception reference. Its persisted snapshot MUST be rebound to the current catalog snapshot and retain remediation authority, human semantic review, path eligibility, immutable content/version agreement, canonical learner launch and remediation-stage permission. Self-declared remediation metadata MUST NOT grant catalog authority or candidate existence, and the system MUST NOT generate or rewrite the formal validation question.
 
 #### Scenario: Governed variant exists
 - **WHEN** an eligible version-bound variant or isomorphic assessment item exists
 - **THEN** the available task references that item ID and content hash without exposing its answer or explanation
+
+#### Scenario: Production item has no remediation extension
+- **WHEN** a production-persisted item has current remediation catalog authority and matching semantic references but no `remediationValidation` block
+- **THEN** the system can select it through the canonical catalog contract and uses the governed adaptive-practice launch
+
+#### Scenario: Current catalog authority changed
+- **WHEN** a persisted item snapshot is revoked, replaced, content-drifted or no longer learner-launchable in the current catalog
+- **THEN** the system rejects it during creation or retrieval
 
 #### Scenario: No validation item exists
 - **WHEN** no eligible existing validation item satisfies the semantic and version requirements
