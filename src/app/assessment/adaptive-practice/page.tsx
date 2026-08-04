@@ -1915,6 +1915,12 @@ function getPathExecutionNodes(
       nodeId: typeof record.nodeId === 'string' ? record.nodeId : '',
       title: typeof record.title === 'string' ? record.title : undefined,
       target: typeof record.target === 'string' ? record.target : undefined,
+      type: typeof record.type === 'string'
+        ? record.type
+        : typeof record.sourceKind === 'string'
+          ? record.sourceKind
+          : undefined,
+      status: typeof record.status === 'string' ? record.status : undefined,
     };
   });
   const preferredCurrentNodeId = plan.currentNodeId ?? round?.currentNodeId ?? null;

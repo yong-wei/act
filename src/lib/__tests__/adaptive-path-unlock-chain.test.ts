@@ -204,5 +204,7 @@ describe('adaptive practice page unlock chain integration', () => {
     expect(source).toContain('buildAdaptivePathUnlockChain({');
     expect(source).toContain('AdaptivePathUnlockChainView chain={node.unlockChain}');
     expect(source).toContain('unlockChain?: AdaptivePathUnlockChain');
+    expect(source).toContain("type: typeof record.type === 'string'");
+    expect(source).toContain("status: typeof record.status === 'string' ? record.status : undefined");
   });
 });
