@@ -58,6 +58,7 @@ import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-plan
 import {
   buildAdaptivePathUnlockChain,
   type AdaptivePathUnlockChain,
+  type AdaptivePathUnlockChainNodeInput,
 } from '@/lib/adaptive-path-unlock-chain';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 import {
@@ -1476,8 +1477,10 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
               nodeId: typeof detail.nodeId === 'string' ? detail.nodeId : 'unknown-node',
               title: typeof detail.title === 'string' ? detail.title : undefined,
               target: typeof detail.target === 'string' ? detail.target : undefined,
+              type: typeof detail.type === 'string' ? detail.type : undefined,
+              status: typeof detail.status === 'string' ? detail.status : undefined,
               prerequisiteNodeIds: getStringArray(detail.prerequisiteNodeIds),
-              readiness: detail.readiness,
+              readiness: getAdaptivePathUnlockReadiness(detail.readiness),
             };
           })
         : [],
@@ -1499,6 +1502,24 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       recommendationProvenance: getPathRecommendationProvenance(option.recommendationProvenance),
     };
   });
+}
+
+function getAdaptivePathUnlockReadiness(
+  value: unknown,
+): AdaptivePathUnlockChainNodeInput['readiness'] {
+  const readiness = getRecord(value);
+  return {
+    state: typeof readiness.state === 'string' ? readiness.state : undefined,
+    message: typeof readiness.message === 'string' ? readiness.message : undefined,
+    unlockMessage: typeof readiness.unlockMessage === 'string' ? readiness.unlockMessage : undefined,
+    fallbackNodeIds: getStringArray(readiness.fallbackNodeIds),
+    missingCompetencies: getStringArray(readiness.missingCompetencies),
+    missingEvidenceCount: typeof readiness.missingEvidenceCount === 'number'
+      ? readiness.missingEvidenceCount
+      : undefined,
+    missingCompletedNodeIds: getStringArray(readiness.missingCompletedNodeIds),
+    missingOutcomeRefs: getStringArray(readiness.missingOutcomeRefs),
+  };
 }
 
 function getPathRecommendationProvenance(

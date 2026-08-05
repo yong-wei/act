@@ -210,7 +210,8 @@ function buildOrderedNodes(
 ): AdaptivePathOptionPreviewNode[] | undefined {
   const nodeIds = option.nodeIds ?? [];
   if (nodeIds.length === 0 || !option.nodeSummaries?.length) return undefined;
-  const summaries = new Map(option.nodeSummaries.map((summary) => [summary.nodeId, summary]));
+  const nodeSummaries = option.nodeSummaries;
+  const summaries = new Map(nodeSummaries.map((summary) => [summary.nodeId, summary]));
   const readiness = new Map(option.readinessSummary.map((item) => [item.nodeId, item]));
   const nodes = nodeIds.map<AdaptivePathOptionPreviewNode | null>((nodeId) => {
     const summary = summaries.get(nodeId);
@@ -235,9 +236,9 @@ function buildOrderedNodes(
               nodeId: item.nodeId,
               title: item.title,
               target: item.target,
-              type: option.nodeSummaries.find((summary) => summary.nodeId === item.nodeId)?.pathNodeType,
-              status: option.nodeSummaries.find((summary) => summary.nodeId === item.nodeId)?.status,
-            })) ?? option.nodeSummaries.map((item) => ({ nodeId: item.nodeId, title: item.title })),
+              type: item.type ?? nodeSummaries.find((summary) => summary.nodeId === item.nodeId)?.pathNodeType,
+              status: item.status ?? nodeSummaries.find((summary) => summary.nodeId === item.nodeId)?.status,
+            })) ?? nodeSummaries.map((item) => ({ nodeId: item.nodeId, title: item.title })),
           )
         : undefined,
       comparisonLabel: formatComparisonLabel(nodeOccurrences.get(nodeId) ?? 0, optionCount),

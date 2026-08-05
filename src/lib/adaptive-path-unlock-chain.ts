@@ -31,6 +31,8 @@ export interface AdaptivePathUnlockChainNodeInput {
   nodeId: string;
   title?: string | null;
   target?: string | null;
+  type?: string | null;
+  status?: string | null;
   prerequisiteNodeIds?: readonly string[] | null;
   readiness?: {
     state?: string | null;
