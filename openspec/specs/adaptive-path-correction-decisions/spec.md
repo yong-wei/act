@@ -1,5 +1,8 @@
-## ADDED Requirements
+# adaptive-path-correction-decisions Specification
 
+## Purpose
+Defines the server-authoritative, append-only decision contract for learner-confirmed adaptive path corrections, including candidate identity, immutable snapshots, stale-write protection, idempotent outcomes, and privacy-safe journey history.
+## Requirements
 ### Requirement: Correction candidates accept auditable student decisions
 The system SHALL let the owner of a path confirm, reject, or defer a current correction candidate through a server-authoritative decision. Each decision SHALL persist the candidate fingerprint, path version, original-path snapshot, candidate snapshot, supporting facts, decision type, timestamp, and application result. The client SHALL submit only candidate identity, path version, decision type, and an idempotency key.
 
@@ -15,7 +18,7 @@ The system SHALL let the owner of a path confirm, reject, or defer a current cor
 
 #### Scenario: Student confirms a current candidate
 - **WHEN** the owner confirms a current available candidate with matching candidate and path versions
-- **THEN** the system SHALL append a confirmed decision and apply only its eligible future unfinished nodes
+- **THEN** the system SHALL append a confirmed decision, exclude unfinished historical nodes explicitly abandoned by a governed skip, replacement, or abandonment deviation, and replace only eligible adjustable unfinished future nodes
 - **AND** it SHALL preserve current entered work, completed nodes, execution records, deviations, interventions, and the original snapshot.
 
 #### Scenario: Decision request is replayed

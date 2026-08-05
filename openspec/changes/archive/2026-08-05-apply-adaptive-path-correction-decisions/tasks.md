@@ -6,7 +6,7 @@
 
 ## 2. Path application and journey projection
 
-- [x] 2.1 Apply confirmed candidates only to eligible future unfinished nodes while preserving entered and completed execution state.
+- [x] 2.1 Apply confirmed candidates by preserving entered and completed execution state, excluding unfinished historical nodes explicitly abandoned by governed deviations, and replacing only eligible adjustable future nodes.
 - [x] 2.2 Extend the journey projection with candidate fingerprint, path version, decision state, and privacy-safe decision history.
 - [x] 2.3 Add focused unit and route tests for decision lifecycle, idempotency, stale candidates, and concurrent writes.
 
