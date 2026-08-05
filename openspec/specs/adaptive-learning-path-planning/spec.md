@@ -797,10 +797,9 @@ The system SHALL show a candidate correction proposal with its trigger, node add
 #### Scenario: Student inspects a candidate correction proposal
 - **WHEN** a learner opens an available candidate correction proposal
 - **THEN** the UI SHALL show the original unfinished path alongside the proposed changes, the trigger, supporting facts, and estimated remaining-work effect
-- **AND** it SHALL state that the proposal is not applied until a later confirmation workflow exists.
+- **AND** it SHALL state that the proposal is not applied until the student confirms it through the available decision workflow.
 
 #### Scenario: Candidate has no material difference
 - **WHEN** a derived candidate has the same unfinished node identities and order as the persisted path
 - **THEN** the system SHALL treat the candidate as unavailable
 - **AND** it SHALL NOT present it as a correction.
-
