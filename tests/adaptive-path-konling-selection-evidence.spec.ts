@@ -5,7 +5,7 @@ import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3002';
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
 const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1140-pr-c');
 const manifestPath = path.join(evidenceDir, 'konling-selection-manifest.json');
 const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
