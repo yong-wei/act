@@ -488,7 +488,60 @@ describe('generateRecommendations', () => {
     const recommendations = await generateRecommendations('student-1');
 
     expect(recommendations.every((item) => item.rationale.evidenceCount === 0)).toBe(true);
-    expect(recommendations.find((item) => item.id === 'self-directed-project')).toBeUndefined();
+    expect(recommendations.find((item) => item.id.startsWith('self-directed-project-'))).toBeUndefined();
+  });
+
+  it('pages past context-only facts before deriving recent activity and streaks', async () => {
+    const contextOnlyFacts = Array.from({ length: 51 }, (_, index) => ({
+      id: `context-only-${index}`,
+      factType: 'question',
+      outcome: 'success',
+      startedAt: new Date('2026-05-20T10:00:00.000Z'),
+      score: 100,
+      contextJson: {
+        evidenceGovernance: {
+          evidenceQuality: 'context-only',
+          profileWeight: 0,
+          skipProfileContribution: true,
+          policyReason: 'context-only-source',
+        },
+      },
+    }));
+    const eligibleFacts = Array.from({ length: 7 }, (_, index) => ({
+      id: `eligible-${index}`,
+      factType: 'question',
+      outcome: 'success',
+      startedAt: new Date(`2026-05-${20 - index}T10:00:00.000Z`),
+      score: 100,
+      contextJson: {
+        evidenceGovernance: {
+          evidenceQuality: 'governed',
+          profileWeight: 1,
+          skipProfileContribution: false,
+          policyReason: 'approved-source',
+        },
+      },
+    }));
+    const rows = [...contextOnlyFacts, ...eligibleFacts];
+    mocks.prisma.learningFact.findMany.mockImplementation(async (args: {
+      cursor?: { id: string };
+      take?: number;
+    }) => {
+      const start = args.cursor
+        ? rows.findIndex((fact) => fact.id === args.cursor?.id) + 1
+        : 0;
+      return rows.slice(start, start + (args.take ?? 50));
+    });
+
+    const recommendations = await generateRecommendations('student-1');
+    const project = recommendations.find((item) => item.id.startsWith('self-directed-project-'));
+
+    expect(project?.rationale.evidenceCount).toBe(7);
+    expect(project).toBeDefined();
+    expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      cursor: { id: 'context-only-49' },
+      select: { id: true, startedAt: true, contextJson: true },
+    }));
   });
 
   it('fails closed on pre-#1116 v4 feature caches without knowledge identity diagnostics', async () => {

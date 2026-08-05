@@ -100,6 +100,7 @@ const CONTROL_CORRECTION_ARENA_TASK_IDS = new Set<string>(CONTROL_CORRECTION_ARE
 const CONTROL_CORRECTION_FACT_TAKE = 500;
 const CONTROL_CORRECTION_LEGACY_FACT_SCAN_MAX_PAGES = 10;
 const CONTROL_CORRECTION_EXPLICIT_FACT_SCAN_MAX_PAGES = 10;
+const LEARNER_STATE_FACT_TAKE = 100;
 export const CONTROL_CORRECTION_TARGET_LEVELS: ControlCorrectionTargetLevel[] = [
   'foundation',
   'developing',
@@ -728,6 +729,36 @@ export function isAdaptiveLearnerStateServiceEnabled(
   return env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED === 'true';
 }
 
+async function readEligibleLearnerStateFacts(
+  db: AdaptiveLearnerStateDb,
+  userId: string,
+): Promise<Array<Record<string, unknown>>> {
+  const findMany = db.learningFact?.findMany;
+  if (!findMany) return [];
+
+  const facts: Array<Record<string, unknown>> = [];
+  let cursorId: string | null = null;
+  while (facts.length < LEARNER_STATE_FACT_TAKE) {
+    const rows = await findMany({
+      where: { userId },
+      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+      take: LEARNER_STATE_FACT_TAKE,
+      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+    });
+    facts.push(...rows
+      .filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson))
+      .slice(0, LEARNER_STATE_FACT_TAKE - facts.length));
+
+    const nextCursorId = readString(rows.at(-1)?.id);
+    if (rows.length < LEARNER_STATE_FACT_TAKE || !nextCursorId || nextCursorId === cursorId) {
+      break;
+    }
+    cursorId = nextCursorId;
+  }
+
+  return facts;
+}
+
 export async function readAdaptiveLearnerState(
   db: AdaptiveLearnerStateDb,
   input: AdaptiveLearnerStateInput,
@@ -744,7 +775,7 @@ export async function readAdaptiveLearnerState(
   const [
     latestSnapshot,
     profileSummary,
-    facts,
+    personalizationFacts,
     masteryUpdates,
     latestAbility,
     riskFlags,
@@ -761,11 +792,7 @@ export async function readAdaptiveLearnerState(
     db.studentProfileSummary?.findUnique?.({
       where: { userId: input.userId },
     }) ?? Promise.resolve(null),
-    db.learningFact?.findMany?.({
-      where: { userId: input.userId },
-      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
-      take: 100,
-    }) ?? Promise.resolve([]),
+    readEligibleLearnerStateFacts(db, input.userId),
     db.adaptiveMasteryUpdate?.findMany?.({
       where: { userId: input.userId },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -851,7 +878,6 @@ export async function readAdaptiveLearnerState(
   const controlCorrectionArenaSubmissionsWithWriteback = shouldBuildControlCorrectionGoalSlice
     ? await attachPersistedArenaWritebacks(db, controlCorrectionArenaSubmissions)
     : controlCorrectionArenaSubmissions;
-  const governedFacts = facts.filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson));
   const portraitConsumer = portraitConsumerForInput(input);
   const supportsFencedCumulativePortrait = Boolean(
     db.cumulativePortraitCutoverFence?.findUnique &&
@@ -975,8 +1001,8 @@ export async function readAdaptiveLearnerState(
     secondaryDimensions,
     knowledgeMastery,
     masteryTraceability,
-    resourcePreference: buildResourcePreference(governedFacts),
-    mediaAbsorption: buildMediaAbsorption(governedFacts),
+    resourcePreference: buildResourcePreference(personalizationFacts),
+    mediaAbsorption: buildMediaAbsorption(personalizationFacts),
     pathContext: buildPathContext(paths, activeControlCorrectionPaths[0] ?? null),
     risks: buildRiskState(profileSummary, riskFlags, input.role),
     assessmentState: {

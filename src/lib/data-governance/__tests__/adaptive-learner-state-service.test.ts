@@ -618,6 +618,67 @@ describe('adaptive learner state service', () => {
     expect(state.mediaAbsorption.mediaFactCount).toBe(0);
   });
 
+  it('pages past context-only facts before deriving resource and media preferences', async () => {
+    const contextOnlyFacts = Array.from({ length: 101 }, (_, index) => ({
+      id: `context-only-${index}`,
+      factType: 'simulation',
+      moduleId: 'unit-3-4',
+      startedAt: new Date('2026-05-19T00:00:00.000Z'),
+      finishedAt: new Date('2026-05-19T00:10:00.000Z'),
+      outcome: 'success',
+      score: 80,
+      timeSpent: 600,
+      contextJson: {
+        evidenceGovernance: {
+          evidenceQuality: 'context-only',
+          profileWeight: 0,
+          skipProfileContribution: true,
+          policyReason: 'context-only-source',
+        },
+      },
+    }));
+    const rows = [...contextOnlyFacts, {
+      id: 'eligible-media',
+      factType: 'media',
+      moduleId: 'unit-3-4',
+      startedAt: new Date('2026-05-18T00:00:00.000Z'),
+      finishedAt: new Date('2026-05-18T00:10:00.000Z'),
+      outcome: 'success',
+      score: 90,
+      timeSpent: 600,
+      contextJson: {
+        media: { mediaType: 'video', progress: 0.9 },
+        evidenceGovernance: {
+          evidenceQuality: 'governed',
+          profileWeight: 1,
+          skipProfileContribution: false,
+          policyReason: 'approved-source',
+        },
+      },
+    }];
+    const calls: Array<{ cursor?: { id: string } }> = [];
+    const findMany = async (args: { cursor?: { id: string }; take?: number }) => {
+      calls.push(args);
+      const start = args.cursor
+        ? rows.findIndex((fact) => fact.id === args.cursor?.id) + 1
+        : 0;
+      return rows.slice(start, start + (args.take ?? 100));
+    };
+
+    const state = await readAdaptiveLearnerState(createDb({ learningFact: { findMany } }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(state.resourcePreference).toMatchObject({
+      preferredModalities: ['media'],
+      sourceCounts: { media: 1 },
+    });
+    expect(state.mediaAbsorption).toMatchObject({ mediaFactCount: 1, averageCompletion: 0.9 });
+    expect(calls).toContainEqual(expect.objectContaining({ cursor: { id: 'context-only-99' } }));
+  });
+
   it.each([
     ['migration-in-progress', undefined],
     ['current-state-unavailable', null],
