@@ -3,9 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
+import { expect, test, type Page, type Route } from '@playwright/test';
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
 const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1140-pr-c');
 const manifestPath = path.join(evidenceDir, 'konling-selection-manifest.json');
 const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
@@ -29,22 +28,6 @@ function sha256(value: Buffer): string {
 
 function sourceHashAtCommit(commitSha: string, file: string): string {
   return sha256(execFileSync('git', ['show', `${commitSha}:${file}`]));
-}
-
-async function login(context: BrowserContext) {
-  const csrfResponse = await context.request.get(`${baseURL}/api/auth/csrf`);
-  const csrf = await csrfResponse.json() as { csrfToken?: string };
-  expect(csrfResponse.ok()).toBe(true);
-  const response = await context.request.post(`${baseURL}/api/auth/callback/credentials?json=true`, {
-    form: {
-      csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
-      callbackUrl: baseURL,
-      json: 'true',
-    },
-  });
-  expect(response.ok() || (response.status() >= 300 && response.status() < 400)).toBe(true);
 }
 
 const planNode = {
@@ -182,9 +165,8 @@ for (const viewport of [
   { name: 'desktop-1440', width: 1440, height: 1000 },
   { name: 'mobile-320', width: 320, height: 900 },
 ] as const) {
-  test(`${viewport.name} clarifies and commits one candidate without auto-start`, async ({ context, page }) => {
+  test(`${viewport.name} clarifies and commits one candidate without auto-start`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await login(context);
     const calls = await installRoutes(page);
     await page.goto(`/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&batch=${batchId}&candidate=${candidateId}`, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(new RegExp(`batch=${batchId}.*candidate=${candidateId}`));
