@@ -1,5 +1,9 @@
 import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-teaching-assistant-server-context';
+import {
+  projectAdaptivePathCorrectionOutcome,
+  type AdaptivePathCorrectionOutcomeState,
+} from '@/features/adaptive/adaptive-path-correction-outcomes';
 
 export const CONTROL_CORRECTION_TEACHER_REPORT_VERSION = 'control-correction-teacher-report.v1';
 export const CONTROL_CORRECTION_REPORT_GOAL_ID = 'control-correction';
@@ -80,6 +84,10 @@ export interface ControlCorrectionTeacherReport {
   classInfo: ControlCorrectionTeacherReportInput['classInfo'];
   generatedAt: string;
   metrics: Record<string, ControlCorrectionReportMetric>;
+  correctionOutcomeSummary: {
+    total: number;
+    states: Record<AdaptivePathCorrectionOutcomeState, { count: number; rate: number }>;
+  };
   studentDrilldowns: ControlCorrectionStudentDrilldown[];
   resourceContribution: Array<{
     resourceType: string;
@@ -108,6 +116,7 @@ export function buildControlCorrectionTeacherReport(
     cachesByUser.get(student.userId) ?? null,
   ));
   const windows = collectWindow(latestPaths);
+  const correctionOutcomeSummary = summarizeCorrectionOutcomes(latestPaths);
   const modeContextToken = createKonlingTeachingAssistantServerContextToken({
     mode: 'class-summarizer',
     classId: input.classInfo.id,
@@ -137,6 +146,7 @@ export function buildControlCorrectionTeacherReport(
       citationCoverage: interventionRateMetric('citationCoverage', '引用覆盖率', latestPaths, hasCitations, coverage, windows, 'Interventions with privacy-safe citations divided by latest-path intervention denominator.'),
       resourceContribution: resourceContributionMetric(latestPaths, coverage, windows),
     },
+    correctionOutcomeSummary,
     studentDrilldowns: drilldowns,
     resourceContribution: summarizeResourceContribution(latestPaths),
     konlingEntryPoint: {
@@ -151,6 +161,7 @@ export function buildControlCorrectionTeacherReport(
     methodologyNotes: [
       'All denominators are explicit and scoped to the authorized class roster or governed evidence subset.',
       'Stage 1 metrics use governed learning paths, feature cache summaries, learner snapshots, and privacy-safe evidence references.',
+      'Correction outcomes summarize only confirmed applied corrections and post-confirmation execution evidence; they do not establish causality.',
       'Optimization experiments, contextual bandits, and reinforcement-learning policy data are not required for this report.',
     ],
     redactionPolicyNotes: [
@@ -192,10 +203,36 @@ export function buildControlCorrectionTeacherReportExport(report: ControlCorrect
     chartData: {
       metrics: metrics.map((metric) => ({ metricId: metric.metricId, label: metric.label, value: metric.value })),
       resourceContribution: report.resourceContribution,
+      correctionOutcomes: report.correctionOutcomeSummary,
     },
     methodologyNotes: report.methodologyNotes,
     redactionPolicyNotes: report.redactionPolicyNotes,
   };
+}
+
+function summarizeCorrectionOutcomes(paths: Array<Record<string, any>>) {
+  const states: Record<AdaptivePathCorrectionOutcomeState, { count: number; rate: number }> = {
+    improved: { count: 0, rate: 0 },
+    'needs-review': { count: 0, rate: 0 },
+    'pending-verification': { count: 0, rate: 0 },
+    indeterminate: { count: 0, rate: 0 },
+  };
+  const outcomes = paths.flatMap((path) => {
+    const executions = Array.isArray(path.executions) ? path.executions : [];
+    const decisions = Array.isArray(path.correctionDecisions) ? path.correctionDecisions : [];
+    return decisions
+      .map((decision) => projectAdaptivePathCorrectionOutcome({
+        decision,
+        executions,
+        terminalNodeId: stringValue(readRecord(path.terminalValidation).nodeId),
+        terminalState: stringValue(readRecord(path.terminalValidation).state),
+      }))
+      .filter((outcome): outcome is NonNullable<typeof outcome> => Boolean(outcome));
+  });
+  for (const outcome of outcomes) states[outcome.state].count += 1;
+  const total = outcomes.length;
+  for (const state of Object.values(states)) state.rate = total === 0 ? 0 : round(state.count / total);
+  return { total, states };
 }
 
 function latestByUser(paths: Array<Record<string, any>>) {

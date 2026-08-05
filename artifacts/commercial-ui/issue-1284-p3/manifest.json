@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "capturedAt": "2026-08-05T18:49:07.530Z",
+  "sourceRevision": "61dcf1ee558f31a1d13859aca198532a85308a03",
+  "generator": {
+    "file": "tests/adaptive-path-correction-outcomes-evidence.spec.ts",
+    "sha256": "6d6dbc47ec98cee965dc122464b4cfc4f60ea7e5749cd5004bf99ec76d8162fa"
+  },
+  "productionSourceSha256": {
+    "src/features/adaptive/adaptive-path-correction-outcomes.ts": "eff823723416b83ec3b8372dfb16dc7af8ca926d5a907140f783a17ba1e22956",
+    "src/features/adaptive/adaptive-path-journey-contracts.ts": "0a1c427ab906a0f66527357b4e6962cf5df4940c989364ba6b50ef25a5846ef5",
+    "src/features/adaptive/adaptive-path-journey-control.tsx": "0f227932d7e4983ecda05a5c478e8d570330b30754195b9fb99645320c1289dd",
+    "src/app/teacher/classes/[classId]/analytics-v2/page.tsx": "09c4fe3216101435458d8734956b26b463f9cafd3f20c52811e4dcc54679c798",
+    "src/lib/data-governance/control-correction-teacher-report.ts": "bc2c35281c21d5847a44b0d1465eb88595a80d9fc40c760d7b719d5d7a6e35bf"
+  },
+  "routes": [
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-p3&nodeId=node-1&correctionFixture=outcomes",
+    "/teacher/classes/class-p3/analytics-v2"
+  ],
+  "assertions": [
+    {
+      "id": "student-outcomes",
+      "viewport": "desktop-1440",
+      "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-p3&nodeId=node-1&correctionFixture=outcomes",
+      "passed": true,
+      "checks": [
+        "four controlled student outcome states visible",
+        "keyboard focus reaches decision history",
+        "no horizontal overflow",
+        "raw evidence and user identifiers absent"
+      ]
+    },
+    {
+      "id": "student-outcomes",
+      "viewport": "mobile-320",
+      "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-p3&nodeId=node-1&correctionFixture=outcomes",
+      "passed": true,
+      "checks": [
+        "four controlled student outcome states visible",
+        "keyboard focus reaches decision history",
+        "no horizontal overflow",
+        "raw evidence and user identifiers absent"
+      ]
+    },
+    {
+      "id": "teacher-outcomes-mixed",
+      "viewport": "desktop-1440",
+      "route": "/teacher/classes/class-p3/analytics-v2",
+      "passed": true,
+      "checks": [
+        "mixed aggregate counts for four states",
+        "keyboard focus reaches refresh control",
+        "no horizontal overflow",
+        "student identifiers and raw evidence references absent"
+      ]
+    },
+    {
+      "id": "teacher-outcomes-empty",
+      "viewport": "mobile-320",
+      "route": "/teacher/classes/class-p3/analytics-v2",
+      "passed": true,
+      "checks": [
+        "empty aggregate sample returns zero counts",
+        "keyboard focus reaches refresh control",
+        "no horizontal overflow",
+        "student identifiers and raw evidence references absent"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "id": "student-outcomes",
+      "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-p3&nodeId=node-1&correctionFixture=outcomes",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/issue-1284-p3/student-outcomes-desktop-1440.png",
+      "sha256": "9a9eb1139b7d1910f058f9de9412ff3fa7ae4bae3d609161f5c105413bc94924",
+      "noHorizontalOverflow": true,
+      "keyboardFocus": true,
+      "privacySafe": true,
+      "checks": [
+        "four controlled student outcome states visible",
+        "keyboard focus reaches decision history",
+        "no horizontal overflow",
+        "raw evidence and user identifiers absent"
+      ],
+      "geometry": {
+        "innerWidth": 1440,
+        "scrollWidth": 1440,
+        "bodyScrollWidth": 1440
+      }
+    },
+    {
+      "id": "student-outcomes",
+      "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-p3&nodeId=node-1&correctionFixture=outcomes",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/issue-1284-p3/student-outcomes-mobile-320.png",
+      "sha256": "9174d2e84483bc83c38865b7cf25c5479ac072a5d0068e8b6c427143f5b08dde",
+      "noHorizontalOverflow": true,
+      "keyboardFocus": true,
+      "privacySafe": true,
+      "checks": [
+        "four controlled student outcome states visible",
+        "keyboard focus reaches decision history",
+        "no horizontal overflow",
+        "raw evidence and user identifiers absent"
+      ],
+      "geometry": {
+        "innerWidth": 320,
+        "scrollWidth": 320,
+        "bodyScrollWidth": 320
+      }
+    },
+    {
+      "id": "teacher-outcomes-mixed",
+      "route": "/teacher/classes/class-p3/analytics-v2",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/issue-1284-p3/teacher-outcomes-mixed-desktop-1440.png",
+      "sha256": "56dd4aed1fe1092507867ed3896be6d9619cce55d6992ba8e51ef07dcf15e6de",
+      "noHorizontalOverflow": true,
+      "keyboardFocus": true,
+      "privacySafe": true,
+      "checks": [
+        "mixed aggregate counts for four states",
+        "keyboard focus reaches refresh control",
+        "no horizontal overflow",
+        "student identifiers and raw evidence references absent"
+      ],
+      "geometry": {
+        "innerWidth": 1440,
+        "scrollWidth": 1440,
+        "bodyScrollWidth": 1440
+      }
+    },
+    {
+      "id": "teacher-outcomes-empty",
+      "route": "/teacher/classes/class-p3/analytics-v2",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/issue-1284-p3/teacher-outcomes-empty-mobile-320.png",
+      "sha256": "55ed8b9fb3ef909cd0d3d3484eb7af399e035724ccbb7c7b36860034a34a5efe",
+      "noHorizontalOverflow": true,
+      "keyboardFocus": true,
+      "privacySafe": true,
+      "checks": [
+        "empty aggregate sample returns zero counts",
+        "keyboard focus reaches refresh control",
+        "no horizontal overflow",
+        "student identifiers and raw evidence references absent"
+      ],
+      "geometry": {
+        "innerWidth": 320,
+        "scrollWidth": 320,
+        "bodyScrollWidth": 320
+      }
+    }
+  ],
+  "privacy": {
+    "rawEvidenceReferencesVisible": false,
+    "userIdentifiersVisible": false
+  }
+}

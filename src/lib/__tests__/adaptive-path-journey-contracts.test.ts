@@ -264,6 +264,31 @@ describe('adaptive path journey contracts', () => {
     });
   });
 
+  it('attaches an evidence-bounded outcome to an applied correction history item', () => {
+    const path = buildPath({
+      correctionDecisions: [{
+        candidateFingerprint: 'correction-applied',
+        decision: 'confirmed',
+        applicationResult: { applied: true, nodeIds: ['node-2'] },
+        createdAt: new Date('2026-08-05T07:00:00.000Z'),
+      }],
+      executions: [{
+        nodeId: 'node-2',
+        resourceType: 'checkpoint',
+        status: 'completed',
+        completedAt: new Date('2026-08-05T08:00:00.000Z'),
+      }],
+    });
+
+    const journey = buildAuthorizedAdaptivePathJourney(path);
+
+    expect(journey.correction?.history[0]?.outcome).toMatchObject({
+      state: 'improved',
+      associatedNodeCount: 1,
+      evidenceCount: 1,
+    });
+  });
+
   it('fails closed when a failed checkpoint prerequisite has unknown readiness', () => {
     const journey = buildAuthorizedAdaptivePathJourney(buildPath({
       currentNodeId: 'node-2',
