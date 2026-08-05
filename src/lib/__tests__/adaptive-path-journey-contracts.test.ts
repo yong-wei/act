@@ -178,7 +178,7 @@ describe('adaptive path journey contracts', () => {
 
     const journey = buildAuthorizedAdaptivePathJourney(path, { requestedNodeId: 'node-2' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
     });
@@ -215,6 +215,55 @@ describe('adaptive path journey contracts', () => {
     expect(JSON.stringify(path)).toBe(before);
   });
 
+  it('keeps an older decision authoritative when it falls outside the displayed history', () => {
+    const correctionPath = buildPath({
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed', estimatedTimeMinutes: 10 },
+          { nodeId: 'node-2', title: '校正检查点', type: 'checkpoint', target: '/assessment/adaptive-practice', status: 'current', checkpoint: true, prerequisiteNodeIds: ['node-3'], estimatedTimeMinutes: 15, readiness: { state: 'ready' } },
+          { nodeId: 'node-3', title: '误差复习', type: 'knowledge_card', target: '/knowledge/card-2', status: 'next', estimatedTimeMinutes: 20, readiness: { state: 'ready' } },
+        ],
+      },
+      terminalValidation: { nodeId: 'node-2', state: 'failed' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
+      updatedAt: new Date('2026-08-05T07:00:00.000Z'),
+    });
+    const initialJourney = buildAuthorizedAdaptivePathJourney(correctionPath);
+    if (!initialJourney.correction) throw new Error('Expected correction projection');
+    const candidateFingerprint = initialJourney.correction.candidateFingerprint;
+    expect(candidateFingerprint).toBeTruthy();
+
+    const newerDecisions = Array.from({ length: 10 }, (_, index) => ({
+      candidateFingerprint: `correction-newer-${index}`,
+      decision: 'deferred',
+      applicationResult: { applied: false },
+      createdAt: new Date(`2026-08-05T07:${String(index).padStart(2, '0')}:00.000Z`),
+    }));
+    const journey = buildAuthorizedAdaptivePathJourney({
+      ...correctionPath,
+      correctionDecisions: [
+        ...newerDecisions,
+        {
+          candidateFingerprint,
+          decision: 'rejected',
+          applicationResult: { applied: false },
+          createdAt: new Date('2026-08-04T07:00:00.000Z'),
+        },
+      ],
+    });
+    if (!journey.correction) throw new Error('Expected correction projection');
+
+    expect(journey.correction.history).toHaveLength(10);
+    expect(journey.correction.decision).toMatchObject({
+      candidateFingerprint,
+      decision: 'rejected',
+      applied: false,
+    });
+  });
+
   it('fails closed when a failed checkpoint prerequisite has unknown readiness', () => {
     const journey = buildAuthorizedAdaptivePathJourney(buildPath({
       currentNodeId: 'node-2',
@@ -231,7 +280,7 @@ describe('adaptive path journey contracts', () => {
       lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
     }), { requestedNodeId: 'node-2' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
     });
@@ -298,7 +347,7 @@ describe('adaptive path journey contracts', () => {
       deviations: [{ deviationType: 'skip', priorNodeId: 'node-2', targetNodeId: 'node-1' }],
     }), { requestedNodeId: 'node-2' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '候选调整与当前未完成路径没有实质差异。',
     });
@@ -319,7 +368,7 @@ describe('adaptive path journey contracts', () => {
       deviations: [{ deviationType: 'skip', priorNodeId: 'node-1', targetNodeId: 'node-1' }],
     }), { requestedNodeId: 'node-1' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '已记录偏离会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。',
     });
@@ -340,7 +389,7 @@ describe('adaptive path journey contracts', () => {
       deviations: [{ deviationType: 'skip', priorNodeId: 'node-1', targetNodeId: 'node-1' }],
     }), { requestedNodeId: 'node-1' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '已记录偏离会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。',
     });
@@ -361,7 +410,7 @@ describe('adaptive path journey contracts', () => {
       lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
     }), { requestedNodeId: 'node-2' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
     });
@@ -378,7 +427,7 @@ describe('adaptive path journey contracts', () => {
       lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: ['node-1'] },
     }), { requestedNodeId: 'node-1' });
 
-    expect(journey.correction).toEqual({
+    expect(journey.correction).toMatchObject({
       proposal: null,
       unavailableReason: '学习路径结构不完整，暂时无法生成可靠的纠偏方案。',
     });

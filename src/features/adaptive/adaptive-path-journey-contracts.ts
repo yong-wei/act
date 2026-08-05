@@ -65,6 +65,27 @@ export interface AdaptivePathCorrectionProposal {
 export interface AdaptivePathJourneyCorrection {
   proposal: AdaptivePathCorrectionProposal | null;
   unavailableReason: string | null;
+  candidateFingerprint: string | null;
+  pathUpdatedAt: string | null;
+  decision: AdaptivePathCorrectionDecisionState | null;
+  history: AdaptivePathCorrectionDecisionHistoryItem[];
+}
+
+interface AdaptivePathJourneyCorrectionProjection {
+  proposal: AdaptivePathCorrectionProposal | null;
+  unavailableReason: string | null;
+}
+
+export type AdaptivePathCorrectionDecisionType = 'confirmed' | 'rejected' | 'deferred';
+
+export interface AdaptivePathCorrectionDecisionState {
+  decision: AdaptivePathCorrectionDecisionType;
+  createdAt: string | null;
+  applied: boolean;
+}
+
+export interface AdaptivePathCorrectionDecisionHistoryItem extends AdaptivePathCorrectionDecisionState {
+  candidateFingerprint: string;
 }
 
 export interface AuthorizedAdaptivePathJourney {
@@ -90,6 +111,8 @@ export interface AdaptivePathJourneyPathRecord {
   terminalValidation?: unknown;
   lastExecutionMetadata?: unknown;
   deviations?: unknown;
+  updatedAt?: unknown;
+  correctionDecisions?: unknown;
 }
 
 export type AdaptivePathJourneyTargetDisposition =
@@ -179,6 +202,27 @@ export function buildAuthorizedAdaptivePathJourney(
       })
     : persistedCurrentNode;
   const returnHref = buildPathCenterHref({ pathId, goalId, nodeId: actionNode?.nodeId ?? currentNodeId });
+  const correction = structureComplete
+    ? buildAdaptivePathJourneyCorrection({
+        mainPathNodeIds,
+        nodeById,
+        completedNodeIds,
+        failedNodeIds,
+        terminalNodeId,
+        terminalState,
+        deviations,
+      })
+    : {
+        proposal: null,
+        unavailableReason: hasCorrectionTrigger({ failedNodeIds, terminalState, deviations })
+          ? '学习路径结构不完整，暂时无法生成可靠的纠偏方案。'
+          : null,
+      };
+  const projectedCorrection = projectAdaptivePathCorrectionDecisionState({
+    correction,
+    pathUpdatedAt: readDateISOString(path.updatedAt),
+    decisions: readRecordArray(path.correctionDecisions),
+  });
   const base = {
     path: {
       id: pathId,
@@ -193,22 +237,7 @@ export function buildAuthorizedAdaptivePathJourney(
     },
     return: { label: '返回学习路径', href: returnHref },
     pathStatus: normalizedPathStatus,
-    correction: structureComplete
-      ? buildAdaptivePathJourneyCorrection({
-          mainPathNodeIds,
-          nodeById,
-          completedNodeIds,
-          failedNodeIds,
-          terminalNodeId,
-          terminalState,
-          deviations,
-        })
-      : {
-          proposal: null,
-          unavailableReason: hasCorrectionTrigger({ failedNodeIds, terminalState, deviations })
-            ? '学习路径结构不完整，暂时无法生成可靠的纠偏方案。'
-            : null,
-        },
+    correction: projectedCorrection,
   };
 
   if (!structureComplete) {
@@ -438,6 +467,66 @@ function readJourneyNode(value: Record<string, unknown>): JourneyNodeRecord | nu
   };
 }
 
+function projectAdaptivePathCorrectionDecisionState(input: {
+  correction: AdaptivePathJourneyCorrectionProjection;
+  pathUpdatedAt: string | null;
+  decisions: Record<string, unknown>[];
+}): AdaptivePathJourneyCorrection {
+  const candidateFingerprint = input.correction.proposal
+    ? fingerprintAdaptivePathCorrectionProposal(input.correction.proposal)
+    : null;
+  const decisions = input.decisions
+    .map(toAdaptivePathCorrectionDecisionHistoryItem)
+    .filter((item): item is AdaptivePathCorrectionDecisionHistoryItem => Boolean(item));
+  const history = decisions.slice(0, 10);
+  const decision = candidateFingerprint
+    ? decisions.find((item) => item.candidateFingerprint === candidateFingerprint) ?? null
+    : null;
+  return {
+    ...input.correction,
+    candidateFingerprint,
+    pathUpdatedAt: input.pathUpdatedAt,
+    decision,
+    history,
+  };
+}
+
+function toAdaptivePathCorrectionDecisionHistoryItem(
+  value: Record<string, unknown>,
+): AdaptivePathCorrectionDecisionHistoryItem | null {
+  const candidateFingerprint = readNonEmptyString(value.candidateFingerprint);
+  const decision = readAdaptivePathCorrectionDecisionType(value.decision);
+  if (!candidateFingerprint || !decision) return null;
+  const applicationResult = readRecord(value.applicationResult);
+  return {
+    candidateFingerprint,
+    decision,
+    createdAt: readDateISOString(value.createdAt),
+    applied: applicationResult.applied === true,
+  };
+}
+
+function readAdaptivePathCorrectionDecisionType(value: unknown): AdaptivePathCorrectionDecisionType | null {
+  return value === 'confirmed' || value === 'rejected' || value === 'deferred' ? value : null;
+}
+
+export function fingerprintAdaptivePathCorrectionProposal(proposal: AdaptivePathCorrectionProposal): string {
+  const input = JSON.stringify({
+    trigger: proposal.trigger,
+    originalRemaining: proposal.originalRemaining,
+    proposedRemaining: proposal.proposedRemaining,
+    changes: proposal.changes,
+    supportingFacts: proposal.supportingFacts,
+    estimatedRemainingWork: proposal.estimatedRemainingWork,
+  });
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `correction-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
 function buildAdaptivePathJourneyCorrection(input: {
   mainPathNodeIds: string[];
   nodeById: Map<string, JourneyNodeRecord>;
@@ -446,7 +535,7 @@ function buildAdaptivePathJourneyCorrection(input: {
   terminalNodeId: string | null;
   terminalState: string | null;
   deviations: Record<string, unknown>[];
-}): AdaptivePathJourneyCorrection {
+}): AdaptivePathJourneyCorrectionProjection {
   const remainingNodeIds = input.mainPathNodeIds.filter((nodeId) => !input.completedNodeIds.has(nodeId));
   const originalRemaining = remainingNodeIds
     .map((nodeId) => input.nodeById.get(nodeId))
@@ -574,7 +663,7 @@ function correctionFromDeviation(input: {
   deviation: NonNullable<ReturnType<typeof findCorrectableDeviation>>;
   completedNodeIds: Set<string>;
   supportingFacts: string[];
-}): AdaptivePathJourneyCorrection {
+}): AdaptivePathJourneyCorrectionProjection {
   const proposedNodes = input.originalRemaining.filter((node) => node.nodeId !== input.deviation.priorNode.nodeId);
   if (!hasValidPrerequisiteOrder(proposedNodes, input.originalRemaining, input.completedNodeIds)) {
     return { proposal: null, unavailableReason: '已记录偏离会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。' };
@@ -612,7 +701,7 @@ function correctionFromReordering(input: {
   anchorNode: JourneyNodeRecord;
   completedNodeIds: Set<string>;
   supportingFacts: string[];
-}): AdaptivePathJourneyCorrection {
+}): AdaptivePathJourneyCorrectionProjection {
   const proposedNodes = input.originalRemaining.filter((node) => node.nodeId !== input.movedNode.nodeId);
   const anchorIndex = proposedNodes.findIndex((node) => node.nodeId === input.anchorNode.nodeId);
   if (anchorIndex < 0) {
@@ -660,7 +749,7 @@ function buildCorrectionProposal(input: {
   trigger: { kind: 'failed-checkpoint' | 'deviation'; node: JourneyNodeRecord; reason: string };
   changes: AdaptivePathCorrectionProposal['changes'];
   supportingFacts: string[];
-}): AdaptivePathJourneyCorrection {
+}): AdaptivePathJourneyCorrectionProjection {
   const originalMinutes = totalEstimatedMinutes(input.originalRemaining);
   const proposedMinutes = totalEstimatedMinutes(input.proposedNodes);
   return {
@@ -863,6 +952,13 @@ function readNonEmptyString(value: unknown): string | null {
 
 function readNonNegativeNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function readDateISOString(value: unknown): string | null {
+  if (value instanceof Date && Number.isFinite(value.getTime())) return value.toISOString();
+  if (typeof value !== 'string') return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

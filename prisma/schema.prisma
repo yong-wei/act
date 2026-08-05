@@ -3717,6 +3717,7 @@ model LearningPath {
   executions    LearningPathExecution[]
   deviations    LearningPathDeviation[]
   interventions LearningPathIntervention[]
+  correctionDecisions LearningPathCorrectionDecision[]
 
   @@index([userId])
   @@index([userId, goalId, pathStatus])
@@ -3819,6 +3820,27 @@ model LearningPathIntervention {
   @@unique([pathId, idempotencyKey])
   @@index([pathId, createdAt])
   @@index([userId, interventionKind, createdAt])
+}
+
+model LearningPathCorrectionDecision {
+  id                   String   @id @default(cuid())
+  pathId               String
+  userId               String
+  candidateFingerprint String
+  pathUpdatedAt        DateTime
+  decision             String
+  originalPathSnapshot Json
+  candidateSnapshot    Json
+  supportingFacts      Json     @default("[]")
+  applicationResult    Json     @default("{}")
+  idempotencyKey       String
+  createdAt            DateTime @default(now())
+
+  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, idempotencyKey])
+  @@index([pathId, candidateFingerprint, createdAt])
+  @@index([userId, createdAt])
 }
 
 // 学习笔记
