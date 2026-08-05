@@ -18,7 +18,7 @@ The system SHALL let the owner of a path confirm, reject, or defer a current cor
 
 #### Scenario: Student confirms a current candidate
 - **WHEN** the owner confirms a current available candidate with matching candidate and path versions
-- **THEN** the system SHALL append a confirmed decision and apply only its eligible future unfinished nodes
+- **THEN** the system SHALL append a confirmed decision, exclude unfinished historical nodes explicitly abandoned by a governed skip, replacement, or abandonment deviation, and replace only eligible adjustable unfinished future nodes
 - **AND** it SHALL preserve current entered work, completed nodes, execution records, deviations, interventions, and the original snapshot.
 
 #### Scenario: Decision request is replayed
