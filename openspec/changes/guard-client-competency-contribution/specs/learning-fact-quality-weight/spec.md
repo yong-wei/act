@@ -16,6 +16,14 @@ The system SHALL evaluate evidence quality only after a LearningFact has receive
 - **THEN** its LearningFact SHALL preserve the permitted behavioral and learning fields with an empty competency contribution
 - **AND** it SHALL NOT produce Portrait v2 profile evidence
 
+#### Scenario: Eligible historical server fact retains its contribution
+- **WHEN** a historical source record has passed the server-side source, provenance, and eligibility gates and is materialized from an explicit server-verified source
+- **THEN** its LearningFact SHALL retain the contribution resolved from its verified result
+
+#### Scenario: Historical InteractionLog remains untrusted
+- **WHEN** an eligible historical InteractionLog record contains an action type with a static competency mapping
+- **THEN** its LearningFact SHALL remain traceable with an empty competency contribution
+
 ### Requirement: Rich objective evidence requires trusted service authorization
 The system SHALL allow rich objective evidence to remain profile-grade only when the LearningFact is authorized by a server-side verified assessment or review path.
 

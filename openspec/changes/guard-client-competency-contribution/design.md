@@ -47,6 +47,12 @@
 
 部署后无需数据库迁移。新客户端互动事件继续产生 LearningFact，但贡献为空；已核验服务端测评和教师审核结果按既有记录继续生效。回滚仅回退本次代码提交；本次代码不会修改历史记录。
 
+## 审查修正
+
+历史证据物化器只会在来源目录完成来源分类、真实性和资格判定后构造候选事实。该边界对服务端已核验来源采用显式白名单授权：`StudentStepResponse`、`SimulationLog`、`UserAnswer`、`AbilityAssessment`、`PromptAssessment`、`DesignSession` 与 `ArenaSubmission`。`InteractionLog` 是原始互动遥测，即使历史分类为 eligible 也不得获得能力贡献授权；它仍保留为可追溯的空贡献事实。
+
+回填脚本通过同一 `buildHistoricalEvidenceMaterializationPlan` 生成和应用候选事实，因此无需新增脚本分支；上述授权规则会同时约束 dry-run 与 `--apply`。
+
 ## Open Questions
 
 无。历史污染处理已明确排除在 Issue #1296 之外。
