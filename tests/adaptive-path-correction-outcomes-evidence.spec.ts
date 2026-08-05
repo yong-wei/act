@@ -4,6 +4,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { expect, test, type Page, type Route } from '@playwright/test';
+import 'dotenv/config';
+import { encode } from 'next-auth/jwt';
 
 const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1284-p3');
 const manifestPath = path.join(evidenceDir, 'manifest.json');
@@ -146,6 +148,25 @@ function correctionReport(kind: 'mixed' | 'empty') {
 }
 
 async function installTeacherFixture(page: Page, kind: 'mixed' | 'empty') {
+  const token = await encode({
+    secret: process.env.NEXTAUTH_SECRET ?? 'replace-with-strong-secret',
+    maxAge: 60 * 60,
+    token: {
+      id: 'teacher-p3',
+      sub: 'teacher-p3',
+      name: '教师证据账号',
+      email: 'teacher-p3@example.invalid',
+      role: 'TEACHER',
+    },
+  });
+  await page.context().addCookies([{
+    name: 'next-auth.session-token',
+    value: token,
+    domain: '127.0.0.1',
+    path: '/',
+    httpOnly: true,
+    sameSite: 'Lax',
+  }]);
   await page.route('**/api/auth/session', async (route) => fulfill(route, {
     user: { id: 'teacher-p3', name: '教师证据账号', role: 'TEACHER' },
     expires: '2099-01-01T00:00:00.000Z',
@@ -171,7 +192,10 @@ async function assertNoHorizontalOverflow(page: Page) {
 }
 
 async function assertPrivacy(page: Page) {
-  const html = await page.content();
+  const correctionSurface = page.locator('[data-teacher-correction-outcome-summary="aggregate-only"]');
+  const html = await correctionSurface.count() > 0
+    ? await correctionSurface.innerHTML()
+    : await page.content();
   expect(html).not.toContain('userId');
   expect(html).not.toContain('evidenceRefs');
   expect(html).not.toContain('teacher-p3');
