@@ -12,6 +12,8 @@ const testState = vi.hoisted(() => ({
   mediaMatches: false,
   mediaListeners: new Set<() => void>(),
   isOpen: true,
+  pathAdvisorMode: false,
+  chatMessages: [] as Array<Record<string, unknown>>,
   closeSidebar: vi.fn(),
   suppressDock: vi.fn(() => vi.fn()),
 }));
@@ -21,9 +23,7 @@ vi.mock('@/hooks/useLegacyChat', async () => {
   return {
     useChat: () => {
       const [input, setInput] = React.useState('');
-      const [messages, setMessages] = React.useState<Array<{ id: string; role: string; content: string }>>([
-        { id: 'message-1', role: 'assistant', content: '保持连续的回答' },
-      ]);
+      const [messages, setMessages] = React.useState(testState.chatMessages);
       React.useEffect(() => {
         testState.chatMounts += 1;
         return () => {
@@ -76,6 +76,9 @@ vi.mock('@/hooks/useKonlingConversationLibrary', async () => {
         conversations,
         activeConversationId: conversation.id,
         activeConversation: conversation,
+        activeAssistantBinding: testState.pathAdvisorMode
+          ? { teachingAssistantModeId: 'path-advisor', modeClientContextHints: {} }
+          : null,
         search: '',
         setSearch: vi.fn(),
         isLoading: false,
@@ -188,6 +191,10 @@ describe('GlobalAISidebar presentation continuity', () => {
     testState.mediaMatches = false;
     testState.mediaListeners.clear();
     testState.isOpen = true;
+    testState.pathAdvisorMode = false;
+    testState.chatMessages = [
+      { id: 'message-1', role: 'assistant', content: '保持连续的回答' },
+    ];
     testState.closeSidebar.mockReset();
     testState.suppressDock.mockClear();
     (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -259,6 +266,63 @@ describe('GlobalAISidebar presentation continuity', () => {
     expect(container.querySelector('[data-konling-message-scroll-container]')).toBe(scrollContainer);
     expect(scrollContainer.scrollTop).toBe(137);
     expect(getByRole(container, 'button', { name: '最大化控灵工作区' })).toBe(document.activeElement);
+  });
+
+  it('persists one governed candidate selection before publishing the same-batch refresh event', async () => {
+    testState.pathAdvisorMode = true;
+    testState.chatMessages = [{
+      id: 'message-selection',
+      role: 'assistant',
+      content: '',
+      toolInvocations: [{
+        toolName: 'select_learning_path',
+        state: 'result',
+        result: {
+          status: 'selected',
+          pathId: 'path-1',
+          batchId: 'batch-1',
+          candidateId: 'candidate-1',
+          selectedOptionId: 'option-1',
+          selectedStyleId: 'guided',
+          idempotencyKey: 'selection-1',
+          toolRunId: 'tool-run-selection-1',
+          autoStart: false,
+        },
+      }],
+    }];
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const refreshEvents: unknown[] = [];
+    window.addEventListener('konling:adaptive-path-updated', (event) => {
+      refreshEvents.push((event as CustomEvent).detail);
+    }, { once: true });
+
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith('/api/learning-paths/path-1/choices', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'selection',
+        batchId: 'batch-1',
+        candidateId: 'candidate-1',
+        selectedOptionId: 'option-1',
+        selectedStyleId: 'guided',
+        idempotencyKey: 'selection-1',
+        toolRunId: 'tool-run-selection-1',
+      }),
+    }));
+    expect(refreshEvents).toEqual([{
+      mode: 'path-advisor',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      pathId: 'path-1',
+      source: 'candidate-selection',
+    }]);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/execute'))).toBe(false);
   });
 
   it('closes mobile history before restoring, then closes the side presentation on Escape', async () => {

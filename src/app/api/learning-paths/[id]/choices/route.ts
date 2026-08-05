@@ -7,6 +7,10 @@ import { LEGACY_STOPPED_PATH_STATUS } from '@/lib/canonical-learning-path-transi
 import { throwIfLearningPathNotWritable } from '@/lib/canonical-learning-path-transition/mutation-guard';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import {
+  completeKonlingCandidateSelectionToolRun,
+  KonlingCandidateSelectionToolRunError,
+} from '@/lib/konling-candidate-selection-tool-run';
+import {
   recordPathChoiceEvidence,
   type PathChoiceEvidenceAction,
 } from '@/lib/control-correction-path-rounds';
@@ -57,10 +61,18 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
 
     const batchId = nullableString(body.batchId);
     const candidateId = nullableString(body.candidateId);
+    const toolRunId = nullableString(body.toolRunId);
+    if (toolRunId && body.action !== 'selection') {
+      return NextResponse.json({ error: 'Candidate selection tool runs only accept selection actions' }, { status: 400 });
+    }
     if (Boolean(batchId) !== Boolean(candidateId)) {
       return NextResponse.json({ error: 'Candidate batch and candidate identities must be provided together' }, { status: 400 });
     }
+    if (toolRunId && (!batchId || !candidateId)) {
+      return NextResponse.json({ error: 'Candidate selection tool runs require batch and candidate identities' }, { status: 400 });
+    }
     let persistedCandidateOption: ServerPathChoiceOption | null = null;
+    let persistedCandidateRationale: string | null = null;
     if (batchId && candidateId) {
       const batch = await (prisma as any).adaptivePathCandidateBatch.findUnique({
         where: { id: batchId },
@@ -90,6 +102,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       if (!persistedCandidateOption || persistedCandidateOption.styleId !== candidate.styleId) {
         return NextResponse.json({ error: 'Candidate snapshot payload is invalid' }, { status: 409 });
       }
+      persistedCandidateRationale = `已确认选择“${nullableString(candidate.label) ?? persistedCandidateOption.styleId}”，正在同步到路径中心。`;
       const requestedOptionId = nullableString(body.selectedOptionId);
       const requestedStyleId = nullableString(body.selectedStyleId);
       if (
@@ -97,6 +110,22 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
         (requestedStyleId && requestedStyleId !== persistedCandidateOption.styleId)
       ) {
         return NextResponse.json({ error: 'Selected option does not match the candidate identity' }, { status: 409 });
+      }
+      if (toolRunId) {
+        await completeKonlingCandidateSelectionToolRun(prisma as any, {
+          toolRunId,
+          actorUserId: requester.userId,
+          targetUserId: path.userId,
+          batchId,
+          candidateId,
+          pathId: params.id,
+          goalId: path.goalId ?? '',
+          selectedOptionId: persistedCandidateOption.optionId,
+          selectedStyleId: persistedCandidateOption.styleId,
+          studentSafeRationale: persistedCandidateRationale,
+          idempotencyKey: body.idempotencyKey,
+          complete: false,
+        });
       }
     }
 
@@ -157,6 +186,16 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       return NextResponse.json({ error: '路径选择幂等键已被其他选择请求使用' }, { status: 409 });
     }
     if (existingChoice.dedupeKey) {
+      if (toolRunId && batchId && candidateId && persistedCandidateOption && persistedCandidateRationale) {
+        await completeKonlingCandidateSelectionToolRun(prisma as any, {
+          toolRunId, actorUserId: requester.userId, targetUserId: path.userId,
+          batchId, candidateId, pathId: params.id, goalId: path.goalId ?? '',
+          selectedOptionId: persistedCandidateOption.optionId,
+          selectedStyleId: persistedCandidateOption.styleId,
+          studentSafeRationale: persistedCandidateRationale,
+          idempotencyKey: body.idempotencyKey,
+        });
+      }
       const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
       return NextResponse.json({
         choice: { emitted: false, dedupeKey: existingChoice.dedupeKey },
@@ -188,10 +227,23 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
         : null
       : null;
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+    if (toolRunId && batchId && candidateId && persistedCandidateOption && persistedCandidateRationale) {
+      await completeKonlingCandidateSelectionToolRun(prisma as any, {
+        toolRunId, actorUserId: requester.userId, targetUserId: path.userId,
+        batchId, candidateId, pathId: params.id, goalId: path.goalId ?? '',
+        selectedOptionId: persistedCandidateOption.optionId,
+        selectedStyleId: persistedCandidateOption.styleId,
+        studentSafeRationale: persistedCandidateRationale,
+        idempotencyKey: body.idempotencyKey,
+      });
+    }
 
     return NextResponse.json({ choice, pathUpdate, cacheRefresh });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof KonlingCandidateSelectionToolRunError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     const blocked = learningPathMutationBlockedResponse(error);
     if (blocked) return blocked;
     console.error('[LearningPathChoice] Error:', error);

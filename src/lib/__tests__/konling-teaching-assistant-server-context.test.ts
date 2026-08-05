@@ -335,7 +335,14 @@ describe('Konling teaching-assistant server context', () => {
     });
 
     await expect(resolveKonlingTeachingAssistantServerModeContext({
-      db: {},
+      db: {
+        adaptivePathCandidateBatch: {
+          findFirst: vi.fn().mockResolvedValue({
+            id: 'batch-1', userId: 'student-1', goalId: 'course-1', classId: 'class-1',
+            sourcePathId: 'path-1', status: 'succeeded',
+          }),
+        },
+      },
       modeId: 'path-advisor',
       scope: scope({
         role: 'student',
@@ -349,11 +356,15 @@ describe('Konling teaching-assistant server context', () => {
         modeContextToken,
         goalId: 'control-correction',
         graphNodeId: 'kn:autocontrol:controller-correction',
+        candidateBatchId: 'batch-1',
       },
     })).resolves.toEqual({
       'student-path-center': true,
       'learner-state-summary': true,
       'resource-node': true,
+      authorizedCandidateBatch: {
+        batchId: 'batch-1', pathId: 'path-1', goalId: 'course-1', classId: 'class-1',
+      },
     });
 
     await expect(resolveKonlingTeachingAssistantServerModeContext({

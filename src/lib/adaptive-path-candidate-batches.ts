@@ -27,6 +27,12 @@ export interface AdaptivePathCandidateBatchView {
   candidates: AdaptivePathCandidateSnapshot[];
 }
 
+export type AdaptivePathCandidateSelectionResolution =
+  | { status: 'selected'; batchId: string; candidateId: string; candidate: AdaptivePathCandidateSnapshot }
+  | { status: 'clarification_required'; batchId: string; alternatives: Array<{ candidateId: string; label: string }>; question: string }
+  | { status: 'unresolved'; batchId: string }
+  | { status: 'unavailable' };
+
 interface CandidateBatchRecord {
   id: string;
   userId: string;
@@ -227,6 +233,50 @@ export async function readLatestAdaptivePathCandidateBatch(
     orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
   });
   return record ? toBatchView(record) : null;
+}
+
+export function resolveAdaptivePathCandidateSelection(
+  batch: AdaptivePathCandidateBatchView | null,
+  input: { candidateId?: string | null; naturalLanguageIntent?: string | null },
+): AdaptivePathCandidateSelectionResolution {
+  if (!batch) return { status: 'unavailable' };
+  if (input.candidateId) {
+    const candidate = batch.candidates.find((item) => item.id === input.candidateId);
+    return candidate
+      ? { status: 'selected', batchId: batch.id, candidateId: candidate.id, candidate }
+      : { status: 'unresolved', batchId: batch.id };
+  }
+
+  const intent = normalizeSelectionText(input.naturalLanguageIntent);
+  if (!intent) return { status: 'unresolved', batchId: batch.id };
+  const matches = batch.candidates.filter((candidate) => {
+    const label = normalizeSelectionText(candidate.label);
+    return Boolean(label && (intent === label || intent.includes(label)));
+  });
+  if (matches.length === 1) {
+    const candidate = matches[0]!;
+    return { status: 'selected', batchId: batch.id, candidateId: candidate.id, candidate };
+  }
+  if (matches.length > 1 || isAmbiguousSelectionIntent(intent)) {
+    return {
+      status: 'clarification_required',
+      batchId: batch.id,
+      alternatives: batch.candidates.map((candidate) => ({ candidateId: candidate.id, label: candidate.label })),
+      question: '你想选择哪一条学习路径？',
+    };
+  }
+  return { status: 'unresolved', batchId: batch.id };
+}
+
+function normalizeSelectionText(value: string | null | undefined): string {
+  return value?.normalize('NFKC').trim().toLocaleLowerCase().replace(/[\s，。！？、,.!?]/gu, '') ?? '';
+}
+
+function isAmbiguousSelectionIntent(value: string): boolean {
+  return [
+    '这个', '那个', '这条', '那条', '推荐的', '你推荐的', '就它', '就这个', '选一个',
+    '选第一个', '随便哪一个', '选你推荐的那条', '我都可以',
+  ].includes(value);
 }
 
 function assertMatchingExisting(
