@@ -29,11 +29,11 @@ The selection action carries `batchId` and either an explicit `candidateId` or t
 
 This keeps authorization and identity at the server boundary. Allowing the model to submit a title or reconstructed option would make display text an unstable write key.
 
-### Resolution returns a closed result union
+### Resolution and commit use an explicit two-phase result
 
-The resolver returns one of `selected`, `clarification_required`, `unresolved`, or `unavailable`. `selected` contains the verified batch and candidate identity. `clarification_required` contains only candidate IDs and student-safe labels from the persisted batch plus a bounded question. All non-selected outcomes are side-effect free.
+The resolver returns one of `selected`, `clarification_required`, `unresolved`, or `unavailable`. A uniquely resolved candidate is projected to the model as `pending_commit` until the existing path-choice mutation succeeds. Only the governed mutation may complete the AgentToolRun with `selected`. `clarification_required` contains only candidate IDs and student-safe labels from the persisted batch plus a bounded question. All non-selected outcomes are side-effect free.
 
-This separates language interpretation from mutation and makes ambiguity testable. Automatically taking the first or recommended option would silently change student intent.
+This separates language interpretation from mutation, prevents the model from reporting a selection before persistence, and makes ambiguity testable. Automatically taking the first or recommended option would silently change student intent.
 
 ### Selection reuses the existing path-choice mutation
 
@@ -52,6 +52,7 @@ The selection action updates governed choice state only. It does not call the ex
 - **Natural-language references can match more than one candidate** -> Return bounded alternatives and require clarification with zero mutation.
 - **Stale or cross-scope batch identifiers can be replayed** -> Reload the exact batch under current actor, goal, and route scope and fail closed.
 - **Repeated messages can duplicate mutations** -> Derive and persist a stable idempotency key for the confirmed batch/candidate action.
+- **The browser closes or loses the mutation response after resolution** -> Keep the ToolRun running and expose only `pending_commit`; retry the same governed mutation with the same identity and idempotency key.
 - **Conversation UI can drift from path-center state** -> Treat the successful server result as a refresh hint, then reload authoritative path data.
 - **Resolver heuristics can become an implicit reranker** -> Preserve batch order and candidate labels; matching only determines uniqueness and never changes recommendation order.
 

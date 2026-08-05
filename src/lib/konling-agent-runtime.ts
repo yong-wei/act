@@ -5001,7 +5001,10 @@ async function buildAdaptivePathCandidateSelectionOutput(
     studentSafeRationale: `已确认选择“${resolution.candidate.label}”，正在同步到路径中心。`,
   };
   await bindKonlingCandidateSelectionToolRun(input.db as any, selectionResult);
-  return buildKonlingCandidateSelectionToolResult(selectionResult);
+  return {
+    ...buildKonlingCandidateSelectionToolResult(selectionResult),
+    status: 'pending_commit' as const,
+  };
 }
 
 async function buildAdaptivePathToolOutcome(
@@ -6261,8 +6264,8 @@ async function runKonlingRuntimeTool<T>(
   }
   if (toolRun.reused) {
     assertReusedAdaptivePathToolRunMatchesGoal(toolName, toolRun, adaptivePathGoalId);
+    assertReusedCandidateSelectionToolRunMatchesInput(toolName, toolRun, toolInput);
     if (toolRun.status === 'succeeded') {
-      assertReusedCandidateSelectionToolRunMatchesInput(toolName, toolRun, toolInput);
       return assertToolResult(runtimeInput, toolName, toolRun.outputSummary ?? {
         toolRunReused: true,
         toolRunId: toolRun.id,
@@ -6290,7 +6293,7 @@ async function runKonlingRuntimeTool<T>(
 
   try {
     const result = await effect(toolRun);
-    if (toolName === 'select_learning_path' && getString(readRecord(result), 'status') === 'selected') {
+    if (toolName === 'select_learning_path' && getString(readRecord(result), 'status') === 'pending_commit') {
       return assertToolResult(runtimeInput, toolName, result);
     }
     await completeKonlingToolRun(runtimeInput.db, {
@@ -6345,9 +6348,12 @@ function assertReusedCandidateSelectionToolRunMatchesInput(
   const requested = readRecord(toolInput);
   const persisted = readRecord(toolRun.inputSummary);
   const requestedCandidateId = getString(requested, 'candidateId');
+  const requestedIntent = getString(requested, 'naturalLanguageIntent')?.trim() || null;
+  const persistedIntent = getString(persisted, 'naturalLanguageIntent')?.trim() || null;
   if (
     getString(persisted, 'batchId') !== getString(requested, 'batchId')
     || (requestedCandidateId && getString(persisted, 'candidateId') !== requestedCandidateId)
+    || (!requestedCandidateId && requestedIntent !== persistedIntent)
     || (getString(requested, 'pathId') && getString(persisted, 'pathId') !== getString(requested, 'pathId'))
   ) {
     throw new KonlingRuntimeScopeError(409, '幂等候选路径选择与已完成的工具请求不一致。');

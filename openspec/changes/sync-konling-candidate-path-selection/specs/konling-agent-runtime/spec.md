@@ -11,6 +11,8 @@ Konling SHALL expose scoped tools for adaptive learning path generation, revisio
 #### Scenario: Konling handles a candidate selection request
 - **WHEN** a student asks Konling to choose from a persisted candidate batch
 - **THEN** Konling SHALL resolve the request against that authorized batch and call the existing path-choice contract only for one verified candidate
+- **AND** unique resolution SHALL remain `pending_commit` until that governed path-choice mutation succeeds
+- **AND** Konling SHALL NOT represent `pending_commit` as a completed selection
 - **AND** an ambiguous request SHALL produce a structured clarification turn without side effects.
 
 ### Requirement: Path tools are auditable and idempotent
@@ -23,4 +25,5 @@ Konling path-generation and persisted-candidate selection tools SHALL use the sh
 #### Scenario: Idempotent request repeats
 - **WHEN** the same owner user repeats the same path-generation request or confirmed candidate selection with the same idempotency key
 - **THEN** the system SHALL reuse or return the existing tool run according to registry policy
+- **AND** a different explicit candidate or different natural-language intent under that key SHALL fail with a conflict
 - **AND** it SHALL NOT create duplicate active path rounds or path choices.

@@ -21,3 +21,4 @@
 - [x] 4.1 Add route and runtime tests spanning conversation action, choice persistence, authorization, ambiguity, and idempotency.
 - [x] 4.2 Add client tests for same-batch refresh, selected-candidate presentation, and no-auto-start behavior.
 - [x] 4.3 Run focused tests, type checking, linting, and OpenSpec validation.
+- [ ] 4.4 Capture commit-bound Commercial UI Evidence for explicit selection, ambiguity, success, failure/retry, deep-link focus, keyboard focus, responsive layout, and no horizontal overflow.

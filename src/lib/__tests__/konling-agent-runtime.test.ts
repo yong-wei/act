@@ -10913,7 +10913,7 @@ describe('konling agent runtime', () => {
       batchId: 'batch-1',
       candidateId: 'candidate-sprint',
     })).resolves.toMatchObject({
-      status: 'selected',
+      status: 'pending_commit',
       batchId: 'batch-1',
       candidateId: 'candidate-sprint',
       pathId: 'path-1',
@@ -10933,7 +10933,7 @@ describe('konling agent runtime', () => {
       batchId: 'batch-1',
       naturalLanguageIntent: '挑战冲刺路径',
     })).resolves.toMatchObject({
-      status: 'selected', candidateId: 'candidate-sprint', toolRunId: 'tool-run-batch-1',
+      status: 'pending_commit', candidateId: 'candidate-sprint', toolRunId: 'tool-run-batch-1',
     });
     expect(natural.db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: { inputSummary: expect.objectContaining({ candidateId: 'candidate-sprint' }) },
@@ -12674,6 +12674,29 @@ describe('konling agent runtime', () => {
       autoStart: false,
       studentSafeRationale: 'Selected the previous candidate.',
     };
+    const persistedToolRun = {
+      id: 'tool-run-existing',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-previous',
+      toolName: 'select_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'succeeded',
+      inputSummary: {
+        batchId: 'previous-batch', candidateId: 'previous-candidate',
+        pathId: 'path-1', goalId: 'control-correction',
+        naturalLanguageIntent: 'Challenge sprint path',
+      },
+      outputSummary,
+      errorSummary: null,
+      idempotencyKey: 'select-retry-key',
+      correlationId: 'corr-select-existing',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: new Date('2026-05-28T00:00:01Z'),
+      latencyMs: 1000,
+    };
     const db = {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
@@ -12682,28 +12705,7 @@ describe('konling agent runtime', () => {
         }),
       },
       agentToolRun: {
-        findFirst: vi.fn().mockResolvedValue({
-          id: 'tool-run-existing',
-          ownerUserId: 'student-1',
-          actorUserId: 'student-1',
-          targetUserId: 'student-1',
-          agentSessionId: 'agent-session-previous',
-          toolName: 'select_learning_path',
-          permissionTier: 'write',
-          approvalState: 'not_required',
-          status: 'succeeded',
-          inputSummary: {
-            batchId: 'previous-batch', candidateId: 'previous-candidate',
-            pathId: 'path-1', goalId: 'control-correction',
-          },
-          outputSummary,
-          errorSummary: null,
-          idempotencyKey: 'select-retry-key',
-          correlationId: 'corr-select-existing',
-          startedAt: new Date('2026-05-28T00:00:00Z'),
-          completedAt: new Date('2026-05-28T00:00:01Z'),
-          latencyMs: 1000,
-        }),
+        findFirst: vi.fn().mockResolvedValue(persistedToolRun),
         create: vi.fn(),
         updateMany: vi.fn(),
       },
@@ -12744,6 +12746,28 @@ describe('konling agent runtime', () => {
       idempotencyKey: 'select-retry-key',
       batchId: 'previous-batch',
       candidateId: 'different-candidate',
+    })).rejects.toMatchObject({ status: 409 });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      naturalLanguageIntent: 'Challenge sprint path',
+    })).resolves.toEqual(outputSummary);
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
+    db.agentToolRun.findFirst.mockResolvedValue({
+      ...persistedToolRun,
+      status: 'running',
+      outputSummary: null,
+      completedAt: null,
+      latencyMs: null,
+    });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      naturalLanguageIntent: 'Guided consolidation path',
     })).rejects.toMatchObject({ status: 409 });
     expect(db.learningPath.findFirst).not.toHaveBeenCalled();
     expect(db.agentToolRun.create).not.toHaveBeenCalled();

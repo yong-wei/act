@@ -278,7 +278,7 @@ describe('GlobalAISidebar presentation continuity', () => {
         toolName: 'select_learning_path',
         state: 'result',
         result: {
-          status: 'selected',
+          status: 'pending_commit',
           pathId: 'path-1',
           batchId: 'batch-1',
           candidateId: 'candidate-1',
@@ -323,6 +323,57 @@ describe('GlobalAISidebar presentation continuity', () => {
       source: 'candidate-selection',
     }]);
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/execute'))).toBe(false);
+  });
+
+  it('keeps a pending selection unconfirmed after a lost response and retries it after remount', async () => {
+    testState.pathAdvisorMode = true;
+    testState.chatMessages = [{
+      id: 'message-selection-retry',
+      role: 'assistant',
+      content: '',
+      toolInvocations: [{
+        toolName: 'select_learning_path',
+        state: 'result',
+        result: {
+          status: 'pending_commit',
+          pathId: 'path-1',
+          batchId: 'batch-1',
+          candidateId: 'candidate-1',
+          selectedOptionId: 'option-1',
+          selectedStyleId: 'guided',
+          idempotencyKey: 'selection-retry-1',
+          toolRunId: 'tool-run-selection-retry-1',
+          autoStart: false,
+        },
+      }],
+    }];
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce(new Error('response lost'))
+      .mockResolvedValueOnce({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const refreshEvents: unknown[] = [];
+    const listener = (event: Event) => refreshEvents.push((event as CustomEvent).detail);
+    window.addEventListener('konling:adaptive-path-updated', listener);
+
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(refreshEvents).toEqual([]);
+    expect(container.textContent).toContain('路径选择未能同步，请重试。');
+
+    await act(async () => root.unmount());
+    root = createRoot(container);
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(refreshEvents).toEqual([expect.objectContaining({
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      source: 'candidate-selection',
+    })]);
+    expect(container.textContent).toContain('路径选择已同步，等待你开始学习。');
+    window.removeEventListener('konling:adaptive-path-updated', listener);
   });
 
   it('closes mobile history before restoring, then closes the side presentation on Escape', async () => {

@@ -321,7 +321,7 @@ export function GlobalAISidebar() {
       for (const invocation of message.toolInvocations ?? []) {
         if (invocation.toolName !== 'select_learning_path' || invocation.state !== 'result') continue;
         const result = recordValue(invocation.result);
-        if (result.status !== 'selected') continue;
+        if (result.status !== 'pending_commit') continue;
         const pathId = stringValue(result.pathId);
         const batchId = stringValue(result.batchId);
         const candidateId = stringValue(result.candidateId);
