@@ -94,7 +94,11 @@ function createJourney(scenario: Scenario, decision: 'confirmed' | 'rejected' | 
     pathStatus: 'active',
     nextAction: {
       state: 'blocked', nodeId: 'node-3', title: '节点 3', type: 'checkpoint', href: null,
-      reason: '当前检查点等待纠偏决定。', recovery: null,
+      reason: '当前检查点等待纠偏决定。',
+      recovery: {
+        label: '刷新路径状态',
+        href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3',
+      },
     },
     correction: {
       proposal: proposal(scenario),
@@ -112,6 +116,23 @@ async function verifyNoHorizontalOverflow(page: Page, viewport: typeof viewports
     scrollWidth: document.documentElement.scrollWidth,
   }));
   expect(geometry.scrollWidth, `${viewport.name} must not overflow horizontally`).toBe(geometry.clientWidth);
+}
+
+async function openCorrectionDetails(correction: ReturnType<Page['locator']>) {
+  await expect(correction).toBeVisible();
+  if (!await correction.evaluate((element) => (element as HTMLDetailsElement).open)) {
+    await correction.locator('summary').click();
+  }
+}
+
+async function expectCorrectionDecision(
+  correction: ReturnType<Page['locator']>,
+  decision: 'confirmed' | 'rejected',
+) {
+  const receipt = correction.locator(`[data-adaptive-path-correction-decision="${decision}"]`);
+  await expect(receipt).toBeAttached();
+  await openCorrectionDetails(correction);
+  await expect(receipt).toBeVisible();
 }
 
 async function capture(page: Page, viewport: typeof viewports[number], scenario: Scenario) {
@@ -203,10 +224,11 @@ for (const viewport of viewports) {
 
       if (scenario === 'rejected') {
         await page.getByRole('button', { name: '不采用' }).click();
-        await expect(correction.locator('[data-adaptive-path-correction-decision="rejected"]')).toBeVisible();
+        await expectCorrectionDecision(correction, 'rejected');
         await expect(actions).toHaveCount(0);
       } else if (scenario === 'deferred') {
         await page.getByRole('button', { name: '暂不处理' }).click();
+        await openCorrectionDetails(correction);
         await expect(correction).toContainText('已暂缓，可在此后继续决定。');
         await expect(actions).toBeVisible();
       } else {
@@ -219,9 +241,9 @@ for (const viewport of viewports) {
         } else if (scenario === 'retry-failed') {
           await expect(correction).toContainText('暂时无法记录纠偏决策，请稍后重试。');
           await confirm.click();
-          await expect(correction.locator('[data-adaptive-path-correction-decision="confirmed"]')).toBeVisible();
+          await expectCorrectionDecision(correction, 'confirmed');
         } else {
-          await expect(correction.locator('[data-adaptive-path-correction-decision="confirmed"]')).toBeVisible();
+          await expectCorrectionDecision(correction, 'confirmed');
           if (scenario === 'skip-confirmed') {
             await expect(correction).toContainText('节点 2 已跳过，当前节点已推进至节点 3。');
           }
@@ -246,8 +268,7 @@ for (const viewport of viewports) {
 
 test.afterAll(() => {
   if (!updateEvidence) return;
-  expect(assertions).toHaveLength(viewports.length * scenarios.length);
-  expect(screenshots).toHaveLength(viewports.length * scenarios.length);
+  if (assertions.length !== viewports.length * scenarios.length || screenshots.length !== viewports.length * scenarios.length) return;
   const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   writeFileSync(manifestPath, `${JSON.stringify({
     schemaVersion: 'commercial-ui-evidence.v1',
