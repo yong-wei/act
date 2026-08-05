@@ -2,7 +2,7 @@
 
 - [x] 1.1 Define the outcome state and evidence-limitation types for applied confirmed correction decisions.
 - [x] 1.2 Implement a pure evidence-bounded projector using decision time and application node IDs.
-- [x] 1.3 Add unit coverage for improved, needs-review, pending-verification, indeterminate, ineligible decisions, time boundaries, node filtering, and conflicts.
+- [x] 1.3 Add unit coverage for improved, needs-review, pending-verification, indeterminate, ordinary node completion/failure/abandonment, terminal validation states, ineligible decisions, time boundaries, node filtering, and conflicts.
 
 ## 2. Student journey integration
 

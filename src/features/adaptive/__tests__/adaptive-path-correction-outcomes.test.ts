@@ -24,6 +24,31 @@ describe('projectAdaptivePathCorrectionOutcome', () => {
     })).toMatchObject({ state: 'needs-review', evidenceCount: 1 });
   });
 
+  it('keeps ordinary governed node completion pending verification', () => {
+    expect(projectAdaptivePathCorrectionOutcome({
+      decision: decision(),
+      executions: [{ nodeId: 'node-1', resourceType: 'knowledge_card', status: 'completed', completedAt: '2026-08-05T11:00:00.000Z' }],
+    })).toMatchObject({
+      state: 'pending-verification',
+      limitation: 'insufficient-confidence',
+      evidenceCount: 1,
+    });
+  });
+
+  it('does not treat ordinary node failure or abandonment as a capability result', () => {
+    expect(projectAdaptivePathCorrectionOutcome({
+      decision: decision(),
+      executions: [
+        { nodeId: 'node-1', resourceType: 'simulation', status: 'failed', failedAt: '2026-08-05T11:00:00.000Z' },
+        { nodeId: 'node-2', resourceType: 'lesson_step', status: 'abandoned', createdAt: '2026-08-05T12:00:00.000Z' },
+      ],
+    })).toMatchObject({
+      state: 'pending-verification',
+      limitation: 'insufficient-confidence',
+      evidenceCount: 2,
+    });
+  });
+
   it('keeps missing follow-up evidence pending and excludes earlier executions', () => {
     expect(projectAdaptivePathCorrectionOutcome({
       decision: decision(),
@@ -51,6 +76,24 @@ describe('projectAdaptivePathCorrectionOutcome', () => {
       terminalState: 'low-confidence',
       executions: [{ nodeId: 'terminal-node', resourceType: 'arena_task', status: 'completed', completedAt: '2026-08-05T11:00:00.000Z' }],
     })).toMatchObject({ state: 'indeterminate', limitation: 'insufficient-confidence' });
+  });
+
+  it('requires a successful terminal validation before projecting improvement', () => {
+    expect(projectAdaptivePathCorrectionOutcome({
+      decision: decision({ applicationResult: { applied: true, nodeIds: ['terminal-node'] } }),
+      terminalNodeId: 'terminal-node',
+      terminalState: 'completed',
+      executions: [{ nodeId: 'terminal-node', resourceType: 'arena_task', status: 'completed', completedAt: '2026-08-05T11:00:00.000Z' }],
+    })).toMatchObject({ state: 'improved', evidenceCount: 1 });
+  });
+
+  it('projects a failed terminal validation as needs-review', () => {
+    expect(projectAdaptivePathCorrectionOutcome({
+      decision: decision({ applicationResult: { applied: true, nodeIds: ['terminal-node'] } }),
+      terminalNodeId: 'terminal-node',
+      terminalState: 'failed',
+      executions: [{ nodeId: 'terminal-node', resourceType: 'arena_task', status: 'completed', completedAt: '2026-08-05T11:00:00.000Z' }],
+    })).toMatchObject({ state: 'needs-review', evidenceCount: 1 });
   });
 
   it('excludes decisions that were not applied', () => {

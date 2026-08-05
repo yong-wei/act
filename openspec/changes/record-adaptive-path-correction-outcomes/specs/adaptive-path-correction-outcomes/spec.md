@@ -29,6 +29,20 @@ The system SHALL expose exactly one of `improved`, `needs-review`, `pending-veri
 - **WHEN** a post-confirmation checkpoint for an applied node is explicitly failed
 - **THEN** the outcome SHALL be `needs-review`
 
+#### Scenario: Ordinary governed node is completed
+
+- **WHEN** a post-confirmation governed learning node such as a knowledge card, lesson step, or simulation is completed
+- **THEN** the execution SHALL count as associated follow-up evidence
+- **AND** the outcome SHALL remain `pending-verification` with an insufficient-confidence limitation
+- **AND** the system SHALL NOT describe the node completion as an improved capability result
+
+#### Scenario: Ordinary governed node fails or is abandoned
+
+- **WHEN** a post-confirmation governed learning node fails or is abandoned without an explicit checkpoint or terminal validation result
+- **THEN** the execution SHALL count as associated follow-up evidence
+- **AND** the outcome SHALL remain `pending-verification` with an insufficient-confidence limitation
+- **AND** the system SHALL NOT convert ordinary resource failure into a checkpoint result
+
 #### Scenario: No follow-up evidence
 
 - **WHEN** no eligible post-confirmation evidence exists
@@ -40,6 +54,17 @@ The system SHALL expose exactly one of `improved`, `needs-review`, `pending-veri
 - **WHEN** eligible evidence contains an unresolved pass/fail conflict or lacks sufficient confidence to classify
 - **THEN** the outcome SHALL be `indeterminate`
 - **AND** the response SHALL expose only a controlled evidence-limitation code
+
+#### Scenario: Terminal validation fails
+
+- **WHEN** a post-confirmation terminal execution has an authoritative terminal validation state of `failed`
+- **THEN** the outcome SHALL be `needs-review`
+
+#### Scenario: Terminal validation is incomplete
+
+- **WHEN** a terminal execution exists but its terminal validation is still pending, skipped, or otherwise not completed
+- **THEN** the outcome SHALL remain `pending-verification`
+- **AND** it SHALL NOT be projected as `improved`
 
 ### Requirement: Student projection preserves privacy and authorization
 

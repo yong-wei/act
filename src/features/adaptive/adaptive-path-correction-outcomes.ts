@@ -33,6 +33,29 @@ export interface AdaptivePathCorrectionOutcomeExecution {
   failedAt?: unknown;
 }
 
+const GOVERNED_OUTCOME_RESOURCE_TYPES = new Set([
+  'lesson_step',
+  'knowledge_node',
+  'knowledge_card',
+  'textbook_section',
+  'video',
+  'audio',
+  'slides',
+  'handout',
+  'quiz',
+  'adaptive_quiz',
+  'control_workbench',
+  'simulation',
+  'arena_task',
+  'external_resource',
+  'checkpoint',
+  'intervention',
+  'ai_intervention',
+  'konling',
+  'reflection',
+  'project',
+]);
+
 export function projectAdaptivePathCorrectionOutcome(input: {
   decision: AdaptivePathCorrectionOutcomeDecision;
   executions: AdaptivePathCorrectionOutcomeExecution[];
@@ -69,31 +92,68 @@ export function projectAdaptivePathCorrectionOutcome(input: {
     const resourceType = readString(execution.resourceType);
     const status = execution.status;
     const eventAt = toDate(execution.completedAt) ?? toDate(execution.failedAt) ?? toDate(execution.createdAt);
-    const supportsOutcome = resourceType === 'checkpoint' ||
-      resourceType === 'adaptive_quiz' ||
-      nodeId === input.terminalNodeId;
-    return Boolean(nodeId && nodeIdSet.has(nodeId) && supportsOutcome && eventAt && eventAt > decisionCreatedAt && (status === 'completed' || status === 'failed'));
+    return Boolean(
+      nodeId &&
+      nodeIdSet.has(nodeId) &&
+      resourceType &&
+      GOVERNED_OUTCOME_RESOURCE_TYPES.has(resourceType) &&
+      eventAt &&
+      eventAt > decisionCreatedAt &&
+      (status === 'completed' || status === 'failed' || status === 'abandoned'),
+    );
   });
-  const completed = eligible.filter((execution) => execution.status === 'completed');
-  const failed = eligible.filter((execution) => execution.status === 'failed');
   const base = {
     decisionCreatedAt: decisionCreatedAt.toISOString(),
     associatedNodeCount: nodeIds.length,
     evidenceCount: eligible.length,
   };
-  if (completed.length > 0 && failed.length > 0) {
-    return { ...base, state: 'indeterminate', limitation: 'conflicting-follow-up-evidence' };
-  }
-  if (input.terminalState === 'low-confidence' && eligible.some((execution) => execution.nodeId === input.terminalNodeId)) {
+
+  // Ordinary node activity is evidence that the learner reached the node, not a
+  // capability check. Only governed checkpoints and terminal validation can
+  // produce an improved or needs-review result.
+  const verificationResults = eligible
+    .map((execution) => classifyVerificationEvidence(execution, input.terminalNodeId, input.terminalState))
+    .filter((result): result is Exclude<ReturnType<typeof classifyVerificationEvidence>, null> => result !== null);
+  const hasVerificationPass = verificationResults.includes('passed');
+  const hasVerificationFailure = verificationResults.includes('failed');
+  if (verificationResults.includes('low-confidence')) {
     return { ...base, state: 'indeterminate', limitation: 'insufficient-confidence' };
   }
-  if (completed.length > 0) {
+  if (verificationResults.includes('indeterminate') || (hasVerificationPass && hasVerificationFailure)) {
+    return { ...base, state: 'indeterminate', limitation: 'conflicting-follow-up-evidence' };
+  }
+  if (hasVerificationPass) {
     return { ...base, state: 'improved', limitation: null };
   }
-  if (failed.length > 0) {
+  if (hasVerificationFailure) {
     return { ...base, state: 'needs-review', limitation: null };
   }
+  if (eligible.length > 0) {
+    return { ...base, state: 'pending-verification', limitation: 'insufficient-confidence' };
+  }
   return { ...base, state: 'pending-verification', limitation: 'no-follow-up-evidence' };
+}
+
+function classifyVerificationEvidence(
+  execution: AdaptivePathCorrectionOutcomeExecution,
+  terminalNodeId: string | null | undefined,
+  terminalState: string | null | undefined,
+): 'passed' | 'failed' | 'indeterminate' | 'low-confidence' | null {
+  const nodeId = readString(execution.nodeId);
+  const resourceType = readString(execution.resourceType);
+  const isTerminal = Boolean(nodeId && nodeId === terminalNodeId);
+  if (!isTerminal && resourceType !== 'checkpoint' && resourceType !== 'adaptive_quiz') return null;
+
+  if (isTerminal) {
+    if (terminalState === 'low-confidence') return 'low-confidence';
+    if (terminalState === 'failed' || execution.status === 'failed') return 'failed';
+    if ((terminalState === 'completed' || terminalState === 'passed') && execution.status === 'completed') return 'passed';
+    return null;
+  }
+
+  if (execution.status === 'completed') return 'passed';
+  if (execution.status === 'failed') return 'failed';
+  return null;
 }
 
 function readRecord(value: unknown): Record<string, unknown> {

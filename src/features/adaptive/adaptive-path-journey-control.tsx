@@ -394,7 +394,12 @@ export function AdaptivePathJourneyControl({
           <summary className="cursor-pointer">查看纠偏决策记录</summary>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {correctionHistory.map((item, index) => (
-              <li key={`${item.candidateFingerprint}-${item.createdAt ?? index}`}>
+              <li
+                key={`${item.candidateFingerprint}-${item.createdAt ?? index}`}
+                data-adaptive-path-correction-decision={item.decision}
+                data-adaptive-path-correction-outcome={item.outcome?.state ?? 'none'}
+                data-adaptive-path-correction-limitation={item.outcome?.limitation ?? undefined}
+              >
                 {formatCorrectionDecisionHistory(item)}
               </li>
             ))}
