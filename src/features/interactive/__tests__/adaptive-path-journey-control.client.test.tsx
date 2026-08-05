@@ -465,6 +465,7 @@ describe('adaptive path journey client behavior', () => {
         decision: 'confirmed',
         applied: true,
         createdAt: '2026-08-04T09:02:00.000Z',
+        outcome: null,
       }],
     };
 
