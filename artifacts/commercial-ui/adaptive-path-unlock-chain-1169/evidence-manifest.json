@@ -1,8 +1,8 @@
 {
   "change": "add-adaptive-path-unlock-chain-explanation",
   "pr": 1169,
-  "capturedAt": "2026-08-05T03:27:35.071Z",
-  "gitSha": "88920a2cc253244d8f7a988c296203713f54499b",
+  "capturedAt": "2026-08-05T04:07:11.465Z",
+  "gitSha": "143dc4fa30aad3f4a01ac2f14bcb5748ef92bcd3",
   "sourceFiles": [
     "src/app/assessment/adaptive-practice/page.tsx",
     "src/features/adaptive/adaptive-learning-center-contracts.ts",
@@ -12,7 +12,7 @@
     "scripts/tests/capture-adaptive-path-unlock-chain-evidence.mjs",
     "openspec/changes/add-adaptive-path-unlock-chain-explanation/tasks.md"
   ],
-  "sourceWorktreeSha256": "c4bcf0c628dc1a37d932b4af616991cd7c324682d680051a8618f73dff5ab79a",
+  "sourceWorktreeSha256": "96405f8471872df19c322cc378eafae9caf97e1deca3973068402b6875dfa8c9",
   "baseUrl": "http://localhost:3001",
   "captures": [
     {
@@ -22,7 +22,7 @@
       "height": 1200,
       "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&unlockChainScene=1&goal=control-correction&intent=path-selection",
       "screenshot": "artifacts/commercial-ui/adaptive-path-unlock-chain-1169/path-option-preview-desktop-1440.png",
-      "screenshotSha256": "e6718178f236f72fb833a22e60261371452e17ce10e70ef24e01dd6bc499ac79",
+      "screenshotSha256": "d88360511973c02acde02bdb105f1f5d6192b7425f04a4fa8e17a1ea8c50522a",
       "screenshotPath": "artifacts/commercial-ui/adaptive-path-unlock-chain-1169/path-option-preview-desktop-1440.png",
       "scrollWidth": 1440,
       "clientWidth": 1440,
@@ -34,7 +34,7 @@
       "lockedNodeActionButtonCount": 0,
       "unlockedNodeActionCount": 0,
       "nextActionLinkCount": 4,
-      "interactiveElementCount": 39,
+      "interactiveElementCount": 41,
       "multipleGapsVisible": true,
       "actionableTargetVisible": true,
       "textOnlyActionVisible": true,
@@ -50,7 +50,7 @@
       "height": 1000,
       "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&unlockChainScene=1&goal=control-correction&intent=path-selection",
       "screenshot": "artifacts/commercial-ui/adaptive-path-unlock-chain-1169/path-option-preview-mobile-320.png",
-      "screenshotSha256": "9ac09044bdb06c1d43836fdb5270fef09238c8208a8e02adf17ffdcf568300b8",
+      "screenshotSha256": "60ede83488aca8a04b4e5034166b77e7cdfcc70b9b5d191597a7664eeff4b7d0",
       "screenshotPath": "artifacts/commercial-ui/adaptive-path-unlock-chain-1169/path-option-preview-mobile-320.png",
       "scrollWidth": 320,
       "clientWidth": 320,
@@ -62,7 +62,7 @@
       "lockedNodeActionButtonCount": 0,
       "unlockedNodeActionCount": 0,
       "nextActionLinkCount": 4,
-      "interactiveElementCount": 39,
+      "interactiveElementCount": 41,
       "multipleGapsVisible": true,
       "actionableTargetVisible": true,
       "textOnlyActionVisible": true,
