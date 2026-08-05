@@ -255,7 +255,7 @@ for (const viewport of [
 
     await sendPrompt(page, '选择 Simulation sprint');
     await expect.poll(calls.choiceCalls).toBe(1);
-    await expect(sidebar.getByText('路径选择未能同步，请重试。', { exact: true })).toBeVisible();
+    await expect(sidebar.locator('[data-konling-action-status]')).toHaveText('路径选择未能同步，请重试。');
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: '打开控灵', exact: true }).click();
     const reloadedSidebar = page.locator('[data-konling-assistant-surface="global-sidebar"]');
@@ -265,7 +265,7 @@ for (const viewport of [
     await sendPrompt(page, '选择 Simulation sprint');
     await expect.poll(calls.chatCalls).toBe(3);
     await expect.poll(calls.choiceCalls).toBe(2);
-    await expect(reloadedSidebar.getByText('路径选择已同步，等待你开始学习。', { exact: true })).toBeVisible();
+    await expect(reloadedSidebar.locator('[data-konling-action-status]')).toHaveText('路径选择已同步，等待你开始学习。');
 
     const geometry = await test.step('verify layout and idle state', async () => {
       const value = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
