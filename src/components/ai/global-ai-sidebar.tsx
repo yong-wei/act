@@ -330,7 +330,7 @@ export function GlobalAISidebar() {
         const idempotencyKey = stringValue(result.idempotencyKey);
         const toolRunId = stringValue(result.toolRunId);
         if (!pathId || !batchId || !candidateId || !selectedOptionId || !selectedStyleId || !idempotencyKey || !toolRunId) continue;
-        const key = `${batchId}:${candidateId}:${idempotencyKey}`;
+        const key = `${invocation.toolCallId}:${batchId}:${candidateId}:${idempotencyKey}`;
         if (handledPathSelectionToolCallsRef.current.has(key)) continue;
         handledPathSelectionToolCallsRef.current.add(key);
         void fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`, {
@@ -352,7 +352,6 @@ export function GlobalAISidebar() {
           }));
           setActionStatus('路径选择已同步，等待你开始学习。');
         }).catch(() => {
-          handledPathSelectionToolCallsRef.current.delete(key);
           setActionStatus('路径选择未能同步，请重试。');
         });
       }
@@ -1006,6 +1005,15 @@ export function GlobalAISidebar() {
           <div className="sr-only" role="status" aria-live="polite" data-ai-task-status="global-sidebar">
             {isLoading ? '控灵正在思考。' : error ? `AI 对话失败：${error.message}` : actionStatus}
           </div>
+          {actionStatus && (
+            <div
+              className={`rounded-lg border px-3 py-2 text-sm ${styles.border} ${styles.text.secondary}`}
+              role="status"
+              data-konling-action-status
+            >
+              {actionStatus}
+            </div>
+          )}
           {messages.length === 0 ? (
             <div className="space-y-6">
               {/* 欢迎信息 */}

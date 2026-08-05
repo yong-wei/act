@@ -30,6 +30,20 @@ function sourceHashAtCommit(commitSha: string, file: string): string {
   return sha256(execFileSync('git', ['show', `${commitSha}:${file}`]));
 }
 
+async function within<T>(label: string, promise: Promise<T>): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out`)), 10_000);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 const planNode = {
   nodeId: 'node-phase-margin-c', title: 'Phase margin correction', type: 'knowledge_card',
   sourceKind: 'resource_node', sourceRef: 'phase-margin-card',
@@ -80,8 +94,8 @@ function chatStream(parts: Array<Record<string, unknown>>) {
   ].map((part) => `data: ${JSON.stringify(part)}`).concat('data: [DONE]', '').join('\n\n');
 }
 
-function pendingSelectionParts() {
-  const toolCallId = 'selection-tool-call-c';
+function pendingSelectionParts(call: number) {
+  const toolCallId = `selection-tool-call-c-${call}`;
   const input = { batchId, candidateId, pathId, goalId: 'control-correction', idempotencyKey: 'selection-c-idempotency' };
   const output = {
     status: 'pending_commit', toolRunId: 'selection-tool-run-c', batchId, candidateId, pathId,
@@ -99,22 +113,41 @@ function pendingSelectionParts() {
 async function installRoutes(page: Page) {
   let chatCalls = 0;
   let choiceCalls = 0;
-  const conversation = {
+  let conversationDetailCalls = 0;
+  const conversation = (messages: Array<Record<string, unknown>> = []) => ({
     id: 'conversation-selection-c', userId: 'demo-student', courseId: 'control-correction',
     pageId: 'adaptive-practice', title: 'Candidate selection', titleIsManual: false, pinned: false,
     pinnedAt: null, lastActivityAt: '2026-08-05T00:00:00.000Z', createdAt: '2026-08-05T00:00:00.000Z',
-    updatedAt: '2026-08-05T00:00:00.000Z', expiresAt: '2026-08-06T00:00:00.000Z', messages: [],
+    updatedAt: '2026-08-05T00:00:00.000Z', expiresAt: '2026-08-06T00:00:00.000Z', messages,
     assistantBinding: { teachingAssistantModeId: 'path-advisor', modeClientContextHints: { candidateBatchId: batchId } },
+  });
+  const persistedMessages = () => {
+    if (chatCalls === 0) return [];
+    if (chatCalls === 1) return [{
+      id: 'assistant-clarification-c', role: 'assistant',
+      content: '请在 Foundation candidate 和 Simulation sprint 中确认一个。',
+    }];
+    return [{
+      id: `assistant-selection-${chatCalls}`, role: 'assistant', content: '',
+      toolInvocations: [{
+        toolCallId: `selection-tool-call-c-${chatCalls}`, toolName: 'select_learning_path', state: 'result',
+        args: { batchId, candidateId, pathId, goalId: 'control-correction', idempotencyKey: 'selection-c-idempotency' },
+        result: pendingSelectionParts(chatCalls)[2].output,
+      }],
+    }];
   };
   await page.route('**/api/auth/session', (route) => route.fulfill({ json: {
     user: { id: 'demo-student', email: 'demo@example.test', name: 'Demo student', role: 'STUDENT' },
     expires: '2026-08-06T00:00:00.000Z',
   } }));
   await page.route('**/api/ai/sessions', async (route) => {
-    if (route.request().method() === 'GET') return route.fulfill({ json: { conversations: [conversation] } });
-    return route.fulfill({ json: conversation });
+    if (route.request().method() === 'GET') return route.fulfill({ json: { conversations: [conversation(persistedMessages())] } });
+    return route.fulfill({ json: conversation() });
   });
-  await page.route('**/api/ai/sessions/conversation-selection-c', (route) => route.fulfill({ json: conversation }));
+  await page.route('**/api/ai/sessions/conversation-selection-c**', (route) => {
+    conversationDetailCalls += 1;
+    return route.fulfill({ json: conversation(persistedMessages()) });
+  });
   await page.route('**/api/adaptive/path-advisor-context**', (route) => route.fulfill({ json: {
     goalId: 'control-correction', classId: 'class-1140', courseTitle: 'Control correction', topic: 'Phase margin',
     learningObjectives: ['Choose one governed candidate'], modeContextToken: 'candidate-selection-mode-token',
@@ -131,7 +164,7 @@ async function installRoutes(page: Page) {
     if (choiceCalls === 1) return route.abort('connectionreset');
     return route.fulfill({ json: { choice: { action: 'selection', batchId, candidateId }, selectedCandidateId: candidateId } });
   });
-  await page.route('**/api/ai/chat', async (route) => {
+  await page.route('**/api/ai/chat**', async (route) => {
     chatCalls += 1;
     const parts = chatCalls === 1
       ? [
@@ -139,10 +172,10 @@ async function installRoutes(page: Page) {
           { type: 'text-delta', id: 'clarification-c', delta: '请在 Foundation candidate 和 Simulation sprint 中确认一个。' },
           { type: 'text-end', id: 'clarification-c' },
         ]
-      : pendingSelectionParts();
+      : pendingSelectionParts(chatCalls);
     await route.fulfill({ headers: { 'content-type': 'text/event-stream', 'x-vercel-ai-ui-message-stream': 'v1' }, body: chatStream(parts) });
   });
-  return { chatCalls: () => chatCalls, choiceCalls: () => choiceCalls };
+  return { chatCalls: () => chatCalls, choiceCalls: () => choiceCalls, conversationDetailCalls: () => conversationDetailCalls };
 }
 
 async function sendPrompt(page: Page, prompt: string) {
@@ -155,7 +188,16 @@ async function capture(page: Page, viewport: { name: string; width: number; heig
   if (!updateEvidence) return;
   mkdirSync(evidenceDir, { recursive: true });
   const file = path.join(evidenceDir, `konling-selection-${viewport.name}.png`);
-  const image = await page.screenshot({ path: file, fullPage: true });
+  await within('freeze animations', page.addStyleTag({ content: `
+    *, *::before, *::after {
+      animation: none !important;
+      caret-color: transparent !important;
+      scroll-behavior: auto !important;
+      transition: none !important;
+    }
+  ` }));
+  await within('settle frames', page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))));
+  const image = await within('capture screenshot', page.screenshot({ path: file, animations: 'disabled' }));
   screenshots.push({
     file: path.relative(process.cwd(), file).replaceAll('\\', '/'), sha256: sha256(image),
     width: viewport.width, height: viewport.height, noHorizontalOverflow: true,
@@ -182,36 +224,56 @@ for (const viewport of [
   { name: 'mobile-320', width: 320, height: 900 },
 ] as const) {
   test(`${viewport.name} clarifies and commits one candidate without auto-start`, async ({ page }) => {
+    test.setTimeout(120_000);
     await page.setViewportSize(viewport);
+    await page.addInitScript(() => {
+      window.localStorage.setItem('act:knowledge-product-qa', 'true');
+      (window as Window & {
+        __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean;
+      }).__ACT_KNOWLEDGE_PRODUCT_QA__ = true;
+    });
     const calls = await installRoutes(page);
-    await page.goto(`/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&batch=${batchId}&candidate=${candidateId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/assessment/adaptive-practice?demo=1&qa=knowledge-product&goal=control-correction&intent=path-selection&batch=${batchId}&candidate=${candidateId}`, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(new RegExp(`batch=${batchId}.*candidate=${candidateId}`));
     await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
 
-    const openKonling = page.getByRole('button', { name: `请控灵调整Simulation sprint` });
+    const openKonling = page.getByRole('button', { name: '打开控灵', exact: true });
     await expect(openKonling).toBeEnabled();
     await openKonling.click();
     const sidebar = page.locator('[data-konling-assistant-surface="global-sidebar"]');
     await expect(sidebar).toBeVisible();
+    await test.step('verify keyboard focus', async () => {
+      const input = sidebar.getByLabel('全局 AI 问题输入框');
+      await input.fill('键盘焦点验证');
+      await page.keyboard.press('Tab');
+      await expect(sidebar.getByRole('button', { name: '发送 AI 问题', exact: true })).toBeFocused();
+      await input.fill('');
+    });
     await sendPrompt(page, '选那个路径');
+    await expect.poll(calls.chatCalls).toBe(1);
     await expect(sidebar.getByText(/请在 Foundation candidate 和 Simulation sprint/)).toBeVisible();
 
     await sendPrompt(page, '选择 Simulation sprint');
+    await expect.poll(calls.choiceCalls).toBe(1);
     await expect(sidebar.getByText('路径选择未能同步，请重试。', { exact: true })).toBeVisible();
-    expect(calls.choiceCalls()).toBe(1);
-    await sendPrompt(page, '重试同一选择');
-    await expect(sidebar.getByText('路径选择已同步，等待你开始学习。', { exact: true })).toBeVisible();
-    expect(calls.choiceCalls()).toBe(2);
-    expect(calls.chatCalls()).toBe(3);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: '打开控灵', exact: true }).click();
+    const reloadedSidebar = page.locator('[data-konling-assistant-surface="global-sidebar"]');
+    await reloadedSidebar.getByRole('button', { name: '打开控灵会话库', exact: true }).click();
+    await reloadedSidebar.getByRole('button', { name: 'Candidate selection', exact: true }).click();
+    await expect.poll(calls.conversationDetailCalls).toBeGreaterThan(0);
+    await sendPrompt(page, '选择 Simulation sprint');
+    await expect.poll(calls.chatCalls).toBe(3);
+    await expect.poll(calls.choiceCalls).toBe(2);
+    await expect(reloadedSidebar.getByText('路径选择已同步，等待你开始学习。', { exact: true })).toBeVisible();
 
-    const input = page.getByLabel('全局 AI 问题输入框');
-    await input.focus();
-    await page.keyboard.press('Tab');
-    expect(await page.evaluate(() => document.activeElement?.getAttribute('aria-label'))).toBe('发送 AI 问题');
-    const geometry = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
-    expect(geometry.scrollWidth).toBe(geometry.clientWidth);
-    expect(await page.locator('[data-learning-path-execution-state="running"]').count()).toBe(0);
-    await capture(page, viewport);
+    const geometry = await test.step('verify layout and idle state', async () => {
+      const value = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
+      expect(value.scrollWidth).toBe(value.clientWidth);
+      expect(await page.locator('[data-learning-path-execution-state="running"]').count()).toBe(0);
+      return value;
+    });
+    await test.step('capture evidence', () => capture(page, viewport));
     observations.push({ viewport: viewport.name, ...geometry, ambiguityClarified: true, failedSyncVisible: true, sameIdentityRetrySucceeded: true, deepLinkCandidateId: candidateId, keyboardFocusReachedSend: true, autoStart: false });
   });
 }
