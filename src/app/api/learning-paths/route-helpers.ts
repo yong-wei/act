@@ -69,6 +69,17 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
           createdAt: true,
         },
       },
+      executions: {
+        orderBy: { createdAt: 'asc' },
+        select: {
+          nodeId: true,
+          resourceType: true,
+          status: true,
+          createdAt: true,
+          completedAt: true,
+          failedAt: true,
+        },
+      },
     },
   });
   if (!path) {

@@ -1,6 +1,10 @@
 import { buildAdaptivePathLaunchHref } from './adaptive-learning-center-contracts';
 import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
 import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
+import {
+  projectAdaptivePathCorrectionOutcome,
+  type AdaptivePathCorrectionOutcome,
+} from './adaptive-path-correction-outcomes';
 
 export type AdaptivePathJourneyNextActionState = 'ready' | 'blocked' | 'pending-result' | 'path-complete';
 
@@ -86,6 +90,7 @@ export interface AdaptivePathCorrectionDecisionState {
 
 export interface AdaptivePathCorrectionDecisionHistoryItem extends AdaptivePathCorrectionDecisionState {
   candidateFingerprint: string;
+  outcome: AdaptivePathCorrectionOutcome | null;
 }
 
 export interface AuthorizedAdaptivePathJourney {
@@ -113,6 +118,7 @@ export interface AdaptivePathJourneyPathRecord {
   deviations?: unknown;
   updatedAt?: unknown;
   correctionDecisions?: unknown;
+  executions?: unknown;
 }
 
 export type AdaptivePathJourneyTargetDisposition =
@@ -222,6 +228,9 @@ export function buildAuthorizedAdaptivePathJourney(
     correction,
     pathUpdatedAt: readDateISOString(path.updatedAt),
     decisions: readRecordArray(path.correctionDecisions),
+    executions: readRecordArray(path.executions),
+    terminalNodeId,
+    terminalState,
   });
   const base = {
     path: {
@@ -471,12 +480,20 @@ function projectAdaptivePathCorrectionDecisionState(input: {
   correction: AdaptivePathJourneyCorrectionProjection;
   pathUpdatedAt: string | null;
   decisions: Record<string, unknown>[];
+  executions: Record<string, unknown>[];
+  terminalNodeId: string | null;
+  terminalState: string | null;
 }): AdaptivePathJourneyCorrection {
   const candidateFingerprint = input.correction.proposal
     ? fingerprintAdaptivePathCorrectionProposal(input.correction.proposal)
     : null;
   const decisions = input.decisions
-    .map(toAdaptivePathCorrectionDecisionHistoryItem)
+    .map((value) => toAdaptivePathCorrectionDecisionHistoryItem(
+      value,
+      input.executions,
+      input.terminalNodeId,
+      input.terminalState,
+    ))
     .filter((item): item is AdaptivePathCorrectionDecisionHistoryItem => Boolean(item));
   const history = decisions.slice(0, 10);
   const decision = candidateFingerprint
@@ -493,6 +510,9 @@ function projectAdaptivePathCorrectionDecisionState(input: {
 
 function toAdaptivePathCorrectionDecisionHistoryItem(
   value: Record<string, unknown>,
+  executions: Record<string, unknown>[],
+  terminalNodeId: string | null,
+  terminalState: string | null,
 ): AdaptivePathCorrectionDecisionHistoryItem | null {
   const candidateFingerprint = readNonEmptyString(value.candidateFingerprint);
   const decision = readAdaptivePathCorrectionDecisionType(value.decision);
@@ -503,6 +523,7 @@ function toAdaptivePathCorrectionDecisionHistoryItem(
     decision,
     createdAt: readDateISOString(value.createdAt),
     applied: applicationResult.applied === true,
+    outcome: projectAdaptivePathCorrectionOutcome({ decision: value, executions, terminalNodeId, terminalState }),
   };
 }
 

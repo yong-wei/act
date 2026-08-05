@@ -76,6 +76,14 @@ export async function GET(
             orderBy: { updatedAt: 'desc' },
             include: {
               executions: { orderBy: { createdAt: 'asc' } },
+              correctionDecisions: {
+                orderBy: { createdAt: 'asc' },
+                select: {
+                  decision: true,
+                  createdAt: true,
+                  applicationResult: true,
+                },
+              },
               deviations: { orderBy: { createdAt: 'asc' } },
               interventions: { orderBy: { createdAt: 'asc' } },
             },

@@ -450,7 +450,28 @@ function formatCorrectionDecisionHistory(item: AdaptivePathCorrectionDecisionHis
     : item.decision === 'rejected'
       ? '未采用'
       : '暂不处理';
-  return item.createdAt ? `${label}：${new Date(item.createdAt).toLocaleString('zh-CN')}` : label;
+  const decision = item.createdAt ? `${label}：${new Date(item.createdAt).toLocaleString('zh-CN')}` : label;
+  return item.outcome ? `${decision}；${formatCorrectionOutcome(item.outcome)}` : decision;
+}
+
+function formatCorrectionOutcome(item: NonNullable<AdaptivePathCorrectionDecisionHistoryItem['outcome']>): string {
+  const label = item.state === 'improved'
+    ? '后续证据显示已改善'
+    : item.state === 'needs-review'
+      ? '后续证据显示仍需复习'
+      : item.state === 'pending-verification'
+        ? '尚未验证'
+        : '无法判断';
+  const limitation = item.limitation === 'no-follow-up-evidence'
+    ? '暂无关联的后续完成或失败记录'
+    : item.limitation === 'conflicting-follow-up-evidence'
+      ? '后续证据存在冲突'
+      : item.limitation === 'invalid-decision-timestamp'
+        ? '确认时间不可用'
+        : item.limitation === 'insufficient-confidence'
+          ? '关联节点证据不足'
+          : null;
+  return limitation ? `${label}（${limitation}）` : label;
 }
 
 function areEquivalentJourneyActions(
