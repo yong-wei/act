@@ -1,6 +1,6 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
   previewFeatures = ["partialIndexes"]
 }
 
@@ -519,9 +519,10 @@ model User {
   ethicsDecisionLogs EthicsDecisionLog[]
 
   // 新增关系：知识图谱模块
-  knowledgeProgress KnowledgeProgress[]
-  learningPaths     LearningPath[]
-  learningNotes     LearningNote[]
+  knowledgeProgress            KnowledgeProgress[]
+  learningPaths                LearningPath[]
+  adaptivePathCandidateBatches AdaptivePathCandidateBatch[]
+  learningNotes                LearningNote[]
 
   // 教学资源与教案
   createdResources TeachingResource[]
@@ -560,8 +561,8 @@ model User {
 
   // Data governance
   riskFlags                             StudentRiskFlag[]
-  createdDiagnosisReports               DiagnosisReport[] @relation("DiagnosisReportCreator")
-  targetedDiagnosisReports              DiagnosisReport[] @relation("DiagnosisReportTarget")
+  createdDiagnosisReports               DiagnosisReport[]                      @relation("DiagnosisReportCreator")
+  targetedDiagnosisReports              DiagnosisReport[]                      @relation("DiagnosisReportTarget")
   learningMaterializationRebuildRequest LearningMaterializationRebuildRequest?
   learningMaterializationGeneration     LearningMaterializationGeneration?
   learningMaterializationOutbox         LearningMaterializationOutbox[]
@@ -1450,7 +1451,7 @@ model Class {
   arenaChallengePublications ArenaChallengePublication[]
   assignmentAudiences        AssignmentAudience[]
   gradingBatches             GradingBatch[]
-  smartLessonTasks           SmartLessonTask[] @relation("SmartLessonTaskSelectedClass")
+  smartLessonTasks           SmartLessonTask[]           @relation("SmartLessonTaskSelectedClass")
   diagnosisReports           DiagnosisReport[]
 
   createdAt DateTime @default(now())
@@ -1523,34 +1524,34 @@ model AssignmentRevision {
 }
 
 model AssignmentContentAsset {
-  id           String   @id @default(cuid())
+  id           String                      @id @default(cuid())
   assignmentId String
   uploaderId   String
-  objectKey    String   @unique
+  objectKey    String                      @unique
   originalName String
   mimeType     String
   sizeBytes    Int
   checksum     String
   state        AssignmentContentAssetState @default(PENDING)
-  createdAt    DateTime @default(now())
+  createdAt    DateTime                    @default(now())
   availableAt  DateTime?
 
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
-  uploader   User       @relation("AssignmentContentAssetUploader", fields: [uploaderId], references: [id], onDelete: Restrict)
+  assignment Assignment                         @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  uploader   User                               @relation("AssignmentContentAssetUploader", fields: [uploaderId], references: [id], onDelete: Restrict)
   references AssignmentRevisionAssetReference[]
 
   @@index([assignmentId, uploaderId, state])
 }
 
 model AssignmentRevisionAssetReference {
-  id               String   @id @default(cuid())
+  id               String                      @id @default(cuid())
   revisionId       String
   assetId          String
   stableQuestionId String
   field            AssignmentContentAssetField
-  createdAt        DateTime @default(now())
+  createdAt        DateTime                    @default(now())
 
-  revision AssignmentRevision   @relation(fields: [revisionId], references: [id], onDelete: Restrict)
+  revision AssignmentRevision     @relation(fields: [revisionId], references: [id], onDelete: Restrict)
   asset    AssignmentContentAsset @relation(fields: [assetId], references: [id], onDelete: Restrict)
 
   @@unique([revisionId, stableQuestionId, field, assetId])
@@ -3722,6 +3723,42 @@ model LearningPath {
   @@index([classId, goalId, pathStatus])
 }
 
+model AdaptivePathCandidateBatch {
+  id                  String   @id
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalId              String
+  classId             String?
+  generationRequestId String   @unique
+  sourcePathId        String
+  plannerVersion      String?
+  status              String   @default("succeeded")
+  candidateCount      Int
+  metadata            Json     @default("{}")
+  createdAt           DateTime @default(now())
+
+  candidates AdaptivePathCandidate[]
+
+  @@index([userId, goalId, status, createdAt])
+  @@index([classId, goalId, status, createdAt])
+}
+
+model AdaptivePathCandidate {
+  id           String                     @id
+  batchId      String
+  batch        AdaptivePathCandidateBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  ordinal      Int
+  styleId      String
+  policyFamily String?
+  label        String
+  snapshot     Json
+  createdAt    DateTime                   @default(now())
+
+  @@unique([batchId, ordinal])
+  @@unique([batchId, styleId])
+  @@index([batchId, createdAt])
+}
+
 model LearningPathExecution {
   id             String    @id @default(cuid())
   pathId         String
@@ -3975,12 +4012,30 @@ model WrongAnswerAttribution {
   nextAction         String
   createdAt          DateTime @default(now())
 
-  answer AdaptiveAssessmentAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  answer             AdaptiveAssessmentAnswer           @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  remediationResults RemediationOrchestrationResult[]
 
   @@unique([answerId, attributionVersion])
   @@index([userId, createdAt])
   @@index([sessionId, createdAt])
   @@index([questionRefId])
+}
+
+model RemediationOrchestrationResult {
+  id                       String   @id @default(cuid())
+  wrongAnswerAttributionId String
+  orchestratorVersion      String
+  userId                   String
+  status                   String
+  unavailableReason        String?
+  manualPracticePath       String?
+  taskSnapshot             Json?
+  createdAt                DateTime @default(now())
+
+  wrongAnswerAttribution WrongAnswerAttribution @relation(fields: [wrongAnswerAttributionId], references: [id], onDelete: Cascade)
+
+  @@unique([wrongAnswerAttributionId, orchestratorVersion])
+  @@index([userId, createdAt])
 }
 
 model AdaptiveAssessmentAbilityEstimate {
@@ -4982,8 +5037,8 @@ model StudentRiskFlag {
   severity    String // low, medium, high
   description String
 
-  evidenceJson Json
-  triggeredAt  DateTime
+  evidenceJson       Json
+  triggeredAt        DateTime
   evidenceObservedAt DateTime
 
   isResolved     Boolean   @default(false)
@@ -5015,8 +5070,8 @@ model DiagnosisReport {
   generatorVersion String   @default("v1")
   generatedAt      DateTime @default(now())
 
-  class  Class @relation(fields: [classId], references: [id], onDelete: Restrict)
-  creator User @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
+  class   Class @relation(fields: [classId], references: [id], onDelete: Restrict)
+  creator User  @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
   target  User? @relation("DiagnosisReportTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
 
   @@index([scopeType, scopeId, generatedAt])
@@ -5111,12 +5166,12 @@ model ActkgReleaseSet {
   candidateState String   @default("CANDIDATE")
   createdAt      DateTime @default(now())
 
-  releases       ActkgRelease[]
-  receipt        ActkgImportReceipt?
-  bundleReceipts ActkgBundleReceipt[]
-  courseCoverageVersions CourseCoverageOverlayVersion[]
-  deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseReleaseSet")
-  deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateReleaseSet")
+  releases                 ActkgRelease[]
+  receipt                  ActkgImportReceipt?
+  bundleReceipts           ActkgBundleReceipt[]
+  courseCoverageVersions   CourseCoverageOverlayVersion[]
+  deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[]  @relation("ActkgDeltaBaseReleaseSet")
+  deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[]  @relation("ActkgDeltaCandidateReleaseSet")
 }
 
 model ActkgRelease {
@@ -5146,34 +5201,34 @@ model ActkgRelease {
   upstreamPublicationCommit String?
   upstreamClosedCommit      String?
 
-  releaseSet               ActkgReleaseSet                        @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
-  objects                  ActkgAuthoritativeObject[]
-  relations                ActkgAuthoritativeRelation[]
-  sourceMappings           ActkgSourceMapping[]
-  sourceObjects            ActkgSourceObject[]
-  evidence                 ActkgEvidenceSegment[]
-  originalPayload          ActkgOriginalReleasePayload?
-  receipt                  ActkgImportReceipt?
-  artifacts                ActkgReleaseArtifact[]
-  components               ActkgReleaseComponent[]
-  entries                  ActkgReleaseEntry[]
-  projectionNodes          ActkgProjectionNode[]
-  projectionLinks          ActkgProjectionLink[]
-  upstreamRagReferences    ActkgUpstreamRagReference[]
-  courseCoverageVersions   CourseCoverageOverlayVersion[]
-  resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
-  resourceBindingDecisions CanonicalResourceBindingDecision[]
+  releaseSet                      ActkgReleaseSet                        @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  objects                         ActkgAuthoritativeObject[]
+  relations                       ActkgAuthoritativeRelation[]
+  sourceMappings                  ActkgSourceMapping[]
+  sourceObjects                   ActkgSourceObject[]
+  evidence                        ActkgEvidenceSegment[]
+  originalPayload                 ActkgOriginalReleasePayload?
+  receipt                         ActkgImportReceipt?
+  artifacts                       ActkgReleaseArtifact[]
+  components                      ActkgReleaseComponent[]
+  entries                         ActkgReleaseEntry[]
+  projectionNodes                 ActkgProjectionNode[]
+  projectionLinks                 ActkgProjectionLink[]
+  upstreamRagReferences           ActkgUpstreamRagReference[]
+  courseCoverageVersions          CourseCoverageOverlayVersion[]
+  resourceCrosswalks              ActkgEvidenceStructuralUnitCrosswalk[]
+  resourceBindingDecisions        CanonicalResourceBindingDecision[]
   aggregateCourseCoverageVersions AggregateCourseCoverageVersion[]
-  aggregateGovernanceReceipts AggregateGovernanceReceipt[]
-  actGovernedCrosswalks ActGovernedStructuralUnitCrosswalk[]
-  aggregateRevalidationReceipts AggregateRevalidationReceipt[]
+  aggregateGovernanceReceipts     AggregateGovernanceReceipt[]
+  actGovernedCrosswalks           ActGovernedStructuralUnitCrosswalk[]
+  aggregateRevalidationReceipts   AggregateRevalidationReceipt[]
   // Standard Bundle packaging receipts and multi-Projection identities.
   // Historical #1125 rows leave these relations empty (unavailable).
-  bundleReceipts           ActkgBundleReceipt[]
-  projectionIdentities     ActkgProjectionIdentity[]
-  linkMetadataRows         ActkgProjectionLinkMetadata[]
-  deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseRelease")
-  deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateRelease")
+  bundleReceipts                  ActkgBundleReceipt[]
+  projectionIdentities            ActkgProjectionIdentity[]
+  linkMetadataRows                ActkgProjectionLinkMetadata[]
+  deltaReceiptsAsBase             ActkgReleaseSetDeltaReceipt[]          @relation("ActkgDeltaBaseRelease")
+  deltaReceiptsAsCandidate        ActkgReleaseSetDeltaReceipt[]          @relation("ActkgDeltaCandidateRelease")
 
   @@unique([releaseSetId, releaseVersion])
   @@unique([releaseSetId, id])
@@ -5191,12 +5246,12 @@ model ActkgAuthoritativeObject {
   lifecycleStatus   String?
   payload           Json
 
-  release                  ActkgRelease                       @relation(fields: [releaseId], references: [id], onDelete: Restrict)
-  outgoing                 ActkgAuthoritativeRelation[]       @relation("ActkgRelationSource")
-  incoming                 ActkgAuthoritativeRelation[]       @relation("ActkgRelationTarget")
-  sourceMappings           ActkgSourceMapping[]
-  courseCoverageEntries    CourseCoverageOverlayEntry[]
-  resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
+  release               ActkgRelease                           @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  outgoing              ActkgAuthoritativeRelation[]           @relation("ActkgRelationSource")
+  incoming              ActkgAuthoritativeRelation[]           @relation("ActkgRelationTarget")
+  sourceMappings        ActkgSourceMapping[]
+  courseCoverageEntries CourseCoverageOverlayEntry[]
+  resourceCrosswalks    ActkgEvidenceStructuralUnitCrosswalk[]
 
   @@id([releaseId, canonicalId])
   @@unique([releaseId, ordinal])
@@ -5278,8 +5333,8 @@ model ActkgEvidenceSegment {
   contentHash     String
   payload         Json
 
-  release    ActkgRelease                           @relation(fields: [releaseId], references: [id], onDelete: Restrict)
-  crosswalks ActkgEvidenceStructuralUnitCrosswalk[]
+  release                  ActkgRelease                           @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  crosswalks               ActkgEvidenceStructuralUnitCrosswalk[]
   resourceBindingDecisions CanonicalResourceBindingDecision[]
 
   @@id([releaseId, evidenceId])
@@ -5345,8 +5400,8 @@ model ActkgImportReceipt {
   manifestRawSha256     String?
   schemaContractVersion String?
 
-  releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
-  release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  releaseSet               ActkgReleaseSet               @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  release                  ActkgRelease                  @relation(fields: [releaseId], references: [id], onDelete: Restrict)
   deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseImport")
   deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateImport")
 }
@@ -5381,21 +5436,21 @@ model ActkgReleaseArtifact {
 // historical #1125 rows keep releaseRawSha256/sha256sumsSha256 populated and
 // leave the standard reference fields unavailable.
 model ActkgReleaseComponent {
-  releaseId                String
-  ordinal                  Int
-  componentReleaseId       String
-  releaseVersion           String
-  protocol                 String
-  controlledPath           String
-  releaseHash              String
-  releaseRawSha256         String?
-  sha256sumsSha256         String?
-  referenceKind            String?
-  componentRole            String?
-  componentBundleId        String?
-  componentBundleDigest    String?
-  componentManifestSha256  String?
-  payload                  Json
+  releaseId               String
+  ordinal                 Int
+  componentReleaseId      String
+  releaseVersion          String
+  protocol                String
+  controlledPath          String
+  releaseHash             String
+  releaseRawSha256        String?
+  sha256sumsSha256        String?
+  referenceKind           String?
+  componentRole           String?
+  componentBundleId       String?
+  componentBundleDigest   String?
+  componentManifestSha256 String?
+  payload                 Json
 
   release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
 
@@ -5440,11 +5495,11 @@ model ActkgBundleReceipt {
   statistics               Json
   importedAt               DateTime @default(now())
 
-  releaseSet   ActkgReleaseSet              @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
-  release      ActkgRelease                 @relation(fields: [releaseId], references: [id], onDelete: Restrict)
-  artifacts    ActkgBundleArtifact[]
-  projections  ActkgProjectionIdentity[]
-  linkMetadata ActkgProjectionLinkMetadata[]
+  releaseSet               ActkgReleaseSet               @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  release                  ActkgRelease                  @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  artifacts                ActkgBundleArtifact[]
+  projections              ActkgProjectionIdentity[]
+  linkMetadata             ActkgProjectionLinkMetadata[]
   deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseBundle")
   deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateBundle")
 
@@ -5509,19 +5564,19 @@ model ActkgProjectionIdentity {
 
 // Projection Link Metadata rows preserved for standard Bundles.
 model ActkgProjectionLinkMetadata {
-  releaseId                  String
-  relationId                 String
-  ordinal                    Int
-  releaseTier                String
-  sourceRelease              String
-  sourceReleaseHash          String
-  evidenceRefs               Json
-  sourceComponentRelease     String?
-  targetComponentRelease     String?
-  relationComponentRelease   String?
-  profiles                   Json
-  payload                    Json
-  bundleReceiptId            String?
+  releaseId                String
+  relationId               String
+  ordinal                  Int
+  releaseTier              String
+  sourceRelease            String
+  sourceReleaseHash        String
+  evidenceRefs             Json
+  sourceComponentRelease   String?
+  targetComponentRelease   String?
+  relationComponentRelease String?
+  profiles                 Json
+  payload                  Json
+  bundleReceiptId          String?
 
   release ActkgRelease        @relation(fields: [releaseId], references: [id], onDelete: Restrict)
   receipt ActkgBundleReceipt? @relation(fields: [bundleReceiptId], references: [id], onDelete: Restrict)
@@ -5541,7 +5596,7 @@ model ActkgReleaseEntry {
   inclusionReason String
   payload         Json
 
-  release    ActkgRelease               @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  release    ActkgRelease                @relation(fields: [releaseId], references: [id], onDelete: Restrict)
   nodes      ActkgProjectionNode[]
   links      ActkgProjectionLink[]
   references ActkgUpstreamRagReference[]
@@ -5572,14 +5627,14 @@ model ActkgProjectionNode {
   candidate           Boolean
   payload             Json
 
-  release  ActkgRelease          @relation(fields: [releaseId], references: [id], onDelete: Restrict)
-  entry    ActkgReleaseEntry     @relation(fields: [releaseId, entityId], references: [releaseId, entityId], onDelete: Restrict)
-  outgoing ActkgProjectionLink[] @relation("ActkgProjectionLinkSource")
-  incoming ActkgProjectionLink[] @relation("ActkgProjectionLinkTarget")
+  release                        ActkgRelease                         @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  entry                          ActkgReleaseEntry                    @relation(fields: [releaseId, entityId], references: [releaseId, entityId], onDelete: Restrict)
+  outgoing                       ActkgProjectionLink[]                @relation("ActkgProjectionLinkSource")
+  incoming                       ActkgProjectionLink[]                @relation("ActkgProjectionLinkTarget")
   aggregateCourseCoverageEntries AggregateCourseCoverageEntry[]
-  actGovernedCrosswalks    ActGovernedStructuralUnitCrosswalk[]
+  actGovernedCrosswalks          ActGovernedStructuralUnitCrosswalk[]
   /// #1126 binding decisions pin public Projection membership (not private objects).
-  resourceBindingDecisions CanonicalResourceBindingDecision[]
+  resourceBindingDecisions       CanonicalResourceBindingDecision[]
 
   @@id([releaseId, nodeId])
   @@unique([releaseId, ordinal])
@@ -5625,8 +5680,8 @@ model ActkgUpstreamRagReference {
   retrievalChunkId  String
   citationTargetId  String
 
-  release ActkgRelease      @relation(fields: [releaseId], references: [id], onDelete: Restrict)
-  entity  ActkgReleaseEntry @relation(fields: [releaseId, publishedEntityId], references: [releaseId, entityId], onDelete: Restrict)
+  release               ActkgRelease                         @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  entity                ActkgReleaseEntry                    @relation(fields: [releaseId, publishedEntityId], references: [releaseId, entityId], onDelete: Restrict)
   actGovernedCrosswalks ActGovernedStructuralUnitCrosswalk[]
 
   @@id([releaseId, publishedEntityId, retrievalChunkId, citationTargetId])
@@ -5641,27 +5696,27 @@ model ActkgUpstreamRagReference {
 model ActkgReleaseSetDeltaReceipt {
   id String @id
 
-  algorithmVersion String
+  algorithmVersion   String
   /** Trusted ACT delta implementation capture revision (Git HEAD). */
-  captureRevision  String
-  classification   String
+  captureRevision    String
+  classification     String
   authorizationState String
 
-  baseEvidenceKind             String
-  baseReleaseSetId             String?
-  baseReleaseId                String?
-  baseReleaseVersion           String?
-  baseReleaseHash              String?
-  baseSourceDatasetHash        String?
-  baseImportReceiptId          String?
-  baseBundleReceiptId          String?
-  baseBundleId                 String?
-  baseBundleRevision           Int?
-  baseBundleDigest             String?
-  baseRuntimeProjectionId      String?
-  baseRuntimeProjectionDigest  String?
-  baseEvidenceCaptureRevision  String?
-  baseSemanticSnapshotDigest   String?
+  baseEvidenceKind            String
+  baseReleaseSetId            String?
+  baseReleaseId               String?
+  baseReleaseVersion          String?
+  baseReleaseHash             String?
+  baseSourceDatasetHash       String?
+  baseImportReceiptId         String?
+  baseBundleReceiptId         String?
+  baseBundleId                String?
+  baseBundleRevision          Int?
+  baseBundleDigest            String?
+  baseRuntimeProjectionId     String?
+  baseRuntimeProjectionDigest String?
+  baseEvidenceCaptureRevision String?
+  baseSemanticSnapshotDigest  String?
 
   candidateEvidenceKind            String
   candidateReleaseSetId            String
@@ -5679,11 +5734,11 @@ model ActkgReleaseSetDeltaReceipt {
   candidateEvidenceCaptureRevision String
   candidateSemanticSnapshotDigest  String
 
-  inputDigest  String
-  outputDigest String
-  details      Json
-  summary      Json
-  identityViolations Json
+  inputDigest         String
+  outputDigest        String
+  details             Json
+  summary             Json
+  identityViolations  Json
   /**
    * Immutable expected Signal cardinality sealed at receipt creation.
    * INSERT trigger allows at most this many signals; after the official
@@ -5694,22 +5749,22 @@ model ActkgReleaseSetDeltaReceipt {
   upstreamCrosscheckStatus  String
   upstreamCrosscheckDetails Json?
 
-  naturalKey String @unique
+  naturalKey String   @unique
   createdAt  DateTime @default(now())
 
-  baseReleaseSet      ActkgReleaseSet?    @relation("ActkgDeltaBaseReleaseSet", fields: [baseReleaseSetId], references: [id], onDelete: Restrict)
-  candidateReleaseSet ActkgReleaseSet     @relation("ActkgDeltaCandidateReleaseSet", fields: [candidateReleaseSetId], references: [id], onDelete: Restrict)
-  baseRelease         ActkgRelease?       @relation("ActkgDeltaBaseRelease", fields: [baseReleaseId], references: [id], onDelete: Restrict)
-  candidateRelease    ActkgRelease        @relation("ActkgDeltaCandidateRelease", fields: [candidateReleaseId], references: [id], onDelete: Restrict)
-  baseBundleReceipt   ActkgBundleReceipt? @relation("ActkgDeltaBaseBundle", fields: [baseBundleReceiptId], references: [id], onDelete: Restrict)
-  candidateBundleReceipt ActkgBundleReceipt? @relation("ActkgDeltaCandidateBundle", fields: [candidateBundleReceiptId], references: [id], onDelete: Restrict)
-  baseImportReceipt   ActkgImportReceipt? @relation("ActkgDeltaBaseImport", fields: [baseImportReceiptId], references: [id], onDelete: Restrict)
-  candidateImportReceipt ActkgImportReceipt? @relation("ActkgDeltaCandidateImport", fields: [candidateImportReceiptId], references: [id], onDelete: Restrict)
-  signals ActkgReleaseSetDeltaSignal[]
+  baseReleaseSet                  ActkgReleaseSet?                     @relation("ActkgDeltaBaseReleaseSet", fields: [baseReleaseSetId], references: [id], onDelete: Restrict)
+  candidateReleaseSet             ActkgReleaseSet                      @relation("ActkgDeltaCandidateReleaseSet", fields: [candidateReleaseSetId], references: [id], onDelete: Restrict)
+  baseRelease                     ActkgRelease?                        @relation("ActkgDeltaBaseRelease", fields: [baseReleaseId], references: [id], onDelete: Restrict)
+  candidateRelease                ActkgRelease                         @relation("ActkgDeltaCandidateRelease", fields: [candidateReleaseId], references: [id], onDelete: Restrict)
+  baseBundleReceipt               ActkgBundleReceipt?                  @relation("ActkgDeltaBaseBundle", fields: [baseBundleReceiptId], references: [id], onDelete: Restrict)
+  candidateBundleReceipt          ActkgBundleReceipt?                  @relation("ActkgDeltaCandidateBundle", fields: [candidateBundleReceiptId], references: [id], onDelete: Restrict)
+  baseImportReceipt               ActkgImportReceipt?                  @relation("ActkgDeltaBaseImport", fields: [baseImportReceiptId], references: [id], onDelete: Restrict)
+  candidateImportReceipt          ActkgImportReceipt?                  @relation("ActkgDeltaCandidateImport", fields: [candidateImportReceiptId], references: [id], onDelete: Restrict)
+  signals                         ActkgReleaseSetDeltaSignal[]
   aggregateCourseCoverageVersions AggregateCourseCoverageVersion[]
-  actGovernedCrosswalks ActGovernedStructuralUnitCrosswalk[]
-  aggregateRevalidationReceipts AggregateRevalidationReceipt[]
-  aggregateGovernanceReceipts AggregateGovernanceReceipt[]
+  actGovernedCrosswalks           ActGovernedStructuralUnitCrosswalk[]
+  aggregateRevalidationReceipts   AggregateRevalidationReceipt[]
+  aggregateGovernanceReceipts     AggregateGovernanceReceipt[]
 
   @@unique([inputDigest, algorithmVersion])
   /// Composite identity for consumers that must bind a Delta to its candidate Release.
@@ -5724,15 +5779,15 @@ model ActkgReleaseSetDeltaReceipt {
 // Signals describe affected identities and reasons only — never course roles,
 // resource roles, teaching relations, or selector mutations.
 model ActkgReleaseSetDeltaSignal {
-  id          String @id
-  receiptId   String
-  scope       String
-  identity    String
-  action      String
-  reason      String
-  digests     Json?
+  id           String   @id
+  receiptId    String
+  scope        String
+  identity     String
+  action       String
+  reason       String
+  digests      Json?
   signalDigest String
-  createdAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   receipt ActkgReleaseSetDeltaReceipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
 
@@ -5758,8 +5813,8 @@ model CourseCoverageOverlayVersion {
   lockRawHash       String
   createdAt         DateTime @default(now())
 
-  releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
-  release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  releaseSet ActkgReleaseSet              @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  release    ActkgRelease                 @relation(fields: [releaseId], references: [id], onDelete: Restrict)
   entries    CourseCoverageOverlayEntry[]
   receipt    CourseCoverageImportReceipt?
 
@@ -5777,7 +5832,7 @@ model CourseCoverageOverlayEntry {
   ordinal          Int
 
   overlayVersion CourseCoverageOverlayVersion @relation(fields: [overlayVersionId, releaseId], references: [id, releaseId], onDelete: Restrict)
-  canonical      ActkgAuthoritativeObject      @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  canonical      ActkgAuthoritativeObject     @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
 
   @@id([overlayVersionId, canonicalId, role])
   @@unique([overlayVersionId, ordinal])
@@ -5832,8 +5887,8 @@ model ResourceBindingInventoryItem {
   sourceObservations  Json
   observationDigest   String
 
-  run ResourceBindingInventoryRun @relation(fields: [runId], references: [id], onDelete: Restrict)
-  evidenceCrosswalks ActkgEvidenceStructuralUnitCrosswalk[]
+  run                   ResourceBindingInventoryRun            @relation(fields: [runId], references: [id], onDelete: Restrict)
+  evidenceCrosswalks    ActkgEvidenceStructuralUnitCrosswalk[]
   actGovernedCrosswalks ActGovernedStructuralUnitCrosswalk[]
 
   @@id([runId, atomicResourceId])
@@ -5862,11 +5917,11 @@ model ActkgEvidenceStructuralUnitCrosswalk {
   validationDigest      String
   createdAt             DateTime @default(now())
 
-  release     ActkgRelease                  @relation(fields: [releaseId], references: [id], onDelete: Restrict)
-  evidence    ActkgEvidenceSegment          @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
-  canonical   ActkgAuthoritativeObject      @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
-  inventory   ResourceBindingInventoryItem  @relation(fields: [inventoryRunId, atomicResourceId], references: [runId, atomicResourceId], onDelete: Restrict)
-  decisions   CanonicalResourceBindingDecision[]
+  release   ActkgRelease                       @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  evidence  ActkgEvidenceSegment               @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
+  canonical ActkgAuthoritativeObject           @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  inventory ResourceBindingInventoryItem       @relation(fields: [inventoryRunId, atomicResourceId], references: [runId, atomicResourceId], onDelete: Restrict)
+  decisions CanonicalResourceBindingDecision[]
 
   @@id([releaseId, id])
   @@unique([releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion])
@@ -5880,62 +5935,62 @@ model ActkgEvidenceStructuralUnitCrosswalk {
 /// continue to reference ActkgEvidenceStructuralUnitCrosswalk only.
 /// #1126 uses separate governed* fields → ActGovernedStructuralUnitCrosswalk.
 model CanonicalResourceBindingDecision {
-  id                     String   @id
-  pairId                 String
-  releaseSetId           String
-  releaseId              String
-  canonicalId            String
-  objectRevision         String
-  resourceId             String
-  structuralUnitId       String
-  segmentId              String
-  resourceSegmentHash    String
-  role                   String
-  evidenceId             String?
-  evidenceDigest         String
-  generatorPromptVersion String
-  reviewerPromptVersion  String
-  generatorCacheKey      String
-  reviewerCacheKey       String
-  reviewerRole           String
-  reviewerInputDigest    String
-  candidateDigest        String
+  id                            String   @id
+  pairId                        String
+  releaseSetId                  String
+  releaseId                     String
+  canonicalId                   String
+  objectRevision                String
+  resourceId                    String
+  structuralUnitId              String
+  segmentId                     String
+  resourceSegmentHash           String
+  role                          String
+  evidenceId                    String?
+  evidenceDigest                String
+  generatorPromptVersion        String
+  reviewerPromptVersion         String
+  generatorCacheKey             String
+  reviewerCacheKey              String
+  reviewerRole                  String
+  reviewerInputDigest           String
+  candidateDigest               String
   /// GPT | FIXTURE | HUMAN | NONE | GROK
-  reviewProvider         String
-  reviewState            String
-  publicationState       String
-  lifecycleState         String
-  attemptSequence        Int
-  supersedesDecisionId   String?  @unique
+  reviewProvider                String
+  reviewState                   String
+  publicationState              String
+  lifecycleState                String
+  attemptSequence               Int
+  supersedesDecisionId          String?  @unique
   /// Legacy #1124 EvidenceStructuralUnitCrosswalk identity (unchanged).
-  crosswalkId            String?
-  inventoryRunId         String?
-  captureRevision        String?
-  structuralUnitVersion  String?
-  validationDigest       String?
-  highImpactPolicyVersion String
-  highImpactReasons      Json
+  crosswalkId                   String?
+  inventoryRunId                String?
+  captureRevision               String?
+  structuralUnitVersion         String?
+  validationDigest              String?
+  highImpactPolicyVersion       String
+  highImpactReasons             Json
   /// #1126 sealed controlled-review metadata (additive; null on legacy rows).
-  reviewIdentity         String?
-  reviewRationale        String?  @db.Text
+  reviewIdentity                String?
+  reviewRationale               String?  @db.Text
   /// #1126 governed ACT Crosswalk identity (separate from legacy tuple).
-  governedCrosswalkId            String?
-  governedInventoryRunId         String?
-  governedCaptureRevision        String?
-  governedStructuralUnitVersion  String?
-  governedValidationDigest       String?
-  createdTransactionId   BigInt   @default(dbgenerated("txid_current()"))
-  createdAt              DateTime @default(now())
+  governedCrosswalkId           String?
+  governedInventoryRunId        String?
+  governedCaptureRevision       String?
+  governedStructuralUnitVersion String?
+  governedValidationDigest      String?
+  createdTransactionId          BigInt   @default(dbgenerated("txid_current()"))
+  createdAt                     DateTime @default(now())
 
-  release        ActkgRelease                            @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
-  evidence       ActkgEvidenceSegment?                   @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
+  release               ActkgRelease                                   @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
+  evidence              ActkgEvidenceSegment?                          @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
   /// Public Projection Canonical membership (standard Bundle has no private objects).
-  projectionCanonical ActkgProjectionNode                @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
-  crosswalk      ActkgEvidenceStructuralUnitCrosswalk?    @relation(fields: [releaseId, crosswalkId, inventoryRunId, captureRevision, structuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
-  governedCrosswalk ActGovernedStructuralUnitCrosswalk? @relation(fields: [releaseId, governedCrosswalkId, governedInventoryRunId, governedCaptureRevision, governedStructuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
-  supersedes     CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)
-  supersededBy   CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession")
-  humanQueueItem CanonicalResourceBindingHumanQueueItem?
+  projectionCanonical   ActkgProjectionNode                            @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
+  crosswalk             ActkgEvidenceStructuralUnitCrosswalk?          @relation(fields: [releaseId, crosswalkId, inventoryRunId, captureRevision, structuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
+  governedCrosswalk     ActGovernedStructuralUnitCrosswalk?            @relation(fields: [releaseId, governedCrosswalkId, governedInventoryRunId, governedCaptureRevision, governedStructuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
+  supersedes            CanonicalResourceBindingDecision?              @relation("CanonicalBindingSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)
+  supersededBy          CanonicalResourceBindingDecision?              @relation("CanonicalBindingSupersession")
+  humanQueueItem        CanonicalResourceBindingHumanQueueItem?
   humanDecisionReceipts CanonicalResourceBindingHumanDecisionReceipt[]
 
   @@unique([pairId, generatorPromptVersion, reviewerPromptVersion, reviewerInputDigest, attemptSequence])
@@ -5952,7 +6007,7 @@ model CanonicalResourceBindingHumanQueueItem {
   state             String   @default("PENDING")
   createdAt         DateTime @default(now())
 
-  bindingDecision CanonicalResourceBindingDecision @relation(fields: [bindingDecisionId], references: [id], onDelete: Restrict)
+  bindingDecision CanonicalResourceBindingDecision              @relation(fields: [bindingDecisionId], references: [id], onDelete: Restrict)
   receipt         CanonicalResourceBindingHumanDecisionReceipt?
 
   @@index([state, createdAt])
@@ -5991,25 +6046,25 @@ model CanonicalResourceBindingHumanDecisionReceipt {
 // ---------------------------------------------------------------------------
 
 model AggregateCourseCoverageVersion {
-  id                 String   @id
-  schemaVersion      String
-  overlayId          String
-  overlayVersion     String
-  courseId           String
-  releaseSetId       String
-  releaseId          String
-  releaseHash        String
-  sourceDatasetHash  String?
-  deltaReceiptId     String
-  mode               String
-  authoringRevision  String
-  captureRevision    String
-  sourceHash         String
-  lifecycleState     String   @default("CURRENT")
-  createdAt          DateTime @default(now())
+  id                String   @id
+  schemaVersion     String
+  overlayId         String
+  overlayVersion    String
+  courseId          String
+  releaseSetId      String
+  releaseId         String
+  releaseHash       String
+  sourceDatasetHash String?
+  deltaReceiptId    String
+  mode              String
+  authoringRevision String
+  captureRevision   String
+  sourceHash        String
+  lifecycleState    String   @default("CURRENT")
+  createdAt         DateTime @default(now())
 
-  release            ActkgRelease                  @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
-  deltaReceipt       ActkgReleaseSetDeltaReceipt   @relation(fields: [deltaReceiptId, releaseSetId, releaseId], references: [id, candidateReleaseSetId, candidateReleaseId], onDelete: Restrict)
+  release            ActkgRelease                   @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
+  deltaReceipt       ActkgReleaseSetDeltaReceipt    @relation(fields: [deltaReceiptId, releaseSetId, releaseId], references: [id, candidateReleaseSetId, candidateReleaseId], onDelete: Restrict)
   entries            AggregateCourseCoverageEntry[]
   governanceReceipts AggregateGovernanceReceipt[]
 
@@ -6031,11 +6086,11 @@ model AggregateCourseCoverageEntry {
   evidenceRefs         Json
   reviewIdentity       String
   sourceEvidenceDigest String
-  lifecycleState       String @default("CURRENT")
+  lifecycleState       String  @default("CURRENT")
 
-  version   AggregateCourseCoverageVersion @relation(fields: [versionId, releaseId], references: [id, releaseId], onDelete: Restrict)
+  version             AggregateCourseCoverageVersion @relation(fields: [versionId, releaseId], references: [id, releaseId], onDelete: Restrict)
   /// Public Projection Canonical membership (not private ActkgAuthoritativeObject).
-  projectionCanonical ActkgProjectionNode @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
+  projectionCanonical ActkgProjectionNode            @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
 
   @@id([versionId, canonicalId])
   @@unique([versionId, ordinal])
@@ -6075,13 +6130,13 @@ model ActGovernedStructuralUnitCrosswalk {
   lifecycleState        String   @default("CURRENT")
   createdAt             DateTime @default(now())
 
-  release      ActkgRelease                  @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
-  deltaReceipt ActkgReleaseSetDeltaReceipt   @relation(fields: [deltaReceiptId, releaseSetId, releaseId], references: [id, candidateReleaseSetId, candidateReleaseId], onDelete: Restrict)
-  upstream     ActkgUpstreamRagReference     @relation(fields: [releaseId, publishedEntityId, retrievalChunkId, citationTargetId], references: [releaseId, publishedEntityId, retrievalChunkId, citationTargetId], onDelete: Restrict)
+  release             ActkgRelease                       @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
+  deltaReceipt        ActkgReleaseSetDeltaReceipt        @relation(fields: [deltaReceiptId, releaseSetId, releaseId], references: [id, candidateReleaseSetId, candidateReleaseId], onDelete: Restrict)
+  upstream            ActkgUpstreamRagReference          @relation(fields: [releaseId, publishedEntityId, retrievalChunkId, citationTargetId], references: [releaseId, publishedEntityId, retrievalChunkId, citationTargetId], onDelete: Restrict)
   /// Null when unresolved/relation-type upstream; when set, must be Projection membership.
-  projectionCanonical ActkgProjectionNode?   @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
-  inventory    ResourceBindingInventoryItem? @relation(fields: [inventoryRunId, atomicResourceId], references: [runId, atomicResourceId], onDelete: Restrict)
-  bindingDecisions CanonicalResourceBindingDecision[]
+  projectionCanonical ActkgProjectionNode?               @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
+  inventory           ResourceBindingInventoryItem?      @relation(fields: [inventoryRunId, atomicResourceId], references: [runId, atomicResourceId], onDelete: Restrict)
+  bindingDecisions    CanonicalResourceBindingDecision[]
 
   /// Supports FK from binding decisions when VALIDATED (non-null inventory/version).
   @@unique([releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion])

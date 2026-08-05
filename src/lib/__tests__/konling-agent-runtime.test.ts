@@ -9228,6 +9228,15 @@ describe('konling agent runtime', () => {
         findFirst: vi.fn().mockResolvedValue(null),
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
       },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          candidates: data.candidates.create,
+        })),
+      },
       konlingMemory: {
         create: vi.fn(),
       },
@@ -9286,6 +9295,7 @@ describe('konling agent runtime', () => {
         };
       };
       candidatePoolLimited: boolean;
+      candidateBatch: { id: string; generationRequestId: string; candidateIds: string[] } | null;
     };
 
     expect(result).toMatchObject({
@@ -9303,6 +9313,22 @@ describe('konling agent runtime', () => {
       limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
     });
     expect(result.pathOptions.length).toBeGreaterThan(0);
+    expect(result.candidateBatch).toMatchObject({
+      id: expect.stringMatching(/^path-candidate-batch_/),
+      generationRequestId: 'path-gen-1',
+      candidateIds: expect.arrayContaining([expect.stringMatching(/^path-candidate_/)]),
+    });
+    expect(result.pathId).toMatch(/^adaptive-path:student-1:control-correction:candidate_[a-f0-9]{24}$/);
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: result.pathId },
+      create: expect.objectContaining({ id: result.pathId, pathStatus: 'candidate' }),
+    }));
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ sourcePathId: result.pathId }),
+    }));
+    expect(result.pathOptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ candidateId: expect.stringMatching(/^path-candidate_/) }),
+    ]));
     expect(result.configurationFulfillment).toEqual(expect.arrayContaining([
       expect.objectContaining({ key: 'difficulty-rhythm', status: 'applied' }),
       expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', message: expect.any(String) }),
@@ -9340,6 +9366,8 @@ describe('konling agent runtime', () => {
     }));
     expect(db.learningPath.upsert).toHaveBeenCalled();
     const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.pathStatus).toBe('candidate');
+    expect(createdPath.legacySummaryPayload.status).toBe('candidate');
     expect(createdPath.inputSnapshot.request.candidatePoolDiagnostics).toMatchObject({
       registryVersion: 'resource-node-registry.v1',
       projectionVersion: 'resource-semantic-projection.v1',
@@ -9364,6 +9392,36 @@ describe('konling agent runtime', () => {
       }),
     }));
 
+    const persistedBatchData = db.adaptivePathCandidateBatch.create.mock.calls[0][0].data;
+    db.learningPath.findFirst.mockResolvedValue(createdPath);
+    db.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      ...persistedBatchData,
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      candidates: persistedBatchData.candidates.create,
+    });
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...createdRun, id: 'tool-run-path-retry' });
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValueOnce([]);
+
+    const retryResult = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-1',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
+      timeBudgetMinutes: 30,
+      difficultyRhythm: 'steady',
+      naturalLanguageIntent: '我想先补相位裕度，再做仿真验证。',
+    }) as typeof result;
+
+    expect(db.learningPath.upsert).toHaveBeenCalledOnce();
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledOnce();
+    expect(retryResult.generationStatus).toBe('persisted');
+    expect(retryResult.pathId).toBe(result.pathId);
+    expect(retryResult.candidateBatch).toEqual(result.candidateBatch);
+    expect(retryResult.pathOptions).toEqual(result.pathOptions);
+
+    db.adaptivePathCandidateBatch.findUnique.mockResolvedValue(null);
+    db.learningPath.findFirst.mockResolvedValue(null);
     db.agentToolRun.findFirst
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce({ ...createdRun, idempotencyKey: 'path-gen-low-budget' });
@@ -11403,6 +11461,7 @@ describe('konling agent runtime', () => {
     });
     expect((result as { pathOptions: unknown[] }).pathOptions).toHaveLength(1);
     const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(revisedCreate.pathStatus).not.toBe('candidate');
     expect(revisedCreate.pathPayload.graphContext).toBeNull();
     expect(revisedCreate.pathPayload.pathOptions).toHaveLength(1);
     expect(revisedCreate.pathPayload.policyBundle.fallbackReasons).toEqual(
