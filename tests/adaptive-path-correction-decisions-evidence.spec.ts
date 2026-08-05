@@ -20,7 +20,7 @@ const viewports = [
   { name: 'desktop-1440', width: 1440, height: 1000 },
   { name: 'mobile-320', width: 320, height: 900 },
 ] as const;
-const scenarios = ['confirmed', 'rejected', 'deferred', 'skip-confirmed', 'stale-409', 'retry-failed'] as const;
+const scenarios = ['confirmed', 'rejected', 'deferred', 'skip-confirmed', 'replacement-confirmed', 'abandonment-confirmed', 'stale-409', 'retry-failed'] as const;
 type Scenario = typeof scenarios[number];
 const expectedScreenshotFiles = viewports.flatMap((viewport) => scenarios.map((scenario) => path.posix.join(
   'artifacts/commercial-ui/issue-1284-p2',
@@ -53,12 +53,21 @@ function routeFor(scenario: Scenario): string {
 
 function proposal(scenario: Scenario) {
   const skipped = scenario === 'skip-confirmed';
+  const replacement = scenario === 'replacement-confirmed';
+  const abandonment = scenario === 'abandonment-confirmed';
+  const governedDeviation = skipped || replacement || abandonment;
   return {
     trigger: {
       kind: 'deviation',
-      nodeId: skipped ? 'node-2' : 'node-4',
-      title: skipped ? '节点 2' : '节点 4',
-      reason: skipped ? '节点 2 已跳过，当前节点已推进至节点 3。' : '检查点结果提示后续路径可调整。',
+      nodeId: governedDeviation ? 'node-2' : 'node-4',
+      title: governedDeviation ? '节点 2' : '节点 4',
+      reason: skipped
+        ? '节点 2 已跳过，当前节点已推进至节点 3。'
+        : replacement
+          ? '节点 2 已替换为受治理的后续节点。'
+          : abandonment
+            ? '节点 2 已明确放弃，当前路径需要移除该未完成节点。'
+            : '检查点结果提示后续路径可调整。',
     },
     originalRemaining: [
       { nodeId: 'node-4', title: '节点 4', type: 'knowledge_card', estimatedTimeMinutes: 10 },
@@ -68,8 +77,18 @@ function proposal(scenario: Scenario) {
       { nodeId: 'node-5', title: '节点 5', type: 'checkpoint', estimatedTimeMinutes: 10 },
       { nodeId: 'node-4', title: '节点 4', type: 'knowledge_card', estimatedTimeMinutes: 10 },
     ],
-    changes: [{ kind: 'reordered', nodeId: 'node-5', title: '节点 5', movedAfterNodeId: 'node-3' }],
-    supportingFacts: [skipped ? '已记录节点 2 的跳过执行事实。' : '已记录可核验的检查点结果。'],
+    changes: replacement
+      ? [{ kind: 'replaced', nodeId: 'node-2', title: '节点 2', replacementNodeId: 'node-5', replacementTitle: '节点 5' }]
+      : abandonment
+        ? [{ kind: 'removed', nodeId: 'node-2', title: '节点 2', reason: '已记录放弃执行事实。' }]
+        : [{ kind: 'reordered', nodeId: 'node-5', title: '节点 5', movedAfterNodeId: 'node-3' }],
+    supportingFacts: [skipped
+      ? '已记录节点 2 的跳过执行事实。'
+      : replacement
+        ? '已记录节点 2 的替换执行事实。'
+        : abandonment
+          ? '已记录节点 2 的放弃执行事实。'
+          : '已记录可核验的检查点结果。'],
     estimatedRemainingWork: { originalMinutes: 20, proposedMinutes: 20, differenceMinutes: 0 },
   };
 }

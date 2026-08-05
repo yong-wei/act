@@ -219,4 +219,39 @@ describe('POST /api/learning-paths/[id]/correction-decisions', () => {
       }),
     }));
   });
+
+  it.each(['replacement', 'abandonment'] as const)('confirms a candidate after a governed %s deviation without restoring the prior node', async (deviationType) => {
+    const deviatedPath = pathRecord({
+      currentNodeId: 'node-3',
+      lastExecutionMetadata: { activeNodeId: 'node-3', completedNodeIds: ['node-1'] },
+      deviations: [{ deviationType, priorNodeId: 'node-2', targetNodeId: deviationType === 'replacement' ? 'node-4' : null }],
+    });
+    mocks.rootFindUnique.mockResolvedValue(deviatedPath);
+    mocks.txFindFirst.mockResolvedValue(deviatedPath);
+    mocks.buildJourney.mockReturnValue({
+      correction: {
+        proposal: {
+          ...proposal,
+          originalRemaining: [{ nodeId: 'node-2', title: '节点 2', type: 'knowledge_card', estimatedTimeMinutes: 5 }, { nodeId: 'node-4', title: '节点 4', type: 'knowledge_card', estimatedTimeMinutes: 5 }],
+          proposedRemaining: [{ nodeId: 'node-4', title: '节点 4', type: 'knowledge_card', estimatedTimeMinutes: 5 }],
+          changes: deviationType === 'replacement'
+            ? [{ kind: 'replaced', nodeId: 'node-2', title: '节点 2', replacementNodeId: 'node-4', replacementTitle: '节点 4' }]
+            : [{ kind: 'removed', nodeId: 'node-2', title: '节点 2', reason: '已放弃节点。' }],
+        },
+        candidateFingerprint: 'correction-12345678',
+        pathUpdatedAt: at.toISOString(),
+        decision: null,
+        history: [],
+      },
+    });
+
+    const response = await POST(request({ idempotencyKey: `decision-after-${deviationType}` }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({ decision: { decision: 'confirmed', applied: true } });
+    expect(mocks.txUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ nodeIds: ['node-1', 'node-3', 'node-4'], currentNodeId: 'node-3' }),
+    }));
+  });
 });

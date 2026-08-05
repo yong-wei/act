@@ -122,4 +122,45 @@ describe('buildAdaptivePathCorrectionApplication', () => {
 
     expect(result?.nodeIds).toEqual(['node-1', 'node-2', 'node-3', 'node-5', 'node-4']);
   });
+
+  it.each(['replacement', 'abandonment'] as const)('removes a governed %s predecessor after current-node advancement', (deviationType) => {
+    const result = buildAdaptivePathCorrectionApplication({
+      nodeIds: ['node-1', 'node-2', 'node-3', 'node-4'],
+      currentNodeId: 'node-3',
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3', 'node-4'],
+        planNodes: ['node-1', 'node-2', 'node-3', 'node-4'].map((nodeId) => ({ nodeId })),
+      },
+      lastExecutionMetadata: { activeNodeId: 'node-3', completedNodeIds: ['node-1'] },
+      deviations: [{ deviationType, priorNodeId: 'node-2', targetNodeId: deviationType === 'replacement' ? 'node-4' : null }],
+    }, {
+      ...proposal,
+      proposedRemaining: [{ nodeId: 'node-4', title: '节点 4', type: 'reflection', estimatedTimeMinutes: 5 }],
+      changes: [{ kind: 'removed', nodeId: 'node-2', title: '节点 2', reason: '已被处理' }],
+    });
+
+    expect(result?.nodeIds).toEqual(['node-1', 'node-3', 'node-4']);
+  });
+
+  it('preserves a completed predecessor even when a deviation references it', () => {
+    const result = buildAdaptivePathCorrectionApplication({
+      nodeIds: ['node-1', 'node-2', 'node-3', 'node-4'],
+      currentNodeId: 'node-3',
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3', 'node-4'],
+        planNodes: ['node-1', 'node-2', 'node-3', 'node-4', 'node-5'].map((nodeId) => ({ nodeId })),
+      },
+      lastExecutionMetadata: { activeNodeId: 'node-3', completedNodeIds: ['node-1', 'node-2'] },
+      deviations: [{ deviationType: 'replacement', priorNodeId: 'node-2', targetNodeId: 'node-4' }],
+    }, {
+      ...proposal,
+      proposedRemaining: [
+        { nodeId: 'node-5', title: '节点 5', type: 'reflection', estimatedTimeMinutes: 5 },
+        { nodeId: 'node-4', title: '节点 4', type: 'reflection', estimatedTimeMinutes: 5 },
+      ],
+      changes: [{ kind: 'replaced', nodeId: 'node-2', title: '节点 2', replacementNodeId: 'node-4', replacementTitle: '节点 4' }],
+    });
+
+    expect(result?.nodeIds).toEqual(['node-1', 'node-2', 'node-3', 'node-5', 'node-4']);
+  });
 });

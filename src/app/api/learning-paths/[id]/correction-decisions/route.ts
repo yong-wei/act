@@ -86,7 +86,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       }
 
       const application = body.decision === 'confirmed'
-        ? buildAdaptivePathCorrectionApplication(latest, correction.proposal)
+        ? buildAdaptivePathCorrectionApplication({ ...latest, deviations: latest.deviations }, correction.proposal)
         : null;
       if (body.decision === 'confirmed' && !application) {
         throw new CorrectionConflictError('当前纠偏方案不再具备可安全应用的后续节点，请刷新后重新查看。');

@@ -5,6 +5,7 @@ export interface AdaptivePathCorrectionApplicationInput {
   currentNodeId: unknown;
   pathPayload: unknown;
   lastExecutionMetadata: unknown;
+  deviations?: unknown;
 }
 
 export interface AdaptivePathCorrectionApplication {
@@ -29,12 +30,17 @@ export function buildAdaptivePathCorrectionApplication(
   const lastExecutionMetadata = readRecord(input.lastExecutionMetadata);
   const completedNodeIds = new Set(readStringArray(lastExecutionMetadata.completedNodeIds));
   const skippedNodeIds = new Set(readStringArray(lastExecutionMetadata.skippedNodeIds));
+  const governedDeviationNodeIds = new Set(
+    readRecordArray(input.deviations)
+      .filter((deviation) => ['skip', 'replacement', 'abandonment'].includes(readString(deviation.deviationType) ?? ''))
+      .flatMap((deviation) => readStringArray([deviation.priorNodeId])),
+  );
   const currentIndex = nodeIds.indexOf(currentNodeId);
-  // A skipped predecessor is an explicit execution fact and can be removed.
-  // Other historical nodes remain intact until their status is known.
+  // Completed nodes and the current node are immutable history; only unfinished
+  // predecessors explicitly handled by a governed deviation may be removed.
   const preservedNodeIds = nodeIds.filter((nodeId, index) => (
     index < currentIndex
-      ? !skippedNodeIds.has(nodeId)
+      ? completedNodeIds.has(nodeId) || (!skippedNodeIds.has(nodeId) && !governedDeviationNodeIds.has(nodeId))
       : completedNodeIds.has(nodeId) || nodeId === currentNodeId
   ));
   const preserved = new Set(preservedNodeIds);
