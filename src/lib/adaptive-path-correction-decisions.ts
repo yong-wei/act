@@ -24,10 +24,19 @@ export function buildAdaptivePathCorrectionApplication(
     : readStringArray(input.nodeIds);
   const currentNodeId = readString(input.currentNodeId);
   if (!currentNodeId || nodeIds.length === 0) return null;
-  const currentIndex = nodeIds.indexOf(currentNodeId);
-  if (currentIndex < 0) return null;
+  if (!nodeIds.includes(currentNodeId)) return null;
 
-  const preservedNodeIds = nodeIds.slice(0, currentIndex + 1);
+  const lastExecutionMetadata = readRecord(input.lastExecutionMetadata);
+  const completedNodeIds = new Set(readStringArray(lastExecutionMetadata.completedNodeIds));
+  const skippedNodeIds = new Set(readStringArray(lastExecutionMetadata.skippedNodeIds));
+  const currentIndex = nodeIds.indexOf(currentNodeId);
+  // A skipped predecessor is an explicit execution fact and can be removed.
+  // Other historical nodes remain intact until their status is known.
+  const preservedNodeIds = nodeIds.filter((nodeId, index) => (
+    index < currentIndex
+      ? !skippedNodeIds.has(nodeId)
+      : completedNodeIds.has(nodeId) || nodeId === currentNodeId
+  ));
   const preserved = new Set(preservedNodeIds);
   const proposedFutureNodeIds = proposal.proposedRemaining
     .map((node) => node.nodeId)
@@ -42,7 +51,6 @@ export function buildAdaptivePathCorrectionApplication(
   const nextPlanNodes = nextNodeIds.map((nodeId) => nodeById.get(nodeId)).filter(Boolean);
   if (nextPlanNodes.length !== nextNodeIds.length) return null;
 
-  const lastExecutionMetadata = readRecord(input.lastExecutionMetadata);
   return {
     nodeIds: nextNodeIds,
     currentNodeId,

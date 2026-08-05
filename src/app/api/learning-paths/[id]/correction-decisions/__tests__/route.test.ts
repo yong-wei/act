@@ -179,4 +179,44 @@ describe('POST /api/learning-paths/[id]/correction-decisions', () => {
     expect(mocks.txUpdateMany).not.toHaveBeenCalled();
     expect(mocks.txDecisionCreate).not.toHaveBeenCalled();
   });
+
+  it('confirms a candidate after a current-node skip advances past the skipped node', async () => {
+    const skippedPath = pathRecord({
+      currentNodeId: 'node-3',
+      lastExecutionMetadata: {
+        activeNodeId: 'node-3',
+        completedNodeIds: ['node-1'],
+        skippedNodeIds: ['node-2'],
+      },
+    });
+    mocks.rootFindUnique.mockResolvedValue(skippedPath);
+    mocks.txFindFirst.mockResolvedValue(skippedPath);
+    mocks.buildJourney.mockReturnValue({
+      correction: {
+        proposal: {
+          ...proposal,
+          originalRemaining: [{ nodeId: 'node-4', title: '节点 4', type: 'knowledge_card', estimatedTimeMinutes: 5 }],
+          proposedRemaining: [{ nodeId: 'node-4', title: '节点 4', type: 'knowledge_card', estimatedTimeMinutes: 5 }],
+          changes: [{ kind: 'removed', nodeId: 'node-2', title: '节点 2', reason: '已跳过节点。' }],
+        },
+        candidateFingerprint: 'correction-12345678',
+        pathUpdatedAt: at.toISOString(),
+        decision: null,
+        history: [],
+      },
+    });
+
+    const response = await POST(request({ idempotencyKey: 'decision-after-skip' }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({ decision: { decision: 'confirmed', applied: true } });
+    expect(mocks.txUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        nodeIds: ['node-1', 'node-3', 'node-4'],
+        currentNodeId: 'node-3',
+        lastExecutionMetadata: expect.objectContaining({ skippedNodeIds: ['node-2'] }),
+      }),
+    }));
+  });
 });

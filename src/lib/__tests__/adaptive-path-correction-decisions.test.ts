@@ -60,4 +60,66 @@ describe('buildAdaptivePathCorrectionApplication', () => {
 
     expect(result).toBeNull();
   });
+
+  it('removes a skipped unfinished predecessor after current-node advancement', () => {
+    const result = buildAdaptivePathCorrectionApplication({
+      nodeIds: ['node-1', 'node-2', 'node-3', 'node-4'],
+      currentNodeId: 'node-3',
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3', 'node-4'],
+        planNodes: ['node-1', 'node-2', 'node-3', 'node-4'].map((nodeId) => ({ nodeId })),
+      },
+      lastExecutionMetadata: {
+        activeNodeId: 'node-3',
+        completedNodeIds: ['node-1'],
+        skippedNodeIds: ['node-2'],
+      },
+    }, {
+      ...proposal,
+      originalRemaining: [{ nodeId: 'node-4', title: '节点 4', type: 'reflection', estimatedTimeMinutes: 5 }],
+      proposedRemaining: [{ nodeId: 'node-4', title: '节点 4', type: 'reflection', estimatedTimeMinutes: 5 }],
+      changes: [{ kind: 'removed', nodeId: 'node-2', title: '节点 2', reason: '已跳过节点不应重写入后续路径。' }],
+    });
+
+    expect(result).toMatchObject({
+      currentNodeId: 'node-3',
+      nodeIds: ['node-1', 'node-3', 'node-4'],
+      lastExecutionMetadata: {
+        activeNodeId: 'node-3',
+        completedNodeIds: ['node-1'],
+        skippedNodeIds: ['node-2'],
+      },
+    });
+  });
+
+  it('preserves a non-skipped predecessor while applying replacement or abandonment candidates', () => {
+    const result = buildAdaptivePathCorrectionApplication({
+      nodeIds: ['node-1', 'node-2', 'node-3', 'node-4', 'node-5'],
+      currentNodeId: 'node-3',
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3', 'node-4', 'node-5'],
+        planNodes: ['node-1', 'node-2', 'node-3', 'node-4', 'node-5'].map((nodeId) => ({ nodeId })),
+      },
+      lastExecutionMetadata: { activeNodeId: 'node-3', completedNodeIds: ['node-1'] },
+    }, {
+      ...proposal,
+      originalRemaining: [
+        { nodeId: 'node-4', title: '节点 4', type: 'reflection', estimatedTimeMinutes: 5 },
+        { nodeId: 'node-5', title: '节点 5', type: 'checkpoint', estimatedTimeMinutes: 10 },
+      ],
+      proposedRemaining: [
+        { nodeId: 'node-5', title: '节点 5', type: 'checkpoint', estimatedTimeMinutes: 10 },
+        { nodeId: 'node-4', title: '节点 4', type: 'reflection', estimatedTimeMinutes: 5 },
+      ],
+      changes: [{
+        kind: 'replaced',
+        nodeId: 'node-4',
+        title: '节点 4',
+        replacementNodeId: 'node-5',
+        replacementTitle: '替代资源',
+      }],
+    });
+
+    expect(result?.nodeIds).toEqual(['node-1', 'node-2', 'node-3', 'node-5', 'node-4']);
+  });
 });
