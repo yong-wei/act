@@ -2,7 +2,7 @@
 
 The existing remediation orchestrator stores one immutable, learner-owned task per wrong-answer attribution and orchestrator version. Its available task already pins resource versions and a governed validation-question content hash, and its read path fails closed when that source snapshot becomes inaccessible or drifts. Issue #1159 must record a learner's bounded work on that task without treating the work as adaptive-assessment evidence or changing a formal learning path.
 
-The client cannot assert a pass result, choose a different question, or attach arbitrary catalog references. It can only provide an idempotency key, bounded timing/hint facts, and a selected option for the validation question selected by the task.
+The client cannot assert a pass result, choose a different question, attach arbitrary catalog references, or choose the learner session. It can only provide an idempotency key, bounded timing/hint facts, and a selected option for the validation question selected by the task; the service binds the session from the owning wrong-answer attribution.
 
 ## Goals / Non-Goals
 
@@ -25,7 +25,7 @@ The client cannot assert a pass result, choose a different question, or attach a
 
 ### Use append-only intervention instances and idempotent event keys
 
-`MicroInterventionOutcome` is created by a start request after the authoritative orchestration result projects as available. It captures the source identifiers and immutable task snapshot, plus the learner session ID. `MicroInterventionEvent` stores `STARTED`, resource-use, hint, completion, and validation-submission facts. A unique `(interventionId, eventKey)` index makes delivery retries idempotent; a new start request deliberately creates a new instance.
+`MicroInterventionOutcome` is created by a start request after the authoritative orchestration result projects as available. It captures the source identifiers and immutable task snapshot, plus the learner session ID owned by the linked wrong-answer attribution. `MicroInterventionEvent` stores resource-use, hint, and completion facts; the one-to-one validation outcome records the validated answer fact. A unique `(interventionId, eventKey)` index makes delivery retries idempotent; a new start request deliberately creates a new instance.
 
 Alternative considered: one mutable result row with counters and a final status. Rejected because it loses event attribution, makes retries ambiguous, and cannot preserve independent attempts.
 
@@ -37,7 +37,7 @@ Alternative considered: delegate to `/api/assessment/submit-answer`. Rejected be
 
 ### Recommend only governed, pre-existing next steps
 
-For a passing validation, the service searches the current planning projection for a learner-visible, path-eligible higher-order transfer practice explicitly connected to the task's knowledge node. If none remains available, it returns `TRANSFER_PRACTICE_UNAVAILABLE` while preserving the pass outcome. For a failed validation, it returns governed prerequisite nodes in deterministic order; if none exists, it returns a controlled tutoring/manual-practice recommendation. These records are suggestions only and never modify mastery or the formal path.
+For a passing validation, the service searches the current planning projection for a learner-visible, path-eligible higher-order transfer practice explicitly connected to the task's knowledge node. A candidate must have both a reviewed `transfers-to` relation and a positive governed `crossDomainTransfer` ability impact; a generic resource on that relation is not enough. If none remains available, it returns `TRANSFER_PRACTICE_UNAVAILABLE` while preserving the pass outcome. For a failed validation, it returns governed prerequisite nodes in deterministic order; if none exists, it returns a controlled tutoring/manual-practice recommendation. These records are suggestions only and never modify mastery or the formal path.
 
 Alternative considered: generated or heuristic recommendations. Rejected because the evidence chain would be unverifiable.
 

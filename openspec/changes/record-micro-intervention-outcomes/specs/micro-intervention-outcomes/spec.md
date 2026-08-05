@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Server-created, append-only intervention identity
-The system SHALL create a server-assigned intervention instance only for an authenticated learner's currently available remediation orchestration result. Each instance SHALL retain immutable attribution, task, resource, validation-version, and learner-session bindings. A retry with the same event key SHALL return the original event result, while a later start request SHALL create an independent intervention history.
+The system SHALL create a server-assigned intervention instance only for an authenticated learner's currently available remediation orchestration result. Each instance SHALL retain immutable attribution, task, resource, validation-version, and learner-session bindings; the learner session SHALL come from the owning wrong-answer attribution rather than a client value. A retry with the same event key SHALL return the original event result, while a later start request SHALL create an independent intervention history.
 
 #### Scenario: Start and retry an intervention
 - **WHEN** a learner starts the same available remediation task twice with the same start event key

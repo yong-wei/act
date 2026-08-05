@@ -23,6 +23,7 @@ export type RemediationUnavailableReason =
 interface AttributionRow {
   id: string;
   userId: string;
+  sessionId: string;
   questionId: string;
   state: string;
   knowledgeNodeIds: string[];
@@ -111,7 +112,7 @@ interface GovernedValidationItem {
   actionPath: string;
 }
 
-interface RemediationTaskSnapshot {
+export interface RemediationTaskSnapshot {
   version: 'remediation-task-snapshot.v1';
   goal: string;
   estimatedMinutes: number;
@@ -141,6 +142,13 @@ interface RemediationTaskProjection {
   estimatedMinutes: number;
   resources: RemediationTaskSnapshot['resources'];
   validationQuestion: RemediationTaskSnapshot['validationQuestion'];
+}
+
+export interface AvailableRemediationInterventionSource {
+  remediationResultId: string;
+  orchestratorVersion: string;
+  learnerSessionId: string;
+  task: RemediationTaskSnapshot;
 }
 
 export type RemediationOrchestrationProjection =
@@ -563,6 +571,41 @@ async function projectResult(
     orchestratorVersion: row.orchestratorVersion,
     task: learnerTaskProjection(task),
     createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export async function readAvailableRemediationInterventionSource(input: {
+  db: RemediationOrchestrationDb;
+  authenticatedUserId: string;
+  resultId: string;
+}): Promise<AvailableRemediationInterventionSource | null> {
+  const row = await input.db.remediationOrchestrationResult.findFirst({
+    where: {
+      id: input.resultId,
+      userId: input.authenticatedUserId,
+    },
+  });
+  if (!row) return null;
+
+  const attribution = await input.db.wrongAnswerAttribution.findFirst({
+    where: {
+      id: row.wrongAnswerAttributionId,
+      userId: input.authenticatedUserId,
+    },
+    select: { id: true, userId: true, sessionId: true },
+  });
+  if (!attribution?.sessionId) return null;
+
+  const projection = await projectResult(input.db, row);
+  if (projection.status !== 'AVAILABLE') return null;
+  const task = parseTaskSnapshot(row.taskSnapshot);
+  if (!task) return null;
+
+  return {
+    remediationResultId: row.id,
+    orchestratorVersion: row.orchestratorVersion,
+    learnerSessionId: attribution.sessionId,
+    task,
   };
 }
 
