@@ -131,6 +131,7 @@ import {
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
+import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
 import {
@@ -1869,6 +1870,7 @@ interface KonlingMemoryCreateInput {
 interface KonlingInterventionInput {
   scope: KonlingRuntimeScope;
   studentState: StudentState;
+  arenaContext?: ArenaCompanionContext;
   now?: Date;
 }
 
@@ -7613,6 +7615,8 @@ export async function createGovernedKonlingIntervention(
   input: KonlingInterventionInput,
 ): Promise<KonlingInterventionRecord> {
   const now = input.now ?? new Date();
+  const interventionSessionId = buildKonlingInterventionSessionId(input.scope, input.arenaContext);
+  const evidence = buildInterventionEvidence(input.studentState, input.arenaContext);
   const teacherPolicy = resolveServerTeacherPolicy(input.scope);
   if (teacherPolicy === 'blocked') {
     return {
@@ -7634,7 +7638,7 @@ export async function createGovernedKonlingIntervention(
   const recent = await db.aIIntervention?.findFirst?.({
     where: {
       userId: input.scope.targetUserId,
-      sessionId: `konling:${input.scope.courseId}:${input.scope.pageId}`,
+      sessionId: interventionSessionId,
       classId: input.scope.classId ?? null,
       resourceId: input.scope.resourceId ?? null,
       pathNodeId: input.scope.pathNodeId ?? null,
@@ -7660,8 +7664,8 @@ export async function createGovernedKonlingIntervention(
     };
   }
 
-  const decision = shouldIntervene(input.studentState);
-  const payload = generateIntervention(decision, input.studentState);
+  const decision = shouldIntervene(input.studentState, {}, input.arenaContext);
+  const payload = generateIntervention(decision, input.studentState, input.arenaContext);
   if (!decision.shouldIntervene) {
     return {
       id: '',
@@ -7670,7 +7674,7 @@ export async function createGovernedKonlingIntervention(
       interventionType: 'none',
       content: payload.content,
       whyNow: buildWhyNow(decision, input.studentState),
-      evidence: buildInterventionEvidence(input.studentState),
+      evidence,
       alternatives: payload.suggestedNextSteps,
       relatedConcepts: payload.relatedConcepts,
       highlightParams: payload.highlightParams,
@@ -7680,13 +7684,12 @@ export async function createGovernedKonlingIntervention(
   }
   const cooldownUntil = new Date(now.getTime() + 20 * 60_000);
   const whyNow = buildWhyNow(decision, input.studentState);
-  const evidence = buildInterventionEvidence(input.studentState);
   const alternatives = payload.suggestedNextSteps.slice(0, 3);
 
   const record = await db.aIIntervention?.create?.({
     data: {
       userId: input.scope.targetUserId,
-      sessionId: `konling:${input.scope.courseId}:${input.scope.pageId}`,
+      sessionId: interventionSessionId,
       classId: input.scope.classId ?? null,
       resourceId: input.scope.resourceId ?? null,
       pathNodeId: input.scope.pathNodeId ?? null,
@@ -7705,7 +7708,7 @@ export async function createGovernedKonlingIntervention(
   const interventionId = getString(record, 'id') || `intv-${now.getTime()}`;
   await createKonlingMemory(db, {
     userId: input.scope.targetUserId,
-    sessionId: `konling:${input.scope.courseId}:${input.scope.pageId}`,
+    sessionId: interventionSessionId,
     classId: input.scope.classId ?? null,
     courseId: input.scope.courseId,
     pageId: input.scope.pageId,
@@ -7714,7 +7717,10 @@ export async function createGovernedKonlingIntervention(
     memoryType: 'intervention-outcome',
     privacyScope: 'teacher-scoped',
     summary: `${whyNow} 干预类型：${payload.feedbackType}`,
-    evidenceRefs: [{ kind: 'ai-intervention', ref: interventionId }],
+    evidenceRefs: [
+      ...evidence,
+      { kind: 'ai-intervention', ref: interventionId },
+    ],
   });
 
   return {
@@ -9656,12 +9662,32 @@ function resolveServerTeacherPolicy(_scope: KonlingRuntimeScope): 'allowed' | 'b
   return 'allowed';
 }
 
-function buildInterventionEvidence(state: StudentState): unknown[] {
-  return state.attemptHistory.slice(-3).map((attempt) => ({
+function buildKonlingInterventionSessionId(
+  scope: KonlingRuntimeScope,
+  arenaContext?: ArenaCompanionContext,
+) {
+  const base = `konling:${scope.courseId}:${scope.pageId}`;
+  if (!arenaContext) return base;
+  return `${base}:arena:${arenaContext.taskId}:${arenaContext.method}`;
+}
+
+function buildInterventionEvidence(
+  state: StudentState,
+  arenaContext?: ArenaCompanionContext,
+): unknown[] {
+  const attempts = state.attemptHistory.slice(-3).map((attempt) => ({
     attemptNumber: attempt.attemptNumber,
     isSuccessful: attempt.isSuccessful,
     result: redactSensitivePayload(attempt.result),
   }));
+  if (!arenaContext) return attempts;
+  return [
+    {
+      kind: 'arena-companion-context',
+      ref: `${arenaContext.taskId}:${arenaContext.method}`,
+    },
+    ...attempts,
+  ];
 }
 
 function formatSimulationStatus(state: Partial<SimulationStateStore>) {

@@ -92,8 +92,10 @@ describe('AI intervention generate route contract', () => {
     expect(companionPanelSource).toContain('pageId: sessionId');
     expect(companionPanelSource).toContain('resourceId: sessionId');
     expect(companionPanelSource).toContain('pathNodeId: `ai-companion:${sessionId}`');
-    expect(companionPanelSource).toContain('JSON.stringify({ studentState, ...interventionScope })');
-    expect(companionPanelSource).toContain('...interventionScope');
+    expect(companionPanelSource).toContain('JSON.stringify({');
+    expect(companionPanelSource).toContain('studentState,');
+    expect(companionPanelSource).toContain('...interventionScope,');
+    expect(companionPanelSource).toContain('arenaTaskId: context.taskId, method: context.method');
   });
 
   it('routes generate responses through the behavior-tested client field builder', () => {
