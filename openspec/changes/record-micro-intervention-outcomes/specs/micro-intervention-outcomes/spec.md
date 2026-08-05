@@ -12,11 +12,15 @@ The system SHALL create a server-assigned intervention instance only for an auth
 - **THEN** the system creates a separate intervention instance with its own event history
 
 ### Requirement: Version-bound, privacy-safe outcome evidence
-The system SHALL record only server-validated resource-use, hint, completion, duration, and validation-answer facts for an intervention instance. Before accepting a validation answer, the system SHALL revalidate the remediation task and SHALL bind the result to its selected validation item, content hash, version, and learner session. Learner projections SHALL exclude answer keys, explanations, raw answer text, source-question identifiers, misconception tags, and teacher-private metadata.
+The system SHALL record only server-validated resource-use, hint, completion, duration, and validation-answer facts for an intervention instance. Before accepting a validation answer, the system SHALL revalidate the remediation task and SHALL bind the result to its selected validation item, content hash, version, and learner session. A repeated event or validation submission SHALL return the original result only when its idempotency key and complete accepted semantics match the first persisted record; substituted event payloads, a second validation key, and races that resolve to a different first record SHALL return a conflict without rewriting evidence. Learner projections SHALL exclude learner-session identifiers, internal resource/node identifiers, answer keys, explanations, raw answer text, source-question identifiers, misconception tags, and teacher-private metadata.
 
 #### Scenario: Submit the selected governed validation question
 - **WHEN** a learner submits an option for the intervention's selected validation question after the task remains current and accessible
 - **THEN** the system evaluates the option server-side, records the version-bound outcome idempotently, and returns only the learner-safe result
+
+#### Scenario: Reject a substituted retry or second validation
+- **WHEN** a learner reuses an event key with different accepted event data, changes a validation answer or timing for the same key, or submits a validation with a different key after an outcome exists
+- **THEN** the system returns a conflict and preserves the first recorded event or validation outcome
 
 #### Scenario: Submit a stale or substituted question
 - **WHEN** the stored task has drifted, access has been revoked, or the submitted question does not match the intervention snapshot

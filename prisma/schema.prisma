@@ -4049,7 +4049,7 @@ model MicroInterventionOutcome {
   startedAt                        DateTime @default(now())
   createdAt                        DateTime @default(now())
 
-  remediationOrchestrationResult RemediationOrchestrationResult @relation(fields: [remediationOrchestrationResultId], references: [id], onDelete: Cascade)
+  remediationOrchestrationResult RemediationOrchestrationResult @relation(fields: [remediationOrchestrationResultId], references: [id], onDelete: Restrict)
   events                          MicroInterventionEvent[]
   validation                      MicroInterventionValidation?
 

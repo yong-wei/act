@@ -65,7 +65,7 @@ CREATE INDEX "MicroInterventionValidation_question_created_idx"
 ALTER TABLE "MicroInterventionOutcome"
   ADD CONSTRAINT "MicroInterventionOutcome_result_fkey"
   FOREIGN KEY ("remediationOrchestrationResultId") REFERENCES "RemediationOrchestrationResult"("id")
-  ON DELETE CASCADE ON UPDATE CASCADE;
+  ON DELETE RESTRICT ON UPDATE CASCADE;
 
 ALTER TABLE "MicroInterventionEvent"
   ADD CONSTRAINT "MicroInterventionEvent_intervention_fkey"

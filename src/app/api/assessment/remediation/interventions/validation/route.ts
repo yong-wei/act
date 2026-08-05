@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof MicroInterventionRequestError) {
-      return NextResponse.json({ error: error.code }, { status: 400 });
+      return NextResponse.json({ error: error.code }, { status: error.code === 'IDEMPOTENCY_CONFLICT' ? 409 : 400 });
     }
     console.error('[MicroIntervention] validation failed:', error);
     return NextResponse.json({ error: 'MICRO_INTERVENTION_VALIDATION_FAILED' }, { status: 500 });

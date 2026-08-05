@@ -12,10 +12,10 @@
 ## 3. Learner API
 
 - [x] 3.1 Add authenticated nested remediation endpoints for start, events, validation submission, and read.
-- [x] 3.2 Reject foreign, stale, substituted, malformed, and duplicate submissions without protected-data disclosure.
+- [x] 3.2 Reject foreign, stale, malformed, substituted, second-validation, and concurrent idempotency-conflict submissions without protected-data disclosure; return the original result only for an identical retry.
 
 ## 4. Verification
 
 - [x] 4.1 Add unit tests for independent starts, retry idempotency, version/session binding, validation scoring, recommendations, and no-mutation guarantees.
 - [x] 4.2 Add route tests for learner authorization, invalid requests, projection privacy, and controlled unavailable paths.
-- [x] 4.3 Run Prisma validation, targeted tests, TypeScript checks, repository gates, strict OpenSpec validation, and inspect the final diff.
+- [ ] 4.3 Run Prisma validation/generation, targeted tests (including ordering and concurrent idempotency conflicts), a disposable PostgreSQL migration smoke, TypeScript checks, repository gates, strict OpenSpec validation, and inspect the final diff.

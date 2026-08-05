@@ -6,12 +6,17 @@ const mocks = vi.hoisted(() => ({
   readMicroIntervention: vi.fn(),
   recordMicroInterventionEvent: vi.fn(),
   submitMicroInterventionValidation: vi.fn(),
+  MicroInterventionRequestError: class MicroInterventionRequestError extends Error {
+    constructor(readonly code: string) {
+      super(code);
+    }
+  },
 }));
 
 vi.mock('@/lib/auth', () => ({ getServerAuthSession: mocks.getServerAuthSession }));
 vi.mock('@/lib/prisma', () => ({ prisma: {} }));
 vi.mock('@/features/assessment/micro-intervention-outcomes', () => ({
-  MicroInterventionRequestError: class MicroInterventionRequestError extends Error {},
+  MicroInterventionRequestError: mocks.MicroInterventionRequestError,
   startMicroIntervention: mocks.startMicroIntervention,
   readMicroIntervention: mocks.readMicroIntervention,
   recordMicroInterventionEvent: mocks.recordMicroInterventionEvent,
@@ -45,7 +50,6 @@ describe('micro intervention routes', () => {
     mocks.startMicroIntervention.mockResolvedValue({
       id: 'intervention-1',
       status: 'STARTED',
-      learnerSessionId: 'session-1',
       startedAt: '2026-08-05T00:00:00.000Z',
       progress: { resourceUseCount: 0, hintCount: 0, completedAt: null, durationSeconds: null },
       validation: null,
@@ -63,6 +67,7 @@ describe('micro intervention routes', () => {
       remediationResultId: 'result-1',
       startEventKey: 'start-1',
     }));
+    expect(JSON.stringify(await response.clone().json())).not.toContain('session-1');
   });
 
   it('does not disclose foreign interventions and reports controlled drift', async () => {
@@ -95,5 +100,27 @@ describe('micro intervention routes', () => {
     expect(await invalidValidation.json()).toEqual({ error: 'VALIDATION_FIELDS_REQUIRED' });
     expect(mocks.recordMicroInterventionEvent).not.toHaveBeenCalled();
     expect(mocks.submitMicroInterventionValidation).not.toHaveBeenCalled();
+  });
+
+  it('returns conflicts for substituted event and validation submissions', async () => {
+    const RequestError = mocks.MicroInterventionRequestError;
+    mocks.recordMicroInterventionEvent.mockRejectedValueOnce(new RequestError('IDEMPOTENCY_CONFLICT'));
+    mocks.submitMicroInterventionValidation.mockRejectedValueOnce(new RequestError('IDEMPOTENCY_CONFLICT'));
+
+    const eventResponse = await event(new Request('http://localhost/api/assessment/remediation/interventions/events', {
+      method: 'POST',
+      body: JSON.stringify({ interventionId: 'intervention-1', eventKey: 'event-1', eventType: 'HINT_REQUESTED' }),
+    }));
+    const validationResponse = await validation(new Request('http://localhost/api/assessment/remediation/interventions/validation', {
+      method: 'POST',
+      body: JSON.stringify({
+        interventionId: 'intervention-1', eventKey: 'answer-1', questionId: 'question-1', selectedOption: 'A', durationSeconds: 30,
+      }),
+    }));
+
+    expect(eventResponse.status).toBe(409);
+    expect(await eventResponse.json()).toEqual({ error: 'IDEMPOTENCY_CONFLICT' });
+    expect(validationResponse.status).toBe(409);
+    expect(await validationResponse.json()).toEqual({ error: 'IDEMPOTENCY_CONFLICT' });
   });
 });

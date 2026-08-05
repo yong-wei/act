@@ -20,7 +20,7 @@ export type MicroInterventionRecommendation =
   | {
     kind: 'TRANSFER_PRACTICE';
     basisSummary: string;
-    actions: Array<{ id: string; title: string; actionPath: string }>;
+    actions: Array<{ title: string; actionPath: string }>;
   }
   | {
     kind: 'TRANSFER_PRACTICE_UNAVAILABLE';
@@ -30,7 +30,7 @@ export type MicroInterventionRecommendation =
   | {
     kind: 'PREREQUISITE_SPLIT';
     basisSummary: string;
-    prerequisiteNodes: Array<{ id: string; name: string }>;
+    prerequisiteNodes: Array<{ name: string }>;
   }
   | {
     kind: 'ADJUST_TUTORING_STRATEGY';
@@ -41,7 +41,6 @@ export type MicroInterventionRecommendation =
 export type MicroInterventionProjection = {
   id: string;
   status: 'STARTED' | 'COMPLETED' | 'VALIDATED';
-  learnerSessionId: string;
   startedAt: string;
   progress: {
     resourceUseCount: number;
@@ -132,6 +131,7 @@ export interface MicroInterventionDb extends RemediationOrchestrationDb {
     findFirst(input: any): Promise<InterventionRow | null>;
   };
   microInterventionEvent: {
+    findFirst(input: any): Promise<InterventionEventRow | null>;
     upsert(input: any): Promise<InterventionEventRow>;
   };
   microInterventionValidation: {
@@ -152,7 +152,7 @@ interface InterventionSourceSnapshot {
 }
 
 export class MicroInterventionRequestError extends Error {
-  constructor(readonly code: 'EVENT_INVALID' | 'VALIDATION_INVALID' | 'VALIDATION_UNAVAILABLE') {
+  constructor(readonly code: 'EVENT_INVALID' | 'IDEMPOTENCY_CONFLICT' | 'VALIDATION_INVALID' | 'VALIDATION_UNAVAILABLE') {
     super(code);
   }
 }
@@ -272,24 +272,22 @@ function recommendation(value: unknown): MicroInterventionRecommendation | null 
   if (kind === 'TRANSFER_PRACTICE') {
     const actions = Array.isArray(snapshot?.actions) ? snapshot.actions.map((entry) => {
       const item = record(entry);
-      const id = nonEmptyString(item?.id);
       const title = nonEmptyString(item?.title);
       const target = actionPath(item?.actionPath);
-      return id && title && target ? { id, title, actionPath: target } : null;
+      return title && target ? { title, actionPath: target } : null;
     }) : [];
     return actions.length > 0 && actions.every(Boolean)
-      ? { kind, basisSummary, actions: actions as Array<{ id: string; title: string; actionPath: string }> }
+      ? { kind, basisSummary, actions: actions as Array<{ title: string; actionPath: string }> }
       : null;
   }
   if (kind === 'PREREQUISITE_SPLIT') {
     const prerequisiteNodes = Array.isArray(snapshot?.prerequisiteNodes) ? snapshot.prerequisiteNodes.map((entry) => {
       const item = record(entry);
-      const id = nonEmptyString(item?.id);
       const name = nonEmptyString(item?.name);
-      return id && name ? { id, name } : null;
+      return name ? { name } : null;
     }) : [];
     return prerequisiteNodes.length > 0 && prerequisiteNodes.every(Boolean)
-      ? { kind, basisSummary, prerequisiteNodes: prerequisiteNodes as Array<{ id: string; name: string }> }
+      ? { kind, basisSummary, prerequisiteNodes: prerequisiteNodes as Array<{ name: string }> }
       : null;
   }
   return null;
@@ -306,7 +304,6 @@ function projection(row: InterventionRow): MicroInterventionProjection | null {
   return {
     id: row.id,
     status: validation ? 'VALIDATED' : completed ? 'COMPLETED' : 'STARTED',
-    learnerSessionId: row.learnerSessionId,
     startedAt: row.startedAt.toISOString(),
     progress: {
       resourceUseCount: events.filter((event) => event.eventType === 'RESOURCE_USED').length,
@@ -416,7 +413,7 @@ function learnerTransferAction(row: TransferResourceRow, node: ResourceNode | nu
   ) {
     return null;
   }
-  return { id: row.id, title: node.title, actionPath: target };
+  return { title: node.title, actionPath: target };
 }
 
 async function recommendationForPass(
@@ -458,8 +455,8 @@ async function recommendationForPass(
     .map((node) => [node.sourceRef, node]));
   const actions = resources
     .map((resource) => learnerTransferAction(resource, nodeByResourceId.get(resource.id) ?? null))
-    .filter((item): item is { id: string; title: string; actionPath: string } => item !== null)
-    .sort((left, right) => left.id.localeCompare(right.id));
+    .filter((item): item is { title: string; actionPath: string } => item !== null)
+    .sort((left, right) => left.actionPath.localeCompare(right.actionPath));
   return actions.length > 0
     ? {
       kind: 'TRANSFER_PRACTICE',
@@ -494,7 +491,7 @@ async function recommendationForFailure(
   const prerequisiteNodes = prerequisiteLinks
     .map((link) => link.sourceNode)
     .filter((node): node is { id: string; name: string; isActive: boolean } => Boolean(node?.isActive))
-    .map((node) => ({ id: node.id, name: node.name }));
+    .map((node) => ({ name: node.name }));
   if (prerequisiteNodes.length > 0) {
     return {
       kind: 'PREREQUISITE_SPLIT',
@@ -591,7 +588,18 @@ export async function recordMicroInterventionEvent(input: {
     throw new MicroInterventionRequestError('EVENT_INVALID');
   }
 
-  await input.db.microInterventionEvent.upsert({
+  const sameEvent = (event: InterventionEventRow) => (
+    event.eventType === input.eventType && event.resourceId === resourceId && event.durationSeconds === durationSeconds
+  );
+  const existing = await input.db.microInterventionEvent.findFirst({
+    where: { interventionId: current.row.id, eventKey: input.eventKey },
+  });
+  if (existing) {
+    if (!sameEvent(existing)) throw new MicroInterventionRequestError('IDEMPOTENCY_CONFLICT');
+    return readMicroIntervention(input);
+  }
+
+  const persisted = await input.db.microInterventionEvent.upsert({
     where: {
       interventionId_eventKey: {
         interventionId: current.row.id,
@@ -608,6 +616,7 @@ export async function recordMicroInterventionEvent(input: {
       occurredAt: new Date(),
     },
   });
+  if (!sameEvent(persisted)) throw new MicroInterventionRequestError('IDEMPOTENCY_CONFLICT');
   return readMicroIntervention(input);
 }
 
@@ -626,11 +635,6 @@ export async function submitMicroInterventionValidation(input: {
   if (!durationSeconds || input.questionId !== current.source.task.validationQuestion.questionId) {
     throw new MicroInterventionRequestError('VALIDATION_INVALID');
   }
-  const existing = await input.db.microInterventionValidation.findFirst({
-    where: { interventionId: current.row.id },
-  });
-  if (existing) return readMicroIntervention(input);
-
   const question = getAdaptiveQuestionById(current.source.task.validationQuestion.questionId);
   if (!question || question.id !== current.source.task.validationQuestion.questionId) {
     throw new MicroInterventionRequestError('VALIDATION_UNAVAILABLE');
@@ -641,8 +645,25 @@ export async function submitMicroInterventionValidation(input: {
   if (selectedIndex < 0) throw new MicroInterventionRequestError('VALIDATION_INVALID');
   const isCorrect = Boolean(question.options[selectedIndex]?.isCorrect);
   const selectedOptionKey = String.fromCharCode(65 + selectedIndex);
+  const sameValidation = (validation: InterventionValidationRow) => (
+    validation.eventKey === input.eventKey &&
+    validation.selectedOptionKey === selectedOptionKey &&
+    validation.isCorrect === isCorrect &&
+    validation.durationSeconds === durationSeconds &&
+    validation.questionId === current.source.task.validationQuestion.questionId &&
+    validation.questionContentHash === current.source.task.validationQuestion.contentHash &&
+    validation.questionVersion === current.source.task.validationQuestion.version
+  );
+  const existing = await input.db.microInterventionValidation.findFirst({
+    where: { interventionId: current.row.id },
+  });
+  if (existing) {
+    if (!sameValidation(existing)) throw new MicroInterventionRequestError('IDEMPOTENCY_CONFLICT');
+    return readMicroIntervention(input);
+  }
+
   const nextStep = await recommendationForValidation(input.db, current.source, isCorrect);
-  await input.db.microInterventionValidation.upsert({
+  const persisted = await input.db.microInterventionValidation.upsert({
     where: { interventionId: current.row.id },
     update: {},
     create: {
@@ -657,5 +678,6 @@ export async function submitMicroInterventionValidation(input: {
       recommendationSnapshot: nextStep,
     },
   });
+  if (!sameValidation(persisted)) throw new MicroInterventionRequestError('IDEMPOTENCY_CONFLICT');
   return readMicroIntervention(input);
 }

@@ -85,6 +85,9 @@ function createDb() {
       }),
     },
     microInterventionEvent: {
+      findFirst: vi.fn(async (input: any) => events.find((row) => (
+        row.interventionId === input.where.interventionId && row.eventKey === input.where.eventKey
+      )) ?? null),
       upsert: vi.fn(async (input: any) => {
         const key = input.where.interventionId_eventKey;
         const existing = events.find((row) => row.interventionId === key.interventionId && row.eventKey === key.eventKey);
@@ -203,7 +206,7 @@ describe('micro intervention outcomes', () => {
     }));
   });
 
-  it('records only version-bound events and is idempotent per event key', async () => {
+  it('preserves the first event payload for an idempotency key', async () => {
     const { db, events, mocks: dbMocks } = createDb();
     const started = await start(db);
     if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
@@ -237,7 +240,42 @@ describe('micro intervention outcomes', () => {
     expect(retry).toMatchObject({ status: 'STARTED', progress: { resourceUseCount: 1 } });
     expect(completed).toMatchObject({ status: 'COMPLETED', progress: { durationSeconds: 180 } });
     expect(events).toHaveLength(2);
-    expect(dbMocks.microInterventionEvent.upsert).toHaveBeenCalledTimes(3);
+    expect(dbMocks.microInterventionEvent.upsert).toHaveBeenCalledTimes(2);
+    await expect(recordMicroInterventionEvent({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'resource-1',
+      eventType: 'COMPLETED',
+      durationSeconds: 180,
+    })).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
+    expect(events).toHaveLength(2);
+  });
+
+  it('rejects a concurrent event write that resolves to a different first payload', async () => {
+    const { db, mocks: dbMocks } = createDb();
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+    dbMocks.microInterventionEvent.findFirst.mockResolvedValueOnce(null);
+    dbMocks.microInterventionEvent.upsert.mockResolvedValueOnce({
+      id: 'event-concurrent',
+      interventionId: started.id,
+      eventKey: 'resource-1',
+      eventType: 'HINT_REQUESTED',
+      resourceId: null,
+      durationSeconds: null,
+      occurredAt: new Date(),
+      createdAt: new Date(),
+    });
+
+    await expect(recordMicroInterventionEvent({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'resource-1',
+      eventType: 'RESOURCE_USED',
+      resourceId: 'resource-1',
+    })).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
   });
 
   it('fails closed when the current remediation snapshot no longer matches the recorded source', async () => {
@@ -289,6 +327,7 @@ describe('micro intervention outcomes', () => {
     expect(JSON.stringify(result)).not.toContain('source-question-private');
     expect(JSON.stringify(result)).not.toContain('misconception-private');
     expect(JSON.stringify(result)).not.toContain('private correct choice');
+    expect(JSON.stringify(result)).not.toContain('session-1');
   });
 
   it('recommends an existing governed transfer practice after a passing validation', async () => {
@@ -317,7 +356,7 @@ describe('micro intervention outcomes', () => {
       validation: { isCorrect: true },
       recommendation: {
         kind: 'TRANSFER_PRACTICE',
-        actions: [{ id: 'transfer-resource', actionPath: '/interactive-learning/resources/transfer-resource' }],
+        actions: [{ actionPath: '/interactive-learning/resources/transfer-resource' }],
       },
     });
   });
@@ -374,9 +413,9 @@ describe('micro intervention outcomes', () => {
       db,
       authenticatedUserId: 'learner-1',
       interventionId: started.id,
-      eventKey: 'validation-retry',
+      eventKey: 'validation-1',
       questionId: 'validation-question',
-      selectedOption: 'B',
+      selectedOption: 'A',
       durationSeconds: 45,
     });
 
@@ -384,9 +423,49 @@ describe('micro intervention outcomes', () => {
       validation: { isCorrect: false },
       recommendation: {
         kind: 'PREREQUISITE_SPLIT',
-        prerequisiteNodes: [{ id: 'node-foundation', name: 'Foundation concept' }],
+        prerequisiteNodes: [{ name: 'Foundation concept' }],
       },
     });
     expect(retry).toMatchObject({ validation: { isCorrect: false }, recommendation: { kind: 'PREREQUISITE_SPLIT' } });
+    await expect(submitMicroInterventionValidation({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'validation-retry',
+      questionId: 'validation-question',
+      selectedOption: 'A',
+      durationSeconds: 45,
+    })).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
+  });
+
+  it('rejects concurrent validation writes when the persisted first answer differs', async () => {
+    const { db, mocks: dbMocks } = createDb();
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+    dbMocks.microInterventionValidation.findFirst.mockResolvedValueOnce(null);
+    dbMocks.microInterventionValidation.upsert.mockResolvedValueOnce({
+      id: 'validation-concurrent',
+      interventionId: started.id,
+      eventKey: 'validation-1',
+      selectedOptionKey: 'A',
+      isCorrect: false,
+      durationSeconds: 45,
+      questionId: 'validation-question',
+      questionContentHash: 'a'.repeat(64),
+      questionVersion: 'validation.v1',
+      recommendationSnapshot: { kind: 'ADJUST_TUTORING_STRATEGY', basisSummary: 'test', manualPracticePath: '/student/practice' },
+      submittedAt: new Date(),
+      createdAt: new Date(),
+    });
+
+    await expect(submitMicroInterventionValidation({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'validation-1',
+      questionId: 'validation-question',
+      selectedOption: 'B',
+      durationSeconds: 45,
+    })).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
   });
 });
