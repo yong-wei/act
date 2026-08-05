@@ -99,6 +99,22 @@ function pendingSelectionParts() {
 async function installRoutes(page: Page) {
   let chatCalls = 0;
   let choiceCalls = 0;
+  const conversation = {
+    id: 'conversation-selection-c', userId: 'demo-student', courseId: 'control-correction',
+    pageId: 'adaptive-practice', title: 'Candidate selection', titleIsManual: false, pinned: false,
+    pinnedAt: null, lastActivityAt: '2026-08-05T00:00:00.000Z', createdAt: '2026-08-05T00:00:00.000Z',
+    updatedAt: '2026-08-05T00:00:00.000Z', expiresAt: '2026-08-06T00:00:00.000Z', messages: [],
+    assistantBinding: { teachingAssistantModeId: 'path-advisor', modeClientContextHints: { candidateBatchId: batchId } },
+  };
+  await page.route('**/api/auth/session', (route) => route.fulfill({ json: {
+    user: { id: 'demo-student', email: 'demo@example.test', name: 'Demo student', role: 'STUDENT' },
+    expires: '2026-08-06T00:00:00.000Z',
+  } }));
+  await page.route('**/api/ai/sessions', async (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { conversations: [conversation] } });
+    return route.fulfill({ json: conversation });
+  });
+  await page.route('**/api/ai/sessions/conversation-selection-c', (route) => route.fulfill({ json: conversation }));
   await page.route('**/api/adaptive/path-advisor-context**', (route) => route.fulfill({ json: {
     goalId: 'control-correction', classId: 'class-1140', courseTitle: 'Control correction', topic: 'Phase margin',
     learningObjectives: ['Choose one governed candidate'], modeContextToken: 'candidate-selection-mode-token',
