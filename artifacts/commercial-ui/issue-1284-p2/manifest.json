@@ -1,0 +1,268 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "capturedAt": "2026-08-05T03:51:08.724Z",
+  "sourceRevision": "e4141d10cf8698defb64929d6046c649010982d1",
+  "generator": {
+    "file": "tests/adaptive-path-correction-decisions-evidence.spec.ts",
+    "sha256": "63183a0c1d4e807e0992107d2d36d8790d56c296b65df2524d39349d9a9c3250"
+  },
+  "productionSourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "54a91d59553ddb90bfa246ce299bd579e7287b3763bc488eac138086a06886ba",
+    "src/features/adaptive/adaptive-path-journey-control.tsx": "6f7d32d03085d2d93268b75aa2386d2c795143e11735d21efb27e2133764c3e7",
+    "src/features/adaptive/adaptive-path-journey-contracts.ts": "ccf3014e50695502e482318db978d06180d1429e60d8b1e9e5b066093bbbb156",
+    "src/lib/adaptive-path-correction-decisions.ts": "b0f54ae36faa4a6b238c15b600c748b00efbf2151440e6f91252dd8c71f75a85",
+    "src/app/api/learning-paths/[id]/correction-decisions/route.ts": "2b50c70128a1a0dee34242ee71b1d4c5c8735dd826dc3affae1069eb5147c681"
+  },
+  "routes": [
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=confirmed",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=rejected",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=deferred",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=skip-confirmed",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=stale-409",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=retry-failed"
+  ],
+  "assertions": [
+    {
+      "viewport": "desktop-1440",
+      "scenario": "confirmed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "confirmed"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "scenario": "rejected",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "rejected"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "scenario": "deferred",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "deferred"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "scenario": "skip-confirmed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "skip advance candidate confirms"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "scenario": "stale-409",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "stale-409"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "scenario": "retry-failed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "retry-failed"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "confirmed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "confirmed"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "rejected",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "rejected"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "deferred",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "deferred"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "skip-confirmed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "skip advance candidate confirms"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "stale-409",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "stale-409"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "retry-failed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "retry-failed"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "scenario": "confirmed",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-p2/confirmed-desktop-1440.png",
+      "sha256": "e07df8aa099eeb7b47db4aa28f17a557516c6150758dd45051762a876bd81fb8",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "rejected",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-p2/rejected-desktop-1440.png",
+      "sha256": "ad3e9a1b0e13d9e77ba9b2d10e1e532dec4b2ecb7d464b207d3c8f5f05a2f5ac",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "deferred",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-p2/deferred-desktop-1440.png",
+      "sha256": "0e2f1a3e398ac8f3af6c637613c5660bb8a60c3a40dd732e3d1ba1c2d2481b33",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "skip-confirmed",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-p2/skip-confirmed-desktop-1440.png",
+      "sha256": "684d3ea5a2d44d16c1c55181a0c23eaf20e4bd9f1b84b21e4d547181ace34e02",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "stale-409",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-p2/stale-409-desktop-1440.png",
+      "sha256": "f541c86a24c6d87fba9ef6a22aaeaeca92f462cafdadbfe2f7e23d189a65f28b",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "retry-failed",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-p2/retry-failed-desktop-1440.png",
+      "sha256": "e07df8aa099eeb7b47db4aa28f17a557516c6150758dd45051762a876bd81fb8",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "confirmed",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-p2/confirmed-mobile-320.png",
+      "sha256": "60ae480da39cfd2551d628e56026ee9dbf43fa62da14063f6fcdc48e7b9e3516",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "rejected",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-p2/rejected-mobile-320.png",
+      "sha256": "1e80f8bf0b3606c7c1a591b4514f297a810b88986f4643601f4d7986cc2ef0fa",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "deferred",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-p2/deferred-mobile-320.png",
+      "sha256": "9064342e00d4708e3b95f36108adff07ab5e6fc56aba6d5549bcc7b114cdd72d",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "skip-confirmed",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-p2/skip-confirmed-mobile-320.png",
+      "sha256": "a6a9a51d4a97124d2ded0319d5f6eddb9985641b92f3d837cc403052b742f1ea",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "stale-409",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-p2/stale-409-mobile-320.png",
+      "sha256": "1aacf8e7effe24370109d0655a7897557bbc76e4cd24068d8dd68192f560d5d2",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "retry-failed",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-p2/retry-failed-mobile-320.png",
+      "sha256": "60ae480da39cfd2551d628e56026ee9dbf43fa62da14063f6fcdc48e7b9e3516",
+      "noHorizontalOverflow": true
+    }
+  ]
+}
