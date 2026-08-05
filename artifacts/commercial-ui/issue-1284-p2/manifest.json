@@ -1,23 +1,25 @@
 {
   "schemaVersion": "commercial-ui-evidence.v1",
-  "capturedAt": "2026-08-05T03:51:08.724Z",
-  "sourceRevision": "e4141d10cf8698defb64929d6046c649010982d1",
+  "capturedAt": "2026-08-05T06:23:24.982Z",
+  "sourceRevision": "69f921202bbbaf44e6eae1ffb1e253d979170625",
   "generator": {
     "file": "tests/adaptive-path-correction-decisions-evidence.spec.ts",
-    "sha256": "63183a0c1d4e807e0992107d2d36d8790d56c296b65df2524d39349d9a9c3250"
+    "sha256": "fc9e21ac26c4a4d0f0d870b8f2eb5a2f735b3589967695af066468f298173028"
   },
   "productionSourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "54a91d59553ddb90bfa246ce299bd579e7287b3763bc488eac138086a06886ba",
     "src/features/adaptive/adaptive-path-journey-control.tsx": "6f7d32d03085d2d93268b75aa2386d2c795143e11735d21efb27e2133764c3e7",
     "src/features/adaptive/adaptive-path-journey-contracts.ts": "ccf3014e50695502e482318db978d06180d1429e60d8b1e9e5b066093bbbb156",
-    "src/lib/adaptive-path-correction-decisions.ts": "b0f54ae36faa4a6b238c15b600c748b00efbf2151440e6f91252dd8c71f75a85",
-    "src/app/api/learning-paths/[id]/correction-decisions/route.ts": "2b50c70128a1a0dee34242ee71b1d4c5c8735dd826dc3affae1069eb5147c681"
+    "src/lib/adaptive-path-correction-decisions.ts": "15dec00bc493eb0d2e7f95f520fe10e0114f1808ef73c9fab7083d4e5213dc6f",
+    "src/app/api/learning-paths/[id]/correction-decisions/route.ts": "058a96a04f052696d2f0ba9ab3ad10df81918277c917d9a4921cc5eace9ce544"
   },
   "routes": [
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=confirmed",
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=rejected",
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=deferred",
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=skip-confirmed",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=replacement-confirmed",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=abandonment-confirmed",
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=stale-409",
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=retry-failed"
   ],
@@ -64,6 +66,28 @@
         "keyboard focus reaches correction controls",
         "no horizontal overflow",
         "skip advance candidate confirms"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "scenario": "replacement-confirmed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "replacement-confirmed"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "scenario": "abandonment-confirmed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "abandonment-confirmed"
       ]
     },
     {
@@ -130,6 +154,28 @@
         "keyboard focus reaches correction controls",
         "no horizontal overflow",
         "skip advance candidate confirms"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "replacement-confirmed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "replacement-confirmed"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "abandonment-confirmed",
+      "passed": true,
+      "checks": [
+        "student submits only decision identity and idempotency data",
+        "keyboard focus reaches correction controls",
+        "no horizontal overflow",
+        "abandonment-confirmed"
       ]
     },
     {
@@ -193,6 +239,24 @@
       "noHorizontalOverflow": true
     },
     {
+      "scenario": "replacement-confirmed",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-p2/replacement-confirmed-desktop-1440.png",
+      "sha256": "185f66e4d56cdfa3161ef5095c0dc1fec350e351a03dcb12155e993e1c06f7a7",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "abandonment-confirmed",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1284-p2/abandonment-confirmed-desktop-1440.png",
+      "sha256": "af9b2c5725d23530ada55dda35d7080775a767f2ffae3f9ff136cfce86b8118e",
+      "noHorizontalOverflow": true
+    },
+    {
       "scenario": "stale-409",
       "viewport": "desktop-1440",
       "width": 1440,
@@ -244,6 +308,24 @@
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1284-p2/skip-confirmed-mobile-320.png",
       "sha256": "a6a9a51d4a97124d2ded0319d5f6eddb9985641b92f3d837cc403052b742f1ea",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "replacement-confirmed",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-p2/replacement-confirmed-mobile-320.png",
+      "sha256": "85750516e92228961040fa302829141007282a8bf5f2316482d430130f5ae157",
+      "noHorizontalOverflow": true
+    },
+    {
+      "scenario": "abandonment-confirmed",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1284-p2/abandonment-confirmed-mobile-320.png",
+      "sha256": "06bfd3edd39f30f8f9f249625e08841c43383a73ced2a6af26a94bcae1151e29",
       "noHorizontalOverflow": true
     },
     {
