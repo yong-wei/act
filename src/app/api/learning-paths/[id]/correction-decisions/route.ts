@@ -164,7 +164,6 @@ const JOURNEY_PATH_SELECT = {
   },
   correctionDecisions: {
     orderBy: { createdAt: 'desc' },
-    take: 10,
     select: { candidateFingerprint: true, decision: true, applicationResult: true, createdAt: true },
   },
 } as const;

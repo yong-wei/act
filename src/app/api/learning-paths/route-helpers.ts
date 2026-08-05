@@ -62,7 +62,6 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
       },
       correctionDecisions: {
         orderBy: { createdAt: 'desc' },
-        take: 10,
         select: {
           candidateFingerprint: true,
           decision: true,

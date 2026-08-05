@@ -475,12 +475,12 @@ function projectAdaptivePathCorrectionDecisionState(input: {
   const candidateFingerprint = input.correction.proposal
     ? fingerprintAdaptivePathCorrectionProposal(input.correction.proposal)
     : null;
-  const history = input.decisions
+  const decisions = input.decisions
     .map(toAdaptivePathCorrectionDecisionHistoryItem)
-    .filter((item): item is AdaptivePathCorrectionDecisionHistoryItem => Boolean(item))
-    .slice(0, 10);
+    .filter((item): item is AdaptivePathCorrectionDecisionHistoryItem => Boolean(item));
+  const history = decisions.slice(0, 10);
   const decision = candidateFingerprint
-    ? history.find((item) => item.candidateFingerprint === candidateFingerprint) ?? null
+    ? decisions.find((item) => item.candidateFingerprint === candidateFingerprint) ?? null
     : null;
   return {
     ...input.correction,
