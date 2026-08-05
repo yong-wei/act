@@ -8,7 +8,7 @@
 
 - [x] 2.1 增加伪造客户端贡献的事实与 Portrait v2 无增量回归测试，并保留正常互动字段断言。
 - [x] 2.2 增加服务端已核验自适应测评仍产生能力贡献的回归测试。
-- [x] 2.3 执行相关 Vitest、OpenSpec 严格校验和 TypeScript 类型检查。
+- [x] 2.3 执行相关 Vitest、OpenSpec 严格校验和 TypeScript 类型检查；P2 复核已在当前提交重新执行原始 `npm run typecheck` 和 `npm run test:data-governance`，均通过。
 
 ## 3. 审查修正
 
