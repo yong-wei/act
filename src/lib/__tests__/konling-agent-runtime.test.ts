@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9360,7 +9361,7 @@ describe('konling agent runtime', () => {
         idempotencyKey: 'path-gen-1',
         inputSummary: expect.objectContaining({
           graphNodeId: 'kn:autocontrol:controller-correction',
-          naturalLanguageIntent: 'student-provided-natural-language-path-intent',
+          naturalLanguageIntent: `sha256:${createHash('sha256').update('我想先补相位裕度，再做仿真验证。').digest('hex')}`,
         }),
       }),
     }));
@@ -11632,7 +11633,7 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         inputSummary: expect.objectContaining({
-          naturalLanguageIntent: 'student-provided-natural-language-path-intent',
+          naturalLanguageIntent: `sha256:${createHash('sha256').update('优先完成仿真和 Arena。').digest('hex')}`,
         }),
       }),
     }));
@@ -12687,7 +12688,7 @@ describe('konling agent runtime', () => {
       inputSummary: {
         batchId: 'previous-batch', candidateId: 'previous-candidate',
         pathId: 'path-1', goalId: 'control-correction',
-        naturalLanguageIntent: 'Challenge sprint path',
+        naturalLanguageIntent: `sha256:${createHash('sha256').update('Challenge sprint path').digest('hex')}`,
       },
       outputSummary,
       errorSummary: null,

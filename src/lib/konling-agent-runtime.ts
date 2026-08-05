@@ -5833,7 +5833,7 @@ function buildAdaptivePathToolScope(input: KonlingToolRuntimeInput, goalId: stri
 function summarizeStudentIntent(intent?: string | null) {
   const value = typeof intent === 'string' ? intent.trim() : '';
   if (!value) return null;
-  return 'student-provided-natural-language-path-intent';
+  return `sha256:${createHash('sha256').update(value).digest('hex')}`;
 }
 
 function isKonlingAdaptivePathTool(toolName: KonlingToolName) {
@@ -6348,7 +6348,7 @@ function assertReusedCandidateSelectionToolRunMatchesInput(
   const requested = readRecord(toolInput);
   const persisted = readRecord(toolRun.inputSummary);
   const requestedCandidateId = getString(requested, 'candidateId');
-  const requestedIntent = getString(requested, 'naturalLanguageIntent')?.trim() || null;
+  const requestedIntent = summarizeStudentIntent(getString(requested, 'naturalLanguageIntent'));
   const persistedIntent = getString(persisted, 'naturalLanguageIntent')?.trim() || null;
   if (
     getString(persisted, 'batchId') !== getString(requested, 'batchId')
