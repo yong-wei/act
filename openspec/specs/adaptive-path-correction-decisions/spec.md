@@ -1,7 +1,7 @@
 # adaptive-path-correction-decisions Specification
 
 ## Purpose
-TBD - created by archiving change apply-adaptive-path-correction-decisions. Update Purpose after archive.
+Defines the server-authoritative, append-only decision contract for learner-confirmed adaptive path corrections, including candidate identity, immutable snapshots, stale-write protection, idempotent outcomes, and privacy-safe journey history.
 ## Requirements
 ### Requirement: Correction candidates accept auditable student decisions
 The system SHALL let the owner of a path confirm, reject, or defer a current correction candidate through a server-authoritative decision. Each decision SHALL persist the candidate fingerprint, path version, original-path snapshot, candidate snapshot, supporting facts, decision type, timestamp, and application result. The client SHALL submit only candidate identity, path version, decision type, and an idempotency key.

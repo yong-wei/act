@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Confirmed correction candidates update only eligible future path nodes
-The system SHALL apply a confirmed correction candidate by replacing only unfinished nodes after the current entered node. It SHALL preserve completed nodes, the current node when it has entered execution, existing execution and deviation records, and terminal evidence unless the confirmed candidate itself contains a governed future terminal node.
+The system SHALL apply a confirmed correction candidate by preserving completed nodes and the current node once execution has entered it, excluding unfinished historical nodes that a governed skip, replacement, or abandonment deviation explicitly marks as no longer applicable, and replacing only eligible adjustable unfinished future nodes. It SHALL preserve existing execution and deviation records and terminal evidence unless the confirmed candidate itself contains a governed future terminal node.
 
 #### Scenario: Current node is in progress
 - **WHEN** a learner confirms a correction while the current node is started but not completed
