@@ -188,7 +188,7 @@ for (const viewport of [
     await expect(page).toHaveURL(new RegExp(`batch=${batchId}.*candidate=${candidateId}`));
     await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
 
-    const openKonling = page.locator('button:not([disabled])', { hasText: '打开控灵' }).first();
+    const openKonling = page.getByRole('button', { name: `请控灵调整Simulation sprint` });
     await expect(openKonling).toBeEnabled();
     await openKonling.click();
     const sidebar = page.locator('[data-konling-assistant-surface="global-sidebar"]');
