@@ -1,6 +1,6 @@
 # PR #1169 Unlock Chain Commercial UI Evidence
 
-Captured from 9934d6b0b003732680f4788471639f1d75f7c372 with the `?demo=1&unlockChainScene=1` production demo path.
+Captured from 4d1c588d3b5af63c4ebf132960079bba00b7e10c with the `?demo=1&unlockChainScene=1` production demo path.
 
 ## Representative captures
 
