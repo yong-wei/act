@@ -1,7 +1,7 @@
 {
   "schemaVersion": "commercial-ui-evidence.v1",
-  "capturedAt": "2026-08-05T06:23:24.982Z",
-  "sourceRevision": "69f921202bbbaf44e6eae1ffb1e253d979170625",
+  "capturedAt": "2026-08-05T07:42:34.661Z",
+  "sourceRevision": "b7ddb49a7b9ca3157fefc0acd1bcd2ab81e356ad",
   "generator": {
     "file": "tests/adaptive-path-correction-decisions-evidence.spec.ts",
     "sha256": "fc9e21ac26c4a4d0f0d870b8f2eb5a2f735b3589967695af066468f298173028"
@@ -9,9 +9,9 @@
   "productionSourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "54a91d59553ddb90bfa246ce299bd579e7287b3763bc488eac138086a06886ba",
     "src/features/adaptive/adaptive-path-journey-control.tsx": "6f7d32d03085d2d93268b75aa2386d2c795143e11735d21efb27e2133764c3e7",
-    "src/features/adaptive/adaptive-path-journey-contracts.ts": "ccf3014e50695502e482318db978d06180d1429e60d8b1e9e5b066093bbbb156",
+    "src/features/adaptive/adaptive-path-journey-contracts.ts": "e8834c9b1331234449f4d981ee8980c6a93b3c0a7a019021a864734ffebb880d",
     "src/lib/adaptive-path-correction-decisions.ts": "15dec00bc493eb0d2e7f95f520fe10e0114f1808ef73c9fab7083d4e5213dc6f",
-    "src/app/api/learning-paths/[id]/correction-decisions/route.ts": "058a96a04f052696d2f0ba9ab3ad10df81918277c917d9a4921cc5eace9ce544"
+    "src/app/api/learning-paths/[id]/correction-decisions/route.ts": "7991ad8b9472d719ec72a36bd0a3e1851bae38daffa99d214e02bd5a2e5647c9"
   },
   "routes": [
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=path-correction-1&nodeId=node-3&correctionFixture=confirmed",
