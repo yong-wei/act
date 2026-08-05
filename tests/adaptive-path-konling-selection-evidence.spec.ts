@@ -86,9 +86,9 @@ const learnerState = {
   missingEvidence: [],
 };
 
-function chatStream(parts: Array<Record<string, unknown>>) {
+function chatStream(parts: Array<Record<string, unknown>>, messageId: string) {
   return [
-    { type: 'start', messageId: `assistant-${Date.now()}` },
+    { type: 'start', messageId },
     ...parts,
     { type: 'finish', finishReason: 'stop' },
   ].map((part) => `data: ${JSON.stringify(part)}`).concat('data: [DONE]', '').join('\n\n');
@@ -173,7 +173,8 @@ async function installRoutes(page: Page) {
           { type: 'text-end', id: 'clarification-c' },
         ]
       : pendingSelectionParts(chatCalls);
-    await route.fulfill({ headers: { 'content-type': 'text/event-stream', 'x-vercel-ai-ui-message-stream': 'v1' }, body: chatStream(parts) });
+    const messageId = chatCalls === 1 ? 'assistant-clarification-c' : `assistant-selection-${chatCalls}`;
+    await route.fulfill({ headers: { 'content-type': 'text/event-stream', 'x-vercel-ai-ui-message-stream': 'v1' }, body: chatStream(parts, messageId) });
   });
   return { chatCalls: () => chatCalls, choiceCalls: () => choiceCalls, conversationDetailCalls: () => conversationDetailCalls };
 }

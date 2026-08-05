@@ -330,7 +330,7 @@ export function GlobalAISidebar() {
         const idempotencyKey = stringValue(result.idempotencyKey);
         const toolRunId = stringValue(result.toolRunId);
         if (!pathId || !batchId || !candidateId || !selectedOptionId || !selectedStyleId || !idempotencyKey || !toolRunId) continue;
-        const key = `${invocation.toolCallId}:${batchId}:${candidateId}:${idempotencyKey}`;
+        const key = `${message.id}:${batchId}:${candidateId}:${idempotencyKey}`;
         if (handledPathSelectionToolCallsRef.current.has(key)) continue;
         handledPathSelectionToolCallsRef.current.add(key);
         void fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`, {
