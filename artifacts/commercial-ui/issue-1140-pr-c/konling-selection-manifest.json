@@ -1,13 +1,13 @@
 {
-  "capturedAt": "2026-08-05T13:46:20.208Z",
-  "commitSha": "0221d33",
+  "capturedAt": "2026-08-06T04:02:47.200Z",
+  "commitSha": "cb716aa196ddaf45a476855dde31f64bc31ab6ba",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140_c&candidate=path-candidate_sprint_c",
   "fixtureAuthority": "Authenticated demo learner with owner-, goal-, path-, batch-, and candidate-scoped route fixtures",
   "sourceSha256": {
     "src/components/ai/global-ai-sidebar.tsx": "6f76a077573b00bfa8ff2fdc4e7c948b002d242d60523658117c68a5e43ed0ce",
     "src/lib/konling-agent-runtime.ts": "4a12611dcac30a37f6c8e5cafd443e14bc9ba7f4b70e49ffe85f7740b18bf6a2",
     "src/lib/ai-prompt-builder.ts": "c7a826b4176bff2d7c2369bedee2ee359885bf84c5ef66dd4db7f683166fcac1",
-    "tests/adaptive-path-konling-selection-evidence.spec.ts": "c8d9eb5b2623f8e5777e3235d3c30ab640847286a339ce229ea18273036e43a9"
+    "tests/adaptive-path-konling-selection-evidence.spec.ts": "14ec5f7f387fcbaa7f10ba8fed7c3cad11e46330d8485234b1f57461fde81f19"
   },
   "observations": [
     {
@@ -35,8 +35,8 @@
   ],
   "screenshots": [
     {
-      "file": "artifacts/commercial-ui/issue-1140-pr-c/konling-selection-desktop-1440.png",
-      "sha256": "502bf0372ee637b936be72429f9aaf4aaf2255b14398c05c70363bd17057d8dd",
+      "file": "artifacts/commercial-ui/issue-1140-pr-c/konling-selection-current-desktop-1440.png",
+      "sha256": "219a5251768d2426464598cb3627ebbc1e3fb7041f2febb645e2b75910276fb8",
       "width": 1440,
       "height": 1000,
       "noHorizontalOverflow": true,
@@ -49,8 +49,8 @@
       ]
     },
     {
-      "file": "artifacts/commercial-ui/issue-1140-pr-c/konling-selection-mobile-320.png",
-      "sha256": "5108c7e4a429668794428ac283f11a9e93408c5d4029b08e25200c471f73da67",
+      "file": "artifacts/commercial-ui/issue-1140-pr-c/konling-selection-current-mobile-320.png",
+      "sha256": "09ba2be3c0d51c1cdc0a4a7f4270108645d7c962ccef5c8a643c6e8df44bd8a6",
       "width": 320,
       "height": 900,
       "noHorizontalOverflow": true,
