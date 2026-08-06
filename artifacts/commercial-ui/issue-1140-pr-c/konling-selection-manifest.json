@@ -1,11 +1,11 @@
 {
   "capturedAt": "2026-08-05T13:46:20.208Z",
-  "commitSha": "6e5c02e9f2a1dbf4a5edfbba0456ed3b84c9a842",
+  "commitSha": "0221d33",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140_c&candidate=path-candidate_sprint_c",
   "fixtureAuthority": "Authenticated demo learner with owner-, goal-, path-, batch-, and candidate-scoped route fixtures",
   "sourceSha256": {
     "src/components/ai/global-ai-sidebar.tsx": "6f76a077573b00bfa8ff2fdc4e7c948b002d242d60523658117c68a5e43ed0ce",
-    "src/lib/konling-agent-runtime.ts": "f818e3d3542d9eec28c4b274fa26efe9e338b429c77a620b04eaf9d5865ed88c",
+    "src/lib/konling-agent-runtime.ts": "4a12611dcac30a37f6c8e5cafd443e14bc9ba7f4b70e49ffe85f7740b18bf6a2",
     "src/lib/ai-prompt-builder.ts": "c7a826b4176bff2d7c2369bedee2ee359885bf84c5ef66dd4db7f683166fcac1",
     "tests/adaptive-path-konling-selection-evidence.spec.ts": "c8d9eb5b2623f8e5777e3235d3c30ab640847286a339ce229ea18273036e43a9"
   },
