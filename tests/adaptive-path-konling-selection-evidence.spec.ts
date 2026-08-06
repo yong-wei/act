@@ -16,6 +16,13 @@ const sourceFiles = [
 ];
 const screenshots: Array<Record<string, unknown>> = [];
 const observations: Array<Record<string, unknown>> = [];
+const evidenceViewports = [
+  { name: 'desktop-1440', width: 1440, height: 1000 },
+  { name: 'mobile-320', width: 320, height: 900 },
+] as const;
+const expectedScreenshotFiles = evidenceViewports.map(
+  ({ name }) => `artifacts/commercial-ui/issue-1140-pr-c/konling-selection-current-${name}.png`,
+);
 
 const batchId = 'path-candidate-batch_issue1140_c';
 const pathId = 'candidate-source-path-c';
@@ -211,19 +218,20 @@ test.describe.configure({ mode: 'serial' });
 test('candidate selection evidence remains bound to committed sources', () => {
   test.skip(updateEvidence, 'capture run regenerates the manifest');
   expect(existsSync(manifestPath)).toBe(true);
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { commitSha: string; sourceSha256: Record<string, string>; screenshots: Array<{ file: string; sha256: string }> };
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { capturedAt: string; commitSha: string; sourceSha256: Record<string, string>; screenshots: Array<{ file: string; sha256: string }> };
   expect(() => execFileSync('git', ['diff', '--quiet', 'HEAD', '--', ...sourceFiles], { stdio: 'ignore' })).not.toThrow();
+  const checkpointCommittedAt = execFileSync('git', ['show', '-s', '--format=%cI', manifest.commitSha], { encoding: 'utf8' }).trim();
+  expect(Number.isFinite(Date.parse(manifest.capturedAt))).toBe(true);
+  expect(Date.parse(manifest.capturedAt)).toBeGreaterThan(Date.parse(checkpointCommittedAt));
   for (const file of sourceFiles) {
     expect(sourceHashAtCommit('HEAD', file)).toBe(manifest.sourceSha256[file]);
     expect(sourceHashAtCommit(manifest.commitSha, file)).toBe(manifest.sourceSha256[file]);
   }
+  expect(manifest.screenshots.map(({ file }) => file)).toEqual(expectedScreenshotFiles);
   for (const screenshot of manifest.screenshots) expect(sha256(readFileSync(path.resolve(process.cwd(), screenshot.file)))).toBe(screenshot.sha256);
 });
 
-for (const viewport of [
-  { name: 'desktop-1440', width: 1440, height: 1000 },
-  { name: 'mobile-320', width: 320, height: 900 },
-] as const) {
+for (const viewport of evidenceViewports) {
   test(`${viewport.name} clarifies and commits one candidate without auto-start`, async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize(viewport);
