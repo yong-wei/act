@@ -4,6 +4,7 @@ import {
   AdaptivePathCandidateBatchConflictError,
   buildCandidateSnapshots,
   persistAdaptivePathCandidateBatch,
+  resolveAdaptivePathCandidateSelection,
 } from '@/lib/adaptive-path-candidate-batches';
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
@@ -277,6 +278,38 @@ describe('adaptive path candidate batches', () => {
       terminalValidationNodeIds: expect.any(Array),
       terminalValidationStrategy: expect.any(Object),
       recommendationProvenance: expect.any(Object),
+    });
+  });
+
+  it('resolves only persisted candidate identities and preserves batch order', () => {
+    const candidates = buildCandidateSnapshots(plan(), 'batch-1');
+    const batch = {
+      id: 'batch-1', userId: 'student-1', goalId: 'control-correction', classId: 'class-1',
+      generationRequestId: 'request-1', sourcePathId: 'path-1', plannerVersion: 'stage-1-rules-graph',
+      status: 'succeeded' as const, createdAt: '2026-08-05T00:00:00.000Z', candidates,
+    };
+
+    expect(resolveAdaptivePathCandidateSelection(batch, { candidateId: candidates[1].id })).toMatchObject({
+      status: 'selected', batchId: 'batch-1', candidateId: candidates[1].id,
+    });
+    expect(resolveAdaptivePathCandidateSelection(batch, { naturalLanguageIntent: '我选择稳步掌握' })).toMatchObject({
+      status: 'selected', candidateId: candidates[0].id,
+    });
+    expect(resolveAdaptivePathCandidateSelection(batch, { naturalLanguageIntent: '就这个' })).toEqual({
+      status: 'clarification_required',
+      batchId: 'batch-1',
+      alternatives: candidates.map((candidate) => ({ candidateId: candidate.id, label: candidate.label })),
+      question: '你想选择哪一条学习路径？',
+    });
+    for (const naturalLanguageIntent of ['选第一个', '随便哪一个', '选你推荐的那条', '我都可以']) {
+      expect(resolveAdaptivePathCandidateSelection(batch, { naturalLanguageIntent })).toMatchObject({
+        status: 'clarification_required',
+        batchId: 'batch-1',
+        alternatives: candidates.map((candidate) => ({ candidateId: candidate.id, label: candidate.label })),
+      });
+    }
+    expect(resolveAdaptivePathCandidateSelection(batch, { candidateId: 'missing' })).toEqual({
+      status: 'unresolved', batchId: 'batch-1',
     });
   });
 });

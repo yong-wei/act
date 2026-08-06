@@ -2572,12 +2572,16 @@ export default function AdaptivePracticePage() {
         setPathAdvisorReadiness(payload.readiness ?? buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor' }));
         const pathAdvisorEntryPoint = {
           mode: 'path-advisor' as const,
-          promptContext: `student-path-center:${payload.goalId}:adaptive-path-center`,
+          promptContext: [
+            `student-path-center:${payload.goalId}:adaptive-path-center`,
+            requestedBatchId ? `authorized-candidate-batch:${requestedBatchId}` : null,
+          ].filter(Boolean).join('\n'),
           serverContext: {
             classId: payload.classId,
             courseId: payload.goalId,
             goalId: payload.goalId,
             ...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {}),
+            ...(requestedBatchId ? { candidateBatchId: requestedBatchId } : {}),
             pageId: 'adaptive-path-center',
             modeContextToken: payload.modeContextToken,
           },
@@ -2621,7 +2625,7 @@ export default function AdaptivePracticePage() {
       updatePageContext({ assistantEntryPoint: null });
       setPathAdvisorAssistantEntryPoint(null);
     };
-  }, [activeGraphNodeId, authStatus, isDemoMode, pathAdvisorContextGoal, updatePageContext]);
+  }, [activeGraphNodeId, authStatus, isDemoMode, pathAdvisorContextGoal, requestedBatchId, updatePageContext]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -2995,12 +2999,29 @@ export default function AdaptivePracticePage() {
   }, [activeGoal, activePathId, authStatus, clearLoadedPathContext, isDemoMode, requestedPathContextKey]);
 
   useEffect(() => {
-    const handleAdaptivePathUpdated = () => {
+    const handleAdaptivePathUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{ batchId?: unknown; candidateId?: unknown }>).detail;
+      const batchId = typeof detail?.batchId === 'string' ? detail.batchId : null;
+      const candidateId = typeof detail?.candidateId === 'string' ? detail.candidateId : null;
+      if (batchId && candidateId && activeGoal) {
+        void fetchCandidateBatch(activeGoal, batchId, candidateId).then((result) => {
+          if (result.status !== 'loaded') return;
+          setActiveCandidateBatch(result.batch);
+          setCandidateBatchLoadState('ready');
+          setFocusedCandidateId(candidateId);
+          setOpenPathModuleId('path-selection');
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set('batch', batchId);
+          nextUrl.searchParams.set('candidate', candidateId);
+          window.history.replaceState(window.history.state, '', nextUrl);
+          setPathChoiceMessage('路径已选中，等待你开始学习。');
+        });
+      }
       void refreshLatestLearningPathAfterKonling();
     };
     window.addEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
     return () => window.removeEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
-  }, [refreshLatestLearningPathAfterKonling]);
+  }, [activeGoal, refreshLatestLearningPathAfterKonling]);
 
   const toggleGenerationResource = useCallback((resource: AdaptivePathResourceKind) => {
     setPathGenerationPanel((current) => {

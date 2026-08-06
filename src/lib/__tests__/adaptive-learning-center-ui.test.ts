@@ -1049,7 +1049,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('goalContexts[explicitGoal]');
     expect(source).toContain('updatePageContext({ assistantEntryPoint: null });');
     expect(source).toContain('return () => updatePageContext({ assistantEntryPoint: null });');
-    expect(source).toContain('promptContext: `student-path-center:${explicitGoal}:adaptive-path-center`');
+    expect(source).toContain('`student-path-center:${explicitGoal}:adaptive-path-center`');
+    expect(source).toContain('candidateBatchId ? { candidateBatchId } : {}');
     expect(source).toContain('goalId: explicitGoal');
     expect(layoutSource).toContain('const goalOptions = getAdaptivePracticeGoalOptions();');
     expect(layoutSource).toContain('Object.fromEntries(goalOptions.map((goal) => [');

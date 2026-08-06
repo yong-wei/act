@@ -23,6 +23,8 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("'bg-primary text-primary-foreground hover:opacity-90'");
     expect(source).toContain('setPathAdvisorAssistantEntryPoint(pathAdvisorEntryPoint)');
     expect(source).toContain('openAssistantEntryPoint(pathAdvisorAssistantEntryPoint)');
+    expect(source).toContain('requestedBatchId ? `authorized-candidate-batch:${requestedBatchId}` : null');
+    expect(source).toContain('requestedBatchId ? { candidateBatchId: requestedBatchId } : {}');
     expect(source).toContain('解析请求失败，请重试');
     expect(source).not.toContain('serverContext: { question');
   });
@@ -308,6 +310,7 @@ describe('adaptive practice page entry states', () => {
 
   it('keeps candidate identity fail-closed and writes selections to the source path', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const sidebarSource = readRepoFile('src/components/ai/global-ai-sidebar.tsx');
 
     expect(source).toContain("requestedCandidateId && !requestedBatchId");
     expect(source).toContain('pathOptions.find((option) => option.optionId === display.id)?.candidateId === focusedCandidateId');
@@ -316,6 +319,10 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("? activeCandidateBatch?.sourcePathId");
     expect(source).toContain("compareAllCandidateQuery.delete('candidate')");
     expect(source).toContain('data-learning-path-compare-all');
+    expect(sidebarSource).toContain("detail: { mode: 'path-advisor', batchId, candidateId, pathId, source: 'candidate-selection' }");
+    expect(sidebarSource).toContain("/choices`");
+    expect(source).toContain("setPathChoiceMessage('路径已选中，等待你开始学习。')");
+    expect(sidebarSource).not.toContain('/execute');
     expect(source).toContain('(showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
   });
 });
