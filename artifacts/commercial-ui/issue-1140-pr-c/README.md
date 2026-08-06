@@ -4,7 +4,7 @@ This directory records commit-bound browser evidence for Konling candidate-path 
 
 - Route: `/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140_c&candidate=path-candidate_sprint_c`
 - Viewports: 1440 x 1000 and 320 x 900
-- Checkpoint commit: `cb716aa`
+- Checkpoint commit: `444d024`
 - Manifest: `konling-selection-manifest.json`
 
 The run verifies ambiguity clarification, explicit governed-candidate selection, a visible failed sync, an explicit same-identity retry after remount, successful synchronization, candidate deep-link focus, keyboard access to the send action, no automatic path start, and no horizontal overflow.
