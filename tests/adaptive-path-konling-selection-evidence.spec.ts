@@ -188,7 +188,7 @@ async function sendPrompt(page: Page, prompt: string) {
 async function capture(page: Page, viewport: { name: string; width: number; height: number }) {
   if (!updateEvidence) return;
   mkdirSync(evidenceDir, { recursive: true });
-  const file = path.join(evidenceDir, `konling-selection-${viewport.name}.png`);
+  const file = path.join(evidenceDir, `konling-selection-current-${viewport.name}.png`);
   await within('freeze animations', page.addStyleTag({ content: `
     *, *::before, *::after {
       animation: none !important;
