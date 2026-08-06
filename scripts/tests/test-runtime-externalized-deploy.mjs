@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import {
   captureCleanTextbookInputRevision,
   captureTextbookInputSnapshot,
+  removePathSync,
   replaceRuntimeDirectories,
 } from '../release/export-textbook-runtime-v2.mjs';
 
@@ -23,9 +24,10 @@ const authoringInputRoot = path.join(root, 'course-content/authoring/resources')
     },
   });
   assert.equal(revision, 'a'.repeat(40));
-  assert.equal(calls[0].includes('course-content/authoring/resources'), true);
-  assert.equal(calls[0].includes('course-content/scripts/textbook_hybrid_retrieval.py'), true);
-  assert.equal(calls[0].includes('course-content/config/textbook-structure-v2'), true);
+  const gitInputs = calls[0].map((arg) => arg.replaceAll(path.sep, '/'));
+  assert.equal(gitInputs.includes('course-content/authoring/resources'), true);
+  assert.equal(gitInputs.includes('course-content/scripts/textbook_hybrid_retrieval.py'), true);
+  assert.equal(gitInputs.includes('course-content/config/textbook-structure-v2'), true);
 }
 
 assert.throws(
@@ -145,7 +147,7 @@ assert.throws(
     );
     assert.equal(after.fileCount, before.fileCount);
   } finally {
-    fs.rmSync(snapshotRoot, { recursive: true, force: true });
+    removePathSync(snapshotRoot);
   }
 }
 
@@ -155,7 +157,7 @@ function read(file) {
 
 const dockerignore = read('.dockerignore');
 const dockerfile = read('Dockerfile');
-const buildScript = read('scripts/build.sh');
+const buildScript = read('scripts/build.sh').replaceAll('\r\n', '\n');
 const textbookV2Preflight = read('scripts/release/validate-textbook-runtime-v2.mjs');
 const textbookV2ProvenanceHelper = read(
   'scripts/release/textbook-runtime-v2-provenance.mjs',
@@ -247,7 +249,7 @@ for (const failAtInstall of [2, 3]) {
   try {
     const replacements = [
       ['textbooks-v2', 'runtime'],
-      ['textbook-retrieval', 'index'],
+      ['textbook-hybrid-retrieval/bge-m3', 'index'],
       ['textbooks', 'assets'],
     ].map(([directoryName, label]) => {
       const target = path.join(transactionRoot, 'current', directoryName);
@@ -287,7 +289,7 @@ for (const failAtInstall of [2, 3]) {
       );
     }
   } finally {
-    fs.rmSync(transactionRoot, { recursive: true, force: true });
+    removePathSync(transactionRoot);
   }
 }
 
@@ -321,22 +323,26 @@ for (const failAtInstall of [2, 3]) {
         path.join(replacement.target, 'nested'),
         path.join(replacement.target, 'nested', 'deeper'),
       ]) {
-        const mode = fs.statSync(directory).mode & 0o777;
-        assert.equal(mode & 0o055, 0o055, `${directory} 必须允许 group/other 读取和遍历`);
+        if (process.platform !== 'win32') {
+          const mode = fs.statSync(directory).mode & 0o777;
+          assert.equal(mode & 0o055, 0o055, `${directory} 必须允许 group/other 读取和遍历`);
+        }
       }
       assert.equal(
         fs.readFileSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`), 'utf8'),
         `content-${path.basename(replacement.target)}`,
         '目录权限规范化不得改变文件内容',
       );
-      assert.equal(
-        fs.statSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`)).mode & 0o777,
-        0o600,
-        '目录权限规范化不得改变文件权限',
-      );
+      if (process.platform !== 'win32') {
+        assert.equal(
+          fs.statSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`)).mode & 0o777,
+          0o600,
+          '目录权限规范化不得改变文件权限',
+        );
+      }
     }
   } finally {
-    fs.rmSync(permissionRoot, { recursive: true, force: true });
+    removePathSync(permissionRoot);
   }
 }
 
@@ -399,13 +405,13 @@ try {
     'release preflight 应明确报告 sourceRevision 不一致',
   );
 } finally {
-  fs.rmSync(mismatchedRuntimeRoot, { recursive: true, force: true });
+  removePathSync(mismatchedRuntimeRoot);
 }
 
 const mediaFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-media-'));
 try {
   const runtimeRoot = path.join(mediaFixtureRoot, 'textbooks-v2');
-  const indexRoot = path.join(mediaFixtureRoot, 'textbook-retrieval');
+  const indexRoot = path.join(mediaFixtureRoot, 'textbook-hybrid-retrieval', 'bge-m3');
   const assetsRoot = path.join(mediaFixtureRoot, 'textbooks');
   const revision = '1111111111111111111111111111111111111111';
   const appRevision = '2222222222222222222222222222222222222222';
@@ -480,7 +486,7 @@ try {
   assert.equal(initialInspect.status, 0, initialInspect.stderr);
   const initialSummary = JSON.parse(initialInspect.stdout);
   assert.equal(initialSummary.mediaFileCount, 1, 'preflight 应报告去重后的引用媒体文件数');
-  fs.rmSync(inputProvenancePath);
+  fs.unlinkSync(inputProvenancePath);
   const missingInputProvenanceResult = spawnSync(process.execPath, preflightArgs, {
     cwd: root,
     encoding: 'utf8',
@@ -583,28 +589,30 @@ try {
     'verify-runtime 应明确报告媒体篡改造成的 digest 不一致',
   );
 
-  const chapterRoot = path.dirname(mediaPath);
-  const externalChapterRoot = path.join(mediaFixtureRoot, 'external-chapter');
-  fs.rmSync(chapterRoot, { recursive: true, force: true });
-  fs.mkdirSync(externalChapterRoot, { recursive: true });
-  fs.writeFileSync(path.join(externalChapterRoot, 'fixture.png'), 'outside assets root');
-  fs.symlinkSync(externalChapterRoot, chapterRoot, 'dir');
-  const ancestorSymlinkResult = spawnSync(process.execPath, preflightArgs, {
-    cwd: root,
-    encoding: 'utf8',
-  });
-  assert.notEqual(
-    ancestorSymlinkResult.status,
-    0,
-    '媒体祖先目录 symlink 指向 assets root 外时必须 fail closed',
-  );
-  assert.match(
-    ancestorSymlinkResult.stderr,
-    /textbook-v2-media-file-escape:control-encyclopedia\/assets\/chapter-01\/fixture\.png/u,
-    'preflight 应明确报告祖先 symlink 造成的媒体路径逃逸',
-  );
+  if (process.platform !== 'win32') {
+    const chapterRoot = path.dirname(mediaPath);
+    const externalChapterRoot = path.join(mediaFixtureRoot, 'external-chapter');
+    removePathSync(chapterRoot);
+    fs.mkdirSync(externalChapterRoot, { recursive: true });
+    fs.writeFileSync(path.join(externalChapterRoot, 'fixture.png'), 'outside assets root');
+    fs.symlinkSync(externalChapterRoot, chapterRoot, 'dir');
+    const ancestorSymlinkResult = spawnSync(process.execPath, preflightArgs, {
+      cwd: root,
+      encoding: 'utf8',
+    });
+    assert.notEqual(
+      ancestorSymlinkResult.status,
+      0,
+      '媒体祖先目录 symlink 指向 assets root 外时必须 fail closed',
+    );
+    assert.match(
+      ancestorSymlinkResult.stderr,
+      /textbook-v2-media-file-escape:control-encyclopedia\/assets\/chapter-01\/fixture\.png/u,
+      'preflight 应明确报告祖先 symlink 造成的媒体路径逃逸',
+    );
+  }
 } finally {
-  fs.rmSync(mediaFixtureRoot, { recursive: true, force: true });
+  removePathSync(mediaFixtureRoot);
 }
 
 const tarMismatchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-tar-mismatch-'));
@@ -677,7 +685,7 @@ try {
     'sidecar 校验应明确报告 runtime 与 retrieval index 修订不一致',
   );
 } finally {
-  fs.rmSync(tarMismatchRoot, { recursive: true, force: true });
+  removePathSync(tarMismatchRoot);
 }
 
 assert.equal(
@@ -814,7 +822,7 @@ assert.equal(
     textbookV2RequiredFiles.every((fileName) => remoteDeployScript.includes(fileName)) &&
     remoteDeployScript.includes('check_container_textbook_v2_files') &&
     remoteDeployScript.includes('/app/course-content/runtime/resources/textbooks-v2') &&
-    remoteDeployScript.includes('/app/course-content/runtime/resources/textbook-retrieval') &&
+    remoteDeployScript.includes('/app/course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3') &&
     (remoteDeployScript.match(/-eq 7/g)?.length ?? 0) >= 2,
   true,
   '远端宿主与已启动 app 容器必须校验七书 v2 与固定检索索引',

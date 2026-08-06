@@ -13,7 +13,7 @@ const resourcesRoot = path.resolve(
     ?? 'course-content/runtime/resources',
 );
 const runtimeRoot = path.join(resourcesRoot, 'textbooks-v2');
-const indexRoot = path.join(resourcesRoot, 'textbook-retrieval');
+const indexRoot = path.join(resourcesRoot, 'textbook-hybrid-retrieval', 'bge-m3');
 const assetsRoot = path.join(resourcesRoot, 'textbooks');
 const cacheRoot = path.resolve(
   process.env.TEXTBOOK_EMBEDDING_CACHE_ROOT
@@ -168,6 +168,35 @@ export function normalizeRuntimeDirectoryPermissions(
   }
 }
 
+export function removePathSync(target, {
+  existsSync = fs.existsSync,
+  lstatSync = fs.lstatSync,
+  readdirSync = fs.readdirSync,
+  unlinkSync = fs.unlinkSync,
+  rmdirSync = fs.rmdirSync,
+  rmSync = fs.rmSync,
+} = {}) {
+  rmSync(target, { recursive: true, force: true });
+  if (!existsSync(target)) return;
+
+  const stat = lstatSync(target);
+  if (!stat.isDirectory()) {
+    unlinkSync(target);
+    return;
+  }
+  for (const entry of readdirSync(target)) {
+    removePathSync(path.join(target, entry), {
+      existsSync,
+      lstatSync,
+      readdirSync,
+      unlinkSync,
+      rmdirSync,
+      rmSync,
+    });
+  }
+  rmdirSync(target);
+}
+
 export function replaceRuntimeDirectories(
   replacements,
   {
@@ -205,7 +234,7 @@ export function replaceRuntimeDirectories(
     for (const state of [...states].reverse()) {
       try {
         if (state.installed && existsSync(state.target)) {
-          rmSync(state.target, { recursive: true, force: true });
+          removePathSync(state.target, { rmSync, existsSync });
         }
         if (state.backedUp && existsSync(state.previous)) {
           renameSync(state.previous, state.target);
@@ -224,7 +253,7 @@ export function replaceRuntimeDirectories(
   }
   for (const state of states) {
     if (state.backedUp) {
-      rmSync(state.previous, { recursive: true, force: true });
+      removePathSync(state.previous, { rmSync, existsSync });
     }
   }
 }
@@ -247,7 +276,7 @@ function main() {
     path.join(resourcesRoot, '.textbook-runtime-cutover-'),
   );
   const stagedRuntime = path.join(stagingRoot, 'textbooks-v2');
-  const stagedIndex = path.join(stagingRoot, 'textbook-retrieval');
+  const stagedIndex = path.join(stagingRoot, 'textbook-hybrid-retrieval', 'bge-m3');
   const stagedAssets = path.join(stagingRoot, 'textbooks');
 
   try {
@@ -320,7 +349,7 @@ function main() {
       { staged: stagedIndex, target: indexRoot },
       { staged: stagedAssets, target: assetsRoot },
     ]);
-    fs.rmSync(stagingRoot, { recursive: true, force: true });
+    removePathSync(stagingRoot);
     process.stdout.write(`${JSON.stringify({
       sourceRevision: revision,
       inputDigest: inputSnapshot.digest,
@@ -330,7 +359,7 @@ function main() {
       assetsRoot,
     }, null, 2)}\n`);
   } catch (error) {
-    fs.rmSync(stagingRoot, { recursive: true, force: true });
+    removePathSync(stagingRoot);
     throw error;
   }
 }

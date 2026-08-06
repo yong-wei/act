@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -49,7 +50,16 @@ describe('course-runtime asset route', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('image/png');
     expect(mockedReadFile).toHaveBeenCalledWith(expect.stringContaining(
-      'course-content/runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-08/fig-08-01.png'
+      join(
+        'course-content',
+        'runtime',
+        'resources',
+        'textbooks',
+        'dorf-modern-control-systems',
+        'assets',
+        'chapter-08',
+        'fig-08-01.png',
+      )
     ));
   });
 
@@ -79,9 +89,9 @@ describe('course-runtime asset route', () => {
 
   it('does not expose textbook retrieval indexes through the raw asset route', async () => {
     const [directResponse, caseResponse, backslashResponse] = await Promise.all([
-      requestRuntimeAsset(['resources', 'textbook-retrieval', 'bodies.utf8']),
-      requestRuntimeAsset(['Resources', 'Textbook-Retrieval', 'windows.jsonl']),
-      requestRuntimeAsset(['resources\\textbook-retrieval\\metadata.json']),
+      requestRuntimeAsset(['resources', 'textbook-hybrid-retrieval', 'bge-m3', 'bodies.utf8']),
+      requestRuntimeAsset(['Resources', 'Textbook-Hybrid-Retrieval', 'Bge-M3', 'windows.jsonl']),
+      requestRuntimeAsset(['resources\\textbook-hybrid-retrieval\\bge-m3\\metadata.json']),
     ]);
 
     expect(directResponse.status).toBe(404);
