@@ -33,7 +33,7 @@ function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
-function sourceHashAtCommit(commitSha: string, file: string): string {
+function fileHashAtCommit(commitSha: string, file: string): string {
   return sha256(execFileSync('git', ['show', `${commitSha}:${file}`]));
 }
 
@@ -218,17 +218,20 @@ test.describe.configure({ mode: 'serial' });
 test('candidate selection evidence remains bound to committed sources', () => {
   test.skip(updateEvidence, 'capture run regenerates the manifest');
   expect(existsSync(manifestPath)).toBe(true);
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { capturedAt: string; commitSha: string; sourceSha256: Record<string, string>; screenshots: Array<{ file: string; sha256: string }> };
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { capturedAt: string; sourceCommitSha: string; evidenceCommitSha: string; sourceSha256: Record<string, string>; screenshots: Array<{ file: string; sha256: string }> };
   expect(() => execFileSync('git', ['diff', '--quiet', 'HEAD', '--', ...sourceFiles], { stdio: 'ignore' })).not.toThrow();
-  const checkpointCommittedAt = execFileSync('git', ['show', '-s', '--format=%cI', manifest.commitSha], { encoding: 'utf8' }).trim();
+  const checkpointCommittedAt = execFileSync('git', ['show', '-s', '--format=%cI', manifest.sourceCommitSha], { encoding: 'utf8' }).trim();
   expect(Number.isFinite(Date.parse(manifest.capturedAt))).toBe(true);
   expect(Date.parse(manifest.capturedAt)).toBeGreaterThan(Date.parse(checkpointCommittedAt));
   for (const file of sourceFiles) {
-    expect(sourceHashAtCommit('HEAD', file)).toBe(manifest.sourceSha256[file]);
-    expect(sourceHashAtCommit(manifest.commitSha, file)).toBe(manifest.sourceSha256[file]);
+    expect(fileHashAtCommit('HEAD', file)).toBe(manifest.sourceSha256[file]);
+    expect(fileHashAtCommit(manifest.sourceCommitSha, file)).toBe(manifest.sourceSha256[file]);
   }
   expect(manifest.screenshots.map(({ file }) => file)).toEqual(expectedScreenshotFiles);
-  for (const screenshot of manifest.screenshots) expect(sha256(readFileSync(path.resolve(process.cwd(), screenshot.file)))).toBe(screenshot.sha256);
+  for (const screenshot of manifest.screenshots) {
+    expect(sha256(readFileSync(path.resolve(process.cwd(), screenshot.file)))).toBe(screenshot.sha256);
+    expect(fileHashAtCommit(manifest.evidenceCommitSha, screenshot.file)).toBe(screenshot.sha256);
+  }
 });
 
 for (const viewport of evidenceViewports) {
@@ -292,12 +295,12 @@ test.afterAll(() => {
   expect(screenshots).toHaveLength(2);
   expect(observations).toHaveLength(2);
   mkdirSync(evidenceDir, { recursive: true });
-  const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const sourceCommitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   writeFileSync(manifestPath, `${JSON.stringify({
-    capturedAt: new Date().toISOString(), commitSha,
+    capturedAt: new Date().toISOString(), sourceCommitSha, evidenceCommitSha: null,
     route: `/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=${batchId}&candidate=${candidateId}`,
     fixtureAuthority: 'Authenticated demo learner with owner-, goal-, path-, batch-, and candidate-scoped route fixtures',
-    sourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)])),
+    sourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, fileHashAtCommit(sourceCommitSha, file)])),
     observations, screenshots,
   }, null, 2)}\n`, 'utf8');
 });
