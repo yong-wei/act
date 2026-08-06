@@ -1,13 +1,14 @@
 {
-  "capturedAt": "2026-08-06T04:36:18.262Z",
-  "commitSha": "444d02401eba2e0c97332b0f0a790b251530804e",
+  "capturedAt": "2026-08-06T05:07:01.083Z",
+  "sourceCommitSha": "365a142c07bb09f5aaed7de0f0e198db1fad17cf",
+  "evidenceCommitSha": "a4b6adacdbe0cccd06c284cbf5bf6811956c878d",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140_c&candidate=path-candidate_sprint_c",
   "fixtureAuthority": "Authenticated demo learner with owner-, goal-, path-, batch-, and candidate-scoped route fixtures",
   "sourceSha256": {
     "src/components/ai/global-ai-sidebar.tsx": "6f76a077573b00bfa8ff2fdc4e7c948b002d242d60523658117c68a5e43ed0ce",
     "src/lib/konling-agent-runtime.ts": "4a12611dcac30a37f6c8e5cafd443e14bc9ba7f4b70e49ffe85f7740b18bf6a2",
     "src/lib/ai-prompt-builder.ts": "c7a826b4176bff2d7c2369bedee2ee359885bf84c5ef66dd4db7f683166fcac1",
-    "tests/adaptive-path-konling-selection-evidence.spec.ts": "7339e3e4ffb12815504ab1d7727f8ee76a3940c09df45ad4d895c44570226867"
+    "tests/adaptive-path-konling-selection-evidence.spec.ts": "bb170aff1deddfc232e055683b5a7d8fb0d006f19203a5d9644e8cad4bc29d3e"
   },
   "observations": [
     {
@@ -36,7 +37,7 @@
   "screenshots": [
     {
       "file": "artifacts/commercial-ui/issue-1140-pr-c/konling-selection-current-desktop-1440.png",
-      "sha256": "9b3609d61678f564f6905ccbefdad501297869b9320835569aeef7b3652ac3a8",
+      "sha256": "0bf097e9d4359e38817925da4c2fcf9a481f00219955dbb6a90d3febce73ef20",
       "width": 1440,
       "height": 1000,
       "noHorizontalOverflow": true,
@@ -50,7 +51,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1140-pr-c/konling-selection-current-mobile-320.png",
-      "sha256": "43afd7afe0efdd033a49c31e7173ba95af0abec12709196424986d7f490e81f8",
+      "sha256": "9c93a0d4f226366ef28af0531f98d3ce6aef6805f79e994ce8a73d674ed5a040",
       "width": 320,
       "height": 900,
       "noHorizontalOverflow": true,
