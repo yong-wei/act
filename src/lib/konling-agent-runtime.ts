@@ -6353,7 +6353,7 @@ function assertReusedCandidateSelectionToolRunMatchesInput(
   if (
     getString(persisted, 'batchId') !== getString(requested, 'batchId')
     || (requestedCandidateId && getString(persisted, 'candidateId') !== requestedCandidateId)
-    || (!requestedCandidateId && requestedIntent !== persistedIntent)
+    || (requestedIntent !== null && requestedIntent !== persistedIntent)
     || (getString(requested, 'pathId') && getString(persisted, 'pathId') !== getString(requested, 'pathId'))
   ) {
     throw new KonlingRuntimeScopeError(409, '幂等候选路径选择与已完成的工具请求不一致。');

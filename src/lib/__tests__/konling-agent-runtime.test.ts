@@ -12751,6 +12751,12 @@ describe('konling agent runtime', () => {
     await expect(runtime.selectLearningPath({
       idempotencyKey: 'select-retry-key',
       batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
       naturalLanguageIntent: 'Challenge sprint path',
     })).resolves.toEqual(outputSummary);
     await expect(runtime.selectLearningPath({
@@ -12765,6 +12771,12 @@ describe('konling agent runtime', () => {
       completedAt: null,
       latencyMs: null,
     });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
     await expect(runtime.selectLearningPath({
       idempotencyKey: 'select-retry-key',
       batchId: 'previous-batch',
