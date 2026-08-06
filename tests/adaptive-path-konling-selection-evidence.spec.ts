@@ -221,8 +221,11 @@ test('candidate selection evidence remains bound to committed sources', () => {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { capturedAt: string; sourceCommitSha: string; evidenceCommitSha: string; sourceSha256: Record<string, string>; screenshots: Array<{ file: string; sha256: string }> };
   expect(() => execFileSync('git', ['diff', '--quiet', 'HEAD', '--', ...sourceFiles], { stdio: 'ignore' })).not.toThrow();
   const checkpointCommittedAt = execFileSync('git', ['show', '-s', '--format=%cI', manifest.sourceCommitSha], { encoding: 'utf8' }).trim();
+  const evidenceCommittedAt = execFileSync('git', ['show', '-s', '--format=%cI', manifest.evidenceCommitSha], { encoding: 'utf8' }).trim();
+  expect(() => execFileSync('git', ['merge-base', '--is-ancestor', manifest.sourceCommitSha, manifest.evidenceCommitSha], { stdio: 'ignore' })).not.toThrow();
   expect(Number.isFinite(Date.parse(manifest.capturedAt))).toBe(true);
   expect(Date.parse(manifest.capturedAt)).toBeGreaterThan(Date.parse(checkpointCommittedAt));
+  expect(Date.parse(manifest.capturedAt)).toBeLessThan(Date.parse(evidenceCommittedAt));
   for (const file of sourceFiles) {
     expect(fileHashAtCommit('HEAD', file)).toBe(manifest.sourceSha256[file]);
     expect(fileHashAtCommit(manifest.sourceCommitSha, file)).toBe(manifest.sourceSha256[file]);
