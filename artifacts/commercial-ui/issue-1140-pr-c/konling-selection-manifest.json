@@ -1,7 +1,7 @@
 {
   "capturedAt": "2026-08-06T06:34:06.242Z",
   "sourceCommitSha": "d11ff484f12c20379a7f5278365b162ad27c0209",
-  "evidenceCommitSha": null,
+  "evidenceCommitSha": "8535fb9b5dd81b3c06e49ef430891dd49eca0942",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140_c&candidate=path-candidate_sprint_c",
   "fixtureAuthority": "Authenticated demo learner with owner-, goal-, path-, batch-, and candidate-scoped route fixtures",
   "sourceSha256": {
