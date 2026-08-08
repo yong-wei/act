@@ -203,6 +203,7 @@ describe('micro intervention outcomes', () => {
     expect(interventions[0].sourceSnapshot).toEqual(expect.objectContaining({
       remediationResultId: 'result-1',
       orchestratorVersion: 'remediation-orchestrator.v1',
+      validationRuntimeHash: expect.stringMatching(/^[a-f0-9]{64}$/),
     }));
   });
 
@@ -328,6 +329,49 @@ describe('micro intervention outcomes', () => {
     expect(JSON.stringify(result)).not.toContain('misconception-private');
     expect(JSON.stringify(result)).not.toContain('private correct choice');
     expect(JSON.stringify(result)).not.toContain('session-1');
+  });
+
+  it('refuses validation when the runtime question changes after intervention start', async () => {
+    const { db, validations } = createDb();
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+    mocks.getAdaptiveQuestionById.mockReturnValue({
+      id: 'validation-question',
+      options: [
+        { label: 'A', text: 'now correct', isCorrect: true },
+        { label: 'B', text: 'now incorrect', isCorrect: false },
+      ],
+    });
+
+    await expect(submitMicroInterventionValidation({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'validation-1',
+      questionId: 'validation-question',
+      selectedOption: 'A',
+      durationSeconds: 45,
+    })).rejects.toMatchObject({ code: 'VALIDATION_UNAVAILABLE' });
+    expect(validations).toHaveLength(0);
+  });
+
+  it('preserves a started intervention when its runtime question is unavailable', async () => {
+    const { db, validations } = createDb();
+    mocks.getAdaptiveQuestionById.mockReturnValue(null);
+
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+
+    await expect(submitMicroInterventionValidation({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'validation-1',
+      questionId: 'validation-question',
+      selectedOption: 'A',
+      durationSeconds: 45,
+    })).rejects.toMatchObject({ code: 'VALIDATION_UNAVAILABLE' });
+    expect(validations).toHaveLength(0);
   });
 
   it('recommends an existing governed transfer practice after a passing validation', async () => {

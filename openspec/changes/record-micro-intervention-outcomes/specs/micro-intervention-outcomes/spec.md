@@ -12,7 +12,7 @@ The system SHALL create a server-assigned intervention instance only for an auth
 - **THEN** the system creates a separate intervention instance with its own event history
 
 ### Requirement: Version-bound, privacy-safe outcome evidence
-The system SHALL record only server-validated resource-use, hint, completion, duration, and validation-answer facts for an intervention instance. Before accepting a validation answer, the system SHALL revalidate the remediation task and SHALL bind the result to its selected validation item, content hash, version, and learner session. A repeated event or validation submission SHALL return the original result only when its idempotency key and complete accepted semantics match the first persisted record; substituted event payloads, a second validation key, and races that resolve to a different first record SHALL return a conflict without rewriting evidence. Learner projections SHALL exclude learner-session identifiers, internal resource/node identifiers, answer keys, explanations, raw answer text, source-question identifiers, misconception tags, and teacher-private metadata.
+The system SHALL record only server-validated resource-use, hint, completion, duration, and validation-answer facts for an intervention instance. At start, the system SHALL bind the intervention to a canonical hash of the server runtime validation question when that question is available; an unavailable runtime question SHALL preserve the started intervention but prevent validation. Before accepting a validation answer, the system SHALL revalidate the remediation task and SHALL bind the result to its selected validation item, content hash, version, learner session, and the unchanged runtime-question hash. A repeated event or validation submission SHALL return the original result only when its idempotency key and complete accepted semantics match the first persisted record; substituted event payloads, a second validation key, and races that resolve to a different first record SHALL return a conflict without rewriting evidence. Learner projections SHALL exclude learner-session identifiers, internal resource/node identifiers, answer keys, explanations, raw answer text, source-question identifiers, misconception tags, and teacher-private metadata.
 
 #### Scenario: Submit the selected governed validation question
 - **WHEN** a learner submits an option for the intervention's selected validation question after the task remains current and accessible
@@ -25,6 +25,10 @@ The system SHALL record only server-validated resource-use, hint, completion, du
 #### Scenario: Submit a stale or substituted question
 - **WHEN** the stored task has drifted, access has been revoked, or the submitted question does not match the intervention snapshot
 - **THEN** the system rejects the submission without recording a validation outcome or exposing protected assessment content
+
+#### Scenario: Runtime question changes without a new identifier
+- **WHEN** the runtime validation question keeps its identifier but changes content or answer semantics after intervention start
+- **THEN** the system rejects the validation without recording an outcome under stale content-hash or version metadata
 
 ### Requirement: Governed next-step recommendation
 The system SHALL derive a next-step recommendation only from the intervention's validated outcome and current governed planning relationships. A passing validation SHALL retain the pass outcome and recommend an eligible higher-order transfer practice when one exists; otherwise it SHALL return a controlled transfer-practice-unavailable recommendation. A failed validation SHALL recommend deterministic governed prerequisite nodes before falling back to a controlled tutoring/manual-practice recommendation. Recommendations SHALL NOT update mastery or the formal learning path.

@@ -1,4 +1,5 @@
 import { getAdaptiveQuestionById } from '@/features/assessment/adaptive-engine';
+import { createHash } from 'node:crypto';
 import {
   readAvailableRemediationInterventionSource,
   type AvailableRemediationInterventionSource,
@@ -10,7 +11,7 @@ import type { ResourceNode } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
 
 const MAX_DURATION_SECONDS = 3600;
-const SOURCE_SNAPSHOT_VERSION = 'micro-intervention-source.v1';
+const SOURCE_SNAPSHOT_VERSION = 'micro-intervention-source.v2';
 
 export type MicroInterventionEventType = 'RESOURCE_USED' | 'HINT_REQUESTED' | 'COMPLETED';
 
@@ -148,6 +149,7 @@ interface InterventionSourceSnapshot {
   remediationResultId: string;
   orchestratorVersion: string;
   learnerSessionId: string;
+  validationRuntimeHash: string | null;
   task: RemediationTaskSnapshot;
 }
 
@@ -184,6 +186,20 @@ function actionPath(value: unknown): string | null {
   return path?.startsWith('/') && !path.startsWith('//') ? path : null;
 }
 
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => [key, canonicalize(entry)]),
+  );
+}
+
+function validationRuntimeHash(question: unknown): string {
+  return createHash('sha256').update(JSON.stringify(canonicalize(question))).digest('hex');
+}
+
 function taskSnapshot(value: unknown): RemediationTaskSnapshot | null {
   const task = record(value);
   const validation = record(task?.validationQuestion);
@@ -209,9 +225,14 @@ function sourceSnapshot(value: unknown): InterventionSourceSnapshot | null {
   const remediationResultId = nonEmptyString(source?.remediationResultId);
   const orchestratorVersion = nonEmptyString(source?.orchestratorVersion);
   const learnerSessionId = nonEmptyString(source?.learnerSessionId);
+  const rawRuntimeHash = source?.validationRuntimeHash;
+  const runtimeHash = rawRuntimeHash === null
+    ? null
+    : nonEmptyString(rawRuntimeHash);
   const task = taskSnapshot(source?.task);
   if (
-    source?.version !== SOURCE_SNAPSHOT_VERSION || !remediationResultId || !orchestratorVersion || !learnerSessionId || !task
+    source?.version !== SOURCE_SNAPSHOT_VERSION || !remediationResultId || !orchestratorVersion || !learnerSessionId ||
+    (rawRuntimeHash !== null && !runtimeHash) || !task
   ) {
     return null;
   }
@@ -220,16 +241,21 @@ function sourceSnapshot(value: unknown): InterventionSourceSnapshot | null {
     remediationResultId,
     orchestratorVersion,
     learnerSessionId,
+    validationRuntimeHash: runtimeHash,
     task,
   };
 }
 
-function sourceFromAvailableTask(source: AvailableRemediationInterventionSource): InterventionSourceSnapshot {
+function sourceFromAvailableTask(
+  source: AvailableRemediationInterventionSource,
+  question: unknown | null,
+): InterventionSourceSnapshot {
   return {
     version: SOURCE_SNAPSHOT_VERSION,
     remediationResultId: source.remediationResultId,
     orchestratorVersion: source.orchestratorVersion,
     learnerSessionId: source.learnerSessionId,
+    validationRuntimeHash: question ? validationRuntimeHash(question) : null,
     task: source.task,
   };
 }
@@ -526,6 +552,7 @@ export async function startMicroIntervention(input: {
     resultId: input.remediationResultId,
   });
   if (!source) return null;
+  const question = getAdaptiveQuestionById(source.task.validationQuestion.questionId);
   const persisted = await input.db.microInterventionOutcome.upsert({
     where: {
       remediationOrchestrationResultId_userId_learnerSessionId_startEventKey: {
@@ -541,7 +568,10 @@ export async function startMicroIntervention(input: {
       userId: input.authenticatedUserId,
       learnerSessionId: source.learnerSessionId,
       startEventKey: input.startEventKey,
-      sourceSnapshot: sourceFromAvailableTask(source),
+      sourceSnapshot: sourceFromAvailableTask(
+        source,
+        question?.id === source.task.validationQuestion.questionId ? question : null,
+      ),
     },
   });
   return readMicroIntervention({
@@ -637,6 +667,9 @@ export async function submitMicroInterventionValidation(input: {
   }
   const question = getAdaptiveQuestionById(current.source.task.validationQuestion.questionId);
   if (!question || question.id !== current.source.task.validationQuestion.questionId) {
+    throw new MicroInterventionRequestError('VALIDATION_UNAVAILABLE');
+  }
+  if (!current.source.validationRuntimeHash || validationRuntimeHash(question) !== current.source.validationRuntimeHash) {
     throw new MicroInterventionRequestError('VALIDATION_UNAVAILABLE');
   }
   const selectedIndex = question.options.findIndex((option) => (
