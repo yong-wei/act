@@ -1,4 +1,5 @@
 import type { AdaptivePathCorrectionProposal } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { projectConfirmedAdjustmentsOntoPlanNodes } from './adaptive-path-node-decisions';
 
 export interface AdaptivePathCorrectionApplicationInput {
   nodeIds: unknown;
@@ -54,8 +55,16 @@ export function buildAdaptivePathCorrectionApplication(
   const nodeById = new Map(planNodes
     .map((node) => [readString(node.nodeId), node] as const)
     .filter((entry): entry is [string, Record<string, unknown>] => Boolean(entry[0])));
-  const nextPlanNodes = nextNodeIds.map((nodeId) => nodeById.get(nodeId)).filter(Boolean);
-  if (nextPlanNodes.length !== nextNodeIds.length) return null;
+  const executablePlanNodes = nextNodeIds.map((nodeId) => nodeById.get(nodeId)).filter(Boolean);
+  if (executablePlanNodes.length !== nextNodeIds.length) return null;
+  const nextPlanNodes = projectConfirmedAdjustmentsOntoPlanNodes({
+    planNodes,
+    previousNodeIds: nodeIds,
+    nextNodeIds,
+    completedNodeIds,
+    skippedNodeIds,
+    proposal,
+  });
 
   return {
     nodeIds: nextNodeIds,

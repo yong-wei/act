@@ -3655,6 +3655,16 @@ describe('learning path round API routes', () => {
             ],
             resourceMix: { simulation: 1, arena_task: 1 },
             evidenceBasis: ['simulation-run'],
+            recommendationProvenance: {
+              summary: '依据仿真实验与终点检查证据安排本路径。',
+              confidence: 'medium',
+              entries: [{
+                evidenceSummary: '最近一次仿真实验已形成有效记录。',
+                judgment: '先复核仿真，再进入终点检查。',
+                affectedNodeIds: ['simulation:control-correction-step-response-lab'],
+              }],
+              limitations: ['终点检查仍需补充结果。'],
+            },
             terminalValidationNodeIds: ['arena-task:terminal'],
           },
         ],
@@ -3728,11 +3738,28 @@ describe('learning path round API routes', () => {
             expect.objectContaining({
               nodeId: 'simulation:control-correction-step-response-lab',
               type: 'simulation',
+              decisionExplanation: {
+                selectionBasis: {
+                  summary: '依据仿真实验与终点检查证据安排本路径。',
+                  confidence: 'medium',
+                  supportingFacts: [
+                    '最近一次仿真实验已形成有效记录。',
+                    '先复核仿真，再进入终点检查。',
+                  ],
+                  limitations: ['终点检查仍需补充结果。'],
+                },
+              },
             }),
             expect.objectContaining({
               nodeId: 'arena-task:terminal',
               type: 'arena_task',
               status: 'current',
+              decisionExplanation: {
+                selectionBasis: expect.objectContaining({
+                  summary: '依据仿真实验与终点检查证据安排本路径。',
+                  supportingFacts: [],
+                }),
+              },
             }),
           ],
         }),

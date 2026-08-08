@@ -53,6 +53,7 @@ import {
   type SourcePackItem,
   type SourcePackLimitation,
 } from './source-pack';
+import type { AdaptivePathNodeDecisionExplanation } from './adaptive-path-node-decisions';
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
 export type AdaptiveLearningPathPolicyFamily =
@@ -499,6 +500,7 @@ export interface AdaptiveLearningPathPlanNode {
   resourceRanker?: ResourceLearnerRankerExplanation;
   status: 'current' | 'next' | 'completed' | 'blocked' | 'alternative' | 'locked';
   readiness?: AdaptiveLearningPathNodeReadiness;
+  decisionExplanation?: AdaptivePathNodeDecisionExplanation;
 }
 
 export interface AdaptiveLearningPathAlternative {
