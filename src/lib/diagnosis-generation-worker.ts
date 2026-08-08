@@ -5,6 +5,7 @@ import type { Redis } from 'ioredis';
 import {
   claimDiagnosisGenerationAttempt,
   completeDiagnosisGenerationJob,
+  DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
   failDiagnosisGenerationAttempt,
 } from '@/lib/diagnosis-generation';
 import {
@@ -24,6 +25,7 @@ export async function ensureDiagnosisGenerationWorker(connection: Redis) {
     {
       connection: connection.duplicate({ maxRetriesPerRequest: null }),
       concurrency: 2,
+      lockDuration: DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS + 30_000,
       ...(queuePrefix() ? { prefix: queuePrefix() } : {}),
     },
   );
@@ -49,7 +51,7 @@ export async function processDiagnosisGenerationJob(
   if (!claim) return { jobId, skipped: true };
   let audit: Awaited<ReturnType<typeof generate>> | null = null;
   try {
-    audit = await generate(db, {
+    audit = await withGenerationTimeout(generate(db, {
       jobId,
       attemptId: claim.attempt.id,
       teacherId: claim.job.userId,
@@ -57,7 +59,7 @@ export async function processDiagnosisGenerationJob(
       targetStudentId: claim.job.targetUserId,
       evidenceCutoff: claim.job.evidenceCutoff,
       generatorVersion: claim.job.generatorVersion,
-    });
+    }));
     await completeDiagnosisGenerationJob(db, {
       jobId,
       attemptId: claim.attempt.id,
@@ -90,6 +92,23 @@ export async function processDiagnosisGenerationJob(
 
 function isTimeout(error: unknown) {
   return error instanceof Error && /timeout|timed out|aborted/i.test(`${error.name} ${error.message}`);
+}
+
+async function withGenerationTimeout<T>(operation: Promise<T>) {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<T>((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error('Diagnosis generation timed out.')),
+          DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
 }
 
 function queuePrefix() {

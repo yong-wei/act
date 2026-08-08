@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  claimDiagnosisGenerationAttempt,
+  DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
   diagnosisGenerationRequestSchema,
   projectDiagnosisGenerationJob,
+  retryDiagnosisGenerationJob,
   startDiagnosisGenerationJob,
 } from '@/lib/diagnosis-generation';
 
@@ -41,7 +44,15 @@ function dbFixture() {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
       create: vi.fn(),
+      updateMany: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
     },
+    diagnosisGenerationAttempt: {
+      updateMany: vi.fn(),
+      count: vi.fn(),
+      create: vi.fn(),
+    },
+    $transaction: vi.fn(),
   };
 }
 
@@ -111,5 +122,54 @@ describe('teacher diagnosis generation contracts', () => {
       id: 'job-2',
       evidenceCutoff: now.toISOString(),
     });
+  });
+
+  it('reclaims a stale running job and records the interrupted attempt as timed out', async () => {
+    const db = dbFixture();
+    const tx = {
+      diagnosisGenerationJob: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        findUniqueOrThrow: vi.fn().mockResolvedValue({ id: 'job-1' }),
+      },
+      diagnosisGenerationAttempt: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        count: vi.fn().mockResolvedValue(1),
+        create: vi.fn().mockResolvedValue({ id: 'attempt-2', attemptNumber: 2 }),
+      },
+    };
+    db.$transaction.mockImplementation(async (callback: (client: typeof tx) => unknown) => callback(tx));
+
+    const claim = await claimDiagnosisGenerationAttempt(db as never, 'job-1', now);
+
+    expect(claim).toMatchObject({ attempt: { id: 'attempt-2', attemptNumber: 2 } });
+    expect(tx.diagnosisGenerationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        OR: expect.arrayContaining([
+          { state: 'QUEUED' },
+          { state: 'RUNNING', startedAt: { lt: new Date(now.getTime() - DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS) } },
+        ]),
+      }),
+    }));
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { jobId: 'job-1', state: 'RUNNING' },
+      data: expect.objectContaining({ state: 'TIMED_OUT', completedAt: now }),
+    }));
+  });
+
+  it('reuses a newer active scope instead of reviving an older failed job into a uniqueness conflict', async () => {
+    const db = dbFixture();
+    const failed = publicJob({ id: 'job-old', state: 'FAILED', retryable: true });
+    const active = publicJob({ id: 'job-new', state: 'RUNNING', retryable: false });
+    db.diagnosisGenerationJob.findFirst.mockResolvedValue(failed);
+    db.diagnosisGenerationJob.findUnique.mockResolvedValue(active);
+
+    const result = await retryDiagnosisGenerationJob(db as never, {
+      teacherId: 'teacher-1',
+      jobId: 'job-old',
+      idempotencyKey: 'retry-123',
+    });
+
+    expect(result.id).toBe('job-new');
+    expect(db.diagnosisGenerationJob.updateMany).not.toHaveBeenCalled();
   });
 });

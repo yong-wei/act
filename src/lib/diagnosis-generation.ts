@@ -19,6 +19,8 @@ export const diagnosisGenerationRetrySchema = z.object({
   idempotencyKey: z.string().trim().min(8).max(200),
 }).strict();
 
+export const DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS = 2 * 60 * 1_000;
+
 export class DiagnosisGenerationError extends Error {
   constructor(
     readonly code: string,
@@ -165,11 +167,17 @@ export async function retryDiagnosisGenerationJob(
     targetStudentId: job.targetUserId,
     requireActive: true,
   });
+  const scopeKey = activeScopeKey(input.teacherId, job.classId, job.targetUserId);
+  const active = await db.diagnosisGenerationJob.findUnique({
+    where: { activeScopeKey: scopeKey },
+    select: publicJobSelect,
+  });
+  if (active && active.id !== job.id) return active;
   const updated = await db.diagnosisGenerationJob.updateMany({
     where: { id: job.id, userId: input.teacherId, state: { in: ['FAILED', 'TIMED_OUT'] }, retryable: true },
     data: {
       state: 'QUEUED',
-      activeScopeKey: activeScopeKey(input.teacherId, job.classId, job.targetUserId),
+      activeScopeKey: scopeKey,
       failureCode: null,
       failureMessage: null,
       retryable: false,
@@ -178,7 +186,14 @@ export async function retryDiagnosisGenerationJob(
       deliveryGeneration: { increment: 1 },
     },
   });
-  if (updated.count !== 1) throw new DiagnosisGenerationError('diagnosis-generation-retry-conflict', 409);
+  if (updated.count !== 1) {
+    const raced = await db.diagnosisGenerationJob.findUnique({
+      where: { activeScopeKey: scopeKey },
+      select: publicJobSelect,
+    });
+    if (raced && raced.id !== job.id) return raced;
+    throw new DiagnosisGenerationError('diagnosis-generation-retry-conflict', 409);
+  }
   return db.diagnosisGenerationJob.findUniqueOrThrow({ where: { id: job.id }, select: publicJobSelect });
 }
 
@@ -197,13 +212,33 @@ export async function markDiagnosisDeliveryFailure(db: PrismaClient, jobId: stri
   return db.diagnosisGenerationJob.findUniqueOrThrow({ where: { id: jobId }, select: publicJobSelect });
 }
 
-export async function claimDiagnosisGenerationAttempt(db: PrismaClient, jobId: string) {
+export async function claimDiagnosisGenerationAttempt(
+  db: PrismaClient,
+  jobId: string,
+  now = new Date(),
+) {
   return db.$transaction(async (tx) => {
+    const staleBefore = new Date(now.getTime() - DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS);
     const claimed = await tx.diagnosisGenerationJob.updateMany({
-      where: { id: jobId, state: 'QUEUED' },
-      data: { state: 'RUNNING', startedAt: new Date(), failureCode: null, failureMessage: null },
+      where: {
+        id: jobId,
+        OR: [
+          { state: 'QUEUED' },
+          { state: 'RUNNING', startedAt: { lt: staleBefore } },
+        ],
+      },
+      data: { state: 'RUNNING', startedAt: now, failureCode: null, failureMessage: null },
     });
     if (claimed.count !== 1) return null;
+    await tx.diagnosisGenerationAttempt.updateMany({
+      where: { jobId, state: 'RUNNING' },
+      data: {
+        state: 'TIMED_OUT',
+        errorCode: 'diagnosis-generation-timeout',
+        errorMessage: 'Diagnosis generation attempt exceeded its execution deadline.',
+        completedAt: now,
+      },
+    });
     const count = await tx.diagnosisGenerationAttempt.count({ where: { jobId } });
     const attempt = await tx.diagnosisGenerationAttempt.create({
       data: { jobId, attemptNumber: count + 1 },
@@ -228,6 +263,11 @@ export async function completeDiagnosisGenerationJob(
     const job = await tx.diagnosisGenerationJob.findUniqueOrThrow({ where: { id: input.jobId } });
     if (job.state === 'COMPLETED') return tx.diagnosisReport.findUniqueOrThrow({ where: { generationJobId: job.id } });
     if (job.state !== 'RUNNING') throw new DiagnosisGenerationError('diagnosis-generation-state-conflict', 409);
+    const attempt = await tx.diagnosisGenerationAttempt.findFirst({
+      where: { id: input.attemptId, jobId: job.id, state: 'RUNNING' },
+      select: { id: true },
+    });
+    if (!attempt) throw new DiagnosisGenerationError('diagnosis-generation-attempt-conflict', 409);
     const report = await persistDiagnosisReport({
       teacherId: job.userId,
       classId: job.classId,
@@ -273,8 +313,8 @@ export async function failDiagnosisGenerationAttempt(
   },
 ) {
   return db.$transaction(async (tx) => {
-    await tx.diagnosisGenerationAttempt.update({
-      where: { id: input.attemptId },
+    const updatedAttempt = await tx.diagnosisGenerationAttempt.updateMany({
+      where: { id: input.attemptId, jobId: input.jobId, state: 'RUNNING' },
       data: {
         state: input.timedOut ? 'TIMED_OUT' : 'FAILED',
         agentSessionId: input.agentSessionId ?? null,
@@ -284,8 +324,11 @@ export async function failDiagnosisGenerationAttempt(
         completedAt: new Date(),
       },
     });
+    if (updatedAttempt.count !== 1) {
+      return tx.diagnosisGenerationJob.findUniqueOrThrow({ where: { id: input.jobId } });
+    }
     return tx.diagnosisGenerationJob.update({
-      where: { id: input.jobId },
+      where: { id: input.jobId, state: 'RUNNING' },
       data: input.willRetry
         ? { state: 'QUEUED', startedAt: null }
         : {
