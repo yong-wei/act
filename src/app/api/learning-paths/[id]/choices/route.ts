@@ -6,6 +6,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { LEGACY_STOPPED_PATH_STATUS } from '@/lib/canonical-learning-path-transition/contracts';
 import { throwIfLearningPathNotWritable } from '@/lib/canonical-learning-path-transition/mutation-guard';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
+import { projectSelectionBasisOntoPlanNodes } from '@/lib/adaptive-path-node-decisions';
 import {
   completeKonlingCandidateSelectionToolRun,
   KonlingCandidateSelectionToolRunError,
@@ -261,6 +262,7 @@ interface ServerPathChoiceOption {
   terminalValidationNodeIds: string[];
   resourceMix: Record<string, number>;
   rationaleMetadata: Record<string, unknown>;
+  recommendationProvenance: Record<string, unknown>;
 }
 
 function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOption> {
@@ -298,6 +300,7 @@ function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOpti
         terminalValidationNodeIds: readStringArray(option.terminalValidationNodeIds),
         terminalValidationStrategy: readRecord(option.terminalValidationStrategy),
       }),
+      recommendationProvenance: readRecord(option.recommendationProvenance),
     };
     options.set(styleId, serverOption);
     options.set(optionId, serverOption);
@@ -362,7 +365,10 @@ async function adoptSelectedPathOption(
     const pathPayload = readRecord(latestPath?.pathPayload ?? path.pathPayload);
     const selectedNodeState = readSelectedExecutionNodeState(latestPath ?? path, pathPayload);
     const currentNodeId = resolveSelectedPathCurrentNodeId(option, selectedNodeState);
-    const selectedPlanNodes = normalizeSelectedPlanNodes(option.planNodes, currentNodeId);
+    const selectedPlanNodes = normalizeSelectedPlanNodes(
+      projectSelectionBasisOntoPlanNodes(option.planNodes, option.recommendationProvenance),
+      currentNodeId,
+    );
     const updatedAt = new Date().toISOString();
     const pathPayloadUpdate = {
       ...pathPayload,

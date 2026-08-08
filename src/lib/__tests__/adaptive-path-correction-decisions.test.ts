@@ -40,6 +40,14 @@ describe('buildAdaptivePathCorrectionApplication', () => {
       currentNodeId: 'node-2',
       nodeIds: ['node-1', 'node-2', 'node-4', 'node-3'],
       lastExecutionMetadata: { activeNodeId: 'node-2', completedNodeIds: ['node-1'] },
+      pathPayload: {
+        planNodes: [
+          { nodeId: 'node-1' },
+          { nodeId: 'node-2' },
+          { nodeId: 'node-4', decisionExplanation: { latestAdjustment: { kind: 'advanced' } } },
+          { nodeId: 'node-3', decisionExplanation: { latestAdjustment: { kind: 'delayed' } } },
+        ],
+      },
     });
   });
 
@@ -88,6 +96,15 @@ describe('buildAdaptivePathCorrectionApplication', () => {
         activeNodeId: 'node-3',
         completedNodeIds: ['node-1'],
         skippedNodeIds: ['node-2'],
+      },
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-3', 'node-4'],
+        planNodes: [
+          { nodeId: 'node-1' },
+          { nodeId: 'node-2', decisionExplanation: { latestAdjustment: { kind: 'removed' } } },
+          { nodeId: 'node-3' },
+          { nodeId: 'node-4', decisionExplanation: { latestAdjustment: { kind: 'advanced' } } },
+        ],
       },
     });
   });
