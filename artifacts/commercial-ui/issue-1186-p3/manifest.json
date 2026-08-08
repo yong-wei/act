@@ -1,0 +1,70 @@
+{
+  "capturedAt": "2026-08-09T00:16:34.2149048+08:00",
+  "baseCommitSha": "76ac1d873818cafe9b1dd2d6ce1213d1005ef74a",
+  "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=sufficient",
+  "assertions": [
+    {
+      "viewport": "desktop-1280x720",
+      "states": [
+        "candidate recommendation event evidence",
+        "active-node historical event evidence"
+      ],
+      "checks": [
+        "source type, occurrence time, summary, and safe action are readable",
+        "candidate and active-node evidence remain distinct from current execution state",
+        "no internal identifiers appear in navigation actions",
+        "no horizontal overflow"
+      ],
+      "passed": true
+    },
+    {
+      "viewport": "mobile-320x720",
+      "documentWidth": 305,
+      "states": [
+        "candidate recommendation event evidence",
+        "active-node historical event evidence"
+      ],
+      "checks": [
+        "source type, occurrence time, summary, and safe action are readable",
+        "safe navigation actions remain reachable",
+        "no text overlap",
+        "no horizontal overflow"
+      ],
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    {
+      "state": "candidate",
+      "viewport": "desktop-1280x720",
+      "file": "artifacts/commercial-ui/issue-1186-p3/desktop-candidate-evidence.png",
+      "width": 1265,
+      "height": 2922,
+      "sha256": "b7a5c8009cab098f18994f1da5d451c99b657813922fe9e355d9419fc1f70205"
+    },
+    {
+      "state": "active-node",
+      "viewport": "desktop-1280x720",
+      "file": "artifacts/commercial-ui/issue-1186-p3/desktop-active-node-evidence.png",
+      "width": 1265,
+      "height": 2705,
+      "sha256": "a275482de7a69e2c74b30223e91287a8a606c9405c4640452161122f652ab921"
+    },
+    {
+      "state": "candidate",
+      "viewport": "mobile-320x720",
+      "file": "artifacts/commercial-ui/issue-1186-p3/mobile-320-candidate-evidence.png",
+      "width": 305,
+      "height": 4627,
+      "sha256": "d542fc71a36eb2e62d73b210518fe187dcef6937d65f469359515aa54a8530ea"
+    },
+    {
+      "state": "active-node",
+      "viewport": "mobile-320x720",
+      "file": "artifacts/commercial-ui/issue-1186-p3/mobile-320-active-node-evidence.png",
+      "width": 305,
+      "height": 4984,
+      "sha256": "6ebc92cb95b17981cdee593701fc26db0bb0580207da3c3d010f2171df559d51"
+    }
+  ]
+}

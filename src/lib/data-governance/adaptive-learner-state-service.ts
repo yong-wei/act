@@ -40,6 +40,11 @@ import {
   projectPortraitV2ForConsumer,
   type PortraitV2ProjectedPayload,
 } from './portrait-v2-model';
+import {
+  inferStudentSafeEvidenceSource,
+  projectStudentSafeEvidenceSource,
+  type StudentSafeEvidenceEventReference,
+} from './evidence-timeline';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -350,6 +355,7 @@ export interface ControlCorrectionCapabilityTargetEvidence {
     directEvidenceCount: number;
     supportingEvidenceCount: number;
     supportingEvidenceRefs?: MasteryEvidenceReference[];
+    eventReferences?: StudentSafeEvidenceEventReference[];
     sourceCoverage?: MasteryTraceabilityEntry['sourceCoverage'];
     freshness?: MasteryTraceabilityEntry['freshness'];
     limitations?: string[];
@@ -1298,6 +1304,8 @@ function buildControlCorrectionGoalSlice(input: {
       input.masteryTraceability,
       input.vector,
       sourceEvidence,
+      input.facts,
+      input.arenaSubmissions,
     ),
     dimensions,
     pathContext: buildControlCorrectionPathContext(input.paths, input.activeControlCorrectionPath),
@@ -1312,6 +1320,8 @@ function buildControlCorrectionCapabilityTargets(
   masteryTraceability: AdaptiveLearnerState['masteryTraceability'],
   vector: CompetencyVector,
   sourceEvidence: ControlCorrectionSourceEvidence,
+  facts: Array<Record<string, unknown>>,
+  arenaSubmissions: Array<Record<string, unknown>>,
 ): ControlCorrectionCapabilityTargetEvidence[] {
   return CONTROL_CORRECTION_CAPABILITY_TARGETS.map((target) => {
     const knowledge = knowledgeMastery.tags[target.knowledgeNodeRef];
@@ -1325,6 +1335,11 @@ function buildControlCorrectionCapabilityTargets(
     const knowledgeEvidenceCount = knowledge?.evidenceCount ?? 0;
     const observableEvidenceCount = countControlCorrectionCapabilityObservableEvidence(target, sourceEvidence);
     const traceabilityRefs = traceability?.supportingEvidenceRefs ?? [];
+    const eventReferences = projectCapabilityEventReferences(
+      traceabilityRefs,
+      facts,
+      arenaSubmissions,
+    );
     const agentToolEvidenceCount = traceabilityRefs.filter((ref) => ref.sourceType === 'AgentToolRun').length;
     const directEvidenceCount = knowledgeEvidenceCount + observableEvidenceCount + agentToolEvidenceCount;
     const observableEvidenceConfidence = controlCorrectionCapabilityObservableEvidenceConfidence(target, observableEvidenceCount);
@@ -1349,14 +1364,68 @@ function buildControlCorrectionCapabilityTargets(
         directEvidenceCount,
         supportingEvidenceCount,
         supportingEvidenceRefs: traceability?.supportingEvidenceRefs ?? [],
+        eventReferences,
         sourceCoverage: traceability?.sourceCoverage ?? emptyMasterySourceCoverage(),
         freshness: traceability?.freshness ?? 'missing',
-        limitations: traceability?.limitations ?? ['missing-governed-evidence'],
+        limitations: unique([
+          ...(traceability?.limitations ?? ['missing-governed-evidence']),
+          ...(eventReferences.length === 0 ? ['missing-verifiable-event-reference'] : []),
+        ]),
         source: 'adaptive-learner-state',
         recommendationBias: state === 'observed' ? 'targeted-practice' : 'starter-or-evidence-gathering',
       },
     };
   });
+}
+
+function projectCapabilityEventReferences(
+  refs: MasteryEvidenceReference[],
+  facts: Array<Record<string, unknown>>,
+  arenaSubmissions: Array<Record<string, unknown>>,
+): StudentSafeEvidenceEventReference[] {
+  const factById = new Map(facts
+    .map((fact) => [readString(fact.id), fact] as const)
+    .filter((entry): entry is [string, Record<string, unknown>] => Boolean(entry[0])));
+  const arenaSubmissionById = new Map(arenaSubmissions
+    .filter(isOfficialControlCorrectionArenaSubmission)
+    .map((submission) => [readString(submission.id), submission] as const)
+    .filter((entry): entry is [string, Record<string, unknown>] => Boolean(entry[0])));
+  const projected = refs.flatMap((ref): StudentSafeEvidenceEventReference[] => {
+    if (ref.privacyLevel !== 'student-visible') return [];
+    if (ref.sourceType === 'LearningFact') {
+      const fact = factById.get(ref.sourceId);
+      if (!fact) return [];
+      const source = inferStudentSafeEvidenceSource({
+        factType: readString(fact.factType),
+        moduleId: readString(fact.moduleId),
+        lessonId: readString(fact.lessonId),
+        sourceEventId: readString(fact.sourceEventId),
+        contextJson: fact.contextJson,
+      });
+      const occurredAt = dateToIsoOrNull(fact.startedAt ?? ref.evidenceAt);
+      return source && occurredAt ? [{ ...source, occurredAt }] : [];
+    }
+    if (ref.sourceType === 'ArenaSubmission') {
+      const submission = arenaSubmissionById.get(ref.sourceId);
+      const occurredAt = dateToIsoOrNull(submission?.submittedAt ?? ref.evidenceAt);
+      if (!submission || !occurredAt) return [];
+      return [{
+        ...projectStudentSafeEvidenceSource({ sourceScope: 'arena-official-result' }),
+        occurredAt,
+      }];
+    }
+    return [];
+  });
+  const seen = new Set<string>();
+  return projected
+    .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt))
+    .filter((reference) => {
+      const key = `${reference.sourceScope}|${reference.occurredAt}|${reference.nextAction.href}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 3);
 }
 
 function countControlCorrectionCapabilityObservableEvidence(

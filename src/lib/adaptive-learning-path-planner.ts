@@ -54,6 +54,7 @@ import {
   type SourcePackLimitation,
 } from './source-pack';
 import type { AdaptivePathNodeDecisionExplanation } from './adaptive-path-node-decisions';
+import type { StudentSafeEvidenceEventReference } from './data-governance/evidence-timeline';
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
 export type AdaptiveLearningPathPolicyFamily =
@@ -739,6 +740,7 @@ export interface AdaptiveLearningPathDeficit {
   evidenceCount: number;
   reasonCode: string;
   portraitDimensionIds?: PortraitV2DimensionId[];
+  eventReferences?: StudentSafeEvidenceEventReference[];
 }
 
 export interface AdaptiveLearningPathRecommendationProvenanceEntry {
@@ -749,6 +751,7 @@ export interface AdaptiveLearningPathRecommendationProvenanceEntry {
   judgment: string;
   affectedNodeIds: string[];
   affectedResourceTitles: string[];
+  eventReferences?: StudentSafeEvidenceEventReference[];
 }
 
 export interface AdaptiveLearningPathRecommendationProvenance {
@@ -784,6 +787,7 @@ export interface AdaptiveLearningPathCapabilityEvidence {
     directEvidenceCount: number;
     supportingEvidenceCount: number;
     portraitDimensionIds?: PortraitV2DimensionId[];
+    eventReferences?: StudentSafeEvidenceEventReference[];
     source: 'adaptive-learner-state';
     recommendationBias: 'starter-or-evidence-gathering' | 'targeted-practice';
   };
@@ -2491,6 +2495,7 @@ function inferDeficits(
 ): AdaptiveLearningPathDeficit[] {
   const knowledgeTags = learnerState?.knowledgeMastery?.tags ?? {};
   const competencies = learnerState?.primaryCompetencies?.vector ?? {};
+  const capabilityEvidence = collectGoalSliceCapabilityEvidence(learnerState);
   return [
     ...goal.knowledgeTargets
       .map((targetId) => {
@@ -2503,6 +2508,7 @@ function inferDeficits(
           confidence: mastery?.confidence ?? 0,
           evidenceCount: mastery?.evidenceCount ?? 0,
           reasonCode: value < 0.75 ? 'knowledge-deficit' : 'knowledge-maintenance',
+          eventReferences: eventReferencesForDeficit(capabilityEvidence, targetId, 'knowledge'),
         };
       })
       .filter((item) => item.value < 0.85),
@@ -2528,10 +2534,32 @@ function inferDeficits(
           evidenceCount,
           reasonCode: value < 0.7 ? 'competency-deficit' : 'competency-maintenance',
           portraitDimensionIds,
+          eventReferences: eventReferencesForDeficit(capabilityEvidence, targetId, 'competency'),
         };
       })
       .filter((item) => item.value < 0.85),
   ];
+}
+
+function eventReferencesForDeficit(
+  capabilityEvidence: Map<string, AdaptiveLearningPathCapabilityEvidence>,
+  targetId: string,
+  kind: AdaptiveLearningPathDeficit['kind'],
+): StudentSafeEvidenceEventReference[] {
+  const matches = [...capabilityEvidence.values()].filter((entry) => kind === 'knowledge'
+    ? entry.target.knowledgeNodeRef === targetId
+    : entry.target.competencyDimensions.includes(targetId));
+  const seen = new Set<string>();
+  return matches
+    .flatMap((entry) => entry.observedEvidence.eventReferences ?? [])
+    .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt))
+    .filter((reference) => {
+      const key = `${reference.sourceScope}|${reference.occurredAt}|${reference.nextAction.href}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 3);
 }
 
 function resolveCapabilityTargets(
@@ -5074,6 +5102,7 @@ export function buildAdaptivePathRecommendationProvenance(input: {
       judgment,
       affectedNodeIds: affectedNodes.map((node) => node.nodeId),
       affectedResourceTitles: affectedNodes.map((node) => node.title),
+      eventReferences: deficit.eventReferences ?? [],
     };
   });
   const hasLowConfidenceDeficit = input.deficits.some((deficit) =>
@@ -5082,6 +5111,7 @@ export function buildAdaptivePathRecommendationProvenance(input: {
   const hasUnmatchedEntry = entries.some((entry) =>
     entry.confidence !== 'low' && entry.affectedResourceTitles.length === 0
   );
+  const hasMissingEventReferences = entries.some((entry) => entry.eventReferences?.length === 0);
   const confidence = input.confidence === 'low' || entries.length === 0 || hasLowConfidenceDeficit
     ? 'low'
     : input.confidence;
@@ -5089,6 +5119,7 @@ export function buildAdaptivePathRecommendationProvenance(input: {
     entries.length === 0 ? '当前没有可用于形成个性化判断的有效学习证据。' : null,
     hasLowConfidenceDeficit ? '部分判断的有效证据仍然不足。' : null,
     hasUnmatchedEntry ? '部分判断缺少可核验的推荐资源关联。' : null,
+    hasMissingEventReferences ? '部分判断尚无可核验的事件级学习记录。' : null,
   ]);
   return {
     summary: confidence === 'low'

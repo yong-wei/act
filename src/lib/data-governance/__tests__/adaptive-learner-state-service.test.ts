@@ -2023,7 +2023,10 @@ describe('adaptive learner state service', () => {
       },
       learningFact: {
         findMany: async () => [
-          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92),
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92, {
+            lessonId: 'lesson-root-locus',
+            moduleId: 'step-root-locus-check',
+          }),
           controlCorrectionFact('simulation', '2026-05-18T00:00:00.000Z', 90),
           controlCorrectionFact('arena', '2026-05-17T00:00:00.000Z', 88),
           controlCorrectionFact('reflection', '2026-05-16T00:00:00.000Z', 86),
@@ -2104,7 +2107,10 @@ describe('adaptive learner state service', () => {
       adaptiveMasteryUpdate: { findMany: async () => [] },
       learningFact: {
         findMany: async () => [
-          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92),
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92, {
+            lessonId: 'lesson-root-locus',
+            moduleId: 'step-root-locus-check',
+          }),
         ],
       },
       arenaSubmission: { findMany: async () => [] },
@@ -2129,10 +2135,57 @@ describe('adaptive learner state service', () => {
           knowledgeMastery: null,
           confidence: 0.45,
           directEvidenceCount: 1,
+          eventReferences: [{
+            sourceScope: 'interactive-lesson-submission',
+            occurredAt: '2026-05-19T00:00:00.000Z',
+            summary: '课堂作答记录参与了该项能力判断。',
+            nextAction: {
+              href: '/profile/evidence?lessonId=lesson-root-locus',
+              label: '复盘课堂作答',
+            },
+          }],
           recommendationBias: 'starter-or-evidence-gathering',
         }),
       }),
     ]));
+  });
+
+  it('bounds, orders, deduplicates, and redacts student-safe capability event references', async () => {
+    const simulationFacts = [1, 2, 3, 4].map((day) => controlCorrectionFact(
+      'simulation',
+      `2026-05-${String(14 + day).padStart(2, '0')}T00:00:00.000Z`,
+      80 + day,
+      {
+        id: `simulation-${day}`,
+        moduleId: 'control-workbench',
+        sourceLogId: `source-log-${day}`,
+        sourceEventId: `source-event-${day}`,
+      },
+    ));
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      learningFact: { findMany: async () => [...simulationFacts, simulationFacts[3]] },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const target = state.goalSlices?.controlCorrection?.capabilityTargets.find((entry) =>
+      entry.target.id === 'control-correction:time-domain-targets:apply'
+    );
+    expect(target?.observedEvidence.eventReferences).toHaveLength(3);
+    expect(target?.observedEvidence.eventReferences?.map((entry) => entry.occurredAt)).toEqual([
+      '2026-05-18T00:00:00.000Z',
+      '2026-05-17T00:00:00.000Z',
+      '2026-05-16T00:00:00.000Z',
+    ]);
+    const serialized = JSON.stringify(target?.observedEvidence.eventReferences);
+    expect(serialized).not.toContain('simulation-4');
+    expect(serialized).not.toContain('source-log');
+    expect(serialized).not.toContain('source-event');
   });
 
   it('keeps type-level simulation evidence below observed confidence for capability targets', async () => {
@@ -2380,6 +2433,15 @@ describe('adaptive learner state service', () => {
       evidenceProvenance: expect.objectContaining({ arena: 'official' }),
       confidence: expect.objectContaining({ sourceCompleteness: 1 }),
     });
+    const arenaCapability = state.goalSlices?.controlCorrection?.capabilityTargets.find((entry) =>
+      entry.target.id === 'control-correction:arena-transfer:create'
+    );
+    expect(arenaCapability?.observedEvidence.eventReferences).toEqual([{
+      sourceScope: 'arena-official-result',
+      occurredAt: '2026-05-19T01:00:00.000Z',
+      summary: 'Arena 官方评测结果参与了该项能力判断。',
+      nextAction: { href: '/arena', label: '查看 Arena 结果' },
+    }]);
   });
 
   it('excludes blocked persisted Arena writeback outcomes from official control-correction evidence', async () => {

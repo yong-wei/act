@@ -1,10 +1,15 @@
 import type { AdaptivePathCorrectionProposal } from '@/features/adaptive/adaptive-path-journey-contracts';
+import type {
+  EvidenceTimelineLearnerRecordSourceScope,
+  StudentSafeEvidenceEventReference,
+} from '@/lib/data-governance/evidence-timeline';
 
 export interface AdaptivePathNodeSelectionBasis {
   summary: string;
   confidence: 'low' | 'medium' | 'high';
   supportingFacts: string[];
   limitations: string[];
+  eventReferences?: StudentSafeEvidenceEventReference[];
 }
 
 export interface AdaptivePathNodeLatestAdjustment {
@@ -36,6 +41,9 @@ export function projectSelectionBasisOntoPlanNodes(
       .filter((entry) => readStringArray(entry.affectedNodeIds).includes(nodeId))
       .flatMap((entry) => [readString(entry.evidenceSummary), readString(entry.judgment)])
       .filter((value): value is string => Boolean(value)));
+    const eventReferences = uniqueEventReferences(entries
+      .filter((entry) => readStringArray(entry.affectedNodeIds).includes(nodeId))
+      .flatMap((entry) => readEventReferences(entry.eventReferences)));
     const existing = readDecisionExplanation(node.decisionExplanation);
     return {
       ...node,
@@ -46,6 +54,7 @@ export function projectSelectionBasisOntoPlanNodes(
           confidence,
           supportingFacts,
           limitations,
+          eventReferences,
         },
       } satisfies AdaptivePathNodeDecisionExplanation,
     };
@@ -213,6 +222,40 @@ function readStringArray(value: unknown): string[] {
 
 function readConfidence(value: unknown): AdaptivePathNodeSelectionBasis['confidence'] | null {
   return value === 'low' || value === 'medium' || value === 'high' ? value : null;
+}
+
+function readEventReferences(value: unknown): StudentSafeEvidenceEventReference[] {
+  return readRecordArray(value).flatMap((entry) => {
+    const sourceScope = readEvidenceSourceScope(entry.sourceScope);
+    const occurredAt = readString(entry.occurredAt);
+    const summary = readString(entry.summary);
+    const nextAction = readRecord(entry.nextAction);
+    const href = readString(nextAction.href);
+    const label = readString(nextAction.label);
+    return sourceScope && occurredAt && summary && href && label
+      ? [{ sourceScope, occurredAt, summary, nextAction: { href, label } }]
+      : [];
+  });
+}
+
+function readEvidenceSourceScope(value: unknown): EvidenceTimelineLearnerRecordSourceScope | null {
+  return value === 'interactive-lesson-submission' ||
+    value === 'arena-official-result' ||
+    value === 'arena-preview-result' ||
+    value === 'simulation-workbench-completion' ||
+    value === 'adaptive-practice-submission'
+    ? value
+    : null;
+}
+
+function uniqueEventReferences(value: StudentSafeEvidenceEventReference[]): StudentSafeEvidenceEventReference[] {
+  const seen = new Set<string>();
+  return value.filter((reference) => {
+    const key = `${reference.sourceScope}|${reference.occurredAt}|${reference.nextAction.href}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function uniqueStrings(value: string[]): string[] {
