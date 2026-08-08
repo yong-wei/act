@@ -347,6 +347,7 @@ interface PathExecutionNodeView {
     summary: string;
     supportingFacts: string[];
   } | null;
+  readinessState: string;
   lockReason?: string;
   unlockMessage?: string;
   result?: PathNodeResultCardView | null;
@@ -851,6 +852,10 @@ const DEMO_CONTROL_CORRECTION_PATH_ROUND = {
 
 const DEMO_LOCKED_NODE_PATH_ROUND = {
   ...DEMO_CONTROL_CORRECTION_PATH_ROUND,
+  lastExecutionMetadata: {
+    completedNodeIds: ['demo-foundation-card'],
+    failedNodeIds: ['demo-simulation'],
+  },
   deviations: [],
 } satisfies LearningPathRoundView;
 
@@ -1912,6 +1917,7 @@ function getPathExecutionNodes(
         : '完成学习动作并留下可复核记录。',
       selectionBasis,
       latestAdjustment,
+      readinessState,
       lockReason,
       unlockMessage,
       result,
@@ -5100,7 +5106,9 @@ export default function AdaptivePracticePage() {
                               </dd>
                             ) : null}
                           </div>
-                          {node.status === 'locked' && (node.lockReason || node.unlockMessage) ? (
+                          {node.status !== 'completed' && node.status !== 'skipped' &&
+                          ['locked', 'evidence-needed', 'needs-preparation'].includes(node.readinessState) &&
+                          (node.lockReason || node.unlockMessage) ? (
                             <div data-adaptive-path-node-current-lock="governed">
                               <dt className="text-xs text-subtle">当前锁定原因</dt>
                               <dd className="mt-1 break-words text-foreground">{node.lockReason ?? node.unlockMessage}</dd>

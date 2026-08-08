@@ -1115,6 +1115,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('return null');
     expect(source).toContain("? { ...node, status: 'current' }");
     expect(source).toContain('resolveAdaptivePathExecutionNodeStatus({');
+    expect(source).toContain("['locked', 'evidence-needed', 'needs-preparation'].includes(node.readinessState)");
+    expect(source).toContain("node.status !== 'completed' && node.status !== 'skipped'");
     expect(source).not.toContain("selectedNode?.status === 'skipped'");
     expect(source).not.toContain('setSelectedPathNodeId(currentPathNode.nodeId)');
     expect(source).toContain('查看节点');

@@ -27,6 +27,7 @@ for (const width of [1440, 320] as const) {
     await expect(currentNode.locator('[data-adaptive-path-node-actions="attached"]')).toBeVisible();
 
     const lockedNode = timeline.locator('[data-adaptive-path-node="demo-simulation"]');
+    await expect(lockedNode.locator('[data-adaptive-path-node-status-badge="blocked"]')).toBeVisible();
     await lockedNode.locator('[data-adaptive-path-node-selectable="true"]').click();
     await expect(lockedNode.locator('[data-adaptive-path-node-current-lock="governed"]')).toContainText(
       '完成检查题后会自动解锁仿真验证。',
