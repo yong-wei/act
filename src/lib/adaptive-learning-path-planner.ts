@@ -320,6 +320,7 @@ export interface AdaptiveLearningPathLearnerState {
       posteriorMastery?: number;
       confidence?: number;
       evidenceCount?: number;
+      eventReferences?: StudentSafeEvidenceEventReference[];
     }>;
   };
   primaryCompetencies?: {
@@ -327,6 +328,7 @@ export interface AdaptiveLearningPathLearnerState {
       score?: number;
       confidence?: number;
       evidenceCount?: number;
+      eventReferences?: StudentSafeEvidenceEventReference[];
     }>;
   };
   primaryPortrait?: PortraitV2ProjectedPayload;
@@ -2495,7 +2497,6 @@ function inferDeficits(
 ): AdaptiveLearningPathDeficit[] {
   const knowledgeTags = learnerState?.knowledgeMastery?.tags ?? {};
   const competencies = learnerState?.primaryCompetencies?.vector ?? {};
-  const capabilityEvidence = collectGoalSliceCapabilityEvidence(learnerState);
   return [
     ...goal.knowledgeTargets
       .map((targetId) => {
@@ -2508,7 +2509,7 @@ function inferDeficits(
           confidence: mastery?.confidence ?? 0,
           evidenceCount: mastery?.evidenceCount ?? 0,
           reasonCode: value < 0.75 ? 'knowledge-deficit' : 'knowledge-maintenance',
-          eventReferences: eventReferencesForDeficit(capabilityEvidence, targetId, 'knowledge'),
+          eventReferences: eventReferencesForDeficit(mastery?.eventReferences),
         };
       })
       .filter((item) => item.value < 0.85),
@@ -2534,7 +2535,9 @@ function inferDeficits(
           evidenceCount,
           reasonCode: value < 0.7 ? 'competency-deficit' : 'competency-maintenance',
           portraitDimensionIds,
-          eventReferences: eventReferencesForDeficit(capabilityEvidence, targetId, 'competency'),
+          eventReferences: eventReferencesForDeficit(
+            portraitScores.length > 0 ? undefined : competency?.eventReferences,
+          ),
         };
       })
       .filter((item) => item.value < 0.85),
@@ -2542,16 +2545,10 @@ function inferDeficits(
 }
 
 function eventReferencesForDeficit(
-  capabilityEvidence: Map<string, AdaptiveLearningPathCapabilityEvidence>,
-  targetId: string,
-  kind: AdaptiveLearningPathDeficit['kind'],
+  references: StudentSafeEvidenceEventReference[] | undefined,
 ): StudentSafeEvidenceEventReference[] {
-  const matches = [...capabilityEvidence.values()].filter((entry) => kind === 'knowledge'
-    ? entry.target.knowledgeNodeRef === targetId
-    : entry.target.competencyDimensions.includes(targetId));
   const seen = new Set<string>();
-  return matches
-    .flatMap((entry) => entry.observedEvidence.eventReferences ?? [])
+  return [...(references ?? [])]
     .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt))
     .filter((reference) => {
       const key = `${reference.sourceScope}|${reference.occurredAt}|${reference.nextAction.href}`;

@@ -3558,6 +3558,42 @@ describe('adaptive learning path planner', () => {
     }));
     expect(goalSliceEvidencePlan.visualization.evidence.learnerStateDeficits.find((item) =>
       item.targetId === 'control-correction:arena-transfer'
+    )?.eventReferences).toEqual([]);
+    expect(goalSliceEvidencePlan.visualization.evidence.learnerStateDeficits.find((item) =>
+      item.targetId === 'parameterDesign'
+    )?.eventReferences).toEqual([]);
+    expect(buildAdaptivePathRecommendationProvenance({
+      path: goalSliceEvidencePlan.mainPath,
+      deficits: goalSliceEvidencePlan.visualization.evidence.learnerStateDeficits,
+      confidence: goalSliceEvidencePlan.confidence.level,
+    }).limitations).toContain(
+      '部分判断尚无可核验的事件级学习记录。',
+    );
+
+    const judgmentLineagePlan = buildAdaptiveLearningPathPlan(plannerInput({
+      ...input,
+      learnerState: {
+        ...input.learnerState!,
+        knowledgeMastery: {
+          tags: {
+            ...input.learnerState!.knowledgeMastery!.tags,
+            'control-correction:arena-transfer': {
+              posteriorMastery: 0.24,
+              confidence: 0.7,
+              evidenceCount: 3,
+              eventReferences: [{
+                sourceScope: 'arena-official-result',
+                occurredAt: '2026-05-19T01:00:00.000Z',
+                summary: 'Arena 官方评测结果直接参与了该项掌握状态判断。',
+                nextAction: { href: '/arena', label: '查看 Arena 结果' },
+              }],
+            },
+          },
+        },
+      },
+    }));
+    expect(judgmentLineagePlan.visualization.evidence.learnerStateDeficits.find((item) =>
+      item.targetId === 'control-correction:arena-transfer'
     )?.eventReferences).toEqual([
       expect.objectContaining({ sourceScope: 'arena-official-result' }),
     ]);
