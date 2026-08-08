@@ -4055,9 +4055,64 @@ model RemediationOrchestrationResult {
   createdAt                DateTime @default(now())
 
   wrongAnswerAttribution WrongAnswerAttribution @relation(fields: [wrongAnswerAttributionId], references: [id], onDelete: Cascade)
+  interventions          MicroInterventionOutcome[]
 
   @@unique([wrongAnswerAttributionId, orchestratorVersion])
   @@index([userId, createdAt])
+}
+
+model MicroInterventionOutcome {
+  id                               String   @id @default(cuid())
+  remediationOrchestrationResultId String
+  userId                           String
+  learnerSessionId                 String
+  startEventKey                    String
+  sourceSnapshot                   Json
+  startedAt                        DateTime @default(now())
+  createdAt                        DateTime @default(now())
+
+  remediationOrchestrationResult RemediationOrchestrationResult @relation(fields: [remediationOrchestrationResultId], references: [id], onDelete: Restrict)
+  events                          MicroInterventionEvent[]
+  validation                      MicroInterventionValidation?
+
+  @@unique([remediationOrchestrationResultId, userId, learnerSessionId, startEventKey])
+  @@index([userId, learnerSessionId, createdAt])
+}
+
+model MicroInterventionEvent {
+  id             String   @id @default(cuid())
+  interventionId String
+  eventKey       String
+  eventType      String
+  resourceId     String?
+  durationSeconds Int?
+  occurredAt     DateTime
+  createdAt      DateTime @default(now())
+
+  intervention MicroInterventionOutcome @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  @@unique([interventionId, eventKey])
+  @@index([interventionId, occurredAt])
+}
+
+model MicroInterventionValidation {
+  id                     String   @id @default(cuid())
+  interventionId         String   @unique
+  eventKey               String
+  selectedOptionKey      String
+  isCorrect              Boolean
+  durationSeconds        Int
+  questionId             String
+  questionContentHash    String
+  questionVersion        String
+  recommendationSnapshot Json
+  submittedAt            DateTime @default(now())
+  createdAt              DateTime @default(now())
+
+  intervention MicroInterventionOutcome @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  @@unique([interventionId, eventKey])
+  @@index([questionId, createdAt])
 }
 
 model AdaptiveAssessmentAbilityEstimate {

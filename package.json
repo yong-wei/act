@@ -107,6 +107,7 @@
     "db:import-compatible-actkg-public-bundle": "tsx ./scripts/db/import-compatible-actkg-public-bundle.ts",
     "db:compute-actkg-release-set-delta": "tsx ./scripts/db/compute-actkg-release-set-delta.ts",
     "test:standard-actkg-bundle-import-postgres": "tsx ./scripts/tests/test-standard-actkg-bundle-import-postgres.ts",
+    "test:micro-intervention-migration-postgres": "tsx ./scripts/tests/test-micro-intervention-migration-postgres.ts",
     "test:actkg-release-set-delta-postgres": "tsx ./scripts/tests/test-actkg-release-set-delta-postgres.ts",
     "test:aggregate-governance-postgres": "tsx ./scripts/tests/test-aggregate-governance-postgres.ts",
     "db:run-aggregate-course-resource-governance": "tsx ./scripts/db/run-aggregate-course-resource-governance.ts",
