@@ -18,4 +18,4 @@
 
 - [x] 4.1 Add unit tests for independent starts, retry idempotency, version/session binding, validation scoring, recommendations, and no-mutation guarantees.
 - [x] 4.2 Add route tests for learner authorization, invalid requests, projection privacy, and controlled unavailable paths.
-- [ ] 4.3 Run Prisma validation/generation, targeted tests (including ordering and concurrent idempotency conflicts), a disposable PostgreSQL migration smoke, TypeScript checks, repository gates, strict OpenSpec validation, and inspect the final diff.
+- [x] 4.3 Run Prisma validation/generation, targeted tests (including ordering and concurrent idempotency conflicts), a disposable PostgreSQL 17 migration smoke, TypeScript checks, repository gates, strict OpenSpec validation, and inspect the final diff.
