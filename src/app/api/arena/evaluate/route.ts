@@ -17,6 +17,10 @@ import {
 } from '@/features/arena/teacher/publication-store';
 import type { ControllerArtifact } from '@/features/arena/types';
 import { requestRealtimeSimulationTaskReconciliation } from '@/lib/data-governance/simulation-task-reconciliation';
+import {
+  createArenaOfficialKonlingFollowup,
+  readArenaOfficialRevisit,
+} from '@/features/arena/student/konling-official-followup';
 
 export const dynamic = 'force-dynamic';
 
@@ -97,6 +101,31 @@ export async function POST(request: Request) {
       });
     }
     const evidenceWriteback = persistedWriteback.evidenceWriteback;
+    let konlingFollowup: { id: string | null; classId?: string | null; suggestion: Record<string, unknown> } | null = null;
+    try {
+      const historyReader = (prismaArenaSubmissionStore as typeof prismaArenaSubmissionStore & {
+        listSubmissions?: (options: { taskId: string; userId: string; classId?: string }) => Promise<typeof submission[]>;
+      }).listSubmissions;
+      const history = historyReader ? await historyReader({
+        taskId: submission.taskId,
+        userId: session.user.id,
+        classId: submission.classId,
+      }) : [];
+      const revisit = await readArenaOfficialRevisit({
+        db: prisma as any,
+        submission,
+      });
+      const followup = await createArenaOfficialKonlingFollowup({
+        db: prisma as any,
+        submission,
+        history,
+      });
+      konlingFollowup = followup
+        ? { id: followup.id, classId: followup.classId ?? null, suggestion: { ...followup.suggestion, revisit } }
+        : revisit ? { id: null, suggestion: { revisit } } : null;
+    } catch (error) {
+      console.error('Arena Konling followup failed', error);
+    }
 
     return NextResponse.json({
       submission: {
@@ -104,6 +133,7 @@ export async function POST(request: Request) {
         evidenceWriteback,
       },
       evidenceWriteback,
+      konlingFollowup,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);

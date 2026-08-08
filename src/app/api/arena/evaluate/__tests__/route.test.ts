@@ -7,6 +7,9 @@ const mocks = vi.hoisted(() => ({
   requestRealtimeSimulationTaskReconciliation: vi.fn(),
   getArenaPlantAdapterForOfficialEvaluationTaskId: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
+  listSubmissions: vi.fn(),
+  createArenaOfficialKonlingFollowup: vi.fn(),
+  readArenaOfficialRevisit: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -20,6 +23,11 @@ vi.mock('@/features/arena/submissions/persistence', () => ({
 
 vi.mock('@/features/arena/submissions/prisma-store', () => ({
   prismaArenaSubmissionStore: { marker: 'store' },
+}));
+
+vi.mock('@/features/arena/student/konling-official-followup', () => ({
+  createArenaOfficialKonlingFollowup: mocks.createArenaOfficialKonlingFollowup,
+  readArenaOfficialRevisit: mocks.readArenaOfficialRevisit,
 }));
 
 vi.mock('@/features/arena/evidence-writeback-persistence', () => ({
@@ -139,6 +147,9 @@ describe('POST /api/arena/evaluate', () => {
       learningFactCreated: !submission.reusedEvaluation,
     }));
     mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
+    mocks.listSubmissions.mockImplementation(async () => []);
+    mocks.readArenaOfficialRevisit.mockResolvedValue(null);
+    mocks.createArenaOfficialKonlingFollowup.mockResolvedValue(null);
   });
 
   it('requires an authenticated user', async () => {
@@ -460,5 +471,33 @@ describe('POST /api/arena/evaluate', () => {
 
     expect(response.status).toBe(403);
     expect(mocks.createPersistedArenaSubmission).not.toHaveBeenCalled();
+  });
+
+  it('returns a persisted Konling followup derived from formal evaluation history', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.listSubmissions.mockResolvedValueOnce([]);
+    mocks.readArenaOfficialRevisit.mockResolvedValueOnce('与建议触发时相比，得分变化 +10。');
+    mocks.createArenaOfficialKonlingFollowup.mockResolvedValueOnce({
+      id: 'intervention-1',
+      suggestion: {
+        kind: 'constraint-violation',
+        title: '本次正式评测存在硬约束违规',
+        evidence: ['稳定性：未通过'],
+        nextStep: '先使当前未通过的硬约束达标。',
+      },
+    });
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.createArenaOfficialKonlingFollowup).toHaveBeenCalledWith(expect.objectContaining({
+      submission: expect.objectContaining({ id: 'submission-artifact-route-a' }),
+      history: [],
+    }));
+    expect(payload.konlingFollowup).toMatchObject({
+      id: 'intervention-1',
+      suggestion: { kind: 'constraint-violation', revisit: '与建议触发时相比，得分变化 +10。' },
+    });
   });
 });
