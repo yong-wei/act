@@ -222,6 +222,7 @@ export function TeacherDiagnosisReportHistoryView({
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
+            data-diagnosis-generation-action="generate"
             onClick={onGenerate}
             disabled={generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'}
             className="btn-themed inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm disabled:cursor-wait disabled:opacity-60"
@@ -303,7 +304,12 @@ function GenerationStatus({
         </p>
       </div>
       {failed && job?.retryable ? (
-        <button type="button" onClick={onRetry} className="btn-ghost-themed rounded-lg px-3 py-2 text-sm">
+        <button
+          type="button"
+          data-diagnosis-generation-action="retry"
+          onClick={onRetry}
+          className="btn-ghost-themed rounded-lg px-3 py-2 text-sm"
+        >
           重试原任务
         </button>
       ) : null}
