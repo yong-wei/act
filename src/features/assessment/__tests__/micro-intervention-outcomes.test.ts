@@ -133,7 +133,7 @@ function governedTransferResource(transferAbility = 0.2) {
     content: 'Transfer practice content',
     category: null,
     teacherOnly: false,
-    knowledgeNodes: [{ id: 'node-transfer', name: 'Transfer node', resources: [], tags: [] }],
+    knowledgeNodes: [{ id: '状态空间_9_98b2feda', name: 'State-space transfer', resources: [], tags: [] }],
     config: {
       resourceNodePlanning: {
         estimatedTimeMinutes: 6,
@@ -376,12 +376,10 @@ describe('micro intervention outcomes', () => {
 
   it('recommends an existing governed transfer practice after a passing validation', async () => {
     const { db, mocks: dbMocks } = createDb();
-    dbMocks.knowledgeLink.findMany.mockResolvedValue([{
-      sourceId: 'node-1',
-      targetId: 'node-transfer',
-      relation: 'transfers-to',
-      targetNode: { id: 'node-transfer', name: 'Transfer node', isActive: true },
-    }] as any);
+    mocks.readAvailableRemediationInterventionSource.mockResolvedValue({
+      ...SOURCE,
+      task: { ...SOURCE.task, knowledgeNodeId: '跨模型验证比较_4_47006' },
+    });
     dbMocks.teachingResource.findMany.mockResolvedValue([governedTransferResource()] as any);
     const started = await start(db);
     if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
@@ -403,16 +401,50 @@ describe('micro intervention outcomes', () => {
         actions: [{ actionPath: '/interactive-learning/resources/transfer-resource' }],
       },
     });
+    expect(dbMocks.knowledgeLink.findMany).not.toHaveBeenCalled();
+    expect(dbMocks.teachingResource.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        knowledgeNodes: { some: { id: { in: expect.arrayContaining(['状态空间_9_98b2feda']) } } },
+      }),
+    }));
+  });
+
+  it('ignores an ungoverned legacy transfer relation after a passing validation', async () => {
+    const { db, mocks: dbMocks } = createDb();
+    dbMocks.knowledgeLink.findMany.mockResolvedValue([{
+      sourceId: 'node-1',
+      targetId: '状态空间_9_98b2feda',
+      relation: 'transfers-to',
+      targetNode: { id: '状态空间_9_98b2feda', name: 'Legacy transfer', isActive: true },
+    }] as any);
+    dbMocks.teachingResource.findMany.mockResolvedValue([governedTransferResource()] as any);
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+
+    const result = await submitMicroInterventionValidation({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'validation-1',
+      questionId: 'validation-question',
+      selectedOption: 'B',
+      durationSeconds: 45,
+    });
+
+    expect(result).toMatchObject({
+      validation: { isCorrect: true },
+      recommendation: { kind: 'TRANSFER_PRACTICE_UNAVAILABLE' },
+    });
+    expect(dbMocks.knowledgeLink.findMany).not.toHaveBeenCalled();
+    expect(dbMocks.teachingResource.findMany).not.toHaveBeenCalled();
   });
 
   it('does not promote a normal resource on a transfer relation into a transfer practice', async () => {
     const { db, mocks: dbMocks } = createDb();
-    dbMocks.knowledgeLink.findMany.mockResolvedValue([{
-      sourceId: 'node-1',
-      targetId: 'node-transfer',
-      relation: 'transfers-to',
-      targetNode: { id: 'node-transfer', name: 'Transfer node', isActive: true },
-    }] as any);
+    mocks.readAvailableRemediationInterventionSource.mockResolvedValue({
+      ...SOURCE,
+      task: { ...SOURCE.task, knowledgeNodeId: '跨模型验证比较_4_47006' },
+    });
     dbMocks.teachingResource.findMany.mockResolvedValue([governedTransferResource(0)] as any);
     const started = await start(db);
     if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');

@@ -9,6 +9,10 @@ import {
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import type { ResourceNode } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
+import {
+  AUTOCONTROL_KAQ_GRAPH_CATALOG,
+  AUTOCONTROL_KAQ_RUNTIME_KNOWLEDGE_COVERAGE,
+} from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
 
 const MAX_DURATION_SECONDS = 3600;
 const SOURCE_SNAPSHOT_VERSION = 'micro-intervention-source.v2';
@@ -442,27 +446,37 @@ function learnerTransferAction(row: TransferResourceRow, node: ResourceNode | nu
   return { title: node.title, actionPath: target };
 }
 
+function governedTransferTargetKnowledgeRefs(sourceKnowledgeRef: string): string[] {
+  const activeKnowledgeNodeIds = new Set(AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes
+    .filter((node) => node.domain === 'knowledge' && node.status === 'active')
+    .map((node) => node.id));
+  const sourceNodeIds = new Set(AUTOCONTROL_KAQ_RUNTIME_KNOWLEDGE_COVERAGE
+    .filter((coverage) => (
+      coverage.graphNodeId === sourceKnowledgeRef ||
+      coverage.runtimeKnowledgeRefs.includes(sourceKnowledgeRef)
+    ))
+    .map((coverage) => coverage.graphNodeId)
+    .filter((nodeId) => activeKnowledgeNodeIds.has(nodeId)));
+  if (activeKnowledgeNodeIds.has(sourceKnowledgeRef)) sourceNodeIds.add(sourceKnowledgeRef);
+  const targetNodeIds = new Set(AUTOCONTROL_KAQ_GRAPH_CATALOG.edges
+    .filter((edge) => (
+      edge.domain === 'knowledge' &&
+      edge.relation === 'transfers-to' &&
+      sourceNodeIds.has(edge.sourceNodeId) &&
+      activeKnowledgeNodeIds.has(edge.targetNodeId)
+    ))
+    .map((edge) => edge.targetNodeId));
+  return [...new Set(AUTOCONTROL_KAQ_RUNTIME_KNOWLEDGE_COVERAGE
+    .filter((coverage) => targetNodeIds.has(coverage.graphNodeId))
+    .flatMap((coverage) => coverage.runtimeKnowledgeRefs))]
+    .sort((left, right) => left.localeCompare(right));
+}
+
 async function recommendationForPass(
   db: MicroInterventionDb,
   source: InterventionSourceSnapshot,
 ): Promise<MicroInterventionRecommendation> {
-  const transferLinks = await db.knowledgeLink.findMany({
-    where: {
-      sourceId: source.task.knowledgeNodeId,
-      relation: 'transfers-to',
-      targetNode: { isActive: true },
-    },
-    select: {
-      sourceId: true,
-      targetId: true,
-      relation: true,
-      targetNode: { select: { id: true, name: true, isActive: true } },
-    },
-    orderBy: [{ targetId: 'asc' }, { sourceId: 'asc' }],
-  });
-  const targetIds = transferLinks
-    .filter((link) => link.targetNode?.isActive)
-    .map((link) => link.targetId);
+  const targetIds = governedTransferTargetKnowledgeRefs(source.task.knowledgeNodeId);
   if (targetIds.length === 0) {
     return {
       kind: 'TRANSFER_PRACTICE_UNAVAILABLE',
