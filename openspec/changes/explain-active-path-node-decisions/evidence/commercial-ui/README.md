@@ -36,4 +36,15 @@ $env:NODE_OPTIONS='--max-old-space-size=8192'
 npx playwright test tests/adaptive-path-node-decision-visual-acceptance.spec.ts --workers=1
 ```
 
-Result: 3 tests passed, covering desktop, 320px, recorded selection, dynamic lock, legacy limitation, completed history, skipped history, primary actions, and horizontal-overflow geometry.
+Result: 4 tests passed, covering manifest integrity, desktop, 320px, recorded selection, dynamic lock, legacy limitation, completed history, skipped history, primary actions, and horizontal-overflow geometry.
+
+## Verification manifest
+
+`manifest.json` binds these captures to source revision `0eb974368bb8485f646ebcbd80fcf6dd5d9c011e`, captured at `2026-08-08T09:58:47.234Z`.
+
+- Generator: `tests/adaptive-path-node-decision-visual-acceptance.spec.ts` (`02e1ebe4a1112cc614a97c8b29a81a29a790ffe5f1e37bd2e4db09edf8b6397f`)
+- Production source: `src/app/assessment/adaptive-practice/page.tsx` (`c78e4614835670a9f8a39b1f073ca67f5cecc009673e81579d90dc2219a7ec26`)
+- Desktop capture: `desktop-1440.png` (`43eaf8cce83f2d8987e2f7662d7191635405f4f2be4ea2f20237d693af15f888`)
+- Mobile capture: `mobile-320.png` (`0bdc2d898ef93e6c488b8f017318d44a3b09d5f59d5ab94a0dce8ee7821237e0`)
+
+The evidence test verifies the manifest, source hashes, screenshot hashes, required route and viewport metadata, and horizontal-overflow result. It fails when the generator or production source differs from the captured revision, rather than accepting stale evidence.
