@@ -1394,6 +1394,7 @@ describe('konling agent runtime', () => {
         permittedTools: [...permittedTools],
       }),
       permittedTools: [...permittedTools],
+      evidenceCutoff: new Date('2026-07-30T00:00:00.000Z'),
     });
 
     const riskResult = await runtime.getStudentRiskFlags({ studentId: 'student-1' });
@@ -1416,6 +1417,15 @@ describe('konling agent runtime', () => {
       .resolves.toMatchObject({
         progress: [{ knowledgeNodeId: 'node-1' }],
       });
+    expect(db.studentRiskFlag.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ evidenceObservedAt: { lte: new Date('2026-07-30T00:00:00.000Z') } }),
+    }));
+    expect(db.studentCompetencySnapshot.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ snapshotAt: { lte: new Date('2026-07-30T00:00:00.000Z') } }),
+    }));
+    expect(db.knowledgeProgress.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ lastVisited: { lte: new Date('2026-07-30T00:00:00.000Z') } }),
+    }));
   });
 
   it('exposes only the three candidate read tools for a candidate runtime', () => {
