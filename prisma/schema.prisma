@@ -122,6 +122,21 @@ enum SmartLessonGenerationJobState {
   COMPLETED
 }
 
+enum DiagnosisGenerationJobState {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  TIMED_OUT
+}
+
+enum DiagnosisGenerationAttemptState {
+  RUNNING
+  SUCCEEDED
+  FAILED
+  TIMED_OUT
+}
+
 enum SmartLessonGenerationStageKind {
   OUTLINE
   BRIDGE_IN
@@ -5146,15 +5161,63 @@ model DiagnosisReport {
   evidenceCutoff   DateTime
   generatorVersion String   @default("v1")
   generatedAt      DateTime @default(now())
+  generationJobId  String?  @unique
 
   class   Class @relation(fields: [classId], references: [id], onDelete: Restrict)
   creator User  @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
   target  User? @relation("DiagnosisReportTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+  generationJob DiagnosisGenerationJob? @relation(fields: [generationJobId], references: [id], onDelete: Restrict)
 
   @@index([scopeType, scopeId, generatedAt])
   @@index([classId, generatedAt])
   @@index([userId, generatedAt])
   @@index([targetUserId, generatedAt])
+}
+
+model DiagnosisGenerationJob {
+  id               String                       @id @default(cuid())
+  userId           String
+  classId          String
+  targetUserId     String?
+  scopeType        String
+  scopeId          String
+  activeScopeKey   String?                      @unique
+  idempotencyKey   String
+  state            DiagnosisGenerationJobState @default(QUEUED)
+  evidenceCutoff   DateTime
+  generatorVersion String
+  failureCode      String?
+  failureMessage   String?
+  retryable        Boolean                      @default(false)
+  deliveryGeneration Int                        @default(0)
+  report           DiagnosisReport?
+  attempts         DiagnosisGenerationAttempt[]
+  createdAt        DateTime                     @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  updatedAt        DateTime                     @updatedAt
+
+  @@unique([userId, idempotencyKey])
+  @@index([classId, targetUserId, createdAt])
+  @@index([state, createdAt])
+}
+
+model DiagnosisGenerationAttempt {
+  id             String                             @id @default(cuid())
+  jobId          String
+  attemptNumber  Int
+  state          DiagnosisGenerationAttemptState   @default(RUNNING)
+  agentSessionId String?
+  providerResponseId String?
+  toolAudit      Json                               @default("[]")
+  errorCode      String?
+  errorMessage   String?
+  startedAt      DateTime                           @default(now())
+  completedAt    DateTime?
+  job            DiagnosisGenerationJob             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, attemptNumber])
+  @@index([state, startedAt])
 }
 
 // Growth records for portfolio

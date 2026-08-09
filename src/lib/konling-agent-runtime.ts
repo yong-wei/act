@@ -1898,6 +1898,7 @@ interface KonlingToolRuntimeInput {
   context: KonlingRuntimeContext;
   agentSessionId?: string | null;
   permittedTools?: string[] | null;
+  evidenceCutoff?: Date;
   scopedSimulationState?: Partial<SimulationStateStore> | null;
   /**
    * Optional #1112 Canonical RAG shadow context. When omitted (default), Konling
@@ -2239,6 +2240,7 @@ async function readTeacherScopedRiskFlags(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
   args: z.infer<typeof teacherDiagnosisStudentParameters>,
+  evidenceCutoff?: Date,
 ) {
   const parsed = teacherDiagnosisStudentParameters.parse(args);
   const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
@@ -2264,6 +2266,7 @@ async function readTeacherScopedRiskFlags(
       userId: { in: studentIds },
       isResolved: false,
       flagType: { in: ['constraint', 'stagnation', 'cross_domain'] },
+      ...(evidenceCutoff ? { evidenceObservedAt: { lte: evidenceCutoff } } : {}),
     },
     orderBy: { triggeredAt: 'desc' },
     take: 500,
@@ -2311,6 +2314,7 @@ async function readTeacherScopedRiskFlags(
 async function readTeacherScopedClassCompetencySummary(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
+  evidenceCutoff?: Date,
 ) {
   const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope);
   const { studentIds } = memberScope;
@@ -2318,7 +2322,10 @@ async function readTeacherScopedClassCompetencySummary(
     throw new KonlingRuntimeScopeError(409, '班级能力快照暂不可用。');
   }
   const rows = arrayOfRecords(await db.studentCompetencySnapshot.findMany({
-    where: { userId: { in: studentIds } },
+    where: {
+      userId: { in: studentIds },
+      ...(evidenceCutoff ? { snapshotAt: { lte: evidenceCutoff } } : {}),
+    },
     orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
     distinct: ['userId'],
     take: Math.max(studentIds.length, 1),
@@ -2393,6 +2400,7 @@ async function readTeacherScopedKnowledgeProgress(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
   args: z.infer<typeof teacherDiagnosisStudentParameters>,
+  evidenceCutoff?: Date,
 ) {
   const parsed = teacherDiagnosisStudentParameters.parse(args);
   const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
@@ -2401,7 +2409,10 @@ async function readTeacherScopedKnowledgeProgress(
     throw new KonlingRuntimeScopeError(409, '知识点进度数据暂不可用。');
   }
   const rows = arrayOfRecords(await db.knowledgeProgress.findMany({
-    where: { userId: { in: studentIds } },
+    where: {
+      userId: { in: studentIds },
+      ...(evidenceCutoff ? { lastVisited: { lte: evidenceCutoff } } : {}),
+    },
     orderBy: [{ userId: 'asc' }, { lastVisited: 'desc' }],
     take: 1_001,
     select: {
@@ -3514,15 +3525,15 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
     getStudentRiskFlags: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
       runKonlingRuntimeTool(input, 'get_student_risk_flags', args, async () =>
-        readTeacherScopedRiskFlags(input.db, input.scope, args)),
+        readTeacherScopedRiskFlags(input.db, input.scope, args, input.evidenceCutoff)),
     getClassCompetencySummary: async (args: z.infer<typeof teacherDiagnosisClassParameters>) =>
       runKonlingRuntimeTool(input, 'get_class_competency_summary', args, async () => {
         teacherDiagnosisClassParameters.parse(args);
-        return readTeacherScopedClassCompetencySummary(input.db, input.scope);
+        return readTeacherScopedClassCompetencySummary(input.db, input.scope, input.evidenceCutoff);
       }),
     getStudentKnowledgeProgress: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
       runKonlingRuntimeTool(input, 'get_student_knowledge_progress', args, async () =>
-        readTeacherScopedKnowledgeProgress(input.db, input.scope, args)),
+        readTeacherScopedKnowledgeProgress(input.db, input.scope, args, input.evidenceCutoff)),
     getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
     searchLearningMemory: async (args: { query?: string; limit?: number } = {}) =>
       runKonlingRuntimeTool(input, 'search_learning_memory', args, async () => searchKonlingMemory(input.db, {
