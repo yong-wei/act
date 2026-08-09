@@ -31,7 +31,10 @@ import {
   AdaptivePathOwnedResourceAction,
   publishAdaptivePathJourneyResponse,
 } from '@/features/adaptive/adaptive-path-journey-control';
-import { resolveAdaptivePathCenterOwnedTargetHref } from '@/features/adaptive/adaptive-path-journey-contracts';
+import {
+  resolveAdaptivePathCenterOwnedTargetHref,
+  resolveAdaptivePathJourneyTargetDisposition,
+} from '@/features/adaptive/adaptive-path-journey-contracts';
 import {
   AdaptivePathTimeline,
   getAdaptivePathResourceVisual,
@@ -53,7 +56,11 @@ import {
   type ControlCorrectionCenterRouteIntent,
   type PracticeEntryRouteNode,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
-import { AdaptivePathUnlockChainView } from '@/features/adaptive/adaptive-path-unlock-chain-view';
+import {
+  AdaptivePathUnlockChainView,
+  type AdaptivePathUnlockProjectedAction,
+  resolveAdaptivePathUnlockChainAction,
+} from '@/features/adaptive/adaptive-path-unlock-chain-view';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
 import {
   buildAdaptivePathUnlockChain,
@@ -2188,7 +2195,6 @@ function getPathExecutionNodes(
     return {
       nodeId: typeof record.nodeId === 'string' ? record.nodeId : '',
       title: typeof record.title === 'string' ? record.title : undefined,
-      target: typeof record.target === 'string' ? record.target : undefined,
       type: typeof record.type === 'string'
         ? record.type
         : typeof record.sourceKind === 'string'
@@ -2293,7 +2299,6 @@ function getPathExecutionNodes(
       ? buildAdaptivePathUnlockChain({
           nodeId,
           title: viewNode.title,
-          target: viewNode.target,
           prerequisiteNodeIds: getStringArray(node.prerequisiteNodeIds),
           readiness: {
             state: readinessState,
@@ -3950,6 +3955,14 @@ export default function AdaptivePracticePage() {
     await launchPathNodeAction(nextAction);
   }, [adaptivePathCenter, launchPathNodeAction]);
 
+  const launchProjectedUnlockAction = useCallback((action: AdaptivePathUnlockProjectedAction) => {
+    if (action.method === 'POST') {
+      if (isPostLearningPathNodeAction(action)) void launchPathNodeAction(action);
+      return;
+    }
+    window.location.assign(action.href);
+  }, [launchPathNodeAction]);
+
   const completePathNodeAction = useCallback(async (
     nodeId: string,
     completionAction?: LearningPathNodeCompletionAction,
@@ -4070,6 +4083,11 @@ export default function AdaptivePracticePage() {
   }, [activePathPlan, activePathRound, reloadActiveLearningPath]);
 
   const launchExecutionNode = useCallback(async (node: PathExecutionNodeView) => {
+    const targetDisposition = resolveAdaptivePathJourneyTargetDisposition(node.type, node.target);
+    if (targetDisposition === 'blocked') {
+      setPathExecutionError('路径资源地址未通过平台验证，请返回路径并重新生成。');
+      return;
+    }
     const ownedTarget = resolveAdaptivePathCenterOwnedTargetHref(node.type, node.target);
    if (requiresOwningPathCenter(node) && !ownedTarget) {
       setPathExecutionError('路径资源地址未通过平台验证，请返回路径并重新生成。');
@@ -4082,6 +4100,23 @@ export default function AdaptivePracticePage() {
      return;
     }
     if (resourceWindow) resourceWindow.opener = null;
+    const pathId = activePathPlan?.id ?? activePathRound?.id;
+    const goalId = resolveAdaptivePracticeGoalId(
+      activePathPlan?.goal.id ?? activePathRound?.goalId ?? activeGoal,
+      activeGoal ?? 'control-correction',
+    );
+    const launchContext = pathId
+      ? {
+          goalId: resolveAdaptivePracticeGoalId(
+            activePathPlan?.goal.id ?? activePathRound?.goalId ?? activeGoal,
+            activeGoal ?? 'control-correction',
+          ),
+          pathId,
+          nodeId: node.nodeId,
+          routeIntent: 'path-execution' as const,
+          resourceType: node.type,
+        }
+      : null;
     const activityWritten = await writePathNodeActivity(
       node,
       node.status === 'skipped' ? 'return-to-skipped' : 'initial-completion',
@@ -4092,15 +4127,16 @@ export default function AdaptivePracticePage() {
     }
     if (!activityWritten) return;
     if (resourceWindow && ownedTarget) {
-      resourceWindow.location.replace(ownedTarget);
+      resourceWindow.location.replace(
+        targetDisposition === 'external-fallback' || !launchContext
+          ? ownedTarget
+          : buildAdaptivePathLaunchHref(ownedTarget, launchContext),
+      );
       return;
     }
     window.location.assign(withFeedbackTaskHref(pathNodeContextHref(node, {
-      goalId: resolveAdaptivePracticeGoalId(
-        activePathPlan?.goal.id ?? activePathRound?.goalId ?? activeGoal,
-        activeGoal ?? 'control-correction',
-      ),
-      pathId: activePathPlan?.id ?? activePathRound?.id,
+      goalId,
+      pathId,
     })));
   }, [activeGoal, activePathPlan, activePathRound, withFeedbackTaskHref, writePathNodeActivity]);
 
@@ -5547,7 +5583,21 @@ export default function AdaptivePracticePage() {
                         </dl>
                         {node.unlockChain ? (
                           <div className="mt-4">
-                            <AdaptivePathUnlockChainView chain={node.unlockChain} />
+                            <AdaptivePathUnlockChainView
+                              chain={node.unlockChain}
+                              onAction={resolveAdaptivePathUnlockChainAction(
+                                node.unlockChain,
+                                adaptivePathCenter?.nextAction,
+                              )
+                                ? () => {
+                                    const projectedAction = resolveAdaptivePathUnlockChainAction(
+                                      node.unlockChain,
+                                      adaptivePathCenter?.nextAction,
+                                    );
+                                    if (projectedAction) launchProjectedUnlockAction(projectedAction);
+                                  }
+                                : undefined}
+                            />
                           </div>
                         ) : null}
                         {node.result ? (
@@ -5663,13 +5713,23 @@ export default function AdaptivePracticePage() {
                               ) : null}
                             </>
                           ) : node.status === 'locked' ? (
-                            node.unlockChain?.nextAction?.target ? (
-                              <Link
-                                href={node.unlockChain.nextAction.target}
+                            resolveAdaptivePathUnlockChainAction(
+                              node.unlockChain,
+                              adaptivePathCenter?.nextAction,
+                            ) ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const projectedAction = resolveAdaptivePathUnlockChainAction(
+                                    node.unlockChain,
+                                    adaptivePathCenter?.nextAction,
+                                  );
+                                  if (projectedAction) launchProjectedUnlockAction(projectedAction);
+                                }}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-background"
                               >
-                                {node.unlockChain.nextAction.title}
-                              </Link>
+                                {node.unlockChain?.nextAction?.title}
+                              </button>
                             ) : (
                               <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">
                                 {node.unlockChain?.nextAction?.title

@@ -58,6 +58,14 @@
 
 因此，收尾必须在最终页面修订上重新采集完整的 13 个 adaptive-path 产品 QA 状态，并由独立审查确认新截图和交互状态；随后再生成汇总工件。`/knowledge` 产品 QA 的独立证据漂移属于 `integration` 基线，不在本变更中修复，也不得通过放宽门禁掩盖。完整 `npm run test` 仍须等待该基线修复合入后在最终 HEAD 通过。
 
+### 解锁动作的启动合同（PR #1169 P1 修复）
+
+解锁链路只负责解释锁定条件和标识下一步节点，不以 readiness 中的原始 `target` 授权导航。已选路径的动作必须由既有 journey/path-center 投影解析，并复用已有启动合同：内部目标带入 `goalId`、`pathId`、`nodeId` 与返回上下文；外部资源保持 execute POST、重定向和完成确认。
+
+候选预览尚无权威 `pathId`，不得启动资源或伪造执行上下文。它仍展示相同的解锁链路，但只提供既有路径选择/创建动作；不存在这种受治理动作时显示文本。无法唯一解析、已锁定、已阻断或过期的动作一律降级为文本。
+
+当前 learning-center projection 仅公开唯一的 `nextAction`，未提供任意节点的 action 列表。因此，执行时间线只在解锁链的 `nodeId` 与该 `nextAction.nodeId` 严格相等、且 action 通过既有可用性判断时显示动作；点击直接复用完整投影 action。GET 使用投影 `href`，POST 复用 `href`、`body`、`redirectHref` 与完成合同。本地执行节点、链路标题和原始目标均不得补推导授权。
+
 ## Risks / Trade-offs
 
 - [旧路径记录缺少结构化 readiness] → 按降级策略展示 `unlockMessage` 或明确不可解释文案，不伪造链路。

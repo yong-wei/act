@@ -235,7 +235,6 @@ function buildOrderedNodes(
             option.readinessDetails?.map((item) => ({
               nodeId: item.nodeId,
               title: item.title,
-              target: item.target,
               type: item.type ?? nodeSummaries.find((summary) => summary.nodeId === item.nodeId)?.pathNodeType,
               status: item.status ?? nodeSummaries.find((summary) => summary.nodeId === item.nodeId)?.status,
             })) ?? nodeSummaries.map((item) => ({ nodeId: item.nodeId, title: item.title })),
