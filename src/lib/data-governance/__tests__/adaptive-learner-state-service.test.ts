@@ -2156,6 +2156,14 @@ describe('adaptive learner state service', () => {
   });
 
   it('carries an exact adaptive assessment answer lineage from learner state into planner deficits', async () => {
+    const targetedSourceEventIdQueries: string[][] = [];
+    const recentUnrelatedFacts = Array.from({ length: 120 }, (_, index) => ({
+      id: `recent-unrelated-${index}`,
+      factType: 'video',
+      sourceEventId: `video:${index}`,
+      startedAt: new Date(`2026-05-19T${String(Math.floor(index / 60)).padStart(2, '0')}:${String(index % 60).padStart(2, '0')}:00.000Z`),
+      contextJson: {},
+    }));
     const state = await readAdaptiveLearnerState(createDb({
       adaptiveMasteryUpdate: {
         findMany: async () => [
@@ -2177,13 +2185,31 @@ describe('adaptive learner state service', () => {
             algorithmVersion: 'adaptive-assessment-bkt-v1',
             createdAt: new Date('2026-05-18T00:00:01.000Z'),
           },
+          {
+            id: 'mastery-missing',
+            answerId: 'answer-missing',
+            knowledgeTag: 'control-correction:time-domain-targets',
+            posteriorMastery: 0.3,
+            confidence: 0.65,
+            algorithmVersion: 'adaptive-assessment-bkt-v1',
+            createdAt: new Date('2026-05-17T00:00:01.000Z'),
+          },
         ],
       },
       learningFact: {
-        findMany: async () => [
-          controlCorrectionFact('assessment', '2026-05-19T00:00:00.000Z', 45, {
+        findMany: async (args: {
+          where?: { sourceEventId?: { in?: string[] } };
+          take?: number;
+        }) => {
+          const sourceEventIds = args.where?.sourceEventId?.in;
+          if (!sourceEventIds) {
+            return args.take === 100 ? recentUnrelatedFacts.slice(0, 100) : [];
+          }
+          targetedSourceEventIdQueries.push(sourceEventIds);
+          return [controlCorrectionFact('assessment', '2026-04-01T00:00:00.000Z', 45, {
             id: 'fact-root-locus',
             moduleId: 'adaptive-assessment',
+            sourceEventId: 'adaptive-assessment:answer-root-locus',
             contextJson: {
               goalId: 'control-correction',
               adaptiveAssessment: {
@@ -2191,27 +2217,18 @@ describe('adaptive learner state service', () => {
               },
             },
           }),
-          controlCorrectionFact('assessment', '2026-05-18T00:00:00.000Z', 80, {
-            id: 'fact-unmatched',
-            moduleId: 'adaptive-assessment',
-            contextJson: {
-              goalId: 'control-correction',
-              adaptiveAssessment: {
-                adaptiveAssessmentRef: { answerId: 'answer-other' },
-              },
-            },
-          }),
           controlCorrectionFact('unknown', '2026-05-18T00:00:00.000Z', 60, {
             id: 'fact-unresolvable',
             moduleId: 'unknown-source',
+            sourceEventId: 'adaptive-assessment:answer-unresolvable',
             contextJson: {
               goalId: 'control-correction',
               adaptiveAssessment: {
                 adaptiveAssessmentRef: { answerId: 'answer-unresolvable' },
               },
             },
-          }),
-        ],
+          })];
+        },
       },
       arenaSubmission: { findMany: async () => [] },
     }), {
@@ -2248,7 +2265,7 @@ describe('adaptive learner state service', () => {
 
     expect(state.knowledgeMastery.tags['control-correction:root-locus-design']?.eventReferences).toEqual([{
       sourceScope: 'adaptive-practice-submission',
-      occurredAt: '2026-05-19T00:00:00.000Z',
+      occurredAt: '2026-04-01T00:00:00.000Z',
       summary: expect.any(String),
       nextAction: {
         href: '/assessment/adaptive-practice?intent=practice',
@@ -2260,16 +2277,26 @@ describe('adaptive learner state service', () => {
     )?.eventReferences).toEqual([
       expect.objectContaining({
         sourceScope: 'adaptive-practice-submission',
-        occurredAt: '2026-05-19T00:00:00.000Z',
+        occurredAt: '2026-04-01T00:00:00.000Z',
       }),
     ]);
+    expect(targetedSourceEventIdQueries).toEqual([[
+      'adaptive-assessment:answer-root-locus',
+      'adaptive-assessment:answer-unresolvable',
+      'adaptive-assessment:answer-missing',
+    ]]);
     expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
       deficit.targetId === 'parameterDesign'
     )?.eventReferences).toEqual([]);
     expect(state.knowledgeMastery.tags['control-correction:simulation-validation']?.eventReferences).toEqual([]);
+    expect(state.knowledgeMastery.tags['control-correction:time-domain-targets']?.eventReferences).toEqual([]);
     expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
       deficit.targetId === 'control-correction:simulation-validation'
     )?.eventReferences).toEqual([]);
+    const serializedEventReferences = JSON.stringify(Object.values(state.knowledgeMastery.tags)
+      .flatMap((mastery) => mastery.eventReferences ?? []));
+    expect(serializedEventReferences).not.toContain('answer-root-locus');
+    expect(serializedEventReferences).not.toContain('fact-root-locus');
   });
 
   it('bounds, orders, deduplicates, and redacts student-safe capability event references', async () => {

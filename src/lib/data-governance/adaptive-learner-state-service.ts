@@ -842,6 +842,11 @@ export async function readAdaptiveLearnerState(
       : Promise.resolve([]),
   ]);
 
+  const masteryFacts = uniqueFactsById([
+    ...facts,
+    ...await readAdaptiveMasteryLearningFacts(db, input.userId, masteryUpdates),
+  ]);
+
   const controlCorrectionArenaSubmissionsWithWriteback = shouldBuildControlCorrectionGoalSlice
     ? await attachPersistedArenaWritebacks(db, controlCorrectionArenaSubmissions)
     : controlCorrectionArenaSubmissions;
@@ -892,7 +897,7 @@ export async function readAdaptiveLearnerState(
         ? 'feature-cache'
         : 'fallback-empty';
   const primaryPortrait = portraitResolution.primaryPortrait;
-  const knowledgeMastery = buildKnowledgeMastery(masteryUpdates, facts, now);
+  const knowledgeMastery = buildKnowledgeMastery(masteryUpdates, masteryFacts, now);
   const evidence = buildEvidenceSummary(featureRead, featureCache);
   const masteryTraceability = filterMasteryTraceabilityForRole(buildMasteryTraceability({
     knowledgeMastery,
@@ -1653,6 +1658,48 @@ function buildKnowledgeMastery(
     coverage: Object.keys(tags).length > 0 ? 'available' : 'missing',
     tags,
   };
+}
+
+async function readAdaptiveMasteryLearningFacts(
+  db: AdaptiveLearnerStateDb,
+  userId: string,
+  masteryUpdates: Array<Record<string, unknown>>,
+): Promise<Array<Record<string, unknown>>> {
+  if (!db.learningFact?.findMany) {
+    return [];
+  }
+
+  const answerIds = latestMasteryAnswerIds(masteryUpdates);
+  if (answerIds.length === 0) {
+    return [];
+  }
+
+  return db.learningFact.findMany({
+    where: {
+      userId,
+      sourceEventId: {
+        in: answerIds.map((answerId) => `adaptive-assessment:${answerId}`),
+      },
+    },
+    orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+  });
+}
+
+function latestMasteryAnswerIds(rows: Array<Record<string, unknown>>): string[] {
+  const seenKnowledgeTags = new Set<string>();
+  const answerIds = new Set<string>();
+  for (const row of rows) {
+    const knowledgeTag = readString(row.knowledgeTag);
+    if (!knowledgeTag || seenKnowledgeTags.has(knowledgeTag)) {
+      continue;
+    }
+    seenKnowledgeTags.add(knowledgeTag);
+    const answerId = readString(row.answerId);
+    if (answerId) {
+      answerIds.add(answerId);
+    }
+  }
+  return [...answerIds];
 }
 
 function adaptiveAssessmentAnswerIdFromFact(fact: Record<string, unknown>): string | undefined {
