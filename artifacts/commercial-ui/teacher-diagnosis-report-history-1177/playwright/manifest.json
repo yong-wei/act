@@ -1,9 +1,9 @@
 {
   "schemaVersion": "teacher-diagnosis-report-history-evidence.v1",
   "captureRevision": {
-    "commitSha": "d06094bc2125970ebc8c3de732ce892cb8768ca4",
-    "treeSha": "90eb758d3f59a50140117b3f786ef0e268477c74",
-    "capturedAt": "2026-08-08T08:29:25.4890825Z"
+    "commitSha": "3faac7aa7518c82228ed490f41ba34aece865be0",
+    "treeSha": "3aef4dbaba29268bb15f10124ab1124a799330d2",
+    "capturedAt": "2026-08-09T02:07:45.9713301Z"
   },
   "generator": {
     "path": "tests/teacher-diagnosis-report-history-evidence.spec.ts",
@@ -30,7 +30,7 @@
     "src/app/api/teacher/classes/[classId]/diagnosis-reports/route.ts": "9e2873b70061b8e018146c58466d4df2f206f5174792f4aa81db4612e7b4d6cc",
     "src/app/api/teacher/diagnosis-generation-jobs/[jobId]/route.ts": "eae91054475cd4762684ff41ab6ef4f4a0e5b729f70970d54c9b2797c478650e",
     "src/lib/auth.ts": "1410b7ed41d586dcff30985920b8e8308b7bc665ba58895beb7b192256172f77",
-    "src/lib/diagnosis-generation.ts": "bcd9c44e1426eeb59013dd3e4138fe1c57ba094039111a2d34830eb7ec4a725c",
+    "src/lib/diagnosis-generation.ts": "24f2fda54b3cf1827f37808baf3736505c45127c9a6af3b020c2f475ecae49e8",
     "src/lib/diagnosis-persistence.ts": "71ffe81ba4080f35cbecc6ff37a323f214f35bdfa64eca07145f7d5d9cf2e78a"
   },
   "assertions": {
@@ -81,7 +81,7 @@
       "routePath": "/teacher/classes/class-evidence",
       "viewport": { "width": 1440, "height": 1100 },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-queued-1440-light.png",
-      "screenshotSha256": "30b922526fec34615df8eafe4bd063baac52d7eeb4a47b72cd60dc952e391f3e",
+      "screenshotSha256": "d8be077b447c29f3a6daca93a80302de08299290a34ff5feede40067cace378b",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
@@ -111,7 +111,7 @@
       "routePath": "/teacher/classes/class-evidence/students/student-evidence",
       "viewport": { "width": 320, "height": 844 },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/student-generation-retry-320-dark.png",
-      "screenshotSha256": "aca5c095603623c48efc2e10a1a1892b251868632330aa500274ffdd9442a958",
+      "screenshotSha256": "cfbd57010936ebdcd1e43a58dc9f7beb590157be5d99858649c43c1371386565",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
