@@ -424,6 +424,7 @@ export interface AdaptiveLearnerState {
       lastUpdatedAt: string;
       freshness?: MasteryTraceabilityEntry['freshness'];
       supportingEvidenceRefs?: MasteryEvidenceReference[];
+      eventReferences?: StudentSafeEvidenceEventReference[];
       sourceCoverage?: MasteryTraceabilityEntry['sourceCoverage'];
       limitations?: string[];
     }>;
@@ -891,7 +892,7 @@ export async function readAdaptiveLearnerState(
         ? 'feature-cache'
         : 'fallback-empty';
   const primaryPortrait = portraitResolution.primaryPortrait;
-  const knowledgeMastery = buildKnowledgeMastery(masteryUpdates, now);
+  const knowledgeMastery = buildKnowledgeMastery(masteryUpdates, facts, now);
   const evidence = buildEvidenceSummary(featureRead, featureCache);
   const masteryTraceability = filterMasteryTraceabilityForRole(buildMasteryTraceability({
     knowledgeMastery,
@@ -1335,7 +1336,7 @@ function buildControlCorrectionCapabilityTargets(
     const knowledgeEvidenceCount = knowledge?.evidenceCount ?? 0;
     const observableEvidenceCount = countControlCorrectionCapabilityObservableEvidence(target, sourceEvidence);
     const traceabilityRefs = traceability?.supportingEvidenceRefs ?? [];
-    const eventReferences = projectCapabilityEventReferences(
+    const eventReferences = projectStudentSafeEventReferences(
       traceabilityRefs,
       facts,
       arenaSubmissions,
@@ -1378,7 +1379,7 @@ function buildControlCorrectionCapabilityTargets(
   });
 }
 
-function projectCapabilityEventReferences(
+function projectStudentSafeEventReferences(
   refs: MasteryEvidenceReference[],
   facts: Array<Record<string, unknown>>,
   arenaSubmissions: Array<Record<string, unknown>>,
@@ -1588,7 +1589,11 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
   }
 }
 
-function buildKnowledgeMastery(rows: Array<Record<string, unknown>>, now: Date): AdaptiveLearnerState['knowledgeMastery'] {
+function buildKnowledgeMastery(
+  rows: Array<Record<string, unknown>>,
+  facts: Array<Record<string, unknown>>,
+  now: Date,
+): AdaptiveLearnerState['knowledgeMastery'] {
   const tags: AdaptiveLearnerState['knowledgeMastery']['tags'] = {};
   for (const row of rows) {
     const knowledgeTag = readString(row.knowledgeTag);
@@ -1603,10 +1608,28 @@ function buildKnowledgeMastery(rows: Array<Record<string, unknown>>, now: Date):
       'student-visible',
       confidenceLevel(confidence),
     );
+    const answerId = readString(row.answerId);
+    const linkedFactRefs = (answerId ? facts.filter((fact) =>
+      adaptiveAssessmentAnswerIdFromFact(fact) === answerId
+    ) : [])
+      .map((fact) => masteryEvidenceRef(
+        'LearningFact',
+        readString(fact.id),
+        fact.startedAt,
+        'student-visible',
+        confidenceLevel(confidence),
+      ))
+      .filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
+    const supportingEvidenceRefs = [
+      ...(evidenceRef ? [evidenceRef] : []),
+      ...linkedFactRefs,
+    ];
+    const eventReferences = projectStudentSafeEventReferences(linkedFactRefs, facts, []);
     const limitations = [
       ...(evidenceRef ? [] : ['missing-privacy-safe-evidence-ref']),
       ...(evidenceRef && isStaleEvidenceRef(evidenceRef, now) ? ['stale-evidence'] : []),
       ...(confidence < 0.45 ? ['low-confidence'] : []),
+      ...(eventReferences.length === 0 ? ['missing-verifiable-event-reference'] : []),
     ];
     tags[knowledgeTag] = {
       posteriorMastery: round(numberValue(row.posteriorMastery), 2),
@@ -1615,11 +1638,13 @@ function buildKnowledgeMastery(rows: Array<Record<string, unknown>>, now: Date):
       source: 'adaptive-assessment',
       algorithmVersion: readString(row.algorithmVersion) ?? 'unknown',
       lastUpdatedAt: dateToIso(row.createdAt),
-      freshness: freshnessForMastery(evidenceRef ? [evidenceRef] : [], limitations),
-      supportingEvidenceRefs: evidenceRef ? [evidenceRef] : [],
+      freshness: freshnessForMastery(supportingEvidenceRefs, limitations),
+      supportingEvidenceRefs,
+      eventReferences,
       sourceCoverage: {
         ...emptyMasterySourceCoverage(),
         AdaptiveMasteryUpdate: 'available',
+        LearningFact: linkedFactRefs.length > 0 ? 'available' : 'missing',
       },
       limitations: unique(limitations),
     };
@@ -1628,6 +1653,13 @@ function buildKnowledgeMastery(rows: Array<Record<string, unknown>>, now: Date):
     coverage: Object.keys(tags).length > 0 ? 'available' : 'missing',
     tags,
   };
+}
+
+function adaptiveAssessmentAnswerIdFromFact(fact: Record<string, unknown>): string | undefined {
+  const context = getObject(fact.contextJson);
+  const adaptiveAssessment = getObject(context.adaptiveAssessment);
+  const adaptiveAssessmentRef = getObject(adaptiveAssessment.adaptiveAssessmentRef);
+  return readString(adaptiveAssessmentRef.answerId) ?? undefined;
 }
 
 function buildMasteryTraceability(input: {

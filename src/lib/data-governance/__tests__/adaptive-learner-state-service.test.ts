@@ -17,6 +17,11 @@ import {
   PORTRAIT_V2_CALCULATION_VERSION,
 } from '../portrait-v2-model';
 import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
+import {
+  buildAdaptiveLearningPathPlan,
+  type AdaptiveLearningPathPlannerInput,
+} from '../../adaptive-learning-path-planner';
+import { buildControlCorrectionResourceNodeRegistry } from '../../control-correction-resource-seed';
 
 const snapshotVector: CompetencyVector = {
   controlModeling: { score: 78, trend: 'up', confidence: 0.82, evidenceCount: 8, lastUpdated: '2026-05-20T00:00:00.000Z' },
@@ -2148,6 +2153,123 @@ describe('adaptive learner state service', () => {
         }),
       }),
     ]));
+  });
+
+  it('carries an exact adaptive assessment answer lineage from learner state into planner deficits', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: {
+        findMany: async () => [
+          {
+            id: 'mastery-root-locus',
+            answerId: 'answer-root-locus',
+            knowledgeTag: 'control-correction:root-locus-design',
+            posteriorMastery: 0.24,
+            confidence: 0.72,
+            algorithmVersion: 'adaptive-assessment-bkt-v1',
+            createdAt: new Date('2026-05-19T00:00:01.000Z'),
+          },
+          {
+            id: 'mastery-unresolvable',
+            answerId: 'answer-unresolvable',
+            knowledgeTag: 'control-correction:simulation-validation',
+            posteriorMastery: 0.2,
+            confidence: 0.68,
+            algorithmVersion: 'adaptive-assessment-bkt-v1',
+            createdAt: new Date('2026-05-18T00:00:01.000Z'),
+          },
+        ],
+      },
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('assessment', '2026-05-19T00:00:00.000Z', 45, {
+            id: 'fact-root-locus',
+            moduleId: 'adaptive-assessment',
+            contextJson: {
+              goalId: 'control-correction',
+              adaptiveAssessment: {
+                adaptiveAssessmentRef: { answerId: 'answer-root-locus' },
+              },
+            },
+          }),
+          controlCorrectionFact('assessment', '2026-05-18T00:00:00.000Z', 80, {
+            id: 'fact-unmatched',
+            moduleId: 'adaptive-assessment',
+            contextJson: {
+              goalId: 'control-correction',
+              adaptiveAssessment: {
+                adaptiveAssessmentRef: { answerId: 'answer-other' },
+              },
+            },
+          }),
+          controlCorrectionFact('unknown', '2026-05-18T00:00:00.000Z', 60, {
+            id: 'fact-unresolvable',
+            moduleId: 'unknown-source',
+            contextJson: {
+              goalId: 'control-correction',
+              adaptiveAssessment: {
+                adaptiveAssessmentRef: { answerId: 'answer-unresolvable' },
+              },
+            },
+          }),
+        ],
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const plan = buildAdaptiveLearningPathPlan({
+      studentId: 'student-1',
+      goal: {
+        id: 'control-correction',
+        title: 'Control correction',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: state as unknown as AdaptiveLearningPathPlannerInput['learnerState'],
+      registry,
+      constraints: {
+        timeBudgetMinutes: 100,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(state.knowledgeMastery.tags['control-correction:root-locus-design']?.eventReferences).toEqual([{
+      sourceScope: 'adaptive-practice-submission',
+      occurredAt: '2026-05-19T00:00:00.000Z',
+      summary: expect.any(String),
+      nextAction: {
+        href: '/assessment/adaptive-practice?intent=practice',
+        label: expect.any(String),
+      },
+    }]);
+    expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
+      deficit.targetId === 'control-correction:root-locus-design'
+    )?.eventReferences).toEqual([
+      expect.objectContaining({
+        sourceScope: 'adaptive-practice-submission',
+        occurredAt: '2026-05-19T00:00:00.000Z',
+      }),
+    ]);
+    expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
+      deficit.targetId === 'parameterDesign'
+    )?.eventReferences).toEqual([]);
+    expect(state.knowledgeMastery.tags['control-correction:simulation-validation']?.eventReferences).toEqual([]);
+    expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
+      deficit.targetId === 'control-correction:simulation-validation'
+    )?.eventReferences).toEqual([]);
   });
 
   it('bounds, orders, deduplicates, and redacts student-safe capability event references', async () => {
