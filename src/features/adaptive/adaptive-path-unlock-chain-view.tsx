@@ -76,6 +76,7 @@ export function AdaptivePathUnlockChainView({
           {canStartAction ? (
             <button
               type="button"
+              data-adaptive-path-unlock-action="governed"
               onClick={() => {
                 if (actionNodeId) onAction?.(actionNodeId);
               }}
