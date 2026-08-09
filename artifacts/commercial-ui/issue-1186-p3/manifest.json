@@ -1,18 +1,18 @@
 {
   "status": "passed",
-  "capturedAt": "2026-08-09T04:45:20.358Z",
-  "sourceRevision": "04453bbcb0d5ee715fbaca43ca9421568beaef14",
+  "capturedAt": "2026-08-09T05:50:58.214Z",
+  "sourceRevision": "adc0ebffec70072465820d1fcc5c329f7a66270d",
   "generatorPath": "tests/adaptive-path-evidence-links-1186-p3.spec.ts",
   "generatorSha256": "faa2740249601bbc7e924a08063afa0b8b087cd0d0fc620bb0ec3b15dc8d7f18",
   "sourceFiles": {
     "src/app/assessment/adaptive-practice/page.tsx": "cdf27ab999b489e4309288352f11ca532156d3ee7c4a04ad439d168f3770e16d",
     "src/lib/adaptive-learning-path-planner.ts": "74c6d3e223a946b89a1d5f615cc91bf6dbbec9972e1b40d47d70a3a173df9a74",
     "src/lib/adaptive-path-node-decisions.ts": "29b91325d4ee95f3bc0bf45fb6a7d1924ff812e8a0b66362d96ed2600b141dbb",
-    "src/lib/data-governance/adaptive-learner-state-service.ts": "ac1eed0435d183c648b4d146ff55effc1c78b1e1d576ec3d1435f3c81c3268db",
+    "src/lib/data-governance/adaptive-learner-state-service.ts": "56be03351a0443311e376fc4e8c5c67a8bf1b62e1937b2431be6bd7172e28344",
     "src/lib/data-governance/evidence-timeline.ts": "4819ee612cc90f0b70e7d92b0f66fb5ba2587baa1ecbc2ce8ed283aed7617852"
   },
-  "captureBeforeHead": "04453bbcb0d5ee715fbaca43ca9421568beaef14",
-  "captureAfterHead": "04453bbcb0d5ee715fbaca43ca9421568beaef14",
+  "captureBeforeHead": "adc0ebffec70072465820d1fcc5c329f7a66270d",
+  "captureAfterHead": "adc0ebffec70072465820d1fcc5c329f7a66270d",
   "routes": [
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=sufficient",
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&provenanceFixture=sufficient"
@@ -70,7 +70,7 @@
       "file": "artifacts/commercial-ui/issue-1186-p3/desktop-candidate-evidence.png",
       "width": 1280,
       "height": 720,
-      "sha256": "7c0cf269b4924b8bba9d0a47c2066bba5f89083845d6386034bbe2f89eddc529"
+      "sha256": "e55268dec8608d815b17853c9565e619e77b30c823f0fdfcead935b9c5610df6"
     },
     {
       "state": "active-node",
