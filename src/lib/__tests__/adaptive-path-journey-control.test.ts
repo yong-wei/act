@@ -124,6 +124,10 @@ describe('adaptive path journey control', () => {
         estimatedRemainingWork: { originalMinutes: 35, proposedMinutes: 35, differenceMinutes: 0 },
       },
       unavailableReason: null,
+      candidateFingerprint: 'correction-12345678',
+      pathUpdatedAt: '2026-08-04T09:00:00.000Z',
+      decision: null,
+      history: [],
     };
 
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
@@ -139,6 +143,23 @@ describe('adaptive path journey control', () => {
     expect(html).toContain('当前未完成路径');
     expect(html).toContain('建议顺序');
     expect(html).toContain('本方案仅供查看，尚未应用到当前学习路径。');
+    expect(html).toContain('data-adaptive-path-correction-actions="available"');
+    expect(html).toContain('确认调整');
+
+    journeyWithCorrection.correction.decision = {
+      decision: 'rejected',
+      createdAt: '2026-08-04T09:01:00.000Z',
+      applied: false,
+    };
+    const rejectedHtml = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: journeyWithCorrection,
+      error: null,
+      onRefresh: () => undefined,
+    }));
+    expect(rejectedHtml).toContain('data-adaptive-path-correction-decision="rejected"');
+    expect(rejectedHtml).not.toContain('data-adaptive-path-correction-actions="available"');
   });
 
   it('renders a student-safe unavailable reason without an applied correction', () => {
@@ -154,6 +175,10 @@ describe('adaptive path journey control', () => {
     journeyWithoutCorrection.correction = {
       proposal: null,
       unavailableReason: '检查点未通过，但路径中没有可用于调整顺序的受治理复习节点。',
+      candidateFingerprint: null,
+      pathUpdatedAt: null,
+      decision: null,
+      history: [],
     };
 
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {

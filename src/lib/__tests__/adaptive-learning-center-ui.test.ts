@@ -1049,7 +1049,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('goalContexts[explicitGoal]');
     expect(source).toContain('updatePageContext({ assistantEntryPoint: null });');
     expect(source).toContain('return () => updatePageContext({ assistantEntryPoint: null });');
-    expect(source).toContain('promptContext: `student-path-center:${explicitGoal}:adaptive-path-center`');
+    expect(source).toContain('`student-path-center:${explicitGoal}:adaptive-path-center`');
+    expect(source).toContain('candidateBatchId ? { candidateBatchId } : {}');
     expect(source).toContain('goalId: explicitGoal');
     expect(layoutSource).toContain('const goalOptions = getAdaptivePracticeGoalOptions();');
     expect(layoutSource).toContain('Object.fromEntries(goalOptions.map((goal) => [');
@@ -1078,7 +1079,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('预计剩余');
     expect(source).toContain('完成节点');
     expect(source).toContain('检查点通过');
-    expect(source).toContain('推荐理由');
+    expect(source).toContain('data-adaptive-path-node-selection-basis=');
+    expect(source).toContain('data-adaptive-path-node-latest-adjustment=');
+    expect(source).toContain('data-adaptive-path-node-current-lock="governed"');
+    expect(source).toContain('入选依据');
+    expect(source).toContain('最近调整');
+    expect(source).toContain('当前锁定原因');
+    expect(source).toContain('该路径生成时尚未记录节点级入选依据');
+    expect(source).toContain('节点安排说明');
     expect(source).toContain('将收集的学习证据');
     expect(source).toContain('检查标准');
     expect(source).toContain('回顾');
@@ -1107,6 +1115,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('return null');
     expect(source).toContain("? { ...node, status: 'current' }");
     expect(source).toContain('resolveAdaptivePathExecutionNodeStatus({');
+    expect(source).toContain("['locked', 'evidence-needed', 'needs-preparation'].includes(node.readinessState)");
+    expect(source).toContain("node.status !== 'completed' && node.status !== 'skipped'");
     expect(source).not.toContain("selectedNode?.status === 'skipped'");
     expect(source).not.toContain('setSelectedPathNodeId(currentPathNode.nodeId)');
     expect(source).toContain('查看节点');

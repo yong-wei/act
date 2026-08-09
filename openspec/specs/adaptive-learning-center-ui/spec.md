@@ -707,3 +707,60 @@ The adaptive learning center SHALL render the server-owned structured result of 
 - **WHEN** the structured explanation is displayed at a 320px viewport width
 - **THEN** path names, node lists, metric labels, values, units, trade-offs and limitations SHALL remain readable without page-level horizontal overflow.
 
+### Requirement: Candidate path cards expose aggregate recommendation basis
+The adaptive learning center SHALL let students inspect how generation-time aggregate learning state influenced each formally generated candidate path before selecting it.
+#### Scenario: Candidate path has aggregate recommendation basis
+- **WHEN** a formally generated candidate path includes an aggregate recommendation basis
+- **THEN** its card SHALL always show a concise recommendation-basis summary
+- **AND** an on-demand disclosure SHALL show aggregate state summary, capability or knowledge judgment, affected recommended resources, confidence, limitations, and a governed link to review learning records.
+- **AND** the disclosure SHALL NOT claim to identify a specific evidence event, source occurrence, or event timestamp.
+#### Scenario: Candidate path has low-confidence provenance
+- **WHEN** the candidate path provenance is marked low confidence
+- **THEN** the card SHALL explain that the path primarily follows course structure, prerequisite rules, and available resources
+- **AND** it SHALL offer a student action such as completing diagnosis or practice to improve later recommendations.
+#### Scenario: Candidate path predates provenance support
+- **WHEN** a restored candidate path does not contain recommendation provenance
+- **THEN** the card SHALL retain the existing student-facing recommendation summary
+- **AND** it SHALL NOT synthesize a historical evidence chain from the student's current learner state.
+#### Scenario: Recommendation provenance is viewed on narrow screens
+- **WHEN** the candidate path card is rendered at a 320px viewport
+- **THEN** the summary, disclosure control, explanation chain, evidence link, and existing path actions SHALL remain readable and operable without horizontal clipping or action overlap.
+
+### Requirement: Recommendation explanations expose verifiable learning events
+The adaptive learning center SHALL display student-safe event references within candidate-path recommendation explanations, including event type, occurrence time, readable summary, affected judgment, affected resources, and a valid student navigation action.
+
+#### Scenario: Candidate path has sufficient event evidence
+- **WHEN** a student expands recommendation provenance containing event references
+- **THEN** the center displays each reference's type, occurrence time, summary, affected judgment and affected resources
+- **AND** provides the source-specific safe navigation action
+
+#### Scenario: Candidate path has low-confidence evidence
+- **WHEN** event references exist but the associated judgment is low confidence
+- **THEN** the center labels the evidence limitation and does not claim that the event directly selected a specific resource
+
+#### Scenario: Candidate path has no verifiable event reference
+- **WHEN** provenance contains only aggregate evidence or no evidence
+- **THEN** the center explains that no verifiable event-level record is available
+- **AND** does not present unrelated recent learning records as recommendation evidence
+
+#### Scenario: Event reference is opened
+- **WHEN** a student activates an event reference action
+- **THEN** navigation uses the existing safe destination for that evidence source
+- **AND** never exposes an internal source identifier in the URL
+
+### Requirement: Active path nodes expose their historical event basis
+The adaptive learning center SHALL display persisted event references in an active node's historical selection explanation separately from current readiness and latest adjustment state.
+
+#### Scenario: Active node contains historical event references
+- **WHEN** a student expands an active node whose selection basis includes event references
+- **THEN** the center displays those references under the historical selection explanation
+- **AND** current lock, completion, skip, or adjustment state is displayed separately
+
+#### Scenario: Active node predates event-reference support
+- **WHEN** a student expands an active node without persisted event references
+- **THEN** the center shows the existing legacy evidence limitation without inventing event history
+
+#### Scenario: Event evidence is viewed at supported widths
+- **WHEN** candidate or active-node event evidence is rendered at desktop width or 320px mobile width
+- **THEN** labels, timestamps, summaries and actions remain readable without overlap or horizontal clipping
+

@@ -135,7 +135,7 @@ export class DiagnosisReportScopeError extends Error {
   }
 }
 
-async function assertTeacherClassScope(
+export async function assertTeacherClassScope(
   db: DiagnosisPersistenceDb,
   input: {
     teacherId: string;
@@ -319,6 +319,7 @@ export async function persistDiagnosisReport(
     classId: string;
     targetStudentId?: string | null;
     reportBody: z.input<typeof diagnosisReportBodySchema>;
+    generationJobId?: string | null;
   },
   db: DiagnosisPersistenceDb = prisma as unknown as DiagnosisPersistenceDb,
 ) {
@@ -368,6 +369,7 @@ export async function persistDiagnosisReport(
       riskSummary,
       evidenceCutoff,
       generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
+      generationJobId: params.generationJobId ?? null,
     },
   });
 }

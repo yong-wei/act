@@ -52,6 +52,16 @@ function getFocusableElements(container: HTMLElement) {
     .filter((item) => !item.hasAttribute('disabled') && !item.closest('[inert]') && item.offsetParent !== null);
 }
 
+function recordValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function stringValue(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
 function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(false);
 
@@ -75,6 +85,7 @@ export function GlobalAISidebar() {
   const openerElementRef = useRef<HTMLElement | null>(null);
   const wasOpenRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const handledPathSelectionToolCallsRef = useRef(new Set<string>());
   const [mounted, setMounted] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
@@ -303,6 +314,49 @@ export function GlobalAISidebar() {
     },
     onResponse: handleChatResponse,
   });
+
+  useEffect(() => {
+    if (activeAssistantBinding?.teachingAssistantModeId !== 'path-advisor') return;
+    for (const message of messages) {
+      for (const invocation of message.toolInvocations ?? []) {
+        if (invocation.toolName !== 'select_learning_path' || invocation.state !== 'result') continue;
+        const result = recordValue(invocation.result);
+        if (result.status !== 'pending_commit') continue;
+        const pathId = stringValue(result.pathId);
+        const batchId = stringValue(result.batchId);
+        const candidateId = stringValue(result.candidateId);
+        const selectedOptionId = stringValue(result.selectedOptionId);
+        const selectedStyleId = stringValue(result.selectedStyleId);
+        const idempotencyKey = stringValue(result.idempotencyKey);
+        const toolRunId = stringValue(result.toolRunId);
+        if (!pathId || !batchId || !candidateId || !selectedOptionId || !selectedStyleId || !idempotencyKey || !toolRunId) continue;
+        const key = `${message.id}:${batchId}:${candidateId}:${idempotencyKey}`;
+        if (handledPathSelectionToolCallsRef.current.has(key)) continue;
+        handledPathSelectionToolCallsRef.current.add(key);
+        void fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'selection',
+            batchId,
+            candidateId,
+            selectedOptionId,
+            selectedStyleId,
+            idempotencyKey,
+            toolRunId,
+          }),
+        }).then(async (response) => {
+          if (!response.ok) throw new Error('路径选择同步失败');
+          window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
+            detail: { mode: 'path-advisor', batchId, candidateId, pathId, source: 'candidate-selection' },
+          }));
+          setActionStatus('路径选择已同步，等待你开始学习。');
+        }).catch(() => {
+          setActionStatus('路径选择未能同步，请重试。');
+        });
+      }
+    }
+  }, [activeAssistantBinding?.teachingAssistantModeId, messages]);
 
   useEffect(() => {
     if (assistantEntryPoint?.mode !== 'path-advisor') return;
@@ -951,6 +1005,15 @@ export function GlobalAISidebar() {
           <div className="sr-only" role="status" aria-live="polite" data-ai-task-status="global-sidebar">
             {isLoading ? '控灵正在思考。' : error ? `AI 对话失败：${error.message}` : actionStatus}
           </div>
+          {actionStatus && (
+            <div
+              className={`rounded-lg border px-3 py-2 text-sm ${styles.border} ${styles.text.secondary}`}
+              role="status"
+              data-konling-action-status
+            >
+              {actionStatus}
+            </div>
+          )}
           {messages.length === 0 ? (
             <div className="space-y-6">
               {/* 欢迎信息 */}

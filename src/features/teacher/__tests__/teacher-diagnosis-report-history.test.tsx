@@ -110,4 +110,61 @@ describe('TeacherDiagnosisReportHistoryView', () => {
     expect(errorHtml).toContain('报告历史暂时不可用');
     expect(errorHtml).toContain('读取超时');
   });
+
+  it('renders active and retryable diagnosis generation states', () => {
+    const runningHtml = renderToStaticMarkup(
+      <TeacherDiagnosisReportHistoryView
+        state="ready"
+        reports={[]}
+        subjectLabel="控制 1 班 · 班级范围"
+        generationJob={{
+          id: 'job-1',
+          classId: 'class-1',
+          targetStudentId: null,
+          scopeType: 'class',
+          scopeId: 'class-1',
+          state: 'RUNNING',
+          evidenceCutoff: '2026-08-08T08:00:00.000Z',
+          generatorVersion: 'teacher-diagnosis.v1',
+          failureCode: null,
+          failureMessage: null,
+          retryable: false,
+          reportId: null,
+          createdAt: '2026-08-08T08:00:00.000Z',
+          startedAt: '2026-08-08T08:00:01.000Z',
+          completedAt: null,
+        }}
+      />,
+    );
+    const failedHtml = renderToStaticMarkup(
+      <TeacherDiagnosisReportHistoryView
+        state="ready"
+        reports={[]}
+        subjectLabel="控制 1 班 · 班级范围"
+        generationJob={{
+          id: 'job-1',
+          classId: 'class-1',
+          targetStudentId: null,
+          scopeType: 'class',
+          scopeId: 'class-1',
+          state: 'TIMED_OUT',
+          evidenceCutoff: '2026-08-08T08:00:00.000Z',
+          generatorVersion: 'teacher-diagnosis.v1',
+          failureCode: 'diagnosis-generation-timeout',
+          failureMessage: '模型响应超时',
+          retryable: true,
+          reportId: null,
+          createdAt: '2026-08-08T08:00:00.000Z',
+          startedAt: '2026-08-08T08:00:01.000Z',
+          completedAt: '2026-08-08T08:02:01.000Z',
+        }}
+      />,
+    );
+
+    expect(runningHtml).toContain('data-diagnosis-generation-state="RUNNING"');
+    expect(runningHtml).toContain('正在依据固定证据快照生成诊断');
+    expect(failedHtml).toContain('data-diagnosis-generation-state="TIMED_OUT"');
+    expect(failedHtml).toContain('重试原任务');
+    expect(failedHtml).toContain('模型响应超时');
+  });
 });

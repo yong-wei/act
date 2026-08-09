@@ -23,6 +23,8 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("'bg-primary text-primary-foreground hover:opacity-90'");
     expect(source).toContain('setPathAdvisorAssistantEntryPoint(pathAdvisorEntryPoint)');
     expect(source).toContain('openAssistantEntryPoint(pathAdvisorAssistantEntryPoint)');
+    expect(source).toContain('requestedBatchId ? `authorized-candidate-batch:${requestedBatchId}` : null');
+    expect(source).toContain('requestedBatchId ? { candidateBatchId: requestedBatchId } : {}');
     expect(source).toContain('解析请求失败，请重试');
     expect(source).not.toContain('serverContext: { question');
   });
@@ -308,6 +310,7 @@ describe('adaptive practice page entry states', () => {
 
   it('keeps candidate identity fail-closed and writes selections to the source path', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const sidebarSource = readRepoFile('src/components/ai/global-ai-sidebar.tsx');
 
     expect(source).toContain("requestedCandidateId && !requestedBatchId");
     expect(source).toContain('pathOptions.find((option) => option.optionId === display.id)?.candidateId === focusedCandidateId');
@@ -316,6 +319,23 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("? activeCandidateBatch?.sourcePathId");
     expect(source).toContain("compareAllCandidateQuery.delete('candidate')");
     expect(source).toContain('data-learning-path-compare-all');
+    expect(sidebarSource).toContain("detail: { mode: 'path-advisor', batchId, candidateId, pathId, source: 'candidate-selection' }");
+    expect(sidebarSource).toContain("/choices`");
+    expect(source).toContain("setPathChoiceMessage('路径已选中，等待你开始学习。')");
+    expect(sidebarSource).not.toContain('/execute');
     expect(source).toContain('(showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
+  });
+
+  it('renders student-safe event evidence for candidates and persisted active nodes', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('function StudentEvidenceEventList');
+    expect(source).toContain('data-adaptive-path-event-evidence');
+    expect(source).toContain('references={entry.eventReferences ?? []}');
+    expect(source).toContain('references={node.selectionBasis.eventReferences}');
+    expect(source).toContain('该项判断尚无可核验的事件级学习记录。');
+    expect(source).toContain('该路径生成时尚未记录可核验的事件级依据。');
+    expect(source).toContain('isSafeEvidenceActionHref');
+    expect(source).not.toContain('reference.sourceId');
   });
 });

@@ -1,0 +1,1 @@
+{"authority":{"incremental_replay":"gates/v7r-release-replay-gate.json","query":"gates/v7r-release-query-gate.json","rag":"gates/v7r-release-rag-gate.json"},"graph_rag_runtime_intake":"NOT_A_GATE","module_release_authorization":"AUTHORIZED","private_content_included":false,"protocol":"ctkg-m1p-v7r-accepted-release-v1"}

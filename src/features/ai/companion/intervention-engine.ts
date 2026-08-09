@@ -1,3 +1,5 @@
+import type { ArenaCompanionContext } from './arena-companion-context';
+
 export type InterventionType = 'failure-analysis' | 'constraint-hint' | 'guidance' | 'encouragement';
 
 export interface AttemptRecord {
@@ -47,15 +49,16 @@ const DEFAULT_RULES: InterventionRules = {
   onConstraintViolation: true,
 };
 
-function pickLargestParamDelta(history: AttemptRecord[]): string[] {
+function pickLargestParamDelta(history: AttemptRecord[], allowedParamIds?: string[]): string[] {
   if (history.length < 2) {
-    return ['kp', 'ki', 'kd'];
+    return allowedParamIds?.slice(0, 2) ?? ['kp', 'ki', 'kd'];
   }
 
   const latest = history[history.length - 1]?.params ?? {};
   const prev = history[history.length - 2]?.params ?? {};
 
-  const keys = Array.from(new Set([...Object.keys(latest), ...Object.keys(prev)]));
+  const keys = Array.from(new Set([...Object.keys(latest), ...Object.keys(prev)]))
+    .filter((key) => !allowedParamIds || allowedParamIds.includes(key));
   const scored = keys.map((key) => ({
     key,
     delta: Math.abs((latest[key] ?? 0) - (prev[key] ?? 0)),
@@ -78,6 +81,27 @@ function detectConstraintViolation(history: AttemptRecord[]): boolean {
   return overshoot > 35 || comfortIndex > 40 || stabilityMargin < 20;
 }
 
+function findArenaMetricRisks(
+  history: AttemptRecord[],
+  context: ArenaCompanionContext,
+) {
+  const latest = history[history.length - 1];
+  if (!latest) return [];
+
+  return context.metrics.flatMap((metric) => {
+    const value = latest.result[metric.id];
+    if (value === undefined) return [];
+
+    const unacceptable = metric.direction === 'minimize'
+      ? value > metric.unacceptableValue
+      : metric.direction === 'maximize'
+      ? value < metric.unacceptableValue
+      : Math.abs(value - metric.idealValue) > metric.unacceptableValue;
+
+    return unacceptable ? [{ metric, value }] : [];
+  });
+}
+
 function detectStagnation(history: AttemptRecord[]): boolean {
   if (history.length < 3) {
     return false;
@@ -90,7 +114,11 @@ function detectStagnation(history: AttemptRecord[]): boolean {
   return spread < 2 && recent.every((item) => !item.isSuccessful);
 }
 
-export function shouldIntervene(state: StudentState, rules: Partial<InterventionRules> = {}): InterventionDecision {
+export function shouldIntervene(
+  state: StudentState,
+  rules: Partial<InterventionRules> = {},
+  arenaContext?: ArenaCompanionContext,
+): InterventionDecision {
   const mergedRules: InterventionRules = {
     ...DEFAULT_RULES,
     ...rules,
@@ -98,7 +126,10 @@ export function shouldIntervene(state: StudentState, rules: Partial<Intervention
 
   const failedAttempts = state.attemptHistory.filter((attempt) => !attempt.isSuccessful).length;
 
-  if (mergedRules.onConstraintViolation && detectConstraintViolation(state.attemptHistory)) {
+  const hasConstraintViolation = arenaContext
+    ? findArenaMetricRisks(state.attemptHistory, arenaContext).length > 0
+    : detectConstraintViolation(state.attemptHistory);
+  if (mergedRules.onConstraintViolation && hasConstraintViolation) {
     return {
       shouldIntervene: true,
       reason: 'constraint_violation',
@@ -202,10 +233,85 @@ function buildGuidance(state: StudentState): InterventionPayload {
   };
 }
 
+function formatArenaMetricRisk(
+  risk: ReturnType<typeof findArenaMetricRisks>[number],
+) {
+  const unit = risk.metric.unit ?? '';
+  return `${risk.metric.label}为 ${risk.value}${unit}，练习边界为 ${risk.metric.unacceptableValue}${unit}`;
+}
+
+function buildArenaIntervention(
+  decision: InterventionDecision,
+  state: StudentState,
+  context: ArenaCompanionContext,
+): InterventionPayload {
+  const parameterIds = context.parameters.map((parameter) => parameter.id);
+  const highlights = pickLargestParamDelta(state.attemptHistory, parameterIds);
+  const prefix = `当前 ${context.methodLabel} 练习记录`;
+  const boundary = '本建议仅解释当前练习记录，不构成成绩或错因归因。';
+
+  if (!decision.shouldIntervene || !decision.interventionType) {
+    return {
+      feedbackType: 'encouragement',
+      content: `${prefix}尚未显示需要主动介入的风险。${boundary}`,
+      suggestedNextSteps: [context.learningActions[0] ?? '继续记录参数与指标的对应关系。'],
+      relatedConcepts: context.relatedConcepts,
+      highlightParams: highlights,
+      showTrendPrediction: false,
+    };
+  }
+
+  if (decision.interventionType === 'constraint-hint') {
+    const risks = findArenaMetricRisks(state.attemptHistory, context);
+    const observations = risks.map(formatArenaMetricRisk).join('；');
+    return {
+      feedbackType: 'constraint-hint',
+      content: `${prefix}出现练习指标风险：${observations}。${context.learningActions[0]}${boundary}`,
+      suggestedNextSteps: [
+        '先将出现风险的练习指标带回登记边界内，再比较性能改善。',
+        context.learningActions[0] ?? '逐项记录参数与指标变化。',
+      ],
+      relatedConcepts: context.relatedConcepts,
+      highlightParams: highlights,
+      showTrendPrediction: true,
+    };
+  }
+
+  if (decision.interventionType === 'failure-analysis') {
+    return {
+      feedbackType: 'failure-analysis',
+      content: `${prefix}已出现多次未成功的练习记录。${context.learningActions[0]}${boundary}`,
+      suggestedNextSteps: [
+        context.learningActions[0] ?? '重新设置一组可比较的练习参数。',
+        '保留一组对照记录，确认下一次调整是否改善了同一指标。',
+      ],
+      relatedConcepts: context.relatedConcepts,
+      highlightParams: highlights,
+      showTrendPrediction: true,
+    };
+  }
+
+  return {
+    feedbackType: 'guidance',
+    content: `${prefix}的连续尝试尚未形成清晰改善趋势。${context.learningActions[0]}${boundary}`,
+    suggestedNextSteps: [
+      context.learningActions[0] ?? '重新选择一项参数作为本轮观察重点。',
+      '使用同一组指标比较本轮与上一轮练习。',
+    ],
+    relatedConcepts: context.relatedConcepts,
+    highlightParams: highlights,
+    showTrendPrediction: true,
+  };
+}
+
 export function generateIntervention(
   decision: InterventionDecision,
-  state: StudentState
+  state: StudentState,
+  arenaContext?: ArenaCompanionContext,
 ): InterventionPayload {
+  if (arenaContext) {
+    return buildArenaIntervention(decision, state, arenaContext);
+  }
   if (!decision.shouldIntervene || !decision.interventionType) {
     return {
       feedbackType: 'encouragement',

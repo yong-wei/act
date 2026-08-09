@@ -61,6 +61,10 @@ import {
   type AdaptivePathUnlockChainNodeInput,
 } from '@/lib/adaptive-path-unlock-chain';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import type {
+  EvidenceTimelineLearnerRecordSourceScope,
+  StudentSafeEvidenceEventReference,
+} from '@/lib/data-governance/evidence-timeline';
 import {
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionDisplay,
@@ -342,6 +346,20 @@ interface PathExecutionNodeView {
   reason: string;
   evidence: string;
   checkpoint: string;
+  selectionBasis: {
+    summary: string;
+    confidence: 'low' | 'medium' | 'high';
+    supportingFacts: string[];
+    limitations: string[];
+    eventReferences: StudentSafeEvidenceEventReference[];
+  } | null;
+  latestAdjustment: {
+    kind: 'advanced' | 'delayed' | 'retained' | 'replaced' | 'removed';
+    summary: string;
+    supportingFacts: string[];
+  } | null;
+  readinessState: string;
+  lockReason?: string;
   unlockMessage?: string;
   unlockChain?: AdaptivePathUnlockChain;
   result?: PathNodeResultCardView | null;
@@ -461,6 +479,16 @@ const DEMO_SCENES: Record<DemoScene, {
   },
 };
 
+const DEMO_ADAPTIVE_PRACTICE_EVENT_REFERENCE = {
+  sourceScope: 'adaptive-practice-submission',
+  occurredAt: '2026-08-03T08:30:00.000Z',
+  summary: '自适应练习记录参与了该项能力判断。',
+  nextAction: {
+    href: '/assessment/adaptive-practice?intent=practice',
+    label: '继续自适应练习',
+  },
+} satisfies StudentSafeEvidenceEventReference;
+
 const DEMO_CONTROL_CORRECTION_PATH_NODES = [
   {
     nodeId: 'demo-foundation-card',
@@ -485,6 +513,20 @@ const DEMO_CONTROL_CORRECTION_PATH_NODES = [
     terminalConstraints: [],
     score: 0.88,
     reasonCodes: ['matches-knowledge-deficit', 'low-mastery-target'],
+    decisionExplanation: {
+      selectionBasis: {
+        summary: '依据相位裕度的学习证据安排本路径。',
+        confidence: 'medium',
+        supportingFacts: ['掌握状态 42%，来自 3 条有效证据，置信度 68%。'],
+        limitations: [],
+        eventReferences: [DEMO_ADAPTIVE_PRACTICE_EVENT_REFERENCE],
+      },
+      latestAdjustment: {
+        kind: 'advanced',
+        summary: '本次确认纠偏后，该节点相对上一版活动路径提前 1 位。',
+        supportingFacts: ['先完成基础复习，再进入频域到时域检查。'],
+      },
+    },
     status: 'completed',
   },
   {
@@ -510,6 +552,18 @@ const DEMO_CONTROL_CORRECTION_PATH_NODES = [
     terminalConstraints: ['checkpoint-pass'],
     score: 0.91,
     reasonCodes: ['checkpoint-required', 'matches-competency-deficit'],
+    decisionExplanation: {
+      selectionBasis: {
+        summary: '依据相位裕度的学习证据安排本路径。',
+        confidence: 'medium',
+        supportingFacts: [
+          '掌握状态 42%，来自 3 条有效证据，置信度 68%。',
+          '当前状态仍有提升空间，因此优先安排频域到时域检查题。',
+        ],
+        limitations: [],
+        eventReferences: [DEMO_ADAPTIVE_PRACTICE_EVENT_REFERENCE],
+      },
+    },
     status: 'current',
   },
   {
@@ -535,6 +589,14 @@ const DEMO_CONTROL_CORRECTION_PATH_NODES = [
     terminalConstraints: [],
     score: 0.8,
     reasonCodes: ['policy-simulation-driven'],
+    decisionExplanation: {
+      selectionBasis: {
+        summary: '依据相位裕度的学习证据安排本路径。',
+        confidence: 'medium',
+        supportingFacts: [],
+        limitations: [],
+      },
+    },
     status: 'locked',
     readiness: {
       state: 'locked',
@@ -712,6 +774,7 @@ const DEMO_RECOMMENDATION_PROVENANCE = {
     judgment: '当前状态仍有提升空间，因此优先安排频域到时域检查题。',
     affectedNodeIds: ['demo-current-quiz'],
     affectedResourceTitles: ['完成频域到时域检查题'],
+    eventReferences: [DEMO_ADAPTIVE_PRACTICE_EVENT_REFERENCE],
   }],
   evidenceReviewHref: '/profile/evidence',
   limitations: [],
@@ -731,6 +794,15 @@ const DEMO_LOW_EVIDENCE_RECOMMENDATION_PROVENANCE = {
       judgment: '暂时不能确认该项为稳定薄弱点，本路径主要依据课程结构、先修规则和可用资源安排。',
       affectedNodeIds: [],
       affectedResourceTitles: [],
+      eventReferences: [{
+        sourceScope: 'simulation-workbench-completion',
+        occurredAt: '2026-08-02T06:20:00.000Z',
+        summary: '控制工作台仿真记录参与了该项能力判断。',
+        nextAction: {
+          href: '/interactive-learning/control-workbench',
+          label: '继续工作台验证',
+        },
+      }],
     },
   ],
   evidenceReviewHref: '/profile/evidence',
@@ -870,6 +942,10 @@ const DEMO_LOW_EVIDENCE_PATH_PLAN = {
 const DEMO_LEGACY_PATH_PLAN = {
   ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
   pathOptions: undefined,
+  mainPath: DEMO_CONTROL_CORRECTION_PATH_NODES.map((node) => {
+    const { decisionExplanation: _decisionExplanation, ...legacyNode } = node as unknown as Record<string, unknown>;
+    return legacyNode;
+  }),
 } as unknown as AdaptiveLearningPathPlan;
 
 type RecommendationProvenanceFixture = 'sufficient' | 'low' | 'legacy';
@@ -972,6 +1048,15 @@ const DEMO_CONTROL_CORRECTION_PATH_ROUND = {
   ],
 } satisfies LearningPathRoundView;
 
+const DEMO_LOCKED_NODE_PATH_ROUND = {
+  ...DEMO_CONTROL_CORRECTION_PATH_ROUND,
+  lastExecutionMetadata: {
+    completedNodeIds: ['demo-foundation-card'],
+    failedNodeIds: ['demo-simulation'],
+  },
+  deviations: [],
+} satisfies LearningPathRoundView;
+
 const DEMO_ARENA_JOURNEY_NODE = {
   ...DEMO_CONTROL_CORRECTION_PATH_NODES[1],
   nodeId: 'arena-task:task-second-order-lead-pid',
@@ -1032,6 +1117,58 @@ function recommendationConfidenceLabel(confidence: 'low' | 'medium' | 'high'): s
   return '低置信度';
 }
 
+function evidenceSourceLabel(sourceScope: EvidenceTimelineLearnerRecordSourceScope): string {
+  if (sourceScope === 'interactive-lesson-submission') return '互动课程作答';
+  if (sourceScope === 'arena-official-result') return 'Arena 官方评测';
+  if (sourceScope === 'arena-preview-result') return 'Arena 预览';
+  if (sourceScope === 'simulation-workbench-completion') return '控制工作台';
+  return '自适应练习';
+}
+
+function formatEvidenceOccurredAt(value: string): string {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime())
+    ? date.toLocaleString('zh-CN', { hour12: false })
+    : '时间未知';
+}
+
+function StudentEvidenceEventList({
+  references,
+  emptyMessage,
+}: {
+  references: StudentSafeEvidenceEventReference[];
+  emptyMessage: string;
+}) {
+  if (references.length === 0) {
+    return <p className="mt-2 break-words text-xs leading-5 text-subtle">{emptyMessage}</p>;
+  }
+  return (
+    <ul className="mt-2 min-w-0 divide-y divide-border border-y border-border" data-adaptive-path-event-evidence>
+      {references.map((reference, index) => (
+        <li
+          key={`${reference.sourceScope}:${reference.occurredAt}:${index}`}
+          className="grid min-w-0 gap-1 py-2 text-xs leading-5"
+        >
+          <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <span className="font-medium text-foreground">{evidenceSourceLabel(reference.sourceScope)}</span>
+            <time className="break-words text-subtle" dateTime={reference.occurredAt}>
+              {formatEvidenceOccurredAt(reference.occurredAt)}
+            </time>
+          </div>
+          <p className="break-words text-subtle">{reference.summary}</p>
+          <Link
+            href={reference.nextAction.href}
+            className="inline-flex w-fit max-w-full items-center gap-1 break-words font-medium text-primary hover:underline"
+          >
+            {reference.nextAction.label}
+            <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDisplay }) {
   const provenance = option.recommendationProvenance;
   if (!option.isGenerated || !provenance) return null;
@@ -1076,6 +1213,15 @@ function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDi
                     <dd className="mt-1 break-words text-subtle">{entry.affectedResourceTitles.join('、')}</dd>
                   </div>
                 ) : null}
+                <div>
+                  <dt className="font-medium text-foreground">相关学习事件</dt>
+                  <dd>
+                    <StudentEvidenceEventList
+                      references={entry.eventReferences ?? []}
+                      emptyMessage="该项判断尚无可核验的事件级学习记录。"
+                    />
+                  </dd>
+                </div>
               </dl>
             </article>
           ))}
@@ -1600,6 +1746,7 @@ function getPathRecommendationProvenance(
         judgment: entry.judgment,
         affectedNodeIds: getStringArray(entry.affectedNodeIds),
         affectedResourceTitles: getStringArray(entry.affectedResourceTitles),
+        eventReferences: getStudentSafeEvidenceEventReferences(entry.eventReferences),
       };
     })
     .filter((entry): entry is PathRecommendationProvenanceEntry => entry !== null);
@@ -1611,6 +1758,64 @@ function getPathRecommendationProvenance(
     limitations: getStringArray(provenance.limitations),
     nextAction: typeof provenance.nextAction === 'string' ? provenance.nextAction : null,
   };
+}
+
+function getStudentSafeEvidenceEventReferences(value: unknown): StudentSafeEvidenceEventReference[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item): StudentSafeEvidenceEventReference[] => {
+    const record = getRecord(item);
+    const sourceScope = readEvidenceSourceScope(record.sourceScope);
+    const occurredAt = typeof record.occurredAt === 'string' && Number.isFinite(new Date(record.occurredAt).getTime())
+      ? record.occurredAt
+      : null;
+    const summary = typeof record.summary === 'string' && record.summary.trim().length > 0
+      ? record.summary
+      : null;
+    const nextAction = getRecord(record.nextAction);
+    const href = typeof nextAction.href === 'string' && isSafeEvidenceActionHref(sourceScope, nextAction.href)
+      ? nextAction.href
+      : null;
+    const label = typeof nextAction.label === 'string' && nextAction.label.trim().length > 0
+      ? nextAction.label
+      : null;
+    return sourceScope && occurredAt && summary && href && label
+      ? [{ sourceScope, occurredAt, summary, nextAction: { href, label } }]
+      : [];
+  });
+}
+
+function readEvidenceSourceScope(value: unknown): EvidenceTimelineLearnerRecordSourceScope | null {
+  return value === 'interactive-lesson-submission' ||
+    value === 'arena-official-result' ||
+    value === 'arena-preview-result' ||
+    value === 'simulation-workbench-completion' ||
+    value === 'adaptive-practice-submission'
+    ? value
+    : null;
+}
+
+function isSafeEvidenceActionHref(
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope | null,
+  href: string,
+): boolean {
+  if (!sourceScope) return false;
+  if (sourceScope === 'arena-official-result' || sourceScope === 'arena-preview-result') {
+    return href === '/arena';
+  }
+  if (sourceScope === 'simulation-workbench-completion') {
+    return href === '/interactive-learning/control-workbench';
+  }
+  if (sourceScope === 'adaptive-practice-submission') {
+    return href === '/assessment/adaptive-practice?intent=practice';
+  }
+  try {
+    const url = new URL(href, 'https://student.local');
+    return url.origin === 'https://student.local' &&
+      url.pathname === '/profile/evidence' &&
+      [...url.searchParams.keys()].every((key) => key === 'lessonId');
+  } catch {
+    return false;
+  }
 }
 
 function getPathSelectionHistory(view: ControlCorrectionLearningCenterView | null): PathSelectionHistoryView[] {
@@ -2010,6 +2215,40 @@ function getPathExecutionNodes(
       : typeof readiness.message === 'string' && readinessState !== 'ready'
         ? readiness.message
         : undefined;
+    const lockReason = typeof readiness.message === 'string' && readinessState !== 'ready'
+      ? readiness.message
+      : unlockMessage;
+    const decisionExplanation = getRecord(node.decisionExplanation);
+    const selectionBasisRecord = getRecord(decisionExplanation.selectionBasis);
+    const selectionConfidence = selectionBasisRecord.confidence === 'low' ||
+      selectionBasisRecord.confidence === 'medium' ||
+      selectionBasisRecord.confidence === 'high'
+      ? selectionBasisRecord.confidence as 'low' | 'medium' | 'high'
+      : null;
+    const selectionBasis = typeof selectionBasisRecord.summary === 'string' && selectionConfidence
+      ? {
+          summary: selectionBasisRecord.summary,
+          confidence: selectionConfidence,
+          supportingFacts: getStringArray(selectionBasisRecord.supportingFacts),
+          limitations: getStringArray(selectionBasisRecord.limitations),
+          eventReferences: getStudentSafeEvidenceEventReferences(selectionBasisRecord.eventReferences),
+        }
+      : null;
+    const latestAdjustmentRecord = getRecord(decisionExplanation.latestAdjustment);
+    const adjustmentKind = latestAdjustmentRecord.kind === 'advanced' ||
+      latestAdjustmentRecord.kind === 'delayed' ||
+      latestAdjustmentRecord.kind === 'retained' ||
+      latestAdjustmentRecord.kind === 'replaced' ||
+      latestAdjustmentRecord.kind === 'removed'
+      ? latestAdjustmentRecord.kind as 'advanced' | 'delayed' | 'retained' | 'replaced' | 'removed'
+      : null;
+    const latestAdjustment = typeof latestAdjustmentRecord.summary === 'string' && adjustmentKind
+      ? {
+          kind: adjustmentKind,
+          summary: latestAdjustmentRecord.summary,
+          supportingFacts: getStringArray(latestAdjustmentRecord.supportingFacts),
+        }
+      : null;
     const completed = completedNodeIds.has(nodeId) || rawStatus === 'completed';
     const result = resultCards.get(nodeId) ?? (completed && isComplexOutcomeNode(type)
       ? {
@@ -2043,6 +2282,10 @@ function getPathExecutionNodes(
       checkpoint: type === 'checkpoint' || type === 'arena_task' || type === 'simulation'
         ? '完成后用于判断是否进入下一段路径。'
         : '完成学习动作并留下可复核记录。',
+      selectionBasis,
+      latestAdjustment,
+      readinessState,
+      lockReason,
       unlockMessage,
       result,
     };
@@ -2328,6 +2571,7 @@ export default function AdaptivePracticePage() {
   const recommendationProvenanceFixture = resolveRecommendationProvenanceFixture(
     searchParams.get('provenanceFixture'),
   );
+  const useLockedNodeDecisionFixture = isDemoMode && searchParams.get('nodeDecisionFixture') === 'locked';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
   const localFeedbackContext = buildFeedbackTaskContext({
@@ -2820,12 +3064,16 @@ export default function AdaptivePracticePage() {
         setPathAdvisorReadiness(payload.readiness ?? buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor' }));
         const pathAdvisorEntryPoint = {
           mode: 'path-advisor' as const,
-          promptContext: `student-path-center:${payload.goalId}:adaptive-path-center`,
+          promptContext: [
+            `student-path-center:${payload.goalId}:adaptive-path-center`,
+            requestedBatchId ? `authorized-candidate-batch:${requestedBatchId}` : null,
+          ].filter(Boolean).join('\n'),
           serverContext: {
             classId: payload.classId,
             courseId: payload.goalId,
             goalId: payload.goalId,
             ...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {}),
+            ...(requestedBatchId ? { candidateBatchId: requestedBatchId } : {}),
             pageId: 'adaptive-path-center',
             modeContextToken: payload.modeContextToken,
           },
@@ -2869,7 +3117,7 @@ export default function AdaptivePracticePage() {
       updatePageContext({ assistantEntryPoint: null });
       setPathAdvisorAssistantEntryPoint(null);
     };
-  }, [activeGraphNodeId, authStatus, isDemoMode, pathAdvisorContextGoal, updatePageContext]);
+  }, [activeGraphNodeId, authStatus, isDemoMode, pathAdvisorContextGoal, requestedBatchId, updatePageContext]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -2889,12 +3137,20 @@ export default function AdaptivePracticePage() {
           ? DEMO_ARENA_JOURNEY_PATH_ROUND
           : isUnlockChainDemo
             ? null
+          : useLockedNodeDecisionFixture
+            ? DEMO_LOCKED_NODE_PATH_ROUND
             : DEMO_CONTROL_CORRECTION_PATH_ROUND)
       : null);
     setQuestionStartAt(Date.now());
     setLoading(false);
     setError(null);
-  }, [activeGoal, isArenaJourneyDemo, isUnlockChainDemo, recommendationProvenanceFixture]);
+  }, [
+    activeGoal,
+    isArenaJourneyDemo,
+    isUnlockChainDemo,
+    recommendationProvenanceFixture,
+    useLockedNodeDecisionFixture,
+  ]);
 
   const loadDiagnostic = useCallback(async () => {
     const response = await fetch('/api/assessment/diagnostic');
@@ -3249,12 +3505,29 @@ export default function AdaptivePracticePage() {
   }, [activeGoal, activePathId, authStatus, clearLoadedPathContext, isDemoMode, requestedPathContextKey]);
 
   useEffect(() => {
-    const handleAdaptivePathUpdated = () => {
+    const handleAdaptivePathUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{ batchId?: unknown; candidateId?: unknown }>).detail;
+      const batchId = typeof detail?.batchId === 'string' ? detail.batchId : null;
+      const candidateId = typeof detail?.candidateId === 'string' ? detail.candidateId : null;
+      if (batchId && candidateId && activeGoal) {
+        void fetchCandidateBatch(activeGoal, batchId, candidateId).then((result) => {
+          if (result.status !== 'loaded') return;
+          setActiveCandidateBatch(result.batch);
+          setCandidateBatchLoadState('ready');
+          setFocusedCandidateId(candidateId);
+          setOpenPathModuleId('path-selection');
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set('batch', batchId);
+          nextUrl.searchParams.set('candidate', candidateId);
+          window.history.replaceState(window.history.state, '', nextUrl);
+          setPathChoiceMessage('路径已选中，等待你开始学习。');
+        });
+      }
       void refreshLatestLearningPathAfterKonling();
     };
     window.addEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
     return () => window.removeEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
-  }, [refreshLatestLearningPathAfterKonling]);
+  }, [activeGoal, refreshLatestLearningPathAfterKonling]);
 
   const toggleGenerationResource = useCallback((resource: AdaptivePathResourceKind) => {
     setPathGenerationPanel((current) => {
@@ -5205,8 +5478,62 @@ export default function AdaptivePracticePage() {
                         <p className="text-xs text-primary">{node.resourceLabel}</p>
                         <h3 className="mt-1 text-base font-semibold text-foreground">{node.title}</h3>
                         <dl className="mt-4 space-y-3 text-sm">
+                          <div data-adaptive-path-node-selection-basis={node.selectionBasis ? 'recorded' : 'unavailable'}>
+                            <dt className="text-xs text-subtle">入选依据</dt>
+                            {node.selectionBasis ? (
+                              <dd className="mt-1 min-w-0 text-foreground">
+                                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                  <span className="break-words">{node.selectionBasis.summary}</span>
+                                  <span className="shrink-0 rounded-md border border-border bg-background/70 px-2 py-0.5 text-xs text-subtle">
+                                    {recommendationConfidenceLabel(node.selectionBasis.confidence)}
+                                  </span>
+                                </div>
+                                {node.selectionBasis.supportingFacts.length > 0 ? (
+                                  <ul className="mt-2 space-y-1 text-xs leading-5 text-subtle">
+                                    {node.selectionBasis.supportingFacts.map((fact) => <li key={fact} className="break-words">{fact}</li>)}
+                                  </ul>
+                                ) : null}
+                                <div className="mt-3">
+                                  <p className="text-xs font-medium text-foreground">相关学习事件</p>
+                                  <StudentEvidenceEventList
+                                    references={node.selectionBasis.eventReferences}
+                                    emptyMessage="该路径生成时尚未记录可核验的事件级依据。"
+                                  />
+                                </div>
+                                {node.selectionBasis.limitations.map((limitation) => (
+                                  <p key={limitation} className="mt-2 break-words text-xs leading-5 text-subtle">限制：{limitation}</p>
+                                ))}
+                              </dd>
+                            ) : (
+                              <dd className="mt-1 break-words text-foreground">
+                                该路径生成时尚未记录节点级入选依据，无法用当前学习状态还原当时判断。
+                              </dd>
+                            )}
+                          </div>
+                          <div data-adaptive-path-node-latest-adjustment={node.latestAdjustment?.kind ?? 'none'}>
+                            <dt className="text-xs text-subtle">最近调整</dt>
+                            <dd className="mt-1 break-words text-foreground">
+                              {node.latestAdjustment?.summary ?? '尚无已确认的路径调整直接影响该节点。'}
+                            </dd>
+                            {node.latestAdjustment && node.latestAdjustment.supportingFacts.length > 0 ? (
+                              <dd className="mt-2 text-xs leading-5 text-subtle">
+                                {node.latestAdjustment.supportingFacts.map((fact) => <p key={fact} className="break-words">{fact}</p>)}
+                              </dd>
+                            ) : null}
+                          </div>
+                          {node.status !== 'completed' && node.status !== 'skipped' &&
+                          ['locked', 'evidence-needed', 'needs-preparation'].includes(node.readinessState) &&
+                          (node.lockReason || node.unlockMessage) ? (
+                            <div data-adaptive-path-node-current-lock="governed">
+                              <dt className="text-xs text-subtle">当前锁定原因</dt>
+                              <dd className="mt-1 break-words text-foreground">{node.lockReason ?? node.unlockMessage}</dd>
+                              {node.unlockMessage && node.unlockMessage !== node.lockReason ? (
+                                <dd className="mt-1 break-words text-xs text-subtle">解锁动作：{node.unlockMessage}</dd>
+                              ) : null}
+                            </div>
+                          ) : null}
                           <div>
-                            <dt className="text-xs text-subtle">推荐理由</dt>
+                            <dt className="text-xs text-subtle">节点安排说明</dt>
                             <dd className="mt-1 text-foreground">{node.reason}</dd>
                           </div>
                           <div>

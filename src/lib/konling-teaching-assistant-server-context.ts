@@ -109,6 +109,16 @@ export interface KonlingTeachingAssistantServerContextDb {
   diagnosisReportSnapshot?: DiagnosisReportSnapshotReader;
   adaptiveAssessmentAnswer?: any;
   wrongAnswerAttribution?: any;
+  adaptivePathCandidateBatch?: {
+    findFirst(input: any): Promise<{
+      id: string;
+      userId: string;
+      goalId: string;
+      classId: string | null;
+      sourcePathId: string;
+      status: string;
+    } | null>;
+  };
 }
 
 export class KonlingAdaptiveAttemptContextError extends Error {
@@ -692,17 +702,40 @@ async function resolveResourceCoachModeContext(input: {
   };
 }
 
-function resolvePathAdvisorModeContext(input: {
+async function resolvePathAdvisorModeContext(input: {
+  db: KonlingTeachingAssistantServerContextDb;
   scope: KonlingRuntimeScope;
   signedPayload: VerifiedModeContextPayload | null;
-}): KonlingTeachingAssistantServerModeContext {
+  clientContextHints?: Record<string, unknown> | null;
+}): Promise<KonlingTeachingAssistantServerModeContext> {
   if (!input.signedPayload) return {};
   if (input.scope.role !== 'student') return {};
   if (input.scope.authenticatedUserId !== input.scope.targetUserId) return {};
   if (input.signedPayload.context['student-path-center'] !== true) return {};
+  const candidateBatchId = stringHint(input.clientContextHints, 'candidateBatchId');
+  const candidateBatch = candidateBatchId && input.db.adaptivePathCandidateBatch
+    ? await input.db.adaptivePathCandidateBatch.findFirst({
+        where: {
+          id: candidateBatchId,
+          userId: input.scope.targetUserId,
+          goalId: input.scope.courseId,
+          classId: input.scope.classId ?? null,
+          status: 'succeeded',
+        },
+        select: { id: true, userId: true, goalId: true, classId: true, sourcePathId: true, status: true },
+      })
+    : null;
   return {
     ...input.signedPayload.context,
     'student-path-center': true,
+    ...(candidateBatch ? {
+      authorizedCandidateBatch: {
+        batchId: candidateBatch.id,
+        pathId: candidateBatch.sourcePathId,
+        goalId: candidateBatch.goalId,
+        classId: candidateBatch.classId,
+      },
+    } : {}),
   };
 }
 
