@@ -3,8 +3,10 @@ import type { LearningFact } from '@prisma/client';
 
 import {
   createEvidenceTimelineCursor,
+  inferStudentSafeEvidenceSource,
   listEvidenceTimeline,
   parseEvidenceTimelineFilters,
+  projectStudentSafeEvidenceSource,
 } from '../evidence-timeline';
 
 function fact(overrides: Partial<LearningFact> = {}): LearningFact {
@@ -65,6 +67,24 @@ function response(overrides: Record<string, unknown> = {}) {
 }
 
 describe('evidence timeline browser', () => {
+  it('shares stable student source and navigation projections with recommendation evidence', () => {
+    expect(inferStudentSafeEvidenceSource({
+      factType: 'assessment',
+      moduleId: 'adaptive-assessment',
+    })).toEqual({
+      sourceScope: 'adaptive-practice-submission',
+      summary: '自适应练习记录参与了该项能力判断。',
+      nextAction: {
+        href: '/assessment/adaptive-practice?intent=practice',
+        label: '继续自适应练习',
+      },
+    });
+    expect(projectStudentSafeEvidenceSource({
+      sourceScope: 'interactive-lesson-submission',
+      lessonId: 'lesson/a',
+    }).nextAction.href).toBe('/profile/evidence?lessonId=lesson%2Fa');
+  });
+
   it('prefers feedbackSource over launch source when parsing assignment filters', () => {
     const filters = parseEvidenceTimelineFilters(new URLSearchParams({
       assignment: 'report-1',

@@ -325,4 +325,17 @@ describe('adaptive practice page entry states', () => {
     expect(sidebarSource).not.toContain('/execute');
     expect(source).toContain('(showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
   });
+
+  it('renders student-safe event evidence for candidates and persisted active nodes', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('function StudentEvidenceEventList');
+    expect(source).toContain('data-adaptive-path-event-evidence');
+    expect(source).toContain('references={entry.eventReferences ?? []}');
+    expect(source).toContain('references={node.selectionBasis.eventReferences}');
+    expect(source).toContain('该项判断尚无可核验的事件级学习记录。');
+    expect(source).toContain('该路径生成时尚未记录可核验的事件级依据。');
+    expect(source).toContain('isSafeEvidenceActionHref');
+    expect(source).not.toContain('reference.sourceId');
+  });
 });

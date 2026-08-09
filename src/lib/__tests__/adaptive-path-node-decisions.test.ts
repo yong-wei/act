@@ -16,6 +16,16 @@ const recommendationProvenance = {
     judgment: '优先安排频域到时域检查题。',
     affectedNodeIds: ['node-2'],
     affectedResourceTitles: ['频域到时域检查题'],
+    eventReferences: [{
+      sourceScope: 'adaptive-practice-submission',
+      occurredAt: '2026-08-03T08:30:00.000Z',
+      summary: '自适应练习记录参与了该项能力判断。',
+      nextAction: {
+        href: '/assessment/adaptive-practice?intent=practice',
+        label: '继续自适应练习',
+      },
+      sourceId: 'must-not-persist',
+    }],
   }],
   evidenceReviewHref: '/profile/evidence',
   limitations: ['证据仅覆盖最近四周。'],
@@ -51,6 +61,7 @@ describe('adaptive path node decision projections', () => {
           confidence: 'medium',
           supportingFacts: [],
           limitations: ['证据仅覆盖最近四周。'],
+          eventReferences: [],
         },
       },
     });
@@ -61,6 +72,15 @@ describe('adaptive path node decision projections', () => {
             '掌握状态 42%，来自 3 条有效证据。',
             '优先安排频域到时域检查题。',
           ],
+          eventReferences: [{
+            sourceScope: 'adaptive-practice-submission',
+            occurredAt: '2026-08-03T08:30:00.000Z',
+            summary: '自适应练习记录参与了该项能力判断。',
+            nextAction: {
+              href: '/assessment/adaptive-practice?intent=practice',
+              label: '继续自适应练习',
+            },
+          }],
         },
       },
     });
