@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -171,5 +172,28 @@ describe('teacher diagnosis generation contracts', () => {
 
     expect(result.id).toBe('job-new');
     expect(db.diagnosisGenerationJob.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('reuses an active scope created between retry lookup and the unique-key write', async () => {
+    const db = dbFixture();
+    const failed = publicJob({ id: 'job-old', state: 'FAILED', retryable: true });
+    const active = publicJob({ id: 'job-new', state: 'QUEUED', retryable: false });
+    db.diagnosisGenerationJob.findFirst.mockResolvedValue(failed);
+    db.diagnosisGenerationJob.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(active);
+    db.diagnosisGenerationJob.updateMany.mockRejectedValue(new Prisma.PrismaClientKnownRequestError(
+      'active scope already claimed',
+      { code: 'P2002', clientVersion: 'test' },
+    ));
+
+    const result = await retryDiagnosisGenerationJob(db as never, {
+      teacherId: 'teacher-1',
+      jobId: 'job-old',
+      idempotencyKey: 'retry-456',
+    });
+
+    expect(result.id).toBe('job-new');
+    expect(db.diagnosisGenerationJob.findUnique).toHaveBeenCalledTimes(2);
   });
 });

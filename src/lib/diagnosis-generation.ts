@@ -173,19 +173,30 @@ export async function retryDiagnosisGenerationJob(
     select: publicJobSelect,
   });
   if (active && active.id !== job.id) return active;
-  const updated = await db.diagnosisGenerationJob.updateMany({
-    where: { id: job.id, userId: input.teacherId, state: { in: ['FAILED', 'TIMED_OUT'] }, retryable: true },
-    data: {
-      state: 'QUEUED',
-      activeScopeKey: scopeKey,
-      failureCode: null,
-      failureMessage: null,
-      retryable: false,
-      startedAt: null,
-      completedAt: null,
-      deliveryGeneration: { increment: 1 },
-    },
-  });
+  let updated: { count: number };
+  try {
+    updated = await db.diagnosisGenerationJob.updateMany({
+      where: { id: job.id, userId: input.teacherId, state: { in: ['FAILED', 'TIMED_OUT'] }, retryable: true },
+      data: {
+        state: 'QUEUED',
+        activeScopeKey: scopeKey,
+        failureCode: null,
+        failureMessage: null,
+        retryable: false,
+        startedAt: null,
+        completedAt: null,
+        deliveryGeneration: { increment: 1 },
+      },
+    });
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') throw error;
+    const raced = await db.diagnosisGenerationJob.findUnique({
+      where: { activeScopeKey: scopeKey },
+      select: publicJobSelect,
+    });
+    if (raced && raced.id !== job.id) return raced;
+    throw new DiagnosisGenerationError('diagnosis-generation-retry-conflict', 409);
+  }
   if (updated.count !== 1) {
     const raced = await db.diagnosisGenerationJob.findUnique({
       where: { activeScopeKey: scopeKey },
