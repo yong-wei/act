@@ -14,6 +14,13 @@
     "packagingCommit": "9ccbfdbf6bd455c70ecb9e8921755ec01496e2fd",
     "publicationTag": "control-theory-engineering-v0.9-r2"
   },
+  "localActkgCheckoutObservation": {
+    "state": "NOT_USED_AS_SOURCE",
+    "branch": "main",
+    "head": "06b56f2df30a0ae91eb1c02f42c084fbd8bb07f5",
+    "clean": false,
+    "reason": "The local checkout has unrelated uncommitted files and does not equal the frozen ActKG main commit. The staged ACT admission chain is the only source used for this run."
+  },
   "validatedBundle": {
     "bundleId": "ctb:control-theory-engineering-v0.9:r2",
     "bundleRevision": 2,
