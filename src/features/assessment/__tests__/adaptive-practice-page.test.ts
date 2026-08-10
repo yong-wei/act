@@ -3,6 +3,11 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import {
+  buildPathGenerationGoalHref,
+  defaultPathGenerationPanel,
+} from '@/lib/adaptive-path-generation-panel';
+
 const repoRoot = process.cwd();
 
 function readRepoFile(relativePath: string) {
@@ -212,6 +217,12 @@ describe('adaptive practice page entry states', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
     expect(source).toContain('resolveAdaptivePathLandingState({');
+    expect(source).toContain('data-adaptive-path-landing-state="active"');
+    expect(source).toContain('data-adaptive-path-action-bar="active"');
+    expect(source).toContain('data-adaptive-path-continue-action="current-path"');
+    expect(source).toContain('data-adaptive-path-generation-action="new-path"');
+    expect(source).toContain('原路径仍会保留；你可以继续学习，也可以生成新的候选路径进行比较。');
+    expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null :');
     expect(source).toContain("const showColdStartLandingWorkspace = showLandingWorkspace && pathLandingState === 'cold-start';");
     expect(source).toContain('data-adaptive-path-landing-state="loading"');
     expect(source).toContain('正在加载学习路径');
@@ -219,6 +230,29 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('学习路径暂时无法加载');
     expect(source).toContain('onClick={retryPathContext}');
     expect(source).toContain("setPathContextLoadState(pathLoadFailed ? 'failed' : 'missing');");
+  });
+
+  it('preserves the active goal and path when opening a new generation from the active landing', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const activePathGenerationHref = buildPathGenerationGoalHref(
+      'frequency-response-foundations',
+      defaultPathGenerationPanel,
+    );
+    const generationQuery = new URLSearchParams(activePathGenerationHref.split('?')[1]);
+
+    expect(generationQuery.get('goal')).toBe('frequency-response-foundations');
+    expect(generationQuery.get('intent')).toBe('contextual-recommendation');
+    expect(source).toContain('const activePathGenerationHref = useMemo(() => {');
+    expect(source).toContain('generationQuery.set(\'pathId\', activeExecutionPathId);');
+    expect(source).toContain('href={activePathGenerationHref}');
+
+    const generationBlock = source.slice(
+      source.indexOf('const submitPathGeneration = useCallback'),
+      source.indexOf('const startPathGenerationFromAdvisor = useCallback'),
+    );
+    expect(generationBlock).toContain('pathId: operation !== \'generate\' ? currentPathId : undefined');
+    expect(generationBlock).toContain('await refreshLatestLearningPathAfterKonling();');
+    expect(source).toContain('if (activePathId) {\n      const loaded = await fetchLearningPathRound(activePathId, activeGoal);');
   });
 
   it('keeps demo path state available for execution and visual QA routes', () => {

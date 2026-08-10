@@ -2918,6 +2918,30 @@ export default function AdaptivePracticePage() {
   }, [activePathRound?.executions, pathExecutionNodes]);
   const activeExecutionPathId = activePathRound?.id ?? activePathPlan?.id ?? activePathId;
   const activeExecutionGoalId = activeGoal ?? resolveAdaptivePracticeGoalId(activePathPlan?.goal.id ?? activePathRound?.goalId ?? null);
+  const activePathContinueHref = useMemo(() => {
+    if (!activeExecutionPathId || !activeExecutionGoalId) return null;
+    const params = new URLSearchParams({
+      goal: activeExecutionGoalId,
+      intent: 'path-execution',
+      pathId: activeExecutionPathId,
+    });
+    if (currentPathNode?.nodeId) params.set('nodeId', currentPathNode.nodeId);
+    return withFeedbackTaskHref(`/assessment/adaptive-practice?${params.toString()}`);
+  }, [activeExecutionGoalId, activeExecutionPathId, currentPathNode?.nodeId, withFeedbackTaskHref]);
+  const activePathGenerationHref = useMemo(() => {
+    if (!activeExecutionGoalId) return feedbackGenericPathGenerationHref;
+    const generationQuery = new URLSearchParams(
+      buildPathGenerationGoalHref(activeExecutionGoalId, pathGenerationPanel).split('?')[1] ?? '',
+    );
+    if (activeExecutionPathId) generationQuery.set('pathId', activeExecutionPathId);
+    return withFeedbackTaskHref(`/assessment/adaptive-practice?${generationQuery.toString()}`);
+  }, [
+    activeExecutionGoalId,
+    activeExecutionPathId,
+    feedbackGenericPathGenerationHref,
+    pathGenerationPanel,
+    withFeedbackTaskHref,
+  ]);
   const pathExecutionSummary = useMemo(
     () => getPathExecutionSummary(pathExecutionNodes, activePathRound),
     [activePathRound, pathExecutionNodes],
@@ -4369,8 +4393,51 @@ export default function AdaptivePracticePage() {
               data-control-correction-alternative-count={controlCorrectionAlternativeCount(adaptivePathCenter)}
             />
           ) : null}
-          {showExecutionWorkspace || showRecoveredExecutionWorkspace ||
-          (showLandingWorkspace && pathLandingState === 'active') ? null :
+          {showLandingWorkspace && pathLandingState === 'active' ? (
+          <section
+            className="surface-card flex flex-wrap items-center justify-between gap-4 p-4"
+            data-adaptive-path-landing-state="active"
+            data-adaptive-path-action-bar="active"
+          >
+            <div>
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-primary">
+                <span className="rounded-md border border-border bg-muted px-2.5 py-1">当前学习路径</span>
+                <span className="rounded-md border border-border bg-muted px-2.5 py-1">{activeGoalLabel}</span>
+              </div>
+              <p className="mt-2 text-sm text-subtle">
+                原路径仍会保留；你可以继续学习，也可以生成新的候选路径进行比较。
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {activePathContinueHref ? (
+                <Link
+                  href={activePathContinueHref}
+                  data-adaptive-path-continue-action="current-path"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                >
+                  <ExternalLink className="size-4" aria-hidden="true" />
+                  继续当前路径
+                </Link>
+              ) : null}
+              <Link
+                href={activePathGenerationHref}
+                data-adaptive-path-generation-action="new-path"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              >
+                <Sparkles className="size-4" aria-hidden="true" />
+                新建学习路径
+              </Link>
+              <Link
+                href="/profile/evidence"
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+              >
+                <History className="size-4" aria-hidden="true" />
+                查看学习记录
+              </Link>
+            </div>
+          </section>
+          ) : null}
+          {showExecutionWorkspace || showRecoveredExecutionWorkspace ? null :
           showLandingWorkspace && pathLandingState === 'loading' ? (
           <header
             className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]"
