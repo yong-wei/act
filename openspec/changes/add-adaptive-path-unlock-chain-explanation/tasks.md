@@ -41,5 +41,5 @@
 
 - [ ] 7.1 建立独立基线修复 PR，修复共享 adaptive-path 13 状态捕获合同及其定向测试，不提交将被本 PR 淘汰的产品证据
 - [ ] 7.2 在该基线 PR 的最终 HEAD 通过完整 `npm run test` 与 current-HEAD 审查后合并至 integration
-- [ ] 7.3 以 merge 方式将基线修复同步至 #1169，修复本 PR 的静态门禁字符串，并在最终组合 HEAD 重新采集 adaptive-path 13 个状态与 `/knowledge` 完整矩阵
+- [ ] 7.3 以 merge 方式将基线修复同步至 #1169，并在最终组合 HEAD 重新采集 adaptive-path 13 个状态与 `/knowledge` 完整矩阵；展开状态必须验证真实的导航展开与 Dock 辅助菜单，不改变禁用动作语义
 - [ ] 7.4 在 #1169 最终组合 HEAD 通过完整 `npm run test`、current-HEAD 审查与合并门禁后合并并关闭 #1167

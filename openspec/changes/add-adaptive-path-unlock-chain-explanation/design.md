@@ -70,6 +70,10 @@
 
 独立基线 PR 只修复共享 adaptive-path 捕获合同及其测试。它不得包含 #1167 的解锁链路行为，也不得提交 `/knowledge` 或 adaptive-path 的产品证据，因为 `/knowledge` 矩阵跟踪 adaptive-practice 页面。#1169 仅在该 PR 合并后使用非改写 merge 同步 integration，再在自己的最终组合 HEAD 上重采 `/knowledge` 与 adaptive-path 的全部受影响状态。完整 `npm run test` 与 current-HEAD 审查均以该最终组合 HEAD 为准。
 
+### 展开导航与 Dock 菜单的证据语义（PR #1169 收尾）
+
+`app-shell-expanded-dock-desktop-dark` 保留既有状态 ID 和矩阵成员，但其验收语义是“平台导航展开 + 共享 Dock 辅助菜单展开”，而非 Global AI sidebar 展开。捕获通过真实导航按钮和辅助菜单触发器完成，并在截图前断言导航为 expanded、菜单面板可见且有有效尺寸。为呈现已有的辅助菜单，runner 可以复用既有 development-only `knowledge-product` QA 条件；它不修改页面、权限、`canSubmitPathGeneration` 或控件优先级。该条件下 GlobalAI 是已启用的 Dock primary，`adaptive-path-konling` 必须在辅助菜单中保持可见但 disabled。任何主观 DOM 注入、强制属性修改、坐标伪点击或仅更新 manifest 的做法均不可作为证据。
+
 ## Risks / Trade-offs
 
 - [旧路径记录缺少结构化 readiness] → 按降级策略展示 `unlockMessage` 或明确不可解释文案，不伪造链路。

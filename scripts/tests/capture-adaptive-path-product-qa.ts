@@ -30,6 +30,11 @@ const DEFAULT_DOCK_POLL_INTERVAL_MS = 50;
 export const DOCK_SELECTOR = '[data-platform-floating-dock]';
 export const PRIMARY_KONLING_SELECTOR =
   '[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]';
+export const SECONDARY_DOCK_SELECTOR =
+  '[data-platform-floating-dock] button[data-platform-floating-dock-secondary-trigger]';
+export const EXPANDED_DOCK_PANEL_SELECTOR = '[data-platform-floating-dock-expanded-panel]';
+export const ADAPTIVE_PATH_KONLING_SELECTOR =
+  `${EXPANDED_DOCK_PANEL_SELECTOR} button[aria-label="控灵助手"]`;
 export const DOCK_REGISTRATION_SELECTOR = '[data-platform-floating-dock-registration="true"]';
 export const CAPTURE_SOURCE_FILES = CAPTURE_REVISION_SOURCE_FILES;
 
@@ -50,13 +55,20 @@ export type ExpandedDockState = {
   appShellNavigationPreference: string | null;
   appShellNavigationExpanded: boolean;
   appShellNavigationToggleExpanded: boolean;
-  konlingDockState: 'collapsed' | 'expanded' | 'hidden';
-  konlingDockTriggerPresent: boolean;
-  konlingDockTriggerVisible: boolean;
-  konlingDockTriggerDisabled: boolean | null;
-  konlingSidebarState: string | null;
-  konlingSidebarVisible: boolean;
-  konlingSidebarPresentationMode: string | null;
+  platformDockBehavior: string | null;
+  globalAiPrimaryPresent: boolean;
+  globalAiPrimaryVisible: boolean;
+  globalAiPrimaryDisabled: boolean | null;
+  secondaryTriggerPresent: boolean;
+  secondaryTriggerVisible: boolean;
+  secondaryTriggerExpanded: boolean;
+  expandedPanelPresent: boolean;
+  expandedPanelVisible: boolean;
+  expandedPanelWidth: number | null;
+  expandedPanelHeight: number | null;
+  adaptivePathKonlingPresent: boolean;
+  adaptivePathKonlingVisible: boolean;
+  adaptivePathKonlingDisabled: boolean | null;
 };
 
 export type CaptureRevision = CaptureRevisionProof & {
@@ -708,20 +720,20 @@ async function readDockReadiness(page: Page, targetUrl: string): Promise<DockRea
 }
 
 export async function readExpandedDockState(page: Page): Promise<ExpandedDockState> {
-  return page.evaluate(({ dockSelector, primarySelector }) => {
+  return page.evaluate(({
+    dockSelector,
+    primarySelector,
+    secondarySelector,
+    expandedPanelSelector,
+    adaptivePathKonlingSelector,
+  }) => {
     const appShell = document.querySelector<HTMLElement>('[data-app-shell-layout="collapsible"]');
     const navigationToggle = appShell?.querySelector<HTMLButtonElement>('button[aria-label="收起平台导航"]');
     const dock = document.querySelector<HTMLElement>(dockSelector);
     const dockPrimary = document.querySelector<HTMLButtonElement>(primarySelector);
-    const sidebar = document.querySelector<HTMLElement>('[data-global-ai-sidebar]');
-    const sidebarState = sidebar?.getAttribute('data-global-ai-sidebar') ?? null;
-    const dockRect = dock?.getBoundingClientRect();
-    const dockStyle = dock ? window.getComputedStyle(dock) : null;
-    const dockVisible = Boolean(dockRect && dockStyle
-      && dockRect.width > 0
-      && dockRect.height > 0
-      && dockStyle.display !== 'none'
-      && dockStyle.visibility !== 'hidden');
+    const secondaryTrigger = document.querySelector<HTMLButtonElement>(secondarySelector);
+    const expandedPanel = document.querySelector<HTMLElement>(expandedPanelSelector);
+    const adaptivePathKonling = document.querySelector<HTMLButtonElement>(adaptivePathKonlingSelector);
     const dockPrimaryRect = dockPrimary?.getBoundingClientRect();
     const dockPrimaryStyle = dockPrimary ? window.getComputedStyle(dockPrimary) : null;
     const dockPrimaryVisible = Boolean(dockPrimaryRect && dockPrimaryStyle
@@ -729,34 +741,54 @@ export async function readExpandedDockState(page: Page): Promise<ExpandedDockSta
       && dockPrimaryRect.height > 0
       && dockPrimaryStyle.display !== 'none'
       && dockPrimaryStyle.visibility !== 'hidden');
-    const sidebarRect = sidebar?.getBoundingClientRect();
-    const sidebarStyle = sidebar ? window.getComputedStyle(sidebar) : null;
-    const sidebarVisible = sidebarState === 'open' && Boolean(sidebarRect && sidebarStyle
-      && sidebarRect.width > 0
-      && sidebarRect.height > 0
-      && sidebarStyle.display !== 'none'
-      && sidebarStyle.visibility !== 'hidden');
+    const secondaryTriggerRect = secondaryTrigger?.getBoundingClientRect();
+    const secondaryTriggerStyle = secondaryTrigger ? window.getComputedStyle(secondaryTrigger) : null;
+    const secondaryTriggerVisible = Boolean(secondaryTriggerRect && secondaryTriggerStyle
+      && secondaryTriggerRect.width > 0
+      && secondaryTriggerRect.height > 0
+      && secondaryTriggerStyle.display !== 'none'
+      && secondaryTriggerStyle.visibility !== 'hidden');
+    const expandedPanelRect = expandedPanel?.getBoundingClientRect();
+    const expandedPanelStyle = expandedPanel ? window.getComputedStyle(expandedPanel) : null;
+    const expandedPanelVisible = Boolean(expandedPanelRect && expandedPanelStyle
+      && expandedPanelRect.width > 0
+      && expandedPanelRect.height > 0
+      && expandedPanelStyle.display !== 'none'
+      && expandedPanelStyle.visibility !== 'hidden');
+    const adaptivePathKonlingRect = adaptivePathKonling?.getBoundingClientRect();
+    const adaptivePathKonlingStyle = adaptivePathKonling ? window.getComputedStyle(adaptivePathKonling) : null;
+    const adaptivePathKonlingVisible = Boolean(adaptivePathKonlingRect && adaptivePathKonlingStyle
+      && adaptivePathKonlingRect.width > 0
+      && adaptivePathKonlingRect.height > 0
+      && adaptivePathKonlingStyle.display !== 'none'
+      && adaptivePathKonlingStyle.visibility !== 'hidden');
 
     return {
       appShellNavigationState: appShell?.getAttribute('data-app-shell-navigation-state') ?? null,
       appShellNavigationPreference: appShell?.getAttribute('data-app-shell-navigation-preference') ?? null,
       appShellNavigationExpanded: appShell?.getAttribute('data-app-shell-navigation-state') === 'expanded',
       appShellNavigationToggleExpanded: navigationToggle?.getAttribute('aria-expanded') === 'true',
-      konlingDockState: sidebarVisible
-        ? 'expanded'
-        : dock && dockVisible
-          ? 'collapsed'
-          : 'hidden',
-      konlingDockTriggerPresent: Boolean(dockPrimary),
-      konlingDockTriggerVisible: dockPrimaryVisible,
-      konlingDockTriggerDisabled: dockPrimary?.disabled ?? null,
-      konlingSidebarState: sidebarState,
-      konlingSidebarVisible: sidebarVisible,
-      konlingSidebarPresentationMode: sidebar?.getAttribute('data-konling-presentation-mode') ?? null,
+      platformDockBehavior: dock?.getAttribute('data-platform-floating-dock') ?? null,
+      globalAiPrimaryPresent: Boolean(dockPrimary),
+      globalAiPrimaryVisible: dockPrimaryVisible,
+      globalAiPrimaryDisabled: dockPrimary?.disabled ?? null,
+      secondaryTriggerPresent: Boolean(secondaryTrigger),
+      secondaryTriggerVisible,
+      secondaryTriggerExpanded: secondaryTrigger?.getAttribute('aria-expanded') === 'true',
+      expandedPanelPresent: Boolean(expandedPanel),
+      expandedPanelVisible,
+      expandedPanelWidth: expandedPanelRect?.width ?? null,
+      expandedPanelHeight: expandedPanelRect?.height ?? null,
+      adaptivePathKonlingPresent: Boolean(adaptivePathKonling),
+      adaptivePathKonlingVisible,
+      adaptivePathKonlingDisabled: adaptivePathKonling?.disabled ?? null,
     };
   }, {
     dockSelector: DOCK_SELECTOR,
     primarySelector: PRIMARY_KONLING_SELECTOR,
+    secondarySelector: SECONDARY_DOCK_SELECTOR,
+    expandedPanelSelector: EXPANDED_DOCK_PANEL_SELECTOR,
+    adaptivePathKonlingSelector: ADAPTIVE_PATH_KONLING_SELECTOR,
   });
 }
 
@@ -766,15 +798,29 @@ export function assertExpandedDockState(state: ExpandedDockState) {
     state.appShellNavigationPreference === 'expanded' ? null : `appShellNavigationPreference=${state.appShellNavigationPreference ?? 'missing'}`,
     state.appShellNavigationExpanded ? null : 'appShellNavigationExpanded=false',
     state.appShellNavigationToggleExpanded ? null : 'appShellNavigationToggleExpanded=false',
-    state.konlingDockState === 'expanded' ? null : `konlingDockState=${state.konlingDockState}`,
-    state.konlingSidebarState === 'open' ? null : `konlingSidebarState=${state.konlingSidebarState ?? 'missing'}`,
-    state.konlingSidebarVisible ? null : 'konlingSidebarVisible=false',
-    state.konlingSidebarPresentationMode === 'side'
+    state.platformDockBehavior === 'enabled' ? null : `platformDockBehavior=${state.platformDockBehavior ?? 'missing'}`,
+    state.globalAiPrimaryPresent ? null : 'globalAiPrimaryPresent=false',
+    state.globalAiPrimaryVisible ? null : 'globalAiPrimaryVisible=false',
+    state.globalAiPrimaryDisabled === false ? null : `globalAiPrimaryDisabled=${String(state.globalAiPrimaryDisabled)}`,
+    state.secondaryTriggerPresent ? null : 'secondaryTriggerPresent=false',
+    state.secondaryTriggerVisible ? null : 'secondaryTriggerVisible=false',
+    state.secondaryTriggerExpanded ? null : 'secondaryTriggerExpanded=false',
+    state.expandedPanelPresent ? null : 'expandedPanelPresent=false',
+    state.expandedPanelVisible ? null : 'expandedPanelVisible=false',
+    typeof state.expandedPanelWidth === 'number' && state.expandedPanelWidth > 0
       ? null
-      : `konlingSidebarPresentationMode=${state.konlingSidebarPresentationMode ?? 'missing'}`,
+      : `expandedPanelWidth=${String(state.expandedPanelWidth)}`,
+    typeof state.expandedPanelHeight === 'number' && state.expandedPanelHeight > 0
+      ? null
+      : `expandedPanelHeight=${String(state.expandedPanelHeight)}`,
+    state.adaptivePathKonlingPresent ? null : 'adaptivePathKonlingPresent=false',
+    state.adaptivePathKonlingVisible ? null : 'adaptivePathKonlingVisible=false',
+    state.adaptivePathKonlingDisabled === true
+      ? null
+      : `adaptivePathKonlingDisabled=${String(state.adaptivePathKonlingDisabled)}`,
   ].filter((issue): issue is string => Boolean(issue));
   if (issues.length > 0) {
-    throw new Error(`Expanded AppShell and Konling dock state failed validation: ${issues.join(', ')}\n${JSON.stringify(state)}`);
+    throw new Error(`Expanded AppShell and secondary dock menu state failed validation: ${issues.join(', ')}\n${JSON.stringify(state)}`);
   }
 }
 
@@ -798,17 +844,34 @@ export async function openExpandedAppShellAndDock(page: Page) {
     () => readDockReadiness(page, targetUrl),
     { targetUrl, actualUrl: page.url() },
   );
-  await page.locator(PRIMARY_KONLING_SELECTOR).click();
+  const secondaryTrigger = page.locator(SECONDARY_DOCK_SELECTOR);
+  await secondaryTrigger.waitFor({ state: 'visible', timeout: 10_000 });
+  await secondaryTrigger.click();
   await page.waitForFunction(() => {
-    const sidebar = document.querySelector<HTMLElement>('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
-    if (!sidebar) return false;
-    const rect = sidebar.getBoundingClientRect();
-    const style = window.getComputedStyle(sidebar);
-    return rect.width > 0
-      && rect.height > 0
-      && style.display !== 'none'
-      && style.visibility !== 'hidden'
-      && sidebar.getAttribute('data-konling-presentation-mode') === 'side';
+    const dock = document.querySelector<HTMLElement>('[data-platform-floating-dock]');
+    const primary = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]');
+    const trigger = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-secondary-trigger]');
+    const panel = document.querySelector<HTMLElement>('[data-platform-floating-dock-expanded-panel]');
+    const adaptivePathKonling = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock-expanded-panel] button[aria-label="控灵助手"]');
+    const panelRect = panel?.getBoundingClientRect();
+    const panelStyle = panel ? window.getComputedStyle(panel) : null;
+    const adaptiveRect = adaptivePathKonling?.getBoundingClientRect();
+    const adaptiveStyle = adaptivePathKonling ? window.getComputedStyle(adaptivePathKonling) : null;
+    return dock?.getAttribute('data-platform-floating-dock') === 'enabled'
+      && primary?.disabled === false
+      && trigger?.getAttribute('aria-expanded') === 'true'
+      && Boolean(panelRect && panelStyle
+        && panelRect.width > 0
+        && panelRect.height > 0
+        && panelStyle.display !== 'none'
+        && panelStyle.visibility !== 'hidden')
+      && Boolean(adaptiveRect && adaptiveStyle
+        && adaptiveRect.width > 0
+        && adaptiveRect.height > 0
+        && adaptiveStyle.display !== 'none'
+        && adaptiveStyle.visibility !== 'hidden'
+        && adaptivePathKonling?.disabled === true)
+      && !document.querySelector('[data-global-ai-sidebar="open"]');
   }, undefined, { timeout: 10_000, polling: 'raf' });
 
   const state = await readExpandedDockState(page);
@@ -994,15 +1057,9 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
     const appShell = document.querySelector('[data-app-shell-layout="collapsible"]');
     const navigationToggle = appShell?.querySelector<HTMLButtonElement>('button[aria-label="收起平台导航"]');
     const dockPrimary = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]');
-    const konlingSidebar = document.querySelector<HTMLElement>('[data-global-ai-sidebar]');
-    const konlingSidebarState = konlingSidebar?.getAttribute('data-global-ai-sidebar') ?? null;
-    const dockRectForVisibility = dock?.getBoundingClientRect();
-    const dockStyleForVisibility = dock ? window.getComputedStyle(dock) : null;
-    const dockVisible = Boolean(dockRectForVisibility && dockStyleForVisibility
-      && dockRectForVisibility.width > 0
-      && dockRectForVisibility.height > 0
-      && dockStyleForVisibility.display !== 'none'
-      && dockStyleForVisibility.visibility !== 'hidden');
+    const secondaryTrigger = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-secondary-trigger]');
+    const expandedPanel = document.querySelector<HTMLElement>('[data-platform-floating-dock-expanded-panel]');
+    const adaptivePathKonling = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock-expanded-panel] button[aria-label="控灵助手"]');
     const dockPrimaryRect = dockPrimary?.getBoundingClientRect();
     const dockPrimaryStyle = dockPrimary ? window.getComputedStyle(dockPrimary) : null;
     const dockPrimaryVisible = Boolean(dockPrimaryRect && dockPrimaryStyle
@@ -1010,13 +1067,27 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
       && dockPrimaryRect.height > 0
       && dockPrimaryStyle.display !== 'none'
       && dockPrimaryStyle.visibility !== 'hidden');
-    const sidebarRectForVisibility = konlingSidebar?.getBoundingClientRect();
-    const sidebarStyleForVisibility = konlingSidebar ? window.getComputedStyle(konlingSidebar) : null;
-    const konlingSidebarVisible = konlingSidebarState === 'open' && Boolean(sidebarRectForVisibility && sidebarStyleForVisibility
-      && sidebarRectForVisibility.width > 0
-      && sidebarRectForVisibility.height > 0
-      && sidebarStyleForVisibility.display !== 'none'
-      && sidebarStyleForVisibility.visibility !== 'hidden');
+    const secondaryTriggerRect = secondaryTrigger?.getBoundingClientRect();
+    const secondaryTriggerStyle = secondaryTrigger ? window.getComputedStyle(secondaryTrigger) : null;
+    const secondaryTriggerVisible = Boolean(secondaryTriggerRect && secondaryTriggerStyle
+      && secondaryTriggerRect.width > 0
+      && secondaryTriggerRect.height > 0
+      && secondaryTriggerStyle.display !== 'none'
+      && secondaryTriggerStyle.visibility !== 'hidden');
+    const expandedPanelRect = expandedPanel?.getBoundingClientRect();
+    const expandedPanelStyle = expandedPanel ? window.getComputedStyle(expandedPanel) : null;
+    const expandedPanelVisible = Boolean(expandedPanelRect && expandedPanelStyle
+      && expandedPanelRect.width > 0
+      && expandedPanelRect.height > 0
+      && expandedPanelStyle.display !== 'none'
+      && expandedPanelStyle.visibility !== 'hidden');
+    const adaptivePathKonlingRect = adaptivePathKonling?.getBoundingClientRect();
+    const adaptivePathKonlingStyle = adaptivePathKonling ? window.getComputedStyle(adaptivePathKonling) : null;
+    const adaptivePathKonlingVisible = Boolean(adaptivePathKonlingRect && adaptivePathKonlingStyle
+      && adaptivePathKonlingRect.width > 0
+      && adaptivePathKonlingRect.height > 0
+      && adaptivePathKonlingStyle.display !== 'none'
+      && adaptivePathKonlingStyle.visibility !== 'hidden');
     const routeFlow = document.querySelector('[data-adaptive-path-route-flow="connected"]');
     const comparison = document.querySelector('[data-learning-path-options-layout="route-modules"]');
     const routeModules = Array.from(document.querySelectorAll('[data-learning-path-option-module="route"]'))
@@ -1075,17 +1146,21 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
       appShellNavigationPreference: appShell?.getAttribute('data-app-shell-navigation-preference') ?? null,
       appShellNavigationExpanded: appShell?.getAttribute('data-app-shell-navigation-state') === 'expanded',
       appShellNavigationToggleExpanded: navigationToggle?.getAttribute('aria-expanded') === 'true',
-      konlingDockState: konlingSidebarVisible
-        ? 'expanded'
-        : dock && dockVisible
-          ? 'collapsed'
-          : 'hidden',
-      konlingDockTriggerPresent: Boolean(dockPrimary),
-      konlingDockTriggerVisible: dockPrimaryVisible,
-      konlingDockTriggerDisabled: dockPrimary?.disabled ?? null,
-      konlingSidebarState,
-      konlingSidebarVisible,
-      konlingSidebarPresentationMode: konlingSidebar?.getAttribute('data-konling-presentation-mode') ?? null,
+      platformDockBehavior: document.querySelector<HTMLElement>('[data-platform-floating-dock]')
+        ?.getAttribute('data-platform-floating-dock') ?? null,
+      globalAiPrimaryPresent: Boolean(dockPrimary),
+      globalAiPrimaryVisible: dockPrimaryVisible,
+      globalAiPrimaryDisabled: dockPrimary?.disabled ?? null,
+      secondaryTriggerPresent: Boolean(secondaryTrigger),
+      secondaryTriggerVisible,
+      secondaryTriggerExpanded: secondaryTrigger?.getAttribute('aria-expanded') === 'true',
+      expandedPanelPresent: Boolean(expandedPanel),
+      expandedPanelVisible,
+      expandedPanelWidth: expandedPanelRect?.width ?? null,
+      expandedPanelHeight: expandedPanelRect?.height ?? null,
+      adaptivePathKonlingPresent: Boolean(adaptivePathKonling),
+      adaptivePathKonlingVisible,
+      adaptivePathKonlingDisabled: adaptivePathKonling?.disabled ?? null,
       forbidden: [
         ...forbiddenPatterns.filter((pattern) => text.includes(pattern)),
         ...missingRaw,
@@ -1147,7 +1222,7 @@ async function main() {
     try {
       for (const state of states) {
         const page = await browser.newPage({ viewport: { width: state.width, height: state.height } });
-        await setTheme(page, state.theme);
+        await setTheme(page, state.theme, state.qaMode);
         const targetUrl = createCaptureUrl(targetBaseUrl, state.query);
         const response = await page.goto(targetUrl, { waitUntil: 'networkidle' });
         if (!response || response.status() >= 400) {
@@ -1185,13 +1260,20 @@ async function main() {
             appShellNavigationPreference: signal.appShellNavigationPreference,
             appShellNavigationExpanded: signal.appShellNavigationExpanded,
             appShellNavigationToggleExpanded: signal.appShellNavigationToggleExpanded,
-            konlingDockState: signal.konlingDockState,
-            konlingDockTriggerPresent: signal.konlingDockTriggerPresent,
-            konlingDockTriggerVisible: signal.konlingDockTriggerVisible,
-            konlingDockTriggerDisabled: signal.konlingDockTriggerDisabled,
-            konlingSidebarState: signal.konlingSidebarState,
-            konlingSidebarVisible: signal.konlingSidebarVisible,
-            konlingSidebarPresentationMode: signal.konlingSidebarPresentationMode,
+            platformDockBehavior: signal.platformDockBehavior,
+            globalAiPrimaryPresent: signal.globalAiPrimaryPresent,
+            globalAiPrimaryVisible: signal.globalAiPrimaryVisible,
+            globalAiPrimaryDisabled: signal.globalAiPrimaryDisabled,
+            secondaryTriggerPresent: signal.secondaryTriggerPresent,
+            secondaryTriggerVisible: signal.secondaryTriggerVisible,
+            secondaryTriggerExpanded: signal.secondaryTriggerExpanded,
+            expandedPanelPresent: signal.expandedPanelPresent,
+            expandedPanelVisible: signal.expandedPanelVisible,
+            expandedPanelWidth: signal.expandedPanelWidth,
+            expandedPanelHeight: signal.expandedPanelHeight,
+            adaptivePathKonlingPresent: signal.adaptivePathKonlingPresent,
+            adaptivePathKonlingVisible: signal.adaptivePathKonlingVisible,
+            adaptivePathKonlingDisabled: signal.adaptivePathKonlingDisabled,
           },
         });
         signals.push(signal);

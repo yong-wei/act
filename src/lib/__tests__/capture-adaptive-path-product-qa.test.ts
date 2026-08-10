@@ -62,13 +62,20 @@ function expandedDockState(overrides: Partial<ExpandedDockState> = {}): Expanded
     appShellNavigationPreference: 'expanded',
     appShellNavigationExpanded: true,
     appShellNavigationToggleExpanded: true,
-    konlingDockState: 'expanded',
-    konlingDockTriggerPresent: true,
-    konlingDockTriggerVisible: true,
-    konlingDockTriggerDisabled: true,
-    konlingSidebarState: 'open',
-    konlingSidebarVisible: true,
-    konlingSidebarPresentationMode: 'side',
+    platformDockBehavior: 'enabled',
+    globalAiPrimaryPresent: true,
+    globalAiPrimaryVisible: true,
+    globalAiPrimaryDisabled: false,
+    secondaryTriggerPresent: true,
+    secondaryTriggerVisible: true,
+    secondaryTriggerExpanded: true,
+    expandedPanelPresent: true,
+    expandedPanelVisible: true,
+    expandedPanelWidth: 224,
+    expandedPanelHeight: 62,
+    adaptivePathKonlingPresent: true,
+    adaptivePathKonlingVisible: true,
+    adaptivePathKonlingDisabled: true,
     ...overrides,
   };
 }
@@ -199,14 +206,16 @@ describe('adaptive-path QA capture contract', () => {
     expect(result.primaryDisabled).toBe(false);
   });
 
-  it('requires observed expanded navigation and an open Konling sidebar', () => {
+  it('requires the expanded secondary menu and disabled adaptive-path Konling control', () => {
     expect(() => assertExpandedDockState(expandedDockState())).not.toThrow();
     expect(() => assertExpandedDockState(expandedDockState({ appShellNavigationState: 'collapsed' })))
       .toThrow(/appShellNavigationState=collapsed/u);
-    expect(() => assertExpandedDockState(expandedDockState({ konlingDockState: 'collapsed' })))
-      .toThrow(/konlingDockState=collapsed/u);
-    expect(() => assertExpandedDockState(expandedDockState({ konlingSidebarVisible: false })))
-      .toThrow(/konlingSidebarVisible=false/u);
+    expect(() => assertExpandedDockState(expandedDockState({ secondaryTriggerPresent: false })))
+      .toThrow(/secondaryTriggerPresent=false/u);
+    expect(() => assertExpandedDockState(expandedDockState({ expandedPanelPresent: false })))
+      .toThrow(/expandedPanelPresent=false/u);
+    expect(() => assertExpandedDockState(expandedDockState({ adaptivePathKonlingDisabled: false })))
+      .toThrow(/adaptivePathKonlingDisabled=false/u);
   });
 
   it('reports target URL, observed dock state, and missing selectors on timeout', async () => {
