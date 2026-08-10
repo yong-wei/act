@@ -9,9 +9,10 @@ its teaching projection or consumer evidence remains incomplete.
 This change is executed from the permanent `resource` worktree. It may use the
 main worktree's local PostgreSQL service only through a unique, disposable
 task-specific schema to validate candidate import and materialize a staged
-Authority Snapshot. It does not write the shared `public` schema, a selector,
-an active consumer pointer, a remote server, a deployment, or a
-legacy-retirement operation. The existing 34-batch CourseCoverage audit and its
+Authority Snapshot. It does not write the shared `public` schema, a remote
+server, a deployment, or a legacy-retirement operation. After complete local
+proof, it advances repository-local selectors only through their existing
+atomic stores. The existing 34-batch CourseCoverage audit and its
 4,880 DEFER outcomes are historical evidence. They are immutable inputs, not
 candidates in this release delta denominator.
 
@@ -21,23 +22,23 @@ candidates in this release delta denominator.
 
 - Freeze the clean worktree revision and the exact locally available ActKG
   Release before reading candidate inputs.
-- Materialize content-addressed Authority and Teaching Projection candidates in
-  a non-default preparation root, with a deterministic impact set and a
-  separately traceable REVIEW_REQUIRED worklist.
+- Materialize content-addressed Authority and Teaching Projection releases with
+  a deterministic impact set; derive missing ACT resource semantics from the
+  current BOPPPS/interactive-course authoring corpus as formal author decisions.
 - Record exact pre-existing pointer observations without following, replacing,
   or repairing those pointers.
 - Prepare six named consumer manifests with readiness, shadow comparison, and
-  rollback evidence that can be reviewed before a later switch request.
-- Emit one readiness report that states both the executable-switch prerequisites
-  and any remaining blockers using actual artifact evidence.
+  rollback evidence, then atomically activate their one shared manifest.
+- Emit one readiness and activation report with the exact post-switch pointer
+  and rollback identities.
 
 **Non-Goals:**
 
-- Changing `current.json`, an active consumer selector, a shared database
-  authority record, a deployed runtime, remote server, Docker image, or
-  production configuration. Candidate records in the unique disposable local
-  schema are permitted only for import and snapshot verification; they are not
-  production authority and must be cleaned up.
+- Changing a shared database authority record, a deployed runtime, remote
+  server, Docker image, production configuration, or a legacy-retirement
+  pointer. Candidate records in the unique disposable local schema are
+  permitted only for import and snapshot verification; they are not production
+  authority and must be cleaned up.
 - Treating candidate import as activation, or treating shadow verification as a
   production cutover.
 - Retiring legacy knowledge, mutating historical CourseCoverage evidence, or
@@ -98,16 +99,19 @@ solely because a candidate exists.
 A shared aggregate status without per-consumer manifests was rejected because it
 cannot show an atomic switch set or identify the specific missing evidence.
 
-### 5. Exercise only non-default staged activation and rollback
+### 5. Stage, shadow-verify, and atomically activate one release set
 
-Where existing tooling permits it, the run creates a disposable staged selector
-inside its preparation root, validates a shadow read against it, then restores
-the pre-exercise staged state. The run verifies that no default pointer bytes
-changed before and after the exercise.
+The run creates immutable Authority, Teaching Projection, prerequisite, and
+consumer releases, validates shadow reads against the staged consumer manifest,
+then exercises rollback before making the shared consumer manifest current. The
+consumer manifest is the atomic activation unit: all six consumer records read
+one pointer and must agree on Authority identity; teaching consumers must agree
+on the same Projection identity. Individual consumer pointer rewrites are not
+an activation mechanism.
 
-Directly exercising live selectors was rejected because the requested work is
-preparation only. Skipping rollback evidence was rejected because a candidate
-cannot support a later reversible switch without it.
+Sequentially rewriting six consumer selectors was rejected because readers
+could observe a mixed release set. Skipping rollback evidence was rejected
+because an activated release cannot support a reversible switch without it.
 
 ### 6. Use a disposable local schema for candidate import only
 
@@ -125,21 +129,21 @@ default-discoverable state without cutover authorization. Keeping the schema
 after a successful run was rejected because the preparation package itself is
 the audit artifact and does not require a live database residue.
 
-### 7. Materialize an initial review candidate when no prior Projection exists
+### 7. Derive missing active-course semantics from ACT-owned blueprints
 
 The absence of a default Teaching Projection does not justify an empty
-projection or a guessed mapping. The run must freeze the active-course
-inventory, construct one non-default candidate per active course package, and
-mark every resource without actual ACT binding evidence `REVIEW_REQUIRED`.
-Each such item appears once in the worklist with its package, resource, source
-locator, and missing evidence type. A failed package gate is still staged for
-review; it never changes a Projection pointer or makes a teaching consumer
-ready.
+projection. The run freezes the active-course inventory, preserves direct
+crosswalk/card/manifest bindings, and resolves only the remaining resource rows
+through a versioned ACT authoring policy grounded in the current package BOPPPS
+or interactive blueprint. Each decision pins `resourceId`, `scopeId`, runtime
+and blueprint digests, mapping candidates, and the policy digest. A required
+resource must receive a BIND decision; `EXPLICIT_NONE` is reserved for a
+resource explicitly marked non-semantic by its active projection mode.
 
-Stopping after only an aggregate blocker was rejected because it loses the
-resource-level boundary needed for later author decisions. Treating the active
-packages as an empty projection was rejected because it would recast missing
-evidence as an intentional `EXPLICIT_NONE` decision.
+Treating the active packages as an empty projection was rejected because it
+would recast missing evidence as intentional absence. Binding every unresolved
+row to a single generic endpoint was rejected because package BOPPPS evidence
+must select the relevant canonical endpoint and remain independently auditable.
 
 ## Risks / Trade-offs
 
@@ -157,21 +161,21 @@ evidence as an intentional `EXPLICIT_NONE` decision.
   the candidate unactivated; no pointer-repair action is permitted here.
 - [A staged shadow read cannot execute locally] → retain its manifest as
   `BLOCKED`; no claim of runtime compatibility is made.
-- [No prior Teaching Projection exists] → stage package-level
-  `REVIEW_REQUIRED` candidates and their exact worklist from the frozen active
-  inventory; do not produce an empty projection or infer mappings.
+- [No prior Teaching Projection exists] → create the first projection from the
+  frozen active inventory and current BOPPPS/interactive blueprint decisions;
+  do not produce an empty projection or infer upstream ActKG semantics.
 
 ## Migration Plan
 
 1. Validate and commit the OpenSpec plan, then capture Phase 0 observations.
-2. Materialize and verify only candidate artifacts under the per-run root.
-3. Generate deterministic projection, consumer, and readiness evidence.
-4. Verify pointer non-mutation, artifact closure, and the relevant existing
-   validators; commit the evidence package.
-5. A later, separately authorized operation may use this package to request an
-   atomic pointer switch only if every affected consumer has acceptable staged,
-   readiness, shadow, and rollback evidence. Legacy retirement remains a later
-   operation after that switch and a zero-fallback observation window.
+2. Materialize and verify the Authority candidate under the per-run root.
+3. Generate and validate formal ACT author decisions, prerequisite decisions,
+   deterministic projection, consumer, and readiness evidence.
+4. Exercise rollback, atomically activate the single consumer manifest and its
+   matching Authority/Projection/prerequisite pointers, then re-read all six
+   consumers and record the result.
+5. Commit the activation package. Legacy retirement remains a later operation
+   after a zero-fallback observation window.
 
 Rollback for this preparation is deletion of no files: retained immutable runs
 remain auditable and all live pointers must compare byte-for-byte with their

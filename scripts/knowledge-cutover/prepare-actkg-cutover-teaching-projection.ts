@@ -93,6 +93,8 @@ export interface TeachingProjectionCandidateInput {
   crosswalk?: readonly LegacyIdCrosswalkEntry[];
   cards?: readonly ActiveCardMappingEntry[];
   authorDecisions?: readonly AuthorSemanticDecision[];
+  /** Digest of the ACT-authored package binding policy used by decisions. */
+  authorDecisionContextDigest?: string | null;
   /** Test seam; the production CLI uses the registry inventory. */
   inventory?: ActiveCourseInventory;
   assertRealInventoryCounts?: boolean;
@@ -113,6 +115,7 @@ export interface TeachingProjectionCandidateResult {
     crosswalkCount: number;
     cardCount: number;
     authorDecisionCount: number;
+    authorDecisionContextDigest: string | null;
   };
 }
 
@@ -493,6 +496,7 @@ export function buildTeachingProjectionCandidate(
     authorityLabels: indexes.labels,
     authorityCanonicalIds,
     authorDecisions: input.authorDecisions ?? [],
+    authorDecisionContextDigest: input.authorDecisionContextDigest ?? null,
     defaultRole: 'PRACTICES',
   };
   const run = runCandidateMigration({ inventory, mappingContext, authority: input.authority, authorityNodes: indexes.nodes });
@@ -508,6 +512,7 @@ export function buildTeachingProjectionCandidate(
       crosswalkCount: input.crosswalk?.length ?? 0,
       cardCount: input.cards?.length ?? 0,
       authorDecisionCount: input.authorDecisions?.length ?? 0,
+      authorDecisionContextDigest: input.authorDecisionContextDigest ?? null,
     },
   };
 }

@@ -11,6 +11,9 @@ import {
   persistedPackageCandidateReference,
   type StagedAuthorityInput,
 } from '../../../scripts/knowledge-cutover/prepare-actkg-cutover-teaching-projection';
+import {
+  buildActkgCutoverBlueprintAuthorDecisions,
+} from '../teaching-projection/actkg-cutover-blueprint-bindings';
 import type { ActiveCourseInventory } from '../teaching-projection/migration-contracts';
 
 const revision = 'a'.repeat(40);
@@ -200,6 +203,59 @@ describe('ActKG → ACT Teaching Projection candidate preparation', () => {
     const explicitNone = result.migration.records.find((record) => record.resourceId.endsWith(':fixture'));
     expect(optional?.status).toBe('REVIEW_REQUIRED');
     expect(explicitNone?.status).toBe('EXPLICIT_NONE');
+  });
+
+  it('uses a capture-bound course blueprint decision to resolve the active denominator', () => {
+    const contextDigest = '9'.repeat(64);
+    const initial = buildTeachingProjectionCandidate({
+      repoRoot: process.cwd(),
+      authoringRevision: revision,
+      authority: authority(),
+      inventory: inventory(),
+      authorDecisionContextDigest: contextDigest,
+    });
+    const decisions = buildActkgCutoverBlueprintAuthorDecisions({
+      repoRoot: process.cwd(),
+      inventory: initial.inventory,
+      records: initial.migration.records,
+      mappingContext: {
+        crosswalk: [],
+        cards: [],
+        authorityLabels: [],
+        authorityCanonicalIds: new Set(['node-fixture']),
+        authorDecisions: [],
+        authorDecisionContextDigest: contextDigest,
+      },
+      bindings: {
+        path: 'course-content/authoring/knowledge/teaching-projection/fixture.json',
+        digest: contextDigest,
+        document: {
+          contract: 'actkg-cutover-blueprint-bindings/v1',
+          scopeId: 'fixture',
+          packages: [{
+            packageId: 'fixture',
+            canonicalIds: ['node-fixture'],
+            rationale: 'Fixture BOPPPS objective.',
+          }],
+        },
+      },
+    });
+    const resolved = buildTeachingProjectionCandidate({
+      repoRoot: process.cwd(),
+      authoringRevision: revision,
+      authority: authority(),
+      inventory: inventory(),
+      authorDecisions: decisions,
+      authorDecisionContextDigest: contextDigest,
+    });
+    expect(decisions).toHaveLength(2);
+    expect(resolved.migration.summary).toEqual({
+      boundCount: 2,
+      explicitNoneCount: 1,
+      reviewRequiredCount: 0,
+      packageCount: 1,
+    });
+    expect(resolved.packageReports[0]?.ready).toBe(true);
   });
 
   it('omits undefined optional object fields without accepting undefined array entries', () => {

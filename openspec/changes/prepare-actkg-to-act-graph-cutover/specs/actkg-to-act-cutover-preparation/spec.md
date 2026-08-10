@@ -88,6 +88,31 @@ remain immutable and outside the release-delta denominator.
 - **THEN** it SHALL retain the evidence as immutable audit context and SHALL NOT
   add its DEFER population to the new release-delta count or worklist
 
+### Requirement: Derive active-course author decisions from current blueprints
+
+The workflow SHALL use the current active interactive-course arrangement and its
+package BOPPPS or interactive blueprint as ACT-owned semantic evidence for each
+otherwise unresolved active resource. Every derived decision MUST pin the
+resource and scope identity, runtime source digest, blueprint digest, candidate
+set, authored package-policy digest, and a usable Canonical endpoint in the
+fixed Authority release. A required resource MUST resolve as `BOUND`; an
+`EXPLICIT_NONE` result is valid only for an active resource explicitly marked
+non-semantic by its projection mode.
+
+#### Scenario: A current blueprint resolves an active resource
+
+- **WHEN** a frozen active resource has no deterministic crosswalk, card, or
+  manifest binding and its package blueprint supplies an ACT teaching endpoint
+- **THEN** the workflow SHALL create a formal `AUTHOR_DECISION` BIND record and
+  rebuild the package gate from that record without changing upstream semantics
+
+#### Scenario: Blueprint or policy changes after a decision
+
+- **WHEN** the package BOPPPS/interactive blueprint or authored binding policy
+  bytes differ from the captured revision
+- **THEN** the prior decision SHALL fail input-digest matching and the resource
+  SHALL require a new decision before activation
+
 ### Requirement: Produce complete staged consumer evidence without activation
 
 For engineering-graph, engineering-rag, course-runtime, konling,
@@ -141,3 +166,29 @@ later successful switch and a zero-fallback evidence window.
   unresolved
 - **THEN** the report SHALL identify the exact blocker and SHALL NOT recommend
   an actual switch or legacy retirement
+
+### Requirement: Atomically activate the verified local release set
+
+After all active package gates, prerequisite publication, and six-consumer
+shadow/readiness checks pass, the workflow SHALL activate the local release set
+only through existing atomic stores. The shared consumer-activation pointer is
+the consumer switch unit; it MUST contain all six unique consumer records, one
+Authority identity, and one Projection identity for all teaching consumers. The
+workflow MUST preserve predecessor pointers, exercise rollback before the final
+switch, re-read every consumer after activation, and keep legacy-retirement
+unchanged.
+
+#### Scenario: Complete release set is ready
+
+- **WHEN** 32 packages / 551 active resources resolve with zero
+  `REVIEW_REQUIRED`, every package gate and prerequisite publication passes,
+  and all six consumer records are READY with matching release identities
+- **THEN** the workflow SHALL atomically activate the local Authority,
+  Projection, prerequisite, and consumer pointers and emit their receipts
+
+#### Scenario: Post-activation identity mismatch
+
+- **WHEN** a post-switch consumer read does not resolve the pinned Authority or
+  Projection identity
+- **THEN** the workflow SHALL restore the preserved predecessor pointer through
+  the existing rollback contract and report the failed observation
