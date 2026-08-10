@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-dc100c0a7e752839af01bbea",
+  "safe_id": "ctkg_v3e-object-dc100c0a7e752839af01bbea",
+  "node": {
+    "name": "离散系统",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "将输入序列 r(n) 变换为输出序列 c(n) 的一种变换关系，称为离散系统。",
+  "intuition": null,
+  "explanation": "将输入序列 r(n) 变换为输出序列 c(n) 的一种变换关系，称为离散系统。",
+  "relation_head": "前置 → 线性离散系统",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "线性离散系统",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "离散系统",
+    "是一种·线性离散系统"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-dc100c0a7e752839af01bbea.md",
+  "provider_policy": "grok-image_gen"
+}

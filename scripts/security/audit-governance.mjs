@@ -12,6 +12,10 @@ const severityRank = {
   critical: 4,
 };
 
+function npmAuditArgs() {
+  return ['audit', '--json', '--registry', 'https://registry.npmjs.org'];
+}
+
 function parseArgs(argv) {
   const args = {
     auditJsonPath: null,
@@ -78,7 +82,7 @@ function readAuditJson(path) {
     return readJson(path);
   }
 
-  const result = spawnSync('npm', ['audit', '--json'], {
+  const result = spawnSync('npm', npmAuditArgs(), {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -471,6 +475,7 @@ function printReport(result) {
 
 export {
   evaluateGovernance,
+  npmAuditArgs,
   parseArgs,
   printReport,
   readAuditJson,

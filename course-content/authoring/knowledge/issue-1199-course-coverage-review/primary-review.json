@@ -1,0 +1,1207 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "ccaed21f450591f642fa7ef7",
+    "manifestBatchIndex": 9,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:frequency-domain-analysis-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 96,
+    "memberDigest": "33462c99375f663611af4b05fae10f0c82e9eef3117214ccbd6c67a39c1c525a",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-independent-primary",
+    "provider": "grok-4.5-build",
+    "sessionId": "1f7c6e97-70fc-40f3-bc18-e2f1b4df9670",
+    "promptVersion": "issue-1199-primary-v1"
+  },
+  "reviewInputDigest": "8c125de31c14dba4183633195650001c3cc0ae0bfe964747099ad2786e9473cc",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "canonicalRevision": "d397f6625eb458be103d3b4b5005da1b27930cf486960daedfce26a931f28aab",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b91d7bdb88af1b42617a5a95",
+        "canonicalId:ctkg:v3e-object-0008b516b8ac52f0e05c7596"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-0008b516b8ac52f0e05c7596 (谐振峰值, DomainConcept) at canonicalRevision=d397f6625eb458be103d3b4b5005da1b27930cf486960daedfce26a931f28aab. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-b91d7bdb88af1b42617a5a95', 'canonicalId:ctkg:v3e-object-0008b516b8ac52f0e05c7596']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "9c688e6d427d4f334db018f8e05565b2068dd2427cfadc677f8bd05715deda95"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-01d6ba4cfbef38693c611d4a",
+      "canonicalRevision": "b99d2749ff1cef7351a5cec34a96a34b77bfaad7a102e6a78ce0bf2aae2e6412",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-540b2fcd4fabc1ec80e2c009",
+        "canonicalId:ctkg:v3e-object-01d6ba4cfbef38693c611d4a"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-01d6ba4cfbef38693c611d4a (argument principle, DomainConcept) at canonicalRevision=b99d2749ff1cef7351a5cec34a96a34b77bfaad7a102e6a78ce0bf2aae2e6412. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-540b2fcd4fabc1ec80e2c009', 'canonicalId:ctkg:v3e-object-01d6ba4cfbef38693c611d4a']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "54af8379fb602b27c5c1381c194cda532643ccbcce5a11906c6c5854c3566cf5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-02ce94d02ad32ee9bc5528e9",
+      "canonicalRevision": "b1578cf829e19f813f57b2b8bf82125c72b3c1e6f32db8c353c68ddbc44967e3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-898ba400dea5b998a73af082",
+        "evidence:ctr:m1h-v1f-release-evidence-ab284d4b626de5861f609493",
+        "canonicalId:ctkg:v3e-object-02ce94d02ad32ee9bc5528e9"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-02ce94d02ad32ee9bc5528e9 (Resonant peak, DomainConcept) at canonicalRevision=b1578cf829e19f813f57b2b8bf82125c72b3c1e6f32db8c353c68ddbc44967e3. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=2 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-898ba400dea5b998a73af082', 'evidence:ctr:m1h-v1f-release-evidence-ab284d4b626de5861f609493', 'canonicalId:ctkg:v3e-object-02ce94d02ad32ee9bc5528e9']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "5ba11a07146335fa023477a743a4a969169ed456e227038d9a62692b0dadefb9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-07c345d26a1c74830e0a5c94",
+      "canonicalRevision": "27b5bd7698e54c79fbfeca16b70d13ae25df7de4b3fe5f1ee1e3a509aa6d150a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d1cf3f43d3ea7a106b420002",
+        "canonicalId:ctkg:v3e-object-07c345d26a1c74830e0a5c94"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-07c345d26a1c74830e0a5c94 (Arc at infinity in Nyquist plot, DomainConcept) at canonicalRevision=27b5bd7698e54c79fbfeca16b70d13ae25df7de4b3fe5f1ee1e3a509aa6d150a. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-d1cf3f43d3ea7a106b420002', 'canonicalId:ctkg:v3e-object-07c345d26a1c74830e0a5c94']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "5c86ad047d751e679193b31a1a4416246c49041ff03856c4cbb76b68e6a9e660"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+      "canonicalRevision": "558fd9198b8e084d355f8befc98a95c9d7ec8541d9bfb851e07478a1b61585b4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-146bfc903b9f251ad1fb18a9",
+        "evidence:ctkg:v3e-evidence-ea8745539bbf076a4c147393",
+        "canonicalId:ctkg:v3e-object-0946a016c136cdf4a417ed62"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-0946a016c136cdf4a417ed62 (Break point, DomainConcept) at canonicalRevision=558fd9198b8e084d355f8befc98a95c9d7ec8541d9bfb851e07478a1b61585b4. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-146bfc903b9f251ad1fb18a9', 'evidence:ctkg:v3e-evidence-ea8745539bbf076a4c147393', 'canonicalId:ctkg:v3e-object-0946a016c136cdf4a417ed62']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "3c1b0a57e884428949652a43ed072bf4dca81eb56424dc7d57e53552216af5ab"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0b94edb93771b955eedd5d9f",
+      "canonicalRevision": "7ea1d5a732eb690c8f5ce41b1d0c48057fb5d7a7a64e91e645c0172f80fd1fb0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2d58ea39b2f5d7815d1dcb66",
+        "canonicalId:ctkg:v3e-object-0b94edb93771b955eedd5d9f"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-0b94edb93771b955eedd5d9f (确定闭环频率特性的MATLAB方法, DomainConcept) at canonicalRevision=7ea1d5a732eb690c8f5ce41b1d0c48057fb5d7a7a64e91e645c0172f80fd1fb0. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-2d58ea39b2f5d7815d1dcb66', 'canonicalId:ctkg:v3e-object-0b94edb93771b955eedd5d9f']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "896251b011cacd45b64112d341d8b394d494c3e6697b2e49c399921de697f452"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0bfd48327659b66aa7d95f32",
+      "canonicalRevision": "4b8c6e0c159a4ea63a4eef7a3a4130f5403794b27b0b66a418af50e508be9cc6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-33c1ec6f0bb7ee910e8bb24a",
+        "canonicalId:ctkg:v3e-object-0bfd48327659b66aa7d95f32"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-0bfd48327659b66aa7d95f32 (Determining GM from root locus, DomainConcept) at canonicalRevision=4b8c6e0c159a4ea63a4eef7a3a4130f5403794b27b0b66a418af50e508be9cc6. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-33c1ec6f0bb7ee910e8bb24a', 'canonicalId:ctkg:v3e-object-0bfd48327659b66aa7d95f32']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "ec74e7f3c18a9f4e786e29d71fa4166bed71720450b5f686b005713d96bb97a6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "canonicalRevision": "5c0aeabb0580f6315c60eb5af64c4ab7f75cb28ba13c5a67a3b50bb3eefe8844",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-10385bd1c62a4f3125b40ca9",
+        "canonicalId:ctkg:v3e-object-0ca481aed329f4e6c74c8d30"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-0ca481aed329f4e6c74c8d30 (Experimental frequency response determination, DomainConcept) at canonicalRevision=5c0aeabb0580f6315c60eb5af64c4ab7f75cb28ba13c5a67a3b50bb3eefe8844. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-10385bd1c62a4f3125b40ca9', 'canonicalId:ctkg:v3e-object-0ca481aed329f4e6c74c8d30']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "b42aec8a0641abb35f60609887e4818e137a16897d1b7a6f22e38a4d3dbfc211"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+      "canonicalRevision": "f5abdd8fae95abc33cba14263560f2ac1277e5b7756a12d205a6a97ae427faac",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-04b17ddda5c3250b4cfb4dea",
+        "evidence:ctkg:v3e-evidence-1404692339179cfe7786e976",
+        "evidence:ctkg:v3e-evidence-d2a888f1fb910aa807b86745",
+        "evidence:ctkg:v3e-evidence-d4b37404ce602105b15e8418",
+        "canonicalId:ctkg:v3e-object-1010934a92a0dacb1caec1e2"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-1010934a92a0dacb1caec1e2 (穿越频率, DomainConcept) at canonicalRevision=f5abdd8fae95abc33cba14263560f2ac1277e5b7756a12d205a6a97ae427faac. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=4; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=5 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-04b17ddda5c3250b4cfb4dea', 'evidence:ctkg:v3e-evidence-1404692339179cfe7786e976', 'evidence:ctkg:v3e-evidence-d2a888f1fb910aa807b86745', 'evidence:ctkg:v3e-evidence-d4b37404ce602105b15e8418', 'canonicalId:ctkg:v3e-object-1010934a92a0dacb1caec1e2']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "875d45155fceadcf5261f7c12ed755d92f49823dfd5c49d31752d747828b1ca0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-13e696ca025028445460f1df",
+      "canonicalRevision": "c92ec102c0011e955c0a27d63224644d4ac32308f624d0f8051d5f9d6d8a9861",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c71d1dcc708958bcce81ef8f",
+        "canonicalId:ctkg:v3e-object-13e696ca025028445460f1df"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-13e696ca025028445460f1df (Bandwidth frequency, DomainConcept) at canonicalRevision=c92ec102c0011e955c0a27d63224644d4ac32308f624d0f8051d5f9d6d8a9861. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-c71d1dcc708958bcce81ef8f', 'canonicalId:ctkg:v3e-object-13e696ca025028445460f1df']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "228559d3157b8057909e00dd109d30529db8a2946274a13f9283a62fc8aad606"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+      "canonicalRevision": "c3ed34b1fa906100844c380debda2195f7f5eaa24f90a65f0dc4684febaf6cae",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c4cb5895a80b57934b066b33",
+        "canonicalId:ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa (谐振频率, DomainConcept) at canonicalRevision=c3ed34b1fa906100844c380debda2195f7f5eaa24f90a65f0dc4684febaf6cae. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-c4cb5895a80b57934b066b33', 'canonicalId:ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "a47198d8c6d5408b6a766ec6317f1526c8d69c641ed040bee4d2bee7e045ee23"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-18c55a9b153179a638ff5dc2",
+      "canonicalRevision": "56923431de7b82315643e76d96034d0772c2e35fef496b1a434167468dcf2dda",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-46472c710f724d6b733e3325",
+        "canonicalId:ctkg:v3e-object-18c55a9b153179a638ff5dc2"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-18c55a9b153179a638ff5dc2 (Evaluating effects of gain changes using frequency-response data, DomainConcept) at canonicalRevision=56923431de7b82315643e76d96034d0772c2e35fef496b1a434167468dcf2dda. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-46472c710f724d6b733e3325', 'canonicalId:ctkg:v3e-object-18c55a9b153179a638ff5dc2']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "1c420b3dafd6c31e6565649f9d5717596b2f1ceed78e0d33fec2e3bdafc58a4f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+      "canonicalRevision": "626ea36b4ee5f6817ea4e5c43de8059f8513195c72f39d5d4ab6c3d5bc44fa26",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-833a7ab530434c680a18c3bb",
+        "canonicalId:ctkg:v3e-object-191274d4aa5307678e583641"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-191274d4aa5307678e583641 (Bode plots (logarithmic plots), DomainConcept) at canonicalRevision=626ea36b4ee5f6817ea4e5c43de8059f8513195c72f39d5d4ab6c3d5bc44fa26. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-833a7ab530434c680a18c3bb', 'canonicalId:ctkg:v3e-object-191274d4aa5307678e583641']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "a90079b7efefff7d67d6105edeab26628fb4daf62fa583b987d583eec65aabe1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-195ec8a545b19a1f37188170",
+      "canonicalRevision": "ea74302d1f556ed976aa1e46a58edad00b092abac87f94da81052ff63b6c0850",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-da8fef0346bcb6061ff881b5",
+        "canonicalId:ctkg:v3e-object-195ec8a545b19a1f37188170"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-195ec8a545b19a1f37188170 (Disturbance Rejection Bandwidth (ω_DRB), DomainConcept) at canonicalRevision=ea74302d1f556ed976aa1e46a58edad00b092abac87f94da81052ff63b6c0850. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-da8fef0346bcb6061ff881b5', 'canonicalId:ctkg:v3e-object-195ec8a545b19a1f37188170']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "a94f499efbc10416b4e5da7d36b446fb3944d3bef7c01df34c6d8a365757155a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "canonicalRevision": "4f26266b0fc1dd5d33bbddcea5f50b9d5fe407426cf8a9a79f7f3555a6ed134d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6a76e0bc793f4bb52fd673b2",
+        "canonicalId:ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c (穿越频率, DomainConcept) at canonicalRevision=4f26266b0fc1dd5d33bbddcea5f50b9d5fe407426cf8a9a79f7f3555a6ed134d. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6a76e0bc793f4bb52fd673b2', 'canonicalId:ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "e4609e7cbbf7e2d62b9fb672adb39da5002d693aa7d71967529a7aa5b393c79a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "canonicalRevision": "b1ebcbfd3d6209c8c4580122d1bdde0fd8ffca84316c3e6b19b4abb80e133730",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6cc26cf858de9170226e3bca",
+        "canonicalId:ctkg:v3e-object-1c159c9cc34ce696a62bf837"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-1c159c9cc34ce696a62bf837 (相角裕度, DomainConcept) at canonicalRevision=b1ebcbfd3d6209c8c4580122d1bdde0fd8ffca84316c3e6b19b4abb80e133730. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6cc26cf858de9170226e3bca', 'canonicalId:ctkg:v3e-object-1c159c9cc34ce696a62bf837']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "209d109014fdae142c45ea0a6647f658f633f4ab4d9cf123eaf1068c7478279c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "canonicalRevision": "e04e67b92e6298e81b36a47dc4e6128651b0ded3270616526d785ca9a986e87a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ed2a955cc089c39315aff257",
+        "canonicalId:ctkg:v3e-object-232e387ed53e92abee078346"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-232e387ed53e92abee078346 (截止频率, DomainConcept) at canonicalRevision=e04e67b92e6298e81b36a47dc4e6128651b0ded3270616526d785ca9a986e87a. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-ed2a955cc089c39315aff257', 'canonicalId:ctkg:v3e-object-232e387ed53e92abee078346']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "91e38565bd7918205cbd4768fac4d7feb3551d29067d0c34ec721469a35b6676"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-24049f89f0fc4303e892fc37",
+      "canonicalRevision": "09af632411ddfcab12813edbe745e3cae9b3c0b158353534d152c3a9f409a44b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-abd39cd4f8fa4448c414b337",
+        "canonicalId:ctkg:v3e-object-24049f89f0fc4303e892fc37"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-24049f89f0fc4303e892fc37 (Nichols Plot, DomainConcept) at canonicalRevision=09af632411ddfcab12813edbe745e3cae9b3c0b158353534d152c3a9f409a44b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-abd39cd4f8fa4448c414b337', 'canonicalId:ctkg:v3e-object-24049f89f0fc4303e892fc37']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "7e8720c25450a0c8d0ac3c83151d3ebb696c1e690e9380ade5d23fed5d587068"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "canonicalRevision": "389300a62436c67d57aae12f355839d4bc1a27798171836fac2395d898b716a3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9e2460e3d130ff15bb0cca03",
+        "canonicalId:ctkg:v3e-object-27e0a7e37803fbebc1b6f65a"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-27e0a7e37803fbebc1b6f65a (对数幅相曲线, DomainConcept) at canonicalRevision=389300a62436c67d57aae12f355839d4bc1a27798171836fac2395d898b716a3. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-9e2460e3d130ff15bb0cca03', 'canonicalId:ctkg:v3e-object-27e0a7e37803fbebc1b6f65a']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "3bb7c1e93a5cc7b34c2025c305c2e83e80d77f6651f40adf6252381a0e22038d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "canonicalRevision": "a0100af2e4d8e4a27afccd87b670a4c8db35e2a87334a6a31d6a20c3bcc5d31d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cb5fe1d9fb7b292414242a3f",
+        "canonicalId:ctkg:v3e-object-2e2707d377000d69ac75b508"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-2e2707d377000d69ac75b508 (幅相频率特性曲线, DomainConcept) at canonicalRevision=a0100af2e4d8e4a27afccd87b670a4c8db35e2a87334a6a31d6a20c3bcc5d31d. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-cb5fe1d9fb7b292414242a3f', 'canonicalId:ctkg:v3e-object-2e2707d377000d69ac75b508']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "9417b069f0cab7dee6767ebcd08c2ec5375a1d531d8971cfdcde9de081461e70"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2e91a0da0c74ca85ce8f952b",
+      "canonicalRevision": "8ba94fe5b064644738b996e06e0a6e8c80ed92460fe0bca3d8f6354feb43fbb6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e64840408a399d7f88e61822",
+        "canonicalId:ctkg:v3e-object-2e91a0da0c74ca85ce8f952b"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-2e91a0da0c74ca85ce8f952b (Determining PM from Bode plot, DomainConcept) at canonicalRevision=8ba94fe5b064644738b996e06e0a6e8c80ed92460fe0bca3d8f6354feb43fbb6. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-e64840408a399d7f88e61822', 'canonicalId:ctkg:v3e-object-2e91a0da0c74ca85ce8f952b']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "57ed8b9942dafdb7245923c41da7f33c2e3ee746139b17f23aa17a1a06a4f9cd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "canonicalRevision": "1a407f5ada0ee5a36b71987ffa5581c5bc5c0af3a6daa047fc852d5df447676b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-28b7b4cd2a093bd2b42b25da",
+        "evidence:ctkg:v3e-evidence-4b17a571e0244b25905be496",
+        "canonicalId:ctkg:v3e-object-2f3ebf66b229bd1917da4b41"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-2f3ebf66b229bd1917da4b41 (Gain Margin (GM), DomainConcept) at canonicalRevision=1a407f5ada0ee5a36b71987ffa5581c5bc5c0af3a6daa047fc852d5df447676b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-28b7b4cd2a093bd2b42b25da', 'evidence:ctkg:v3e-evidence-4b17a571e0244b25905be496', 'canonicalId:ctkg:v3e-object-2f3ebf66b229bd1917da4b41']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "19a10a3007e1e84bc3a6d1a33d609ece23602b58f37b3edd5e6deb0688fd9adc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-35b4c7c6116be04938f2e7a4",
+      "canonicalRevision": "43866d073ef0052dff09067230873cb71a4c6622939573b14aae26c34099d5d6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4aa171b5f5b827eb59d030ff",
+        "canonicalId:ctkg:v3e-object-35b4c7c6116be04938f2e7a4"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-35b4c7c6116be04938f2e7a4 (非周期函数的频谱, DomainConcept) at canonicalRevision=43866d073ef0052dff09067230873cb71a4c6622939573b14aae26c34099d5d6. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-4aa171b5f5b827eb59d030ff', 'canonicalId:ctkg:v3e-object-35b4c7c6116be04938f2e7a4']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "1b0bf87fd0dc25b73c0c8c90d34b07ece46fece0e99cfe8e8cb3671d1d8c8140"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3847cfa432063f1287f51ce5",
+      "canonicalRevision": "13bac7408a1718e0f23e83ceafa7864e2830e2dbaae900fa1c8239320c844e1b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-453d3680b2ab7e7cf6221d3c",
+        "evidence:ctr:m1h-v1f-release-evidence-b2ba33b427598c1a39c2f9de",
+        "evidence:ctr:m1h-v1f-release-evidence-e2d630e98a221d87b4d0977a",
+        "canonicalId:ctkg:v3e-object-3847cfa432063f1287f51ce5"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-3847cfa432063f1287f51ce5 (Frequency-Response Stability Test, DomainConcept) at canonicalRevision=13bac7408a1718e0f23e83ceafa7864e2830e2dbaae900fa1c8239320c844e1b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=2 releaseTier=gold upstreamEvidenceCount=3; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=4 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-453d3680b2ab7e7cf6221d3c', 'evidence:ctr:m1h-v1f-release-evidence-b2ba33b427598c1a39c2f9de', 'evidence:ctr:m1h-v1f-release-evidence-e2d630e98a221d87b4d0977a', 'canonicalId:ctkg:v3e-object-3847cfa432063f1287f51ce5']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "dc12801a378255567f538cee154daefdae7e561af8c08538542a351a038c413d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "canonicalRevision": "e53126433a927bb04a2d36633a563b6f0ec5475c767372f10a4621b558bb376b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b2b8553511270d118f7d3ab4",
+        "evidence:ctkg:v3e-evidence-b4a5ffae9b5ef14d5dde03b1",
+        "canonicalId:ctkg:v3e-object-38d4679bf3335318b0f4afb7"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-38d4679bf3335318b0f4afb7 (频率特性, DomainConcept) at canonicalRevision=e53126433a927bb04a2d36633a563b6f0ec5475c767372f10a4621b558bb376b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-b2b8553511270d118f7d3ab4', 'evidence:ctkg:v3e-evidence-b4a5ffae9b5ef14d5dde03b1', 'canonicalId:ctkg:v3e-object-38d4679bf3335318b0f4afb7']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "8f25fbda3cb2a25c823ccbd31e674cb10ecbb14cba1090eb314e1c6b111d4b16"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+      "canonicalRevision": "f08f1a108df9e9f52f4cb06375598aee3e77e5cde6a17f6bc1f19866bdc7a41d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-92b45ee6f394d5cd24ceea3b",
+        "canonicalId:ctkg:v3e-object-3af39a858b2949296df5387f"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-3af39a858b2949296df5387f (幅值谱, DomainConcept) at canonicalRevision=f08f1a108df9e9f52f4cb06375598aee3e77e5cde6a17f6bc1f19866bdc7a41d. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-92b45ee6f394d5cd24ceea3b', 'canonicalId:ctkg:v3e-object-3af39a858b2949296df5387f']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "57a6247504e8b8f978ee3658135cd48dc4491a88d61b3529c77d3c6ea3c3e36d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "canonicalRevision": "53ac4787e9b39c883f019e3cdc8fec08d3ef429304c7ce363d7164f9de70901b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b59c3f750ca662086e405633",
+        "evidence:ctkg:v3e-evidence-f5883efd82769aaf761a6a7a",
+        "evidence:ctr:m1h-v1f-release-evidence-a958b02c468aeffe47a26298",
+        "canonicalId:ctkg:v3e-object-3bf89181c7be53ac268d5785"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-3bf89181c7be53ac268d5785 (Bandwidth, DomainConcept) at canonicalRevision=53ac4787e9b39c883f019e3cdc8fec08d3ef429304c7ce363d7164f9de70901b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=2 releaseTier=gold upstreamEvidenceCount=3; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=4 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-b59c3f750ca662086e405633', 'evidence:ctkg:v3e-evidence-f5883efd82769aaf761a6a7a', 'evidence:ctr:m1h-v1f-release-evidence-a958b02c468aeffe47a26298', 'canonicalId:ctkg:v3e-object-3bf89181c7be53ac268d5785']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "469c33e6c5384f284460e08fb6c90499529b899ba909d6add945c39eda0558de"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3ede6055b0d6c0cf75f44e89",
+      "canonicalRevision": "ac529a1027727856feb54532012a851b64d24400a04737b0cabd306f69875bf6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e7e73f16a60400bf3e3b38e5",
+        "canonicalId:ctkg:v3e-object-3ede6055b0d6c0cf75f44e89"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-3ede6055b0d6c0cf75f44e89 (Natural unforced response, DomainConcept) at canonicalRevision=ac529a1027727856feb54532012a851b64d24400a04737b0cabd306f69875bf6. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-e7e73f16a60400bf3e3b38e5', 'canonicalId:ctkg:v3e-object-3ede6055b0d6c0cf75f44e89']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "2a7fc5f5df6c292805ce865d273cb3392c37b3cbc8c8646670f7e0f632fd4694"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d",
+      "canonicalRevision": "4145da74802d0fecc2ec54259f554ff2c95d40fdc5b9a63a7edb65c5927c7375",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7d56577356f818bf13c2b38a",
+        "canonicalId:ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d (阻尼自然频率, DomainConcept) at canonicalRevision=4145da74802d0fecc2ec54259f554ff2c95d40fdc5b9a63a7edb65c5927c7375. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-7d56577356f818bf13c2b38a', 'canonicalId:ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "3eef82c035167ed45bbb44ccd90fb004b8d6016aa2d4ce2b46d5a0824327b1f0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-43b963b5d880cd12d43fd450",
+      "canonicalRevision": "e5593ed0ae892b404833c10e992e64febf8881c98b1725ed58e49daf4ec714e9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-db41cdd1494ac0f0d4bd430f",
+        "canonicalId:ctkg:v3e-object-43b963b5d880cd12d43fd450"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-43b963b5d880cd12d43fd450 (Using vector margin to assess stability, DomainConcept) at canonicalRevision=e5593ed0ae892b404833c10e992e64febf8881c98b1725ed58e49daf4ec714e9. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-db41cdd1494ac0f0d4bd430f', 'canonicalId:ctkg:v3e-object-43b963b5d880cd12d43fd450']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "7ac53d396d866f1da58fca4b62c213d83e49948a6be4874fb6b1fb2eeca91dd5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4a235944f67a06a4209d2422",
+      "canonicalRevision": "99439061371093090f75ba65d9303f6a606bdc35fa198d15b9ede8ff3cacf0c5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-28a5c4f4052470488b53fd32",
+        "evidence:ctkg:v3e-evidence-315413a5b0520a9864d1ca08",
+        "canonicalId:ctkg:v3e-object-4a235944f67a06a4209d2422"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-4a235944f67a06a4209d2422 (Bode plot techniques, DomainConcept) at canonicalRevision=99439061371093090f75ba65d9303f6a606bdc35fa198d15b9ede8ff3cacf0c5. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-28a5c4f4052470488b53fd32', 'evidence:ctkg:v3e-evidence-315413a5b0520a9864d1ca08', 'canonicalId:ctkg:v3e-object-4a235944f67a06a4209d2422']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "334fa8c2f6268f7e26287c3b6a37e38386ee5d1f093c4153d7db5da410152d9b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4a74e178b598d5d576c2ad57",
+      "canonicalRevision": "0779ec77e69fbd74bb35c1e14a38cf1505660061d0a045af27a7a312d7a4c02d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1f1cf59ee14d9bd03412ce6e",
+        "canonicalId:ctkg:v3e-object-4a74e178b598d5d576c2ad57"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-4a74e178b598d5d576c2ad57 (开环幅相特性曲线起点, DomainConcept) at canonicalRevision=0779ec77e69fbd74bb35c1e14a38cf1505660061d0a045af27a7a312d7a4c02d. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-1f1cf59ee14d9bd03412ce6e', 'canonicalId:ctkg:v3e-object-4a74e178b598d5d576c2ad57']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "b463c7bb5f3075137f01382c48b1617a5bbb8e706e8a768edf6d9c573228db3e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4e9d614060ecb62c201b58d8",
+      "canonicalRevision": "c0b4c255fe66a5a777195c696490ca1c573b7750a4839b9b71188e358d3a05b9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-196b9aa2e9f5cafe530d6919",
+        "canonicalId:ctkg:v3e-object-4e9d614060ecb62c201b58d8"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-4e9d614060ecb62c201b58d8 (Contour evaluation, DomainConcept) at canonicalRevision=c0b4c255fe66a5a777195c696490ca1c573b7750a4839b9b71188e358d3a05b9. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-196b9aa2e9f5cafe530d6919', 'canonicalId:ctkg:v3e-object-4e9d614060ecb62c201b58d8']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "08fb4db14f3fc7da5eedb10b336da06a3a90a64cd32aaa5e2cdd060001c5bdc4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-531c51135a4903c618a0fc8b",
+      "canonicalRevision": "f22800e4cfa774b671baf85932a8d4b65207c0d394915e1584f1f2f56bc4203a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a45a3c177a5847cae56437b9",
+        "canonicalId:ctkg:v3e-object-531c51135a4903c618a0fc8b"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-531c51135a4903c618a0fc8b (谐振频率, DomainConcept) at canonicalRevision=f22800e4cfa774b671baf85932a8d4b65207c0d394915e1584f1f2f56bc4203a. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-a45a3c177a5847cae56437b9', 'canonicalId:ctkg:v3e-object-531c51135a4903c618a0fc8b']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "abcae003449e8a89966f72573d3bbe72e356e3518a5e3628076d5bb738f4ebd6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-552526e2ba53ccbf629d1cd8",
+      "canonicalRevision": "aae5130336d7f35d1c1d4c8e3c440e135633e12de47db53361309ea5145d9735",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-42f4ce9e2352cfb8ce54a5fa",
+        "canonicalId:ctkg:v3e-object-552526e2ba53ccbf629d1cd8"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-552526e2ba53ccbf629d1cd8 (Type-one system, DomainConcept) at canonicalRevision=aae5130336d7f35d1c1d4c8e3c440e135633e12de47db53361309ea5145d9735. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-42f4ce9e2352cfb8ce54a5fa', 'canonicalId:ctkg:v3e-object-552526e2ba53ccbf629d1cd8']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "c433a4175c3a6565707a5ba961da5adcb3eba0fa448c177684ac6e30a42d0859"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "canonicalRevision": "4a1b7964e9c25ab43431aa998a7dab032a882df4748e16ce317c4ec71eab0336",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-812258041a758f0995bec123",
+        "canonicalId:ctkg:v3e-object-56e0945e8704fa9f3c1dc356"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-56e0945e8704fa9f3c1dc356 (低频段, DomainConcept) at canonicalRevision=4a1b7964e9c25ab43431aa998a7dab032a882df4748e16ce317c4ec71eab0336. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-812258041a758f0995bec123', 'canonicalId:ctkg:v3e-object-56e0945e8704fa9f3c1dc356']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "890220c6919f56ead641272b56d6bb89b657fd036c3f22a78abcbe4c4f6c634e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-57afdf17705015f8527052c5",
+      "canonicalRevision": "bb1d35ae8fea5f37ab670d281b742267a65e33be5db046a11a992ab98a556741",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4fd06657f5f86a67b7e276f2",
+        "evidence:ctkg:v3e-evidence-5dede0b760cd5b51c9159be0",
+        "evidence:ctkg:v3e-evidence-6e490b75ca0eb8da01d28955",
+        "canonicalId:ctkg:v3e-object-57afdf17705015f8527052c5"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-57afdf17705015f8527052c5 (Neutral Stability, DomainConcept) at canonicalRevision=bb1d35ae8fea5f37ab670d281b742267a65e33be5db046a11a992ab98a556741. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=3; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=4 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-4fd06657f5f86a67b7e276f2', 'evidence:ctkg:v3e-evidence-5dede0b760cd5b51c9159be0', 'evidence:ctkg:v3e-evidence-6e490b75ca0eb8da01d28955', 'canonicalId:ctkg:v3e-object-57afdf17705015f8527052c5']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "842989a0b5865c8d88af544731f557fbee29b838ff406299f9d68084bbf114c6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5856b2f2fd4c962c52631609",
+      "canonicalRevision": "9c0c84a004c6ab5abcba421251af2a9bda203aac3a4f622646ac694cbd4a2a56",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4c31fe1dff34f125a153fff7",
+        "canonicalId:ctkg:v3e-object-5856b2f2fd4c962c52631609"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-5856b2f2fd4c962c52631609 (Damping ratio, DomainConcept) at canonicalRevision=9c0c84a004c6ab5abcba421251af2a9bda203aac3a4f622646ac694cbd4a2a56. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-4c31fe1dff34f125a153fff7', 'canonicalId:ctkg:v3e-object-5856b2f2fd4c962c52631609']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "6da96b0754745597510332acfdafba92372036c938ea0a8a8178a010b50ec927"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-58cea2373f68416e096759a9",
+      "canonicalRevision": "241ba54a9ce22682a51d00de310f283c16b013808f26df48feddc764b18653a2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e14d81a0b83e56f2eb045fca",
+        "canonicalId:ctkg:v3e-object-58cea2373f68416e096759a9"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-58cea2373f68416e096759a9 (Dominant roots, DomainConcept) at canonicalRevision=241ba54a9ce22682a51d00de310f283c16b013808f26df48feddc764b18653a2. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-e14d81a0b83e56f2eb045fca', 'canonicalId:ctkg:v3e-object-58cea2373f68416e096759a9']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "301166aaf9a8b571dafc8706a59070303c676d6340dce5948800d120d73f0c5f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+      "canonicalRevision": "c6448cbd288c640b28860861c6e84a032fc138604cc764e888210fb8e0c01593",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-384233a5fce4aa55c40f1618",
+        "canonicalId:ctkg:v3e-object-58d24ff14a6b0b0cab5d393f"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-58d24ff14a6b0b0cab5d393f (傅里叶系数, DomainConcept) at canonicalRevision=c6448cbd288c640b28860861c6e84a032fc138604cc764e888210fb8e0c01593. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-384233a5fce4aa55c40f1618', 'canonicalId:ctkg:v3e-object-58d24ff14a6b0b0cab5d393f']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "29dce612aa596aaf3f999de5b7c01759fe98768e6ace9202646fcdb8cba74974"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "canonicalRevision": "c20366a7ca8c2920bd42d6ac6c53f261564107df3b05d8164aab9be312416e10",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-13ed686519048e7c7cc32454",
+        "canonicalId:ctkg:v3e-object-5a7582dcb72b1d33d09ca641"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-5a7582dcb72b1d33d09ca641 (非最小相位环节, DomainConcept) at canonicalRevision=c20366a7ca8c2920bd42d6ac6c53f261564107df3b05d8164aab9be312416e10. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-13ed686519048e7c7cc32454', 'canonicalId:ctkg:v3e-object-5a7582dcb72b1d33d09ca641']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "c1a611f8bf0f1ffc4b00f013c8cc5ef12d15121fce74652bdcd930c44b8ebbee"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "canonicalRevision": "ebaa5cbba3c3bd4376b7ed17c0a9592e0caf645e2d6876261865cbd46aebca3a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5f703908e2e1435e73f0cc09",
+        "canonicalId:ctkg:v3e-object-5a821f717b644300ab32cf21"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-5a821f717b644300ab32cf21 (对数幅频渐近特性曲线, DomainConcept) at canonicalRevision=ebaa5cbba3c3bd4376b7ed17c0a9592e0caf645e2d6876261865cbd46aebca3a. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-5f703908e2e1435e73f0cc09', 'canonicalId:ctkg:v3e-object-5a821f717b644300ab32cf21']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "6a2ace9ead5be226e936afa810d2ede60847266366f9b07269b220c6c3110864"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "canonicalRevision": "e2f3b396411b1bdc713e7c87189783561a7ffcef4896d960ebf5c19dc027cf10",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ab10de3246a0d64d3d96077b",
+        "canonicalId:ctkg:v3e-object-5e8744158554d1c79e590de4"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-5e8744158554d1c79e590de4 (Phase Margin (PM), DomainConcept) at canonicalRevision=e2f3b396411b1bdc713e7c87189783561a7ffcef4896d960ebf5c19dc027cf10. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-ab10de3246a0d64d3d96077b', 'canonicalId:ctkg:v3e-object-5e8744158554d1c79e590de4']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "35bc9ecb64aaf8eb7b3e2df851eb7448f537cb09ae4e4476bcec8edd901a7bc3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5ed6282c976442e9747881b4",
+      "canonicalRevision": "6c5f21dfd9c7a629d86847aed40e9fa0c2357d04b07bc20f1c6f1fc497a94bdd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-83638d1d9a44c23b495e59c0",
+        "canonicalId:ctkg:v3e-object-5ed6282c976442e9747881b4"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-5ed6282c976442e9747881b4 (Bode plot construction method, DomainConcept) at canonicalRevision=6c5f21dfd9c7a629d86847aed40e9fa0c2357d04b07bc20f1c6f1fc497a94bdd. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-83638d1d9a44c23b495e59c0', 'canonicalId:ctkg:v3e-object-5ed6282c976442e9747881b4']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "b76453d48cd6e2848914e6e42aaab8a09970c9febaff45ef7b1e9c1eb0728861"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-62bfe5336223892d2ee2592a",
+      "canonicalRevision": "f64b72e50bb875820a6fd909f0a4930f224f6150c3b61dda68433a5aec1af149",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c072488565cde6b3f75d7861",
+        "canonicalId:ctkg:v3e-object-62bfe5336223892d2ee2592a"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-62bfe5336223892d2ee2592a (Determining GM from Bode plot, DomainConcept) at canonicalRevision=f64b72e50bb875820a6fd909f0a4930f224f6150c3b61dda68433a5aec1af149. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-c072488565cde6b3f75d7861', 'canonicalId:ctkg:v3e-object-62bfe5336223892d2ee2592a']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "6b729ff6fff11d01cedda305a90c6f54d27dbe87ccf085485760ce0e9490a5c6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-64830154d494eaf7d38d905c",
+      "canonicalRevision": "c0f774d4abc2224b2bbff2df1614cb0a2aabe5f9045d3ae5b46a8b50d01e675b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-407ea54fb8770e5139844b2a",
+        "canonicalId:ctkg:v3e-object-64830154d494eaf7d38d905c"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-64830154d494eaf7d38d905c (高阶系统时域指标估算经验公式法, DomainConcept) at canonicalRevision=c0f774d4abc2224b2bbff2df1614cb0a2aabe5f9045d3ae5b46a8b50d01e675b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-407ea54fb8770e5139844b2a', 'canonicalId:ctkg:v3e-object-64830154d494eaf7d38d905c']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "b905945c52a2b1fad74be90c736229315502873bab0e5c046d3542e08b001d18"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "canonicalRevision": "d3f263ab8dbcc5d75904c4870350fe3cc80233724652ce0d8e22244d33ce0469",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d783ecac6751da87b005aa5d",
+        "canonicalId:ctkg:v3e-object-6592690fdccf416b0340917b"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-6592690fdccf416b0340917b (带宽频率, DomainConcept) at canonicalRevision=d3f263ab8dbcc5d75904c4870350fe3cc80233724652ce0d8e22244d33ce0469. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-d783ecac6751da87b005aa5d', 'canonicalId:ctkg:v3e-object-6592690fdccf416b0340917b']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "c33b83390d6bfd399824b2fb4ead7087c3f398b74c7c21be1a0eb25bac257e4c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "canonicalRevision": "93a14acb7bf72695f743ab36bcad278f2ecc698d14ba86762d350d57c0c4037d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2474e81bade1908cc964eb90",
+        "canonicalId:ctkg:v3e-object-69488c745082536d87afd1a7"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-69488c745082536d87afd1a7 (Closed-loop bandwidth, DomainConcept) at canonicalRevision=93a14acb7bf72695f743ab36bcad278f2ecc698d14ba86762d350d57c0c4037d. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-2474e81bade1908cc964eb90', 'canonicalId:ctkg:v3e-object-69488c745082536d87afd1a7']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "a538eddf1aebf614d81fb12bf0f764294b7791ddeb1315c08f11f0781f097d2c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "canonicalRevision": "75fd3eea5a70a1722738bb63567f1194861f432b2df8cb0959f002bbff19372b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-baa7850d460b3cd2bf3bca30",
+        "canonicalId:ctkg:v3e-object-69529eb08c9279e8b19dc4f6"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-69529eb08c9279e8b19dc4f6 (交接频率, DomainConcept) at canonicalRevision=75fd3eea5a70a1722738bb63567f1194861f432b2df8cb0959f002bbff19372b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-baa7850d460b3cd2bf3bca30', 'canonicalId:ctkg:v3e-object-69529eb08c9279e8b19dc4f6']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "800786af0c271cb6e5fd8425ea6bc299f033cd3fcb477c1e996695f7d3092719"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+      "canonicalRevision": "0c1e4b91bcf8c6e28076f551e17ab7da50fb457b7b28119393381ca1f752f917",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-46297c283fce75712be47e14",
+        "canonicalId:ctkg:v3e-object-6aab5205709de2fd044b4024"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-6aab5205709de2fd044b4024 (奈奎斯特稳定判据（奈氏判据）, DomainConcept) at canonicalRevision=0c1e4b91bcf8c6e28076f551e17ab7da50fb457b7b28119393381ca1f752f917. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-46297c283fce75712be47e14', 'canonicalId:ctkg:v3e-object-6aab5205709de2fd044b4024']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "de387029503224cfb3c3f32bd6bec4b38eafdcb989e440b09966940942378e1b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7055a0e2be50abb18ea92c6a",
+      "canonicalRevision": "df0c9c54612ddd11c84a1827a56c49eac83eaff9d249e667f2d9135dfebbd94f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cc22fc21843730b174126910",
+        "canonicalId:ctkg:v3e-object-7055a0e2be50abb18ea92c6a"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-7055a0e2be50abb18ea92c6a (Decibel (dB), DomainConcept) at canonicalRevision=df0c9c54612ddd11c84a1827a56c49eac83eaff9d249e667f2d9135dfebbd94f. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-cc22fc21843730b174126910', 'canonicalId:ctkg:v3e-object-7055a0e2be50abb18ea92c6a']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "04340edfe88ee7f6efbd3802cc4f8a6d195d008dc9d20ef6a78f2987a17bd0ff"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "canonicalRevision": "a94e2c47377cbcf976d60f040fa4e299b64ca049bbe7468b22cc7b73da0c524e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c16371b8653ee1719dbae327",
+        "evidence:ctr:m1h-v1f-release-evidence-776eedde70d0ece1f8a50314",
+        "evidence:ctr:m1h-v1f-release-evidence-945cb1c93f638f8e681f5439",
+        "canonicalId:ctkg:v3e-object-763fd65e573e7a65dfc4b79c"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-763fd65e573e7a65dfc4b79c (Nyquist plot, DomainConcept) at canonicalRevision=a94e2c47377cbcf976d60f040fa4e299b64ca049bbe7468b22cc7b73da0c524e. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=2 releaseTier=gold upstreamEvidenceCount=3; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=4 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-c16371b8653ee1719dbae327', 'evidence:ctr:m1h-v1f-release-evidence-776eedde70d0ece1f8a50314', 'evidence:ctr:m1h-v1f-release-evidence-945cb1c93f638f8e681f5439', 'canonicalId:ctkg:v3e-object-763fd65e573e7a65dfc4b79c']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "38ed8ac43791d6706c26cab286fa084d82501b8eabaf7ad3b117b62776e559b8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+      "canonicalRevision": "6b9067c6c10a154ff8ce1a34d2066a78c9f38334e2ce5b5f920dd68395aca0d4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-442c7818bfb7c7be5c67f616",
+        "evidence:ctkg:v3e-evidence-e149dcbfdcd37b1513bb0440",
+        "evidence:ctr:m1h-v1f-release-evidence-f90bb91667b55286d3186640",
+        "canonicalId:ctkg:v3e-object-7761615701fb4915a76924ff"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-7761615701fb4915a76924ff (Crossover frequency, DomainConcept) at canonicalRevision=6b9067c6c10a154ff8ce1a34d2066a78c9f38334e2ce5b5f920dd68395aca0d4. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=2 releaseTier=gold upstreamEvidenceCount=3; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=4 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-442c7818bfb7c7be5c67f616', 'evidence:ctkg:v3e-evidence-e149dcbfdcd37b1513bb0440', 'evidence:ctr:m1h-v1f-release-evidence-f90bb91667b55286d3186640', 'canonicalId:ctkg:v3e-object-7761615701fb4915a76924ff']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "c93990400c1b646a576e920beb54ef0c7a31ca714cc4a093324425a3f27f5f8c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "canonicalRevision": "87da2851e1f3d5eed01c36efa4d308b0876cdcc495cd4caa589910ba4d049617",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a60862fe151cdbed56cf97a1",
+        "evidence:ctkg:v3e-evidence-e280375256ba8af9c4047111",
+        "canonicalId:ctkg:v3e-object-785280d429b7e1a5f2f5db53"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-785280d429b7e1a5f2f5db53 (Nyquist stability criterion, DomainConcept) at canonicalRevision=87da2851e1f3d5eed01c36efa4d308b0876cdcc495cd4caa589910ba4d049617. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-a60862fe151cdbed56cf97a1', 'evidence:ctkg:v3e-evidence-e280375256ba8af9c4047111', 'canonicalId:ctkg:v3e-object-785280d429b7e1a5f2f5db53']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "b256e7f18146d0a54b26edc7843a5f10e860556ccfdf8df7783a0df9a444643e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-78558546607d8234fb2ce368",
+      "canonicalRevision": "3790d829c24eb518e1c6f88861d0ff15f3d2d42f5b4fbc376830896c125dadd8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bc34ee6258b624e7026b151b",
+        "canonicalId:ctkg:v3e-object-78558546607d8234fb2ce368"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-78558546607d8234fb2ce368 (周期信号的频谱, DomainConcept) at canonicalRevision=3790d829c24eb518e1c6f88861d0ff15f3d2d42f5b4fbc376830896c125dadd8. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-bc34ee6258b624e7026b151b', 'canonicalId:ctkg:v3e-object-78558546607d8234fb2ce368']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "df92faf1c9a37fd441dddbe7ee4b487a751c8cf028041d1f598cfe287b6a89b6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7aef0becfa3e700facb7a80e",
+      "canonicalRevision": "72526fe9024380c5d89b8c31998f328543313d7944ce857d048274558f81a4b4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4bc7e87578e7723bf7153595",
+        "canonicalId:ctkg:v3e-object-7aef0becfa3e700facb7a80e"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-7aef0becfa3e700facb7a80e (开环幅相特性曲线终点, DomainConcept) at canonicalRevision=72526fe9024380c5d89b8c31998f328543313d7944ce857d048274558f81a4b4. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-4bc7e87578e7723bf7153595', 'canonicalId:ctkg:v3e-object-7aef0becfa3e700facb7a80e']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "9084b45a5510d5669a311e7b84537584d0781ef77865e0182fe2b58a6e43ed5f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+      "canonicalRevision": "46bfc3298a22fa0ca8b9b108f5b007bde0de4086a317cc171fb4ca7081f76f3b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1a9f80771a17b2ab3da288d0",
+        "canonicalId:ctkg:v3e-object-7e274b7e5ef258bd54400783"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-7e274b7e5ef258bd54400783 (Natural frequency, DomainConcept) at canonicalRevision=46bfc3298a22fa0ca8b9b108f5b007bde0de4086a317cc171fb4ca7081f76f3b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-1a9f80771a17b2ab3da288d0', 'canonicalId:ctkg:v3e-object-7e274b7e5ef258bd54400783']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "1c6da508979b216a77da5751f1db8444a96c85b21a6a0d49a7b0745c574988cf"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-806d8586fa5ceca0613b844d",
+      "canonicalRevision": "9e01c3c8151e49e9f8f9550994d3398ed7add450aecb68bbaa880354265f3fc6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cbb671706f499ab9c43be6bd",
+        "canonicalId:ctkg:v3e-object-806d8586fa5ceca0613b844d"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-806d8586fa5ceca0613b844d (连续谱, DomainConcept) at canonicalRevision=9e01c3c8151e49e9f8f9550994d3398ed7add450aecb68bbaa880354265f3fc6. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-cbb671706f499ab9c43be6bd', 'canonicalId:ctkg:v3e-object-806d8586fa5ceca0613b844d']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "ef55b44bda344072d79629691a226886801325c63462ff91a027ac22be76a385"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-81a7cae1259fabcfe3390cd2",
+      "canonicalRevision": "7c9b304fbd5c3ad1b60a39cc0ee6f2959c442ad560b8a3475db813aeaef0a033",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aab7eccce9d856aaae537817",
+        "canonicalId:ctkg:v3e-object-81a7cae1259fabcfe3390cd2"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-81a7cae1259fabcfe3390cd2 (Resonant-peak magnitude Mr, DomainConcept) at canonicalRevision=7c9b304fbd5c3ad1b60a39cc0ee6f2959c442ad560b8a3475db813aeaef0a033. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-aab7eccce9d856aaae537817', 'canonicalId:ctkg:v3e-object-81a7cae1259fabcfe3390cd2']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "9a84325c85da4fc5b8313fb31f8d62a2009826d5d07b3f0c2250deab6d475ffd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+      "canonicalRevision": "b06bb27715be3a70532b6823069ad133740c9690554f577fd97fd5072936e68f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4d9e3aca24f62fa5062e9d23",
+        "canonicalId:ctkg:v3e-object-8496155b16d82318d90949d0"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-8496155b16d82318d90949d0 (Frequency Response, DomainConcept) at canonicalRevision=b06bb27715be3a70532b6823069ad133740c9690554f577fd97fd5072936e68f. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-4d9e3aca24f62fa5062e9d23', 'canonicalId:ctkg:v3e-object-8496155b16d82318d90949d0']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "5902f32e474d5c031f0532b5e0bec85d96a42ef7b122a2b1e7a083cc567a9c81"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "canonicalRevision": "981f26c761b604e150131821ccc0b224c3a558f9dee15f4ce34a793512eb8951",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e4af6572a5049cd016690ba0",
+        "canonicalId:ctkg:v3e-object-84d4e25a62819cdb7ccb6caf"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-84d4e25a62819cdb7ccb6caf (Type-zero system, DomainConcept) at canonicalRevision=981f26c761b604e150131821ccc0b224c3a558f9dee15f4ce34a793512eb8951. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-e4af6572a5049cd016690ba0', 'canonicalId:ctkg:v3e-object-84d4e25a62819cdb7ccb6caf']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "23c03571be6f362d14a5d24f801dc935b24e6c2ec4edee3e1683c0ba8acb27d8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f",
+      "canonicalRevision": "3a1c297fd2d074295ebaeb5ea8644ced67dbc58a682f5689f69986bb7aa88d93",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-df460998842759b500cfe941",
+        "evidence:ctr:m1h-v1f-release-evidence-e73ba4113afe6146b040e421",
+        "canonicalId:ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f (Resonant frequency, DomainConcept) at canonicalRevision=3a1c297fd2d074295ebaeb5ea8644ced67dbc58a682f5689f69986bb7aa88d93. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=2 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-df460998842759b500cfe941', 'evidence:ctr:m1h-v1f-release-evidence-e73ba4113afe6146b040e421', 'canonicalId:ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "7092e1a5ccf206b73316bc56dd0da5080e32912eb22343a566a1fd84bff8802e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "canonicalRevision": "ff1445e95a133b9db2766fe003bea4ff30c62cfb3082b3042159c36e7f3eb0bd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8513e2b1049499243c2ed421",
+        "evidence:ctkg:v3e-evidence-b4650c907bac3c54fcd3a226",
+        "canonicalId:ctkg:v3e-object-905e09b9921961a6115e4603"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-905e09b9921961a6115e4603 (Conditionally Stable System, DomainConcept) at canonicalRevision=ff1445e95a133b9db2766fe003bea4ff30c62cfb3082b3042159c36e7f3eb0bd. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-8513e2b1049499243c2ed421', 'evidence:ctkg:v3e-evidence-b4650c907bac3c54fcd3a226', 'canonicalId:ctkg:v3e-object-905e09b9921961a6115e4603']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "8e277811b2bbfd3c2880d93b6935af06528ea406d00e72ab84d3a287b95b130f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-96f2adc33e58f93e24be1b42",
+      "canonicalRevision": "a2bed95c918e26fce4bf8e57903b83580b612771b4668b8303e1bbacb3cfded6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2fd4539d365ba8b5f65a108e",
+        "canonicalId:ctkg:v3e-object-96f2adc33e58f93e24be1b42"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-96f2adc33e58f93e24be1b42 (Determining PM from Nyquist plot, DomainConcept) at canonicalRevision=a2bed95c918e26fce4bf8e57903b83580b612771b4668b8303e1bbacb3cfded6. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-2fd4539d365ba8b5f65a108e', 'canonicalId:ctkg:v3e-object-96f2adc33e58f93e24be1b42']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "b45234dd9a2c316a60e84d01f3b3eb3113069127f85ae63e11766bf585f42ca6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-983964fdaa7a8bf62f5dc787",
+      "canonicalRevision": "495cad6d41d576afcdc54d6d4f8f0329b06fcc7f54eb0e0e285d6f1d24d9b345",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-26f095d303e2b0e6d578c911",
+        "evidence:ctkg:v3e-evidence-cc6576b0c27a187daaa93459",
+        "canonicalId:ctkg:v3e-object-983964fdaa7a8bf62f5dc787"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-983964fdaa7a8bf62f5dc787 (幅相频率特性曲线绘制方法, DomainConcept) at canonicalRevision=495cad6d41d576afcdc54d6d4f8f0329b06fcc7f54eb0e0e285d6f1d24d9b345. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-26f095d303e2b0e6d578c911', 'evidence:ctkg:v3e-evidence-cc6576b0c27a187daaa93459', 'canonicalId:ctkg:v3e-object-983964fdaa7a8bf62f5dc787']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "acfe9d647a588b171d27acc937a166c6c261bf4bd2341e78d826551a2ff14860"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "canonicalRevision": "7042d8c25945be5a6b8837c867cd1a6881f332327ebf0e558335dcb344734450",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-95f9f2155a5a2ef80d11a7f5",
+        "canonicalId:ctkg:v3e-object-9967c0867249bf4c1a625dab"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-9967c0867249bf4c1a625dab (相频特性, DomainConcept) at canonicalRevision=7042d8c25945be5a6b8837c867cd1a6881f332327ebf0e558335dcb344734450. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-95f9f2155a5a2ef80d11a7f5', 'canonicalId:ctkg:v3e-object-9967c0867249bf4c1a625dab']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "eec86de15e5797402c43e1809fabce07bd5f294525cd76950c723f99467a98b0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9acaab765d45527c6988c564",
+      "canonicalRevision": "b6e128102f8418b1ae4a91ddfd1984626b20265d188435f89d09f45920cbd138",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3d4e506db149cb392272933c",
+        "canonicalId:ctkg:v3e-object-9acaab765d45527c6988c564"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-9acaab765d45527c6988c564 (polar plot, DomainConcept) at canonicalRevision=b6e128102f8418b1ae4a91ddfd1984626b20265d188435f89d09f45920cbd138. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-3d4e506db149cb392272933c', 'canonicalId:ctkg:v3e-object-9acaab765d45527c6988c564']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "49261c5973c1c6634ee8422dc33e499ca125db42b1b715d43687250000a0ac80"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a95a8e278a89a433477bc1e0",
+      "canonicalRevision": "ad8e93e3c3d71d55e687c97c3bc9f2460a18d1caf21f095513620a62a1a6c5c7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-896de059c484400bc5a1f434",
+        "canonicalId:ctkg:v3e-object-a95a8e278a89a433477bc1e0"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-a95a8e278a89a433477bc1e0 (对数幅相曲线（尼科尔斯曲线）绘制方法, DomainConcept) at canonicalRevision=ad8e93e3c3d71d55e687c97c3bc9f2460a18d1caf21f095513620a62a1a6c5c7. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-896de059c484400bc5a1f434', 'canonicalId:ctkg:v3e-object-a95a8e278a89a433477bc1e0']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "98bf73b0bcb95b593b423dff4db1352d15e6a70189523766d30aa8e88be8093c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ac5da367d445afc46b4baca3",
+      "canonicalRevision": "37fe6d5105dc679eaf286106c223dcdc9cfa15c10581c53c85261830f27e43e5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-46be2559c4196fbd998d4c7b",
+        "canonicalId:ctkg:v3e-object-ac5da367d445afc46b4baca3"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-ac5da367d445afc46b4baca3 (谐振峰值, DomainConcept) at canonicalRevision=37fe6d5105dc679eaf286106c223dcdc9cfa15c10581c53c85261830f27e43e5. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-46be2559c4196fbd998d4c7b', 'canonicalId:ctkg:v3e-object-ac5da367d445afc46b4baca3']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "5063bcde11dea40ee4a18cdee9e132bcb46d2760c7f7b468d8ed46f6bb88a1eb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aecaf4cad61113646c40ec0c",
+      "canonicalRevision": "d203e4c8bf35a4ac00ea4667b204bbf4477831f74cab237b49fc3de49d5a2f4b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ae08aa82ba2dd3301970134f",
+        "canonicalId:ctkg:v3e-object-aecaf4cad61113646c40ec0c"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-aecaf4cad61113646c40ec0c (Log-magnitude-phase diagram, DomainConcept) at canonicalRevision=d203e4c8bf35a4ac00ea4667b204bbf4477831f74cab237b49fc3de49d5a2f4b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-ae08aa82ba2dd3301970134f', 'canonicalId:ctkg:v3e-object-aecaf4cad61113646c40ec0c']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "1d3d5cf8929ea9413d82474d5f121f5c79eb6f163b300f4e912dbdab3734af9f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "canonicalRevision": "5575a0386a8264175955de1ab6bf98753172a932fe58c37e5753dc8c5cf861e6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e92dfec672d455084f2500ad",
+        "canonicalId:ctkg:v3e-object-b0cbf122498bca9269e55406"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-b0cbf122498bca9269e55406 (延迟环节, DomainConcept) at canonicalRevision=5575a0386a8264175955de1ab6bf98753172a932fe58c37e5753dc8c5cf861e6. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-e92dfec672d455084f2500ad', 'canonicalId:ctkg:v3e-object-b0cbf122498bca9269e55406']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "253de256bf20492fb39809b99e6f3bd507be71e7784472fe90bce1075be18894"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "canonicalRevision": "512fc1626aa5be8b157a6b64912839d273e22de8f4a85feb72df5821b8b40f79",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d9fb006f1e7ca49090d82512",
+        "canonicalId:ctkg:v3e-object-b542152b1fb2cbb25d81dbb2"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-b542152b1fb2cbb25d81dbb2 (最小相位系统, DomainConcept) at canonicalRevision=512fc1626aa5be8b157a6b64912839d273e22de8f4a85feb72df5821b8b40f79. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-d9fb006f1e7ca49090d82512', 'canonicalId:ctkg:v3e-object-b542152b1fb2cbb25d81dbb2']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "1bdcc86b1a6fe17dfd7d26d708f1f7b6339420c507c157e951f098ede0718502"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "canonicalRevision": "8f1f45269a5f1db0fdd8fe4cff03bd640cc466b2f8bc43b5535107d843e2fd59",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-992827d7ed1731e9b4a55f54",
+        "canonicalId:ctkg:v3e-object-ba51f9dd280fa844cebe297d"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-ba51f9dd280fa844cebe297d (最小相位环节, DomainConcept) at canonicalRevision=8f1f45269a5f1db0fdd8fe4cff03bd640cc466b2f8bc43b5535107d843e2fd59. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-992827d7ed1731e9b4a55f54', 'canonicalId:ctkg:v3e-object-ba51f9dd280fa844cebe297d']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "5e2c71ec5daf4f2de77aa776a3fb60f9ce5bec2189fe18b79dfa240682e7caa2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "canonicalRevision": "4abdbe4755d808ca0967d0ffc3a28b53acaa972a4103f5765d298c0c33cadd52",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bfaca78f00234a21e6344f97",
+        "canonicalId:ctkg:v3e-object-be9c82d423b46b7fc6937236"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-be9c82d423b46b7fc6937236 (对数频率特性曲线, DomainConcept) at canonicalRevision=4abdbe4755d808ca0967d0ffc3a28b53acaa972a4103f5765d298c0c33cadd52. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-bfaca78f00234a21e6344f97', 'canonicalId:ctkg:v3e-object-be9c82d423b46b7fc6937236']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "bf24e42a462dafffa35944926fd2af02ef9b54fa8cfba913a2ec710aa3142a12"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "canonicalRevision": "24608e1c8e6325a95b6e71d06606cf00a36a61de9bd69459f1960a63d9ebf5ea",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-64ecf2a52c4f2b73394e3784",
+        "canonicalId:ctkg:v3e-object-c2881833cb4d8b1e415dc742"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-c2881833cb4d8b1e415dc742 (幅值裕度, DomainConcept) at canonicalRevision=24608e1c8e6325a95b6e71d06606cf00a36a61de9bd69459f1960a63d9ebf5ea. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-64ecf2a52c4f2b73394e3784', 'canonicalId:ctkg:v3e-object-c2881833cb4d8b1e415dc742']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "e779661502e2d772000884c1df2391560e4bf1941cdd98c22309bf2b883128ad"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c39d1d0090637db4b51bde73",
+      "canonicalRevision": "400af4810eefa68e9de39295a2336f1e64b600577a8738541738f9362cf08cd0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-36876e883944739354fdca57",
+        "evidence:ctkg:v3e-evidence-ffc2acb0e236695e1f6f7a77",
+        "canonicalId:ctkg:v3e-object-c39d1d0090637db4b51bde73"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-c39d1d0090637db4b51bde73 (绘制概略开环幅相特性曲线方法, DomainConcept) at canonicalRevision=400af4810eefa68e9de39295a2336f1e64b600577a8738541738f9362cf08cd0. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-36876e883944739354fdca57', 'evidence:ctkg:v3e-evidence-ffc2acb0e236695e1f6f7a77', 'canonicalId:ctkg:v3e-object-c39d1d0090637db4b51bde73']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "a63b1275129d0cc913aea5f7fb0b39c404c90f1684237a9271356b77c7edfaa9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "canonicalRevision": "57352043599c748073af07921cac010862d3fde952c98ac1e62b48b9716ffc30",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-44132ea6101a355ae8d24b2b",
+        "canonicalId:ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38 (Bode plot, DomainConcept) at canonicalRevision=57352043599c748073af07921cac010862d3fde952c98ac1e62b48b9716ffc30. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-44132ea6101a355ae8d24b2b', 'canonicalId:ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "45ff2e9a308245021f17151b68700bf8776d91a1ca1c0d9c36020b1cf66d81a1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cfee5cc12bf4f8da26e41ff1",
+      "canonicalRevision": "c708d0a0b7f0318f3ad85e1cdf08fd7877e41a30149eb126db94f69ff18e0a96",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cf5f34a763b5d0a29fb86f01",
+        "canonicalId:ctkg:v3e-object-cfee5cc12bf4f8da26e41ff1"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-cfee5cc12bf4f8da26e41ff1 (Vector Margin, DomainConcept) at canonicalRevision=c708d0a0b7f0318f3ad85e1cdf08fd7877e41a30149eb126db94f69ff18e0a96. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-cf5f34a763b5d0a29fb86f01', 'canonicalId:ctkg:v3e-object-cfee5cc12bf4f8da26e41ff1']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "35e7403a08bc53b9c05128f8d1d9a84251ae86a12f0a22866075388d241dea7d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d8ef97d0d84c5b3d7b209fd7",
+      "canonicalRevision": "2a46f6a6cb361de6627d071b43e61d4eeac77eaef4c87e9937c15b7963f9fe90",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2112d5812d99a447310dcc2d",
+        "evidence:ctkg:v3e-evidence-3403b13e1264429c98686b7c",
+        "evidence:ctkg:v3e-evidence-6c6c3b33e68ab11b6b65600a",
+        "evidence:ctkg:v3e-evidence-9e945c0de263ee9a356cdbbd",
+        "canonicalId:ctkg:v3e-object-d8ef97d0d84c5b3d7b209fd7"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-d8ef97d0d84c5b3d7b209fd7 (对数频率特性曲线绘制方法, DomainConcept) at canonicalRevision=2a46f6a6cb361de6627d071b43e61d4eeac77eaef4c87e9937c15b7963f9fe90. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=4; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=5 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-2112d5812d99a447310dcc2d', 'evidence:ctkg:v3e-evidence-3403b13e1264429c98686b7c', 'evidence:ctkg:v3e-evidence-6c6c3b33e68ab11b6b65600a', 'evidence:ctkg:v3e-evidence-9e945c0de263ee9a356cdbbd', 'canonicalId:ctkg:v3e-object-d8ef97d0d84c5b3d7b209fd7']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "2c79468e5e6fe4567b4a1e03cb4bd8c7918b697fe7527b2cd6fba6cc4b68df16"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-db0fc6571dad5000caf9cbf7",
+      "canonicalRevision": "f8b0004335260aa8a2acbea958c91043558ae8bdc8a7c79c077b4b1097d4ce8a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-04ac5337034654f139bd4763",
+        "canonicalId:ctkg:v3e-object-db0fc6571dad5000caf9cbf7"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-db0fc6571dad5000caf9cbf7 (Strophoid plane curve, DomainConcept) at canonicalRevision=f8b0004335260aa8a2acbea958c91043558ae8bdc8a7c79c077b4b1097d4ce8a. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-04ac5337034654f139bd4763', 'canonicalId:ctkg:v3e-object-db0fc6571dad5000caf9cbf7']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "587ae143b5383eaead502f5605565f4cb21bc1bd793e34021412288eae998d29"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ddbe1d931c3e5677361c2470",
+      "canonicalRevision": "c23fbe5e7859be3439469a015132a37c1ea998b75296f0c491dcefad6cd30a77",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c084e9483ee21ed28e6b4249",
+        "canonicalId:ctkg:v3e-object-ddbe1d931c3e5677361c2470"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-ddbe1d931c3e5677361c2470 (Position error constant, DomainConcept) at canonicalRevision=c23fbe5e7859be3439469a015132a37c1ea998b75296f0c491dcefad6cd30a77. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-c084e9483ee21ed28e6b4249', 'canonicalId:ctkg:v3e-object-ddbe1d931c3e5677361c2470']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "4ac14f399cd0937bb4d47dbd8be252a033c84f1f4b31bb2d4767c3b8bf06b73e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-de79f06574782620fb5a2094",
+      "canonicalRevision": "03be05e5e520b6e3b423ecc9724e7502752e1242fa05fd5a8bf85e5db198b74a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d4fedd3617cef30b7178230c",
+        "canonicalId:ctkg:v3e-object-de79f06574782620fb5a2094"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-de79f06574782620fb5a2094 (Twin-T Network, DomainConcept) at canonicalRevision=03be05e5e520b6e3b423ecc9724e7502752e1242fa05fd5a8bf85e5db198b74a. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-d4fedd3617cef30b7178230c', 'canonicalId:ctkg:v3e-object-de79f06574782620fb5a2094']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "45d9088828d682e5dc55f6844aaf321a0612acbe56574924c9338daac79067a5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+      "canonicalRevision": "3485352ef61168a0eb771e91a0d8952599a50bfdbad9f4a5ba89ec7c508b926b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-13098c11df8ae0f8a4647c1f",
+        "canonicalId:ctkg:v3e-object-de873c97a924107857f79242"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-de873c97a924107857f79242 (幅频特性, DomainConcept) at canonicalRevision=3485352ef61168a0eb771e91a0d8952599a50bfdbad9f4a5ba89ec7c508b926b. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-13098c11df8ae0f8a4647c1f', 'canonicalId:ctkg:v3e-object-de873c97a924107857f79242']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "d083837af3a07aa01f71c87afe80dd46974fc8a0e50c2db019a9d742b1a417c5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dee6731dcc0faa231340dac9",
+      "canonicalRevision": "5f54a9079cb99eebc302f46fdfea76f5c26e958bd4d4cc85e8b138bdfb68fac1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-415a8e9cdbe0ca8bf25e446f",
+        "canonicalId:ctkg:v3e-object-dee6731dcc0faa231340dac9"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-dee6731dcc0faa231340dac9 (Decibel, DomainConcept) at canonicalRevision=5f54a9079cb99eebc302f46fdfea76f5c26e958bd4d4cc85e8b138bdfb68fac1. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-415a8e9cdbe0ca8bf25e446f', 'canonicalId:ctkg:v3e-object-dee6731dcc0faa231340dac9']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "e816a867b33f002c1b24336361dd3f2fffaccf24b837b4155edbc34863b3cc53"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-df82d7abb92fef100c7944eb",
+      "canonicalRevision": "6fec9586f8e5061f46237ab59cdadc1f20ba37c2ccd78df70ae13fde87914d2c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bec114bc9bc90190bfd0e21f",
+        "canonicalId:ctkg:v3e-object-df82d7abb92fef100c7944eb"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-df82d7abb92fef100c7944eb (decade, DomainConcept) at canonicalRevision=6fec9586f8e5061f46237ab59cdadc1f20ba37c2ccd78df70ae13fde87914d2c. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-bec114bc9bc90190bfd0e21f', 'canonicalId:ctkg:v3e-object-df82d7abb92fef100c7944eb']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "793cd3cd9a0c138adc7a94469ea24525c865be606e3632043e85f9e63858232f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+      "canonicalRevision": "afdfeba90c10183bdc35710bec92fdd3fc393f1e0c7c776efbbe0da1a55d383c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-917ed20b191d47a82caaadd9",
+        "canonicalId:ctkg:v3e-object-e16a21bf52b0d6a12485f477"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-e16a21bf52b0d6a12485f477 (break frequency (corner frequency), DomainConcept) at canonicalRevision=afdfeba90c10183bdc35710bec92fdd3fc393f1e0c7c776efbbe0da1a55d383c. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-917ed20b191d47a82caaadd9', 'canonicalId:ctkg:v3e-object-e16a21bf52b0d6a12485f477']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "b5258bdb6fc62d4b1c0a0cd8183fbe09fbb1f36f2cd012acd316de73d623b5d3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e472548752b2e2acc7854586",
+      "canonicalRevision": "644fd74045c6130e8d0c97bea5acf5c90f98d0249a25825d3622855ac2ec94f3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-40cfe827c50ecfe285c33d8e",
+        "canonicalId:ctkg:v3e-object-e472548752b2e2acc7854586"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-e472548752b2e2acc7854586 (Resonant magnitude, DomainConcept) at canonicalRevision=644fd74045c6130e8d0c97bea5acf5c90f98d0249a25825d3622855ac2ec94f3. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-40cfe827c50ecfe285c33d8e', 'canonicalId:ctkg:v3e-object-e472548752b2e2acc7854586']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "e17f1475c8e7f35073e608d9b8c247f738bec05965aea5e2cf5a311dceab71e3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+      "canonicalRevision": "b15f00e84bd2b81a48103feba56132b79f99b03e7779d049031f6c08cb134856",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-95b2fd4a68028d00ee07bbd5",
+        "canonicalId:ctkg:v3e-object-e80f5d56ce06409842363584"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-e80f5d56ce06409842363584 (频率特性实验确定方法, DomainConcept) at canonicalRevision=b15f00e84bd2b81a48103feba56132b79f99b03e7779d049031f6c08cb134856. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-95b2fd4a68028d00ee07bbd5', 'canonicalId:ctkg:v3e-object-e80f5d56ce06409842363584']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "146b094784c53d83306a3c59bb51718a249a61e38548d0a52ae12f9bfe400d35"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "canonicalRevision": "746a7dcd7dd01328604db224705470e72ef5711e46c8cc46a90548bb161d3bdc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6f932736fb0b82f0099c805c",
+        "evidence:ctkg:v3e-evidence-da53fafa64a6a0739e3a11f7",
+        "canonicalId:ctkg:v3e-object-ee4c217b305b05786c0b89a9"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-ee4c217b305b05786c0b89a9 (Sinusoidal steady-state response, DomainConcept) at canonicalRevision=746a7dcd7dd01328604db224705470e72ef5711e46c8cc46a90548bb161d3bdc. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6f932736fb0b82f0099c805c', 'evidence:ctkg:v3e-evidence-da53fafa64a6a0739e3a11f7', 'canonicalId:ctkg:v3e-object-ee4c217b305b05786c0b89a9']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "b0270185a492ed0eee71ac63f104a22ec87158edb2734e37409d65b8c1cbf8dc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ee95c608a2f3782742d28d92",
+      "canonicalRevision": "eac9cce5fead0e396c8e7b219b3a5e837937c31b48b9d42f872597d2696d231d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6f671836e074a1a70dec5d91",
+        "evidence:ctkg:v3e-evidence-fb64ad04c790dbbfdaefb62b",
+        "canonicalId:ctkg:v3e-object-ee95c608a2f3782742d28d92"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-ee95c608a2f3782742d28d92 (Graphical evaluation of polar plot using s-plane vectors, DomainConcept) at canonicalRevision=eac9cce5fead0e396c8e7b219b3a5e837937c31b48b9d42f872597d2696d231d. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6f671836e074a1a70dec5d91', 'evidence:ctkg:v3e-evidence-fb64ad04c790dbbfdaefb62b', 'canonicalId:ctkg:v3e-object-ee95c608a2f3782742d28d92']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "e7457c39f98a8a7fb1d2441d184e24b85c8359c366eaf47bb4af45d181ef678f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "canonicalRevision": "3e43bb269e86bba9ab539ea50f97edd50e0f5049102820078fe810784bde88ad",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1c3d1aa61f1016abc5ea1d20",
+        "canonicalId:ctkg:v3e-object-f04f82217525c5c412d0d180"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-f04f82217525c5c412d0d180 (非最小相位系统, DomainConcept) at canonicalRevision=3e43bb269e86bba9ab539ea50f97edd50e0f5049102820078fe810784bde88ad. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-1c3d1aa61f1016abc5ea1d20', 'canonicalId:ctkg:v3e-object-f04f82217525c5c412d0d180']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "ed27f63be3f6fcc90db55128cf2da668513df3923b0f8e6a1b779ffd80be4d9e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f61357354fd32305fac8755b",
+      "canonicalRevision": "68ac348ada5298858a0364e8cebfa5f4eecf01aecb124be4700862b89d79a21f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4148346d4f4b46e3da8c9807",
+        "canonicalId:ctkg:v3e-object-f61357354fd32305fac8755b"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-f61357354fd32305fac8755b (利用开环频域指标估算时域性能方法, DomainConcept) at canonicalRevision=68ac348ada5298858a0364e8cebfa5f4eecf01aecb124be4700862b89d79a21f. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-4148346d4f4b46e3da8c9807', 'canonicalId:ctkg:v3e-object-f61357354fd32305fac8755b']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "ece5611044cb17c302a0fc6f4db9171c07e6f72f4d13d0ee5d2b39483d70b327"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f86059edf7249257b142b471",
+      "canonicalRevision": "2d7a2f69ebf4b7261fd1cea0dbd2507456cfb99b79aeffddaf2f7d9bbd49b79f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7689b3d5528f0fa68be1dc92",
+        "evidence:ctkg:v3e-evidence-f983da7a4097e7d694a966d2",
+        "canonicalId:ctkg:v3e-object-f86059edf7249257b142b471"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-f86059edf7249257b142b471 (C1 contour, DomainConcept) at canonicalRevision=2d7a2f69ebf4b7261fd1cea0dbd2507456cfb99b79aeffddaf2f7d9bbd49b79f. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=2; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-7689b3d5528f0fa68be1dc92', 'evidence:ctkg:v3e-evidence-f983da7a4097e7d694a966d2', 'canonicalId:ctkg:v3e-object-f86059edf7249257b142b471']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "b12e1c3a40efe52fc5cec431ec5e2a285704fc1de90e594d7134b272e6b4030f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f91e625707410c1dc36188cb",
+      "canonicalRevision": "a6c1cd12a8e2535999b848adeb9bad9210a5eeeecfe3fcb7d8fba91affe7684f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1c7666978197cb2384fb2073",
+        "canonicalId:ctkg:v3e-object-f91e625707410c1dc36188cb"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-f91e625707410c1dc36188cb (Velocity constant, DomainConcept) at canonicalRevision=a6c1cd12a8e2535999b848adeb9bad9210a5eeeecfe3fcb7d8fba91affe7684f. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-1c7666978197cb2384fb2073', 'canonicalId:ctkg:v3e-object-f91e625707410c1dc36188cb']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "3fb8ee41d2798531848329407d97f3175e398d07038f7c0ff2dfedd0f524ee2b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fb97ed4cffee0e2317af990e",
+      "canonicalRevision": "290dd67799b35df3b1eab9aab535aa9c6c0a610237b568ec7dc4505201188c28",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7e7e719433e9889dc81c9712",
+        "canonicalId:ctkg:v3e-object-fb97ed4cffee0e2317af990e"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-fb97ed4cffee0e2317af990e (Bode diagram, DomainConcept) at canonicalRevision=290dd67799b35df3b1eab9aab535aa9c6c0a610237b568ec7dc4505201188c28. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-7e7e719433e9889dc81c9712', 'canonicalId:ctkg:v3e-object-fb97ed4cffee0e2317af990e']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "9bbd073252fbd18f9193bc03b912cf191faa4f23aca7fcae6f930e94bcc943ec"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0",
+      "canonicalRevision": "2cb1f749cfbf7670d30fe74c1a3727030f084bbb9beb50f65f334c641317bfc0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c7e4c911da4291a076edd5d3",
+        "canonicalId:ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0"
+      ],
+      "rationale": "Primary independent review for ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0 (Bel, DomainConcept) at canonicalRevision=2cb1f749cfbf7670d30fe74c1a3727030f084bbb9beb50f65f334c641317bfc0. Frozen batch member flags: profileOnly=true, riskFlags=['high-risk', 'profile-only']. Worklist sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1; moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1]. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-c7e4c911da4291a076edd5d3', 'canonicalId:ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0']. All cited evidence is profile/aggregate only; no evidenceRef has boundary=independent-course, and none points to course-content/authoring/lessons/* or syllabus-refactor blueprint/main. priorDecisionRefs is empty (count=0), so historical coverage cannot authorize a role. Per current-course-coverage-review, INCLUDE/EXCLUDE require sufficient independent-course evidence; missing lesson authoring or syllabus blueprint/main requires DEFER with CourseCoverage authority unresolved. Therefore stageConclusion=DEFER (role-free, evidence insufficient, authority unresolved).",
+      "decisionDigest": "320becf4abca4887eebab54ef5f12fb652d461053ef511f5e6f81e773928b008"
+    }
+  ],
+  "documentDigest": "3c16d75b3787e2ad5aed72189765650ed0f53afac77e92f02b0875620ced9a20"
+}

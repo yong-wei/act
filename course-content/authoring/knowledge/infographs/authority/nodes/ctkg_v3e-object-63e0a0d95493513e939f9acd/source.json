@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-63e0a0d95493513e939f9acd",
+  "safe_id": "ctkg_v3e-object-63e0a0d95493513e939f9acd",
+  "node": {
+    "name": "State transition",
+    "name_en": "State transition matrix in Laplace domain",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "State transition：Φ(s) = [sI - A]^{-1} is the Laplace transform of the state transition matrix.",
+  "intuition": "在图谱邻接中可把握：前置 → Signal-flow graph state model。",
+  "explanation": "Φ(s) = [sI - A]^{-1} is the Laplace transform of the state transition matrix.",
+  "relation_head": "前置 → Signal-flow graph state model",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Signal-flow graph state model",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "State trans…",
+    "用于分析·Sign…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-63e0a0d95493513e939f9acd.md",
+  "provider_policy": "grok-image_gen"
+}

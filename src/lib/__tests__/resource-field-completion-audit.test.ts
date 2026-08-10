@@ -53,6 +53,7 @@ import {
   loadRuntimeLessonMediaSemanticReviewMap,
   parseResourceFieldCompletionAuditCliArgs,
   refreshFrozenPathGenerationDiagnostics,
+  resolveResourceFieldCompletionGeneratedAt,
   runtimeLessonReviewSourceHash,
   runtimeLessonMediaSemanticFormalReviewOverlaysForRows,
   reviewedRuntimeStepCompletionForSource,
@@ -670,6 +671,21 @@ describe('resource field completion audit', () => {
     ])).toThrow('Unsupported arguments');
   });
 
+  it('keeps frozen capture time separate from the current audit generation time', () => {
+    expect(resolveResourceFieldCompletionGeneratedAt({
+      now: () => '2026-07-25T10:30:00.000Z',
+    })).toBe('2026-07-25T10:30:00.000Z');
+    expect(resolveResourceFieldCompletionGeneratedAt({
+      configuredGeneratedAt: '2026-07-25T10:00:00.000Z',
+      now: () => '2026-07-25T10:30:00.000Z',
+    })).toBe('2026-07-25T10:00:00.000Z');
+    expect(resolveResourceFieldCompletionGeneratedAt({
+      frozenGeneratedAt: '2026-07-23T08:30:00.000Z',
+      configuredGeneratedAt: '2026-07-25T10:00:00.000Z',
+      now: () => '2026-07-25T10:30:00.000Z',
+    })).toBe('2026-07-23T08:30:00.000Z');
+  });
+
   it('uses only tracked or staged authoring textbook manifests as candidate sources', () => {
     const repoRoot = mkdtempSync(join(tmpdir(), 'authoring-textbook-index-'));
     const textbookRoot = join(repoRoot, 'course-content/authoring/resources/textbooks');
@@ -726,6 +742,15 @@ describe('resource field completion audit', () => {
       'utf8',
     );
     const reviewSources = readJsonl('core-registered-knowledge-resource-semantic-review-source.jsonl');
+    const reviewSourceIds = new Set(reviewSources.map((row) => row.resourceId));
+    const reviewedFrozenCoreRows = frozenRows.filter((row) =>
+      ['registered-resource', 'knowledge-card', 'knowledge-infograph'].includes(row.family) &&
+      reviewSourceIds.has(row.resourceId)
+    );
+    expect(reviewSources).toHaveLength(606);
+    expect(reviewSourceIds.size).toBe(reviewSources.length);
+    expect(reviewedFrozenCoreRows.map((row) => row.resourceId).sort())
+      .toEqual([...reviewSourceIds].sort());
     const workqueueItems = readJsonl('core-registered-knowledge-resource-semantic-workqueue-items.jsonl');
     const reviewItems = readJsonl('core-registered-knowledge-resource-semantic-review-items.jsonl');
     const firstScopedRowIndex = frozenRows.findIndex((row) => (
@@ -896,6 +921,25 @@ describe('resource field completion audit', () => {
         }
         : row),
     })).toThrow('Frozen core semantic formal row mismatch');
+    const denominatorKeyParts = frozenRows[firstScopedRowIndex].coverage.denominatorKey.split('|');
+    for (const tamperedDenominatorKey of [
+      [...denominatorKeyParts, 'tampered-unrelated-denominator'].join('|'),
+      denominatorKeyParts.slice(1).join('|'),
+      ['tampered-unrelated-denominator', ...denominatorKeyParts.slice(1)].join('|'),
+    ]) {
+      expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+        ...input,
+        frozenRows: frozenRows.map((row, index) => index === firstScopedRowIndex
+          ? {
+            ...row,
+            coverage: {
+              ...row.coverage,
+              denominatorKey: tamperedDenominatorKey,
+            },
+          }
+          : row),
+      })).toThrow('Frozen core semantic formal row mismatch');
+    }
     expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
       ...input,
       frozenRows: frozenRows.map((row, index) => index === firstScopedRowIndex
@@ -1253,6 +1297,9 @@ describe('resource field completion audit', () => {
     const unresolvedDispositionRows = dispositionReviewItems.filter((item) =>
       item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
     );
+    const generatedProvisionalKnowledgeCardRows = jsonlRows.filter((row) =>
+      row.family === 'knowledge-card' && row.reviewStatus === 'generated-provisional'
+    );
     const dispositionReviewItemsById = new Map(dispositionReviewItems.map((item) => [item.resourceId, item]));
     const independentlyReviewedDispositionRows = dispositionReviewItems.filter((item) =>
       item.reviewBatchId !== 'residual-resource-disposition-review-2026-07-05' ||
@@ -1386,7 +1433,11 @@ describe('resource field completion audit', () => {
     expect(evidenceLineageEvidence).toContain('Raw learner payloads and raw resource bodies are not included.');
     expect(dispositionReviewItems.length).toBeGreaterThanOrEqual(rowsMissingFields.length);
     expect(dispositionReviewSummary.totals.reviewedResources).toBe(dispositionReviewItems.length);
-    expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBe(0);
+    expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBe(unresolvedDispositionRows.length);
+    expect(generatedProvisionalKnowledgeCardRows).toHaveLength(541);
+    expect(new Set(unresolvedDispositionRows.map((item) => item.resourceId))).toEqual(
+      new Set(generatedProvisionalKnowledgeCardRows.map((row) => row.resourceId)),
+    );
     expect(dispositionReviewSummary.totals.privacyMinimized).toBe(true);
     expect(dispositionReviewSummary.totals.rawContentIncluded).toBe(false);
     expect(dispositionReviewSummary.byClassification['path-plannable']).toBeGreaterThan(0);
@@ -1434,6 +1485,10 @@ describe('resource field completion audit', () => {
       .every((item) => item.reviewedLimitationState.includes('residual-disposition-reviewed'))).toBe(true);
     expect(independentlyReviewedDispositionRows.length).toBeGreaterThan(0);
     expect(reviewedLongformRows).toHaveLength(3082);
+    expect(new Set(reviewedLongformRows.map((row) => row.coverage.sourceWindow.to))).toEqual(
+      new Set(['2026-07-18T05:00:00.000Z']),
+    );
+    expect(reviewedLongformRows[0].coverage.sourceWindow.to).not.toBe(summary.generatedAt);
     expect(reviewedLongformRows.every((row) =>
       row.reviewStatus === 'agent-reviewed' &&
       row.reviewAudit.reviewerRole === 'implementing-agent' &&
@@ -1511,12 +1566,12 @@ describe('resource field completion audit', () => {
     })).toBe(true);
     const unresolvedKnowledgeCardRows = unresolvedDispositionRows
       .filter((item) => item.sourceFamily === 'knowledge-card');
-    expect(unresolvedKnowledgeCardRows).toHaveLength(0);
+    expect(unresolvedKnowledgeCardRows).toHaveLength(generatedProvisionalKnowledgeCardRows.length);
     expect(knowledgeVisualSemanticReviewSummary).toMatchObject({
       selectedCount: 4,
       remainingSelectedSemanticReview: 0,
       residualUnselectedCounts: {
-        'knowledge-card': 18,
+        'knowledge-card': 18 + generatedProvisionalKnowledgeCardRows.length,
         'knowledge-infograph': 0,
       },
       byDisposition: {
@@ -1680,11 +1735,12 @@ describe('resource field completion audit', () => {
     );
     expect(fullResourcePathReadinessGate).toMatchObject({
       artifactVersion: FULL_RESOURCE_PATH_READINESS_GATE_VERSION,
-      status: 'passed',
+      status: 'failed',
       resourceCoverage: {
         totalResources: summary.totals.denominator,
-        unaccountedCount: 0,
-        unresolvedDownstreamPathBlockers: 0,
+        unaccountedCount: generatedProvisionalKnowledgeCardRows.length,
+        unreviewedSemanticCount: generatedProvisionalKnowledgeCardRows.length,
+        unresolvedDownstreamPathBlockers: generatedProvisionalKnowledgeCardRows.length * 2,
         evidenceLineageBlockerCount: 0,
       },
       learningGoalDiagnostics: {
@@ -1740,7 +1796,7 @@ describe('resource field completion audit', () => {
     expect(fullResourcePathReadinessEvidence).toContain('frequency-response-foundations: limited');
     expect(fullResourcePathReadinessEvidence).toContain('Attempted path generations: 9');
     expect(fullResourcePathReadinessEvidence).toContain(
-      'Unresolved downstream path blockers: 0'
+      `Unresolved downstream path blockers: ${generatedProvisionalKnowledgeCardRows.length * 2}`
     );
     expect(fullResourcePathReadinessEvidence).toContain('Resource mix not evaluated: 9');
     expect(fullResourcePathReadinessEvidence).toContain('Citation metadata not evaluated: 9');

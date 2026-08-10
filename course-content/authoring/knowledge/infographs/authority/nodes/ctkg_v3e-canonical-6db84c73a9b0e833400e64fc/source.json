@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+  "safe_id": "ctkg_v3e-canonical-6db84c73a9b0e833400e64fc",
+  "node": {
+    "name": "比例-微分控制",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "一种早期控制，可在出现位置误差前，提前产生修正作用，从而达到改善系统性能的目的。",
+  "intuition": "系统输出量同时受误差信号及其速率的双重作用。",
+  "explanation": "一种早期控制，可在出现位置误差前，提前产生修正作用，从而达到改善系统性能的目的。系统输出量同时受误差信号及其速率的双重作用。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "比例-微分控制"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6db84c73a9b0e833400e64fc.md",
+  "provider_policy": "grok-image_gen"
+}

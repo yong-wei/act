@@ -35,6 +35,13 @@ const mocks = vi.hoisted(() => ({
     adaptiveAssessmentAnswer: {
       findFirst: vi.fn(),
     },
+    adaptivePathCandidateBatch: {
+      findUnique: vi.fn(),
+    },
+    agentToolRun: {
+      findFirst: vi.fn(),
+      updateMany: vi.fn(),
+    },
     studentProfile: {
       findUnique: vi.fn(),
     },
@@ -481,11 +488,21 @@ describe('learning path round API routes', () => {
       terminalValidation: { nodeId: 'node-1', state: 'pending' },
       lastExecutionMetadata: { completedNodeIds: [] },
     });
+    // Fence re-reads use findFirst without consuming findUnique once-queues.
     mocks.prisma.learningPath.findFirst.mockResolvedValue({
       id: 'path-1',
       userId: 'student-1',
       classId: 'class-1',
       goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' }],
+      },
+      lastExecutionMetadata: { completedNodeIds: [] },
+      terminalValidation: { nodeId: null, state: 'not-required' },
     });
     mocks.prisma.studentProfile.findUnique.mockResolvedValue({ userId: 'student-1', classId: 'class-1' });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
@@ -1103,6 +1120,24 @@ describe('learning path round API routes', () => {
       },
       cacheRefresh: 'completed',
     });
+  });
+
+  it('accepts a governed replacement deviation for the student owner', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(journeyPathRecord());
+    const response = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'replacement',
+      priorNodeId: 'node-1',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'replacement-dev-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathDeviation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      deviationType: 'replacement',
+      priorNodeId: 'node-1',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'replacement-dev-key',
+    }));
   });
 
   it('keeps a sanitized simple resource completion result for governed path advancement', async () => {
@@ -2916,7 +2951,7 @@ describe('learning path round API routes', () => {
   });
 
   it('advances the server current node after skipping the current node', async () => {
-    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+    const skipPath = {
       id: 'path-1',
       userId: 'student-1',
       classId: 'class-1',
@@ -2934,7 +2969,9 @@ describe('learning path round API routes', () => {
       },
       terminalValidation: { nodeId: null, state: 'not-required' },
       lastExecutionMetadata: { completedNodeIds: ['node-1'], skippedNodeIds: [] },
-    });
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(skipPath);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue(skipPath);
     mocks.recordPathDeviation.mockResolvedValueOnce({
       id: 'dev-2',
       deviationType: 'skip',
@@ -3029,7 +3066,7 @@ describe('learning path round API routes', () => {
   });
 
   it('repairs parent path advancement when an idempotent current-node skip replay finds an existing deviation', async () => {
-    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+    const skipPath = {
       id: 'path-1',
       userId: 'student-1',
       classId: 'class-1',
@@ -3047,7 +3084,9 @@ describe('learning path round API routes', () => {
       },
       terminalValidation: { nodeId: null, state: 'not-required' },
       lastExecutionMetadata: { completedNodeIds: ['node-1'], skippedNodeIds: [] },
-    });
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(skipPath);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue(skipPath);
     mocks.prisma.learningPathDeviation.findFirst.mockResolvedValueOnce({
       id: 'dev-2',
       pathId: 'path-1',
@@ -3154,6 +3193,161 @@ describe('learning path round API routes', () => {
       }),
       idempotencyKey: 'choice-option-key',
     }));
+  });
+
+  it('rejects a candidate identity that is not bound to the selected path batch', async () => {
+    mocks.prisma.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'another-path',
+      status: 'succeeded',
+      candidates: [{
+        id: 'candidate-1',
+        styleId: 'foundation-remediation',
+        snapshot: { styleId: 'foundation-remediation' },
+      }],
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'candidate-mismatch-key',
+    }), params);
+
+    expect(response.status).toBe(404);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
+  });
+
+  it('executes the immutable candidate snapshot instead of mutable source path options', async () => {
+    mocks.prisma.agentToolRun.findFirst.mockResolvedValue({
+      id: 'tool-run-selection-1', status: 'running', startedAt: new Date('2026-08-05T00:00:00Z'),
+      inputSummary: {
+        batchId: 'batch-1', candidateId: 'candidate-1', pathId: 'path-1', goalId: 'control-correction',
+      },
+      outputSummary: null,
+    });
+    mocks.prisma.agentToolRun.updateMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      status: 'succeeded',
+      candidates: [{
+        id: 'candidate-1',
+        styleId: 'foundation-remediation',
+        snapshot: {
+          optionId: 'path-option-a',
+          styleId: 'foundation-remediation',
+          policyFamily: 'foundation-remediation',
+          nodeIds: ['snapshot-a-1', 'snapshot-a-2'],
+          activeNodeIds: ['snapshot-a-1'],
+          planNodes: [
+            { nodeId: 'snapshot-a-1', type: 'knowledge_card', target: '/knowledge/snapshot-a-1' },
+            { nodeId: 'snapshot-a-2', type: 'adaptive_quiz', target: '/assessment/snapshot-a-2' },
+          ],
+          resourceMix: { knowledge_card: 1, adaptive_quiz: 1 },
+          evidenceBasis: ['candidate-snapshot-a'],
+          terminalValidationNodeIds: [],
+        },
+      }],
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      selectedOptionId: 'path-option-a',
+      selectedStyleId: 'foundation-remediation',
+      idempotencyKey: 'candidate-snapshot-key',
+      toolRunId: 'tool-run-selection-1',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      resourceMix: { knowledge_card: 1, adaptive_quiz: 1 },
+      rationaleMetadata: expect.objectContaining({ evidenceBasis: ['candidate-snapshot-a'] }),
+    }));
+    expect(mocks.prisma.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'tool-run-selection-1', status: 'running' },
+      data: expect.objectContaining({ status: 'succeeded' }),
+    }));
+    expect(mocks.recordPathChoiceEvidence.mock.invocationCallOrder[0])
+      .toBeLessThan(mocks.prisma.agentToolRun.updateMany.mock.invocationCallOrder[0]);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        nodeIds: ['snapshot-a-1', 'snapshot-a-2'],
+        currentNodeId: 'snapshot-a-1',
+        pathPayload: expect.objectContaining({
+          selectedOptionId: 'path-option-a',
+          selectedStyleId: 'foundation-remediation',
+        }),
+      }),
+    }));
+    expect(JSON.stringify(mocks.prisma.learningPath.update.mock.calls)).not.toContain('knowledge-card:targets');
+  });
+
+  it('records an immutable candidate rejection without selecting or adopting it', async () => {
+    mocks.prisma.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      status: 'succeeded',
+      candidates: [{
+        id: 'candidate-1',
+        styleId: 'foundation-remediation',
+        snapshot: {
+          optionId: 'path-option-a',
+          styleId: 'foundation-remediation',
+          policyFamily: 'foundation-remediation',
+          nodeIds: ['snapshot-a-1'],
+          activeNodeIds: ['snapshot-a-1'],
+          planNodes: [
+            { nodeId: 'snapshot-a-1', type: 'knowledge_card', target: '/knowledge/snapshot-a-1' },
+          ],
+          resourceMix: { knowledge_card: 1 },
+          evidenceBasis: ['candidate-snapshot-a'],
+          terminalValidationNodeIds: [],
+        },
+      }],
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'rejection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      rejectedOptionIds: ['path-option-a'],
+      idempotencyKey: 'candidate-rejection-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      selectedStyleId: null,
+      selectedPolicyFamily: null,
+      rejectedStyleIds: ['foundation-remediation'],
+    }));
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-selection actions that attempt to complete a candidate selection tool run', async () => {
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'rejection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      rejectedOptionIds: ['path-option-a'],
+      idempotencyKey: 'candidate-rejection-tool-run-key',
+      toolRunId: 'tool-run-selection-1',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
+    expect(mocks.prisma.agentToolRun.findFirst).not.toHaveBeenCalled();
+    expect(mocks.prisma.agentToolRun.updateMany).not.toHaveBeenCalled();
   });
 
   it('records choices from persisted fallback pathOptions when no policy bundle paths exist', async () => {
@@ -3461,17 +3655,27 @@ describe('learning path round API routes', () => {
             ],
             resourceMix: { simulation: 1, arena_task: 1 },
             evidenceBasis: ['simulation-run'],
+            recommendationProvenance: {
+              summary: '依据仿真实验与终点检查证据安排本路径。',
+              confidence: 'medium',
+              entries: [{
+                evidenceSummary: '最近一次仿真实验已形成有效记录。',
+                judgment: '先复核仿真，再进入终点检查。',
+                affectedNodeIds: ['simulation:control-correction-step-response-lab'],
+              }],
+              limitations: ['终点检查仍需补充结果。'],
+            },
             terminalValidationNodeIds: ['arena-task:terminal'],
           },
         ],
       },
     };
-    mocks.prisma.learningPath.findUnique.mockResolvedValueOnce({
+    const accessPath = {
       id: 'path-1',
       userId: 'student-1',
       classId: 'class-1',
       goalId: 'control-correction',
-      pathStatus: 'completed',
+      pathStatus: 'active',
       currentNodeId: 'node-1',
       nodeIds: ['node-1'],
       pathPayload: latestPathPayload,
@@ -3479,11 +3683,15 @@ describe('learning path round API routes', () => {
       inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
       terminalValidation: { nodeId: 'node-1', state: 'passed' },
       lastExecutionMetadata: { completedNodeIds: ['node-1'] },
-    }).mockResolvedValueOnce({
-      pathPayload: latestPathPayload,
+    };
+    // Fence re-read must see empty completed set so the adopted current node advances.
+    const fencedPath = {
+      ...accessPath,
       lastExecutionMetadata: { completedNodeIds: [] },
       terminalValidation: { nodeId: 'node-1', state: 'passed' },
-    });
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(accessPath);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue(fencedPath);
 
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',
@@ -3530,11 +3738,28 @@ describe('learning path round API routes', () => {
             expect.objectContaining({
               nodeId: 'simulation:control-correction-step-response-lab',
               type: 'simulation',
+              decisionExplanation: {
+                selectionBasis: {
+                  summary: '依据仿真实验与终点检查证据安排本路径。',
+                  confidence: 'medium',
+                  supportingFacts: [
+                    '最近一次仿真实验已形成有效记录。',
+                    '先复核仿真，再进入终点检查。',
+                  ],
+                  limitations: ['终点检查仍需补充结果。'],
+                },
+              },
             }),
             expect.objectContaining({
               nodeId: 'arena-task:terminal',
               type: 'arena_task',
               status: 'current',
+              decisionExplanation: {
+                selectionBasis: expect.objectContaining({
+                  summary: '依据仿真实验与终点检查证据安排本路径。',
+                  supportingFacts: [],
+                }),
+              },
             }),
           ],
         }),
@@ -3552,6 +3777,278 @@ describe('learning path round API routes', () => {
         }),
       }),
     }));
+  });
+
+  it('maps LearningPathMutationBlockedError from execute service to 409 LEGACY_PATH_STOPPED', async () => {
+    const { LearningPathMutationBlockedError } = await import('@/lib/canonical-learning-path-transition/mutation-guard');
+    mocks.recordPathNodeExecution.mockRejectedValueOnce(new LearningPathMutationBlockedError({
+      blocked: true,
+      code: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+      pathStatus: 'legacy-stopped',
+      pathId: 'path-1',
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      idempotencyKey: 'exec-stopped-fence',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      error: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+      pathStatus: 'legacy-stopped',
+      pathId: 'path-1',
+    });
+  });
+
+  it('maps LearningPathMutationBlockedError from intervention service to 409 LEGACY_PATH_STOPPED', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    const { LearningPathMutationBlockedError } = await import('@/lib/canonical-learning-path-transition/mutation-guard');
+    mocks.recordPathIntervention.mockRejectedValueOnce(new LearningPathMutationBlockedError({
+      blocked: true,
+      code: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+      pathStatus: 'legacy-stopped',
+      pathId: 'path-1',
+    }));
+
+    const response = await intervenePath(post('http://localhost/api/learning-paths/path-1/interventions', {
+      interventionKind: 'hint',
+      suggestedAction: 'review',
+      privacySafeSummary: 'hint summary',
+      idempotencyKey: 'intv-stopped-fence',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      error: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+    });
+  });
+
+  it('maps LearningPathMutationBlockedError from plan persist to 409 LEGACY_PATH_STOPPED', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findUnique.mockResolvedValue({ userId: 'student-1', classId: 'class-1' });
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(null);
+    const { LearningPathMutationBlockedError } = await import('@/lib/canonical-learning-path-transition/mutation-guard');
+    mocks.persistControlCorrectionPathRound.mockRejectedValueOnce(new LearningPathMutationBlockedError({
+      blocked: true,
+      code: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+      pathStatus: 'legacy-stopped',
+      pathId: 'adaptive-path:student-1:control-correction',
+    }));
+
+    const response = await planPath(post('http://localhost/api/learning-paths/plan', {
+      classId: 'class-1',
+      plan: {
+        id: 'adaptive-path:student-1:control-correction',
+        userId: 'student-1',
+        goal: { id: 'control-correction', title: '控制系统校正设计', knowledgeTargets: [] },
+        stage: 'stage-1-rules-graph',
+        status: 'ready',
+        currentNodeId: 'node-1',
+        mainPath: [],
+      },
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      error: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+      pathStatus: 'legacy-stopped',
+    });
+  });
+
+  it('returns 409 and skips adopt update when cutover stops the path after choice evidence', async () => {
+    const pathPayload = {
+      mainPathNodeIds: ['node-1'],
+      planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            styleId: 'simulation-driven',
+            policyFamily: 'simulation-driven',
+            nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:terminal'],
+            activeNodeIds: ['arena-task:terminal'],
+            planNodes: [
+              { nodeId: 'simulation:control-correction-step-response-lab', type: 'simulation', target: '/simulations/control-correction-step-response-lab' },
+              { nodeId: 'arena-task:terminal', type: 'arena_task', target: '/arena/tasks/terminal' },
+            ],
+            resourceMix: { simulation: 1, arena_task: 1 },
+            evidenceBasis: ['simulation-run'],
+            terminalValidationNodeIds: ['arena-task:terminal'],
+          },
+        ],
+      },
+    };
+    const activePath = {
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload,
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(activePath);
+    // Initial guard passes via findUnique; fence re-read sees stopped after cutover.
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      ...activePath,
+      pathStatus: 'legacy-stopped',
+      pathPayload: {
+        ...pathPayload,
+        legacyArchiveState: 'legacy-stopped',
+        readOnlyStopped: true,
+      },
+    });
+    mocks.recordPathChoiceEvidence.mockResolvedValue({
+      emitted: true,
+      dedupeKey: 'control-correction-path:choice:path-1:choice-after-cutover',
+    });
+    mocks.prisma.learningPath.update.mockClear();
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-after-cutover',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      error: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+      pathStatus: 'legacy-stopped',
+    });
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('returns 409 and skips skip-advance update when cutover stops path after deviation', async () => {
+    const activePath = {
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+          { nodeId: 'node-3', type: 'checkpoint', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], skippedNodeIds: [] },
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(activePath);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      ...activePath,
+      pathStatus: 'legacy-stopped',
+      pathPayload: {
+        ...activePath.pathPayload,
+        legacyArchiveState: 'legacy-stopped',
+        readOnlyStopped: true,
+      },
+    });
+    mocks.recordPathDeviation.mockResolvedValue({
+      id: 'dev-after-cutover',
+      deviationType: 'skip',
+      priorNodeId: 'node-2',
+      targetNodeId: 'node-2',
+      evidenceConfidence: 'medium',
+    });
+    mocks.prisma.learningPath.update.mockClear();
+
+    const response = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'skip',
+      priorNodeId: 'node-2',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'skip-after-cutover',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      error: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+      pathStatus: 'legacy-stopped',
+    });
+    expect(mocks.recordPathDeviation).toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('returns 409 on idempotent skip repair when path is stopped under fence', async () => {
+    const activePath = {
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+          { nodeId: 'node-3', type: 'checkpoint', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], skippedNodeIds: [] },
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(activePath);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      ...activePath,
+      pathStatus: 'legacy-stopped',
+    });
+    mocks.prisma.learningPathDeviation.findFirst.mockResolvedValue({
+      id: 'dev-existing',
+      pathId: 'path-1',
+      userId: 'student-1',
+      deviationType: 'skip',
+      priorNodeId: 'node-2',
+      targetNodeId: 'node-2',
+      evidenceConfidence: 'medium',
+      idempotencyKey: 'skip-repair-stopped',
+    });
+    mocks.prisma.learningPath.update.mockClear();
+
+    const response = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'skip',
+      priorNodeId: 'node-2',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'skip-repair-stopped',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      error: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+    });
+    expect(mocks.recordPathDeviation).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('selects the next unfinished node when adopting an option with stale active nodes', async () => {
@@ -3577,29 +4074,30 @@ describe('learning path round API routes', () => {
         ],
       },
     };
-    mocks.prisma.learningPath.findUnique
-      .mockResolvedValueOnce({
-        id: 'path-1',
-        userId: 'student-1',
-        classId: 'class-1',
-        goalId: 'control-correction',
-        pathStatus: 'active',
-        currentNodeId: 'node-1',
-        nodeIds: ['node-1'],
-        pathPayload,
-        learnerStateRef: 'diagnosis-snapshot:server-owned',
-        inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
-        terminalValidation: { nodeId: 'node-1', state: 'pending' },
-        lastExecutionMetadata: { completedNodeIds: [] },
-      })
-      .mockResolvedValueOnce({
-        pathPayload: {
-          ...pathPayload,
-          executionStatus: { completedNodeIds: ['simulation:shared-lab'] },
-        },
-        lastExecutionMetadata: { completedNodeIds: ['simulation:shared-lab'] },
-        terminalValidation: { nodeId: 'node-1', state: 'pending' },
-      });
+    const accessPath = {
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload,
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(accessPath);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      ...accessPath,
+      pathPayload: {
+        ...pathPayload,
+        executionStatus: { completedNodeIds: ['simulation:shared-lab'] },
+      },
+      lastExecutionMetadata: { completedNodeIds: ['simulation:shared-lab'] },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+    });
 
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',
@@ -3650,29 +4148,30 @@ describe('learning path round API routes', () => {
         ],
       },
     };
-    mocks.prisma.learningPath.findUnique
-      .mockResolvedValueOnce({
-        id: 'path-1',
-        userId: 'student-1',
-        classId: 'class-1',
-        goalId: 'control-correction',
-        pathStatus: 'active',
-        currentNodeId: 'node-1',
-        nodeIds: ['node-1'],
-        pathPayload,
-        learnerStateRef: 'diagnosis-snapshot:server-owned',
-        inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
-        terminalValidation: { nodeId: 'node-1', state: 'pending' },
-        lastExecutionMetadata: { completedNodeIds: [] },
-      })
-      .mockResolvedValueOnce({
-        pathPayload: {
-          ...pathPayload,
-          executionStatus: { completedNodeIds: ['simulation:shared-lab'] },
-        },
-        lastExecutionMetadata: { completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'] },
-        terminalValidation: { nodeId: 'node-1', state: 'pending' },
-      });
+    const accessPath = {
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload,
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(accessPath);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      ...accessPath,
+      pathPayload: {
+        ...pathPayload,
+        executionStatus: { completedNodeIds: ['simulation:shared-lab'] },
+      },
+      lastExecutionMetadata: { completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'] },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+    });
 
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',
@@ -3740,8 +4239,7 @@ describe('learning path round API routes', () => {
         ],
       },
     };
-    mocks.prisma.learningPath.findUnique
-      .mockResolvedValueOnce({
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
         id: 'path-1',
         userId: 'student-1',
         classId: 'class-1',
@@ -3754,8 +4252,12 @@ describe('learning path round API routes', () => {
         inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
         terminalValidation,
         lastExecutionMetadata: { completedNodeIds: [] },
-      })
-      .mockResolvedValueOnce({
+      });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      pathStatus: 'active',
+      ...({
         pathPayload: {
           ...pathPayload,
           executionStatus: {
@@ -3769,7 +4271,8 @@ describe('learning path round API routes', () => {
           terminalValidationState: 'low-confidence',
         },
         terminalValidation,
-      });
+      }),
+    });
 
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',
@@ -3824,8 +4327,7 @@ describe('learning path round API routes', () => {
         ],
       },
     };
-    mocks.prisma.learningPath.findUnique
-      .mockResolvedValueOnce({
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
         id: 'path-1',
         userId: 'student-1',
         classId: 'class-1',
@@ -3844,8 +4346,12 @@ describe('learning path round API routes', () => {
           fallbackRequired: true,
         },
         lastExecutionMetadata: { completedNodeIds: [] },
-      })
-      .mockResolvedValueOnce({
+      });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      pathStatus: 'active',
+      ...({
         pathPayload,
         lastExecutionMetadata: {
           completedNodeIds: ['simulation:shared-lab', 'arena-task:new-terminal'],
@@ -3858,7 +4364,8 @@ describe('learning path round API routes', () => {
           lowConfidenceMarkers: ['old-terminal-low-confidence'],
           fallbackRequired: true,
         },
-      });
+      }),
+    });
 
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',
@@ -3914,8 +4421,7 @@ describe('learning path round API routes', () => {
         ],
       },
     };
-    mocks.prisma.learningPath.findUnique
-      .mockResolvedValueOnce({
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
         id: 'path-1',
         userId: 'student-1',
         classId: 'class-1',
@@ -3928,15 +4434,20 @@ describe('learning path round API routes', () => {
         inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
         terminalValidation,
         lastExecutionMetadata: { completedNodeIds: [] },
-      })
-      .mockResolvedValueOnce({
+      });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      pathStatus: 'active',
+      ...({
         pathPayload,
         lastExecutionMetadata: {
           completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
           failedNodeIds: ['arena-task:terminal'],
         },
         terminalValidation,
-      });
+      }),
+    });
 
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',
@@ -3990,8 +4501,7 @@ describe('learning path round API routes', () => {
         ],
       },
     };
-    mocks.prisma.learningPath.findUnique
-      .mockResolvedValueOnce({
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
         id: 'path-1',
         userId: 'student-1',
         classId: 'class-1',
@@ -4004,15 +4514,20 @@ describe('learning path round API routes', () => {
         inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
         terminalValidation,
         lastExecutionMetadata: { completedNodeIds: [] },
-      })
-      .mockResolvedValueOnce({
+      });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      pathStatus: 'active',
+      ...({
         pathPayload,
         lastExecutionMetadata: {
           completedNodeIds: ['arena-task:terminal'],
           failedNodeIds: ['simulation:shared-lab'],
         },
         terminalValidation,
-      });
+      }),
+    });
 
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',
@@ -4070,8 +4585,7 @@ describe('learning path round API routes', () => {
     };
     const latestSelectionHistory = [{ id: 'choice-history-1', type: 'selection', selectedStyleId: 'simulation-driven' }];
     const latestActivity = [{ id: 'choice-history-1', type: 'choice:selection', selectedStyleId: 'simulation-driven' }];
-    mocks.prisma.learningPath.findUnique
-      .mockResolvedValueOnce({
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
         id: 'path-1',
         userId: 'student-1',
         classId: 'class-1',
@@ -4084,15 +4598,20 @@ describe('learning path round API routes', () => {
         inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
         terminalValidation: { nodeId: 'node-1', state: 'pending' },
         lastExecutionMetadata: { completedNodeIds: [] },
-      })
-      .mockResolvedValueOnce({
+      });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      pathStatus: 'active',
+      ...({
         pathPayload: {
           ...initialPathPayload,
           selectionHistory: latestSelectionHistory,
           activity: latestActivity,
         },
         lastExecutionMetadata: { completedNodeIds: [], activeNodeId: 'node-1' },
-      });
+      }),
+    });
 
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',
@@ -4115,8 +4634,7 @@ describe('learning path round API routes', () => {
   });
 
   it('adopts legacy product options from node summaries when option plan nodes are absent', async () => {
-    mocks.prisma.learningPath.findUnique
-      .mockResolvedValueOnce({
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
         id: 'path-1',
         userId: 'student-1',
         classId: 'class-1',
@@ -4173,14 +4691,19 @@ describe('learning path round API routes', () => {
         inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
         terminalValidation: { nodeId: 'node-1', state: 'pending' },
         lastExecutionMetadata: { completedNodeIds: [] },
-      })
-      .mockResolvedValueOnce({
+      });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      pathStatus: 'active',
+      ...({
         pathPayload: {
           mainPathNodeIds: ['node-1'],
           planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
         },
         lastExecutionMetadata: { completedNodeIds: [] },
-      });
+      }),
+    });
 
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',

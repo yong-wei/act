@@ -62,6 +62,7 @@ vi.mock('@/lib/konling-agent-runtime', () => ({
 }));
 
 import { POST } from '@/app/api/adaptive/path-advisor-tool/route';
+import { KonlingRuntimeScopeError } from '@/lib/konling-agent-runtime';
 
 function post(body: Record<string, unknown>) {
   return POST(new Request('http://localhost/api/adaptive/path-advisor-tool', {
@@ -70,6 +71,7 @@ function post(body: Record<string, unknown>) {
     body: JSON.stringify({
       goalId: 'control-correction',
       modeContextToken: 'mode-token',
+      generationRequestId: 'generation-request-1',
       ...body,
     }),
   }));
@@ -192,10 +194,47 @@ describe('path advisor tool route readiness', () => {
         studentAction: 'retry',
         staffAction: 'check-service',
       },
+      generationRequest: {
+        id: 'generation-request-1',
+        status: 'running',
+      },
+    });
+  });
+
+  it('marks a persisted runtime conflict as a definitive generation failure', async () => {
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn().mockRejectedValue(
+        new KonlingRuntimeScopeError(409, '幂等 Konling 工具请求此前已失败，不能重复执行。'),
+      ),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({});
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      generationRequest: {
+        id: 'generation-request-1',
+        status: 'failed',
+      },
     });
   });
 
   it('returns ready readiness after successful path generation', async () => {
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn().mockResolvedValue({
+        pathId: 'path-1',
+        generationStatus: 'persisted',
+        candidateBatch: {
+          id: 'batch-1',
+          generationRequestId: 'path-generation-request:generation-request-1',
+          candidateIds: ['candidate-1'],
+        },
+      }),
+      reviseLearningPathOptions: vi.fn(),
+    });
     const response = await post({});
 
     expect(response.status).toBe(200);
@@ -208,7 +247,94 @@ describe('path advisor tool route readiness', () => {
         studentAction: 'continue-practice',
         staffAction: 'none',
       },
-      result: { pathId: 'path-1' },
+      result: {
+        pathId: 'path-1',
+        candidateBatch: {
+          id: 'batch-1',
+          candidateIds: ['candidate-1'],
+        },
+      },
+      generationRequest: {
+        id: 'generation-request-1',
+        status: 'succeeded',
+      },
+    });
+  });
+
+  it('rejects an invalid generation request id', async () => {
+    const response = await post({ generationRequestId: '../request' });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '学习路径生成请求 ID 无效',
+    });
+  });
+
+  it('uses the generation request id as the stable runtime idempotency key', async () => {
+    const generateLearningPath = vi.fn().mockResolvedValue({
+      pathId: 'path-1',
+      generationStatus: 'running',
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath,
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({
+      generationRequestId: 'stable-request-1',
+      idempotencyKey: 'client-value-must-not-win',
+    });
+
+    expect(response.status).toBe(200);
+    expect(generateLearningPath).toHaveBeenCalledWith(expect.objectContaining({
+      idempotencyKey: 'path-generation-request:stable-request-1',
+    }));
+    await expect(response.json()).resolves.toMatchObject({
+      generationRequest: {
+        id: 'stable-request-1',
+        status: 'running',
+      },
+    });
+  });
+
+  it('keeps a reused running tool request active', async () => {
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn().mockResolvedValue({
+        toolRunReused: true,
+        status: 'running',
+      }),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({ generationRequestId: 'stable-request-1' });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      generationRequest: {
+        id: 'stable-request-1',
+        status: 'running',
+      },
+    });
+  });
+
+  it('keeps an awaiting-approval tool request active without candidate identity', async () => {
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn().mockResolvedValue({
+        status: 'awaiting_approval',
+        candidateBatch: null,
+      }),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({ generationRequestId: 'stable-request-1' });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      result: { candidateBatch: null },
+      generationRequest: { id: 'stable-request-1', status: 'running' },
     });
   });
 
@@ -243,6 +369,51 @@ describe('path advisor tool route readiness', () => {
     });
 
     expect(response.status).toBe(200);
+    expect(explainLearningPathTradeoff).toHaveBeenCalledWith(expect.objectContaining({
+      pathId: 'path-1',
+      selectedStyleId: 'recommended',
+      styleId: 'recommended',
+    }));
+  });
+
+  it('allows empty-node path options to reach the runtime insufficient-data result', async () => {
+    const explainLearningPathTradeoff = vi.fn().mockResolvedValue({
+      comparison: { status: 'insufficient-data' },
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: null,
+      nodeIds: [],
+      pathPayload: {
+        pathOptions: [{
+          optionId: 'path-option-1',
+          styleId: 'recommended',
+          nodeIds: [],
+        }],
+        executionStatus: {
+          completedNodeIds: [],
+        },
+      },
+      lastExecutionMetadata: {},
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff,
+      generateLearningPath: vi.fn(),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-1',
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      result: {
+        comparison: { status: 'insufficient-data' },
+      },
+    });
     expect(explainLearningPathTradeoff).toHaveBeenCalledWith(expect.objectContaining({
       pathId: 'path-1',
       selectedStyleId: 'recommended',

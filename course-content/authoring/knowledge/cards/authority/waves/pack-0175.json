@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0175",
+  "offset": 875,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-37b4b074acb6cd0044127737",
+      "batch": "C",
+      "name": "Cover-up method",
+      "definition": "Cover-up method：Cover-up method",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Cover-up me…",
+        "Cover-up met",
+        "一种·Cover-…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Cover-up method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Cover-up method：Cover-up method\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Cover-up m」、「Cover-up m」、「一种·Cover-…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-15bb04de4783aac94efc5a01",
+      "batch": "C",
+      "name": "Schmitt Trigger",
+      "definition": "Schmitt Trigger：Schmitt Trigger",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Schmitt Tri…",
+        "Schmitt Trig",
+        "一种·Hyster…",
+        "关联·Hyster…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Schmitt Trigger\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Schmitt Trigger：Schmitt Trigger\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Schmitt Tr」、「Schmitt Tr」、「一种·Hyster…」、「关联·Hyster…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a36f17ddac0ec65e08118916",
+      "batch": "C",
+      "name": "Discrete signal",
+      "definition": "Discrete signal：Discrete signal",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete si…",
+        "Discrete sig",
+        "一种·Sample…",
+        "包含组件·Samp…",
+        "包含组件·Disc…",
+        "派生自·Sampl…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete signal\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete signal：Discrete signal\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete s」、「Discrete s」、「一种·Sample…」、「包含组件·Samp…」、「包含组件·Disc…」、「派生自·Sampl…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1126ce54b22f0fafb3f6e916",
+      "batch": "C",
+      "name": "无纹波最少拍系统设计方法",
+      "definition": "无纹波最少拍系统设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "无纹波最少拍系统设计方法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 无纹波最少拍系统设计方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 无纹波最少拍系统设计方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「无纹波最少拍系统设计」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_8596324a9d5a50d2998e7d97",
+      "batch": "C",
+      "name": "广义被控对象脉冲传递函数",
+      "definition": "广义被控对象脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "广义被控对象脉冲传递函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 广义被控对象脉冲传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 广义被控对象脉冲传递函数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「广义被控对象脉冲传递」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

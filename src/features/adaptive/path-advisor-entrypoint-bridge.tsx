@@ -32,6 +32,7 @@ export function PathAdvisorEntryPointBridge({
   const { updatePageContext } = useGlobalAI();
   const requestedGoal = searchParams.get('goal');
   const activeGraphNodeId = searchParams.get('graphNodeId');
+  const candidateBatchId = searchParams.get('batch');
   const explicitGoal = isAdaptivePracticeGoalId(requestedGoal) ? requestedGoal : null;
   const modeContextToken = explicitGoal ? modeContextTokens[explicitGoal] ?? null : null;
 
@@ -58,18 +59,22 @@ export function PathAdvisorEntryPointBridge({
       learningObjectives: goalContext.learningObjectives,
       assistantEntryPoint: {
         mode: 'path-advisor',
-        promptContext: `student-path-center:${explicitGoal}:adaptive-path-center`,
+        promptContext: [
+          `student-path-center:${explicitGoal}:adaptive-path-center`,
+          candidateBatchId ? `authorized-candidate-batch:${candidateBatchId}` : null,
+        ].filter(Boolean).join('\n'),
         serverContext: {
           classId,
           courseId: explicitGoal,
           goalId: explicitGoal,
+          ...(candidateBatchId ? { candidateBatchId } : {}),
           pageId: PATH_ADVISOR_PAGE_CONTEXT_BASE.stepId,
           modeContextToken,
         },
       },
     });
     return () => updatePageContext({ assistantEntryPoint: null });
-  }, [activeGraphNodeId, classId, explicitGoal, goalContexts, modeContextToken, updatePageContext]);
+  }, [activeGraphNodeId, candidateBatchId, classId, explicitGoal, goalContexts, modeContextToken, updatePageContext]);
 
   return null;
 }

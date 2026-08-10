@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-2b3daca16f4fb57b9da083bd",
+  "safe_id": "ctkg_v3e-object-2b3daca16f4fb57b9da083bd",
+  "node": {
+    "name": "Frequency-Respon",
+    "name_en": "Frequency-Response Based Stability Analysis",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Frequency-Respon：External stability analysis using frequency response methods such as the describing function and circle criterion.",
+  "intuition": "在图谱邻接中可把握：前置 → Circle Criterion · 后续 → Describing Function Method。",
+  "explanation": "External stability analysis using frequency response methods such as the describing function and circle criterion.",
+  "relation_head": "前置 → Circle Criterion · 后续 → Describing Function Method",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Circle Criterion",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "Describing Function Method",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "Frequency-R…",
+    "一种·Circle",
+    "包含组件·Desc…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-2b3daca16f4fb57b9da083bd.md",
+  "provider_policy": "grok-image_gen"
+}

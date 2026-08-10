@@ -1,0 +1,18 @@
+{
+  "description": "Textbook chapter/section order produces advisory candidates only.",
+  "scopeId": "act-control-theory-core",
+  "pairs": [
+    {
+      "earlierId": "node.laplace-transform",
+      "laterId": "node.transfer-function",
+      "scopeId": "act-control-theory-core",
+      "locator": "textbook:dorf:ch2:sec3"
+    },
+    {
+      "earlierId": "node.transfer-function",
+      "laterId": "node.block-diagram",
+      "scopeId": "act-control-theory-core",
+      "locator": "textbook:dorf:ch2:sec5"
+    }
+  ]
+}

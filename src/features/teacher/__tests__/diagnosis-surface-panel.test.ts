@@ -205,6 +205,54 @@ describe('DiagnosisSurfacePanel', () => {
     expect(html).not.toMatch(/rawDialogue|private Konling memory|studentAnswer/i);
   });
 
+  it('renders cumulative portrait scores in the 0-100 scale without multiplying them again', () => {
+    const diagnosis: RoleBasedLearningDiagnosis = {
+      ...baseDiagnosis,
+      claims: [{
+        ...baseDiagnosis.claims[0],
+        metrics: {
+          ...baseDiagnosis.claims[0].metrics,
+          score: 65.23,
+        },
+      }],
+    };
+
+    const html = renderToStaticMarkup(
+      React.createElement(DiagnosisSurfacePanel, {
+        diagnosis,
+        mode: 'student',
+        scoreScale: 'points',
+      })
+    );
+
+    expect(html).toContain('65.23 分');
+    expect(html).not.toContain('6523%');
+  });
+
+  it('keeps a cumulative portrait score of one point distinct from a full percentage', () => {
+    const diagnosis: RoleBasedLearningDiagnosis = {
+      ...baseDiagnosis,
+      claims: [{
+        ...baseDiagnosis.claims[0],
+        metrics: {
+          ...baseDiagnosis.claims[0].metrics,
+          score: 1,
+        },
+      }],
+    };
+
+    const html = renderToStaticMarkup(
+      React.createElement(DiagnosisSurfacePanel, {
+        diagnosis,
+        mode: 'student',
+        scoreScale: 'points',
+      })
+    );
+
+    expect(html).toContain('1 分');
+    expect(html).not.toContain('100%');
+  });
+
   it('renders teacher class clusters and prep-pack readiness from role-projected diagnosis', () => {
     const diagnosis: RoleBasedLearningDiagnosis = {
       ...baseDiagnosis,

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-1ebbddfa13931f700f437271",
+  "safe_id": "ctc_v11g-1ebbddfa13931f700f437271",
+  "node": {
+    "name": "angle of departure",
+    "name_en": "angle_of_departure",
+    "concept_kind": "mathematical_object",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "angle of departure：The angle at which a locus leaves a complex pole in the s-plane.",
+  "intuition": "在图谱邻接中可把握：后续 → root of the denominator。",
+  "explanation": "The angle at which a locus leaves a complex pole in the s-plane.",
+  "relation_head": "后续 → root of the denominator",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "root of the denominator",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "angle of de…",
+    "angle of dep",
+    "关联·root o…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-1ebbddfa13931f700f437271.md",
+  "provider_policy": "grok-image_gen"
+}

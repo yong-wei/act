@@ -424,6 +424,10 @@ describe('knowledge graph interaction state stability', () => {
       'utf8'
     );
     expect(familyControlSource).toContain("placement === 'canvas' ? 'compact-bottom-left' : `${placement}-header`");
+    expect(familyControlSource).toContain("avoidExpandedKonling = false");
+    expect(familyControlSource).toContain("vertical-clear-of-expanded-konling");
+    expect(systemSource).toContain("avoidExpandedKonling={aiSidebarOpen}");
+    expect(systemSource).toContain("!mobileKonlingModalOpen && !mobileInspectorControlVisible && !mobileToolControlVisible");
     expect(familyControlSource).toContain('data-knowledge-mobile-equivalent="same-state-same-control"');
     expect(systemSource).toContain('mobileHeaderControl={mobileInspectorControlVisible');
     expect(systemSource).toContain("relationFamilyControlPlacement === 'tool-panel'");
@@ -460,13 +464,27 @@ describe('knowledge graph interaction state stability', () => {
       'utf8'
     );
 
-    expect(globalSidebarSource).toContain('knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? assistantEntryPoint?.serverContext');
+    expect(globalSidebarSource).toContain('knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? activeAssistantBinding?.modeClientContextHints');
     expect(chatRouteSource).toContain('knowledgeWorkspaceHint,');
     expect(chatRouteSource).toContain('normalizeKonlingKnowledgeWorkspaceHint');
     expect(chatRouteSource).toContain('knowledgeWorkspaceHint ?? modeClientContextHints');
     expect(sessionMessagesRouteSource).toContain('knowledgeWorkspaceHint');
     expect(sessionMessagesRouteSource).toContain('normalizeKonlingKnowledgeWorkspaceHint');
     expect(sessionMessagesRouteSource).toContain('knowledgeWorkspaceHint ?? modeClientContextHints');
+  });
+
+  it('uses theme-aware platform tokens for the unordered-node diagnostic', () => {
+    const systemSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
+      'utf8'
+    );
+    const diagnosticStart = systemSource.indexOf('data-knowledge-layout-region="unordered"');
+    const diagnosticSource = systemSource.slice(Math.max(0, diagnosticStart - 320), diagnosticStart + 160);
+
+    expect(diagnosticSource).toContain('bg-platform-surface/95');
+    expect(diagnosticSource).toContain('text-platform-fg-secondary');
+    expect(diagnosticSource).not.toContain('bg-slate-950/75');
+    expect(diagnosticSource).not.toContain('text-slate-300');
   });
 
   it('renders selected knowledge nodes through a stable inspector hierarchy', () => {

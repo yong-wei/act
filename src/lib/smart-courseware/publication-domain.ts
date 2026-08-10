@@ -259,19 +259,19 @@ function invalidPendingGapIssues(input: Pick<PublicationEligibilityInput, 'revis
       });
     }
   }
-  for (const module of input.revision.moduleMetadataSnapshot) {
-    if (!pendingSourceState(module.sourceState)) continue;
-    if (!validTargetId(module.moduleId)
-      || !validSha256(module.moduleContentHash)
-      || !validSha256(module.sourceBindingSetHash)) {
-      issues.push({ code: 'publication-gap-target-invalid', targetType: 'MODULE', targetId: module.moduleId });
+  for (const coursewareModule of input.revision.moduleMetadataSnapshot) {
+    if (!pendingSourceState(coursewareModule.sourceState)) continue;
+    if (!validTargetId(coursewareModule.moduleId)
+      || !validSha256(coursewareModule.moduleContentHash)
+      || !validSha256(coursewareModule.sourceBindingSetHash)) {
+      issues.push({ code: 'publication-gap-target-invalid', targetType: 'MODULE', targetId: coursewareModule.moduleId });
     }
-    if (!validGapIdentity(module.gapIdentity, 'courseware-gap:')) {
+    if (!validGapIdentity(coursewareModule.gapIdentity, 'courseware-gap:')) {
       issues.push({
         code: 'module-source-gap-identity-invalid',
         targetType: 'MODULE',
-        targetId: module.moduleId,
-        ...(module.gapIdentity ? { gapIdentity: module.gapIdentity } : {}),
+        targetId: coursewareModule.moduleId,
+        ...(coursewareModule.gapIdentity ? { gapIdentity: coursewareModule.gapIdentity } : {}),
       });
     }
   }

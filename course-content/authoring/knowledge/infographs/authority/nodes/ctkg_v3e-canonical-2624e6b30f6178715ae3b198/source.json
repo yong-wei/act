@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+  "safe_id": "ctkg_v3e-canonical-2624e6b30f6178715ae3b198",
+  "node": {
+    "name": "比例-积分控制器",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "包含比例和积分控制作用的控制器。",
+  "intuition": null,
+  "explanation": "包含比例和积分控制作用的控制器。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "比例-积分控制器"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-2624e6b30f6178715ae3b198.md",
+  "provider_policy": "grok-image_gen"
+}

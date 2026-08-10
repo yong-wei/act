@@ -12,9 +12,6 @@ export interface SessionClassInfo {
 export interface ResolveSessionClassContextInput {
   sessionClassId?: string | null;
   sessionClass?: SessionClassInfo | null;
-  participantClassIds: Array<string | null | undefined>;
-  classesById?: Map<string, SessionClassInfo>;
-  inferenceThreshold?: number;
 }
 
 export interface SessionClassContext {
@@ -26,19 +23,14 @@ export interface SessionClassContext {
 export function resolveSessionClassContext({
   sessionClassId,
   sessionClass,
-  participantClassIds,
-  classesById,
-  inferenceThreshold,
 }: ResolveSessionClassContextInput): SessionClassContext {
   const attribution = resolveClassAttribution({
     sessionClassId,
-    participantClassIds,
-    inferenceThreshold,
   });
   const classInfo = attribution.classId
     ? sessionClass?.id === attribution.classId
       ? sessionClass
-      : classesById?.get(attribution.classId) ?? null
+      : null
     : null;
 
   return {
@@ -46,18 +38,4 @@ export function resolveSessionClassContext({
     class: classInfo,
     attribution,
   };
-}
-
-export function shouldPersistInferredClassAttribution({
-  attribution,
-  minStudentCount = 5,
-}: {
-  attribution: ClassAttributionResult;
-  minStudentCount?: number;
-}) {
-  return Boolean(
-    attribution.mode === 'inferred'
-      && attribution.classId
-      && attribution.studentCount >= minStudentCount
-  );
 }

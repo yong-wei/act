@@ -1,4 +1,4 @@
-import { KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG } from './visual-config';
+import { getKnowledgeGraphEvidenceEdgeModulation, KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG } from './visual-config';
 import { getAllFamiliesCheckedState, KNOWLEDGE_GRAPH_RELATION_FAMILIES } from './relation-family-controls';
 import type { KnowledgeGraphRelationFamily } from './relation-contract';
 
@@ -6,6 +6,7 @@ interface RelationFamilyControlProps {
   enabledFamilies: readonly KnowledgeGraphRelationFamily[];
   isLightTheme: boolean;
   placement: 'canvas' | 'inspector' | 'tool-panel';
+  avoidExpandedKonling?: boolean;
   onToggleAll: () => void;
   onToggleFamily: (family: KnowledgeGraphRelationFamily) => void;
 }
@@ -31,6 +32,8 @@ function RelationFamilySample({ family, isLightTheme }: {
   const dashArray = item.sampleStyle.dash.length > 0 ? item.sampleStyle.dash.join(' ') : undefined;
   const markerId = `knowledge-relation-family-${family}`;
   const sampleColor = isLightTheme ? item.sampleStyle.lightColor : item.sampleStyle.darkColor;
+  // 证据不可用样例与画布共享同一调制，图例与画布从不矛盾。
+  const evidenceMuted = getKnowledgeGraphEvidenceEdgeModulation('unavailable');
 
   return (
     <svg viewBox="0 0 42 16" aria-hidden="true" className="h-4 w-10 shrink-0 overflow-visible" data-knowledge-relation-family-sample={family}>
@@ -42,7 +45,7 @@ function RelationFamilySample({ family, isLightTheme }: {
         </defs>
       )}
       <path
-        d={`M3 8 C 14 ${8 - item.sampleStyle.curvature * 36}, 28 ${8 + item.sampleStyle.curvature * 36}, 39 8`}
+        d={`M3 5 C 14 ${5 - item.sampleStyle.curvature * 36}, 28 ${5 + item.sampleStyle.curvature * 36}, 39 5`}
         fill="none"
         stroke={sampleColor}
         strokeDasharray={dashArray}
@@ -50,20 +53,45 @@ function RelationFamilySample({ family, isLightTheme }: {
         strokeWidth={item.sampleStyle.width}
         markerEnd={item.sampleStyle.hasArrow ? `url(#${markerId})` : undefined}
         opacity={item.sampleStyle.opacity}
-      />
+      >
+        <title>依据可用</title>
+      </path>
+      <path
+        d={`M3 12 C 14 ${12 - item.sampleStyle.curvature * 36}, 28 ${12 + item.sampleStyle.curvature * 36}, 39 12`}
+        fill="none"
+        stroke={sampleColor}
+        strokeDasharray={dashArray}
+        strokeLinecap="round"
+        strokeWidth={item.sampleStyle.width * evidenceMuted.widthFactor}
+        opacity={item.sampleStyle.opacity * evidenceMuted.opacityFactor}
+      >
+        <title>依据未提供</title>
+      </path>
     </svg>
   );
 }
 
-export function RelationFamilyControl({ enabledFamilies, isLightTheme, placement, onToggleAll, onToggleFamily }: RelationFamilyControlProps) {
+export function RelationFamilyControl({
+  enabledFamilies,
+  isLightTheme,
+  placement,
+  avoidExpandedKonling = false,
+  onToggleAll,
+  onToggleFamily,
+}: RelationFamilyControlProps) {
+  const canvasClassName = avoidExpandedKonling
+    ? 'absolute bottom-3 left-20 z-40 grid w-28 min-w-0 grid-cols-1 items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-md'
+    : 'absolute bottom-3 left-3 z-40 grid w-[calc(100%-1.5rem)] min-w-0 grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:w-auto sm:grid-cols-none sm:grid-flow-col sm:p-1.5';
+
   return (
     <div
       role="group"
       aria-label="关系族显示"
       className={placement === 'canvas'
-        ? 'absolute bottom-3 left-3 z-40 grid w-[calc(100%-1.5rem)] min-w-0 grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:w-auto sm:grid-cols-none sm:grid-flow-col sm:p-1.5'
+        ? canvasClassName
         : 'grid w-full min-w-0 grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-lg border border-platform-border bg-platform-canvas-muted p-1 sm:p-1.5'}
       data-knowledge-relation-family-control={placement === 'canvas' ? 'compact-bottom-left' : `${placement}-header`}
+      data-knowledge-relation-family-collision-policy={avoidExpandedKonling ? 'vertical-clear-of-expanded-konling' : 'default'}
       data-knowledge-mobile-equivalent="same-state-same-control"
       data-knowledge-relation-family-state={enabledFamilies.join(',') || 'none'}
     >

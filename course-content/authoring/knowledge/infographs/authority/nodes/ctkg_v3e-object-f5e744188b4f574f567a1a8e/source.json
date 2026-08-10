@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+  "safe_id": "ctkg_v3e-object-f5e744188b4f574f567a1a8e",
+  "node": {
+    "name": "状态转移矩阵",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "矩阵指数函数 e^{A t}，记为 \\Phi(t)，用于描述线性定常系统状态从初始时刻到任意时刻的转移。",
+  "intuition": "在图谱邻接中可把握：后续 → 矩阵指数函数。",
+  "explanation": "矩阵指数函数 e^{A t}，记为 \\Phi(t)，用于描述线性定常系统状态从初始时刻到任意时刻的转移",
+  "relation_head": "后续 → 矩阵指数函数",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "矩阵指数函数",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "状态转移矩阵",
+    "是一种·矩阵指数函数"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f5e744188b4f574f567a1a8e.md",
+  "provider_policy": "grok-image_gen"
+}

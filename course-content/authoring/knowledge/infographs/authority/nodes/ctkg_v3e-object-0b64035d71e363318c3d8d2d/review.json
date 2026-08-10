@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:29:00+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-0b64035d71e363318c3d8d2d",
+  "safe_id": "ctkg_v3e-object-0b64035d71e363318c3d8d2d",
+  "node_name": "频率法校正",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (频率法校正/ss2tf/1α/S1/穿越频率)"
+}

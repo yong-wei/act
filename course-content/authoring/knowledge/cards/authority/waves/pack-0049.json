@@ -1,0 +1,30 @@
+{
+  "pack_id": "P0049",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-0e5df270abeaa062e3a81d33",
+      "name": "采样过程",
+      "definition": "在采样控制系统中，把连续信号转变为脉冲序列的过程称为采样过程，简称采样。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-224a99f37dc359e50c070e54",
+      "name": "Tracking error",
+      "definition": "Tracking error：The difference between the system output and the reference input, y(t) - r(t)."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6592690fdccf416b0340917b",
+      "name": "带宽频率",
+      "definition": "系统闭环幅频特性下降到某一阈值时的频率，记为ω_b。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7b59e975b2aaa6100b970b52",
+      "name": "描述函数法",
+      "definition": "描述函数法是基于频域分析法和非线性特性谐波线性化的一种图解分析方法。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a0e00fe181b9ba65bda1824c",
+      "name": "相平面法",
+      "definition": "相平面法是推广应用时域分析法的一种图解分析方法。"
+    }
+  ]
+}

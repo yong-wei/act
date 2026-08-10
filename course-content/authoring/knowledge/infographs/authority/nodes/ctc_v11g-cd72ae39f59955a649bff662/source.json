@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-cd72ae39f59955a649bff662",
+  "safe_id": "ctc_v11g-cd72ae39f59955a649bff662",
+  "node": {
+    "name": "exhaust gas recirculation egr",
+    "name_en": "exhaust_gas_recirculation_egr",
+    "concept_kind": "design_method",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "exhaust gas recirculation egr：A technique used to meet nitrogen oxides (NOx) emissions standards by recirculating exhaust gas.",
+  "intuition": null,
+  "explanation": "A technique used to meet nitrogen oxides (NOx) emissions standards by recirculating exhaust gas.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "exhaust gas…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-cd72ae39f59955a649bff662.md",
+  "provider_policy": "grok-image_gen"
+}

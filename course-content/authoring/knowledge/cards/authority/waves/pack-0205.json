@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0205",
+  "offset": 1025,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "batch": "C",
+      "name": "PI控制器",
+      "definition": "PI控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PI控制器",
+        "关联·比例-积分控…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: PI控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): PI控制器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「PI控制器」、「关联·比例-积分控…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-82784a1896512b7f3297d710",
+      "batch": "C",
+      "name": "临界比例值",
+      "definition": "临界比例值。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "临界比例值"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 临界比例值\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 临界比例值。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「临界比例值」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-edc0d1a17b9cbb23167788e0",
+      "batch": "C",
+      "name": "谐波线性化",
+      "definition": "谐波线性化。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "谐波线性化",
+        "包含组件·描述函数法",
+        "用于分析·描述函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 谐波线性化\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 谐波线性化。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「谐波线性化」、「包含组件·描述函数法」、「用于分析·描述函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fac828826746b38462ac91ba",
+      "batch": "C",
+      "name": "系统不可控",
+      "definition": "系统不可控。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统不可控"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 系统不可控\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统不可控。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「系统不可控」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0e5d22ed0afee37f65584d36",
+      "batch": "C",
+      "name": "正弦函数",
+      "definition": "正弦函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "正弦函数",
+        "包含组件·典型输入…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 正弦函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 正弦函数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「正弦函数」、「包含组件·典型输入…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-035c9d54765ac2b02802c971",
+  "safe_id": "ctc_modeling-035c9d54765ac2b02802c971",
+  "node": {
+    "name": "离散系统",
+    "name_en": "modeling_035c9d54765ac2b02802c971",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "explicit_extension"
+  },
+  "definition": "离散时间系统通常称为离散系统，可以是一类实际的离散时间问题的数学模型，如社会经济问题、生态问题等，也可以是一个连续系统因为采用数字计算机进行计算或控制的需要而人为地加以时间离散化而导出的模型。",
+  "intuition": null,
+  "explanation": "离散时间系统通常称为离散系统，可以是一类实际的离散时间问题的数学模型，如社会经济问题、生态问题等，也可以是一个连续系统因为采用数字计算机进行计算或控制的需要而人为地加以时间离散化而导出的模型。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "离散系统"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-035c9d54765ac2b02802c971.md",
+  "provider_policy": "grok-image_gen"
+}

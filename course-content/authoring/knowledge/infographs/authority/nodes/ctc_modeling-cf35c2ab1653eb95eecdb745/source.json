@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-cf35c2ab1653eb95eecdb745",
+  "safe_id": "ctc_modeling-cf35c2ab1653eb95eecdb745",
+  "node": {
+    "name": "An integral transform that",
+    "name_en": "modeling_cf35c2ab1653eb95eecdb745",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "An integral transform that：An integral transform that converts a time-domain function f(t) into a complex frequency-domain function F(s), defined…",
+  "intuition": null,
+  "explanation": "An integral transform that converts a time-domain function f(t) into a complex frequency-domain function F(s), defined as F(s) = ∫_{-∞}^{∞} f(t) e^{-st} dt.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "An integral…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-cf35c2ab1653eb95eecdb745.md",
+  "provider_policy": "grok-image_gen"
+}

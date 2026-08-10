@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-3784992e294bb2f120cdc0df",
+  "safe_id": "ctkg_v3e-object-3784992e294bb2f120cdc0df",
+  "node": {
+    "name": "Controllability matrix",
+    "name_en": "Controllability matrix",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Controllability matrix：A matrix used to determine whether a system is completely controllable",
+  "intuition": "在图谱邻接中可把握：前置 → Ackermann's form · 后续 → Controllability。",
+  "explanation": "A matrix used to determine whether a system is completely controllable; for a single-input, single-output system, full rank implies invertibility.",
+  "relation_head": "前置 → Ackermann's form · 后续 → Controllability",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Ackermann's form",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "Controllability",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Controllabi…",
+    "Controllabil",
+    "包含组件·Acke…",
+    "用于分析·Cont…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3784992e294bb2f120cdc0df.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,72 @@
+{
+  "pack_id": "P0165",
+  "offset": 825,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "batch": "C",
+      "name": "Transmission zeros",
+      "definition": "Transmission zeros：Transmission zeros",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Transmissio…",
+        "Transmission",
+        "一种·Transm…",
+        "用于分析·Usin…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Transmission zeros\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Transmission zeros：Transmission zeros\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Transmissi」、「Transmissi」、「一种·Transm…」、「用于分析·Usin…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2472530b842ec00599809720",
+      "batch": "C",
+      "name": "Relay Nonlinearity",
+      "definition": "Relay Nonlinearity：Relay Nonlinearity",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Relay Nonli…",
+        "Relay Nonlin"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Relay Nonlinearity\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Relay Nonlinearity：Relay Nonlinearity\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Relay Nonl」、「Relay Nonl」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-60dc281db22fe43eefe4ae57",
+      "batch": "C",
+      "name": "Finite word length",
+      "definition": "Finite word length：Finite word length",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Finite word…",
+        "Finite word ",
+        "应用于·Preci…",
+        "关联·Precis…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Finite word length\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Finite word length：Finite word length\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Finite wor」、「Finite wor」、「应用于·Preci…」、「关联·Precis…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c3d7e85e2b60c3320db8a44a",
+      "batch": "C",
+      "name": "Quantization error",
+      "definition": "Quantization error：Quantization error",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Quantizatio…",
+        "Quantization",
+        "一种·Amplit…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Quantization error\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Quantization error：Quantization error\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Quantizati」、「Quantizati」、「一种·Amplit…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_0d613f0b723fa4a95a006064",
+      "batch": "C",
+      "name": "Lyapunov Stability",
+      "definition": "Lyapunov Stability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov St…",
+        "Lyapunov Sta",
+        "用于分析·Lyap…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov Stability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov Stability是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov S」、「Lyapunov S」、「用于分析·Lyap…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

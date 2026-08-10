@@ -1,0 +1,67 @@
+{
+  "pack_id": "P0211",
+  "offset": 1055,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-d881210ed83df13e00d2e095",
+      "batch": "C",
+      "name": "死区特性",
+      "definition": "死区特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "死区特性",
+        "关联·等效增益",
+        "关联·死区",
+        "关联·开关线"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 死区特性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 死区特性。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「死区特性」、「关联·等效增益」、「关联·死区」、「关联·开关线」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d973ab89da26720699edb366",
+      "batch": "C",
+      "name": "量化单位",
+      "definition": "量化单位。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "量化单位"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 量化单位\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 量化单位。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「量化单位」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f1ec085ab5a77428affa50eb",
+      "batch": "C",
+      "name": "极点配置",
+      "definition": "极点配置。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "极点配置"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 极点配置\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 极点配置。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「极点配置」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-60e97b106df3b47840a4b6fd",
+      "batch": "C",
+      "name": "衰减比",
+      "definition": "衰减比。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "衰减比",
+        "包含组件·衰减曲线法",
+        "关联·衰减曲线法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 衰减比\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 衰减比。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「衰减比」、「包含组件·衰减曲线法」、「关联·衰减曲线法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-99e2b54e9474379206799dfa",
+      "batch": "C",
+      "name": "正阻尼",
+      "definition": "正阻尼。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "正阻尼",
+        "关联·自激振荡"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 正阻尼\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 正阻尼。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「正阻尼」、「关联·自激振荡」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

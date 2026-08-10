@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:31:40+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:d128c3dba70d4cc962b3e854",
+  "safe_id": "ctkg_domainconcept_d128c3dba70d4cc962b3e854",
+  "node_name": "Digital lead-lag compensation",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1197-1201"
+}

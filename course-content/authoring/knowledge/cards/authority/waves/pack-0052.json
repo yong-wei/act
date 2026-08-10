@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0052",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-16f7c2fa5fc07204ca43c086",
+      "name": "PID控制器",
+      "definition": "由比例单元、微分单元和积分单元组合而成的有源串联校正装置，可以实现各种要求的控制规律，在工业自动化设备中经常采用。",
+      "labels": [
+        "PID控制器",
+        "是一种·校正装置",
+        "包含组件·比例系数",
+        "包含组件·微分时间…",
+        "包含组件·积分时间…"
+      ],
+      "visual_archetype": "流程板"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1b720d82e3de003a38fa57f6",
+      "name": "Cascade Compensator",
+      "definition": "Cascade Compensator：A compensator placed in the feedforward path of a simple, single-loop feedback control system.",
+      "labels": [
+        "Cascade Com…",
+        "Cascade Comp",
+        "一种·Compen…",
+        "一种·Phase-…",
+        "应用于·Casca…",
+        "关联·Cascad…"
+      ],
+      "visual_archetype": "科普百科图鉴"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "name": "相角裕度",
+      "definition": "开环频率特性在截止频率处的相角与-180°的差值，记为γ。",
+      "labels": [
+        "相角裕度",
+        "用于分析·相频特性",
+        "用于分析·利用开环…",
+        "关联·截止频率",
+        "关联·利用开环频域…"
+      ],
+      "visual_archetype": "频域仪表盘"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2a6df9c2e027152138c44554",
+      "name": "离散时间系统",
+      "definition": "如果控制系统中有一处或几处信号是一串脉冲或数码，换句话说，这些信号仅定义在离散时间上，则这样的系统称为离散时间系统，简称离散系统。",
+      "labels": [
+        "离散时间系统",
+        "是一种·采样控制系统",
+        "是一种·数字控制系统",
+        "包含组件·脉冲序列",
+        "关联·连续时间系统"
+      ],
+      "visual_archetype": "科普百科图鉴"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2f3ebf66b229bd1917da4b41",
+      "name": "Gain Margin (GM)",
+      "definition": "Gain Margin (GM)：The factor by which the gain can be increased (or decreased in certain cases) before instability results.",
+      "labels": [
+        "Gain Margin…",
+        "Gain Margin ",
+        "派生自·Deter…",
+        "关联·Determ…"
+      ],
+      "visual_archetype": "科普百科图鉴"
+    }
+  ],
+  "created_at": "2026-08-05T15:40:17.391434+00:00"
+}

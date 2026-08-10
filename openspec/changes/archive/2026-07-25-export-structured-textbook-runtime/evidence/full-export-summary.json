@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "structured-textbook-runtime.v2",
+  "configVersion": "textbook-structure-parser.v2",
+  "sourceRevision": "2df3e099c98e5a7dedc60c905592e35a93dc72e6",
+  "productionConnected": false,
+  "validationMode": "full-written-runtime",
+  "runtimeWriteStatus": "written-from-clean-commit",
+  "closureValidation": {
+    "auditBuild": "passed",
+    "books": 7,
+    "unresolvedAnomalies": 0,
+    "pendingSamples": 0,
+    "fullWrittenRuntimeSchemaValidation": "passed",
+    "schemaRecordsValidated": 51575,
+    "fixtureSchemaValidation": "passed"
+  },
+  "reviewLedger": {
+    "policy": "exact anomaly id or exact sourcePath+line+kind; exact sample id and source locator",
+    "legacyReviewedAnomaliesPreserved": 2552,
+    "newAnomaliesDefault": "unresolved",
+    "newSamplesDefault": "pending"
+  },
+  "sourceCorrections": [
+    {
+      "sourcePath": "textbooks/hu-shousong-exercise-analysis-3rd/chapter-03/textbook.md",
+      "line": 1767,
+      "disposition": "source-corrected",
+      "reason": "Mathpix inserted stray 步 before exercise 3-24; adjacent numbering and the following requirements/figure prove a new exercise boundary.",
+      "markdownSha256": "29993bf0e56552434e8f75f2b4ab89a2aedf890a7900dffd2c8ef796f9256494"
+    },
+    {
+      "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+      "line": 5686,
+      "disposition": "source-corrected",
+      "reason": "The authoring source omitted the 9-4 section heading between source pages 525 and 526; the heading was restored in source rather than synthesized by parser configuration.",
+      "markdownSha256": "ae50c43cda14a1cd0649ce8f90d3758956e0f990e7352ab3981cee4b250d51a0"
+    }
+  ],
+  "books": {
+    "control-encyclopedia": {"structureUnits": 3249, "fragmentAnchors": 3906, "retrievalWindows": 3249, "anomalies": 157, "unresolvedAnomalies": 0, "samples": 125, "pendingSamples": 0},
+    "dorf-modern-control-systems": {"structureUnits": 586, "fragmentAnchors": 4211, "retrievalWindows": 586, "anomalies": 37, "unresolvedAnomalies": 0, "samples": 198, "pendingSamples": 0},
+    "feedback-control-of-dynamic-systems": {"structureUnits": 1179, "fragmentAnchors": 2691, "retrievalWindows": 1179, "anomalies": 373, "unresolvedAnomalies": 0, "samples": 388, "pendingSamples": 0},
+    "hu-shousong-auto-control-7th": {"structureUnits": 1338, "fragmentAnchors": 3836, "retrievalWindows": 1338, "anomalies": 441, "unresolvedAnomalies": 0, "samples": 585, "pendingSamples": 0},
+    "hu-shousong-auto-control-8th": {"structureUnits": 1336, "fragmentAnchors": 3944, "retrievalWindows": 1336, "anomalies": 413, "unresolvedAnomalies": 0, "samples": 585, "pendingSamples": 0},
+    "hu-shousong-exercise-analysis-3rd": {"structureUnits": 1134, "fragmentAnchors": 3056, "retrievalWindows": 1134, "anomalies": 559, "unresolvedAnomalies": 0, "samples": 400, "pendingSamples": 0},
+    "liu-sheng-auto-control-2015": {"structureUnits": 1783, "fragmentAnchors": 2934, "retrievalWindows": 1783, "anomalies": 734, "unresolvedAnomalies": 0, "samples": 778, "pendingSamples": 0}
+  }
+}

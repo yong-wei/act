@@ -5,6 +5,10 @@ import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_1_1StudentPage } from '@/features/interactive/unit-1-1-see-the-full-picture/student-page';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 import { resolveStudentRouteDemoStepId, type StudentRouteSearchParams } from '@/features/interactive/shared/student-route-query';
+import {
+  buildCoursePackageLayeredScope,
+  resolveCoursePageLayeredGraphContext,
+} from '@/lib/layered-graph';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -27,9 +31,26 @@ export default async function UNIT_1_1SeeTheFullPictureStudentRoute(
     loadLessonRuntimeEntry('1-1'),
   ]);
 
-  if (!session?.user) {
-    return <UNIT_1_1StudentPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} demoStepId={demoStepId} />;
-  }
+  const layeredGraphContext = resolveCoursePageLayeredGraphContext({
+    scope: buildCoursePackageLayeredScope({
+      packageCanonicalId: '1-1',
+      lessonKey: '1-1',
+    }),
+    lessonRuntime,
+  });
 
-  return <UNIT_1_1StudentPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} demoStepId={demoStepId} />;
+  // Keep session resolution for auth side-effects; guest and signed-in students
+  // share the same layered Teaching Projection payload path.
+  void session;
+
+  return (
+    <UNIT_1_1StudentPage
+      sessionId={params.sessionId}
+      lessonRuntime={lessonRuntime}
+      demoStepId={demoStepId}
+      layeredGraphPayload={layeredGraphContext.payload}
+      layeredResourceLaunchTargets={layeredGraphContext.resourceLaunchTargets}
+      layeredResourceRegistryIds={layeredGraphContext.resourceRegistryIds}
+    />
+  );
 }

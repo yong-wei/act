@@ -1,0 +1,30 @@
+{
+  "pack_id": "P0056",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-f61357354fd32305fac8755b",
+      "name": "利用开环频域指标估算时域性能方法",
+      "definition": "通过相角裕度γ和截止频率ω_c估算系统时域性能指标。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fa4f7e4a46c0790f96077531",
+      "name": "衰减曲线法",
+      "definition": "使系统阶跃响应产生衰减振荡，再根据衰减振荡曲线的参数来确定PID参数的方法。"
+    },
+    {
+      "safe_id": "ctc_v11g-5845390ded447e37f06ea222",
+      "name": "根轨迹",
+      "definition": "根轨迹：The locus of roots of the characteristic equation in the s-plane as a parameter is varied.。"
+    },
+    {
+      "safe_id": "ctc_v12g-e3580535c0a12b79e0509f97",
+      "name": "negative gain root locus",
+      "definition": "negative gain root locus：A root locus plotted for negative values of the gain parameter K, also referred to as a 0° root locus."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0bfd48327659b66aa7d95f32",
+      "name": "Determining GM from root locus",
+      "definition": "Determining GM from root locus：Determining GM from root locus"
+    }
+  ]
+}

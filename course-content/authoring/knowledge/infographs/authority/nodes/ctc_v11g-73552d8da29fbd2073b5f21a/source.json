@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-73552d8da29fbd2073b5f21a",
+  "safe_id": "ctc_v11g-73552d8da29fbd2073b5f21a",
+  "node": {
+    "name": "前向通路增益",
+    "name_en": "forward_path_gain",
+    "concept_kind": "mathematical_object",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "前向通路传递函数中时间常数形式表示的增益，记为K_G。",
+  "intuition": null,
+  "explanation": "前向通路传递函数中时间常数形式表示的增益，记为K_G。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "前向通路增益",
+    "forward path"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-73552d8da29fbd2073b5f21a.md",
+  "provider_policy": "grok-image_gen"
+}

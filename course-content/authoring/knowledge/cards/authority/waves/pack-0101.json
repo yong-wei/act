@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0101",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "name": "Bode图",
+      "definition": "Bode图：A plot of frequency response consisting of two curves: the logarithm of magnitude versus log ω and the phase versus log…"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cbbab19b11fc34557c78b5c6",
+      "name": "Normalized characteristic equation",
+      "definition": "Normalized characteristic equation：Normalized characteristic equation"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cbfe80d3da0902843e4ec358",
+      "name": "稳定节点",
+      "definition": "当特征根为两个负实根时，奇点为稳定节点。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cc879188760f9c79394713cb",
+      "name": "s平面到z平面的映射",
+      "definition": "通过z=e^{sT}将s域映射到z域，s平面虚轴映射为单位圆，左半s平面映射为单位圆内，右半s平面映射为单位圆外。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cd935c229d64107e30b8c1a7",
+      "name": "增广系统",
+      "definition": "由跟踪误差和中间变量构成的扩展状态空间系统，用于内模控制器设计。"
+    }
+  ],
+  "created_at": "2026-08-05T16:48:34.192230+00:00"
+}

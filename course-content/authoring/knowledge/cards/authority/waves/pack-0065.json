@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0065",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-4c11f89842e11d4bc17a5b71",
+      "name": "副调节器",
+      "definition": "串级控制系统中的副调节器，传递函数为Gc2(s)。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-cdaeaeb76fbe3feb33aa40b3",
+      "name": "Undamped natural frequency omega n",
+      "definition": "Undamped natural frequency omega n：The undamped natural frequency is the radius at which the poles are located in the s-plane."
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ef5630b5a74449df22ea0222",
+      "name": "Fast pole and slow pole",
+      "definition": "Fast pole and slow pole：Fast poles and slow poles refer to relative rate of signal decay."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-02ce94d02ad32ee9bc5528e9",
+      "name": "Resonant peak",
+      "definition": "Resonant peak：The maximum value of the frequency-response magnitude."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "name": "Hysteresis Nonlinearity",
+      "definition": "Hysteresis Nonlinearity：Hysteresis Nonlinearity"
+    }
+  ],
+  "created_at": "2026-08-05T15:58:25.343225+00:00"
+}

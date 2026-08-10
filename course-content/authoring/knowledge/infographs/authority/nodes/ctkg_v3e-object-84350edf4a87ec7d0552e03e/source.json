@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-84350edf4a87ec7d0552e03e",
+  "safe_id": "ctkg_v3e-object-84350edf4a87ec7d0552e03e",
+  "node": {
+    "name": "Phase-Lead Compensator",
+    "name_en": "Phase-Lead Compensator",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Phase-Lead Compensator：A first-order compensator where |z|<|p|, providing a phase-lead characteristic.",
+  "intuition": "在图谱邻接中可把握：前置 → 串联滞后-超前校正、Phase-Lead Design Using the Bode Plot、Phase-lead compe。",
+  "explanation": "A first-order compensator where |z|<|p|, providing a phase-lead characteristic.",
+  "relation_head": "前置 → 串联滞后-超前校正、Phase-Lead Design Using the Bode Plot、Phase-lead compe",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "串联滞后-超前校正",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Phase-Lead Design Using the Bode Plot",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Phase-lead compe",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Phase-lead design using the root locus",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Phase-Lead …",
+    "Phase-Lead C",
+    "包含组件·串联滞后…",
+    "应用于·Phase…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-84350edf4a87ec7d0552e03e.md",
+  "provider_policy": "grok-image_gen"
+}

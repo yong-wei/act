@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0197",
+  "offset": 985,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-df3167f36376f526f6ec5562",
+      "batch": "C",
+      "name": "超调量",
+      "definition": "响应曲线的最大偏离量与稳态值之比。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "超调量",
+        "包含组件·动态性能…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 超调量\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 响应曲线的最大偏离量与稳态值之比。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「超调量」、「包含组件·动态性能…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-526906541f641018cd576367",
+      "batch": "C",
+      "name": "通过变量替换检验给定稳定度的方法",
+      "definition": "通过变量替换检验给定稳定度的方法。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "通过变量替换检验给定稳…",
+        "包含组件·给定稳定…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 通过变量替换检验给定稳定度的方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 通过变量替换检验给定稳定度的方法。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「通过变量替换检验给定」、「包含组件·给定稳定…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b202af6c06c27c558d00e9f4",
+      "batch": "C",
+      "name": "拉普拉斯变换法求解非齐次状态方程",
+      "definition": "拉普拉斯变换法求解非齐次状态方程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "拉普拉斯变换法求解非齐…",
+        "用于分析·非齐次状…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 拉普拉斯变换法求解非齐次状态方程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 拉普拉斯变换法求解非齐次状态方程。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「拉普拉斯变换法求解非」、「用于分析·非齐次状…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e867ce7d25f7cc3834456417",
+      "batch": "C",
+      "name": "采样角频率",
+      "definition": "采样角频率 ω_s = 2π/T。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样角频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样角频率\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 采样角频率 ω_s = 2π/T。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样角频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-ce9bffbe8ce00d29cf2c0738",
+      "batch": "C",
+      "name": "既有输入支路又有输出支路的节点",
+      "definition": "既有输入支路又有输出支路的节点。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "既有输入支路又有输出支…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 既有输入支路又有输出支路的节点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 既有输入支路又有输出支路的节点。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「既有输入支路又有输出」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7f2e4a28791adc1aab82c6d2",
+  "safe_id": "ctkg_v3e-object-7f2e4a28791adc1aab82c6d2",
+  "node": {
+    "name": "read-only memory (ROM)",
+    "name_en": "read-only memory (ROM)",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "read-only memory (ROM)：read-only memory (ROM)",
+  "intuition": null,
+  "explanation": "read-only memory (ROM)",
+  "relation_head": "前置 → flash memory、programmable read-only memory (EPROM)、random-access memory (RAM)",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "flash memory",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "programmable read-only memory (EPROM)",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "random-access memory (RAM)",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "read-only m…",
+    "read-only me",
+    "一种·flash",
+    "一种·progra…",
+    "关联·random…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7f2e4a28791adc1aab82c6d2.md",
+  "provider_policy": "grok-image_gen"
+}

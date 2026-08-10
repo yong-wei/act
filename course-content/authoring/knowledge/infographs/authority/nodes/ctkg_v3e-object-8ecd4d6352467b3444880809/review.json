@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T15:03:58+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+  "safe_id": "ctkg_v3e-object-8ecd4d6352467b3444880809",
+  "node_name": "Reduced-Order Estimator",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack0022"
+}

@@ -5,17 +5,36 @@ Define the ResourceNode-aware knowledge workspace UI contract that connects grap
 ### Requirement: Knowledge workspace supports ResourceNode-aware exploration
 The system SHALL preserve ordinary ResourceNode detail and resource exploration without exposing persisted path eligibility in the knowledge graph workspace.
 
+The workspace MUST distinguish Engineering Authority nodes/relations from ACT teaching prerequisites and teaching resource bindings. Resource links, scope, projection identity, and fallback status SHALL be shown as separate evidence groups.
+
 #### Scenario: ResourceNode mapping exists
 - **WHEN** a selected knowledge node or resource has a ResourceNode mapping
 - **THEN** the UI SHALL show source reference, knowledge coverage, prerequisites, availability, privacy level, teacher policy, and evidence instrumentation where role scope permits
 - **AND** `/knowledge` SHALL NOT display ResourceNode path eligibility or use it to derive layout, corridor, animation, or inspector state.
 
+#### Scenario: Node has teaching resources
+- **WHEN** a selected Canonical node has scoped bindings
+- **THEN** the inspector SHALL show course/handout/step/textbook/card resources with role and projection provenance
+- **AND** engineering relation details SHALL remain exact and separate
+
+#### Scenario: Node is not projected to a course
+- **WHEN** a valid Authority node has no binding in the current course scope
+- **THEN** the workspace SHALL show `NOT_PROJECTED` for that scope
+- **AND** it SHALL not imply an upstream graph defect
+
 ### Requirement: Partial ResourceNode coverage is explicit
 The system SHALL make missing or partial ResourceNode coverage visible.
+
+Missing teaching resources or cards MUST be represented as scoped status, not as missing Canonical nodes. The workspace MAY use a Legacy/pinned fallback only when the status identifies the fallback identity.
 
 #### Scenario: Resource lacks a required mapping
 - **WHEN** a resource lacks render target, launch target, knowledge mapping, availability, privacy policy, or evidence instrumentation
 - **THEN** the workspace SHALL show a warning or unavailable state with a reason suitable for the current role.
+
+#### Scenario: Optional card is absent
+- **WHEN** a step Canonical ref has no active optional card
+- **THEN** the drawer SHALL show the node summary or other linked resources
+- **AND** it SHALL not display a node-not-found error
 
 ### Requirement: Resource launch actions preserve source ownership
 The system SHALL launch mapped resources through existing source-owned launcher contracts without treating launchability as graph path projection.
@@ -88,10 +107,17 @@ The ResourceNode workspace SHALL coordinate filters, legends, node panels, launc
 ### Requirement: Knowledge workspace launches real learning resources
 The ResourceNode knowledge workspace SHALL connect graph exploration to actual learning resources and evidence review while keeping canonical graph corridors separate from persisted personalized paths.
 
+Course/resource actions MUST carry the active course scope and projection identity to the existing resource route, and a fallback action MUST preserve its explicit Legacy/pinned provenance.
+
 #### Scenario: Knowledge node with launchable resource is selected
 - **WHEN** a selected node has a registered ResourceNode, course resource, simulation, lesson entry, or evidence target
 - **THEN** the UI SHALL expose the source-owned launch action and return path
 - **AND** the canonical corridor MAY explain authored prerequisite order but SHALL NOT inspect or project a persisted LearningPath.
+
+#### Scenario: Resource action opens
+- **WHEN** a learner opens a projected handout or interactive step
+- **THEN** the target SHALL resolve through the existing course/resource registry
+- **AND** the action SHALL not invent a route from an ActKG node ID
 
 ### Requirement: Knowledge graph tools are collapsible local tools
 The knowledge workspace SHALL expose chapter directory, node metadata filters, view and layout controls, and resource inspector as collapsible local tools while relation-family visibility remains in the compact canvas legend.
@@ -129,7 +155,7 @@ The knowledge workspace SHALL preserve node-filter and relation-family state vis
 - **AND** no separate raw-type/density/strength summary SHALL be required.
 
 ### Requirement: Knowledge graph relation styles use semantic visual grammar
-The knowledge graph SHALL render child, post-requisite, and association presentation families with distinct visual grammar that does not rely on color alone.
+The knowledge graph SHALL render child, post-requisite, and association presentation families with distinct visual grammar that does not rely on color alone. Within each family's grammar, edge evidence state SHALL be encoded as a bounded modulation of opacity and width: edges whose public link carries `evidenceState: 'unavailable'` SHALL render muted relative to evidence-available edges of the same family, while edges whose evidence state is absent SHALL render exactly as before this modulation existed.
 
 #### Scenario: Three relation families render together
 - **WHEN** child, post-requisite, and association edges are enabled
@@ -140,6 +166,21 @@ The knowledge graph SHALL render child, post-requisite, and association presenta
 - **WHEN** the active domain has many available relations
 - **THEN** relation edges SHALL remain fine and association edges subordinate
 - **AND** emphasis SHALL come from selection, corridor focus, or family visibility rather than permanently thick strokes.
+
+#### Scenario: Unavailable-evidence edge renders muted within its family
+- **WHEN** an enabled edge's public link carries `evidenceState: 'unavailable'`
+- **THEN** the edge SHALL render with reduced opacity and reduced width relative to an evidence-available edge of the same family and theme
+- **AND** it SHALL keep its family's line pattern, arrow behavior, and curvature
+- **AND** the muted variant SHALL remain distinguishable from the family's available variant in both light and dark themes without relying on color alone.
+
+#### Scenario: Unknown evidence state preserves prior rendering
+- **WHEN** an enabled edge's public link omits `evidenceState`
+- **THEN** the edge SHALL render with the same opacity, width, pattern, and arrow behavior it had before evidence modulation existed.
+
+#### Scenario: Evidence modulation respects density budgets
+- **WHEN** evidence modulation is applied in a dense domain
+- **THEN** default visible edge counts per family, the post-requisite structural foreground cap, and the association one-hop cap SHALL be unchanged
+- **AND** muted edges SHALL NOT be hidden or reordered solely because of their evidence state.
 
 ### Requirement: Runtime relation types have complete visual-semantic coverage
 The knowledge graph SHALL map every relation type present in the runtime knowledge graph to explicit teaching semantics before rendering.
@@ -155,13 +196,22 @@ The knowledge graph SHALL map every relation type present in the runtime knowled
 - **AND** the mapping SHALL preserve the intended teaching logic instead of flattening specialized relations into weak association.
 
 ### Requirement: Knowledge graph node scale reflects instructional and graph importance
-The knowledge graph SHALL scale node size from bounded importance signals rather than rendering all nodes at the same size.
+The knowledge graph SHALL scale node size from bounded importance signals rather than rendering all nodes at the same size. When a node carries `sourceCoverageCount`, that count SHALL act only as a capped tertiary signal after teaching importance and degree centrality, and its absence SHALL never reduce a node below the size it would have had without coverage data.
 
 #### Scenario: Nodes have different importance or connection counts
 - **WHEN** nodes include importance metadata, degree centrality, or selected-neighborhood relevance
 - **THEN** node radius SHALL prioritize explicit teaching importance or course-core metadata before degree centrality
 - **AND** degree or connection count SHALL act only as a capped secondary signal within a bounded range that preserves labels and neighboring nodes
 - **AND** selected or focused nodes SHALL remain visually prominent without hiding nearby nodes.
+
+#### Scenario: Coverage count modulates within a cap
+- **WHEN** two nodes share the same importance and degree signals but differ in `sourceCoverageCount`
+- **THEN** the higher-coverage node MAY render larger within the bounded tertiary range
+- **AND** neither node SHALL exceed the existing size bounds that preserve labels and neighbors.
+
+#### Scenario: Absent coverage never penalizes
+- **WHEN** a node omits `sourceCoverageCount`
+- **THEN** its radius SHALL equal the radius it would have had from importance and degree signals alone.
 
 ### Requirement: Relation legend is graphical
 The knowledge workspace SHALL show child, post-requisite, and association legend controls as graphical samples generated from the same presentation-family contract used by the graph.
@@ -539,27 +589,39 @@ The knowledge graph SHALL make domain roots the direct navigation controls and o
 - **AND** the client SHALL not infer nested hierarchy from arbitrary incident relations.
 
 ### Requirement: Knowledge graph expansion motion explains local topology
-The knowledge graph SHALL use bounded transition motion for domain entry and shall reserve continuous directional path motion for a selected post-requisite corridor.
+The knowledge graph SHALL use bounded transition motion for domain entry, an ambient directional flow layer on eligible structural edges, and prominent continuous directional path motion for a selected post-requisite corridor. All continuous motion SHALL be paint-level: node coordinates, deterministic packing, label placement, and hit areas SHALL remain frozen, and no motion SHALL reheat layout simulation.
 
 #### Scenario: Domain view is entered
 - **WHEN** a domain's knowledge nodes become visible
 - **THEN** the graph MAY use a short bounded transition from the domain center to stable final coordinates
 - **AND** the transition SHALL finish promptly without continuous orbit, radial ray, or force-driven drift.
 
+#### Scenario: Ambient flow renders on structural edges
+- **WHEN** a domain view is visible and no reduced-motion preference is active
+- **THEN** small directional markers SHALL travel along the visible post-requisite structural-foreground edges from source boundary to target boundary, following each rendered path's tangent
+- **AND** concurrent ambient markers SHALL be deterministically selected within a documented budget that preserves the performance frame budget
+- **AND** ambient markers SHALL use a subdued, family-tinted treatment distinct from the prominent selected-corridor markers
+- **AND** shared segments and simultaneous branches SHALL be deduplicated or bounded to avoid visual noise.
+
+#### Scenario: Ambient flow pauses when unseen or unfocused
+- **WHEN** the browser tab is hidden, the canvas is outside the viewport, or a domain transition is mid-flight
+- **THEN** ambient marker advancement SHALL pause rather than consuming frame budget offscreen.
+
 #### Scenario: Selected path corridor is focused
 - **WHEN** a selected knowledge node has eligible canonical prerequisite ancestors or post-requisite descendants
 - **THEN** small directional arrows SHALL travel from source boundary to target boundary along the exact rendered straight or curved post-requisite edges
 - **AND** each marker SHALL follow the path tangent, disappear at the terminal node, pause, and restart at the path origin
+- **AND** corridor markers SHALL remain visually prominent above the ambient flow layer
 - **AND** shared segments and simultaneous branches SHALL be deduplicated or bounded to avoid visual noise.
 
 #### Scenario: Path corridor is not focused
 - **WHEN** no knowledge node is selected
-- **THEN** prominent looping path markers SHALL stop
+- **THEN** prominent looping corridor markers SHALL stop while the subdued ambient flow layer MAY continue within its budget
 - **AND** static edge and target-arrow semantics SHALL remain available.
 
 #### Scenario: User prefers reduced motion
 - **WHEN** `prefers-reduced-motion: reduce` is active
-- **THEN** domain interpolation and looping path markers SHALL stop or become immediate state changes
+- **THEN** domain interpolation, ambient flow markers, and looping corridor markers SHALL stop or become immediate state changes
 - **AND** static focus, edge, endpoint, loading, success, and error states SHALL preserve equivalent meaning.
 
 ### Requirement: Runtime semantic review invalidation is item-scoped and auditable
@@ -606,4 +668,84 @@ Runtime lesson/media governance SHALL derive current review state from each revi
 - **WHEN** specialized relations such as `cross_domain`, `generalizes`, `instance_of`, `supports`, `enables`, `opposite`, or `applies_to` exist
 - **THEN** their authored semantics SHALL remain available in the inspector and diagnostics
 - **AND** their canvas edge MAY use the shared association family without deleting or rewriting the canonical relation.
+
+### Requirement: Evidence state parity across canvas, legend, and inspector
+
+The knowledge workspace SHALL present one consistent evidence vocabulary: the graphical relation legend SHALL include an evidence-available versus evidence-unavailable swatch pair, and inspector relation rows SHALL continue to show evidence state or the honest `关系依据未提供` fallback, so the same edge never appears verified in one surface and unverified in another. Evidence presentation SHALL use platform tokens and SHALL NOT invent evidence where none exists.
+
+#### Scenario: Legend explains the evidence dimension
+- **WHEN** the relation legend is visible
+- **THEN** it SHALL include a graphical swatch pair distinguishing evidence-available from evidence-unavailable edges
+- **AND** the swatches SHALL match the canvas modulation in the active theme.
+
+#### Scenario: Canvas and inspector agree
+- **WHEN** a user selects a node whose relations include both evidence-available and evidence-unavailable edges
+- **THEN** each inspector relation row's evidence presentation SHALL match the canvas modulation of the same relation
+- **AND** relations without evidence SHALL show the honest `关系依据未提供` wording rather than fabricated support.
+
+### Requirement: Knowledge graph nodes present concept macro-categories
+
+The knowledge graph SHALL classify nodes into six teaching-oriented concept macro-categories (systems, models, methods, criteria-and-metrics, phenomena-and-objects, constraints-and-tasks) for presentation purposes. The classification SHALL be sourced from a node's `conceptKind` when present (grouping ActKG's fifteen concept kinds into the six categories), and SHALL otherwise fall back to the existing `nodeType`/`knowledgeDim` mapping so current data receives sensible categories today. Macro-category presentation SHALL use shape or token-role cues in addition to any color, and uncategorized nodes SHALL render in the neutral default presentation.
+
+#### Scenario: Concept kind takes precedence when present
+- **WHEN** a node carries `conceptKind`
+- **THEN** its macro-category SHALL be derived from the concept-kind grouping table
+- **AND** nodes whose `conceptKind` differs but maps to the same macro-category SHALL share one presentation.
+
+#### Scenario: Current data falls back to legacy mapping
+- **WHEN** a node omits `conceptKind`
+- **THEN** its macro-category SHALL be derived from the existing `nodeType`/`knowledgeDim` mapping
+- **AND** the rendered presentation SHALL remain readable in both themes without relying on color alone.
+
+#### Scenario: Unknown kind renders neutral
+- **WHEN** a node carries a `conceptKind` outside the grouping table
+- **THEN** it SHALL render in the neutral default node presentation and the unknown kind SHALL be surfaced for contract review rather than silently guessed.
+
+### Requirement: Knowledge graph governs candidate node visibility
+
+Nodes carrying `candidate: true` SHALL be treated as governance candidates: learner-facing graph views SHALL exclude them by default, while teacher or review contexts MAY display them with a dashed candidate outline and a candidate badge so they are never mistaken for reviewed knowledge. Candidate filtering SHALL NOT alter the visibility of non-candidate nodes or edges, except that edges touching an excluded candidate SHALL be hidden with it.
+
+#### Scenario: Learner view excludes candidates
+- **WHEN** a learner-facing view renders a graph containing `candidate: true` nodes
+- **THEN** those nodes and their incident edges SHALL NOT appear on the canvas, in the legend counts, or in default label layout.
+
+#### Scenario: Teacher review shows candidates distinctly
+- **WHEN** a teacher or review context renders the same graph
+- **THEN** candidate nodes SHALL appear with a dashed outline and candidate badge distinct from reviewed nodes
+- **AND** their incident edges SHALL render with the candidate-muted treatment in addition to any evidence modulation.
+
+### Requirement: Root domain bubbles render with layered vitality
+
+Root domain bubbles SHALL present a layered, lively treatment built from platform tokens: an offset inner highlight, a rim-light arc, a soft outer halo, and a slow breathing glow on the active or hovered bubble. All vitality effects SHALL be paint-level: bubble centers, radii, packing, hit areas, and the always-visible internal full-name labels SHALL remain exactly as the deterministic root layout defines them. A bounded entrance stagger MAY play when the root view mounts and SHALL finish promptly.
+
+#### Scenario: Bubble depth layers render
+- **WHEN** the root view is visible in light or dark theme
+- **THEN** each domain bubble SHALL render an offset inner highlight, rim-light arc, and outer halo derived from platform tokens
+- **AND** the full domain name SHALL remain completely visible inside the bubble with no vitality effect overdrawing the label.
+
+#### Scenario: Active bubble breathes
+- **WHEN** a root bubble is active or hovered and reduced motion is off
+- **THEN** its halo and glow SHALL pulse slowly within bounded intensity
+- **AND** the bubble's geometry and every other bubble's presentation SHALL remain unchanged.
+
+#### Scenario: Root entrance is bounded
+- **WHEN** the root view mounts
+- **THEN** bubbles MAY appear with a short staggered fade-and-settle sequence that completes within a documented duration
+- **AND** after the sequence the presentation SHALL be identical to a re-render of the same state.
+
+#### Scenario: Reduced motion collapses vitality
+- **WHEN** `prefers-reduced-motion: reduce` is active
+- **THEN** breathing and entrance stagger SHALL be disabled
+- **AND** the static layered depth treatment SHALL still distinguish active from inactive bubbles.
+
+### Requirement: Knowledge workspace provides an explicit migration-period graph switch
+The knowledge workspace SHALL let every currently authorized graph user switch between the candidate ActKG graph and the Legacy graph, defaulting to the candidate when available.
+
+#### Scenario: Candidate ReleaseSet is available
+- **WHEN** an authorized teacher or student opens the workspace
+- **THEN** the workspace SHALL select the candidate view and provide a clearly labeled Legacy switch
+
+#### Scenario: User changes version
+- **WHEN** the user selects the other graph version
+- **THEN** the workspace SHALL replace the graph and detail state from the selected independent API without merging nodes
 

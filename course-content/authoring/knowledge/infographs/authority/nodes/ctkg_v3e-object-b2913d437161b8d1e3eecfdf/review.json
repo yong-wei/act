@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:00:18+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-b2913d437161b8d1e3eecfdf",
+  "safe_id": "ctkg_v3e-object-b2913d437161b8d1e3eecfdf",
+  "node_name": "理想脉冲",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-C vision-mapped accept (Td/分隔线/摩擦/理想脉冲/复现滤波器)"
+}

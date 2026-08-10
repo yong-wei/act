@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { CheckCircle2, ExternalLink, PlayCircle } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useOptionalInteractiveContext } from '@/features/interactive';
@@ -12,6 +12,7 @@ import {
   buildSimulationCourseLaunchHref,
   getSimulationCourseCompletionEventType,
   getSimulationCourseLaunchEventType,
+  requiresPersistedSimulationRun,
   resolveSimulationCourseResourceConfig,
 } from './course-resource-config';
 
@@ -39,15 +40,46 @@ function fallbackLaunchContext(props: SimulationCourseResourceProps): ResourceRe
 export function SimulationCourseResource(props: SimulationCourseResourceProps) {
   const interactive = useOptionalInteractiveContext();
   const config = useMemo(() => resolveSimulationCourseResourceConfig(props), [props]);
+  const persistedRunRequired = requiresPersistedSimulationRun(config);
   const launchContext = props.launchContext ?? fallbackLaunchContext(props);
+  const [completionChannelId, setCompletionChannelId] = useState<string | null>(null);
+  const [simulationRunId, setSimulationRunId] = useState<string | null>(null);
+  useEffect(() => {
+    if (config.resourceKind === 'simulation-scene') {
+      setCompletionChannelId(crypto.randomUUID());
+    }
+  }, [config.resourceKind]);
   const href = useMemo(
-    () => buildSimulationCourseLaunchHref(config, launchContext),
-    [config, launchContext],
+    () => buildSimulationCourseLaunchHref(config, launchContext, completionChannelId ?? undefined),
+    [completionChannelId, config, launchContext],
   );
   const evidencePayload = useMemo(
     () => buildSimulationCourseEvidencePayload(config, launchContext),
     [config, launchContext],
   );
+  useEffect(() => {
+    if (
+      config.resourceKind !== 'simulation-scene'
+      || !completionChannelId
+      || typeof BroadcastChannel === 'undefined'
+    ) {
+      return undefined;
+    }
+    const channel = new BroadcastChannel(`simulation-run:${completionChannelId}`);
+    channel.onmessage = (event: MessageEvent<unknown>) => {
+      const data = event.data && typeof event.data === 'object'
+        ? event.data as Record<string, unknown>
+        : {};
+      if (
+        data.type === 'simulation-run-persisted'
+        && data.sceneId === config.sceneId
+        && typeof data.simulationRunId === 'string'
+      ) {
+        setSimulationRunId(data.simulationRunId);
+      }
+    };
+    return () => channel.close();
+  }, [completionChannelId, config.resourceKind, config.sceneId]);
   const title = config.resourceKind === 'arena-workbench'
     ? 'Arena 挑战工作台'
     : config.scene?.label ?? '虚拟仿真资源';
@@ -66,12 +98,14 @@ export function SimulationCourseResource(props: SimulationCourseResourceProps) {
   };
 
   const recordCompletion = () => {
+    if (persistedRunRequired && !simulationRunId) return;
     interactive?.progress.markComplete({
       success: true,
       score: 100,
       data: {
         eventType: getSimulationCourseCompletionEventType(config),
         ...evidencePayload,
+        simulationRunId,
         score: 100,
       },
     });
@@ -112,15 +146,29 @@ export function SimulationCourseResource(props: SimulationCourseResourceProps) {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Button asChild>
-            <Link href={href} target="_blank" rel="noreferrer" onClick={recordLaunch}>
+          {config.resourceKind === 'simulation-scene' && !completionChannelId ? (
+            <Button disabled>
               <ExternalLink className="mr-2 h-4 w-4" />
-              打开资源
-            </Link>
-          </Button>
-          <Button type="button" variant="outline" onClick={recordCompletion}>
+              正在准备资源
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href={href} target="_blank" rel="noreferrer" onClick={recordLaunch}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                打开资源
+              </Link>
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={recordCompletion}
+            disabled={persistedRunRequired && !simulationRunId}
+          >
             <CheckCircle2 className="mr-2 h-4 w-4" />
-            标记完成
+            {persistedRunRequired && !simulationRunId
+              ? '完成仿真后记录'
+              : '标记完成'}
           </Button>
         </div>
       </div>

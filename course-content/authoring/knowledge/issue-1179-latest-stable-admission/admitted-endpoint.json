@@ -1,0 +1,11 @@
+{
+  "protocol": "actkg-admitted-endpoint/1",
+  "releaseSetId": "actkg-authoritative-candidate-v2",
+  "releaseId": "control-theory-engineering-v0.2",
+  "releaseVersion": "control-theory-engineering-v0.2",
+  "releaseHash": "3a897438ad8ff2ea5154befb1f8b6c783d843b430a39a128c654ebfa10ac2ffd",
+  "sourceDatasetHash": "0468a685d93ea6a727444ff1464b8c3472dc18014d4c4f6a834e33218c2dae6c",
+  "projectionId": "ctr:projection:control-theory-engineering-v0.2:domain-v2",
+  "projectionDigest": "f324255fd77cf5bf3bacf4cc55a7a082faca3339fff2b8410ddca37a00226255",
+  "candidateState": "CANDIDATE"
+}

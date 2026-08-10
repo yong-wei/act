@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0017",
+  "offset": 85,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-673ca3fc1e1f241021746105",
+      "batch": "B",
+      "name": "Observer Canonical Form",
+      "definition": "Observer Canonical Form：A canonical form for which the estimator gain design equations are particularly simple and the existence of a solution…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Observer Ca…",
+        "Observer Can",
+        "关联·Observ…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Observer Canonical Form\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Observer Canonical Form：A canonical form for which the estimator gain design equations are particularly simple and the existence of a solution…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Observer C」、「Observer C」、「关联·Observ…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-76a08234eba9eed51ed0733b",
+      "batch": "B",
+      "name": "Lyapunov's First Method",
+      "definition": "Lyapunov's First Method：A method for studying stability based on the linear approximation: if the linear approximation is strictly stable (all…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov's …",
+        "Lyapunov's F",
+        "用于分析·Nonl…",
+        "用于分析·Equi…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov's First Method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov's First Method：A method for studying stability based on the linear approximation: if the linear approximation is strictly stable (all…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov's」、「Lyapunov's」、「用于分析·Nonl…」、「用于分析·Equi…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d80da04d9d355b4af6fec9f9",
+      "batch": "B",
+      "name": "Phase-lead compensator",
+      "definition": "Phase-lead compensator：A compensator that adds a phase-lead angle to provide an adequate phase margin, used to alter the performance of a cont…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase-lead …",
+        "Phase-lead c",
+        "应用于·Phase…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Phase-lead compensator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Phase-lead compensator：A compensator that adds a phase-lead angle to provide an adequate phase margin, used to alter the performance of a cont…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Phase-lead」、「Phase-lead」、「应用于·Phase…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-dc824b634d98afec12f44ff1",
+      "batch": "B",
+      "name": "Control canonical form",
+      "definition": "Control canonical form：A canonical form of state-space representation where the system matrix is in upper companion form, with the coefficient…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Control can…",
+        "Control cano",
+        "用于分析·Pole…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Control canonical form\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Control canonical form：A canonical form of state-space representation where the system matrix is in upper companion form, with the coefficient…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Control ca」、「Control ca」、「用于分析·Pole…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-ccef964f06e57a0ef5e51635",
+      "batch": "B",
+      "name": "Solve for the highest",
+      "definition": "Solve for the highest：Solve for the highest derivative term in the ODE, assume that highest derivative is available, obtain lower order terms…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Solve for t…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Solve for the highest\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Solve for the highest：Solve for the highest derivative term in the ODE, assume that highest derivative is available, obtain lower order terms…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Solve for 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

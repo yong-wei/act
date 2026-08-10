@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0161",
+  "offset": 805,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_b00a275496bb3493dc1436b9",
+      "batch": "C",
+      "name": "Lyapunov's second method",
+      "definition": "Lyapunov's second method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov's …",
+        "Lyapunov's s"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov's second method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov's second method是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov's」、「Lyapunov's」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b4aa88340e051572c027eb23",
+      "batch": "C",
+      "name": "Lyapunov Indirect Method",
+      "definition": "Lyapunov Indirect Method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov In…",
+        "Lyapunov Ind"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov Indirect Method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov Indirect Method是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov I」、「Lyapunov I」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bdae7eeb9e64719b93446a14",
+      "batch": "C",
+      "name": "backward difference rule",
+      "definition": "backward difference rule是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "backward di…",
+        "backward dif"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: backward difference rule\nSOURCE DEFINITION (fail-closed, do not invent beyond this): backward difference rule是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「backward d」、「backward d」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_dbcf19cd7faa70a7b71ba715",
+      "batch": "C",
+      "name": "Lyapunov's direct method",
+      "definition": "Lyapunov's direct method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov's …",
+        "Lyapunov's d"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov's direct method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov's direct method是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov's」、「Lyapunov's」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9f0b378f72741e96820b891b",
+      "batch": "C",
+      "name": "Lyapunov's first method",
+      "definition": "Lyapunov's first method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov's …",
+        "Lyapunov's f"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov's first method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov's first method是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov's」、「Lyapunov's」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

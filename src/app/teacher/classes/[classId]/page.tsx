@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -28,10 +28,8 @@ import {
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { AddStudentsModal } from '@/components/teacher/add-students-modal';
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
-import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import {
   requestClassroomActionConfirmation,
-  requestClassroomConflictChoice,
   requestClassroomEndConfirmation,
 } from '@/features/classroom/classroom-lifecycle-dialog';
 import {
@@ -40,6 +38,8 @@ import {
   formatTeacherStudentDisplayId,
 } from '@/features/teacher/teacher-insights';
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
+import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
+import { TeacherDiagnosisReportHistory } from '@/features/teacher/teacher-diagnosis-report-history';
 
 interface Student {
   id: string;
@@ -86,19 +86,11 @@ interface LessonPlan {
   description: string | null;
 }
 
-const START_DIALOG_FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-function getStartDialogFocusableElements(dialog: HTMLElement) {
-  return Array.from(dialog.querySelectorAll<HTMLElement>(START_DIALOG_FOCUSABLE_SELECTOR))
-    .filter((item) => !item.hasAttribute('disabled') && item.offsetParent !== null);
-}
-
 export default function ClassDetailPage() {
   const params = useParams();
   const router = useRouter();
   const classId = params?.classId as string;
-  const startDialogRef = useRef<HTMLDivElement>(null);
-  const startDialogOpenerRef = useRef<HTMLElement | null>(null);
+  const teacherLauncher = useTeacherClassroomLauncher();
 
   const [classData, setClassData] = useState<ClassDetail | null>(null);
   const [sessions, setSessions] = useState<ClassSession[]>([]);
@@ -108,13 +100,6 @@ export default function ClassDetailPage() {
   const [copied, setCopied] = useState(false);
   const [announcement, setAnnouncement] = useState('班级详情正在加载。');
 
-  // 开始上课相关
-  const [showStartModal, setShowStartModal] = useState(false);
-  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
-  const lessonPlanSelectId = useId();
-  const startDialogErrorId = useId();
-  const [startDialogError, setStartDialogError] = useState('');
-  const [starting, setStarting] = useState(false);
   const [regeneratingJoinCode, setRegeneratingJoinCode] = useState(false);
   const [endingSessionId, setEndingSessionId] = useState<string | null>(null);
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
@@ -162,7 +147,7 @@ export default function ClassDetailPage() {
   const fetchInsights = useCallback(async () => {
     if (!classId) return;
     try {
-      const res = await fetch(`/api/teacher/classes/${classId}/insights?scope=cumulative`);
+      const res = await fetch(`/api/teacher/classes/${classId}/insights`);
       if (res.ok) {
         const data = await res.json();
         setInsights(data);
@@ -203,66 +188,16 @@ export default function ClassDetailPage() {
     }
   }, [statusFilter, searchTerm, classId, fetchSessions, loading]);
 
-  const openStartDialog = useCallback(() => {
-    const activeElement = document.activeElement;
-    startDialogOpenerRef.current = activeElement instanceof HTMLElement ? activeElement : null;
-    setStartDialogError('');
-    setShowStartModal(true);
-  }, []);
-
-  const closeStartDialog = useCallback(() => {
-    setStartDialogError('');
-    setShowStartModal(false);
-    window.requestAnimationFrame(() => {
-      const opener = startDialogOpenerRef.current;
-      if (opener?.isConnected && opener.offsetParent !== null) {
-        opener.focus();
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!showStartModal) return;
-    const dialog = startDialogRef.current;
-    if (!dialog) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        closeStartDialog();
-        return;
-      }
-      if (event.key !== 'Tab') return;
-      const focusable = getStartDialogFocusableElements(dialog);
-      if (focusable.length === 0) {
-        event.preventDefault();
-        dialog.focus();
-        return;
-      }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!dialog.contains(document.activeElement) || document.activeElement === dialog) {
-        event.preventDefault();
-        (event.shiftKey ? last : first).focus();
-        return;
-      }
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-        return;
-      }
-      if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    window.requestAnimationFrame(() => {
-      getStartDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus();
-    });
-    dialog.addEventListener('keydown', handleKeyDown);
-    return () => dialog.removeEventListener('keydown', handleKeyDown);
-  }, [closeStartDialog, showStartModal]);
+  const openStartDialog = useCallback((launchElement: HTMLElement) => {
+    teacherLauncher.launch({
+      currentClassId: classId,
+      lessonOptions: lessonPlans,
+      onSessionReady: (sessionId) => {
+        setAnnouncement('课堂已创建，正在进入教师课堂。');
+        router.push(`/classroom/teacher/${sessionId}`);
+      },
+    }, launchElement);
+  }, [classId, lessonPlans, router, teacherLauncher]);
 
   const copyCode = async () => {
     if (classData) {
@@ -270,73 +205,6 @@ export default function ClassDetailPage() {
       setCopied(true);
       setAnnouncement('班级加入码已复制。');
       setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  // 开始上课
-  const handleStartClass = async () => {
-    setStartDialogError('');
-    if (!selectedPlanId) {
-      const message = '请选择教案后再开始上课。';
-      setStartDialogError(message);
-      setAnnouncement(message);
-      return;
-    }
-
-    setStarting(true);
-    try {
-      const res = await fetch('/api/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId: selectedPlanId, classId, launchContext: 'class-bound' })
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        if (error.existingSessionId && error.requiresExplicitChoice) {
-          setStarting(false);
-          const choice = await requestClassroomConflictChoice({
-            identity: error.classroomIdentity,
-            message: error.error,
-          });
-          if (choice === 'reuse') {
-            router.push(`/classroom/teacher/${error.existingSessionId}`);
-            return;
-          }
-          if (choice === 'new-session') {
-            setStarting(true);
-            const retry = await fetch('/api/session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                planId: selectedPlanId,
-                classId,
-                launchContext: 'class-bound',
-                duplicateAction: 'new-session',
-              }),
-            });
-            const retryPayload = await retry.json().catch(() => ({}));
-            if (!retry.ok || !retryPayload.id) {
-              throw new Error(retryPayload.error || '开始课堂失败');
-            }
-            setAnnouncement('课堂已创建，正在进入教师课堂。');
-            router.push(`/classroom/teacher/${retryPayload.id}`);
-          }
-          return;
-        }
-        throw new Error(error.error || '开始课堂失败');
-      }
-
-      const session = await res.json();
-      setAnnouncement('课堂已创建，正在进入教师课堂。');
-      router.push(`/classroom/teacher/${session.id}`);
-    } catch (error) {
-      console.error('开始课堂失败:', error);
-      const message = error instanceof Error ? error.message : '开始课堂失败';
-      setStartDialogError(message);
-      setAnnouncement(message);
-    } finally {
-      setStarting(false);
     }
   };
 
@@ -455,7 +323,6 @@ export default function ClassDetailPage() {
   const activeSession = sessions.find(s => s.status === 'ACTIVE');
   const displayedSessions = statusFilter === 'ACTIVE' ? sessions.filter(s => s.status === 'ACTIVE') : sessions.filter(s => s.status === 'FINISHED');
   const governance = insights?.governance;
-  const evidenceCoverage = governance?.evidenceCoverage;
   const studentInsightMap = new Map(insights?.students.map((student) => [student.id, student]) || []);
   const classDetailStatus = `${announcement} 当前显示 ${displayedSessions.length} 条课堂历史，${classData?.students.length ?? 0} 名学生。`;
 
@@ -610,7 +477,7 @@ export default function ClassDetailPage() {
                     {classData._count.students} 名学生
                   </span>
                   {governance && <span>{governance.lastUpdatedLabel}</span>}
-                  {insights && <span className="font-medium text-foreground">口径：{insights.scopeLabel}</span>}
+                  {insights && <span className="font-medium text-foreground">{insights.scopeLabel}</span>}
                 </div>
               </div>
             </div>
@@ -657,7 +524,7 @@ export default function ClassDetailPage() {
             </div>
 
             <button type="button"
-              onClick={openStartDialog}
+              onClick={(event) => openStartDialog(event.currentTarget)}
               className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-4 font-medium text-white transition hover:from-emerald-500 hover:to-green-500"
               aria-label="打开开始上课对话框"
             >
@@ -668,7 +535,7 @@ export default function ClassDetailPage() {
         </div>
       </section>
 
-      <section className="mb-8 grid gap-4 lg:grid-cols-4">
+      <section className="mb-8 grid gap-4 lg:grid-cols-5">
         <Link href={buildTeacherClassInsightsHref(classId)} className="teacher-insight-entry">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -702,17 +569,17 @@ export default function ClassDetailPage() {
             <GraduationCap className="h-5 w-5 text-emerald-500" />
           </div>
         </Link>
-        <div className="teacher-insight-entry" data-recent-signals-not-applicable>
+        <Link href={`${buildTeacherClassInsightsHref(classId)}#graph-center-affected-population`} className="teacher-insight-entry">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-foreground">近阶段风险与重点学生</p>
+              <p className="text-sm font-semibold text-foreground">累计风险与重点学生</p>
               <p className="mt-2 text-sm text-subtle">
-                切换近阶段学情查看近期风险、课堂质量与趋势。
+                查看最后一次证据触发的趋势、风险与重点学生。
               </p>
             </div>
             <ShieldAlert className="h-5 w-5 text-rose-500" />
           </div>
-        </div>
+        </Link>
         <Link
           href={`/teacher/prep-packs?classId=${encodeURIComponent(classId)}`}
           className="teacher-insight-entry"
@@ -728,20 +595,34 @@ export default function ClassDetailPage() {
             <BookOpen className="h-5 w-5 text-violet-500" />
           </div>
         </Link>
+        <Link href="#diagnosis-report-history" className="teacher-insight-entry">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">学情诊断报告</p>
+              <p className="mt-2 text-sm text-subtle">
+                查看班级范围的历史报告、证据覆盖与受治理发现项。
+              </p>
+            </div>
+            <Database className="h-5 w-5 text-sky-500 dark:text-sky-300" />
+          </div>
+        </Link>
       </section>
 
       {insights && (
-        <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+        <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <div className="teacher-insight-metric">
             <p className="text-sm text-subtle">累计能力达成指数</p>
             <p className="mt-2 text-3xl font-semibold text-foreground">
-              {insights.overview.overallIndex ?? '暂无证据'}
+              {insights.overview.overallIndex ?? '不可用'}
             </p>
-            <p className="mt-2 text-xs text-subtle">来自全历史原生画像与累计班级快照。</p>
+            <p className="mt-2 text-xs text-subtle">来自当前成员全部有效学习事实形成的累计画像。</p>
           </div>
-          <div className="teacher-insight-metric" data-recent-risk-not-applicable>
-            <p className="text-sm font-medium text-foreground">近阶段风险不适用</p>
-            <p className="mt-2 text-xs text-subtle">切换近阶段学情查看近期风险、课堂质量与趋势。</p>
+          <div className="teacher-insight-metric">
+            <p className="text-sm text-subtle">累计证据风险</p>
+            <p className="mt-2 text-3xl font-semibold text-rose-500">
+              {insights.overview.highRiskStudents}/{insights.overview.attentionStudents}
+            </p>
+            <p className="mt-2 text-xs text-subtle">高风险人数 / 重点关注人数。</p>
           </div>
           <div className="teacher-insight-metric">
             <p className="text-sm text-subtle">人均累计证据</p>
@@ -749,33 +630,56 @@ export default function ClassDetailPage() {
             <p className="mt-2 text-xs text-subtle">反映治理链路沉淀下来的过程证据密度。</p>
           </div>
           <div className="teacher-insight-metric">
-            <p className="text-sm text-subtle">证据充分</p>
+            <p className="text-sm text-subtle">有效累计画像覆盖</p>
             <p className="mt-2 text-3xl font-semibold text-emerald-500">
-              {evidenceCoverage?.readyStudents ?? 0}/{evidenceCoverage?.totalStudents ?? 0}
+              {governance?.coveredStudents ?? 0}/{governance?.totalStudents ?? 0}
             </p>
             <p className="mt-2 text-xs text-subtle">
-              {evidenceCoverage?.staleStudents ?? 0} 名待刷新，{evidenceCoverage?.missingStudents ?? 0} 名缺少证据。
+              {governance?.pendingStudents ?? 0} 名无合格证据、迁移中或当前不可用。
             </p>
           </div>
-          <div className="teacher-insight-metric" data-recent-session-quality-not-applicable>
-            <p className="text-sm font-medium text-foreground">近期会话质量不适用</p>
+          <div className="teacher-insight-metric">
+            <p className="text-sm font-medium text-foreground">累计趋势分布</p>
             <p className="mt-2 text-xs text-subtle">
-              此页展示累计能力达成；切换近阶段学情查看近期会话质量、风险与趋势。
+              上升 {insights.trendDistribution?.up ?? 0} · 稳定 {insights.trendDistribution?.stable ?? 0} ·
+              下降 {insights.trendDistribution?.down ?? 0} · 尚无可比 {insights.trendDistribution?.['not-comparable'] ?? 0}
             </p>
           </div>
         </section>
       )}
 
       {insights && (
-        <div className="mb-8">
-          <DiagnosisSurfacePanel
-            diagnosis={insights.diagnosis}
-            mode="teacher-class"
-            title="控制校正班级诊断"
-            description="聚合班级诊断快照、弱点聚类、证据覆盖与备课入口状态。"
-          />
-        </div>
+        <section className="surface-card mb-8 p-6">
+          <h2 className="text-lg font-semibold text-foreground">七维累计班级诊断</h2>
+          {insights.diagnosis ? (
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <div className="teacher-insight-metric">
+                <p className="text-sm font-medium text-foreground">优势维度</p>
+                <p className="mt-2 text-sm text-subtle">{formatDimensionList(insights, insights.diagnosis.strengths)}</p>
+              </div>
+              <div className="teacher-insight-metric">
+                <p className="text-sm font-medium text-foreground">待提升维度</p>
+                <p className="mt-2 text-sm text-subtle">{formatDimensionList(insights, insights.diagnosis.improvementClusters)}</p>
+              </div>
+              <div className="teacher-insight-metric">
+                <p className="text-sm font-medium text-foreground">诊断限制</p>
+                <p className="mt-2 text-sm text-subtle">
+                  {insights.diagnosis.limitations.length > 0 ? insights.diagnosis.limitations.join('；') : '无额外限制'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-subtle">{formatAvailabilityReason(insights.availability.reason)}</p>
+          )}
+        </section>
       )}
+
+      <div className="mb-8">
+        <TeacherDiagnosisReportHistory
+          classId={classId}
+          subjectLabel={`${classData.name} · 班级范围`}
+        />
+      </div>
 
       {/* 进行中的课堂 */}
       {activeSession && (
@@ -981,10 +885,10 @@ export default function ClassDetailPage() {
                   <th className="px-4 py-3 font-medium">学生</th>
                   <th className="px-4 py-3 font-medium">累计画像等级</th>
                   <th className="px-4 py-3 font-medium">累计达成指数</th>
-                  <th className="px-4 py-3 font-medium">证据状态（近阶段）</th>
-                  <th className="px-4 py-3 font-medium">风险状态（近阶段）</th>
-                  <th className="px-4 py-3 font-medium">近阶段趋势</th>
-                  <th className="px-4 py-3 font-medium">成长档案</th>
+                  <th className="px-4 py-3 font-medium">累计证据状态</th>
+                  <th className="px-4 py-3 font-medium">最后证据风险</th>
+                  <th className="px-4 py-3 font-medium">最后累计趋势</th>
+                  <th className="px-4 py-3 font-medium">证据截至</th>
                   <th className="px-4 py-3 font-medium">操作</th>
                 </tr>
               </thead>
@@ -1017,12 +921,12 @@ export default function ClassDetailPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-4 align-top text-foreground" data-label="画像等级">
-                        {insight ? insight.overallLevel ?? '暂无证据' : '待生成'}
+                        {insight ? insight.overallLevel ?? formatAvailabilityReason(insight.availabilityReason) : '当前不可用'}
                       </td>
                       <td className="px-4 py-4 align-top" data-label="综合指数">
                         {insight ? (
                           <span className="font-semibold text-sky-600 dark:text-sky-300">
-                            {insight.overallScore ?? '暂无证据'}
+                            {insight.overallScore ?? '不可用'}
                           </span>
                         ) : (
                           <span className="text-subtle">-</span>
@@ -1040,23 +944,28 @@ export default function ClassDetailPage() {
                             </p>
                           </div>
                         ) : (
-                          <span className="teacher-insight-chip teacher-insight-chip-pending">待生成</span>
+                          <span className="teacher-insight-chip teacher-insight-chip-pending">当前不可用</span>
                         )}
                       </td>
                       <td className="px-4 py-4 align-top" data-label="风险状态">
-                        <span className="text-sm text-subtle">累计口径不适用</span>
-                      </td>
-                      <td className="px-4 py-4 align-top text-foreground" data-label="近期趋势">
-                        <Link href={`${buildTeacherClassInsightsHref(classId)}?scope=recent`} className="text-sm text-primary hover:underline">
-                          切换近阶段学情查看
-                        </Link>
-                      </td>
-                      <td className="px-4 py-4 align-top" data-label="成长档案">
                         {insight ? (
-                          <span className="font-semibold text-foreground">{insight.growthRecordCount}</span>
+                          <div className="min-w-[120px]">
+                            <span className={`teacher-insight-chip teacher-insight-risk-${insight.riskLevel}`}>
+                              {insight.riskLabel}
+                            </span>
+                            {insight.riskBadges.length > 0 ? (
+                              <p className="mt-2 text-xs text-subtle">{insight.riskBadges.join('、')}</p>
+                            ) : null}
+                          </div>
                         ) : (
-                          <span className="text-subtle">-</span>
+                          <span className="text-sm text-subtle">不可用</span>
                         )}
+                      </td>
+                      <td className="px-4 py-4 align-top text-foreground" data-label="累计趋势">
+                        {insight ? formatTrendDirection(insight.trendDirection) : '不可用'}
+                      </td>
+                      <td className="px-4 py-4 align-top text-subtle" data-label="证据截至">
+                        {insight ? formatEvidenceCutoff(insight.evidenceStatus.lastEvidenceAt) : '不可用'}
                       </td>
                       <td className="px-4 py-4 align-top" data-label="操作">
                         <div className="flex items-center gap-2">
@@ -1091,93 +1000,7 @@ export default function ClassDetailPage() {
         )}
       </div>
 
-      {/* 开始上课模态框 */}
-      {showStartModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div ref={startDialogRef} className="surface-card mx-4 w-full max-w-md p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="teacher-start-class-title" aria-describedby={startDialogError ? startDialogErrorId : undefined} tabIndex={-1}>
-            <div className="mb-6 flex items-center justify-between">
-              <h3 id="teacher-start-class-title" className="text-xl font-bold text-foreground">开始上课</h3>
-              <button type="button"
-                onClick={closeStartDialog}
-                className="btn-ghost-themed rounded-lg p-1 transition"
-                aria-label="关闭开始上课对话框"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <label htmlFor={lessonPlanSelectId} className="mb-2 block text-sm font-medium text-slate-300">
-                选择教案
-              </label>
-              {lessonPlans.length === 0 ? (
-                <div className="surface-card-soft p-4 text-center">
-                  <BookOpen className="mx-auto h-8 w-8 text-slate-500" />
-                  <p className="mt-2 text-sm text-slate-400">暂无可用教案</p>
-                  <Link
-                    href={`/teacher/lesson-plans/new?returnTo=${encodeURIComponent(`/teacher/classes/${classId}`)}`}
-                    className="mt-2 inline-block text-sm text-sky-400 hover:text-sky-300"
-                  >
-                    创建教案
-                  </Link>
-                </div>
-              ) : (
-                <select
-                  id={lessonPlanSelectId}
-                  value={selectedPlanId}
-                  onChange={(e) => {
-                    setSelectedPlanId(e.target.value);
-                    setStartDialogError('');
-                  }}
-                  className="w-full rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-foreground focus:border-primary focus:outline-none"
-                >
-                  <option value="">请选择教案...</option>
-                  {lessonPlans.map(plan => (
-                    <option key={plan.id} value={plan.id}>
-                      {plan.title}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-            <p className="mb-4 rounded-lg border border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10 px-3 py-2 text-sm text-platform-fg-primary">
-              班级课堂：{classData?.name ?? '当前班级'}。学生端、教师投影和课后复盘将使用该班级身份。
-            </p>
-
-            {startDialogError && (
-              <p id={startDialogErrorId} role="alert" className="mb-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">
-                {startDialogError}
-              </p>
-            )}
-
-            <div className="flex gap-3">
-              <button type="button"
-                onClick={closeStartDialog}
-                className="btn-ghost-themed flex-1 rounded-lg py-3 font-medium transition"
-              >
-                取消
-              </button>
-              <button type="button"
-                onClick={handleStartClass}
-                disabled={!selectedPlanId || starting}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
-              >
-                {starting ? (
-                  <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    开始中...
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-4 w-4" />
-                    开始上课
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {teacherLauncher.dialog}
 
       {/* 添加学生弹窗 */}
       <AddStudentsModal
@@ -1196,8 +1019,7 @@ export default function ClassDetailPage() {
 type TeacherEvidenceStatus = TeacherClassInsightsPayload['students'][number]['evidenceStatus'];
 
 function formatTeacherEvidenceState(status: TeacherEvidenceStatus): string {
-  if (status.state === 'missing') return '缺少证据';
-  if (status.state === 'stale') return '待刷新';
+  if (status.state === 'missing') return '缺少合格证据';
   if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
     return '低置信';
   }
@@ -1207,7 +1029,6 @@ function formatTeacherEvidenceState(status: TeacherEvidenceStatus): string {
 function getTeacherEvidenceStateChipClass(status: TeacherEvidenceStatus): string {
   const base = 'teacher-insight-chip';
   if (status.state === 'missing') return `${base} teacher-insight-chip-pending`;
-  if (status.state === 'stale') return `${base} teacher-insight-chip-warning`;
   if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
     return `${base} teacher-insight-chip-warning`;
   }
@@ -1223,4 +1044,37 @@ function formatTeacherEvidenceConfidence(status: TeacherEvidenceStatus): string 
         ? '低'
         : '无';
   return `${levelLabel}置信 · ${status.confidence.evidenceCount} 条证据`;
+}
+
+function formatTrendDirection(direction: TeacherClassInsightsPayload['students'][number]['trendDirection']) {
+  if (direction === 'up') return '上升';
+  if (direction === 'down') return '下降';
+  if (direction === 'stable') return '稳定';
+  return '尚无可比';
+}
+
+function formatEvidenceCutoff(value: string | null) {
+  if (!value) return '不可用';
+  return new Date(value).toLocaleString('zh-CN');
+}
+
+function formatAvailabilityReason(reason: string) {
+  if (reason === 'available') return '可使用';
+  if (reason === 'no-eligible-evidence') return '无合格证据';
+  if (reason === 'no-evidence-after-revocation') return '支持证据已撤销';
+  if (reason === 'migration-in-progress') return '累计画像迁移中';
+  if (reason === 'processing-failed') return '累计画像处理失败';
+  return '累计画像当前不可用';
+}
+
+function formatDimensionList(
+  insights: TeacherClassInsightsPayload,
+  dimensions: NonNullable<TeacherClassInsightsPayload['diagnosis']>['strengths'],
+) {
+  if (dimensions.length === 0) return '尚无';
+  const labels = new Map(insights.ability.dimensions.map((dimension) => [
+    dimension.dimension,
+    dimension.label,
+  ]));
+  return dimensions.map((dimension) => labels.get(dimension) ?? dimension).join('、');
 }

@@ -6,22 +6,42 @@ import { AIMessageContent, sanitizeVerifiedCitationMarkdown } from '@/components
 import { KonlingCitationPanel, normalizeKonlingCitationPresentation } from '@/components/ai/konling-citation-presentation';
 
 describe('Konling verified citation presentation', () => {
-  it('suppresses model-authored footnotes without removing ordinary links', () => {
+  it('suppresses every model-authored link and internal textbook identity', () => {
     const sanitized = sanitizeVerifiedCitationMarkdown(
-      '时间常数表示响应速度。[1](#user-content-fn1)\n\n[^content]: 模型伪造的引用\n\n参见 [课程资料](/course-runtime/resources/unit.md)。',
+      [
+        '时间常数表示响应速度。[1](#user-content-fn1)',
+        '[^content]: 模型伪造的引用',
+        '参见 [课程资料](/course-runtime/resources/unit.md)。',
+        '裸地址 https://private.example/unit canonicalKey=textbook:book:e8:rev:unit:fragment',
+        'bookId=hu-shousong-auto-control-8th edition=第八版 identity={"kind":"textbook"}',
+        'unitId=textbook-unit:hu8/direct fragmentId=formula-1 sourceRevision=secret structuralPath=["chapter-3","section-3.2"]',
+        'dorf-modern-control-systems chapter-3 section-3.2',
+      ].join('\n\n'),
     );
 
     expect(sanitized).toContain('时间常数表示响应速度。');
-    expect(sanitized).toContain('[课程资料](/course-runtime/resources/unit.md)');
+    expect(sanitized).toContain('参见 课程资料。');
     expect(sanitized).not.toContain('[1]');
     expect(sanitized).not.toContain('user-content-fn');
     expect(sanitized).not.toContain('[^content]');
+    expect(sanitized).not.toContain('https://');
+    expect(sanitized).not.toContain('canonicalKey');
+    expect(sanitized).not.toContain('bookId');
+    expect(sanitized).not.toContain('edition');
+    expect(sanitized).not.toContain('identity');
+    expect(sanitized).not.toContain('textbook-unit:');
+    expect(sanitized).not.toContain('fragmentId');
+    expect(sanitized).not.toContain('sourceRevision');
+    expect(sanitized).not.toContain('structuralPath');
+    expect(sanitized).not.toContain('dorf-modern-control-systems');
+    expect(sanitized).not.toContain('chapter-3');
+    expect(sanitized).not.toContain('section-3.2');
 
     const html = renderToStaticMarkup(
       React.createElement(AIMessageContent, { content: sanitized }),
     );
-    expect(html).toContain('href="/course-runtime/resources/unit.md"');
-    expect(html).not.toContain('href="#user-content-fn');
+    expect(html).not.toContain('href=');
+    expect(sanitizeVerifiedCitationMarkdown('关键变形 [证据: content:formula:derivation]')).toBe('关键变形');
   });
 
   it('renders final verified citations from server-owned metadata', () => {
@@ -78,6 +98,7 @@ describe('Konling verified citation presentation', () => {
   });
 
   it('uses rendered textbook display hrefs without discarding canonical citation metadata', () => {
+    const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-2/section-2.1#figure-02-01';
     const presentation = normalizeKonlingCitationPresentation({
       konlingCitationGuard: {
         status: 'verified',
@@ -85,9 +106,9 @@ describe('Konling verified citation presentation', () => {
           id: 'content:textbook:fig-02-01',
           sourceType: 'content',
           displayTitle: 'Root locus figure',
-          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
-          canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
-          displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+          href: textbookHref,
+          canonicalHref: textbookHref,
+          displayHref: textbookHref,
           confidence: 'high',
           evidenceBasis: 'source-pack:konling-answer:pack-1',
           citationTargetId: 'textbook:fig-02-01',
@@ -97,13 +118,13 @@ describe('Konling verified citation presentation', () => {
           citationChip: {
             chunkId: 'content:textbook:fig-02-01',
             displayTitle: 'Root locus figure',
-            displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+            displayHref: textbookHref,
             sourceType: 'course-content',
             addressKind: 'image',
             citationAddress: {
               kind: 'image',
               sourceRefId: 'textbook:fig-02-01',
-              href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+              href: textbookHref,
               locator: 'fig-02-01',
               contentHash: 'sha256:abc',
             },
@@ -120,7 +141,7 @@ describe('Konling verified citation presentation', () => {
     });
 
     expect(presentation.summary.status).toBe('verified');
-    expect(presentation.items[0]?.href).toBe('/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01');
+    expect(presentation.items[0]?.href).toBe(textbookHref);
     expect(presentation.items[0]?.confidence).toBe('high');
   });
 
@@ -201,7 +222,7 @@ describe('Konling verified citation presentation', () => {
     );
 
     expect(html).toContain('data-konling-citation-status="limited"');
-    expect(html).toContain('引用核验有限');
+    expect(html).toContain('部分引用未能核验');
     expect(html).not.toContain('已验证引用');
     expect(html).toContain('data-citation-target="/course-runtime/resources/textbooks/control/ch02.md#time-constant"');
     expect(html).toContain('data-citation-limited="unavailable-address"');
@@ -269,6 +290,36 @@ describe('Konling verified citation presentation', () => {
     expect(presentation.items).toHaveLength(2);
     expect(presentation.items.map((item: any) => item.displayIndex)).toEqual([1, 2]);
     expect(presentation.items.map((item: any) => item.sourceType)).toEqual(['path-execution', 'content']);
+  });
+
+  it('renders server-assigned display numbers without client reordering', () => {
+    const presentation = normalizeKonlingCitationPresentation({
+      konlingCitationGuard: {
+        status: 'verified',
+        citations: [
+          {
+            id: 'evidence-second',
+            canonicalKey: 'learner-state:evidence-second:stable',
+            displayNumber: 8,
+            sourceType: 'learner-state',
+            displayTitle: '学习证据',
+            confidence: 'medium',
+            evidenceBasis: 'server-owned',
+          },
+          {
+            id: 'content-first',
+            canonicalKey: 'content:content-first:current',
+            displayNumber: 3,
+            sourceType: 'content',
+            displayTitle: '教材内容',
+            confidence: 'high',
+            evidenceBasis: 'server-owned',
+          },
+        ],
+      },
+    });
+
+    expect(presentation.items.map((item) => item.displayIndex)).toEqual([8, 3]);
   });
 
   it('does not collapse legacy retrieval sources without stable ids into unknown keys', () => {
@@ -419,5 +470,50 @@ describe('Konling verified citation presentation', () => {
     expect(html).toContain('data-konling-citation-status="missing"');
     expect(html).toContain('content');
     expect(html).not.toContain('href=');
+  });
+
+  it('renders the study-question contract and material answer evidence bindings from server metadata', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(KonlingCitationPanel, {
+        metadata: {
+          konlingCitationGuard: {
+            status: 'low-confidence',
+            lowConfidenceReasons: ['normative-guidance-verification-required'],
+            studyQuestion: {
+              intent: 'normative-content',
+              requiredSections: ['适用范围', '规范结论', '核验来源'],
+              normativeGuidance: 'verification-required',
+            },
+            citations: [{
+              id: 'content:formula:derivation',
+              citationTargetId: 'formula:derivation',
+              sourceType: 'content',
+              displayTitle: '闭环传递函数教材片段',
+              href: '/course-runtime/resources/control.md#closed-loop',
+              confidence: 'high',
+              evidenceBasis: 'source-pack',
+            }],
+            answerUnits: [{
+              unit: '关键变形：分母为 1 + G(s)H(s)',
+              citationId: 'content:formula:derivation',
+              citationTargetId: 'formula:derivation',
+              limitation: null,
+            }, {
+              unit: '伪造来源',
+              citationId: 'content:unknown',
+              citationTargetId: 'unknown',
+              limitation: null,
+            }],
+          },
+        },
+      }),
+    );
+
+    expect(html).toContain('data-konling-study-question-contract');
+    expect(html).toContain('规范内容需核验');
+    expect(html).toContain('data-konling-answer-unit-bindings');
+    expect(html).toContain('关键变形：分母为 1 + G(s)H(s)');
+    expect(html).toContain('闭环传递函数教材片段');
+    expect(html).not.toContain('伪造来源');
   });
 });

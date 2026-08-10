@@ -1,10 +1,10 @@
 # Resource Completion Workqueues
 
-Generated at: 2026-07-18T05:00:00.000Z
+Generated at: 2026-07-23T08:30:00.000Z
 
-Queued resources: 6458
-Primary queue items: 6458
-Dependent queue items: 22404
+Queued resources: 6999
+Primary queue items: 6999
+Dependent queue items: 24027
 
 | Queue | Family | LearningGoal | Graph domain | Missing field | Follow-up bucket | Dependency | Items |
 | --- | --- | --- | --- | --- | --- | --- | ---: |
@@ -33,7 +33,10 @@ Dependent queue items: 22404
 | resource-completion:dependent:authoring-textbook-section:unassigned-learning-goal:textbook:missing-path-profile:review-runtime-lesson-planning-units:needs-human-review | authoring-textbook-section | unassigned-learning-goal | textbook | missing-path-profile | review-runtime-lesson-planning-units | needs-human-review | 25 |
 | resource-completion:dependent:authoring-textbook-section:unassigned-learning-goal:textbook:missing-path-target:review-runtime-lesson-planning-units:needs-human-review | authoring-textbook-section | unassigned-learning-goal | textbook | missing-path-target | review-runtime-lesson-planning-units | needs-human-review | 25 |
 | resource-completion:dependent:knowledge-card:controlModeling:knowledge-graph:missing-path-profile:review-runtime-lesson-planning-units:needs-human-review | knowledge-card | controlModeling | knowledge-graph | missing-path-profile | review-runtime-lesson-planning-units | needs-human-review | 18 |
+| resource-completion:dependent:knowledge-card:unassigned-learning-goal:knowledge-graph:missing-capability-target:complete-foundation-graph-resource-bindings:needs-human-review | knowledge-card | unassigned-learning-goal | knowledge-graph | missing-capability-target | complete-foundation-graph-resource-bindings | needs-human-review | 541 |
+| resource-completion:dependent:knowledge-card:unassigned-learning-goal:knowledge-graph:missing-path-profile:review-runtime-lesson-planning-units:needs-human-review | knowledge-card | unassigned-learning-goal | knowledge-graph | missing-path-profile | review-runtime-lesson-planning-units | needs-human-review | 541 |
 | resource-completion:dependent:knowledge-card:unassigned-learning-goal:knowledge-graph:missing-path-profile:review-runtime-lesson-planning-units:ready | knowledge-card | unassigned-learning-goal | knowledge-graph | missing-path-profile | review-runtime-lesson-planning-units | ready | 277 |
+| resource-completion:dependent:knowledge-card:unassigned-learning-goal:knowledge-graph:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review | knowledge-card | unassigned-learning-goal | knowledge-graph | provisional-metadata | review-runtime-media-handout-dispositions | needs-human-review | 541 |
 | resource-completion:dependent:knowledge-infograph:capability:autocontrol:interpret-time-frequency-response:knowledge-graph:missing-evidence-contract:complete-evidence-lineage-bindings:ready | knowledge-infograph | capability:autocontrol:interpret-time-frequency-response | knowledge-graph | missing-evidence-contract | complete-evidence-lineage-bindings | ready | 1 |
 | resource-completion:dependent:knowledge-infograph:capability:autocontrol:interpret-time-frequency-response:knowledge-graph:missing-evidence-instrumentation:complete-evidence-lineage-bindings:ready | knowledge-infograph | capability:autocontrol:interpret-time-frequency-response | knowledge-graph | missing-evidence-instrumentation | complete-evidence-lineage-bindings | ready | 1 |
 | resource-completion:dependent:knowledge-infograph:capability:autocontrol:interpret-time-frequency-response:knowledge-graph:missing-path-profile:review-runtime-lesson-planning-units:ready | knowledge-infograph | capability:autocontrol:interpret-time-frequency-response | knowledge-graph | missing-path-profile | review-runtime-lesson-planning-units | ready | 1 |
@@ -88,6 +91,7 @@ Dependent queue items: 22404
 | resource-completion:primary:authoring-textbook-section:unassigned-learning-goal:textbook:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review | authoring-textbook-section | unassigned-learning-goal | textbook | missing-human-review | review-runtime-media-handout-dispositions | needs-human-review | 25 |
 | resource-completion:primary:knowledge-card:controlModeling:knowledge-graph:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review | knowledge-card | controlModeling | knowledge-graph | missing-human-review | review-runtime-media-handout-dispositions | needs-human-review | 18 |
 | resource-completion:primary:knowledge-card:unassigned-learning-goal:knowledge-graph:missing-capability-target:complete-foundation-graph-resource-bindings:ready | knowledge-card | unassigned-learning-goal | knowledge-graph | missing-capability-target | complete-foundation-graph-resource-bindings | ready | 277 |
+| resource-completion:primary:knowledge-card:unassigned-learning-goal:knowledge-graph:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review | knowledge-card | unassigned-learning-goal | knowledge-graph | missing-human-review | review-runtime-media-handout-dispositions | needs-human-review | 541 |
 | resource-completion:primary:knowledge-infograph:capability:autocontrol:interpret-time-frequency-response:knowledge-graph:missing-path-target:review-runtime-lesson-planning-units:ready | knowledge-infograph | capability:autocontrol:interpret-time-frequency-response | knowledge-graph | missing-path-target | review-runtime-lesson-planning-units | ready | 1 |
 | resource-completion:primary:knowledge-infograph:capability:autocontrol:validate-with-simulation-evidence:knowledge-graph:missing-path-target:review-runtime-lesson-planning-units:ready | knowledge-infograph | capability:autocontrol:validate-with-simulation-evidence | knowledge-graph | missing-path-target | review-runtime-lesson-planning-units | ready | 1 |
 | resource-completion:primary:knowledge-infograph:unassigned-learning-goal:knowledge-graph:missing-capability-target:complete-foundation-graph-resource-bindings:ready | knowledge-infograph | unassigned-learning-goal | knowledge-graph | missing-capability-target | complete-foundation-graph-resource-bindings | ready | 159 |

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-b3fb723e0aebb8b4dca3e23c",
+  "safe_id": "ctkg_v3e-object-b3fb723e0aebb8b4dca3e23c",
+  "node": {
+    "name": "信号复现过程",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "在采样控制系统中，把脉冲序列转变为连续信号的过程称为信号复现过程。",
+  "intuition": null,
+  "explanation": "在采样控制系统中，把脉冲序列转变为连续信号的过程称为信号复现过程。",
+  "relation_head": "后续 → 复现过程、保持器、阶梯信号",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "复现过程",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "保持器",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "阶梯信号",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "信号复现滤波器",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "信号复现过程",
+    "是一种·复现过程",
+    "包含组件·保持器",
+    "包含组件·阶梯信号",
+    "包含组件·信号复现…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b3fb723e0aebb8b4dca3e23c.md",
+  "provider_policy": "grok-image_gen"
+}

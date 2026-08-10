@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-677f91cec4356ce5a40ceb97",
+  "safe_id": "ctkg_v3e-canonical-677f91cec4356ce5a40ceb97",
+  "node": {
+    "name": "Routh approximat",
+    "name_en": "Routh approximation method for order reduction",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Routh approximat：Another novel and useful method for reducing the order is the Routh approximation method based on the idea of truncatin…",
+  "intuition": null,
+  "explanation": "Another novel and useful method for reducing the order is the Routh approximation method based on the idea of truncating the Routh table used to determine stability.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Routh appro…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-677f91cec4356ce5a40ceb97.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "5b8e00646810a496b097f9a9",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-cli",
+    "sessionId": "4c070f03-56e8-45c0-af4d-b5eace9d6c1f",
+    "permission": "workspace",
+    "reviewSessionId": "4c070f03-56e8-45c0-af4d-b5eace9d6c1f",
+    "reviewSessionScope": "act:issue-1217:primary-independent-stage",
+    "sourceWriterSessionId": "4c070f03-56e8-45c0-af4d-b5eace9d6c1f",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1217:primary-independent-stage",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1217-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "9f000fe492c60254f5f72c01f6fc98bc43f0b0ec035d355b901b808637570907",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1217-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "1144d4bdaf3abb8d1d3e1ce1ece77c62a2af29aa4a8b6de57f45b576ca9b93ef",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1217-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "9f000fe492c60254f5f72c01f6fc98bc43f0b0ec035d355b901b808637570907",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "4c070f03-56e8-45c0-af4d-b5eace9d6c1f"
+    },
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 55
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic assembler preserved the independently authored PRIMARY conclusions, frozen evidence references, and order without generating semantic conclusions."
+  },
+  "challenger": {
+    "provider": "grok-cli",
+    "sessionId": "64990fe6-9819-4e36-9fc2-187721a60246",
+    "permission": "workspace",
+    "reviewSessionId": "64990fe6-9819-4e36-9fc2-187721a60246",
+    "reviewSessionScope": "act:issue-1217:challenger-independent-stage-final",
+    "sourceWriterSessionId": "64990fe6-9819-4e36-9fc2-187721a60246",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1217:challenger-independent-stage-final",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1217-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "0389c63a77785445f37f122b6e6b10e46ab50cf8c84e7db5fd76b86bea818d37",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1217-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "7d87c975231a05bf8de2be080e9edb4a8212e6e83f01e50e535194f7582f6fd4",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1217-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "0389c63a77785445f37f122b6e6b10e46ab50cf8c84e7db5fd76b86bea818d37",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "64990fe6-9819-4e36-9fc2-187721a60246"
+    },
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 55
+    },
+    "independentCourseEvidenceCount": 0,
+    "didNotReadPrimaryArtifact": true,
+    "sessionAuditPrimaryPathMentions": 0,
+    "structuredTranscription": "The deterministic assembler preserved the independently authored CHALLENGER conclusions, frozen evidence references, and order without generating semantic conclusions."
+  },
+  "third": null
+}

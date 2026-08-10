@@ -6,10 +6,11 @@ import path from 'node:path';
 
 const repoRoot = process.cwd();
 const gateScript = path.join(repoRoot, 'scripts/data-governance/check-portrait-v2-primary-usage.ts');
-const tsx = path.join(repoRoot, 'node_modules/.bin/tsx');
+const tsxCli = path.join(repoRoot, 'node_modules/tsx/dist/cli.mjs');
 const tempRoot = mkdtempSync(path.join(os.tmpdir(), 'act-portrait-v2-primary-gate-'));
 const isolatedHooksPath = path.join(tempRoot, 'hooks');
 const globalHooksPath = path.join(tempRoot, 'global-hooks');
+const globalHooksConfigPath = globalHooksPath.split(path.sep).join('/');
 const globalConfigPath = path.join(tempRoot, 'global.gitconfig');
 mkdirSync(isolatedHooksPath);
 mkdirSync(globalHooksPath);
@@ -18,7 +19,7 @@ writeFileSync(
   '#!/bin/sh\nprintf "%s\\n" "isolated global pre-commit hook invoked" >&2\nexit 97\n',
   { mode: 0o755 },
 );
-writeFileSync(globalConfigPath, `[core]\n\thooksPath = ${globalHooksPath}\n`);
+writeFileSync(globalConfigPath, `[core]\n\thooksPath = ${globalHooksConfigPath}\n`);
 const gitLocalEnvVars = new Set([
   'GIT_ALTERNATE_OBJECT_DIRECTORIES',
   'GIT_CONFIG',
@@ -62,7 +63,7 @@ function writeFixture(relativePath, content) {
 
 function runGate(args) {
   try {
-    const stdout = execFileSync(tsx, [gateScript, ...args], {
+    const stdout = execFileSync(process.execPath, [tsxCli, gateScript, ...args], {
       cwd: tempRoot,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -87,7 +88,7 @@ try {
   runGit(['config', '--local', 'core.hooksPath', isolatedHooksPath], globalHookGitEnv);
   assert.equal(
     runGit(['config', '--global', '--get', 'core.hooksPath'], globalHookGitEnv).trim(),
-    globalHooksPath,
+    globalHooksConfigPath,
     'the test must use the temporary failing global hooks path',
   );
   assert.equal(
@@ -198,6 +199,40 @@ try {
   );
   assert.match(quotedRenameResult.output, /legacy-competency-vector/);
   assert.match(quotedRenameResult.output, /src\/中文 portrait consumer\.ts/);
+
+  runGit(['commit', '-q', '-m', 'commit rename baseline'], globalHookGitEnv);
+  const mergeBaseCommit = runGit(['rev-parse', 'HEAD'], globalHookGitEnv).trim();
+  runGit(['checkout', '-b', 'portrait-merge-integration'], globalHookGitEnv);
+  const integrationLegacyPath = 'src/portrait-v2-integration-legacy.ts';
+  writeFixture(integrationLegacyPath, 'const integrationValue: CompetencyVector = legacyVector;\n');
+  runGit(['add', integrationLegacyPath], globalHookGitEnv);
+  runGit(['commit', '-q', '-m', 'integration legacy usage'], globalHookGitEnv);
+  runGit(['update-ref', 'refs/remotes/origin/integration', 'portrait-merge-integration'], globalHookGitEnv);
+
+  runGit(['checkout', '-b', 'portrait-merge-feature', mergeBaseCommit], globalHookGitEnv);
+  const featureSafePath = 'src/portrait-v2-merge-safe.ts';
+  writeFixture(featureSafePath, 'export const safeFeatureChange = true;\n');
+  runGit(['add', featureSafePath], globalHookGitEnv);
+  runGit(['commit', '-q', '-m', 'feature safe change'], globalHookGitEnv);
+  runGit(['merge', '--no-commit', '--no-ff', 'portrait-merge-integration'], globalHookGitEnv);
+  const mergeAwareResult = runGate(['--staged']);
+  assert.equal(
+    mergeAwareResult.status,
+    0,
+    'staged merge mode must scan the feature delta instead of legacy usage already present on integration',
+  );
+  assert.match(mergeAwareResult.output, /1 changed file\(s\) scanned/);
+
+  const featureLegacyPath = 'src/portrait-v2-merge-feature-legacy.ts';
+  writeFixture(featureLegacyPath, 'const featureValue: CompetencyVector = legacyVector;\n');
+  runGit(['add', featureLegacyPath], globalHookGitEnv);
+  const featureLegacyMergeResult = runGate(['--staged']);
+  assert.notEqual(
+    featureLegacyMergeResult.status,
+    0,
+    'staged merge mode must still reject legacy usage newly added by the feature',
+  );
+  assert.match(featureLegacyMergeResult.output, /legacy-competency-vector/);
 } finally {
   rmSync(tempRoot, { recursive: true, force: true });
 }

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-01daeca5c38811f6a58fcb01",
+  "safe_id": "ctkg_v3e-object-01daeca5c38811f6a58fcb01",
+  "node": {
+    "name": "Equivalent gain ",
+    "name_en": "Equivalent gain analysis using root locus",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Equivalent gain ：A technique to study the stability of systems with memoryless nonlinearities by replacing the nonlinearity with an equi…",
+  "intuition": "在图谱邻接中可把握：后续 → equivalent gain、memoryless nonlinearity、Root-Locus Techn。",
+  "explanation": "A technique to study the stability of systems with memoryless nonlinearities by replacing the nonlinearity with an equivalent gain and plotting a root locus versus this gain.",
+  "relation_head": "后续 → equivalent gain、memoryless nonlinearity、Root-Locus Techn",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "equivalent gain",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "memoryless nonlinearity",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Root-Locus Techn",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Equivalent …",
+    "包含组件·equi…",
+    "用于分析·memo…",
+    "关联·Root-L…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-01daeca5c38811f6a58fcb01.md",
+  "provider_policy": "grok-image_gen"
+}

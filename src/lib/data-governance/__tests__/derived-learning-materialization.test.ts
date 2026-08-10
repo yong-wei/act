@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 
 import * as materialization from '../derived-learning-materialization';
 import { buildClassScopedStudentProjections } from '../class-scoped-learning-materialization';
@@ -75,6 +75,63 @@ describe('derived learning materialization revocation', () => {
     expect(delegates.diagnosisReportSnapshot.deleteMany).toHaveBeenNthCalledWith(1, { where: { userId: { in: ['student-1'] }, subjectKind: { not: 'class' } } });
     expect(delegates.diagnosisReportSnapshot.deleteMany).toHaveBeenNthCalledWith(2, { where: { subjectKind: 'class', classId: { in: ['class-1'] } } });
     expect(delegates.learningMaterializationRebuildRequest.upsert).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'student-1' }, create: expect.objectContaining({ status: 'PENDING' }) }));
+  });
+
+  it('routes revocation through the cumulative request contract while its fence is active', async () => {
+    const db = rebuildRequestDb();
+    db.cumulativePortraitCutoverFence = {
+      findUnique: vi.fn(async () => ({
+        calculationVersion: 'portrait-v2.cumulative.v2',
+        learnerGeneration: BigInt(3),
+        classGeneration: BigInt(5),
+        queueGeneration: BigInt(7),
+        fence: BigInt(11),
+        activeMigrationRunId: 'migration-989',
+      })),
+    };
+
+    await revokeDerivedLearningMaterializations(db, {
+      userIds: ['student-1'],
+      classIds: ['class-1'],
+    });
+
+    expect(db.rows.get('student-1')).toEqual(expect.objectContaining({
+      classIds: ['class-1'],
+      reason: 'governed-fact-revoked',
+      kind: 'CUMULATIVE_RECONCILIATION',
+      migrationRunId: 'migration-989',
+      calculationVersion: 'portrait-v2.cumulative.v2',
+      learnerGeneration: BigInt(3),
+      queueGeneration: BigInt(7),
+      cutoverFence: BigInt(11),
+      generation: 1,
+      inputDigest: expect.stringMatching(/^[0-9a-f]{64}$/),
+    }));
+  });
+
+  it('keeps legacy SQL on the shared monotonic generation source and clears cumulative proof fields', async () => {
+    const queries: any[] = [];
+    const db: any = {
+      $queryRaw: vi.fn(async (query: any) => {
+        queries.push(query);
+        return [{ generation: 8 }];
+      }),
+    };
+
+    await expect((materialization as any).requestLearningMaterializationRebuild(db, {
+      userId: 'student-legacy',
+      classIds: ['class-legacy'],
+      reason: 'legacy-rebuild',
+    })).resolves.toBe(8);
+
+    const sql = queries[0].strings.join('?');
+    expect(queries[0].values).toContain('learning-materialization:student-legacy');
+    expect(sql).toContain('request_generation AS');
+    expect(sql).toContain('INSERT INTO "LearningMaterializationGeneration"');
+    expect(sql).toContain('GREATEST(');
+    expect(sql).toContain('"kind" = \'LEGACY\'');
+    expect(sql).toContain('"migrationRunId" = NULL');
+    expect(sql).toContain('"inputDigest" = NULL');
   });
 
   it('merges class ids and advances the request generation', async () => {
@@ -209,45 +266,34 @@ describe('derived learning materialization revocation', () => {
     expect(db.$transaction).toHaveBeenCalledTimes(1);
   });
 
-  it('uses the outer claimed transaction directly for every full-rebuild stage', () => {
+  it('routes learner snapshot jobs through the cumulative portrait materializer and publication fence', () => {
     const worker = readFileSync(new URL('../../../../scripts/workers/data-governance-worker.ts', import.meta.url), 'utf8');
-    expect(worker).toMatch(/const executeStage[\s\S]*if \(barrierHeld\) return action\(materializationDb\)[\s\S]*if \(rebuildClaim\) return runClaimedLearningMaterializationStage/);
+    expect(worker).toContain('const expectation = readStudentPublicationExpectation(job.data);');
+    expect(worker).toContain('if (!matchesStudentFence(expectation, fence))');
+    expect(worker).toContain('const portraitV2 = await materializeIncrementalPortraitV2(db as any, userId, {');
+    expect(worker).toContain('fullRebuild: reconciliationClaim ? true : job.data.fullRebuild');
+    expect(worker).not.toContain('const executeStage');
   });
 
-  it('keeps v2 class snapshots explicit and disables every legacy global-snapshot writer', () => {
-    const root = new URL('../../../../', import.meta.url);
-    const schema = readFileSync(new URL('prisma/schema.prisma', root), 'utf8');
-    const migration = readFileSync(new URL('prisma/migrations/20260714210000_harden_grading_gc_governance/migration.sql', root), 'utf8');
-    const worker = readFileSync(new URL('scripts/workers/data-governance-worker.ts', root), 'utf8');
-    expect(schema).toMatch(/materializationVersion\s+String\?\s*\n/);
-    expect(schema).not.toMatch(/materializationVersion\s+String\?\s+@default/);
-    expect(migration).not.toContain('ALTER COLUMN "materializationVersion" SET DEFAULT');
-    expect(worker.match(/classCompetencySnapshot\.create\(/g)).toHaveLength(3);
-    expect(worker.match(/materializationVersion:\s*CLASS_COMPETENCY_MATERIALIZATION_VERSION/g)).toHaveLength(3);
-    expect(worker.match(/materializationVersion:\s*CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION/g)).toHaveLength(1);
-    for (const file of ['repair-unit-4-4-incomplete-backfill.ts', 'backfill-unit-4-1-growth-governance.ts', 'backfill-unit-4-4-governance.ts']) {
-      const source = readFileSync(new URL(`scripts/db/${file}`, root), 'utf8');
-      expect(source).not.toContain('classCompetencySnapshot.create(');
-      expect(source).toContain('class-competency.v2');
-      expect(source).toContain('data-governance-worker');
-    }
-    const collect = (directory: URL): URL[] => readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-      const child = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directory);
-      return entry.isDirectory() ? collect(child) : entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts') ? [child] : [];
-    });
-    const executableWriters = [new URL('scripts/', root), new URL('src/', root)]
-      .flatMap(collect)
-      .filter((file) => /classCompetencySnapshot\.(?:create|createMany|upsert)\(/.test(readFileSync(file, 'utf8')))
-      .map((file) => file.pathname.replace(root.pathname, ''));
-    expect(executableWriters).toEqual(['scripts/workers/data-governance-worker.ts']);
+  it('routes class snapshot jobs exclusively through cumulative class materialization', () => {
+    const worker = readFileSync(new URL('../../../../scripts/workers/data-governance-worker.ts', import.meta.url), 'utf8');
+    expect(worker).toContain("if (requestedScope && requestedScope !== 'cumulative')");
+    expect(worker).toContain('if (!matchesClassFence(expectation, fence))');
+    expect(worker).toContain('const result = await materializeCumulativeClassPortrait(db as any, classId, {');
+    expect(worker).toContain('return toJsonSafeWorkerResult(result);');
+    expect(worker).not.toContain('classCompetencySnapshot.create(');
   });
 
-  it('compensates a missing Growth record in the unchanged-facts barrier branch', () => {
+  it('settles cumulative learner reconciliation only after portrait materialization and class enqueue', () => {
     const worker = readFileSync(new URL('../../../../scripts/workers/data-governance-worker.ts', import.meta.url), 'utf8');
-    const branch = worker.slice(worker.indexOf("reason: 'unchanged_facts'") - 1800, worker.indexOf("reason: 'unchanged_facts'") + 100);
-    expect(branch).toContain('preparedGrowthEvaluationMatches');
-    expect(branch).toContain('refreshStudentGrowthEvaluation');
-    expect(branch).toContain('executeStage');
+    const branch = worker.slice(
+      worker.indexOf('const portraitV2 = await materializeIncrementalPortraitV2'),
+      worker.indexOf('export async function processClassSnapshotJob'),
+    );
+    expect(branch).toContain('await enqueueClassSnapshotForStudent(');
+    expect(branch).toContain('await completeCumulativeLearnerReconciliation(db as any, reconciliationClaim)');
+    expect(branch).toContain("'learner-materialization-or-class-enqueue-failed'");
+    expect(branch).not.toContain('preparedGrowthEvaluationMatches');
   });
 
   it('rolls back all claimed projection writes when the single transaction fails', async () => {

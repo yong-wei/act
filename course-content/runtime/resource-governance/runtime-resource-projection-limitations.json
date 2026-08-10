@@ -1,6 +1,6 @@
 {
   "artifactVersion": "runtime-resource-projections.v1",
-  "generatedAt": "2026-07-18T05:00:00.000Z",
+  "generatedAt": "2026-07-23T08:30:00.000Z",
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
     "learningGoalPackageVersion": "learning-goal-package/v1",
@@ -13,16 +13,16 @@
     "groundingVersion": "konling-graph-grounding.v1"
   },
   "totals": {
-    "rows": 6341,
+    "rows": 6882,
     "resourceNodeCandidates": 766,
-    "segmentOnly": 5575,
+    "segmentOnly": 6116,
     "registryPathEligible": 2,
     "planningUnitEligible": 0,
     "humanConfirmed": 2939,
     "agentReviewed": 3082,
     "reviewConcluded": 3082,
     "semanticReviewed": 3063,
-    "provisional": 0,
+    "provisional": 541,
     "stale": 1834
   },
   "byFamily": {
@@ -30,7 +30,7 @@
     "runtime-lesson-module": 1487,
     "runtime-lesson-media": 788,
     "runtime-handout": 39,
-    "knowledge-card": 297,
+    "knowledge-card": 838,
     "knowledge-infograph": 161,
     "textbook": 6,
     "textbook-section": 1007,
@@ -42,7 +42,7 @@
   },
   "byProjectionLevel": {
     "ResourceNode": 766,
-    "ResourceSegment": 5575,
+    "ResourceSegment": 6116,
     "CitationTarget": 0,
     "RetrievalChunk": 0,
     "PlanningUnit": 0
@@ -58,7 +58,8 @@
     "missing-knowledge-binding",
     "missing-path-profile",
     "missing-path-target",
-    "missing-segment-ref"
+    "missing-segment-ref",
+    "provisional-metadata"
   ],
   "limitations": [
     "authoring-textbook-caption:hu-shousong-exercise-analysis-3rd:chapter-01:figure-1: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-knowledge-binding, missing-path-profile, missing-path-target",

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "cf97812d622e09bc01b290e7",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "1d8f2d19-41db-4479-a854-d7284f16fbe0",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "ae90d30f43316821c7f8a8d57a3f8b8e63f807a5d104fe4fd0bd23e461463f1a",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedDocumentDigest": "14efb806cca59882534b65bb0b4aa4af33378b7ac4371889e3c9939603f7b7ca",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 299
+    },
+    "structuredTranscription": "Conclusions, rationales, and frozen evidence selectors were preserved; stage digests were sealed from the normalized representation.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1209-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "ae90d30f43316821c7f8a8d57a3f8b8e63f807a5d104fe4fd0bd23e461463f1a",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "1d8f2d19-41db-4479-a854-d7284f16fbe0"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "ac434809-5488-46f9-a5ee-810a159ea56b",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "f7f7257d2cee95cd904530cda5fd055019d17602d3736453afdaeaf9a16d5a8d",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedDocumentDigest": "8550fc74e837474aa68acbc0c3b235940ec52ed701e315ad7f43ec2742592143",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 299
+    },
+    "structuredTranscription": "Conclusions, rationales, and frozen evidence selectors were preserved; stage digests were sealed from the normalized representation.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1209-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "f7f7257d2cee95cd904530cda5fd055019d17602d3736453afdaeaf9a16d5a8d",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "ac434809-5488-46f9-a5ee-810a159ea56b"
+    }
+  },
+  "frozenEvidenceBoundary": {
+    "memberCount": 299,
+    "profileOnlyHighRiskMemberCount": 299,
+    "aggregateEvidenceRefCount": 299,
+    "profileEvidenceRefCount": 299,
+    "independentCourseEvidenceMemberCount": 0,
+    "admittedBoundaries": [
+      "aggregate",
+      "profile"
+    ],
+    "diagnosticCandidatesAreNotAdmitted": true,
+    "diagnosticCandidatesRequireUpstreamIssue": "#1180"
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}

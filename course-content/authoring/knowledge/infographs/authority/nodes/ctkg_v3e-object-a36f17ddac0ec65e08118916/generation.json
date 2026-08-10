@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-05T17:49:52+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+  "safe_id": "ctkg_v3e-object-a36f17ddac0ec65e08118916",
+  "generation_path": "native-image-generation",
+  "provider": "grok-image_gen",
+  "model": "grok-image_gen",
+  "source_image": "ctkg_v3e-object-a36f17ddac0ec65e08118916.png",
+  "output_image": "course-content/authoring/knowledge/infographs/authority/nodes/ctkg_v3e-object-a36f17ddac0ec65e08118916/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/authority/nodes/ctkg_v3e-object-a36f17ddac0ec65e08118916/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/authority/nodes/ctkg_v3e-object-a36f17ddac0ec65e08118916/source.json"
+}

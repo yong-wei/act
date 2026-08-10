@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+  "safe_id": "ctkg_v3e-object-10c37fd947ba55593ff03ede",
+  "node": {
+    "name": "性能指标",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "进行控制系统的校正设计，除了应已知系统不可变部分的特性与参数外，还需要已知对系统提出的全部性能指标。",
+  "intuition": "性能指标通常是由使用单位或被控对象的设计制造单位提出的。",
+  "explanation": "进行控制系统的校正设计，除了应已知系统不可变部分的特性与参数外，还需要已知对系统提出的全部性能指标。性能指标通常是由使用单位或被控对象的设计制造单位提出的。",
+  "relation_head": "前置 → 系统带宽 · 后续 → 校正问题",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "系统带宽",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "校正问题",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "性能指标",
+    "是一种·系统带宽",
+    "应用于·校正问题"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-10c37fd947ba55593ff03ede.md",
+  "provider_policy": "grok-image_gen"
+}

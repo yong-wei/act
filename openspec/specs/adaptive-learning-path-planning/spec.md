@@ -4,13 +4,23 @@
 Defines the Stage 1 adaptive learning path planner contract: deterministic rules plus graph search over learner state and ResourceNodes, explainable scoring, visualization payloads, and feedback/correction records without contextual bandit or reinforcement learning.
 ## Requirements
 ### Requirement: Path planner generates constrained explainable paths
-The system SHALL generate adaptive learning paths from learner state, the ResourceNode graph, registered LearningGoal strategy, teacher policy, planning constraints, ranked resource candidates, and bounded repair output where available.
+The system SHALL generate adaptive learning paths from learner state, the ResourceNode graph, registered LearningGoal strategy, teacher policy, planning constraints, ranked resource candidates, and bounded repair output where available. For Projection-bound formal paths, the planner MUST traverse only ACT Teaching Projection `ACT_TEACHING` prerequisites with `REQUIRED` strength for hard dependencies, exclude learner-mastered nodes, topologically order the remainder, and choose current accessible Teaching Projection resources. ActKG engineering relations and textbook/lesson order MAY be rationale only and MUST NOT become hard edges.
 
 #### Scenario: Planner creates a feasible path
 - **WHEN** a student requests a learning path with a time budget and registered learning goal
 - **THEN** the planner SHALL infer deficits when evidence exists, otherwise apply the goal's starter-path policy
 - **AND** it SHALL filter ResourceNodes and apply prerequisites, availability, teacher policy, privacy, device, risk-intervention, and time constraints for both personalized and starter paths
 - **AND** it SHALL return a feasible plan DAG with current node, next nodes, alternatives, estimates, and explanations.
+
+#### Scenario: Goal has required prerequisites
+- **WHEN** a path-eligible goal has a valid current Projection and required prerequisite DAG
+- **THEN** the planner SHALL reverse-traverse unmet REQUIRED nodes and return a deterministic topological path
+- **AND** each emitted node SHALL have at least one accessible projected resource
+
+#### Scenario: Engineering relation is present
+- **WHEN** an ActKG engineering relation connects two nodes but no ACT REQUIRED edge exists
+- **THEN** the planner SHALL not add that relation as a prerequisite
+- **AND** it SHALL preserve the relation only as optional explanation/context
 
 #### Scenario: Planner repairs a graph-driven draft path
 - **WHEN** graph search produces a draft path with bounded alternatives
@@ -192,12 +202,22 @@ Student path selection and outcomes SHALL update governed preference and strateg
 - **AND** the original selection alone SHALL NOT be treated as mastery evidence.
 
 ### Requirement: Path bundles remain explainable
-Displayed path bundles SHALL expose why options differ and what tradeoffs they make.
+Displayed path bundles SHALL expose why two current options differ and what measurable trade-offs they make. A comparison SHALL be derived deterministically from the two specified options in the same saved path version and SHALL NOT alter, reorder or regenerate either option.
 
 #### Scenario: User compares path options
-- **WHEN** a student or authorized teacher compares path options
-- **THEN** the response SHALL include overlap, modality mix, estimated effort, expected target lift, terminal validation difference, and evidence limitations
-- **AND** all personalized claims SHALL cite authorized diagnosis, learner-state, path, or resource evidence.
+- **WHEN** a student or authorized teacher compares two valid options from the same current saved path
+- **THEN** the response SHALL identify both options and include ordered common nodes, ordered option-only nodes, shared-node order differences, modality or resource mix, estimated effort, checkpoint and readiness facts, locked nodes, terminal validation differences, trade-offs, and evidence limitations
+- **AND** personalized claims SHALL be limited to authorized diagnosis, learner-state, path, or resource evidence.
+
+#### Scenario: Compared options have no material difference
+- **WHEN** the two specified options have the same ordered nodes and no material metric difference
+- **THEN** the response SHALL state that no material difference is present
+- **AND** it SHALL retain the compared option identities so the result remains auditable.
+
+#### Scenario: Stored option facts are insufficient
+- **WHEN** either option lacks the ordered node identities or student-safe node summaries required for a reliable comparison
+- **THEN** the response SHALL state that a reliable difference explanation is unavailable and identify the comparison limitation
+- **AND** it SHALL NOT replace the missing facts with generic or model-inferred claims.
 
 #### Scenario: Diagnosis and Konling consume path option context
 - **WHEN** diagnosis surfaces or the Konling path-advisor read the current control-correction path context
@@ -229,12 +249,17 @@ The system SHALL persist learning path rounds across registered goals.
 - **AND** it SHALL be resumable without recomputing the original graph/resource basis.
 
 ### Requirement: Generated paths use governed resource nodes
-Adaptive path generation SHALL use only audited resource nodes and checkpoint nodes with registered path semantics, even when ranking consumes retrieval or citation projections as semantic signals.
+Adaptive path generation SHALL use only audited resource nodes and checkpoint nodes with registered path semantics, even when ranking consumes retrieval or citation projections as semantic signals. Path nodes MUST reference registered ResourceNodes from the active Teaching Projection and MUST preserve resource role, scope, source/provenance, and Projection identity. The planner MUST NOT synthesize a PathNode directly from a raw ActKG node, engineering edge, or unreviewed textbook locator.
 
 #### Scenario: Ranked retrieval chunk lacks ResourceNode audit
 - **WHEN** a RetrievalChunk or CitationTarget ranks highly for graph relevance
 - **THEN** the planner SHALL NOT turn it into a PathNode unless an audited ResourceNode or checkpoint contract authorizes it
 - **AND** diagnostics SHALL distinguish retrieval relevance from path eligibility.
+
+#### Scenario: Projected lesson is selected
+- **WHEN** a governed lesson or interactive resource is selected for a Canonical prerequisite
+- **THEN** the path node SHALL carry its ResourceNode identity and launch target
+- **AND** the path rationale SHALL identify the Canonical and prerequisite evidence
 
 ### Requirement: Planner accepts Konling path-generation requests
 The adaptive path planner SHALL accept governed Konling tool requests as one path generation input channel.
@@ -265,13 +290,23 @@ Path execution records SHALL preserve distinct learner actions for execution and
 ### Requirement: Planner gates active path nodes by learner readiness
 The adaptive path planner SHALL evaluate learner readiness using portrait v2
 learner-state signals before placing a ResourceNode into the immediately
-executable portion of a generated path.
+executable portion of a generated path. Every formal path node MUST have `pathEligible=true`, a valid current Authority/Projection identity, and at least one accessible projected resource. A node with no resource or an unresolved required binding MUST be excluded or returned as an explicit blocked diagnostic.
 
 #### Scenario: Student lacks readiness for a heavy node
 - **WHEN** a student requests a path and the portrait v2 learner-state slice is below a node's readiness threshold
 - **THEN** the planner SHALL exclude that node from `activeNodeIds`
 - **AND** it SHALL include preparation nodes or fallback nodes before the locked node when such nodes are available
 - **AND** it SHALL keep the locked node out of current or next executable actions.
+
+#### Scenario: Node has no accessible resource
+- **WHEN** an unmet prerequisite node has no accessible lesson, handout, step, card, textbook, or other projected resource
+- **THEN** the planner SHALL not emit an executable node
+- **AND** it SHALL report the exact readiness blocker
+
+#### Scenario: Optional card is missing
+- **WHEN** a node has an accessible handout/step but no optional card
+- **THEN** the node SHALL remain path-eligible
+- **AND** the planner SHALL choose the other resource and annotate card absence
 
 #### Scenario: Low-readiness control-correction learner requests a path
 - **WHEN** student `20230010102601` or an equivalent learner has low portrait v2 readiness for control modeling/representation and controller design/synthesis
@@ -650,4 +685,188 @@ Adaptive path diagnostics SHALL prove that each path-ready LearningGoal can gene
 - **WHEN** a LearningGoal cannot generate meaningful governed paths after closure
 - **THEN** diagnostics SHALL identify a specific reviewed blocker such as missing source artifact, unresolved route, missing terminal-validation authority, or unavailable evidence lineage
 - **AND** the student-facing surface SHALL not show cosmetic identical path options.
+
+### Requirement: Unfinished Legacy paths stop at authority cutover
+Every unfinished path whose steps reference Legacy knowledge MUST stop execution at production authority cutover and remain available as an immutable historical record.
+
+#### Scenario: Learner has an active Legacy path
+- **WHEN** the cutover transaction runs
+- **THEN** the path SHALL enter a read-only stopped state and no Legacy step SHALL execute afterward
+
+### Requirement: Path goals survive without step mapping
+The system SHALL preserve the declared learning goal or user intent of a stopped Legacy path without mapping its node sequence to Canonical Objects.
+
+#### Scenario: Goal is preserved
+- **WHEN** a stopped path contains a valid goal or intent
+- **THEN** that goal SHALL remain available as input to later replanning while the Legacy steps remain historical
+
+### Requirement: Canonical paths are independently regenerated
+When a formal ActKG Teaching Projection is active, the planner SHALL generate a new path identity from the preserved goal, current cumulative portrait, version-matched CourseCoverage, reviewed KAQ bindings, and supported Canonical teaching relations. An engineering-only ReleaseSet without formal Teaching Projection MUST NOT satisfy this gate.
+
+#### Scenario: Teaching semantics are ready
+- **WHEN** all required Canonical planning inputs pass validation
+- **THEN** the planner SHALL create a new path with Canonical IDs and versions and no inherited Legacy progress
+
+#### Scenario: Teaching semantics are unavailable
+- **WHEN** the released graph lacks a formal Teaching Projection or required teaching relations
+- **THEN** the planner SHALL keep the goal pending and MUST NOT infer a path from engineering relations or Legacy fallback
+
+### Requirement: Planner honors explicit personalized path configuration
+The adaptive learning path planner SHALL treat request-level resource preferences, difficulty rhythm, checkpoint preference, and external-resource permission as planning inputs that affect candidate selection or path assembly. Goal boundaries, prerequisites, readiness, teacher policy, privacy, terminal validation, evidence policy, and safety constraints SHALL remain higher-priority constraints.
+
+#### Scenario: Request-level resource preference overrides stored preference
+- **WHEN** a request explicitly provides one or more resource types that differ from stored learner preferences
+- **THEN** the planner SHALL use the request-level resource types for that generation
+- **AND** it SHALL use stored preferences only when the corresponding request value is omitted.
+
+#### Scenario: Feasible contrasting configurations are generated
+- **WHEN** the same learner state and resource pool contain feasible alternatives for two contrasting configurations
+- **THEN** the resulting paths SHALL differ in at least one non-mandatory instructional resource or in the retained option count
+- **AND** a scoring or explanation-text difference alone SHALL NOT satisfy this requirement.
+
+#### Scenario: A requested configuration cannot be fulfilled
+- **WHEN** a request-level configuration conflicts with higher-priority constraints or the audited resource pool cannot satisfy it
+- **THEN** the planner SHALL retain the higher-priority constraints
+- **AND** it SHALL return a structured unmet-configuration reason rather than silently treating the configuration as a weak score signal.
+
+### Requirement: Planner maps free-text intent to governed planning concepts
+The planner SHALL accept free-text path intent only through deterministic mappings to supported resource types, difficulty rhythm, checkpoint density, external-resource permission, registered goals, or graph targets. Client text SHALL NOT expand resource access, evidence authority, graph boundaries, or permissions.
+
+#### Scenario: Free-text intent maps to supported concepts
+- **WHEN** a student's free-text intent matches supported planning vocabulary
+- **THEN** the request SHALL produce typed planning inputs with mapping evidence
+- **AND** those inputs SHALL follow the same fulfillment and higher-priority-constraint rules as structured configuration.
+
+#### Scenario: Free-text intent is unsupported or infeasible
+- **WHEN** free-text intent cannot be mapped deterministically or cannot be satisfied by audited resources and constraints
+- **THEN** the planner SHALL return a structured unmet reason in student-safe form
+- **AND** it SHALL NOT pass raw text to an unrestricted semantic planner or claim that the intent changed the path.
+
+### Requirement: Policy bundles select meaningful path alternatives during generation
+When generating multiple policy-family options, the planner SHALL generate options in deterministic priority order and avoid the differentiable instructional resources already retained by earlier options. Mandatory prerequisite and terminal-validation resources MAY be shared.
+
+#### Scenario: Later policy option has a feasible alternative
+- **WHEN** a later policy family has an alternative path that satisfies all required constraints without reusing every differentiable instructional resource of an earlier retained option
+- **THEN** the planner SHALL retain that alternative
+- **AND** the bundle SHALL identify its differentiable-resource distinction through its normal comparison data.
+
+#### Scenario: Later policy option has no meaningful alternative
+- **WHEN** a later policy family cannot satisfy goal, prerequisite, readiness, terminal-validation, and personalization constraints without cosmetic reuse
+- **THEN** the planner SHALL omit that option
+- **AND** it SHALL return a student-safe limitation explaining the reduced option count.
+
+#### Scenario: Mandatory nodes are shared
+- **WHEN** multiple retained options require the same prerequisite repair or terminal-validation node
+- **THEN** the planner MAY retain that shared node in each option
+- **AND** it SHALL evaluate meaningful distinction on the remaining differentiable instructional resources.
+
+### Requirement: Planner preserves requested budget when validation is required
+The planner SHALL preserve the student's requested time budget as the request constraint. When mandatory terminal validation makes the request infeasible, it SHALL return the minimum executable duration and a structured budget limitation instead of silently increasing the requested budget or removing validation.
+
+#### Scenario: Requested budget is below the executable minimum
+- **WHEN** a registered goal requires terminal validation and the requested budget is below the minimum feasible duration
+- **THEN** the planner SHALL not generate a path that represents the higher duration as requested
+- **AND** it SHALL return the requested duration, the minimum executable duration, and a student-safe corrective action.
+
+### Requirement: Candidate paths preserve aggregate recommendation basis
+The adaptive learning path planner SHALL persist a student-safe aggregate recommendation basis snapshot for each formally generated candidate path without changing candidate selection, ranking, or scoring.
+#### Scenario: Evidence supports a candidate path recommendation
+- **WHEN** a candidate path is generated from learner-state deficits and governed resource nodes
+- **THEN** the candidate path SHALL preserve one or more entries that connect an aggregate state summary to a capability or knowledge judgment and the path resources affected by that judgment
+- **AND** each entry SHALL use generation-time facts so restoring the saved path does not reinterpret the original recommendation from newer learner state.
+- **AND** the snapshot SHALL NOT represent aggregate counts or confidence as event-level evidence provenance.
+#### Scenario: Evidence is insufficient for reliable personalization
+- **WHEN** the candidate path or a target deficit has insufficient effective evidence
+- **THEN** the provenance snapshot SHALL mark the explanation as low confidence and identify course structure, prerequisite policy, and available resources as the fallback basis
+- **AND** it SHALL provide a student-safe evidence-gathering action rather than presenting missing evidence as a confirmed weakness.
+#### Scenario: Student-safe provenance is produced
+- **WHEN** aggregate recommendation basis is serialized for a student-facing candidate path
+- **THEN** it SHALL contain only governed display labels, bounded evidence summaries, confidence, affected resource titles or identities, limitations, and a governed evidence-review target
+- **AND** it SHALL NOT expose raw answers, private conversations, database identifiers, internal reason codes, raw evidence payloads, or hidden prompt content.
+
+### Requirement: Confirmed correction candidates update only eligible future path nodes
+The system SHALL apply a confirmed correction candidate by preserving completed nodes and the current node once execution has entered it, excluding unfinished historical nodes that a governed skip, replacement, or abandonment deviation explicitly marks as no longer applicable, and replacing only eligible adjustable unfinished future nodes. It SHALL preserve existing execution and deviation records and terminal evidence unless the confirmed candidate itself contains a governed future terminal node.
+
+#### Scenario: Current node is in progress
+- **WHEN** a learner confirms a correction while the current node is started but not completed
+- **THEN** the system SHALL keep the current node and its position unchanged
+- **AND** it SHALL apply the candidate only to later eligible unfinished nodes.
+
+#### Scenario: Path has no eligible future node
+- **WHEN** a current candidate has no eligible future node that can be safely replaced
+- **THEN** the system SHALL reject confirmation as unavailable or conflicted
+- **AND** it SHALL not alter the persisted path.
+
+### Requirement: Path execution exposes candidate correction proposals
+The system SHALL derive a student-visible candidate correction proposal when a path has a trusted failed checkpoint result or a recorded skip, replacement, or abandonment deviation for its current or unfinished nodes. The candidate proposal SHALL affect only unfinished nodes and SHALL NOT mutate the persisted path, current node, completion state, or deviation record.
+
+#### Scenario: Failed checkpoint has a feasible correction
+- **WHEN** a learner has a failed checkpoint and the current governed path and resource facts support a changed unfinished-node sequence
+- **THEN** the path journey SHALL expose a candidate correction proposal with a student-visible action to inspect it
+- **AND** the persisted path and current node SHALL remain unchanged.
+
+#### Scenario: Deviation has a feasible correction
+- **WHEN** a learner records a skip, replacement, or abandonment deviation and a changed unfinished-node sequence can be formed from governed facts
+- **THEN** the path journey SHALL expose a candidate correction proposal that identifies the recorded deviation as its trigger
+- **AND** it SHALL NOT automatically apply the proposal.
+
+#### Scenario: Recorded deviation takes precedence over a residual failed checkpoint
+- **WHEN** a valid recorded skip, replacement, or abandonment deviation exists for unfinished nodes after a checkpoint failure remains in execution metadata
+- **THEN** the path journey SHALL derive the candidate from the recorded deviation and identify that deviation as its trigger
+- **AND** it SHALL NOT present the residual failed checkpoint as the candidate trigger.
+
+#### Scenario: Correction cannot be generated reliably
+- **WHEN** trusted execution facts, eligible governed resources, prerequisite relationships, or a material path difference are insufficient
+- **THEN** the path journey SHALL expose a student-safe unavailable reason
+- **AND** it SHALL NOT fabricate a correction proposal or alter the existing path.
+
+### Requirement: Candidate correction proposals are explainable and comparable
+The system SHALL show a candidate correction proposal with its trigger, node additions, removals, replacements, or ordering changes, supporting learning evidence or prerequisite facts, and estimated effect on remaining work. The comparison SHALL use persisted path and governed resource identities rather than client-supplied ordering or generated content.
+
+#### Scenario: Student inspects a candidate correction proposal
+- **WHEN** a learner opens an available candidate correction proposal
+- **THEN** the UI SHALL show the original unfinished path alongside the proposed changes, the trigger, supporting facts, and estimated remaining-work effect
+- **AND** it SHALL state that the proposal is not applied until the student confirms it through the available decision workflow.
+
+#### Scenario: Candidate has no material difference
+- **WHEN** a derived candidate has the same unfinished node identities and order as the persisted path
+- **THEN** the system SHALL treat the candidate as unavailable
+- **AND** it SHALL NOT present it as a correction.
+
+### Requirement: Recommendation provenance preserves student-safe event references
+The planner SHALL attach event references only when a governed event can be proven to support the target judgment used by the candidate path. Each reference MUST contain a stable event type, occurrence time, student-readable summary, and student-safe navigation action, and MUST exclude internal identifiers and raw evidence payloads.
+
+#### Scenario: Governed events support a candidate path judgment
+- **WHEN** target-scoped learning events contribute to a deficit or capability judgment used by a candidate path
+- **THEN** the persisted recommendation provenance includes at most three most-recent student-safe event references for that target
+- **AND** each reference identifies the affected judgment and the path nodes or resources selected from it
+
+#### Scenario: Recent event did not participate in planning
+- **WHEN** a recent learning event is not part of the target-scoped evidence used by the planner
+- **THEN** the event is not included in recommendation provenance
+
+#### Scenario: Only aggregate or restricted evidence is available
+- **WHEN** a target judgment is backed only by aggregate snapshots, feature caches, restricted AI evidence, or unresolvable source references
+- **THEN** recommendation provenance contains no fabricated event reference
+- **AND** records an explicit limitation that event-level evidence cannot be verified
+
+#### Scenario: Student-safe provenance is serialized
+- **WHEN** candidate path provenance is persisted or returned to a student consumer
+- **THEN** it does not expose database IDs, LearningFact IDs, source log IDs, source event IDs, raw answers, private conversations, reason codes, fingerprints, raw evidence JSON, or model prompts
+
+### Requirement: Adopted node selection basis preserves event references
+When a candidate path is adopted, the system SHALL project the candidate's student-safe event references onto each affected node's historical selection basis and SHALL retain them as execution state changes.
+
+#### Scenario: Candidate with event references is adopted
+- **WHEN** a student selects a candidate path whose recommendation provenance links events to specific nodes
+- **THEN** each affected selected node stores those references in its historical selection basis
+
+#### Scenario: Selected node later completes or becomes locked
+- **WHEN** execution state changes after the path was adopted
+- **THEN** the node retains the event references that explained its original selection
+
+#### Scenario: Legacy path has no event references
+- **WHEN** an adopted path predates event-reference support
+- **THEN** the node explanation remains available through its existing aggregate or legacy fallback contract
+- **AND** no event reference is inferred from the current learner portrait
 

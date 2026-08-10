@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:57:14+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-7aef273143199795496abedb",
+  "safe_id": "ctc_modeling-7aef273143199795496abedb",
+  "node_name": "移动引出点或比较点",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch10 A accept"
+}

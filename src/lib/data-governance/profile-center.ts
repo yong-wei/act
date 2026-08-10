@@ -172,6 +172,9 @@ export function buildPortraitV2Dimensions(payload: PortraitV2PayloadShape) {
     freshness: dimension.freshness,
     limitations: dimension.limitations,
     calculationVersion: dimension.calculationVersion,
+    ...(dimension.taskAttainment
+      ? { taskAttainment: structuredClone(dimension.taskAttainment) }
+      : {}),
   }));
 }
 

@@ -1,0 +1,1596 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "0498fbe339d4b1972a18216d",
+    "manifestBatchIndex": 5,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:discrete-time-control-analysis-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 126,
+    "memberDigest": "f79d89124c79490cd739787f2dbc171471c1381203d1ceb8a263f03a2fec04d6",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-independent-primary",
+    "provider": "grok-4.5-build",
+    "sessionId": "865a3d0f-c8ef-474a-bc1c-688e8c19ab42",
+    "promptVersion": "issue-1195-primary-v1"
+  },
+  "reviewInputDigest": "c1f0416b3efd7b01b3e21d7bd1956bc09e9446ba07c3f6b3e0030e48510d770a",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-0648b4124cfb8bb86fb66bd1",
+      "canonicalRevision": "22199c652ed7427e96e28bc0d28453e05497bc513645ee9cc3677e408182308a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2b17b7ea45bbdc9ea715381d",
+        "canonicalId:ctkg:v3e-object-0648b4124cfb8bb86fb66bd1"
+      ],
+      "rationale": "成员「Sample period」(ctkg:v3e-object-0648b4124cfb8bb86fb66bd1) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['3eed0e7572d5248cb13f3268a6d30d26']；canonical-profile evidenceId=['08f06a833b16dda0c08f43163ef3c43f']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "908c457e984ae7d398fa1349c398d33bc561cd47542e6567d291d735bc1355a9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+      "canonicalRevision": "6b5711acdf0c6ef80895046495b093a9e8e2fb8a6e94f5d8161b60012666e28c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4e938d8ca164ee593077b4bf",
+        "canonicalId:ctkg:v3e-object-074ba027193fc06624e26f0a"
+      ],
+      "rationale": "成员「Nyquist-Shannon sampling theorem」(ctkg:v3e-object-074ba027193fc06624e26f0a) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['ab843ad81814bb5ec522990b7332fcb5']；canonical-profile evidenceId=['05f88102d999bf839eab02ae891ec2cb']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "2e2ad34c17ff582bd716b17fe68bd192b617ee8204f6f2e130504df38012a43d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-077a4ec4c19112baa379c0f5",
+      "canonicalRevision": "8a9ba9fb82cc16fb86b4023508bea85437fdd9cf9ae83a2692b7fadeff7ee329",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-da55168235936d67eccfd9d8",
+        "evidence:ctkg:v3e-evidence-f0f7bef62f4a425f4da4a4fb",
+        "canonicalId:ctkg:v3e-object-077a4ec4c19112baa379c0f5"
+      ],
+      "rationale": "成员「Asynchronous Sampling」(ctkg:v3e-object-077a4ec4c19112baa379c0f5) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['7db0e958ebf8f6eaf6fc017e4e7530d6', 'd9a5ae879302061fa5f0537adbd641f7']；canonical-profile evidenceId=['8da1fc1340c9abdc56b794ed18b45ce1']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "b8a264e3edefb9ae3db3748ee25bec59c4b308d1cfebc0ab85269efbaa6d1562"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0e2fd1303478a746919816fc",
+      "canonicalRevision": "97538b1ad62e092ccfa145de4edeed962e5c54d6299cb5b80784f338ad9bc1c6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0c42af76ba521d37f97f451a",
+        "canonicalId:ctkg:v3e-object-0e2fd1303478a746919816fc"
+      ],
+      "rationale": "成员「级数求和法」(ctkg:v3e-object-0e2fd1303478a746919816fc) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['c32e282cc97f52affb8356195bf69f97']；canonical-profile evidenceId=['29f68d36544ddac9851f3aaf1baddd90']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "e6af85814b9909941d82272176cbd05ccbeb7437c8ff78214499ca4aead3ccd2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "canonicalRevision": "e657b9296fe9ae06ea0c0e54ce61a4f88f6f6cbafe6606397dd1af1605880825",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e0a18484b6b94e3ae95161f9",
+        "evidence:ctr:m1k-v1d-release-evidence-3eac0f6ebc1bc55a1b030808",
+        "canonicalId:ctkg:v3e-object-0e5df270abeaa062e3a81d33"
+      ],
+      "rationale": "成员「采样过程」(ctkg:v3e-object-0e5df270abeaa062e3a81d33) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['470f9b0acbb4f2b83f624152bedafcc1', '2d27e1ef2f0919e791eadb2a006a3510']；canonical-profile evidenceId=['2a98be509adef0dfe9b393eff212366f']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "3cceb1d02e4174d6de8ba9711621596bbf20a53377632df2eb09c8961c572d7c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-10392ceace3daf30af90f6e7",
+      "canonicalRevision": "2b6d6c6c9d166598c31580312c6114671f77709b41d5f0cce3483bff78da39e0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c04b838da472a568a2d7ffb3",
+        "canonicalId:ctkg:v3e-object-10392ceace3daf30af90f6e7"
+      ],
+      "rationale": "成员「迭代法」(ctkg:v3e-object-10392ceace3daf30af90f6e7) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e608e8e58a0d404816c87af0400036bf']；canonical-profile evidenceId=['4b55905a6dcf8a05973fe019df710fb4']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "9f3eee1ed951b801d306fbf4df466c17c68fa6d6f1dfa4c6bd329cb485fe0d6f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1046498f1c5d17864ddaeb71",
+      "canonicalRevision": "308ac75aeee4c4afc9a1fdfd540cb948032d77971c0a13c3fac823a0e01f5c53",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3836c1488819a3c2629b50f9",
+        "evidence:ctkg:v3e-evidence-6a0f8c82d4c4b202e59c112d",
+        "canonicalId:ctkg:v3e-object-1046498f1c5d17864ddaeb71"
+      ],
+      "rationale": "成员「等ω线映射」(ctkg:v3e-object-1046498f1c5d17864ddaeb71) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['adb331b6c456db565954c6088747748c', 'c2e5c1ce34d7885fdc7f27d295aaccba']；canonical-profile evidenceId=['302d2b246ddbc7f363c469aadaa11712']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "e25e4f975ffbb0a922bca35438c895b70954ad1fd33c18d7fcc0bbb4eb7fada3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-14c49cc217ebff19a8763b5b",
+      "canonicalRevision": "b4c34d1e8221710d74737300753e45438740ca07ccc8eaabb5c275bad3c08530",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-40e536a7232b75766dc4fe0d",
+        "canonicalId:ctkg:v3e-object-14c49cc217ebff19a8763b5b"
+      ],
+      "rationale": "成员「z变换算子」(ctkg:v3e-object-14c49cc217ebff19a8763b5b) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['f5ba92f935f2e0714975a1826f48caca']；canonical-profile evidenceId=['530004f5af6093993875d640c6f888a9']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "085aa4dcc44a996e49689214df5e377b35a5c15976652d920fd234e70eac839c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-150dc51f4f7d4306dab82a18",
+      "canonicalRevision": "c0814566cc30692bdff94f28ce1305d36193d6b7df5a6fee7e7a99385cb27603",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7a76c0cce689ee20fc181c8c",
+        "canonicalId:ctkg:v3e-object-150dc51f4f7d4306dab82a18"
+      ],
+      "rationale": "成员「脉冲序列」(ctkg:v3e-object-150dc51f4f7d4306dab82a18) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['49d0bd563090bc73d58cf85cd2e0aaca']；canonical-profile evidenceId=['44003d7a417b47a8716ed010a24adf6e']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "1d85ee8955399d31678008e6b4dcf8a793e432f0e7123dd552e374ed7dccd812"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-166cf6d8d911865faa1f8f30",
+      "canonicalRevision": "ae3ab334bef5846aaabf681cb439bce4b9e0b0c035c275604d085a67538198fa",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9eb2eb11c65572eeadf78e06",
+        "canonicalId:ctkg:v3e-object-166cf6d8d911865faa1f8f30"
+      ],
+      "rationale": "成员「Digital-to-analog (D/A) converter」(ctkg:v3e-object-166cf6d8d911865faa1f8f30) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['b17445845bfcdd73d89b4d28e44453c6']；canonical-profile evidenceId=['639978a7db3362c00c5740ff2061bee9']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "2881d82ae46ad1baf7c481d3be74da379394cfb8ed8a01d34548f75215d179f6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+      "canonicalRevision": "7a21c11267c30f88eebb42e816b90357c1b1dcc8eee72922eb9ab1e451f2e928",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0eb21c460befeac7553ff660",
+        "evidence:ctkg:v3e-evidence-509e1a1e773128953bc89b56",
+        "canonicalId:ctkg:v3e-object-18dc6cccc99e95f3ae794561"
+      ],
+      "rationale": "成员「aliasing」(ctkg:v3e-object-18dc6cccc99e95f3ae794561) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['306c89d3e75b970d1b2b3953d13134ee', 'f877bc0df53fb1880497873136bccef5']；canonical-profile evidenceId=['0a71ee398779ea01ee4d6c5895f582f2']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "c414cb7763a671689992125bf5a917470d807eca84299a382ada6f72600999f4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1a1e0cd76a6ae24441079e22",
+      "canonicalRevision": "830be62f0a14dfb0135ade4fd259a27a3198ca9d5c8906a1e9f879ffa4a87a09",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d21c7adfab19c70d86c4475d",
+        "canonicalId:ctkg:v3e-object-1a1e0cd76a6ae24441079e22"
+      ],
+      "rationale": "成员「数字控制器」(ctkg:v3e-object-1a1e0cd76a6ae24441079e22) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['2654829c956bbc7d1f85687cec618d19']；canonical-profile evidenceId=['0a092595364cc8d4041c5247333f088e']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a4a7969f722dc55154f00c574759a02eccf729c63c360bb0ad0b9c955ef09f61"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1b7b0dc48c95ff419467dd86",
+      "canonicalRevision": "a25b8f2631b21333dbe2ccd966e2d9db6eef79c9ffafaf3a02c0fd1c22a5accc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1773038601d5541495887bb3",
+        "canonicalId:ctkg:v3e-object-1b7b0dc48c95ff419467dd86"
+      ],
+      "rationale": "成员「模拟信号」(ctkg:v3e-object-1b7b0dc48c95ff419467dd86) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['20ffc4bb6254d1fa30b60b8df70700f1']；canonical-profile evidenceId=['d02700bee062061bbd97a2ec8e1c62e3']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "7b4dc363f7345139a78f4bf83dae2fff78af31cbf2f1c93652df43ee2b6bc48b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-22b4d8381af61f295e88100e",
+      "canonicalRevision": "73a7788bcb3c9d08d0ac5ed63124474a698edaa0adede9646a69dd9b1bffa671",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b84dad2961243157d5cb8e7f",
+        "canonicalId:ctkg:v3e-object-22b4d8381af61f295e88100e"
+      ],
+      "rationale": "成员「编码过程」(ctkg:v3e-object-22b4d8381af61f295e88100e) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['7a9568b48b7e77fd903e45da9122e6e6']；canonical-profile evidenceId=['98daee6cb4b1c8b0c93c24bd44e48207']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "3c7d2d34f987180a3a555bdd6aeadeb302bd71dffa0386d091998cdae3597c34"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-232cff230e48397cf46cb944",
+      "canonicalRevision": "7ff27eb04de4acc5005991d4453fc3fdab1323e96c1d368a71bf96e5907d0778",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-04fa2f2c44ff647a23a3c663",
+        "canonicalId:ctkg:v3e-object-232cff230e48397cf46cb944"
+      ],
+      "rationale": "成员「microcontroller」(ctkg:v3e-object-232cff230e48397cf46cb944) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['7a11a5dfe79bbfa00a6eee5e6e7a950c']；canonical-profile evidenceId=['4e18d14e6588cf525c63cc3271791213']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "b439750d71ba716347ecdc632eba34aa96f597d9324eec37d5859aa6c278de71"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-241503a6440d96140036a51f",
+      "canonicalRevision": "6852b57bd7948a86d4fa8426eaa49c7839239b8180baef7862e681397727a149",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3bbac55a533735839a86f2bd",
+        "evidence:ctkg:v3e-evidence-f3b2b3b1e18e4d9edcb31fa1",
+        "canonicalId:ctkg:v3e-object-241503a6440d96140036a51f"
+      ],
+      "rationale": "成员「anti-alias prefilter」(ctkg:v3e-object-241503a6440d96140036a51f) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['c81dec408b3700541dfe9fab5f6917d4', '10c23139207adf4fb3d28aa7ae4626ff']；canonical-profile evidenceId=['539a9b650d2184f8b28cd4142e33fdb3']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "ff855bf58c42116e9465e450ff121e8c483db796d7a7a92a75238a2d80ce7d6d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-241ca37a0246525596c75694",
+      "canonicalRevision": "18ac64d57c66706c7c572a250698e739459db011b4e4b35d493d9e71b0d58163",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d256de23b2f2f3b1ba70a1b7",
+        "evidence:ctr:m1k-v1d-release-evidence-5f7aaf20c52dcc5f0c3becb8",
+        "canonicalId:ctkg:v3e-object-241ca37a0246525596c75694"
+      ],
+      "rationale": "成员「Zero-order hold」(ctkg:v3e-object-241ca37a0246525596c75694) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['794dc24278f30df1309adfca0d934132', 'fb1d3662a9e466fabcceaf8597ffd0ad']；canonical-profile evidenceId=['81d8196a59dcbdcd4cf5d918d42dee5d']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "ee5414761c2f33eb3d06f3b5b7f8eb7c9ad744a44caf00d4ea6376f284419b62"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-256b7b4e6dd8071dc7ce3512",
+      "canonicalRevision": "c279a7c53a0f91e0922a29e108069c6699fe33e438e08ffa3d11f9874bdd31b7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fa8eb37904fb62046a7bbaef",
+        "canonicalId:ctkg:v3e-object-256b7b4e6dd8071dc7ce3512"
+      ],
+      "rationale": "成员「z变换」(ctkg:v3e-object-256b7b4e6dd8071dc7ce3512) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e9f166386024a0bc5d4c193424d6767b']；canonical-profile evidenceId=['80dea5c49d0da0713d75891d2ff1b0db']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "e55b49a966acfa0e170770a22a34acd44b301b7ee54957ee6871eda840e7ccb5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-271dc725adcf9cbd115e003f",
+      "canonicalRevision": "c99b5e6196506c1ba997bb229f8d162c17a2932fe442299317f963afe65e534b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4883501f51226b332ea7020d",
+        "canonicalId:ctkg:v3e-object-271dc725adcf9cbd115e003f"
+      ],
+      "rationale": "成员「误差采样控制」(ctkg:v3e-object-271dc725adcf9cbd115e003f) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['106e8526c56a553091ad67e7c5b9b35d']；canonical-profile evidenceId=['bedb99458fcfe7c7322f8658983b36cc']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "96b16b8ffd6d19eee7bf10396d622e4a3a338187259b3d8d88776bbdf4743155"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+      "canonicalRevision": "68bab34cd4b4a22cb44d28c6e8f9df34ee1d761b4a43eaf7545d11a4f1548189",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b664ed45be4e436045c0fcd8",
+        "canonicalId:ctkg:v3e-object-27eb45a250307fcc571ac92c"
+      ],
+      "rationale": "成员「Sample rate」(ctkg:v3e-object-27eb45a250307fcc571ac92c) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['fceeb6df63f8ad5994c69d6b2fd2da21']；canonical-profile evidenceId=['af1bca3bbe0dbae576e9e533a28b8ebd']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "ab97cf5e171f346c5272dec3e9f00f530c44b192ce92dfe477a8abca90dd63bc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27f13707df83e3cfd476ba33",
+      "canonicalRevision": "999447f7825542702a181c80f393d474f4b937a4f857f62c386fcc529a82385a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8a00971f11722bdec17c1921",
+        "canonicalId:ctkg:v3e-object-27f13707df83e3cfd476ba33"
+      ],
+      "rationale": "成员「Sampled data」(ctkg:v3e-object-27f13707df83e3cfd476ba33) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['6ec3a4d47ea3cf1619839f5de8a43720']；canonical-profile evidenceId=['e51cf9852a0e186f7f1ae435a4dffffb']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "46cdf726417649f3993e13b01495a617c34bf34b47faf0c2e66802c4abaaa555"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+      "canonicalRevision": "a1ef7f38463bc1902d6d4c3c78c7ba962c899372da8588cca84b190aa854753d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e4fdfbe6e55deee89f84487c",
+        "canonicalId:ctkg:v3e-object-2a6df9c2e027152138c44554"
+      ],
+      "rationale": "成员「离散时间系统」(ctkg:v3e-object-2a6df9c2e027152138c44554) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['952b105d508feacfb7fd85f49c270b3b']；canonical-profile evidenceId=['80791dc674ee4a3a7cc6f05901f6e6ed']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a980c0eada5f2668697f5596dc7e723cfc3744c9f7ceca02d455d668783c4dae"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+      "canonicalRevision": "d3e2de791dc49bf819cb051697dc7db2afbbd4d7b1f21cb83db733b8a1fa82d2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9fa3456a1e91ada6709bdbf7",
+        "canonicalId:ctkg:v3e-object-2c2f917a06c974fda55b52fd"
+      ],
+      "rationale": "成员「Amplitude quantization error」(ctkg:v3e-object-2c2f917a06c974fda55b52fd) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['ab4f2eb0656cccf13b629282ddef20fa']；canonical-profile evidenceId=['26f66d313adc04ab70870596e6dbdf5e']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "213a775ad1dea68dbb6491e38a30c6a2fe015f452a02db99b727f1835fbff981"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2c4bb4e99c2a8a48b91e625a",
+      "canonicalRevision": "e51c57226d4d1e3d9783febfeaff629822ae89110c497dd90dfc925696d3458c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9631e5dfabf27e968117ba31",
+        "canonicalId:ctkg:v3e-object-2c4bb4e99c2a8a48b91e625a"
+      ],
+      "rationale": "成员「random-access memory (RAM)」(ctkg:v3e-object-2c4bb4e99c2a8a48b91e625a) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['c1436118d2602e406bfe7c1f5f8620d5']；canonical-profile evidenceId=['0be52d5a506bb9bfd8da984e1bdef69e']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "c571b2d4181d5ea6c3b42bc073686f7e8e9c2aa2318bf3afd600c7b6bad8b104"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2c60af6bdfb932de8cc33ca5",
+      "canonicalRevision": "da41616a56fbe117cefe2b99672bbd5a4fdba2ee36f13c37e80f888ad8986f6d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3ad4165242a99b27d64067a8",
+        "canonicalId:ctkg:v3e-object-2c60af6bdfb932de8cc33ca5"
+      ],
+      "rationale": "成员「Sampler」(ctkg:v3e-object-2c60af6bdfb932de8cc33ca5) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['df6058b9d4c3d3db1e5200d1b35b42b0']；canonical-profile evidenceId=['26e2d66479a8c615a1d30a2091fa8f05']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "ed2cfa4419b5542edd0bc904bcf8292ccb2098ec7f62d69d707ffcfc6ae0b80c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "canonicalRevision": "219d1384e133ff816fd367163d4343ec036084bce2f10523b654c84284f170c1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-faa86413fd0eddc10774e44e",
+        "evidence:ctr:m1k-v1d-release-evidence-ef83cfd14a381f75a3d8ed2e",
+        "canonicalId:ctkg:v3e-object-2ca939471631d90bd6098990"
+      ],
+      "rationale": "成员「保持器」(ctkg:v3e-object-2ca939471631d90bd6098990) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['1ba13c1af4b18d8e5117da9b56569e43', 'c4aef5228917c289876a707173d6f339']；canonical-profile evidenceId=['685c518598fe82e22870891f81b3ae18']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "e207f48d7eae9bffdc0efc3a9e3721d90e8d16470e11f70da351c2d26ee1bf14"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "canonicalRevision": "3c8dd722e86da8d509adf427d9c2816517cc5e3ad26a017ce85311725e47d856",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0c6944d677d56aeb8a0ce785",
+        "evidence:ctr:m1k-v1d-release-evidence-540a38a7da3ba4f8bc266753",
+        "evidence:ctr:m1k-v1d-release-evidence-8519e4e1ec1ca0c75dbf6387",
+        "canonicalId:ctkg:v3e-object-2f12669555aed67867c3b7cd"
+      ],
+      "rationale": "成员「零阶保持器」(ctkg:v3e-object-2f12669555aed67867c3b7cd) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 4 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['a2ddf0cdc112ebfd04f952693d4be747', 'af9010cc486d1f52dcffd2264fe3c14e', '21b8889120405353a5c329eae067a206']；canonical-profile evidenceId=['c1353d2f8de9c5b0a4977102f0ab1bde']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "c399d9cfc015050228ccb7381fc029d19feef8ca002d4e56b3e7b398a81f2f77"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2fd3b8dfc79284046cb06990",
+      "canonicalRevision": "3ec327e6a3cacc2f7a19e9ea844ae601967149b135be00c340893ba521feb639",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-354c85523324c54a6364ea36",
+        "canonicalId:ctkg:v3e-object-2fd3b8dfc79284046cb06990"
+      ],
+      "rationale": "成员「A/D转换器」(ctkg:v3e-object-2fd3b8dfc79284046cb06990) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['5ab33ee956d35d7899b8cf6eb6e44eb9']；canonical-profile evidenceId=['097f78581ceb155ee34246f47456eaa0']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "cd153744a31302d32c264c43a1df21e7b539e95e5482a0280099f9c18d53dd06"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-30cb7d43e8cbe99fe69e5e39",
+      "canonicalRevision": "d2c8621bb7c44b02f7e56ce1554a2acb57f93de6575066341cb445ac8d644389",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6c7e62aa13b54c2a74e5cd2f",
+        "canonicalId:ctkg:v3e-object-30cb7d43e8cbe99fe69e5e39"
+      ],
+      "rationale": "成员「Sampling period」(ctkg:v3e-object-30cb7d43e8cbe99fe69e5e39) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['6bbcf10e3138a2d8aba62e197d35b5a7']；canonical-profile evidenceId=['935338028e329227c2bfc82f0ae5ac1f']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "dce4df40e29322ccd2b5fbd8f4d336b777c7a1ebada9643cb58c7113c01f3d3a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "canonicalRevision": "583c7eb23cdc5dfdfa4527ea6846d0cc33097c4cddb7e45d639d7a4530d0f1f2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a905d5eafe3935590d0da28c",
+        "evidence:ctr:m1k-v1d-release-evidence-d84a6eeb0848521fb33899a2",
+        "canonicalId:ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4"
+      ],
+      "rationale": "成员「Ideal sampler」(ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['ca8d2f9aba11f65dcba6aaf2280eb6fe', '898d232755f36eaa0d37cfff3fedf824']；canonical-profile evidenceId=['caff2c947d2762cb4159cbad58f730a1']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a24c339c93edb3ad692ce57576d113f658cb6f518f1c327c112449df0e4fd226"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-36d86885777b10cabbae029e",
+      "canonicalRevision": "6b3b75ef975a8fa3094a68e37d6fd618c1e4fec6ff44e06906e97678e8b7e2f0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1fc37960bee6d3c435122f53",
+        "evidence:ctkg:v3e-evidence-73eec01489c06f872ef6f5b5",
+        "canonicalId:ctkg:v3e-object-36d86885777b10cabbae029e"
+      ],
+      "rationale": "成员「Sampled-data second-order system」(ctkg:v3e-object-36d86885777b10cabbae029e) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['49601c11deab84836f78cabf0991f21c', '731316aff1f74d4ae077391e94d1415b']；canonical-profile evidenceId=['f4de4c221bf0ef6a412bbefb20b9bdc1']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "5dba0ae250bf73fb3daea48056cc7193c31827b7f578ecdb97c40fe08568df30"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-381b2e1644e5dcb97bdc790b",
+      "canonicalRevision": "e4e6702df69e7f633b8518453f2addb97e8ee31849279891878b631e4efc8c9d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1d78ff58f5baec9f1da83919",
+        "canonicalId:ctkg:v3e-object-381b2e1644e5dcb97bdc790b"
+      ],
+      "rationale": "成员「Zero-order hold (ZOH)」(ctkg:v3e-object-381b2e1644e5dcb97bdc790b) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['acc1f4d123ebe35ed66fd88cf11db823']；canonical-profile evidenceId=['4a85e883481c2236e02236959f451e88']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "4d28b519ebe59f08420d859cb35b5586e98c950145f61fa3c1049fa2c1ecbb7d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-393198bac91c71d371b1c217",
+      "canonicalRevision": "b401f21e04bdf292766a3e802e81d895a417df639da90b7be4fcbb14a2622545",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-02939efebfaa58b2b3464fbe",
+        "evidence:ctkg:v3e-evidence-541e23cf4f49b7893bf28906",
+        "evidence:ctkg:v3e-evidence-c7bf9a12716e3804796f5e3d",
+        "canonicalId:ctkg:v3e-object-393198bac91c71d371b1c217"
+      ],
+      "rationale": "成员「朱利阵列」(ctkg:v3e-object-393198bac91c71d371b1c217) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 4 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['67b3651ab09fda0f00ecce4ef6882ef6', '01d60aaa0b2edeaa495d4ab566ecc1b6', '7b8868287801bd8ac5bf94109bb5ac4d']；canonical-profile evidenceId=['4eeda977fc4f56b7a6630d461f0fc1d9']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "898a3f9a26077e701e65e0ad08a42690fe7f660490726a59ff0d2a7479f7dae9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3aa81efa3f16e1fc9210fdc8",
+      "canonicalRevision": "bb30eaf4ec965ba2fc9654b69e24cb0a69021c674ae55b61ed9bcc5ef53d1436",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9647acb20f9a3988d4b7d77b",
+        "canonicalId:ctkg:v3e-object-3aa81efa3f16e1fc9210fdc8"
+      ],
+      "rationale": "成员「多极双通道旋转变压器」(ctkg:v3e-object-3aa81efa3f16e1fc9210fdc8) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['13f17bade5464f2b61b7a25eb82a70aa']；canonical-profile evidenceId=['3eeaa8f3f904806c60ae9a0db973ce74']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "2344a993402c352d6180fa4419374ce78e5d5e63722552744467dfb963f04b33"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3d61744c1f15d0d0bbf20902",
+      "canonicalRevision": "ee9fda69e2bd2003cd13c6ebabd3e8b04eb245983023d5d2d8eb6a29287ac6b1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8dd17053e531786f3458308c",
+        "canonicalId:ctkg:v3e-object-3d61744c1f15d0d0bbf20902"
+      ],
+      "rationale": "成员「Precision」(ctkg:v3e-object-3d61744c1f15d0d0bbf20902) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['7f2dd8db15135a979edf93fea716c674']；canonical-profile evidenceId=['87287f0ec9980c0429b027b485fd8704']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "b17f0ec7908d636373610175021dafcfdd989ee9abe3a4090cb6a21626b42269"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3d75878fdf803ba103376aab",
+      "canonicalRevision": "be5ef5362d6599e727803855e30da21562d8684e4f665277dd0ffc0feb18e83e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-92147dc769b2af20aa9b4607",
+        "canonicalId:ctkg:v3e-object-3d75878fdf803ba103376aab"
+      ],
+      "rationale": "成员「Analog-to-digital converter」(ctkg:v3e-object-3d75878fdf803ba103376aab) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['2ac320573485dfacc5ecbfc7cb54d6e7']；canonical-profile evidenceId=['12edc575b418d9a5fbad4517c30637dd']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "7148af00edc54dbe45bd81a8e1c7f043929871038a40377a6f59c507319f31b7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-476e6f531eebde6502af36f6",
+      "canonicalRevision": "bd96fbf7e23a7fbccc2c5d65fdca675fc50adae72b336223470368b8ff58e803",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a91a314e187eeb733655d8bf",
+        "canonicalId:ctkg:v3e-object-476e6f531eebde6502af36f6"
+      ],
+      "rationale": "成员「w域中的劳斯稳定判据」(ctkg:v3e-object-476e6f531eebde6502af36f6) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['7e557fcb047c0e4f537835e3d839f3dd']；canonical-profile evidenceId=['6cb9d494d3078e9db42be0560d78579b']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "2984709906755a7731546ec0f8d1f05d48a0ab36c6d2024795decc56f4e37274"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "canonicalRevision": "76a51ddf73e4a9827d3575d356946f342559517f9827e38ee7f8e95e8c1c15ac",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-39cf8043ce991797748ba279",
+        "canonicalId:ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c"
+      ],
+      "rationale": "成员「Difference equations」(ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['5a022ab92214c1f3751e8062333ae802']；canonical-profile evidenceId=['f22bfc134b993c60ffe195814864e73d']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "e88045ee78eeffbb182c35d452d3699d98b52f5725c62f5913696729039bd585"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-49948e2349b89d3c04b12d39",
+      "canonicalRevision": "08002316e8002e71fad9e5c57e2f9558b55b8ceb559747006f3e1f6eb1c3f6c8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f80235f70a820b09b7afa972",
+        "canonicalId:ctkg:v3e-object-49948e2349b89d3c04b12d39"
+      ],
+      "rationale": "成员「脉冲控制器」(ctkg:v3e-object-49948e2349b89d3c04b12d39) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['d653efc7663ec70e364a2428f4df1305']；canonical-profile evidenceId=['7cc6efb8187ad888c9c2bdf718786af9']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "7d817a95550562dd5bcdb6851cc29c99bdb03c5fa327acfd76ed97c85d6074b7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-513a1e2247cca470ce88783f",
+      "canonicalRevision": "bf7acd6472e8ab00188ca48c64cf7b8e31e23e58c018bd32345c7ef2a6291fd3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-00379106e19a85165cf5d569",
+        "canonicalId:ctkg:v3e-object-513a1e2247cca470ce88783f"
+      ],
+      "rationale": "成员「Discrete equivalent」(ctkg:v3e-object-513a1e2247cca470ce88783f) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e01563b7283ad32d27875a400dd48650']；canonical-profile evidenceId=['a82dbfd59aba36809f56a9e287e0c494']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "983f0c85efc294bb9588849a926fd7a050741dae68818fc3e28b734589d18090"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-51995a76d497d06a87b69675",
+      "canonicalRevision": "685b2db076912dbec89674237c1635d32c4276fe4d8acaf5a600240ba5b0bf5f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7c15990e9a6e961392cb39a9",
+        "canonicalId:ctkg:v3e-object-51995a76d497d06a87b69675"
+      ],
+      "rationale": "成员「连续时间系统」(ctkg:v3e-object-51995a76d497d06a87b69675) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['5a306c33bc62cf98404d0d1ec00ea1c3']；canonical-profile evidenceId=['10829e43768d87d626cc911e9ea3b2a1']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f86b20acc209e3124cc65d7f8150126eadceb8cbd74bb59424d49a012d876704"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "canonicalRevision": "0cc70c42d90433b44b458a3e6ee4a5c593f7c15f6448618e29d66e3ea86ce15d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-12090cc110d752cabd7a2851",
+        "evidence:ctkg:v3e-evidence-2e8d6024c9319f0c45346c03",
+        "evidence:ctkg:v3e-evidence-52fdc1cf0792cf97a77da2fc",
+        "canonicalId:ctkg:v3e-object-54095598351974e2167111f2"
+      ],
+      "rationale": "成员「Zero-Order Hold (ZOH) Method」(ctkg:v3e-object-54095598351974e2167111f2) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 4 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['8dd88084a831d99730ea794d9c5ec7a8', '670789939d25e60c32ba9eb4af864cbf', 'b3298e2aa2f8116bd5d6b1535b6f8434']；canonical-profile evidenceId=['f5b1cda347738cf4bdf3fabf06e766a4']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "34ae58ee11b849656295686dbcfb03e55b33c07e20b6b8ef5558c5ceaef0548f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-54aa39858b6bf59ab61d64b6",
+      "canonicalRevision": "6a0441dc93cfa922d7e4612c3d95ceebea3bc3d2d443aa855ec5206f22e32c56",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c094d2bde9598dfee9b48faf",
+        "canonicalId:ctkg:v3e-object-54aa39858b6bf59ab61d64b6"
+      ],
+      "rationale": "成员「部分分式法」(ctkg:v3e-object-54aa39858b6bf59ab61d64b6) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['cfd82cc83d72fc9eb1862915fa57ed17']；canonical-profile evidenceId=['f7398cad6d7504a227f6ac82354da397']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "81aa7ced4bbf54e533eb119290c10c6150f5a3adbb913fe596a91502eb371cf3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-581ad59cfd51bb25e50aa652",
+      "canonicalRevision": "0a26f2c2f2e7d2d63ad20aedd078acbae376847a40a2927ce463122ecbd7a638",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-54b670eb68e81bf8e7a88df0",
+        "evidence:ctkg:v3e-evidence-a0da1b49972640db34ab91b6",
+        "canonicalId:ctkg:v3e-object-581ad59cfd51bb25e50aa652"
+      ],
+      "rationale": "成员「Effect of Anti-Alias Prefilter」(ctkg:v3e-object-581ad59cfd51bb25e50aa652) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['d27cc7dca1a6e556d5867d910d76d357', '2614fc39c3491ff91899989aaf108933']；canonical-profile evidenceId=['684349a4e8854049cf3e871542a557cf']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "22135126d8254c8c14f23f76558a7bae942c47c3bd3b46036223c40aff4bcf17"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "canonicalRevision": "04d08436332067cb9e82cc75b12be4ca884c1fbf494b30e4c738af76f5a1b922",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4e3e44020be771398ee0dafb",
+        "canonicalId:ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4"
+      ],
+      "rationale": "成员「一阶保持器」(ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['436daa4b81434dfd46914196bf1b156e']；canonical-profile evidenceId=['a707860ec8bff3e5317f334d85b1c375']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "4b68dad89c305b60c2c25f44228d4a72020fa1dc8a4ddbd5461e196ac7694935"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5eb50007d0dc046e1646374d",
+      "canonicalRevision": "2fb610eab80705dc854ffe3d7e7f6371b84749ce2d69476d6727b6b903c4c3d2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-00d30aaaec4e2cad676a2cad",
+        "evidence:ctkg:v3e-evidence-a897bdaa8db9b70a578d323c",
+        "canonicalId:ctkg:v3e-object-5eb50007d0dc046e1646374d"
+      ],
+      "rationale": "成员「D/A converter」(ctkg:v3e-object-5eb50007d0dc046e1646374d) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['1e5e0ff979345525f9cefa738dc6cf88', 'e368c7197792d906a8fd59884f458542']；canonical-profile evidenceId=['810e38516a0c7b166a111cb1c8d329eb']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "907022c134eb8994f9dad0c69c6c355633eae816477d83a96720c1c59ebd58a2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-60799f4e66c540f93f3c0085",
+      "canonicalRevision": "6d4840d0231546fb3e074649bffe91a024bda7eb60837483893c155e270812f3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5833edc554b2911735ac82bb",
+        "canonicalId:ctkg:v3e-object-60799f4e66c540f93f3c0085"
+      ],
+      "rationale": "成员「加权序列」(ctkg:v3e-object-60799f4e66c540f93f3c0085) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['196140886ccf2872f1f97394aeff3384']；canonical-profile evidenceId=['6a84bcb22d3f52ae771f0d2e14a0a5ed']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "83eabba7c9a59b5a145c26d409660efb41933bdbc9d9cc2bc7c5137351a032db"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-60dc281db22fe43eefe4ae57",
+      "canonicalRevision": "57bc2cd06b83be87dc250a63d9c4f26ba387a3ab3d11a9fe4680470105768e97",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b525baa3e1d5664145d0983c",
+        "canonicalId:ctkg:v3e-object-60dc281db22fe43eefe4ae57"
+      ],
+      "rationale": "成员「Finite word length」(ctkg:v3e-object-60dc281db22fe43eefe4ae57) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['7bad4e4d28d6d9cefb28ce2396258637']；canonical-profile evidenceId=['14d9e867bced5fa7a8af05f7b6324a1d']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f2e4fca6f599554c4551fb35efe5a6c989f7a7099675596a319b2168c07ed791"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-61714a8a2f0cfb4c33ab4552",
+      "canonicalRevision": "7c34cc5ae7758dc2c2485d946a44d49c858d8305327a5454681f5794f349f624",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-37dd8df59bca5f951ad85264",
+        "canonicalId:ctkg:v3e-object-61714a8a2f0cfb4c33ab4552"
+      ],
+      "rationale": "成员「Nyquist rate」(ctkg:v3e-object-61714a8a2f0cfb4c33ab4552) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e40109286b8b8884549fb794b39af751']；canonical-profile evidenceId=['92f701301514e34e282ab55df21436e7']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "d51926db0ed3178fd59231e2ed0f8924c6db27de65a0366e5e4021e4655a47f5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-62869ccc95b976e198517c73",
+      "canonicalRevision": "4144f6a0e4adb1ea24c6fec9e3af241154e9d113387fc70aa030caee2271ec00",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-94c048fe8ad59bebe0a47c92",
+        "canonicalId:ctkg:v3e-object-62869ccc95b976e198517c73"
+      ],
+      "rationale": "成员「复合控制信号」(ctkg:v3e-object-62869ccc95b976e198517c73) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['ee4e573d39cc880825a96b425f77e28c']；canonical-profile evidenceId=['d4ca8a601befad3899b8d9c5fd9734dd']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "84c8568e1e3f09f82dc092ee72d0657a058b9c09f85761fd64258cb0319a4a7f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "canonicalRevision": "3c83984e2e149f2c4acfb32018bf537d5f071b942bc24ad22335407dd863e147",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-97434835712a232f4ea680e6",
+        "canonicalId:ctkg:v3e-object-66dd287a007d9b2b74781de5"
+      ],
+      "rationale": "成员「采样控制系统」(ctkg:v3e-object-66dd287a007d9b2b74781de5) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e138333fc17263f9bdd03fc1d1d71faf']；canonical-profile evidenceId=['2532703931fa50fd6d6d28925dcdc1f8']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "d6848df47e2ab20377a946be7c1a5f14b4f4c2800c39df4c50a41d61cd3001b8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-67d5555e935df3a1d09971f1",
+      "canonicalRevision": "a074fe46cd7230f5f2ee4750869c02f0048e2512840ac99cd0cdcb0e2937484f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3e3f6629edfa3f3bb15eb83c",
+        "canonicalId:ctkg:v3e-object-67d5555e935df3a1d09971f1"
+      ],
+      "rationale": "成员「复现过程」(ctkg:v3e-object-67d5555e935df3a1d09971f1) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['c9ee68fc527ecb2e6389dc7ad8d23b43']；canonical-profile evidenceId=['bb93a18b2821629caf39e41129ae9430']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "95f1234850e7f7c6aecb49906d228e20f39492967a5764f391c70854a6c05bf0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-683669a4b467dc55ddcf5d48",
+      "canonicalRevision": "b0a9350d5bd0da1321b4cb278ddff686931d99a29a2daa2621fe84d42b29376d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bd46cb8bf1da561e81db1e19",
+        "canonicalId:ctkg:v3e-object-683669a4b467dc55ddcf5d48"
+      ],
+      "rationale": "成员「朱利稳定判据」(ctkg:v3e-object-683669a4b467dc55ddcf5d48) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['d74f25f6957d88788ddedc6d3a81b785']；canonical-profile evidenceId=['ff97a8f72b28ba0e7f35b92a914dd06e']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "2c32b5cee983c095c7f24ac0568af895fc31f1ccb8477b1a73d1fc41f1a20843"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6ca8140f61e8805a2e5c8201",
+      "canonicalRevision": "d9997fc9dfeb6a1e27ce7a592f7bc06e6c0f8fbd524844eaf3d33455d566bc6f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-490b5657da7e8c27efd5d24b",
+        "evidence:ctkg:v3e-evidence-90b13434947e1c84fcd1d5d8",
+        "evidence:ctkg:v3e-evidence-d93a1a3938468213d27d0638",
+        "evidence:ctkg:v3e-evidence-fed14edcdd8e62030cadab5f",
+        "canonicalId:ctkg:v3e-object-6ca8140f61e8805a2e5c8201"
+      ],
+      "rationale": "成员「Matched Pole-Zero (MPZ) Method」(ctkg:v3e-object-6ca8140f61e8805a2e5c8201) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 5 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['4287cfb8d1c65bb22107be893fcd280a', '99c3aed77656779c5b5efa7f0eb0c776', '7344f531b48c1050b863e8aa85bd9127', 'a4177484328a0f27579c476e1b90ba87']；canonical-profile evidenceId=['bfc7a3e1490bc8c015fc31948f6ba601']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "5c5b9b164fb86bbb57ba9a29a13e3556bad57033b23d8b23d69327884544bd33"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6cac20a7c9621cb54a42d57d",
+      "canonicalRevision": "83f69398c3534d2cade7e4918cbd5438e506a3f4e1dfc315e9bcd43d95382398",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-69812973afca7b3d184431d4",
+        "canonicalId:ctkg:v3e-object-6cac20a7c9621cb54a42d57d"
+      ],
+      "rationale": "成员「采样开关」(ctkg:v3e-object-6cac20a7c9621cb54a42d57d) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['72b549f29f053ff5d505efd6d43b1e00']；canonical-profile evidenceId=['b21b69b34b8c2677ba2806eb962438f4']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "352e3a7dcb99179420a6b8627ad84320be68487068a0080801e0494d3eb7701a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6d1db6977ad62639b73afe79",
+      "canonicalRevision": "fc6e72a68eaa81d10f399d4dd51a3de7e88ec224e08813ed3222e2a5bd98cdd4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-18595596032f1d8d8244f1c7",
+        "canonicalId:ctkg:v3e-object-6d1db6977ad62639b73afe79"
+      ],
+      "rationale": "成员「等σ线映射」(ctkg:v3e-object-6d1db6977ad62639b73afe79) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['a53adccb20abc50b86b5cd1d2f64a16e']；canonical-profile evidenceId=['0e47d3ca2b98eec007299b84a14ceb85']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "886bf4827e8afc6123f02def6ccf106012e2538dee57211bd25737d07d2e73ed"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6ecfad78b7fb0ba7b233047c",
+      "canonicalRevision": "6c65f8a7fce7ecff355c1065d8b6f280cfa3e73a3632fae4ecdc71fbd30b1508",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-33d2365c99eba0b7abf62aa1",
+        "canonicalId:ctkg:v3e-object-6ecfad78b7fb0ba7b233047c"
+      ],
+      "rationale": "成员「数字控制系统」(ctkg:v3e-object-6ecfad78b7fb0ba7b233047c) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['18cc4432645032949406e891904ea31b']；canonical-profile evidenceId=['5ef0e5489e5ee54d849dae472bca5f60']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "1ffb544ca803c9fa524da0648a6e64b6832d0cdf73e110ce0ec69250ed770318"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-714380036f5fc0b5608b23b2",
+      "canonicalRevision": "28e6d4ef068b3706f2aedb4db7707d5367666b02560b63e4d3e81267d8d8165a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9cefbd5a1d87b2a48fd4ea31",
+        "canonicalId:ctkg:v3e-object-714380036f5fc0b5608b23b2"
+      ],
+      "rationale": "成员「counting scheme A/D conversion」(ctkg:v3e-object-714380036f5fc0b5608b23b2) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['a6947819fd9b844f8acf167f1cd736cc']；canonical-profile evidenceId=['45ee8ca3b937aba3f83f878ef91e3bd5']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "28be1f7f5094aa84a05d6e1a8da3227ac1da284a93abc958c6fb846240cfe706"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-726a2bc09a6a129dc57128b2",
+      "canonicalRevision": "7fc25a84e14e8ff405640a040ec9f2495e57e781e16c176a3d1a4dd45db794d7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1ff2a38926359207fced3c15",
+        "canonicalId:ctkg:v3e-object-726a2bc09a6a129dc57128b2"
+      ],
+      "rationale": "成员「double precision」(ctkg:v3e-object-726a2bc09a6a129dc57128b2) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['87dc01179eacd2f538cabcbbdc53c0ce']；canonical-profile evidenceId=['95aa3952ea98560e244e1f98f7b5f41a']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a3ed6b3bfc7394b830012d9c6bfa9ad4ab0facf4633e3b19ccfeaf8cfb6ee503"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-762239378940cb45b78991b3",
+      "canonicalRevision": "70fab6dfee3bafe7d9a6b15eb42fb3cf611e01d48db2476f22a684ac52745754",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-adeb8501a94856003c9aeb84",
+        "evidence:ctr:m1k-v1d-release-evidence-5d2b41f51f3b17986075f179",
+        "canonicalId:ctkg:v3e-object-762239378940cb45b78991b3"
+      ],
+      "rationale": "成员「采样器」(ctkg:v3e-object-762239378940cb45b78991b3) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['4b3830966c5bc07d0e1bcc5757ae9f25', '1e4613560fcb1414090020404c17cdcc']；canonical-profile evidenceId=['e3655014f2e4ad101b6e92c0bfe7a970']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "d64d847a70f8d063bd3e8eb8b709b23d2d2ead940a3321c46c2955e0bb6be060"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-780e0248e98d1a241ff3f3d5",
+      "canonicalRevision": "2592ac05d6d220b20bc5d476d4d0078ec39b91d75b8e4fda5d5e3d3d997f7d3a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2fcaf74294a2f35c51617af3",
+        "canonicalId:ctkg:v3e-object-780e0248e98d1a241ff3f3d5"
+      ],
+      "rationale": "成员「量化过程」(ctkg:v3e-object-780e0248e98d1a241ff3f3d5) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['230f549313bc6c3c12660664e9afb282']；canonical-profile evidenceId=['e933587bb7b6403a7e8c4d4744b8f399']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a9a7d2131524fe9fb2946fe571feb20736ce43c1f3bb12d572edad7ca7e980c0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7ca2c75eb92f65075a8ec793",
+      "canonicalRevision": "ed7efe488f4f19b3f67112a820ea61c66f8d8d8fae4c660d6fee7209ba3c1a42",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9f13caf48ba34a8d1c88db00",
+        "canonicalId:ctkg:v3e-object-7ca2c75eb92f65075a8ec793"
+      ],
+      "rationale": "成员「successive-approximation technique」(ctkg:v3e-object-7ca2c75eb92f65075a8ec793) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['5bc8409263adb3b3fce70271fcf4e499']；canonical-profile evidenceId=['a43c0086bdfa0f864da97b5e15bb4d15']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "73f47b227990d9bf640395fe19c05d86cf5d1e674ada2c32e08f9888272199dd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d3704ae133f6be94bf5991b",
+      "canonicalRevision": "c89cb7355ed624ff35e91fcc4e08fc4e61a8277c86e58c19cea13e39963d973c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-10b4bf3f5e87dab4f36794a5",
+        "canonicalId:ctkg:v3e-object-7d3704ae133f6be94bf5991b"
+      ],
+      "rationale": "成员「脉冲传递函数」(ctkg:v3e-object-7d3704ae133f6be94bf5991b) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['dcc9ab946a267baa2eb2561d546b72c6']；canonical-profile evidenceId=['494c51cc4432d7b339e1ddddc9d399d8']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "03b7fb9572080e3bda5a899095436aa664ccc9e0da4da82355e10872a13ebd90"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7eb703ff92835fa45948a0bf",
+      "canonicalRevision": "d7a45429744fdb2a027f2dbeb4cc0c337782dd3b6a791df24e7de9cc7b6f6dce",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fd222eb85f0f4ee3407814b2",
+        "canonicalId:ctkg:v3e-object-7eb703ff92835fa45948a0bf"
+      ],
+      "rationale": "成员「离散模拟信号」(ctkg:v3e-object-7eb703ff92835fa45948a0bf) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['7cbdbf0501fd4776daf0dc3453ede7f3']；canonical-profile evidenceId=['7cbdba4fd981f7ace462f306dfdfd19c']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "7fdfcc88c75e07ce2c5b6521fe982be4da67a15e731ab17ed10b9af375979252"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7f2e4a28791adc1aab82c6d2",
+      "canonicalRevision": "a9f39617347c1999d07dc22973627196ce0264947e42a5e138e86e37e186a950",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-96bb05baaad97c1cc22fc4a9",
+        "canonicalId:ctkg:v3e-object-7f2e4a28791adc1aab82c6d2"
+      ],
+      "rationale": "成员「read-only memory (ROM)」(ctkg:v3e-object-7f2e4a28791adc1aab82c6d2) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['f119a77cfe50b1dd01ee7c9e3d0a0403']；canonical-profile evidenceId=['a73242804a2282262f6e55624f510757']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "81aa37b9fbfdb9bde845df00998a29e8374cf62f7800529c5b6bb4111ad3b3b9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7f8322d930ad015c80e143ed",
+      "canonicalRevision": "63fdbd99c966eaed4d69a90dffdeb98456a3a52de0a3ea21de39020ec4eb4e28",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-479e0e4b57e71e92ce171a1b",
+        "evidence:ctkg:v3e-evidence-b022ce157b30f7f0d9a0accf",
+        "canonicalId:ctkg:v3e-object-7f8322d930ad015c80e143ed"
+      ],
+      "rationale": "成员「Digital-to-analog converter」(ctkg:v3e-object-7f8322d930ad015c80e143ed) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e0566f839b92df8075fe429a9aaff8c5', 'd9cb4d333d9b9f4b1f155d6ee426e340']；canonical-profile evidenceId=['cca3622a427eb5b3f46a2a767e128a55']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "d2a4755b08cdb1b1a336de0df1ea57bd705cb2d9542b5a611b59446d4ade33e2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8064c799039f6d83a3cf4f29",
+      "canonicalRevision": "4aebd7e8206668ca46df8894084a54eb5317b5f4f54cb28cde6c8e0f85ac33a9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-37b70eef26fd93d0123e1da5",
+        "evidence:ctkg:v3e-evidence-85678a570e6d350cb3b6bf09",
+        "canonicalId:ctkg:v3e-object-8064c799039f6d83a3cf4f29"
+      ],
+      "rationale": "成员「Continuous signal」(ctkg:v3e-object-8064c799039f6d83a3cf4f29) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['a15eb394e0957a7642100a479a0c9a48', '8866bd73857653928c62a76796da8889']；canonical-profile evidenceId=['ed61153421724b783f541a198d26b643']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a6cc055188e44adae155132e41fc2ef88923140905d04344194899953b0ff744"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8092204c03a8af260e3e672f",
+      "canonicalRevision": "fb8f291495eaa0a0a065a11d9c6d1c5aeeae1e683b1d4ec217837db85140dc6d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4edd8d95ba7b3f3877d6a385",
+        "evidence:ctkg:v3e-evidence-a5202512ce8c4c4b88dd66cd",
+        "canonicalId:ctkg:v3e-object-8092204c03a8af260e3e672f"
+      ],
+      "rationale": "成员「离散系统时域性能指标」(ctkg:v3e-object-8092204c03a8af260e3e672f) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['68645d0051a437398756ad3315e385db', '0082518aa092054d6595111db765f607']；canonical-profile evidenceId=['2c1fa8e85345bd4a8c29874a43897599']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "1a3f70cada60da52fdcf89409bfe98a72d534123be8e77e90502a4d07cc75e26"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-828de2183a73570e15acd937",
+      "canonicalRevision": "b2e45fbbcd0ced4ff8f3ae97fcc96094ed55119b507a62495e906042a69f7603",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5c14c0f769c786437b2798ba",
+        "canonicalId:ctkg:v3e-object-828de2183a73570e15acd937"
+      ],
+      "rationale": "成员「PWM放大器」(ctkg:v3e-object-828de2183a73570e15acd937) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['3b03fc65e1d16b9e6b3b9216eedfa951']；canonical-profile evidenceId=['f5ebacd48cd56b6438f2771e215390e3']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "7c9ee2e530424d529d73c97dca7eaffcb178624cc1fb430fa9987e98796b9958"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-86d5f30d2f3bbb90aaccb759",
+      "canonicalRevision": "9f711fbbd0d206401868f4b0c2f6ac18d905b724ad8e2e2d908578373f3cc6cb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7f00131f09e35debcfa4e838",
+        "evidence:ctkg:v3e-evidence-c2cf81fd0306c9490f588ccd",
+        "canonicalId:ctkg:v3e-object-86d5f30d2f3bbb90aaccb759"
+      ],
+      "rationale": "成员「等ζ线映射」(ctkg:v3e-object-86d5f30d2f3bbb90aaccb759) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['0cfcbfbcc5eccb1e78c6797ae9d9f634', '4f365a5f6a9a629a2d82c6719a257341']；canonical-profile evidenceId=['fa720cb0b4588c20e08112a21825876f']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "b0fbad42836c930b81d9a4750837507092ac687ca000821ab86b7526a0e8ec4b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-87148367d17fdbebd5a95319",
+      "canonicalRevision": "0bc4e7480e6b3207a6ca42e8f9741a15dd1a31bd594c124567541a8403ac5a97",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e5111793cb868a9ae7d89b60",
+        "canonicalId:ctkg:v3e-object-87148367d17fdbebd5a95319"
+      ],
+      "rationale": "成员「开环采样系统」(ctkg:v3e-object-87148367d17fdbebd5a95319) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['a0bf27ab3c6a8cc3c7bb3114523dec4d']；canonical-profile evidenceId=['a78a61063c3117d10d86830df9f827b4']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "05d1bd075ade45c0aae3ffa859ec050ec68550bcd59b33136a5cc17c82b1f7e0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "canonicalRevision": "0ebc7283ad511514720243110258fcd939dbafe18efd44c7824975e12991c691",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-69db1095ad61184dcf562656",
+        "evidence:ctkg:v3e-evidence-d4db7e13aa0c9282b28054fb",
+        "evidence:ctr:m1k-v1d-release-evidence-5c1f7a04c73b1ab28a00fb0d",
+        "evidence:ctr:m1k-v1d-release-evidence-8b7f7aa6d346b53ae54e6e66",
+        "evidence:ctr:m1k-v1d-release-evidence-92b2cceca10eebae55bea6e2",
+        "canonicalId:ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f"
+      ],
+      "rationale": "成员「z-transform」(ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 6 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['4163d48c5b7ae418d1ef05eaa93bb9e0', '89377fefb3320d5500fd93b427c2a588', 'b9e4435b57b68058b1c7dadece2eda1e', '5f1fdf083b123e437d0ad91c0013c3fe', '66cea193745d1a964e9cf11c29d4bf78']；canonical-profile evidenceId=['8389e07baf01dd275bc0314d6df4a4ee']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "b39aecc7deff43bf5dfc51e6d276a854ff61701c072f8be527b1c5fb814cfdeb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-875c91c5ad48c74f08a863e3",
+      "canonicalRevision": "d1e76710f729008c63414cf3b05edb3d279877ee415bc3eb11bc13f19d26fa1f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a63e95dc865e6e73964dc303",
+        "canonicalId:ctkg:v3e-object-875c91c5ad48c74f08a863e3"
+      ],
+      "rationale": "成员「Free running」(ctkg:v3e-object-875c91c5ad48c74f08a863e3) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['b4989286f19d3e68429038d299e15825']；canonical-profile evidenceId=['3a83d90149c36157237abbaccc22095b']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "2c9a8f91dd292349d6bb0ff4ee139566f9ff810293567cc932e51f7fa0ffee6c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-89a95ab28be324dc6d7040c5",
+      "canonicalRevision": "ddbe1419455bc1e9378c44d07c06e5b042c7793dd1be3a993dae8ecd10e7fab3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-671e4aaa67cc5bd855c3ee4e",
+        "evidence:ctkg:v3e-evidence-f74ab982644661b7abb2ebb8",
+        "canonicalId:ctkg:v3e-object-89a95ab28be324dc6d7040c5"
+      ],
+      "rationale": "成员「Disturbance Rejection」(ctkg:v3e-object-89a95ab28be324dc6d7040c5) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e8b7eb3090b9377182318edec98cde41', '3c43adcb26661b11b9fbd5c7589d97ee']；canonical-profile evidenceId=['980162299da412c8f061015514d9e752']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "86ffc7f24484095459090f0c180ee65963384e41683ceb1e9a4558cf5661dc79"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-89ada9ada357e26bcd83dc11",
+      "canonicalRevision": "47436ab957d9e5879ed4205b39e32d590eabcdf084cf1e73e4b81942bfde0cc1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f540e38fb9db3012cb344c9a",
+        "canonicalId:ctkg:v3e-object-89ada9ada357e26bcd83dc11"
+      ],
+      "rationale": "成员「线性离散系统」(ctkg:v3e-object-89ada9ada357e26bcd83dc11) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['82b42dd02bb52768eb948724845093cf']；canonical-profile evidenceId=['978fdeb85160cc8cbe895c22cc344cad']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f081f34af2b65719401b6bb26203f4a0e2cf198a002a0de4bcae7db30a78f439"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8b07ea11e0e619b2bc498119",
+      "canonicalRevision": "b4251bfec83028eb62e3bdfb48d307eedda240c651b3c6f01de862cb51392298",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-547dfa4ec49c45fce33cf92d",
+        "canonicalId:ctkg:v3e-object-8b07ea11e0e619b2bc498119"
+      ],
+      "rationale": "成员「Field Programmable Gate Arrays」(ctkg:v3e-object-8b07ea11e0e619b2bc498119) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['9c2a1d60f269103a737f682e30a2aacf']；canonical-profile evidenceId=['7ce6b4b2a3e866d9a0f295d22fd974b9']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f5a0471e301a774310605315255a7c8316a6f53fc24b0b749a7e07a8f10624c5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "canonicalRevision": "32d3b678327ee1443485909bd7af5acd386837b94e940bec712355a1593eea4f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-15840459c2dba3bf607a05fd",
+        "evidence:ctkg:v3e-evidence-8f51f37f71a7930182399bd0",
+        "canonicalId:ctkg:v3e-object-8c4354096b719a1d5e090da4"
+      ],
+      "rationale": "成员「Laplace transform」(ctkg:v3e-object-8c4354096b719a1d5e090da4) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['c762258bcd452d43ee79a7d7dc3ca205', '49d731fc4e4367827632b5aa104ab5f4']；canonical-profile evidenceId=['e70512ae369f962b94c852db07f2ec75']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "e1cca029e3e16f5d091ce990bc4b95adfea1e571b2936f6e6afcc78bfb7c4d2c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8db9674c3550d1d151df7573",
+      "canonicalRevision": "6c9dab0102c8038897d01bac4588ea0e2b51155ecc58c5752c970ab191f1958a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-316c6f67851e61deb24e4ecc",
+        "canonicalId:ctkg:v3e-object-8db9674c3550d1d151df7573"
+      ],
+      "rationale": "成员「周期采样」(ctkg:v3e-object-8db9674c3550d1d151df7573) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['cf18822a9977b56d9762940cbd837f9e']；canonical-profile evidenceId=['2f2d34b8c9de9162ab9614c56cbc91ca']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "ed23eedae1d8506845132eec8f76de67343684e617975219fa4828e94aba9771"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8e2d1a59b0583cad1108b4b6",
+      "canonicalRevision": "12420ba3c2876bb40c3208ebc1243014afa8a5da6e096221d20a50c76344fd93",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-935e78ea1197e7a3493aaea4",
+        "canonicalId:ctkg:v3e-object-8e2d1a59b0583cad1108b4b6"
+      ],
+      "rationale": "成员「幂级数法」(ctkg:v3e-object-8e2d1a59b0583cad1108b4b6) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['301a48902513eb0a13d3ce8abc9d2262']；canonical-profile evidenceId=['0b689d1f0770633821a4ff6086ca2b55']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "1cd48e6d9ab6d9c8d6f7db8dba9898f9d8457b53d880f0440604be5ffeab65f0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8f93b6b3842cc39fa81d8bc1",
+      "canonicalRevision": "fa3a08ebe38e7dc63569d7bba880846be9649b9b18527738c255992e8d5c38c6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5694c28b25d0c524479921a7",
+        "evidence:ctkg:v3e-evidence-7296c040e2b84071fade15d7",
+        "evidence:ctkg:v3e-evidence-a9a1911f4460bca4a295bf50",
+        "canonicalId:ctkg:v3e-object-8f93b6b3842cc39fa81d8bc1"
+      ],
+      "rationale": "成员「主要带与次要带」(ctkg:v3e-object-8f93b6b3842cc39fa81d8bc1) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 4 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['db0f44474e25cfd90ffbd5398a26c289', '3431914d4417bee05989376a98d7eec3', '3a540539d3fea0d46684c30d558577d2']；canonical-profile evidenceId=['fa33b658a7b07afda8bc9e3d9d73119c']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "64fe10ce5249f2b2c599d86d8fb0c2e197ec9edd6b4f417c4bf9f000837c4fee"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-92d2247647a43c16c2a637b8",
+      "canonicalRevision": "1f223279e839818b99bfdd9333ea89c30aa740de096ebb08ecc64135d2ab66f6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ac8c30b8bc243f6ea5283212",
+        "evidence:ctr:m1k-v1d-release-evidence-ae80f5620c2d1876f289c680",
+        "canonicalId:ctkg:v3e-object-92d2247647a43c16c2a637b8"
+      ],
+      "rationale": "成员「Sampled-data system」(ctkg:v3e-object-92d2247647a43c16c2a637b8) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['6f47632e2860e08db774a131832135a9', '8d9a86645dbd4b710631f58f9972fda5']；canonical-profile evidenceId=['08a056e800903d3596c4520409084ab6']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f1d5e411a88266939c1a178d39ffe432d130a00b5ab6b42edec5c19925c302f1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9457cf16dcef3b40a9253837",
+      "canonicalRevision": "a840cc54847772efa3e9ddc3106a7ea654d84de7743038ffd9009596a1a62eef",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a171f22787833890a3169dbf",
+        "canonicalId:ctkg:v3e-object-9457cf16dcef3b40a9253837"
+      ],
+      "rationale": "成员「阶梯信号」(ctkg:v3e-object-9457cf16dcef3b40a9253837) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['5dfdbe85981db4027e1aab42ac821219']；canonical-profile evidenceId=['c76434f58ec7b152f56e930df5f5b897']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "50d6bb28f11f20d00fe137307b4b344f039c4525f4a6f565a687e50909f00f77"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9615125c7f9a504980e7ca04",
+      "canonicalRevision": "32204882c9a06b50988ca683e13081b80cfb645896e6a54417d293c1931b5d71",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c74adcc8bb6a7fb04f620a9f",
+        "canonicalId:ctkg:v3e-object-9615125c7f9a504980e7ca04"
+      ],
+      "rationale": "成员「前馈信号」(ctkg:v3e-object-9615125c7f9a504980e7ca04) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['821dfe59d1b57cc6eefefd7d8186273a']；canonical-profile evidenceId=['61246e711040c08c361d9a5d982c8f0f']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "aa1c675ce89783c5ba7de1172e8b032491d0ede8f77a7295f4f44c6b241ac6ae"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-963133ef890ba8f3bfeefcc5",
+      "canonicalRevision": "18dbd597613f283b56ddbab37412072344a5c29395e5a7c676f2ef6699a9e105",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6d9b742334d57f8b1ce71b3b",
+        "canonicalId:ctkg:v3e-object-963133ef890ba8f3bfeefcc5"
+      ],
+      "rationale": "成员「线性采样系统」(ctkg:v3e-object-963133ef890ba8f3bfeefcc5) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['1955469a71c6d07898d75259bc060204']；canonical-profile evidenceId=['94f70a3d047ab37e772f6bc3e43d0da7']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "8d55c037d36372fe322e1a7b0dc3b5a1c5e04d13c5b664bcb6285acaaebc00b7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9bad410f2b9662132c16c8f2",
+      "canonicalRevision": "8cd5dd4552b3de749590e6e309f69f0e2d0b185acd3462d80a6832ab5a2004d1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-964bc6cba7a963eaa12f4788",
+        "evidence:ctr:m1k-v1d-release-evidence-f3443b90054c3e4303773e8e",
+        "canonicalId:ctkg:v3e-object-9bad410f2b9662132c16c8f2"
+      ],
+      "rationale": "成员「z变换法」(ctkg:v3e-object-9bad410f2b9662132c16c8f2) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e84c246f421b0d80267457be0f8de0aa', '68ffe3f4883632a065f6b4ebb931c387']；canonical-profile evidenceId=['79d5e72ce8966d89ecfc4bc915cbdc09']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "d3d9e75b9e19d8c9f59b5198d2132c9a0400ff6f9007c17811ad7b525c244c10"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9c2c202d7940f9cd4af8fae8",
+      "canonicalRevision": "cb70f3fabd1f7ed05df3ed99d0ebcd657fd877dbaa996338016d53f1d0ff769f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2cad0c586b1d48ab9bf2b636",
+        "canonicalId:ctkg:v3e-object-9c2c202d7940f9cd4af8fae8"
+      ],
+      "rationale": "成员「采样周期」(ctkg:v3e-object-9c2c202d7940f9cd4af8fae8) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['c154101953d1efac45401c64b942285b']；canonical-profile evidenceId=['eb573bc206d693ab2db840a33bdbed96']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "fbc047411da6e165ac7b94b00841c07b8847d8a46b66616eb84797532fd7f5ec"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a0440022b39b4796d91d4e3d",
+      "canonicalRevision": "0b96eaf3419587d27d816ceceae645a8e7c6665f84bd2351f32be3cb03fa07e3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1b8c21981023addbdac15da4",
+        "canonicalId:ctkg:v3e-object-a0440022b39b4796d91d4e3d"
+      ],
+      "rationale": "成员「绝对式轴角编码」(ctkg:v3e-object-a0440022b39b4796d91d4e3d) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['96c391fc8185c8a0b9fbf196f6fc3e61']；canonical-profile evidenceId=['2c77eea4cace475e3fc71d42b83f0524']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "ac749d1ddee7fbe259cdab66d968acd632388f90b0f3753bf62f94bb53615ca0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a05dd61cea712e5b19868b66",
+      "canonicalRevision": "6ebcf428b92feeb9c0c3abd01f2e7743fe6b581f00659145e3f5308b5fc29ed1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c68e2ba939c1c874a208104e",
+        "canonicalId:ctkg:v3e-object-a05dd61cea712e5b19868b66"
+      ],
+      "rationale": "成员「离散系统时域分析法」(ctkg:v3e-object-a05dd61cea712e5b19868b66) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['71d8e3817fed2926d6dde5a1966487a3']；canonical-profile evidenceId=['c4fc2cbb1cf3ed845cfb03baff080954']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "b783897e98cb6af0afe3922551fa0426928d92399d1f34d0d454c1c762598843"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a2b0a7b010b1060501e788c2",
+      "canonicalRevision": "1c3cf2e1c5832fd0c6f453394a828732a1aee5e6961dc99a95b8f45aa0918af2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0e81c56b7a364538a89fb86d",
+        "canonicalId:ctkg:v3e-object-a2b0a7b010b1060501e788c2"
+      ],
+      "rationale": "成员「数字信号」(ctkg:v3e-object-a2b0a7b010b1060501e788c2) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e2f2c0c156fc513ff6be0a34d416ae1b']；canonical-profile evidenceId=['f2b6ab0f34cbe5fd517cc8b26c6bdd1f']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f0f15c59b8c9d7994656e0f50a757ca0879953ba42a7641d997729c3543ccff6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "canonicalRevision": "099a5beec801bdf9b21afe140f7fa369e06679538d3a91d0751e6d2816b35390",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4628522e3c60c7abdd568479",
+        "evidence:ctkg:v3e-evidence-99f6dca376fdb25bc9a3924b",
+        "evidence:ctr:m1k-v1d-release-evidence-902cfc9dc9d7b37b0f70ad59",
+        "canonicalId:ctkg:v3e-object-a36f17ddac0ec65e08118916"
+      ],
+      "rationale": "成员「Discrete signal」(ctkg:v3e-object-a36f17ddac0ec65e08118916) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 4 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['b2c54a00dfdc0ce6b1368422fba45e41', '904efc32bc47ab6bb34dffeac3ea1777', 'd788938b1172cc5f99f1205c6dd7e4bc']；canonical-profile evidenceId=['0f7a79e32933bc3e24760dc72e1c5fd8']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "8f6f3d95085d0fec27e780b3810d84fdc20f422a82bf322ffd6205e085255049"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "canonicalRevision": "a47ee0e5df7c476e09959560c8a9712cd235d6e1e7022efa77136d58eaa3bcbb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5b3d29585149e8b7b46721ae",
+        "evidence:ctkg:v3e-evidence-93e972eedca6b02963558531",
+        "evidence:ctkg:v3e-evidence-a7203cdd00ed1cc5cdaf1ba0",
+        "evidence:ctkg:v3e-evidence-f918ae1fd2789bf4524475f1",
+        "canonicalId:ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0"
+      ],
+      "rationale": "成员「w变换（双线性变换）」(ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 5 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['410026569464273800ad29fe4f53b543', 'af5852df600c29ca6491e3509d76530f', 'ca811795dc51c9f0621ca267fe397e98', '04e29765fdbb7514d678ae765b51dc01']；canonical-profile evidenceId=['9fa4b0bff8b5110ce2218a3b883cd871']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f4b03cb28f8230fdf89d27e1a5616603deb4e406d0cc574719f800aa2c98e06f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a71a5210c13aa5d476ee8044",
+      "canonicalRevision": "0c2ff312a9a1db9e7c166847b7775061293f92e6e09774ded9d2d86cd87c6b89",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7db7c5bc2ca873305910cb83",
+        "canonicalId:ctkg:v3e-object-a71a5210c13aa5d476ee8044"
+      ],
+      "rationale": "成员「采样器」(ctkg:v3e-object-a71a5210c13aa5d476ee8044) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['3939f66ea4f986b8ae637148843a90d8']；canonical-profile evidenceId=['e692f97e4ea3b9db4a071aff9fcd405e']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "3a0497f056a3a13c30c8ed65978d650c9fd9a2cee753d3b161b468247e6c3166"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b23d7969cb791dfac72b6319",
+      "canonicalRevision": "ca64813300c97038dd8f030a9b92078347f27f30fd276636eadbd0fd11b1e618",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-315b2a64d5d84d647b2969cf",
+        "canonicalId:ctkg:v3e-object-b23d7969cb791dfac72b6319"
+      ],
+      "rationale": "成员「闭环采样系统」(ctkg:v3e-object-b23d7969cb791dfac72b6319) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['c8337b52597705ba33fca72fa953872b']；canonical-profile evidenceId=['5be76b131d94c2092208c4b57849d7af']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "787106fa8ee94c59c8017428b4682cd92cff59dca5391f75cbb41dd7434b1cf8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b2913d437161b8d1e3eecfdf",
+      "canonicalRevision": "113798d529a2ea6b8336371cee64abeb460d544b76180c5385aef5da1fbf006b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c6201b09c18e43427af58949",
+        "canonicalId:ctkg:v3e-object-b2913d437161b8d1e3eecfdf"
+      ],
+      "rationale": "成员「理想脉冲」(ctkg:v3e-object-b2913d437161b8d1e3eecfdf) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['7fd2d9f9df1b3dc4b7e095b0e66f0fcd']；canonical-profile evidenceId=['f522f1a7bfce65a357530637303afd43']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "27731a38daa947cacd54d4c5e632da5c7c1a66ff141b3abff2b88b550815ffc7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b3fb723e0aebb8b4dca3e23c",
+      "canonicalRevision": "71fb8179d5c459d4319fd06adf3ab17198f9c6f12c769e35e9026d971f09e63c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f3265e4a0ea2f1351f11a939",
+        "canonicalId:ctkg:v3e-object-b3fb723e0aebb8b4dca3e23c"
+      ],
+      "rationale": "成员「信号复现过程」(ctkg:v3e-object-b3fb723e0aebb8b4dca3e23c) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['0a7d424adbfea3237b70241f96741604']；canonical-profile evidenceId=['b7f22c5da0699b4ce550d135a0b3146e']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f14a821cf5d9dbaa8d7a0075b5fb1f6560c6371f9cde0be268483bf733c762e9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b6a2408064ca869300339823",
+      "canonicalRevision": "7e555530e820f4520b4e40ec4e95b6af4136067f09d5541f7d624511e0dd5883",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0b7ffa9e2be2cbb154a9057a",
+        "canonicalId:ctkg:v3e-object-b6a2408064ca869300339823"
+      ],
+      "rationale": "成员「非周期采样」(ctkg:v3e-object-b6a2408064ca869300339823) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['da73e3062b177110d1fa1ae2f863a339']；canonical-profile evidenceId=['8585991f9684450027785e5aa8e1416c']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "9af37b866e449d8c8d02485f2ec858bac89ebd80d96e429fa0d044da61e3ccca"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bc0986d0d67b0409733e3b95",
+      "canonicalRevision": "ba856683bb682ce103e1c8ee675e474ee1ab72a31efa19a9822ac1867200dcd4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-66687662c663cde5276f5f60",
+        "canonicalId:ctkg:v3e-object-bc0986d0d67b0409733e3b95"
+      ],
+      "rationale": "成员「信号复现滤波器」(ctkg:v3e-object-bc0986d0d67b0409733e3b95) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['263b38e222864679eb22461f39995e34']；canonical-profile evidenceId=['50744a75024e2db3f836a445541d1a41']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "dadef4140db7ad6e3366180c76946f3d32686f918c3ac56b24aefa2d0da6c89d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bd932075b5f988acebafc1b5",
+      "canonicalRevision": "1690a2afcedcfdea5579661c9039ed13865b812d7df215a7b63f7f58f006ac76",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-67871719d89870a377186786",
+        "evidence:ctkg:v3e-evidence-7d0678c1befc037fd6762d77",
+        "evidence:ctkg:v3e-evidence-a805a46a2bc8757457c58610",
+        "evidence:ctkg:v3e-evidence-fc82c176b761eb3f752ad172",
+        "canonicalId:ctkg:v3e-object-bd932075b5f988acebafc1b5"
+      ],
+      "rationale": "成员「Tustin's Method (Bilinear Approximation)」(ctkg:v3e-object-bd932075b5f988acebafc1b5) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 5 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['09ac03ce145c73f356ff5f6df6cff9e0', '4f418f70b7f90c361912001fe03eef24', 'bae01b1769154672a064c1538027054e', '08d530ba2c1f3af695d6c733fac7fa98']；canonical-profile evidenceId=['1d2b1cdb7d374731afcde8af034ebf9c']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "6da70a30f8606bb42f1ddc61bd567a9b7b257cd21a5d15fe6fe114dd39840653"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c2ca694b46d8bbfd36e1d92d",
+      "canonicalRevision": "1ff7fd706f47c78bbd93ebd9cb548c239995fa7f659cc06a6abce065c70c6457",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0366053d97908ecaa0d74562",
+        "evidence:ctkg:v3e-evidence-1f519d2a1d3381fc54d25c38",
+        "evidence:ctkg:v3e-evidence-38caade75ab7ce0443519be5",
+        "evidence:ctkg:v3e-evidence-aed78d59171c60d3a868a42e",
+        "canonicalId:ctkg:v3e-object-c2ca694b46d8bbfd36e1d92d"
+      ],
+      "rationale": "成员「Design by Discrete Equivalent (Emulation)」(ctkg:v3e-object-c2ca694b46d8bbfd36e1d92d) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 5 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['d4ccef4798fd2cb33b38d6e6758bdb08', '6d102eec99c9e5df5c9119eab3a8fbe0', 'ed8bd7de6d529921c7d1f1aec778090a', '1219c16b8167a5eb06c697dfc07517dd']；canonical-profile evidenceId=['30f0fcc3dfdda5077663d5818fd89669']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f7389e14f9f51d9607f33815a4d13262626811562119608abec7b6091ff5a008"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+      "canonicalRevision": "14a5ae55114face4f16e837f290cf70d5b32250c54da07774a3c772f80e692e2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-41bf36a9250a93f82d9b1225",
+        "canonicalId:ctkg:v3e-object-c3d7e85e2b60c3320db8a44a"
+      ],
+      "rationale": "成员「Quantization error」(ctkg:v3e-object-c3d7e85e2b60c3320db8a44a) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['4b7a6f80b954a7e13032a93c9326307e']；canonical-profile evidenceId=['59fab79d05cdea7c98589f74464ed2f7']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a25726415fb2bcbdce18285a4d4be99726fd2cf9d12f3bfd7f7826559afb7ff0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c48ceeda1ba4dc2b7714e367",
+      "canonicalRevision": "856d28dab5a929aa2c38627f2f2fb0dbbf714365e5790d59f8254c0a6e9914de",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c6af35739f274f417d3beacb",
+        "canonicalId:ctkg:v3e-object-c48ceeda1ba4dc2b7714e367"
+      ],
+      "rationale": "成员「Discrete design」(ctkg:v3e-object-c48ceeda1ba4dc2b7714e367) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['f58202fa2550f4fece05ca946ff4211c']；canonical-profile evidenceId=['2afad3fedcfb37aec6ba727bdf59cc7d']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "9491c8be153e8bfaadd666195d99d584aec59a5f91805abf401f259a80d91fa1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c4f81d9a0c83195cd1cebfe6",
+      "canonicalRevision": "9f3b612e1c46a620e737b35830dc97de9511b23a8bc8db7a312d2d3377ee9e4c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-49511fe3ad370ae4465ae3ff",
+        "canonicalId:ctkg:v3e-object-c4f81d9a0c83195cd1cebfe6"
+      ],
+      "rationale": "成员「Hold delay」(ctkg:v3e-object-c4f81d9a0c83195cd1cebfe6) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['51a8f279b0c673a7b2b3a36a5a8c3cdf']；canonical-profile evidenceId=['d18d630149d4d3f69b30a1bf2d4b5b31']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "7b9d588344fa333abfce44463924c01c1f1447d896449b51ff39bcf6e31c656d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc879188760f9c79394713cb",
+      "canonicalRevision": "7a83d7fb04a62fe7ab184e04b95f329d6129aa54b0128c0dc231f08ad4edc390",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-06ec1bbcb8ef88f3f0ed8cc1",
+        "evidence:ctkg:v3e-evidence-1224643b06285eaa5f00941c",
+        "evidence:ctkg:v3e-evidence-66808720443261f480df452c",
+        "evidence:ctkg:v3e-evidence-d65b047d2453125104173508",
+        "canonicalId:ctkg:v3e-object-cc879188760f9c79394713cb"
+      ],
+      "rationale": "成员「s平面到z平面的映射」(ctkg:v3e-object-cc879188760f9c79394713cb) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 5 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['fe8821f605031fe24300043ae8c5f63f', 'e88e2059b596c05bf5dffab9650e1c65', '03a0a5b97f9d2e2e492be139f5619ed8', '87df90ca571f7451e4dc28c32345375c']；canonical-profile evidenceId=['d8896e43d889e7609871d7f92365dacc']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "1d983bfa50882109282fb150610a0950641121e27fe6d422aa339012eb445eff"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd2b9611c4934fe067e8786a",
+      "canonicalRevision": "c6dd89509dd58ca6de32427fb843776cda819cf9a630483f389e855dbbf22e6f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aec5f61f5f868fc1d8b34fd4",
+        "canonicalId:ctkg:v3e-object-cd2b9611c4934fe067e8786a"
+      ],
+      "rationale": "成员「Sample-Rate Selection」(ctkg:v3e-object-cd2b9611c4934fe067e8786a) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['0dd97329c0edad5cdea95df3059c9ca4']；canonical-profile evidenceId=['d0bab8bcf1af49d6cdeadab5eba64396']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a9d2ba5e98df1e573b21670cce89217c7aa0e42f326fa33e4db12fd742b42255"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd4048f0bc048834a85d7816",
+      "canonicalRevision": "68790820b05b28e22cff84bc08f658eebf836989d58c4d0deba14b024420f6a6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-090c04122917bd8b3ce98997",
+        "canonicalId:ctkg:v3e-object-cd4048f0bc048834a85d7816"
+      ],
+      "rationale": "成员「采样持续时间」(ctkg:v3e-object-cd4048f0bc048834a85d7816) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['c8994a53ff0c2050ff324fd238176c92']；canonical-profile evidenceId=['ed2cdbf4c2afa1225b7164be9b08cedc']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "946f350d0cdc1f57cd9d7787d65cbd250f974333bbf5f0db5d885b32f6ac6509"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d7425132087d7b73ba04acb6",
+      "canonicalRevision": "b8834268444e3e985ddccc2affa0f3fb35b8b2f771e768664e7722e4c79adbe6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e76077d26e9718ad4e711f9d",
+        "canonicalId:ctkg:v3e-object-d7425132087d7b73ba04acb6"
+      ],
+      "rationale": "成员「flash memory」(ctkg:v3e-object-d7425132087d7b73ba04acb6) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e91cb1aab14f8bf92cb32fb0bc2f47e7']；canonical-profile evidenceId=['b365f731d69d53da458c39cef7f71acf']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "c5fc89a24cf32cba3fe1cd9d34e5c2bc3e65e0c579fc929254265ed5955b2f06"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d812fa08ed1f541982be0df4",
+      "canonicalRevision": "f7c851c56b7297e5f625aa759062c807a83b515739128365b68d01babbf11c53",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4e98a07893a955f422507c9b",
+        "canonicalId:ctkg:v3e-object-d812fa08ed1f541982be0df4"
+      ],
+      "rationale": "成员「D/A转换器」(ctkg:v3e-object-d812fa08ed1f541982be0df4) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['972c1d892993d71d35bfed7c2ff89da7']；canonical-profile evidenceId=['cc21fae3d0942c3471271f0a1fa0b8d2']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "0d3181f6e4a6897467f3dccf48da8aa229f0d924cdc1f94218e27baa51d05787"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d930507f1d5291f37ede5af7",
+      "canonicalRevision": "940d694d6dac7266ba34eddc13f2e14b180f10aa6dec44f3d2078793b392917f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1a3efaa1843ab3e2d9a7b777",
+        "canonicalId:ctkg:v3e-object-d930507f1d5291f37ede5af7"
+      ],
+      "rationale": "成员「反演积分法」(ctkg:v3e-object-d930507f1d5291f37ede5af7) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['5681b806cb2acc1c4fa3a63adbbbfd92']；canonical-profile evidenceId=['560637440cb7de5208efe5894c2d9dc4']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f3b38abadc6c5d7a2687ef4aeff4fb3d828267a16b6f8335eed2047dd6818ce9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d973ab89da26720699edb366",
+      "canonicalRevision": "52a984f73de07e6758b96e8edcd2c24e63c64f793a3558e1684a26cbdbf139ce",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-58cea0a6cedc98d22679d0b1",
+        "canonicalId:ctkg:v3e-object-d973ab89da26720699edb366"
+      ],
+      "rationale": "成员「量化单位」(ctkg:v3e-object-d973ab89da26720699edb366) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['fe03c7d5f0f48c3c3cc1af962411419f']；canonical-profile evidenceId=['753d8d2335fc8bf4347e4b089e4539ee']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "b7b05178732b09894f3daed0320c933ced2de6fee0db40d5884c15863f60abbd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dc100c0a7e752839af01bbea",
+      "canonicalRevision": "3a330ea0c7afe9696589362f3b5d4d7a9e1287ecab49d44d8900b494a59542dd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-abba995db287e8f71fafa817",
+        "canonicalId:ctkg:v3e-object-dc100c0a7e752839af01bbea"
+      ],
+      "rationale": "成员「离散系统」(ctkg:v3e-object-dc100c0a7e752839af01bbea) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['9ee4e9ababd28f8900b58ea190647fdc']；canonical-profile evidenceId=['e103946d1142acdc1e096a1d824e9def']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "bbca32f235ad5b7f8ced1ec7dac7352966801de7053dcf6e3b23b435bc67aa30"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dc50b3677e3701df866374cd",
+      "canonicalRevision": "76276975f3f8242ebd435929e34e63f277331a97fce6e24672817c4fb53b8e4b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d9ac727a10f25fa083d049ed",
+        "canonicalId:ctkg:v3e-object-dc50b3677e3701df866374cd"
+      ],
+      "rationale": "成员「Analog-to-digital (A/D) converter」(ctkg:v3e-object-dc50b3677e3701df866374cd) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e8faf35c1ebb7224f8561ac92f9ce1e8']；canonical-profile evidenceId=['d9513cb52d2b1e3e62f79649dd4b4712']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "44603caf99d88eba7d6a5432ee0d2d5471b2b4001a3ca96cf21fc0ecbdac205f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e106c00b460b0d79496f817b",
+      "canonicalRevision": "4ca5c3e11f69e1b8ac1ec9f9e073abc58ea6eca3ceac9bb12975ac3aa1048c1c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9ccd2e2f7d9926a4aeb07681",
+        "evidence:ctkg:v3e-evidence-b483920405d35cf36175884a",
+        "canonicalId:ctkg:v3e-object-e106c00b460b0d79496f817b"
+      ],
+      "rationale": "成员「Tracking Effectiveness」(ctkg:v3e-object-e106c00b460b0d79496f817b) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e52209c7b8ac109f378ddc80060257ae', 'd1b265fe0420390d5fd801d9779cb5e1']；canonical-profile evidenceId=['9ad6e39e6c4e453b3edc004965515671']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "c96fb6e5172d6ff5763dbcef8f3830c22ac2b3668ae44d872595adafec364c44"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e5bf87e0d969b6eec24c6d11",
+      "canonicalRevision": "f28764d5b9137e5abca106782e3112599a25c5d1ff8b840a8fd00a2a9cfaecd3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b07f7f7312c310a0efe13339",
+        "canonicalId:ctkg:v3e-object-e5bf87e0d969b6eec24c6d11"
+      ],
+      "rationale": "成员「DSP chips」(ctkg:v3e-object-e5bf87e0d969b6eec24c6d11) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['5a5c31074b6b7d4e9aff3f9bf09f9337']；canonical-profile evidenceId=['8740d714fab4d20074399a0785c554bc']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a5d280ca5b67a8460f78653dd5fbac9215c25c5bdf68b18679643ca52a11e7c6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e867ce7d25f7cc3834456417",
+      "canonicalRevision": "f3890b1f04bb21775f3cfaced28321d667c0f11a05f9eb1fbd6e7a532a8f66d6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cde68244044eec176e6041a4",
+        "canonicalId:ctkg:v3e-object-e867ce7d25f7cc3834456417"
+      ],
+      "rationale": "成员「采样角频率」(ctkg:v3e-object-e867ce7d25f7cc3834456417) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['fca7eb9039b51ad6eef3197a9f4ce197']；canonical-profile evidenceId=['04ff8f0a643db4edd75102138317a3e8']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "762d4a23a170bebae71f620002349ded8c3e463e9174cbc2893fc65fb7f227c3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e9b365b3f16db46b1e342744",
+      "canonicalRevision": "b1727a06a99dcdbfe4b890118c0776d70a211ccb3fe0971d4fbbac853da8a9eb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cd7ab786070e000862776ebc",
+        "canonicalId:ctkg:v3e-object-e9b365b3f16db46b1e342744"
+      ],
+      "rationale": "成员「sample and hold device」(ctkg:v3e-object-e9b365b3f16db46b1e342744) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['eaccd054495fa6e4d8a4b79b3d7122f2']；canonical-profile evidenceId=['c947042e38ade3774420c9ceec72ac6d']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "13b3f33d32382e7f56a66bd01cf634cfe23962391d65106be7bc812f1080118f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eb888f17c38a0db4c0e3233d",
+      "canonicalRevision": "a17935a4c61ff09553d733b093e932e16afa70b308dd351d04ab07544ce863cc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-90177022694d7f1c2ca93ebe",
+        "canonicalId:ctkg:v3e-object-eb888f17c38a0db4c0e3233d"
+      ],
+      "rationale": "成员「离散系统时域分析法（z变换法）」(ctkg:v3e-object-eb888f17c38a0db4c0e3233d) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['3e136bcb81868110c8c33e10c60ee0d7']；canonical-profile evidenceId=['826ded710b7d505b49c7eb87bab077ed']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "90425a86aab25b077a1b67f8d6d69f69a5e219b1551820571c409c5869d8a483"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+      "canonicalRevision": "569f42cf429550a0ef949c7e24c930a29f50e22048cace1d480acabbe8e7b373",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8e071124d0967670facac877",
+        "canonicalId:ctkg:v3e-object-ecc6832589e61331293846d6"
+      ],
+      "rationale": "成员「理想采样器」(ctkg:v3e-object-ecc6832589e61331293846d6) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['2b94b4f9a9983d21e8dc740ac720a3a4']；canonical-profile evidenceId=['2f92e481477b6be7ad8aa9085fb02ecf']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "b35366b62f7d6dbe1281c3877450382b11d8ae6cf0ba8adb13a217871d17e68d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ed01c7b027040e58ad92fa35",
+      "canonicalRevision": "cbab582e7d77b5ba46c66681099e425754ce71aad4edd7e75ff5bbfb332083d6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8dba81bfba3f9d124cfd66cf",
+        "canonicalId:ctkg:v3e-object-ed01c7b027040e58ad92fa35"
+      ],
+      "rationale": "成员「线性定常离散系统」(ctkg:v3e-object-ed01c7b027040e58ad92fa35) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['42db4d4cb96e995a2f5792dc1fb9951c']；canonical-profile evidenceId=['cd2fe8c5c4064f3d5a10edfdf120190a']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "a26f7004dff9faa249d2fc18b55c283b3c766544e5fe844916d239772bf5ba14"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ed6a447b53f709e139144374",
+      "canonicalRevision": "712db79850e99daaba17b0778f826558d412744ca3bec1dc9489a0c33e922332",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bbfb883214f8632e9094b959",
+        "canonicalId:ctkg:v3e-object-ed6a447b53f709e139144374"
+      ],
+      "rationale": "成员「采样频谱主分量」(ctkg:v3e-object-ed6a447b53f709e139144374) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['e6893bec5fec7b37dc0e519fc6bcd97b']；canonical-profile evidenceId=['b23dc4c7d452749c189df5e67cbbe487']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "b03f550ccfde352cb368afc38153b43dade144459ced186ad8e6310c14cbcd74"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f0c0278d57559730f124c4e3",
+      "canonicalRevision": "f1f37ca1ec97c123699fea4f8482d12a68b0da834f93e622133e89b453d54b73",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d55af232e59f4e90aa26a31e",
+        "canonicalId:ctkg:v3e-object-f0c0278d57559730f124c4e3"
+      ],
+      "rationale": "成员「解码过程」(ctkg:v3e-object-f0c0278d57559730f124c4e3) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['28e41f6634efecb14034abc72bdfa3ff']；canonical-profile evidenceId=['0d3b1b13227e77e4c47f7a61cc722d29']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "61c60048f31e43a0f30bf43d9033181998a39653679116980b13093fa09cf743"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f16be3d3c310b5ceeae86b3f",
+      "canonicalRevision": "789c9a84b73c079921b9c100d9b61f5c50b9d183566cf596d5459d083b00d657",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-495f9e93d8a635d5d20cac35",
+        "canonicalId:ctkg:v3e-object-f16be3d3c310b5ceeae86b3f"
+      ],
+      "rationale": "成员「采样频谱补分量」(ctkg:v3e-object-f16be3d3c310b5ceeae86b3f) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['d7792176e9450ce421ae5893d48e3ed9']；canonical-profile evidenceId=['b83f888f787381c8a8f46225d31288ec']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "f52def6c3c29c8db4159d0b083c7d1cd276f4fbf89fa0d82105bae41d493683a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f46e9da31098d70fca946f63",
+      "canonicalRevision": "0531af46aee2cb56c3291670ca57f6ec4c403f37ad9ae8c602fa22d533405ae0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-99a8d444a816d83505ca17ad",
+        "canonicalId:ctkg:v3e-object-f46e9da31098d70fca946f63"
+      ],
+      "rationale": "成员「programmable read-only memory (EPROM)」(ctkg:v3e-object-f46e9da31098d70fca946f63) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['832423bf9c8bc2993d21702177401df3']；canonical-profile evidenceId=['cf915597d9fd28b5ab9011c505d9d922']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "2f363751d511c01ab4f2b3a6dfbdba42f274437980f109ed653115b1570c7d04"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f8337fda41fd8e3fe22e87f7",
+      "canonicalRevision": "9ea8d67b766efd53f229c0afb706a0fed0ff0b56862c5f4829bd7e357780c2b9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3e61cd7049eb62e0d57506d3",
+        "canonicalId:ctkg:v3e-object-f8337fda41fd8e3fe22e87f7"
+      ],
+      "rationale": "成员「multiplexer」(ctkg:v3e-object-f8337fda41fd8e3fe22e87f7) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['fd497a13d287779a5002f2ce838d2e24']；canonical-profile evidenceId=['40f526cf810c3b281f6433d312dcfa17']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "adc3fdf966173c5eafac2c59e647901734446acce30e320f8e018418114404d8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "canonicalRevision": "631f5edaef4e356653014dc7d29def2ef059dfde491f90db3ebfe986c175b128",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1ec96847478d0ef8da9c12a6",
+        "evidence:ctkg:v3e-evidence-2372a5a2425356030b6eaa92",
+        "evidence:ctkg:v3e-evidence-30ac6125e36494e0a2720bd3",
+        "evidence:ctkg:v3e-evidence-52fd8f906d62b180db67c03f",
+        "evidence:ctkg:v3e-evidence-67131618a5a2550bdb6ca0b1",
+        "evidence:ctkg:v3e-evidence-9acafb2b880af289ac009504",
+        "evidence:ctkg:v3e-evidence-c4b85e9380e4e289f35f69eb",
+        "evidence:ctkg:v3e-evidence-dcbc31b9dc15fe68d844f07d",
+        "canonicalId:ctkg:v3e-object-f8d3e5fdd92e5393820683bb"
+      ],
+      "rationale": "成员「Modified Matched Pole-Zero (MMPZ) Method」(ctkg:v3e-object-f8d3e5fdd92e5393820683bb) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 9 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['d3cbc3ce8d0175b25d8d433e06033a61', '20308e8d03532e60dcbc68f591471792', '11ce8c59a4aedcfe15d4c9a693bb026e', '29fdc9e4af5a35a87d1c3af46f60a254', '29bf6fa67f8ab0ec74a4d360a391b09d', 'af8d843db8c2c7dee38b879630c425ea', '600e61cac0916bce1331493d24f61aab', 'cb9d0a465b1304a7396f6255e02dce8e']；canonical-profile evidenceId=['f2265d248be4a78e14ee8f5f8f8669fa']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "6e76788841cbc0e6ae8283d28828a09477f83316800c5f1482c5af832717303f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fa27f7e0f03c7c18dd56786d",
+      "canonicalRevision": "aa356cb096a62c2259f3d7da6b0c54cb1fb2afc033b87e6900082ae4945270c4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-18dac1a4789c50d45bfd4691",
+        "canonicalId:ctkg:v3e-object-fa27f7e0f03c7c18dd56786d"
+      ],
+      "rationale": "成员「conformal mapping」(ctkg:v3e-object-fa27f7e0f03c7c18dd56786d) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 2 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['ded486a304dedcfa150b7d685ca39378']；canonical-profile evidenceId=['e1af370d108122e2d7bf9a2980641b43']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "cbf24166dd91e3b60e816d161244f0172cbf401f19b9a9700572eb66a730ded2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fb46cb0e4c4a87cac57dc14f",
+      "canonicalRevision": "9f1d0dd2332e8ff10b195d91e21ad7c4645fd5caefabc68dffcf8413d00fa8bd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-558dd473469a1ce33bf16e3d",
+        "evidence:ctkg:v3e-evidence-80193cafd91c54c930ce978d",
+        "canonicalId:ctkg:v3e-object-fb46cb0e4c4a87cac57dc14f"
+      ],
+      "rationale": "成员「A/D converter」(ctkg:v3e-object-fb46cb0e4c4a87cac57dc14f) 的 frozen worklist 行标记 profileOnly=true、riskFlags={profileOnly:true,new:false,changed:false,highRisk:true,reasons:[high-risk,profile-only]}，entityType=DomainConcept，moduleMembership 仅含 ctr:release:discrete-time-control-analysis-engineering-v0.1，priorDecisionRefs 为空。其 evidenceRefs 共 3 条，kind/boundary 仅为 ['aggregate-evidence', 'canonical-profile']/['aggregate', 'profile']（aggregate-evidence evidenceId=['6b39767ab2522c9ace2338abf971f2b9', '053bd17ab732bdd5d70b8fac33671277']；canonical-profile evidenceId=['43c22a3ff91ac052e3f8eb35cb5b3da2']），sourcePath 均为 aggregate-projection，未出现 lesson authoring 或 syllabus blueprint/main 的 independent-course 证据。按 current-course-coverage-review 规范，canonical-profile 与 aggregate-evidence 不得视为 independent-course 证据；在缺少独立课程证据时不能作出 INCLUDE/EXCLUDE，故 Primary 判定 DEFER，CourseCoverage authority 对本成员保持 unresolved。",
+      "decisionDigest": "3489d864bc6c721598b22e118d624c879461285e68ddc247484dadb670d89782"
+    }
+  ],
+  "documentDigest": "03fed38ee196bc5ab96fee9601e3ff1bec65a1d8f75a7ae125d178882ea41210"
+}

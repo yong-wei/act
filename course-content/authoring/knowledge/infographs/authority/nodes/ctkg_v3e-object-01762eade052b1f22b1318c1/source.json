@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+  "safe_id": "ctkg_v3e-object-01762eade052b1f22b1318c1",
+  "node": {
+    "name": "P控制器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "P控制器。",
+  "intuition": null,
+  "explanation": "P控制器",
+  "relation_head": "后续 → 比例控制规律",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "比例控制规律",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "比例控制规律",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "P控制器",
+    "包含组件·比例控制…",
+    "关联·比例控制规律"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-01762eade052b1f22b1318c1.md",
+  "provider_policy": "grok-image_gen"
+}

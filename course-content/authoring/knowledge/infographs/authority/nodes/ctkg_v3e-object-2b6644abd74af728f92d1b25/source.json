@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+  "safe_id": "ctkg_v3e-object-2b6644abd74af728f92d1b25",
+  "node": {
+    "name": "等倾线",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "当相轨迹经过该等倾线上任一点时，其切线的斜率都相等，均为 α。",
+  "intuition": null,
+  "explanation": "当相轨迹经过该等倾线上任一点时，其切线的斜率都相等，均为 α。",
+  "relation_head": "前置 → 等倾线法 · 后续 → 等倾线法、相平面",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "等倾线法",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "相平面",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "等倾线法",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "等倾线",
+    "属于·等倾线法",
+    "属于·相平面",
+    "包含组件·等倾线法"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-2b6644abd74af728f92d1b25.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0025",
+  "offset": 125,
+  "items": [
+    {
+      "safe_id": "ctc_v11g-ca75f7e80d0a7ffd93fcbae5",
+      "batch": "B",
+      "name": "continuation locus",
+      "definition": "continuation locus：A trick used to compute angles of arrival and departure from a point of multiple roots by plotting a root locus for an…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "continuatio…",
+        "continuation"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: continuation locus\nSOURCE DEFINITION (fail-closed, do not invent beyond this): continuation locus：A trick used to compute angles of arrival and departure from a point of multiple roots by plotting a root locus for an…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「continuati」、「continuati」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-e85c0145d63244c46853c9cf",
+      "batch": "B",
+      "name": "lead compensation",
+      "definition": "lead compensation：A compensation scheme that approximates PD control, used to speed up response by lowering rise time and decreasing tran…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "lead compen…",
+        "lead compens"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: lead compensation\nSOURCE DEFINITION (fail-closed, do not invent beyond this): lead compensation：A compensation scheme that approximates PD control, used to speed up response by lowering rise time and decreasing tran…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「lead compe」、「lead compe」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-57afdf17705015f8527052c5",
+      "batch": "B",
+      "name": "Neutral Stability",
+      "definition": "Neutral Stability：A condition where a closed-loop root falls on the imaginary axis, i.e., s = jω, and the system is on the boundary betwe…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Neutral Sta…",
+        "Neutral Stab"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Neutral Stability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Neutral Stability：A condition where a closed-loop root falls on the imaginary axis, i.e., s = jω, and the system is on the boundary betwe…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Neutral St」、「Neutral St」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-68b0b2f3295bb357fcb48d7d",
+      "batch": "B",
+      "name": "Reduced-order observer",
+      "definition": "Reduced-order observer：An observer that provides estimates only for the states not directly measured, as opposed to a full-state observer.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Reduced-ord…",
+        "Reduced-orde",
+        "关联·Full-s…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Reduced-order observer\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Reduced-order observer：An observer that provides estimates only for the states not directly measured, as opposed to a full-state observer.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Reduced-or」、「Reduced-or」、「关联·Full-s…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7cae3d7feb631906644f0fad",
+      "batch": "B",
+      "name": "Neutral Stability",
+      "definition": "Neutral Stability：A position where if a cone rests on its side and is displaced slightly, it rolls with no tendency to leave the position…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Neutral Sta…",
+        "Neutral Stab",
+        "一种·Stable",
+        "是一种·稳定性",
+        "关联·Stabil…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Neutral Stability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Neutral Stability：A position where if a cone rests on its side and is displaced slightly, it rolls with no tendency to leave the position…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Neutral St」、「Neutral St」、「一种·Stable」、「是一种·稳定性」、「关联·Stabil…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

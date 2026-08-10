@@ -12,7 +12,16 @@ import {
 import { buildSimulationAgentEvidenceMaterialization } from '../simulation-agent-evidence-materialization';
 import { buildMigratedPortraitPayload } from '../portrait-v2-migration';
 import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
-import { createPortraitV2Payload } from '../portrait-v2-model';
+import {
+  createPortraitV2Payload,
+  PORTRAIT_V2_CALCULATION_VERSION,
+} from '../portrait-v2-model';
+import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
+import {
+  buildAdaptiveLearningPathPlan,
+  type AdaptiveLearningPathPlannerInput,
+} from '../../adaptive-learning-path-planner';
+import { buildControlCorrectionResourceNodeRegistry } from '../../control-correction-resource-seed';
 
 const snapshotVector: CompetencyVector = {
   controlModeling: { score: 78, trend: 'up', confidence: 0.82, evidenceCount: 8, lastUpdated: '2026-05-20T00:00:00.000Z' },
@@ -60,7 +69,7 @@ function createDb(overrides: Record<string, unknown> = {}) {
     studentEvidenceFeatureCache: {
       findUnique: async () => ({
         userId: 'student-1',
-        payloadVersion: 'student-evidence-features.v4',
+        payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
         refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
         evidenceWindow: {
           firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -400,6 +409,42 @@ function adaptiveLearnerStateFeature(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function fencedPortraitDb(
+  currentState: Record<string, unknown> | null | undefined,
+) {
+  return createDb({
+    cumulativePortraitCutoverFence: {
+      findUnique: async () => currentState === undefined
+        ? null
+        : {
+            fence: BigInt(1),
+            calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+            learnerGeneration: BigInt(1),
+            queueGeneration: BigInt(1),
+            activeMigrationRunId: 'migration-1',
+          },
+    },
+    cumulativePortraitMigrationRun: {
+      findUnique: async () => currentState === undefined
+        ? null
+        : {
+            id: 'migration-1',
+            mode: 'APPLY',
+            status: 'COMPLETED',
+            calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+            learnerGeneration: BigInt(1),
+            queueGeneration: BigInt(1),
+            cutoverFence: BigInt(1),
+          },
+    },
+    learnerPortraitCurrentState: {
+      findUnique: async () => currentState === undefined
+        ? null
+        : currentState,
+    },
+  });
+}
+
 describe('adaptive learner state service', () => {
   it('exposes registered goal-slice metadata for control-correction', () => {
     const definition = resolveAdaptiveGoalSliceDefinition('control-correction');
@@ -497,6 +542,57 @@ describe('adaptive learner state service', () => {
       privacyScope: 'student-visible',
       confidencePolicy: 'assessment-backed-mastery',
     });
+  });
+
+  it.each([
+    ['migration-in-progress', undefined],
+    ['current-state-unavailable', null],
+    ['no-evidence-after-revocation', {
+      userId: 'student-fenced',
+      stateVersionId: 'state-no-evidence',
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      generation: BigInt(1),
+      queueGeneration: BigInt(1),
+      stateWatermark: BigInt(1),
+      cutoverFence: BigInt(1),
+      stateVersion: {
+        id: 'state-no-evidence',
+        userId: 'student-fenced',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        generation: BigInt(1),
+        queueGeneration: BigInt(1),
+        stateWatermark: BigInt(1),
+        stateKind: 'NO_EVIDENCE',
+        snapshotId: null,
+        overallScore: null,
+        dimensionCoverage: {
+          evidencedDimensionIds: [],
+          missingDimensionIds: [],
+        },
+        evidenceAsOf: null,
+        confidence: null,
+        lastTrend: null,
+        lastRisk: [],
+        availabilityReason: 'no-evidence-after-revocation',
+        generatedAt: new Date('2026-05-20T03:00:00.000Z'),
+        cutoverFence: BigInt(1),
+        migrationRunId: 'migration-1',
+        snapshot: null,
+      },
+    }],
+  ] as const)('keeps %s fallback Portrait v2 derivation governed', async (_, currentState) => {
+    const state = await readAdaptiveLearnerState(
+      fencedPortraitDb(currentState),
+      {
+        userId: 'student-fenced',
+        role: 'student',
+        now: new Date('2026-05-20T03:00:00.000Z'),
+      },
+    );
+
+    expect(state.primaryPortrait?.derivation.limitations).toEqual([
+      'legacy-six-dimensional-input-is-non-authoritative',
+    ]);
   });
 
   it('uses path choice resource mix as preference evidence without changing mastery', async () => {
@@ -742,7 +838,7 @@ describe('adaptive learner state service', () => {
           { kind: 'hashed' as const, ref: `sar:evidence:sha256:${index.toString(16).padStart(64, '0')}`, privacyScope: 'student-visible' as const },
           { kind: 'aggregate' as const, ref: `aggregate:sha256:${index.toString(16).padStart(64, '0')}`, privacyScope: 'student-visible' as const },
         ],
-        calculationVersion: 'portrait-v2-primary.v1',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
       })),
       derivation: { kind: 'native', limitations: [] },
     });
@@ -763,7 +859,7 @@ describe('adaptive learner state service', () => {
         userId: 'student-v2-only',
         snapshotAt: new Date(portrait.generatedAt),
         payloadVersion: portrait.payloadVersion,
-        calculationVersion: 'portrait-v2-primary.v1',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
         migrationVersion: portrait.migrationVersion,
         derivationKind: portrait.derivation.kind,
         payload: portrait,
@@ -825,7 +921,7 @@ describe('adaptive learner state service', () => {
         userId: 'student-v2-only',
         snapshotAt: now,
         payloadVersion: partiallyCurrentPortrait.payloadVersion,
-        calculationVersion: 'portrait-v2-primary.v1',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
         migrationVersion: partiallyCurrentPortrait.migrationVersion,
         derivationKind: partiallyCurrentPortrait.derivation.kind,
         payload: partiallyCurrentPortrait,
@@ -855,7 +951,7 @@ describe('adaptive learner state service', () => {
         userId: 'student-v2-stale',
         snapshotAt: generatedAt,
         payloadVersion: portrait.payloadVersion,
-        calculationVersion: 'portrait-v2-primary.v1',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
         migrationVersion: portrait.migrationVersion,
         derivationKind: portrait.derivation.kind,
         payload: portrait,
@@ -891,7 +987,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-03-01T00:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: { LearningFact: 1 },
@@ -1779,7 +1875,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -1885,7 +1981,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -1932,7 +2028,10 @@ describe('adaptive learner state service', () => {
       },
       learningFact: {
         findMany: async () => [
-          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92),
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92, {
+            lessonId: 'lesson-root-locus',
+            moduleId: 'step-root-locus-check',
+          }),
           controlCorrectionFact('simulation', '2026-05-18T00:00:00.000Z', 90),
           controlCorrectionFact('arena', '2026-05-17T00:00:00.000Z', 88),
           controlCorrectionFact('reflection', '2026-05-16T00:00:00.000Z', 86),
@@ -2013,7 +2112,10 @@ describe('adaptive learner state service', () => {
       adaptiveMasteryUpdate: { findMany: async () => [] },
       learningFact: {
         findMany: async () => [
-          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92),
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92, {
+            lessonId: 'lesson-root-locus',
+            moduleId: 'step-root-locus-check',
+          }),
         ],
       },
       arenaSubmission: { findMany: async () => [] },
@@ -2038,10 +2140,201 @@ describe('adaptive learner state service', () => {
           knowledgeMastery: null,
           confidence: 0.45,
           directEvidenceCount: 1,
+          eventReferences: [{
+            sourceScope: 'interactive-lesson-submission',
+            occurredAt: '2026-05-19T00:00:00.000Z',
+            summary: '课堂作答记录参与了该项能力判断。',
+            nextAction: {
+              href: '/profile/evidence?lessonId=lesson-root-locus',
+              label: '复盘课堂作答',
+            },
+          }],
           recommendationBias: 'starter-or-evidence-gathering',
         }),
       }),
     ]));
+  });
+
+  it('carries an exact adaptive assessment answer lineage from learner state into planner deficits', async () => {
+    const targetedSourceEventIdQueries: string[][] = [];
+    const recentUnrelatedFacts = Array.from({ length: 120 }, (_, index) => ({
+      id: `recent-unrelated-${index}`,
+      factType: 'video',
+      sourceEventId: `video:${index}`,
+      startedAt: new Date(`2026-05-19T${String(Math.floor(index / 60)).padStart(2, '0')}:${String(index % 60).padStart(2, '0')}:00.000Z`),
+      contextJson: {},
+    }));
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: {
+        findMany: async () => [
+          {
+            id: 'mastery-root-locus',
+            answerId: 'answer-root-locus',
+            knowledgeTag: 'control-correction:root-locus-design',
+            posteriorMastery: 0.24,
+            confidence: 0.72,
+            algorithmVersion: 'adaptive-assessment-bkt-v1',
+            createdAt: new Date('2026-05-19T00:00:01.000Z'),
+          },
+          {
+            id: 'mastery-unresolvable',
+            answerId: 'answer-unresolvable',
+            knowledgeTag: 'control-correction:simulation-validation',
+            posteriorMastery: 0.2,
+            confidence: 0.68,
+            algorithmVersion: 'adaptive-assessment-bkt-v1',
+            createdAt: new Date('2026-05-18T00:00:01.000Z'),
+          },
+          {
+            id: 'mastery-missing',
+            answerId: 'answer-missing',
+            knowledgeTag: 'control-correction:time-domain-targets',
+            posteriorMastery: 0.3,
+            confidence: 0.65,
+            algorithmVersion: 'adaptive-assessment-bkt-v1',
+            createdAt: new Date('2026-05-17T00:00:01.000Z'),
+          },
+        ],
+      },
+      learningFact: {
+        findMany: async (args: {
+          where?: { sourceEventId?: { in?: string[] } };
+          take?: number;
+        }) => {
+          const sourceEventIds = args.where?.sourceEventId?.in;
+          if (!sourceEventIds) {
+            return args.take === 100 ? recentUnrelatedFacts.slice(0, 100) : [];
+          }
+          targetedSourceEventIdQueries.push(sourceEventIds);
+          return [controlCorrectionFact('assessment', '2026-04-01T00:00:00.000Z', 45, {
+            id: 'fact-root-locus',
+            moduleId: 'adaptive-assessment',
+            sourceEventId: 'adaptive-assessment:answer-root-locus',
+            contextJson: {
+              goalId: 'control-correction',
+              adaptiveAssessment: {
+                adaptiveAssessmentRef: { answerId: 'answer-root-locus' },
+              },
+            },
+          }),
+          controlCorrectionFact('unknown', '2026-05-18T00:00:00.000Z', 60, {
+            id: 'fact-unresolvable',
+            moduleId: 'unknown-source',
+            sourceEventId: 'adaptive-assessment:answer-unresolvable',
+            contextJson: {
+              goalId: 'control-correction',
+              adaptiveAssessment: {
+                adaptiveAssessmentRef: { answerId: 'answer-unresolvable' },
+              },
+            },
+          })];
+        },
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const plan = buildAdaptiveLearningPathPlan({
+      studentId: 'student-1',
+      goal: {
+        id: 'control-correction',
+        title: 'Control correction',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: state as unknown as AdaptiveLearningPathPlannerInput['learnerState'],
+      registry,
+      constraints: {
+        timeBudgetMinutes: 100,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(state.knowledgeMastery.tags['control-correction:root-locus-design']?.eventReferences).toEqual([{
+      sourceScope: 'adaptive-practice-submission',
+      occurredAt: '2026-04-01T00:00:00.000Z',
+      summary: expect.any(String),
+      nextAction: {
+        href: '/assessment/adaptive-practice?intent=practice',
+        label: expect.any(String),
+      },
+    }]);
+    expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
+      deficit.targetId === 'control-correction:root-locus-design'
+    )?.eventReferences).toEqual([
+      expect.objectContaining({
+        sourceScope: 'adaptive-practice-submission',
+        occurredAt: '2026-04-01T00:00:00.000Z',
+      }),
+    ]);
+    expect(targetedSourceEventIdQueries).toEqual([[
+      'adaptive-assessment:answer-root-locus',
+      'adaptive-assessment:answer-unresolvable',
+      'adaptive-assessment:answer-missing',
+    ]]);
+    expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
+      deficit.targetId === 'parameterDesign'
+    )?.eventReferences).toEqual([]);
+    expect(state.knowledgeMastery.tags['control-correction:simulation-validation']?.eventReferences).toEqual([]);
+    expect(state.knowledgeMastery.tags['control-correction:time-domain-targets']?.eventReferences).toEqual([]);
+    expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
+      deficit.targetId === 'control-correction:simulation-validation'
+    )?.eventReferences).toEqual([]);
+    const serializedEventReferences = JSON.stringify(Object.values(state.knowledgeMastery.tags)
+      .flatMap((mastery) => mastery.eventReferences ?? []));
+    expect(serializedEventReferences).not.toContain('answer-root-locus');
+    expect(serializedEventReferences).not.toContain('fact-root-locus');
+  });
+
+  it('bounds, orders, deduplicates, and redacts student-safe capability event references', async () => {
+    const simulationFacts = [1, 2, 3, 4].map((day) => controlCorrectionFact(
+      'simulation',
+      `2026-05-${String(14 + day).padStart(2, '0')}T00:00:00.000Z`,
+      80 + day,
+      {
+        id: `simulation-${day}`,
+        moduleId: 'control-workbench',
+        sourceLogId: `source-log-${day}`,
+        sourceEventId: `source-event-${day}`,
+      },
+    ));
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      learningFact: { findMany: async () => [...simulationFacts, simulationFacts[3]] },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const target = state.goalSlices?.controlCorrection?.capabilityTargets.find((entry) =>
+      entry.target.id === 'control-correction:time-domain-targets:apply'
+    );
+    expect(target?.observedEvidence.eventReferences).toHaveLength(3);
+    expect(target?.observedEvidence.eventReferences?.map((entry) => entry.occurredAt)).toEqual([
+      '2026-05-18T00:00:00.000Z',
+      '2026-05-17T00:00:00.000Z',
+      '2026-05-16T00:00:00.000Z',
+    ]);
+    const serialized = JSON.stringify(target?.observedEvidence.eventReferences);
+    expect(serialized).not.toContain('simulation-4');
+    expect(serialized).not.toContain('source-log');
+    expect(serialized).not.toContain('source-event');
   });
 
   it('keeps type-level simulation evidence below observed confidence for capability targets', async () => {
@@ -2096,7 +2389,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2232,7 +2525,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2289,6 +2582,15 @@ describe('adaptive learner state service', () => {
       evidenceProvenance: expect.objectContaining({ arena: 'official' }),
       confidence: expect.objectContaining({ sourceCompleteness: 1 }),
     });
+    const arenaCapability = state.goalSlices?.controlCorrection?.capabilityTargets.find((entry) =>
+      entry.target.id === 'control-correction:arena-transfer:create'
+    );
+    expect(arenaCapability?.observedEvidence.eventReferences).toEqual([{
+      sourceScope: 'arena-official-result',
+      occurredAt: '2026-05-19T01:00:00.000Z',
+      summary: 'Arena 官方评测结果参与了该项能力判断。',
+      nextAction: { href: '/arena', label: '查看 Arena 结果' },
+    }]);
   });
 
   it('excludes blocked persisted Arena writeback outcomes from official control-correction evidence', async () => {
@@ -2296,7 +2598,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2404,7 +2706,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -2531,7 +2833,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -2629,7 +2931,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2702,7 +3004,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-04-01T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-03-01T00:00:00.000Z',
@@ -2784,7 +3086,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-04-01T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-03-01T00:00:00.000Z',
@@ -2874,7 +3176,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2963,7 +3265,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {

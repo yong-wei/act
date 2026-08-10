@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T16:24:33+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-canonical-e5eec53e01f5ac974d074ac4",
+  "safe_id": "ctkg_v3e-canonical-e5eec53e01f5ac974d074ac4",
+  "node_name": "误差响应",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0084 vision-mapped accept"
+}

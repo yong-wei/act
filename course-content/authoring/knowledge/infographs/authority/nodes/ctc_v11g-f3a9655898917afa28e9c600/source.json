@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-f3a9655898917afa28e9c600",
+  "safe_id": "ctc_v11g-f3a9655898917afa28e9c600",
+  "node": {
+    "name": "manual pid tuning methods",
+    "name_en": "manual_pid_tuning_methods",
+    "concept_kind": "design_method",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "manual pid tuning methods：The process of determining the PID controller gains by trial-and-error with minimal analytic analysis.",
+  "intuition": null,
+  "explanation": "The process of determining the PID controller gains by trial-and-error with minimal analytic analysis.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "manual pid …"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-f3a9655898917afa28e9c600.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:11:15+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-d558fb5e651ada9ab0cf60e9",
+  "safe_id": "ctc_modeling-d558fb5e651ada9ab0cf60e9",
+  "node_name": "离散化系统中用于描述状态转移的…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (Φk/欠阻尼/冲激响应/标量/Km)"
+}

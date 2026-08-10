@@ -1,3 +1,6 @@
+import { mkdirSync } from 'node:fs';
+import path from 'node:path';
+
 import { expect, test, type Page } from '@playwright/test';
 
 const taskId = 'task-second-order-lead-pid';
@@ -9,6 +12,17 @@ const publicationContext = {
   classId: 'class-path-e2e',
   seasonId: 'season-path-e2e',
 };
+const evidenceDir = process.env.COMMERCIAL_UI_EVIDENCE_DIR;
+
+async function captureEvidence(page: Page, name: string) {
+  if (!evidenceDir) return;
+  mkdirSync(evidenceDir, { recursive: true });
+  await page.screenshot({ path: path.join(evidenceDir, `${name}.png`), fullPage: false });
+}
+
+async function expectNoHorizontalPageOverflow(page: Page) {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+}
 const returnHref = `/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=${pathId}&nodeId=${encodeURIComponent(nodeId)}`;
 const nextReturnHref = `/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=${pathId}&nodeId=${encodeURIComponent(nextNodeId)}`;
 
@@ -154,7 +168,12 @@ async function installArenaFixture(page: Page) {
   };
 }
 
+async function expectAtMostOnePathReturn(page: Page) {
+  expect(await page.getByRole('link', { name: '返回学习路径', exact: true }).count()).toBeLessThanOrEqual(1);
+}
+
 test('Arena path node keeps context through challenge, workbench, submission, and next step', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
   const fixture = await installArenaFixture(page);
   await page.goto(
     `/assessment/adaptive-practice?demo=1&arenaJourneyFixture=1&goal=control-correction&intent=path-execution&pathId=${pathId}&nodeId=${encodeURIComponent(nodeId)}`,
@@ -163,6 +182,7 @@ test('Arena path node keeps context through challenge, workbench, submission, an
 
   const pathNode = page.locator(`[data-adaptive-path-node="${nodeId}"]`);
   await expect(pathNode).toHaveAttribute('data-adaptive-path-node-state', 'current');
+  await expectAtMostOnePathReturn(page);
   await expect(pathNode.locator('[data-adaptive-path-node-detail="inline"]')).toContainText('完成二阶系统校正 Arena 挑战');
   await pathNode.getByRole('button', { name: '开始学习' }).click();
   await expect(page).toHaveURL(new RegExp(`/arena/challenges/${taskId}`));
@@ -181,6 +201,7 @@ test('Arena path node keeps context through challenge, workbench, submission, an
 
   await expect(page.locator('[data-commercial-workspace="arena-challenge-detail"]')).toBeVisible();
   await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toContainText('完成工作台官方评测后继续');
+  await expectAtMostOnePathReturn(page);
   expect(fixture.executeRequests()).toBe(0);
 
   const workbenchLink = page.getByRole('link', { name: /进入控制工作台/ }).first();
@@ -210,13 +231,21 @@ test('Arena path node keeps context through challenge, workbench, submission, an
   });
   await expect(page.locator('[data-commercial-workspace="control-workbench"]')).toBeVisible();
   await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toBeVisible();
+  await expectAtMostOnePathReturn(page);
 
   await page.getByRole('button', { name: '提交官方评测' }).click();
   await expect(page.getByText(/官方评测完成/).first()).toBeVisible();
-  await expect(page.locator('[data-adaptive-path-journey-control="ready"]')).toContainText('复盘 Arena 评测证据');
+  const readyJourneyControl = page.locator('[data-adaptive-path-journey-control="ready"]');
+  await expect(readyJourneyControl).toContainText('复盘 Arena 评测证据');
   expect(fixture.executeRequests()).toBe(1);
   const nextLink = page.getByRole('link', { name: '复盘 Arena 评测证据' });
   await expect(nextLink).toHaveAttribute('href', new RegExp(`/knowledge\\?`));
+  await readyJourneyControl.scrollIntoViewIfNeeded();
+  await captureEvidence(page, 'control-workbench-ready-next-desktop-1440');
+  await page.setViewportSize({ width: 320, height: 900 });
+  await readyJourneyControl.scrollIntoViewIfNeeded();
+  await expectNoHorizontalPageOverflow(page);
+  await captureEvidence(page, 'control-workbench-ready-next-mobile-320');
   await nextLink.click();
   await expect(page).toHaveURL(/\/knowledge\?/);
   const nextUrl = new URL(page.url());
@@ -229,4 +258,127 @@ test('Arena path node keeps context through challenge, workbench, submission, an
   });
   await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toContainText('复盘 Arena 评测证据');
   await expect(page.getByRole('main')).toContainText('知识');
+  await expectAtMostOnePathReturn(page);
+});
+
+test('representative journey surfaces expose one path return action', async ({ page }) => {
+  await page.route('**/api/resources/lesson15-series-precheck', async (route) => {
+    await route.fulfill({
+      json: {
+        id: 'lesson15-series-precheck',
+        title: '串联校正预检',
+        description: null,
+        type: 'INTERACTIVE_COMP',
+        content: null,
+        registryId: 'lesson15-series-precheck',
+        category: null,
+        displayName: '串联校正预检',
+        displayOrder: 0,
+        teacherOnly: false,
+        config: {},
+        aiHints: null,
+        authorId: 'resource-registry',
+        createdAt: '1970-01-01T00:00:00.000Z',
+        updatedAt: '1970-01-01T00:00:00.000Z',
+      },
+    });
+  });
+  const surfaces = [
+    {
+      slug: 'adaptive-path-center',
+      nodeId: 'adaptive-quiz:path-center-checkpoint',
+      resourceType: 'adaptive_quiz',
+      href: '/assessment/adaptive-practice?demo=1',
+    },
+    {
+      slug: 'interactive-resource',
+      nodeId: 'registry:lesson15-series-precheck',
+      resourceType: 'adaptive_quiz',
+      href: '/interactive-learning/resources/lesson15-series-precheck',
+    },
+    {
+      slug: 'interactive-course-runtime',
+      nodeId: 'interactive-lesson:unit-1-1-see-the-full-picture',
+      resourceType: 'interactive_lesson',
+      href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo',
+    },
+    {
+      slug: 'arena-challenge',
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      href: '/arena/challenges/task-second-order-lead-pid?journeyFixture=1',
+    },
+    {
+      slug: 'control-workbench',
+      nodeId: 'control-workbench:lead-pid',
+      resourceType: 'control_workbench',
+      href: '/interactive-learning/control-workbench',
+    },
+    {
+      slug: 'knowledge',
+      nodeId: 'knowledge-card:frequency-review',
+      resourceType: 'knowledge_card',
+      href: '/knowledge',
+    },
+  ] as const;
+
+  for (const surface of surfaces) {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const surfaceReturnHref = `/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-surface-e2e&nodeId=${encodeURIComponent(surface.nodeId)}`;
+    await page.route('**/api/learning-paths/**/journey?**', async (route) => {
+      await route.fulfill({
+        json: {
+          journey: {
+            path: { id: 'path-surface-e2e', title: '连续学习路径' },
+            goal: { id: 'control-correction' },
+            context: {
+              pathId: 'path-surface-e2e',
+              goalId: 'control-correction',
+              requestedNodeId: surface.nodeId,
+            },
+            current: { nodeId: surface.nodeId, title: '当前学习节点', type: surface.resourceType },
+            progress: { completed: 0, total: 2 },
+            return: { label: '返回学习路径', href: surfaceReturnHref },
+            pathStatus: 'active',
+            nextAction: {
+              state: 'pending-result',
+              nodeId: surface.nodeId,
+              title: '当前学习节点',
+              type: surface.resourceType,
+              href: null,
+              reason: '完成当前节点后继续。',
+              recovery: { label: '刷新结果状态', href: surfaceReturnHref },
+            },
+          },
+        },
+      });
+    });
+
+    const query = new URLSearchParams({
+      source: 'adaptive-path-center',
+      goal: 'control-correction',
+      goalId: 'control-correction',
+      pathId: 'path-surface-e2e',
+      nodeId: surface.nodeId,
+      intent: 'path-execution',
+      returnHref: surfaceReturnHref,
+      resourceType: surface.resourceType,
+    });
+    const separator = surface.href.includes('?') ? '&' : '?';
+    await page.goto(`${surface.href}${separator}${query}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toBeVisible();
+    await expect(page.getByRole('link', { name: '返回学习路径', exact: true })).toHaveCount(1);
+    await expect(page.getByText('正在加载资源...')).toHaveCount(0);
+    if (surface.slug === 'interactive-resource') {
+      await expect(page.getByText('Loading 串联校正速判...')).toHaveCount(0);
+    }
+    await expectNoHorizontalPageOverflow(page);
+    await captureEvidence(page, `${surface.slug}-desktop-1440`);
+
+    await page.setViewportSize({ width: 320, height: 900 });
+    await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toBeVisible();
+    await expect(page.getByRole('link', { name: '返回学习路径', exact: true })).toHaveCount(1);
+    await expectNoHorizontalPageOverflow(page);
+    await captureEvidence(page, `${surface.slug}-mobile-320`);
+  }
 });

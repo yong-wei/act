@@ -45,6 +45,7 @@ import { readAITextStream } from '@/lib/ai-stream-compat';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useArenaPathSubmissionCompletion } from '@/features/arena/arena-path-journey-control';
 import { resolveArenaPathLaunchParams } from '@/features/arena/arena-path-journey';
+import { getOdysseyLevelForArenaTask } from '@/features/arena/odyssey/assignment';
 
 interface ControlOdysseyProps {
   initialLevelId?: string;
@@ -104,6 +105,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 }) => {
   const searchParams = useSearchParams();
   const arenaTaskId = searchParams.get('arenaTask') ?? undefined;
+  const assignedArenaLevelId = arenaTaskId ? getOdysseyLevelForArenaTask(arenaTaskId) : undefined;
+  const isArenaAssignedSession = Boolean(assignedArenaLevelId);
   const publicationId = searchParams.get('publicationId') ?? undefined;
   const hasArenaPathContext = Boolean(arenaTaskId && resolveArenaPathLaunchParams(searchParams, arenaTaskId));
   const completeArenaPath = useArenaPathSubmissionCompletion(arenaTaskId ?? '');
@@ -138,8 +141,10 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     runId
   } = useGameStore();
 
-  const [currentView, setCurrentView] = useState<ViewState>('INTRO');
-  const [selectedLevelId, setSelectedLevelId] = useState<string>(initialLevelId);
+  const [currentView, setCurrentView] = useState<ViewState>(
+    isArenaAssignedSession ? 'MODE_SELECT' : 'INTRO',
+  );
+  const [selectedLevelId, setSelectedLevelId] = useState<string>(assignedArenaLevelId ?? initialLevelId);
   const [levels, setLevels] = useState(() => CONTROL_ODYSSEY_LEVELS.map((level) => ({ ...level })));
   const [shopOpen, setShopOpen] = useState(false);
   const [shopError, setShopError] = useState<string | null>(null);
@@ -269,6 +274,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             enableSmithPredictor,
             difficultyScale,
             arenaTaskId,
+            arenaAssigned: isArenaAssignedSession,
             publicationId
           }
         );
@@ -328,6 +334,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     enableSmithPredictor,
     difficultyScale,
     arenaTaskId,
+    isArenaAssignedSession,
     publicationId,
     completeArenaPath,
     hasArenaPathContext,
@@ -378,6 +385,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
   useEffect(() => {
     if (gameState !== 'VICTORY') return;
+    if (isArenaAssignedSession) return;
 
     setLevels((prev) => {
       const index = prev.findIndex((level) => level.id === selectedLevelId);
@@ -388,7 +396,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       updated[index + 1] = { ...next, unlocked: true };
       return updated;
     });
-  }, [gameState, selectedLevelId]);
+  }, [gameState, isArenaAssignedSession, selectedLevelId]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -429,13 +437,14 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   }, [unlockedControllers, controllerId, setControllerId]);
 
   useEffect(() => {
+    if (isArenaAssignedSession) return;
     const highestTier = tierProgress[selectedLevelId] ?? 'bronze';
     const currentIndex = TIER_ORDER.indexOf(currentTier);
     const allowedIndex = TIER_ORDER.indexOf(highestTier);
     if (currentIndex > allowedIndex) {
       setCurrentTier(highestTier);
     }
-  }, [selectedLevelId, tierProgress, currentTier, setCurrentTier]);
+  }, [currentTier, isArenaAssignedSession, selectedLevelId, setCurrentTier, tierProgress]);
 
   // 2. 加载排行榜
   const fetchLeaderboard = async (levelId: string) => {
@@ -524,7 +533,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
   const handleBackToMenu = () => {
     setGameState('IDLE');
-    setCurrentView('LEVEL_SELECT');
+    setCurrentView(isArenaAssignedSession ? 'MODE_SELECT' : 'LEVEL_SELECT');
     fetchLeaderboard(selectedLevelId);
   };
 
@@ -644,7 +653,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
   const currentLevelIndex = levels.findIndex((level) => level.id === selectedLevelId);
   const nextLevel = currentLevelIndex >= 0 ? levels[currentLevelIndex + 1] : null;
-  const canAdvance = !!nextLevel;
+  const canAdvance = !isArenaAssignedSession && !!nextLevel;
 
   const handleAdvanceToNextLevel = () => {
     if (!nextLevel) return;
@@ -1404,11 +1413,11 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       {currentView === 'MODE_SELECT' && (
         <div className="flex items-start justify-center w-full h-full bg-slate-950/90 p-4 overflow-y-auto">
            <div className="bg-slate-900 border border-slate-800 text-white w-full max-w-2xl rounded-xl shadow-2xl p-8">
-              <div className="flex items-center gap-2 mb-2">
+              {!isArenaAssignedSession && <div className="flex items-center gap-2 mb-2">
                  <Button variant="ghost" size="sm" onClick={() => setCurrentView('LEVEL_SELECT')} className="text-slate-400 -ml-2">
                    <ArrowLeft className="w-4 h-4 mr-1" /> 返回关卡列表
                  </Button>
-              </div>
+              </div>}
 
               <div className="mb-8">
                 <div className="flex justify-between items-start">

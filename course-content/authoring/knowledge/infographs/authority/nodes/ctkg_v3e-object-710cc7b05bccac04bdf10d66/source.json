@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+  "safe_id": "ctkg_v3e-object-710cc7b05bccac04bdf10d66",
+  "node": {
+    "name": "Asymptotic tracking",
+    "name_en": "Asymptotic tracking",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Asymptotic tracking：The property of a control system where the tracking error approaches zero as time goes to infinity.",
+  "intuition": "在图谱邻接中可把握：前置 → Internal model design · 后续 → Reference input、Tracking error、Zero steady-state error。",
+  "explanation": "The property of a control system where the tracking error approaches zero as time goes to infinity.",
+  "relation_head": "前置 → Internal model design · 后续 → Reference input、Tracking error、Zero steady-state error",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Reference input",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Tracking error",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Internal model design",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Zero steady-state error",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Asymptotic …",
+    "Asymptotic t",
+    "应用于·Refer…",
+    "应用于·Track…",
+    "关联·Intern…",
+    "关联·Zero s…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-710cc7b05bccac04bdf10d66.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0167",
+  "offset": 835,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_951014d55276cafabac48a25",
+      "batch": "C",
+      "name": "Lyapunov equation",
+      "definition": "Lyapunov equation是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov eq…",
+        "Lyapunov equ"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov equation\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov equation是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov e」、「Lyapunov e」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a09e623edf21b6aaa676b0a5",
+      "batch": "C",
+      "name": "Lyapunov Function",
+      "definition": "Lyapunov Function是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov Fu…",
+        "Lyapunov Fun",
+        "一种·Positi…",
+        "用于分析·Lyap…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov Function\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov Function是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov F」、「Lyapunov F」、「一种·Positi…」、「用于分析·Lyap…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-f5ab87cb5fc7e1f248b279e0",
+      "batch": "C",
+      "name": "Zeros at infinity",
+      "definition": "Zeros at infinity：Zeros at infinity",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Zeros at in…",
+        "Zeros at inf"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Zeros at infinity\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Zeros at infinity：Zeros at infinity\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Zeros at i」、「Zeros at i」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8064c799039f6d83a3cf4f29",
+      "batch": "C",
+      "name": "Continuous signal",
+      "definition": "Continuous signal：Continuous signal",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Continuous …",
+        "Continuous s",
+        "关联·Digita…",
+        "关联·Discre…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Continuous signal\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Continuous signal：Continuous signal\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Continuous」、「Continuous」、「关联·Digita…」、「关联·Discre…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "batch": "C",
+      "name": "Laplace transform",
+      "definition": "Laplace transform：Laplace transform",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Laplace tra…",
+        "Laplace tran",
+        "关联·z-tran…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Laplace transform\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Laplace transform：Laplace transform\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Laplace tr」、「Laplace tr」、「关联·z-tran…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

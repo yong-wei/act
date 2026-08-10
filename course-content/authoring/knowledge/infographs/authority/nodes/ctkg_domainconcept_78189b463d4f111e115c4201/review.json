@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:24:05+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:78189b463d4f111e115c4201",
+  "safe_id": "ctkg_domainconcept_78189b463d4f111e115c4201",
+  "node_name": "向后差分法",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1132-1136"
+}

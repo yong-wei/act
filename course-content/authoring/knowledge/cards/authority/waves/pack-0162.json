@@ -1,0 +1,72 @@
+{
+  "pack_id": "P0162",
+  "offset": 810,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_48a62baa3d95389c7fdea7f6",
+      "batch": "C",
+      "name": "Phase-lead compensator",
+      "definition": "Phase-lead compensator是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase-lead …",
+        "Phase-lead c",
+        "一种·Phase-…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Phase-lead compensator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Phase-lead compensator是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Phase-lead」、「Phase-lead」、「一种·Phase-…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_8daad3ce03210f036d591c02",
+      "batch": "C",
+      "name": "stability in the large",
+      "definition": "stability in the large是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "stability i…",
+        "stability in"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: stability in the large\nSOURCE DEFINITION (fail-closed, do not invent beyond this): stability in the large是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「stability 」、「stability 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9b5b7d8e1adf2c35463467a8",
+      "batch": "C",
+      "name": "Unit circle in z-plane",
+      "definition": "Unit circle in z-plane是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Unit circle…",
+        "Unit circle ",
+        "用于分析·朱利稳定…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Unit circle in z-plane\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Unit circle in z-plane是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Unit circl」、「Unit circl」、「用于分析·朱利稳定…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9f33e6bc76dc80328b66a6dc",
+      "batch": "C",
+      "name": "Lyapunov Direct Method",
+      "definition": "Lyapunov Direct Method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov Di…",
+        "Lyapunov Dir",
+        "一种·Positi…",
+        "用于分析·stat…",
+        "用于分析·Lyap…",
+        "应用于·Equil…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov Direct Method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov Direct Method是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov D」、「Lyapunov D」、「一种·Positi…」、「用于分析·stat…」、「用于分析·Lyap…」、「应用于·Equil…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_f2d758b656ba6d55337462e6",
+      "batch": "C",
+      "name": "Exponential Stability",
+      "definition": "Exponential Stability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Exponential…",
+        "Exponential "
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Exponential Stability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Exponential Stability是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Exponentia」、「Exponentia」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

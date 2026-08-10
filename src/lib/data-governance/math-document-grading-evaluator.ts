@@ -4,6 +4,10 @@ import { z } from 'zod';
 import { createAIProviderFromConfig } from '@/lib/ai/provider-registry';
 import { resolveConfiguredAIProviderConfig } from '@/lib/ai/provider-settings';
 import {
+  hasAtMostOneDecimal,
+  roundUpToOneDecimal,
+} from '@/lib/assignments/assignment-rubric-contract';
+import {
   buildPipelineDedupeKey,
   buildScopedGradingPrompt,
   evaluateExternalProcessingPolicy,
@@ -28,7 +32,7 @@ export interface GradingAnchor {
 
 export interface ProviderCriterionAssessment {
   criterionId: string;
-  levelId: string;
+  levelId: string | null;
   score: number;
   rationale: string;
   confidence: number;
@@ -87,7 +91,7 @@ const providerOutputSchema = z.object({
   evaluatorVersion: z.string().trim().min(1).max(160),
   assessments: z.array(z.object({
     criterionId: z.string().trim().min(1).max(100),
-    levelId: z.string().trim().min(1).max(100),
+    levelId: z.string().trim().min(1).max(100).nullable().optional().default(null),
     score: z.number().finite(),
     rationale: z.string().trim().min(12).max(4_000),
     confidence: z.number().finite(),
@@ -233,7 +237,12 @@ export function buildValidatedDraft(input: {
     rubric: input.question.rubric.version,
     evaluator: input.evaluatorVersion ?? parsed.data?.evaluatorVersion ?? 'unknown',
   });
-  const reasons = parsed.success ? validateGradingOutput(parsed.data, input.question, input.evidence) : parsed.error.issues.map((issue) => `schema:${issue.path.join('.')}:${issue.message}`);
+  const normalizedOutput = parsed.success
+    ? normalizeProviderScores(parsed.data, input.question)
+    : null;
+  const reasons = parsed.success
+    ? validateGradingOutput(normalizedOutput!, input.question, input.evidence)
+    : parsed.error.issues.map((issue) => `schema:${issue.path.join('.')}:${issue.message}`);
   if (parsed.success && input.evaluatorId && parsed.data.evaluatorId !== input.evaluatorId) reasons.push('evaluator-id-mismatch');
   if (parsed.success && input.evaluatorVersion && parsed.data.evaluatorVersion !== input.evaluatorVersion) reasons.push('evaluator-version-mismatch');
   if (reasons.length > 0 || !parsed.success) {
@@ -256,7 +265,7 @@ export function buildValidatedDraft(input: {
     };
   }
   return {
-    ...parsed.data,
+    ...normalizedOutput!,
     inputHash,
     dedupeKey,
     state: 'awaiting-review',
@@ -289,10 +298,17 @@ export function validateGradingOutput(
     }
     if (seen.has(assessment.criterionId)) reasons.push('duplicate-criterion');
     seen.add(assessment.criterionId);
-    const level = criterion.levels.find((candidate) => candidate.id === assessment.levelId);
-    if (!level) reasons.push('unknown-level');
+    const detailedRubricEnabled = question.rubric.schemaVersion === 'assignment-analytic-rubric.v1'
+      || criterion.detailedRubricEnabled === true;
+    const level = assessment.levelId
+      ? criterion.levels.find((candidate) => candidate.id === assessment.levelId)
+      : undefined;
+    if (detailedRubricEnabled && !level) reasons.push('unknown-level');
+    if (!detailedRubricEnabled && assessment.levelId !== null) reasons.push('standard-only-level-not-allowed');
     if (assessment.score < 0 || assessment.score > criterion.maxPoints || assessment.score > question.rubric.maxScore) reasons.push('score-overflow');
-    if (level && (assessment.score < level.minPoints || assessment.score > level.maxPoints)) reasons.push('score-level-range-mismatch');
+    if (question.rubric.schemaVersion === 'assignment-scoring-rubric.v2' && !hasAtMostOneDecimal(assessment.score)) reasons.push('score-must-use-0.1-quantum');
+    if (question.rubric.schemaVersion === 'assignment-analytic-rubric.v1' && level
+      && (assessment.score < level.minPoints || assessment.score > level.maxPoints)) reasons.push('score-level-range-mismatch');
     if (assessment.rationale.length < 12) reasons.push('rationale-missing');
     if (!Number.isFinite(assessment.confidence) || assessment.confidence < 0 || assessment.confidence > 1) reasons.push('confidence-out-of-range');
     if (assessment.anchors.length === 0) reasons.push('evidence-anchor-missing');
@@ -326,11 +342,15 @@ export function createDeterministicFixtureEvaluator(input: {
         evaluatorVersion: input.evaluatorVersion ?? 'fixture.v1',
         assessments: question.rubric.criteria.map((criterion) => {
           const block = evidence.blocks.find((candidate) => candidate.text.toLowerCase().includes(criterion.evidenceDescription.toLowerCase())) ?? evidence.blocks[0];
-          const level = criterion.levels[criterion.levels.length - 1];
+          const detailedRubricEnabled = question.rubric.schemaVersion === 'assignment-analytic-rubric.v1'
+            || criterion.detailedRubricEnabled === true;
+          const level = detailedRubricEnabled
+            ? criterion.levels[criterion.levels.length - 1]
+            : null;
           return {
             criterionId: criterion.id,
-            levelId: level.id,
-            score: level.maxPoints,
+            levelId: level?.id ?? null,
+            score: level?.maxPoints ?? criterion.maxPoints,
             rationale: `Fixture evaluation for ${criterion.label} cites a supplied evidence block.`,
             confidence: block ? 0.75 : 0,
             anchors: block ? [{ blockId: block.id, precision: block.precision, excerpt: block.text.slice(0, 180), pageNumber: block.pageNumber ?? null, spanStart: block.spanStart ?? null, spanEnd: block.spanEnd ?? null }] : [],
@@ -342,6 +362,30 @@ export function createDeterministicFixtureEvaluator(input: {
         overallComment: 'Fixture output is available only for tests and explicit deterministic fixtures.',
       };
     },
+  };
+}
+
+function normalizeProviderScores(
+  output: ProviderGradingOutput,
+  question: FrozenQuestionContract,
+): ProviderGradingOutput {
+  if (question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2') return output;
+  const criteria = new Map(question.rubric.criteria.map((criterion) => [criterion.id, criterion]));
+  return {
+    ...output,
+    assessments: output.assessments.map((assessment) => {
+      const criterion = criteria.get(assessment.criterionId);
+      if (!criterion) return assessment;
+      if (!criterion.detailedRubricEnabled) return assessment;
+      const rounded = roundUpToOneDecimal(assessment.score);
+      if (!assessment.levelId) return { ...assessment, score: rounded };
+      const level = criterion.levels.find((candidate) => candidate.id === assessment.levelId);
+      if (!level) return { ...assessment, score: rounded };
+      return {
+        ...assessment,
+        score: Math.min(level.maxPoints, Math.max(level.minPoints, rounded)),
+      };
+    }),
   };
 }
 

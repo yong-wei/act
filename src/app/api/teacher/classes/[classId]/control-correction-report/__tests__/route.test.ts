@@ -18,6 +18,8 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
+vi.mock('server-only', () => ({}));
+
 import { GET } from '../route';
 
 const params = { params: Promise.resolve({ classId: 'class-1' }) };
@@ -47,6 +49,7 @@ function pathFixture(overrides: Record<string, unknown> = {}) {
     createdAt: new Date('2026-06-01T00:00:00.000Z'),
     updatedAt: new Date('2026-06-04T00:00:00.000Z'),
     terminalValidation: {
+      nodeId: 'arena-task:task-second-order-lead-pid',
       state: 'completed',
       fallbackRequired: false,
       lowConfidenceMarkers: [],
@@ -95,6 +98,14 @@ function pathFixture(overrides: Record<string, unknown> = {}) {
         createdAt: new Date('2026-06-04T10:05:00.000Z'),
       },
     ],
+    correctionDecisions: [{
+      decision: 'confirmed',
+      createdAt: new Date('2026-06-02T00:00:00.000Z'),
+      applicationResult: {
+        applied: true,
+        nodeIds: ['arena-task:task-second-order-lead-pid'],
+      },
+    }],
     ...overrides,
   };
 }
@@ -203,6 +214,15 @@ describe('GET /api/teacher/classes/[classId]/control-correction-report', () => {
     expect(payload.report.metrics.interventionAfterSuccess.value).toBe(1);
     expect(payload.report.metrics.citationCoverage.value).toBe(1);
     expect(payload.report.metrics.resourceContribution.value).toBeLessThanOrEqual(1);
+    expect(payload.report.correctionOutcomeSummary).toEqual({
+      total: 1,
+      states: expect.objectContaining({
+        improved: { count: 1, rate: 1 },
+        'needs-review': { count: 0, rate: 0 },
+        'pending-verification': { count: 0, rate: 0 },
+        indeterminate: { count: 0, rate: 0 },
+      }),
+    });
     expect(payload.report.studentDrilldowns).toHaveLength(2);
     expect(payload.report.studentDrilldowns[0]).toMatchObject({
       userId: 'student-1',

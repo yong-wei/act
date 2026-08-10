@@ -3,13 +3,23 @@ import { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { LEGACY_STOPPED_PATH_STATUS } from '@/lib/canonical-learning-path-transition/contracts';
+import { throwIfLearningPathNotWritable } from '@/lib/canonical-learning-path-transition/mutation-guard';
+import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
+import { projectSelectionBasisOntoPlanNodes } from '@/lib/adaptive-path-node-decisions';
+import {
+  completeKonlingCandidateSelectionToolRun,
+  KonlingCandidateSelectionToolRunError,
+} from '@/lib/konling-candidate-selection-tool-run';
 import {
   recordPathChoiceEvidence,
   type PathChoiceEvidenceAction,
 } from '@/lib/control-correction-path-rounds';
 import {
   assertCanWriteStudentPath,
+  assertPathMutableForWrite,
   getLearningPathRequester,
+  learningPathMutationBlockedResponse,
   readPathForAccess,
   refreshPathEvidenceFeatureCache,
   requireIdempotencyKey,
@@ -40,6 +50,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (path instanceof NextResponse) return path;
     const denied = assertCanWriteStudentPath(requester, path);
     if (denied) return denied;
+    const stopped = assertPathMutableForWrite(path);
+    if (stopped) return stopped;
 
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
@@ -48,14 +60,94 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       return NextResponse.json({ error: '路径选择动作不符合契约' }, { status: 400 });
     }
 
+    const batchId = nullableString(body.batchId);
+    const candidateId = nullableString(body.candidateId);
+    const toolRunId = nullableString(body.toolRunId);
+    if (toolRunId && body.action !== 'selection') {
+      return NextResponse.json({ error: 'Candidate selection tool runs only accept selection actions' }, { status: 400 });
+    }
+    if (Boolean(batchId) !== Boolean(candidateId)) {
+      return NextResponse.json({ error: 'Candidate batch and candidate identities must be provided together' }, { status: 400 });
+    }
+    if (toolRunId && (!batchId || !candidateId)) {
+      return NextResponse.json({ error: 'Candidate selection tool runs require batch and candidate identities' }, { status: 400 });
+    }
+    let persistedCandidateOption: ServerPathChoiceOption | null = null;
+    let persistedCandidateRationale: string | null = null;
+    if (batchId && candidateId) {
+      const batch = await (prisma as any).adaptivePathCandidateBatch.findUnique({
+        where: { id: batchId },
+        include: { candidates: { where: { id: candidateId }, take: 1 } },
+      });
+      const candidate = batch?.candidates[0];
+      if (
+        !batch
+        || batch.status !== 'succeeded'
+        || batch.sourcePathId !== params.id
+        || batch.userId !== path.userId
+        || batch.goalId !== path.goalId
+        || !candidate
+      ) {
+        return NextResponse.json({ error: 'Candidate does not belong to this path batch' }, { status: 404 });
+      }
+      const snapshot = readRecord(candidate.snapshot);
+      if (nullableString(snapshot.styleId) !== candidate.styleId) {
+        return NextResponse.json({ error: 'Candidate snapshot identity is invalid' }, { status: 409 });
+      }
+      const candidateOptions = readPathOptions({ pathOptions: [snapshot] });
+      persistedCandidateOption = resolveChoiceOption(
+        candidateOptions,
+        snapshot.optionId,
+        snapshot.styleId,
+      );
+      if (!persistedCandidateOption || persistedCandidateOption.styleId !== candidate.styleId) {
+        return NextResponse.json({ error: 'Candidate snapshot payload is invalid' }, { status: 409 });
+      }
+      persistedCandidateRationale = `已确认选择“${nullableString(candidate.label) ?? persistedCandidateOption.styleId}”，正在同步到路径中心。`;
+      const requestedOptionId = nullableString(body.selectedOptionId);
+      const requestedStyleId = nullableString(body.selectedStyleId);
+      if (
+        (requestedOptionId && requestedOptionId !== persistedCandidateOption.optionId) ||
+        (requestedStyleId && requestedStyleId !== persistedCandidateOption.styleId)
+      ) {
+        return NextResponse.json({ error: 'Selected option does not match the candidate identity' }, { status: 409 });
+      }
+      if (toolRunId) {
+        await completeKonlingCandidateSelectionToolRun(prisma as any, {
+          toolRunId,
+          actorUserId: requester.userId,
+          targetUserId: path.userId,
+          batchId,
+          candidateId,
+          pathId: params.id,
+          goalId: path.goalId ?? '',
+          selectedOptionId: persistedCandidateOption.optionId,
+          selectedStyleId: persistedCandidateOption.styleId,
+          studentSafeRationale: persistedCandidateRationale,
+          idempotencyKey: body.idempotencyKey,
+          complete: false,
+        });
+      }
+    }
+
     const pathOptions = readPathOptions(path.pathPayload);
-    const styleIds = new Set(Array.from(pathOptions.values()).map((option) => option.styleId));
-    const selectedOption = resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId);
+    const styleIds = new Set([
+      ...Array.from(pathOptions.values()).map((option) => option.styleId),
+      ...(persistedCandidateOption ? [persistedCandidateOption.styleId] : []),
+    ]);
+    const selectedOption = body.action === 'rejection'
+      ? resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId)
+      : persistedCandidateOption
+        ?? resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId);
     const selectedStyleId = selectedOption?.styleId ?? null;
     const previousStyleId = nullableString(body.previousStyleId);
     const rejectedStyleIds = [
       ...readStringArray(body.rejectedStyleIds),
-      ...readStringArray(body.rejectedOptionIds).map((optionId) => pathOptions.get(optionId)?.styleId ?? optionId),
+      ...readStringArray(body.rejectedOptionIds).map((optionId) => (
+        optionId === persistedCandidateOption?.optionId
+          ? persistedCandidateOption.styleId
+          : pathOptions.get(optionId)?.styleId ?? optionId
+      )),
     ];
     const hasUnknownStyle = [
       selectedStyleId,
@@ -95,6 +187,16 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       return NextResponse.json({ error: '路径选择幂等键已被其他选择请求使用' }, { status: 409 });
     }
     if (existingChoice.dedupeKey) {
+      if (toolRunId && batchId && candidateId && persistedCandidateOption && persistedCandidateRationale) {
+        await completeKonlingCandidateSelectionToolRun(prisma as any, {
+          toolRunId, actorUserId: requester.userId, targetUserId: path.userId,
+          batchId, candidateId, pathId: params.id, goalId: path.goalId ?? '',
+          selectedOptionId: persistedCandidateOption.optionId,
+          selectedStyleId: persistedCandidateOption.styleId,
+          studentSafeRationale: persistedCandidateRationale,
+          idempotencyKey: body.idempotencyKey,
+        });
+      }
       const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
       return NextResponse.json({
         choice: { emitted: false, dedupeKey: existingChoice.dedupeKey },
@@ -126,10 +228,25 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
         : null
       : null;
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+    if (toolRunId && batchId && candidateId && persistedCandidateOption && persistedCandidateRationale) {
+      await completeKonlingCandidateSelectionToolRun(prisma as any, {
+        toolRunId, actorUserId: requester.userId, targetUserId: path.userId,
+        batchId, candidateId, pathId: params.id, goalId: path.goalId ?? '',
+        selectedOptionId: persistedCandidateOption.optionId,
+        selectedStyleId: persistedCandidateOption.styleId,
+        studentSafeRationale: persistedCandidateRationale,
+        idempotencyKey: body.idempotencyKey,
+      });
+    }
 
     return NextResponse.json({ choice, pathUpdate, cacheRefresh });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof KonlingCandidateSelectionToolRunError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    const blocked = learningPathMutationBlockedResponse(error);
+    if (blocked) return blocked;
     console.error('[LearningPathChoice] Error:', error);
     return NextResponse.json({ error: '记录路径选择失败' }, { status: 500 });
   }
@@ -145,6 +262,7 @@ interface ServerPathChoiceOption {
   terminalValidationNodeIds: string[];
   resourceMix: Record<string, number>;
   rationaleMetadata: Record<string, unknown>;
+  recommendationProvenance: Record<string, unknown>;
 }
 
 function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOption> {
@@ -182,6 +300,7 @@ function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOpti
         terminalValidationNodeIds: readStringArray(option.terminalValidationNodeIds),
         terminalValidationStrategy: readRecord(option.terminalValidationStrategy),
       }),
+      recommendationProvenance: readRecord(option.recommendationProvenance),
     };
     options.set(styleId, serverOption);
     options.set(optionId, serverOption);
@@ -218,61 +337,82 @@ async function adoptSelectedPathOption(
   path: any,
   option: ServerPathChoiceOption,
 ): Promise<{ selectedOptionId: string; selectedStyleId: string; currentNodeId: string | null; nodeIds: string[] }> {
-  const latestPath = await prisma.learningPath.findUnique({
-    where: { id: path.id },
-    select: {
-      pathPayload: true,
-      lastExecutionMetadata: true,
-      terminalValidation: true,
-    },
-  });
-  const pathPayload = readRecord(latestPath?.pathPayload ?? path.pathPayload);
-  const selectedNodeState = readSelectedExecutionNodeState(latestPath ?? path, pathPayload);
-  const currentNodeId = resolveSelectedPathCurrentNodeId(option, selectedNodeState);
-  const selectedPlanNodes = normalizeSelectedPlanNodes(option.planNodes, currentNodeId);
-  const updatedAt = new Date().toISOString();
-  const pathPayloadUpdate = {
-    ...pathPayload,
-    selectedOptionId: option.optionId,
-    selectedStyleId: option.styleId,
-    selectedPolicyFamily: option.policyFamily,
-    currentNodeId,
-    mainPathNodeIds: option.nodeIds,
-    planNodes: selectedPlanNodes,
-    executionStatus: updateSelectedPathExecutionStatus(pathPayload.executionStatus, option.nodeIds, currentNodeId, updatedAt, selectedNodeState),
-    visualization: updateSelectedPathVisualization(pathPayload.visualization, option.nodeIds, currentNodeId, selectedNodeState),
-  };
-  const lastExecutionMetadata = updateSelectedPathExecutionMetadata(
-    latestPath?.lastExecutionMetadata ?? path.lastExecutionMetadata,
-    option.nodeIds,
-    currentNodeId,
-    option,
-    selectedNodeState,
-  );
-  const terminalValidation = buildSelectedPathTerminalValidation(
-    latestPath?.terminalValidation ?? path.terminalValidation,
-    option,
-    selectedPlanNodes,
-    selectedNodeState,
-  );
-  const pathStatus = resolveSelectedPathStatus(option.nodeIds, currentNodeId, selectedNodeState, terminalValidation);
-  await prisma.learningPath.update({
-    where: { id: path.id },
-    data: {
-      nodeIds: option.nodeIds,
+  // Post-choice adopt must re-read + update under the same stop fence so a cutover
+  // between evidence write and path mutation cannot reactivate a stopped Legacy path.
+  return runWithLearningPathWriteFence(prisma as any, path.id, async (tx) => {
+    if (typeof tx.learningPath.findFirst !== 'function') {
+      throw new Error('LearningPath findFirst must be available on the write-fence transaction client');
+    }
+    if (typeof tx.learningPath.update !== 'function') {
+      throw new Error('LearningPath update must be available on the write-fence transaction client');
+    }
+
+    const latestPath = await tx.learningPath.findFirst({
+      where: { id: path.id },
+      select: {
+        id: true,
+        pathStatus: true,
+        pathPayload: true,
+        lastExecutionMetadata: true,
+        terminalValidation: true,
+      },
+    });
+    throwIfLearningPathNotWritable(latestPath ?? {
+      id: path.id,
+      pathStatus: LEGACY_STOPPED_PATH_STATUS,
+    });
+
+    const pathPayload = readRecord(latestPath?.pathPayload ?? path.pathPayload);
+    const selectedNodeState = readSelectedExecutionNodeState(latestPath ?? path, pathPayload);
+    const currentNodeId = resolveSelectedPathCurrentNodeId(option, selectedNodeState);
+    const selectedPlanNodes = normalizeSelectedPlanNodes(
+      projectSelectionBasisOntoPlanNodes(option.planNodes, option.recommendationProvenance),
       currentNodeId,
-      pathStatus,
-      pathPayload: pathPayloadUpdate as unknown as Prisma.InputJsonValue,
-      lastExecutionMetadata: lastExecutionMetadata as unknown as Prisma.InputJsonValue,
-      terminalValidation: terminalValidation as unknown as Prisma.InputJsonValue,
-    },
+    );
+    const updatedAt = new Date().toISOString();
+    const pathPayloadUpdate = {
+      ...pathPayload,
+      selectedOptionId: option.optionId,
+      selectedStyleId: option.styleId,
+      selectedPolicyFamily: option.policyFamily,
+      currentNodeId,
+      mainPathNodeIds: option.nodeIds,
+      planNodes: selectedPlanNodes,
+      executionStatus: updateSelectedPathExecutionStatus(pathPayload.executionStatus, option.nodeIds, currentNodeId, updatedAt, selectedNodeState),
+      visualization: updateSelectedPathVisualization(pathPayload.visualization, option.nodeIds, currentNodeId, selectedNodeState),
+    };
+    const lastExecutionMetadata = updateSelectedPathExecutionMetadata(
+      latestPath?.lastExecutionMetadata ?? path.lastExecutionMetadata,
+      option.nodeIds,
+      currentNodeId,
+      option,
+      selectedNodeState,
+    );
+    const terminalValidation = buildSelectedPathTerminalValidation(
+      latestPath?.terminalValidation ?? path.terminalValidation,
+      option,
+      selectedPlanNodes,
+      selectedNodeState,
+    );
+    const pathStatus = resolveSelectedPathStatus(option.nodeIds, currentNodeId, selectedNodeState, terminalValidation);
+    await tx.learningPath.update({
+      where: { id: path.id },
+      data: {
+        nodeIds: option.nodeIds,
+        currentNodeId,
+        pathStatus,
+        pathPayload: pathPayloadUpdate as unknown as Prisma.InputJsonValue,
+        lastExecutionMetadata: lastExecutionMetadata as unknown as Prisma.InputJsonValue,
+        terminalValidation: terminalValidation as unknown as Prisma.InputJsonValue,
+      },
+    });
+    return {
+      selectedOptionId: option.optionId,
+      selectedStyleId: option.styleId,
+      currentNodeId,
+      nodeIds: option.nodeIds,
+    };
   });
-  return {
-    selectedOptionId: option.optionId,
-    selectedStyleId: option.styleId,
-    currentNodeId,
-    nodeIds: option.nodeIds,
-  };
 }
 
 function findExistingChoiceByIdempotencyKey(

@@ -1,0 +1,62 @@
+{
+  "pack_id": "P0168",
+  "offset": 840,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_3741d57a147fed5d8c495e34",
+      "batch": "C",
+      "name": "Pole-zero cancel",
+      "definition": "Pole-zero cancel是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pole-zero c…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Pole-zero cancel\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Pole-zero cancel是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Pole-zero 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_39456197a7214a933f3d5e83",
+      "batch": "C",
+      "name": "有纹波最少拍系统结构图（图7-…",
+      "definition": "有纹波最少拍系统结构图（图7-…是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "有纹波最少拍系统结构图…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 有纹波最少拍系统结构图（图7-…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 有纹波最少拍系统结构图（图7-…是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「有纹波最少拍系统结构」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_3f2b9364d6712170bfd6fb24",
+      "batch": "C",
+      "name": "stability matrix",
+      "definition": "stability matrix是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "stability m…",
+        "stability ma"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: stability matrix\nSOURCE DEFINITION (fail-closed, do not invent beyond this): stability matrix是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「stability 」、「stability 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_7d7b2c2093e1b52795076344",
+      "batch": "C",
+      "name": "Curves of consta",
+      "definition": "Curves of consta是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Curves of c…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Curves of consta\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Curves of consta是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Curves of 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_819e5c8e8bb74988bfaf76cb",
+      "batch": "C",
+      "name": "Root locus plot ",
+      "definition": "Root locus plot 是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Root locus …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Root locus plot \nSOURCE DEFINITION (fail-closed, do not invent beyond this): Root locus plot 是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Root locus」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

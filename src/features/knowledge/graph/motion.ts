@@ -19,11 +19,77 @@ export const KNOWLEDGE_GRAPH_CORRIDOR_MOTION = {
   pauseDurationMs: 360,
 } as const;
 
+export const KNOWLEDGE_GRAPH_FLOW_MOTION = {
+  // 环境流并发预算：保守取值，优先保证帧预算内不掉帧（性能跑分复核）。
+  ambientBudget: 8,
+} as const;
+
+export const KNOWLEDGE_GRAPH_MOTION_TRANSITION_EVENT = 'knowledge-graph-motion-transition-change';
+
 export const KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY = {
   frontExtent: 5,
   backExtent: 4,
   halfWidth: 4,
 } as const;
+
+// 环境流标记：走廊标记的 0.7 倍，弱化处理与选中走廊的突出语义分层。
+export const KNOWLEDGE_GRAPH_FLOW_MARKER_GEOMETRY = {
+  frontExtent: 3.5,
+  backExtent: 2.8,
+  halfWidth: 2.8,
+} as const;
+
+export type KnowledgeGraphFlowScope = 'corridor' | 'ambient';
+
+export interface KnowledgeGraphFlowMarkerSelection {
+  edgeIds: string[];
+  phaseOffsetByEdgeId: Readonly<Record<string, number>>;
+}
+
+function hashFlowPhase(value: string): number {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0) / 0x100000000;
+}
+
+/**
+ * 通用流标记选择：corridor 保持既有选中走廊语义（上限 3，无相位），
+ * ambient 在同一可见集合内做确定性预算选择（排序取前 N）并给每个标记
+ * 一个由边键哈希派生的相位偏移，形成错峰的交通流。
+ */
+export function resolveFlowMarkerSet({
+  scope,
+  active,
+  motionEligibleEdgeIds,
+  motionSuppressedEdgeIds,
+  visibleEdgeIds,
+  budget,
+}: {
+  scope: KnowledgeGraphFlowScope;
+  active: boolean;
+  motionEligibleEdgeIds: readonly string[];
+  motionSuppressedEdgeIds: readonly string[];
+  visibleEdgeIds?: readonly string[];
+  budget?: number;
+}): KnowledgeGraphFlowMarkerSelection {
+  if (!active) return { edgeIds: [], phaseOffsetByEdgeId: {} };
+  const cap = budget ?? (scope === 'ambient'
+    ? KNOWLEDGE_GRAPH_FLOW_MOTION.ambientBudget
+    : KNOWLEDGE_GRAPH_CORRIDOR_MOTION.maxMarkers);
+  const suppressed = new Set(motionSuppressedEdgeIds);
+  const visible = visibleEdgeIds ? new Set(visibleEdgeIds) : null;
+  const edgeIds = [...new Set(motionEligibleEdgeIds)]
+    .filter((edgeId) => !suppressed.has(edgeId) && (!visible || visible.has(edgeId)))
+    .sort((left, right) => left < right ? -1 : left > right ? 1 : 0)
+    .slice(0, cap);
+  const phaseOffsetByEdgeId = Object.fromEntries(
+    edgeIds.map((edgeId) => [edgeId, hashFlowPhase(edgeId)])
+  );
+  return { edgeIds, phaseOffsetByEdgeId };
+}
 
 export function selectKnowledgeGraphMotionMarkerEdgeIds({
   active,
@@ -36,13 +102,13 @@ export function selectKnowledgeGraphMotionMarkerEdgeIds({
   motionSuppressedEdgeIds: readonly string[];
   visibleEdgeIds?: readonly string[];
 }): string[] {
-  if (!active) return [];
-  const suppressed = new Set(motionSuppressedEdgeIds);
-  const visible = visibleEdgeIds ? new Set(visibleEdgeIds) : null;
-  return [...new Set(motionEligibleEdgeIds)]
-    .filter((edgeId) => !suppressed.has(edgeId) && (!visible || visible.has(edgeId)))
-    .sort((left, right) => left < right ? -1 : left > right ? 1 : 0)
-    .slice(0, KNOWLEDGE_GRAPH_CORRIDOR_MOTION.maxMarkers);
+  return resolveFlowMarkerSet({
+    scope: 'corridor',
+    active,
+    motionEligibleEdgeIds,
+    motionSuppressedEdgeIds,
+    visibleEdgeIds,
+  }).edgeIds;
 }
 
 export function getKnowledgeGraphMotionMarkerFrame(elapsedMs: number) {
@@ -57,6 +123,40 @@ export function getKnowledgeGraphMotionMarkerFrame(elapsedMs: number) {
     visible: true,
     progress: cycleElapsedMs / KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs,
   };
+}
+
+export function getKnowledgeGraphMotionPhasedMarkerFrame(elapsedMs: number, phaseOffset: number) {
+  const boundedElapsedMs = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) : 0;
+  const boundedPhase = Number.isFinite(phaseOffset) ? Math.min(1, Math.max(0, phaseOffset)) : 0;
+  const cycleDurationMs = KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs
+    + KNOWLEDGE_GRAPH_CORRIDOR_MOTION.pauseDurationMs;
+  const cycleElapsedMs = (boundedElapsedMs + boundedPhase * cycleDurationMs) % cycleDurationMs;
+  if (cycleElapsedMs >= KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs) {
+    return { visible: false, progress: 1 };
+  }
+  return {
+    visible: true,
+    progress: cycleElapsedMs / KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs,
+  };
+}
+
+/**
+ * 呼吸强度波：0..1 的确定性余弦波，periodMs 一个完整周期。
+ */
+export function getKnowledgeGraphBreathingIntensity(elapsedMs: number, { periodMs }: { periodMs: number }): number {
+  const safePeriodMs = Math.max(1, periodMs);
+  const boundedElapsedMs = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) : 0;
+  const phase = (boundedElapsedMs % safePeriodMs) / safePeriodMs;
+  return 0.5 - 0.5 * Math.cos(phase * Math.PI * 2);
+}
+
+/**
+ * 入场淡入进度：delayMs 前为 0，delayMs + durationMs 后为 1，结束后与静态呈现一致。
+ */
+export function getKnowledgeGraphEntranceFade(elapsedMs: number, delayMs: number, durationMs: number): number {
+  if (durationMs <= 0) return 1;
+  const boundedElapsedMs = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) : 0;
+  return Math.min(1, Math.max(0, (boundedElapsedMs - delayMs) / durationMs));
 }
 
 export function createKnowledgeGraphMotionScopeKey({
@@ -191,22 +291,41 @@ export function bindKnowledgeGraphMotionEnvironment({
   mediaQuery,
   suspend,
   resume,
+  offscreenTarget,
+  transitionEvent,
 }: {
   documentTarget: Pick<Document, 'hidden' | 'addEventListener' | 'removeEventListener'>;
   mediaQuery: Pick<MediaQueryList, 'matches' | 'addEventListener' | 'removeEventListener'>;
   suspend: () => void;
   resume: () => void;
+  offscreenTarget?: Element | null;
+  transitionEvent?: {
+    eventTarget: Pick<EventTarget, 'addEventListener' | 'removeEventListener'>;
+    isActive: () => boolean;
+  };
 }) {
+  let offscreen = false;
   const update = () => {
-    if (documentTarget.hidden || mediaQuery.matches) suspend();
+    if (documentTarget.hidden || mediaQuery.matches || offscreen || transitionEvent?.isActive()) suspend();
     else resume();
   };
   documentTarget.addEventListener('visibilitychange', update);
   mediaQuery.addEventListener?.('change', update);
+  transitionEvent?.eventTarget.addEventListener(KNOWLEDGE_GRAPH_MOTION_TRANSITION_EVENT, update);
+  let observer: IntersectionObserver | undefined;
+  if (offscreenTarget && typeof IntersectionObserver === 'function') {
+    observer = new IntersectionObserver((entries) => {
+      offscreen = entries.every((entry) => !entry.isIntersecting);
+      update();
+    });
+    observer.observe(offscreenTarget);
+  }
   update();
   return () => {
     documentTarget.removeEventListener('visibilitychange', update);
     mediaQuery.removeEventListener?.('change', update);
+    transitionEvent?.eventTarget.removeEventListener(KNOWLEDGE_GRAPH_MOTION_TRANSITION_EVENT, update);
+    observer?.disconnect();
   };
 }
 

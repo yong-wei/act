@@ -19,7 +19,7 @@
   ],
   "remainingSelectedSemanticReview": 0,
   "residualUnselectedCounts": {
-    "knowledge-card": 18,
+    "knowledge-card": 559,
     "knowledge-infograph": 0
   },
   "byDisposition": {
@@ -27,8 +27,8 @@
     "embedded-asset": 2
   },
   "evidence": {
-    "reviewItemsPath": "course-content/runtime/resource-governance/knowledge-visual-semantic-shard-review-items.jsonl",
-    "auditJsonlPath": "course-content/runtime/resource-governance/resource-field-completion-audit.jsonl",
-    "workqueueItemsPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+    "reviewItemsPath": "course-content\\runtime\\resource-governance\\knowledge-visual-semantic-shard-review-items.jsonl",
+    "auditJsonlPath": "course-content\\runtime\\resource-governance\\resource-field-completion-audit.jsonl",
+    "workqueueItemsPath": "course-content\\runtime\\resource-governance\\resource-completion-workqueue-items.jsonl"
   }
 }

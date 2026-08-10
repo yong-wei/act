@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+  "safe_id": "ctkg_v3e-object-7e274b7e5ef258bd54400783",
+  "node": {
+    "name": "自然频率",
+    "name_en": "Natural frequency",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "自然频率：The bandwidth of a system ω_B, as indicated on the frequency response, can be approximately related to the natural freq…",
+  "intuition": "在图谱邻接中可把握：后续 → 带宽。",
+  "explanation": "The bandwidth of a system ω_B, as indicated on the frequency response, can be approximately related to the natural frequency of the system.",
+  "relation_head": "后续 → 带宽",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "带宽",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "自然频率",
+    "Natural freq",
+    "关联·带宽"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7e274b7e5ef258bd54400783.md",
+  "provider_policy": "grok-image_gen"
+}

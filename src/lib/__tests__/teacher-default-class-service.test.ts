@@ -1,0 +1,417 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { Prisma } from '@prisma/client';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('server-only', () => ({}));
+
+import { createTeacherDefaultClassService } from '../teacher-default-class-service';
+
+const teacher = { id: 'teacher-1' };
+const activeClass = {
+  id: 'class-1',
+  teacherId: teacher.id,
+  name: '控制 1 班',
+  code: 'ABC123',
+  description: null,
+  year: null,
+  semester: null,
+  isActive: true,
+  createdAt: new Date('2026-07-01T00:00:00Z'),
+  updatedAt: new Date('2026-07-01T00:00:00Z'),
+};
+
+describe('teacher default class persistence', () => {
+  it('adds the preference without data rewrites or changes to ClassSession attribution', () => {
+    const migration = readFileSync(join(
+      process.cwd(),
+      'prisma/migrations/20260724090000_add_teacher_default_class/migration.sql',
+    ), 'utf8');
+    expect(migration).toContain('ADD COLUMN "defaultTeachingClassId" TEXT');
+    expect(migration).toContain('CREATE UNIQUE INDEX "User_defaultTeachingClassId_key"');
+    expect(migration).toContain('ON DELETE SET NULL ON UPDATE CASCADE');
+    expect(migration).not.toContain('"ClassSession"');
+    expect(migration).not.toMatch(/^\s*(UPDATE|DELETE FROM)\b/im);
+  });
+
+  it('requires application-managed smart lesson detachment before deleting a class', () => {
+    const schema = readFileSync(join(process.cwd(), 'prisma/schema.prisma'), 'utf8');
+    const migration = readFileSync(join(
+      process.cwd(),
+      'prisma/migrations/20260726190000_ground_smart_preparation_sources/migration.sql',
+    ), 'utf8');
+
+    expect(schema).toMatch(/selectedClass\s+Class\?.*onDelete:\s*Restrict/);
+    expect(migration).toContain('ON DELETE RESTRICT ON UPDATE CASCADE');
+    expect(migration).not.toContain('ON DELETE SET NULL ON UPDATE CASCADE');
+  });
+});
+
+describe('teacher default class service', () => {
+  it('uses Serializable and makes the first created class the default', async () => {
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn().mockResolvedValue({ defaultTeachingClassId: null }),
+        update: vi.fn().mockResolvedValue(teacher),
+      },
+      class: {
+        create: vi.fn().mockResolvedValue(activeClass),
+        findFirst: vi.fn(),
+      },
+    });
+    const db = database(tx);
+
+    const result = await createTeacherDefaultClassService(db as never).createClass({
+      teacherId: teacher.id,
+      name: activeClass.name,
+      code: activeClass.code,
+    });
+
+    expect(result).toEqual(activeClass);
+    expect(tx.user.update).toHaveBeenCalledWith({
+      where: { id: teacher.id },
+      data: { defaultTeachingClassId: activeClass.id },
+    });
+    expect(db.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: 'Serializable',
+    });
+  });
+
+  it('preserves an existing valid default when another class is created or reactivated', async () => {
+    const existingDefault = { ...activeClass, id: 'class-default' };
+    const candidate = { ...activeClass, id: 'class-new', code: 'NEW123' };
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn().mockResolvedValue({ defaultTeachingClassId: existingDefault.id }),
+        update: vi.fn(),
+      },
+      class: {
+        create: vi.fn().mockResolvedValue(candidate),
+        findFirst: vi.fn().mockResolvedValue(existingDefault),
+        update: vi.fn().mockResolvedValue(candidate),
+      },
+    });
+    const service = createTeacherDefaultClassService(database(tx) as never);
+
+    await service.createClass({
+      teacherId: teacher.id,
+      name: candidate.name,
+      code: candidate.code,
+    });
+    await service.activateClass(teacher.id, candidate.id);
+
+    expect(tx.user.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects inactive explicit defaults without changing the preference', async () => {
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        update: vi.fn(),
+      },
+      class: {
+        findFirst: vi.fn().mockResolvedValue({ ...activeClass, isActive: false }),
+      },
+    });
+
+    await expect(
+      createTeacherDefaultClassService(database(tx) as never)
+        .setDefaultClass(teacher.id, activeClass.id),
+    ).rejects.toMatchObject({ code: 'class-not-active' });
+    expect(tx.user.update).not.toHaveBeenCalled();
+  });
+
+  it('atomically updates metadata and replaces a deactivated default by newest createdAt then id', async () => {
+    const replacement = { id: 'class-z' };
+    const findFirst = vi.fn()
+      .mockResolvedValueOnce(activeClass)
+      .mockResolvedValueOnce(replacement);
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn().mockResolvedValue({ defaultTeachingClassId: activeClass.id }),
+        update: vi.fn().mockResolvedValue(teacher),
+      },
+      class: {
+        findFirst,
+        update: vi.fn().mockResolvedValue({ ...activeClass, isActive: false }),
+      },
+    });
+    const db = database(tx);
+
+    await createTeacherDefaultClassService(db as never)
+      .updateClass(teacher.id, activeClass.id, {
+        name: '控制工程 1 班',
+        description: '更新后的班级',
+        isActive: false,
+      });
+
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
+    expect(tx.class.update).toHaveBeenCalledWith({
+      where: { id: activeClass.id },
+      data: {
+        name: '控制工程 1 班',
+        description: '更新后的班级',
+        isActive: false,
+      },
+    });
+    expect(findFirst).toHaveBeenLastCalledWith({
+      where: { teacherId: teacher.id, isActive: true },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      select: { id: true },
+    });
+    expect(tx.user.update).toHaveBeenCalledWith({
+      where: { id: teacher.id },
+      data: { defaultTeachingClassId: replacement.id },
+    });
+  });
+
+  it('keeps activateClass and deactivateClass as compatible lifecycle entry points', async () => {
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn()
+          .mockResolvedValueOnce({ defaultTeachingClassId: activeClass.id })
+          .mockResolvedValueOnce({ defaultTeachingClassId: activeClass.id }),
+        update: vi.fn(),
+      },
+      class: {
+        findFirst: vi.fn().mockResolvedValue(activeClass),
+        update: vi.fn()
+          .mockResolvedValueOnce(activeClass)
+          .mockResolvedValueOnce({ ...activeClass, isActive: false }),
+      },
+    });
+    const service = createTeacherDefaultClassService(database(tx) as never);
+
+    await service.activateClass(teacher.id, activeClass.id);
+    await service.deactivateClass(teacher.id, activeClass.id);
+
+    expect(tx.class.update).toHaveBeenNthCalledWith(1, {
+      where: { id: activeClass.id },
+      data: { isActive: true },
+    });
+    expect(tx.class.update).toHaveBeenNthCalledWith(2, {
+      where: { id: activeClass.id },
+      data: { isActive: false },
+    });
+  });
+
+  it('deletes student membership and replaces a deleted default in one transaction', async () => {
+    const replacement = { id: 'class-2' };
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn()
+          .mockResolvedValueOnce({ defaultTeachingClassId: activeClass.id })
+          .mockResolvedValueOnce({ defaultTeachingClassId: null }),
+        update: vi.fn().mockResolvedValue(teacher),
+      },
+      class: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(activeClass)
+          .mockResolvedValueOnce(replacement),
+        delete: vi.fn().mockResolvedValue(activeClass),
+      },
+      classSession: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      studentProfile: {
+        updateMany: vi.fn().mockResolvedValue({ count: 2 }),
+      },
+    });
+
+    await createTeacherDefaultClassService(database(tx) as never)
+      .deleteClass(teacher.id, activeClass.id);
+
+    expect(tx.studentProfile.updateMany).toHaveBeenCalledWith({
+      where: { classId: activeClass.id },
+      data: { classId: null },
+    });
+    expect(tx.user.update).toHaveBeenCalledWith({
+      where: { id: teacher.id },
+      data: { defaultTeachingClassId: replacement.id },
+    });
+  });
+
+  it('marks generated smart-preparation tasks sticky stale before deleting the selected class', async () => {
+    const updateTasks = vi.fn().mockResolvedValue({ count: 1 });
+    const updateDrafts = vi.fn().mockResolvedValue({ count: 1 });
+    const deleteClass = vi.fn().mockResolvedValue(activeClass);
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn().mockResolvedValue({ defaultTeachingClassId: null }),
+        update: vi.fn(),
+      },
+      class: {
+        findFirst: vi.fn().mockResolvedValue(activeClass),
+        delete: deleteClass,
+      },
+      classSession: { findFirst: vi.fn().mockResolvedValue(null) },
+      studentProfile: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
+      smartLessonTask: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'task-generated',
+            revision: 4,
+            drafts: [{ contentHash: 'plan-hash', jobs: [] }],
+          },
+          {
+            id: 'task-empty',
+            revision: 2,
+            drafts: [{ contentHash: null, jobs: [{ stages: [{ outputHash: null }] }] }],
+          },
+        ]),
+        updateMany: updateTasks,
+      },
+      smartLessonDraft: { updateMany: updateDrafts },
+    });
+
+    await createTeacherDefaultClassService(database(tx) as never)
+      .deleteClass(teacher.id, activeClass.id);
+
+    expect(updateTasks).toHaveBeenNthCalledWith(1, {
+      where: {
+        id: 'task-generated',
+        ownerId: teacher.id,
+        selectedClassId: activeClass.id,
+        revision: 4,
+      },
+      data: {
+        selectedClassId: null,
+        revision: { increment: 1 },
+        classContextStaleAt: expect.any(Date),
+        classContextStaleReason: 'CLASS_REMOVED',
+      },
+    });
+    expect(updateTasks).toHaveBeenNthCalledWith(2, {
+      where: {
+        id: 'task-empty',
+        ownerId: teacher.id,
+        selectedClassId: activeClass.id,
+        revision: 2,
+      },
+      data: {
+        selectedClassId: null,
+        revision: { increment: 1 },
+        aggregateClassContext: Prisma.JsonNull,
+        aggregateClassContextRef: null,
+        classContextStaleAt: null,
+        classContextStaleReason: null,
+      },
+    });
+    expect(updateDrafts).toHaveBeenCalledTimes(1);
+    expect(updateTasks.mock.invocationCallOrder[0]).toBeLessThan(deleteClass.mock.invocationCallOrder[0]);
+  });
+
+  it('rejects deletion when any session references the class without changing membership or default', async () => {
+    const userUpdate = vi.fn();
+    const studentUpdate = vi.fn();
+    const classDelete = vi.fn();
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn(),
+        update: userUpdate,
+      },
+      class: {
+        findFirst: vi.fn().mockResolvedValue(activeClass),
+        delete: classDelete,
+      },
+      classSession: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'session-1' }),
+      },
+      studentProfile: {
+        updateMany: studentUpdate,
+      },
+    });
+
+    await expect(
+      createTeacherDefaultClassService(database(tx) as never)
+        .deleteClass(teacher.id, activeClass.id),
+    ).rejects.toMatchObject({ code: 'class-has-sessions' });
+
+    expect(studentUpdate).not.toHaveBeenCalled();
+    expect(userUpdate).not.toHaveBeenCalled();
+    expect(classDelete).not.toHaveBeenCalled();
+  });
+
+  it('maps a foreign-key delete conflict to the stable deletion error', async () => {
+    const foreignKeyConflict = Object.assign(new Error('foreign key'), { code: 'P2003' });
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn().mockResolvedValue({ defaultTeachingClassId: null }),
+        update: vi.fn(),
+      },
+      class: {
+        findFirst: vi.fn().mockResolvedValue(activeClass),
+        delete: vi.fn().mockRejectedValue(foreignKeyConflict),
+      },
+      classSession: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      studentProfile: {
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
+    });
+
+    await expect(
+      createTeacherDefaultClassService(database(tx) as never)
+        .deleteClass(teacher.id, activeClass.id),
+    ).rejects.toMatchObject({ code: 'class-has-sessions' });
+  });
+
+  it('retries P2034 conflicts within the configured bound and surfaces a stable error', async () => {
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        update: vi.fn().mockResolvedValue(teacher),
+      },
+      class: { findFirst: vi.fn().mockResolvedValue(activeClass) },
+    });
+    const db = {
+      $transaction: vi.fn().mockRejectedValue(Object.assign(new Error('conflict'), { code: 'P2034' })),
+    };
+
+    await expect(
+      createTeacherDefaultClassService(db as never, 3)
+        .setDefaultClass(teacher.id, activeClass.id),
+    ).rejects.toMatchObject({ code: 'transaction-conflict-retryable' });
+    expect(db.$transaction).toHaveBeenCalledTimes(3);
+
+    const eventualDb = {
+      $transaction: vi.fn()
+        .mockRejectedValueOnce(Object.assign(new Error('conflict'), { code: 'P2034' }))
+        .mockImplementation((callback: (client: typeof tx) => unknown) => callback(tx)),
+    };
+    await expect(
+      createTeacherDefaultClassService(eventualDb as never, 3)
+        .setDefaultClass(teacher.id, activeClass.id),
+    ).resolves.toEqual(activeClass);
+    expect(eventualDb.$transaction).toHaveBeenCalledTimes(2);
+  });
+});
+
+function transaction(overrides: Record<string, unknown>) {
+  return {
+    $executeRaw: vi.fn().mockResolvedValue(0),
+    user: {},
+    class: {},
+    classSession: {},
+    studentProfile: {},
+    smartLessonTask: { findMany: vi.fn().mockResolvedValue([]), updateMany: vi.fn() },
+    smartLessonDraft: { updateMany: vi.fn() },
+    ...overrides,
+  } as any;
+}
+
+function database(tx: ReturnType<typeof transaction>) {
+  return {
+    $transaction: vi.fn((callback: (client: typeof tx) => unknown) => callback(tx)),
+  };
+}

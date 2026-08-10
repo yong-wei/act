@@ -41,7 +41,7 @@ export async function buildCourseBasisLessonDesignSourcePack(
     chunks: candidates.chunks,
     retrieval: retrieveSourcePack({
       ...input.retrieval,
-      profile: 'lesson-design',
+      profile: 'smart-preparation',
       role: input.actor.role === 'ADMIN' ? 'admin' : 'teacher',
       caller: input.actor.id,
       candidates: candidates.items,
@@ -63,7 +63,8 @@ export async function buildCourseBasisLessonDesignSar(
     where: {
       versionId: { in: [...input.selectedVersionIds] },
       version: {
-        reviewState: 'CONFIRMED',
+        extractionState: 'EXTRACTED',
+        reviewState: { in: ['PENDING', 'CONFIRMED'] },
         OR: [
           { retiredAt: null },
           { id: { in: [...(input.explicitRetiredVersionIds ?? [])] } },

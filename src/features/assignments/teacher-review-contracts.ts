@@ -63,26 +63,30 @@ export interface TeacherReviewCriterion {
     minPoints: number;
     maxPoints: number;
   }>;
-  levelId: string;
+  levelId: string | null;
   aiScore: number | null;
   aiLevelId: string | null;
   aiComment: string;
   score: number;
+  scoreStep: 0.01 | 0.1;
   comment: string;
 }
 
-export interface TeacherReviewEvidence {
-  kind: "TEXT" | "DOCUMENT";
-  canonicalText: string;
-  markdown: string | null;
-  originalUrl: string | null;
-  fileName: string | null;
-  anchors: Array<{
-    id: string;
-    label: string;
-    excerpt: string;
-    precision: string;
-  }>;
+export interface TeacherOriginalResponseAsset {
+  id: string;
+  displayName: string;
+  mimeType: string;
+  sizeBytes: number;
+  role: "EMBEDDED_IMAGE" | "ATTACHMENT";
+  orderIndex: number | null;
+  embeddedPosition: string | null;
+  accessEndpoint: string;
+}
+
+export interface TeacherOriginalResponse {
+  textSnapshot: string | null;
+  attachmentOrderProvenance: string | null;
+  assets: TeacherOriginalResponseAsset[];
 }
 
 export interface TeacherReviewDetail {
@@ -98,10 +102,12 @@ export interface TeacherReviewDetail {
   responseKind: TeacherReviewQuestionItem["responseKind"];
   status: TeacherReviewStatus;
   questions: TeacherReviewQuestionItem[];
-  evidence: TeacherReviewEvidence | null;
+  originalResponse: TeacherOriginalResponse | null;
   criteria: TeacherReviewCriterion[];
   overallComment: string;
-  limitations: string[];
+  incompleteEvidence: boolean;
+  omittedEvidence: Array<{ assetId: string; displayName: string }>;
+  aiAnnotations: ReviewAnnotationValue[];
   annotations: ReviewAnnotationValue[];
 }
 
@@ -317,6 +323,37 @@ export function deriveReviewTotal(
   );
 }
 
+export function buildTeacherReviewApprovalPayload(
+  detail: Pick<
+    TeacherReviewDetail,
+    "reviewId" | "incompleteEvidence" | "omittedEvidence"
+  >,
+  input: {
+    expectedVersion: number;
+    idempotencyKey: string;
+    confirmIncompleteEvidence: boolean;
+  },
+) {
+  return {
+    reviewId: detail.reviewId,
+    expectedVersion: input.expectedVersion,
+    idempotencyKey: input.idempotencyKey,
+    ...(detail.incompleteEvidence
+      ? {
+          confirmIncompleteEvidence: input.confirmIncompleteEvidence,
+          omittedAssetIds: detail.omittedEvidence.map((item) => item.assetId),
+        }
+      : {}),
+  };
+}
+
+export function teacherReviewConflictMutationState(payload: unknown) {
+  return asRecord(payload).error ===
+    "teacher-review-incomplete-evidence-confirmation-required"
+    ? "confirmation-required" as const
+    : "conflict" as const;
+}
+
 export function normalizeTeacherReviewDetail(
   payload: unknown,
 ): TeacherReviewDetail | null {
@@ -357,9 +394,16 @@ export function normalizeTeacherReviewDetail(
           aiDraft: aiValues.get(criterionId),
         };
       });
-  const evidence = normalizeEvidence(
-    root.evidence ?? review.evidence ?? gradingRun.answerEvidence,
-  );
+  const originalResponse = normalizeOriginalResponse(review.originalResponse);
+  const omittedEvidence = arrayFrom(review.omittedEvidence).flatMap((entry) => {
+    const row = asRecord(entry);
+    const assetId = stringFrom(row.assetId);
+    if (!assetId) return [];
+    return [{
+      assetId,
+      displayName: safeDisplayBasename(row.displayName),
+    }];
+  });
   const submissionId = stringFrom(submission.id ?? review.submissionId);
   const questionId = stringFrom(question.id ?? review.questionId);
   const reviewId = stringFrom(review.id ?? root.reviewId);
@@ -396,14 +440,18 @@ export function normalizeTeacherReviewDetail(
           }
         : item;
     }),
-    evidence,
+    originalResponse,
     criteria: rawCriteria.map((entry, index) =>
-      normalizeCriterion(entry, index),
+      normalizeCriterion(
+        entry,
+        index,
+        rubric.schemaVersion === "assignment-scoring-rubric.v2" ? 0.1 : 0.01,
+      ),
     ),
     overallComment: stringFrom(review.overallComment ?? review.comment),
-    limitations: arrayFrom(root.limitations ?? review.limitations)
-      .map((entry) => stringFrom(entry))
-      .filter(Boolean),
+    incompleteEvidence: review.incompleteEvidence === true,
+    omittedEvidence,
+    aiAnnotations: normalizeReviewAnnotations(gradingRun.annotations),
     annotations: normalizeReviewAnnotations(
       review.annotationValues ?? review.annotations,
     ),
@@ -473,6 +521,7 @@ function normalizeQuestion(
 function normalizeCriterion(
   value: unknown,
   index: number,
+  scoreStep: 0.01 | 0.1,
 ): TeacherReviewCriterion {
   const row = asRecord(value);
   const ai = asRecord(row.aiDraft ?? row.machine);
@@ -492,10 +541,9 @@ function normalizeCriterion(
     };
   });
   const aiLevelId = nullableString(ai.levelId ?? row.aiLevelId);
-  const levelId = stringFrom(
+  const levelId = nullableString(
     teacher.levelId ?? row.levelId ?? aiLevelId,
-    levels[0]?.id ?? "",
-  );
+  ) ?? levels[0]?.id ?? null;
   return {
     id: stringFrom(row.id ?? row.criterionId, `criterion-${index + 1}`),
     label: stringFrom(row.label ?? row.title, `评分项 ${index + 1}`),
@@ -509,6 +557,7 @@ function normalizeCriterion(
       maxPoints,
       Math.max(0, finiteNumber(teacher.score ?? row.score ?? aiScore, 0)),
     ),
+    scoreStep,
     comment: stringFrom(
       teacher.comment ??
         teacher.rationale ??
@@ -519,29 +568,65 @@ function normalizeCriterion(
   };
 }
 
-function normalizeEvidence(value: unknown): TeacherReviewEvidence | null {
+function normalizeOriginalResponse(value: unknown): TeacherOriginalResponse | null {
   if (!value || typeof value !== "object") return null;
   const row = asRecord(value);
-  const rawKind = stringFrom(row.kind ?? row.sourceKind).toUpperCase();
+  const assets = arrayFrom(row.assets).flatMap((entry) => {
+    const asset = asRecord(entry);
+    const id = stringFrom(asset.id);
+    const accessEndpoint = safeOriginalAccessEndpoint(asset.accessEndpoint);
+    if (!id || !accessEndpoint) return [];
+    const role = asset.role === "EMBEDDED_IMAGE"
+      ? "EMBEDDED_IMAGE"
+      : "ATTACHMENT";
+    return [{
+      id,
+      displayName: safeDisplayBasename(asset.displayName),
+      mimeType: stringFrom(asset.mimeType, "application/octet-stream"),
+      sizeBytes: Math.max(0, Math.trunc(finiteNumber(asset.sizeBytes, 0))),
+      role,
+      orderIndex: nonnegativeInteger(asset.orderIndex),
+      embeddedPosition: nullableString(asset.embeddedPosition),
+      accessEndpoint,
+    } satisfies TeacherOriginalResponseAsset];
+  });
+  const textSnapshot = nullableString(row.textSnapshot);
+  if (!textSnapshot && assets.length === 0) return null;
   return {
-    kind:
-      rawKind.includes("DOCUMENT") || rawKind.includes("FILE")
-        ? "DOCUMENT"
-        : "TEXT",
-    canonicalText: stringFrom(row.canonicalText ?? row.text ?? row.canonicalMarkdown),
-    markdown: nullableString(row.markdown ?? row.canonicalMarkdown),
-    originalUrl: nullableString(row.originalUrl ?? row.authorizedUrl),
-    fileName: nullableString(row.fileName),
-    anchors: arrayFrom(row.anchors ?? row.annotations ?? row.blocks).map((entry, index) => {
-      const anchor = asRecord(entry);
-      return {
-        id: stringFrom(anchor.id, `anchor-${index + 1}`),
-        label: stringFrom(anchor.label, anchor.pageNumber ? `第 ${anchor.pageNumber} 页` : `证据 ${index + 1}`),
-        excerpt: stringFrom(anchor.excerpt ?? anchor.text),
-        precision: stringFrom(anchor.precision, "BLOCK"),
-      };
-    }),
+    textSnapshot,
+    attachmentOrderProvenance: nullableString(
+      row.attachmentOrderProvenance,
+    ),
+    assets,
   };
+}
+
+function safeDisplayBasename(value: unknown) {
+  const normalized = stringFrom(value)
+    .replace(/\\/g, "/")
+    .split("/")
+    .filter(Boolean)
+    .at(-1) ?? "";
+  const safe = normalized
+    .replace(/[\p{Cc}\p{Cf}]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return !safe || /^\.+$/.test(safe)
+    ? "未命名附件"
+    : safe.slice(0, 180);
+}
+
+function safeOriginalAccessEndpoint(value: unknown) {
+  const endpoint = stringFrom(value);
+  if (!endpoint.startsWith("/api/teacher/assignments/")) return "";
+  try {
+    const url = new URL(endpoint, "https://assignment-review.invalid");
+    if (url.origin !== "https://assignment-review.invalid"
+      || url.searchParams.has("token")) return "";
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return "";
+  }
 }
 
 function normalizeReviewAnnotations(value: unknown): ReviewAnnotationValue[] {

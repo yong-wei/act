@@ -1,0 +1,1213 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "eddd24f003650f02d99f5b66",
+    "manifestBatchIndex": 0,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:classical-control-design-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 96,
+    "memberDigest": "451c6c53491105d2c4e94d0b9bf981cfce6f5996eecdda1a849d4ba9fdb165fd",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "CHALLENGER",
+  "reviewer": {
+    "identity": "grok-challenger-issue-1190",
+    "provider": "grok-4.5-build",
+    "sessionId": "f7455d99-033e-4a29-acf0-027438afe412",
+    "promptVersion": "course-coverage-challenger/1"
+  },
+  "reviewInputDigest": "3533c8b9b5e535de6a35f3b0e2096e39e3d043d9f573f2ee8253e1608a615e5a",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-001f3d1e666624493091691f",
+      "canonicalRevision": "c16f39b45b84115aeb1eaa5910d0ca4c04126a2409e4b15b732c55fa18de18af",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a3f367508ddad6dc1c6ff25a",
+        "canonicalId:ctkg:v3e-object-001f3d1e666624493091691f"
+      ],
+      "rationale": "Challenger independently re-examined \"最大滞后角\" (ctkg:v3e-object-001f3d1e666624493091691f). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "1cec97fec2c43755d76c8ddfd655bde59ab55271cad4261fbe3d61f86f617ffd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "canonicalRevision": "c876788c54ca31b53c763f6df848bd1f47f477b1486dd5854dfae52274dfc3d1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-05bcca7fd870e0dd571b1056",
+        "evidence:ctkg:v3e-evidence-3306feb4500ade8999bc35a0",
+        "evidence:ctr:m1i-v1e-release-evidence-d932204be4eef50fa5a317b9",
+        "canonicalId:ctkg:v3e-object-003aff0599f6e3790bfdb93a"
+      ],
+      "rationale": "Challenger independently re-examined \"Root locus method\" (ctkg:v3e-object-003aff0599f6e3790bfdb93a). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "8ab9564af2b606bd4673a970fdd6a571c61948e15e4f9e554ce4c99c2ffaf6f6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "canonicalRevision": "1675481b026f046a78b187b4764ba49a095948256d856a0bfa01dcfba10d0e96",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d1f3a874020eb0c3bd4d33eb",
+        "canonicalId:ctkg:v3e-object-01762eade052b1f22b1318c1"
+      ],
+      "rationale": "Challenger independently re-examined \"P控制器\" (ctkg:v3e-object-01762eade052b1f22b1318c1). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "3e2a2c5eb5a424e857fd28acd9ab3d72aef1b340f67057ecec367fc3cc8236cd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79",
+      "canonicalRevision": "ffafbf55585e085ed73850d63f829c54afe365781d018578c9af589f90af8037",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-926d20f912a190f5d558ce2c",
+        "canonicalId:ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79"
+      ],
+      "rationale": "Challenger independently re-examined \"Type-two system\" (ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "817e7658643498ef4a42c68b9ce271ed628f02ff0cb473a2077376f7f4f15c70"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-09160b112423a1c2afe77578",
+      "canonicalRevision": "9a259610eff0ac8dce65655fc2464e1aca32a853bf1c7bde9e9e15b37ea8a8a2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b97e9aa2e3a72156bfb239f9",
+        "canonicalId:ctkg:v3e-object-09160b112423a1c2afe77578"
+      ],
+      "rationale": "Challenger independently re-examined \"Maximum phase lead frequency ω_m\" (ctkg:v3e-object-09160b112423a1c2afe77578). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "b593bcfd7bc52df7fd141ff778c112cd8aaed7e80cfc0486365ff4be619b49dc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "canonicalRevision": "947a94f029aa03756751a35a3eccf5b5ffd3ca71313d27ca6b8bfbb71d4cce87",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3e2098235c7a23b95142366f",
+        "evidence:ctr:m1i-v1e-release-evidence-c70bc3c7622da04356e43073",
+        "canonicalId:ctkg:v3e-object-0a05ec9e84791b95d3794bc0"
+      ],
+      "rationale": "Challenger independently re-examined \"Compensator\" (ctkg:v3e-object-0a05ec9e84791b95d3794bc0). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "6544e7e53d8c88b75661345869d23b299eda9898be7a27fa417a0537f1015bd0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0b64035d71e363318c3d8d2d",
+      "canonicalRevision": "39af3671b33808e42ca162b234a58496089d35ad2b47eedc9bdb36b942644a41",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c6593dc8d27abf338725750e",
+        "canonicalId:ctkg:v3e-object-0b64035d71e363318c3d8d2d"
+      ],
+      "rationale": "Challenger independently re-examined \"频率法校正\" (ctkg:v3e-object-0b64035d71e363318c3d8d2d). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "a5810641a5479247b4d4f53440fc1a9108ecfc15f25c91489a3b33513e6435b1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0c84769e1c4d260e0fdedff6",
+      "canonicalRevision": "8b4d5e19f9aada1a54a01bcbf4b6c4744ea9135670cceb9c849afc0c917eaa09",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9ea3f25f33297af93be00640",
+        "canonicalId:ctkg:v3e-object-0c84769e1c4d260e0fdedff6"
+      ],
+      "rationale": "Challenger independently re-examined \"Attenuation factor 1/α in compensator\" (ctkg:v3e-object-0c84769e1c4d260e0fdedff6). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "9430d2e47702b1bc1a974055f2527b593c262504395ae60c030915b072e3203c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0cf99c642f502f5984fc4317",
+      "canonicalRevision": "5582cddfa8ca2e9f43183173ccf5b367e80bdc9bd31b0540ccf0a729efca5409",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-518bb654aa5e45253fdc8b67",
+        "canonicalId:ctkg:v3e-object-0cf99c642f502f5984fc4317"
+      ],
+      "rationale": "Challenger independently re-examined \"Time-domain performance measures\" (ctkg:v3e-object-0cf99c642f502f5984fc4317). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "0338074a9ec19f355e48357efabd100e1341c0261433070ef6ed8720e237ebbc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0eadd6f972de0e7b503343cf",
+      "canonicalRevision": "40c49df8d538b6a1d4c69d595851b8fcb2fd7bb0dfc33af9baeaa77f1d0075c9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d3ef5879bae844ed3f32c6de",
+        "evidence:ctkg:v3e-evidence-e41e72456c7156926009cf48",
+        "evidence:ctkg:v3e-evidence-ff83e22b465a6bb473045d30",
+        "canonicalId:ctkg:v3e-object-0eadd6f972de0e7b503343cf"
+      ],
+      "rationale": "Challenger independently re-examined \"PID controller design procedure for spacecraft attitude control\" (ctkg:v3e-object-0eadd6f972de0e7b503343cf). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "408095f1d3873c71eb6f6606ed1027f04a86c9c6396157a71704f482a158d2d1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0ede09d12722cabc48d82ce4",
+      "canonicalRevision": "da4af2b53a0993f59995738df380490b06b4a162ca0015c08e4d188f42dd128b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e9f7318d82132c2679e9f348",
+        "evidence:ctr:m1i-v1e-release-evidence-296d1ae70afca10edb7f2ef7",
+        "canonicalId:ctkg:v3e-object-0ede09d12722cabc48d82ce4"
+      ],
+      "rationale": "Challenger independently re-examined \"Phase-Lead Design Using the Bode Plot\" (ctkg:v3e-object-0ede09d12722cabc48d82ce4). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "2c2de6999544beeeef43a13d8e260178d9e4ddddd8f01a750a9392cfe2e597fc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0f28cd2360a6b3aef63500c3",
+      "canonicalRevision": "a0a869613747fc54faa08239b67111b42489471c255a1bd14cd9eed7ea51dc07",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a7786c3d9aac048e3793ca7f",
+        "canonicalId:ctkg:v3e-object-0f28cd2360a6b3aef63500c3"
+      ],
+      "rationale": "Challenger independently re-examined \"Uncompensated system\" (ctkg:v3e-object-0f28cd2360a6b3aef63500c3). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "7c03f4da8778a425ccf3dbc6b45a8583d7172be80cd2d9117e9fce808d74a940"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+      "canonicalRevision": "9078fceb991a23af6ba1c1b0ca823c070e268bde0f864122817177f9837be339",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-464f5332d50c259737fa3d10",
+        "evidence:ctkg:v3e-evidence-684d21515aaaa6c850c80c7b",
+        "canonicalId:ctkg:v3e-object-10c37fd947ba55593ff03ede"
+      ],
+      "rationale": "Challenger independently re-examined \"性能指标\" (ctkg:v3e-object-10c37fd947ba55593ff03ede). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "933f170018705c6dfcc11968bfd19b3f1725dba11060d2fe8e146f6a44e34340"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-110c156932e90fe902935cb1",
+      "canonicalRevision": "d7f1613897ad0f2a271786ffbda0ff228a1fe005bb54f4fa055247304874a2bb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-00dcb63432ffffadd2fb0587",
+        "canonicalId:ctkg:v3e-object-110c156932e90fe902935cb1"
+      ],
+      "rationale": "Challenger independently re-examined \"Phase stabilization\" (ctkg:v3e-object-110c156932e90fe902935cb1). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "a30f0299b7148daad5ed1a7595a745fb2d027edd431be2c0a0a1f0427d84563e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1170a798229324f8a6276262",
+      "canonicalRevision": "f48792409afe92055a30927047aea213ee16afd07f244c3c6d7d9a48d35c1a56",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ddd1449bd5f9a7590e891451",
+        "canonicalId:ctkg:v3e-object-1170a798229324f8a6276262"
+      ],
+      "rationale": "Challenger independently re-examined \"不可变部分\" (ctkg:v3e-object-1170a798229324f8a6276262). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "ddda16037372a69ba76feb96d74164175f629305743d628c8ccda72054fc0884"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1423d2e4d994f098d268dc5e",
+      "canonicalRevision": "a5bafa9903b57f13ff9975090e84b334e146fadd99eb4a62da4272c23544847f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-596e16599d90e8f8bfa53b58",
+        "canonicalId:ctkg:v3e-object-1423d2e4d994f098d268dc5e"
+      ],
+      "rationale": "Challenger independently re-examined \"校正问题\" (ctkg:v3e-object-1423d2e4d994f098d268dc5e). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "021968e116714f2efa3087fa4de33b421b47a7c47c3609551e724354b9a23648"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+      "canonicalRevision": "7a7eb019423b399418589b2029dd01b05f206c2e1cbea67f96b823617d184af7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f901961b5441e2bb409d3e6a",
+        "evidence:ctr:m1i-v1e-release-evidence-9bcf0249d1ce193a16c1d3e0",
+        "canonicalId:ctkg:v3e-object-16f7c2fa5fc07204ca43c086"
+      ],
+      "rationale": "Challenger independently re-examined \"PID控制器\" (ctkg:v3e-object-16f7c2fa5fc07204ca43c086). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "47307b6e10c438178a0a0b8876c63494e17c2522b472979e93757543769808c7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+      "canonicalRevision": "fda4c189e82c5c9dc8af59f56e739fba70ba8c12fa83ac1294a88dc372c088f1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-34141a9cf55307c826933b92",
+        "evidence:ctkg:v3e-evidence-6921771ba4e987f4555793e3",
+        "evidence:ctr:m1i-v1e-release-evidence-6fa67e3e63f12e0dd63dd02f",
+        "canonicalId:ctkg:v3e-object-17cae71babbbfe193c0124a4"
+      ],
+      "rationale": "Challenger independently re-examined \"Integration compensator\" (ctkg:v3e-object-17cae71babbbfe193c0124a4). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "b063ae79e81109a09c6e54223c14a4bfa58f8c311440f9d461d21e2298742d29"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-17f97568592a217c1d332948",
+      "canonicalRevision": "2133733e5fedb51866513726987a5c13c053fed842fe9c8dd6b288e96c1a767b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0798183143e19bf3cfe6a529",
+        "canonicalId:ctkg:v3e-object-17f97568592a217c1d332948"
+      ],
+      "rationale": "Challenger independently re-examined \"Compensated system\" (ctkg:v3e-object-17f97568592a217c1d332948). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "6d4f31f3d4250fcdbcf4f6d88f8597043185a43945b7af2b144f19e9e473e75f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+      "canonicalRevision": "6362e62507fb81890bd130182a23d23f628c85f31d476c1c108592466207bda0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-79344814ed3169cb0f31b5b6",
+        "evidence:ctr:m1i-v1e-release-evidence-ac60311c5dbbf5c45abbe496",
+        "canonicalId:ctkg:v3e-object-1b720d82e3de003a38fa57f6"
+      ],
+      "rationale": "Challenger independently re-examined \"Cascade Compensator\" (ctkg:v3e-object-1b720d82e3de003a38fa57f6). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "48a62f723bde0dad60e8d5e68c525317c82d5f2e1049d81f2bc454131f541ea4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "canonicalRevision": "e6c2c2d99913b5925a153810157b97e802a59326e6f2ebcb45e0eefacd86a5aa",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9b948fd6fe9bdb3bd4e6812e",
+        "canonicalId:ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8"
+      ],
+      "rationale": "Challenger independently re-examined \"比例-积分-微分控制规律\" (ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "61fcb1ecd89ad1958b9718e3138dba9d5ba18910e17db6bc59e3bf0b0302d973"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+      "canonicalRevision": "a722a1441a00efb5bd2b9ccaeefac98a4bba7bf86f23e73d0c600867da885f7f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-42725910ff5d42c766dc3e3b",
+        "evidence:ctr:m1i-v1e-release-evidence-830bc797e5e3df717ec01e5a",
+        "canonicalId:ctkg:v3e-object-22c09bec3824e6b6d0e4d83b"
+      ],
+      "rationale": "Challenger independently re-examined \"Phase-lead compensator\" (ctkg:v3e-object-22c09bec3824e6b6d0e4d83b). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "4c6c8535ad8ea3a282e3c7d48c4d73c44f67cdbf30eeb3812e9e9c095cee0c43"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2352b539ff08187f42885709",
+      "canonicalRevision": "acae70159cb7524140c20cb8f36622b00cddc103d946a7ba3930ac8bdfc7fee3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c6136aea150c5e90343a03c8",
+        "evidence:ctkg:v3e-evidence-debed8087149eb6fc0b373be",
+        "canonicalId:ctkg:v3e-object-2352b539ff08187f42885709"
+      ],
+      "rationale": "Challenger independently re-examined \"时间常数\" (ctkg:v3e-object-2352b539ff08187f42885709). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "11e17dd54274cda50702368d0b637c15355ebb267e61f6744bda988f60247f79"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-26855d3b2dc6161c8705b439",
+      "canonicalRevision": "bf476680dc4b933efb6d4b0766541b54fbe6c3211ef977eabb2c8f332c19c3c2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6dd4ad30e52d90d0b4520827",
+        "canonicalId:ctkg:v3e-object-26855d3b2dc6161c8705b439"
+      ],
+      "rationale": "Challenger independently re-examined \"无源校正网络\" (ctkg:v3e-object-26855d3b2dc6161c8705b439). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "bdf4543a9b49e0fa9c028a392d4fadbf30cfeddcdea41dbc3f8274fefc32e537"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+      "canonicalRevision": "e8240c90eeeabccea85659f3135bfb5739f65641050e05c722ae278fa237777d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3daab2c6dc06b33d60c2264a",
+        "canonicalId:ctkg:v3e-object-2805a69722f0a741c2479d22"
+      ],
+      "rationale": "Challenger independently re-examined \"PD控制器\" (ctkg:v3e-object-2805a69722f0a741c2479d22). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "38c998d582a34de2dea96d1442b3ec3f695bfb2d029ede6fa45c1bd151be0556"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-31fd73d9e24d1077744bf193",
+      "canonicalRevision": "1bc8cd90c3ae95099632864669179914d2d8662e81e5c1f330e68d1ec377f5b0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c96f8ad4dd67ae50ccff5c38",
+        "evidence:ctkg:v3e-evidence-ef96f26037c44f8f71a36a2f",
+        "canonicalId:ctkg:v3e-object-31fd73d9e24d1077744bf193"
+      ],
+      "rationale": "Challenger independently re-examined \"Root locus method for PI compensator design\" (ctkg:v3e-object-31fd73d9e24d1077744bf193). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "a34d331bf17166092a2158c1d8ac74201c11bc5c1cedba43cfbce7cf6228a457"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+      "canonicalRevision": "82e0524439b9117b196722d410e521ab5b042550fd62f1d4d726bf4c9bfda0cf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b31729fabb65a6fa8b9ab9ef",
+        "canonicalId:ctkg:v3e-object-35942e1152c99bd94bdecd00"
+      ],
+      "rationale": "Challenger independently re-examined \"I控制器\" (ctkg:v3e-object-35942e1152c99bd94bdecd00). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "3a6322c8099237112bd16109e0cd75f989d3abf020ec500b7d03d9a4bde921ec"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-36e31a50f047919209d08c48",
+      "canonicalRevision": "385b65ad2d8608fcac546c7cffbef958d67bf915de1baba5b1625623339ea1aa",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7e58dd5e3b942b6dbc12c1b4",
+        "canonicalId:ctkg:v3e-object-36e31a50f047919209d08c48"
+      ],
+      "rationale": "Challenger independently re-examined \"Output Compensation\" (ctkg:v3e-object-36e31a50f047919209d08c48). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "70b0ade51c2d56980c819440ab05afa4ad55bc1a31a3a7b0b5bd528d984bd70d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "canonicalRevision": "ed0019e5d7f81e309b9e5aade822bde5f4288f2f68137ff26f7278e8d0315a0a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-68398119dd860f2da6bc8ce6",
+        "evidence:ctkg:v3e-evidence-7b59b4ad28bb167ad72ee495",
+        "evidence:ctr:m1i-v1e-release-evidence-2d38342508c65672665a3981",
+        "canonicalId:ctkg:v3e-object-36f969bb5befa8ef9f8d0a99"
+      ],
+      "rationale": "Challenger independently re-examined \"Frequency response method\" (ctkg:v3e-object-36f969bb5befa8ef9f8d0a99). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "252e7257ebe2d9bcc889e884dffcd5bf63c01792d3a770bc853d793837403f6d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3e6161451d16517ada4cd5e8",
+      "canonicalRevision": "6d5db65048aa2846223b641edb44b531d7631b5394e8b28c2b9f3d8bebfa33f7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cbaad2f59a4d8e45d9244dd2",
+        "canonicalId:ctkg:v3e-object-3e6161451d16517ada4cd5e8"
+      ],
+      "rationale": "Challenger independently re-examined \"中频区宽度\" (ctkg:v3e-object-3e6161451d16517ada4cd5e8). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "96e914906040960a2a99ac6cccb9105de39af7f1e98fd8abedc8689e30e47827"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3efb972a33b0a45162a5d04a",
+      "canonicalRevision": "892e7645e2ebe7d696183955acd97a4a32230b120176cbd6112e5fb051ddb53f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-665b51001705dc4f0c6b87b3",
+        "canonicalId:ctkg:v3e-object-3efb972a33b0a45162a5d04a"
+      ],
+      "rationale": "Challenger independently re-examined \"Root locus\" (ctkg:v3e-object-3efb972a33b0a45162a5d04a). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "853c5832f4bdd11caf05f765561869041e5a9eb30386108fc36bf78c32455de7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3f8e288fedb8ba46bfd02185",
+      "canonicalRevision": "d2ac31dceeb9b1018bfb8e6d99dc7730664d8ee67e299d60c67a9723a675d0cc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-151a66d12d82230f62354d6a",
+        "evidence:ctkg:v3e-evidence-1f58efe6eec86f853b0fb36c",
+        "evidence:ctkg:v3e-evidence-b8f3665f5bfde49dc2dcfd6a",
+        "canonicalId:ctkg:v3e-object-3f8e288fedb8ba46bfd02185"
+      ],
+      "rationale": "Challenger independently re-examined \"频率响应法校正设计\" (ctkg:v3e-object-3f8e288fedb8ba46bfd02185). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "0d9dd7311931c25495d16313d537ff9eb197115bfe702ef082928170d91d14fe"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+      "canonicalRevision": "3a4472b0c0961cfb7be2093806305448b414a3ebafda7f4ee25b993f815df2c4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-09936cafcb8ce814bd61056e",
+        "evidence:ctkg:v3e-evidence-481045fdc2a21e263c33d677",
+        "canonicalId:ctkg:v3e-object-3fe181aa7c0967f58d1dbfee"
+      ],
+      "rationale": "Challenger independently re-examined \"比例控制规律\" (ctkg:v3e-object-3fe181aa7c0967f58d1dbfee). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "fd98a272e6a9fde929196f2747be5188686701252c022878673ae3d013507967"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-42df8c524c1d9b3e8ae03275",
+      "canonicalRevision": "361c1ef646e93f4ccc8dc8f75c1f1492e54515ec87f8b1bd1283172ad7681d22",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f5606ef553200c9e46c2e3b2",
+        "canonicalId:ctkg:v3e-object-42df8c524c1d9b3e8ae03275"
+      ],
+      "rationale": "Challenger independently re-examined \"期望的开环频率特性形状\" (ctkg:v3e-object-42df8c524c1d9b3e8ae03275). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "23855e690d20d314e1a08176d5d73b9b5d3dbd71b4cef4ab83a8a7a307bce7d9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+      "canonicalRevision": "c7f31f52342db14f08476f452531c847823dfe37fa0fcd4e174f22741326877a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8ea63bcf15129012e16b82db",
+        "canonicalId:ctkg:v3e-object-42f4fff2329a29d38cbcd4bc"
+      ],
+      "rationale": "Challenger independently re-examined \"系统带宽\" (ctkg:v3e-object-42f4fff2329a29d38cbcd4bc). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "48932af16246782eee843b6db6d08e59f72e0066fabbfd185107e4f6cbbf4ee3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4750f985e21b1a39f40e0473",
+      "canonicalRevision": "26eb833ba6643a6be4cea5ccd0a2f46490f25b3aea4ca633f0100773b392bab0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-45e289175a6303c2c6c40aef",
+        "evidence:ctkg:v3e-evidence-a6708ce1d820b918c8170b60",
+        "canonicalId:ctkg:v3e-object-4750f985e21b1a39f40e0473"
+      ],
+      "rationale": "Challenger independently re-examined \"Output compensation (as a scheme)\" (ctkg:v3e-object-4750f985e21b1a39f40e0473). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "6268f415367a85e076725b3ae8c7ae71b336b91073723e0cf0567fa8a2864e4d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4cccd13f596146e4afdba37c",
+      "canonicalRevision": "c043f1b77f0f31d61a01b187635f1ca7ed86820a27e243cfb795ae21ea919513",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-695d6846d2b427f772b26763",
+        "canonicalId:ctkg:v3e-object-4cccd13f596146e4afdba37c"
+      ],
+      "rationale": "Challenger independently re-examined \"Closed-loop system transfer function\" (ctkg:v3e-object-4cccd13f596146e4afdba37c). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "37bfc2e6a80e52afc2c1de4e29a48c745d7c1241cc55a42ac2867bac015fd4fd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+      "canonicalRevision": "428280a46a0dd9f232d12a14082f673b4995b7f18a3233ff00addb6a3042bc18",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-03c61dd9b6c6b84f3d530013",
+        "canonicalId:ctkg:v3e-object-508501381207b32fdb98c6c2"
+      ],
+      "rationale": "Challenger independently re-examined \"比例系数\" (ctkg:v3e-object-508501381207b32fdb98c6c2). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "e3e9024cf83c3e919578176b20c96abe7415954a6ef16a5a5462c993db2d7676"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5104f48a9527029987e0519a",
+      "canonicalRevision": "7b9fb1dfc6d5ca5977c711f3dc19ddecf328346c63fc1ee47b2814ff3c982a15",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a9045e2026c97f73c604962d",
+        "canonicalId:ctkg:v3e-object-5104f48a9527029987e0519a"
+      ],
+      "rationale": "Challenger independently re-examined \"前馈校正\" (ctkg:v3e-object-5104f48a9527029987e0519a). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "e626ae761ae1f835f7467a4e765e52c183476041e8311405a84ee3f22f25add1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-53d71370dc7c98dc11b24a37",
+      "canonicalRevision": "1fac89bdd72aa1c4876d5cd6cd0909ddec5080f19aa1eb084ab66a7c05784a7d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b6dba41f72e6f031bdcccb38",
+        "canonicalId:ctkg:v3e-object-53d71370dc7c98dc11b24a37"
+      ],
+      "rationale": "Challenger independently re-examined \"Notch Compensation\" (ctkg:v3e-object-53d71370dc7c98dc11b24a37). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "153e12c9137c4c4ff52f236147fb6a1bb13429ba60e82b67ee5944e4414fd980"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-55036b61ed3fe680ef13f904",
+      "canonicalRevision": "c650cab12cf5682c8fe1d7aaccd570b782d4cedbdd6614d2c01af6774338f586",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9649cfecb19525ed105f3ca8",
+        "canonicalId:ctkg:v3e-object-55036b61ed3fe680ef13f904"
+      ],
+      "rationale": "Challenger independently re-examined \"Input Compensation\" (ctkg:v3e-object-55036b61ed3fe680ef13f904). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "4ea679bf60fe651bf4179599bb54c2df49c494cf2c1fd931cdbc8c7b45b12450"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "canonicalRevision": "e98fd58175727cca194ef273c03501f40bdbacc533e0350f51d8f553f12a8739",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-12c8f2920c3c7539bcb2b1b5",
+        "evidence:ctkg:v3e-evidence-ea2a9bf3da24cf2351e48b0f",
+        "canonicalId:ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4"
+      ],
+      "rationale": "Challenger independently re-examined \"串联超前校正\" (ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "b5dd399bf6dc78e1e044436e620e4f2f432e23121acc5c29b7b8e80f0abc3a87"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5c04a71914f42217047a20bf",
+      "canonicalRevision": "449f19e65d945876cdbf573f6c1103dedecd5536e04306fdc7a8a78471eda44c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a4173cc587b693018fd2f288",
+        "canonicalId:ctkg:v3e-object-5c04a71914f42217047a20bf"
+      ],
+      "rationale": "Challenger independently re-examined \"振荡周期\" (ctkg:v3e-object-5c04a71914f42217047a20bf). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "314063aba0da7db9a7094738c855f79b1dd1786e99dac66cc3a337ce0d7e0129"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5c2ad2da07903ca99b2b1f08",
+      "canonicalRevision": "e83007795f4290e4581e73f84259304465afd26969c1f50151f5f5c34e0780e7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d7bf5f1eb55757e9456e5369",
+        "canonicalId:ctkg:v3e-object-5c2ad2da07903ca99b2b1f08"
+      ],
+      "rationale": "Challenger independently re-examined \"Frequency-domain performance measures\" (ctkg:v3e-object-5c2ad2da07903ca99b2b1f08). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "351dca1313e82c2c6883148689ee7d5d77458bbb0eafe8e0ac1c6cd51188a38c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e2c57363c60521b3839a751",
+      "canonicalRevision": "9994795d7bd5975e9f50db08ea410ad5f68641668c1a41b5905b54e9f2951e00",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8c1d99dcb30436e82183a8c1",
+        "canonicalId:ctkg:v3e-object-5e2c57363c60521b3839a751"
+      ],
+      "rationale": "Challenger independently re-examined \"综合法（期望特性法）\" (ctkg:v3e-object-5e2c57363c60521b3839a751). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "c0ad19e41eddf319f26fbdd178dcbc3e770eca9c2aecc481a15b2df5479b6d5d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-60e97b106df3b47840a4b6fd",
+      "canonicalRevision": "d411d0ff52543675763b45507bf71d57226f8fcba190ab95ead06278a7a15a7b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ef7e7ac388de34c65536a0ba",
+        "canonicalId:ctkg:v3e-object-60e97b106df3b47840a4b6fd"
+      ],
+      "rationale": "Challenger independently re-examined \"衰减比\" (ctkg:v3e-object-60e97b106df3b47840a4b6fd). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "f0e60caf40f6b6553ca8c68ab61d1e360007605ada497ef1aa1102e4725f0614"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-62fdc01d171ed1ecf803d7d9",
+      "canonicalRevision": "4d9ce7ae14cc92d374fa0070caca4321bd506611863f24eed217bf07c2544fd5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0733aa543c614c5eabcd7a3e",
+        "canonicalId:ctkg:v3e-object-62fdc01d171ed1ecf803d7d9"
+      ],
+      "rationale": "Challenger independently re-examined \"比例-微分控制规律\" (ctkg:v3e-object-62fdc01d171ed1ecf803d7d9). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "cacfc452dc3fce4fb103e3a90d13c3ea3b6a1d7705a86d9f8ae1df4f72767c25"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "canonicalRevision": "11a32cf04a4dd5dba3e1d2b01ab7c20df719bc34c8f52ad6e595cc8de9e96ca6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4ea9b9b4cd1926a5084b1989",
+        "canonicalId:ctkg:v3e-object-68d64f3444ac7af6336f1f81"
+      ],
+      "rationale": "Challenger independently re-examined \"PI控制器\" (ctkg:v3e-object-68d64f3444ac7af6336f1f81). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "8480fa6c070ae6b37f47f72fcb297b06a5f17c055958cb9aec475ed8e9bf0d3a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7920406a5dc429be713c5890",
+      "canonicalRevision": "7764cbc5261eb03ce44811221ec1a05b39de6474d81e2e1782696c53dfd423b5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7f42cd977496efeadc3b6f7e",
+        "evidence:ctkg:v3e-evidence-b0cd29449444401859cb5f6c",
+        "canonicalId:ctkg:v3e-object-7920406a5dc429be713c5890"
+      ],
+      "rationale": "Challenger independently re-examined \"Feedback compensation (as a scheme)\" (ctkg:v3e-object-7920406a5dc429be713c5890). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "2ae47211ecad9cdc86cf815c9a10600b2c30197f55683c91d22f235327c50c80"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+      "canonicalRevision": "d877a88d6e3e4a90ab7dab18edfb8699ff678064a8b89aa0c0d1f70d22d19d8c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d31fe8321d2ed095ca9123b4",
+        "canonicalId:ctkg:v3e-object-7d20806108956a0f52c08f3a"
+      ],
+      "rationale": "Challenger independently re-examined \"Proportional plus integral (PI) controller\" (ctkg:v3e-object-7d20806108956a0f52c08f3a). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "90d6e7bdad2742797826a0dee98c85194d4eea67cd03bbc24c703b1b1d30093a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7fd09957133988dbf413a2df",
+      "canonicalRevision": "1ba53091f840625acd5036dbfeccbc492f9abad9c82970c5c6c40179a7a3cebf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e444691c18385c82ccf79ca9",
+        "canonicalId:ctkg:v3e-object-7fd09957133988dbf413a2df"
+      ],
+      "rationale": "Challenger independently re-examined \"时域法校正\" (ctkg:v3e-object-7fd09957133988dbf413a2df). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "039d9052f1103f25daeaa021772de8179b0109bc3ed98e5bb8edb83d983d019c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-82784a1896512b7f3297d710",
+      "canonicalRevision": "84e2d282ded37bb02a9c1062b076430226f1273fa7f0094720605920b3f2808c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-131d8984d8e2701e28480454",
+        "canonicalId:ctkg:v3e-object-82784a1896512b7f3297d710"
+      ],
+      "rationale": "Challenger independently re-examined \"临界比例值\" (ctkg:v3e-object-82784a1896512b7f3297d710). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "9e77ea055a0fc85852f8408ab4567214b022086244bf553e9e8b9236b21c3a4d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "canonicalRevision": "49ec5cef5d3896de2c2680a07742f2b0c0191ba0ddbc687e3ee44c769d773faa",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a9fdedf9b40843252930c518",
+        "evidence:ctkg:v3e-evidence-d72e59271381e9073120cd92",
+        "canonicalId:ctkg:v3e-object-83b0bd3fc503270cb174a500"
+      ],
+      "rationale": "Challenger independently re-examined \"Lead Compensation\" (ctkg:v3e-object-83b0bd3fc503270cb174a500). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "77fd79f607fef7fb589fe8974057449bce71fd1f7c3b0c225e12d691a1827039"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-83d0805f5bcd8a6654402540",
+      "canonicalRevision": "2985be05ac01bd22a1bd7c451fd22189f786ad529483c843de3d367ac9d45105",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-60825ce57d9532d1cb34a05d",
+        "evidence:ctkg:v3e-evidence-b3eccc5cec39e029c9006943",
+        "canonicalId:ctkg:v3e-object-83d0805f5bcd8a6654402540"
+      ],
+      "rationale": "Challenger independently re-examined \"Cascade compensation\" (ctkg:v3e-object-83d0805f5bcd8a6654402540). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "f16dd4b6eb08af190f912293786edc89b63241b4b02828c0e1c2ff3cc1f65e0a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-84350edf4a87ec7d0552e03e",
+      "canonicalRevision": "a17ad563cf31c7176cbb5d7053a2660e42853659be13a79adfddf02cc02542c5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cb183a454bbde2e700807d61",
+        "canonicalId:ctkg:v3e-object-84350edf4a87ec7d0552e03e"
+      ],
+      "rationale": "Challenger independently re-examined \"Phase-Lead Compensator\" (ctkg:v3e-object-84350edf4a87ec7d0552e03e). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "9ae51ec00adc14854723a6b1f8f26634ebacf36242348117358a1d0161ef4a4f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-86a182d9c2c23936967de7ef",
+      "canonicalRevision": "60c38d6965bb95498b8373b50ef3617c83aae72117a08a73a5e4408769938759",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-09675c3f493eb0ba33d7fec4",
+        "canonicalId:ctkg:v3e-object-86a182d9c2c23936967de7ef"
+      ],
+      "rationale": "Challenger independently re-examined \"Safety margin in phase-lead design\" (ctkg:v3e-object-86a182d9c2c23936967de7ef). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "b855387deefb4efce075dc2b1864dbcc76dd888139d66ea8301e1a29d3809cd6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "canonicalRevision": "5ddee92598e0a2b427b416026714684dff1f799c141bfce9191d3134a291150a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8ad6458387dac2b8c7b483b8",
+        "canonicalId:ctkg:v3e-object-87119ed807a83a53c1444215"
+      ],
+      "rationale": "Challenger independently re-examined \"Lag Compensation\" (ctkg:v3e-object-87119ed807a83a53c1444215). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "8fa205b6c55a042f1ccee1e94ab176f3b60fbde9327d38498070b7429eb0a661"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-89f58618b8927a2026f2799b",
+      "canonicalRevision": "20eaa2a0320bca89c3b2a9365e5a84e818574bcb0062f12ce35f5a6a5ec77827",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9bcc315c109312120c592f8d",
+        "canonicalId:ctkg:v3e-object-89f58618b8927a2026f2799b"
+      ],
+      "rationale": "Challenger independently re-examined \"微分时间常数\" (ctkg:v3e-object-89f58618b8927a2026f2799b). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "85f3aa2e07329f1e0537a549496f920c8be1eabd1abd7e53effb96e1d6665471"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8ba6baca586dfe58f396b9a0",
+      "canonicalRevision": "1bb40107a467da6ccc2ac4ff59d63d511fbbf84eab016c75db6b321b630b6afa",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-30b5746cb80968bb9c277a42",
+        "canonicalId:ctkg:v3e-object-8ba6baca586dfe58f396b9a0"
+      ],
+      "rationale": "Challenger independently re-examined \"Phase-lead compensator design for phase margin or root locus reshaping\" (ctkg:v3e-object-8ba6baca586dfe58f396b9a0). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "38d6eb4b5e15468ecfb6b4ace6d551adaf1d7bf246205dbc8e96805e27759324"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8eea21c512dc1ece3c5d1630",
+      "canonicalRevision": "90c43a5a0a9f26d9e6ee236942f0e1741a49b8ec0e3ab5b3dd064b8e78a11982",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2400740219b422e1b3766352",
+        "evidence:ctkg:v3e-evidence-6b2e8be2c57b87f645cdd143",
+        "canonicalId:ctkg:v3e-object-8eea21c512dc1ece3c5d1630"
+      ],
+      "rationale": "Challenger independently re-examined \"临界比例度法\" (ctkg:v3e-object-8eea21c512dc1ece3c5d1630). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "1fcd31345d17aeec3f0945b793294156d7215796203914d99faf6825c03251cb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+      "canonicalRevision": "78468586e31a56498c84ce602e3a52dc597018d46e460689133c060a15db46a3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-56effb314ebe61f4ae336edf",
+        "canonicalId:ctkg:v3e-object-90fe9648723adb7fc20557a7"
+      ],
+      "rationale": "Challenger independently re-examined \"Steady-state accuracy\" (ctkg:v3e-object-90fe9648723adb7fc20557a7). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "17b3e47e851ba24dcebeacf48972695c7c16620ef87a34247d2b819c744e5ba9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-924174fe69be3e335cca76d8",
+      "canonicalRevision": "ddf88f4e45072e0f934b2f396a2aa575d0330b506d0af25b48c4392cf8c5bf06",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-10f0e8ad26eeae0f4f8bd015",
+        "canonicalId:ctkg:v3e-object-924174fe69be3e335cca76d8"
+      ],
+      "rationale": "Challenger independently re-examined \"有源校正装置\" (ctkg:v3e-object-924174fe69be3e335cca76d8). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "51c4de9b85839ac3a3f7bcbe0d9ec0750c14829f830d4f6e571d5b3b0e31b102"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9a7f6e28a612b00c77f8ea94",
+      "canonicalRevision": "fd5821501bb999614943c838b86175c23a2265b31026962d9f66499d0eeb0d28",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1d8eba942b7798379887d608",
+        "canonicalId:ctkg:v3e-object-9a7f6e28a612b00c77f8ea94"
+      ],
+      "rationale": "Challenger independently re-examined \"Phase-lead design using the root locus\" (ctkg:v3e-object-9a7f6e28a612b00c77f8ea94). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "11e1f8e92fc74ab0a51d4b309d1b2da15a5fd4666e828705245311a5a5ae4269"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+      "canonicalRevision": "4c0bb9afc30c60135f82ac76ca11e0a3db5972449ea97e02cece38c09d74d97a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a776d06f9675cdd6528731e8",
+        "canonicalId:ctkg:v3e-object-9b3052d4d15a96d495d8e6f5"
+      ],
+      "rationale": "Challenger independently re-examined \"积分控制规律\" (ctkg:v3e-object-9b3052d4d15a96d495d8e6f5). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "6e0043dc8929a22d3d76e7d4047597aca3ce57631c7a253fee5d5d84b60e3aca"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "canonicalRevision": "613fee4d27546b8fd38f080694171fc818b3ffaa51cb55823fefbbb34a7b1ee2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7589617759b9b237ca349be1",
+        "canonicalId:ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8"
+      ],
+      "rationale": "Challenger independently re-examined \"反馈校正\" (ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "1a9df14853e17abcddd3e738c62e3632821a4ebb2caa64c59a86725aa421d3b6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a4a5ad4fbaf4f8f87fa5f49c",
+      "canonicalRevision": "9d6e5e76aeb8c5885ee00d606460000b8adca773d99affbb41a39146ed354191",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d6ac4ff1ac28bae10e77e811",
+        "evidence:ctr:m1i-v1e-release-evidence-6dca33fbe2d2926e8c1133ff",
+        "canonicalId:ctkg:v3e-object-a4a5ad4fbaf4f8f87fa5f49c"
+      ],
+      "rationale": "Challenger independently re-examined \"最大超前角频率\" (ctkg:v3e-object-a4a5ad4fbaf4f8f87fa5f49c). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "199ece3b086b2f08e571cb1844bb118ed49439a4820e6b1aeaef927cad9ad508"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a4bbf36e5da58c0e926d8829",
+      "canonicalRevision": "ef017588cb6f1298cf133eadfdbb877089bdd5c2eaa72a7f35b18ce82201e6f6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4a742119518e0ca4f1e01d74",
+        "canonicalId:ctkg:v3e-object-a4bbf36e5da58c0e926d8829"
+      ],
+      "rationale": "Challenger independently re-examined \"比例-积分控制规律\" (ctkg:v3e-object-a4bbf36e5da58c0e926d8829). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "2c82cc25ffc339c0a51cbd89bbc3718f76b619d413977926401dd4eeef986a1f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a9170d459013db92d3250926",
+      "canonicalRevision": "0574931f795c9d6bd706b626e026192dda3989644b5ea4f0e39e2d3b1ad5e90f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0dae6219c98a6997545d72dd",
+        "evidence:ctkg:v3e-evidence-d7f0dcbe768f6c489a3ccd1e",
+        "canonicalId:ctkg:v3e-object-a9170d459013db92d3250926"
+      ],
+      "rationale": "Challenger independently re-examined \"Nichols chart for compensated system\" (ctkg:v3e-object-a9170d459013db92d3250926). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "663449de679d9c52ec3786d54ac5def42fcb6513d4053b874c1fea5ea87982fb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a9ab5986ee63ecaae648e840",
+      "canonicalRevision": "1e2bf8d09b10a694022285f371f07ac5a77ce4bb5e77a738501227a7f81fccea",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c297804375ee7ffa8cce2d08",
+        "canonicalId:ctkg:v3e-object-a9ab5986ee63ecaae648e840"
+      ],
+      "rationale": "Challenger independently re-examined \"Servomechanism position controller\" (ctkg:v3e-object-a9ab5986ee63ecaae648e840). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "2d1b33bb0964c73d6e52ace91e148450ba9774b371bd801b7f96f5ebe29ad4ce"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a9ee0638045ceeb7e66d2ba0",
+      "canonicalRevision": "3cb13c61e46e8f9018e397d1e8939e98a91b3a40053619823fa00a4d72295903",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-221dec6ecce173185ce58bdf",
+        "canonicalId:ctkg:v3e-object-a9ee0638045ceeb7e66d2ba0"
+      ],
+      "rationale": "Challenger independently re-examined \"Undamped oscillation\" (ctkg:v3e-object-a9ee0638045ceeb7e66d2ba0). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "0af9659ea62e23ef72e54df8382d3b9e15457b44091b4af41b5d33d54599eec2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ad9dd2d6032f3c150c03fc49",
+      "canonicalRevision": "5a05e6731dc456e0fc4fc0288122d47397ecbb2a4d3fbceffb50a3a2efc8c3e0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fb730a8820e3ced889fbd0cf",
+        "canonicalId:ctkg:v3e-object-ad9dd2d6032f3c150c03fc49"
+      ],
+      "rationale": "Challenger independently re-examined \"Compensated crossover frequency\" (ctkg:v3e-object-ad9dd2d6032f3c150c03fc49). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "ff9ee717b008efcf8e325d700bc4b6b1e6caef260ccc3bcd2a4303fda4f388f2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aeb5c6a36d9a565300cacaa7",
+      "canonicalRevision": "ee2c50de939cf3c20d8a0a8e17ab920c772e155ff8aeccede9d82c678ce831b7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1fe5744957243695c5961ac9",
+        "canonicalId:ctkg:v3e-object-aeb5c6a36d9a565300cacaa7"
+      ],
+      "rationale": "Challenger independently re-examined \"分析法（试探法）\" (ctkg:v3e-object-aeb5c6a36d9a565300cacaa7). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "486d1f0b08579db4645b2322ba7f0c359308271fc0813af4d8e52807f0803bae"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-af604268b1e07a0ddba886f3",
+      "canonicalRevision": "0b5252caacebbb4e0d92ac3288a96227a799685fecf6adb85c95b056d9f8157f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-401f99d9783771562c42ee57",
+        "canonicalId:ctkg:v3e-object-af604268b1e07a0ddba886f3"
+      ],
+      "rationale": "Challenger independently re-examined \"Nichols chart\" (ctkg:v3e-object-af604268b1e07a0ddba886f3). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "5014ab62106846c1ab327fa38c44db8990814910b56614e2a181635fa2505026"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b202f2a7c47a97c1f0e1efe8",
+      "canonicalRevision": "29c9124aff1b7af346ffcca4aa483887a01d10e03570497bd5157633f6e55692",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f37fc58f8276401ec781194d",
+        "canonicalId:ctkg:v3e-object-b202f2a7c47a97c1f0e1efe8"
+      ],
+      "rationale": "Challenger independently re-examined \"滞后深度\" (ctkg:v3e-object-b202f2a7c47a97c1f0e1efe8). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "65b51d8d0067f7f299791e9348dd2092c78df77cb9e74c7f24172cd3e3f51262"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+      "canonicalRevision": "b5191ab62a52646cbd2ebc2883130445ac3ec93e3992f3d50b1e6d7156013fbe",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-68687fe69d14d1c2e959dd08",
+        "canonicalId:ctkg:v3e-object-b51bc504a48917b2c5ec25c3"
+      ],
+      "rationale": "Challenger independently re-examined \"Feedback Compensation\" (ctkg:v3e-object-b51bc504a48917b2c5ec25c3). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "ef24841213a6f39c82dc142c959e3d869dfb2718b3dc8bb246d7d219cf8f9f25"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+      "canonicalRevision": "e67974e4d52ad4dd4e6a3816cea868eaef7cc9382156c792b72444854d45a61a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d741f3813154fb0e74ef06e3",
+        "evidence:ctr:m1i-v1e-release-evidence-9a479b1e2e307406849b8eb7",
+        "canonicalId:ctkg:v3e-object-b73224087c9c0475612e8635"
+      ],
+      "rationale": "Challenger independently re-examined \"Phase-Lag Compensator\" (ctkg:v3e-object-b73224087c9c0475612e8635). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "19fcbda74b26235861a1834ac7870d630a2c6c44d6bfb7927cc511b0c7d5e332"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b95aad56e25e573b0902c1c3",
+      "canonicalRevision": "db978d2c65d126f7f33617e1201a32d9bfb5842fc8821595e60c81d9f2f2eade",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-16a361f6d01a4af0c2caeb24",
+        "evidence:ctkg:v3e-evidence-e9399c2134c5211692d5fc93",
+        "canonicalId:ctkg:v3e-object-b95aad56e25e573b0902c1c3"
+      ],
+      "rationale": "Challenger independently re-examined \"Input compensation (as a scheme)\" (ctkg:v3e-object-b95aad56e25e573b0902c1c3). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "f21212f48b5a270a9b31938f543a98a2b90d9ff486428809e95195683dd77a08"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bdb527f3245189eaf48b43e5",
+      "canonicalRevision": "e739b21b72a8d92ee6118becdcad41a365d3f0a814bea978caf7b94f69347ef4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0b8dd792211aab5f2a2753b8",
+        "evidence:ctkg:v3e-evidence-bf7f514f9b3981f0da1c7826",
+        "evidence:ctkg:v3e-evidence-ddaab34d413c14bd86eca943",
+        "canonicalId:ctkg:v3e-object-bdb527f3245189eaf48b43e5"
+      ],
+      "rationale": "Challenger independently re-examined \"Prefilter\" (ctkg:v3e-object-bdb527f3245189eaf48b43e5). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "385919f145430303c70a4b86d8d3380e2863b4220e79187e2bffdbef913817d2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bf9e8241330bdf92c90e15f7",
+      "canonicalRevision": "289b7936b1b16f18d558367d39a97d943556e3ab39e93529b00de494deb1d58b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-646ef47a850d1f09dd7f7a0e",
+        "canonicalId:ctkg:v3e-object-bf9e8241330bdf92c90e15f7"
+      ],
+      "rationale": "Challenger independently re-examined \"积分时间常数\" (ctkg:v3e-object-bf9e8241330bdf92c90e15f7). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "65ac65689a1d904afdb1668e9f8641e70c6cc35dab91f9bb6865e9fedebbb1ba"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c257d94caf0f579cc0a8dd67",
+      "canonicalRevision": "9fe60517347f0930ca528aa40eb1245c62c49f04a62c2f03ead6db0bb4177d69",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-eeed583e944d23f3c9a66f44",
+        "canonicalId:ctkg:v3e-object-c257d94caf0f579cc0a8dd67"
+      ],
+      "rationale": "Challenger independently re-examined \"Gain stabilization\" (ctkg:v3e-object-c257d94caf0f579cc0a8dd67). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "ace84002de068e163e7ab0570d9ea76c1cb313e6d32519465154c16566854bd0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+      "canonicalRevision": "9ab12690dc61e0cb9af4ee86f6ff194125170b14fa20281378e7cd95c6182ba2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-786bd76fedf747558eedbfa4",
+        "canonicalId:ctkg:v3e-object-c437a7c8ef65d5677ad5c387"
+      ],
+      "rationale": "Challenger independently re-examined \"Compensation\" (ctkg:v3e-object-c437a7c8ef65d5677ad5c387). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "9cbdceaa3db58148927836b75541572210bfaff3c20e8804cbd310d472c0735c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c44c33ab59ce32f3a260d687",
+      "canonicalRevision": "7129a2b0e77646c2103f78de97b066de067621718f886c17e2d166d5809011df",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9782e416af250f51ff236720",
+        "canonicalId:ctkg:v3e-object-c44c33ab59ce32f3a260d687"
+      ],
+      "rationale": "Challenger independently re-examined \"Settling time with 2% criterion\" (ctkg:v3e-object-c44c33ab59ce32f3a260d687). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "bcdcce8ac3d3b236a9f3feaa17377b4bd06eef2d5daf27ebab5c2e4d57f6194d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ceba589bd42774a013eabc27",
+      "canonicalRevision": "c1f2eaa8f7650b621054bae5e2da4227169764660de5c749284f889df4cf9c80",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-02f5034c2f1f5f8f14044a53",
+        "canonicalId:ctkg:v3e-object-ceba589bd42774a013eabc27"
+      ],
+      "rationale": "Challenger independently re-examined \"最大滞后角频率\" (ctkg:v3e-object-ceba589bd42774a013eabc27). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "ba935240e1471bebaa46e07c1a779f1969d0e356314d37444583ca6c6951f378"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d80da04d9d355b4af6fec9f9",
+      "canonicalRevision": "9559e1757971b9e0c88e8eafc4c4859c9edbba8cdfc6956f78902ef0f52dd204",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e5a6008b7b1cab5cc1430840",
+        "canonicalId:ctkg:v3e-object-d80da04d9d355b4af6fec9f9"
+      ],
+      "rationale": "Challenger independently re-examined \"Phase-lead compensator\" (ctkg:v3e-object-d80da04d9d355b4af6fec9f9). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "d832a5c9ba950d1e6973ff697c7d92f3694b5653ff3f74af6b7d3b733c9d85f5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+      "canonicalRevision": "17a321dddce765a29ab1bfe06093b49fd95baf36ee9eefe4d6c4bce14a4658e5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-029796631b0a15d28acabfa6",
+        "evidence:ctkg:v3e-evidence-9a4d02db4e6e2623d879104a",
+        "canonicalId:ctkg:v3e-object-d80dfe6ce979515d21845c81"
+      ],
+      "rationale": "Challenger independently re-examined \"串联滞后-超前校正\" (ctkg:v3e-object-d80dfe6ce979515d21845c81). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "69ccd4a00f261c96138e60211afebccbbb1d31123dbb2f2c509d9a09f2a68c8e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0",
+      "canonicalRevision": "0932d5ecc01a7b5a1a3b1ad368094f10fb59044921742ef8123833c26a84b78e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-681ed7003116cf3ea8a57058",
+        "canonicalId:ctkg:v3e-object-dcb227bd6a2bb08a122e52d0"
+      ],
+      "rationale": "Challenger independently re-examined \"复合校正\" (ctkg:v3e-object-dcb227bd6a2bb08a122e52d0). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "5dbc34e6c31ddd3bf4c601e95a4a8c132e2615168f856d355034c06794477b4b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+      "canonicalRevision": "3df794c1eeb67f53172132fa0581bb254e4b6b3dc7e4eac1fe2ba322f34b4a47",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-17d74da3fa016b7bb72ae9da",
+        "canonicalId:ctkg:v3e-object-e1caec9f68da5c573be699d5"
+      ],
+      "rationale": "Challenger independently re-examined \"串联校正\" (ctkg:v3e-object-e1caec9f68da5c573be699d5). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "44cda686c51486265636b87f75d8c7d11273ec705ea4f1cde97c962448d9771d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e9769878ab175b13dde19719",
+      "canonicalRevision": "17dd3f459fa9c4412e250bf817c99be9161944a61cddb3e1c6ff4a0f8dc4feda",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4d119c2c0bf5769c7097053e",
+        "evidence:ctkg:v3e-evidence-4d520b180856232b9cc3f05e",
+        "canonicalId:ctkg:v3e-object-e9769878ab175b13dde19719"
+      ],
+      "rationale": "Challenger independently re-examined \"分度系数\" (ctkg:v3e-object-e9769878ab175b13dde19719). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "b920e51e8b9f7e193ce6ab4e24463fd9173f4e033f5bb434e9b3abbfa163dcb8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ed9641f893aef73d04f6caf0",
+      "canonicalRevision": "631d9179098557527bfbf6c132406d6ab599b3dc9785e62dc6d5045c4e69763a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-303d8286551d64b2de2c4e6b",
+        "canonicalId:ctkg:v3e-object-ed9641f893aef73d04f6caf0"
+      ],
+      "rationale": "Challenger independently re-examined \"Maximum magnitude of closed-loop frequency response M_pω\" (ctkg:v3e-object-ed9641f893aef73d04f6caf0). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "68d0900ef37ba1c97613de8d8306898b44ee80b5ea5f3d942029de9130b32cd6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "canonicalRevision": "86f7d5e6e38312888e51f561afddf25fb7de958503f6fbeef6b6461831e68e35",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1433d6d8f4dfb04460dde7ae",
+        "canonicalId:ctkg:v3e-object-f1df5739a34bf55489aeeeeb"
+      ],
+      "rationale": "Challenger independently re-examined \"校正装置\" (ctkg:v3e-object-f1df5739a34bf55489aeeeeb). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "c2f6695f3fc66af0f9a3aa9955c7ed08ee6f54d768a4265321ecbf9818186696"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f20650600a6b6301d29c6025",
+      "canonicalRevision": "b6d291394156f3c832ef2a925aab985ed7d32bca9ab91b4a07921d0216baf387",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1dfd107bd94ec8cdea6d937c",
+        "canonicalId:ctkg:v3e-object-f20650600a6b6301d29c6025"
+      ],
+      "rationale": "Challenger independently re-examined \"最大超前角\" (ctkg:v3e-object-f20650600a6b6301d29c6025). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "e6ab4ab9b5d7df148edd9365dd82210a26d87c9ad1f9471618cf2519fc663667"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f610316f690e0731396e26ab",
+      "canonicalRevision": "a92602cc8fe87ec738ef00b50d4769f0ca920611f89298f146c31bae91bc8be8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6af6306f614a98bc2f39f271",
+        "canonicalId:ctkg:v3e-object-f610316f690e0731396e26ab"
+      ],
+      "rationale": "Challenger independently re-examined \"Airplane control system\" (ctkg:v3e-object-f610316f690e0731396e26ab). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "4877141f5f8b8c449a61398a090304f920a332da9edf0878e2144cbde43130f9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "canonicalRevision": "aa6baf5296769717e4e6a801a54478d7c0f642fc985f516e7f4c6a78b63c8891",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5eabb415dce60fc1ccbc5dd0",
+        "evidence:ctkg:v3e-evidence-6f616ecaf1ef13fe4cf195f9",
+        "canonicalId:ctkg:v3e-object-f9ac171d68c8622f62106397"
+      ],
+      "rationale": "Challenger independently re-examined \"串联滞后校正\" (ctkg:v3e-object-f9ac171d68c8622f62106397). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "49be826f19812c90d589c34cac1fd3e29c6f9a011b0f5213c6706357c3c0989d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fa4f7e4a46c0790f96077531",
+      "canonicalRevision": "d00398f697964df940707a64d81470067288be6a0bc6c94c7a0a1085f6f70973",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3b2b2fd285ae32a338ebb69f",
+        "canonicalId:ctkg:v3e-object-fa4f7e4a46c0790f96077531"
+      ],
+      "rationale": "Challenger independently re-examined \"衰减曲线法\" (ctkg:v3e-object-fa4f7e4a46c0790f96077531). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "58aaf90dccb0601e42e6ce070c45e00b48af4a9c8ca8e2cfaf66135bc8104a5a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fb1bfa608ae42d3fc3c40d8c",
+      "canonicalRevision": "1ed1cf42f1d7ff3747e1555e3e05f140dc3affa89d8b176c856206b51caa38ca",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7e642ce744330fd9f18450d9",
+        "evidence:ctkg:v3e-evidence-9597b25729e13c20fd837ad9",
+        "canonicalId:ctkg:v3e-object-fb1bfa608ae42d3fc3c40d8c"
+      ],
+      "rationale": "Challenger independently re-examined \"Cascade compensation design approach\" (ctkg:v3e-object-fb1bfa608ae42d3fc3c40d8c). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "b4cc14ced4a811c2e956fb10a7e3ea5deeca4e6d50da56353f57f3929d06984d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fbebd7b09546031f82f974ed",
+      "canonicalRevision": "58194286bb76106bcc0ceb44e84ff62f3d7099bdf26f8800831519507a4aafcb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aa5b6701c6efd7296b5d2d8a",
+        "canonicalId:ctkg:v3e-object-fbebd7b09546031f82f974ed"
+      ],
+      "rationale": "Challenger independently re-examined \"前置滤波器\" (ctkg:v3e-object-fbebd7b09546031f82f974ed). Its frozen evidence selectors are confined to aggregate/profile provenance and bind no independent current-course lesson or syllabus evidence. Inclusion and exclusion are therefore both unsupported for this object.",
+      "decisionDigest": "4aef9effea65f8de082def775861a39bb47cc331b95a5d9ca6dfa4b52a845058"
+    }
+  ],
+  "documentDigest": "f73ab99b799f1c4f4dfbf9bf7d9504b1803a6a1d4712311c4a691a9f34e0025b"
+}

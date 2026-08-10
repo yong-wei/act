@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0040",
+  "offset": 200,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-f8337fda41fd8e3fe22e87f7",
+      "batch": "B",
+      "name": "multiplexer",
+      "definition": "multiplexer：A device used to sequentially connect a single A/D converter into multiple channels being sampled, rather than using mu…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "multiplexer",
+        "关联·A/D co…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: multiplexer\nSOURCE DEFINITION (fail-closed, do not invent beyond this): multiplexer：A device used to sequentially connect a single A/D converter into multiple channels being sampled, rather than using mu…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「multiplexe」、「关联·A/D co…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-caa20b325717f0a3c570f16b",
+      "batch": "B",
+      "name": "time delay",
+      "definition": "time delay：A delay in a control system, often arising from delays in the process itself or from delays in the processing of sensed…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "time delay"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: time delay\nSOURCE DEFINITION (fail-closed, do not invent beyond this): time delay：A delay in a control system, often arising from delays in the process itself or from delays in the processing of sensed…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「time delay」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-85a699e349c4185cc163c16e",
+      "batch": "B",
+      "name": "Two-sided Laplace transform",
+      "definition": "Two-sided Laplace transform：If Eq. (3.32) is a one-sided transform, then by extension, Eq. (3.30) is a two-sided Laplace transform.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Two-sided L…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Two-sided Laplace transform\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Two-sided Laplace transform：If Eq. (3.32) is a one-sided transform, then by extension, Eq. (3.30) is a two-sided Laplace transform.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Two-sided 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0f28cd2360a6b3aef63500c3",
+      "batch": "B",
+      "name": "Uncompensated system",
+      "definition": "Uncompensated system：The system with loop transfer function L(s)=K G(s) when the controller is a constant gain controller G_c(s)=K.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Uncompensat…",
+        "Uncompensate"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Uncompensated system\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Uncompensated system：The system with loop transfer function L(s)=K G(s) when the controller is a constant gain controller G_c(s)=K.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Uncompensa」、「Uncompensa」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2b3daca16f4fb57b9da083bd",
+      "batch": "B",
+      "name": "Frequency-Respon",
+      "definition": "Frequency-Respon：External stability analysis using frequency response methods such as the describing function and circle criterion.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Frequency-R…",
+        "一种·Circle",
+        "包含组件·Desc…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Frequency-Respon\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Frequency-Respon：External stability analysis using frequency response methods such as the describing function and circle criterion.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Frequency-」、「一种·Circle」、「包含组件·Desc…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 
 export const dynamic = 'force-dynamic';
 
@@ -90,30 +91,38 @@ export async function POST(request: Request) {
       );
     }
 
-    // 检查学生是否已有档案
-    let profile = await prisma.studentProfile.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    if (!profile) {
-      // 创建档案
-      profile = await prisma.studentProfile.create({
-        data: {
-          userId: session.user.id,
-          classId: classData.id,
-          className: classData.name,
-        },
-      });
-    } else {
-      // 更新档案
-      profile = await prisma.studentProfile.update({
+    await prisma.$transaction(async (tx) => {
+      const profile = await tx.studentProfile.findUnique({
         where: { userId: session.user.id },
-        data: {
-          classId: classData.id,
-          className: classData.name,
-        },
       });
-    }
+      const previousClassId = profile?.classId ?? null;
+
+      if (!profile) {
+        await tx.studentProfile.create({
+          data: {
+            userId: session.user.id,
+            classId: classData.id,
+            className: classData.name,
+          },
+        });
+      } else {
+        await tx.studentProfile.update({
+          where: { userId: session.user.id },
+          data: {
+            classId: classData.id,
+            className: classData.name,
+          },
+        });
+      }
+
+      await requestCumulativeLearnerReconciliation(tx, {
+        userId: session.user.id,
+        classIds: [previousClassId, classData.id].filter(
+          (classId): classId is string => classId !== null,
+        ),
+        reason: 'class-membership:student-join',
+      });
+    });
 
     return NextResponse.json({
       success: true,

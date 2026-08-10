@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-a8b5ea28f2d127b68833e809",
+  "safe_id": "ctc_v11g-a8b5ea28f2d127b68833e809",
+  "node": {
+    "name": "transponder tags",
+    "name_en": "transponder_tags",
+    "concept_kind": "system_component",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "transponder tags：Tags placed on the floor to task guided vehicles (e.g., to speed up or slow down) at key locations.",
+  "intuition": null,
+  "explanation": "Tags placed on the floor to task guided vehicles (e.g., to speed up or slow down) at key locations.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "transponder…",
+    "transponder "
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-a8b5ea28f2d127b68833e809.md",
+  "provider_policy": "grok-image_gen"
+}

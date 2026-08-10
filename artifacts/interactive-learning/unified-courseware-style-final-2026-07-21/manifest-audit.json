@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-07-21T00:00:00.000Z",
+  "change": "unify-interactive-lesson-component-style",
+  "lessonId": "unit-1-2-modeling-from-object-to-system-v1",
+  "stepId": "step-11",
+  "componentId": "three-ships-response-evidence",
+  "componentKind": "visual.annotatedMedia",
+  "runtimeManifest": "course-content/runtime/lessons/1-2/interactive-manifest.json",
+  "runtimeManifestSha256": "34b8f226922355473509366749018f2a2e327e73ea8488e0af5232ba3ed5db6a",
+  "rendererSource": "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+  "rendererSourceSha256": "d1f089cd2ab727927b05122934d9b762d681b2ab56d6bb0b8ca52be72db0ccde",
+  "checks": {
+    "annotatedMediaRegistered": true,
+    "level3TitleTokenPresent": true,
+    "bodyTokenPreserved": true,
+    "manifestSemanticsUnchanged": true
+  },
+  "result": "passed"
+}

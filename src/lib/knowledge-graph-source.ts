@@ -3,8 +3,10 @@ import 'server-only';
 import { createHash } from 'node:crypto';
 import fs from 'fs/promises';
 import path from 'path';
+import Ajv2019, { type AnySchema, type ValidateFunction } from 'ajv/dist/2019';
 import { prisma } from '@/lib/prisma';
 import { CHAPTER_DISPLAY_ORDER, resolveChapterName } from '@/lib/knowledge-labels';
+import actkgProjectionSchema from './knowledge-graph-actkg/ctkg-projection.schema.json';
 import {
   assertRuntimeKnowledgeRelationCoverage,
   buildRuntimeKnowledgeRelationInspectionItems,
@@ -19,6 +21,8 @@ type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
 type BloomLevel = 'REMEMBER' | 'UNDERSTAND' | 'APPLY' | 'ANALYZE' | 'EVALUATE' | 'CREATE';
 type KnowledgeDim = 'FACTUAL' | 'CONCEPTUAL' | 'PROCEDURAL' | 'METACOGNITIVE';
 type RelatedCategory = 'membership' | 'prerequisite' | 'follows' | 'related';
+
+export type KnowledgeGraphSourceKind = 'file' | 'database' | 'actkg-projection';
 
 export interface KnowledgeNodeExpansion {
   state: 'expandable' | 'leaf' | 'unknown';
@@ -42,6 +46,16 @@ export interface UnifiedKnowledgeNode {
   chapter?: number;
   chapterName?: string;
   expansion?: KnowledgeNodeExpansion;
+  /**
+   * Projection-shaped governance attributes, populated only by sources that
+   * carry them (ActKG projection). Absent means "unknown"; consumers must not
+   * assume a default classification or coverage weight. `candidate: true`
+   * marks a governance candidate that learner-facing views may exclude.
+   */
+  semanticName?: string;
+  conceptKind?: string;
+  candidate?: boolean;
+  sourceCoverageCount?: number;
 }
 
 export interface UnifiedKnowledgeLink {
@@ -57,6 +71,12 @@ export interface UnifiedKnowledgeLink {
 
 export interface PublicKnowledgeGraphLink {
   id: string;
+  /**
+   * Evidence availability derived at projection time through the single shared
+   * evidence rule. Present whenever the active source exposes evidence
+   * information; absent means "unknown", never "unavailable".
+   */
+  evidenceState?: 'available' | 'unavailable';
   motionEligible?: false;
   relation: string;
   relationType?: string;
@@ -78,7 +98,7 @@ export interface UnifiedKnowledgeGraphPayload {
   nodes: UnifiedKnowledgeNode[];
   links: UnifiedKnowledgeLink[];
   inspectionLinks?: RuntimeKnowledgeRelationLink[];
-  source: 'file' | 'database';
+  source: KnowledgeGraphSourceKind;
   versionDigest?: string;
   versionLinkCount?: number;
 }
@@ -100,6 +120,8 @@ export interface KnowledgeGraphRootCatalogEntry {
   nodeType: NodeType;
   domainId: string;
   chapterName: string;
+  /** Present only when the node is a governance candidate. */
+  candidate?: boolean;
 }
 
 export interface KnowledgeGraphProgressivePayload {
@@ -112,7 +134,7 @@ export interface KnowledgeGraphProgressivePayload {
   corridorLinks?: PublicKnowledgeGraphLink[];
   corridorCycleEdgeIds?: string[];
   membershipLinks?: KnowledgeGraphMembershipLink[];
-  source: 'file' | 'database';
+  source: KnowledgeGraphSourceKind;
   truncated: { nodes: boolean; links: boolean; membershipLinks: boolean; corridorLinks?: boolean };
   rootSummaries?: KnowledgeGraphRootSummary[];
   rootCatalog?: KnowledgeGraphRootCatalogEntry[];
@@ -134,12 +156,22 @@ export interface PublicKnowledgeGraphNode {
   chapterName?: string;
   expansion?: KnowledgeNodeExpansion;
   importance?: number;
+  /**
+   * Projection-shaped governance attributes, populated only by sources that
+   * carry them (ActKG projection). Absent means "unknown"; consumers must not
+   * assume a default classification or coverage weight. `candidate: true`
+   * marks a governance candidate that learner-facing views may exclude.
+   */
+  semanticName?: string;
+  conceptKind?: string;
+  candidate?: boolean;
+  sourceCoverageCount?: number;
 }
 
 export interface PublicKnowledgeGraphPayload {
   nodes: PublicKnowledgeGraphNode[];
   links: PublicKnowledgeGraphLink[];
-  source: 'file' | 'database';
+  source: KnowledgeGraphSourceKind;
   versionDigest?: string;
   versionLinkCount?: number;
   truncated: { nodes: boolean; links: boolean };
@@ -147,7 +179,7 @@ export interface PublicKnowledgeGraphPayload {
 
 export interface KnowledgeGraphManifestPayload {
   graphVersion: string;
-  source: 'file' | 'database';
+  source: KnowledgeGraphSourceKind;
   nodeCount: number;
   linkCount: number;
   rootShardKey: string;
@@ -469,6 +501,10 @@ function toPublicKnowledgeGraphLink(link: UnifiedKnowledgeLink): PublicKnowledge
     targetId: link.targetId,
     ...(link.strength !== 1 ? { strength: link.strength } : {}),
     ...(link.motionEligible === false ? { motionEligible: false as const } : {}),
+    // Evidence state is derived once at projection time (shared rule) and
+    // surfaced verbatim so canvas and inspector never disagree; links without
+    // provenance simply omit it ("unknown").
+    ...(link.provenance ? { evidenceState: link.provenance.evidenceState } : {}),
   };
 }
 
@@ -543,6 +579,12 @@ export function toPublicKnowledgeGraphNode(node: UnifiedKnowledgeNode): PublicKn
     ...(node.chapterName ? { chapterName: node.chapterName.slice(0, MAX_NODE_TEXT) } : {}),
     ...(node.expansion ? { expansion: node.expansion } : {}),
     ...(importance !== undefined ? { importance } : {}),
+    ...(node.semanticName ? { semanticName: node.semanticName.slice(0, MAX_NODE_TEXT) } : {}),
+    ...(node.conceptKind ? { conceptKind: node.conceptKind.slice(0, MAX_NODE_TAG_LENGTH) } : {}),
+    ...(typeof node.candidate === 'boolean' ? { candidate: node.candidate } : {}),
+    ...(typeof node.sourceCoverageCount === 'number' && Number.isFinite(node.sourceCoverageCount)
+      ? { sourceCoverageCount: Math.max(0, Math.floor(node.sourceCoverageCount)) }
+      : {}),
   };
 }
 
@@ -820,6 +862,210 @@ function loadKnowledgeGraphFromFiles(snapshot: FileGraphSnapshot): UnifiedKnowle
   return payload;
 }
 
+// ========== ActKG GraphProjection source (environment-gated, fail-closed) ==========
+
+const ACTKG_PROJECTION_PATH_ENV = 'KNOWLEDGE_GRAPH_ACTKG_PROJECTION_PATH';
+const MAX_ACTKG_VERSION_DIGEST_LENGTH = 200;
+// Pinned to the vendored schema snapshot (src/lib/knowledge-graph-actkg, ActKG
+// release 3f7c58760aa70011990af28977cd03e51ba7c985). A projection authored
+// against any other schema version fails closed as schema drift.
+const ACTKG_PINNED_SCHEMA_VERSION = '0.1.0';
+
+const ACTKG_DIRECTION_BY_PROJECTION = {
+  parent_to_child: 'parent-to-child',
+  earlier_to_later: 'earlier-to-later',
+  unordered: 'unordered',
+} as const;
+
+interface ActkgProjectionSnapshot {
+  content: string;
+  fingerprint: string;
+  projectionPath: string;
+}
+
+interface ActkgGraphProjectionDocument {
+  id: string;
+  projection_profile: string;
+  source_dataset_hash: string;
+  version_digest: string;
+  schema_version: string;
+  lifecycle_status: string;
+  source_release?: string | null;
+  nodes?: Array<{
+    id: string;
+    concept_id: string;
+    semantic_name: string;
+    display_name: string;
+    concept_kind: string;
+    source_coverage_count: number;
+    candidate: boolean;
+    description?: string | null;
+  }> | null;
+  links?: Array<{
+    id: string;
+    relation_id: string;
+    source_id: string;
+    target_id: string;
+    relation_type: 'contains' | 'prerequisite' | 'association';
+    relation_family: string;
+    direction: keyof typeof ACTKG_DIRECTION_BY_PROJECTION;
+    evidence_state: 'available' | 'unavailable';
+  }> | null;
+}
+
+let actkgProjectionValidator: ValidateFunction | null = null;
+
+function getActkgProjectionValidator(): ValidateFunction {
+  if (!actkgProjectionValidator) {
+    const schema = actkgProjectionSchema as unknown as { $defs: Record<string, AnySchema> };
+    const ajv = new Ajv2019({
+      allErrors: true,
+      strict: true,
+      strictRequired: false,
+      allowUnionTypes: true,
+      validateFormats: false,
+    });
+    actkgProjectionValidator = ajv.compile({ $ref: '#/$defs/GraphProjection', $defs: schema.$defs });
+  }
+  return actkgProjectionValidator;
+}
+
+function resolveActkgProjectionPathFromEnv(): string | null {
+  const configured = process.env[ACTKG_PROJECTION_PATH_ENV]?.trim();
+  return configured ? path.resolve(configured) : null;
+}
+
+async function readActkgProjectionSnapshot(projectionPath: string): Promise<ActkgProjectionSnapshot> {
+  try {
+    const { content } = await readStableFile(projectionPath);
+    return {
+      content,
+      fingerprint: createHash('sha256').update(content).digest('hex'),
+      projectionPath,
+    };
+  } catch (error) {
+    throw runtimeLoadingError(
+      'ACTKG_PROJECTION_UNAVAILABLE',
+      `ActKG projection document is unavailable at ${projectionPath}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+function parseActkgGraphProjection(snapshot: ActkgProjectionSnapshot): ActkgGraphProjectionDocument {
+  let document: unknown;
+  try {
+    document = JSON.parse(snapshot.content);
+  } catch {
+    throw runtimeLoadingError(
+      'MALFORMED_ACTKG_PROJECTION',
+      `ActKG projection document is not valid JSON: ${snapshot.projectionPath}`
+    );
+  }
+  const validate = getActkgProjectionValidator();
+  if (!validate(document)) {
+    const detail = (validate.errors ?? [])
+      .map((error) => `${error.instancePath || '/'} ${error.keyword} (${error.schemaPath})`)
+      .join('; ');
+    throw runtimeLoadingError(
+      'INVALID_ACTKG_PROJECTION',
+      `ActKG projection failed schema validation at ${snapshot.projectionPath}: ${detail}`
+    );
+  }
+  const projection = document as ActkgGraphProjectionDocument;
+  if (projection.schema_version !== ACTKG_PINNED_SCHEMA_VERSION) {
+    throw runtimeLoadingError(
+      'UNSUPPORTED_ACTKG_SCHEMA_VERSION',
+      `ActKG projection schema_version "${projection.schema_version}" does not match the pinned vendored schema version "${ACTKG_PINNED_SCHEMA_VERSION}": ${snapshot.projectionPath}`
+    );
+  }
+  return projection;
+}
+
+function loadKnowledgeGraphFromActkgProjection(snapshot: ActkgProjectionSnapshot): UnifiedKnowledgeGraphPayload {
+  const projection = parseActkgGraphProjection(snapshot);
+  const projectedNodes = projection.nodes ?? [];
+  const projectedLinks = projection.links ?? [];
+  if (projectedNodes.length === 0) {
+    throw runtimeLoadingError(
+      'EMPTY_ACTKG_PROJECTION_NODES',
+      'ActKG projection must contain at least one projected node.'
+    );
+  }
+
+  const nodes: UnifiedKnowledgeNode[] = projectedNodes.map((node, index) => ({
+    id: node.id,
+    name: node.display_name,
+    // ActKG `concept_kind` is governance vocabulary, not the legacy display
+    // axis; the projection contract maps it to `conceptKind`, so `nodeType`
+    // stays at the neutral default instead of guessing a category.
+    nodeType: 'THEORY',
+    description: node.description?.trim() || `${node.display_name} 的知识节点`,
+    positionX: 0,
+    positionY: 0,
+    positionZ: index + 1,
+    metadata: {},
+    content: {},
+    resources: [],
+    tags: [],
+    semanticName: node.semantic_name,
+    conceptKind: node.concept_kind,
+    candidate: node.candidate,
+    sourceCoverageCount: node.source_coverage_count,
+  }));
+
+  // Runtime direction repair is removed (OpenSpec: adopt-ctkg-0-2-aggregate-release-contract,
+  // task 3.3). A projected direction that disagrees with the pinned relation
+  // contract is a semantic conflict: the source fails closed with a descriptive
+  // error instead of silently overriding the upstream direction. Consistent
+  // historical CTKG 0.1 projections keep loading through this exact adapter.
+  const directionConflicts = projectedLinks.flatMap((link) => {
+    const contract = getKnowledgeGraphRelationContract(link.relation_type);
+    if (!contract) return [];
+    const projectedDirection = ACTKG_DIRECTION_BY_PROJECTION[link.direction];
+    return projectedDirection === contract.direction
+      ? []
+      : [`${link.id} (${link.relation_type}): projected direction "${link.direction}" maps to "${projectedDirection}" but the pinned contract requires "${contract.direction}"`];
+  });
+  if (directionConflicts.length > 0) {
+    throw runtimeLoadingError(
+      'ACTKG_DIRECTION_CONFLICT',
+      `ActKG projection declares direction conflicts against the pinned relation contract: ${directionConflicts.join('; ')}`
+    );
+  }
+
+  const relationRows = projectedLinks.map((link) => {
+    const row: Record<string, unknown> = {
+      id: link.id,
+      source_id: link.source_id,
+      target_id: link.target_id,
+      relation_type: link.relation_type,
+      evidence_state: link.evidence_state,
+    };
+    return row;
+  });
+  const relationCoverage = assertRuntimeKnowledgeRelationCoverage(
+    relationRows.map((row) => JSON.stringify(row)).join('\n'),
+    { nodeIds: new Set(nodes.map((node) => node.id)) }
+  );
+
+  const releaseIdentity = typeof projection.source_release === 'string' && projection.source_release.trim()
+    ? projection.source_release.trim()
+    : `dataset:${projection.source_dataset_hash}`;
+  const versionDigest = `${releaseIdentity}#${projection.version_digest}`
+    .slice(0, MAX_ACTKG_VERSION_DIGEST_LENGTH);
+
+  const payload: UnifiedKnowledgeGraphPayload = {
+    nodes,
+    links: relationCoverage.runtimeLinks,
+    inspectionLinks: relationCoverage.inspectionLinks,
+    source: 'actkg-projection',
+    versionDigest,
+    versionLinkCount: projectedLinks.length,
+  };
+  assertCanonicalGraphIdentity(payload);
+  return payload;
+}
+
 function isRetryableKnowledgeGraphSnapshotError(error: unknown): boolean {
   const code = (error as { code?: unknown }).code;
   return code === 'P2034' || code === '40001';
@@ -884,18 +1130,27 @@ export async function loadKnowledgeGraphFromDatabase(options: {
 
 export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPayload> {
   const now = Date.now();
-  const fileSnapshot = await readFileGraphSnapshot();
-  if (fileSnapshot && graphCache?.sourceFingerprint === fileSnapshot.fingerprint && sharedGraphCacheExpiresAt > now) {
+  // Selection order: ActKG projection env gate → canonical runtime files → database.
+  // The gate fails closed and never silently falls back to another source.
+  const actkgProjectionPath = resolveActkgProjectionPathFromEnv();
+  const actkgSnapshot = actkgProjectionPath ? await readActkgProjectionSnapshot(actkgProjectionPath) : null;
+  const fileSnapshot = actkgSnapshot ? null : await readFileGraphSnapshot();
+  const sourceFingerprint = actkgSnapshot?.fingerprint ?? fileSnapshot?.fingerprint;
+  if (sourceFingerprint && graphCache?.sourceFingerprint === sourceFingerprint && sharedGraphCacheExpiresAt > now) {
     return graphCache.data;
   }
 
-  const data = fileSnapshot ? loadKnowledgeGraphFromFiles(fileSnapshot) : await loadKnowledgeGraphFromDatabase();
+  const data = actkgSnapshot
+    ? loadKnowledgeGraphFromActkgProjection(actkgSnapshot)
+    : fileSnapshot
+      ? loadKnowledgeGraphFromFiles(fileSnapshot)
+      : await loadKnowledgeGraphFromDatabase();
   const expiresAt = now + FILE_GRAPH_CACHE_TTL_MS;
 
   graphCache = {
     expiresAt,
     data,
-    ...(fileSnapshot ? { sourceFingerprint: fileSnapshot.fingerprint } : {}),
+    ...(sourceFingerprint ? { sourceFingerprint } : {}),
   };
   sharedGraphCacheExpiresAt = expiresAt;
   if (rootGraphCache) {
@@ -1197,6 +1452,7 @@ export function buildKnowledgeGraphRootPayload(graph: UnifiedKnowledgeGraphPaylo
       nodeType: node.nodeType,
       domainId,
       chapterName: group.chapterName,
+      ...(node.candidate === true ? { candidate: true as const } : {}),
     }));
   });
 

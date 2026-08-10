@@ -62,7 +62,7 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('ActionStatusPanel');
     expect(source).toContain('data-teacher-evidence-remediation="context-status"');
     expect(source).toContain('data-teacher-evidence-next-steps');
-    expect(source).toContain('data-teacher-evidence-remediation-task="disabled"');
+    expect(source).toContain('data-teacher-evidence-remediation-task={interventionAction.status}');
     expect(source).toContain("data-teacher-evidence-report-handoff={hasCompleteReportContext ? 'available' : undefined}");
     expect(source).toContain("data-teacher-evidence-browse-return={hasCompleteReportContext ? undefined : 'available'}");
     expect(source).toContain('data-teacher-evidence-mobile-actions="fixed"');
@@ -136,5 +136,16 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('setItems([]);');
     expect(source).toContain('setNextCursor(null);');
     expect(source).toContain('setItems((previous) => cursor ? [...previous, ...payload.items] : payload.items);');
+  });
+
+  it("switches to knowledge-node back link when the evidence page receives a node parameter", () => {
+    const pageSource = readSource("src/app/(main)/profile/evidence/page.tsx");
+
+    expect(pageSource).toContain("node?: string | string[];");
+    expect(pageSource).toContain("const initialNodeId = readSingleSearchParam(params?.node);");
+    expect(pageSource).toContain("const backHref = initialNodeId");
+    expect(pageSource).toContain("? `/knowledge?node=${encodeURIComponent(initialNodeId)}`");
+    expect(pageSource).toContain(": '/profile/growth';");
+    expect(pageSource).toContain("backHref={backHref}");
   });
 });

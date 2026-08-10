@@ -1,0 +1,44 @@
+# ACT teaching prerequisite edge authoring (#1270).
+# status CANDIDATE rows are proposals; PUBLISHED requires authorDecisionId + evidence.
+contract: act-teaching-prerequisite-edges/v1
+scopeId: act-control-theory-core
+edges:
+  - sourceNodeId: node.laplace-transform
+    targetNodeId: node.transfer-function
+    strength: REQUIRED
+    scopeId: act-control-theory-core
+    evidenceRefs:
+      - authoring/handouts/1-1/section-laplace-to-tf.md
+    curatorId: teacher.core-path
+    curatorRationale: Laplace is the hard dependency for transfer-function construction.
+    status: CANDIDATE
+
+  - sourceNodeId: node.transfer-function
+    targetNodeId: node.block-diagram
+    strength: REQUIRED
+    scopeId: act-control-theory-core
+    evidenceRefs:
+      - authoring/handouts/1-2/section-tf-to-block.md
+    curatorId: teacher.core-path
+    curatorRationale: Block diagrams compose transfer functions.
+    status: CANDIDATE
+
+  - sourceNodeId: node.block-diagram
+    targetNodeId: node.feedback-control
+    strength: REQUIRED
+    scopeId: act-control-theory-core
+    evidenceRefs:
+      - authoring/handouts/2-1/section-feedback-from-blocks.md
+    curatorId: teacher.core-path
+    curatorRationale: Feedback analysis requires block-diagram reduction skill.
+    status: CANDIDATE
+
+  - sourceNodeId: node.transfer-function
+    targetNodeId: node.stability-concept
+    strength: RECOMMENDED
+    scopeId: act-control-theory-core
+    evidenceRefs:
+      - authoring/handouts/2-2/section-tf-stability-preview.md
+    curatorId: teacher.core-path
+    curatorRationale: Transfer-function literacy helps but is not a hard path gate for the stability intro card.
+    status: CANDIDATE

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-59f5159cc11cb67f131e14a1",
+  "safe_id": "ctkg_v3e-object-59f5159cc11cb67f131e14a1",
+  "node": {
+    "name": "Transformation t",
+    "name_en": "Transformation to modal form using eigenvectors",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Transformation t：The transformation matrix T is composed of the eigenvectors of A. The transformed system matrices are A_m = T^{-1} A T,…",
+  "intuition": "在图谱邻接中可把握：后续 → Eigenvector、Modal form。",
+  "explanation": "The transformation matrix T is composed of the eigenvectors of A. The transformed system matrices are A_m = T^{-1} A T, B_m = T^{-1} B, C_m = C T, D_m = D.",
+  "relation_head": "后续 → Eigenvector、Modal form",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Eigenvector",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Modal form",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Transformat…",
+    "关联·Eigenv…",
+    "关联·Modal …"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-59f5159cc11cb67f131e14a1.md",
+  "provider_policy": "grok-image_gen"
+}

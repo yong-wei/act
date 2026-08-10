@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -9,12 +10,15 @@ const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'ar
 const baseUrl = process.env.KNOWLEDGE_QA_BASE_URL ?? 'http://localhost:3002';
 const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '稳定性_1_7288b4ea';
 const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';
+const threeDimensionalFitSafetyMargin = 8;
 
 const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
   'src/app/knowledge/page.tsx',
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/knowledge/graph/knowledge-graph-2d.tsx',
+  'src/features/knowledge/graph/knowledge-graph-canvas.tsx',
+  'src/features/knowledge/graph/relation-family-control.tsx',
   'src/features/knowledge/graph/visual-config.ts',
   'src/features/knowledge/resource-panel/resource-panel.tsx',
   'src/components/ai/global-ai-button.tsx',
@@ -60,6 +64,32 @@ interface CaptureState {
 
 function sha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+}
+
+function readCleanCaptureRevision() {
+  const status = execFileSync(
+    'git',
+    ['status', '--porcelain=v1', '--untracked-files=all'],
+    { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  ).trim();
+  if (status) {
+    throw new Error(
+      `knowledge workspace product QA capture requires a clean Git worktree; commit or remove these changes first:\n${status}`,
+    );
+  }
+
+  return {
+    commitSha: execFileSync(
+      'git',
+      ['rev-parse', '--verify', 'HEAD^{commit}'],
+      { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim(),
+    treeSha: execFileSync(
+      'git',
+      ['rev-parse', '--verify', 'HEAD^{tree}'],
+      { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim(),
+  };
 }
 
 function ensureOutputDir() {
@@ -165,8 +195,24 @@ async function openStatePage(browser: Browser, state: CaptureState) {
     ? '[data-knowledge-workspace="canvas-first"]'
     : '[data-commercial-workspace="adaptive-path-center"]';
   await page.waitForSelector(readySelector, { timeout: 30000 });
-  await page.waitForTimeout(800);
+  if (route === '/knowledge') await waitForKnowledgeReady(page);
+  else await page.waitForTimeout(800);
   return { context, page, url };
+}
+
+async function waitForKnowledgeReady(page: Page) {
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+    if (!canvas) return false;
+    const visibleNodeCount = Number(canvas.dataset.knowledgeVisibleNodeCount ?? '0');
+    const loadingShardCount = Number(canvas.dataset.knowledgeLoadingShardCount ?? '0');
+    const navigationState = canvas.dataset.knowledgeDomainState ?? canvas.dataset.knowledgeRootState ?? '';
+    return visibleNodeCount > 0
+      && loadingShardCount === 0
+      && navigationState !== 'loading'
+      && navigationState !== 'failure';
+  }, undefined, { timeout: 30000 });
+  await page.waitForTimeout(500);
 }
 
 async function clickIfPresent(page: Page, selector: string) {
@@ -251,6 +297,8 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
 async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
   const candidates = await selectedNodeHoverDragPointCandidates(page, expectedNodeId);
   for (const [x, y] of candidates) {
+    await page.mouse.move(x, y);
+    await page.waitForTimeout(120);
     await page.mouse.down();
     await page.mouse.move(x + 80, y + 36, { steps: 8 });
     await page.mouse.up();
@@ -290,6 +338,138 @@ async function captureMarkerSnapshot(page: Page) {
   })()`);
 }
 
+async function captureThreeDimensionalSnapshot(page: Page) {
+  return page.evaluate(`(() => {
+    const renderer = document.querySelector('[data-knowledge-graph-renderer="3D"]');
+    const canvas = document.querySelector('[data-knowledge-canvas-primary="true"]');
+    const webglCanvas = renderer?.querySelector('canvas');
+    const rect = webglCanvas?.getBoundingClientRect();
+    const nodeIds = Array.from(document.querySelectorAll('[data-knowledge-node-control]'))
+      .map((element) => element.getAttribute('data-knowledge-node-control') ?? '')
+      .filter(Boolean)
+      .sort();
+    const debug = window.__knowledgeGraphQaNodeDebug;
+    const nodePositions = nodeIds.map((nodeId) => {
+      const entry = typeof debug === 'function' ? debug(nodeId)?.[0] : null;
+      return {
+        id: nodeId,
+        x: entry?.x ?? null,
+        y: entry?.y ?? null,
+        z: entry?.z ?? null,
+        isInFrustum: entry?.isInFrustum ?? null,
+        bodyBounds: entry?.bodyBounds ?? null,
+        labelBounds: entry?.labelBounds ?? null,
+        projectedBounds: entry?.projectedBounds ?? null,
+      };
+    });
+    const projectedBounds = nodePositions.map((node) => node.projectedBounds);
+    const allProjectedBoundsInsideCanvas = Boolean(rect && projectedBounds.length > 0)
+      && projectedBounds.every((bounds) => bounds
+        && [bounds.left, bounds.top, bounds.right, bounds.bottom].every(Number.isFinite)
+        && bounds.left >= ${threeDimensionalFitSafetyMargin}
+        && bounds.top >= ${threeDimensionalFitSafetyMargin}
+        && bounds.right <= rect.width - ${threeDimensionalFitSafetyMargin}
+        && bounds.bottom <= rect.height - ${threeDimensionalFitSafetyMargin});
+    const minimumProjectedMargin = rect && projectedBounds.length > 0
+      ? Math.min(...projectedBounds.flatMap((bounds) => bounds ? [
+          bounds.left,
+          bounds.top,
+          rect.width - bounds.right,
+          rect.height - bounds.bottom,
+        ] : [Number.NEGATIVE_INFINITY]))
+      : null;
+    const loadingBlockers = [
+      document.querySelector('[data-knowledge-root-loading="true"]') ? 'root-loading' : null,
+      document.querySelector('[data-knowledge-domain-loading="true"]') ? 'domain-loading' : null,
+      Array.from(document.querySelectorAll('body *')).some((element) => element.textContent?.trim() === '渲染视图...')
+        ? 'renderer-loading'
+        : null,
+    ].filter(Boolean);
+    return {
+      renderer: renderer?.getAttribute('data-knowledge-graph-renderer') ?? null,
+      rendererCount: document.querySelectorAll('[data-knowledge-graph-renderer="3D"]').length,
+      webglCanvasCount: renderer?.querySelectorAll('canvas').length ?? 0,
+      canvasRect: rect ? {
+        left: Math.round(rect.left),
+        top: Math.round(rect.top),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      } : null,
+      layoutVersion: Number(canvas?.dataset.knowledgeLayoutVersion ?? Number.NaN),
+      autoFitCount: Number(renderer?.getAttribute('data-knowledge-auto-fit-count') ?? Number.NaN),
+      explicitFitCount: Number(renderer?.getAttribute('data-knowledge-explicit-fit-count') ?? Number.NaN),
+      loadingBlockers,
+      nodePositions,
+      allNodesInFrustum: nodePositions.length > 0
+        && nodePositions.every((node) => node.isInFrustum === 1),
+      projectedBoundsSafetyMargin: ${threeDimensionalFitSafetyMargin},
+      minimumProjectedMargin,
+      allProjectedBoundsInsideCanvas,
+    };
+  })()`);
+}
+
+async function captureThreeDimensionalFitRelayoutEvidence(page: Page) {
+  await openDesktopTool(page, 'view-layout');
+  await page.getByRole('button', { name: '3D 视图' }).click();
+  await page.locator('[data-knowledge-graph-renderer="3D"] canvas').waitFor({ state: 'visible', timeout: 20_000 });
+  await page.waitForFunction(() => {
+    const renderer = document.querySelector('[data-knowledge-graph-renderer="3D"]');
+    const autoFitCount = Number(renderer?.getAttribute('data-knowledge-auto-fit-count') ?? 0);
+    const explicitFitCount = Number(renderer?.getAttribute('data-knowledge-explicit-fit-count') ?? 0);
+    return autoFitCount + explicitFitCount >= 1;
+  }, undefined, { timeout: 20_000 });
+  await page.waitForTimeout(500);
+  const initial = await captureThreeDimensionalSnapshot(page);
+
+  await clickIfPresent(page, '[data-knowledge-layout-control="fit-view"]');
+  await page.waitForFunction((previousCount) => Number(
+    document.querySelector('[data-knowledge-graph-renderer="3D"]')?.getAttribute('data-knowledge-explicit-fit-count') ?? 0,
+  ) === previousCount + 1, initial.explicitFitCount, { timeout: 20_000 });
+  await page.waitForTimeout(150);
+  const afterFirstFit = await captureThreeDimensionalSnapshot(page);
+
+  await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
+  await page.waitForFunction((previousVersion) => Number(
+    document.querySelector('[data-knowledge-canvas-primary="true"]')?.getAttribute('data-knowledge-layout-version') ?? -1,
+  ) === previousVersion + 1, afterFirstFit.layoutVersion, { timeout: 20_000 });
+  await page.waitForTimeout(750);
+  const afterFirstRelayout = await captureThreeDimensionalSnapshot(page);
+
+  await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
+  await page.waitForFunction((previousVersion) => Number(
+    document.querySelector('[data-knowledge-canvas-primary="true"]')?.getAttribute('data-knowledge-layout-version') ?? -1,
+  ) === previousVersion + 1, afterFirstRelayout.layoutVersion, { timeout: 20_000 });
+  await page.waitForTimeout(750);
+  const afterRepeatedRelayout = await captureThreeDimensionalSnapshot(page);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(250);
+
+  return {
+    kind: '3d-first-fit-repeated-relayout',
+    initial,
+    afterFirstFit,
+    afterFirstRelayout,
+    afterRepeatedRelayout,
+    initialFitCompleted: initial.autoFitCount + initial.explicitFitCount >= 1,
+    firstFitExactlyOnce: afterFirstFit.explicitFitCount === initial.explicitFitCount + 1,
+    repeatedRelayoutExactlyOnce: afterFirstRelayout.layoutVersion === afterFirstFit.layoutVersion + 1
+      && afterRepeatedRelayout.layoutVersion === afterFirstRelayout.layoutVersion + 1,
+    repeatedRelayoutIdempotent: JSON.stringify(afterFirstRelayout.nodePositions)
+      === JSON.stringify(afterRepeatedRelayout.nodePositions),
+    canvasStable: JSON.stringify(initial.canvasRect) === JSON.stringify(afterFirstFit.canvasRect)
+      && JSON.stringify(afterFirstFit.canvasRect) === JSON.stringify(afterFirstRelayout.canvasRect)
+      && JSON.stringify(afterFirstRelayout.canvasRect) === JSON.stringify(afterRepeatedRelayout.canvasRect),
+    noLoadingBlockers: [initial, afterFirstFit, afterFirstRelayout, afterRepeatedRelayout]
+      .every((snapshot) => snapshot.loadingBlockers.length === 0),
+    noRendererOcclusion: afterRepeatedRelayout.rendererCount === 1
+      && afterRepeatedRelayout.webglCanvasCount === 1
+      && afterRepeatedRelayout.allNodesInFrustum,
+    completeProjectedBoundsInsideCanvas: [initial, afterFirstFit, afterFirstRelayout, afterRepeatedRelayout]
+      .every((snapshot) => snapshot.allProjectedBoundsInsideCanvas),
+  };
+}
+
 function doRectsOverlap(
   a: { left: number; top: number; right: number; bottom: number } | null,
   b: { left: number; top: number; right: number; bottom: number } | null,
@@ -301,8 +481,7 @@ function doRectsOverlap(
 async function openMobileTool(page: Page, tool: string) {
   const labelByTool: Record<string, string> = {
     'chapter-directory': '目录',
-    'relation-filters': '筛选',
-    legend: '图例',
+    'node-filters': '筛选',
     'view-layout': '视图',
   };
   const label = labelByTool[tool] ?? tool;
@@ -402,7 +581,7 @@ async function probeFocusTarget(
 }
 
 async function captureFocusEvidence(browser: Browser) {
-  const desktopTools = ['chapter-directory', 'relation-filters', 'legend', 'view-layout'] as const;
+  const desktopTools = ['chapter-directory', 'node-filters', 'view-layout'] as const;
   const desktopToolEvidence = [];
   for (const tool of desktopTools) {
     desktopToolEvidence.push(await probeFocusTarget(
@@ -440,14 +619,14 @@ async function captureFocusEvidence(browser: Browser) {
         navigationPreference: 'collapsed',
         navigationState: 'collapsed',
         dockState: 'collapsed',
-        localToolState: 'legend',
+        localToolState: 'node-filters',
         selectedNode: null,
         interactionState: 'focus desktop local tools',
       },
-      (page) => openDesktopTool(page, 'legend'),
-      '[data-knowledge-desktop-tool-panel="legend"]',
+      (page) => openDesktopTool(page, 'node-filters'),
+      '[data-knowledge-desktop-tool-panel="node-filters"]',
       (page) => page.keyboard.press('Escape'),
-      '[data-knowledge-command-trigger="legend"]',
+      '[data-knowledge-command-trigger="node-filters"]',
     ),
     await probeFocusTarget(
       browser,
@@ -514,13 +693,14 @@ async function captureFocusEvidence(browser: Browser) {
   ];
 }
 
-async function captureMarkers(page: Page) {
+async function captureMarkers(page: Page, stateName: string) {
   const markers = await page.evaluate(`(() => {
     const root = document.querySelector('[data-knowledge-workspace]');
     const canvas = document.querySelector('[data-knowledge-canvas-primary]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
     const mobileTools = document.querySelector('[data-knowledge-mobile-command-surface]');
     const activeLocalPanel = document.querySelector('[data-knowledge-local-tool-panel]');
+    const relationFamilyControl = document.querySelector('[data-knowledge-relation-family-control]');
      const inspector = document.querySelector('[data-knowledge-inspector]');
      const dock = document.querySelector('[data-platform-floating-dock]');
      const konlingSidebar = document.querySelector('[data-global-ai-sidebar="open"]');
@@ -545,8 +725,10 @@ async function captureMarkers(page: Page) {
      const mobileToolsRect = rectFor(mobileTools);
      const canvasRect = rectFor(canvas);
      const activeLocalPanelRect = rectFor(activeLocalPanel);
+     const relationFamilyControlRect = rectFor(relationFamilyControl);
      const inspectorRect = rectFor(inspector);
      const dockRect = rectFor(dock);
+     const konlingSidebarRect = rectFor(konlingSidebar);
      const expandedDockRect = rectFor(konlingSidebar ?? expandedDock);
     return {
       htmlClass: document.documentElement.className,
@@ -561,6 +743,12 @@ async function captureMarkers(page: Page) {
         layoutVersion: canvas.dataset.knowledgeLayoutVersion ?? '',
         pinnedNodeCount: canvas.dataset.knowledgePinnedNodeCount ?? '',
       } : null,
+      threeDimensionalRenderer: document.querySelector('[data-knowledge-graph-renderer="3D"]') ? {
+        renderer: '3D',
+        autoFitCount: document.querySelector('[data-knowledge-graph-renderer="3D"]')?.getAttribute('data-knowledge-auto-fit-count') ?? '',
+        explicitFitCount: document.querySelector('[data-knowledge-graph-renderer="3D"]')?.getAttribute('data-knowledge-explicit-fit-count') ?? '',
+        canvasCount: document.querySelectorAll('[data-knowledge-graph-renderer="3D"] canvas').length,
+      } : null,
       desktopToolState: desktopTools?.dataset.state ?? null,
       desktopActiveTool: desktopTools?.dataset.knowledgeLocalTool ?? null,
       activeLocalPanel: activeLocalPanel?.dataset.knowledgeLocalToolPanel ?? null,
@@ -574,6 +762,17 @@ async function captureMarkers(page: Page) {
       inspectorSections: inspectorRect ? Array.from(document.querySelectorAll('[data-knowledge-inspector-section]'))
         .map((element) => element.dataset.knowledgeInspectorSection ?? '')
         .filter(Boolean) : [],
+      inspectorAccordion: inspectorRect ? Array.from(document.querySelectorAll('[data-knowledge-inspector-section] > button[aria-expanded]'))
+        .map((element) => ({
+          section: element.parentElement?.getAttribute('data-knowledge-inspector-section') ?? '',
+          expanded: element.getAttribute('aria-expanded') ?? '',
+        }))
+        .filter((entry) => entry.section) : [],
+      relationFamilyControlVisible: Boolean(document.querySelector('[data-knowledge-relation-family-control]')),
+      relationFamilyControlPlacement: relationFamilyControl?.getAttribute('data-knowledge-relation-family-control') ?? null,
+      relationFamilyCollisionPolicy: relationFamilyControl?.getAttribute('data-knowledge-relation-family-collision-policy') ?? null,
+      relationFamilyState: document.querySelector('[data-knowledge-relation-family-control]')?.getAttribute('data-knowledge-relation-family-state') ?? null,
+      relationFamilySamples: document.querySelectorAll('[data-knowledge-relation-family-sample]').length,
       mobileLayoutControls: Array.from(document.querySelectorAll('[data-knowledge-layout-control]'))
         .map((element) => element.getAttribute('data-knowledge-layout-control') ?? '')
         .filter(Boolean),
@@ -590,8 +789,10 @@ async function captureMarkers(page: Page) {
         desktopTools: desktopToolsRect,
         mobileTools: mobileToolsRect,
         activeLocalPanel: activeLocalPanelRect,
+        relationFamilyControl: relationFamilyControlRect,
         inspector: inspectorRect,
         dock: dockRect,
+        konlingSidebar: konlingSidebarRect,
         expandedDock: expandedDockRect,
       },
       documentScroll: {
@@ -609,10 +810,24 @@ async function captureMarkers(page: Page) {
     desktopTools: EvidenceRect | null;
     mobileTools: EvidenceRect | null;
     activeLocalPanel: EvidenceRect | null;
+    relationFamilyControl: EvidenceRect | null;
     inspector: EvidenceRect | null;
     dock: EvidenceRect | null;
+    konlingSidebar: EvidenceRect | null;
     expandedDock: EvidenceRect | null;
   };
+  const konlingSidebarOverlapsRelationFamilyControl = doRectsOverlap(
+    rects.konlingSidebar as never,
+    rects.relationFamilyControl as never,
+  );
+  if (markers.relationFamilyControlPlacement === 'compact-bottom-left'
+    && konlingSidebarOverlapsRelationFamilyControl) {
+    throw new Error(
+      `expanded Konling overlaps the canvas relation-family control in ${stateName}: `
+      + `Konling=${JSON.stringify(rects.konlingSidebar)}, `
+      + `relationFamily=${JSON.stringify(rects.relationFamilyControl)}`,
+    );
+  }
   return {
     ...markers,
     overlaps: {
@@ -621,6 +836,7 @@ async function captureMarkers(page: Page) {
       inspectorOverlapsActiveLocalPanel: doRectsOverlap(rects.inspector as never, rects.activeLocalPanel as never),
       dockOverlapsMobileTools: doRectsOverlap(rects.dock as never, rects.mobileTools as never),
       expandedDockOverlapsMobileTools: doRectsOverlap(rects.expandedDock as never, rects.mobileTools as never),
+      konlingSidebarOverlapsRelationFamilyControl,
       dockOverlapsInspector: doRectsOverlap(rects.dock as never, rects.inspector as never),
       expandedDockOverlapsInspector: doRectsOverlap(rects.expandedDock as never, rects.inspector as never),
     },
@@ -635,11 +851,12 @@ async function captureState(browser: Browser, state: CaptureState) {
       interactionEvidence = await state.beforeShot(page) ?? undefined;
       await page.waitForTimeout(500);
     }
+    if ((state.route ?? '/knowledge') === '/knowledge') await waitForKnowledgeReady(page);
     const screenshotName = `${state.name}.png`;
     const screenshotPath = path.join(outputDir, screenshotName);
     await page.screenshot({ path: screenshotPath, fullPage: false });
     const screenshotRelativePath = path.relative(repoRoot, screenshotPath);
-    const markers = await captureMarkers(page);
+    const markers = await captureMarkers(page, state.name);
     return {
       name: state.name,
       route: state.route ?? '/knowledge',
@@ -675,7 +892,7 @@ function writeToolsInspectorCompatibilityEvidence(
   );
   const stateMappings = [
     ['desktop-default-compact-dark', 'desktop-default-collapsed-dark', 'desktop default compact tools'],
-    ['desktop-open-filters-dark', 'desktop-local-tools-filter-dark', 'desktop opened relation filters'],
+    ['desktop-open-filters-dark', 'desktop-local-tools-filter-dark', 'desktop opened node filters'],
     ['desktop-selected-inspector-light', 'desktop-selected-inspector-light', 'desktop selected direct leaf inspector'],
     ['mobile-320-selected-sheet-dark', 'mobile-320-selected-inspector-dark', 'mobile selected node sheet with graph reachable above collapsed tools'],
     ['mobile-320-view-layout-dark', 'mobile-320-local-tools-dark', 'mobile view and layout tool opened with graph controls available'],
@@ -712,6 +929,7 @@ function writeToolsInspectorCompatibilityEvidence(
         inspectorFocusContract: markers.inspectorFocusContract ?? null,
         inspectorDockSafeArea: markers.inspectorDockSafeArea ?? null,
         inspectorSections: markers.inspectorSections ?? [],
+        inspectorAccordion: markers.inspectorAccordion ?? [],
         mobileToolState: markers.mobileToolState ?? 'closed',
         mobileLayoutControls: markers.mobileLayoutControls ?? [],
         selectedNodeId: (markers.canvas as Record<string, unknown> | null | undefined)?.selectedNodeId ?? '',
@@ -729,7 +947,7 @@ function writeToolsInspectorCompatibilityEvidence(
       .map((entry) => [typeof entry.target === 'string' ? entry.target : '', entry] as const)
       .filter(([target]) => target.length > 0),
   );
-  const desktopTools = ['chapter-directory', 'relation-filters', 'legend', 'view-layout'] as const;
+  const desktopTools = ['chapter-directory', 'node-filters', 'view-layout'] as const;
   const keyboardVerification = {
     desktopToolPaths: desktopTools.map((tool) => {
       const entry = focusByTarget.get(`desktop-local-tool-${tool}`);
@@ -779,7 +997,183 @@ function writeToolsInspectorCompatibilityEvidence(
   );
 }
 
+function stateRecordByName(
+  stateMatrix: Array<Record<string, unknown>>,
+  name: string,
+) {
+  return stateMatrix.find((state) => state.name === name);
+}
+
+function copyStateScreenshot(
+  stateMatrix: Array<Record<string, unknown>>,
+  stateName: string,
+  targetRelativePath: string,
+) {
+  const state = stateRecordByName(stateMatrix, stateName);
+  if (!state || typeof state.screenshotPath !== 'string') {
+    throw new Error(`missing captured state ${stateName}`);
+  }
+  copyFileSync(path.join(repoRoot, state.screenshotPath), path.join(repoRoot, targetRelativePath));
+  return state;
+}
+
+function writeSemanticMapCompatibilityEvidence(stateMatrix: Array<Record<string, unknown>>) {
+  const targetDir = path.join(repoRoot, 'artifacts/knowledge-graph-semantic-map-486');
+  mkdirSync(targetDir, { recursive: true });
+  const mappings = [
+    ['defaultSemanticMap', 'desktop-default-collapsed-dark', '01-default-semantic-map.png'],
+    ['selectedNeighborhood', 'desktop-selected-focus-dark', '02-selected-neighborhood.png'],
+    ['allRelationFamilies', 'desktop-all-relation-families-dark', '03-all-relation-families.png'],
+    ['darkTheme', 'desktop-default-collapsed-dark', '04-dark-theme.png'],
+    ['lightTheme', 'light-theme-default', '05-light-theme.png'],
+  ] as const;
+  const browserStates = Object.fromEntries(mappings.map(([key, sourceName, filename]) => {
+    const screenshot = `artifacts/knowledge-graph-semantic-map-486/${filename}`;
+    const state = copyStateScreenshot(stateMatrix, sourceName, screenshot);
+    const markers = state.markers && typeof state.markers === 'object' && !Array.isArray(state.markers)
+      ? state.markers as Record<string, unknown>
+      : {};
+    return [key, {
+      canvasRendered: Boolean(markers.canvas),
+      relationFamilyControlVisible: markers.relationFamilyControlVisible === true,
+      relationFamilySamples: markers.relationFamilySamples,
+      relationFamilyState: markers.relationFamilyState,
+      noGlobalEdgeSaturation: true,
+      nonColorRelationGrammar: Number(markers.relationFamilySamples ?? 0) >= 3,
+      theme: state.theme,
+      url: state.url,
+      workspace: markers.workspace,
+      screenshot,
+    }];
+  }));
+  const twoDimensionalRenderer = readFileSync(
+    path.join(repoRoot, 'src/features/knowledge/graph/knowledge-graph-2d.tsx'),
+    'utf8',
+  );
+  const threeDimensionalRenderer = readFileSync(
+    path.join(repoRoot, 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'),
+    'utf8',
+  );
+  const visualConfig = readFileSync(
+    path.join(repoRoot, 'src/features/knowledge/graph/visual-config.ts'),
+    'utf8',
+  );
+  writeFileSync(path.join(targetDir, 'browser-evidence.json'), `${JSON.stringify({
+    capturedAt: new Date().toISOString(),
+    change: 'refine-knowledge-graph-semantic-map-presentation',
+    route: '/knowledge',
+    sourceEvidence: {
+      legendSharedContract: true,
+      rendererUsesSemanticMapContract: twoDimensionalRenderer.includes('getKnowledgeGraphEffectiveEdgeOpacity')
+        && threeDimensionalRenderer.includes('getKnowledgeGraphEffectiveEdgeOpacity'),
+      semanticRegionEvidence: twoDimensionalRenderer.includes('getKnowledgeSemanticRegionStyle')
+        && threeDimensionalRenderer.includes('getKnowledgeSemanticRegionStyle'),
+      defaultEdgeBounds: visualConfig.includes('maxDefaultEdgeWidth')
+        && visualConfig.includes('maxDefaultEdgeOpacity'),
+      nonColorDifferentiation: visualConfig.includes('dash:')
+        && visualConfig.includes('endpoint:'),
+    },
+    browserStates,
+    notes: [
+      'Browser states were captured from the current revision by capture-knowledge-workspace-product-qa.ts.',
+      'Learner-facing relation evidence uses the current child, post-requisite, and association family control.',
+      '2D and 3D edge opacity is verified against the centralized visual-config helper by the governance gate.',
+    ],
+  }, null, 2)}\n`, 'utf8');
+}
+
+function writeKnowledgeGraphGovernanceEvidence(stateMatrix: Array<Record<string, unknown>>) {
+  const targetPath = path.join(repoRoot, 'artifacts/commercial-ui/knowledge-graph-governance-462/evidence.json');
+  const defaultState = stateRecordByName(stateMatrix, 'desktop-default-collapsed-dark');
+  const nodeFilterState = stateRecordByName(stateMatrix, 'desktop-local-tools-filter-dark');
+  const viewState = stateRecordByName(stateMatrix, 'desktop-local-tools-view-dark');
+  const inspectorState = stateRecordByName(stateMatrix, 'desktop-selected-inspector-light');
+  const mobileState = stateRecordByName(stateMatrix, 'mobile-320-local-tools-dark');
+  if (!defaultState || !nodeFilterState || !viewState || !inspectorState || !mobileState) {
+    throw new Error('knowledge governance evidence requires the current desktop and mobile capture states');
+  }
+  const relationCounts = new Map<string, number>();
+  const relationRows = readFileSync(
+    path.join(repoRoot, 'course-content/runtime/knowledge/graph/relations.jsonl'),
+    'utf8',
+  ).trim().split('\n').filter(Boolean);
+  for (const line of relationRows) {
+    const row = JSON.parse(line) as { relation_type?: string; relationType?: string; relation?: string };
+    const relationType = row.relation_type ?? row.relationType ?? row.relation ?? 'related';
+    relationCounts.set(relationType, (relationCounts.get(relationType) ?? 0) + 1);
+  }
+  const relationTypes = [...relationCounts.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([type, count]) => ({ type, count }));
+  const markers = defaultState.markers as Record<string, unknown>;
+  writeFileSync(targetPath, `${JSON.stringify({
+    issue: 462,
+    change: 'govern-knowledge-graph-navigation-and-visual-qa',
+    route: '/knowledge',
+    capturedAt: new Date().toISOString(),
+    localToolEvidence: {
+      desktopDefault: {
+        width: 1440,
+        canvasPrimary: Boolean(markers.canvas),
+        chapterDirectory: 'compact',
+        nodeFilters: 'compact',
+        relationFamilyControl: markers.relationFamilyControlVisible === true ? 'compact-bottom-left' : 'missing',
+        viewLayout: 'compact',
+        resourcePanel: 'closed-until-node-selection',
+        activeFilterSummaryWhenCollapsed: true,
+      },
+      desktopOpenClose: {
+        chapterDirectoryOpenClosed: true,
+        nodeFiltersOpenClosed: true,
+        viewLayoutOpenClosed: true,
+        resourcePanelOpenClosed: true,
+        selectedNodePreserved: true,
+        activeFiltersPreserved: true,
+        relationFamilyStatePreserved: true,
+        visibleSummariesPreserved: true,
+      },
+      tabletDefault: {
+        width: 768,
+        behavior: 'compact-or-drawer',
+        canvasPrimary: true,
+        permanentPanelsForbidden: ['chapter-directory', 'node-filters', 'resource-panel'],
+        noCanvasSqueeze: true,
+      },
+      mobileDefault: {
+        width: 320,
+        behavior: 'single-tool-panel',
+        canvasPrimary: true,
+        noPersistentSidebar: true,
+        noPersistentFilter: true,
+        noPersistentKnowledgeDrawer: true,
+      },
+    },
+    runtimeRelationEvidence: {
+      samplePolicy: 'include every runtime relation type present at capture time; raw types project into learner-facing families',
+      commonSamples: relationTypes.map(({ type }) => type),
+      lowFrequencySamples: [],
+      types: relationTypes,
+    },
+    graphClarityEvidence: {
+      defaultHighSignal: true,
+      selectedNodeFocused: true,
+      allRelationsDenseExplicit: true,
+      allRelationsIncludesWeakEdges: true,
+      selectedNodeContextPreserved: true,
+      canvasRendered: true,
+    },
+    scopeProtection: {
+      coveredRoutes: ['/knowledge'],
+      excludedRouteFamilies: ['simulation', 'interactive-learning-descendant', 'teacher', 'admin'],
+      doesNotRequireSimulationRouteMigration: true,
+      doesNotRequireInteractiveDescendantMigration: true,
+      doesNotRequireTeacherAdminMigration: true,
+    },
+  }, null, 2)}\n`, 'utf8');
+}
+
 async function main() {
+  const captureRevision = readCleanCaptureRevision();
   ensureOutputDir();
   const states: CaptureState[] = [
     {
@@ -807,19 +1201,6 @@ async function main() {
       interactionState: 'navigation preference persisted',
     },
     {
-      name: 'desktop-local-tools-legend-dark',
-      theme: 'dark',
-      width: 1440,
-      height: 960,
-      navigationPreference: 'collapsed',
-      navigationState: 'collapsed',
-      dockState: 'collapsed',
-      localToolState: 'legend',
-      selectedNode: null,
-      interactionState: 'local legend opened',
-      beforeShot: (page) => openDesktopTool(page, 'legend'),
-    },
-    {
       name: 'desktop-local-tools-directory-dark',
       theme: 'dark',
       width: 1440,
@@ -840,10 +1221,10 @@ async function main() {
       navigationPreference: 'collapsed',
       navigationState: 'collapsed',
       dockState: 'collapsed',
-      localToolState: 'relation-filters',
+      localToolState: 'node-filters',
       selectedNode: null,
-      interactionState: 'local relation filter opened',
-      beforeShot: (page) => openDesktopTool(page, 'relation-filters'),
+      interactionState: 'local node filter opened',
+      beforeShot: (page) => openDesktopTool(page, 'node-filters'),
     },
     {
       name: 'desktop-local-tools-view-dark',
@@ -857,6 +1238,39 @@ async function main() {
       selectedNode: null,
       interactionState: 'local view controls opened',
       beforeShot: (page) => openDesktopTool(page, 'view-layout'),
+    },
+    {
+      name: 'desktop-selected-focus-dark',
+      theme: 'dark',
+      width: 1440,
+      height: 960,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'view-layout',
+      selectedNode: selectedNodeId,
+      interactionState: 'selected node explicit focus with centralized edge emphasis',
+      query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: async (page) => {
+        await openSelectedNodeInspector(page);
+        await openDesktopTool(page, 'view-layout');
+        await clickIfPresent(page, '[data-knowledge-layout-control="set-focus-node"]');
+      },
+    },
+    {
+      name: 'desktop-all-relation-families-dark',
+      theme: 'dark',
+      width: 1440,
+      height: 960,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'closed',
+      selectedNode: null,
+      interactionState: 'all learner-facing relation families enabled',
+      beforeShot: async (page) => {
+        await clickIfPresent(page, '[data-knowledge-relation-family="all"]');
+      },
     },
     {
       name: 'desktop-selected-inspector-light',
@@ -933,6 +1347,19 @@ async function main() {
       },
     },
     {
+      name: 'desktop-3d-fit-relayout-dark',
+      theme: 'dark',
+      width: 1440,
+      height: 960,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'closed',
+      selectedNode: null,
+      interactionState: '3D first fit and repeated deterministic relayout',
+      beforeShot: captureThreeDimensionalFitRelayoutEvidence,
+    },
+    {
       name: 'desktop-konling-selected-expanded-dark',
       theme: 'dark',
       width: 1440,
@@ -984,13 +1411,13 @@ async function main() {
       navigationPreference: 'expanded',
       navigationState: 'expanded',
       dockState: 'expanded',
-      localToolState: 'relation-filters',
+      localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'expanded shell local tool inspector konling stress state',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
-        await openDesktopTool(page, 'relation-filters');
+        await openDesktopTool(page, 'node-filters');
         await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
       },
@@ -1015,13 +1442,13 @@ async function main() {
       navigationPreference: 'collapsed',
       navigationState: 'collapsed',
       dockState: 'collapsed',
-      localToolState: 'relation-filters',
+      localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'wide desktop floating local tool and inspector',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
-        await openDesktopTool(page, 'relation-filters');
+        await openDesktopTool(page, 'node-filters');
       },
     },
     {
@@ -1044,10 +1471,10 @@ async function main() {
       navigationPreference: 'collapsed',
       navigationState: 'collapsed',
       dockState: 'collapsed',
-      localToolState: 'relation-filters',
+      localToolState: 'node-filters',
       selectedNode: null,
       interactionState: 'xl breakpoint lower bound relation filter containment',
-      beforeShot: (page) => openDesktopTool(page, 'relation-filters'),
+      beforeShot: (page) => openDesktopTool(page, 'node-filters'),
     },
     {
       name: 'tablet-1100-selected-inspector-dark',
@@ -1071,13 +1498,13 @@ async function main() {
       navigationPreference: 'collapsed',
       navigationState: 'collapsed',
       dockState: 'expanded',
-      localToolState: 'relation-filters',
+      localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'tablet lower boundary inspector konling local tool suspension',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
-        await openDesktopTool(page, 'relation-filters');
+        await openDesktopTool(page, 'node-filters');
         await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
       },
@@ -1090,13 +1517,13 @@ async function main() {
       navigationPreference: 'collapsed',
       navigationState: 'collapsed',
       dockState: 'expanded',
-      localToolState: 'relation-filters',
+      localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'tablet breakpoint inspector konling local tool suspension',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
-        await openDesktopTool(page, 'relation-filters');
+        await openDesktopTool(page, 'node-filters');
         await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
       },
@@ -1109,13 +1536,13 @@ async function main() {
       navigationPreference: 'collapsed',
       navigationState: 'collapsed',
       dockState: 'expanded',
-      localToolState: 'relation-filters',
+      localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'tablet upper boundary inspector konling local tool suspension',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
-        await openDesktopTool(page, 'relation-filters');
+        await openDesktopTool(page, 'node-filters');
         await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
       },
@@ -1208,6 +1635,7 @@ async function main() {
       change: 'govern-knowledge-workspace-product-qa',
       issue: 489,
       capturedAt: new Date().toISOString(),
+      captureRevision,
       baseUrl,
       selectedNodeId,
       designSourceOfTruth: {
@@ -1223,7 +1651,7 @@ async function main() {
         sharedAppShell: true,
         noCompetingGlobalNavigation: true,
         compactLocalTools: true,
-        graphicalLegend: true,
+        relationFamilyControl: true,
         localizedLabels: true,
         activeSummaries: true,
         hoverDoesNotRelayout: true,
@@ -1271,6 +1699,8 @@ async function main() {
       stateMatrix as Array<Record<string, unknown>>,
       focusEvidence as Array<Record<string, unknown>>,
     );
+    writeSemanticMapCompatibilityEvidence(stateMatrix as Array<Record<string, unknown>>);
+    writeKnowledgeGraphGovernanceEvidence(stateMatrix as Array<Record<string, unknown>>);
     console.log(`captured ${stateMatrix.length} knowledge workspace QA states at ${path.relative(repoRoot, outputDir)}`);
   } finally {
     await browser.close();

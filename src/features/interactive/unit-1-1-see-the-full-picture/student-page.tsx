@@ -19,6 +19,11 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
+  buildCoursePackageLayeredScope,
+  resolveCoursePageLayeredDrawerEntries,
+  type LayeredGraphPayload,
+} from '@/lib/layered-graph';
+import {
   isUNIT_1_1InteractivePageType,
   UNIT_1_1_COURSE_SUBTITLE,
   UNIT_1_1_COURSE_TITLE,
@@ -44,10 +49,17 @@ export function UNIT_1_1StudentPage({
   sessionId,
   lessonRuntime,
   demoStepId,
+  layeredGraphPayload,
+  layeredResourceLaunchTargets,
+  layeredResourceRegistryIds,
 }: {
   sessionId: string;
   lessonRuntime: RuntimeLessonEntryBundle;
   demoStepId?: string;
+  /** Server-resolved Teaching Projection layered payload (active/candidate/pin). */
+  layeredGraphPayload?: LayeredGraphPayload | null;
+  layeredResourceLaunchTargets?: Record<string, string | null>;
+  layeredResourceRegistryIds?: Record<string, string>;
 }) {
   const isDemo = sessionId === 'demo';
   const { data: authSession } = useSession();
@@ -100,6 +112,39 @@ export function UNIT_1_1StudentPage({
   const step = UNIT_1_1_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
   const savedResponse = courseState.responses[step.id];
+  const orderedStepIds = useMemo(
+    () => UNIT_1_1_LESSON_STEPS.map((item) => item.id),
+    [],
+  );
+  // Layered Teaching Projection drawer path (#1273 / PR #1286):
+  // server resolves active/candidate payload; client scopes step.knowledgeRefs
+  // → canonicalId → optional card (not the empty lesson-runtime Legacy adapter).
+  const layeredDrawerEntries = useMemo(
+    () =>
+      resolveCoursePageLayeredDrawerEntries({
+        lessonRuntime,
+        currentStepId: step.id,
+        orderedStepIds,
+        scope: {
+          ...buildCoursePackageLayeredScope({
+            packageCanonicalId: '1-1',
+            lessonKey: '1-1',
+            stepId: step.id,
+          }),
+        },
+        payload: layeredGraphPayload,
+        resourceLaunchTargets: layeredResourceLaunchTargets,
+        resourceRegistryIds: layeredResourceRegistryIds,
+      }),
+    [
+      layeredGraphPayload,
+      layeredResourceLaunchTargets,
+      layeredResourceRegistryIds,
+      lessonRuntime,
+      orderedStepIds,
+      step.id,
+    ],
+  );
 
   // Global AI context update
   const { updatePageContext } = useGlobalAI();
@@ -223,9 +268,10 @@ export function UNIT_1_1StudentPage({
         <StepKnowledgeDrawer
           lessonRuntime={lessonRuntime}
           currentStepId={step.id}
-          orderedStepIds={UNIT_1_1_LESSON_STEPS.map((item) => item.id)}
+          orderedStepIds={orderedStepIds}
           title="页面知识卡片"
           inlineTool
+          layeredDrawerEntries={layeredDrawerEntries}
         />
       }
       runtimeAttributes={{

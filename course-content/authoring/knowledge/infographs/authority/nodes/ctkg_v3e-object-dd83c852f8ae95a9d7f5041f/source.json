@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-dd83c852f8ae95a9d7f5041f",
+  "safe_id": "ctkg_v3e-object-dd83c852f8ae95a9d7f5041f",
+  "node": {
+    "name": "Aizermann's conjecture",
+    "name_en": "Aizermann's conjecture",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Aizermann's conjecture：Aizermann's conjecture",
+  "intuition": null,
+  "explanation": "Aizermann's conjecture",
+  "relation_head": "前置 → Lur'e problem · 后续 → Lur'e problem",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Lur'e problem",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Lur'e problem",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Aizermann's…",
+    "Aizermann's ",
+    "应用于·Lur'e…",
+    "关联·Lur'e …"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-dd83c852f8ae95a9d7f5041f.md",
+  "provider_policy": "grok-image_gen"
+}

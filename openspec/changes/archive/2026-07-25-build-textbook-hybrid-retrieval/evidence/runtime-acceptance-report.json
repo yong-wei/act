@@ -1,0 +1,1329 @@
+{
+  "recordType": "textbook-hybrid-runtime-acceptance-report",
+  "formatVersion": "textbook-hybrid-runtime-acceptance.v1",
+  "hashes": {
+    "config": "sha256:9fd87aea6c7427c2f2499d11f5206398a227bebd46e8c6dd315ef1ffb7a926f0",
+    "benchmark": "sha256:14bcd6350d51b554327cc9a93d21f479398303e6696985dd1f5429403f471028",
+    "split": "sha256:50b168cfa236a35166408c0a9d5cc9384e76528277b3a717ddf1fe15dbfbcba8",
+    "benchmarkLock": "sha256:c3c10eb9620457f4dcb72d75afcc9bd060d20d705347726dca21796cb79355e0",
+    "benchmarkLockFile": "sha256:47496c5a9dda99f8c772bd98a348a007978f36902112ef170d09de8c0b4e44f6",
+    "selectionReport": "sha256:beb6972a9f9badd3c8632699975dd40300324d2340260bd7d0d41045df50e02c",
+    "indexManifest": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423"
+  },
+  "evaluatedQueries": 11,
+  "hitsAt10": 11,
+  "recallAt10": 1,
+  "threshold": 0.8,
+  "knownFailureQueryId": "known-failure-first-order-unit-step-response",
+  "knownFailureHit": true,
+  "allResultsResolved": true,
+  "queries": [
+    {
+      "queryId": "known-failure-first-order-unit-step-response",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_w2chijg4in5z0u4kfn"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_u2i2p4wj1838cbtnyx"
+        }
+      ],
+      "latencyMs": 1249.701,
+      "returned": [
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-1",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/section-4.2.2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/section-4.2.2",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/section-4.2.2",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/section-4.2.1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/section-4.2.2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-07/chapter-7/exercise-7.24/solution/item-4::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-07/chapter-7/exercise-7.24/solution/item-4",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-07/chapter-7/exercise-7.24/solution/item-3",
+            "textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-07/chapter-7/exercise-7.24/solution/item-4",
+            "textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-07/chapter-7/exercise-7.24/solution/item-5"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-2",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-2",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-10/chapter-10/unnumbered-003",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-10/chapter-10/unnumbered-003",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-10/chapter-10/unnumbered-003",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-10/chapter-10/unnumbered-003/solution"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-cf-observer-separation-principle",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_8wuym01ommoxxcr8io"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_4727v7bz8liv3yw6wa"
+        }
+      ],
+      "latencyMs": 1170.962,
+      "returned": [
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.5",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.5",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-4",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.5"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-4",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-4",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-4",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.5"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-2/item-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/example-9.22",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/example-9.22",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/example-9.22",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/example-9.22/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/item-2/item-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/example-9.22"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-cf-pure-delay-frequency-response",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_pqtw2zchvj69uei18g"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_d0ukf8oexcxnode45e"
+        }
+      ],
+      "latencyMs": 1301.651,
+      "returned": [
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/section-6.2.5",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/section-6.2.5",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/section-6.2.4",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/section-6.2.5",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/example-6.9/item-5::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/example-6.9/item-5",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/example-6.9/item-4",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/example-6.9/item-5",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/section-6.2.4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/section-6.2.4::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/section-6.2.4",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/example-6.9/item-5",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/section-6.2.4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-6",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-6",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-5",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-6",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-6/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-6",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-6",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-5",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-6",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-6/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-5",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-5",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/example-5.6/solution",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-5",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-6"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/example-5.6/solution",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/example-5.6/solution",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/example-5.6",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/example-5.6/solution",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-5"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-5",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-5",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/example-5.6/solution",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-5",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-6"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/example-5.6/solution",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/example-5.6/solution",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/example-5.6",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/example-5.6/solution",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-5"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/section-6.2.1/item-5-occurrence-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-2"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-cf-ramp-velocity-error-constant",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_ib8q8dm40icpu9pen8"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_lmw71gevwkn8k8fq4h"
+        }
+      ],
+      "latencyMs": 1064.202,
+      "returned": [
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.13",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.13",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-4",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.13",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.13/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-4",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-4",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-4",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.13"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-4",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-4",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-4",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-4",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13/solution",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13/solution",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13/solution",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-5"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.14",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.14",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-5",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.14",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.14/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-006/item-2/item-1",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-006/item-2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-006/item-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-006/item-2/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-006/item-2/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-5",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-5",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.13/solution",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-5",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.14"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-4"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-bi-minimum-nonminimum-phase",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_oatmbtcwfrch5t5gai"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_6um7n67o4hqvr6p82v"
+        }
+      ],
+      "latencyMs": 1134.8,
+      "returned": [
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/section-6.2.2",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/section-6.2.2",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-5",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/section-6.2.2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/section-6.2.2/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/section-6.2.1/item-5-occurrence-2",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/section-6.2.1/item-5-occurrence-2",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/section-6.2.1/item-4-occurrence-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/section-6.2.1/item-5-occurrence-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-3",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-3",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/section-6.2.1/item-5-occurrence-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.14-occurrence-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.14-occurrence-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.14/solution",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.14-occurrence-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-4::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-4",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-5",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-5",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-5",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/section-6.2.2"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-bi-phase-lead-compensation",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_89fyiq6xjl6m1x2nci"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_eombaqvyogs9vwb5jm"
+        }
+      ],
+      "latencyMs": 1123.781,
+      "returned": [
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.1",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.1",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-1",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-6",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-6",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/example-7.4/item-5",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-6",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-6/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-1-occurrence-2",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-1-occurrence-2",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.3",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-1-occurrence-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2-occurrence-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2-occurrence-3::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2-occurrence-3",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-1-occurrence-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2-occurrence-3",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-3-occurrence-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2-occurrence-2",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2-occurrence-2",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.2/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2-occurrence-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-3-occurrence-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.2/item-1",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/section-7.2.2/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.2/item-2-occurrence-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1/item-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1/item-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1/item-1/item-2-occurrence-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1/item-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1/item-1/item-2-occurrence-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1/item-1/item-2-occurrence-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1/item-1/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1/item-1/item-2-occurrence-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1/item-3"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-bi-state-observer-estimator",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_v537d03d0n2qo8a8k1"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_qpotl3h8iag04jhprx"
+        }
+      ],
+      "latencyMs": 1037.376,
+      "returned": [
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/example-9.22"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/item-2/item-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/state-observer-topic-3/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-2/item-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-feedback-topic-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-feedback-topic-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-feedback-topic-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-feedback-topic-1/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-4",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-4",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-observer-topic-3/example-9.26/solution",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/item-4",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.5"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-bi-zero-order-hold-semantics",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_ezrjm02izxs1orcky5"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_z3k54dfblc0y79zagu"
+        }
+      ],
+      "latencyMs": 1076.565,
+      "returned": [
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/section-9.2.2/item-1::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/section-9.2.2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/section-9.2.2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/section-9.2.2/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.2/item-5",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/example-9.1/solution",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/example-9.1/solution",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/example-9.1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/example-9.1/solution",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/section-9.2.2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/section-9.2.2::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/section-9.2.2",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/example-9.1/solution",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/section-9.2.2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-2-occurrence-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-2-occurrence-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-2-occurrence-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-2-occurrence-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.1/example-7.2"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-fig-feedback-root-locus-gain",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_m099jilb80ohtjtnmp"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_rbn1sfndbmrjsb5g7y"
+        }
+      ],
+      "latencyMs": 1007.208,
+      "returned": [
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.8/item-6",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.8/item-6",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.8/item-5",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.8/item-6",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.9"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.9",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.9",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.8/item-6",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.9",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.9/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/closed-loop-performance-factor-7",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/closed-loop-performance-factor-7",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/example-5.15/solution",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/closed-loop-performance-factor-7",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/example-5.16"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/example-5.15/solution",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/example-5.15/solution",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/example-5.15",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/example-5.15/solution",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/closed-loop-performance-factor-7"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/section-5.1.3",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/section-5.1.3",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/section-5.1.2/item-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/section-5.1.3",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/example-5.1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-05/section-5.2/section-5.2.2::embedding-chunk-000002-of-000002",
+          "primaryUnitId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-05/section-5.2/section-5.2.3",
+          "owningUnitIds": [
+            "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-05/section-5.2/section-5.2.3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-fig-hu8-feedback-block-signal-flow",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_aeg52qyi6ludt2rl5j"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_jmc0xi1em1o4i8y7ek"
+        }
+      ],
+      "latencyMs": 862.566,
+      "returned": [
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/item-6",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/item-6",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.17/solution",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/item-6",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/item-6/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.15/solution",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.15/solution",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.15",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.15/solution",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.16"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.13",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.13",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.13",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.13/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/item-4/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/example-2.13"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/item-6/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/item-6/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/item-6",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/item-6/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/unnumbered-002/item-6/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.12/solution::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.12/solution",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.12",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.12/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.10"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.20",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.20",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.19",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.20",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.21"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.10",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.10",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.10",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.10/solution"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    },
+    {
+      "queryId": "blind-v2-fig-liu-rc-polar-curve",
+      "hit": true,
+      "outcome": "success",
+      "providerFailures": [],
+      "traceIds": [
+        {
+          "stage": "embedding",
+          "traceId": "ti_ekz3mn2dbsut4dn6po"
+        },
+        {
+          "stage": "rerank",
+          "traceId": "ti_wl9oazg2nx043nvqpg"
+        }
+      ],
+      "latencyMs": 1087.918,
+      "returned": [
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-1"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-2",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-2",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-1",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-1",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-1",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-1",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/section-6.1.2",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-1",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-2"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.4",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.4",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.3/solution",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.4",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.4/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-2::embedding-chunk-000001-of-000002",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-1",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-2",
+            "textbook-unit:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.3",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.3",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.2/solution",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.3",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/example-6.3/solution"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-2",
+          "primaryUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-2",
+          "owningUnitIds": [
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-1",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-2",
+            "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2/item-3"
+          ],
+          "validResolution": true
+        },
+        {
+          "windowId": "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/example-6.7",
+          "primaryUnitId": "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/example-6.7",
+          "owningUnitIds": [
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/example-6.7",
+            "textbook-unit:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/example-6.7/solution"
+          ],
+          "validResolution": true
+        }
+      ],
+      "validResolution": true
+    }
+  ],
+  "passed": true
+}

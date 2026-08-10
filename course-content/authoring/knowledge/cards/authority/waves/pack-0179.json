@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0179",
+  "offset": 895,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_51031d894f2189c8d2db8f36",
+      "batch": "C",
+      "name": "题7-26系统结构图",
+      "definition": "题7-26系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-26系统结构图"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-26系统结构图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-26系统结构图是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-26系统结构图」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_6ec72a95052d52a56c6074ef",
+      "batch": "C",
+      "name": "题7-23系统结构图",
+      "definition": "题7-23系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-23系统结构图"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-23系统结构图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-23系统结构图是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-23系统结构图」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9971389501e6c9bf6d378160",
+      "batch": "C",
+      "name": "题7-20系统结构图",
+      "definition": "题7-20系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-20系统结构图"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-20系统结构图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-20系统结构图是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-20系统结构图」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_aa8ea79b87e1a61e5f117b98",
+      "batch": "C",
+      "name": "数字控制器 D(z)",
+      "definition": "数字控制器 D(z)是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字控制器 D(z)"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 数字控制器 D(z)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 数字控制器 D(z)是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「数字控制器 D(z)」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b9e17d7d49dcfcec06ee70e7",
+      "batch": "C",
+      "name": "题7-17系统结构图",
+      "definition": "题7-17系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-17系统结构图"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-17系统结构图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-17系统结构图是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-17系统结构图」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

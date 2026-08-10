@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0093",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-5e75417369e6729db63a90a6",
+      "name": "Modal form",
+      "definition": "Modal form：A state-space realization where the A matrix is diagonal (or block diagonal for complex poles)."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-60799f4e66c540f93f3c0085",
+      "name": "加权序列",
+      "definition": "线性定常离散系统中，单位脉冲响应序列K(nT)的专有名称，表示对连续信号采样时每一时刻的脉冲值等于该时刻的函数值。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-623dcdfc6bbae9f9b1a40d27",
+      "name": "大范围稳定系统",
+      "definition": "系统受到有界扰动作用偏离了原平衡状态，不论扰动引起的初始偏差有多大，当扰动取消后，系统都能以足够的准确度恢复到初始平衡状态。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-63919e7aa7d3d49925074a68",
+      "name": "Saturation Nonlinearity",
+      "definition": "Saturation Nonlinearity：Saturation Nonlinearity"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-63e0a0d95493513e939f9acd",
+      "name": "State transition",
+      "definition": "State transition：Φ(s) = [sI - A]^{-1} is the Laplace transform of the state transition matrix."
+    }
+  ],
+  "created_at": "2026-08-05T16:36:19.287240+00:00"
+}

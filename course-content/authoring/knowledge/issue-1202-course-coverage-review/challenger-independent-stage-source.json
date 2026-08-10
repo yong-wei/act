@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "batchBinding": {
+    "batchId": "6826bdc48609e08a6af5efcb",
+    "manifestBatchIndex": 12,
+    "sequence": 0,
+    "group": "ctr:release:frequency-domain-analysis-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 10,
+    "memberDigest": "5068327c96f60c3e017a6634e032a6727b2879c376f33ada8abc34ada005e41f",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "sessionIndependence": "CHALLENGER-independent session act:issue-1202:challenger-course-coverage-review/batch-6826bdc48609e08a6af5efcb; sessionId=challenger-1202-6826bdc4-seq0-systemmodel-freq-domain-batch12; did not read Primary stage artifact course-content/authoring/knowledge/issue-1202-course-coverage-review/primary-independent-stage-source.json, nor any Primary/Third/normalized review/receipt/attestation/provenance under issue-1202-course-coverage-review, nor other-batch semantic conclusions; authority limited to issue-1180-current-course-coverage-review/batch-manifest.json#/batches/12, same-directory worklist.json rows for exact ordered members, and independent-course evidence scope course-content/authoring/lessons/** + course-content/syllabus-refactor/** only (aggregate/profile metadata not treated as independent course evidence).",
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-object-07557be647903ff892d3d29d",
+      "canonicalRevision": "cf0a9a8ad0af2c6da125f0d8c949477cc8f44782c18565843ca62e325f9db8aa",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=0 canonicalId=ctkg:v3e-object-07557be647903ff892d3d29d canonicalRevision=cf0a9a8ad0af2c6da125f0d8c949477cc8f44782c18565843ca62e325f9db8aa：entityType=SystemModel，preferredLabel「单位反馈系统，开环传递函数 G(s)=K(τ s+1)/[s(T1 s+1)(T2 s+1)]，K, T1, T2, τ>0。」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=2；descriptionDigest=04335cb22213f2133d0698627ae73ed13f9105fbb6b06b97962d4c5cd45a3fd7；evidenceDigest=024ee4de2db4ab1b26d67fd7a29cf4f39c015db5edcadae411861a50e284d728。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共3条：kind分布={'aggregate-evidence': 2, 'canonical-profile': 1} boundary分布={'aggregate': 2, 'profile': 1} sourcePath分布={'aggregate-projection': 3}；selector摘要=['evidence:ctkg:v3e-evidence-c34350a6f21a1d59d7ebb', 'evidence:ctkg:v3e-evidence-d5a14a95afd90db265844']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=单位反馈系统，开环传递函数 G(s)=K(τ s+1)/[s(T1 s+1)(T2 s+1)]，K, T1, T2, τ>0。。课程侧独立探测：canonicalId字面零命中；专指开环式 G(s)=K(τs+1)/[s(T1s+1)(T2s+1)] 在 lessons/**+syllabus-refactor/** 零命中。2-3/2-4/3-8 等频域课次讨论Bode/Nyquist通用对象，未冻结绑定本单位反馈+超前一阶零点的具体开环模型。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-c34350a6f21a1d59d7ebb732|79db848ac34babf86c620b835035b4f4cdb26ad20b29b6b9f8cdb88ac80cc057",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-d5a14a95afd90db265844827|b1551ec038f3a30f8d41ccb873ac214b567512a0bc852de589bcd9e6fc0c3bce",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-07557be647903ff892d3d29d|cf0a9a8ad0af2c6da125f0d8c949477cc8f44782c18565843ca62e325f9db8aa"
+      ]
+    },
+    {
+      "ordinal": 1,
+      "canonicalId": "ctkg:v3e-object-39f3db578d6adc1acaf2dd70",
+      "canonicalRevision": "7d5ed737c51b3c8568fc958fb0b8cb69b4fd841bbd72aa6a1549ef678e88cbfc",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=1 canonicalId=ctkg:v3e-object-39f3db578d6adc1acaf2dd70 canonicalRevision=7d5ed737c51b3c8568fc958fb0b8cb69b4fd841bbd72aa6a1549ef678e88cbfc：entityType=SystemModel，preferredLabel「系统开环传递函数 G(s)H(s)=K(-τ s+1)/[s(T s+1)]，K, τ, T>0。」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=2；descriptionDigest=49ca9022566267c52cc147fd8eca8f45f8096036afb7ac4087d8cfe1285a625a；evidenceDigest=abbce5d482ed55a0306570e06deac1aaf7f176e6b8541eb9cd7b92e68b1a72f3。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共3条：kind分布={'aggregate-evidence': 2, 'canonical-profile': 1} boundary分布={'aggregate': 2, 'profile': 1} sourcePath分布={'aggregate-projection': 3}；selector摘要=['evidence:ctkg:v3e-evidence-97158d082a003ce66ede4', 'evidence:ctkg:v3e-evidence-bc94a8e098efe548343c5']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=系统开环传递函数 G(s)H(s)=K(-τ s+1)/[s(T s+1)]，K, τ, T>0。。课程侧独立探测：canonicalId字面零命中；专指开环式 G(s)H(s)=K(-τs+1)/[s(Ts+1)]（含右半平面零点/非最小相位一阶因子）在 lessons/**+syllabus-refactor/** 零命中。非最小相位仅有概念级提及，未绑定该具体传递函数实例。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-97158d082a003ce66ede4478|d883934cce5e49a23b51ecc32ed00203027b60d7062796883b513a15376f45b6",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-bc94a8e098efe548343c5530|92d1c1185eec5d48bde71cdd3fe1aff0ea8ea231254a14b97b203aaf5b6919a4",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-39f3db578d6adc1acaf2dd70|7d5ed737c51b3c8568fc958fb0b8cb69b4fd841bbd72aa6a1549ef678e88cbfc"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "canonicalId": "ctkg:v3e-object-6026c5f4d52df4250e3ee49f",
+      "canonicalRevision": "33f556547d1a90068c0dee97b3e7d6fba5474192fe2637c8023d82725590912c",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=2 canonicalId=ctkg:v3e-object-6026c5f4d52df4250e3ee49f canonicalRevision=33f556547d1a90068c0dee97b3e7d6fba5474192fe2637c8023d82725590912c：entityType=SystemModel，preferredLabel「标准负反馈控制系统，输入R(s)经求和节点减去反馈信号H(s)·C(s)后，误差信号驱动前向通道G(s)产生输出C(s)，输出经H(s)反馈至求和节点，开环传递函数为G(s)H(s)。」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=2；descriptionDigest=0f0a065105e1ce55cdd079608ddc771f9cce57c4f9eac8bda640e4cc0a7f7136；evidenceDigest=731bcf2a99d3cdf69dd7c6313c05ddf2a5a3f3ff810f4e7b422268819f0028b9。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共3条：kind分布={'aggregate-evidence': 2, 'canonical-profile': 1} boundary分布={'aggregate': 2, 'profile': 1} sourcePath分布={'aggregate-projection': 3}；selector摘要=['evidence:ctkg:v3e-evidence-4f7ab149973cfdbca8b75', 'evidence:ctkg:v3e-evidence-9a7eca410fb66ec9090c1']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=标准负反馈控制系统，输入R(s)经求和节点减去反馈信号H(s)·C(s)后，误差信号驱动前向通道G(s)产生输出C(s)，输出经H(s)反馈至求和节点，开环传递。课程侧独立探测：canonicalId字面零命中；「标准负反馈」在 3-7/2-1 等有通用闭环结构叙述，但未以本 SystemModel 的 R(s)/E/G(s)/C(s)/H(s) 与开环 G(s)H(s) 定义作为冻结 independent-course selector。该通用结构只能记为未绑定候选，不得伪造 selector。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-4f7ab149973cfdbca8b75ddb|71ae847d746ce667c0bab03fed92913a7dc4b40e5176f97246d5b9306fa5e6dc",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-9a7eca410fb66ec9090c1dfd|12580088622ef9c04d8f33d4267610a67f94a0d565fab9b2db2f860f3c348356",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-6026c5f4d52df4250e3ee49f|33f556547d1a90068c0dee97b3e7d6fba5474192fe2637c8023d82725590912c"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "canonicalId": "ctkg:v3e-object-60b8b1e83fb9f7e20be5863b",
+      "canonicalRevision": "54734281c366a2118215c9bcb36e2011ca0066a14cb6315144403350a5916498",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=3 canonicalId=ctkg:v3e-object-60b8b1e83fb9f7e20be5863b canonicalRevision=54734281c366a2118215c9bcb36e2011ca0066a14cb6315144403350a5916498：entityType=SystemModel，preferredLabel「系统开环传递函数 G(s)H(s)=(2000s-4000)/[s^2(s+1)(s^2+10s+400)]。」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=2；descriptionDigest=7d8f925f94188231bca5521b5650256f71ec0ba0d2e2171b121d39e682b9c2ac；evidenceDigest=6b68953f7ccb237c71029c177e1ab18f6a71b6c0ca58b1800523c18b75a8578e。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共3条：kind分布={'aggregate-evidence': 2, 'canonical-profile': 1} boundary分布={'aggregate': 2, 'profile': 1} sourcePath分布={'aggregate-projection': 3}；selector摘要=['evidence:ctkg:v3e-evidence-4cd0248d8e451124332ae', 'evidence:ctkg:v3e-evidence-5176c6226b95d44d4302d']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=系统开环传递函数 G(s)H(s)=(2000s-4000)/[s^2(s+1)(s^2+10s+400)]。。课程侧独立探测：canonicalId字面零命中；专指数值开环 (2000s-4000)/[s^2(s+1)(s^2+10s+400)] 在 lessons/**+syllabus-refactor/** 零命中，无例题/手稿绑定该系数实例。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-4cd0248d8e451124332aea08|266603152a98271a3fba070109ebb863b5526d291924a6100462635ea9788380",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-5176c6226b95d44d4302d18d|8dd25e668d2a1e7c36ef2530755d87090b6cc66f3d6738308eeed3348831cf1a",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-60b8b1e83fb9f7e20be5863b|54734281c366a2118215c9bcb36e2011ca0066a14cb6315144403350a5916498"
+      ]
+    },
+    {
+      "ordinal": 4,
+      "canonicalId": "ctkg:v3e-object-6142888bc3a74aad63c98322",
+      "canonicalRevision": "1c41bf9686d080c3ffd6160a5fda3f9f4244203ef23845bc4fe92b15ceb632bc",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=4 canonicalId=ctkg:v3e-object-6142888bc3a74aad63c98322 canonicalRevision=1c41bf9686d080c3ffd6160a5fda3f9f4244203ef23845bc4fe92b15ceb632bc：entityType=SystemModel，preferredLabel「系统开环传递函数 G(s)H(s)=K/[s(T1 s+1)(T2 s+1)]，K, T1, T2>0。」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=2；descriptionDigest=c7b9aa56c48b0fda3816d1f6e398e83f57ec4c3f58c5a1bc50f108113b2d94c5；evidenceDigest=6f657699e33da4505d3e75e885455500dbd81b0113365fa16845aa35fb8fdf98。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共3条：kind分布={'aggregate-evidence': 2, 'canonical-profile': 1} boundary分布={'aggregate': 2, 'profile': 1} sourcePath分布={'aggregate-projection': 3}；selector摘要=['evidence:ctkg:v3e-evidence-1ac1e8ca3e5655bf1a288', 'evidence:ctkg:v3e-evidence-3d30d2481a483c56cfda5']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=系统开环传递函数 G(s)H(s)=K/[s(T1 s+1)(T2 s+1)]，K, T1, T2>0。。课程侧独立探测：canonicalId字面零命中；专指 G(s)H(s)=K/[s(T1s+1)(T2s+1)] 字面零命中。3-3 等有 K/[s(s+2)(s+4)] 类根轨迹对象，分母结构不同且未绑定本 T1/T2 时常数型频域工程模型。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-1ac1e8ca3e5655bf1a28864f|e708cebd3afbecff10c7a715ccff6cf71fb02d0ffdfc287ced35f0e790e581d5",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-3d30d2481a483c56cfda5da9|a2297c248a54e9ade8246a6342f9db207b8dce72b68e64bb0ad295124e04c1ba",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-6142888bc3a74aad63c98322|1c41bf9686d080c3ffd6160a5fda3f9f4244203ef23845bc4fe92b15ceb632bc"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "canonicalId": "ctkg:v3e-object-8450fdb7aa07bc7ec2dee15e",
+      "canonicalRevision": "e12067e6ab3a9b8c4ebf8ac0f5afd43ad1f768a460c9b9a972d414ac8a13ff35",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=5 canonicalId=ctkg:v3e-object-8450fdb7aa07bc7ec2dee15e canonicalRevision=e12067e6ab3a9b8c4ebf8ac0f5afd43ad1f768a460c9b9a972d414ac8a13ff35：entityType=SystemModel，preferredLabel「0型单位反馈系统，开环传递函数 G(s)=K/[(T1 s+1)(T2 s+1)]，K, T1, T2>0。」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=2；descriptionDigest=3c403716a4d6426ea83bf21db7e8a69a5656527fed01601ef3c09d2e22775cad；evidenceDigest=a2277ed563042679a1291617d7d4e6e2636cfa5a93ab58912fae1c1877f45ac2。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共3条：kind分布={'aggregate-evidence': 2, 'canonical-profile': 1} boundary分布={'aggregate': 2, 'profile': 1} sourcePath分布={'aggregate-projection': 3}；selector摘要=['evidence:ctkg:v3e-evidence-b5d68e5a55e54be9ba9d8', 'evidence:ctkg:v3e-evidence-e10bdaadf796cd81869a8']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=0型单位反馈系统，开环传递函数 G(s)=K/[(T1 s+1)(T2 s+1)]，K, T1, T2>0。。课程侧独立探测：canonicalId字面零命中；「0型单位反馈」+ G(s)=K/[(T1s+1)(T2s+1)] 专指零命中。型别/稳态误差在 3-7 有一般讨论，未绑定本 0 型双惯性开环实例。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-b5d68e5a55e54be9ba9d81cb|fa77f7ac8818c291e56f4af2d50df1ad7e68c61bbc35ebe6af2dd87a231a67d7",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-e10bdaadf796cd81869a8e0a|d93b43636cf8da1d3d6e181476ceb1a2035236bd5bbd158ba47e508effe789b8",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-8450fdb7aa07bc7ec2dee15e|e12067e6ab3a9b8c4ebf8ac0f5afd43ad1f768a460c9b9a972d414ac8a13ff35"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "canonicalId": "ctkg:v3e-object-a13b2da86a1c1fae2c7dd624",
+      "canonicalRevision": "700711fa032a42b85a64bfd5cab06fb78f7ca803e8c906250274b047eed8f485",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=6 canonicalId=ctkg:v3e-object-a13b2da86a1c1fae2c7dd624 canonicalRevision=700711fa032a42b85a64bfd5cab06fb78f7ca803e8c906250274b047eed8f485：entityType=SystemModel，preferredLabel「例5-6系统开环传递函数分解为典型环节：非最小相位比例环节(-10)、两个积分环节(1/s^2)、非最小相位一阶微分环节(1-s/2)、惯性环节(1/(s+1))、振荡环节(1/(s^2/20^2 + (1/2)(s/20) + 1))。」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=1；descriptionDigest=c05f51a1078b823edfda70d57daf60db9dc517e10906f55ef83186bc4f331894；evidenceDigest=7cca5a561bd9619342ff0289ed6b7733a66b48aea912113bbe16f5a0afc1a43f。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共2条：kind分布={'aggregate-evidence': 1, 'canonical-profile': 1} boundary分布={'aggregate': 1, 'profile': 1} sourcePath分布={'aggregate-projection': 2}；selector摘要=['evidence:ctkg:v3e-evidence-dd44801022edc517a2660', 'canonicalId:ctkg:v3e-object-a13b2da86a1c1fae2c7d']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=例5-6系统开环传递函数分解为典型环节：非最小相位比例环节(-10)、两个积分环节(1/s^2)、非最小相位一阶微分环节(1-s/2)、惯性环节(1/(s+1)。课程侧独立探测：canonicalId字面零命中；「例5-6」及「非最小相位比例环节(-10)」+ 双积分 + (1-s/2) + 惯性 + 振荡(ωn=20) 的典型环节分解链在 lessons/**+syllabus-refactor/** 零命中；典型环节概念课（2-1/2-3）不构成对该分解实例的绑定。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-dd44801022edc517a2660e35|4ee8ab9bab9f8862d5444e9403b2f731682373c230a096c4e7d78b5c4825a3c0",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-a13b2da86a1c1fae2c7dd624|700711fa032a42b85a64bfd5cab06fb78f7ca803e8c906250274b047eed8f485"
+      ]
+    },
+    {
+      "ordinal": 7,
+      "canonicalId": "ctkg:v3e-object-a576627bc9844f4a7541ce59",
+      "canonicalRevision": "c1b0220afb582a29169e63bc83f1a0a3fd2471cc74961aaca343b0607f7f1d72",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=7 canonicalId=ctkg:v3e-object-a576627bc9844f4a7541ce59 canonicalRevision=c1b0220afb582a29169e63bc83f1a0a3fd2471cc74961aaca343b0607f7f1d72：entityType=SystemModel，preferredLabel「一阶低通滤波器，由电阻R和电容C串联组成，输入电压u_i，输出电压u_o取自电容两端，微分方程T(du_o/dt)+u_o=u_i，传递函数G(s)=1/(Ts+1)，T=RC为时间常数。」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=5；descriptionDigest=c0f9ad9272159c83a14525a5f072c73dd3584f64085327a534283553e4bc136a；evidenceDigest=95ecd5498366a41ffe746a2d4c6fca511105a94acdbae2c61ee6cfaec018bffd。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共6条：kind分布={'aggregate-evidence': 5, 'canonical-profile': 1} boundary分布={'aggregate': 5, 'profile': 1} sourcePath分布={'aggregate-projection': 6}；selector摘要=['evidence:ctkg:v3e-evidence-0cba4b8d7719c7b31e467', 'evidence:ctkg:v3e-evidence-44561844a0cfaabafa6c7']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=一阶低通滤波器，由电阻R和电容C串联组成，输入电压u_i，输出电压u_o取自电容两端，微分方程T(du_o/dt)+u_o=u_i，传递函数G(s)=1/(Ts。课程侧独立探测：canonicalId字面零命中；专指「电阻R与电容C串联、u_o取自电容、T=RC、G(s)=1/(Ts+1)」一阶低通电路模型字面未进入冻结 independent-course。虽 2-3/2-1/4-7 出现一阶惯性 G(s)=1/(Ts+1)，4-3 出现校正用低通 Q(s)，但均为通用/不同语境，只能作为未绑定候选证据写入风险，不得据此 INCLUDE/EXCLUDE 或伪造 selector。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-0cba4b8d7719c7b31e467b33|00b4c6202a1e6f6947033f1842adf74bc2968179aa289dacaa731b6153016de7",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-44561844a0cfaabafa6c779e|28d1c98023483ce573fb3b6c5690a7594d6bbba6314d45cf7c3cb660517bc7f2",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-9eec3e11dd71feee95cbef48|563f53269807b444064495e182094ceeccbb3e2dc65cfbce4f3c1ad9d642e8b1",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-bf32d8c0eee427b030bcead3|0bd946b73e80e4b4672db5fe310d3a06d64cd96ce2030d52d997d94c54f1615d",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-f3a680dbd79212dbf9863cdf|516a207130a3457df22d6f5eb8653350cb8527939ce639efcad8f86f5250e9d7",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-a576627bc9844f4a7541ce59|c1b0220afb582a29169e63bc83f1a0a3fd2471cc74961aaca343b0607f7f1d72"
+      ]
+    },
+    {
+      "ordinal": 8,
+      "canonicalId": "ctkg:v3e-object-c7bfa0f8bdba72f16bfdcdb5",
+      "canonicalRevision": "1508c2e211857632842d2d9005452c664e1c3789a4da7b63c922613fe2bee9ce",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=8 canonicalId=ctkg:v3e-object-c7bfa0f8bdba72f16bfdcdb5 canonicalRevision=1508c2e211857632842d2d9005452c664e1c3789a4da7b63c922613fe2bee9ce：entityType=SystemModel，preferredLabel「系统开环传递函数 G(s)H(s)=K/[s(T s+1)(s^2/ω_n^2+1)]，K, T>0。」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=2；descriptionDigest=d26ebaee0d83a66d8c60ed0d052e2eaef24c928b7b3e21d997a12153c7b17b18；evidenceDigest=3f6d8d187a99dee13445675766d911ddcd9509562bb6a9201194d6f3251ec6cc。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共3条：kind分布={'aggregate-evidence': 2, 'canonical-profile': 1} boundary分布={'aggregate': 2, 'profile': 1} sourcePath分布={'aggregate-projection': 3}；selector摘要=['evidence:ctkg:v3e-evidence-dbd5f767e2cfbc6f8503c', 'evidence:ctkg:v3e-evidence-fbcffd9492d08d59f4744']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=系统开环传递函数 G(s)H(s)=K/[s(T s+1)(s^2/ω_n^2+1)]，K, T>0。。课程侧独立探测：canonicalId字面零命中；专指 G(s)H(s)=K/[s(Ts+1)(s^2/ωn^2+1)] 字面零命中。振荡/二阶因子在 Bode 课次有通用讨论，未绑定该含理想谐振因子的开环实例。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-dbd5f767e2cfbc6f8503cdc5|c474016d342bd62da35244ee3ca60d1a179ff8af4cad38f8e2c2e225d6e6d07a",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-fbcffd9492d08d59f4744066|0a473b76c6de628e22eae5b04bc20db583002101f6494803e690754c8299d616",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-c7bfa0f8bdba72f16bfdcdb5|1508c2e211857632842d2d9005452c664e1c3789a4da7b63c922613fe2bee9ce"
+      ]
+    },
+    {
+      "ordinal": 9,
+      "canonicalId": "ctkg:v3e-object-e9c56d2cb4eccd6b1069fe7d",
+      "canonicalRevision": "df1fc84392f73674a945b078e50623c0fc0a045440fb1aeb7fb4431d298c12e8",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=9 canonicalId=ctkg:v3e-object-e9c56d2cb4eccd6b1069fe7d canonicalRevision=df1fc84392f73674a945b078e50623c0fc0a045440fb1aeb7fb4431d298c12e8：entityType=SystemModel，preferredLabel「A system where applied force and position measurement are collocated on the same mass, with transfer function having complex zeros and poles.」，moduleMembership=['ctr:release:frequency-domain-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=1；descriptionDigest=b994bea6c7fdfba088b24d0897a8a4b5b456bb66cebe6bae57739271c219c752；evidenceDigest=f6f5229864a4343e2daa01dcd990eab33ea861bd6206ebaee726e7451f022e77。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共2条：kind分布={'aggregate-evidence': 1, 'canonical-profile': 1} boundary分布={'aggregate': 1, 'profile': 1} sourcePath分布={'aggregate-projection': 2}；selector摘要=['evidence:ctkg:v3e-evidence-ba0ef82b52030393d9992', 'canonicalId:ctkg:v3e-object-e9c56d2cb4eccd6b1069']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=A system where applied force and position measurement are collocated on the same。课程侧独立探测：canonicalId字面零命中；英文 collocated force/position measurement + complex zeros/poles 系统模型在 lessons/**+syllabus-refactor/** 零命中；与本课中文频域主线无字面/结构绑定。aggregate/profile 元数据与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-ba0ef82b52030393d9992d00|6b40853c28086e6ce6ec67fc900c17f8d103906a2af6979b42974e96a5f2d478",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-e9c56d2cb4eccd6b1069fe7d|df1fc84392f73674a945b078e50623c0fc0a045440fb1aeb7fb4431d298c12e8"
+      ]
+    }
+  ],
+  "counts": {
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 10,
+    "memberCount": 10,
+    "profileOnly": 10,
+    "highRisk": 10,
+    "new": 0,
+    "changed": 0,
+    "independentCourseEvidenceMembers": 0,
+    "priorDecisionRefsNonEmpty": 0,
+    "roleNull": 10,
+    "evidenceSufficiencyINSUFFICIENT": 10
+  },
+  "unresolvedRisks": [
+    "全部10个 SystemModel 成员经 Challenger 逐项独立检查均为 DEFER+INSUFFICIENT+role=null：冻结 evidenceRefs 仅 aggregate-projection 的 aggregate-evidence/canonical-profile，无 boundary=independent-course 证据，CourseCoverage authority 未解析，须保持 Coverage gate 阻断。",
+    "profileOnly/highRisk 与 gold releaseTier、模块归属 frequency-domain-analysis-engineering-v0.1 不得替代 lessons/** 或 syllabus-refactor 独立课程证据，也不得按风险标记自动生成 INCLUDE/EXCLUDE。",
+    "未绑定候选（不得升格为 frozen evidenceRefs selector）：ordinal2 标准负反馈通用结构（3-7/2-1）；ordinal7 一阶惯性 G(s)=1/(Ts+1)（2-3/2-1/4-7）与校正语境低通（4-3）；2-3/2-4/3-8 频域通用 Bode/Nyquist 课次。以上与本批具体开环式/电路模型/例5-6/collocated 实例均无 canonical 绑定。",
+    "ordinal0/1/3/4/5/6/8/9 的专指传递函数或例题系数在 lessons/**+syllabus-refactor/** 字面零命中；不得因同属频域模块而推断覆盖。",
+    "读取路径: issue-1180 batch-manifest#/batches/12/members, worklist.json; 独立课程探测: course-content/authoring/lessons/** + course-content/syllabus-refactor/**；10 个 canonicalId 字面零命中。"
+  ]
+}

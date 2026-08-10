@@ -192,6 +192,26 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
     stage: 'stage-1-rules-graph',
     policyFamily: 'rules-plus-graph-search',
     policyMetadata: ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES['rules-plus-graph-search'],
+    pathOptions: [{
+      optionId: 'path-option-1',
+      nodeIds: ['node-1'],
+      recommendationProvenance: {
+        summary: '依据 相位裕度 的学习证据安排本路径。',
+        confidence: 'low',
+        entries: [{
+          targetLabel: '相位裕度',
+          targetKind: 'knowledge',
+          confidence: 'medium',
+          evidenceSummary: '掌握状态 42%，来自 3 条有效证据，置信度 60%。',
+          judgment: '当前状态仍有提升空间，因此优先安排 相位裕度映射练习。',
+          affectedNodeIds: ['node-1'],
+          affectedResourceTitles: ['相位裕度映射练习'],
+        }],
+        evidenceReviewHref: '/profile/evidence',
+        limitations: ['部分判断的有效证据仍然不足。'],
+        nextAction: '完成诊断或练习，补充有效学习证据。',
+      },
+    }],
     excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
     status: 'ready',
     currentNodeId: 'node-1',
@@ -236,6 +256,7 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
       selectedReasons: ['low-mastery-target'],
       rejectedAlternatives: [],
       fallbackReasons: [],
+      configurationFulfillment: [],
     },
     executionStatus: {
       adopted: true,
@@ -289,6 +310,79 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
 }
 
 describe('adaptive learning center UI contracts', () => {
+  it('projects configuration fulfillment into the current-path panel', () => {
+    const plan = pathPlan();
+    plan.explanations.configurationFulfillment = [{
+      key: 'resource-preferences',
+      status: 'applied',
+      source: 'request',
+      effect: '已优先选择匹配的资源类型。',
+      message: '已优先选择匹配的资源类型。',
+      limitationCode: 'internal-only-code',
+    }];
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: plan,
+    });
+
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    expect(currentPath?.payload).toMatchObject({
+      configurationFulfillment: [
+        expect.objectContaining({ key: 'resource-preferences', status: 'applied' }),
+      ],
+    });
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('internal-only-code');
+    expect((currentPath?.payload as { configurationFulfillment?: Array<Record<string, unknown>> })
+      .configurationFulfillment?.[0]).toEqual({
+      key: 'resource-preferences',
+      status: 'applied',
+      effect: '已优先选择匹配的资源类型。',
+      message: '已优先选择匹配的资源类型。',
+    });
+  });
+
+  it('projects generation-time recommendation provenance without internal diagnostic fields', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: pathPlan(),
+    });
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    const pathOptions = (currentPath?.payload as { pathOptions?: Array<Record<string, unknown>> })?.pathOptions ?? [];
+    const provenance = pathOptions[0]?.recommendationProvenance;
+
+    expect(provenance).toEqual(expect.objectContaining({
+      confidence: 'low',
+      evidenceReviewHref: '/profile/evidence',
+      nextAction: '完成诊断或练习，补充有效学习证据。',
+      entries: [expect.objectContaining({
+        evidenceSummary: '掌握状态 42%，来自 3 条有效证据，置信度 60%。',
+        affectedResourceTitles: ['相位裕度映射练习'],
+      })],
+    }));
+    expect(JSON.stringify(provenance)).not.toContain('low-mastery-target');
+    expect(JSON.stringify(provenance)).not.toContain('targetId');
+  });
+
+  it('does not synthesize provenance for legacy paths that only retain learner evidence', () => {
+    const legacyPlan = pathPlan();
+    delete legacyPlan.pathOptions;
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: legacyPlan,
+    });
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    const pathOptions = (currentPath?.payload as { pathOptions?: Array<Record<string, unknown>> })?.pathOptions ?? [];
+
+    expect(legacyPlan.visualization.evidence?.learnerStateDeficits).toHaveLength(1);
+    expect(pathOptions[0]).toMatchObject({
+      targetDeficits: [expect.objectContaining({ targetId: 'phase-margin' })],
+    });
+    expect(pathOptions[0]?.recommendationProvenance).toBeUndefined();
+  });
+
   it('defines the unified center regions and keeps legacy surfaces available when the feature flag is disabled', () => {
     expect(ADAPTIVE_LEARNING_CENTER_REGIONS).toEqual([
       'overview',
@@ -434,6 +528,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("submitPathChoice('helpfulness'");
     expect(source).toContain('data-adaptive-path-status-region={showSelectionWorkspace ?');
     expect(source).toContain('data-learning-path-option-feedback={option.writeOption.optionId}');
+    expect(source).toContain('data-learning-path-route-preview');
+    expect(source).toContain('data-learning-path-recommendation-provenance');
+    expect(source).toContain('data-learning-path-recommendation-disclosure');
+    expect(source).toContain('查看学习记录并复核证据');
+    expect(source).toContain('min-w-0');
+    expect(source).toContain('break-words');
+    expect(source).toContain('data-learning-path-diversity-notice="limited"');
+    expect(source).toContain('data-learning-path-example={option.isGenerated ? undefined : option.id}');
   });
 
   it('keeps desktop path option actions inside each comparable option module', () => {
@@ -442,7 +544,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-learning-path-options-layout="route-modules"');
     expect(source).toContain('data-learning-path-option-actions="attached"');
     expect(source).toContain("key={`${option.id}:mobile`}");
-    expect(source).toContain('data-learning-path-option-module="route"');
+    expect(source).toContain("data-learning-path-option-module={option.isGenerated ? 'route' : undefined}");
     expect(source).toContain('aria-label={`选择${option.title}`');
     expect(source).toContain('aria-label={`请控灵调整${option.title}`');
     expect(source).toContain('aria-label={`解释${option.title}差异`');
@@ -459,7 +561,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('assertPathComparisonSignals');
     expect(source).toContain('missing-signal');
     expect(source).toContain("style.visibility !== 'hidden'");
-    expect(source).toContain('signal.routeModuleCount < 3');
+    expect(source).toContain('signal.routeModuleCount < 1');
     expect(source).toContain('signal.attachedActionGroupCount !== signal.routeModuleCount');
     expect(source).toContain('[data-learning-path-options-layout="route-modules"]');
     expect(source).toContain('[data-learning-path-option-actions="attached"]');
@@ -472,7 +574,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain('realPathOption');
     expect(source).not.toContain('pathOptions[index] ??');
     expect(source).not.toContain('pathOptions[index]');
-    expect(source).toContain('const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);');
+    expect(source).toContain('buildAdaptivePathOptionDisplays(pathOptions, { diversityLimited: pathComparisonDiversityLimited })');
     expect(source).toContain('const optionForWrite = option.writeOption;');
     expect(source).toContain('disabled={!option.writeOption || Boolean(pathChoicePending)}');
     expect(source).toContain("setPathChoiceMessage('请先登录并生成路径后再记录选择。')");
@@ -492,6 +594,22 @@ describe('adaptive learning center UI contracts', () => {
         terminalValidationNodeIds: ['arena-task:terminal'],
         terminalValidationStrategy: { summary: 'official Arena validation' },
         limitations: [],
+        recommendationProvenance: {
+          summary: '依据相位裕度的学习证据安排本路径。',
+          confidence: 'medium',
+          entries: [{
+            targetLabel: '相位裕度',
+            targetKind: 'knowledge',
+            confidence: 'medium',
+            evidenceSummary: '掌握状态 42%，来自 3 条有效证据，置信度 60%。',
+            judgment: '当前状态仍有提升空间，因此优先安排相位裕度知识卡。',
+            affectedNodeIds: ['card:phase-margin'],
+            affectedResourceTitles: ['相位裕度知识卡'],
+          }],
+          evidenceReviewHref: '/profile/evidence',
+          limitations: [],
+          nextAction: null,
+        },
       },
       {
         optionId: 'foundation-remediation-route',
@@ -522,9 +640,111 @@ describe('adaptive learning center UI contracts', () => {
     expect(displays[1].writeOption).toBe(options[1]);
     expect(displays[0].id).toBe('rules-plus-graph-search-route');
     expect(displays[0].resources.map((resource) => resource.label)).toEqual(['知识卡', 'Arena']);
+    expect(displays[0].recommendationProvenance).toBe(options[0].recommendationProvenance);
+    expect(displays[1].recommendationProvenance).toBeUndefined();
     expect(displays[1].readiness).toBe('包含后续解锁节点');
     expect(preview).toHaveLength(3);
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
+  });
+
+  it('preserves ordered nodes, readiness, and cross-option resource differences for generated path comparison', () => {
+    const options: AdaptivePathOptionWriteOption[] = [
+      {
+        optionId: 'foundation-route',
+        label: '基础路径',
+        nodeIds: ['card:shared', 'quiz:locked', 'simulation:unique', 'checkpoint:review', 'arena:final', 'textbook:unique'],
+        nodeSummaries: [
+          { nodeId: 'card:shared', title: '相位裕度知识卡', pathNodeType: 'knowledge_card', estimatedTimeMinutes: 8, status: 'current' },
+          { nodeId: 'quiz:locked', title: '相位裕度练习', pathNodeType: 'adaptive_quiz', estimatedTimeMinutes: 12, status: 'locked' },
+          { nodeId: 'simulation:unique', title: '校正仿真', pathNodeType: 'simulation', estimatedTimeMinutes: 18, status: 'next' },
+          { nodeId: 'checkpoint:review', title: '阶段检查', pathNodeType: 'checkpoint', estimatedTimeMinutes: 6, status: 'next' },
+          { nodeId: 'arena:final', title: 'Arena 验证', pathNodeType: 'arena_task', estimatedTimeMinutes: 25, status: 'next' },
+          { nodeId: 'textbook:unique', title: '相位裕度教材节', pathNodeType: 'textbook_section', estimatedTimeMinutes: 10, status: 'next' },
+        ],
+        lockedNodeIds: ['quiz:locked'],
+        readinessSummary: [{ nodeId: 'quiz:locked', state: 'locked', message: '完成知识卡后解锁。' }],
+        targetDeficits: [],
+        evidenceBasis: ['近期练习记录'],
+        resourceMix: { knowledge_card: 1, adaptive_quiz: 1, simulation: 1, checkpoint: 1, arena_task: 1, textbook_section: 1 },
+        effort: { estimatedMinutes: 69, relative: 'medium' },
+        expectedTargetLift: 1.2,
+        terminalValidationNodeIds: ['arena:final'],
+        terminalValidationStrategy: { summary: 'Arena 验证' },
+        limitations: [],
+      },
+      {
+        optionId: 'practice-route',
+        label: '实践路径',
+        nodeIds: ['card:shared', 'workbench:unique', 'slides:unique'],
+        nodeSummaries: [
+          { nodeId: 'card:shared', title: '相位裕度知识卡', pathNodeType: 'knowledge_card', estimatedTimeMinutes: 8, status: 'current' },
+          { nodeId: 'workbench:unique', title: '控制工作台', pathNodeType: 'control_workbench', estimatedTimeMinutes: 20, status: 'next' },
+          { nodeId: 'slides:unique', title: '频域课件', pathNodeType: 'slides', estimatedTimeMinutes: 15, status: 'next' },
+        ],
+        lockedNodeIds: [],
+        readinessSummary: [],
+        targetDeficits: [],
+        evidenceBasis: ['近期练习记录'],
+        resourceMix: { knowledge_card: 1, control_workbench: 1, slides: 1 },
+        effort: { estimatedMinutes: 28, relative: 'short' },
+        terminalValidationNodeIds: [],
+        terminalValidationStrategy: {},
+        limitations: [],
+      },
+    ];
+
+    const displays = buildAdaptivePathOptionDisplays(options, { diversityLimited: true });
+    const foundationNodes = displays[0].orderedNodes;
+
+    expect(displays.every((option) => option.isGenerated)).toBe(true);
+    expect(displays[0].diversityLimited).toBe(true);
+    expect(displays[0].expectedAbilityImprovement).toBe('约 +1.2');
+    expect(foundationNodes?.map((node) => node.title)).toEqual([
+      '相位裕度知识卡',
+      '相位裕度练习',
+      '校正仿真',
+      '阶段检查',
+      'Arena 验证',
+      '相位裕度教材节',
+    ]);
+    expect(foundationNodes?.[0]).toMatchObject({ comparisonLabel: '所有方案均包含', statusLabel: '建议从这里开始' });
+    expect(foundationNodes?.[1]).toMatchObject({ statusLabel: '稍后解锁', unlockMessage: '完成知识卡后解锁。', comparisonLabel: '本方案特有' });
+    expect(foundationNodes?.[2]).toMatchObject({ comparisonLabel: '本方案特有', resourceLabel: '虚拟仿真' });
+    expect(foundationNodes?.[5]).toMatchObject({ kind: 'external_resource', resourceLabel: '教材节' });
+    expect(displays[1].orderedNodes?.[2]).toMatchObject({ kind: 'external_resource', resourceLabel: '课件' });
+
+    const examples = buildAdaptivePathOptionDisplays([]);
+    expect(examples.every((option) => !option.isGenerated && option.orderedNodes === undefined)).toBe(true);
+  });
+
+  it('uses Planner display names for unclassified path node types', () => {
+    const [display] = buildAdaptivePathOptionDisplays([{
+      optionId: 'legacy-resource-route',
+      label: '自定义资源路径',
+      nodeIds: ['resource:legacy'],
+      nodeSummaries: [{
+        nodeId: 'resource:legacy',
+        title: '复习根轨迹与超调关系',
+        pathNodeType: 'resource',
+        displayName: '知识卡',
+        estimatedTimeMinutes: 25,
+        status: 'current',
+      }],
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: [],
+    }]);
+
+    expect(display.orderedNodes?.[0]).toMatchObject({
+      kind: 'external_resource',
+      resourceLabel: '知识卡',
+    });
   });
 
   it('keeps productized path option writes compatible with server style evidence', () => {
@@ -638,7 +858,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-adaptive-path-generation-ready="catalog"');
     expect(source).toContain('withFeedbackTaskHref(goal.hrefs.generation)');
     expect(source).toContain("const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';");
-    expect(source).toContain('const showPresetGoalCards = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
+    expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain('useGlobalAI');
     expect(source).toContain('openPathGenerationAdvisor');
     expect(source).toContain('const hasInvalidRequestedGoal = requestedGoal !== null && !explicitGoal');
@@ -649,7 +869,6 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
     expect(source).toContain('data-adaptive-path-workspace-intent={workspaceIntent}');
     expect(source).toContain("showGenerationWorkspace ? (");
-    expect(source).toContain('{showPresetGoalCards ? (');
     expect(source).toContain('value={pathGenerationPanel.goalId}');
     expect(source).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
     expect(source).toContain('window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel))');
@@ -666,6 +885,7 @@ describe('adaptive learning center UI contracts', () => {
   it('builds editable path generation requests from panel controls', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
     const routeSource = readFileSync(join(repoRoot, 'src/app/api/adaptive/path-advisor-tool/route.ts'), 'utf8');
+    const sidebarSource = readFileSync(join(repoRoot, 'src/components/ai/global-ai-sidebar.tsx'), 'utf8');
     const helperSource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-generation-panel.ts'), 'utf8');
 
     expect(pageSource).toContain('data-adaptive-path-generation-panel="editable"');
@@ -691,6 +911,18 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('excludedNodeIds: operation ===');
     expect(pageSource).toContain('preferredOptionId: operation !==');
     expect(pageSource).toContain('requestedAt: new Date().toISOString()');
+    expect(pageSource).toContain('generationRequestId,');
+    expect(pageSource).toContain('type PathGenerationRequestStatus,');
+    expect(pageSource).toContain('const startPathGenerationFromAdvisor = useCallback');
+    expect(pageSource).toContain('onClick={startPathGenerationFromAdvisor}');
+    expect(pageSource).toContain('claimPathGenerationRequest(');
+    expect(pageSource).toContain('pathGenerationRequestLifecycleRef.current = claim.lifecycle');
+    expect(pageSource).toContain("if (payload.generationRequest?.status === 'failed')");
+    expect(pageSource).not.toContain('window.location.assign(withFeedbackTaskHref(`/assessment/adaptive-practice?${selectionQuery.toString()}`))');
+    expect(pageSource).toContain("disabled={pathGenerationRequestStatus === 'pending' || pathGenerationRequestStatus === 'running'}");
+    expect(pageSource).toContain("window.dispatchEvent(new CustomEvent('konling:path-generation-status'");
+    expect(sidebarSource).toContain("window.addEventListener('konling:path-generation-status'");
+    expect(sidebarSource).toContain("if (assistantEntryPoint?.mode !== 'path-advisor') return");
     expect(pageSource).toContain('setPathAdvisorAgentSessionId(null)');
     expect(pageSource).toContain('const handlePathGenerationGoalChange = useCallback');
     expect(pageSource).toContain('pathGenerationPanelFromSearchParams(new URLSearchParams(searchParamsKey), activeGoal)');
@@ -713,6 +945,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).not.toContain('Konling parameters');
 
     expect(routeSource).toContain('runtime.generateLearningPath(toolInput)');
+    expect(routeSource).toContain('path-generation-request:${generationRequestId}');
+    expect(routeSource).toContain('readPathGenerationRequestStatus(result)');
     expect(routeSource).toContain('runtime.reviseLearningPathOptions(toolInput)');
     expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
     expect(routeSource).toContain('modeContextToken');
@@ -727,7 +961,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain("reason: 'advisor-forbidden'");
     expect(routeSource).toContain('graphNodeId: signedGraphNodeId');
     expect(routeSource).toContain('readPathOptionStyleLookup');
-    expect(routeSource).toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
+    expect(routeSource).not.toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
     expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
     expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
     expect(routeSource).toContain('requestedAt: typeof body.requestedAt');
@@ -747,6 +981,33 @@ describe('adaptive learning center UI contracts', () => {
       .toContain('currentNodeId: input.context.planContext?.activeNodeId ?? null');
     expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
       .toContain('selectedGraphNodeIds: normalizeAdaptivePathSelectedGraphNodeIds');
+  });
+
+  it('renders server-owned path difference facts and invalidates stale explanations', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const runtimeSource = readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8');
+
+    expect(pageSource).toContain('readPathDifferenceExplanation(payload.result?.comparison)');
+    expect(pageSource).toContain('data-learning-path-difference-explanation={explanation.pathId}');
+    expect(pageSource).toContain('正在比较：{left.label} ↔ {right.label}');
+    expect(pageSource).toContain('共同节点');
+    expect(pageSource).toContain('独有节点');
+    expect(pageSource).toContain('顺序差异');
+    expect(pageSource).toContain('方案取舍');
+    expect(pageSource).toContain('比较限制');
+    expect(pageSource).toContain('const pathOptionVersionKey = useMemo');
+    expect(pageSource).toContain('const pathOptionVersionKeyRef = useRef(pathOptionVersionKey)');
+    expect(pageSource).toContain('explanationRequestVersionKey !== pathOptionVersionKeyRef.current');
+    expect(pageSource).toContain('differenceExplanation.pathId !== currentPathId');
+    expect(pageSource).toContain('setPathDifferenceExplanations({})');
+    expect(pageSource).toContain('准备度明细');
+    expect(pageSource).toContain('terminalValidationNodeIds: getStringArray(metrics.terminalValidationNodeIds)');
+    expect(pageSource).toContain('min-w-0 space-y-3');
+    expect(pageSource).toContain('break-words');
+    expect(runtimeSource).toContain('buildAdaptivePathDifferenceExplanation(path.id, selectedOption, comparedOption)');
+    expect(runtimeSource).toContain("'insufficient-data'");
+    expect(runtimeSource).toContain("'no-material-difference'");
+    expect(runtimeSource).not.toContain('路径差异主要来自学习时间、资源类型、检查点密度和当前证据覆盖。');
   });
 
   it('preserves empty path generation resource preference through goal-change URLs', () => {
@@ -788,7 +1049,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('goalContexts[explicitGoal]');
     expect(source).toContain('updatePageContext({ assistantEntryPoint: null });');
     expect(source).toContain('return () => updatePageContext({ assistantEntryPoint: null });');
-    expect(source).toContain('promptContext: `student-path-center:${explicitGoal}:adaptive-path-center`');
+    expect(source).toContain('`student-path-center:${explicitGoal}:adaptive-path-center`');
+    expect(source).toContain('candidateBatchId ? { candidateBatchId } : {}');
     expect(source).toContain('goalId: explicitGoal');
     expect(layoutSource).toContain('const goalOptions = getAdaptivePracticeGoalOptions();');
     expect(layoutSource).toContain('Object.fromEntries(goalOptions.map((goal) => [');
@@ -803,7 +1065,8 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
     expect(source).toContain("? 'avoid-learning-record' : undefined");
-    expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null : (');
+    expect(source).toContain('{!showPathContextRecovery && (showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (');
+    expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ||');
     expect(source).toContain('data-adaptive-path-route-map="compact"');
     expect(source).toContain('data-adaptive-path-progress-summary="essential"');
     expect(source).toContain('<AdaptivePathTimeline');
@@ -816,7 +1079,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('预计剩余');
     expect(source).toContain('完成节点');
     expect(source).toContain('检查点通过');
-    expect(source).toContain('推荐理由');
+    expect(source).toContain('data-adaptive-path-node-selection-basis=');
+    expect(source).toContain('data-adaptive-path-node-latest-adjustment=');
+    expect(source).toContain('data-adaptive-path-node-current-lock="governed"');
+    expect(source).toContain('入选依据');
+    expect(source).toContain('最近调整');
+    expect(source).toContain('当前锁定原因');
+    expect(source).toContain('该路径生成时尚未记录节点级入选依据');
+    expect(source).toContain('节点安排说明');
     expect(source).toContain('将收集的学习证据');
     expect(source).toContain('检查标准');
     expect(source).toContain('回顾');
@@ -845,6 +1115,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('return null');
     expect(source).toContain("? { ...node, status: 'current' }");
     expect(source).toContain('resolveAdaptivePathExecutionNodeStatus({');
+    expect(source).toContain("['locked', 'evidence-needed', 'needs-preparation'].includes(node.readinessState)");
+    expect(source).toContain("node.status !== 'completed' && node.status !== 'skipped'");
     expect(source).not.toContain("selectedNode?.status === 'skipped'");
     expect(source).not.toContain('setSelectedPathNodeId(currentPathNode.nodeId)');
     expect(source).toContain('查看节点');
@@ -901,6 +1173,30 @@ describe('adaptive learning center UI contracts', () => {
   it('binds growth center to grouped learner timeline and stable chart containers', () => {
     const source = readFileSync(join(repoRoot, 'src/app/(main)/profile/growth/page.tsx'), 'utf8');
 
+    expect(source).toContain("fetch('/api/student/competency-snapshot')");
+    expect(source).not.toContain('timeRange');
+    expect(source).not.toContain("'7d'");
+    expect(source).not.toContain("'30d'");
+    expect(source).not.toContain("'90d'");
+    expect(source).not.toContain('learning_activity');
+    expect(source).not.toContain('本周学习热度');
+    expect(source).not.toContain('本周进步');
+    expect(source).not.toContain('Date.now()');
+    expect(source).not.toContain('ai_misuse');
+    expect(source).not.toContain('participation');
+    expect(source).toContain('累计能力达成、证据覆盖与成长记录');
+    expect(source).toContain('累计画像生成时间');
+    expect(source).toContain('累计证据截止');
+    expect(source).toContain("if (outcome === 'cumulative') return '累计'");
+    expect(source).toContain('data-portrait-evidence-as-of');
+    expect(source).toContain('currentSnapshot.evidenceAsOf');
+    expect(source).toContain('最后能力趋势');
+    expect(source).toContain('snapshot?.lastTrend');
+    expect(source).toContain('最后证据风险');
+    expect(source).toContain('七维证据覆盖');
+    expect(source).toContain('这些维度不参与累计总分，也不会显示为零分');
+    expect(source).toContain('data-portrait-availability');
+    expect(source).toContain('尚无持久、有效的累计成长事件');
     expect(source).toContain('groupGrowthTimelineRecords');
     expect(source).toContain('groupedGrowthRecords');
     expect(source).toContain('重复记录');
@@ -1181,6 +1477,32 @@ describe('adaptive learning center UI contracts', () => {
   });
 
   it('surfaces three-style path options and selection history for diagnosis panels', () => {
+    const mainPathNode = pathPlan().mainPath[0];
+    const policyOptionNodes: AdaptiveLearningPathPlan['mainPath'] = [
+      {
+        ...mainPathNode,
+        nodeId: 'knowledge-card:targets',
+        title: '目标知识卡',
+      },
+      {
+        ...mainPathNode,
+        nodeId: 'arena-task:terminal',
+        title: '终端 Arena',
+        prerequisiteNodeIds: ['knowledge-card:targets'],
+        status: 'locked',
+        readiness: {
+          state: 'locked',
+          message: '完成目标知识卡后解锁。',
+          unlockMessage: '完成目标知识卡后解锁。',
+          reasonCodes: ['readiness-required-completion'],
+          fallbackNodeIds: [],
+          missingCompetencies: [],
+          missingEvidenceCount: 0,
+          missingCompletedNodeIds: ['knowledge-card:targets'],
+          missingOutcomeRefs: [],
+        },
+      },
+    ];
     const view = buildAdaptiveLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
       learnerState: learnerState(),
@@ -1228,6 +1550,7 @@ describe('adaptive learning center UI contracts', () => {
                 },
               ],
               unlockMessages: [],
+              planNodes: policyOptionNodes,
               nodeSummaries: [
                 {
                   nodeId: 'knowledge-card:targets',
@@ -1337,6 +1660,15 @@ describe('adaptive learning center UI contracts', () => {
               message: '完成目标知识卡后解锁。',
             },
           ],
+          readinessDetails: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'arena-task:terminal',
+              prerequisiteNodeIds: ['knowledge-card:targets'],
+              readiness: expect.objectContaining({
+                missingCompletedNodeIds: ['knowledge-card:targets'],
+              }),
+            }),
+          ]),
           terminalValidationNodeIds: ['arena-task:terminal'],
           limitations: ['部分目标还缺少直接证据'],
         },
@@ -1354,6 +1686,15 @@ describe('adaptive learning center UI contracts', () => {
         },
       ],
     });
+
+    const pathOptions = (currentPath?.payload as { pathOptions?: AdaptivePathOptionWriteOption[] } | null)
+      ?.pathOptions ?? [];
+    const [optionDisplay] = buildAdaptivePathOptionDisplays(pathOptions);
+    expect(optionDisplay?.orderedNodes?.find((node) => node.nodeId === 'arena-task:terminal')?.unlockChain)
+      .toMatchObject({
+        canExplain: true,
+        missingConditions: [expect.objectContaining({ title: '完成「目标知识卡」' })],
+      });
 
     const mastery = view.panels.find((panel) => panel.region === 'mastery');
     expect(mastery?.payload).toEqual(learnerState().knowledgeMastery);
@@ -1425,7 +1766,11 @@ describe('adaptive learning center UI contracts', () => {
             estimatedEffortByPolicy: { 'foundation-remediation': 15 },
             terminalValidationDifference: 0,
           },
-          fallbackReasons: ['path-diversity-insufficient', 'terminal-validation-diversity-insufficient'],
+          fallbackReasons: [
+            'path-diversity-insufficient',
+            'terminal-validation-diversity-insufficient',
+            'policy-option-diversity-unavailable',
+          ],
         },
         feedbackEvents: [
           {
@@ -1455,7 +1800,7 @@ describe('adaptive learning center UI contracts', () => {
       ],
       pathOptionFallback: {
         status: 'low-resource-fallback',
-        fallbackReasons: ['路径差异不足', '终点检验差异不足'],
+        fallbackReasons: ['路径差异不足', '终点检验差异不足', '当前资源只能形成单一推荐方案'],
         diversity: {
           resourceOverlap: 1,
           modalityDistance: 0,
@@ -2080,6 +2425,7 @@ describe('adaptive learning center UI contracts', () => {
           selectedReasons: [],
           rejectedAlternatives: [],
           fallbackReasons: ['learner-state-missing'],
+          configurationFulfillment: [],
         },
       }),
     });

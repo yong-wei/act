@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-afa39b57a646673e84b55f09",
+  "safe_id": "ctc_modeling-afa39b57a646673e84b55f09",
+  "node": {
+    "name": "在电位器输出端接有负载时所产生…",
+    "name_en": "modeling_afa39b57a646673e84b55f09",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "在电位器输出端接有负载时所产生的影响，导致输出电压与电刷角位移不再保持线性关系；在无源网络级联中，后级网络的输入阻抗不够大或前级网络输出阻抗不为零时，直接连接会使传递函数不同于空载时各自传递函数的乘积。",
+  "intuition": "在无源网络级联中，后级网络的输入阻抗不够大或前级网络输出阻抗不为零时，直接连接会使传递函数不同于空载时各自传递函数的乘积。",
+  "explanation": "在电位器输出端接有负载时所产生的影响，导致输出电压与电刷角位移不再保持线性关系；在无源网络级联中，后级网络的输入阻抗不够大或前级网络输出阻抗不为零时，直接连接会使传递函数不同于空载时各自传递函数的乘积。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "在电位器输出端接有负载…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-afa39b57a646673e84b55f09.md",
+  "provider_policy": "grok-image_gen"
+}

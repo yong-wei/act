@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:31:39+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+  "safe_id": "ctkg_v3e-object-1ed9bb587fbb95c4e2057ba8",
+  "node_name": "比例-积分-微分控制规律",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (等ω映射/不可变部分/谐振频率/Ackermann估计/PID规律)"
+}

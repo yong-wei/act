@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+  "safe_id": "ctkg_v3e-object-2f12669555aed67867c3b7cd",
+  "node": {
+    "name": "零阶保持器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "零阶保持器是一种按常值外推的保持器，它把前一采样时刻nT的采样值e(nT)一直保持到下一采样时刻(n+1)T到来之前。",
+  "intuition": "在图谱邻接中可把握：后续 → 保持器、一阶保持器。",
+  "explanation": "零阶保持器是一种按常值外推的保持器，它把前一采样时刻nT的采样值e(nT)一直保持到下一采样时刻(n+1)T到来之前。",
+  "relation_head": "后续 → 保持器、一阶保持器",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "保持器",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "一阶保持器",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "零阶保持器",
+    "是一种·保持器",
+    "关联·一阶保持器"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-2f12669555aed67867c3b7cd.md",
+  "provider_policy": "grok-image_gen"
+}

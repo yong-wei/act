@@ -1,0 +1,24 @@
+{
+  "files": [
+    "environment/cloud-soft-layer-alpha.png",
+    "environment/cloud-streaks-alpha.png",
+    "environment/env-coastal-city-alpha.png",
+    "environment/env-distant-mountains-alpha.png",
+    "environment/env-harbor-port-alpha.png",
+    "environment/env-island-chain-alpha.png",
+    "environment/env-prop-atlas-alpha.png",
+    "environment/env-rocky-islands-alpha.png",
+    "environment/sky-clear-day.png",
+    "environment/sky-dawn-haze.png",
+    "environment/sky-overcast.png",
+    "environment/sky-storm-blue.png",
+    "environment/sky-sunset-warm.png",
+    "textures/contact-shadow-soft.png",
+    "textures/horizon-haze-gradient.png",
+    "textures/ocean-foam-noise-alpha.png",
+    "textures/ocean-normal-cross-chop.png",
+    "textures/ocean-normal-long-swell.png",
+    "textures/wake-ribbon-foam-rgba.png",
+    "textures/waterline-grime-alpha.png"
+  ]
+}

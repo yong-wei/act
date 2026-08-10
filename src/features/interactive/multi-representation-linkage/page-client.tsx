@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { BlockMath } from 'react-katex';
@@ -15,7 +15,12 @@ import {
   TimeDomainComparisonPanel,
 } from '@/resources/control-system/charts/control-analysis-panels';
 import type { ControlSignalCurveStyle } from '@/resources/control-system/charts/control-signal-styles';
-import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
+import type {
+  ControlAnalysisRequest,
+  ControlAnalysisResult,
+  ControlEngineState,
+} from '@/resources/control-system/analysis/types';
+import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 
 import {
   resolvePanelSelectedOptions,
@@ -27,6 +32,13 @@ import {
   type MultiRepresentationViewId,
 } from './model';
 import { ParameterDrawer } from './parameter-drawer';
+import {
+  createDesignSnapshot,
+  readDesignSnapshots,
+  writeDesignSnapshots,
+  type DesignSnapshot,
+} from './design-snapshots';
+import { MetricComparisonTable } from './metric-comparison';
 import { ArenaModelSelectorPanel } from '@/features/arena/workbench/arena-model-selector-panel';
 import { ArenaSubmitPanel } from './arena-submit-panel';
 import {
@@ -60,6 +72,93 @@ interface ClassicCurveOption<T extends string> {
   style: ControlSignalCurveStyle;
   enabled: boolean;
   disabledReason?: string;
+}
+
+function SnapshotAnalysis({
+  snapshot,
+  buildRequest,
+  onState,
+}: {
+  snapshot: DesignSnapshot;
+  buildRequest: (design: DesignSnapshot['design']) => ControlAnalysisRequest;
+  onState: (snapshotId: string, state: ControlEngineState) => void;
+}) {
+  const request = useMemo(
+    () => buildRequest(snapshot.design),
+    [buildRequest, snapshot.design],
+  );
+  const analysisState = useControlEngine(request);
+
+  useEffect(() => {
+    onState(snapshot.id, analysisState);
+  }, [analysisState, onState, snapshot.id]);
+
+  return null;
+}
+
+function snapshotStyle(color: string): ControlSignalCurveStyle {
+  return { color, lineType: 'dashed', width: 2.4 };
+}
+
+function DesignSnapshotManager({
+  snapshots,
+  onSave,
+  onToggleVisible,
+  onRename,
+  onRestore,
+  onDelete,
+}: {
+  snapshots: DesignSnapshot[];
+  onSave: () => void;
+  onToggleVisible: (id: string) => void;
+  onRename: (id: string, name: string) => void;
+  onRestore: (snapshot: DesignSnapshot) => void;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <section className="premium-lesson-panel-soft mt-4 px-4 py-3" data-testid="design-snapshot-manager">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="premium-lesson-kicker">方案快照</div>
+          <p className="premium-lesson-caption mt-1 text-xs">在当前浏览器会话中保存并对照方案。</p>
+        </div>
+        <button type="button" className="premium-lesson-control" onClick={onSave}>
+          保存当前方案
+        </button>
+      </div>
+      {snapshots.length > 0 ? (
+        <ul className="mt-3 grid gap-2" aria-label="已保存方案">
+          {snapshots.map((snapshot) => (
+            <li key={snapshot.id} className="flex flex-wrap items-center gap-2 rounded-md border border-border/60 bg-background/50 px-3 py-2 text-sm">
+              <span aria-hidden="true" className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: snapshot.color }} />
+              <input
+                aria-label={`重命名 ${snapshot.name}`}
+                className="min-w-28 flex-1 bg-transparent text-sm outline-none"
+                defaultValue={snapshot.name}
+                onBlur={(event) => {
+                  const name = event.target.value.trim();
+                  if (name && name !== snapshot.name) {
+                    onRename(snapshot.id, name);
+                  } else if (!name) {
+                    event.currentTarget.value = snapshot.name;
+                  }
+                }}
+              />
+              <button type="button" className="premium-lesson-control px-2 py-1 text-xs" onClick={() => onToggleVisible(snapshot.id)}>
+                {snapshot.visible ? '隐藏曲线' : '显示曲线'}
+              </button>
+              <button type="button" className="premium-lesson-control px-2 py-1 text-xs" onClick={() => onRestore(snapshot)}>
+                恢复
+              </button>
+              <button type="button" className="premium-lesson-control px-2 py-1 text-xs" onClick={() => onDelete(snapshot.id)}>
+                删除
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
 }
 
 function ClassicSourceSwitch<T extends string>({
@@ -216,6 +315,66 @@ export function MultiRepresentationLinkageClient({
   onPanelSelectedOptionsChange?: MultiRepresentationPanelOptionsChangeHandler;
 }) {
   const model = useMultiRepresentationLinkageModel(initialParams);
+  const snapshotStorageKey = useMemo(() => {
+    const contextId = initialParams.arenaTaskId
+      ?? initialParams.plantModel?.objectId
+      ?? initialParams.plantModel?.id
+      ?? 'free-explore';
+    return `control-workbench:design-snapshots:${contextId}`;
+  }, [initialParams.arenaTaskId, initialParams.plantModel?.id, initialParams.plantModel?.objectId]);
+  const [snapshots, setSnapshots] = useState<DesignSnapshot[]>([]);
+  const [snapshotsLoadedKey, setSnapshotsLoadedKey] = useState<string | null>(null);
+  const [snapshotStates, setSnapshotStates] = useState<Record<string, ControlEngineState>>({});
+  const snapshotsLoaded = snapshotsLoadedKey === snapshotStorageKey;
+
+  useEffect(() => {
+    setSnapshots(readDesignSnapshots(window.sessionStorage, snapshotStorageKey));
+    setSnapshotsLoadedKey(snapshotStorageKey);
+    setSnapshotStates({});
+  }, [snapshotStorageKey]);
+
+  useEffect(() => {
+    if (snapshotsLoaded) {
+      writeDesignSnapshots(window.sessionStorage, snapshotStorageKey, snapshots);
+    }
+  }, [snapshotStorageKey, snapshots, snapshotsLoaded]);
+
+  const saveSnapshot = useCallback(() => {
+    setSnapshots((current) => [
+      ...current,
+      createDesignSnapshot(model.exportDesignState(), current.length),
+    ]);
+  }, [model]);
+  const updateSnapshot = useCallback((id: string, update: (snapshot: DesignSnapshot) => DesignSnapshot) => {
+    setSnapshots((current) => current.map((snapshot) => (snapshot.id === id ? update(snapshot) : snapshot)));
+  }, []);
+  const restoreSnapshot = useCallback((snapshot: DesignSnapshot) => {
+    if (!model.isArenaChallengeMode && snapshot.design.objectId) {
+      model.selectArenaObjectForExploration(snapshot.design.objectId);
+    }
+    model.restoreDesignState(snapshot.design);
+  }, [model]);
+  const recordSnapshotState = useCallback((snapshotId: string, state: ControlEngineState) => {
+    setSnapshotStates((current) => (
+      current[snapshotId] === state ? current : { ...current, [snapshotId]: state }
+    ));
+  }, []);
+  const deleteSnapshot = useCallback((snapshotId: string) => {
+    setSnapshots((current) => current.filter((snapshot) => snapshot.id !== snapshotId));
+    setSnapshotStates((current) => {
+      if (!(snapshotId in current)) return current;
+      const { [snapshotId]: _removed, ...remaining } = current;
+      return remaining;
+    });
+  }, []);
+  const visibleSnapshots = snapshots.filter((snapshot) => snapshot.visible);
+  const visibleSnapshotSeries = visibleSnapshots.flatMap((snapshot) => {
+    const state = snapshotStates[snapshot.id];
+    const snapshotResult = state && !state.isLoading && !state.error && !state.isFallback
+      ? state.result
+      : null;
+    return snapshotResult ? [{ label: snapshot.name, color: snapshot.color, result: snapshotResult }] : [];
+  });
   const [panelSourceSelections, setPanelSourceSelections] = useState<Record<string, ClassicPanelSourceId>>({});
   const result = model.analysisResult;
   const frequencyResult = (model.frequencyAnalysisResult ?? result)!;
@@ -283,6 +442,11 @@ export function MultiRepresentationLinkageClient({
         ...(options.has('corrected-output')
           ? [{ label: showCorrectionComparison ? '校正后输出' : '输出', style: CONTROL_SIGNAL_CURVE_STYLES.correctedOutput, result }]
           : []),
+        ...visibleSnapshotSeries.map((snapshot) => ({
+          label: snapshot.label,
+          style: snapshotStyle(snapshot.color),
+          result: snapshot.result,
+        })),
       ]
     : [];
   const buildBodePanels = (options: Set<string>) => result
@@ -296,6 +460,11 @@ export function MultiRepresentationLinkageClient({
         ...(options.has('correction-device') && model.correctionDeviceAnalysisResult
           ? [{ label: '校正装置', style: CONTROL_SIGNAL_CURVE_STYLES.correctionDevice, result: model.correctionDeviceAnalysisResult }]
           : []),
+        ...visibleSnapshotSeries.map((snapshot) => ({
+          label: snapshot.label,
+          style: snapshotStyle(snapshot.color),
+          result: snapshot.result,
+        })),
       ]
     : [];
   const resolveTimeDomainPanelOptions = (panel: MultiRepresentationPanelInstance) => (
@@ -443,6 +612,7 @@ export function MultiRepresentationLinkageClient({
           interactiveHandles={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []}
           onInteractiveHandleCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.updateCorrectionRootHandle : undefined}
           onClosedLoopGainCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.setGain : undefined}
+          comparisonSeries={visibleSnapshotSeries}
         />
       ) : (
         <WorkbenchViewEmptyNotice title="根轨迹" />
@@ -470,7 +640,7 @@ export function MultiRepresentationLinkageClient({
         />
       ) : null;
       content = selectedNyquistSource ? (
-        selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} /> : null
+        selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} comparisonSeries={visibleSnapshotSeries} /> : null
       ) : (
         <WorkbenchViewEmptyNotice title="Nyquist 图" />
       );
@@ -669,6 +839,29 @@ export function MultiRepresentationLinkageClient({
             publicationId={initialParams.publicationId}
           />
         )}
+
+        <DesignSnapshotManager
+          snapshots={snapshots}
+          onSave={saveSnapshot}
+          onToggleVisible={(id) => updateSnapshot(id, (snapshot) => ({ ...snapshot, visible: !snapshot.visible }))}
+          onRename={(id, name) => updateSnapshot(id, (snapshot) => ({ ...snapshot, name }))}
+          onRestore={restoreSnapshot}
+          onDelete={deleteSnapshot}
+        />
+        <MetricComparisonTable
+          currentState={model.analysisState}
+          currentResponseType={model.responseType}
+          snapshots={snapshots}
+          snapshotStates={snapshotStates}
+        />
+        {visibleSnapshots.map((snapshot) => (
+          <SnapshotAnalysis
+            key={snapshot.id}
+            snapshot={snapshot}
+            buildRequest={model.buildSnapshotAnalysisRequest}
+            onState={recordSnapshotState}
+          />
+        ))}
 
         <ParameterDrawer
           open={model.drawerOpen}

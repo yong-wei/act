@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0001",
+  "offset": 5,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-f8d3e5fdd92e5393820683bb",
+      "batch": "B",
+      "name": "Modified Matched Pole-Zero (MMPZ) Method",
+      "definition": "Modified Matched Pole-Zero (MMPZ) Method：A modification of the matched pole-zero procedure where the numerator of D_d(z) is of lower order than the denominator…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Modified Ma…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Modified Matched Pole-Zero (MMPZ) Method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Modified Matched Pole-Zero (MMPZ) Method：A modification of the matched pole-zero procedure where the numerator of D_d(z) is of lower order than the denominator…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Modified M」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-4bb347d0f2aa8859a18073de",
+      "batch": "B",
+      "name": "seven steps for sketching a root locus",
+      "definition": "seven steps for sketching a root locus：A seven-step procedure for sketching a root locus, including preparing the sketch, locating real-axis segments, determi…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "seven steps…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: seven steps for sketching a root locus\nSOURCE DEFINITION (fail-closed, do not invent beyond this): seven steps for sketching a root locus：A seven-step procedure for sketching a root locus, including preparing the sketch, locating real-axis segments, determi…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「seven step」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2496ae999e2b3f64959076f2",
+      "batch": "B",
+      "name": "Graph determinant in signal-flow graph",
+      "definition": "Graph determinant in signal-flow graph：The graph determinant Δ(s) is used in Mason's gain formula to evaluate the state transition matrix from the signal-flow…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Graph deter…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Graph determinant in signal-flow graph\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Graph determinant in signal-flow graph：The graph determinant Δ(s) is used in Mason's gain formula to evaluate the state transition matrix from the signal-flow…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Graph dete」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9a7f6e28a612b00c77f8ea94",
+      "batch": "B",
+      "name": "Phase-lead design using the root locus",
+      "definition": "Phase-lead design using the root locus：The design of the phase-lead compensator using the root locus method. The locations of the compensator zero and pole ar…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase-lead …",
+        "应用于·Phase…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Phase-lead design using the root locus\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Phase-lead design using the root locus：The design of the phase-lead compensator using the root locus method. The locations of the compensator zero and pole ar…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Phase-lead」、「应用于·Phase…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0ede09d12722cabc48d82ce4",
+      "batch": "B",
+      "name": "Phase-Lead Design Using the Bode Plot",
+      "definition": "Phase-Lead Design Using the Bode Plot：A method to design a phase-lead compensator by adding the frequency response of the cascade compensator to the frequenc…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Phase-Lead …",
+        "用于分析·Phas…",
+        "应用于·Phase…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Phase-Lead Design Using the Bode Plot\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Phase-Lead Design Using the Bode Plot：A method to design a phase-lead compensator by adding the frequency response of the cascade compensator to the frequenc…\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Phase-Lead」、「用于分析·Phas…」、「应用于·Phase…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

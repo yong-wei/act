@@ -1,6 +1,10 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import {
+  resolveAdaptiveDiagnosisContext,
+} from '@/features/assessment/adaptive-diagnosis-context';
+
+import {
   parsePersistedDocumentRubricGradingDraft,
   validateDocumentRubricGradingDraftInvariants,
   type PersistedDocumentRubricGradingDraft,
@@ -103,6 +107,27 @@ export interface KonlingTeachingAssistantServerContextDb {
   smartLessonTask?: SmartLessonTaskContextReader;
   courseBasis?: CourseBasisContextReader;
   diagnosisReportSnapshot?: DiagnosisReportSnapshotReader;
+  adaptiveAssessmentAnswer?: any;
+  wrongAnswerAttribution?: any;
+  adaptivePathCandidateBatch?: {
+    findFirst(input: any): Promise<{
+      id: string;
+      userId: string;
+      goalId: string;
+      classId: string | null;
+      sourcePathId: string;
+      status: string;
+    } | null>;
+  };
+}
+
+export class KonlingAdaptiveAttemptContextError extends Error {
+  readonly status = 409;
+
+  constructor() {
+    super('KONLING_ADAPTIVE_ATTEMPT_CONTEXT_UNAVAILABLE');
+    this.name = 'KonlingAdaptiveAttemptContextError';
+  }
 }
 
 interface ResolvedDocumentGradingDraft {
@@ -143,6 +168,32 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
 
   if (mode.id === 'resource-coach') {
     return resolveResourceCoachModeContext(input);
+  }
+  const adaptiveAttemptAnswerId = stringHint(input.clientContextHints, 'answerId');
+  if (mode.id === 'diagnosis-explainer' && adaptiveAttemptAnswerId) {
+    if (
+      input.scope.role !== 'student' ||
+      input.scope.authenticatedUserId !== input.scope.targetUserId ||
+      !input.db.adaptiveAssessmentAnswer
+    ) {
+      throw new KonlingAdaptiveAttemptContextError();
+    }
+    const adaptiveDiagnosisContext = await resolveAdaptiveDiagnosisContext({
+      db: {
+        adaptiveAssessmentAnswer: input.db.adaptiveAssessmentAnswer,
+        wrongAnswerAttribution: input.db.wrongAnswerAttribution,
+      },
+      authenticatedUserId: input.scope.authenticatedUserId,
+      answerId: adaptiveAttemptAnswerId,
+    });
+    if (!adaptiveDiagnosisContext) throw new KonlingAdaptiveAttemptContextError();
+    return {
+      'adaptive-attempt': true,
+      adaptiveAttempt: adaptiveDiagnosisContext.adaptiveAttempt,
+      ...(adaptiveDiagnosisContext.wrongAnswerAttribution
+        ? { wrongAnswerAttribution: adaptiveDiagnosisContext.wrongAnswerAttribution }
+        : {}),
+    };
   }
   if (mode.id === 'path-advisor') {
     return resolvePathAdvisorModeContext({
@@ -577,9 +628,8 @@ function projectSmartLessonTaskContext(value: unknown, ownerUserId: string) {
       durationMinutes: task.durationMinutes,
       outlineConfirmationRequired: task.outlineConfirmationRequired === true,
       sourceVersionIds: selectedCourseBasisVersions.map((source) => source.versionId),
-      aggregateClassContextRef: recordString(task, 'aggregateClassContextRef') && recordString(recordValue(task.aggregateClassContext) ?? {}, 'classId')
-        ? { classId: recordString(recordValue(task.aggregateClassContext) ?? {}, 'classId'), diagnosisRef: recordString(task, 'aggregateClassContextRef') }
-        : null,
+      textbookRanges: recordArray(task.textbookRanges),
+      selectedClassId: recordString(task, 'selectedClassId') || null,
       knowledgePoints: knowledgePoints.map((item) => ({
         id: recordString(item, 'id'), lineageId: recordString(item, 'lineageId'), title: recordString(item, 'title'), content: recordString(item, 'title'),
         origin: recordString(item, 'origin'), sourceState: publicSmartLessonSourceState(recordString(item, 'sourceState')),
@@ -605,6 +655,7 @@ function projectSmartLessonTaskContext(value: unknown, ownerUserId: string) {
 
 function publicSmartLessonSourceState(value: string) {
   if (value === 'VERIFIED') return 'verified';
+  if (value === 'NO_RELIABLE_SOURCE') return 'no_reliable_source';
   if (value === 'AI_GENERATED_SOURCE_PENDING') return 'ai_generated_source_pending';
   return 'teacher_created_source_pending';
 }
@@ -651,17 +702,40 @@ async function resolveResourceCoachModeContext(input: {
   };
 }
 
-function resolvePathAdvisorModeContext(input: {
+async function resolvePathAdvisorModeContext(input: {
+  db: KonlingTeachingAssistantServerContextDb;
   scope: KonlingRuntimeScope;
   signedPayload: VerifiedModeContextPayload | null;
-}): KonlingTeachingAssistantServerModeContext {
+  clientContextHints?: Record<string, unknown> | null;
+}): Promise<KonlingTeachingAssistantServerModeContext> {
   if (!input.signedPayload) return {};
   if (input.scope.role !== 'student') return {};
   if (input.scope.authenticatedUserId !== input.scope.targetUserId) return {};
   if (input.signedPayload.context['student-path-center'] !== true) return {};
+  const candidateBatchId = stringHint(input.clientContextHints, 'candidateBatchId');
+  const candidateBatch = candidateBatchId && input.db.adaptivePathCandidateBatch
+    ? await input.db.adaptivePathCandidateBatch.findFirst({
+        where: {
+          id: candidateBatchId,
+          userId: input.scope.targetUserId,
+          goalId: input.scope.courseId,
+          classId: input.scope.classId ?? null,
+          status: 'succeeded',
+        },
+        select: { id: true, userId: true, goalId: true, classId: true, sourcePathId: true, status: true },
+      })
+    : null;
   return {
     ...input.signedPayload.context,
     'student-path-center': true,
+    ...(candidateBatch ? {
+      authorizedCandidateBatch: {
+        batchId: candidateBatch.id,
+        pathId: candidateBatch.sourcePathId,
+        goalId: candidateBatch.goalId,
+        classId: candidateBatch.classId,
+      },
+    } : {}),
   };
 }
 

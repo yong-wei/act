@@ -1,0 +1,81 @@
+{
+  "pack_id": "P0046",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-376c29d091d24239e88fc4c4",
+      "batch": "B",
+      "name": "极限环",
+      "definition": "非线性系统中出现的一条孤立的封闭曲线，曲线附近的相轨迹都渐近地趋向这条封闭的曲线，或者从这条封闭的曲线离开。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "极限环",
+        "是一种·半稳定极限环",
+        "是一种·稳定极限环",
+        "是一种·分隔线",
+        "是一种·奇线",
+        "是一种·不稳定极限环"
+      ]
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "batch": "B",
+      "name": "Difference equations",
+      "definition": "Difference equations：Difference equations",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Difference …",
+        "Difference e",
+        "属于·Discre…",
+        "包含组件·Disc…",
+        "应用于·Sampl…",
+        "派生自·Discr…"
+      ]
+    },
+    {
+      "safe_id": "ctkg_v3e-object-80b836e636775916830b5a21",
+      "batch": "B",
+      "name": "相轨迹",
+      "definition": "相变量从初始时刻 t₀ 对应的状态点 (x₀, ẋ₀) 起，随着时间 t 的推移，在相平面上运动形成的曲线称为相轨迹。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "相轨迹",
+        "是一种·奇线",
+        "属于·相平面图",
+        "属于·相平面",
+        "包含组件·相平面图",
+        "用于分析·MATL…"
+      ]
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ba8cd00d72479d23476d2061",
+      "batch": "B",
+      "name": "奇点",
+      "definition": "若在某点处 f(x, ẋ) 和 ẋ 同时为零，即有 dẋ/dx = 0/0 的不定形式，则称该点为相平面的奇点。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "奇点",
+        "是一种·稳定焦点",
+        "是一种·不稳定节点",
+        "是一种·稳定节点",
+        "是一种·不稳定焦点",
+        "是一种·实奇点"
+      ]
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "batch": "B",
+      "name": "Equilibrium Point",
+      "definition": "Equilibrium Point：A state where the system can remain at rest",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Equilibrium…",
+        "Equilibrium ",
+        "用于分析·Smal…",
+        "用于分析·Lyap…",
+        "应用于·Lyapu…",
+        "应用于·李雅普诺夫…"
+      ]
+    }
+  ],
+  "created_at": "2026-08-05T15:32:54.574641+00:00"
+}

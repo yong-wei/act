@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-ca34eff2440293f793a1aafa",
+  "safe_id": "ctkg_v3e-object-ca34eff2440293f793a1aafa",
+  "node": {
+    "name": "Circle Criterion",
+    "name_en": "Circle Criterion",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Circle Criterion：A frequency-response-based stability method that considers the energy seen at the terminals of the system",
+  "intuition": "在图谱邻接中可把握：前置 → Sector conditions · 后续 → Frequency-Respon、External Stability、Nonlinear System。",
+  "explanation": "A frequency-response-based stability method that considers the energy seen at the terminals of the system; if energy is always flowing into the terminals, the system is assumed stable. The result is expressed in terms of external properties such as the Nyquist plot of the linear portion facing the nonlinear elements.",
+  "relation_head": "前置 → Sector conditions · 后续 → Frequency-Respon、External Stability、Nonlinear System",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Frequency-Respon",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "External Stability",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Nonlinear System",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Sector conditions",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Circle Crit…",
+    "Circle Crite",
+    "一种·Freque…",
+    "用于分析·Exte…",
+    "用于分析·Nonl…",
+    "关联·Sector…"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ca34eff2440293f793a1aafa.md",
+  "provider_policy": "grok-image_gen"
+}

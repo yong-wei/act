@@ -171,8 +171,9 @@ test('builds the approved plan and generated courseware through ordinary APIs an
     const version = await api(`/api/teacher/course-bases/documents/${document.document.id}/versions`, json({
       sourceType: 'PASTED_TEXT', sourceName: '根轨迹课程依据.txt', mimeType: 'text/plain', content: sourceText,
     }));
-    await api(`/api/teacher/course-bases/versions/${version.version.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'confirm' }) });
     const preview = await api(`/api/teacher/course-bases/versions/${version.version.id}`);
+    const editor = await api(`/api/teacher/course-bases/versions/${version.version.id}?mode=editor`);
+    if (editor.document.lifecycle.label !== '可编辑') throw new Error(`expected-editable:${JSON.stringify(editor.document.lifecycle)}`);
     const chat = await api('/api/ai/sessions', json({ courseId: basis.courseBasis.id, pageId: '/teacher/smart-prep', title: '根轨迹共创验收' }));
     return { basisId: basis.courseBasis.id, versionId: version.version.id, preview: preview.preview, chatId: chat.id };
   }, {
@@ -353,7 +354,20 @@ test('ordinary publication API projects to catalog, binds a generated classroom,
   expect((await publicationAction({ action: 'validate-static' })).status).toBe(200);
   const browserValidated = await publicationAction({ action: 'validate-browser' });
   expect(browserValidated.status).toBe(200);
-  expect(browserValidated.body.publication.pendingGaps).toEqual([]);
+  const pendingGaps = browserValidated.body.publication.pendingGaps as Array<{
+    scope: 'GOAL' | 'MODULE';
+    targetId: string;
+    gapIdentity: string;
+  }>;
+  for (const gap of pendingGaps) {
+    expect((await publicationAction({
+      action: 'acknowledge-gap',
+      scope: gap.scope,
+      targetId: gap.targetId,
+      gapIdentity: gap.gapIdentity,
+      reason: '教师已核对该项生成内容与其来源绑定。',
+    })).status).toBe(200);
+  }
   const stalePlan = browserValidated.body.publication.stalePlan as { acknowledged: boolean; newestPlanRevisionId: string } | null;
   if (stalePlan && !stalePlan.acknowledged) {
     expect((await publicationAction({

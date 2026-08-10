@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0099",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-aeb5c6a36d9a565300cacaa7",
+      "name": "分析法（试探法）",
+      "definition": "用分析法设计校正装置比较直观，在物理上易于实现，但要求设计者有一定的工程设计经验，设计过程带有试探性。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b0da8811ce5c0b404585f821",
+      "name": "Stability boundary",
+      "definition": "Stability boundary：The jω axis is the stability boundary between asymptotically stable and unstable response."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b202f2a7c47a97c1f0e1efe8",
+      "name": "滞后深度",
+      "definition": "滞后网络的分度系数b，表示滞后程度，b<1。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b43972ad376b62e88a817ba1",
+      "name": "Desired closed-loop poles",
+      "definition": "Desired closed-loop poles：Poles of the closed-loop system positioned further left in the stable region."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b6a2408064ca869300339823",
+      "name": "非周期采样",
+      "definition": "如果信息之间的间隔是时变的，或随机的，则称为非周期采样，或随机采样。"
+    }
+  ],
+  "created_at": "2026-08-05T16:46:10.630365+00:00"
+}

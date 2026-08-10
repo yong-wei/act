@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -11,10 +12,22 @@ const mocks = vi.hoisted(() => ({
   getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
   getLearningGoalResourceBaselineForPlanner: vi.fn(),
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
-  loadAllTextbookRuntimeResourceCatalogEntries: vi.fn(),
-  loadAllTextbookRuntimeSearchDocuments: vi.fn(),
+  loadAllTextbookStructureRuntimeCatalogEntries: vi.fn(),
+  loadAllTextbookStructureUnitProjections: vi.fn(),
   loadRuntimeResourceProjectionInputs: vi.fn(),
+  retrieveTextbookSourcePackV2Progressive: vi.fn(),
+  runMathCalculate: vi.fn(),
+  MathCalculateCapacityError: class MathCalculateCapacityError extends Error {},
 }));
+
+vi.mock('@/lib/math-calc', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/math-calc')>('@/lib/math-calc');
+  return {
+    ...actual,
+    MathCalculateCapacityError: mocks.MathCalculateCapacityError,
+    runMathCalculate: mocks.runMathCalculate,
+  };
+});
 
 vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
   const actual = await vi.importActual<typeof import('@/lib/data-governance/adaptive-learner-state-service')>(
@@ -50,9 +63,13 @@ vi.mock('@/lib/learning-goal-resource-baseline-runtime', async () => {
   };
 });
 
-vi.mock('@/lib/textbook-runtime-resources', () => ({
-  loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments: mocks.loadAllTextbookRuntimeSearchDocuments,
+vi.mock('@/lib/structured-textbook-runtime', () => ({
+  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections: mocks.loadAllTextbookStructureUnitProjections,
+}));
+
+vi.mock('@/lib/source-pack/textbook-v2-adapter', () => ({
+  retrieveTextbookSourcePackV2Progressive: mocks.retrieveTextbookSourcePackV2Progressive,
 }));
 
 vi.mock('@/lib/course-runtime', () => ({
@@ -70,6 +87,7 @@ vi.mock('@/lib/teacher-resource-node-data', async () => {
 });
 
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import { AuthoritativeKnowledgeProjectionService } from '@/lib/authoritative-knowledge';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
@@ -78,8 +96,10 @@ import {
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
+import { resolveArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import {
   applyKonlingCitationFallback,
+  assignKonlingRuntimeCitationDisplayNumbers,
   buildKonlingCitationGuard,
   buildResourceNodeSourcePackCandidate,
   buildKonlingSarAssociatedGroundingMetadataPayload,
@@ -96,9 +116,13 @@ import {
   getOrCreateKonlingAgentSession,
   buildKonlingTeachingAssistantRuntimeContract,
   getKonlingTeachingAssistantMountContracts,
+  mapAdaptivePathNaturalLanguageIntent,
   KONLING_TOOL_REGISTRY,
+  KONLING_CANDIDATE_READ_TOOLS,
+  mergeCandidateAssignedCitations,
   KONLING_TEACHING_ASSISTANT_MODE_REGISTRY,
   persistKonlingSessionMemories,
+  projectKonlingTextbookModelToolResult,
   recordKonlingInterventionFeedback,
   resolveKonlingTeachingAssistantMode,
   resumeKonlingAgentSession,
@@ -461,97 +485,84 @@ function textbookRuntimeCatalogFixture() {
       bookId: 'dorf-modern-control-systems',
       title: 'Modern Control Systems',
     },
-    sections: [
+    units: [
       {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch08-example-0801',
+        unitId: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-08/example-8.1',
         title: 'Bode 图频域响应示例',
-        citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md',
+        citationHref: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-08/example-8.1',
+        sourceHash: 'sha-textbook-unit',
+        sourceVersionRef: 'structured-textbook-runtime.v2:revision-001',
         knowledgeNodeIds: ['Bode图_1_1', '频域响应_1_1', '正弦稳态响应_5_b6dc1100'],
         capabilityTargetIds: ['controlModeling', 'parameterDesign'],
         estimatedTimeMinutes: 8,
-        planningOverride: {
-          readiness: {
-            minimumCompetency: { controlModeling: 0.1, parameterDesign: 0.1 },
-            minimumEvidenceCount: 1,
-            requiredCompletedNodeIds: [],
-            requiredOutcomeRefs: [],
-            unlockMessage: 'Reviewed textbook section fixture is ready for path planning.',
-            fallbackNodeIds: [],
-          },
-          pathDisposition: {
-            kind: 'path-plannable',
-            reviewStatus: 'human-confirmed',
-            rationale: 'Reviewed textbook section fixture for Konling path generation tests.',
-            sourceFamily: 'textbook_section',
-            stableSourceRef: 'dorf-modern-control-systems:ch08-example-0801',
-            sourceVersionRef: 'resource-node-registry.v1',
-            parentResourceNodeId: null,
-            reviewedAt: '2026-07-03T00:00:00.000Z',
-            reviewerId: 'konling-runtime-test-review',
-          },
-        },
       },
     ],
   }];
 }
 
-function textbookRuntimeSearchDocumentFixture() {
+function textbookStructureUnitFixture() {
+  const unitId = 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-08/example-8.1';
   return [
     {
-      id: 'ch08-example-0801__chunk-001',
-      kind: 'chunk',
+      id: unitId,
+      kind: 'example',
       title: 'Bode 图频域响应示例',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#chunk-001',
+      href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-08/example-8.1',
       text: 'Bode 图用于观察频域响应。',
-      contentHash: 'sha-textbook-chunk',
+      contentHash: 'sha-textbook-unit',
+      identity: {
+        bookId: 'dorf-modern-control-systems',
+        edition: '14th Global Edition',
+        sourceRevision: 'revision-001',
+        unitId,
+        fragmentId: null,
+      },
+      fragments: [{
+        id: `${unitId}#figure-8.1`,
+        owningUnitId: unitId,
+        kind: 'figure',
+        naturalNumber: '8.1',
+        ordinal: 1,
+        sourceSpan: {
+          sourcePath: 'textbooks/dorf-modern-control-systems/chapter-08/textbook.md',
+          startLine: 12,
+          endLine: 12,
+          startByte: 120,
+          endByte: 150,
+        },
+        recordType: 'fragment-anchor',
+        schemaVersion: 'structured-textbook-runtime.v2',
+      }],
       resourceProjection: {
-        resourceId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
-        segmentRef: 'ch08-example-0801',
-        citationTargetRef: 'ch08-example-0801',
+        resourceId: unitId,
+        segmentRef: unitId,
+        citationTargetRef: unitId,
         knowledgeNodeRefs: ['Bode图_1_1', '频域响应_1_1'],
         capabilityTargetRefs: ['controlModeling'],
+        contentHash: 'sha-textbook-unit',
+        versionRefs: {
+          artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+          graphCatalogVersion: 'graph-catalog.v1',
+          resourceProjectionVersion: 'structured-textbook-runtime.v2',
+          resourceRegistryVersion: 'revision-001',
+          citationVersion: 'structured-textbook-runtime.v2',
+        },
       },
       citationAddress: {
         kind: 'text',
-        sourceRefId: 'ch08-example-0801__chunk-001',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#chunk-001',
-        locator: 'chunk-001',
-        contentHash: 'sha-textbook-chunk',
+        sourceRefId: unitId,
+        href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-08/example-8.1',
+        locator: unitId,
+        contentHash: 'sha-textbook-unit',
       },
       metadata: {
         bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch08-example-0801',
-        chapterId: 'ch08',
-        chapterNumber: 8,
-      },
-    },
-    {
-      id: 'fig-08-01__figure',
-      kind: 'figure',
-      title: 'Bode 图示意图',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#fig-08-01',
-      text: '图像描述：幅频与相频曲线。',
-      contentHash: 'sha-textbook-figure',
-      resourceProjection: {
-        resourceId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
-        segmentRef: 'ch08-example-0801',
-        citationTargetRef: 'fig-08-01',
-        knowledgeNodeRefs: ['Bode图_1_1'],
-        capabilityTargetRefs: ['controlModeling'],
-      },
-      citationAddress: {
-        kind: 'image',
-        sourceRefId: 'fig-08-01',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#fig-08-01',
-        locator: 'fig-08-01',
-        contentHash: 'sha-textbook-figure',
-      },
-      metadata: {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch08-example-0801',
-        chapterId: 'ch08',
-        chapterNumber: 8,
+        edition: '14th Global Edition',
+        sourceRevision: 'revision-001',
+        unitId,
+        chapterId: 'chapter-08',
+        naturalNumber: '8.1',
+        structuralPath: ['chapter-chapter-08', 'example-8.1'],
       },
     },
   ];
@@ -643,12 +654,57 @@ function reviewedPathPlanningOverride(sourceFamily: string, stableSourceRef: str
 }
 
 describe('konling agent runtime', () => {
+  it('preserves distinct typed identities and display numbers when source types share a raw id', () => {
+    const rawId = 'shared-raw-id';
+    const assigned = assignKonlingRuntimeCitationDisplayNumbers(
+      [{
+        id: rawId,
+        sourceType: 'content',
+        displayTitle: '课程正文',
+        href: '/textbooks/book-a/e8/unit-a',
+        confidence: 'high',
+        evidenceBasis: 'course-content',
+        owner: 'answer',
+      }],
+      [{
+        id: rawId,
+        sourceType: 'learner-state',
+        displayTitle: '学习证据',
+        href: null,
+        confidence: 'medium',
+        evidenceBasis: 'learner-state',
+        owner: 'recommendation',
+      }],
+    );
+
+    expect(assigned.contentCitations[0]).toMatchObject({
+      displayNumber: 1,
+      identity: { kind: 'content', sourceType: 'content' },
+    });
+    expect(assigned.evidenceCitations[0]).toMatchObject({
+      displayNumber: 2,
+      identity: { kind: 'evidence', sourceType: 'learner-state' },
+    });
+    expect(assigned.contentCitations[0]?.canonicalKey)
+      .not.toBe(assigned.evidenceCitations[0]?.canonicalKey);
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
-    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue(textbookRuntimeSearchDocumentFixture());
+    mocks.loadAllTextbookStructureRuntimeCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue(textbookStructureUnitFixture());
     mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: {
+        mode: 'lexical',
+        candidates: [],
+        limitations: ['no-directly-supporting-textbook-unit'],
+        diagnostics: [],
+      },
+      optimizationPending: false,
+      continuation: null,
+    });
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
     delete process.env.KONLING_SEMANTIC_MEMORY_ENABLED;
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
@@ -670,6 +726,116 @@ describe('konling agent runtime', () => {
         activeFlags: [],
       },
     });
+  });
+
+  it('separates canonical intent values from source terms used to consume clauses', () => {
+    const cases = [
+      {
+        intent: '先补相位裕度，再做仿真验证',
+        matchedTerms: ['simulation'],
+        matchedSourceTerms: ['仿真'],
+        limitationCode: 'natural-language-intent-partially-unmapped',
+      },
+      {
+        intent: '挑战，仿真',
+        matchedTerms: ['simulation', 'challenge'],
+        matchedSourceTerms: ['仿真', '挑战'],
+        limitationCode: undefined,
+      },
+      {
+        intent: '轻量检查',
+        matchedTerms: ['light'],
+        matchedSourceTerms: ['轻量检查'],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不要外部'],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要挑战，循序推进',
+        matchedTerms: ['gentle'],
+        matchedSourceTerms: ['挑战', '循序'],
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要密集检查，只要轻量检查',
+        matchedTerms: ['light'],
+        matchedSourceTerms: ['密集检查', '轻量检查'],
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要使用外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不要使用外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不允许外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不允许外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '禁止使用外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['禁止使用外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '挑战但要轻松推进，并完成仿真',
+        matchedTerms: ['simulation'],
+        matchedSourceTerms: ['仿真', '挑战', '轻松'],
+        conflictDimensions: ['difficulty'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '密集检查，同时只要轻量检查',
+        matchedTerms: [],
+        matchedSourceTerms: ['密集检查', '轻量检查'],
+        conflictDimensions: ['checkpoint'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '允许外部资源，但不使用外部资源',
+        matchedTerms: [],
+        matchedSourceTerms: ['不使用外部', '外部资源'],
+        conflictDimensions: ['external-resource'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '先补相位裕度',
+        matchedTerms: [],
+        matchedSourceTerms: [],
+        limitationCode: 'natural-language-intent-unsupported',
+      },
+    ] as const;
+
+    for (const expected of cases) {
+      const mapping = mapAdaptivePathNaturalLanguageIntent(expected.intent);
+      expect(mapping).toMatchObject({
+        resourcePreferences: expected.matchedTerms.filter((term) => term === 'simulation'),
+        matchedTerms: expected.matchedTerms,
+        matchedSourceTerms: expected.matchedSourceTerms,
+      });
+      if ('conflictDimensions' in expected) {
+        expect(mapping.conflictDimensions).toEqual(expected.conflictDimensions);
+      }
+      if ('allowExternalResources' in expected) {
+        expect(mapping.allowExternalResources).toBe(expected.allowExternalResources);
+      }
+      expect(mapping.limitationCode).toBe(expected.limitationCode);
+    }
   });
 
   it('enforces student and teacher runtime scope before tools can run', async () => {
@@ -727,6 +893,365 @@ describe('konling agent runtime', () => {
     expect(foreignClassDb.studentProfile.findFirst).not.toHaveBeenCalled();
   });
 
+  it('authorizes candidate context only for the fixed selector and server-authorized role', async () => {
+    const canvasSpy = vi.spyOn(AuthoritativeKnowledgeProjectionService.prototype, 'canvas')
+      .mockResolvedValue({
+        status: 'available',
+        diagnostics: [],
+        projection: {
+          projectionVersion: 'act.canvas.v2',
+          source: {
+            authorityState: 'candidate',
+            releaseSetId: 'actkg-authoritative-candidate-v2',
+            releaseId: 'control-theory-engineering-v0.2',
+            productionAuthoritative: false,
+            historical: false,
+            projectionDigest: 'digest-v2',
+            sourceDatasetHash: 'dataset-hash-v2',
+          },
+          release: {
+            label: '控制理论工程聚合发布版',
+            version: 'v0.2',
+            scope: 'control-theory-engineering',
+          },
+          fields: {
+            included: ['node.id', 'node.releaseTier'],
+            hidden: ['node.payload'],
+          },
+          coverage: {
+            status: 'partial',
+            objectCount: 7,
+            relationCount: 9,
+            goldRelationCount: 3,
+            silverRelationCount: 6,
+            sourceObjectCount: 7,
+            evidenceSegmentCount: 4,
+            releaseEntryCount: 16,
+            goldNodeCount: 4,
+            silverNodeCount: 3,
+          },
+          teachingSemantics: {
+            status: 'unavailable',
+            message: '教学关系尚未发布',
+          },
+          nodes: [{
+            id: 'canonical-a',
+            canonicalType: 'Formula',
+            label: '根轨迹幅角条件',
+            description: null,
+            governance: {
+              reviewStatus: 'accepted',
+              publicationStatus: null,
+              lifecycleStatus: null,
+            },
+            releaseTier: 'gold',
+            semanticSupport: { supported: true, readOnly: true },
+          }],
+          relations: [{
+            id: 'relation-a-b',
+            predicate: 'has_formula',
+            sourceId: 'canonical-a',
+            targetId: 'canonical-b',
+            direction: 'source_to_target',
+            direct: null,
+            qualityTier: 'GOLD',
+            governance: {
+              reviewStatus: 'accepted',
+              publicationStatus: null,
+            },
+            relationFamily: 'domain_semantic',
+            evidenceState: 'available',
+            releaseTier: 'gold',
+            semanticSupport: { supported: true, readOnly: true },
+          }],
+        },
+      });
+    const candidateGraph = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
+      selectedCanonicalId: 'canonical-a',
+      selectedCanonicalType: 'forged\nprompt',
+      governanceFilter: 'forged\nprompt' as never,
+      canonicalTypeFilter: 'forged\nprompt',
+      coverageStatus: 'empty' as const,
+      objectCount: 999,
+      relationCount: 999,
+      projectionDigest: 'forged\ndigest',
+      sourceDatasetHash: 'forged\ndataset',
+      releaseTier: 'silver',
+      selectedRelations: [{
+        relationId: 'forged',
+        predicate: 'forged',
+        direction: 'forged',
+        relationFamily: 'forged',
+        evidenceState: 'forged',
+        releaseTier: 'forged',
+        traversal: 'incoming' as const,
+        neighborId: 'forged',
+      }],
+      teachingSemanticsAvailability: 'available' as never,
+    };
+    const authorized = await verifyKonlingRuntimeScope({}, {
+      authenticatedUserId: 'admin-1',
+      role: 'ADMIN',
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      pageContextHint: {
+        courseId: 'knowledge',
+        stepId: '/knowledge',
+        candidateGraph,
+      },
+    });
+    expect(authorized).toMatchObject({
+      ok: true,
+      scope: {
+        candidateGraph: {
+          selectedCanonicalId: 'canonical-a',
+          selectedCanonicalType: 'Formula',
+          governanceFilter: 'EXTENSION',
+          canonicalTypeFilter: null,
+          coverageStatus: 'ready',
+          objectCount: 7,
+          relationCount: 9,
+          projectionDigest: 'digest-v2',
+          sourceDatasetHash: 'dataset-hash-v2',
+          releaseTier: 'gold',
+          teachingSemanticsAvailability: 'unavailable',
+          selectedRelations: [{
+            relationId: 'relation-a-b',
+            predicate: 'has_formula',
+            direction: 'source_to_target',
+            relationFamily: 'domain_semantic',
+            evidenceState: 'available',
+            releaseTier: 'gold',
+            traversal: 'outgoing',
+            neighborId: 'canonical-b',
+          }],
+        },
+      },
+    });
+    if (authorized.ok) {
+      expect(JSON.stringify(authorized.scope.candidateGraph)).not.toContain('forged');
+    }
+    await expect(verifyKonlingRuntimeScope({}, {
+      authenticatedUserId: 'admin-1',
+      role: 'ADMIN',
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      pageContextHint: {
+        courseId: 'knowledge',
+        stepId: '/knowledge',
+        candidateGraph: {
+          ...candidateGraph,
+          selectedCanonicalId: 'unknown-canonical',
+          selectedCanonicalType: 'Formula',
+          canonicalTypeFilter: 'Formula',
+        },
+      },
+    })).resolves.toMatchObject({
+      ok: true,
+      scope: {
+        candidateGraph: {
+          selectedCanonicalId: null,
+          selectedCanonicalType: null,
+          canonicalTypeFilter: 'Formula',
+        },
+      },
+    });
+    await expect(verifyKonlingRuntimeScope({}, {
+      authenticatedUserId: 'admin-1',
+      role: 'ADMIN',
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      pageContextHint: {
+        courseId: 'knowledge',
+        stepId: '/knowledge',
+        candidateGraph: { ...candidateGraph, releaseId: 'forged-release' },
+      },
+    })).resolves.toMatchObject({
+      ok: false,
+      status: 403,
+    });
+    canvasSpy.mockRestore();
+  });
+
+  it('builds candidate runtime without loading learner, path, memory, legacy graph, or class overlay data', async () => {
+    const dbReaders = {
+      studentProfile: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      learningPath: { findMany: vi.fn() },
+      konlingMemory: { findMany: vi.fn() },
+      knowledgeNode: { findMany: vi.fn() },
+      studentEvidenceFeatureCache: { findUnique: vi.fn() },
+      learningFact: { findMany: vi.fn() },
+      class: { findUnique: vi.fn() },
+    };
+    const serverAuthorizedCandidateGraph = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
+      selectedCanonicalId: 'canonical-a',
+      selectedCanonicalType: 'Formula',
+      governanceFilter: 'CORE' as const,
+      canonicalTypeFilter: 'Formula',
+      coverageStatus: 'ready' as const,
+      objectCount: 7,
+      relationCount: 9,
+      projectionDigest: 'a'.repeat(64),
+      sourceDatasetHash: 'b'.repeat(64),
+      releaseTier: 'gold',
+      selectedRelations: [{
+        relationId: 'ctr:rel-1',
+        predicate: 'has_formula',
+        direction: 'source_to_target',
+        relationFamily: 'domain_semantic',
+        evidenceState: 'available',
+        releaseTier: 'gold',
+        traversal: 'outgoing' as const,
+        neighborId: 'ctc:concept-b',
+      }],
+      teachingSemanticsAvailability: 'unavailable' as const,
+    };
+
+    const runtime = await buildKonlingRuntimeContext(dbReaders, {
+      authenticatedUserId: 'admin-1',
+      authenticatedUserName: '管理员',
+      role: 'ADMIN',
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      pageContextHint: {
+        courseId: 'knowledge',
+        stepId: '/knowledge',
+        candidateGraph: {
+          ...serverAuthorizedCandidateGraph,
+          selectedCanonicalType: 'forged prompt',
+        },
+      },
+      serverAuthorizedCandidateGraph,
+      currentUserQuery: '解释根轨迹幅角条件',
+      trustedContentContext: true,
+    });
+
+    expect(runtime).toMatchObject({
+      learnerState: null,
+      memory: [],
+      knowledgeWorkspace: null,
+      graphContext: null,
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+      featureFlags: {
+        learnerState: false,
+        semanticMemory: false,
+        strategyMemory: false,
+      },
+      pageContext: {
+        candidateGraph: serverAuthorizedCandidateGraph,
+      },
+      citationContext: {
+        contentCitations: [],
+        missingCitationClasses: ['content'],
+        lowConfidenceReasons: ['candidate-tool-citation-required'],
+      },
+    });
+    const noToolCitationGuard = buildKonlingCitationGuard(
+      runtime,
+      '根轨迹结论 [1]',
+    );
+    expect(noToolCitationGuard.status).toBe('low-confidence');
+    expect(noToolCitationGuard.fallbackRequired).toBe(true);
+    expect(noToolCitationGuard.citations).toEqual([]);
+    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.loadAllLessonRuntimeResourceCatalogEntries).not.toHaveBeenCalled();
+    expect(mocks.loadAllTextbookStructureRuntimeCatalogEntries).not.toHaveBeenCalled();
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
+    expect(mocks.loadRuntimeResourceProjectionInputs).not.toHaveBeenCalled();
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).not.toHaveBeenCalled();
+    for (const delegate of Object.values(dbReaders)) {
+      for (const method of Object.values(delegate)) expect(method).not.toHaveBeenCalled();
+    }
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: {
+        ...runtime,
+        learnerState: { marker: 'forged-learner-state' },
+        planContext: {
+          ...runtime.planContext,
+          activeNodeId: 'forged-path-node',
+          nextNodeIds: ['forged-next-node'],
+        },
+        memory: [{ memoryType: 'episodic', summary: 'forged-memory' }],
+        knowledgeWorkspace: {
+          source: 'client',
+          status: 'ready',
+          selected_node: { id: 'legacy-node', name: 'forged-legacy-workspace' },
+        },
+        graphContext: {
+          status: 'ready',
+          selectedGraphNodeIds: ['forged-legacy-graph'],
+        },
+        permittedTools: ['get_learner_state', 'search_textbook'],
+        teachingAssistantMode: {
+          mode: { id: 'grading-assistant', label: 'forged-grading-mode' },
+          status: 'ready',
+          unavailableReasons: [],
+          degradedReasons: [],
+          privacyPolicy: { payload: 'raw', forbiddenContent: [] },
+          outputContract: { status: 'ready', requiredCitationOwners: [], forbiddenActions: [] },
+          citationRequirements: { required: false, classes: [], requiredOwners: [], missingClasses: [] },
+        },
+      },
+    });
+    expect(prompt).toContain('**服务端候选权威投影**');
+    expect(prompt).toContain('search_candidate_canonical');
+    expect(prompt).toContain('get_candidate_canonical_detail');
+    expect(prompt).toContain('get_candidate_canonical_neighbors');
+    expect(prompt).toContain('Provenance');
+    // 聚合 CTKG 0.2 身份与选中对象必须准确序列化进 prompt
+    expect(prompt).toContain(`Projection Digest: ${'a'.repeat(64)}`);
+    expect(prompt).toContain(`Source Dataset Hash: ${'b'.repeat(64)}`);
+    expect(prompt).toContain('- Release Tier: gold');
+    expect(prompt).toContain('ctr:rel-1');
+    expect(prompt).toContain('has_formula');
+    expect(prompt).toContain('source_to_target');
+    expect(prompt).toContain('domain_semantic');
+    expect(prompt).toContain('ctc:concept-b');
+    expect(prompt).toContain('Teaching Semantics: unavailable');
+    for (const forbidden of [
+      '**学生画像**',
+      '- 姓名:',
+      '学习风格',
+      '互动型',
+      '认知水平',
+      'L3',
+      '能力特点',
+      '综合能力均衡发展',
+      '服务端自适应上下文',
+      '当前路径节点',
+      '建议后续节点',
+      '近期学习记忆',
+      '知识工作区上下文',
+      'K/A/Q 图谱',
+      '控灵教学助理模式',
+      '教材',
+      'Legacy',
+      'forged-learner-state',
+      'forged-path-node',
+      'forged-next-node',
+      'forged-memory',
+      'forged-legacy-workspace',
+      'forged-legacy-graph',
+      'forged-grading-mode',
+      'get_learner_state',
+      'search_textbook',
+    ]) {
+      expect(prompt).not.toContain(forbidden);
+    }
+  });
+
   it('registers teaching-assistant modes with scoped tools, citations, privacy, and mounts', () => {
     expect(Object.keys(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY)).toEqual([
       'generic-chat',
@@ -736,6 +1261,7 @@ describe('konling agent runtime', () => {
       'grading-assistant',
       'feedback-explainer',
       'class-summarizer',
+      'teacher-diagnosis',
       'prep-coauthor',
     ]);
 
@@ -768,6 +1294,17 @@ describe('konling agent runtime', () => {
       'apply-smart-task-change',
       'confirm-smart-task-change',
     ]));
+    const teacherDiagnosis = resolveKonlingTeachingAssistantMode('teacher-diagnosis');
+    expect(teacherDiagnosis).toMatchObject({
+      supportedRoles: ['teacher'],
+      mountingSurfaces: ['teacher-dashboard-diagnosis'],
+      privacyPolicy: { payload: 'teacher-scoped-summary' },
+    });
+    expect(teacherDiagnosis.permittedTools).toEqual([
+      'get_student_risk_flags',
+      'get_class_competency_summary',
+      'get_student_knowledge_progress',
+    ]);
 
     const mounts = getKonlingTeachingAssistantMountContracts();
     expect(mounts).toEqual(expect.arrayContaining([
@@ -777,12 +1314,856 @@ describe('konling agent runtime', () => {
         requiredContext: expect.arrayContaining(['prep-pack']),
       }),
       expect.objectContaining({
+        surface: 'teacher-dashboard-diagnosis',
+        modeId: 'teacher-diagnosis',
+      }),
+      expect.objectContaining({
         surface: 'resource-node-launch',
         modeId: 'resource-coach',
         requiredContext: expect.arrayContaining(['resource-node', 'path-execution-context']),
       }),
     ]));
   });
+
+  it('binds teacher diagnosis tools to the authorized class and redacts raw risk evidence', async () => {
+    const db = {
+      class: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'class-1',
+          teacherId: 'teacher-1',
+          isActive: true,
+        }),
+      },
+      studentProfile: {
+        findFirst: vi.fn(async ({ where }: any) => (
+          where.userId === 'student-1' && where.classId === 'class-1'
+            ? { userId: 'student-1' }
+            : null
+        )),
+        findMany: vi.fn().mockResolvedValue([{ userId: 'student-1' }]),
+      },
+      studentRiskFlag: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'risk-1',
+          userId: 'student-1',
+          flagType: 'constraint',
+          severity: 'high',
+          description: '受约束',
+          evidenceJson: {
+            stuckNodeCount: 2,
+            evidenceCutoff: '2026-07-29T00:00:00.000Z',
+            rawAnswer: 'must-not-leak',
+          },
+          triggeredAt: new Date('2026-07-29T00:00:00.000Z'),
+        }]),
+      },
+      studentCompetencySnapshot: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'snapshot-1',
+          userId: 'student-1',
+          snapshotAt: new Date('2026-07-29T00:00:00.000Z'),
+          competencyVector: { modeling: 80, analysis: 60, design: 70 },
+        }]),
+      },
+      knowledgeProgress: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'progress-1',
+          userId: 'student-1',
+          nodeId: 'node-1',
+          status: 'IN_PROGRESS',
+          progress: 40,
+          timeSpent: 600,
+          lastVisited: new Date('2026-07-29T00:00:00.000Z'),
+        }]),
+      },
+    };
+    const permittedTools = [
+      'get_student_risk_flags',
+      'get_class_competency_summary',
+      'get_student_knowledge_progress',
+    ] as const;
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'teacher-1',
+        role: 'teacher',
+        classId: 'class-1',
+      }),
+      context: createRuntimeContext({
+        permittedTools: [...permittedTools],
+      }),
+      permittedTools: [...permittedTools],
+      evidenceCutoff: new Date('2026-07-30T00:00:00.000Z'),
+    });
+
+    const riskResult = await runtime.getStudentRiskFlags({ studentId: 'student-1' });
+    expect(riskResult).toMatchObject({
+      classId: 'class-1',
+      flags: [{
+        studentId: 'student-1',
+        evidenceSummary: { stuckNodeCount: 2 },
+      }],
+      privacyClass: 'teacher-scoped',
+    });
+    expect(JSON.stringify(riskResult)).not.toContain('must-not-leak');
+    await expect(runtime.getStudentRiskFlags({ studentId: 'student-outside' }))
+      .rejects.toMatchObject({ status: 403 });
+    await expect(runtime.getClassCompetencySummary({})).resolves.toMatchObject({
+      classId: 'class-1',
+      sourceCoverage: { classMembers: 1, includedStudents: 1 },
+    });
+    await expect(runtime.getStudentKnowledgeProgress({ studentId: 'student-1' }))
+      .resolves.toMatchObject({
+        progress: [{ knowledgeNodeId: 'node-1' }],
+      });
+    expect(db.studentRiskFlag.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ evidenceObservedAt: { lte: new Date('2026-07-30T00:00:00.000Z') } }),
+    }));
+    expect(db.studentCompetencySnapshot.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ snapshotAt: { lte: new Date('2026-07-30T00:00:00.000Z') } }),
+    }));
+    expect(db.knowledgeProgress.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ lastVisited: { lte: new Date('2026-07-30T00:00:00.000Z') } }),
+    }));
+  });
+
+  it('exposes only the three candidate read tools for a candidate runtime', () => {
+    for (const toolName of KONLING_CANDIDATE_READ_TOOLS) {
+      expect(KONLING_TOOL_REGISTRY[toolName]).toMatchObject({
+        permissionTier: 'read',
+        approvalPolicy: 'none',
+      });
+    }
+    const tools = buildScopedKonlingAiTools({
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    } as ReturnType<typeof buildKonlingToolRuntime>);
+    expect(Object.keys(tools)).toEqual(KONLING_CANDIDATE_READ_TOOLS);
+    for (const forbidden of [
+      'search_knowledge_graph',
+      'get_learner_state',
+      'search_learning_memory',
+      'recommend_next_action',
+      'run_virtual_simulation',
+      'generate_learning_path',
+      'record_intervention_result',
+    ]) {
+      expect(Object.keys(tools)).not.toContain(forbidden);
+    }
+  });
+
+  it('rejects candidate writes and learning-state reads before any producer or mock is reached', async () => {
+    const db = {
+      learningFact: { findMany: vi.fn(), createMany: vi.fn() },
+      learningEvidenceDraft: { createMany: vi.fn() },
+      evidenceOutbox: { createMany: vi.fn() },
+      konlingMemory: { findMany: vi.fn(), create: vi.fn() },
+      simulationRun: { create: vi.fn() },
+    };
+    const candidateGraph = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
+      selectedCanonicalId: null,
+      selectedCanonicalType: null,
+      governanceFilter: 'EXTENSION' as const,
+      canonicalTypeFilter: null,
+      coverageStatus: 'ready' as const,
+      objectCount: 2,
+      relationCount: 1,
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        resourceId: null,
+        pathNodeId: null,
+        candidateGraph,
+      }),
+      context: createRuntimeContext({
+        pageContext: {
+          courseId: 'knowledge',
+          courseTitle: '知识图谱',
+          pageType: 'theory',
+          stepId: '/knowledge',
+          topic: '候选权威图谱',
+          learningObjectives: [],
+          knowledgeType: 'C',
+          candidateGraph,
+        },
+        permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+      }),
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    });
+
+    await expect(runtime.getLearnerState()).rejects.toMatchObject({ status: 403 });
+    await expect(runtime.recommendNextAction()).rejects.toMatchObject({ status: 403 });
+    await expect(runtime.runVirtualSimulation({} as never)).rejects.toMatchObject({ status: 403 });
+    await expect(runtime.searchLearningMemory({ query: '根轨迹' })).rejects.toMatchObject({ status: 403 });
+    for (const delegate of Object.values(db)) {
+      for (const method of Object.values(delegate)) expect(method).not.toHaveBeenCalled();
+    }
+  });
+
+  it('audits all candidate reads in AgentToolRun without materializing learning evidence', async () => {
+    vi.spyOn(AuthoritativeKnowledgeProjectionService.prototype, 'canonicalSearch')
+      .mockResolvedValue({
+        status: 'available',
+        diagnostics: [],
+        projection: {
+          projectionVersion: 'act.canonical-search.v1',
+          source: {},
+          role: 'ADMIN',
+          query: '根轨迹',
+          results: [{
+            id: 'canonical-a',
+            canonicalType: 'Formula',
+            label: '根轨迹幅角条件',
+            description: null,
+            governanceTier: 'CORE',
+            semanticSupport: { supported: true, readOnly: true },
+          }],
+        },
+      } as never);
+    vi.spyOn(AuthoritativeKnowledgeProjectionService.prototype, 'nodeDetail')
+      .mockResolvedValue({
+        status: 'available',
+        diagnostics: [],
+        projection: {
+          projectionVersion: 'act.authoritative-node-detail.v1',
+          source: {},
+          role: 'ADMIN',
+          node: {
+            id: 'canonical-a',
+            canonicalType: 'Formula',
+            label: '根轨迹幅角条件',
+          },
+        },
+      } as never);
+    vi.spyOn(AuthoritativeKnowledgeProjectionService.prototype, 'boundedNeighbors')
+      .mockResolvedValue({
+        status: 'available',
+        diagnostics: [],
+        projection: {
+          projectionVersion: 'act.authoritative-bounded-neighbors.v1',
+          source: {},
+          role: 'ADMIN',
+          nodeId: 'canonical-a',
+          neighbors: [{
+            relationId: 'relation-a-b',
+            predicate: 'depends_on',
+            traversal: 'outgoing',
+            neighbor: {
+              id: 'canonical-b',
+              canonicalType: 'DomainConcept',
+              label: '根轨迹',
+            },
+          }],
+        },
+      } as never);
+
+    const session = {
+      id: 'candidate-agent-session',
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    };
+    const toolRuns: Array<Record<string, unknown>> = [];
+    const learningFactCreateMany = vi.fn();
+    const learningEvidenceDraftCreateMany = vi.fn();
+    const evidenceOutboxCreateMany = vi.fn();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue(session),
+      },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          const run = {
+            id: `candidate-tool-run-${toolRuns.length + 1}`,
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          toolRuns.push(run);
+          return run;
+        }),
+        findFirst: vi.fn(async ({ where }) =>
+          toolRuns.find((run) => run.id === where.id) ?? null),
+        updateMany: vi.fn(async ({ where, data }) => {
+          const run = toolRuns.find((item) => item.id === where.id);
+          if (!run) return { count: 0 };
+          Object.assign(run, data);
+          return { count: 1 };
+        }),
+      },
+      learningFact: { createMany: learningFactCreateMany },
+      learningEvidenceDraft: { createMany: learningEvidenceDraftCreateMany },
+      evidenceOutbox: { createMany: evidenceOutboxCreateMany },
+    };
+    const candidateGraph = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
+      selectedCanonicalId: 'canonical-a',
+      selectedCanonicalType: 'Formula',
+      governanceFilter: 'CORE' as const,
+      canonicalTypeFilter: 'Formula',
+      coverageStatus: 'ready' as const,
+      objectCount: 7,
+      relationCount: 9,
+    };
+    const candidateRuntimeContext = createRuntimeContext({
+      pageContext: {
+        courseId: 'knowledge',
+        courseTitle: '知识图谱',
+        pageType: 'theory',
+        stepId: '/knowledge',
+        topic: '候选权威图谱',
+        learningObjectives: [],
+        knowledgeType: 'C',
+        candidateGraph,
+      },
+      citationContext: {
+        required: true,
+        contentCitations: [],
+        evidenceCitations: [],
+        missingCitationClasses: ['content'],
+        lowConfidenceReasons: ['candidate-tool-citation-required'],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 0 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    });
+    const runtime = buildKonlingToolRuntime({
+      db,
+      agentSessionId: session.id,
+      scope: createScope({
+        authenticatedUserId: 'admin-1',
+        targetUserId: 'admin-1',
+        role: 'admin',
+        classId: null,
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        resourceId: null,
+        pathNodeId: null,
+        privacyScopes: ['admin-scoped'],
+        candidateGraph,
+      }),
+      context: candidateRuntimeContext,
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    });
+
+    await runtime.searchCandidateCanonical({ query: '根轨迹' });
+    await runtime.getCandidateCanonicalDetail({ canonicalId: 'canonical-a' });
+    await runtime.getCandidateCanonicalNeighbors({ canonicalId: 'canonical-a' });
+
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(3);
+    expect(db.agentToolRun.updateMany).toHaveBeenCalledTimes(3);
+    expect(toolRuns.map((run) => run.toolName)).toEqual(KONLING_CANDIDATE_READ_TOOLS);
+    expect(toolRuns.every((run) => run.status === 'succeeded')).toBe(true);
+    expect(learningFactCreateMany).not.toHaveBeenCalled();
+    expect(learningEvidenceDraftCreateMany).not.toHaveBeenCalled();
+    expect(evidenceOutboxCreateMany).not.toHaveBeenCalled();
+
+    const mergedRuntimeContext = mergeCandidateAssignedCitations(
+      candidateRuntimeContext,
+      runtime.getAssignedCitations(),
+    );
+    expect(mergedRuntimeContext.citationContext).toMatchObject({
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      contentCitations: [
+        expect.objectContaining({
+          displayNumber: 1,
+          citationTargetId: 'canonical-a',
+          verified: true,
+        }),
+        expect.objectContaining({
+          displayNumber: 2,
+          citationTargetId: 'canonical-b',
+          verified: true,
+        }),
+      ],
+    });
+    const successfulToolGuard = buildKonlingCitationGuard(
+      mergedRuntimeContext,
+      '引用 content / 根轨迹幅角条件 / high / candidate-canonical:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2 / /knowledge?canonicalId=canonical-a。',
+    );
+    expect(successfulToolGuard).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+    });
+  });
+
+  it('exposes textbook retrieval only for registered pages and content-capable modes without autonomous prefetch', async () => {
+    expect(KONLING_TOOL_REGISTRY.search_textbook).toMatchObject({
+      permissionTier: 'read',
+      approvalPolicy: 'none',
+    });
+    expect(resolveKonlingTeachingAssistantMode('generic-chat').permittedTools)
+      .toContain('search_textbook');
+    expect(resolveKonlingTeachingAssistantMode('class-summarizer').permittedTools)
+      .not.toContain('search_textbook');
+
+    const registered = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
+      pageId: 'step-03',
+      currentUserQuery: '我的答案是 K=37，请解释约束参数优化。张三的掌握度、risk 和 student-1 学习记录如何？',
+      trustedContentContext: true,
+    });
+    expect(registered.permittedTools).toContain('search_textbook');
+    expect(Object.isFrozen(registered.textbookRetrievalContext)).toBe(true);
+    expect(registered.textbookRetrievalContext?.externalQuery).toContain('约束下的优化设计实践');
+    for (const forbidden of ['K=37', '张三', 'student-1', '掌握度', 'risk', '学习记录']) {
+      expect(registered.textbookRetrievalContext?.externalQuery).not.toContain(forbidden);
+    }
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).not.toHaveBeenCalled();
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
+
+    const unregistered = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'unknown-course',
+      pageId: 'unknown-page',
+      currentUserQuery: '解释单位阶跃响应。',
+      trustedContentContext: true,
+    });
+    expect(unregistered.permittedTools).not.toContain('search_textbook');
+  });
+
+  it('returns the textbook allowlist DTO only after an authorized model tool call and surfaces failures', async () => {
+    const expected = {
+      mode: 'lexical' as const,
+      candidates: [{
+        displayNumber: 1,
+        title: '单位阶跃响应',
+        text: '一阶系统单位阶跃响应为指数形式。',
+        identity: {
+          kind: 'unit' as const,
+          unitId: 'textbook-unit:hu8/direct',
+          fragmentId: null,
+          bookId: 'hu-shousong-auto-control-8th',
+          edition: '第八版',
+          sourceRevision: 'revision-hu8',
+          structuralPath: ['chapter-3', 'section-3.2'],
+        },
+        href: '/textbooks/hu-shousong-auto-control-8th/%E7%AC%AC%E5%85%AB%E7%89%88/chapter-3/section-3.2',
+        priority: 0,
+        limitation: null,
+      }],
+      limitations: [],
+      diagnostics: [],
+    };
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValueOnce({
+      foreground: expected,
+      optimizationPending: false,
+      continuation: null,
+    });
+    const session = {
+      id: 'agent-session-textbook',
+      permittedTools: ['search_textbook'],
+    };
+    let createdRun: Record<string, unknown> | null = null;
+    const db = {
+      agentSession: { findFirst: vi.fn(async () => session) },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          createdRun = {
+            id: 'textbook-run-1',
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          return createdRun;
+        }),
+        findFirst: vi.fn(async () => createdRun),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope(),
+      agentSessionId: session.id,
+      context: createRuntimeContext({
+        permittedTools: ['search_textbook'],
+        textbookRetrievalContext: Object.freeze({
+          externalQuery: '自动控制原理 单位阶跃响应',
+        }),
+        knowledgeCapabilityContext: {
+          source: 'server-owned',
+          answerIntent: 'fact-explanation',
+          knowledgeNodeRefs: ['knowledge-node:step-response'],
+          capabilityTargetRefs: [],
+          resourceRefs: [],
+          pathNodeRefs: [],
+          citationRefs: [],
+          scope: createScope(),
+          missingContext: [],
+        },
+      }),
+      permittedTools: session.permittedTools,
+    });
+    const tools = buildScopedKonlingAiTools(runtime);
+    expect(Object.keys(tools)).toEqual(['search_textbook']);
+    const internalResult = await runtime.searchTextbook({ query: '单位阶跃响应' }) as
+      typeof expected & { optimizationPending: boolean };
+    expect(internalResult).toEqual({
+      ...expected,
+      optimizationPending: false,
+    });
+    const modelResult = projectKonlingTextbookModelToolResult(internalResult);
+    expect(modelResult).toEqual({
+      mode: 'lexical',
+      optimizationPending: false,
+      candidates: [{
+        displayNumber: 1,
+        title: '单位阶跃响应',
+        text: '一阶系统单位阶跃响应为指数形式。',
+        limitation: null,
+      }],
+    });
+    expect(Object.keys(modelResult).sort()).toEqual([
+      'candidates',
+      'mode',
+      'optimizationPending',
+    ]);
+    expect(Object.keys(modelResult.candidates[0]).sort()).toEqual([
+      'displayNumber',
+      'limitation',
+      'text',
+      'title',
+    ]);
+    const serializedModelResult = JSON.stringify(modelResult);
+    for (const forbidden of [
+      'bookId',
+      'edition',
+      'sourceRevision',
+      'unitId',
+      'fragmentId',
+      'structuralPath',
+      'identity',
+      'href',
+      'canonicalKey',
+      'window',
+      'rank',
+      'score',
+      'knowledge-node',
+      'chapter-3',
+    ]) {
+      expect(serializedModelResult).not.toContain(forbidden);
+    }
+    const sanitizedModelResult = projectKonlingTextbookModelToolResult({
+      ...internalResult,
+      candidates: internalResult.candidates.map((candidate) => ({
+        ...candidate,
+        title: `${candidate.title} bookId=hu-shousong-auto-control-8th`,
+        text: [
+          candidate.text,
+          'identity={"kind":"textbook"} edition=第八版',
+          'structuralPath=["chapter-3","section-3.2"]',
+          'unitId=textbook-unit:hu8/direct /Users/a/private.md',
+        ].join(' '),
+      })),
+    });
+    const sanitizedPayload = JSON.stringify(sanitizedModelResult);
+    expect(sanitizedPayload).toContain('一阶系统单位阶跃响应为指数形式');
+    for (const forbidden of [
+      'bookId',
+      'hu-shousong-auto-control-8th',
+      'identity',
+      'edition',
+      'structuralPath',
+      'chapter-3',
+      'section-3.2',
+      'unitId',
+      'textbook-unit:',
+      '/Users/',
+    ]) {
+      expect(sanitizedPayload).not.toContain(forbidden);
+    }
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).toHaveBeenCalledWith({
+      query: '单位阶跃响应',
+      externalQuery: '自动控制原理 单位阶跃响应',
+      graphNodeRefs: ['knowledge-node:step-response'],
+      abortSignal: undefined,
+    });
+    await runtime.searchTextbook({ query: '我的答案是 K=37，请解释单位阶跃响应' });
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).toHaveBeenLastCalledWith({
+      query: '我的答案是 K=37，请解释单位阶跃响应',
+      externalQuery: '自动控制原理 单位阶跃响应',
+      graphNodeRefs: ['knowledge-node:step-response'],
+      abortSignal: undefined,
+    });
+    const textbookRunInputSummary = (
+      createdRun as Record<string, unknown> | null
+    )?.inputSummary;
+    expect(textbookRunInputSummary).toMatchObject({
+      queryHash: expect.stringMatching(/^[0-9a-f]{64}$/u),
+      queryLength: expect.any(Number),
+      queryCategory: expect.any(String),
+    });
+    expect(JSON.stringify(textbookRunInputSummary)).not.toContain('K=37');
+
+    mocks.retrieveTextbookSourcePackV2Progressive.mockRejectedValueOnce(new Error('private index path'));
+    await expect(runtime.searchTextbook({ query: '单位阶跃响应' }))
+      .rejects.toThrow('教材检索暂不可用');
+    expect(JSON.stringify(db.agentToolRun.updateMany.mock.calls)).not.toContain('private index path');
+
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: expected,
+      optimizationPending: true,
+      continuation: Promise.resolve({
+        status: 'complete',
+        result: expected,
+      }),
+    });
+    await Promise.all([
+      runtime.searchTextbook(
+        { query: '单位阶跃响应 工具一' },
+        { toolCallId: 'tool-call-1' },
+      ),
+      runtime.searchTextbook(
+        { query: '单位阶跃响应 工具二' },
+        { toolCallId: 'tool-call-2' },
+      ),
+    ]);
+    expect(runtime.getTextbookOptimizations().map((item) => item.toolCallId))
+      .toEqual(['tool-call-1', 'tool-call-2']);
+    const isolatedRuntime = buildKonlingToolRuntime({
+      db,
+      scope: createScope(),
+      agentSessionId: session.id,
+      context: createRuntimeContext({ permittedTools: ['search_textbook'] }),
+      permittedTools: session.permittedTools,
+    });
+    expect(isolatedRuntime.getTextbookOptimizations()).toEqual([]);
+  });
+
+  it('compares actual production TextbookV2 foreground with Canonical shadow sidecar, not the shadow pool as production', async () => {
+    const {
+      buildOfflineShadowInput,
+      offlineStructuralUnits,
+    } = await import('@/lib/canonical-rag');
+    const shadowInput = buildOfflineShadowInput({
+      query: '请解释根轨迹的基本概念',
+    });
+    const shadowPoolUnit = offlineStructuralUnits[0]!;
+    // Independent shadow pool item (distinct from production foreground identity).
+    const shadowPoolItem = {
+      id: shadowPoolUnit.structuralUnitId,
+      title: shadowPoolUnit.displayTitle,
+      sourceKind: 'textbook' as const,
+      modality: 'text' as const,
+      excerpt: '根轨迹法是分析和设计线性定常控制系统的图解方法，根轨迹定义见教材正文。',
+      inclusionRationale: 'Canonical shadow pool structural unit',
+      retrievalChunkId: shadowPoolUnit.retrievalChunkId,
+      citationTargetId: shadowPoolUnit.citationTargetId,
+      scores: {
+        relevance: 0.95,
+        graphAlignment: 0.9,
+        authority: 0.95,
+        eligibility: 0.9,
+        freshness: 0.9,
+        final: 0.95,
+      },
+      access: { visibility: 'public' as const, aiUseAllowed: true },
+      citation: {
+        citationTargetId: shadowPoolUnit.citationTargetId,
+        sourceId: shadowPoolUnit.retrievalChunkId,
+        displayTitle: shadowPoolUnit.displayTitle,
+        // Must use a governed relative resolver so Source Pack adjudication
+        // can validate the pack (offline sample href is under /course-runtime).
+        href: shadowPoolUnit.href ?? undefined,
+        resolver: 'course-runtime',
+        verified: true,
+      },
+      metadata: {
+        reviewStatus: 'human-confirmed',
+        // bookId:edition must form seed.sourceEditionId for full-tuple mapping.
+        bookId: 'edition',
+        edition: 'hu-shousong-8th',
+        contentHash: shadowPoolUnit.structuralUnitHash,
+        sourceVersion: shadowPoolUnit.sourceVersion,
+        structuralUnitVersion: shadowPoolUnit.structuralUnitVersion,
+        resourceId: shadowPoolUnit.resourceId,
+        segmentRef: shadowPoolUnit.segmentId,
+        citationLocator: shadowPoolUnit.locator ?? '',
+      },
+    };
+
+    const productionForeground = {
+      mode: 'lexical' as const,
+      candidates: [{
+        displayNumber: 1,
+        title: '生产前景候选（非影子池）',
+        text: '这是生产 TextbookV2 foreground 的正文，身份必须进入诊断。',
+        identity: {
+          kind: 'unit' as const,
+          unitId: 'textbook-unit:production-only-foreground',
+          fragmentId: null,
+          bookId: 'hu-shousong-auto-control-8th',
+          edition: '第八版',
+          sourceRevision: 'revision-prod',
+          structuralPath: ['chapter-production'],
+        },
+        href: '/textbooks/hu-shousong-auto-control-8th/第八版/chapter-production',
+        priority: 0,
+        limitation: null,
+      }],
+      limitations: [] as string[],
+      diagnostics: [] as Array<{ stage: 'embedding' | 'rerank'; code: string }>,
+    };
+
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: productionForeground,
+      optimizationPending: false,
+      continuation: null,
+    });
+
+    const session = {
+      id: 'agent-session-shadow-diagnostic',
+      permittedTools: ['search_textbook'],
+    };
+    let createdRun: Record<string, unknown> | null = null;
+    const db = {
+      agentSession: { findFirst: vi.fn(async () => session) },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          createdRun = {
+            id: 'shadow-run-1',
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          return createdRun;
+        }),
+        findFirst: vi.fn(async () => createdRun),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+
+    const baseRuntimeInput = {
+      db,
+      scope: createScope(),
+      agentSessionId: session.id,
+      context: createRuntimeContext({
+        permittedTools: ['search_textbook'],
+        textbookRetrievalContext: Object.freeze({
+          externalQuery: '自动控制原理 生产前景',
+        }),
+        knowledgeCapabilityContext: {
+          source: 'server-owned' as const,
+          answerIntent: 'fact-explanation' as const,
+          knowledgeNodeRefs: [] as string[],
+          capabilityTargetRefs: [] as string[],
+          resourceRefs: [] as string[],
+          pathNodeRefs: [] as string[],
+          citationRefs: [] as string[],
+          scope: createScope(),
+          missingContext: [] as string[],
+        },
+      }),
+      permittedTools: session.permittedTools,
+    };
+
+    const query = '请解释根轨迹的基本概念';
+
+    // Baseline: no shadow context.
+    const baselineRuntime = buildKonlingToolRuntime(baseRuntimeInput);
+    const baseline = await baselineRuntime.searchTextbook({ query }) as typeof productionForeground & {
+      optimizationPending: boolean;
+      canonicalRagShadowDiagnostic?: unknown;
+    };
+    expect(baseline.candidates.map((c) => c.identity.unitId)).toEqual([
+      'textbook-unit:production-only-foreground',
+    ]);
+    expect(baseline.canonicalRagShadowDiagnostic).toBeUndefined();
+
+    // With valid shadow context: production foreground must stay equal; diagnostic
+    // production IDs come from foreground, not shadowCandidatePool.
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: productionForeground,
+      optimizationPending: false,
+      continuation: null,
+    });
+    const shadowRuntime = buildKonlingToolRuntime({
+      ...baseRuntimeInput,
+      canonicalRagShadow: {
+        shadow: shadowInput,
+        shadowCandidatePool: [shadowPoolItem],
+      },
+    });
+    const withShadow = await shadowRuntime.searchTextbook({ query }) as typeof productionForeground & {
+      optimizationPending: boolean;
+      canonicalRagShadowDiagnostic?: {
+        productionAuthority: string;
+        productionUsesCanonical: boolean;
+        productionStructuralUnitIds: string[];
+        shadowStructuralUnitIds: string[];
+        shadowCitationIds: string[];
+        graphStageEmittedNumberedCitations: boolean;
+        shadowCitationsFromAdjudication: boolean;
+      };
+    };
+
+    const { canonicalRagShadowDiagnostic, ...productionOnly } = withShadow;
+    const { canonicalRagShadowDiagnostic: _ignored, ...baselineOnly } = baseline as typeof withShadow;
+    expect(productionOnly).toEqual(baselineOnly);
+
+    expect(canonicalRagShadowDiagnostic).toBeDefined();
+    expect(canonicalRagShadowDiagnostic?.productionAuthority).toBe('LEGACY');
+    expect(canonicalRagShadowDiagnostic?.productionUsesCanonical).toBe(false);
+    expect(canonicalRagShadowDiagnostic?.graphStageEmittedNumberedCitations).toBe(false);
+    expect(canonicalRagShadowDiagnostic?.shadowCitationsFromAdjudication).toBe(true);
+    expect(canonicalRagShadowDiagnostic?.productionStructuralUnitIds).toEqual([
+      'textbook-unit:production-only-foreground',
+    ]);
+    // Production IDs must not be taken from the shadow pool.
+    expect(canonicalRagShadowDiagnostic?.productionStructuralUnitIds).not.toContain(
+      shadowPoolItem.id,
+    );
+    // Shadow IDs come from adjudicated shadow path.
+    expect(canonicalRagShadowDiagnostic?.shadowStructuralUnitIds).toContain(shadowPoolItem.id);
+    expect(canonicalRagShadowDiagnostic?.shadowCitationIds).toContain(shadowPoolItem.citationTargetId);
+
+    // Broken shadow context must not mutate or fail production output.
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: productionForeground,
+      optimizationPending: false,
+      continuation: null,
+    });
+    const brokenRuntime = buildKonlingToolRuntime({
+      ...baseRuntimeInput,
+      canonicalRagShadow: {
+        shadow: {
+          ...shadowInput,
+          objects: shadowInput.objects.map((object, index) => (
+            index === 0
+              ? {
+                  ...object,
+                  projectionId: `${object.projectionId}-broken`,
+                  contextDigest: '0'.repeat(64),
+                }
+              : object
+          )),
+        },
+        shadowCandidatePool: [shadowPoolItem],
+      },
+    });
+    const broken = await brokenRuntime.searchTextbook({ query }) as typeof productionForeground & {
+      optimizationPending: boolean;
+      canonicalRagShadowDiagnostic?: unknown;
+    };
+    const { canonicalRagShadowDiagnostic: brokenDiag, ...brokenProduction } = broken;
+    expect(brokenProduction).toEqual(baselineOnly);
+    expect(brokenDiag).toBeUndefined();
+  }, 60_000);
 
   it('exposes server-owned smart-preparation state as a teacher-only draft contract', () => {
     const smartPreparation = {
@@ -889,6 +2270,10 @@ describe('konling agent runtime', () => {
       taskId: 'task-1', taskRevision: '3', currentTask: {
         topic: '旧主题', courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45,
         sourceVersionIds: ['version-1', 'version-2'],
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1', level: 'SECTION', unitId: 'section-1', structuralPath: ['chapter-1', 'section-1'],
+        }],
         knowledgePoints: [
           { id: 'kp-1', content: '幅值条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-1', sourceVersionId: 'version-1', anchor: '幅值条件', contentHash: '1111111111111111' }], origin: 'SUGGESTED' },
           { id: 'kp-2', title: '旧相角条件', content: '旧相角条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-2', sourceVersionId: 'version-1', anchor: '相角条件', contentHash: '2222222222222222' }], origin: 'SUGGESTED' },
@@ -928,6 +2313,10 @@ describe('konling agent runtime', () => {
       suggestionId: 'suggestion-1', turnId: 'turn-server-1', status: 'awaiting_teacher_confirmation',
       proposedTask: {
         courseBasisId: 'basis-1', sourceVersionIds: ['version-1', 'version-2'],
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1', level: 'SECTION', unitId: 'section-1', structuralPath: ['chapter-1', 'section-1'],
+        }],
         knowledgePoints: [
           { id: 'kp-1', content: '幅值条件', sourceBindings: [{ citationId: 'citation-1' }] },
           { id: 'kp-2', title: '相角条件', content: '相角条件', sourceBindings: [{ citationId: 'citation-2' }] },
@@ -937,11 +2326,20 @@ describe('konling agent runtime', () => {
     });
     expect(db.agentToolRun.create).toHaveBeenCalledWith({ data: expect.objectContaining({
       toolName: 'propose_smart_lesson_task_change',
-      inputSummary: expect.objectContaining({ taskId: 'task-1', expectedRevision: 3, turnId: 'turn-server-1' }),
+      inputSummary: expect.objectContaining({
+        taskId: 'task-1',
+        expectedRevision: 3,
+        turnId: 'turn-server-1',
+        publicActionId: expect.any(String),
+      }),
     }) });
     expect(db.agentToolRun.create.mock.calls[0]?.[0].data.inputSummary).toMatchObject({
       proposedTask: {
         courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45, sourceVersionIds: ['version-1', 'version-2'],
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1', level: 'SECTION', unitId: 'section-1', structuralPath: ['chapter-1', 'section-1'],
+        }],
         goals: [{ id: 'goal-1', content: '旧目标' }],
         knowledgePoints: [
           { id: 'kp-1', content: '幅值条件', sourceBindings: [{ citationId: 'citation-1' }] },
@@ -956,6 +2354,10 @@ describe('konling agent runtime', () => {
     })).resolves.toMatchObject({
       proposedTask: {
         durationMinutes: 90, courseBasisId: 'basis-1', sourceVersionIds: ['version-1', 'version-2'],
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1', level: 'SECTION', unitId: 'section-1', structuralPath: ['chapter-1', 'section-1'],
+        }],
         knowledgePoints: [{ id: 'kp-1' }, { id: 'kp-2' }, { id: 'kp-3' }],
         goals: [{ id: 'goal-1' }],
       },
@@ -1061,8 +2463,8 @@ describe('konling agent runtime', () => {
       taskId: null, taskRevision: null, bootstrap: true,
       currentTask: {
         availableCourseBases: [
-          { id: 'basis-1', documents: [{ versions: [{ id: 'version-1' }] }] },
-          { id: 'basis-2', documents: [{ versions: [{ id: 'version-2' }] }] },
+          { id: 'basis-1', title: '自动控制原理', documents: [{ title: '根轨迹讲义', versions: [{ id: 'version-1', versionNumber: 3 }] }] },
+          { id: 'basis-2', title: '现代控制理论', documents: [{ title: '状态空间讲义', versions: [{ id: 'version-2', versionNumber: 1 }] }] },
         ],
       },
       selectedCourseBasisVersions: [],
@@ -1085,38 +2487,95 @@ describe('konling agent runtime', () => {
       operation: 'bootstrap', clarification: { question: '课时是 45 还是 90 分钟？', alternatives: ['45', '90'] },
     })).resolves.toMatchObject({ turnId: 'turn-1', status: 'clarification_required' });
     session.stateJson = { currentTurnId: 'turn-2', ownedTurnIds: ['turn-1', 'turn-2'] };
-    await expect(runtime.proposeSmartLessonTaskChange({
-      operation: 'bootstrap',
-      proposedTask: {
-        topic: '根轨迹', durationMinutes: 45,
-        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-      },
-    })).rejects.toThrow('智能备课建议不符合确认要求');
+    const validationLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      await expect(runtime.proposeSmartLessonTaskChange({
+        operation: 'bootstrap',
+        proposedTask: {
+          topic: '根轨迹', durationMinutes: 45,
+          knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        },
+      })).rejects.toThrow('智能备课建议不符合确认要求');
+      const diagnosticCall = validationLog.mock.calls.find(
+        ([label]) => label === '[konling-smart-preparation-validation]',
+      );
+      expect(diagnosticCall).toBeDefined();
+      expect(typeof diagnosticCall?.[1]).toBe('string');
+      const encodedDiagnostic = diagnosticCall?.[1] as string;
+      const diagnosticPayload = JSON.parse(encodedDiagnostic) as {
+        issues?: Array<Record<string, unknown>>;
+      };
+      expect(Object.keys(diagnosticPayload)).toEqual(['issues']);
+      expect(diagnosticPayload.issues?.length).toBeGreaterThan(0);
+      for (const issue of diagnosticPayload.issues ?? []) {
+        expect(Object.keys(issue)).toEqual(['path', 'code']);
+      }
+      expect(encodedDiagnostic).toContain('"path"');
+      expect(encodedDiagnostic).toContain('"code"');
+      expect(encodedDiagnostic).not.toContain('根轨迹');
+      expect(encodedDiagnostic).not.toContain('相角条件');
+      expect(encodedDiagnostic).not.toContain('basis-1');
+      expect(encodedDiagnostic).not.toContain('version-1');
+      expect(encodedDiagnostic).not.toContain('teacher-1');
+      expect(encodedDiagnostic).not.toContain('turn-2');
+    } finally {
+      validationLog.mockRestore();
+    }
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(1);
     await expect(runtime.proposeSmartLessonTaskChange({
       proposedTask: {
         courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
         sourceVersionIds: ['version-1'],
-        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [{
-          citationId: 'unselected-version-citation', sourceVersionId: 'version-2', anchor: 'chapter-2', contentHash: '2'.repeat(16),
-        }] }],
-        goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [{
+        knowledgePoints: [
+          { content: '幅值条件', sourceState: 'VERIFIED', sourceBindings: [] },
+          { content: '分离点', sourceState: 'NO_RELIABLE_SOURCE', sourceBindings: [] },
+          { content: '相角条件', sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [{
+            citationId: 'unselected-version-citation', sourceVersionId: 'version-2', anchor: 'chapter-2', contentHash: '2'.repeat(16),
+          }] },
+        ],
+        goals: [{ content: '判断根轨迹', sourceState: 'TEACHER_CREATED_SOURCE_PENDING', sourceBindings: [{
           citationId: 'forged-citation', sourceVersionId: 'version-1', anchor: 'forged-anchor', contentHash: 'f'.repeat(16),
         }] }],
-      },
+      } as never,
     })).resolves.toMatchObject({
       turnId: 'turn-2',
       status: 'awaiting_teacher_confirmation',
       proposedTask: {
-        knowledgePoints: [{ origin: 'SUGGESTED', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-        goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        knowledgePoints: [
+          { origin: 'SUGGESTED', sourceState: 'verified', sourceBindings: [] },
+          { origin: 'SUGGESTED', sourceState: 'no_reliable_source', sourceBindings: [] },
+          { origin: 'SUGGESTED', sourceState: 'ai_generated_source_pending', sourceBindings: [] },
+        ],
+        goals: [{ sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
       },
     });
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
     expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.proposedTask).toMatchObject({
-      knowledgePoints: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-      goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      knowledgePoints: [
+        { sourceState: 'verified', sourceBindings: [] },
+        { sourceState: 'no_reliable_source', sourceBindings: [] },
+        { sourceState: 'ai_generated_source_pending', sourceBindings: [] },
+      ],
+      goals: [{ sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
     });
+    expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.publicBasisSummary).toEqual({
+      title: '自动控制原理',
+      sources: ['根轨迹讲义 v3'],
+    });
+
+    const unknownSourceStateLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      await expect(runtime.proposeSmartLessonTaskChange({
+        proposedTask: {
+          courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
+          sourceVersionIds: ['version-1'],
+          knowledgePoints: [{ content: '相角条件', sourceState: 'UNKNOWN_SOURCE_STATE', sourceBindings: [] }],
+          goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        },
+      } as never)).rejects.toThrow('智能备课建议不符合确认要求');
+    } finally {
+      unknownSourceStateLog.mockRestore();
+    }
 
     const invalidProposal = (courseBasisId: string, sourceVersionIds: string[]) => runtime.proposeSmartLessonTaskChange({
       proposedTask: {
@@ -1782,7 +3241,7 @@ describe('konling agent runtime', () => {
     expect(runtime.userProfile.cognitiveLevel).toBe(5);
   });
 
-  it('records disabled learner-state service as operational missing context while preserving content citations', async () => {
+  it('records disabled learner-state service without eagerly retrieving textbook content', async () => {
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'false';
 
     const runtime = await buildKonlingRuntimeContext({
@@ -1822,12 +3281,14 @@ describe('konling agent runtime', () => {
       'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED',
       'citation-learner-state-missing',
     ]));
-    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(runtime.citationContext?.missingCitationClasses).toContain('content');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     const guard = buildKonlingCitationGuard(runtime, '根据 citation(content:step-03, content, 根轨迹校正, high, page-context) 解释根轨迹校正。');
-    expect(guard.missingCitationClasses).not.toContain('content');
+    expect(guard.missingCitationClasses).toContain('content');
   });
 
-  it('keeps citation context available when the feature-cache delegate is absent', async () => {
+  it('keeps citation diagnostics available when the feature-cache delegate is absent', async () => {
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
         findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
@@ -1859,8 +3320,9 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
-    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(runtime.citationContext?.missingCitationClasses).toContain('content');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
   });
 
   it('adds learner-state citation metadata when learner-state is available', async () => {
@@ -1910,7 +3372,7 @@ describe('konling agent runtime', () => {
     ]));
   });
 
-  it('keeps content citations available when learner-state feature-cache reads fail', async () => {
+  it('keeps textbook retrieval independent from learner-state feature-cache failures', async () => {
     mocks.readAdaptiveLearnerState.mockRejectedValueOnce(new Error('feature cache read failed'));
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
@@ -1948,9 +3410,10 @@ describe('konling agent runtime', () => {
 
     expect(runtime.learnerState).toBeNull();
     expect(runtime.missingContext).toContain('learner-state-read-failed');
-    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     const guard = buildKonlingCitationGuard(runtime, '根据 citation(content:step-03, content, 根轨迹校正, high, page-context) 解释根轨迹校正。');
-    expect(guard.missingCitationClasses).not.toContain('content');
+    expect(guard.missingCitationClasses).toContain('content');
     expect(guard.personalizationAvailability).toMatchObject({
       status: 'limited',
       missingCitationClasses: expect.arrayContaining(['learner-state', 'path-execution', 'evidence']),
@@ -3178,7 +4641,7 @@ describe('konling agent runtime', () => {
       adaptiveRuntime: runtime,
     });
     expect(prompt).toContain('引用协议');
-    expect(prompt).toContain('sourceType、displayTitle、href、confidence、evidenceBasis');
+    expect(prompt).toContain('只能使用服务器已分配的 `[n]` 引用编号');
 
     const toolRuntime = buildKonlingToolRuntime({
       db,
@@ -3238,6 +4701,7 @@ describe('konling agent runtime', () => {
     expect(prompt).toContain('不得仅在文本中声称“已生成”或“已保存”建议');
     expect(prompt).toContain('courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals');
     expect(prompt).toContain('不得使用 title、courseId、curriculumBasisId、duration');
+    expect(prompt).toContain('不得同时提交 proposedTask、knowledgePointPatches 或 goalPatches');
     expect(prompt).toContain('courseBasisId=basis-root-locus；sourceVersionIds=[version-root-locus]');
     expect(prompt).toContain('basis-root-locus');
     expect(prompt).toContain('version-root-locus');
@@ -3295,7 +4759,9 @@ describe('konling agent runtime', () => {
         },
       },
     });
-    expect(revisionPrompt).toContain('仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段');
+    expect(revisionPrompt).toContain('proposedTask 仅可提交 topic、audience、prerequisites、durationMinutes、outlineConfirmationRequired、confirmScope 或 confirmGoals');
+    expect(revisionPrompt).toContain('教学活动或流程约束必须转换为对现有目标的 goalPatches.update');
+    expect(revisionPrompt).toContain('教师给出的量化下限必须逐字保留，不得弱化或省略');
     expect(revisionPrompt).toContain('不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches');
     expect(revisionPrompt).toContain('content、sourceState、sourceBindings，知识点另须含 origin');
     expect(revisionPrompt).toContain('"knowledgePoints":[{"id":"kp-1","title":"相角条件"}]');
@@ -4013,6 +5479,76 @@ describe('konling agent runtime', () => {
     });
   });
 
+  it('grounds diagnosis prompts in canonical remediation resources and per-attempt misconceptions', () => {
+    const adaptiveAttempt = {
+      answerId: 'answer-current',
+      questionId: 'question-current',
+      selectedOptionKey: 'B',
+      correctOptionKey: 'A',
+      isCorrect: false,
+      answeredAt: '2026-07-28T08:03:00.000Z',
+      misconceptionTags: ['confuses-peak-and-settling-time'],
+      sessionKey: 'practice-session-1',
+      question: {
+        version: 'adaptive-question-snapshot.v1' as const,
+        prompt: 'Which response metric is authoritative?',
+        options: [
+          { key: 'A', label: 'Settling time', text: 'Settling time', explanation: 'Uses the final tolerance band.' },
+          { key: 'B', label: 'Peak time', text: 'Peak time', explanation: 'Measures a different event.' },
+        ],
+        correctOptionKey: 'A',
+        explanation: 'Use the final tolerance band.',
+        knowledgeTags: ['time-domain-response'],
+        misconceptionTags: ['confuses-peak-and-settling-time'],
+        remediationResources: [{
+          id: 'registry:semantic-remediation-id',
+          title: 'Canonical response-metrics guide',
+          href: '/interactive-learning/resources/response-metrics-guide',
+          governanceState: 'reviewed' as const,
+        }],
+      },
+      recentAttempts: [
+        {
+          answerId: 'answer-current',
+          questionId: 'question-current',
+          selectedOptionKey: 'B',
+          correctOptionKey: 'A',
+          isCorrect: false,
+          answeredAt: '2026-07-28T08:03:00.000Z',
+          misconceptionTags: ['confuses-peak-and-settling-time'],
+        },
+        {
+          answerId: 'answer-previous',
+          questionId: 'question-previous',
+          selectedOptionKey: 'C',
+          correctOptionKey: 'B',
+          isCorrect: false,
+          answeredAt: '2026-07-28T08:02:00.000Z',
+          misconceptionTags: ['ignores-tolerance-band'],
+        },
+      ],
+    };
+    const runtime = createRuntimeContext();
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'diagnosis-explainer',
+      runtimeContext: runtime,
+      scope: createScope(),
+      serverModeContext: { adaptiveAttempt },
+    });
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: { ...runtime, teachingAssistantMode: modeContract },
+    });
+
+    expect(prompt).toContain('Canonical response-metrics guide');
+    expect(prompt).toContain('/interactive-learning/resources/response-metrics-guide');
+    expect(prompt).toContain('confuses-peak-and-settling-time');
+    expect(prompt).toContain('ignores-tolerance-band');
+    expect(prompt).not.toContain('/interactive-learning/resources/semantic-remediation-id');
+    expect(prompt).not.toContain('registry:semantic-remediation-id');
+  });
+
   it('records missing learner evidence as limited personalization for path advice with content citations', () => {
     const citationContext: KonlingCitationContext = {
       required: true,
@@ -4319,7 +5855,88 @@ describe('konling agent runtime', () => {
     });
   });
 
-  it('builds Konling content citations through verified konling-answer Source Packs', async () => {
+  it('merges assigned candidate tool citations into the standard guard and display metadata', () => {
+    const runtime = createRuntimeContext({
+      pageContext: {
+        courseId: 'knowledge',
+        courseTitle: '知识图谱',
+        pageType: 'theory',
+        stepId: '/knowledge',
+        topic: '候选权威图谱',
+        learningObjectives: [],
+        knowledgeType: 'C',
+        candidateGraph: {
+          authorityState: 'candidate',
+          releaseSetId: 'actkg-authoritative-candidate-v2',
+          releaseId: 'control-theory-engineering-v0.2',
+          selectedCanonicalId: 'canonical-a',
+          selectedCanonicalType: 'Formula',
+          governanceFilter: 'CORE',
+          canonicalTypeFilter: 'Formula',
+          coverageStatus: 'ready',
+          objectCount: 7,
+          relationCount: 9,
+        },
+      },
+      citationContext: {
+        required: true,
+        contentCitations: [],
+        evidenceCitations: [],
+        missingCitationClasses: ['content'],
+        lowConfidenceReasons: ['missing-content'],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 0 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+    const href = '/knowledge?canonicalId=canonical-a';
+    const merged = mergeCandidateAssignedCitations(runtime, [{
+      id: 'candidate:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2:canonical-a',
+      sourceType: 'content',
+      displayTitle: '根轨迹幅角条件',
+      displayNumber: 1,
+      canonicalKey: 'content:canonical-a:actkg-authoritative-candidate-v2%2Fcontrol-theory-engineering-v0.2',
+      href,
+      confidence: 'high',
+      evidenceBasis: 'candidate-canonical:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2',
+      limitation: 'candidate-read-only',
+      identity: {
+        kind: 'content',
+        sourceType: 'content',
+        contentId: 'canonical-a',
+        sourceRevision: 'actkg-authoritative-candidate-v2/control-theory-engineering-v0.2',
+      },
+    }]);
+
+    expect(merged.citationContext).toMatchObject({
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      contentCitations: [{
+        displayNumber: 1,
+        citationTargetId: 'canonical-a',
+        resolver: 'candidate-authoritative-repository',
+        evidenceBasis: 'candidate-canonical:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2',
+      }],
+    });
+    const guard = buildKonlingCitationGuard(
+      merged,
+      `引用 content / 根轨迹幅角条件 / high / candidate-canonical:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2 / ${href}。`,
+    );
+    expect(guard).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+    });
+    expect(serializeKonlingCitationMetadata(merged.citationContext!.contentCitations[0]))
+      .toMatchObject({
+        displayNumber: 1,
+        citationTargetId: 'canonical-a',
+        href,
+      });
+  });
+
+  it('does not build textbook Source Packs before the model calls the tool', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -4334,43 +5951,20 @@ describe('konling agent runtime', () => {
       citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
 
-    expect(sourcePackCitations.length).toBeGreaterThan(0);
-    expect(sourcePackCitations[0]).toMatchObject({
-      sourceType: 'content',
-      href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-      canonicalHref: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-      displayHref: expect.stringContaining('/textbook-citations/resources/textbooks/dorf-modern-control-systems/'),
-      confidence: 'high',
-      owner: 'answer',
-      citationChip: expect.objectContaining({
-        displayHref: expect.stringContaining('/textbook-citations/resources/textbooks/dorf-modern-control-systems/'),
-        citationAddress: expect.objectContaining({
-          href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-        }),
-        sourceType: 'course-content',
-        authorityLevel: 'canonical',
-        privacyVisibility: 'public',
-      }),
-    });
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        citationTargetIds: expect.arrayContaining(['textbook-citation:ch08-example-0801']),
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
-        answerRelevanceBases: expect.arrayContaining(['query-lexical']),
-      }),
-    ]);
-    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(sourcePackCitations).toEqual([]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
   });
 
   it('serializes Konling citation metadata without dropping rendered and audit fields', () => {
+    const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-2/section-2.1#figure-02-37';
     const metadata = serializeKonlingCitationMetadata({
       id: 'content:textbook:fig-02-37',
       sourceType: 'content',
       displayTitle: 'Fluid flow reservoir figure',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      href: textbookHref,
+      canonicalHref: textbookHref,
+      displayHref: textbookHref,
       confidence: 'high',
       evidenceBasis: 'source-pack:konling-answer:pack-1',
       owner: 'answer',
@@ -4383,7 +5977,7 @@ describe('konling agent runtime', () => {
       citationChip: {
         chunkId: 'content:textbook:fig-02-37',
         displayTitle: 'Fluid flow reservoir figure',
-        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+        displayHref: textbookHref,
         sourceType: 'course-content',
         authorityLevel: 'canonical',
         confidence: 'high',
@@ -4395,9 +5989,9 @@ describe('konling agent runtime', () => {
 
     expect(metadata).toMatchObject({
       id: 'content:textbook:fig-02-37',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      href: textbookHref,
+      canonicalHref: textbookHref,
+      displayHref: textbookHref,
       citationTargetId: 'textbook:fig-02-37',
       retrievalChunkId: 'textbook-search:ch02-example-0212',
       answerRelevanceBasis: 'query-lexical',
@@ -4405,12 +5999,12 @@ describe('konling agent runtime', () => {
       answerRelevanceQueryHash: 'hash-1',
       omittedCitationReason: 'not-omitted',
       citationChip: expect.objectContaining({
-        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+        displayHref: textbookHref,
       }),
     });
   });
 
-  it('uses trusted page context as fallback answer relevance for generic user questions', async () => {
+  it('does not use client-authored page text as fallback answer relevance for generic user questions', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -4434,20 +6028,14 @@ describe('konling agent runtime', () => {
       citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
 
-    expect(sourcePackCitations.length).toBeGreaterThan(0);
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        queryText: expect.stringContaining('这里怎么理解？'),
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
-        answerRelevanceBases: expect.arrayContaining(['query-lexical']),
-      }),
-    ]);
-    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(sourcePackCitations).toEqual([]);
+    expect(runtime.pageContext.topic).toBe('student-path-center');
+    expect(runtime.pageContext.courseTitle).toBe('control-correction');
+    expect(JSON.stringify(runtime.pageContext)).not.toContain('Bode 图频域响应');
   });
 
   it('omits unrelated ADVANCED PROBLEMS chunks from konling-answer content citations', async () => {
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
       {
         id: 'ch01-advanced-problems-031__chunk-001',
         kind: 'chunk',
@@ -4548,17 +6136,8 @@ describe('konling agent runtime', () => {
       citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
     expect(sourcePackCitations).toEqual([]);
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: [],
-        citationTargetIds: [],
-        limitationCodes: expect.arrayContaining([
-          'answer-citation-insufficient-relevance',
-          'coverage-missing-answer-context',
-        ]),
-      }),
-    ]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(runtime.citationContext?.lowConfidenceReasons).not.toEqual(expect.arrayContaining([
       'source-pack-answer-citation-insufficient-relevance',
       'source-pack-coverage-missing-answer-context',
@@ -4574,7 +6153,7 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps selected-node relevant Source Pack citations with bounded relevance metadata', async () => {
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
       {
         id: 'ch01-advanced-problems-031__chunk-001',
         kind: 'chunk',
@@ -4663,20 +6242,8 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:root-locus-selected-node__chunk-001']),
-        answerRelevanceBases: expect.arrayContaining(['selected-node-ref']),
-        limitationCodes: expect.arrayContaining(['answer-citation-insufficient-relevance']),
-      }),
-    ]);
-    expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'content:textbook-citation:root-locus-selected-node__chunk-001',
-        evidenceBasis: expect.stringMatching(/^source-pack:konling-answer:/),
-      }),
-    ]));
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('answer-relevance:');
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch01-advanced-problems-031__chunk-001');
   });
@@ -4698,22 +6265,14 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        queryText: expect.stringContaining(querySnippet),
-        retrievalChunkIds: [],
-        limitationCodes: expect.arrayContaining([
-          'answer-citation-insufficient-relevance',
-          'coverage-missing-answer-context',
-        ]),
-      }),
-    ]);
+    expect(querySnippet).toBeTruthy();
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch08-example-0801');
   });
 
   it('uses path-advisor SAR candidate refs to guide verified Source Pack retrieval', async () => {
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
       {
         id: 'generic-context',
         kind: 'chunk',
@@ -4787,19 +6346,8 @@ describe('konling agent runtime', () => {
         resourceNodeIds: expect.arrayContaining(['resource:path-sar']),
       }),
     });
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:sar-path-resource']),
-        citationTargetIds: expect.arrayContaining(['textbook-citation:sar-path-resource']),
-      }),
-    ]);
-    expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'content:textbook-citation:sar-path-resource',
-        evidenceBasis: expect.stringMatching(/^source-pack:konling-answer:/),
-      }),
-    ]));
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
   });
 
   it('builds diagnostic SAR trace metadata for diagnosis explainer scope', async () => {
@@ -4853,7 +6401,7 @@ describe('konling agent runtime', () => {
     });
   });
 
-  it('keeps Source Pack retrieval available when pre-citation SAR has no scope seed refs', async () => {
+  it('keeps pre-citation SAR independent from the on-demand textbook tool', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -4865,12 +6413,8 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
-      }),
-    ]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(runtime.knowledgeCapabilityContext?.sarAssociatedGrounding).toMatchObject({
       useCase: 'path-planning',
       candidateRefs: expect.objectContaining({
@@ -5034,13 +6578,13 @@ describe('konling agent runtime', () => {
     expect(sar?.traceSummary.limitationCodes).toEqual(['no-expansion-hop-selected', 'event-budget:12']);
   });
 
-  it('keeps Source Pack content citations when learner personalization evidence is missing', async () => {
+  it('keeps registered content and textbook tool availability when learner personalization is missing', async () => {
     mocks.readAdaptiveLearnerState.mockResolvedValue(null);
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
       role: 'STUDENT',
-      courseId: 'control-correction',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
       pageId: 'step-03',
       currentUserQuery: 'Bode 图频域响应怎么理解？',
       trustedContentContext: true,
@@ -5048,8 +6592,10 @@ describe('konling agent runtime', () => {
 
     expect(runtime.learnerState).toBeNull();
     expect(runtime.citationContext?.contentCitations.some((citation) =>
-      citation.evidenceBasis.startsWith('source-pack:konling-answer:')
+      citation.evidenceBasis === 'course-ai-context'
     )).toBe(true);
+    expect(runtime.permittedTools).toContain('search_textbook');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
     expect(runtime.citationContext?.missingCitationClasses).toContain('learner-state');
   });
@@ -5406,6 +6952,59 @@ describe('konling agent runtime', () => {
     expect(tools).toHaveProperty('apply_controller_patch');
     expect((tools.run_virtual_simulation.inputSchema as any).shape).toHaveProperty('idempotencyKey');
     expect((tools.apply_controller_patch.inputSchema as any).shape).toHaveProperty('idempotencyKey');
+  });
+
+  it('registers calculate in the KAQ tool registry and generic-chat mode', () => {
+    expect(KONLING_TOOL_REGISTRY.calculate).toMatchObject({
+      permissionTier: 'analyze',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'none',
+    });
+    expect(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY['generic-chat'].permittedTools).toContain('calculate');
+
+    const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
+    expect(tools).toHaveProperty('calculate');
+  });
+
+  it('runs SymPy calculation through the calculate tool', async () => {
+    mocks.runMathCalculate.mockResolvedValue({
+      status: 'ok',
+      result: '\\frac{1}{s}',
+      steps: [{ step: 1, description: '原始表达式', operation: 'identify', input: '1', output: '1' }],
+    });
+
+    const runtime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope(),
+      context: createRuntimeContext({ permittedTools: ['calculate'] }),
+      permittedTools: ['calculate'],
+    });
+
+    const output = await runtime.calculate({ expression: '1', operation: 'laplace' });
+
+    expect(mocks.runMathCalculate).toHaveBeenCalledWith({
+      expression: '1',
+      operation: 'laplace',
+    });
+    expect(output).toMatchObject({
+      expression: '1',
+      result: '\\frac{1}{s}',
+      steps: [{ step: 1 }],
+    });
+  });
+
+  it('projects shared calculation capacity errors through the KAQ tool boundary', async () => {
+    mocks.runMathCalculate.mockRejectedValue(new mocks.MathCalculateCapacityError());
+    const runtime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope(),
+      context: createRuntimeContext({ permittedTools: ['calculate'] }),
+      permittedTools: ['calculate'],
+    });
+
+    await expect(runtime.calculate({ expression: '1' })).rejects.toMatchObject({
+      status: 429,
+    });
   });
 
   it('resolves simulation context from persisted runs with student owner isolation and no global state dependency', async () => {
@@ -7423,6 +9022,28 @@ describe('konling agent runtime', () => {
     expect((tools.record_intervention_result.inputSchema as any).shape).toHaveProperty('idempotencyKey');
   });
 
+  it('exposes only persisted smart-lesson task fields to the coauthor tool', () => {
+    const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
+    const schema = tools.propose_smart_lesson_task_change.inputSchema as any;
+
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      proposedTask: { durationMinutes: 45 },
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      proposedTask: { teachingMethods: '参与式教学' },
+    }).success).toBe(false);
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      proposedTask: { goals: [] },
+    }).success).toBe(false);
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      goalPatches: [{ operation: 'update', id: 'goal-1', changes: { content: '参与式学习至少20分钟' } }],
+    }).success).toBe(true);
+  });
+
   it('exposes governed adaptive path tool schemas with idempotency keys', () => {
     const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
 
@@ -7619,6 +9240,15 @@ describe('konling agent runtime', () => {
         findFirst: vi.fn().mockResolvedValue(null),
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
       },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          candidates: data.candidates.create,
+        })),
+      },
       konlingMemory: {
         create: vi.fn(),
       },
@@ -7659,6 +9289,7 @@ describe('konling agent runtime', () => {
       generationStatus: string;
       pathId: string | null;
       pathOptions: Array<Record<string, unknown>>;
+      configurationFulfillment: Array<{ key: string; status: string; message: string }>;
       comparison: { optionCount: number; message: string };
       limitations: string[];
       diagnostics: {
@@ -7676,6 +9307,7 @@ describe('konling agent runtime', () => {
         };
       };
       candidatePoolLimited: boolean;
+      candidateBatch: { id: string; generationRequestId: string; candidateIds: string[] } | null;
     };
 
     expect(result).toMatchObject({
@@ -7693,6 +9325,28 @@ describe('konling agent runtime', () => {
       limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
     });
     expect(result.pathOptions.length).toBeGreaterThan(0);
+    expect(result.candidateBatch).toMatchObject({
+      id: expect.stringMatching(/^path-candidate-batch_/),
+      generationRequestId: 'path-gen-1',
+      candidateIds: expect.arrayContaining([expect.stringMatching(/^path-candidate_/)]),
+    });
+    expect(result.pathId).toMatch(/^adaptive-path:student-1:control-correction:candidate_[a-f0-9]{24}$/);
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: result.pathId },
+      create: expect.objectContaining({ id: result.pathId, pathStatus: 'candidate' }),
+    }));
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ sourcePathId: result.pathId }),
+    }));
+    expect(result.pathOptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ candidateId: expect.stringMatching(/^path-candidate_/) }),
+    ]));
+    expect(result.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'difficulty-rhythm', status: 'applied' }),
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', message: expect.any(String) }),
+    ]));
+    expect(result.configurationFulfillment.find((item) => item.key === 'natural-language-intent')).not.toHaveProperty('limitationCode');
+    expect(JSON.stringify(result.configurationFulfillment)).not.toContain('我想先补相位裕度');
     expect(mocks.loadRuntimeResourceProjectionInputs).toHaveBeenCalled();
     expect(result.diagnostics.candidatePool).toMatchObject({
       registryVersion: 'resource-node-registry.v1',
@@ -7718,12 +9372,14 @@ describe('konling agent runtime', () => {
         idempotencyKey: 'path-gen-1',
         inputSummary: expect.objectContaining({
           graphNodeId: 'kn:autocontrol:controller-correction',
-          naturalLanguageIntent: 'student-provided-natural-language-path-intent',
+          naturalLanguageIntent: `sha256:${createHash('sha256').update('我想先补相位裕度，再做仿真验证。').digest('hex')}`,
         }),
       }),
     }));
     expect(db.learningPath.upsert).toHaveBeenCalled();
     const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.pathStatus).toBe('candidate');
+    expect(createdPath.legacySummaryPayload.status).toBe('candidate');
     expect(createdPath.inputSnapshot.request.candidatePoolDiagnostics).toMatchObject({
       registryVersion: 'resource-node-registry.v1',
       projectionVersion: 'resource-semantic-projection.v1',
@@ -7735,6 +9391,9 @@ describe('konling agent runtime', () => {
         }),
       }),
     });
+    expect(createdPath.pathPayload.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', limitationCode: 'natural-language-intent-partially-unmapped' }),
+    ]));
     expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         status: 'succeeded',
@@ -7744,6 +9403,62 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
+
+    const persistedBatchData = db.adaptivePathCandidateBatch.create.mock.calls[0][0].data;
+    db.learningPath.findFirst.mockResolvedValue(createdPath);
+    db.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      ...persistedBatchData,
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      candidates: persistedBatchData.candidates.create,
+    });
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...createdRun, id: 'tool-run-path-retry' });
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValueOnce([]);
+
+    const retryResult = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-1',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
+      timeBudgetMinutes: 30,
+      difficultyRhythm: 'steady',
+      naturalLanguageIntent: '我想先补相位裕度，再做仿真验证。',
+    }) as typeof result;
+
+    expect(db.learningPath.upsert).toHaveBeenCalledOnce();
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledOnce();
+    expect(retryResult.generationStatus).toBe('persisted');
+    expect(retryResult.pathId).toBe(result.pathId);
+    expect(retryResult.candidateBatch).toEqual(result.candidateBatch);
+    expect(retryResult.pathOptions).toEqual(result.pathOptions);
+
+    db.adaptivePathCandidateBatch.findUnique.mockResolvedValue(null);
+    db.learningPath.findFirst.mockResolvedValue(null);
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...createdRun, idempotencyKey: 'path-gen-low-budget' });
+    const lowBudgetResult = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-low-budget',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
+      timeBudgetMinutes: 30,
+    }) as {
+      generationStatus: string;
+      request: {
+        effectiveTimeBudgetMinutes: number;
+        minimumTimeBudgetMinutes: number;
+        timeBudgetInsufficient: boolean;
+      };
+    };
+
+    expect(lowBudgetResult).toMatchObject({
+      generationStatus: 'blocked',
+      request: {
+        effectiveTimeBudgetMinutes: 30,
+        minimumTimeBudgetMinutes: 32,
+        timeBudgetInsufficient: true,
+      },
+    });
     expect(JSON.stringify(result)).not.toMatch(/stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
@@ -8559,6 +10274,419 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('explains deterministic differences between two stored path options', async () => {
+    const createdRun = {
+      id: 'tool-run-path-tradeoff-difference',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'explain_learning_path_tradeoff',
+      permissionTier: 'analyze',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-tradeoff-difference',
+      correlationId: 'corr-path-tradeoff-difference',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'frequency-path-1',
+          pathPayload: {
+            policyBundle: {
+              status: 'ready',
+              paths: [
+                {
+                  optionId: 'path-option-1',
+                  styleId: 'guided',
+                  label: '基础补救路线',
+                  nodeIds: ['foundation', 'shared-analysis', 'guided-checkpoint'],
+                  nodeSummaries: [
+                    { nodeId: 'foundation', title: '频域基础复习', pathNodeType: 'knowledge_card' },
+                    { nodeId: 'shared-analysis', title: '稳定裕度分析', pathNodeType: 'control_workbench' },
+                    { nodeId: 'guided-checkpoint', title: '补救检查点', pathNodeType: 'checkpoint' },
+                  ],
+                  effort: { estimatedMinutes: 55 },
+                  resourceMix: { knowledge_card: 1, control_workbench: 1, checkpoint: 1 },
+                  readinessSummary: [
+                    { nodeId: 'foundation', state: 'ready', message: '可开始' },
+                    { nodeId: 'shared-analysis', state: 'ready', message: '可开始' },
+                    { nodeId: 'guided-checkpoint', state: 'ready', message: '可开始' },
+                  ],
+                  lockedNodeIds: [],
+                  checkpointNodeIds: ['guided-checkpoint'],
+                  terminalValidationNodeIds: ['guided-checkpoint'],
+                  limitations: [],
+                },
+                {
+                  optionId: 'path-option-2',
+                  styleId: 'sprint',
+                  label: '仿真驱动路线',
+                  nodeIds: ['shared-analysis', 'simulation-task', 'terminal-task'],
+                  nodeSummaries: [
+                    { nodeId: 'shared-analysis', title: '稳定裕度分析', pathNodeType: 'control_workbench' },
+                    { nodeId: 'simulation-task', title: '频域仿真实验', pathNodeType: 'simulation' },
+                    { nodeId: 'terminal-task', title: '终点验证', pathNodeType: 'arena_task' },
+                  ],
+                  effort: { estimatedMinutes: 35 },
+                  resourceMix: { control_workbench: 1, simulation: 1, arena_task: 1 },
+                  readinessSummary: [
+                    { nodeId: 'shared-analysis', state: 'ready', message: '可开始' },
+                    { nodeId: 'simulation-task', state: 'ready', message: '可开始' },
+                    { nodeId: 'terminal-task', state: 'locked', message: '完成仿真后解锁' },
+                  ],
+                  lockedNodeIds: ['terminal-task'],
+                  checkpointNodeIds: [],
+                  terminalValidationNodeIds: ['terminal-task'],
+                  limitations: ['终点验证当前尚未解锁'],
+                },
+              ],
+            },
+          },
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'foundation',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    const result = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-difference',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+
+    expect(result.comparison).toMatchObject({
+      status: 'ready',
+      pathId: 'frequency-path-1',
+      options: [
+        {
+          optionId: 'path-option-1',
+          styleId: 'guided',
+          label: '基础补救路线',
+          metrics: {
+            estimatedMinutes: 55,
+            nodeCount: 3,
+            checkpointCount: 1,
+            lockedNodeCount: 0,
+            terminalValidationCount: 1,
+          },
+        },
+        {
+          optionId: 'path-option-2',
+          styleId: 'sprint',
+          label: '仿真驱动路线',
+          metrics: {
+            estimatedMinutes: 35,
+            nodeCount: 3,
+            checkpointCount: 0,
+            lockedNodeCount: 1,
+            terminalValidationCount: 1,
+          },
+        },
+      ],
+      commonNodes: [{
+        nodeId: 'shared-analysis',
+        title: '稳定裕度分析',
+        resourceType: 'control_workbench',
+        positions: [2, 1],
+      }],
+      optionOnlyNodes: [
+        {
+          optionId: 'path-option-1',
+          nodes: [
+            { nodeId: 'foundation', title: '频域基础复习', resourceType: 'knowledge_card', position: 1 },
+            { nodeId: 'guided-checkpoint', title: '补救检查点', resourceType: 'checkpoint', position: 3 },
+          ],
+        },
+        {
+          optionId: 'path-option-2',
+          nodes: [
+            { nodeId: 'simulation-task', title: '频域仿真实验', resourceType: 'simulation', position: 2 },
+            { nodeId: 'terminal-task', title: '终点验证', resourceType: 'arena_task', position: 3 },
+          ],
+        },
+      ],
+      orderDifferences: [{
+        nodeId: 'shared-analysis',
+        title: '稳定裕度分析',
+        positions: [2, 1],
+      }],
+      limitations: ['终点验证当前尚未解锁'],
+    });
+    expect(result.comparison.tradeoffs).toEqual(expect.arrayContaining([
+      '基础补救路线预计比仿真驱动路线多用 20 分钟。',
+      '基础补救路线比仿真驱动路线多 1 个检查点。',
+      '仿真驱动路线比基础补救路线多 1 个锁定节点。',
+    ]));
+    expect(result.studentSafeRationale.join(' ')).toContain('基础补救路线');
+    expect(result.studentSafeRationale.join(' ')).toContain('仿真驱动路线');
+    expect(result.studentSafeRationale.join(' ')).not.toContain('路径差异主要来自学习时间');
+  });
+
+  it('reports identical and insufficient stored path comparisons explicitly', async () => {
+    const createdRun = {
+      id: 'tool-run-path-tradeoff-boundaries',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'explain_learning_path_tradeoff',
+      permissionTier: 'analyze',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-tradeoff-boundaries',
+      correlationId: 'corr-path-tradeoff-boundaries',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    let pathPayload: Record<string, unknown> = {
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            optionId: 'path-option-1',
+            styleId: 'guided',
+            label: '方案甲',
+            nodeIds: ['shared-node'],
+            nodeSummaries: [{ nodeId: 'shared-node', title: '共同节点', pathNodeType: 'knowledge_card' }],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1 },
+            readinessSummary: [{ nodeId: 'shared-node', state: 'ready', message: '可开始' }],
+            lockedNodeIds: [],
+            checkpointNodeIds: [],
+            terminalValidationNodeIds: [],
+            limitations: [],
+          },
+          {
+            optionId: 'path-option-2',
+            styleId: 'sprint',
+            label: '方案乙',
+            nodeIds: ['shared-node'],
+            nodeSummaries: [{ nodeId: 'shared-node', title: '共同节点', pathNodeType: 'knowledge_card' }],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1 },
+            readinessSummary: [{ nodeId: 'shared-node', state: 'ready', message: '可开始' }],
+            lockedNodeIds: [],
+            checkpointNodeIds: [],
+            terminalValidationNodeIds: [],
+            limitations: [],
+          },
+        ],
+      },
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun)
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun)
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockImplementation(async () => ({
+          id: 'frequency-path-1',
+          pathPayload,
+        })),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'shared-node',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    const identicalResult = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-identical',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+    expect(identicalResult.comparison.status).toBe('no-material-difference');
+    expect(identicalResult.studentSafeRationale).toContain('两条路径目前没有实质差异。');
+
+    pathPayload = {
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            optionId: 'path-option-1',
+            styleId: 'guided',
+            label: '方案甲',
+            nodeIds: ['node-a', 'node-b'],
+            nodeSummaries: [
+              { nodeId: 'node-a', title: '节点甲', pathNodeType: 'knowledge_card' },
+              { nodeId: 'node-b', title: '节点乙', pathNodeType: 'checkpoint' },
+            ],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1, checkpoint: 1 },
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'ready', message: '可开始' },
+              { nodeId: 'node-b', state: 'locked', message: '待解锁' },
+            ],
+            lockedNodeIds: ['node-b'],
+            checkpointNodeIds: ['node-a'],
+            terminalValidationNodeIds: ['node-b'],
+            limitations: [],
+          },
+          {
+            optionId: 'path-option-2',
+            styleId: 'sprint',
+            label: '方案乙',
+            nodeIds: ['node-a', 'node-b'],
+            nodeSummaries: [
+              { nodeId: 'node-a', title: '节点甲', pathNodeType: 'knowledge_card' },
+              { nodeId: 'node-b', title: '节点乙', pathNodeType: 'checkpoint' },
+            ],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1, checkpoint: 1 },
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'locked', message: '待解锁' },
+              { nodeId: 'node-b', state: 'ready', message: '可开始' },
+            ],
+            lockedNodeIds: ['node-a'],
+            checkpointNodeIds: ['node-b'],
+            terminalValidationNodeIds: ['node-a'],
+            limitations: [],
+          },
+        ],
+      },
+    };
+    const nodeIdentityResult = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-node-identities',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+    expect(nodeIdentityResult.comparison).toMatchObject({
+      status: 'ready',
+      options: [
+        {
+          metrics: {
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'ready', message: '可开始' },
+              { nodeId: 'node-b', state: 'locked', message: '待解锁' },
+            ],
+            lockedNodeIds: ['node-b'],
+            checkpointNodeIds: ['node-a'],
+            terminalValidationNodeIds: ['node-b'],
+          },
+        },
+        {
+          metrics: {
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'locked', message: '待解锁' },
+              { nodeId: 'node-b', state: 'ready', message: '可开始' },
+            ],
+            lockedNodeIds: ['node-a'],
+            checkpointNodeIds: ['node-b'],
+            terminalValidationNodeIds: ['node-a'],
+          },
+        },
+      ],
+    });
+
+    pathPayload = {
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            optionId: 'path-option-1',
+            styleId: 'guided',
+            label: '方案甲',
+            nodeIds: ['missing-summary'],
+            nodeSummaries: [],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: {},
+          },
+          {
+            optionId: 'path-option-2',
+            styleId: 'sprint',
+            label: '方案乙',
+            nodeIds: ['known-node'],
+            nodeSummaries: [{ nodeId: 'known-node', title: '已知节点', pathNodeType: 'knowledge_card' }],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1 },
+          },
+        ],
+      },
+    };
+    const insufficientResult = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-insufficient',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+    expect(insufficientResult.comparison).toMatchObject({
+      status: 'insufficient-data',
+      tradeoffs: [],
+      limitations: ['方案甲缺少 1 个节点的可靠摘要。'],
+    });
+    expect(insufficientResult.studentSafeRationale).toContain('当前路径缺少完整节点信息，暂时无法生成可靠的差异解释。');
+  });
+
   it('rejects path tradeoff explanations for options outside the scoped path', async () => {
     const db = {
       agentSession: {
@@ -8697,6 +10825,160 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('resolves adaptive path selections only from the authorized persisted candidate batch', async () => {
+    const candidateBatch = {
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      classId: 'class-1',
+      generationRequestId: 'generation-1',
+      sourcePathId: 'path-1',
+      plannerVersion: 'policy-selection-v1',
+      status: 'succeeded',
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      candidates: [
+        {
+          id: 'candidate-guided',
+          ordinal: 0,
+          styleId: 'guided',
+          policyFamily: 'guided',
+          label: '引导巩固路径',
+          snapshot: { optionId: 'option-guided', styleId: 'guided' },
+        },
+        {
+          id: 'candidate-sprint',
+          ordinal: 1,
+          styleId: 'sprint',
+          policyFamily: 'sprint',
+          label: '挑战冲刺路径',
+          snapshot: { optionId: 'option-sprint', styleId: 'sprint' },
+        },
+      ],
+    };
+    const createSelectionRuntime = (batch: typeof candidateBatch, inputSummary: Record<string, unknown> = {}) => {
+      const createdRun = {
+        id: `tool-run-${batch.id}`,
+        ownerUserId: 'student-1',
+        actorUserId: 'student-1',
+        targetUserId: 'student-1',
+        agentSessionId: 'agent-session-1',
+        toolName: 'select_learning_path',
+        permissionTier: 'write',
+        approvalState: 'not_required',
+        status: 'running',
+        inputSummary,
+        outputSummary: null,
+        errorSummary: null,
+        idempotencyKey: `selection-${batch.id}`,
+        correlationId: `correlation-${batch.id}`,
+        startedAt: new Date('2026-05-28T00:00:00Z'),
+        completedAt: null,
+        latencyMs: null,
+      };
+      const db = {
+        agentSession: {
+          findFirst: vi.fn().mockResolvedValue({
+            id: 'agent-session-1',
+            permittedTools: ['select_learning_path'],
+          }),
+        },
+        agentToolRun: {
+          findFirst: vi.fn()
+            .mockResolvedValueOnce(null)
+            .mockResolvedValue(createdRun),
+          create: vi.fn().mockResolvedValue(createdRun),
+          updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        },
+        adaptivePathCandidateBatch: {
+          findUnique: vi.fn().mockResolvedValue(batch),
+        },
+        learningPath: {
+          update: vi.fn(),
+        },
+      };
+      const runtime = buildKonlingToolRuntime({
+        db,
+        scope: createScope({ pageId: 'adaptive-path-center' }),
+        agentSessionId: 'agent-session-1',
+        context: {
+          ...createRuntimeContext({ permittedTools: ['select_learning_path'] }),
+          teachingAssistantMode: {
+            authorizedCandidateBatch: {
+              batchId: batch.id,
+              pathId: batch.sourcePathId,
+              goalId: batch.goalId,
+              classId: batch.classId,
+            },
+          },
+        } as any,
+      });
+      return { db, runtime };
+    };
+
+    const selected = createSelectionRuntime(candidateBatch, {
+      batchId: 'batch-1', candidateId: 'candidate-sprint', pathId: 'path-1', goalId: 'control-correction',
+    });
+    await expect(selected.runtime.selectLearningPath({
+      idempotencyKey: 'selection-batch-1',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      batchId: 'batch-1',
+      candidateId: 'candidate-sprint',
+    })).resolves.toMatchObject({
+      status: 'pending_commit',
+      batchId: 'batch-1',
+      candidateId: 'candidate-sprint',
+      pathId: 'path-1',
+      selectedOptionId: 'option-sprint',
+      selectedStyleId: 'sprint',
+      toolRunId: 'tool-run-batch-1',
+      autoStart: false,
+    });
+    expect(selected.db.learningPath.update).not.toHaveBeenCalled();
+    expect(selected.db.agentToolRun.updateMany).not.toHaveBeenCalled();
+
+    const natural = createSelectionRuntime(candidateBatch, { batchId: 'batch-1' });
+    await expect(natural.runtime.selectLearningPath({
+      idempotencyKey: 'selection-natural-language',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      batchId: 'batch-1',
+      naturalLanguageIntent: '挑战冲刺路径',
+    })).resolves.toMatchObject({
+      status: 'pending_commit', candidateId: 'candidate-sprint', toolRunId: 'tool-run-batch-1',
+    });
+    expect(natural.db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: { inputSummary: expect.objectContaining({ candidateId: 'candidate-sprint' }) },
+    }));
+
+    const ambiguous = createSelectionRuntime(candidateBatch, { batchId: 'batch-1' });
+    await expect(ambiguous.runtime.selectLearningPath({
+      idempotencyKey: 'selection-ambiguous',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      batchId: 'batch-1',
+      naturalLanguageIntent: '那个',
+    })).resolves.toMatchObject({
+      status: 'clarification_required',
+      batchId: 'batch-1',
+      alternatives: [
+        { candidateId: 'candidate-guided', label: '引导巩固路径' },
+        { candidateId: 'candidate-sprint', label: '挑战冲刺路径' },
+      ],
+    });
+    expect(ambiguous.db.learningPath.update).not.toHaveBeenCalled();
+
+    const unauthorized = createSelectionRuntime({ ...candidateBatch, userId: 'student-2' });
+    await expect(unauthorized.runtime.selectLearningPath({
+      idempotencyKey: 'selection-foreign-user',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      batchId: 'batch-1',
+      candidateId: 'candidate-guided',
+    })).resolves.toEqual({ status: 'unavailable' });
+    expect(unauthorized.db.learningPath.update).not.toHaveBeenCalled();
+  });
+
   it('records path-bound choices for registered non-control adaptive path goals', async () => {
     const createdRun = {
       id: 'tool-run-frequency-select-1',
@@ -8721,7 +11003,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -8762,7 +11044,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center' }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: 'frequency-path-1',
           activeNodeId: 'node-1',
@@ -8774,13 +11056,14 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'frequency-select-1',
       goalId: 'frequency-response-foundations',
       pathId: 'frequency-path-1',
+      outcome: 'adopted',
       selectedStyleId: 'guided-frequency-route',
     })).resolves.toMatchObject({
-      outcome: 'selected',
+      outcome: 'adopted',
       evidence: {
         emitted: true,
         dedupeKey: 'learning-path:choice:frequency-path-1:frequency-select-1',
@@ -8796,7 +11079,7 @@ describe('konling agent runtime', () => {
     }));
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        toolName: 'select_learning_path',
+        toolName: 'record_path_adjustment_outcome',
         approvalState: 'not_required',
       }),
     }));
@@ -8840,7 +11123,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -8877,7 +11160,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center', pathNodeId: null }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: null,
           activeNodeId: null,
@@ -8889,12 +11172,13 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-explicit-path-1',
       pathId: 'path-1',
+      outcome: 'adopted',
       selectedStyleId: 'arena-simulation-sprint',
     })).resolves.toMatchObject({
-      outcome: 'selected',
+      outcome: 'adopted',
     });
     expect(db.agentToolRun.create).toHaveBeenCalled();
     expect(db.learningPath.update).toHaveBeenCalled();
@@ -9007,12 +11291,12 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-path-1',
+      outcome: 'adopted',
       selectedStyleId: 'arena-simulation-sprint',
-      helpful: true,
     })).resolves.toMatchObject({
-      outcome: 'selected',
+      outcome: 'adopted',
       evidence: {
         emitted: true,
         dedupeKey: 'control-correction-path:choice:path-1:select-path-1',
@@ -9053,7 +11337,7 @@ describe('konling agent runtime', () => {
               id: 'control-correction-path:choice:path-1:select-path-1',
               type: 'selection',
               selectedStyleId: 'arena-simulation-sprint',
-              helpful: true,
+              helpful: null,
             }),
           ],
         }),
@@ -9270,10 +11554,15 @@ describe('konling agent runtime', () => {
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
       learningPath: {
-        findFirst: vi.fn()
-          .mockResolvedValueOnce({
+        // Semantic lock/business reads: always return the owned active path for
+        // path-1. Avoid once-queues that break when the write fence adds reads.
+        findFirst: vi.fn(async ({ where }: { where?: { id?: string } } = {}) => {
+          if (where?.id && where.id !== 'path-1') return null;
+          return {
             id: 'path-1',
             userId: 'student-1',
+            goalId: 'control-correction',
+            pathStatus: 'active',
             pathPayload: {
               policyBundle: {
                 status: 'ready',
@@ -9285,13 +11574,8 @@ describe('konling agent runtime', () => {
               selectionHistory: [],
               activity: [],
             },
-          })
-          .mockResolvedValueOnce(null)
-          .mockResolvedValueOnce({
-            id: 'path-1',
-            userId: 'student-1',
-            pathPayload: { selectionHistory: [], activity: [] },
-          }),
+          };
+        }),
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
         update: vi.fn().mockResolvedValue({ id: 'path-1' }),
       },
@@ -9329,20 +11613,28 @@ describe('konling agent runtime', () => {
       timeBudgetMinutes: 90,
       difficultyRhythm: 'challenge',
       checkpointPreference: 'dense',
-      naturalLanguageIntent: '我希望减少讲解，先完成仿真和 Arena。',
+      naturalLanguageIntent: '优先完成仿真和 Arena。',
       rejectedStyleIds: ['foundation-remediation'],
       selectedStyleId: 'arena-simulation-sprint',
     });
     expect(result).toMatchObject({
       operation: 'revised',
       generationStatus: 'persisted',
-      limitations: [],
+      limitations: expect.arrayContaining(['policy-option-diversity-unavailable']),
       pathOptions: expect.any(Array),
+      comparison: {
+        optionCount: 1,
+        message: '当前资源只能形成单一推荐方案。',
+      },
     });
-    expect((result as { pathOptions: unknown[] }).pathOptions.length).toBeGreaterThanOrEqual(3);
+    expect((result as { pathOptions: unknown[] }).pathOptions).toHaveLength(1);
     const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(revisedCreate.pathStatus).not.toBe('candidate');
     expect(revisedCreate.pathPayload.graphContext).toBeNull();
-    expect(revisedCreate.pathPayload.pathOptions.length).toBeGreaterThanOrEqual(3);
+    expect(revisedCreate.pathPayload.pathOptions).toHaveLength(1);
+    expect(revisedCreate.pathPayload.policyBundle.fallbackReasons).toEqual(
+      expect.arrayContaining(['policy-option-diversity-unavailable']),
+    );
     expect(revisedCreate.explanationPayload.selectedReasons).toEqual(
       expect.arrayContaining(['policy-simulation-driven']),
     );
@@ -9352,7 +11644,7 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         inputSummary: expect.objectContaining({
-          naturalLanguageIntent: 'student-provided-natural-language-path-intent',
+          naturalLanguageIntent: `sha256:${createHash('sha256').update('优先完成仿真和 Arena。').digest('hex')}`,
         }),
       }),
     }));
@@ -9371,8 +11663,8 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
-    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('我希望减少讲解');
-    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我希望减少讲解');
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('优先完成仿真和 Arena');
+    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('优先完成仿真和 Arena');
   });
 
   it('rejects adaptive path generation when client hints try to expand the scoped goal', async () => {
@@ -9651,9 +11943,9 @@ describe('konling agent runtime', () => {
         ]),
       },
     };
-    const [safeTextbookDocument] = textbookRuntimeSearchDocumentFixture();
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
-      ...textbookRuntimeSearchDocumentFixture(),
+    const [safeTextbookDocument] = textbookStructureUnitFixture();
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
+      ...textbookStructureUnitFixture(),
       {
         ...safeTextbookDocument,
         id: 'unsafe-path-planning-doc',
@@ -9720,7 +12012,9 @@ describe('konling agent runtime', () => {
       ]),
     });
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.itemRefs.length).toBeGreaterThan(0);
-    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.citationOnlyItemRefs).toContain('fig-08-01__figure');
+    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.citationOnlyItemRefs).toContain(
+      'resource-node:knowledge-card:kn-bode',
+    );
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.limitationCodes).toContain('upstream-limitations-redacted');
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
       db.learningPath.upsert.mock.invocationCallOrder[0],
@@ -9938,7 +12232,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -9961,7 +12255,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center' }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: 'path-1',
           activeNodeId: 'node-1',
@@ -9973,9 +12267,10 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-forged-path',
       pathId: 'foreign-path',
+      outcome: 'adopted',
       selectedStyleId: 'arena-simulation-sprint',
     })).rejects.toMatchObject({ status: 403 });
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
@@ -9989,7 +12284,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -10021,7 +12316,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center' }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: 'path-1',
           activeNodeId: 'node-1',
@@ -10033,8 +12328,9 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-invalid-style',
+      outcome: 'adopted',
       selectedStyleId: 'hallucinated-style',
     })).rejects.toMatchObject({
       status: 403,
@@ -10051,7 +12347,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -10083,7 +12379,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center' }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: 'path-1',
           activeNodeId: 'node-1',
@@ -10095,8 +12391,9 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-hidden-fallback-style',
+      outcome: 'adopted',
       selectedStyleId: 'simulation-driven',
     })).rejects.toMatchObject({
       status: 403,
@@ -10177,7 +12474,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -10194,7 +12491,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center', pathNodeId: null }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: null,
           activeNodeId: null,
@@ -10206,8 +12503,9 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-without-current-path',
+      outcome: 'adopted',
       selectedStyleId: 'arena-simulation-sprint',
     })).rejects.toMatchObject({
       status: 400,
@@ -10374,16 +12672,42 @@ describe('konling agent runtime', () => {
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
-  it('reuses idempotent adaptive path choices before validating mutable path options', async () => {
+  it('replays the complete persisted candidate selection result for an idempotent retry', async () => {
     const outputSummary = {
-      outcome: 'selected',
-      activity: {
-        selectedStyleId: 'previous-style',
+      status: 'selected',
+      toolRunId: 'tool-run-existing',
+      batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+      pathId: 'path-1',
+      goalId: 'control-correction',
+      selectedOptionId: 'previous-option',
+      selectedStyleId: 'previous-style',
+      idempotencyKey: 'select-retry-key',
+      autoStart: false,
+      studentSafeRationale: 'Selected the previous candidate.',
+    };
+    const persistedToolRun = {
+      id: 'tool-run-existing',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-previous',
+      toolName: 'select_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'succeeded',
+      inputSummary: {
+        batchId: 'previous-batch', candidateId: 'previous-candidate',
+        pathId: 'path-1', goalId: 'control-correction',
+        naturalLanguageIntent: `sha256:${createHash('sha256').update('Challenge sprint path').digest('hex')}`,
       },
-      evidence: {
-        emitted: true,
-        dedupeKey: 'control-correction-path:choice:path-1:select-retry-key',
-      },
+      outputSummary,
+      errorSummary: null,
+      idempotencyKey: 'select-retry-key',
+      correlationId: 'corr-select-existing',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: new Date('2026-05-28T00:00:01Z'),
+      latencyMs: 1000,
     };
     const db = {
       agentSession: {
@@ -10393,25 +12717,7 @@ describe('konling agent runtime', () => {
         }),
       },
       agentToolRun: {
-        findFirst: vi.fn().mockResolvedValue({
-          id: 'tool-run-existing',
-          ownerUserId: 'student-1',
-          actorUserId: 'student-1',
-          targetUserId: 'student-1',
-          agentSessionId: 'agent-session-previous',
-          toolName: 'select_learning_path',
-          permissionTier: 'write',
-          approvalState: 'not_required',
-          status: 'succeeded',
-          inputSummary: {},
-          outputSummary,
-          errorSummary: null,
-          idempotencyKey: 'select-retry-key',
-          correlationId: 'corr-select-existing',
-          startedAt: new Date('2026-05-28T00:00:00Z'),
-          completedAt: new Date('2026-05-28T00:00:01Z'),
-          latencyMs: 1000,
-        }),
+        findFirst: vi.fn().mockResolvedValue(persistedToolRun),
         create: vi.fn(),
         updateMany: vi.fn(),
       },
@@ -10445,8 +12751,48 @@ describe('konling agent runtime', () => {
 
     await expect(runtime.selectLearningPath({
       idempotencyKey: 'select-retry-key',
-      selectedStyleId: 'previous-style',
-    })).resolves.toMatchObject(outputSummary);
+      batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+    })).resolves.toEqual(outputSummary);
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      candidateId: 'different-candidate',
+    })).rejects.toMatchObject({ status: 409 });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      naturalLanguageIntent: 'Challenge sprint path',
+    })).resolves.toEqual(outputSummary);
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
+    db.agentToolRun.findFirst.mockResolvedValue({
+      ...persistedToolRun,
+      status: 'running',
+      outputSummary: null,
+      completedAt: null,
+      latencyMs: null,
+    });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
     expect(db.learningPath.findFirst).not.toHaveBeenCalled();
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
     expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
@@ -10488,6 +12834,14 @@ describe('konling agent runtime', () => {
             nodeIds: ['node-1', 'node-2'],
           },
         ]),
+        // Write fence lock read (recordPathIntervention) — independent of findMany.
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -10603,6 +12957,13 @@ describe('konling agent runtime', () => {
           currentNodeId: 'node-2',
           nodeIds: ['node-1', 'node-2'],
         }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -10704,6 +13065,13 @@ describe('konling agent runtime', () => {
           currentNodeId: 'node-1',
           nodeIds: ['node-1'],
         }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -10760,6 +13128,13 @@ describe('konling agent runtime', () => {
           currentNodeId: 'node-1',
           nodeIds: ['node-1'],
         }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -10831,6 +13206,107 @@ describe('konling agent runtime', () => {
       id: 'intv-current',
     });
     expect(db.aIIntervention.create).toHaveBeenCalled();
+  });
+
+  it('keeps cooldowns for the same Arena control method', async () => {
+    const scope = createScope();
+    const arenaContext = resolveArenaCompanionContext('task-second-order-lead-pid', 'pid');
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'intv-pid',
+          interventionType: 'constraint-hint',
+          cooldownUntil: new Date('2026-05-28T00:30:00Z'),
+        }),
+        create: vi.fn(),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+    };
+
+    const intervention = await createGovernedKonlingIntervention(db, {
+      scope,
+      studentState: createStudentState(),
+      arenaContext,
+      now: new Date('2026-05-28T00:00:00Z'),
+    });
+
+    expect(intervention).toMatchObject({
+      shouldIntervene: false,
+      reason: 'cooldown-active',
+      id: 'intv-pid',
+    });
+    expect(db.aIIntervention.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        sessionId: 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:pid',
+      }),
+    }));
+    expect(db.aIIntervention.create).not.toHaveBeenCalled();
+  });
+
+  it('allows a second Arena method to bypass another method cooldown', async () => {
+    const scope = createScope();
+    const pidContext = resolveArenaCompanionContext('task-second-order-lead-pid', 'pid');
+    const serialContext = resolveArenaCompanionContext('task-second-order-lead-pid', 'serial-compensator');
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockImplementation(async ({ where }) => (
+          where.sessionId === 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:pid'
+            ? {
+                id: 'intv-pid',
+                interventionType: 'constraint-hint',
+                cooldownUntil: new Date('2026-05-28T00:30:00Z'),
+              }
+            : null
+        )),
+        create: vi.fn().mockResolvedValue({ id: 'intv-serial' }),
+      },
+      konlingMemory: {
+        create: vi.fn().mockResolvedValue({ id: 'memory-serial' }),
+      },
+    };
+
+    const pidIntervention = await createGovernedKonlingIntervention(db, {
+      scope,
+      studentState: createStudentState(),
+      arenaContext: pidContext,
+      now: new Date('2026-05-28T00:00:00Z'),
+    });
+    const serialIntervention = await createGovernedKonlingIntervention(db, {
+      scope,
+      studentState: createStudentState(),
+      arenaContext: serialContext,
+      now: new Date('2026-05-28T00:00:00Z'),
+    });
+
+    expect(pidIntervention.reason).toBe('cooldown-active');
+    expect(serialIntervention).toMatchObject({
+      shouldIntervene: true,
+      id: 'intv-serial',
+    });
+    expect(db.aIIntervention.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        sessionId: 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:serial-compensator',
+        evidence: expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'arena-companion-context',
+            ref: 'task-second-order-lead-pid:serial-compensator',
+          }),
+        ]),
+      }),
+    }));
+    expect(db.konlingMemory.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        sessionId: 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:serial-compensator',
+        evidenceRefs: expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'arena-companion-context',
+            ref: 'task-second-order-lead-pid:serial-compensator',
+          }),
+        ]),
+      }),
+    }));
   });
 
   it('does not persist no-op interventions or feedback outside the current scope', async () => {
@@ -11185,6 +13661,75 @@ describe('konling agent runtime', () => {
     expect(db.agentSession.create).not.toHaveBeenCalled();
   });
 
+  it('keeps awaiting approval sessions bound to both the actor and the selected Konling conversation', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'student-1',
+      role: 'teacher',
+      privacyScopes: ['teacher-scoped'],
+    });
+    const sessions = ['conversation-a', 'conversation-b'].map((konlingSessionId) => ({
+      id: `agent-${konlingSessionId}`,
+      konlingSessionId,
+      ownerUserId: 'student-1',
+      actorUserId: 'teacher-1',
+      classId: 'class-1',
+      courseId: 'unit-4-5',
+      pageId: 'step-03',
+      resourceId: 'resource-1',
+      pathNodeId: 'node-1',
+      phase: 'konling-chat-tool-runtime',
+      status: 'awaiting_approval',
+      stateJson: {},
+      permittedTools: ['get_page_context'],
+      pendingApproval: { toolRunId: `tool-${konlingSessionId}` },
+      expiresAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+    const db = {
+      agentSession: {
+        findFirst: vi.fn(async ({ where }) => sessions.find((candidate) =>
+          candidate.konlingSessionId === where.konlingSessionId
+          && candidate.ownerUserId === where.ownerUserId
+          && candidate.actorUserId === where.actorUserId
+          && candidate.status === where.status
+        ) ?? null),
+        create: vi.fn(),
+      },
+    };
+
+    const first = await getOrCreateKonlingAgentSession(db, {
+      scope,
+      konlingSessionId: 'conversation-a',
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+    });
+    const second = await getOrCreateKonlingAgentSession(db, {
+      scope,
+      konlingSessionId: 'conversation-b',
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+    });
+
+    expect(first.id).toBe('agent-conversation-a');
+    expect(second.id).toBe('agent-conversation-b');
+    expect(db.agentSession.findFirst).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: expect.objectContaining({
+        ownerUserId: 'student-1',
+        actorUserId: 'teacher-1',
+        konlingSessionId: 'conversation-a',
+      }),
+    }));
+    expect(db.agentSession.findFirst).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: expect.objectContaining({
+        ownerUserId: 'student-1',
+        actorUserId: 'teacher-1',
+        konlingSessionId: 'conversation-b',
+      }),
+    }));
+  });
+
   it('declares durable AgentSession and AgentToolRun persistence contracts in Prisma', () => {
     const schema = readFileSync(join(process.cwd(), 'prisma/schema.prisma'), 'utf8');
     const scopeIdempotencyMigration = readFileSync(
@@ -11200,6 +13745,7 @@ describe('konling agent runtime', () => {
     expect(schema).toMatch(/agentSessionId\s+String/);
     expect(schema).toMatch(/approvalState\s+String/);
     expect(schema).toMatch(/correlationId\s+String/);
+    expect(schema).toMatch(/konlingSession\s+KonlingSession\?\s+@relation\(fields: \[konlingSessionId\], references: \[id\], onDelete: SetNull\)/);
     expect(schema).toContain('@@unique([agentSessionId, toolName, idempotencyKey])');
     expect(scopeIdempotencyMigration).toContain('BEGIN;');
     expect(scopeIdempotencyMigration).toContain("starts_with(\"idempotencyKey\", '__agent_tool_run_scope_idempotency__:')");
@@ -11751,5 +14297,188 @@ describe('konling agent runtime', () => {
     expect(candidate.metadata).toMatchObject({ availability: 'draft', citationReady: 'false' });
     expect(result.pack.items).toEqual([]);
     expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('profile-filtered-citation-readiness');
+  });
+
+  it('classifies governed study-question forms and keeps presentation preferences below the answer contract', () => {
+    const runtime = createRuntimeContext();
+    const expectations = [
+      ['请推导闭环传递函数', 'formula-derivation', ['前提与符号', '关键变形']],
+      ['这段 TypeScript 报错，帮我调试', 'code-debugging', ['故障定位', '最小修复']],
+      ['比较开环和闭环控制的区别', 'concept-comparison', ['判别维度', '边界或反例']],
+      ['请用生活化例子解释，并换一种格式', 'open-ended-explanation', ['核心结论', '定制化讲解']],
+    ] as const;
+
+    for (const [currentUserQuery, intent, sections] of expectations) {
+      const contract = buildKonlingTeachingAssistantRuntimeContract({
+        modeId: 'generic-chat',
+        runtimeContext: runtime,
+        scope: createScope(),
+        currentUserQuery,
+        studyAnswerPreferences: {
+          depth: 'detailed',
+          format: 'steps',
+          hintStrength: 'guided',
+          exampleContext: '自动控制系统',
+        },
+      });
+
+      expect(contract.answerIntent).toBe(intent);
+      expect(contract.studyQuestion).toMatchObject({
+        intent,
+        preferences: {
+          depth: 'detailed',
+          format: 'steps',
+          hintStrength: 'guided',
+          exampleContext: '自动控制系统',
+        },
+      });
+      expect(contract.studyQuestion?.requiredSections).toEqual(expect.arrayContaining([...sections]));
+    }
+  });
+
+  it('derives answer presentation preferences from a learner request when no structured preference payload exists', () => {
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope(),
+      currentUserQuery: '请简洁地用表格比较开环与闭环控制，只给我逐步提示。',
+    });
+
+    expect(contract.studyQuestion).toMatchObject({
+      intent: 'concept-comparison',
+      preferences: {
+        depth: 'concise',
+        format: 'table',
+        hintStrength: 'guided',
+      },
+    });
+  });
+
+  it('requires a verified official citation before marking normative guidance as verified', () => {
+    const verifiedRuntime = createRuntimeContext({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:official:chemistry-standard',
+          sourceType: 'content',
+          displayTitle: '化学方程式书写规范',
+          href: 'https://example.gov.cn/chemistry-standard',
+          confidence: 'high',
+          evidenceBasis: 'source-pack:konling-answer:official',
+          owner: 'answer',
+          citationTargetId: 'official:chemistry-standard',
+          verified: true,
+          resolver: 'official-reference',
+        }],
+        evidenceCitations: [],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 0 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+    const verified = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: verifiedRuntime,
+      scope: createScope(),
+      currentUserQuery: '化学方程式的规范书写格式是什么？',
+    });
+    const unverified = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope(),
+      currentUserQuery: '化学方程式的规范书写格式是什么？',
+    });
+
+    expect(verified.studyQuestion).toMatchObject({
+      intent: 'normative-content',
+      normativeGuidance: 'verified',
+    });
+    expect(unverified.studyQuestion).toMatchObject({
+      intent: 'normative-content',
+      normativeGuidance: 'verification-required',
+    });
+  });
+
+  it('binds only server-known citations from material answer markers', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:formula:derivation',
+        sourceType: 'content',
+        displayTitle: '闭环传递函数教材片段',
+        href: '/course-runtime/resources/control.md#closed-loop',
+        confidence: 'high',
+        evidenceBasis: 'source-pack:konling-answer:test',
+        owner: 'answer',
+        citationTargetId: 'formula:derivation',
+        verified: true,
+        resolver: 'course-runtime',
+        displayNumber: 1,
+      }, {
+        id: 'content:unverified:related',
+        sourceType: 'content',
+        displayTitle: '未验证的相关材料',
+        href: '/course-runtime/resources/related.md',
+        confidence: 'high',
+        evidenceBasis: 'source-pack:konling-answer:test',
+        owner: 'answer',
+        displayNumber: 2,
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer'],
+        minimum: { content: 1, evidenceWhenAvailable: 0 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext({ citationContext }),
+      scope: createScope(),
+      currentUserQuery: '请推导闭环传递函数',
+    });
+    const runtime = { citationContext, teachingAssistantMode: modeContract };
+
+    const promptRuntime = createRuntimeContext({ citationContext });
+    const prompt = buildKonlingSystemPrompt({
+      page: promptRuntime.pageContext,
+      user: promptRuntime.userProfile,
+      adaptiveRuntime: {
+        ...promptRuntime,
+        teachingAssistantMode: modeContract,
+      },
+    });
+    expect(prompt).toContain('闭环传递函数教材片段');
+    expect(prompt).not.toContain('content:formula:derivation');
+    expect(prompt).not.toContain('content:unverified:related');
+
+    const guarded = buildKonlingCitationGuard(runtime, [
+      '关键变形：分母为 1 + G(s)H(s) [1]',
+      '不应绑定的相关结论 [2]',
+      '伪造来源 [99]',
+    ].join('\n'));
+
+    expect(guarded.answerUnits).toEqual([{
+      unit: '关键变形：分母为 1 + G(s)H(s)',
+      citationId: 'content:formula:derivation',
+      citationTargetId: 'formula:derivation',
+      limitation: null,
+    }]);
+
+    const missingBinding = buildKonlingCitationGuard(
+      runtime,
+      '关键变形使用闭环传递函数教材片段（content:formula:derivation）。',
+    );
+
+    expect(missingBinding.answerUnits).toEqual([]);
+    expect(missingBinding.status).toBe('low-confidence');
+    expect(missingBinding.fallbackRequired).toBe(true);
+    expect(missingBinding.lowConfidenceReasons).toContain('assistant-answer-unit-citations-missing');
   });
 });

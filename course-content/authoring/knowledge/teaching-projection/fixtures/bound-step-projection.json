@@ -1,0 +1,75 @@
+{
+  "contract": "act-teaching-projection-authoring/v1",
+  "scopeId": "fixture-bound-step",
+  "authoringRevision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.12",
+  "authorityReleaseSetId": "set-eng-1",
+  "resources": [
+    {
+      "resourceType": "step",
+      "lessonKey": "lesson-02",
+      "stepId": "practice-1",
+      "projectionMode": "REQUIRED",
+      "scopeId": "fixture-bound-step",
+      "title": "Practice step",
+      "sourcePath": "course-content/authoring/lessons/lesson-02/steps/practice-1.json"
+    },
+    {
+      "resourceType": "lesson",
+      "lessonKey": "lesson-02",
+      "projectionMode": "OPTIONAL",
+      "scopeId": "fixture-bound-step",
+      "title": "Lesson overview"
+    },
+    {
+      "resourceType": "handout",
+      "lessonKey": "lesson-02",
+      "projectionMode": "NONE",
+      "scopeId": "fixture-bound-step",
+      "title": "Navigation handout"
+    }
+  ],
+  "bindings": [
+    {
+      "resourceId": "act:step:lesson-02:practice-1",
+      "canonicalId": "node-stability",
+      "role": "PRACTICES",
+      "scopeId": "fixture-bound-step",
+      "sourcePath": "course-content/authoring/lessons/lesson-02/steps/practice-1.json",
+      "primary": true,
+      "rationale": "Step practices Routh-Hurwitz stability"
+    }
+  ],
+  "prerequisites": [],
+  "coreNodes": [
+    {
+      "canonicalId": "node-stability",
+      "pathEligible": true,
+      "cardPolicy": "optional",
+      "moduleId": "stability",
+      "scopeId": "fixture-bound-step",
+      "rationale": "Core stability concept"
+    }
+  ],
+  "cards": [
+    {
+      "cardId": "stability-intro",
+      "canonicalId": "node-stability",
+      "active": true,
+      "required": false,
+      "title": "Stability intro card"
+    }
+  ],
+  "authorityNodes": [
+    {
+      "canonicalId": "node-stability",
+      "lifecycleStatus": "active",
+      "successorCanonicalId": null
+    },
+    {
+      "canonicalId": "node-unrelated-engineering",
+      "lifecycleStatus": "active",
+      "successorCanonicalId": null
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-485febfa90a27cfcedd997ff",
+  "safe_id": "ctc_v11g-485febfa90a27cfcedd997ff",
+  "node": {
+    "name": "ultimate period",
+    "name_en": "ultimate_period",
+    "concept_kind": "performance_metric",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "ultimate period：The period of the sustained oscillations, denoted by P_U, used in the closed-loop Ziegler-Nichols tuning method.",
+  "intuition": null,
+  "explanation": "The period of the sustained oscillations, denoted by P_U, used in the closed-loop Ziegler-Nichols tuning method.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "ultimate pe…",
+    "ultimate per"
+  ],
+  "visual_archetype": "工程评审板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-485febfa90a27cfcedd997ff.md",
+  "provider_policy": "grok-image_gen"
+}

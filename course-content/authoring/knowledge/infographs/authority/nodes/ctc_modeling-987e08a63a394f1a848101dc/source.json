@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-987e08a63a394f1a848101dc",
+  "safe_id": "ctc_modeling-987e08a63a394f1a848101dc",
+  "node": {
+    "name": "只有输入支路而没有输出支路的节点",
+    "name_en": "modeling_987e08a63a394f1a848101dc",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "只有输入支路而没有输出支路的节点，一般代表系统的输出变量。",
+  "intuition": null,
+  "explanation": "只有输入支路而没有输出支路的节点，一般代表系统的输出变量。",
+  "relation_head": "前置 → signal flow graph",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "signal flow graph",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "只有输入支路而没有输出…",
+    "包含组件·sign…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-987e08a63a394f1a848101dc.md",
+  "provider_policy": "grok-image_gen"
+}

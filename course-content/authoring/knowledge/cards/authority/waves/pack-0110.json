@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0110",
+  "offset": 550,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-90a70b314d799971df539598",
+      "batch": "B",
+      "name": "否成立",
+      "definition": "构造输出可控性矩阵S0=[CB CAB ... CA^{n-1}B D]，检验rank S0=q是否成立。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "否成立",
+        "包含组件·输出可控…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 否成立\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 构造输出可控性矩阵S0=[CB CAB ... CA^{n-1}B D]，检验rank S0=q是否成立。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「否成立」、「包含组件·输出可控…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-92036a27c9d71cee9eb07bf5",
+      "batch": "B",
+      "name": "格拉姆矩阵判据 (Gramia…",
+      "definition": "格拉姆矩阵判据 (Gramian matrix criterion for observability)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "格拉姆矩阵判据 (Gr…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 格拉姆矩阵判据 (Gramia…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 格拉姆矩阵判据 (Gramian matrix criterion for observability)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「格拉姆矩阵判据 (G」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a4bbf36e5da58c0e926d8829",
+      "batch": "B",
+      "name": "比例-积分控制规律",
+      "definition": "具有比例-积分控制规律的控制器，称PI控制器，其输出信号u(t)同时成比例地反映输入信号e(t)及其积分。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-积分控制规律",
+        "关联·PI控制器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 比例-积分控制规律\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 具有比例-积分控制规律的控制器，称PI控制器，其输出信号u(t)同时成比例地反映输入信号e(t)及其积分。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「比例-积分控制规律」、「关联·PI控制器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "batch": "B",
+      "name": "串联滞后-超前校正",
+      "definition": "这种校正方法兼有滞后校正和超前校正的优点，即已校正系统响应速度较快，超调量较小，抑制高频噪声的性能也较好。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "串联滞后-超前校正",
+        "包含组件·Phas…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 串联滞后-超前校正\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 这种校正方法兼有滞后校正和超前校正的优点，即已校正系统响应速度较快，超调量较小，抑制高频噪声的性能也较好。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「串联滞后-超前校正」、「包含组件·Phas…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e43a521f65d1388d6cf5a06e",
+      "batch": "B",
+      "name": "Open-loop system poles",
+      "definition": "Open-loop system poles：Poles of the open-loop system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Open-loop s…",
+        "Open-loop sy",
+        "有表示·Open-…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Open-loop system poles\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Open-loop system poles：Poles of the open-loop system.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Open-loop 」、「Open-loop 」、「有表示·Open-…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

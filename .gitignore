@@ -59,6 +59,8 @@ my-next-app/prisma/dev.db
 
 $ Playwright temp
 .playwright-mcp/
+.playwright-cli/
+.kimi-code/
 scripts/**/__pycache__/
 scripts/**/*.pyc
 **/__pycache__/
@@ -87,3 +89,6 @@ unit41-step*.png
 
 # SkillOpt-Sleep local runtime
 /.skillopt-sleep/
+
+# GLB meshopt 压缩产物：由独立 npm run models:produce 流程生成，应用构建仅消费现有产物
+public/assets/models-opt/

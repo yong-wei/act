@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0164",
+  "offset": 820,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_e5a2fdfc7f92f0f96dd773fd",
+      "batch": "C",
+      "name": "Asymptotic Stability",
+      "definition": "Asymptotic Stability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Asymptotic …",
+        "Asymptotic S"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Asymptotic Stability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Asymptotic Stability是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Asymptotic」、「Asymptotic」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ff2d00a3489f08f635fff5b4",
+      "batch": "C",
+      "name": "region of attraction",
+      "definition": "region of attraction是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "region of a…",
+        "region of at"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: region of attraction\nSOURCE DEFINITION (fail-closed, do not invent beyond this): region of attraction是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「region of 」、「region of 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_236ec108cc45299398bac0b8",
+      "batch": "C",
+      "name": "Digital compensator",
+      "definition": "Digital compensator是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital com…",
+        "Digital comp"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Digital compensator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Digital compensator是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Digital co」、「Digital co」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_53433e0044a66cd171c6e1d1",
+      "batch": "C",
+      "name": "Digital compensator",
+      "definition": "Digital compensator是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital com…",
+        "Digital comp"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Digital compensator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Digital compensator是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Digital co」、「Digital co」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-55743366373a5197b074831b",
+      "batch": "C",
+      "name": "Unit step function",
+      "definition": "Unit step function：Unit step function",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Unit step f…",
+        "Unit step fu"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Unit step function\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Unit step function：Unit step function\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Unit step 」、「Unit step 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

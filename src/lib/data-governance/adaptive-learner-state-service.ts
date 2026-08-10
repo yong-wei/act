@@ -1,5 +1,15 @@
-import { COMPETENCY_DIMENSIONS, type CompetencyDimension, type CompetencyVector } from './competency-model';
-// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: primaryCompetencies remains a non-authoritative compatibility field.
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: these six-dimensional types remain non-authoritative compatibility inputs.
+import {
+  COMPETENCY_DIMENSIONS,
+  createEmptyCompetencyVector,
+  type CompetencyDimension,
+  type CompetencyVector, // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative compatibility type.
+} from './competency-model';
+import {
+  projectCoexistingLearningFactIdentities,
+  projectLearningFactServingIdentity,
+  type LearningFactServingIdentity,
+} from '@/lib/canonical-learning-fact-identity';
 import { getArenaEvaluationProtocolVersion } from '@/features/arena/evaluation/protocol';
 import {
   readStudentEvidenceFeatures,
@@ -19,14 +29,22 @@ import {
   type PortraitV2ConsumerDb,
   type PortraitV2Consumer,
 } from './portrait-v2-consumer';
+import { readCurrentCumulativePortrait } from './cumulative-portrait-read-model';
 import {
   mapAdaptiveGoalSliceDimensionToPortraitV2,
   mapLegacyCompetencyDimensionToPortraitV2,
 } from './kaq-objective-taxonomy';
 import {
   PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
   type PortraitV2ProjectedPayload,
 } from './portrait-v2-model';
+import {
+  inferStudentSafeEvidenceSource,
+  projectStudentSafeEvidenceSource,
+  type StudentSafeEvidenceEventReference,
+} from './evidence-timeline';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -337,6 +355,7 @@ export interface ControlCorrectionCapabilityTargetEvidence {
     directEvidenceCount: number;
     supportingEvidenceCount: number;
     supportingEvidenceRefs?: MasteryEvidenceReference[];
+    eventReferences?: StudentSafeEvidenceEventReference[];
     sourceCoverage?: MasteryTraceabilityEntry['sourceCoverage'];
     freshness?: MasteryTraceabilityEntry['freshness'];
     limitations?: string[];
@@ -405,6 +424,7 @@ export interface AdaptiveLearnerState {
       lastUpdatedAt: string;
       freshness?: MasteryTraceabilityEntry['freshness'];
       supportingEvidenceRefs?: MasteryEvidenceReference[];
+      eventReferences?: StudentSafeEvidenceEventReference[];
       sourceCoverage?: MasteryTraceabilityEntry['sourceCoverage'];
       limitations?: string[];
     }>;
@@ -480,6 +500,10 @@ export interface AdaptiveLearnerState {
 }
 
 interface AdaptiveLearnerStateDb extends PortraitV2ConsumerDb {
+  cumulativePortraitCutoverFence?: { findUnique?: (args: any) => Promise<any | null> };
+  cumulativePortraitMigrationRun?: { findUnique?: (args: any) => Promise<any | null> };
+  learningMaterializationRebuildRequest?: { findFirst?: (args: any) => Promise<any | null> };
+  learnerPortraitCurrentState?: { findUnique?: (args: any) => Promise<any | null> };
   studentEvidenceFeatureCache?: {
     findUnique?: (args: any) => Promise<any | null>;
   };
@@ -662,6 +686,41 @@ export function resolveAdaptiveGoalSliceDefinition(goal: string | null | undefin
   return ADAPTIVE_GOAL_SLICE_REGISTRY[normalizedGoal as AdaptiveLearnerStateGoalId];
 }
 
+/**
+ * Project LearningFact knowledge identities for multi-era learner-state /
+ * audit serving. Each fact keeps its own namespace and revision; historical
+ * facts are never reinterpreted through the current Canonical graph (#1116).
+ */
+export function projectLearnerStateFactIdentities(
+  facts: ReadonlyArray<{
+    id: string;
+    knowledgeIdentityNamespace?: string | null;
+    canonicalObjectId?: string | null;
+    aggregateReleaseSetId?: string | null;
+    aggregateReleaseId?: string | null;
+    knowledgeProjectionId?: string | null;
+    knowledgeRevisionRef?: string | null;
+    contextJson?: unknown;
+  }>,
+): LearningFactServingIdentity[] {
+  return projectCoexistingLearningFactIdentities(facts);
+}
+
+export function projectLearnerStateFactIdentity(
+  fact: {
+    id: string;
+    knowledgeIdentityNamespace?: string | null;
+    canonicalObjectId?: string | null;
+    aggregateReleaseSetId?: string | null;
+    aggregateReleaseId?: string | null;
+    knowledgeProjectionId?: string | null;
+    knowledgeRevisionRef?: string | null;
+    contextJson?: unknown;
+  },
+): LearningFactServingIdentity {
+  return projectLearningFactServingIdentity(fact);
+}
+
 export function isAdaptiveLearnerStateServiceEnabled(
   env: Record<string, string | undefined> = process.env,
 ): boolean {
@@ -783,15 +842,33 @@ export async function readAdaptiveLearnerState(
       : Promise.resolve([]),
   ]);
 
+  const masteryFacts = uniqueFactsById([
+    ...facts,
+    ...await readAdaptiveMasteryLearningFacts(db, input.userId, masteryUpdates),
+  ]);
+
   const controlCorrectionArenaSubmissionsWithWriteback = shouldBuildControlCorrectionGoalSlice
     ? await attachPersistedArenaWritebacks(db, controlCorrectionArenaSubmissions)
     : controlCorrectionArenaSubmissions;
-  const portraitResolution = await resolvePrimaryPortraitV2(
-    db,
-    input.userId,
-    portraitConsumerForInput(input),
-    { now, legacySnapshot: latestSnapshot, featureCache },
+  const portraitConsumer = portraitConsumerForInput(input);
+  const supportsFencedCumulativePortrait = Boolean(
+    db.cumulativePortraitCutoverFence?.findUnique &&
+    db.cumulativePortraitMigrationRun?.findUnique &&
+    db.learnerPortraitCurrentState?.findUnique,
   );
+  const portraitResolution = supportsFencedCumulativePortrait
+    ? await resolveFencedAdaptivePortrait(db, {
+        userId: input.userId,
+        consumer: portraitConsumer,
+        now,
+        legacySnapshot: latestSnapshot,
+      })
+    : await resolvePrimaryPortraitV2(
+        db,
+        input.userId,
+        portraitConsumer,
+        { now, legacySnapshot: latestSnapshot, featureCache },
+      );
   const {
     vector: legacyCompatibilityVector,
     source: compatibilitySource,
@@ -820,7 +897,7 @@ export async function readAdaptiveLearnerState(
         ? 'feature-cache'
         : 'fallback-empty';
   const primaryPortrait = portraitResolution.primaryPortrait;
-  const knowledgeMastery = buildKnowledgeMastery(masteryUpdates, now);
+  const knowledgeMastery = buildKnowledgeMastery(masteryUpdates, masteryFacts, now);
   const evidence = buildEvidenceSummary(featureRead, featureCache);
   const masteryTraceability = filterMasteryTraceabilityForRole(buildMasteryTraceability({
     knowledgeMastery,
@@ -908,6 +985,48 @@ export async function readAdaptiveLearnerState(
     ...(goalSlices ? { goalSlices } : {}),
     fieldContracts: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
     missingEvidence,
+  };
+}
+
+async function resolveFencedAdaptivePortrait(
+  db: AdaptiveLearnerStateDb,
+  input: {
+    userId: string;
+    consumer: PortraitV2Consumer;
+    now: Date;
+    legacySnapshot: any;
+  },
+) {
+  const current = await readCurrentCumulativePortrait(db, input.userId, input.consumer);
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the legacy vector is retained only as non-authoritative compatibility output.
+  const legacyVector = input.legacySnapshot?.competencyVector &&
+    typeof input.legacySnapshot.competencyVector === 'object'
+    ? input.legacySnapshot.competencyVector as CompetencyVector
+    : createEmptyCompetencyVector();
+  const primaryPortrait = current.stateKind === 'SNAPSHOT' && current.payload
+    ? current.payload
+    : projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+        userId: input.userId,
+        snapshotAt: input.now.toISOString(),
+        sourceFamily: null,
+        vector: createEmptyCompetencyVector(),
+        now: input.now,
+      }), input.consumer, { now: input.now });
+  return {
+    primaryPortrait,
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this source label documents non-authoritative legacy provenance.
+    legacyCompatibility: {
+      authority: 'legacy-compatibility-only' as const,
+      source: input.legacySnapshot ? 'StudentCompetencySnapshot' as const : 'fallback-empty' as const,
+      vector: legacyVector,
+      snapshotId: typeof input.legacySnapshot?.id === 'string' ? input.legacySnapshot.id : null,
+      snapshotAt: input.legacySnapshot?.snapshotAt instanceof Date
+        ? input.legacySnapshot.snapshotAt.toISOString()
+        : input.now.toISOString(),
+    },
+    limitations: current.stateKind === 'SNAPSHOT'
+      ? []
+      : [`cumulative-portrait-${current.availabilityReason}`],
   };
 }
 
@@ -1191,6 +1310,8 @@ function buildControlCorrectionGoalSlice(input: {
       input.masteryTraceability,
       input.vector,
       sourceEvidence,
+      input.facts,
+      input.arenaSubmissions,
     ),
     dimensions,
     pathContext: buildControlCorrectionPathContext(input.paths, input.activeControlCorrectionPath),
@@ -1205,6 +1326,8 @@ function buildControlCorrectionCapabilityTargets(
   masteryTraceability: AdaptiveLearnerState['masteryTraceability'],
   vector: CompetencyVector,
   sourceEvidence: ControlCorrectionSourceEvidence,
+  facts: Array<Record<string, unknown>>,
+  arenaSubmissions: Array<Record<string, unknown>>,
 ): ControlCorrectionCapabilityTargetEvidence[] {
   return CONTROL_CORRECTION_CAPABILITY_TARGETS.map((target) => {
     const knowledge = knowledgeMastery.tags[target.knowledgeNodeRef];
@@ -1218,6 +1341,11 @@ function buildControlCorrectionCapabilityTargets(
     const knowledgeEvidenceCount = knowledge?.evidenceCount ?? 0;
     const observableEvidenceCount = countControlCorrectionCapabilityObservableEvidence(target, sourceEvidence);
     const traceabilityRefs = traceability?.supportingEvidenceRefs ?? [];
+    const eventReferences = projectStudentSafeEventReferences(
+      traceabilityRefs,
+      facts,
+      arenaSubmissions,
+    );
     const agentToolEvidenceCount = traceabilityRefs.filter((ref) => ref.sourceType === 'AgentToolRun').length;
     const directEvidenceCount = knowledgeEvidenceCount + observableEvidenceCount + agentToolEvidenceCount;
     const observableEvidenceConfidence = controlCorrectionCapabilityObservableEvidenceConfidence(target, observableEvidenceCount);
@@ -1242,14 +1370,68 @@ function buildControlCorrectionCapabilityTargets(
         directEvidenceCount,
         supportingEvidenceCount,
         supportingEvidenceRefs: traceability?.supportingEvidenceRefs ?? [],
+        eventReferences,
         sourceCoverage: traceability?.sourceCoverage ?? emptyMasterySourceCoverage(),
         freshness: traceability?.freshness ?? 'missing',
-        limitations: traceability?.limitations ?? ['missing-governed-evidence'],
+        limitations: unique([
+          ...(traceability?.limitations ?? ['missing-governed-evidence']),
+          ...(eventReferences.length === 0 ? ['missing-verifiable-event-reference'] : []),
+        ]),
         source: 'adaptive-learner-state',
         recommendationBias: state === 'observed' ? 'targeted-practice' : 'starter-or-evidence-gathering',
       },
     };
   });
+}
+
+function projectStudentSafeEventReferences(
+  refs: MasteryEvidenceReference[],
+  facts: Array<Record<string, unknown>>,
+  arenaSubmissions: Array<Record<string, unknown>>,
+): StudentSafeEvidenceEventReference[] {
+  const factById = new Map(facts
+    .map((fact) => [readString(fact.id), fact] as const)
+    .filter((entry): entry is [string, Record<string, unknown>] => Boolean(entry[0])));
+  const arenaSubmissionById = new Map(arenaSubmissions
+    .filter(isOfficialControlCorrectionArenaSubmission)
+    .map((submission) => [readString(submission.id), submission] as const)
+    .filter((entry): entry is [string, Record<string, unknown>] => Boolean(entry[0])));
+  const projected = refs.flatMap((ref): StudentSafeEvidenceEventReference[] => {
+    if (ref.privacyLevel !== 'student-visible') return [];
+    if (ref.sourceType === 'LearningFact') {
+      const fact = factById.get(ref.sourceId);
+      if (!fact) return [];
+      const source = inferStudentSafeEvidenceSource({
+        factType: readString(fact.factType),
+        moduleId: readString(fact.moduleId),
+        lessonId: readString(fact.lessonId),
+        sourceEventId: readString(fact.sourceEventId),
+        contextJson: fact.contextJson,
+      });
+      const occurredAt = dateToIsoOrNull(fact.startedAt ?? ref.evidenceAt);
+      return source && occurredAt ? [{ ...source, occurredAt }] : [];
+    }
+    if (ref.sourceType === 'ArenaSubmission') {
+      const submission = arenaSubmissionById.get(ref.sourceId);
+      const occurredAt = dateToIsoOrNull(submission?.submittedAt ?? ref.evidenceAt);
+      if (!submission || !occurredAt) return [];
+      return [{
+        ...projectStudentSafeEvidenceSource({ sourceScope: 'arena-official-result' }),
+        occurredAt,
+      }];
+    }
+    return [];
+  });
+  const seen = new Set<string>();
+  return projected
+    .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt))
+    .filter((reference) => {
+      const key = `${reference.sourceScope}|${reference.occurredAt}|${reference.nextAction.href}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 3);
 }
 
 function countControlCorrectionCapabilityObservableEvidence(
@@ -1412,7 +1594,11 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
   }
 }
 
-function buildKnowledgeMastery(rows: Array<Record<string, unknown>>, now: Date): AdaptiveLearnerState['knowledgeMastery'] {
+function buildKnowledgeMastery(
+  rows: Array<Record<string, unknown>>,
+  facts: Array<Record<string, unknown>>,
+  now: Date,
+): AdaptiveLearnerState['knowledgeMastery'] {
   const tags: AdaptiveLearnerState['knowledgeMastery']['tags'] = {};
   for (const row of rows) {
     const knowledgeTag = readString(row.knowledgeTag);
@@ -1427,10 +1613,28 @@ function buildKnowledgeMastery(rows: Array<Record<string, unknown>>, now: Date):
       'student-visible',
       confidenceLevel(confidence),
     );
+    const answerId = readString(row.answerId);
+    const linkedFactRefs = (answerId ? facts.filter((fact) =>
+      adaptiveAssessmentAnswerIdFromFact(fact) === answerId
+    ) : [])
+      .map((fact) => masteryEvidenceRef(
+        'LearningFact',
+        readString(fact.id),
+        fact.startedAt,
+        'student-visible',
+        confidenceLevel(confidence),
+      ))
+      .filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
+    const supportingEvidenceRefs = [
+      ...(evidenceRef ? [evidenceRef] : []),
+      ...linkedFactRefs,
+    ];
+    const eventReferences = projectStudentSafeEventReferences(linkedFactRefs, facts, []);
     const limitations = [
       ...(evidenceRef ? [] : ['missing-privacy-safe-evidence-ref']),
       ...(evidenceRef && isStaleEvidenceRef(evidenceRef, now) ? ['stale-evidence'] : []),
       ...(confidence < 0.45 ? ['low-confidence'] : []),
+      ...(eventReferences.length === 0 ? ['missing-verifiable-event-reference'] : []),
     ];
     tags[knowledgeTag] = {
       posteriorMastery: round(numberValue(row.posteriorMastery), 2),
@@ -1439,11 +1643,13 @@ function buildKnowledgeMastery(rows: Array<Record<string, unknown>>, now: Date):
       source: 'adaptive-assessment',
       algorithmVersion: readString(row.algorithmVersion) ?? 'unknown',
       lastUpdatedAt: dateToIso(row.createdAt),
-      freshness: freshnessForMastery(evidenceRef ? [evidenceRef] : [], limitations),
-      supportingEvidenceRefs: evidenceRef ? [evidenceRef] : [],
+      freshness: freshnessForMastery(supportingEvidenceRefs, limitations),
+      supportingEvidenceRefs,
+      eventReferences,
       sourceCoverage: {
         ...emptyMasterySourceCoverage(),
         AdaptiveMasteryUpdate: 'available',
+        LearningFact: linkedFactRefs.length > 0 ? 'available' : 'missing',
       },
       limitations: unique(limitations),
     };
@@ -1452,6 +1658,55 @@ function buildKnowledgeMastery(rows: Array<Record<string, unknown>>, now: Date):
     coverage: Object.keys(tags).length > 0 ? 'available' : 'missing',
     tags,
   };
+}
+
+async function readAdaptiveMasteryLearningFacts(
+  db: AdaptiveLearnerStateDb,
+  userId: string,
+  masteryUpdates: Array<Record<string, unknown>>,
+): Promise<Array<Record<string, unknown>>> {
+  if (!db.learningFact?.findMany) {
+    return [];
+  }
+
+  const answerIds = latestMasteryAnswerIds(masteryUpdates);
+  if (answerIds.length === 0) {
+    return [];
+  }
+
+  return db.learningFact.findMany({
+    where: {
+      userId,
+      sourceEventId: {
+        in: answerIds.map((answerId) => `adaptive-assessment:${answerId}`),
+      },
+    },
+    orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+  });
+}
+
+function latestMasteryAnswerIds(rows: Array<Record<string, unknown>>): string[] {
+  const seenKnowledgeTags = new Set<string>();
+  const answerIds = new Set<string>();
+  for (const row of rows) {
+    const knowledgeTag = readString(row.knowledgeTag);
+    if (!knowledgeTag || seenKnowledgeTags.has(knowledgeTag)) {
+      continue;
+    }
+    seenKnowledgeTags.add(knowledgeTag);
+    const answerId = readString(row.answerId);
+    if (answerId) {
+      answerIds.add(answerId);
+    }
+  }
+  return [...answerIds];
+}
+
+function adaptiveAssessmentAnswerIdFromFact(fact: Record<string, unknown>): string | undefined {
+  const context = getObject(fact.contextJson);
+  const adaptiveAssessment = getObject(context.adaptiveAssessment);
+  const adaptiveAssessmentRef = getObject(adaptiveAssessment.adaptiveAssessmentRef);
+  return readString(adaptiveAssessmentRef.answerId) ?? undefined;
 }
 
 function buildMasteryTraceability(input: {

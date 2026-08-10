@@ -87,19 +87,24 @@ function buildMinimalProfilePayload() {
       personalBestByTask: [],
       frequentFailureObjects: [],
       improvingMetrics: [],
-      growth: {
-        capabilityCoverage: {
-          covered: 0,
-          total: 0,
+        growth: {
+          capabilityCoverage: {
+            covered: 0,
+            total: 0,
+          },
+          evidenceAvailable: false,
+          weakCapabilities: [],
+          improvingCapabilities: [],
+          strongCapabilities: [],
+          nextChallenges: [],
         },
-        evidenceAvailable: false,
-        weakCapabilities: [],
-        improvingCapabilities: [],
-        strongCapabilities: [],
-        nextChallenges: [],
+        trainingSummary: {
+          total: 0,
+          previewCount: 0,
+          recentRuns: [],
+        },
       },
-    },
-  };
+    };
 }
 
 test('homepage exposes the shared student entry drawer at 320px', async ({ page }) => {

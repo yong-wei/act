@@ -2,10 +2,15 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { LEGACY_STOPPED_PATH_STATUS } from '@/lib/canonical-learning-path-transition/contracts';
+import { throwIfLearningPathNotWritable } from '@/lib/canonical-learning-path-transition/mutation-guard';
+import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import { recordPathDeviation } from '@/lib/control-correction-path-rounds';
 import {
   assertCanWriteStudentPath,
+  assertPathMutableForWrite,
   getLearningPathRequester,
+  learningPathMutationBlockedResponse,
   readPathForAccess,
   readPathNodeIds,
   refreshPathEvidenceFeatureCache,
@@ -14,7 +19,7 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-const DEVIATION_TYPES = new Set(['skip', 'timeout', 'manual-jump', 'resource-failure', 'abandonment', 'help-request']);
+const DEVIATION_TYPES = new Set(['skip', 'timeout', 'manual-jump', 'resource-failure', 'replacement', 'abandonment', 'help-request']);
 const EVIDENCE_CONFIDENCE = new Set(['low', 'medium', 'high', 'unknown']);
 const SKIP_WARNING_TEXT = '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。';
 
@@ -27,6 +32,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (path instanceof NextResponse) return path;
     const denied = assertCanWriteStudentPath(requester, path);
     if (denied) return denied;
+    const stopped = assertPathMutableForWrite(path);
+    if (stopped) return stopped;
 
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
@@ -94,6 +101,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    const blocked = learningPathMutationBlockedResponse(error);
+    if (blocked) return blocked;
     console.error('[LearningPathDeviation] Error:', error);
     return NextResponse.json({ error: '记录路径偏离失败' }, { status: 500 });
   }
@@ -161,34 +170,65 @@ function validateAndBuildSkipContext(path: any, body: any): Record<string, unkno
 }
 
 async function advanceCurrentNodeAfterCurrentSkip(path: any, targetNodeId: unknown): Promise<{ currentNodeId: string | null } | null> {
-  if (!prisma.learningPath.update) return null;
-  if (typeof path.currentNodeId !== 'string' || targetNodeId !== path.currentNodeId) return null;
-  const metadata = toRecord(path.lastExecutionMetadata);
-  const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
-  const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
-  skippedNodeIds.add(path.currentNodeId);
-  const mainPathNodeIds = arrayOfStrings(toRecord(path.pathPayload).mainPathNodeIds);
-  const currentIndex = mainPathNodeIds.indexOf(path.currentNodeId);
-  const nextNodeId = currentIndex >= 0
-    ? mainPathNodeIds
-        .slice(currentIndex + 1)
-        .find((nodeId) => !completedNodeIds.has(nodeId) && !skippedNodeIds.has(nodeId)) ?? null
-    : null;
+  // Skip advance / idempotent repair must re-check under the stop fence so a
+  // cutover after deviation evidence cannot rewrite a stopped Legacy path.
+  return runWithLearningPathWriteFence(prisma as any, path.id, async (tx) => {
+    if (typeof tx.learningPath.findFirst !== 'function') {
+      throw new Error('LearningPath findFirst must be available on the write-fence transaction client');
+    }
+    if (typeof tx.learningPath.update !== 'function') {
+      throw new Error('LearningPath update must be available on the write-fence transaction client');
+    }
 
-  await prisma.learningPath.update({
-    where: { id: path.id },
-    data: {
-      currentNodeId: nextNodeId,
-      lastExecutionMetadata: {
-        ...metadata,
-        activeNodeId: nextNodeId,
-        skippedNodeIds: [...skippedNodeIds],
-        updatedAt: new Date().toISOString(),
+    const latestPath = await tx.learningPath.findFirst({
+      where: { id: path.id },
+      select: {
+        id: true,
+        pathStatus: true,
+        pathPayload: true,
+        currentNodeId: true,
+        lastExecutionMetadata: true,
       },
-    },
-  });
+    });
+    throwIfLearningPathNotWritable(latestPath ?? {
+      id: path.id,
+      pathStatus: LEGACY_STOPPED_PATH_STATUS,
+    });
 
-  return { currentNodeId: nextNodeId };
+    const currentNodeId = typeof latestPath?.currentNodeId === 'string'
+      ? latestPath.currentNodeId
+      : (typeof path.currentNodeId === 'string' ? path.currentNodeId : null);
+    if (!currentNodeId || targetNodeId !== currentNodeId) return null;
+
+    const metadata = toRecord(latestPath?.lastExecutionMetadata ?? path.lastExecutionMetadata);
+    const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
+    const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
+    skippedNodeIds.add(currentNodeId);
+    const mainPathNodeIds = arrayOfStrings(
+      toRecord(latestPath?.pathPayload ?? path.pathPayload).mainPathNodeIds,
+    );
+    const currentIndex = mainPathNodeIds.indexOf(currentNodeId);
+    const nextNodeId = currentIndex >= 0
+      ? mainPathNodeIds
+          .slice(currentIndex + 1)
+          .find((nodeId) => !completedNodeIds.has(nodeId) && !skippedNodeIds.has(nodeId)) ?? null
+      : null;
+
+    await tx.learningPath.update({
+      where: { id: path.id },
+      data: {
+        currentNodeId: nextNodeId,
+        lastExecutionMetadata: {
+          ...metadata,
+          activeNodeId: nextNodeId,
+          skippedNodeIds: [...skippedNodeIds],
+          updatedAt: new Date().toISOString(),
+        },
+      },
+    });
+
+    return { currentNodeId: nextNodeId };
+  });
 }
 
 function toRecord(value: unknown): Record<string, unknown> {

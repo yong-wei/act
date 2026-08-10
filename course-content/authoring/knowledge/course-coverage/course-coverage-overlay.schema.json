@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-course-coverage-overlay/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "overlayId",
+    "overlayVersion",
+    "courseId",
+    "releaseSetId",
+    "releaseId",
+    "authoringRevision",
+    "sourceHash",
+    "releaseHash",
+    "lockRawHash",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "act-course-coverage-overlay/v1" },
+    "overlayId": { "const": "automatic-control-root-locus-coverage-v1" },
+    "overlayVersion": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+    "courseId": { "const": "automatic-control" },
+    "releaseSetId": { "const": "actkg-authoritative-candidate-v1" },
+    "releaseId": { "const": "root-locus-engineering-v0.1" },
+    "authoringRevision": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "releaseHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "lockRawHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["canonicalId", "role"],
+        "properties": {
+          "canonicalId": { "type": "string", "minLength": 1 },
+          "role": {
+            "enum": [
+              "formal_objective",
+              "necessary_prerequisite",
+              "explicit_extension"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

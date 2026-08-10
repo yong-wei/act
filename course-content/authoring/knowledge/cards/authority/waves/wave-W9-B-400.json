@@ -1,0 +1,742 @@
+{
+  "wave_id": "W9",
+  "batch": "B",
+  "title": "Batch B slice 9",
+  "offset": 400,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-1ca4635beaad42eaac5ec29e",
+      "entity_id": "ctkg:v3e-object-1ca4635beaad42eaac5ec29e",
+      "name": "Nonlinear Element with Sinusoidal Input",
+      "name_en": "Nonlinear Element with Sinusoidal Input",
+      "definition": "Nonlinear Element with Sinusoidal Input：Nonlinear Element with Sinusoidal Input",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Nonlinear E…",
+        "应用于·Descr…",
+        "关联·Descri…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1e13d3d21a22463755b103b2",
+      "entity_id": "ctkg:v3e-object-1e13d3d21a22463755b103b2",
+      "name": "Ackermann's Formula for Estimator",
+      "name_en": "Ackermann's Formula for Estimator",
+      "definition": "Ackermann's Formula for Estimator：Compute L using L = α_e(A) O^{-1} [0 ... 0 1]^T, where O is the observability matrix.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Ackermann's…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "entity_id": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "name": "比例-积分-微分控制规律",
+      "name_en": null,
+      "definition": "具有比例-积分-微分控制规律的控制器，称PID控制器，这种组合具有三种基本规律各自的特点。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-积分-微分控制规律"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1ef3d6dbbf9b4f1ecd79f80b",
+      "entity_id": "ctkg:v3e-object-1ef3d6dbbf9b4f1ecd79f80b",
+      "name": "系统不完全可控",
+      "name_en": null,
+      "definition": "对于式（9－76）所示线性时变系统，取定初始时刻 t0∈Tt，如果状态空间中存在一个或一些非零状态在时刻 t0 是不可控的，则称系统在时刻 t0 是不完全可控的，也称为系统是不可控的。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统不完全可控"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1f331a007aa3ca6c2c95d297",
+      "entity_id": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
+      "name": "Estimation error",
+      "name_en": "Estimation error",
+      "definition": "Estimation error：The difference between the actual state x(t) and the estimated state hat{x}(t), denoted e(t) = x(t) - hat{x}(t).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Estimation …",
+        "Estimation e"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1f9eb1e90b66894a079a56de",
+      "entity_id": "ctkg:v3e-object-1f9eb1e90b66894a079a56de",
+      "name": "Dominant Second-Order Poles Method",
+      "name_en": "Dominant Second-Order Poles Method",
+      "definition": "Dominant Second-Order Poles Method：A pole-placement design approach that selects closed-loop poles for a higher-order system as a desired pair of dominant…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Dominant Se…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2025acc5e7afefa0ece210e2",
+      "entity_id": "ctkg:v3e-object-2025acc5e7afefa0ece210e2",
+      "name": "Estimator Error",
+      "name_en": "Estimator Error",
+      "definition": "Estimator Error：The difference between the true state and the estimated state, defined as x̃ ≜ x - x̂.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Estimator E…",
+        "Estimator Er",
+        "应用于·Estim…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-21637e32df41e433f01db54b",
+      "entity_id": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "name": "等倾线法",
+      "name_en": null,
+      "definition": "等倾线法是求取相轨迹的一种作图方法，不需求解微分方程。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "等倾线法",
+        "属于·等倾线",
+        "包含组件·等倾线"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-224a99f37dc359e50c070e54",
+      "entity_id": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+      "name": "Tracking error",
+      "name_en": "Tracking error",
+      "definition": "Tracking error：The difference between the system output and the reference input, y(t) - r(t).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Tracking er…",
+        "Tracking err",
+        "包含组件·Meth…",
+        "应用于·Refer…",
+        "应用于·Metho…",
+        "应用于·Asymp…",
+        "应用于·Track…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-22c09bec3824e6b6d0e4d83b",
+      "entity_id": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+      "name": "Phase-lead compensator",
+      "name_en": "Phase-lead compensator",
+      "definition": "Phase-lead compensator：Phase-lead compensator",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase-lead …",
+        "Phase-lead c",
+        "一种·Phase-…",
+        "是一种·超前校正网络",
+        "一种·Compen…",
+        "用于分析·Phas…",
+        "用于分析·根轨迹"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-22d70476ed16c55e186daa40",
+      "entity_id": "ctkg:v3e-object-22d70476ed16c55e186daa40",
+      "name": "Using roots to c",
+      "name_en": "Using roots to compute poles from denominator polynomial",
+      "definition": "Using roots to c：Using roots to compute poles from denominator polynomial",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Using roots…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-232cff230e48397cf46cb944",
+      "entity_id": "ctkg:v3e-object-232cff230e48397cf46cb944",
+      "name": "microcontroller",
+      "name_en": "microcontroller",
+      "definition": "microcontroller：A unit that contains both a microprocessor and most other needed functions, including A/D and D/A conversion, used in m…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "microcontro…",
+        "microcontrol"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-232e387ed53e92abee078346",
+      "entity_id": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "name": "截止频率",
+      "name_en": null,
+      "definition": "开环幅频特性A(ω)=1时的频率，记为ω_c。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "截止频率",
+        "用于分析·对数幅频…",
+        "用于分析·利用开环…",
+        "关联·相角裕度",
+        "关联·阻尼自然频率",
+        "关联·带宽频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2352b539ff08187f42885709",
+      "entity_id": "ctkg:v3e-object-2352b539ff08187f42885709",
+      "name": "时间常数",
+      "name_en": null,
+      "definition": "对于无源超前网络，T=R1R2C/(R1+R2)；对于无源滞后网络，T=(R1+R2)C。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "时间常数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-23665070dce851fbb0ebda8b",
+      "entity_id": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+      "name": "Auxiliary polynomial",
+      "name_en": "Auxiliary polynomial",
+      "definition": "Auxiliary polynomial：The polynomial which immediately precedes the zero entry in the Routh array. The order of the auxiliary polynomial is a…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Auxiliary p…",
+        "Auxiliary po",
+        "属于·Routh …",
+        "包含组件·Symm…",
+        "关联·Symmet…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-23a1c9229387ded552fbdbb3",
+      "entity_id": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+      "name": "PBH秩判据",
+      "name_en": null,
+      "definition": "由波波夫、贝尔维奇和豪塔斯提出的可控性和可观测性判据，基于对矩阵A的特征值检验矩阵的秩。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PBH秩判据",
+        "是一种·否成立"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-23ce934816d236fcc2836d27",
+      "entity_id": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "name": "Dominant poles",
+      "name_en": "Dominant poles",
+      "definition": "Dominant poles：The poles at λ = -0.4 ± 0.3j are the dominant poles.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Dominant po…",
+        "Dominant pol"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-241503a6440d96140036a51f",
+      "entity_id": "ctkg:v3e-object-241503a6440d96140036a51f",
+      "name": "anti-alias prefilter",
+      "name_en": "anti-alias prefilter",
+      "definition": "anti-alias prefilter：An analog device designed to reduce the effects of aliasing, placed between the analog sensor and the A/D converter.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "anti-alias …",
+        "anti-alias p",
+        "用于分析·alia…",
+        "关联·A/D co…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-241ca37a0246525596c75694",
+      "entity_id": "ctkg:v3e-object-241ca37a0246525596c75694",
+      "name": "Zero-order hold",
+      "name_en": "Zero-order hold",
+      "definition": "Zero-order hold：A circuit that takes the value r(kT) and holds it constant for kT ≤ t < (k+1)T.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Zero-order …",
+        "Zero-order h"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2496ae999e2b3f64959076f2",
+      "entity_id": "ctkg:v3e-object-2496ae999e2b3f64959076f2",
+      "name": "Graph determinant in signal-flow graph",
+      "name_en": "Graph determinant in signal-flow graph",
+      "definition": "Graph determinant in signal-flow graph：The graph determinant Δ(s) is used in Mason's gain formula to evaluate the state transition matrix from the signal-flow…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Graph deter…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-24abf351ed0af6684efdb4b7",
+      "entity_id": "ctkg:v3e-object-24abf351ed0af6684efdb4b7",
+      "name": "非齐次状态方程",
+      "name_en": null,
+      "definition": "形如 \\dot{x}(t) = A x(t) + B u(t) 的状态方程，包含输入项。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非齐次状态方程",
+        "用于分析·积分法求…",
+        "用于分析·拉普拉斯…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-256b7b4e6dd8071dc7ce3512",
+      "entity_id": "ctkg:v3e-object-256b7b4e6dd8071dc7ce3512",
+      "name": "z变换",
+      "name_en": null,
+      "definition": "z变换是从拉氏变换直接引申出来的一种变换方法，它实际上是采样函数拉氏变换的变形，是研究线性离散系统的重要数学工具。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "z变换",
+        "是一种·z变换算子",
+        "包含组件·级数求和法",
+        "关联·z变换算子"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-26855d3b2dc6161c8705b439",
+      "entity_id": "ctkg:v3e-object-26855d3b2dc6161c8705b439",
+      "name": "无源校正网络",
+      "name_en": null,
+      "definition": "由电阻、电容等无源元件组成的校正网络，用于控制系统校正。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "无源校正网络"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-27e0a7e37803fbebc1b6f65a",
+      "entity_id": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "name": "对数幅相曲线",
+      "name_en": null,
+      "definition": "纵坐标为L(ω)（dB），横坐标为φ(ω)（度），均为线性分度，频率ω为参变量的频率特性曲线。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "对数幅相曲线"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-27f13707df83e3cfd476ba33",
+      "entity_id": "ctkg:v3e-object-27f13707df83e3cfd476ba33",
+      "name": "Sampled data",
+      "name_en": "Sampled data",
+      "definition": "Sampled data：Data obtained for the system variables only at discrete intervals.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sampled data",
+        "一种·Discre…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2a6df9c2e027152138c44554",
+      "entity_id": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+      "name": "离散时间系统",
+      "name_en": null,
+      "definition": "如果控制系统中有一处或几处信号是一串脉冲或数码，换句话说，这些信号仅定义在离散时间上，则这样的系统称为离散时间系统，简称离散系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散时间系统",
+        "是一种·采样控制系统",
+        "是一种·数字控制系统",
+        "包含组件·脉冲序列",
+        "关联·连续时间系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2b3daca16f4fb57b9da083bd",
+      "entity_id": "ctkg:v3e-object-2b3daca16f4fb57b9da083bd",
+      "name": "Frequency-Respon",
+      "name_en": "Frequency-Response Based Stability Analysis",
+      "definition": "Frequency-Respon：External stability analysis using frequency response methods such as the describing function and circle criterion.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Frequency-R…",
+        "一种·Circle",
+        "包含组件·Desc…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2b6644abd74af728f92d1b25",
+      "entity_id": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+      "name": "等倾线",
+      "name_en": null,
+      "definition": "当相轨迹经过该等倾线上任一点时，其切线的斜率都相等，均为 α。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "等倾线",
+        "属于·等倾线法",
+        "属于·相平面",
+        "包含组件·等倾线法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2be71df1c8c0152ac5f69c1b",
+      "entity_id": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+      "name": "Steady-state tracking error",
+      "name_en": "Steady-state tracking error",
+      "definition": "Steady-state tracking error：The error between the output and the reference input after transients have died out.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Steady-stat…",
+        "用于分析·Inte…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2c2f917a06c974fda55b52fd",
+      "entity_id": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+      "name": "Amplitude quantization error",
+      "name_en": "Amplitude quantization error",
+      "definition": "Amplitude quantization error：The error introduced when the converted signal m(kT) is stored in digital logic with a finite number of binary digits.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Amplitude q…",
+        "一种·Quanti…",
+        "关联·Analog…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2c4bb4e99c2a8a48b91e625a",
+      "entity_id": "ctkg:v3e-object-2c4bb4e99c2a8a48b91e625a",
+      "name": "random-access memory (RAM)",
+      "name_en": "random-access memory (RAM)",
+      "definition": "random-access memory (RAM)：random-access memory (RAM)",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "random-acce…",
+        "关联·read-o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2c60af6bdfb932de8cc33ca5",
+      "entity_id": "ctkg:v3e-object-2c60af6bdfb932de8cc33ca5",
+      "name": "Sampler",
+      "name_en": "Sampler",
+      "definition": "Sampler：A switch that closes every T seconds for one instant of time.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sampler",
+        "一种·Ideal",
+        "应用于·Sampl…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2ca939471631d90bd6098990",
+      "entity_id": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "name": "保持器",
+      "name_en": null,
+      "definition": "在脉冲序列和连续信号之间要用保持器，实现两种信号的转换。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "保持器",
+        "是一种·零阶保持器",
+        "是一种·一阶保持器",
+        "一种·信号复现滤波器",
+        "属于·采样控制系统",
+        "包含组件·采样控制…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2d3e13db4965d78a3919bba8",
+      "entity_id": "ctkg:v3e-object-2d3e13db4965d78a3919bba8",
+      "name": "MATLAB绘制相轨迹",
+      "name_en": null,
+      "definition": "应用MATLAB软件，调用命令ode45及plot，可解出系统微分方程高阶数值，并在线性坐标平面上方便地绘出相应的相轨迹。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "MATLAB绘制相轨迹",
+        "用于分析·相轨迹",
+        "关联·相平面法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2e2707d377000d69ac75b508",
+      "entity_id": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "name": "幅相频率特性曲线",
+      "name_en": null,
+      "definition": "以横轴为实轴、纵轴为虚轴构成的复数平面上，以频率ω为参变量绘制的频率特性曲线。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "幅相频率特性曲线",
+        "关联·幅相频率特性…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2e91a0da0c74ca85ce8f952b",
+      "entity_id": "ctkg:v3e-object-2e91a0da0c74ca85ce8f952b",
+      "name": "Determining PM from Bode plot",
+      "name_en": "Determining PM from Bode plot",
+      "definition": "Determining PM from Bode plot：Measure angle of G(jω) as it crosses the magnitude=1 circle.",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Determining…",
+        "用于分析·Cros…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2eb64f744b929432a6394ee5",
+      "entity_id": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+      "name": "Symmetrical root pairs",
+      "name_en": "Symmetrical root pairs",
+      "definition": "Symmetrical root pairs：Symmetrical root pairs",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Symmetrical…",
+        "Symmetrical ",
+        "包含组件·Auxi…",
+        "关联·Auxili…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2f12669555aed67867c3b7cd",
+      "entity_id": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "name": "零阶保持器",
+      "name_en": null,
+      "definition": "零阶保持器是一种按常值外推的保持器，它把前一采样时刻nT的采样值e(nT)一直保持到下一采样时刻(n+1)T到来之前。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "零阶保持器",
+        "是一种·保持器",
+        "关联·一阶保持器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2f3ebf66b229bd1917da4b41",
+      "entity_id": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "name": "Gain Margin (GM)",
+      "name_en": "Gain Margin (GM)",
+      "definition": "Gain Margin (GM)：The factor by which the gain can be increased (or decreased in certain cases) before instability results.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Gain Margin…",
+        "Gain Margin ",
+        "派生自·Deter…",
+        "关联·Determ…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2fd3b8dfc79284046cb06990",
+      "entity_id": "ctkg:v3e-object-2fd3b8dfc79284046cb06990",
+      "name": "A/D转换器",
+      "name_en": null,
+      "definition": "A/D 转换器是把连续的模拟信号转换为离散数字信号的装置。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "A/D转换器",
+        "关联·模拟信号",
+        "关联·数字信号"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-302e66995736fab70bde0338",
+      "entity_id": "ctkg:v3e-object-302e66995736fab70bde0338",
+      "name": "构造可观测性矩阵V=[C",
+      "name_en": "Observability rank test method",
+      "definition": "构造可观测性矩阵V=[C; CA; ...; CA^{n-1}]，检验rank V=n是否成立。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "构造可观测性矩阵V=[C"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-30cb7d43e8cbe99fe69e5e39",
+      "entity_id": "ctkg:v3e-object-30cb7d43e8cbe99fe69e5e39",
+      "name": "Sampling period",
+      "name_en": "Sampling period",
+      "definition": "Sampling period：The fixed period at which all numbers enter or leave the computer.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sampling pe…",
+        "Sampling per",
+        "应用于·Sampl…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-31596a5fab1911f024a4b8db",
+      "entity_id": "ctkg:v3e-object-31596a5fab1911f024a4b8db",
+      "name": "Symmetric Root Locus (SRL)",
+      "name_en": "Symmetric Root Locus (SRL)",
+      "definition": "Symmetric Root Locus (SRL)：A root-locus problem with respect to the parameter ρ, which weighs the relative cost of tracking error z^2 with respect…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Symmetric R…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-31fd73d9e24d1077744bf193",
+      "entity_id": "ctkg:v3e-object-31fd73d9e24d1077744bf193",
+      "name": "Root locus metho",
+      "name_en": "Root locus method for PI compensator design",
+      "definition": "Root locus metho：Adjusting the compensator zero so that the negative real part of the complex roots is zeta*omega_n=0.75, and determinin…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Root locus …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-327cafd07ac8956536bab418",
+      "entity_id": "ctkg:v3e-object-327cafd07ac8956536bab418",
+      "name": "Routh's method f",
+      "name_en": "Routh's method for parameter range determination",
+      "definition": "Routh's method f：Routh's method is useful for determining the range of parameters for which a feedback system remains stable, especially…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Routh's met…",
+        "用于分析·Stab…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-331ee4b283af66a85a6bfa1c",
+      "entity_id": "ctkg:v3e-object-331ee4b283af66a85a6bfa1c",
+      "name": "Open-Loop Estimator",
+      "name_en": "Open-Loop Estimator",
+      "definition": "Open-Loop Estimator：An estimator that uses a model of the plant without feedback correction, relying on correct initial conditions.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Open-Loop E…",
+        "Open-Loop Es"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-35264ec175b811e30fa55aab",
+      "entity_id": "ctkg:v3e-object-35264ec175b811e30fa55aab",
+      "name": "Method 2: Using ",
+      "name_en": "Method 2: Using tracking error as compensator input",
+      "definition": "Method 2: Using ：Select N=0 and M=-L so that the observer is driven by the tracking error y(t)-r(t).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Method 2",
+        "包含组件·Trac…",
+        "应用于·Track…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3584625f5f11346155d538d3",
+      "entity_id": "ctkg:v3e-object-3584625f5f11346155d538d3",
+      "name": "平衡状态稳定性",
+      "name_en": null,
+      "definition": "系统在平衡工作点处，当输入信号为零时输出信号亦为零，在扰动作用下偏离平衡点后，系统输出量增量随时间变化趋于原平衡点的性质。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "平衡状态稳定性",
+        "是一种·稳定性",
+        "关联·运动稳定性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-35b4c7c6116be04938f2e7a4",
+      "entity_id": "ctkg:v3e-object-35b4c7c6116be04938f2e7a4",
+      "name": "非周期函数的频谱",
+      "name_en": null,
+      "definition": "非周期函数的频谱由傅氏变换 F(jω) 表示，为连续谱，描述信号谐波的分布特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非周期函数的频谱"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-368b8560c68e643a92671358",
+      "entity_id": "ctkg:v3e-object-368b8560c68e643a92671358",
+      "name": "Matrix Exponenti",
+      "name_en": "Matrix Exponential Method for Solving State Equations",
+      "definition": "Matrix Exponenti：A method that expresses the solution of linear time-invariant state equations using the matrix exponential.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Matrix Expo…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

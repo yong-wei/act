@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-c257d94caf0f579cc0a8dd67",
+  "safe_id": "ctkg_v3e-object-c257d94caf0f579cc0a8dd67",
+  "node": {
+    "name": "Gain stabilization",
+    "name_en": "Gain stabilization",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Gain stabilization：A stabilization method that ensures stability by tailoring the high-frequency magnitude never to exceed 1, thereby redu…",
+  "intuition": null,
+  "explanation": "A stabilization method that ensures stability by tailoring the high-frequency magnitude never to exceed 1, thereby reducing the likelihood of instability from unknown high-frequency resonances.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Gain stabil…",
+    "Gain stabili"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c257d94caf0f579cc0a8dd67.md",
+  "provider_policy": "grok-image_gen"
+}

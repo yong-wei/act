@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+  "safe_id": "ctc_v11g-40ac1517fc1bfb398dd75afe",
+  "node": {
+    "name": "特征方程",
+    "name_en": "characteristic_equation",
+    "concept_kind": "mathematical_object",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "特征方程：The equation whose closed-loop roots in the s-plane determine the relative stability and transient performance of a clo…",
+  "intuition": "在图谱邻接中可把握：前置 → 根轨迹法、给定稳定度检验方法、Routh array · 后续 → 根轨迹、根轨迹法、稳定性。",
+  "explanation": "The equation whose closed-loop roots in the s-plane determine the relative stability and transient performance of a closed-loop control system.",
+  "relation_head": "前置 → 根轨迹法、给定稳定度检验方法、Routh array · 后续 → 根轨迹、根轨迹法、稳定性",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "根轨迹法",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "给定稳定度检验方法",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Routh array",
+      "relation": "派生自"
+    },
+    {
+      "direction": "前置",
+      "peer": "Normalized characteristic equation",
+      "relation": "派生自"
+    },
+    {
+      "direction": "后续",
+      "peer": "根轨迹",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "根轨迹法",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "特征方程",
+    "characterist",
+    "用于分析·根轨迹法",
+    "应用于·给定稳定度…",
+    "派生自·Routh…",
+    "派生自·Norma…",
+    "关联·根轨迹"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-40ac1517fc1bfb398dd75afe.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,67 @@
+{
+  "pack_id": "P0171",
+  "offset": 855,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_61472f9425cd8eaba17968db",
+      "batch": "C",
+      "name": "Discrete Design",
+      "definition": "Discrete Design是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete De…",
+        "Discrete Des"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete Design\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete Design是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete D」、「Discrete D」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a183d0a0001c3553cc638558",
+      "batch": "C",
+      "name": "Discrete Models",
+      "definition": "Discrete Models是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete Mo…",
+        "Discrete Mod"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete Models\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete Models是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete M」、「Discrete M」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_c762d9e6b65175bba817ef32",
+      "batch": "C",
+      "name": "具有数字控制器的离散系统结构图",
+      "definition": "具有数字控制器的离散系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "具有数字控制器的离散系…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 具有数字控制器的离散系统结构图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 具有数字控制器的离散系统结构图是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「具有数字控制器的离散」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "batch": "C",
+      "name": "Natural response",
+      "definition": "Natural response：Natural response",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Natural res…",
+        "Natural resp",
+        "一种·impuls…",
+        "关联·Fast p…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Natural response\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Natural response：Natural response\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Natural re」、「Natural re」、「一种·impuls…」、「关联·Fast p…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-a9b5aa38cf8c93e8dc4533da",
+      "batch": "C",
+      "name": "Quality factor Q",
+      "definition": "Quality factor Q：Quality factor Q",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Quality fac…",
+        "Quality fact"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Quality factor Q\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Quality factor Q：Quality factor Q\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Quality fa」、「Quality fa」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

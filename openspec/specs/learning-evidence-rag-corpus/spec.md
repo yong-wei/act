@@ -15,16 +15,21 @@ The system SHALL index learning evidence and course content as governed corpus c
 - **THEN** only a redacted summary or stable reference SHALL be available to ordinary student or teacher retrieval.
 
 ### Requirement: Citations are verified after generation
-The system SHALL verify citations independently from model generation before displaying or persisting them.
+The system SHALL verify citations independently from model generation before final display or persistence while preserving user-readable prose when citation mapping fails.
 
 #### Scenario: Citation is valid
-- **WHEN** a generated answer references a candidate chunk id visible to the current role and scope
-- **THEN** the verifier SHALL confirm chunk existence, source accessibility, source-type compatibility, quote hash or span ref where applicable, and privacy visibility.
+- **WHEN** a generated answer references a server-assigned citation visible to the current role and scope
+- **THEN** the verifier SHALL confirm source existence, accessibility, source-type compatibility, structural-unit or evidence identity, and privacy visibility.
 
 #### Scenario: Citation is fake or inaccessible
-- **WHEN** a generated answer references a missing, inaccessible, unsupported, or privacy-violating chunk id
-- **THEN** the system SHALL reject, redact, or downgrade the answer before display
-- **AND** it SHALL expose the citation limitation to the caller.
+- **WHEN** a generated answer contains missing, inaccessible, unsupported, ambiguous, or privacy-violating citation markers
+- **THEN** invalid markers and links SHALL be removed from production prose while valid citations remain
+- **AND** the final citation area SHALL show `部分引用未能核验`.
+
+#### Scenario: All textbook citations are unresolved
+- **WHEN** no textbook citation in an otherwise completed answer can be verified after the single repair attempt
+- **THEN** the answer prose SHALL remain visible without invalid markers or links
+- **AND** the citation area SHALL show `引用未能核验`.
 
 ### Requirement: Corpus chunks declare authority and scope
 Every RAG corpus chunk SHALL declare authority, retrieval scope, and source version or freshness metadata in addition to provenance, privacy, confidence, and freshness.
@@ -45,7 +50,7 @@ Every RAG corpus chunk SHALL declare authority, retrieval scope, and source vers
 - **AND** citation verification SHALL preserve that metadata in CitationChip payloads when relevant.
 
 ### Requirement: Retrieval separates teaching knowledge and learner evidence
-The retrieval layer SHALL distinguish high-authority teaching knowledge from personalized learner evidence.
+The retrieval layer SHALL distinguish high-authority teaching knowledge from personalized learner evidence. RAG MUST additionally separate Engineering Authority retrieval from Teaching Resource Projection retrieval. A composed query MAY use both domains only when the response records each domain's Authority/Projection/scope and citation provenance; learner evidence remains independently governed.
 
 #### Scenario: Concept explanation is requested
 - **WHEN** a user requests a course concept explanation
@@ -58,6 +63,16 @@ The retrieval layer SHALL distinguish high-authority teaching knowledge from per
 - **THEN** retrieval SHALL include authorized learner evidence where available
 - **AND** the response SHALL expose a limitation when learner evidence is missing or low confidence.
 - **AND** the limitation SHALL affect personalization scope, confidence, and recommendation style rather than causing teaching-content retrieval to fail.
+
+#### Scenario: Engineering-only query
+- **WHEN** a query asks about an engineering entity or exact relation without a course scope
+- **THEN** retrieval SHALL use Engineering Authority only
+- **AND** it SHALL not require Teaching Projection
+
+#### Scenario: Teaching query has a course scope
+- **WHEN** a query asks for a lesson explanation or prerequisite-backed resource
+- **THEN** retrieval SHALL use the scoped Teaching Projection domain
+- **AND** optional card absence SHALL be reported without hiding other resources
 
 ### Requirement: Generated answers are citation-guarded
 Citation guardrails SHALL be visible in assistant-facing product surfaces.
@@ -125,17 +140,27 @@ The RAG retrieval layer SHALL combine governed scope filtering with lexical, sem
 - **AND** candidates outside permitted privacy scope SHALL remain inaccessible.
 
 ### Requirement: Textbook and reviewed media projections enter the governed RAG corpus
-The governed RAG corpus SHALL support resource retrieval projections for registered teaching resources without creating a separate unmanaged corpus.
+The governed RAG corpus SHALL support structured textbook units, retrieval windows, and reviewed media projections without creating a separate unmanaged corpus. Textbook projection rows MAY enter the governed corpus only when their public locator, Authority identity, access mode, Canonical binding, and citation-safe provenance are complete. A locator-only `REFERENCE_ONLY` row MUST NOT be treated as an authorized raw content body.
 
 #### Scenario: Grounded textbook chunk is indexed
-- **WHEN** a reviewed textbook section or figure description is indexed
-- **THEN** the chunk SHALL include section id, page anchor, source version, authority, graph refs, citation target, privacy scope, and content hash
-- **AND** citation verification SHALL use server-owned CitationAddress metadata rather than model-authored links.
+- **WHEN** a reviewed textbook structural unit, fragment, or retrieval window is indexed
+- **THEN** it SHALL include owning unit id, stable structure path, fragment or page anchor where applicable, source version, authority, graph refs, citation target, privacy scope, and content hash
+- **AND** retrieval windows SHALL NOT become verified citation identities.
 
 #### Scenario: Reviewed media projection chunk is indexed
 - **WHEN** a transcript segment, image description, slide segment, or infograph description from a validated media ingestion projection is indexed
 - **THEN** the chunk SHALL include segment anchor, source version, AI-use permission, review state, graph refs, citation target, privacy scope, freshness metadata, tool/version where applicable, input scope, output hash, retention rule, and limitation state
 - **AND** provisional chunks SHALL be retrievable only with a limitation state until reviewed.
+
+#### Scenario: Authorized runtime section is projected
+- **WHEN** a textbook section has a valid locator and an authorized content source
+- **THEN** RAG SHALL index the section through its governed runtime/citation contract
+- **AND** the result SHALL retain SourceDocument, SourceAnchor, Canonical, Authority, and projection identities
+
+#### Scenario: Only public locator exists
+- **WHEN** the section has no authorized body
+- **THEN** RAG MAY expose a reference/citation target
+- **AND** it SHALL not synthesize or copy textbook body text
 
 ### Requirement: Grounded textbook and media citations resolve through server-owned addresses
 Verified citations SHALL resolve through a server-owned CitationAddress contract rather than model-authored URLs.
@@ -150,16 +175,8 @@ Verified citations SHALL resolve through a server-owned CitationAddress contract
 - **THEN** the record SHALL include tool name, version, input scope, output hash, permission, and retention rule
 - **AND** student raw answers, classroom evidence, and learner state SHALL NOT be sent to external tools by default.
 
-### Requirement: Long-form planning units retain chunk-level citation support
-The governed RAG corpus SHALL preserve citation support for textbook and reference chunks used by reviewed section-level PlanningUnits.
-
-#### Scenario: Section is selected in a path
-- **WHEN** a reviewed textbook or reference section is selected as a path resource
-- **THEN** related chunks, figures, anchors, and citation targets SHALL remain available for Konling explanations and path rationale
-- **AND** citation verification SHALL resolve through server-owned CitationAddress metadata.
-
 ### Requirement: Reviewed resource projections have complete citation anchors
-Reviewed resource projections used by path planning or Konling grounding SHALL have mapped retrieval chunks and server-owned citation anchors, or explicit limitation states.
+Reviewed resource projections used by path planning or Konling grounding SHALL have mapped retrieval chunks and server-owned citation anchors, or explicit limitation states. Every textbook citation candidate MUST retain exact SourceDocument/SourceAnchor and section/page locator metadata. Missing sidecar or ambiguous anchor SHALL fail the textbook projection rather than falling back to a broad or guessed citation.
 
 #### Scenario: Reviewed projection is indexed
 - **WHEN** a reviewed textbook section, reference section, media transcript, slide segment, image description, figure, handout, or runtime support resource is indexed
@@ -171,26 +188,22 @@ Reviewed resource projections used by path planning or Konling grounding SHALL h
 - **THEN** the citation SHALL be downgraded or limited
 - **AND** the helper SHALL report the missing anchor separately from path-planning disposition.
 
-### Requirement: Textbook search-document rows are classified in citation shards
-Textbook search-document rows SHALL be reviewed in deterministic citation shards before they are treated as verified grounding material.
-
-#### Scenario: Search-document shard is selected
-- **WHEN** helper output reports textbook-search-document rows with missing review state, citation anchor, parent-section link, graph refs, or limitation state
-- **THEN** the implementation SHALL select a bounded deterministic shard prioritized by active LearningGoals, reviewed parent sections, and high-priority graph domains
-- **AND** it SHALL record selected ids, parent refs, blocker codes, source hashes, and residual unselected counts.
-
-#### Scenario: Search-document row is citation support
-- **WHEN** a selected search-document row is used for RAG, Konling, or path rationale grounding
-- **THEN** it SHALL declare parent section or citation target, page/figure/table/equation anchor where available, graph refs, authority, privacy scope, source hash, review state, limitation state, and reviewer-visible rationale
-- **AND** display links SHALL resolve through server-owned citation metadata.
-
-#### Scenario: Search-document row lacks verified anchor
-- **WHEN** a selected row has incomplete parent, anchor, source, or permission metadata
-- **THEN** it SHALL be limited or excluded with rationale
-- **AND** it SHALL NOT be presented as a verified citation.
+#### Scenario: Sidecar is incomplete
+- **WHEN** a selected textbook row cannot resolve its anchor or locator
+- **THEN** that row SHALL be excluded with a machine-readable reason
+- **AND** the rest of the RAG/Teaching Projection SHALL remain unchanged
 
 ### Requirement: Reviewed knowledge visuals expose citation-safe grounding
-Reviewed knowledge cards and infographs SHALL provide citation-safe grounding metadata when used by Konling or path rationale.
+Card retrieval MUST resolve by Canonical ID and retain card/resource/projection identity, source hash, review state, citation target, and optional-card status. A missing optional card MUST NOT be represented as a missing Canonical node. Reviewed knowledge cards and infographs SHALL provide citation-safe grounding metadata when used by Konling or path rationale.
+
+#### Scenario: Canonical card is retrieved
+- **WHEN** a teaching or Konling query resolves an active card for a Canonical ID
+- **THEN** the retrieval record SHALL carry the Canonical ID, card ID, projection ID, and citation-safe provenance
+
+#### Scenario: Card is optional and absent
+- **WHEN** no active card exists for an optional Canonical ID
+- **THEN** RAG SHALL continue with the Canonical summary or other authorized resource
+- **AND** it SHALL report the absence without fabricating card content
 
 #### Scenario: Knowledge visual grounds an answer
 - **WHEN** a reviewed knowledge card or infograph is retrieved for a Konling explanation or path rationale
@@ -201,3 +214,64 @@ Reviewed knowledge cards and infographs SHALL provide citation-safe grounding me
 - **WHEN** an image, description, card route, or infograph anchor is missing or stale
 - **THEN** the citation SHALL be downgraded or limited
 - **AND** the helper SHALL report the missing anchor separately from path-planning disposition.
+
+### Requirement: Content and evidence citations share one visible sequence
+The final citation presentation SHALL assign one deterministic display sequence across textbook content and authorized learning evidence.
+
+#### Scenario: Answer uses textbook and learner evidence
+- **WHEN** a response contains both content support and a personalized claim
+- **THEN** the server SHALL assign one `[1]`, `[2]` sequence after type-aware deduplication
+- **AND** each item SHALL retain its source type, visibility, limitation, and authorized target.
+
+### Requirement: Textbook runtime v2 replaces legacy citation identities
+After the final series cutover, the governed corpus SHALL use v2 structural units and fragments for textbook citation identity.
+
+#### Scenario: Production corpus is switched
+- **WHEN** the v2 runtime, hybrid index, reader, and consumers pass full local validation
+- **THEN** old textbook section, chunk, search-document, and citation-map consumers SHALL be removed
+- **AND** the system SHALL NOT retain a legacy mapping, redirect, or parallel production corpus.
+
+### Requirement: RAG uses Canonical knowledge as a retrieval signal
+RAG SHALL use aggregate Canonical Object identity, aliases, explicitly supported precise relations, and governed ACT Crosswalks for entity alignment and bounded candidate expansion. Canonical retrieval MUST be constrained by the active Authority/Projection combination and MUST carry Canonical ID, release/projection identity, resource role, scope, and citation metadata. ACT teaching relations MUST remain query-time projection data and MUST NOT be written into ActKG.
+
+#### Scenario: Canonical entity is aligned
+- **WHEN** a query matches a supported Canonical Object
+- **THEN** RAG MAY expand candidates through supported relations and ACT Crosswalk seeds while retaining aggregate ReleaseSet and Crosswalk provenance
+
+#### Scenario: Relation is unsupported
+- **WHEN** a stored predicate has no RAG semantic adapter
+- **THEN** RAG MUST NOT use it for query expansion
+
+#### Scenario: Projection identity drifts
+- **WHEN** a resource or prerequisite result belongs to another projection/current pointer
+- **THEN** the result SHALL be rejected or marked unavailable
+- **AND** no mixed-version answer context SHALL be sent to the model
+
+### Requirement: Graph content is not final answer evidence
+Canonical summaries, relations, and upstream RAG references MUST NOT directly satisfy the final answer citation requirement.
+
+#### Scenario: Graph identifies a relevant concept
+- **WHEN** the graph expands the query to a candidate object
+- **THEN** the answer SHALL cite independently retrieved and verified ACT content rather than the object summary
+
+### Requirement: Canonical RAG remains shadow before cutover
+The RAG authority selector MUST remain on Legacy production retrieval until the final downtime cutover activates all formal consumers together. Card migration MUST not switch formal RAG authority by itself. Until the consumer activation gate passes, card queries SHALL use the explicit Legacy/pinned fallback combination and expose migration/fallback provenance. Until consumer activation passes, Engineering and Teaching Resource RAG SHALL use their explicit Legacy/pinned combinations and expose shadow/fallback provenance. A new projection query alone MUST NOT change a production selector.
+
+#### Scenario: Legacy fallback is used
+- **WHEN** a step still resolves through a legacy card crosswalk
+- **THEN** RAG SHALL record the fallback hit and legacy identity
+- **AND** it SHALL not write a new Canonical authority selector
+
+#### Scenario: Canonical shadow retrieval succeeds
+- **WHEN** Canonical entity alignment and citations pass validation before cutover
+- **THEN** the system SHALL record comparison evidence without using the Canonical result as the user's production answer
+
+#### Scenario: Final selector activates
+- **WHEN** the final cutover transaction activates the Canonical RAG selector
+- **THEN** production retrieval SHALL use Canonical expansion and MUST NOT fall back to Legacy knowledge
+
+#### Scenario: Teaching RAG is pinned
+- **WHEN** Engineering Authority is newer but Teaching Projection activation is not ready
+- **THEN** Engineering RAG MAY use the newer Authority
+- **AND** Teaching Resource RAG SHALL remain on its pinned combination
+

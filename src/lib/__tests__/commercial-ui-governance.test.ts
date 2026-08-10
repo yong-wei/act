@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -36,6 +37,7 @@ import {
   buildSecondaryRouteGovernanceMatrixFromEvidence,
   hydrateInteractiveLearningProductQaEvidence,
   interactiveLearningReviewHasNoUnresolvedBlocks,
+  knowledgeWorkspaceProductQaCaptureRevisionProblems,
 } from '../../../scripts/tests/test-commercial-ui-governance';
 import {
   resolveSimulationSceneThemeMode,
@@ -131,6 +133,35 @@ function tempChangedFiles(repo: string) {
   }
   for (const file of tempGitLines(repo, ['ls-files', '--others', '--exclude-standard'])) files.add(file);
   return Array.from(files);
+}
+
+function tempFileSha256(repo: string, file: string) {
+  return createHash('sha256').update(readFileSync(join(repo, file))).digest('hex');
+}
+
+function initSyntheticProductQaRepo() {
+  const repo = initTempGitRepo('knowledge-product-qa-synthetic-');
+  const sourceA = 'src/features/knowledge/source-a.ts';
+  const sourceB = 'src/app/knowledge/source-b.ts';
+  commitTempFile(repo, sourceA, 'export const sourceA = 1;\n', 'source a');
+  const baseCommit = commitTempFile(repo, sourceB, 'export const sourceB = 1;\n', 'source b');
+  runTempGit(repo, ['checkout', '-b', 'capture', baseCommit]);
+  const captureCommitSha = commitTempFile(repo, 'capture-marker.txt', 'capture\n', 'capture');
+  const captureTreeSha = runTempGit(repo, ['rev-parse', `${captureCommitSha}^{tree}`]);
+  runTempGit(repo, ['checkout', 'main']);
+  commitTempFile(repo, 'head-marker.txt', 'synthetic checkout\n', 'synthetic checkout');
+  return {
+    repo,
+    sourceA,
+    sourceB,
+    sourcePaths: [sourceA, sourceB],
+    captureCommitSha,
+    captureTreeSha,
+    currentSourceSha256: {
+      [sourceA]: tempFileSha256(repo, sourceA),
+      [sourceB]: tempFileSha256(repo, sourceB),
+    },
+  };
 }
 
 function tempHasUncommittedPathChange(repo: string, file: string) {
@@ -2225,6 +2256,60 @@ describe('commercial UI governance', () => {
     ]));
   });
 
+  it('passes when command-deck evidence uses the unify-chrome change with merged annotation segments', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (!entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            change: 'unify-simulation-chrome-and-camera-views' as const,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => ({
+              ...viewport,
+              bottomToolSegmentRoles: ['view-switcher', 'speed-controls', 'annotations-grid-toggle'],
+            })),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails when unify-chrome command-deck evidence misses the merged annotations segment', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            change: 'unify-simulation-chrome-and-camera-views' as const,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => (
+              viewport.theme === 'dark' && viewport.width === 320
+                ? { ...viewport, bottomToolSegmentRoles: ['view-switcher', 'speed-controls'] }
+                : { ...viewport, bottomToolSegmentRoles: ['view-switcher', 'speed-controls', 'annotations-grid-toggle'] }
+            )),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=320:bottomToolSegmentRoles.annotations-grid-toggle',
+    ]));
+  });
+
   it('fails when cruise command-deck evidence does not compare scene-first geometry', () => {
     const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
       if (entry.href !== '/simulations/cruise' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
@@ -3804,7 +3889,17 @@ describe('commercial UI governance', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       routeInventory: PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => (
         route.href === '/ai'
-          ? { ...route, unifiedUiMigrationOwner: 'migrate-learner-knowledge-data-surfaces' }
+          ? {
+              ...route,
+              unifiedUiMigrationOwner: 'migrate-learner-knowledge-data-surfaces',
+              exception: {
+                owner: 'platform-ui',
+                reason: 'fixture-only overlapping ownership',
+                affectedCapability: 'unified-shell',
+                expiresOn: '2099-01-01',
+                removalCondition: 'Remove the temporary fixture exception.',
+              },
+            }
           : route
       )),
     }));
@@ -4313,8 +4408,11 @@ describe('commercial UI governance', () => {
     expect(governanceSource).toContain('themeApplied');
     expect(governanceSource).toContain('bottomToolSegmentRoles');
     expect(governanceSource).toContain("['view-switcher', 'grid-toggle', 'speed-controls']");
+    expect(governanceSource).toContain("['view-switcher', 'speed-controls', 'annotations-grid-toggle']");
+    expect(governanceSource).toContain("'unify-simulation-chrome-and-camera-views'");
     expect(governanceSource).toContain('bottomToolSegmentRoles.${role}');
     expect(simulationCaptureScriptSource).toContain('[data-simulation-local-bottom-tool-segment]');
+    expect(simulationCaptureScriptSource).toContain("change: 'unify-simulation-chrome-and-camera-views'");
     expect(simulationCaptureScriptSource).toContain('bottomToolSegmentRoles');
     expect(simulationCaptureScriptSource).toContain('waitForThemeApplied');
     expect(simulationCaptureScriptSource).toContain('inspectCommandDeck(page, theme)');
@@ -4387,7 +4485,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).not.toContain('hoveredCanvasNodeDragPointCandidates');
     expect(captureScriptSource).toContain('async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string)');
     expect(captureScriptSource).toContain('pinnedLayoutSignature.includes(expectedNodeId)');
-    expect(captureScriptSource).toContain("const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '积分环节_2_11005';");
+    expect(captureScriptSource).toContain("const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '稳定性_1_7288b4ea';");
     expect(captureScriptSource).toContain("const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';");
     expect(captureScriptSource).toContain('dragCanvasNodeUntilPinned(page, dragNodeId)');
     expect(scriptSource).toContain('objectRecord(objectRecord(state.interactionEvidence).drag).selectedNodeId === state.selectedNode');
@@ -4436,7 +4534,6 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'desktop-local-tools-directory-dark'");
     expect(captureScriptSource).toContain("'desktop-local-tools-filter-dark'");
     expect(captureScriptSource).toContain("'desktop-local-tools-view-dark'");
-    expect(scriptSource).toContain("'desktop-local-tools-legend-dark'");
     expect(scriptSource).toContain("'desktop-local-tools-directory-dark'");
     expect(scriptSource).toContain("'desktop-local-tools-filter-dark'");
     expect(scriptSource).toContain("'desktop-local-tools-view-dark'");
@@ -4506,7 +4603,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
     expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
     expect(scriptSource).toContain("['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed']");
-    expect(scriptSource).toContain("['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile', 'expanded']");
+    expect(scriptSource).toContain("['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile-drawer', 'expanded']");
     expect(scriptSource).toContain("markers.konlingAssistantSurface === 'global-sidebar'");
     expect(scriptSource).toContain('mobile-inspector-not-suspended');
     expect(scriptSource).toContain('mobile-inspector-policy-missing');
@@ -4560,7 +4657,13 @@ describe('commercial UI governance', () => {
     expect(pageSource).toContain("label: '控灵助手'");
     expect(pageSource).toContain('路径管理');
     expect(pageSource).toContain('openAndScrollPathModule(pathManagementTargetModuleId)');
-    const studentVisibleSource = pageSource.replaceAll('data-learner-record-missing-source', '');
+    const internalPathOptionVersionKey = pageSource.match(
+      /const pathOptionVersionKey = useMemo\(\(\) => \[[\s\S]*?\n  \]\.join\('\|',?\)?,?\s*\[[^\n]*\]\);/,
+    )?.[0] ?? null;
+    expect(internalPathOptionVersionKey).not.toBeNull();
+    const studentVisibleSource = pageSource
+      .replaceAll('data-learner-record-missing-source', '')
+      .replace(internalPathOptionVersionKey ?? '', '');
     expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|no-path|low-evidence/);
   });
 
@@ -4635,6 +4738,83 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant]");
     expect(scriptSource).toContain('latestSourceCommits.every((sourceCommit)');
     expect(scriptSource).toContain('interactiveLearningProductQaEvidenceCoversLatestSource(files)');
+  });
+
+  it('validates synthetic product QA capture topology by exact source blob bytes', () => {
+    const sameBlobs = initSyntheticProductQaRepo();
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: sameBlobs.repo,
+      captureCommitSha: sameBlobs.captureCommitSha,
+      captureTreeSha: sameBlobs.captureTreeSha,
+      currentSourceSha256: sameBlobs.currentSourceSha256,
+      productQaSourcePaths: sameBlobs.sourcePaths,
+    })).toEqual([]);
+
+    const missingSourcePath = 'src/features/knowledge/missing.ts';
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: sameBlobs.repo,
+      captureCommitSha: sameBlobs.captureCommitSha,
+      captureTreeSha: sameBlobs.captureTreeSha,
+      currentSourceSha256: {
+        ...sameBlobs.currentSourceSha256,
+        [missingSourcePath]: '0'.repeat(64),
+      },
+      productQaSourcePaths: [...sameBlobs.sourcePaths, missingSourcePath],
+    })).toContain(`capture-revision:synthetic-capture-blob-missing:${missingSourcePath}`);
+
+    commitTempFile(
+      sameBlobs.repo,
+      sameBlobs.sourceA,
+      'export const sourceA = 2;\n',
+      'source a changed in synthetic checkout',
+    );
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: sameBlobs.repo,
+      captureCommitSha: sameBlobs.captureCommitSha,
+      captureTreeSha: sameBlobs.captureTreeSha,
+      currentSourceSha256: sameBlobs.currentSourceSha256,
+      productQaSourcePaths: sameBlobs.sourcePaths,
+    })).toContain(`capture-revision:synthetic-evidence-head-mismatch:${sameBlobs.sourceA}`);
+
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: sameBlobs.repo,
+      captureCommitSha: sameBlobs.captureCommitSha,
+      captureTreeSha: sameBlobs.captureTreeSha,
+      currentSourceSha256: {
+        ...sameBlobs.currentSourceSha256,
+        [sameBlobs.sourceA]: tempFileSha256(sameBlobs.repo, sameBlobs.sourceA),
+      },
+      productQaSourcePaths: sameBlobs.sourcePaths,
+    })).toContain(`capture-revision:synthetic-capture-evidence-mismatch:${sameBlobs.sourceA}`);
+
+    const dirtySource = initSyntheticProductQaRepo();
+    writeFileSync(join(dirtySource.repo, dirtySource.sourceB), 'export const sourceB = 2;\n');
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: dirtySource.repo,
+      captureCommitSha: dirtySource.captureCommitSha,
+      captureTreeSha: dirtySource.captureTreeSha,
+      currentSourceSha256: dirtySource.currentSourceSha256,
+      productQaSourcePaths: dirtySource.sourcePaths,
+    })).toContain(`capture-revision:synthetic-head-working-tree-mismatch:${dirtySource.sourceB}`);
+
+    const ancestorRepo = initTempGitRepo('knowledge-product-qa-ancestor-');
+    const ancestorSource = 'src/features/knowledge/source.ts';
+    const captureCommitSha = commitTempFile(
+      ancestorRepo,
+      ancestorSource,
+      'export const source = 1;\n',
+      'captured source',
+    );
+    const captureTreeSha = runTempGit(ancestorRepo, ['rev-parse', `${captureCommitSha}^{tree}`]);
+    const capturedSourceSha256 = tempFileSha256(ancestorRepo, ancestorSource);
+    commitTempFile(ancestorRepo, ancestorSource, 'export const source = 2;\n', 'source after capture');
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: ancestorRepo,
+      captureCommitSha,
+      captureTreeSha,
+      currentSourceSha256: { [ancestorSource]: capturedSourceSha256 },
+      productQaSourcePaths: [ancestorSource],
+    })).toContain(`capture-revision:source-changed:${ancestorSource}`);
   });
 
   it('keeps interactive visual acceptance script triggers and real artifact path checks wired', () => {

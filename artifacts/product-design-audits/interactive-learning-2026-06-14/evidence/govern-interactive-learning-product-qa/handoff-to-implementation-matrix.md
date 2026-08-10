@@ -55,3 +55,7 @@ Design source: `artifacts/product-design-audits/interactive-learning-2026-06-14/
 ## Temporary Exceptions
 
 None.
+
+## Current-revision annotated-media refresh
+
+On 2026-07-21, the annotation label typography in `src/features/interactive/shared/manifest-runtime/content-renderers.tsx` was refreshed under `unify-interactive-lesson-component-style` at SHA-256 `d1f089cd2ab727927b05122934d9b762d681b2ab56d6bb0b8ca52be72db0ccde`. Fresh browser evidence was captured from the current working revision, including the real lesson 1-2 student demo at step 11 and the representative released, selected, submitted, teacher reveal, answer reveal, and diagnostics states. Provenance is recorded in `artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/implementation-acceptance.json`; no earlier acceptance artifact is reused as current-revision evidence.

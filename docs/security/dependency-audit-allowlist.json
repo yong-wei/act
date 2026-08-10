@@ -8,30 +8,6 @@
   },
   "entries": [
     {
-      "id": "NEXT-POSTCSS-GHSA-qx2v-qp2m-jg93-DIRECT",
-      "packageName": "next",
-      "dependencyPath": "node_modules/next",
-      "advisoryIds": ["postcss"],
-      "severity": "moderate",
-      "reason": "Residual npm audit owner finding for the bundled Next/PostCSS advisory after the migration series. The audited stable Next 16 line does not yet provide a useful remediation, and npm audit currently suggests the unsupported next@9.3.3 downgrade path.",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
-      "reviewDate": "2026-06-01",
-      "expiresOn": "2026-09-01",
-      "removalCondition": "Remove when the supported Next 15 backport or stable Next line bundles postcss >=8.5.10, or when npm audit no longer reports the Next-owned finding."
-    },
-    {
-      "id": "NEXT-POSTCSS-GHSA-qx2v-qp2m-jg93-TRANSITIVE",
-      "packageName": "postcss",
-      "dependencyPath": "node_modules/next/node_modules/postcss",
-      "advisoryIds": ["GHSA-qx2v-qp2m-jg93", "1117015", "postcss"],
-      "severity": "moderate",
-      "reason": "Residual bundled PostCSS finding owned by Next after the migration series; direct postcss is already on a fixed version and npm audit currently suggests the unsupported next@9.3.3 downgrade path.",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
-      "reviewDate": "2026-06-01",
-      "expiresOn": "2026-09-01",
-      "removalCondition": "Remove when node_modules/next/node_modules/postcss is no longer below 8.5.10 or the advisory is no longer reported by npm audit."
-    },
-    {
       "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-DIRECT",
       "packageName": "prisma",
       "dependencyPath": "node_modules/prisma",
@@ -59,14 +35,32 @@
       "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-HONO",
       "packageName": "@hono/node-server",
       "dependencyPath": "node_modules/@hono/node-server",
-      "advisoryIds": ["GHSA-92pp-h63x-v22m", "1116281", "@hono/node-server"],
+      "advisoryIds": [
+        "GHSA-92pp-h63x-v22m",
+        "1116281",
+        "GHSA-frvp-7c67-39w9",
+        "1124006",
+        "@hono/node-server"
+      ],
       "severity": "moderate",
-      "reason": "Residual transitive @hono/node-server finding reached through Prisma tooling. It is recorded separately from security audit findings introduced by application runtime code and must be cleared through the Prisma dependency lane.",
+      "reason": "Residual transitive @hono/node-server findings reached through Prisma tooling. Prisma 7.9.0 removes this path but currently introduces the new high-severity find-my-way advisory, so the supported 7.8 line remains until a safe Prisma release is available.",
       "ownerIssue": "https://github.com/yong-wei/act/issues/291",
-      "reviewDate": "2026-06-03",
+      "reviewDate": "2026-07-24",
       "expiresOn": "2026-09-01",
-      "removalCondition": "Remove when node_modules/@hono/node-server is at 1.19.13 or newer, disappears from the Prisma dependency tree, or npm audit no longer reports GHSA-92pp-h63x-v22m."
+      "removalCondition": "Remove when node_modules/@hono/node-server is at 2.0.5 or newer, disappears from the Prisma dependency tree without introducing a new moderate-or-higher finding, or npm audit no longer reports either owned advisory."
     }
   ],
-  "deprecationResiduals": []
+  "deprecationResiduals": [
+    {
+      "id": "JSDOM26-WHATWG-ENCODING-DEPRECATION",
+      "packages": ["whatwg-encoding@3.1.1"],
+      "dependencyPath": "jsdom -> whatwg-encoding; jsdom -> html-encoding-sniffer -> whatwg-encoding",
+      "ownerLane": "dev-tooling-jsdom",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/1033",
+      "reviewDate": "2026-07-24",
+      "expiresOn": "2026-10-24",
+      "releaseBlocking": false,
+      "removalCondition": "Remove when the supported jsdom line no longer installs deprecated whatwg-encoding, or a separately reviewed jsdom migration removes the path."
+    }
+  ]
 }

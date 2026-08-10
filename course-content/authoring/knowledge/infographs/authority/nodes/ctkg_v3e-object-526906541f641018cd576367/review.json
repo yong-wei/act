@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:05:09+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-526906541f641018cd576367",
+  "safe_id": "ctkg_v3e-object-526906541f641018cd576367",
+  "node_name": "通过变量替换检验给定稳定度的方法",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-C vision-mapped accept (脉冲控制器/稳定度替换/继电/Nyquist rate/复合信号)"
+}

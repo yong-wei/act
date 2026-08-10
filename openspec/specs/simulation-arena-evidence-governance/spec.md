@@ -15,11 +15,12 @@ The system SHALL catalog simulation sessions/logs and Arena public experiments, 
 - **THEN** `SimulationSession` SHALL be treated as the run/session envelope and `SimulationLog` SHALL be treated as attempt or activity detail, with separate readiness and traceability metadata
 
 ### Requirement: LearningFact stores compact summaries
-The system SHALL materialize simulation and Arena learning evidence into `LearningFact` using compact summaries and source references rather than high-frequency trace samples.
+The system SHALL materialize simulation and Arena learning evidence into `LearningFact` using compact summaries and source references rather than high-frequency trace samples. Arena virtual training facts SHALL retain the Arena task id, scenario id, preview boundary, official ineligibility, protocol version, trace reference, summary metrics, replay confidence, and governance profile.
 
 #### Scenario: Virtual simulation run becomes learning evidence
-- **WHEN** a virtual simulation run is materialized into a learning fact
-- **THEN** the learning fact SHALL include source id, run id, scene or task id, protocol version, trace reference, summary metrics, and governance profile
+- **WHEN** an Arena virtual simulation run is materialized into a learning fact
+- **THEN** the learning fact SHALL include source id, run id, Arena task id, scene or scenario id, protocol version, trace reference, summary metrics, preview/official boundary, and governance profile
+- **AND** its module attribution SHALL use the Arena task id when available
 
 #### Scenario: High-frequency trace exists
 - **WHEN** high-frequency samples are available for a simulation or Arena preview
@@ -45,12 +46,13 @@ Governed Arena preview evidence SHALL use the canonical SimulationRun envelope a
 - **AND** it MAY follow the Arena detail reference only for authorized preview-specific drilldown.
 
 ### Requirement: Preview and official claims remain unmixed
-The system SHALL prevent preview-only Arena runs from being presented as official evaluation or leaderboard evidence.
+The system SHALL prevent preview-only Arena runs from being presented as official evaluation or leaderboard evidence. A completed preview MAY provide a bounded, low-confidence learning-profile contribution only when its governed provenance and replay summary are retained.
 
 #### Scenario: Preview-only evidence reaches LearningFact draft
 - **WHEN** an Arena preview SimulationRun is converted into an evidence draft
-- **THEN** the draft SHALL identify preview-only provenance and official ineligibility
-- **AND** it SHALL NOT use preview metrics as official score, rank, or hard-constraint authority.
+- **THEN** the draft SHALL identify preview-only provenance, task attribution, and official ineligibility
+- **AND** it SHALL apply the preview contribution policy rather than an official submission contribution
+- **AND** it SHALL NOT use preview metrics as official score, rank, hard-constraint authority, or formal capability attainment
 
 ### Requirement: Simulation and agent evidence is staged before LearningFact
 The system SHALL stage SimulationRun, Arena preview, and AgentToolRun outputs as governed evidence drafts before creating LearningFact records.
@@ -118,3 +120,22 @@ Simulation, control workbench, and Arena evidence governance SHALL expose privac
 - **WHEN** a simulation, workbench, or Arena outcome exists but cannot be safely linked to the owning path and student
 - **THEN** the path SHALL treat the result as unbound
 - **AND** the source system SHALL provide a governance-visible reason without exposing private raw payloads to the student UI.
+
+### Requirement: 仿真与 Arena 证据携带任务级来源语义
+受治理的 Simulation、Arena、控制工作台和奥德赛证据 SHALL 携带稳定任务标识、带学生归属命名空间的产物标识、来源层级和可复核摘要，并由同一规范化产物身份约束实时写入和历史物化。ArenaEvaluationRun 只能作为已接受 ArenaSubmission 的关联评测证据，不能独立形成学生任务完成。
+
+#### Scenario: 同一 Arena 产物跨入口到达
+- **WHEN** 一个 Arena 产物通过工作台事件、正式评测或历史物化被重复处理
+- **THEN** 系统将它归入同一稳定任务和产物身份
+- **AND** 只保留最高证据层级
+- **AND** 不创建重复的任务级贡献
+
+#### Scenario: 未绑定提交的 Arena 评测不形成完成证据
+- **WHEN** ArenaEvaluationRun 没有唯一关联到学生归属已确认且被接受的 ArenaSubmission
+- **THEN** 系统不得将该评测表示为学生任务完成
+- **AND** 历史物化记录明确跳过原因
+
+#### Scenario: 教师预览不产生学生任务证据
+- **WHEN** 教师或管理员预览仿真、Arena 或控制工作台
+- **THEN** 系统不得将该操作物化为学生任务证据
+- **AND** 预览记录不得改变任何学生的仿真任务状态

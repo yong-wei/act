@@ -1,22 +1,23 @@
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import { type Prisma } from '@prisma/client';
-import { Queue } from 'bullmq';
-import { Redis } from 'ioredis';
 
+import {
+  writeLegacyKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
 import {
   eventToLearningFactInput,
   resolveLearningFactActionType,
 } from '@/lib/data-governance/learning-fact-materialization';
 import type { LearningEvent, PageType, UserRole } from '@/lib/data-governance/event-protocol';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import { buildUNIT36SubmissionTelemetry } from '@/features/interactive/unit-3-6-zero-design-workshop/submission-telemetry';
 import type { UNIT_3_6StepResponse } from '@/lib/unit-3-6-course';
-import type { StudentSnapshotJob } from '../workers/types';
 
 const prisma = createPrismaClient();
 const isDryRun = process.argv.includes('--dry-run');
 const shouldEnqueueSnapshots = process.argv.includes('--enqueue-snapshots');
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
 function getArgValue(name: string): string | null {
   const prefix = `${name}=`;
@@ -96,38 +97,13 @@ function readUNIT36Response(
   return isUNIT36Response(response) ? response : null;
 }
 
-async function enqueueStudentSnapshots(userIds: string[]) {
-  if (userIds.length === 0) {
-    return 0;
-  }
-
-  const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
-  const queue = new Queue<StudentSnapshotJob>('snapshot-student', { connection: redis });
-  const triggerId = `interaction-log-backfill-${Date.now()}`;
-
-  try {
-    for (const userId of userIds) {
-      await queue.add(
-        `student-snapshot-${userId}`,
-        { userId },
-        {
-          attempts: 2,
-          backoff: { type: 'exponential', delay: 10000 },
-          jobId: `student-snapshot-${userId}-${triggerId}`,
-          removeOnComplete: { count: 50 },
-          removeOnFail: { count: 200 },
-        },
-      );
-    }
-  } finally {
-    await queue.close();
-    await redis.quit();
-  }
-
-  return userIds.length;
-}
-
 async function main() {
+  if (shouldEnqueueSnapshots) {
+    throw new Error(
+      '--enqueue-snapshots has been removed; use the stopped-service db:backfill-cumulative-attainment command.',
+    );
+  }
+
   const lessonKey = getArgValue('--lesson-key');
   const sessionId = getArgValue('--session-id');
   const since = getArgValue('--since');
@@ -268,17 +244,21 @@ async function main() {
     return;
   }
 
-  await prisma.learningFact.createMany({
-    data: factsToInsert,
-    skipDuplicates: true,
-  });
-  console.log(`[BackfillInteractionLogs] inserted=${factsToInsert.length}`);
+  const activeRevision = await resolveActiveKnowledgeRevision(prisma);
+  const writeResult = await writeLegacyKnowledgeScopedLearningFacts(
+    {
+      learningFact: {
+        createMany: async (args) => prisma.learningFact.createMany({
+          data: [...args.data] as Prisma.LearningFactCreateManyInput[],
+          skipDuplicates: args.skipDuplicates,
+        }),
+      },
+    },
+    factsToInsert as LearningFactWriteRow[],
+    { knowledgeRevisionRef: activeRevision.id },
+  );
+  console.log(`[BackfillInteractionLogs] inserted=${writeResult.written}`);
 
-  if (shouldEnqueueSnapshots) {
-    const userIds = Array.from(new Set(factsToInsert.map((fact) => fact.userId)));
-    const enqueued = await enqueueStudentSnapshots(userIds);
-    console.log(`[BackfillInteractionLogs] enqueuedStudentSnapshots=${enqueued}`);
-  }
 }
 
 main()

@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0191",
+  "offset": 955,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-471a0b49b030d7d76e7e7159",
+      "batch": "C",
+      "name": "Band center",
+      "definition": "Band center：Band center",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Band center",
+        "一种·Undamp…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Band center\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Band center：Band center\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Band cente」、「一种·Undamp…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-098bda907dad6f5e7b697506",
+      "batch": "C",
+      "name": "Limit Cycle",
+      "definition": "Limit Cycle：Limit Cycle",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Limit Cycle",
+        "用于分析·Desc…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Limit Cycle\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Limit Cycle：Limit Cycle\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Limit Cycl」、「用于分析·Desc…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-27eb45a250307fcc571ac92c",
+      "batch": "C",
+      "name": "Sample rate",
+      "definition": "Sample rate：Sample rate",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sample rate",
+        "包含组件·Disc…",
+        "包含组件·Samp…",
+        "应用于·Diffe…",
+        "派生自·Sampl…",
+        "派生自·Discr…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Sample rate\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Sample rate：Sample rate\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Sample rat」、「包含组件·Disc…」、「包含组件·Samp…」、「应用于·Diffe…」、「派生自·Sampl…」、「派生自·Discr…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-423b845366304dc755fefcea",
+      "batch": "C",
+      "name": "领域概念",
+      "definition": "领域概念是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 领域概念\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 领域概念是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「领域概念」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-f6940765c7e8e5b74be204e0",
+      "batch": "C",
+      "name": "领域概念",
+      "definition": "领域概念是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 领域概念\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 领域概念是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「领域概念」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,1127 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "sessionIndependence": {
+    "readPrimaryStage": false,
+    "readThirdStage": false,
+    "readOtherBatchConclusions": false,
+    "readPrimaryThirdReceiptOrAttestationArtifacts": false,
+    "statement": "Issue #1199 Challenger session independently reviewed only frozen inputs: course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json, batch-manifest.json#/batches/9/members, OpenSpec change review-course-coverage-ccaed21f450591f642fa7ef7, and archived shared current-course-coverage-review specs. Did not read, probe, or infer from /tmp/issue-1199-primary-stage.json, Primary/Third artifacts, other Issue stage/receipt/attestation/conclusions, or other-batch outputs."
+  },
+  "batchBinding": {
+    "batchId": "ccaed21f450591f642fa7ef7",
+    "manifestBatchIndex": 9,
+    "sequence": 0,
+    "group": "ctr:release:frequency-domain-analysis-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 96,
+    "memberDigest": "33462c99375f663611af4b05fae10f0c82e9eef3117214ccbd6c67a39c1c525a",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8",
+    "exactOrderedMembers": "batch-manifest.json#/batches/9/members"
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "canonicalRevision": "d397f6625eb458be103d3b4b5005da1b27930cf486960daedfce26a931f28aab",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=0「谐振峰值」(canonicalId=ctkg:v3e-object-0008b516b8ac52f0e05c7596, canonicalRevision=d397f6625eb4…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-b91d7bdb88af1b42617a5a95|a003289b17ac06f5440bb1eb1c21be2f3c99cf33b00e6b4b968ad67a1165f994",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-0008b516b8ac52f0e05c7596|d397f6625eb458be103d3b4b5005da1b27930cf486960daedfce26a931f28aab"
+      ]
+    },
+    {
+      "ordinal": 1,
+      "canonicalId": "ctkg:v3e-object-01d6ba4cfbef38693c611d4a",
+      "canonicalRevision": "b99d2749ff1cef7351a5cec34a96a34b77bfaad7a102e6a78ce0bf2aae2e6412",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=1「argument principle」(canonicalId=ctkg:v3e-object-01d6ba4cfbef38693c611d4a, canonicalRevision=b99d2749ff1c…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-540b2fcd4fabc1ec80e2c009|8d309f0adf88557a2f4c55f5470561e7b13e0ff88a86202b817de4209ff11a15",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-01d6ba4cfbef38693c611d4a|b99d2749ff1cef7351a5cec34a96a34b77bfaad7a102e6a78ce0bf2aae2e6412"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "canonicalId": "ctkg:v3e-object-02ce94d02ad32ee9bc5528e9",
+      "canonicalRevision": "b1578cf829e19f813f57b2b8bf82125c72b3c1e6f32db8c353c68ddbc44967e3",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=2「Resonant peak」(canonicalId=ctkg:v3e-object-02ce94d02ad32ee9bc5528e9, canonicalRevision=b1578cf829e1…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=2, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-898ba400dea5b998a73af082|dad341feceb12280c28d09e9e1529eaa46cbe2725e3f9f853e5c2db906171f55",
+        "aggregate-evidence|aggregate|evidence:ctr:m1h-v1f-release-evidence-ab284d4b626de5861f609493|755a61e49ea85bc7c3c4e830908521db07930c6676df108a97190abe3f9f2d16",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-02ce94d02ad32ee9bc5528e9|b1578cf829e19f813f57b2b8bf82125c72b3c1e6f32db8c353c68ddbc44967e3"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "canonicalId": "ctkg:v3e-object-07c345d26a1c74830e0a5c94",
+      "canonicalRevision": "27b5bd7698e54c79fbfeca16b70d13ae25df7de4b3fe5f1ee1e3a509aa6d150a",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=3「Arc at infinity in Nyquist plot」(canonicalId=ctkg:v3e-object-07c345d26a1c74830e0a5c94, canonicalRevision=27b5bd7698e5…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-d1cf3f43d3ea7a106b420002|12a2e83e0520d1a73659a2b0488305d101b1b4d23c5c8f9ebf5da3d740267b81",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-07c345d26a1c74830e0a5c94|27b5bd7698e54c79fbfeca16b70d13ae25df7de4b3fe5f1ee1e3a509aa6d150a"
+      ]
+    },
+    {
+      "ordinal": 4,
+      "canonicalId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+      "canonicalRevision": "558fd9198b8e084d355f8befc98a95c9d7ec8541d9bfb851e07478a1b61585b4",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=4「Break point」(canonicalId=ctkg:v3e-object-0946a016c136cdf4a417ed62, canonicalRevision=558fd9198b8e…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-146bfc903b9f251ad1fb18a9|42073ec6bc24fa27875b96663a8a1d5d8b5eb8f3ea9e183bb6adf26c14068d6d",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-ea8745539bbf076a4c147393|d79247e221096c5d59eee2010b96192e24a3c843f1e0475330d09b6a9ed14f0b",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-0946a016c136cdf4a417ed62|558fd9198b8e084d355f8befc98a95c9d7ec8541d9bfb851e07478a1b61585b4"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "canonicalId": "ctkg:v3e-object-0b94edb93771b955eedd5d9f",
+      "canonicalRevision": "7ea1d5a732eb690c8f5ce41b1d0c48057fb5d7a7a64e91e645c0172f80fd1fb0",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=5「确定闭环频率特性的MATLAB方法」(canonicalId=ctkg:v3e-object-0b94edb93771b955eedd5d9f, canonicalRevision=7ea1d5a732eb…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-2d58ea39b2f5d7815d1dcb66|788705bd3ada654a47e5ed55ee1b8fcb0f23c785f220c2929536af8aa466df8b",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-0b94edb93771b955eedd5d9f|7ea1d5a732eb690c8f5ce41b1d0c48057fb5d7a7a64e91e645c0172f80fd1fb0"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "canonicalId": "ctkg:v3e-object-0bfd48327659b66aa7d95f32",
+      "canonicalRevision": "4b8c6e0c159a4ea63a4eef7a3a4130f5403794b27b0b66a418af50e508be9cc6",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=6「Determining GM from root locus」(canonicalId=ctkg:v3e-object-0bfd48327659b66aa7d95f32, canonicalRevision=4b8c6e0c159a…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-33c1ec6f0bb7ee910e8bb24a|287c0fc97d1f0846231773b38d8fa5391133135454e651bb3e390fea7dd02177",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-0bfd48327659b66aa7d95f32|4b8c6e0c159a4ea63a4eef7a3a4130f5403794b27b0b66a418af50e508be9cc6"
+      ]
+    },
+    {
+      "ordinal": 7,
+      "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "canonicalRevision": "5c0aeabb0580f6315c60eb5af64c4ab7f75cb28ba13c5a67a3b50bb3eefe8844",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=7「Experimental frequency response determination」(canonicalId=ctkg:v3e-object-0ca481aed329f4e6c74c8d30, canonicalRevision=5c0aeabb0580…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-10385bd1c62a4f3125b40ca9|21ee25887d7b15040f0d29dc4ddab4ee5b01c1b2dce208a71c97ad442b9d5494",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-0ca481aed329f4e6c74c8d30|5c0aeabb0580f6315c60eb5af64c4ab7f75cb28ba13c5a67a3b50bb3eefe8844"
+      ]
+    },
+    {
+      "ordinal": 8,
+      "canonicalId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+      "canonicalRevision": "f5abdd8fae95abc33cba14263560f2ac1277e5b7756a12d205a6a97ae427faac",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=8「穿越频率」(canonicalId=ctkg:v3e-object-1010934a92a0dacb1caec1e2, canonicalRevision=f5abdd8fae95…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=4。evidenceRefs共5条：aggregate=4, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-04b17ddda5c3250b4cfb4dea|a76d17a98e41993ee51225b4c339b263d92e55d1b42a13f778315ec477d059d0",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-1404692339179cfe7786e976|66d64077258c87ded745926332abb9b520281601ca7cf355e45d339ee845080c",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-d2a888f1fb910aa807b86745|4e6a8e10dd5977c9d3fc684f343fa425f4c6426acc321756d6afa5b2e80d1c65",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-d4b37404ce602105b15e8418|568dd58b3fe43cfcc8fe6ad763c4e9e6dc14216756f62c0790587cecb631908b",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-1010934a92a0dacb1caec1e2|f5abdd8fae95abc33cba14263560f2ac1277e5b7756a12d205a6a97ae427faac"
+      ]
+    },
+    {
+      "ordinal": 9,
+      "canonicalId": "ctkg:v3e-object-13e696ca025028445460f1df",
+      "canonicalRevision": "c92ec102c0011e955c0a27d63224644d4ac32308f624d0f8051d5f9d6d8a9861",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=9「Bandwidth frequency」(canonicalId=ctkg:v3e-object-13e696ca025028445460f1df, canonicalRevision=c92ec102c001…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-c71d1dcc708958bcce81ef8f|1647b05eab201078b504d3f974237649da25804f27fb4cc65edb9021f8526c04",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-13e696ca025028445460f1df|c92ec102c0011e955c0a27d63224644d4ac32308f624d0f8051d5f9d6d8a9861"
+      ]
+    },
+    {
+      "ordinal": 10,
+      "canonicalId": "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+      "canonicalRevision": "c3ed34b1fa906100844c380debda2195f7f5eaa24f90a65f0dc4684febaf6cae",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=10「谐振频率」(canonicalId=ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa, canonicalRevision=c3ed34b1fa90…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-c4cb5895a80b57934b066b33|6dd287415cd84f82665822e2ee5bf4adfb05141ca8e4b749b4674a1820faa1cf",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa|c3ed34b1fa906100844c380debda2195f7f5eaa24f90a65f0dc4684febaf6cae"
+      ]
+    },
+    {
+      "ordinal": 11,
+      "canonicalId": "ctkg:v3e-object-18c55a9b153179a638ff5dc2",
+      "canonicalRevision": "56923431de7b82315643e76d96034d0772c2e35fef496b1a434167468dcf2dda",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=11「Evaluating effects of gain changes using frequency-response data」(canonicalId=ctkg:v3e-object-18c55a9b153179a638ff5dc2, canonicalRevision=56923431de7b…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-46472c710f724d6b733e3325|c284882bf49d132acd7af689f80ca13a9e98afa52c39804d4df52310422a032f",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-18c55a9b153179a638ff5dc2|56923431de7b82315643e76d96034d0772c2e35fef496b1a434167468dcf2dda"
+      ]
+    },
+    {
+      "ordinal": 12,
+      "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+      "canonicalRevision": "626ea36b4ee5f6817ea4e5c43de8059f8513195c72f39d5d4ab6c3d5bc44fa26",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=12「Bode plots (logarithmic plots)」(canonicalId=ctkg:v3e-object-191274d4aa5307678e583641, canonicalRevision=626ea36b4ee5…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-833a7ab530434c680a18c3bb|261bd3c9ce80e5012c8660ce746d096b61ea31f8027921d44d5f588dc6206c67",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-191274d4aa5307678e583641|626ea36b4ee5f6817ea4e5c43de8059f8513195c72f39d5d4ab6c3d5bc44fa26"
+      ]
+    },
+    {
+      "ordinal": 13,
+      "canonicalId": "ctkg:v3e-object-195ec8a545b19a1f37188170",
+      "canonicalRevision": "ea74302d1f556ed976aa1e46a58edad00b092abac87f94da81052ff63b6c0850",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=13「Disturbance Rejection Bandwidth (ω_DRB)」(canonicalId=ctkg:v3e-object-195ec8a545b19a1f37188170, canonicalRevision=ea74302d1f55…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-da8fef0346bcb6061ff881b5|a06f4b66c1a974f2e9d804bb85b6638f3cc2d33da9be5bf592ca9432376ae821",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-195ec8a545b19a1f37188170|ea74302d1f556ed976aa1e46a58edad00b092abac87f94da81052ff63b6c0850"
+      ]
+    },
+    {
+      "ordinal": 14,
+      "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "canonicalRevision": "4f26266b0fc1dd5d33bbddcea5f50b9d5fe407426cf8a9a79f7f3555a6ed134d",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=14「穿越频率」(canonicalId=ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c, canonicalRevision=4f26266b0fc1…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-6a76e0bc793f4bb52fd673b2|eb6d4a9fa5b67a96d7665afdba519047ed252fd6eca174f35cf41a1aebaf401b",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c|4f26266b0fc1dd5d33bbddcea5f50b9d5fe407426cf8a9a79f7f3555a6ed134d"
+      ]
+    },
+    {
+      "ordinal": 15,
+      "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "canonicalRevision": "b1ebcbfd3d6209c8c4580122d1bdde0fd8ffca84316c3e6b19b4abb80e133730",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=15「相角裕度」(canonicalId=ctkg:v3e-object-1c159c9cc34ce696a62bf837, canonicalRevision=b1ebcbfd3d62…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-6cc26cf858de9170226e3bca|ddbb41b25a7aeaf3ad77faa2a3ff03247eca81785c034b35a7083f3a09bbee02",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-1c159c9cc34ce696a62bf837|b1ebcbfd3d6209c8c4580122d1bdde0fd8ffca84316c3e6b19b4abb80e133730"
+      ]
+    },
+    {
+      "ordinal": 16,
+      "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "canonicalRevision": "e04e67b92e6298e81b36a47dc4e6128651b0ded3270616526d785ca9a986e87a",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=16「截止频率」(canonicalId=ctkg:v3e-object-232e387ed53e92abee078346, canonicalRevision=e04e67b92e62…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-ed2a955cc089c39315aff257|de7207a04be768ebd8aac0cb9c2af9d74732b3bf4d8f13af03120469fb6b0a60",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-232e387ed53e92abee078346|e04e67b92e6298e81b36a47dc4e6128651b0ded3270616526d785ca9a986e87a"
+      ]
+    },
+    {
+      "ordinal": 17,
+      "canonicalId": "ctkg:v3e-object-24049f89f0fc4303e892fc37",
+      "canonicalRevision": "09af632411ddfcab12813edbe745e3cae9b3c0b158353534d152c3a9f409a44b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=17「Nichols Plot」(canonicalId=ctkg:v3e-object-24049f89f0fc4303e892fc37, canonicalRevision=09af632411dd…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-abd39cd4f8fa4448c414b337|86a23873f7294293fde3de4304fac6de7127c8b784c1df94f8663e0337109d8f",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-24049f89f0fc4303e892fc37|09af632411ddfcab12813edbe745e3cae9b3c0b158353534d152c3a9f409a44b"
+      ]
+    },
+    {
+      "ordinal": 18,
+      "canonicalId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "canonicalRevision": "389300a62436c67d57aae12f355839d4bc1a27798171836fac2395d898b716a3",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=18「对数幅相曲线」(canonicalId=ctkg:v3e-object-27e0a7e37803fbebc1b6f65a, canonicalRevision=389300a62436…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-9e2460e3d130ff15bb0cca03|637b274d4e6fd2d01957636855c3ee1021a7a97efe68ed61ef02fad19e7265c7",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-27e0a7e37803fbebc1b6f65a|389300a62436c67d57aae12f355839d4bc1a27798171836fac2395d898b716a3"
+      ]
+    },
+    {
+      "ordinal": 19,
+      "canonicalId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "canonicalRevision": "a0100af2e4d8e4a27afccd87b670a4c8db35e2a87334a6a31d6a20c3bcc5d31d",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=19「幅相频率特性曲线」(canonicalId=ctkg:v3e-object-2e2707d377000d69ac75b508, canonicalRevision=a0100af2e4d8…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-cb5fe1d9fb7b292414242a3f|6abdca019e2f0b75109542aac0677de6cc82da504d7ce6580408ad6bbb3e5982",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-2e2707d377000d69ac75b508|a0100af2e4d8e4a27afccd87b670a4c8db35e2a87334a6a31d6a20c3bcc5d31d"
+      ]
+    },
+    {
+      "ordinal": 20,
+      "canonicalId": "ctkg:v3e-object-2e91a0da0c74ca85ce8f952b",
+      "canonicalRevision": "8ba94fe5b064644738b996e06e0a6e8c80ed92460fe0bca3d8f6354feb43fbb6",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=20「Determining PM from Bode plot」(canonicalId=ctkg:v3e-object-2e91a0da0c74ca85ce8f952b, canonicalRevision=8ba94fe5b064…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-e64840408a399d7f88e61822|4ac20ca698590a63f45f730ed52cf4a0a98d8e2cc01de17439c98694dade73f9",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-2e91a0da0c74ca85ce8f952b|8ba94fe5b064644738b996e06e0a6e8c80ed92460fe0bca3d8f6354feb43fbb6"
+      ]
+    },
+    {
+      "ordinal": 21,
+      "canonicalId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "canonicalRevision": "1a407f5ada0ee5a36b71987ffa5581c5bc5c0af3a6daa047fc852d5df447676b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=21「Gain Margin (GM)」(canonicalId=ctkg:v3e-object-2f3ebf66b229bd1917da4b41, canonicalRevision=1a407f5ada0e…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-28b7b4cd2a093bd2b42b25da|43690443b6585e26828e972ebced48f508998c55a532e94769e3f4cfff87d155",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-4b17a571e0244b25905be496|ecc7e95490cdc5b2be5ccc6d92d582ef0b31b2393e25767e1be22216be9a2766",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-2f3ebf66b229bd1917da4b41|1a407f5ada0ee5a36b71987ffa5581c5bc5c0af3a6daa047fc852d5df447676b"
+      ]
+    },
+    {
+      "ordinal": 22,
+      "canonicalId": "ctkg:v3e-object-35b4c7c6116be04938f2e7a4",
+      "canonicalRevision": "43866d073ef0052dff09067230873cb71a4c6622939573b14aae26c34099d5d6",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=22「非周期函数的频谱」(canonicalId=ctkg:v3e-object-35b4c7c6116be04938f2e7a4, canonicalRevision=43866d073ef0…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-4aa171b5f5b827eb59d030ff|f9907b00edd74372b6936c91e33e95ce044bda7d7fbb84515dcf23d6473ee029",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-35b4c7c6116be04938f2e7a4|43866d073ef0052dff09067230873cb71a4c6622939573b14aae26c34099d5d6"
+      ]
+    },
+    {
+      "ordinal": 23,
+      "canonicalId": "ctkg:v3e-object-3847cfa432063f1287f51ce5",
+      "canonicalRevision": "13bac7408a1718e0f23e83ceafa7864e2830e2dbaae900fa1c8239320c844e1b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=23「Frequency-Response Stability Test」(canonicalId=ctkg:v3e-object-3847cfa432063f1287f51ce5, canonicalRevision=13bac7408a17…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=2, releaseTier=gold, upstreamEvidenceCount=3。evidenceRefs共4条：aggregate=3, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-453d3680b2ab7e7cf6221d3c|2f2cea9ff97687a932a4433ef340670b04bead5aa7c79fab5e74ab5053c47183",
+        "aggregate-evidence|aggregate|evidence:ctr:m1h-v1f-release-evidence-b2ba33b427598c1a39c2f9de|6123d8daa152351978eb3d7bb76844d9eaa329ece5e0abb9bf429c77b574dba7",
+        "aggregate-evidence|aggregate|evidence:ctr:m1h-v1f-release-evidence-e2d630e98a221d87b4d0977a|34c89ac0737672d10ef59f472c12dc543ed92eab91bc7fae903fcee08e18ddf3",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-3847cfa432063f1287f51ce5|13bac7408a1718e0f23e83ceafa7864e2830e2dbaae900fa1c8239320c844e1b"
+      ]
+    },
+    {
+      "ordinal": 24,
+      "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "canonicalRevision": "e53126433a927bb04a2d36633a563b6f0ec5475c767372f10a4621b558bb376b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=24「频率特性」(canonicalId=ctkg:v3e-object-38d4679bf3335318b0f4afb7, canonicalRevision=e53126433a92…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-b2b8553511270d118f7d3ab4|3433a7f6d147488ea06399330e04bd4fe9da901a9d64726c0075bdcb3360e5a2",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-b4a5ffae9b5ef14d5dde03b1|4f3d09096db326a97deb93fafe6f8fa51c6a95cf73717cd0f16975e91313e131",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-38d4679bf3335318b0f4afb7|e53126433a927bb04a2d36633a563b6f0ec5475c767372f10a4621b558bb376b"
+      ]
+    },
+    {
+      "ordinal": 25,
+      "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+      "canonicalRevision": "f08f1a108df9e9f52f4cb06375598aee3e77e5cde6a17f6bc1f19866bdc7a41d",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=25「幅值谱」(canonicalId=ctkg:v3e-object-3af39a858b2949296df5387f, canonicalRevision=f08f1a108df9…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-92b45ee6f394d5cd24ceea3b|7807c9b470228dc98f8e8cda971cc5cdc46a777835e9db55fd413fc27996964e",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-3af39a858b2949296df5387f|f08f1a108df9e9f52f4cb06375598aee3e77e5cde6a17f6bc1f19866bdc7a41d"
+      ]
+    },
+    {
+      "ordinal": 26,
+      "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "canonicalRevision": "53ac4787e9b39c883f019e3cdc8fec08d3ef429304c7ce363d7164f9de70901b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=26「Bandwidth」(canonicalId=ctkg:v3e-object-3bf89181c7be53ac268d5785, canonicalRevision=53ac4787e9b3…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=2, releaseTier=gold, upstreamEvidenceCount=3。evidenceRefs共4条：aggregate=3, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-b59c3f750ca662086e405633|29b3324bbc07a27c2de331f8a2cfee2167b5a02621b2e46282098c86d7e14548",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-f5883efd82769aaf761a6a7a|4b5cade924a72c289c3ecc2e1d90f0e1fb3ecbeeec1407a4b0e8b29d9965c9a0",
+        "aggregate-evidence|aggregate|evidence:ctr:m1h-v1f-release-evidence-a958b02c468aeffe47a26298|0b2112ce8232b10472a70ee31dc722afc23e778e869a3c0aa6b3c840580ee1c4",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-3bf89181c7be53ac268d5785|53ac4787e9b39c883f019e3cdc8fec08d3ef429304c7ce363d7164f9de70901b"
+      ]
+    },
+    {
+      "ordinal": 27,
+      "canonicalId": "ctkg:v3e-object-3ede6055b0d6c0cf75f44e89",
+      "canonicalRevision": "ac529a1027727856feb54532012a851b64d24400a04737b0cabd306f69875bf6",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=27「Natural unforced response」(canonicalId=ctkg:v3e-object-3ede6055b0d6c0cf75f44e89, canonicalRevision=ac529a102772…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-e7e73f16a60400bf3e3b38e5|98fd137b31e2fbc3b00406b6e81b326601e31d73a77eaa89dd240f564b823334",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-3ede6055b0d6c0cf75f44e89|ac529a1027727856feb54532012a851b64d24400a04737b0cabd306f69875bf6"
+      ]
+    },
+    {
+      "ordinal": 28,
+      "canonicalId": "ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d",
+      "canonicalRevision": "4145da74802d0fecc2ec54259f554ff2c95d40fdc5b9a63a7edb65c5927c7375",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=28「阻尼自然频率」(canonicalId=ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d, canonicalRevision=4145da74802d…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-7d56577356f818bf13c2b38a|a66797b590cfcc70aad212ee59300bf4fb7708ee58d05a2663c75754ed8461f4",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d|4145da74802d0fecc2ec54259f554ff2c95d40fdc5b9a63a7edb65c5927c7375"
+      ]
+    },
+    {
+      "ordinal": 29,
+      "canonicalId": "ctkg:v3e-object-43b963b5d880cd12d43fd450",
+      "canonicalRevision": "e5593ed0ae892b404833c10e992e64febf8881c98b1725ed58e49daf4ec714e9",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=29「Using vector margin to assess stability」(canonicalId=ctkg:v3e-object-43b963b5d880cd12d43fd450, canonicalRevision=e5593ed0ae89…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-db41cdd1494ac0f0d4bd430f|915937e63bb57a61b94d9bdf3c9231f61991660c003b7fa4ccf924ca443c9a58",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-43b963b5d880cd12d43fd450|e5593ed0ae892b404833c10e992e64febf8881c98b1725ed58e49daf4ec714e9"
+      ]
+    },
+    {
+      "ordinal": 30,
+      "canonicalId": "ctkg:v3e-object-4a235944f67a06a4209d2422",
+      "canonicalRevision": "99439061371093090f75ba65d9303f6a606bdc35fa198d15b9ede8ff3cacf0c5",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=30「Bode plot techniques」(canonicalId=ctkg:v3e-object-4a235944f67a06a4209d2422, canonicalRevision=994390613710…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-28a5c4f4052470488b53fd32|f58fab2a4bdf15cd461c0c2c806d52590b097e7ed1bf0647185414371c8941da",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-315413a5b0520a9864d1ca08|91fdeda921d402cb08c51dfe01d4fd1d29d9d3f7565f2fb122838146e96bad75",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-4a235944f67a06a4209d2422|99439061371093090f75ba65d9303f6a606bdc35fa198d15b9ede8ff3cacf0c5"
+      ]
+    },
+    {
+      "ordinal": 31,
+      "canonicalId": "ctkg:v3e-object-4a74e178b598d5d576c2ad57",
+      "canonicalRevision": "0779ec77e69fbd74bb35c1e14a38cf1505660061d0a045af27a7a312d7a4c02d",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=31「开环幅相特性曲线起点」(canonicalId=ctkg:v3e-object-4a74e178b598d5d576c2ad57, canonicalRevision=0779ec77e69f…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-1f1cf59ee14d9bd03412ce6e|06517865e50ccce6077d5a830fdf1f060d96318a10e9b25c3144fd81479e2710",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-4a74e178b598d5d576c2ad57|0779ec77e69fbd74bb35c1e14a38cf1505660061d0a045af27a7a312d7a4c02d"
+      ]
+    },
+    {
+      "ordinal": 32,
+      "canonicalId": "ctkg:v3e-object-4e9d614060ecb62c201b58d8",
+      "canonicalRevision": "c0b4c255fe66a5a777195c696490ca1c573b7750a4839b9b71188e358d3a05b9",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=32「Contour evaluation」(canonicalId=ctkg:v3e-object-4e9d614060ecb62c201b58d8, canonicalRevision=c0b4c255fe66…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-196b9aa2e9f5cafe530d6919|82fc2bb95ed0eec1b92231125e79c5423830ca57510eab857391bdcfc3cdb378",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-4e9d614060ecb62c201b58d8|c0b4c255fe66a5a777195c696490ca1c573b7750a4839b9b71188e358d3a05b9"
+      ]
+    },
+    {
+      "ordinal": 33,
+      "canonicalId": "ctkg:v3e-object-531c51135a4903c618a0fc8b",
+      "canonicalRevision": "f22800e4cfa774b671baf85932a8d4b65207c0d394915e1584f1f2f56bc4203a",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=33「谐振频率」(canonicalId=ctkg:v3e-object-531c51135a4903c618a0fc8b, canonicalRevision=f22800e4cfa7…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-a45a3c177a5847cae56437b9|e103260623d07195879680331fc7442f3542dd27bff8c0bc21e7b61363a60306",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-531c51135a4903c618a0fc8b|f22800e4cfa774b671baf85932a8d4b65207c0d394915e1584f1f2f56bc4203a"
+      ]
+    },
+    {
+      "ordinal": 34,
+      "canonicalId": "ctkg:v3e-object-552526e2ba53ccbf629d1cd8",
+      "canonicalRevision": "aae5130336d7f35d1c1d4c8e3c440e135633e12de47db53361309ea5145d9735",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=34「Type-one system」(canonicalId=ctkg:v3e-object-552526e2ba53ccbf629d1cd8, canonicalRevision=aae5130336d7…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-42f4ce9e2352cfb8ce54a5fa|679c067c7d5015d2db7712a49490548c2692119c3447daf941c80ade8551066b",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-552526e2ba53ccbf629d1cd8|aae5130336d7f35d1c1d4c8e3c440e135633e12de47db53361309ea5145d9735"
+      ]
+    },
+    {
+      "ordinal": 35,
+      "canonicalId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "canonicalRevision": "4a1b7964e9c25ab43431aa998a7dab032a882df4748e16ce317c4ec71eab0336",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=35「低频段」(canonicalId=ctkg:v3e-object-56e0945e8704fa9f3c1dc356, canonicalRevision=4a1b7964e9c2…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-812258041a758f0995bec123|0fecb819d190e3bc0a1a28aa7b768c87c3505d9a60c5675f589b297f5c3a50e8",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-56e0945e8704fa9f3c1dc356|4a1b7964e9c25ab43431aa998a7dab032a882df4748e16ce317c4ec71eab0336"
+      ]
+    },
+    {
+      "ordinal": 36,
+      "canonicalId": "ctkg:v3e-object-57afdf17705015f8527052c5",
+      "canonicalRevision": "bb1d35ae8fea5f37ab670d281b742267a65e33be5db046a11a992ab98a556741",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=36「Neutral Stability」(canonicalId=ctkg:v3e-object-57afdf17705015f8527052c5, canonicalRevision=bb1d35ae8fea…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=3。evidenceRefs共4条：aggregate=3, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-4fd06657f5f86a67b7e276f2|69524b8e277fac70359a071f808701e150abf0594390d44e82fbd77fd8e71bc7",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-5dede0b760cd5b51c9159be0|a9953ab30655c4592c7406ecc1b7858f77fdb58a23a49256fc6ac283bf9cbcc1",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-6e490b75ca0eb8da01d28955|0aaa6785ab7e973ad44ffec8c375f2ea40f80a08cb7ae4a6e319b8018922d1a7",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-57afdf17705015f8527052c5|bb1d35ae8fea5f37ab670d281b742267a65e33be5db046a11a992ab98a556741"
+      ]
+    },
+    {
+      "ordinal": 37,
+      "canonicalId": "ctkg:v3e-object-5856b2f2fd4c962c52631609",
+      "canonicalRevision": "9c0c84a004c6ab5abcba421251af2a9bda203aac3a4f622646ac694cbd4a2a56",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=37「Damping ratio」(canonicalId=ctkg:v3e-object-5856b2f2fd4c962c52631609, canonicalRevision=9c0c84a004c6…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-4c31fe1dff34f125a153fff7|8342c7f8865abf6787c7875f3fcf834d0ad2215260a3cf05d37c4890bb1bc71c",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-5856b2f2fd4c962c52631609|9c0c84a004c6ab5abcba421251af2a9bda203aac3a4f622646ac694cbd4a2a56"
+      ]
+    },
+    {
+      "ordinal": 38,
+      "canonicalId": "ctkg:v3e-object-58cea2373f68416e096759a9",
+      "canonicalRevision": "241ba54a9ce22682a51d00de310f283c16b013808f26df48feddc764b18653a2",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=38「Dominant roots」(canonicalId=ctkg:v3e-object-58cea2373f68416e096759a9, canonicalRevision=241ba54a9ce2…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-e14d81a0b83e56f2eb045fca|f7c1cba1179d3020b6d3ca68f92ea7acf808e267d564f7b1822146daebbe2145",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-58cea2373f68416e096759a9|241ba54a9ce22682a51d00de310f283c16b013808f26df48feddc764b18653a2"
+      ]
+    },
+    {
+      "ordinal": 39,
+      "canonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+      "canonicalRevision": "c6448cbd288c640b28860861c6e84a032fc138604cc764e888210fb8e0c01593",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=39「傅里叶系数」(canonicalId=ctkg:v3e-object-58d24ff14a6b0b0cab5d393f, canonicalRevision=c6448cbd288c…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-384233a5fce4aa55c40f1618|8cda5aabecd6c643c71c51f071fa621e1bb23452eae34a7c33add0f968145305",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-58d24ff14a6b0b0cab5d393f|c6448cbd288c640b28860861c6e84a032fc138604cc764e888210fb8e0c01593"
+      ]
+    },
+    {
+      "ordinal": 40,
+      "canonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "canonicalRevision": "c20366a7ca8c2920bd42d6ac6c53f261564107df3b05d8164aab9be312416e10",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=40「非最小相位环节」(canonicalId=ctkg:v3e-object-5a7582dcb72b1d33d09ca641, canonicalRevision=c20366a7ca8c…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-13ed686519048e7c7cc32454|8217d0bbc7155339326480e643cbaab8ebf7f5263ed83935f997992c19b91403",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-5a7582dcb72b1d33d09ca641|c20366a7ca8c2920bd42d6ac6c53f261564107df3b05d8164aab9be312416e10"
+      ]
+    },
+    {
+      "ordinal": 41,
+      "canonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "canonicalRevision": "ebaa5cbba3c3bd4376b7ed17c0a9592e0caf645e2d6876261865cbd46aebca3a",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=41「对数幅频渐近特性曲线」(canonicalId=ctkg:v3e-object-5a821f717b644300ab32cf21, canonicalRevision=ebaa5cbba3c3…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-5f703908e2e1435e73f0cc09|b37d131e140331c110c2bbbb16aeae9e02c262c5a90ab67ef311ea74ce9026a8",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-5a821f717b644300ab32cf21|ebaa5cbba3c3bd4376b7ed17c0a9592e0caf645e2d6876261865cbd46aebca3a"
+      ]
+    },
+    {
+      "ordinal": 42,
+      "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "canonicalRevision": "e2f3b396411b1bdc713e7c87189783561a7ffcef4896d960ebf5c19dc027cf10",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=42「Phase Margin (PM)」(canonicalId=ctkg:v3e-object-5e8744158554d1c79e590de4, canonicalRevision=e2f3b396411b…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-ab10de3246a0d64d3d96077b|0572dee6e1072bb5fe4a3e796aaaaac3d0d13e7f6c152472b3fb07caf0e5e995",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-5e8744158554d1c79e590de4|e2f3b396411b1bdc713e7c87189783561a7ffcef4896d960ebf5c19dc027cf10"
+      ]
+    },
+    {
+      "ordinal": 43,
+      "canonicalId": "ctkg:v3e-object-5ed6282c976442e9747881b4",
+      "canonicalRevision": "6c5f21dfd9c7a629d86847aed40e9fa0c2357d04b07bc20f1c6f1fc497a94bdd",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=43「Bode plot construction method」(canonicalId=ctkg:v3e-object-5ed6282c976442e9747881b4, canonicalRevision=6c5f21dfd9c7…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-83638d1d9a44c23b495e59c0|24887bc93b853e76f69640b2f083319a685c950c29eeae8cb362b6882b61e08a",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-5ed6282c976442e9747881b4|6c5f21dfd9c7a629d86847aed40e9fa0c2357d04b07bc20f1c6f1fc497a94bdd"
+      ]
+    },
+    {
+      "ordinal": 44,
+      "canonicalId": "ctkg:v3e-object-62bfe5336223892d2ee2592a",
+      "canonicalRevision": "f64b72e50bb875820a6fd909f0a4930f224f6150c3b61dda68433a5aec1af149",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=44「Determining GM from Bode plot」(canonicalId=ctkg:v3e-object-62bfe5336223892d2ee2592a, canonicalRevision=f64b72e50bb8…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-c072488565cde6b3f75d7861|9f7bc09dbf3fe2dea5b4e2823ecc66e96cf7d9a3a46809fa91fc24c04bac0d7f",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-62bfe5336223892d2ee2592a|f64b72e50bb875820a6fd909f0a4930f224f6150c3b61dda68433a5aec1af149"
+      ]
+    },
+    {
+      "ordinal": 45,
+      "canonicalId": "ctkg:v3e-object-64830154d494eaf7d38d905c",
+      "canonicalRevision": "c0f774d4abc2224b2bbff2df1614cb0a2aabe5f9045d3ae5b46a8b50d01e675b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=45「高阶系统时域指标估算经验公式法」(canonicalId=ctkg:v3e-object-64830154d494eaf7d38d905c, canonicalRevision=c0f774d4abc2…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-407ea54fb8770e5139844b2a|31fcacf49b0fe753bda1af4323d276fe3d7ca1088661b7ea66da3cfd070d73ea",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-64830154d494eaf7d38d905c|c0f774d4abc2224b2bbff2df1614cb0a2aabe5f9045d3ae5b46a8b50d01e675b"
+      ]
+    },
+    {
+      "ordinal": 46,
+      "canonicalId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "canonicalRevision": "d3f263ab8dbcc5d75904c4870350fe3cc80233724652ce0d8e22244d33ce0469",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=46「带宽频率」(canonicalId=ctkg:v3e-object-6592690fdccf416b0340917b, canonicalRevision=d3f263ab8dbc…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-d783ecac6751da87b005aa5d|0fe23d9ea87a8059c2720c44a303bf249aa641d9677948cd78def018223867d9",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-6592690fdccf416b0340917b|d3f263ab8dbcc5d75904c4870350fe3cc80233724652ce0d8e22244d33ce0469"
+      ]
+    },
+    {
+      "ordinal": 47,
+      "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "canonicalRevision": "93a14acb7bf72695f743ab36bcad278f2ecc698d14ba86762d350d57c0c4037d",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=47「Closed-loop bandwidth」(canonicalId=ctkg:v3e-object-69488c745082536d87afd1a7, canonicalRevision=93a14acb7bf7…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-2474e81bade1908cc964eb90|3f67534f01362162728826ec0435178655d4b4318cb45773286073e67740a376",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-69488c745082536d87afd1a7|93a14acb7bf72695f743ab36bcad278f2ecc698d14ba86762d350d57c0c4037d"
+      ]
+    },
+    {
+      "ordinal": 48,
+      "canonicalId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "canonicalRevision": "75fd3eea5a70a1722738bb63567f1194861f432b2df8cb0959f002bbff19372b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=48「交接频率」(canonicalId=ctkg:v3e-object-69529eb08c9279e8b19dc4f6, canonicalRevision=75fd3eea5a70…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-baa7850d460b3cd2bf3bca30|ff41aba3ccbe9516058d546ad82d446a0a07d307f84c84583b902ec91ba7a15d",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-69529eb08c9279e8b19dc4f6|75fd3eea5a70a1722738bb63567f1194861f432b2df8cb0959f002bbff19372b"
+      ]
+    },
+    {
+      "ordinal": 49,
+      "canonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+      "canonicalRevision": "0c1e4b91bcf8c6e28076f551e17ab7da50fb457b7b28119393381ca1f752f917",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=49「奈奎斯特稳定判据（奈氏判据）」(canonicalId=ctkg:v3e-object-6aab5205709de2fd044b4024, canonicalRevision=0c1e4b91bcf8…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-46297c283fce75712be47e14|2bb8747ca798c0a1ef38532ed95671a3e849f5f82509975ddd67d8166cb27eed",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-6aab5205709de2fd044b4024|0c1e4b91bcf8c6e28076f551e17ab7da50fb457b7b28119393381ca1f752f917"
+      ]
+    },
+    {
+      "ordinal": 50,
+      "canonicalId": "ctkg:v3e-object-7055a0e2be50abb18ea92c6a",
+      "canonicalRevision": "df0c9c54612ddd11c84a1827a56c49eac83eaff9d249e667f2d9135dfebbd94f",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=50「Decibel (dB)」(canonicalId=ctkg:v3e-object-7055a0e2be50abb18ea92c6a, canonicalRevision=df0c9c54612d…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-cc22fc21843730b174126910|8384d7011a94918c0885efbbc0451ed525a5d3beb14bf1cca56e2a7fb033896c",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-7055a0e2be50abb18ea92c6a|df0c9c54612ddd11c84a1827a56c49eac83eaff9d249e667f2d9135dfebbd94f"
+      ]
+    },
+    {
+      "ordinal": 51,
+      "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "canonicalRevision": "a94e2c47377cbcf976d60f040fa4e299b64ca049bbe7468b22cc7b73da0c524e",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=51「Nyquist plot」(canonicalId=ctkg:v3e-object-763fd65e573e7a65dfc4b79c, canonicalRevision=a94e2c47377c…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=2, releaseTier=gold, upstreamEvidenceCount=3。evidenceRefs共4条：aggregate=3, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-c16371b8653ee1719dbae327|6bdcd4cc147f2b61103db247b3e5e59aa3e77b599770ac2b744b2bb562744295",
+        "aggregate-evidence|aggregate|evidence:ctr:m1h-v1f-release-evidence-776eedde70d0ece1f8a50314|229e2691dcd735b6ba9bb5eeb155dd502aa27dc0197c3c0f464fc4a0a339dda5",
+        "aggregate-evidence|aggregate|evidence:ctr:m1h-v1f-release-evidence-945cb1c93f638f8e681f5439|f3898f26232b316954a7236afb602a39b30b0f557b821581b6629b4ba44f8e25",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-763fd65e573e7a65dfc4b79c|a94e2c47377cbcf976d60f040fa4e299b64ca049bbe7468b22cc7b73da0c524e"
+      ]
+    },
+    {
+      "ordinal": 52,
+      "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+      "canonicalRevision": "6b9067c6c10a154ff8ce1a34d2066a78c9f38334e2ce5b5f920dd68395aca0d4",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=52「Crossover frequency」(canonicalId=ctkg:v3e-object-7761615701fb4915a76924ff, canonicalRevision=6b9067c6c10a…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=2, releaseTier=gold, upstreamEvidenceCount=3。evidenceRefs共4条：aggregate=3, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-442c7818bfb7c7be5c67f616|8b7956692a1cebcddb1b9f800e11fbc3245069a416ab4f1c92afb6731662561e",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-e149dcbfdcd37b1513bb0440|49e52d9baa3b97776cca4fcdcaa5131d9610c4987f51f0a75260925bbc97c7c4",
+        "aggregate-evidence|aggregate|evidence:ctr:m1h-v1f-release-evidence-f90bb91667b55286d3186640|c6cc1faa8e3a3b848daa98e47245fdb8c327a1da032b0ca12295b95ff1bc30e1",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-7761615701fb4915a76924ff|6b9067c6c10a154ff8ce1a34d2066a78c9f38334e2ce5b5f920dd68395aca0d4"
+      ]
+    },
+    {
+      "ordinal": 53,
+      "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "canonicalRevision": "87da2851e1f3d5eed01c36efa4d308b0876cdcc495cd4caa589910ba4d049617",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=53「Nyquist stability criterion」(canonicalId=ctkg:v3e-object-785280d429b7e1a5f2f5db53, canonicalRevision=87da2851e1f3…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-a60862fe151cdbed56cf97a1|88b2f885f6de17654b2d22a024cbeefb0e6026d9f42535b663ef27cdb2c1baa5",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-e280375256ba8af9c4047111|7711df317bca817c3e223884dccf716ee485d6f76b6431c066cb485cbecfb9fa",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-785280d429b7e1a5f2f5db53|87da2851e1f3d5eed01c36efa4d308b0876cdcc495cd4caa589910ba4d049617"
+      ]
+    },
+    {
+      "ordinal": 54,
+      "canonicalId": "ctkg:v3e-object-78558546607d8234fb2ce368",
+      "canonicalRevision": "3790d829c24eb518e1c6f88861d0ff15f3d2d42f5b4fbc376830896c125dadd8",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=54「周期信号的频谱」(canonicalId=ctkg:v3e-object-78558546607d8234fb2ce368, canonicalRevision=3790d829c24e…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-bc34ee6258b624e7026b151b|8007e4233158be63425dc81cae007ca4dade32c03b003880610b6b2ff85a36e3",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-78558546607d8234fb2ce368|3790d829c24eb518e1c6f88861d0ff15f3d2d42f5b4fbc376830896c125dadd8"
+      ]
+    },
+    {
+      "ordinal": 55,
+      "canonicalId": "ctkg:v3e-object-7aef0becfa3e700facb7a80e",
+      "canonicalRevision": "72526fe9024380c5d89b8c31998f328543313d7944ce857d048274558f81a4b4",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=55「开环幅相特性曲线终点」(canonicalId=ctkg:v3e-object-7aef0becfa3e700facb7a80e, canonicalRevision=72526fe90243…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-4bc7e87578e7723bf7153595|a2a0b55126236f6d65ea80008389f14223a6a7dde3e824f1e06794bbecca2b82",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-7aef0becfa3e700facb7a80e|72526fe9024380c5d89b8c31998f328543313d7944ce857d048274558f81a4b4"
+      ]
+    },
+    {
+      "ordinal": 56,
+      "canonicalId": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+      "canonicalRevision": "46bfc3298a22fa0ca8b9b108f5b007bde0de4086a317cc171fb4ca7081f76f3b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=56「Natural frequency」(canonicalId=ctkg:v3e-object-7e274b7e5ef258bd54400783, canonicalRevision=46bfc3298a22…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-1a9f80771a17b2ab3da288d0|dced1908d732bf90aa6d2bb64044acf0d7934cca784db2c442165b434b417031",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-7e274b7e5ef258bd54400783|46bfc3298a22fa0ca8b9b108f5b007bde0de4086a317cc171fb4ca7081f76f3b"
+      ]
+    },
+    {
+      "ordinal": 57,
+      "canonicalId": "ctkg:v3e-object-806d8586fa5ceca0613b844d",
+      "canonicalRevision": "9e01c3c8151e49e9f8f9550994d3398ed7add450aecb68bbaa880354265f3fc6",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=57「连续谱」(canonicalId=ctkg:v3e-object-806d8586fa5ceca0613b844d, canonicalRevision=9e01c3c8151e…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-cbb671706f499ab9c43be6bd|0c768b19d78803b3aa7a0580e4a52b4d272a0d6ffb817cf118bc5be948a9babb",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-806d8586fa5ceca0613b844d|9e01c3c8151e49e9f8f9550994d3398ed7add450aecb68bbaa880354265f3fc6"
+      ]
+    },
+    {
+      "ordinal": 58,
+      "canonicalId": "ctkg:v3e-object-81a7cae1259fabcfe3390cd2",
+      "canonicalRevision": "7c9b304fbd5c3ad1b60a39cc0ee6f2959c442ad560b8a3475db813aeaef0a033",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=58「Resonant-peak magnitude Mr」(canonicalId=ctkg:v3e-object-81a7cae1259fabcfe3390cd2, canonicalRevision=7c9b304fbd5c…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-aab7eccce9d856aaae537817|de9ec3ac8dd8dfef662c951c9b0800b8bd7ee1914d68fd8e57ee1e91b124b246",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-81a7cae1259fabcfe3390cd2|7c9b304fbd5c3ad1b60a39cc0ee6f2959c442ad560b8a3475db813aeaef0a033"
+      ]
+    },
+    {
+      "ordinal": 59,
+      "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+      "canonicalRevision": "b06bb27715be3a70532b6823069ad133740c9690554f577fd97fd5072936e68f",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=59「Frequency Response」(canonicalId=ctkg:v3e-object-8496155b16d82318d90949d0, canonicalRevision=b06bb27715be…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-4d9e3aca24f62fa5062e9d23|26dffcaab453aa80a83840c4111989f7aa13885c6a5a542a5dc3fd3bf540900a",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-8496155b16d82318d90949d0|b06bb27715be3a70532b6823069ad133740c9690554f577fd97fd5072936e68f"
+      ]
+    },
+    {
+      "ordinal": 60,
+      "canonicalId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "canonicalRevision": "981f26c761b604e150131821ccc0b224c3a558f9dee15f4ce34a793512eb8951",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=60「Type-zero system」(canonicalId=ctkg:v3e-object-84d4e25a62819cdb7ccb6caf, canonicalRevision=981f26c761b6…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-e4af6572a5049cd016690ba0|73eb2f73dc0982081f00636d539318b220fa62f16c26a3eebe2d18740a8553ac",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-84d4e25a62819cdb7ccb6caf|981f26c761b604e150131821ccc0b224c3a558f9dee15f4ce34a793512eb8951"
+      ]
+    },
+    {
+      "ordinal": 61,
+      "canonicalId": "ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f",
+      "canonicalRevision": "3a1c297fd2d074295ebaeb5ea8644ced67dbc58a682f5689f69986bb7aa88d93",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=61「Resonant frequency」(canonicalId=ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f, canonicalRevision=3a1c297fd2d0…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=2, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-df460998842759b500cfe941|7665c24b679f82e2a8cd8a8c01baf59f8296117b684945824221b5d0fd2e5406",
+        "aggregate-evidence|aggregate|evidence:ctr:m1h-v1f-release-evidence-e73ba4113afe6146b040e421|ca64cbbd6f4c510ed0e47ebbc805a82af86302327bd716bfe9e4c8955e8575eb",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f|3a1c297fd2d074295ebaeb5ea8644ced67dbc58a682f5689f69986bb7aa88d93"
+      ]
+    },
+    {
+      "ordinal": 62,
+      "canonicalId": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "canonicalRevision": "ff1445e95a133b9db2766fe003bea4ff30c62cfb3082b3042159c36e7f3eb0bd",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=62「Conditionally Stable System」(canonicalId=ctkg:v3e-object-905e09b9921961a6115e4603, canonicalRevision=ff1445e95a13…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-8513e2b1049499243c2ed421|b2145f6bd616dcc9ce92a234060ec596d6bad3f542a0f8b94b7d7507d33b8e86",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-b4650c907bac3c54fcd3a226|2f9564504dd959de9e419f1cb6e0859262ef51bce5ca37ec2c31d1c4a4babe96",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-905e09b9921961a6115e4603|ff1445e95a133b9db2766fe003bea4ff30c62cfb3082b3042159c36e7f3eb0bd"
+      ]
+    },
+    {
+      "ordinal": 63,
+      "canonicalId": "ctkg:v3e-object-96f2adc33e58f93e24be1b42",
+      "canonicalRevision": "a2bed95c918e26fce4bf8e57903b83580b612771b4668b8303e1bbacb3cfded6",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=63「Determining PM from Nyquist plot」(canonicalId=ctkg:v3e-object-96f2adc33e58f93e24be1b42, canonicalRevision=a2bed95c918e…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-2fd4539d365ba8b5f65a108e|33ca7e81af468577c95e0b3eb19659d00a2ecba1969be96438a01b277c41e34f",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-96f2adc33e58f93e24be1b42|a2bed95c918e26fce4bf8e57903b83580b612771b4668b8303e1bbacb3cfded6"
+      ]
+    },
+    {
+      "ordinal": 64,
+      "canonicalId": "ctkg:v3e-object-983964fdaa7a8bf62f5dc787",
+      "canonicalRevision": "495cad6d41d576afcdc54d6d4f8f0329b06fcc7f54eb0e0e285d6f1d24d9b345",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=64「幅相频率特性曲线绘制方法」(canonicalId=ctkg:v3e-object-983964fdaa7a8bf62f5dc787, canonicalRevision=495cad6d41d5…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-26f095d303e2b0e6d578c911|46b1100d19499c66353d6ffcac253d79471ec19fc50611c6344da8b0a35c7338",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-cc6576b0c27a187daaa93459|5392cd3fcd82782d2a77b5700a0556b3b1486dbff9f67a3e07bf5b3ff9d717a9",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-983964fdaa7a8bf62f5dc787|495cad6d41d576afcdc54d6d4f8f0329b06fcc7f54eb0e0e285d6f1d24d9b345"
+      ]
+    },
+    {
+      "ordinal": 65,
+      "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "canonicalRevision": "7042d8c25945be5a6b8837c867cd1a6881f332327ebf0e558335dcb344734450",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=65「相频特性」(canonicalId=ctkg:v3e-object-9967c0867249bf4c1a625dab, canonicalRevision=7042d8c25945…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-95f9f2155a5a2ef80d11a7f5|3a2eb6beb477882746ceadfefb495ad6d409b0932ef8743b4513d7326d43e286",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-9967c0867249bf4c1a625dab|7042d8c25945be5a6b8837c867cd1a6881f332327ebf0e558335dcb344734450"
+      ]
+    },
+    {
+      "ordinal": 66,
+      "canonicalId": "ctkg:v3e-object-9acaab765d45527c6988c564",
+      "canonicalRevision": "b6e128102f8418b1ae4a91ddfd1984626b20265d188435f89d09f45920cbd138",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=66「polar plot」(canonicalId=ctkg:v3e-object-9acaab765d45527c6988c564, canonicalRevision=b6e128102f84…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-3d4e506db149cb392272933c|49e842aebc7288402d21ae3b9b967fbb085064458fecc7ba802b756de4f2d64d",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-9acaab765d45527c6988c564|b6e128102f8418b1ae4a91ddfd1984626b20265d188435f89d09f45920cbd138"
+      ]
+    },
+    {
+      "ordinal": 67,
+      "canonicalId": "ctkg:v3e-object-a95a8e278a89a433477bc1e0",
+      "canonicalRevision": "ad8e93e3c3d71d55e687c97c3bc9f2460a18d1caf21f095513620a62a1a6c5c7",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=67「对数幅相曲线（尼科尔斯曲线）绘制方法」(canonicalId=ctkg:v3e-object-a95a8e278a89a433477bc1e0, canonicalRevision=ad8e93e3c3d7…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-896de059c484400bc5a1f434|3806407455fdc1f78c6dbd6591a8ca1ad2afa319cd29a44d2fa0faa9877ad538",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-a95a8e278a89a433477bc1e0|ad8e93e3c3d71d55e687c97c3bc9f2460a18d1caf21f095513620a62a1a6c5c7"
+      ]
+    },
+    {
+      "ordinal": 68,
+      "canonicalId": "ctkg:v3e-object-ac5da367d445afc46b4baca3",
+      "canonicalRevision": "37fe6d5105dc679eaf286106c223dcdc9cfa15c10581c53c85261830f27e43e5",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=68「谐振峰值」(canonicalId=ctkg:v3e-object-ac5da367d445afc46b4baca3, canonicalRevision=37fe6d5105dc…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-46be2559c4196fbd998d4c7b|96ae8104bc7776fa2b59eea939f7825e2e2b7fcc9e8781f5fd9ea280139169c4",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-ac5da367d445afc46b4baca3|37fe6d5105dc679eaf286106c223dcdc9cfa15c10581c53c85261830f27e43e5"
+      ]
+    },
+    {
+      "ordinal": 69,
+      "canonicalId": "ctkg:v3e-object-aecaf4cad61113646c40ec0c",
+      "canonicalRevision": "d203e4c8bf35a4ac00ea4667b204bbf4477831f74cab237b49fc3de49d5a2f4b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=69「Log-magnitude-phase diagram」(canonicalId=ctkg:v3e-object-aecaf4cad61113646c40ec0c, canonicalRevision=d203e4c8bf35…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-ae08aa82ba2dd3301970134f|f5d2f0757f058bc7b39c60536335f65decc7619ab181fb3c612f5d63788de0e0",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-aecaf4cad61113646c40ec0c|d203e4c8bf35a4ac00ea4667b204bbf4477831f74cab237b49fc3de49d5a2f4b"
+      ]
+    },
+    {
+      "ordinal": 70,
+      "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "canonicalRevision": "5575a0386a8264175955de1ab6bf98753172a932fe58c37e5753dc8c5cf861e6",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=70「延迟环节」(canonicalId=ctkg:v3e-object-b0cbf122498bca9269e55406, canonicalRevision=5575a0386a82…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-e92dfec672d455084f2500ad|6fbc1751a615ea6c3d34a37e40269908886d25deaf40c9b9965a9c2a10572fc8",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-b0cbf122498bca9269e55406|5575a0386a8264175955de1ab6bf98753172a932fe58c37e5753dc8c5cf861e6"
+      ]
+    },
+    {
+      "ordinal": 71,
+      "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "canonicalRevision": "512fc1626aa5be8b157a6b64912839d273e22de8f4a85feb72df5821b8b40f79",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=71「最小相位系统」(canonicalId=ctkg:v3e-object-b542152b1fb2cbb25d81dbb2, canonicalRevision=512fc1626aa5…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-d9fb006f1e7ca49090d82512|01379ae97e60ecb03acd217b82542d3be4745caf5c17cbe020d92b385275d6c9",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-b542152b1fb2cbb25d81dbb2|512fc1626aa5be8b157a6b64912839d273e22de8f4a85feb72df5821b8b40f79"
+      ]
+    },
+    {
+      "ordinal": 72,
+      "canonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "canonicalRevision": "8f1f45269a5f1db0fdd8fe4cff03bd640cc466b2f8bc43b5535107d843e2fd59",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=72「最小相位环节」(canonicalId=ctkg:v3e-object-ba51f9dd280fa844cebe297d, canonicalRevision=8f1f45269a5f…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-992827d7ed1731e9b4a55f54|35ef8b24c4d25070b76d2b592b361eafe72143316aeac7e420b3ba8ea721f2a9",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-ba51f9dd280fa844cebe297d|8f1f45269a5f1db0fdd8fe4cff03bd640cc466b2f8bc43b5535107d843e2fd59"
+      ]
+    },
+    {
+      "ordinal": 73,
+      "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "canonicalRevision": "4abdbe4755d808ca0967d0ffc3a28b53acaa972a4103f5765d298c0c33cadd52",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=73「对数频率特性曲线」(canonicalId=ctkg:v3e-object-be9c82d423b46b7fc6937236, canonicalRevision=4abdbe4755d8…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-bfaca78f00234a21e6344f97|b3c93836a7a8d2372956f70e020096efb727ea977d4c40ebd62019c8b11d4c31",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-be9c82d423b46b7fc6937236|4abdbe4755d808ca0967d0ffc3a28b53acaa972a4103f5765d298c0c33cadd52"
+      ]
+    },
+    {
+      "ordinal": 74,
+      "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "canonicalRevision": "24608e1c8e6325a95b6e71d06606cf00a36a61de9bd69459f1960a63d9ebf5ea",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=74「幅值裕度」(canonicalId=ctkg:v3e-object-c2881833cb4d8b1e415dc742, canonicalRevision=24608e1c8e63…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-64ecf2a52c4f2b73394e3784|98862d3f6400464ee90d0b0dfc74bff0c7215a1dc415268e40876d34d7eaed57",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-c2881833cb4d8b1e415dc742|24608e1c8e6325a95b6e71d06606cf00a36a61de9bd69459f1960a63d9ebf5ea"
+      ]
+    },
+    {
+      "ordinal": 75,
+      "canonicalId": "ctkg:v3e-object-c39d1d0090637db4b51bde73",
+      "canonicalRevision": "400af4810eefa68e9de39295a2336f1e64b600577a8738541738f9362cf08cd0",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=75「绘制概略开环幅相特性曲线方法」(canonicalId=ctkg:v3e-object-c39d1d0090637db4b51bde73, canonicalRevision=400af4810eef…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-36876e883944739354fdca57|12ef3861b3fd3d4baf388cdab9c268f9452642f85779b688dbb82de9b8ce0031",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-ffc2acb0e236695e1f6f7a77|12c8c3b8d663e4ac4c041161b5a80610da596987a5477d032ee389c1717ff2aa",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-c39d1d0090637db4b51bde73|400af4810eefa68e9de39295a2336f1e64b600577a8738541738f9362cf08cd0"
+      ]
+    },
+    {
+      "ordinal": 76,
+      "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "canonicalRevision": "57352043599c748073af07921cac010862d3fde952c98ac1e62b48b9716ffc30",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=76「Bode plot」(canonicalId=ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38, canonicalRevision=57352043599c…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-44132ea6101a355ae8d24b2b|a2a32626e6d6b9f119d6cae1d410f7bcc8f0f535578ec045812c3c5cc9544199",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38|57352043599c748073af07921cac010862d3fde952c98ac1e62b48b9716ffc30"
+      ]
+    },
+    {
+      "ordinal": 77,
+      "canonicalId": "ctkg:v3e-object-cfee5cc12bf4f8da26e41ff1",
+      "canonicalRevision": "c708d0a0b7f0318f3ad85e1cdf08fd7877e41a30149eb126db94f69ff18e0a96",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=77「Vector Margin」(canonicalId=ctkg:v3e-object-cfee5cc12bf4f8da26e41ff1, canonicalRevision=c708d0a0b7f0…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-cf5f34a763b5d0a29fb86f01|e641ba7b5d95d62a7bc267d091118017c3bb3b3d3a6e7f8769ddf8b94a080bdb",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-cfee5cc12bf4f8da26e41ff1|c708d0a0b7f0318f3ad85e1cdf08fd7877e41a30149eb126db94f69ff18e0a96"
+      ]
+    },
+    {
+      "ordinal": 78,
+      "canonicalId": "ctkg:v3e-object-d8ef97d0d84c5b3d7b209fd7",
+      "canonicalRevision": "2a46f6a6cb361de6627d071b43e61d4eeac77eaef4c87e9937c15b7963f9fe90",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=78「对数频率特性曲线绘制方法」(canonicalId=ctkg:v3e-object-d8ef97d0d84c5b3d7b209fd7, canonicalRevision=2a46f6a6cb36…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=4。evidenceRefs共5条：aggregate=4, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-2112d5812d99a447310dcc2d|8e436004a27e00d3d22860233540d042ca002e0e4c860b8d82b437812f61c299",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-3403b13e1264429c98686b7c|da1bd8316350f9a7913a904bafe695f1e30508a64463e7e90c24ccf832e6a15c",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-6c6c3b33e68ab11b6b65600a|c9d2a390644e7bacc7b79ab82014491b5e6c3edfe327ec0fbb3491ab0ded2d37",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-9e945c0de263ee9a356cdbbd|e5271dd2561be73119ad17129db261941d26d75e2d361827babc59da9273751d",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-d8ef97d0d84c5b3d7b209fd7|2a46f6a6cb361de6627d071b43e61d4eeac77eaef4c87e9937c15b7963f9fe90"
+      ]
+    },
+    {
+      "ordinal": 79,
+      "canonicalId": "ctkg:v3e-object-db0fc6571dad5000caf9cbf7",
+      "canonicalRevision": "f8b0004335260aa8a2acbea958c91043558ae8bdc8a7c79c077b4b1097d4ce8a",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=79「Strophoid plane curve」(canonicalId=ctkg:v3e-object-db0fc6571dad5000caf9cbf7, canonicalRevision=f8b000433526…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-04ac5337034654f139bd4763|b280ca7a35882ef0374631bdb066e8fc673280260889fc802c46f2e7a8b742f2",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-db0fc6571dad5000caf9cbf7|f8b0004335260aa8a2acbea958c91043558ae8bdc8a7c79c077b4b1097d4ce8a"
+      ]
+    },
+    {
+      "ordinal": 80,
+      "canonicalId": "ctkg:v3e-object-ddbe1d931c3e5677361c2470",
+      "canonicalRevision": "c23fbe5e7859be3439469a015132a37c1ea998b75296f0c491dcefad6cd30a77",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=80「Position error constant」(canonicalId=ctkg:v3e-object-ddbe1d931c3e5677361c2470, canonicalRevision=c23fbe5e7859…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-c084e9483ee21ed28e6b4249|5c66ca6cf9915a22ed5917bf1ce9eed759c87ab057a25541e5500caae297df30",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-ddbe1d931c3e5677361c2470|c23fbe5e7859be3439469a015132a37c1ea998b75296f0c491dcefad6cd30a77"
+      ]
+    },
+    {
+      "ordinal": 81,
+      "canonicalId": "ctkg:v3e-object-de79f06574782620fb5a2094",
+      "canonicalRevision": "03be05e5e520b6e3b423ecc9724e7502752e1242fa05fd5a8bf85e5db198b74a",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=81「Twin-T Network」(canonicalId=ctkg:v3e-object-de79f06574782620fb5a2094, canonicalRevision=03be05e5e520…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-d4fedd3617cef30b7178230c|149c2ea5fca60cfcdf2498e18d06e1629fd8850aa582905ea0481a6b3c0b9c97",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-de79f06574782620fb5a2094|03be05e5e520b6e3b423ecc9724e7502752e1242fa05fd5a8bf85e5db198b74a"
+      ]
+    },
+    {
+      "ordinal": 82,
+      "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+      "canonicalRevision": "3485352ef61168a0eb771e91a0d8952599a50bfdbad9f4a5ba89ec7c508b926b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=82「幅频特性」(canonicalId=ctkg:v3e-object-de873c97a924107857f79242, canonicalRevision=3485352ef611…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-13098c11df8ae0f8a4647c1f|fda473dc1c5ebaed87e037193781acbd80aed62ae9b02aec960ed5711edf7d14",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-de873c97a924107857f79242|3485352ef61168a0eb771e91a0d8952599a50bfdbad9f4a5ba89ec7c508b926b"
+      ]
+    },
+    {
+      "ordinal": 83,
+      "canonicalId": "ctkg:v3e-object-dee6731dcc0faa231340dac9",
+      "canonicalRevision": "5f54a9079cb99eebc302f46fdfea76f5c26e958bd4d4cc85e8b138bdfb68fac1",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=83「Decibel」(canonicalId=ctkg:v3e-object-dee6731dcc0faa231340dac9, canonicalRevision=5f54a9079cb9…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-415a8e9cdbe0ca8bf25e446f|fecc991b1f6271772fe1b91f8894912dccec4434e82922f84b87ae80e5bacf3a",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-dee6731dcc0faa231340dac9|5f54a9079cb99eebc302f46fdfea76f5c26e958bd4d4cc85e8b138bdfb68fac1"
+      ]
+    },
+    {
+      "ordinal": 84,
+      "canonicalId": "ctkg:v3e-object-df82d7abb92fef100c7944eb",
+      "canonicalRevision": "6fec9586f8e5061f46237ab59cdadc1f20ba37c2ccd78df70ae13fde87914d2c",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=84「decade」(canonicalId=ctkg:v3e-object-df82d7abb92fef100c7944eb, canonicalRevision=6fec9586f8e5…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-bec114bc9bc90190bfd0e21f|a948f4c157cd4fa0751d6e9401474504e96e469debdcafb8a79f9b6995f11463",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-df82d7abb92fef100c7944eb|6fec9586f8e5061f46237ab59cdadc1f20ba37c2ccd78df70ae13fde87914d2c"
+      ]
+    },
+    {
+      "ordinal": 85,
+      "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+      "canonicalRevision": "afdfeba90c10183bdc35710bec92fdd3fc393f1e0c7c776efbbe0da1a55d383c",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=85「break frequency (corner frequency)」(canonicalId=ctkg:v3e-object-e16a21bf52b0d6a12485f477, canonicalRevision=afdfeba90c10…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-917ed20b191d47a82caaadd9|7a918c49538b0796a4754600b9f409609af13a628e4a602d4eb624f2c4770470",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-e16a21bf52b0d6a12485f477|afdfeba90c10183bdc35710bec92fdd3fc393f1e0c7c776efbbe0da1a55d383c"
+      ]
+    },
+    {
+      "ordinal": 86,
+      "canonicalId": "ctkg:v3e-object-e472548752b2e2acc7854586",
+      "canonicalRevision": "644fd74045c6130e8d0c97bea5acf5c90f98d0249a25825d3622855ac2ec94f3",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=86「Resonant magnitude」(canonicalId=ctkg:v3e-object-e472548752b2e2acc7854586, canonicalRevision=644fd74045c6…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-40cfe827c50ecfe285c33d8e|c723865f4f4f9b9855e6245c139c18af7627147139a6dee7ee7e54805bf27ebb",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-e472548752b2e2acc7854586|644fd74045c6130e8d0c97bea5acf5c90f98d0249a25825d3622855ac2ec94f3"
+      ]
+    },
+    {
+      "ordinal": 87,
+      "canonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+      "canonicalRevision": "b15f00e84bd2b81a48103feba56132b79f99b03e7779d049031f6c08cb134856",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=87「频率特性实验确定方法」(canonicalId=ctkg:v3e-object-e80f5d56ce06409842363584, canonicalRevision=b15f00e84bd2…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-95b2fd4a68028d00ee07bbd5|a512f11a5583fa27d88041b92e17406c2b5ae95553bdf762880d4feb0c04e1c4",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-e80f5d56ce06409842363584|b15f00e84bd2b81a48103feba56132b79f99b03e7779d049031f6c08cb134856"
+      ]
+    },
+    {
+      "ordinal": 88,
+      "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "canonicalRevision": "746a7dcd7dd01328604db224705470e72ef5711e46c8cc46a90548bb161d3bdc",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=88「Sinusoidal steady-state response」(canonicalId=ctkg:v3e-object-ee4c217b305b05786c0b89a9, canonicalRevision=746a7dcd7dd0…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-6f932736fb0b82f0099c805c|a3f614153b279c74631c1323c02f0c9cf425f63e122f87d5541983294a1480d6",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-da53fafa64a6a0739e3a11f7|265f4c2646e1738de190058a15100e371db79070e89460244811247ffba9b4fa",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-ee4c217b305b05786c0b89a9|746a7dcd7dd01328604db224705470e72ef5711e46c8cc46a90548bb161d3bdc"
+      ]
+    },
+    {
+      "ordinal": 89,
+      "canonicalId": "ctkg:v3e-object-ee95c608a2f3782742d28d92",
+      "canonicalRevision": "eac9cce5fead0e396c8e7b219b3a5e837937c31b48b9d42f872597d2696d231d",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=89「Graphical evaluation of polar plot using s-plane vectors」(canonicalId=ctkg:v3e-object-ee95c608a2f3782742d28d92, canonicalRevision=eac9cce5fead…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-6f671836e074a1a70dec5d91|aa46aebde7d6d7d27e865e043732c90a477a7bc3a2b6426f112439acf669bcdf",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-fb64ad04c790dbbfdaefb62b|b38f8ebd032bc49d6fb9afbec5ca6b448396937e078e70c6acb6a9b6f7ae000f",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-ee95c608a2f3782742d28d92|eac9cce5fead0e396c8e7b219b3a5e837937c31b48b9d42f872597d2696d231d"
+      ]
+    },
+    {
+      "ordinal": 90,
+      "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "canonicalRevision": "3e43bb269e86bba9ab539ea50f97edd50e0f5049102820078fe810784bde88ad",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=90「非最小相位系统」(canonicalId=ctkg:v3e-object-f04f82217525c5c412d0d180, canonicalRevision=3e43bb269e86…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-1c3d1aa61f1016abc5ea1d20|526effbc6cb7681069a9437d191164d082a66435d6ce8082697417b472bd9b74",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-f04f82217525c5c412d0d180|3e43bb269e86bba9ab539ea50f97edd50e0f5049102820078fe810784bde88ad"
+      ]
+    },
+    {
+      "ordinal": 91,
+      "canonicalId": "ctkg:v3e-object-f61357354fd32305fac8755b",
+      "canonicalRevision": "68ac348ada5298858a0364e8cebfa5f4eecf01aecb124be4700862b89d79a21f",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=91「利用开环频域指标估算时域性能方法」(canonicalId=ctkg:v3e-object-f61357354fd32305fac8755b, canonicalRevision=68ac348ada52…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-4148346d4f4b46e3da8c9807|9c2b70e4b56e7330dd3a408252019e0268020a351ed8b034f59e492e0f98ad89",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-f61357354fd32305fac8755b|68ac348ada5298858a0364e8cebfa5f4eecf01aecb124be4700862b89d79a21f"
+      ]
+    },
+    {
+      "ordinal": 92,
+      "canonicalId": "ctkg:v3e-object-f86059edf7249257b142b471",
+      "canonicalRevision": "2d7a2f69ebf4b7261fd1cea0dbd2507456cfb99b79aeffddaf2f7d9bbd49b79f",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=92「C1 contour」(canonicalId=ctkg:v3e-object-f86059edf7249257b142b471, canonicalRevision=2d7a2f69ebf4…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate=2, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-7689b3d5528f0fa68be1dc92|6ebb5ee1834e0a97070868a143bccc08fdb5166b8a9c92f9041d74d03945388f",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-f983da7a4097e7d694a966d2|468bd81a470a20a2da3a26d78d22ee7b0f210527918f8f5cfdcafd27d536a385",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-f86059edf7249257b142b471|2d7a2f69ebf4b7261fd1cea0dbd2507456cfb99b79aeffddaf2f7d9bbd49b79f"
+      ]
+    },
+    {
+      "ordinal": 93,
+      "canonicalId": "ctkg:v3e-object-f91e625707410c1dc36188cb",
+      "canonicalRevision": "a6c1cd12a8e2535999b848adeb9bad9210a5eeeecfe3fcb7d8fba91affe7684f",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=93「Velocity constant」(canonicalId=ctkg:v3e-object-f91e625707410c1dc36188cb, canonicalRevision=a6c1cd12a8e2…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-1c7666978197cb2384fb2073|04cd8d32315e624eb0899f7ae982b9645d3ed83af3d1ceb1e22466198b918465",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-f91e625707410c1dc36188cb|a6c1cd12a8e2535999b848adeb9bad9210a5eeeecfe3fcb7d8fba91affe7684f"
+      ]
+    },
+    {
+      "ordinal": 94,
+      "canonicalId": "ctkg:v3e-object-fb97ed4cffee0e2317af990e",
+      "canonicalRevision": "290dd67799b35df3b1eab9aab535aa9c6c0a610237b568ec7dc4505201188c28",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=94「Bode diagram」(canonicalId=ctkg:v3e-object-fb97ed4cffee0e2317af990e, canonicalRevision=290dd67799b3…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-7e7e719433e9889dc81c9712|fed9dbe826c9a7bdf8f18e0053c023e725983e9d99d25aa315e712d51c61abc9",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-fb97ed4cffee0e2317af990e|290dd67799b35df3b1eab9aab535aa9c6c0a610237b568ec7dc4505201188c28"
+      ]
+    },
+    {
+      "ordinal": 95,
+      "canonicalId": "ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0",
+      "canonicalRevision": "2cb1f749cfbf7670d30fe74c1a3727030f084bbb9beb50f65f334c641317bfc0",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=95「Bel」(canonicalId=ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0, canonicalRevision=2cb1f749cfbf…)。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=[ctr:release:frequency-domain-analysis-engineering-v0.1], profileOnly=true, riskFlags.highRisk=true, reasons=[high-risk,profile-only], new=false, changed=false。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate=1, profile=1, independent-course=0；sourcePath均为aggregate-projection，boundary仅aggregate/profile，kind仅aggregate-evidence与canonical-profile。priorDecisionRefs为空，不得继承历史结论。缺lesson authoring(course-content/authoring/lessons/**)与syllabus blueprint/main独立课程证据，profile/aggregate不可提升为independent-course；按规范必须DEFER且CourseCoverage authority unresolved，禁止INCLUDE/EXCLUDE或赋予active role。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-c7e4c911da4291a076edd5d3|c4684bbba236e9b4fd16b60ce169effd0276b6458e74cf8bc8688e514224f7f0",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0|2cb1f749cfbf7670d30fe74c1a3727030f084bbb9beb50f65f334c641317bfc0"
+      ]
+    }
+  ],
+  "counts": {
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 96,
+    "memberCount": 96,
+    "profileOnly": 96,
+    "highRisk": 96,
+    "independentCourseEvidenceMembers": 0,
+    "priorDecisionRefsNonEmpty": 0
+  },
+  "unresolvedRisks": [
+    "全部96项均为profileOnly+highRisk，且冻结证据仅aggregate-projection的aggregate-evidence与canonical-profile；无independent-course证据，CourseCoverage authority unresolved，阻断全局Coverage gate。",
+    "缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据；gold级releaseTier、模块归属与profile元数据不得提升为independent-course，不得INCLUDE/EXCLUDE。",
+    "priorDecisionRefs全部为空且规范禁止继承历史角色/结论；后续若补齐独立课程证据需在同worklistDigest/memberDigest约束下重新审查。",
+    "batchBinding已核验：index=9, sequence=0, group=ctr:release:frequency-domain-analysis-engineering-v0.1::entityType:DomainConcept, memberDigest=33462c99375f663611af4b05fae10f0c82e9eef3117214ccbd6c67a39c1c525a, manifestDigest=2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818；任一后续drift必须fail closed。"
+  ]
+}

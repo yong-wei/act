@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "sessionIndependence": {
+    "role": "CHALLENGER",
+    "sessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238",
+    "scope": "act:issue-1223:challenger-review",
+    "readOtherStageConclusions": false,
+    "statement": "CHALLENGER only read the frozen manifest/worklist and independent course evidence; it did not read another stage conclusion or artifact.",
+    "sourceOrderCanonicalized": false
+  },
+  "batchBinding": {
+    "batchId": "84aa72597e8fe1d9ee6f0602",
+    "manifestBatchIndex": 33,
+    "sequence": 0,
+    "group": "ctr:root-locus-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 1,
+    "memberDigest": "8ee4109996fc05d510290a3620c6172e8107421e9695a1aa79c13e5cbe4040e4",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818"
+  },
+  "counts": {
+    "members": 1,
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 1
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+      "canonicalRevision": "d43c4e7c9a96a3b2f5b5f5f71bd20b145a6c4d07c563371902ccd33854830430",
+      "stageConclusion": "DEFER",
+      "rationale": "profileOnly/highRisk 成员仅有聚合投影与词表/档案证据，缺少独立课程权威材料，无法判定覆盖角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:c017d99634d38d5b97730906",
+          "evidenceId": "4720bc25816a80b9284352bf0d9be61e"
+        },
+        {
+          "selector": "evidence:ctr:fc21f12ca7add7a360e6aa50",
+          "evidenceId": "e9b59a0f36a47ae3deaceca0e9ae7063"
+        },
+        {
+          "selector": "topic:transfer function",
+          "evidenceId": "5ab5da9bd3b2647768c42f06ae1a33e1"
+        },
+        {
+          "selector": "canonicalId:ctm:v11g-6b66a370b1cd788194b0f8ab",
+          "evidenceId": "0e1df03545c39c4ef3567b4965678117"
+        }
+      ]
+    }
+  ]
+}

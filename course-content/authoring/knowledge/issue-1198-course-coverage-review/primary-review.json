@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "0bc82e9dcca813c8a75f11bd",
+    "manifestBatchIndex": 8,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:discrete-time-control-analysis-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 4,
+    "memberDigest": "463c5396f60d309f07ce3405d690e70e00b3ce70dbdbef5f8ce3bcad67b933ec",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-independent-primary",
+    "provider": "grok-4.5-build",
+    "sessionId": "f03d0a8b-dec9-4c1f-b000-f7ae8c070810",
+    "promptVersion": "issue-1198-primary-v1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1198-course-coverage-review/primary-independent-stage-source.json",
+    "artifactSha256": "81ec958667e446bf34efb2ff337f6805c0a04964f6157fcf21bd4b3b92d7db45",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "PRIMARY",
+    "writerSessionId": "f03d0a8b-dec9-4c1f-b000-f7ae8c070810"
+  },
+  "reviewInputDigest": "4a87f7bc0ab4252a99973c578bcd561a513c27f65fba14b33b530e3eda4e2c68",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-1bfd421743563c336736e28c",
+      "canonicalRevision": "681cab6b1dcf024ec25fabf7193488b4daf65f9d36617ca4c00198b2437aeae3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bff608a1ce955eefcc67276f",
+        "evidence:ctkg:v3e-evidence-d1d6063696ab40b46fce2d76",
+        "canonicalId:ctkg:v3e-object-1bfd421743563c336736e28c"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-1bfd421743563c336736e28c preferredLabel「The system under consideration in Section 13.6, consisting of a process G_p(s) = K/(s(τs+1)) with a zero-order hold, as shown in Figure 1...」；entityType=SystemModel；模型主题≈离散过程+ZOH（Section 13.6 / Figure 13.18；G_p(s)=K/(s(τs+1))+zero-order hold）；moduleMembership=['ctr:release:discrete-time-control-analysis-engineering-v0.1']；profileOnly=True highRisk=True riskReasons=high-risk,profile-only（仅作观察记录，非自动裁决依据）；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=gold,upstreamEvidenceCount=2；descriptionDigest=2470b082ef7f5e9ae62a394e51f7d8261ed2ca89b1e27402758880c818cfd2d4；evidenceDigest=7a4bfb3cae7c5e24076be0441f00ab6ada8bc76815984bc7aeeb76a8a1fb1756；冻结 worklist evidenceRefs 共3条（aggregate-evidence×2+canonical-profile×1），kind=['aggregate-evidence', 'canonical-profile'] boundary=[aggregate,profile] sourcePath=['aggregate-projection']，无 independent-course / lesson-authoring / syllabus-blueprint 边界，不能据此 INCLUDE/EXCLUDE；role=null。仓库 course-content/authoring/lessons 与 course-content/syllabus-refactor 对 canonicalId 字面零命中；对成员特异标签短语（Section 13.6/Figure 13.18/图7-25/典型离散系统结构图等）亦无独立课程绑定。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-bff608a1ce955eefcc67276f(evidenceId=49fcab1170f7f9d7ebb861843f44247d,sourceDigest=7f3b9f4c5953509d…,sourcePath=aggregate-projection,digestSemantics=selector-evidence)；aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-d1d6063696ab40b46fce2d76(evidenceId=9fd2b2f3040ef7d147f0d3931135cd40,sourceDigest=531d5c326b91be77…,sourcePath=aggregate-projection,digestSemantics=selector-evidence)；canonical-profile/profile:canonicalId:ctkg:v3e-object-1bfd421743563c336736e28c(evidenceId=50819290888c33bacbd180824977c5b6,sourceDigest=681cab6b1dcf024e…,sourcePath=aggregate-projection,digestSemantics=semantic-payload)。",
+      "decisionDigest": "f99055a9f38f2f7c826ce6152ce7b656d532dc1c3967ae9dda3e5f7ff5bf08c5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3c2da5dd1150bed8271d5906",
+      "canonicalRevision": "dc7a057e44ef60e1c52661e69b04bbe39e069acd078e63745bba4d66ea5449af",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5e62e37f84f72b63859bb99e",
+        "canonicalId:ctkg:v3e-object-3c2da5dd1150bed8271d5906"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-3c2da5dd1150bed8271d5906 preferredLabel「典型离散系统结构图（图7-25）」；entityType=SystemModel；模型主题≈典型离散系统结构图（图7-25）；moduleMembership=['ctr:release:discrete-time-control-analysis-engineering-v0.1']；profileOnly=True highRisk=True riskReasons=high-risk,profile-only（仅作观察记录，非自动裁决依据）；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=gold,upstreamEvidenceCount=1；descriptionDigest=b094d5c4e7b9968ec9b7542f6f99da725b56c48f26376bf0bd95f4c5a70c55d2；evidenceDigest=b34511e67106c7c6607612fd1c8d085cf1d66fd35354b899b12709dcbcbdebec；冻结 worklist evidenceRefs 共2条（aggregate-evidence×1+canonical-profile×1），kind=['aggregate-evidence', 'canonical-profile'] boundary=[aggregate,profile] sourcePath=['aggregate-projection']，无 independent-course / lesson-authoring / syllabus-blueprint 边界，不能据此 INCLUDE/EXCLUDE；role=null。仓库 course-content/authoring/lessons 与 course-content/syllabus-refactor 对 canonicalId 字面零命中；对成员特异标签短语（Section 13.6/Figure 13.18/图7-25/典型离散系统结构图等）亦无独立课程绑定。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-5e62e37f84f72b63859bb99e(evidenceId=693216249d93e4860ac6417d05f53c91,sourceDigest=ea26d02fac72a72c…,sourcePath=aggregate-projection,digestSemantics=selector-evidence)；canonical-profile/profile:canonicalId:ctkg:v3e-object-3c2da5dd1150bed8271d5906(evidenceId=d7ed623fdfd55a7d05a15d9bfafea927,sourceDigest=dc7a057e44ef60e1…,sourcePath=aggregate-projection,digestSemantics=semantic-payload)。",
+      "decisionDigest": "57c2dbc71a34a2ccf7048f1315197901cb030e8fc4daf8bae8cd42804b73dcf6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-543b7b61949d2561feb5420f",
+      "canonicalRevision": "8451b5775074437f87a39369338d9e6e099a4d15c3e6b4922810579ba19867c8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-07a7b78763a35574ac4b266a",
+        "canonicalId:ctkg:v3e-object-543b7b61949d2561feb5420f"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-543b7b61949d2561feb5420f preferredLabel「A continuous system with reference input r(t), error e(t), continuous compensation D_c(s), plant G(s), and sensor with gain 1.」；entityType=SystemModel；模型主题≈连续统一反馈系统（r(t)/e(t)/D_c(s)/G(s)/传感器增益1）作为离散化对照模型；moduleMembership=['ctr:release:discrete-time-control-analysis-engineering-v0.1']；profileOnly=True highRisk=True riskReasons=high-risk,profile-only（仅作观察记录，非自动裁决依据）；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；descriptionDigest=849c38cad6dbbf0ebcb53a84a9d7ff6139ce1824eb83713c36b4d87d2cd712e4；evidenceDigest=b527522611735b79e746fd5a0d0068edf2f9973c8378063cdd008d34e7bd025f；冻结 worklist evidenceRefs 共2条（aggregate-evidence×1+canonical-profile×1），kind=['aggregate-evidence', 'canonical-profile'] boundary=[aggregate,profile] sourcePath=['aggregate-projection']，无 independent-course / lesson-authoring / syllabus-blueprint 边界，不能据此 INCLUDE/EXCLUDE；role=null。仓库 course-content/authoring/lessons 与 course-content/syllabus-refactor 对 canonicalId 字面零命中；对成员特异标签短语（Section 13.6/Figure 13.18/图7-25/典型离散系统结构图等）亦无独立课程绑定。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-07a7b78763a35574ac4b266a(evidenceId=28b3b66f93cf34d5f0d7bbdec5ec7351,sourceDigest=f1635227c07a4265…,sourcePath=aggregate-projection,digestSemantics=selector-evidence)；canonical-profile/profile:canonicalId:ctkg:v3e-object-543b7b61949d2561feb5420f(evidenceId=6317021e68b46d059215aa0007309d6e,sourceDigest=8451b5775074437f…,sourcePath=aggregate-projection,digestSemantics=semantic-payload)。",
+      "decisionDigest": "e7381f3bc06dbf1cbdf777e12e4bdd86742496c0e7da345e499803ec6b719e0f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8456d832ad12432f2acb6ab0",
+      "canonicalRevision": "f3115e03df57d2834c4c1bb7aa543a92f9e8b229637544a6f3c35ab7dd7dc176",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9e66af0212aba5a96a92ed1e",
+        "canonicalId:ctkg:v3e-object-8456d832ad12432f2acb6ab0"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-8456d832ad12432f2acb6ab0 preferredLabel「A digital system with sampling intervals T, A/D converters, discrete error e(kT), difference equations, clock, D/A and ZOH hold, and plan...」；entityType=SystemModel；模型主题≈数字采样系统结构（采样间隔T、A/D、e(kT)、差分方程、时钟、D/A+ZOH、plant G(s)）；moduleMembership=['ctr:release:discrete-time-control-analysis-engineering-v0.1']；profileOnly=True highRisk=True riskReasons=high-risk,profile-only（仅作观察记录，非自动裁决依据）；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=gold,upstreamEvidenceCount=1；descriptionDigest=d8b4a6ec8b8cc6da331b34a84c44a6010da1386b318ae35fcc7d2dafc21488a3；evidenceDigest=948641673b206cd7f2b23bf23fac179353a74c609d24ea347b3c81d5b2fdf299；冻结 worklist evidenceRefs 共2条（aggregate-evidence×1+canonical-profile×1），kind=['aggregate-evidence', 'canonical-profile'] boundary=[aggregate,profile] sourcePath=['aggregate-projection']，无 independent-course / lesson-authoring / syllabus-blueprint 边界，不能据此 INCLUDE/EXCLUDE；role=null。仓库 course-content/authoring/lessons 与 course-content/syllabus-refactor 对 canonicalId 字面零命中；对成员特异标签短语（Section 13.6/Figure 13.18/图7-25/典型离散系统结构图等）亦无独立课程绑定。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-9e66af0212aba5a96a92ed1e(evidenceId=1038634bcd42ed918b20def7a7af1660,sourceDigest=acb75ca4f9f2d4d5…,sourcePath=aggregate-projection,digestSemantics=selector-evidence)；canonical-profile/profile:canonicalId:ctkg:v3e-object-8456d832ad12432f2acb6ab0(evidenceId=aea551c2c35292f29e85ad6f77927562,sourceDigest=f3115e03df57d283…,sourcePath=aggregate-projection,digestSemantics=semantic-payload)。",
+      "decisionDigest": "931d10c9c626ac8f13fb1090b531bb31e083b27d6d763477c14e61518933dd6c"
+    }
+  ],
+  "documentDigest": "82189129b2ed3553df4e317e9db24560c5537147cd0ea1cbbfdaee1cd7be36fd"
+}

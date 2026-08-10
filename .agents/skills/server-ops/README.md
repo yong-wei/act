@@ -1,6 +1,6 @@
 # AI-OBE Platform Server Operations Skill
 
-服务器运行状态调查与故障排查技能，适用于基于 Podman/Docker 容器化部署的 Next.js + PostgreSQL 架构。
+服务器运行状态调查与故障排查技能，仅适用于用户明确要求把本项目发布/部署到服务器，或任务必须读取、诊断、修改远端服务器状态的场景。纯本地发布工件、GitHub/ActKG Release、图谱 authority 切换条件分析不得触发本技能。
 
 ## 项目信息
 

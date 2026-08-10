@@ -366,7 +366,8 @@ describe('knowledge graph node-local expansion control', () => {
       );
       expect(rendererSource).toContain('const snapshotRuntimePositions = useCallback(() => {');
       expect(rendererSource).not.toContain('onEngineTick={snapshotRuntimePositions}');
-      expect(rendererSource).toContain('onEngineStop={snapshotRuntimePositions}');
+      expect(rendererSource).toContain('snapshotRuntimePositions();');
+      expect(rendererSource).toContain('onEngineStop={handleEngineStop}');
       expect(reporter).not.toContain('graphNodes.forEach');
       expect(reporter).not.toContain('runtimePositionsByNodeIdRef.current.set');
     });

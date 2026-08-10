@@ -1,0 +1,72 @@
+{
+  "pack_id": "P0134",
+  "offset": 670,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-6bb580c242f908566ab53b18",
+      "batch": "B",
+      "name": "临界阻尼",
+      "definition": "ζ = 1，特征方程具有两个相等的负实根，阶跃响应非周期地趋于稳态输出。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "临界阻尼"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 临界阻尼\nSOURCE DEFINITION (fail-closed, do not invent beyond this): ζ = 1，特征方程具有两个相等的负实根，阶跃响应非周期地趋于稳态输出。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「临界阻尼」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b03bdd7d909a44a2830459ca",
+      "batch": "B",
+      "name": "典型输入信号",
+      "definition": "根据系统常遇到的输入信号形式，在数学描述上加以理想化的一些基本输入函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "典型输入信号",
+        "包含组件·正弦函数",
+        "包含组件·单位阶跃…",
+        "包含组件·单位斜坡…",
+        "包含组件·单位加速…",
+        "包含组件·单位脉冲…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 典型输入信号\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 根据系统常遇到的输入信号形式，在数学描述上加以理想化的一些基本输入函数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「典型输入信号」、「包含组件·正弦函数」、「包含组件·单位阶跃…」、「包含组件·单位斜坡…」、「包含组件·单位加速…」、「包含组件·单位脉冲…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-c8eb5072bc1783d917169c9a",
+      "batch": "B",
+      "name": "稳态过程",
+      "definition": "系统在典型输入信号作用下，当时间 t 趋于无穷时，系统输出量的表现方式。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳态过程"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 稳态过程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统在典型输入信号作用下，当时间 t 趋于无穷时，系统输出量的表现方式。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「稳态过程」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0e5df270abeaa062e3a81d33",
+      "batch": "B",
+      "name": "采样过程",
+      "definition": "在采样控制系统中，把连续信号转变为脉冲序列的过程称为采样过程，简称采样。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样过程",
+        "属于·采样控制系统",
+        "包含组件·采样控制…",
+        "关联·模拟信号",
+        "关联·保持器",
+        "关联·采样器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样过程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在采样控制系统中，把连续信号转变为脉冲序列的过程称为采样过程，简称采样。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样过程」、「属于·采样控制系统」、「包含组件·采样控制…」、「关联·模拟信号」、「关联·保持器」、「关联·采样器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-542c371afb4374a5f7b7be5f",
+      "batch": "B",
+      "name": "矩阵指数函数",
+      "definition": "由幂级数 \\sum_{k=0}^{\\infty} \\frac{1}{k。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "矩阵指数函数",
+        "是一种·状态转移矩阵"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 矩阵指数函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由幂级数 \\sum_{k=0}^{\\infty} \\frac{1}{k。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「矩阵指数函数」、「是一种·状态转移矩阵」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

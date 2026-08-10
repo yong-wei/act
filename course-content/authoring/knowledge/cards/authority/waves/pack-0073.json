@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0073",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-9dd164e548b83a92f3777044",
+      "name": "否包含元素全…",
+      "definition": "当A的特征值两两相异时，通过线性变换化为对角线规范型，检查C矩阵是否包含元素全为零的列。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ae46ad7afbc5b4cd102501c7",
+      "name": "可观测性规范分解方法",
+      "definition": "通过构造非奇异变换矩阵，将系统状态空间表达式变换为可观测规范分解形式的方法。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b23d7969cb791dfac72b6319",
+      "name": "闭环采样系统",
+      "definition": "如果采样器位于系统闭合回路之内，则称为闭环采样系统。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b51bc504a48917b2c5ec25c3",
+      "name": "Feedback Compensation",
+      "definition": "Feedback Compensation：A compensation scheme where the compensator is placed in the feedback path."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b73224087c9c0475612e8635",
+      "name": "Phase-Lag Compensator",
+      "definition": "Phase-Lag Compensator：A compensator providing a phase-lag characteristic, often called an integrating compensator."
+    }
+  ],
+  "created_at": "2026-08-05T16:09:00.209629+00:00"
+}

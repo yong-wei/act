@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+  "safe_id": "ctkg_v3e-object-36f969bb5befa8ef9f8d0a99",
+  "node": {
+    "name": "Frequency response method",
+    "name_en": "Frequency response method",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Frequency response method：A method for designing compensators by altering the frequency response of the system as portrayed on Nyquist plot, Bode…",
+  "intuition": "在图谱邻接中可把握：后续 → Compensated system、Compensator、Frequency-domain performance measures。",
+  "explanation": "A method for designing compensators by altering the frequency response of the system as portrayed on Nyquist plot, Bode plot, or Nichols chart.",
+  "relation_head": "后续 → Compensated system、Compensator、Frequency-domain performance measures",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Compensated system",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Compensator",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Frequency-domain performance measures",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Nyquist图",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Nichols chart",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Bode图",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Frequency r…",
+    "用于分析·Comp…",
+    "应用于·Compe…",
+    "应用于·Frequ…",
+    "关联·Nyquis…",
+    "关联·Nichol…"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-36f969bb5befa8ef9f8d0a99.md",
+  "provider_policy": "grok-image_gen"
+}

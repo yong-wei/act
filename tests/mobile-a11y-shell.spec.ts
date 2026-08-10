@@ -216,11 +216,60 @@ async function mockAdminApis(page: Page) {
 }
 
 async function mockTeacherApis(page: Page) {
-  await page.route('**/api/teacher/classes/class-1/insights', async (route) => {
+  let launchOptionsMode: 'active' | 'none' = 'active';
+  const launchedSessions: Array<Record<string, unknown>> = [];
+  let defaultSetterCalls = 0;
+
+  await page.route('**/api/teacher/classes/launch-options', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(launchOptionsMode === 'active'
+        ? {
+            classes: [
+              { id: 'class-1', name: '控制一班', code: '123456' },
+              { id: 'class-2', name: 'B 控制二班', code: '654321' },
+            ],
+            defaultClassId: 'class-1',
+          }
+        : {
+            classes: [],
+            defaultClassId: null,
+          }),
+    });
+  });
+  await page.route('**/api/teacher/classes/default', async (route) => {
+    defaultSetterCalls += 1;
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({}) });
+  });
+  await page.route('**/api/session', async (route) => {
+    launchedSessions.push(route.request().postDataJSON() as Record<string, unknown>);
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ id: 'mobile-a11y-session' }),
+    });
+  });
+  await page.route('**/classroom/teacher/mobile-a11y-session', async (route) => {
+    await route.fulfill({
+      contentType: 'text/html',
+      body: '<!doctype html><html lang="zh-CN"><body><main>移动端课堂已创建</main></body></html>',
+    });
+  });
+  await page.route('**/api/teacher/classes/class-1/insights**', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
-        classInfo: { name: '控制一班', studentCount: 1 },
+        scope: 'cumulative',
+        scopeLabel: '累计能力达成',
+        availability: { state: 'available', reason: 'available' },
+        classInfo: {
+          id: 'class-1',
+          name: '控制一班',
+          code: '123456',
+          description: '审计班级',
+          semester: '春',
+          year: '2026',
+          studentCount: 1,
+        },
         governance: {
           tone: 'healthy',
           label: '治理结果可用',
@@ -229,6 +278,9 @@ async function mockTeacherApis(page: Page) {
           totalStudents: 1,
           coverageRatio: 1,
           lastUpdatedLabel: '刚刚更新',
+          pendingStudents: 0,
+          classSnapshotAt: '2026-06-21T08:00:00.000Z',
+          latestStudentSnapshotAt: '2026-06-21T08:00:00.000Z',
         },
         overview: {
           overallIndex: 82,
@@ -238,23 +290,34 @@ async function mockTeacherApis(page: Page) {
           averageFactCount: 12,
         },
         ability: {
-          dimensions: [{ dimension: 'design', label: '方案设计', mean: 82, stdDev: 4 }],
+          state: 'ready',
+          dimensions: [{
+            dimension: 'control_design',
+            label: '控制设计',
+            mean: 82,
+            meanConfidence: 0.9,
+            includedCount: 1,
+            missingCount: 0,
+          }],
           levelDistribution: { excellent: 0, good: 1, fair: 0, weak: 0 },
         },
+        trendDistribution: { up: 0, stable: 1, down: 0, 'not-comparable': 0 },
+        riskDistribution: { bySeverity: { high: 0, medium: 0, low: 0 } },
         spotlightStudents: [],
         students: [],
         diagnosis: null,
+        arena: null,
       }),
     });
   });
-  await page.route('**/api/teacher/classes/class-1/heatmap', async (route) => {
+  await page.route('**/api/teacher/classes/class-1/heatmap**', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ students: [], dimensions: [], matrix: [] }) });
   });
   await page.route('**/api/teacher/classes/class-1/sessions**', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify([]) });
   });
-  await page.route('**/api/lesson-plans', async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify([{ id: 'plan-1', title: '控制校正复习', description: null }]) });
+  await page.route('**/api/lesson-plans**', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify([{ id: 'plan-1', title: 'P 控制校正复习', description: null }]) });
   });
   await page.route('**/api/teacher/classes/class-1', async (route) => {
     await route.fulfill({
@@ -278,6 +341,14 @@ async function mockTeacherApis(page: Page) {
       }),
     });
   });
+
+  return {
+    launchedSessions,
+    getDefaultSetterCalls: () => defaultSetterCalls,
+    setLaunchOptionsMode: (mode: 'active' | 'none') => {
+      launchOptionsMode = mode;
+    },
+  };
 }
 
 test('admin mobile pages keep 320px and 390px document width with announced table states', async ({ context, page }) => {
@@ -364,7 +435,7 @@ test('admin mobile pages keep 320px and 390px document width with announced tabl
 
 test('teacher mobile report and class detail pages expose fixed actions and mobile student cards', async ({ context, page }) => {
   await addSession(context, 'TEACHER');
-  await mockTeacherApis(page);
+  const teacherApi = await mockTeacherApis(page);
 
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 800 });
@@ -377,19 +448,23 @@ test('teacher mobile report and class detail pages expose fixed actions and mobi
     await expect(page.locator('[data-teacher-class-detail-status]')).toBeAttached();
     await expect(page.locator('table[data-teacher-mobile-cards="true"]')).toBeVisible();
     if (width === 320) {
-      await page.getByRole('button', { name: '打开开始上课对话框' }).click();
-      const startDialog = page.getByRole('dialog', { name: '开始上课' });
+      const startOpener = page.getByRole('button', { name: '打开开始上课对话框' });
+      await startOpener.focus();
+      await page.keyboard.press('Enter');
+      const startDialog = page.getByRole('dialog', { name: '选择班级并开始上课' });
       await expect(startDialog).toBeVisible();
-      await expectFocusWithin(page, '[aria-labelledby="teacher-start-class-title"]');
-      await focusLastEnabledControl(page, '[aria-labelledby="teacher-start-class-title"]');
-      await page.keyboard.press('Tab');
-      await expectActiveElementName(page, /关闭开始上课对话框/);
-      await focusContainer(page, '[aria-labelledby="teacher-start-class-title"]');
-      await page.keyboard.press('Shift+Tab');
-      await expectFocusWithin(page, '[aria-labelledby="teacher-start-class-title"]');
+      const classSelect = startDialog.getByRole('combobox', { name: '本次课堂班级' });
+      await expect(classSelect).toBeFocused();
       await page.keyboard.press('Escape');
       await expect(startDialog).toBeHidden();
-      await expectActiveElementName(page, /打开开始上课对话框/);
+      await expectActiveElementMatches(page, 'button[aria-label="打开开始上课对话框"]');
+
+      await startOpener.click();
+      await expect(startDialog).toBeVisible();
+      await startDialog.getByRole('button', { name: '取消' }).click();
+      await expect(startDialog).toBeHidden();
+      await expectActiveElementMatches(page, 'button[aria-label="打开开始上课对话框"]');
+
       await page.evaluate(() => {
         Object.defineProperty(navigator, 'clipboard', {
           configurable: true,
@@ -398,14 +473,58 @@ test('teacher mobile report and class detail pages expose fixed actions and mobi
       });
       await page.getByRole('button', { name: '复制班级加入码' }).click();
       await expect(page.locator('[data-teacher-class-visible-status]')).toContainText('班级加入码已复制');
+
+      await startOpener.focus();
+      await page.keyboard.press('Enter');
+      await expect(classSelect).toBeFocused();
+      await startDialog.getByRole('combobox', { name: '教案' }).press('p');
+      await classSelect.press('b');
+      await expect(classSelect).toHaveValue('class-2');
+      await expect(startDialog.getByRole('status')).toContainText('已更新本次课堂班级');
+      await expectNoDocumentOverflow(page, 'teacher-class-detail', width);
+      await startDialog.getByRole('button', { name: '开始上课' }).click();
+      await expect.poll(() => teacherApi.launchedSessions.length).toBe(1);
+      expect(teacherApi.launchedSessions[0]).toMatchObject({
+        planId: 'plan-1',
+        classId: 'class-2',
+        launchContext: 'class-bound',
+      });
+      expect(teacherApi.getDefaultSetterCalls()).toBe(0);
       await recordJsonEvidence('teacher-class-dialog-keyboard-320.json', {
         label: 'teacher-class-dialog-keyboard',
         viewportWidth: 320,
-        startDialog: ['initial focus inside', 'forward Tab wraps', 'container Shift+Tab wraps', 'Escape closes', 'opener restored'],
+        startDialog: [
+          'accessible shared dialog name',
+          'class selector receives initial focus',
+          'Escape and cancel restore opener',
+          'keyboard selects alternate class',
+          'class-bound launch preserves default class',
+        ],
+        launchPayload: teacherApi.launchedSessions[0],
         visibleStatus: '班级加入码已复制',
         capturedAt: new Date().toISOString(),
       });
+      continue;
     }
+
+    const pointerOpener = page.getByRole('button', { name: '打开开始上课对话框' });
+    await pointerOpener.click();
+    const pointerDialog = page.getByRole('dialog', { name: '选择班级并开始上课' });
+    await expect(pointerDialog.getByRole('combobox', { name: '本次课堂班级' })).toBeFocused();
+    await pointerDialog.getByRole('button', { name: '取消' }).click();
+    await expect(pointerOpener).toBeFocused();
     await expectNoDocumentOverflow(page, 'teacher-class-detail', width);
   }
+
+  teacherApi.setLaunchOptionsMode('none');
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/teacher/classes/class-1', { waitUntil: 'domcontentloaded' });
+  const noClassOpener = page.getByRole('button', { name: '打开开始上课对话框' });
+  await noClassOpener.click();
+  const noClassDialog = page.getByRole('dialog', { name: '选择班级并开始上课' });
+  await expect(noClassDialog.getByText('当前没有可用于开课的已启用班级。')).toBeVisible();
+  await expect(noClassDialog.getByRole('link', { name: '前往班级管理' })).toBeFocused();
+  await expect(noClassDialog.getByRole('button', { name: '开始上课' })).toBeDisabled();
+  expect(teacherApi.launchedSessions).toHaveLength(1);
+  expect(teacherApi.getDefaultSetterCalls()).toBe(0);
 });

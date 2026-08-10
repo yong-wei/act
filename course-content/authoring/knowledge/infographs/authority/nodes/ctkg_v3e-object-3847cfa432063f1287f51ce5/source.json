@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-3847cfa432063f1287f51ce5",
+  "safe_id": "ctkg_v3e-object-3847cfa432063f1287f51ce5",
+  "node": {
+    "name": "Frequency-Response Stability Test",
+    "name_en": "Frequency-Response Stability Test",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Frequency-Response Stability Test：A method to determine closed-loop stability by evaluating the frequency response of the open-loop transfer function KG(…",
+  "intuition": null,
+  "explanation": "A method to determine closed-loop stability by evaluating the frequency response of the open-loop transfer function KG(jω) and performing a test on that response, without factoring the denominator of the closed-loop transfer function.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Frequency-R…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3847cfa432063f1287f51ce5.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -20,7 +20,7 @@ import {
 
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
 import type { HeatmapData } from '@/app/api/teacher/classes/[classId]/heatmap/route';
-import type { TeacherAttainmentScope } from '@/lib/data-governance/teacher-attainment-scope';
+import type { ControlCorrectionTeacherReport } from '@/lib/data-governance/control-correction-teacher-report';
 import {
   buildTeacherStudentInsightsHref,
   formatTeacherStudentDisplayId,
@@ -29,21 +29,20 @@ import {
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
 import {
+  PORTRAIT_V2_DIMENSIONS,
+  type PortraitV2DimensionId,
+} from '@/lib/data-governance/kaq-objective-taxonomy';
+import {
   buildTeacherReportDeliveryLedgerEntry,
   buildTeacherReportDeliveryState,
   normalizeTeacherReportDeliveryQuery,
   type TeacherReportDeliveryLedgerEntry,
 } from '@/lib/teacher-report-grading-contracts';
 
-type HeatmapView = 'score' | 'change' | 'risk';
 type GraphCenterClassView = 'diagnosis' | 'population';
 
 function normalizeGraphCenterClassView(view: string | null): GraphCenterClassView {
   return view === 'population' ? 'population' : 'diagnosis';
-}
-
-function normalizeTeacherAttainmentScope(scope: string | null): TeacherAttainmentScope {
-  return scope === 'recent' ? 'recent' : 'cumulative';
 }
 
 function resolveGraphCenterTraceDomain(nodeId: string | null): 'knowledge' | 'capability' | 'quality' {
@@ -65,12 +64,10 @@ export default function ClassAnalyticsV2Page() {
   const graphCenterPopulationActive = Boolean(graphCenterNodeId && graphCenterView === 'population');
   const graphCenterViewLabel = graphCenterPopulationActive ? '影响学生' : '薄弱节点诊断';
   const graphCenterTraceDomain = resolveGraphCenterTraceDomain(graphCenterNodeId);
-  const queryScope = normalizeTeacherAttainmentScope(searchParams.get('scope'));
 
   const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
-  const [scope, setScope] = useState<TeacherAttainmentScope>(() => queryScope);
-  const [heatmapView, setHeatmapView] = useState<HeatmapView>(() => graphCenterPopulationActive ? 'risk' : 'score');
+  const [correctionReport, setCorrectionReport] = useState<ControlCorrectionTeacherReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deliveryState, setDeliveryState] = useState<AuditedActionState | null>(null);
@@ -79,9 +76,10 @@ export default function ClassAnalyticsV2Page() {
     try {
       setLoading(true);
       setError(null);
-      const [insightsRes, heatmapRes] = await Promise.all([
-        fetch(`/api/teacher/classes/${classId}/insights?scope=${scope}`),
-        fetch(`/api/teacher/classes/${classId}/heatmap?scope=${scope}`),
+      const [insightsRes, heatmapRes, correctionReportRes] = await Promise.all([
+        fetch(`/api/teacher/classes/${classId}/insights`),
+        fetch(`/api/teacher/classes/${classId}/heatmap`),
+        fetch(`/api/teacher/classes/${classId}/control-correction-report`),
       ]);
 
       if (!insightsRes.ok) {
@@ -97,12 +95,18 @@ export default function ClassAnalyticsV2Page() {
       } else {
         setHeatmap(null);
       }
+      if (correctionReportRes.ok) {
+        const correctionReportPayload = await correctionReportRes.json() as { report?: ControlCorrectionTeacherReport };
+        setCorrectionReport(correctionReportPayload.report ?? null);
+      } else {
+        setCorrectionReport(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setLoading(false);
     }
-  }, [classId, scope]);
+  }, [classId]);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.id && classId) {
@@ -113,22 +117,6 @@ export default function ClassAnalyticsV2Page() {
       void fetchData();
     }
   }, [classId, fetchData, router, session, status]);
-
-  useEffect(() => {
-    if (graphCenterPopulationActive) {
-      setHeatmapView('risk');
-    }
-  }, [graphCenterPopulationActive]);
-
-  useEffect(() => {
-    setScope(queryScope);
-  }, [queryScope]);
-
-  useEffect(() => {
-    if (scope === 'cumulative' && heatmapView === 'risk') {
-      setHeatmapView('score');
-    }
-  }, [heatmapView, scope]);
 
   const matrixByStudent = useMemo(() => {
     const matrix = new Map<string, Map<string, HeatmapData['matrix'][number]>>();
@@ -335,7 +323,7 @@ export default function ClassAnalyticsV2Page() {
       }));
       return;
     }
-    const summary = `${insights?.classInfo.name ?? '班级'}：${insights?.governance.detail ?? '报告暂未生成'}。${insights?.recentSignalsApplicable ? `重点关注 ${insights.overview.attentionStudents ?? 0} 人。` : '累计口径不提供近阶段风险结论。'}`;
+    const summary = `${insights?.classInfo.name ?? '班级'}：${insights?.governance.detail ?? '累计画像尚不可用'}。当前累计证据风险需关注 ${insights?.overview.attentionStudents ?? 0} 人。`;
     try {
       await navigator.clipboard.writeText(summary);
       setDeliveryState(createAuditedActionState({
@@ -434,26 +422,6 @@ export default function ClassAnalyticsV2Page() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex rounded-lg border border-border/70 bg-card/70 p-1" aria-label="学情口径切换">
-              {([
-                { value: 'cumulative', label: '累计能力达成' },
-                { value: 'recent', label: '近阶段学情' },
-              ] as const).map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setScope(option.value)}
-                  aria-pressed={scope === option.value}
-                  className={`rounded-md px-3 py-1.5 text-sm transition ${
-                    scope === option.value
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-subtle hover:text-foreground'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
             <button type="button" onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm" aria-label="刷新班级学情总览数据">
               <RefreshCw className="h-4 w-4" />
               刷新数据
@@ -495,11 +463,12 @@ export default function ClassAnalyticsV2Page() {
         <div className="sr-only" role="status" aria-live="polite" data-teacher-report-delivery-status>
           {activeDeliveryState?.announcement ?? activeDeliveryState?.message ?? '教师报告交付动作已就绪。'}
         </div>
-        <div className="mb-6 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-subtle" data-teacher-attainment-scope={insights.scope}>
+        <div className="mb-6 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-subtle" data-teacher-attainment-scope="cumulative">
           <span className="font-medium text-foreground">{insights.scopeLabel}</span>
-          {insights.scope === 'cumulative'
-            ? '：基于当前班级名册与已生成的全历史原生画像。风险、活动、课堂质量与趋势仅表示近阶段信号。'
-            : '：保留现有近 30 天能力与 30–60 天对比口径。'}
+          ：基于当前班级名册与每名学生的全部有效学习事实。趋势和风险均为最后一次证据触发的累计状态。
+          {insights.availability.reason !== 'available'
+            ? ` 当前班级画像不可用：${formatAvailabilityReason(insights.availability.reason)}。`
+            : null}
         </div>
         <section className="teacher-insight-hero mb-8">
           <div className="grid gap-4 xl:grid-cols-[1.3fr,0.7fr]">
@@ -539,42 +508,35 @@ export default function ClassAnalyticsV2Page() {
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
               <MetricCard
-                title={insights.scope === 'cumulative' ? '累计能力达成指数' : '班级总体指数'}
-                value={insights.overview.overallIndex ?? '暂无证据'}
-                detail={insights.scope === 'cumulative' ? '全历史原生画像与累计班级快照' : '最新班级快照与学生画像聚合值'}
+                title="累计能力达成指数"
+                value={insights.overview.overallIndex ?? '不可用'}
+                detail="当前成员累计画像的等权聚合结果"
                 icon={<TrendingUp className="h-5 w-5 text-sky-500 dark:text-sky-300" />}
               />
-              {insights.recentSignalsApplicable ? (
-                <>
-                  <MetricCard
-                    title="重点关注学生（近阶段）"
-                    value={insights.overview.attentionStudents ?? 0}
-                    detail="中高风险或整体表现偏弱"
-                    icon={<ShieldAlert className="h-5 w-5 text-rose-500" />}
-                  />
-                  <MetricCard
-                    title="高风险学生（近阶段）"
-                    value={insights.overview.highRiskStudents ?? 0}
-                    detail="建议优先一对一跟进"
-                    icon={<Sparkles className="h-5 w-5 text-amber-500" />}
-                  />
-                </>
-              ) : (
-                <div className="teacher-insight-metric" data-recent-signals-not-applicable>
-                  <p className="text-sm font-medium text-foreground">近阶段风险与重点学生不适用</p>
-                  <p className="mt-2 text-xs text-subtle">切换近阶段学情查看近期风险、课堂质量与趋势。</p>
-                </div>
-              )}
+              <MetricCard
+                title="累计证据重点关注学生"
+                value={insights.overview.attentionStudents}
+                detail="当前存在中高证据风险或累计能力需提升"
+                icon={<ShieldAlert className="h-5 w-5 text-rose-500" />}
+              />
+              <MetricCard
+                title="高风险学生"
+                value={insights.overview.highRiskStudents}
+                detail="由最后一次相关学习证据触发"
+                icon={<Sparkles className="h-5 w-5 text-amber-500" />}
+              />
             </div>
           </div>
         </section>
+
+        <CorrectionOutcomeSummaryPanel report={correctionReport} />
 
         <section className="mb-8 grid gap-4 lg:grid-cols-[1.1fr,0.9fr]">
           <div className="surface-card p-6">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-              <h2 className="text-lg font-semibold text-foreground">{insights.scope === 'cumulative' ? '累计能力达成概览' : '能力维度概览'}</h2>
-                    <p className="mt-1 text-sm text-subtle">七维 portrait v2 均值与波动，可快速判断本班共性短板。</p>
+              <h2 className="text-lg font-semibold text-foreground">累计能力达成概览</h2>
+                    <p className="mt-1 text-sm text-subtle">七维累计画像分别按有有效证据的当前成员计算，不将缺失值计为零。</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -582,7 +544,11 @@ export default function ClassAnalyticsV2Page() {
                 <div key={item.dimension} className="space-y-2">
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
-                    <p className="text-sm text-subtle">{item.mean === null ? '暂无有效证据' : `均值 ${item.mean} / 波动 ${item.stdDev}`}</p>
+                    <p className="text-sm text-subtle">
+                      {item.mean === null
+                        ? `无有效证据 · 缺失 ${item.missingCount} 人`
+                        : `均值 ${item.mean} · 纳入 ${item.includedCount} 人 · 缺失 ${item.missingCount} 人`}
+                    </p>
                   </div>
                   <div className="teacher-insight-track">
                     <div className="teacher-insight-fill" style={{ width: `${Math.min(item.mean ?? 0, 100)}%` }} />
@@ -595,7 +561,7 @@ export default function ClassAnalyticsV2Page() {
           <div className="surface-card p-6">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-foreground">画像等级分布</h2>
-              <p className="mt-1 text-sm text-subtle">基于当前治理结果的班级层级结构。</p>
+              <p className="mt-1 text-sm text-subtle">只统计已有有效累计画像的当前成员。</p>
             </div>
             <div className="space-y-3">
               {Object.entries(insights.ability.levelDistribution).map(([key, value]) => (
@@ -619,37 +585,14 @@ export default function ClassAnalyticsV2Page() {
             <div>
               <h2 className="text-lg font-semibold text-foreground">能力矩阵</h2>
               <p className="mt-1 text-sm text-subtle">
-                {insights.scope === 'cumulative'
-                  ? '按学生查看全历史能力达成与覆盖状态；近阶段变化在此口径下不适用。'
-                  : '按学生逐项查看能力分、变化趋势或风险等级，让教师先看到“谁需要关注”，再决定看哪一门能力。'}
+                按学生查看全部有效学习事实形成的七维能力分与覆盖状态；缺失或不可用状态不会显示为零分。
               </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { key: 'score', label: '能力分' },
-                { key: 'change', label: '近阶段变化' },
-                ...(scope === 'recent' ? [{ key: 'risk', label: '风险等级（近阶段）' } as const] : []),
-              ].map((view) => (
-                <button
-                  key={view.key}
-                  type="button"
-                  onClick={() => setHeatmapView(view.key as HeatmapView)}
-                  aria-pressed={heatmapView === view.key}
-                  className={`rounded-full px-4 py-2 text-sm transition ${
-                    heatmapView === view.key
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border border-border/70 bg-card/70 text-subtle hover:text-foreground'
-                  }`}
-                >
-                  {view.label}
-                </button>
-              ))}
             </div>
           </div>
 
           {!heatmap || heatmap.students.length === 0 ? (
             <div className="teacher-insight-metric">
-              <p className="text-sm text-subtle">当前还没有可展示的班级能力矩阵，请等待学生画像快照生成。</p>
+              <p className="text-sm text-subtle">当前班级没有成员，暂不生成累计能力矩阵。</p>
             </div>
           ) : (
             <div className="space-y-3 overflow-x-auto">
@@ -690,9 +633,9 @@ export default function ClassAnalyticsV2Page() {
                     return (
                       <div
                         key={`${student.id}-${dimension}`}
-                        className={`teacher-insight-matrix-cell text-center ${getHeatmapCellClass(heatmapView, cell)}`}
+                        className={`teacher-insight-matrix-cell text-center ${getHeatmapCellClass(cell)}`}
                       >
-                        {renderHeatmapCellValue(heatmapView, cell, student.coverageState)}
+                        {renderHeatmapCellValue(cell, student.coverageState)}
                       </div>
                     );
                   })}
@@ -702,7 +645,48 @@ export default function ClassAnalyticsV2Page() {
           )}
         </section>
 
-        {insights.recentSignalsApplicable ? <section
+        <section className="mb-8 grid gap-4 lg:grid-cols-3" data-cumulative-state-distributions>
+          <div className="surface-card p-6">
+            <h2 className="text-lg font-semibold text-foreground">累计趋势分布</h2>
+            <p className="mt-1 text-sm text-subtle">聚合成员最后一次证据触发的个人趋势。</p>
+            <DistributionRows
+              distribution={insights.trendDistribution}
+              labels={{ up: '上升', stable: '稳定', down: '下降', 'not-comparable': '尚无可比' }}
+              emptyLabel="累计趋势尚不可用"
+            />
+          </div>
+          <div className="surface-card p-6">
+            <h2 className="text-lg font-semibold text-foreground">累计风险分布</h2>
+            <p className="mt-1 text-sm text-subtle">只包含 constraint、stagnation 和 cross_domain 证据风险。</p>
+            <DistributionRows
+              distribution={insights.riskDistribution?.bySeverity ?? null}
+              labels={{ high: '高', medium: '中', low: '低' }}
+              emptyLabel="累计风险尚不可用"
+            />
+          </div>
+          <div className="surface-card p-6">
+            <h2 className="text-lg font-semibold text-foreground">七维累计诊断</h2>
+            {insights.diagnosis ? (
+              <div className="mt-4 space-y-3 text-sm">
+                <p className="text-subtle">
+                  优势：{formatDimensionList(insights.diagnosis.strengths)}
+                </p>
+                <p className="text-subtle">
+                  待提升：{formatDimensionList(insights.diagnosis.improvementClusters)}
+                </p>
+                {insights.diagnosis.limitations.length > 0 ? (
+                  <p className="text-subtle">限制：{insights.diagnosis.limitations.join('；')}</p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-subtle">
+                {formatAvailabilityReason(insights.availability.reason)}
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section
           id="graph-center-affected-population"
           className="surface-card p-6"
           data-graph-center-population-view={graphCenterPopulationActive ? 'true' : undefined}
@@ -710,8 +694,8 @@ export default function ClassAnalyticsV2Page() {
         >
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">重点学生（近阶段信号）</h2>
-              <p className="mt-1 text-sm text-subtle">该区域只表示近阶段风险、趋势与活动信号，不纳入累计能力达成结论。</p>
+              <h2 className="text-lg font-semibold text-foreground">累计画像重点学生</h2>
+              <p className="mt-1 text-sm text-subtle">依据当前累计能力、最后趋势和仍有效的证据风险排序。</p>
             </div>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
@@ -734,7 +718,9 @@ export default function ClassAnalyticsV2Page() {
                           {student.riskLabel}
                         </span>
                       </div>
-                      <p className="text-sm text-subtle">{student.recentTrend}</p>
+                      <p className="text-sm text-subtle">
+                        趋势：{formatTrendDirection(student.trendDirection)}
+                      </p>
                       <div className="flex flex-wrap gap-2">
                         {student.weaknesses.slice(0, 2).map((item) => (
                           <span key={item} className="teacher-insight-chip teacher-insight-chip-warning">
@@ -745,20 +731,17 @@ export default function ClassAnalyticsV2Page() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-subtle">综合指数</p>
-                      <p className="text-2xl font-semibold text-foreground">{student.overallScore ?? '暂无证据'}</p>
-                      <p className="mt-2 text-xs text-subtle">成长档案 {student.growthRecordCount} 条</p>
+                      <p className="text-2xl font-semibold text-foreground">{student.overallScore ?? '不可用'}</p>
+                      <p className="mt-2 text-xs text-subtle">
+                        证据截至 {formatEvidenceCutoff(student.evidenceStatus.lastEvidenceAt)}
+                      </p>
                     </div>
                   </div>
                 </Link>
               ))
             )}
           </div>
-        </section> : (
-          <section className="surface-card p-6" data-recent-spotlight-not-applicable>
-            <h2 className="text-lg font-semibold text-foreground">近阶段风险与重点学生不适用</h2>
-            <p className="mt-2 text-sm text-subtle">切换近阶段学情查看近期风险、课堂质量与趋势。</p>
-          </section>
-        )}
+        </section>
       </main>
       <ReportDeliveryDock
         state={activeDeliveryState}
@@ -826,6 +809,50 @@ function ReportDeliveryPanel({
       <ReportDeliveryHandoffStates entry={ledgerEntry} canDeliver={canDeliver} onRecordIntervention={onRecordIntervention} />
       <ReportDeliveryLedgerDetails entry={ledgerEntry} />
       {state ? <ActionStatusPanel state={state} className="mt-4" /> : null}
+    </section>
+  );
+}
+
+function CorrectionOutcomeSummaryPanel({
+  report,
+}: {
+  report: ControlCorrectionTeacherReport | null;
+}) {
+  const summary = report?.correctionOutcomeSummary;
+  const states: Array<{
+    key: keyof NonNullable<ControlCorrectionTeacherReport['correctionOutcomeSummary']>['states'];
+    label: string;
+  }> = [
+    { key: 'improved', label: '后续证据显示已改善' },
+    { key: 'needs-review', label: '后续证据显示仍需复习' },
+    { key: 'pending-verification', label: '尚未有足够后续证据' },
+    { key: 'indeterminate', label: '证据无法判断' },
+  ];
+
+  return (
+    <section className="surface-card mb-8 p-6" data-teacher-correction-outcome-summary="aggregate-only">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-foreground">纠偏方案后续证据</h2>
+        <p className="mt-1 text-sm text-subtle">
+          仅统计已确认并应用的方案；这些结果反映后续证据，不代表纠偏方案造成了结果。
+        </p>
+      </div>
+      {!summary ? (
+        <p className="text-sm text-subtle">当前暂无可用的班级聚合数据。</p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-correction-outcome-total={summary.total}>
+          {states.map(({ key, label }) => {
+            const item = summary.states[key];
+            return (
+              <div key={key} className="teacher-insight-metric" data-correction-outcome-state={key}>
+                <p className="text-sm font-medium text-foreground">{label}</p>
+                <p className="mt-2 text-2xl font-semibold text-foreground">{item.count}</p>
+                <p className="text-xs text-subtle">{Math.round(item.rate * 100)}% of eligible corrections</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
@@ -1103,22 +1130,8 @@ function getDistributionLabel(level: string) {
   return '需关注';
 }
 
-function getHeatmapCellClass(view: HeatmapView, cell: HeatmapData['matrix'][number] | undefined) {
+function getHeatmapCellClass(cell: HeatmapData['matrix'][number] | undefined) {
   if (!cell) {
-    return 'text-subtle';
-  }
-
-  if (view === 'risk') {
-    if (cell.riskLevel === 'high') return 'teacher-insight-risk-high';
-    if (cell.riskLevel === 'medium') return 'teacher-insight-risk-medium';
-    if (cell.riskLevel === 'low') return 'teacher-insight-risk-low';
-    return 'teacher-insight-risk-none';
-  }
-
-  if (view === 'change') {
-    if (cell.change === null) return 'text-subtle';
-    if (cell.change > 0) return 'text-emerald-600 dark:text-emerald-300';
-    if (cell.change < 0) return 'text-rose-600 dark:text-rose-300';
     return 'text-subtle';
   }
 
@@ -1135,31 +1148,73 @@ function getCoverageState(coverage: HeatmapData['coverage']) {
 
 function getCoverageLabel(coverage: HeatmapData['coverage']) {
   const state = getCoverageState(coverage);
-  if (state === 'none') return '当前名册尚无有效原生画像。';
-  if (state === 'complete') return '当前名册已全部生成有效原生画像。';
-  return '当前名册仅部分生成有效原生画像；无证据学生会单独标记。';
+  if (state === 'none') {
+    return `当前名册尚无有效累计画像：${coverage.noEvidenceStudents} 名无合格证据，${coverage.unavailableStudents} 名不可用。`;
+  }
+  if (state === 'complete') return '当前名册已全部生成有效累计画像。';
+  return `当前名册部分可用：${coverage.noEvidenceStudents} 名无合格证据，${coverage.unavailableStudents} 名不可用。`;
 }
 
 function renderHeatmapCellValue(
-  view: HeatmapView,
   cell: HeatmapData['matrix'][number] | undefined,
   coverageState: HeatmapData['students'][number]['coverageState'],
 ) {
   if (!cell) {
-    return coverageState === 'no-evidence' ? '无证据' : '-';
-  }
-
-  if (view === 'risk') {
-    if (cell.riskLevel === 'high') return '高';
-    if (cell.riskLevel === 'medium') return '中';
-    if (cell.riskLevel === 'low') return '低';
-    return '稳';
-  }
-
-  if (view === 'change') {
-    if (cell.change === null) return '不适用';
-    return `${cell.change > 0 ? '+' : ''}${cell.change}`;
+    if (coverageState === 'no-evidence') return '无合格证据';
+    if (coverageState === 'unavailable') return '不可用';
+    return '该维度缺失';
   }
 
   return cell.score;
+}
+
+function DistributionRows({
+  distribution,
+  labels,
+  emptyLabel,
+}: {
+  distribution: Record<string, number> | null;
+  labels: Record<string, string>;
+  emptyLabel: string;
+}) {
+  if (!distribution) {
+    return <p className="mt-4 text-sm text-subtle">{emptyLabel}</p>;
+  }
+  return (
+    <div className="mt-4 space-y-2">
+      {Object.entries(labels).map(([key, label]) => (
+        <div key={key} className="flex items-center justify-between text-sm">
+          <span className="text-subtle">{label}</span>
+          <span className="font-medium text-foreground">{distribution[key] ?? 0} 人</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function formatTrendDirection(direction: TeacherClassInsightsPayload['students'][number]['trendDirection']) {
+  if (direction === 'up') return '上升';
+  if (direction === 'down') return '下降';
+  if (direction === 'stable') return '稳定';
+  return '尚无可比';
+}
+
+function formatDimensionList(dimensions: PortraitV2DimensionId[]) {
+  if (dimensions.length === 0) return '尚无';
+  const labels = new Map(PORTRAIT_V2_DIMENSIONS.map((dimension) => [dimension.id, dimension.label]));
+  return dimensions.map((dimension) => labels.get(dimension) ?? dimension).join('、');
+}
+
+function formatAvailabilityReason(reason: string) {
+  if (reason === 'available') return '可使用';
+  if (reason === 'no-eligible-evidence') return '没有合格学习事实';
+  if (reason === 'no-evidence-after-revocation') return '支持证据已撤销';
+  if (reason === 'migration-in-progress') return '累计画像迁移中';
+  if (reason === 'processing-failed') return '累计画像处理失败';
+  return '累计画像版本或发布状态不一致';
+}
+
+function formatEvidenceCutoff(value: string | null) {
+  if (!value) return '不可用';
+  return new Date(value).toLocaleString('zh-CN');
 }

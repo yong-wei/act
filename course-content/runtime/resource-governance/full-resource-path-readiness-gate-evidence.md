@@ -1,16 +1,16 @@
 # Full Resource Path Readiness Gate
 
-Generated: 2026-07-18T05:00:00.000Z
-Status: passed
+Generated: 2026-07-23T08:30:00.000Z
+Status: failed
 
 ## Resource Coverage
 
-Total resources: 6509
-Unaccounted resources: 0
+Total resources: 7050
+Unaccounted resources: 541
 Invalid path promotions: 0
-Unreviewed semantic rows: 0
+Unreviewed semantic rows: 541
 Unresolved graph-node resource gaps: 0
-Unresolved downstream path blockers: 0
+Unresolved downstream path blockers: 1082
 Evidence-lineage blockers: 0
 Yang Fan fixture blockers: 0
 Yang Fan fixture global limitations: 1512
@@ -66,6 +66,9 @@ Missing audited resource types: adaptive_quiz, checkpoint, control_workbench, ex
 
 ## Findings
 
+- [blocking] unaccounted-resource-disposition: 541 - Resources are missing a reviewed path-planning disposition.
+- [blocking] unresolved-downstream-path-blockers: 1082 - Reviewed disposition output still carries downstream path-readiness, runtime-identity, or dependency blockers.
+- [blocking] unreviewed-resource-semantics: 541 - Resources still require reviewed semantic fields or reviewed limitations.
 - [warning] yang-fan-fixture-limited-coverage: 1512 - Yang Fan fixture-owned resources are scoped separately; unrelated global resource backlog remains visible as limited coverage.
 - [warning] learning-goal-path-generation-reviewed-blockers: 9 - Registered LearningGoals report specific reviewed blockers and do not expose cosmetic path options.
 - [warning] learning-goal-baseline-limited: 9 - LearningGoals have precise resource-gap diagnostics instead of production path-ready baselines.

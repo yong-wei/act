@@ -22,6 +22,18 @@ export type AdaptivePathContextLoadState =
   | 'missing'
   | 'failed';
 
+export type AdaptiveLearnerStateLoadState =
+  | 'idle'
+  | 'loading'
+  | 'ready'
+  | 'failed';
+
+export type AdaptivePathLandingState =
+  | 'loading'
+  | 'active'
+  | 'cold-start'
+  | 'failed';
+
 export type AdaptivePathContextRecoveryReason =
   | 'none'
   | 'loading'
@@ -37,6 +49,37 @@ export interface AdaptivePathContextRecoveryState {
   detail: string;
 }
 
+export function resolveAdaptivePathLandingState(input: {
+  authStatus: 'authenticated' | 'loading' | 'unauthenticated';
+  learnerStateLoadState: AdaptiveLearnerStateLoadState;
+  pathContextLoadState: AdaptivePathContextLoadState;
+  hasLoadedPathContext: boolean;
+}): AdaptivePathLandingState {
+  if (
+    input.learnerStateLoadState === 'failed' ||
+    input.pathContextLoadState === 'failed' ||
+    input.authStatus === 'unauthenticated'
+  ) {
+    return 'failed';
+  }
+
+  if (
+    input.authStatus === 'loading' ||
+    input.learnerStateLoadState === 'idle' ||
+    input.learnerStateLoadState === 'loading' ||
+    input.pathContextLoadState === 'idle' ||
+    input.pathContextLoadState === 'loading'
+  ) {
+    return 'loading';
+  }
+
+  if (input.hasLoadedPathContext && input.pathContextLoadState === 'ready') {
+    return 'active';
+  }
+
+  return 'cold-start';
+}
+
 export function resolveAdaptivePathExecutionNodeStatus(input: {
   completed: boolean;
   failed: boolean;
@@ -49,6 +92,7 @@ export function resolveAdaptivePathExecutionNodeStatus(input: {
   if (input.current && input.completed && input.pendingResult) return 'current';
   if (input.completed) return 'completed';
   if (input.failed || input.rawStatus === 'blocked') return 'blocked';
+  if (input.skipped) return 'skipped';
   if (
     input.rawStatus === 'locked' ||
     input.readinessState === 'locked' ||
@@ -56,7 +100,6 @@ export function resolveAdaptivePathExecutionNodeStatus(input: {
     input.readinessState === 'needs-preparation'
   ) return 'locked';
   if (input.current || input.rawStatus === 'current') return 'current';
-  if (input.skipped) return 'skipped';
   if (input.rawStatus === 'next') return 'next';
   return 'optional';
 }

@@ -90,6 +90,33 @@ function question(): FrozenQuestionContract {
   };
 }
 
+function questionV2(detailedRubricEnabled: boolean): FrozenQuestionContract {
+  return {
+    ...question(),
+    rubric: {
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      id: 'rubric-v2',
+      version: detailedRubricEnabled ? 'rubric.v2.detailed' : 'rubric.v2.standard',
+      maxScore: 10,
+      criteria: [{
+        id: 'criterion-1',
+        label: 'Evidence',
+        goalDimension: 'controlModeling',
+        maxPoints: 10,
+        scoringStandard: 'Score the correctness and completeness of the cited stability evidence.',
+        detailedRubricEnabled,
+        evidenceDescription: 'stability margin',
+        feedbackGuidance: 'Explain the evidence.',
+        levels: detailedRubricEnabled ? [
+          { id: 'excellent', label: 'Excellent', minPoints: 8, maxPoints: 10, description: 'Complete evidence.' },
+          { id: 'partial', label: 'Partial', minPoints: 6, maxPoints: 7.9, description: 'Partial evidence.' },
+          { id: 'missing', label: 'Missing', minPoints: 0, maxPoints: 5.9, description: 'Missing evidence.' },
+        ] : [],
+      }],
+    },
+  };
+}
+
 function source(overrides: Partial<Parameters<typeof convertProtectedSubmission>[0]['source']> = {}) {
   return {
     assetId: 'asset-1',
@@ -459,6 +486,87 @@ describe('production math-document grading contracts', () => {
     } });
     expect(invalid.state).toBe('blocked');
     expect(invalid.blockedReasons).toEqual(expect.arrayContaining(['unknown-criterion', 'criterion-assessment-missing']));
+  });
+
+  it('uses separate v2 evaluator contracts and clamps only detailed AI suggestions', () => {
+    const evidence = normalizeTextAnswerEvidence('The stability margin is positive.');
+    const common = {
+      evaluatorId: 'provider-1',
+      evaluatorVersion: 'model.v2',
+      limitations: [],
+      overallComment: 'The evidence is grounded in the submitted answer.',
+    };
+    const standard = buildValidatedDraft({
+      question: questionV2(false),
+      evidence,
+      output: {
+        ...common,
+        assessments: [{
+          criterionId: 'criterion-1',
+          score: 4.1,
+          rationale: 'The answer cites the stability margin evidence.',
+          confidence: 0.88,
+          anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }],
+          limitationState: 'none',
+        }],
+      },
+    });
+    expect(standard.state).toBe('awaiting-review');
+    expect(standard.assessments[0]).toEqual(expect.objectContaining({ levelId: null, score: 4.1 }));
+
+    const invalidPrecision = buildValidatedDraft({
+      question: questionV2(false),
+      evidence,
+      output: {
+        ...common,
+        assessments: [{
+          criterionId: 'criterion-1',
+          score: 4.04,
+          rationale: 'The answer cites the stability margin evidence.',
+          confidence: 0.88,
+          anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }],
+          limitationState: 'none',
+        }],
+      },
+    });
+    expect(invalidPrecision.blockedReasons).toContain('score-must-use-0.1-quantum');
+
+    const authoritativeLevel = buildValidatedDraft({
+      question: questionV2(false),
+      evidence,
+      output: {
+        ...common,
+        assessments: [{
+          criterionId: 'criterion-1',
+          levelId: 'excellent',
+          score: 4,
+          rationale: 'The answer cites the stability margin evidence.',
+          confidence: 0.88,
+          anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }],
+          limitationState: 'none',
+        }],
+      },
+    });
+    expect(authoritativeLevel.blockedReasons).toContain('standard-only-level-not-allowed');
+
+    const detailed = buildValidatedDraft({
+      question: questionV2(true),
+      evidence,
+      output: {
+        ...common,
+        assessments: [{
+          criterionId: 'criterion-1',
+          levelId: 'partial',
+          score: 9,
+          rationale: 'The answer cites the stability margin evidence.',
+          confidence: 0.88,
+          anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }],
+          limitationState: 'none',
+        }],
+      },
+    });
+    expect(detailed.state).toBe('awaiting-review');
+    expect(detailed.assessments[0].score).toBe(7.9);
   });
 
   it('isolates prompt injection and forbids provider calls when policy is absent', async () => {

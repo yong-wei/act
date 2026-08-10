@@ -45,9 +45,15 @@ const hasObjectKey = (value: unknown, key: string): boolean => {
   if (!value || typeof value !== 'object') return false;
   return Object.entries(value).some(([entryKey, entryValue]) => entryKey === key || hasObjectKey(entryValue, key));
 };
-const hashFile = (relativePath: string) => `sha256:${createHash('sha256').update(
-  readFileSync(path.join(process.cwd(), relativePath)),
-).digest('hex')}`;
+const hashFile = (relativePath: string) => {
+  const absolutePath = path.join(process.cwd(), relativePath);
+  const content = readFileSync(absolutePath);
+  const textExtensions = new Set(['.csv', '.json', '.jsonl', '.md', '.mdx', '.svg', '.txt', '.xml', '.yaml', '.yml']);
+  const hashInput = textExtensions.has(path.extname(absolutePath).toLowerCase())
+    ? content.toString('utf8').replace(/\r\n?/g, '\n')
+    : content;
+  return `sha256:${createHash('sha256').update(hashInput).digest('hex')}`;
+};
 const isIndexPath = (relativePath: string) => {
   try {
     execFileSync('git', ['cat-file', '-e', `:${relativePath}`], { stdio: 'pipe' });
@@ -125,7 +131,8 @@ const materializerSource = readFileSync(
 );
 assert(materializerSource.includes('validate-explicit-source'), 'materializer must expose explicit-source validation mode');
 assert(!materializerSource.includes('writeFile') && !materializerSource.includes('reviewerVisibleRationale:'), 'materializer must not write or synthesize reviewer rationale');
-execFileSync('npx', ['tsx', '-e', "(async()=>{const {loadRuntimeLessonMediaSemanticReviewMap}=await import('./scripts/db/generate-resource-field-completion-audit.ts'); const sources=await loadRuntimeLessonMediaSemanticReviewMap(); if(sources.size===0) throw new Error('formal loader returned no reviewed sources');})()"], { stdio: 'pipe' });
+const tsxCliPath = path.join(process.cwd(), 'node_modules/tsx/dist/cli.mjs');
+execFileSync(process.execPath, [tsxCliPath, '-e', "(async()=>{const {loadRuntimeLessonMediaSemanticReviewMap}=await import('./scripts/db/generate-resource-field-completion-audit.ts'); const sources=await loadRuntimeLessonMediaSemanticReviewMap(); if(sources.size===0) throw new Error('formal loader returned no reviewed sources');})()"], { stdio: 'pipe' });
 
 const artifactNames = [
   'runtime-lesson-media-resource-semantics-workqueue-items.jsonl',
@@ -565,6 +572,19 @@ assert(directOverlays[0].reviewAudit.independentEvidenceRef === directSource.ind
 const lifecycleStableId = 'runtime-handout:1-1';
 const lifecycleStableAudit = auditById.get(lifecycleStableId)!;
 const lifecycleStableSource = sourceById.get(lifecycleStableId)!;
+const reorderedGraphRefsAudit = JSON.parse(JSON.stringify(lifecycleStableAudit)) as JsonRow;
+reorderedGraphRefsAudit.graphNodeRefs = {
+  knowledge: [...reorderedGraphRefsAudit.graphNodeRefs.knowledge].reverse(),
+  capability: [...reorderedGraphRefsAudit.graphNodeRefs.capability].reverse(),
+  quality: [...reorderedGraphRefsAudit.graphNodeRefs.quality].reverse(),
+};
+assert(
+  runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
+    [reorderedGraphRefsAudit],
+    new Map([[lifecycleStableId, lifecycleStableSource]]),
+  ).length === 1,
+  'formal review overlay must treat graph node reference arrays as unordered semantic sets',
+);
 const reviewLifecycleCodes = ['missing-human-review', 'provisional-metadata', 'stale-review'];
 assert(lifecycleStableAudit.missingFieldCodes.includes('missing-content-hash'), '1-1 lifecycle stability fixture must retain a content blocker');
 const preOverlayAudit = JSON.parse(JSON.stringify(lifecycleStableAudit)) as JsonRow;

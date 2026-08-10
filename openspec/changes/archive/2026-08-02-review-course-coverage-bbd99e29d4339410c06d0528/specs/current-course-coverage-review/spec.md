@@ -1,0 +1,42 @@
+## ADDED Requirements
+
+### Requirement: Batch bbd99e29d4339410c06d0528 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/16/members`, binding batchId `bbd99e29d4339410c06d0528`, sequence `0`, semanticGroupKey `ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel`, member count `1`, memberDigest `bbf983851280ba71a7ae3ffd4dd5e3923bb68a2b5fad50031ffad0bc54662417`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch bbd99e29d4339410c06d0528 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch bbd99e29d4339410c06d0528 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch bbd99e29d4339410c06d0528 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch bbd99e29d4339410c06d0528
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch bbd99e29d4339410c06d0528 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch bbd99e29d4339410c06d0528 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch bbd99e29d4339410c06d0528 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `bbd99e29d4339410c06d0528`
+
+The recorded Primary and Challenger raw sources are bound by SHA-256 to Grok sessions `991b94cc-94d8-435e-b99a-4eceec7280c2` and `7aa9a3b2-4780-435f-817f-cdc585543b53`; provenance states that Challenger did not read Primary. Both sessions preserve `0 INCLUDE / 0 EXCLUDE / 1 DEFER`, `evidenceSufficiency=INSUFFICIENT`, `role=null`, and `reFreezeRequired=true`. Their diagnostic course candidates remain non-authoritative and are not copied into frozen `evidenceSelectors`.
+
+The receipt is `DEFERRED_EVIDENCE_BLOCKED` with one deferred member, zero conflicts, no Third stage, and all production mutation flags false. Its stage records retain `reFreezeRequired=true`; the detached boundary attestation retains the same marker and uses the v2 schema/protocol paired with the v3 proof. Ordered protected-path snapshots are byte-stable, and replay with the same relative inputs returns `publication=identical`, `attestationPublication=identical`, and `replayMode=content-equivalent`. No ACTIVE decision, production selector, or writer fence is written.

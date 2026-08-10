@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0080",
+  "items": [
+    {
+      "safe_id": "ctc_v11g-daefb900250d1b7d86e36bdd",
+      "name": "ultimate gain",
+      "definition": "ultimate gain：The gain on the border of instability, denoted by K_U, used in the closed-loop Ziegler-Nichols tuning method."
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0f7959abbcc9c7170d23770b",
+      "name": "非主导极点",
+      "definition": "除闭环主导极点外，所有其他闭环极点由于其对应的响应分量随时间的推移迅速衰减，对系统的时间响应过程影响甚微，统称为非主导极点。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-128a0f144821b8292a40f391",
+      "name": "前馈控制",
+      "definition": "在复合控制系统中，前馈控制与反馈控制相结合，用于抑制可量测扰动，包括低频强扰动。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-39f6714b8cafaaf18e43b898",
+      "name": "串级控制方法",
+      "definition": "串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "name": "测速反馈控制",
+      "definition": "通过将输出的速度信号反馈到系统输入端，并与误差信号比较，其效果与比例-微分控制相似，可以增大系统阻尼，改善系统动态性能。"
+    }
+  ],
+  "created_at": "2026-08-05T16:18:20.813460+00:00"
+}

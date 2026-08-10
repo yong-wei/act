@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-fc1c6377378e65e48e0f12fc",
+  "safe_id": "ctkg_v3e-canonical-fc1c6377378e65e48e0f12fc",
+  "node": {
+    "name": "Time constant tau",
+    "name_en": "Time constant tau",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Time constant tau：The time when the response is 1/e times the initial value. It is a measure of the rate of decay.",
+  "intuition": null,
+  "explanation": "The time when the response is 1/e times the initial value. It is a measure of the rate of decay.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Time consta…",
+    "Time constan"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-fc1c6377378e65e48e0f12fc.md",
+  "provider_policy": "grok-image_gen"
+}

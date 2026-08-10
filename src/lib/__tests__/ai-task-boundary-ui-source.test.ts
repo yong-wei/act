@@ -32,13 +32,15 @@ describe('ai task boundary UI source contracts', () => {
     expect(sharedRenderer).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
     expect(sharedRenderer).toContain('summarizeAiToolResult(tool.toolName)');
     expect(sharedRenderer).toContain('flex-[0_1_75%]');
-    expect(sharedRenderer).toContain('called ${tools.length}');
+    expect(sharedRenderer).toContain('已调用 {tools.length} 项辅助能力');
+    expect(sharedRenderer).not.toContain('called ${tools.length}');
+    expect(sharedRenderer).not.toContain('called ${tool.toolName}');
     expect(globalSidebar).toContain("role={isOpen ? 'dialog' : undefined}");
     expect(globalSidebar).toContain("aria-modal={isOpen ? 'true' : undefined}");
     expect(globalSidebar).toContain("aria-hidden={isOpen ? undefined : 'true'}");
     expect(globalSidebar).toContain('inert={!isOpen}');
     expect(globalSidebar).toContain('data-ai-task-status="global-sidebar"');
-    expect(globalSidebar).toContain('<KonlingChatMessageList messages={messages} styles={styles} />');
+    expect(globalSidebar).toContain('<KonlingChatMessageList messages={messages} styles={styles} onStructuredAction={handleStructuredAction} />');
     expect(globalSidebar).toContain('konlingPromptInputClassName');
     expect(globalSidebar).toContain('发送 AI 问题');
     expect(copilot).toContain('<KonlingChatMessageList messages={messages} />');
@@ -144,6 +146,11 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('href={portfolioReflectionHref}');
     expect(copilot).toContain('reflectionDraft.assignment ?? \'portfolio-reflection\'');
     expect(copilot).toContain('reflectionDraft.intent');
+    expect(copilot).toContain("if (assignment) params.set('assignment', assignment)");
+    expect(copilot).toContain("if (taskIntent) params.set('taskIntent', taskIntent)");
+    expect(copilot).toContain('href={portfolioReflectionHref}');
+    expect(copilot).toContain('任务：');
+    expect(copilot).toContain("{reflectionDraft.assignment ?? 'portfolio-reflection'} · 意图：{reflectionDraft.intent}");
     expect(copilot).toContain('请把本次 AI 协作的任务目标和输出对象整理成反思草稿。');
     expect(copilot).toContain('请先说明当前证据来源，再给出下一步练习建议。');
     expect(learningCenter).not.toContain('练习任务候选已写回学习任务');
@@ -167,6 +174,7 @@ describe('ai task boundary UI source contracts', () => {
     expect(portfolio).toContain('data-primary-task-input="portfolio-reflection-draft"');
     expect(portfolio).toContain("任务：{draft.assignment ?? 'portfolio-reflection'}");
     expect(portfolio).toContain('晋升策略：');
+    expect(portfolio).toContain('· 晋升策略：');
     expect(portfolio).toContain('{draft.promotionPolicy}');
     expect(portfolio).not.toContain('>保存草稿<');
     expect(portfolio).not.toContain('确认草稿内容后保存到学习档案');

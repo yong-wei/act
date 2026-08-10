@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0",
+  "safe_id": "ctkg_v3e-object-fe85b0f6dfed46e36c9f87a0",
+  "node": {
+    "name": "Bel",
+    "name_en": "Bel",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Bel：A unit of power gain named after Alexander Graham Bell, later subdivided into decibels for practical use.",
+  "intuition": "在图谱邻接中可把握：前置 → Decibel (dB)。",
+  "explanation": "A unit of power gain named after Alexander Graham Bell, later subdivided into decibels for practical use.",
+  "relation_head": "前置 → Decibel (dB)",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Decibel (dB)",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Decibel (dB)",
+      "relation": "派生自"
+    },
+    {
+      "direction": "前置",
+      "peer": "Decibel (dB)",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Bel",
+    "属于·Decibe…",
+    "派生自·Decib…",
+    "关联·Decibe…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-fe85b0f6dfed46e36c9f87a0.md",
+  "provider_policy": "grok-image_gen"
+}

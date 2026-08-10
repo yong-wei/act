@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+  "safe_id": "ctkg_v3e-object-7b59e975b2aaa6100b970b52",
+  "node": {
+    "name": "描述函数法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "描述函数法是基于频域分析法和非线性特性谐波线性化的一种图解分析方法。",
+  "intuition": "该方法对于满足结构要求的一类非线性系统，通过谐波线性化，将非线性特性近似表示为复变增益环节，然后推广应用频率法，分析非线性系统的稳定性或自激振荡。",
+  "explanation": "描述函数法是基于频域分析法和非线性特性谐波线性化的一种图解分析方法。该方法对于满足结构要求的一类非线性系统，通过谐波线性化，将非线性特性近似表示为复变增益环节，然后推广应用频率法，分析非线性系统的稳定性或自激振荡。",
+  "relation_head": "后续 → 描述函数、谐波线性化、非线性系统",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "描述函数",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "谐波线性化",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "非线性系统",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "极限环",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "自激振荡",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "描述函数法",
+    "包含组件·描述函数",
+    "包含组件·谐波线性化",
+    "用于分析·非线性系统",
+    "用于分析·极限环",
+    "用于分析·自激振荡"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7b59e975b2aaa6100b970b52.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,52 +1,28 @@
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import { type Prisma } from '@prisma/client';
-import { Queue } from 'bullmq';
-import { Redis } from 'ioredis';
 
+import {
+  writeLegacyKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
   eventToLearningFactInput,
   resolveLearningFactActionType,
 } from '@/lib/data-governance/learning-fact-materialization';
-import type { StudentSnapshotJob } from '../workers/types';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 
 const prisma = createPrismaClient();
 const isDryRun = process.argv.includes('--dry-run');
 const shouldEnqueueSnapshots = process.argv.includes('--enqueue-snapshots');
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
-
-async function enqueueStudentSnapshots(userIds: string[]) {
-  if (userIds.length === 0) {
-    return 0;
-  }
-
-  const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
-  const queue = new Queue<StudentSnapshotJob>('snapshot-student', { connection: redis });
-  const triggerId = `learning-fact-backfill-${Date.now()}`;
-
-  try {
-    for (const userId of userIds) {
-      await queue.add(
-        `student-snapshot-${userId}`,
-        { userId },
-        {
-          attempts: 2,
-          backoff: { type: 'exponential', delay: 10000 },
-          jobId: `student-snapshot-${userId}-${triggerId}`,
-          removeOnComplete: { count: 50 },
-          removeOnFail: { count: 200 },
-        },
-      );
-    }
-  } finally {
-    await queue.close();
-    await redis.quit();
-  }
-
-  return userIds.length;
-}
 
 async function main() {
+  if (shouldEnqueueSnapshots) {
+    throw new Error(
+      '--enqueue-snapshots has been removed; use the stopped-service db:backfill-cumulative-attainment command.',
+    );
+  }
+
   const batches = await prisma.learningEventBatch.findMany({
     orderBy: { processedAt: 'asc' },
     select: { events: true },
@@ -101,24 +77,22 @@ async function main() {
     return;
   }
 
-  await prisma.learningFact.createMany({
-    data: factsToInsert,
-    skipDuplicates: true,
-  });
+  const activeRevision = await resolveActiveKnowledgeRevision(prisma);
+  const writeResult = await writeLegacyKnowledgeScopedLearningFacts(
+    {
+      learningFact: {
+        createMany: async (args) => prisma.learningFact.createMany({
+          data: [...args.data] as Prisma.LearningFactCreateManyInput[],
+          skipDuplicates: args.skipDuplicates,
+        }),
+      },
+    },
+    factsToInsert as LearningFactWriteRow[],
+    { knowledgeRevisionRef: activeRevision.id },
+  );
 
-  console.log(`[BackfillFacts] inserted=${factsToInsert.length}`);
+  console.log(`[BackfillFacts] inserted=${writeResult.written}`);
 
-  if (shouldEnqueueSnapshots) {
-    const userIds = Array.from(
-      new Set(
-        factsToInsert
-          .map((fact) => fact.userId)
-          .filter((userId): userId is string => typeof userId === 'string' && userId.length > 0),
-      ),
-    );
-    const enqueued = await enqueueStudentSnapshots(userIds);
-    console.log(`[BackfillFacts] enqueuedStudentSnapshots=${enqueued}`);
-  }
 }
 
 main()

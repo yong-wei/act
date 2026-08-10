@@ -1,0 +1,936 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "sessionIndependence": {
+    "readPrimaryStage": false,
+    "readThirdStage": false,
+    "readPrimaryThirdReceiptOrAttestationArtifacts": false,
+    "readOtherBatchConclusions": false,
+    "statement": "Issue #1203 Challenger session independently reviewed only frozen inputs: course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json, batch-manifest.json#/batches/13/members, OpenSpec change review-course-coverage-a7a2bc4b76204034bcf56862, and archived shared current-course-coverage-review specs. Did not read, probe, or infer from /tmp/issue-1203-primary-stage.json, /tmp/issue-1203-primary-stage-r2.json, Primary/Third artifacts, other Issue stage/receipt/attestation/conclusions, or other-batch outputs."
+  },
+  "batchBinding": {
+    "batchId": "a7a2bc4b76204034bcf56862",
+    "manifestBatchIndex": 13,
+    "sequence": 0,
+    "group": "ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 31,
+    "memberDigest": "e1bf8070ee6a7aea245df5e780c2732ce08262e9a28d6dd15db09a71c05a4084",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8",
+    "exactOrderedMembers": "batch-manifest.json#/batches/13/members"
+  },
+  "reviewPolicyApplied": {
+    "independentCourseEvidenceOnly": [
+      "lesson authoring files",
+      "syllabus blueprint/main files"
+    ],
+    "nonIndependentEvidence": [
+      "canonical-profile",
+      "aggregate-evidence"
+    ],
+    "profileOnlyOrInsufficientEvidence": "DEFER",
+    "deferKeepsCourseCoverageAuthorityUnresolved": true
+  },
+  "counts": {
+    "memberCount": 31,
+    "DEFER": 31,
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "profileOnly": 31,
+    "highRisk": 31,
+    "independentCourseEvidenceMembers": 0,
+    "priorDecisionRefsNonEmpty": 0
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+      "canonicalRevision": "88b2d2084f4227882746d4b551a1dcc4b354973a1e5c7554d212767def694a27",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=0「Auxiliary polynomial」（canonicalId=ctkg:v3e-object-23665070dce851fbb0ebda8b, canonicalRevision=88b2d2084f42…）。语义定位：辅助多项式是劳斯阵列构造中的中间多项式对象，属稳定性代数判据工具链。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "53205885a2d85933c38695c4811aaec9",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-fde39b1993f1516c3f46838b",
+          "sourceDigest": "bb70b6421a354663ab3875b19a2ab3e822eb2c4056d941f82eac039663a72cb8",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "109c4c912328d564610f3c3661ec318b",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-23665070dce851fbb0ebda8b",
+          "sourceDigest": "88b2d2084f4227882746d4b551a1dcc4b354973a1e5c7554d212767def694a27",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 1,
+      "canonicalId": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+      "canonicalRevision": "b7eb1c57d0b2146ba8b23ea992f308674498ecebe5ba75a4b1d3b6d0902bcb1f",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=1「Symmetrical root pairs」（canonicalId=ctkg:v3e-object-2eb64f744b929432a6394ee5, canonicalRevision=b7eb1c57d0b2…）。语义定位：对称根对描述特征根关于虚轴/原点的对称配置，常用于临界稳定与根分布讨论。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "3d3ccee2b7e2a06a067e8b59f6e9ece7",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-afeb7858ba9d452b281669fe",
+          "sourceDigest": "2a1f3c85d05b0789902e6b7d54a13b5da63c9ca6f6d1845b2d6cbe551905c57d",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "7ffd289ed7771278ee5c16d8d5fd3870",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-2eb64f744b929432a6394ee5",
+          "sourceDigest": "b7eb1c57d0b2146ba8b23ea992f308674498ecebe5ba75a4b1d3b6d0902bcb1f",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 2,
+      "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+      "canonicalRevision": "3e85767109f8cad1785b2c9fffdf768c6f3f94d674e9cc73ec0334f4cd44fa8c",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=2「Routh's method for parameter range determination」（canonicalId=ctkg:v3e-object-327cafd07ac8956536bab418, canonicalRevision=3e85767109f8…）。语义定位：劳斯法用于参数稳定域/参数范围判定，是稳定性分析工程模块的核心方法概念。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "b13e1d9b757a3b46f9d75399c6ac558f",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-a28e4ef126e0e851470e5835",
+          "sourceDigest": "596a207ed34ca772bcde8c4167d8b2fa89af90fa57d09fae5f43a1ecfc4ef3ba",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "0e691c6d84f4c35a15be8a43d8a654ba",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-327cafd07ac8956536bab418",
+          "sourceDigest": "3e85767109f8cad1785b2c9fffdf768c6f3f94d674e9cc73ec0334f4cd44fa8c",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 3,
+      "canonicalId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+      "canonicalRevision": "64d67d489c7b13315c9f2de9b1de12ca9c1fffbff7e60745ec25114217fbaf30",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=3「平衡状态稳定性」（canonicalId=ctkg:v3e-object-3584625f5f11346155d538d3, canonicalRevision=64d67d489c7b…）。语义定位：平衡状态稳定性属李雅普诺夫/运动稳定性语义族，讨论平衡点邻域内稳定性。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "322c62bf45685700d3d26d188d17f5f8",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-d5cb8795e3f5a76e5d49ec95",
+          "sourceDigest": "55aa5be300063d7a819156954a803d1f09188d3593ef20009b708e858bd0feb7",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "de15ef8462fc90d22c15525327d1999c",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-3584625f5f11346155d538d3",
+          "sourceDigest": "64d67d489c7b13315c9f2de9b1de12ca9c1fffbff7e60745ec25114217fbaf30",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 4,
+      "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+      "canonicalRevision": "65093bf22d64b5ed9fd37a15e3fcb789cfa3df83627f6fd9da11b0d0166b3069",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=4「Stable System」（canonicalId=ctkg:v3e-object-51cfdcf1f943a39dfc550be1, canonicalRevision=65093bf22d64…）。语义定位：Stable System 给出稳定系统的基本分类标签，与 BIBO/内部稳定等并列。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate-evidence=2, canonical-profile=1；boundary分布={'aggregate': 2, 'profile': 1}；sourcePath分布={'aggregate-projection': 3}；digestSemantics分布={'selector-evidence': 2, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "e9d50856c84ee2eca1684f6221f4a20c",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-494999bc789571c50bf5f9ad",
+          "sourceDigest": "9b7a7a7981e16b24b663c6d2f05a9ab6b2ebda08649feaebf99d4a0afab7cbc2",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "a84b6d17e202682ff67915e27548f976",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-fbd385346221e8410012df7a",
+          "sourceDigest": "1ed428128d8d182ab0ed58ab9d66c23b4dc6d4cc28afe813ebc974867e45f9e5",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "78d2cc8297776cbd4445a4668d2ed793",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+          "sourceDigest": "65093bf22d64b5ed9fd37a15e3fcb789cfa3df83627f6fd9da11b0d0166b3069",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 5,
+      "canonicalId": "ctkg:v3e-object-526906541f641018cd576367",
+      "canonicalRevision": "96499f5503bb2701724aaf9ff7a4c142926e2fecd26f526511b7a577a3f778fe",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=5「通过变量替换检验给定稳定度的方法」（canonicalId=ctkg:v3e-object-526906541f641018cd576367, canonicalRevision=96499f5503bb…）。语义定位：通过变量替换检验给定稳定度，是相对稳定/稳定裕度检验的代数手段。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "cc747189b4075bec6ec4ba33750b1f67",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-5bf4073b7d885e64d7aa8a56",
+          "sourceDigest": "cdfec51b70357770283ac9fa1bd8ba422d5b41d965fdeb70e0c1247cbc3dbef6",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "fb8ac2efc3daa5956104d39af0a5b9bb",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-526906541f641018cd576367",
+          "sourceDigest": "96499f5503bb2701724aaf9ff7a4c142926e2fecd26f526511b7a577a3f778fe",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 6,
+      "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+      "canonicalRevision": "5a605bb140cc052920d6f04848b1c0bc999db34264baaf35089092d1ef357263",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=6「Marginally Stable System」（canonicalId=ctkg:v3e-object-570b74ec5294ac993add9b5f, canonicalRevision=5a605bb140cc…）。语义定位：Marginally Stable System 对应临界/边际稳定系统分类。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "a1340ca810b19f7ff9931fc5db471c99",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-3ea521e061c96b0641139d5a",
+          "sourceDigest": "558c8e60253e1f1fcf9fd8326f465e4f3abc362ecc3e9d10a288713ee4158ea7",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "f86fece6de76ad4edeb0cee2b3c48823",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-570b74ec5294ac993add9b5f",
+          "sourceDigest": "5a605bb140cc052920d6f04848b1c0bc999db34264baaf35089092d1ef357263",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 7,
+      "canonicalId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+      "canonicalRevision": "619bfcbd8dfa362f7a269cacd91e4d7cf363769c92b2ac89d19e2e75af8e27e0",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=7「Bounded Input Bounded Output (BIBO) Stability」（canonicalId=ctkg:v3e-object-58de4bcc9bc42be0ce31abb7, canonicalRevision=619bfcbd8dfa…）。语义定位：BIBO 稳定性是输入输出稳定性的标准工程定义。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate-evidence=2, canonical-profile=1；boundary分布={'aggregate': 2, 'profile': 1}；sourcePath分布={'aggregate-projection': 3}；digestSemantics分布={'selector-evidence': 2, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "315ca494f093d6830f28c6e7a2015241",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-49895e3dd4a43fd88a3fb5ec",
+          "sourceDigest": "68f00ff95a62cb3d639fb81224c5c1525d77878a7187319abff4ee795f1fc499",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "aeb70cfaff5b7105d7af061ebd9fa7ac",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-b02f610c2103baaaecd09495",
+          "sourceDigest": "5c1539ae967a087472e16410341af15a11e8b2d9b3207c3f88f6ec78d4b2d064",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "daa46da00552db2e02b27f8212d84cbf",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+          "sourceDigest": "619bfcbd8dfa362f7a269cacd91e4d7cf363769c92b2ac89d19e2e75af8e27e0",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 8,
+      "canonicalId": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+      "canonicalRevision": "3c1e27e876dd35afc2a0566df4f2a6a46ca4c1f02525fce22a6bf31f357e4d82",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=8「Unstable System」（canonicalId=ctkg:v3e-object-592ae79b5fc586a27e9dd7f2, canonicalRevision=3c1e27e876dd…）。语义定位：Unstable System 为不稳定系统分类标签。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "3347e670414fd59036d0be50ac60c401",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-942bab7d630f7bcc820b8f90",
+          "sourceDigest": "15d1f6837a92d8c75b6653541a92681794bf525d15fb67157946efa7c20e24e9",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "bc3fd0d97b3cd6f37a788a4af60cede7",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+          "sourceDigest": "3c1e27e876dd35afc2a0566df4f2a6a46ca4c1f02525fce22a6bf31f357e4d82",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 9,
+      "canonicalId": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+      "canonicalRevision": "cdc794ea56934b1d73c37a63a8aa81a3429107b0cf878c88a1656a4fb4b29589",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=9「大范围稳定系统」（canonicalId=ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27, canonicalRevision=cdc794ea5693…）。语义定位：大范围稳定系统对应全局/大范围渐近稳定语义。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "b4c09607df9f4005ec3c259d546bfee2",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-6c21b895c3cd34e4886cc446",
+          "sourceDigest": "0670b246766aedc40cbdaf7368fcc6a3bb929a0ed79f0a672872cb9e8594349c",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "46a1199f2d0740a31e17cb6671a5af7d",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+          "sourceDigest": "cdc794ea56934b1d73c37a63a8aa81a3429107b0cf878c88a1656a4fb4b29589",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 10,
+      "canonicalId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "canonicalRevision": "6da67dcc4f6e106fe677888b2ffeb83e37ede74213dc7b15003bb6ef638ee9a1",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=10「Characteristic equation」（canonicalId=ctkg:v3e-object-64e8b62fbd0bb7ae801304db, canonicalRevision=6da67dcc4f6e…）。语义定位：特征方程是根分布与劳斯-赫尔维茨判据的共同入口对象。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only', 'relation-neighborhood-changed']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "5eb597e5eefdf3f45325276fd2b8bc30",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-023fac1d0686c9d8be72fb49",
+          "sourceDigest": "bf11432c9728a1e826ccf731a414b09008e12d9a05cac8f8cb056af2555d867b",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "cb92fe4886f47068492706b6f58de1ed",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+          "sourceDigest": "6da67dcc4f6e106fe677888b2ffeb83e37ede74213dc7b15003bb6ef638ee9a1",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 11,
+      "canonicalId": "ctkg:v3e-object-6877b35880ea442923e49a5e",
+      "canonicalRevision": "1dd3adbf4a8ba15afd7bdf2a56be3dafde223778c814c91065e50df3559036f5",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=11「Internal stability」（canonicalId=ctkg:v3e-object-6877b35880ea442923e49a5e, canonicalRevision=1dd3adbf4a8b…）。语义定位：Internal stability 强调内部状态/不可观不可控模态下的内部稳定性。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "0bf9e3113e61422fe28f2867d2d80171",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-6e348dbd6aebe11558509051",
+          "sourceDigest": "654a094f623efe3c97207bef535115fbd4989b23b52c2f86378a216876edaef0",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "4cc4476509ac0a2a15050d03fd7cdb75",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-6877b35880ea442923e49a5e",
+          "sourceDigest": "1dd3adbf4a8ba15afd7bdf2a56be3dafde223778c814c91065e50df3559036f5",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 12,
+      "canonicalId": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+      "canonicalRevision": "54380189081ffc47c61e186791fb74d5e7419b6accfe81d6213e2a71b89e3463",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=12「Relative Stability」（canonicalId=ctkg:v3e-object-6d78bc7ec6f37d397dd08c67, canonicalRevision=54380189081f…）。语义定位：Relative Stability 描述相对稳定度/稳定裕度，而非绝对稳定二分。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=2, releaseTier=silver, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate-evidence=2, canonical-profile=1；boundary分布={'aggregate': 2, 'profile': 1}；sourcePath分布={'aggregate-projection': 3}；digestSemantics分布={'selector-evidence': 2, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "cafbebd53836baf00eaa26cc6aeb606f",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-6563b668efaf2f8d62bd5e38",
+          "sourceDigest": "76ed5c897b876c83211ec77a17e18f6538cba3f2b9b8b8586294cd8055a897e0",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "06a55c3816dd021807eadf1e2f4989a6",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctr:m1g-release-evidence-e2286e1d08a4c65063cb40bb",
+          "sourceDigest": "2e5feaf674154d3b154e2458d6fe3d99a38915ebbb2608c58ed9fd8597bb6a9f",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "523beeab298fb7df00d8ca2957b40f20",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+          "sourceDigest": "54380189081ffc47c61e186791fb74d5e7419b6accfe81d6213e2a71b89e3463",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 13,
+      "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+      "canonicalRevision": "abadcf8a3a7498678c8e16efadc41c1be4caf3791bd0d1a1b0ae1f732e1c9989",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=13「Routh array」（canonicalId=ctkg:v3e-object-7aa500461c5109b7cffd9b19, canonicalRevision=abadcf8a3a74…）。语义定位：Routh array 是劳斯表本身，为劳斯判据计算载体。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "785583202fad4eeac1c3f7636210301a",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-9aeb7de8ade0a0a94ef40b18",
+          "sourceDigest": "14e1fdba758911fa23b93ee8eae1fc75b41639fb639209779d0fbb4700dcbd53",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "7fde94379ec3cfc56050ba7424fcd214",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+          "sourceDigest": "abadcf8a3a7498678c8e16efadc41c1be4caf3791bd0d1a1b0ae1f732e1c9989",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 14,
+      "canonicalId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+      "canonicalRevision": "238a70f899e6dfc914434435362e5797645d75af920e2f3c95e6331175381c7b",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=14「Neutral Stability」（canonicalId=ctkg:v3e-object-7cae3d7feb631906644f0fad, canonicalRevision=238a70f899e6…）。语义定位：Neutral Stability 与中立/临界稳定同族，强调虚轴根情形。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "4b571a34a83cd49ab8c2a0eb6a8ca25f",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-1a15b857c30ddbcca89154b5",
+          "sourceDigest": "a653304ace875cd0c6b050b4e6c67c21cfadf21e9032628c7e4c9a1c019f2960",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "3908ced99e0671238bb3b578e4acda45",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-7cae3d7feb631906644f0fad",
+          "sourceDigest": "238a70f899e6dfc914434435362e5797645d75af920e2f3c95e6331175381c7b",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 15,
+      "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+      "canonicalRevision": "73df3eda5dc47c1b03157dcd3f6ffdae6b635ad7347274f1229824770541d4cf",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=15「Marginal stability」（canonicalId=ctkg:v3e-object-863069c1389e01dcca80138a, canonicalRevision=73df3eda5dc4…）。语义定位：Marginal stability 为边际稳定术语变体，与 marginally stable 同主题。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "b18d76b89ebe758154ef450a30585d24",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-aeb03e0542a7d99b2a82ae4e",
+          "sourceDigest": "922fe49e192823a6e15feece401171bdd4c6df11307e572ca3e0fe762099840a",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "d5362664d4856e6387883951ff70a798",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-863069c1389e01dcca80138a",
+          "sourceDigest": "73df3eda5dc47c1b03157dcd3f6ffdae6b635ad7347274f1229824770541d4cf",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 16,
+      "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+      "canonicalRevision": "24cbb72205112f0a70625db0525bb75f9a7e4e16fb89b874b4d0819e5efebdc8",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=16「BIBO stability」（canonicalId=ctkg:v3e-object-865b301177a623225344064f, canonicalRevision=24cbb7220511…）。语义定位：BIBO stability 与条目7同主题的术语变体（大小写/措辞差异）。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "990dffadd37608cc56521f7b40a7dacc",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-d011dff75635bc951eb79bc3",
+          "sourceDigest": "fc48bb8b3cdad06fc07d3d7d688475a6c3ae4063acde7bfa3cd484da7c659d71",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "187b468a8de806e727b8114bfa86d1e4",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-865b301177a623225344064f",
+          "sourceDigest": "24cbb72205112f0a70625db0525bb75f9a7e4e16fb89b874b4d0819e5efebdc8",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 17,
+      "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+      "canonicalRevision": "192a3461bbac966d53c66c553938f52f4300ec5629dcd58a62217f7076ab3491",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=17「First column of Routh array」（canonicalId=ctkg:v3e-object-a5bc9701adc27b91f6da074b, canonicalRevision=192a3461bbac…）。语义定位：劳斯阵列第一列符号变化是判定不稳定根数目的直接判据入口。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "884a4612490ae2939435a78b78df0ac9",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-52bf0fe8f92fba4afd42c2c7",
+          "sourceDigest": "fae21c46053637afc5f5e55e209172b4119e371b629800c8ecea0209cfa658cc",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "08194d28a0512740595e291228d42f7b",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+          "sourceDigest": "192a3461bbac966d53c66c553938f52f4300ec5629dcd58a62217f7076ab3491",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 18,
+      "canonicalId": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+      "canonicalRevision": "02891d442e8ab550485a49940cf4c5118833c3a24459678f6dad97e4517dd4c8",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=18「Stability boundary」（canonicalId=ctkg:v3e-object-b0da8811ce5c0b404585f821, canonicalRevision=02891d442e8a…）。语义定位：Stability boundary 指稳定边界（常与虚轴/临界参数对应）。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "7597b81b249b6294258dd3fe9fed58e8",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-03381d955d8ebb4b4efb40d7",
+          "sourceDigest": "089047cb3755a63cc1622c8244e8475554853c6acc4a10f5e8b7a6596baeb3d4",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "b59e2e11627acfbef8ee862185b6011b",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-b0da8811ce5c0b404585f821",
+          "sourceDigest": "02891d442e8ab550485a49940cf4c5118833c3a24459678f6dad97e4517dd4c8",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 19,
+      "canonicalId": "ctkg:v3e-object-b2db4c45d82c99790ab8ca35",
+      "canonicalRevision": "21ebff44df6a1c658fc8e830a86f20561f1be9e9a45d8d031c65aae67349a7d1",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=19「李雅普诺夫稳定性分析方法」（canonicalId=ctkg:v3e-object-b2db4c45d82c99790ab8ca35, canonicalRevision=21ebff44df6a…）。语义定位：李雅普诺夫稳定性分析方法是非线性/一般运动稳定性分析框架。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "8de84ab36ce95a0f069b9231c9caf6c1",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-6806d4fffdcfb1e325fead35",
+          "sourceDigest": "4588a5e0100c1d6dcf948c52a6c3e0c1a82e1064d83c1138379c8348e5e20223",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "cef0fa7d1f3c6960637d5d46b68d41b1",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-b2db4c45d82c99790ab8ca35",
+          "sourceDigest": "21ebff44df6a1c658fc8e830a86f20561f1be9e9a45d8d031c65aae67349a7d1",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 20,
+      "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+      "canonicalRevision": "f0dc69c25e01233d99209923720428fb00898d8d63d3a89247236db5f9317d22",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=20「Absolute Stability」（canonicalId=ctkg:v3e-object-b3c5cdff9a0cefd89c42db14, canonicalRevision=f0dc69c25e01…）。语义定位：Absolute Stability 强调绝对稳定（稳定/不稳定二分）相对相对稳定而言。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=2, releaseTier=silver, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate-evidence=2, canonical-profile=1；boundary分布={'aggregate': 2, 'profile': 1}；sourcePath分布={'aggregate-projection': 3}；digestSemantics分布={'selector-evidence': 2, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "181a6d55924e5fbcea428a8a60ac250c",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-11ff192fc3a0d7c83fb117a6",
+          "sourceDigest": "86dcc6dba21006cb167ab82b42d37faeece65990a430f80691666884f2102a75",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "ca1109b4d3064501d48307ad44551d1f",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctr:m1g-release-evidence-f3cf3c5a3629291847490514",
+          "sourceDigest": "9170095fcedcbba1b85ea6dd25703cb8f85d0e159ec02549cd96e1c7a0dde813",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "3aa6a4c3001bae148dfb12f41c431dc8",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+          "sourceDigest": "f0dc69c25e01233d99209923720428fb00898d8d63d3a89247236db5f9317d22",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 21,
+      "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "canonicalRevision": "816d6a19e107c88260b45b505a5a3fcff49b5fb76ed769eb8b8d4c33c96800fb",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=21「Axis Shift Method for Relative Stability」（canonicalId=ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d, canonicalRevision=816d6a19e107…）。语义定位：轴偏移法用于相对稳定度检验（s→s+a 平移后应用劳斯类判据）。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "37df5a8050a0718de39cc4659a53120d",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-9bf2ad4efe5ce5c3fae4e510",
+          "sourceDigest": "c01d10480cb4adcb627f2451df8f18c20655a4f1d3c901a4d9d407731a3a9787",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "af59102aaafeb01dc72e46747ed6c7f8",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+          "sourceDigest": "816d6a19e107c88260b45b505a5a3fcff49b5fb76ed769eb8b8d4c33c96800fb",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 22,
+      "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+      "canonicalRevision": "3156c7a15e11019a9e89bba5f17991335965a29474dc6450c3904593660703d9",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=22「运动稳定性」（canonicalId=ctkg:v3e-object-c36a6e957077c474e91e17ab, canonicalRevision=3156c7a15e11…）。语义定位：运动稳定性是李雅普诺夫意义下轨迹/运动的稳定性上位概念。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "355ae6b27710903028e0872f58c0238a",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-7d98e0c1974a1822d1e3e0bd",
+          "sourceDigest": "9c8d076a6e9b7841e5e935e2e804844b957d23d18fbc1fe9a8dbab9feec0a1b8",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "ac4870105ffa19857ffc3a20018adffc",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-c36a6e957077c474e91e17ab",
+          "sourceDigest": "3156c7a15e11019a9e89bba5f17991335965a29474dc6450c3904593660703d9",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 23,
+      "canonicalId": "ctkg:v3e-object-c429eb75a78f367236589b27",
+      "canonicalRevision": "9e81729eb12c4f5aea85ebb0404775f031ce34be881647cae8a136bd72cfa313",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=23「Neutrally stable」（canonicalId=ctkg:v3e-object-c429eb75a78f367236589b27, canonicalRevision=9e81729eb12c…）。语义定位：Neutrally stable 为中立稳定形容词标签，与 neutral/marginal 同族。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "6c88d9b66c58930608660e4032cbaa50",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-ae353e0df8f0ecd8be19135f",
+          "sourceDigest": "bbcb4842bc61668e5e1ce4683576e281904ff0f61108380db965a39e5b273847",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "cbbfd263e5b7193e3da826fc719b462f",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-c429eb75a78f367236589b27",
+          "sourceDigest": "9e81729eb12c4f5aea85ebb0404775f031ce34be881647cae8a136bd72cfa313",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 24,
+      "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+      "canonicalRevision": "0909287c7340236c748abe60173bd92c466281b67bef1eb0ece04edf66a35c5d",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=24「Routh-Hurwitz stability criterion method」（canonicalId=ctkg:v3e-object-c6fd3f071d7b3ea64acf9760, canonicalRevision=0909287c7340…）。语义定位：Routh-Hurwitz stability criterion method 强调劳斯-赫尔维茨判据的方法程序。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "6e3e9397d9cdea0cc3529661e7ea54e4",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-450368c8da68bc1b3700c2b6",
+          "sourceDigest": "a3b58e3d8fc9b120a5639a6e6635a63e4c985727ca70f8f089af3df604ed5ddc",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "82962676577df0f2298eea706aeff366",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+          "sourceDigest": "0909287c7340236c748abe60173bd92c466281b67bef1eb0ece04edf66a35c5d",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 25,
+      "canonicalId": "ctkg:v3e-object-cbbab19b11fc34557c78b5c6",
+      "canonicalRevision": "ecdeb3c9bc6112cc409e1871fa44bcf615d78cb50ca7a946fc52c807ec3e1680",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=25「Normalized characteristic equation」（canonicalId=ctkg:v3e-object-cbbab19b11fc34557c78b5c6, canonicalRevision=ecdeb3c9bc61…）。语义定位：归一化特征方程是构造劳斯表前的首一化/归一化形式。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "f0494b4d4ace6b68fdb08fb11a4164f0",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-f58d17e5fb1d0bbf0e05f709",
+          "sourceDigest": "fd79b0f77b290c7069d79f6dc2070fb1e061a144f8c2273ca350bffef3e746d1",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "1fb86255266e40fcbd1b7f4a9076dc54",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-cbbab19b11fc34557c78b5c6",
+          "sourceDigest": "ecdeb3c9bc6112cc409e1871fa44bcf615d78cb50ca7a946fc52c807ec3e1680",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 26,
+      "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+      "canonicalRevision": "b1e88e3c4caa69982df0a5d9ad01a299f7291e7c191d762f3713b71fd95bf514",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=26「Right half-plane roots」（canonicalId=ctkg:v3e-object-cccba806baf3e7a86cade9e4, canonicalRevision=b1e88e3c4caa…）。语义定位：右半平面根是不稳定判定的根分布核心对象。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "243251f279c589e2ab6c6b70b5bfde2b",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-6111dcb35a64b82d8aa51b51",
+          "sourceDigest": "130f812e3eae5262b4eee90085e2c794a756df43c001abd1b7758070036f87c5",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "7d4dacb5b57cc7a4dc26deb1a87526fb",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+          "sourceDigest": "b1e88e3c4caa69982df0a5d9ad01a299f7291e7c191d762f3713b71fd95bf514",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 27,
+      "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "canonicalRevision": "236fadbb0bb2fdce89c4c6258b624f4797e090ccd66fd036c4853ac4fd3c5f51",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=27「Routh-Hurwitz stability criterion」（canonicalId=ctkg:v3e-object-cfdae92ada72d7710e7f1cee, canonicalRevision=236fadbb0bb2…）。语义定位：Routh-Hurwitz stability criterion 是判据本身（与 method 条目相邻但对象不同）。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "6d178ee6aef02badfde84aed51e6d838",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-6400641aec713b96024a1dd0",
+          "sourceDigest": "6cf9462bd804900b8f18be7a40cf3881ed9894c0b686c6728a5c8adf489895c1",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "7ed65519ba2ca9e08d8c15e3ed18b7ef",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+          "sourceDigest": "236fadbb0bb2fdce89c4c6258b624f4797e090ccd66fd036c4853ac4fd3c5f51",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 28,
+      "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+      "canonicalRevision": "4d229d3d529e87d9cf29be5824ef12a7df30ecdc799c2a99aa41862b9c878306",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=28「稳定性」（canonicalId=ctkg:v3e-object-d09d1eba56a786a96d39d085, canonicalRevision=4d229d3d529e…）。语义定位：稳定性是该模块最上位的领域概念标签。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=2。evidenceRefs共3条：aggregate-evidence=2, canonical-profile=1；boundary分布={'aggregate': 2, 'profile': 1}；sourcePath分布={'aggregate-projection': 3}；digestSemantics分布={'selector-evidence': 2, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "8f3892c61405a15923a0ad36a00cfe6e",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-8dade6a2d84cfceaf52ae837",
+          "sourceDigest": "e476a79dd30524ab9716a13e8e1f96243b1d26e1fcf3bdfd372baa598cab2fe5",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "191f02a68e29208b525bc4dd86738534",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-a80891b010ddbead99edc9f5",
+          "sourceDigest": "621ab8629fda5269895121447814a270119c44b61ea178a7d6456ffcb461548d",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "f8006c42f9da009a4b825213b033fe23",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-d09d1eba56a786a96d39d085",
+          "sourceDigest": "4d229d3d529e87d9cf29be5824ef12a7df30ecdc799c2a99aa41862b9c878306",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 29,
+      "canonicalId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+      "canonicalRevision": "daf983e97cab5ddc194b0411d24e66eb364f78f310354c0fadb03421a412b7ee",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=29「小范围稳定系统」（canonicalId=ctkg:v3e-object-e56e84bbefb19024f10b648c, canonicalRevision=daf983e97cab…）。语义定位：小范围稳定系统对应局部/小范围稳定语义，与大范围稳定相对。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=silver, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=silver，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "53820ccf8cfdb2f12b42d30b2cd46c53",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-be01ec67b17042b6d14433a6",
+          "sourceDigest": "b6df86702741da1b3d30414da1c9f06c3cf421db2723dbe0b0e47548493dd2db",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "7989bfbf8993dc6b6aaef6fe50713382",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-e56e84bbefb19024f10b648c",
+          "sourceDigest": "daf983e97cab5ddc194b0411d24e66eb364f78f310354c0fadb03421a412b7ee",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    },
+    {
+      "ordinal": 30,
+      "canonicalId": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+      "canonicalRevision": "e8c8ad1fdc994b48cf563d56137e73eaba6a8f443b4b05ef725f1e8c4ea5d15e",
+      "stageConclusion": "DEFER",
+      "rationale": "Challenger独立审查 ordinal=30「给定稳定度检验方法」（canonicalId=ctkg:v3e-object-fb437f813c7792e130b8a3df, canonicalRevision=e8c8ad1fdc99…）。语义定位：给定稳定度检验方法是相对稳定度/指定衰减度检验的方法概念。冻结worklist/manifest切片一致：entityType=DomainConcept, moduleMembership=['ctr:release:stability-analysis-engineering-v0.1'], profileOnly=True, riskFlags.highRisk=True, riskFlags.new=False, riskFlags.changed=False, reasons=['high-risk', 'profile-only']。sourceCoverage.count=1, releaseTier=gold, upstreamEvidenceCount=1。evidenceRefs共2条：aggregate-evidence=1, canonical-profile=1；boundary分布={'aggregate': 1, 'profile': 1}；sourcePath分布={'aggregate-projection': 2}；digestSemantics分布={'selector-evidence': 1, 'semantic-payload': 1}；independent-course=0。priorDecisionRefs为空（len=0），不得继承历史角色/结论。按archived current-course-coverage-review规范，仅lesson authoring与syllabus blueprint/main可计为independent-course；canonical-profile与aggregate-evidence不得视为独立课程证据。本成员全部证据落在aggregate/profile边界（sourcePath均为aggregate-projection），缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据，虽主题属于stability-analysis-engineering模块且releaseTier=gold，但profile元数据与aggregate投影不得提升为CourseCoverage INCLUDE/EXCLUDE。故stageConclusion=DEFER；CourseCoverage authority保持unresolved，禁止赋予active role，并继续阻断aggregate Coverage gate。",
+      "evidenceRefs": [
+        {
+          "boundary": "aggregate",
+          "digestSemantics": "selector-evidence",
+          "evidenceId": "96ec6435e6c097df6e787b3adb80db2c",
+          "kind": "aggregate-evidence",
+          "selector": "evidence:ctkg:v3e-evidence-8d9bf5a3433e4bc8e383749c",
+          "sourceDigest": "55df7590c656984f212330e112484dc2f1f8fc229e7c2280083440e2c557213b",
+          "sourcePath": "aggregate-projection"
+        },
+        {
+          "boundary": "profile",
+          "digestSemantics": "semantic-payload",
+          "evidenceId": "8fdedff534e5b0605c4cb48d3fc4f960",
+          "kind": "canonical-profile",
+          "selector": "canonicalId:ctkg:v3e-object-fb437f813c7792e130b8a3df",
+          "sourceDigest": "e8c8ad1fdc994b48cf563d56137e73eaba6a8f443b4b05ef725f1e8c4ea5d15e",
+          "sourcePath": "aggregate-projection"
+        }
+      ]
+    }
+  ],
+  "unresolvedRisks": [
+    "全部31项均为profileOnly+highRisk，且冻结证据仅aggregate-projection的aggregate-evidence与canonical-profile；无independent-course证据，CourseCoverage authority unresolved，阻断全局Coverage gate。",
+    "缺course-content/authoring/lessons/**与syllabus blueprint/main独立课程证据；gold/silver releaseTier、模块归属stability-analysis-engineering与profile元数据不得提升为independent-course，不得INCLUDE/EXCLUDE。",
+    "priorDecisionRefs全部为空且规范禁止继承历史角色/结论；后续若补齐独立课程证据需在同worklistDigest/memberDigest约束下重新审查。",
+    "batchBinding已核验：index=13, sequence=0, group=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept, memberDigest=e1bf8070ee6a7aea245df5e780c2732ce08262e9a28d6dd15db09a71c05a4084, manifestDigest=2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818；任一后续drift必须fail closed。"
+  ]
+}

@@ -186,6 +186,19 @@
     }
   }
 
+  [data-course-entry-shell="app-shell"] [data-knowledge-map="lesson-entry"] {
+    --premium-lesson-graph-edge: var(--border);
+    --premium-lesson-graph-edge-active: var(--primary);
+    --premium-lesson-graph-node-fill: var(--card);
+    --premium-lesson-graph-node-stroke: var(--border);
+    --premium-lesson-graph-node-active-fill: var(--accent);
+    --premium-lesson-graph-node-active-stroke: var(--primary);
+    --premium-lesson-graph-node-text: var(--foreground);
+    --premium-lesson-graph-label-bg: var(--popover);
+    --premium-lesson-graph-label-stroke: var(--border);
+    --premium-lesson-graph-label-text: var(--popover-foreground);
+  }
+
   [data-route-family="learner-data-pathway"] {
     --learner-floating-dock-safe-inline: 0rem;
     --learner-floating-dock-safe-block: 8rem;
@@ -228,29 +241,29 @@
       right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;
     }
 
-    body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"] {
+    body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"] {
       top: 7rem !important;
       right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;
       height: calc(100vh - 8rem) !important;
     }
 
-    body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"] ~ * [data-knowledge-desktop-command-system],
-    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]) [data-knowledge-desktop-command-system] {
+    body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"] ~ * [data-knowledge-desktop-command-system],
+    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"]) [data-knowledge-desktop-command-system] {
       max-width: 16rem !important;
     }
 
-    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]) [data-knowledge-local-tool-panel] {
+    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"]) [data-knowledge-local-tool-panel] {
       min-width: 0 !important;
       width: min(16rem, calc(100vw - 3rem)) !important;
     }
   }
 
   @media (min-width: 1024px) and (max-width: 1279px) {
-    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]) [data-knowledge-desktop-command-system] {
+    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"]) [data-knowledge-desktop-command-system] {
       display: none !important;
     }
 
-    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]) [data-knowledge-local-tool-panel] {
+    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"]) [data-knowledge-local-tool-panel] {
       display: none !important;
     }
   }

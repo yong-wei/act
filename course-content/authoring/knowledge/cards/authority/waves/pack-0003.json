@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0003",
+  "offset": 15,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-ef6fc9931fcf63871a394970",
+      "batch": "B",
+      "name": "Closed-loop System with Nonlinearity",
+      "definition": "Closed-loop System with Nonlinearity：A negative feedback control system where a nonlinear element f precedes a linear dynamic system G(s), with input R and…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Closed-loop…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Closed-loop System with Nonlinearity\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Closed-loop System with Nonlinearity：A negative feedback control system where a nonlinear element f precedes a linear dynamic system G(s), with input R and…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Closed-loo」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-c02b9566a9d9964dbab5cc5d",
+      "batch": "B",
+      "name": "Computing response via convolution",
+      "definition": "Computing response via convolution：Decompose the input signal into a sum of elementary components (impulses or exponentials), find the response to each, a…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Computing r…",
+        "包含组件·Conv…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Computing response via convolution\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Computing response via convolution：Decompose the input signal into a sum of elementary components (impulses or exponentials), find the response to each, a…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Computing 」、「包含组件·Conv…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1f9eb1e90b66894a079a56de",
+      "batch": "B",
+      "name": "Dominant Second-Order Poles Method",
+      "definition": "Dominant Second-Order Poles Method：A pole-placement design approach that selects closed-loop poles for a higher-order system as a desired pair of dominant…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Dominant Se…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Dominant Second-Order Poles Method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Dominant Second-Order Poles Method：A pole-placement design approach that selects closed-loop poles for a higher-order system as a desired pair of dominant…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Dominant S」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7ca2c75eb92f65075a8ec793",
+      "batch": "B",
+      "name": "successive-approximation technique",
+      "definition": "successive-approximation technique：An A/D conversion technique based on successively comparing the input voltage to reference levels representing the vari…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "successive-…",
+        "关联·A/D co…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: successive-approximation technique\nSOURCE DEFINITION (fail-closed, do not invent beyond this): successive-approximation technique：An A/D conversion technique based on successively comparing the input voltage to reference levels representing the vari…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「successive」、「关联·A/D co…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-3a468572771e0b54e23a6ef5",
+      "batch": "B",
+      "name": "graphical gain calculation method",
+      "definition": "graphical gain calculation method：Method to compute the gain K by measuring the lengths of vectors from the poles to a point on the root locus and multip…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "graphical g…",
+        "应用于·增益"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: graphical gain calculation method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): graphical gain calculation method：Method to compute the gain K by measuring the lengths of vectors from the poles to a point on the root locus and multip…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「graphical 」、「应用于·增益」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

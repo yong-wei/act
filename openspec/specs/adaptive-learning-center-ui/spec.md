@@ -236,13 +236,41 @@ The adaptive learning center SHALL pass integrated product QA across generation,
 - **AND** the final QA evidence SHALL compare the visible result to the accepted handoff and concept images.
 
 ### Requirement: Adaptive path center renders readiness gates in product language
-The adaptive learning center SHALL show preparation, locked, and evidence-needed states without exposing internal readiness codes.
+The adaptive learning center SHALL show preparation, locked, and evidence-needed states without exposing internal readiness codes, and SHALL explain locked nodes with a student-facing unlock chain derived from existing readiness data.
 
 #### Scenario: Locked node is visible in a path option
 - **WHEN** a generated path option includes a locked node
 - **THEN** the UI SHALL label it with student-facing text such as `稍后解锁` or `Arena 暂未解锁`
-- **AND** it SHALL show the preparation action required before unlock
+- **AND** it SHALL show the student-facing unlock chain with the missing conditions and the preparation action required before unlock
 - **AND** it SHALL NOT render internal strings such as `locked`, `low-resource-fallback`, `reasonCodes`, `policyBundle`, `missing-*`, or `terminal-validation-unavailable`.
+
+#### Scenario: Locked node is visible in execution timeline
+- **WHEN** the selected path execution timeline includes a locked node
+- **THEN** the UI SHALL show the locked node's reason, unmet readiness conditions, and next unlock action
+- **AND** it SHALL NOT expose internal readiness codes, node IDs, or raw field names.
+
+#### Scenario: Multiple readiness gaps exist
+- **WHEN** a locked node has multiple unmet readiness conditions
+- **THEN** the UI SHALL list only the unmet conditions in a stable student-readable order
+- **AND** it SHALL show current and required values where available.
+
+#### Scenario: Readiness details are unavailable
+- **WHEN** a locked node has no structured readiness gaps and no usable unlock message
+- **THEN** the UI SHALL state that the specific unlock conditions are temporarily unavailable
+- **AND** it SHALL NOT fabricate resource titles, thresholds, or unlock actions.
+
+#### Scenario: Next unlock action has a target
+- **WHEN** the next unlock action resolves to an executable path node
+- **THEN** the UI SHALL render an actionable link or button for that node.
+
+#### Scenario: Next unlock action has no target
+- **WHEN** the next unlock action has no executable target
+- **THEN** the UI SHALL render the next action as text only.
+
+#### Scenario: Unlock chain scope remains node-local
+- **WHEN** the UI renders a locked node explanation
+- **THEN** it SHALL explain only that node's missing conditions and next action
+- **AND** it SHALL NOT require or replace a complete global progress map.
 
 #### Scenario: Current node is selected
 - **WHEN** the selected path contains active and locked nodes
@@ -523,15 +551,20 @@ The path execution intent SHALL place the compact journey and current action bef
 - **AND** it SHALL NOT repeat equivalent hero, recommendation, current-node, and six-card statistics as equal-priority regions.
 
 ### Requirement: Path-launched resources expose continuous journey controls
-Every governed path node type admitted to execution SHALL use a defined continuous-journey behavior. Platform-owned destinations for `interactive_lesson`, `knowledge_card`, `textbook_section`, `slides`, `adaptive_quiz`, `control_workbench`, `simulation`, `arena_task`, `reflection`, `checkpoint`, and `konling` SHALL expose the shared journey control either on the destination page or in the owning path-center activity. `external_resource` SHALL use the governed external fallback.
+Every governed path node type admitted to execution SHALL use a defined continuous-journey behavior. Platform-owned destinations for `interactive_lesson`, `knowledge_card`, `textbook_section`, `slides`, `adaptive_quiz`, `control_workbench`, `simulation`, `arena_task`, `reflection`, `checkpoint`, and `konling` SHALL expose the shared journey control either on the destination page or in the owning path-center activity. `external_resource` SHALL use the governed external fallback. Any page rendered with a valid path launch context SHALL expose no more than one visible action whose normalized target and user-facing semantics are equivalent to `返回学习路径`.
 
 #### Scenario: Resource is still incomplete
 - **WHEN** a path-launched resource has not produced accepted completion evidence
-- **THEN** `返回学习路径` SHALL remain available
+- **THEN** `返回学习路径` SHALL remain available exactly once within the active journey action surface
 - **AND** the next action SHALL be disabled or replaced by an explicit blocked or pending-result status.
 
+#### Scenario: Ready action duplicates the return action
+- **WHEN** the projected ready, completion, or recovery action resolves to the same normalized href and return semantics as the journey return action
+- **THEN** the journey control SHALL render only the owned `返回学习路径` action
+- **AND** it SHALL NOT render the equivalent projected action as a second control.
+
 #### Scenario: Resource completion advances the path
-- **WHEN** the server accepts completion evidence and returns a ready next action
+- **WHEN** the server accepts completion evidence and returns a ready next action with a different normalized target
 - **THEN** the resource surface SHALL enable a visible action naming the next node
 - **AND** the student SHALL be able to enter that node without first returning to the path center.
 
@@ -555,3 +588,206 @@ Every governed path node type admitted to execution SHALL use a defined continuo
 - **THEN** the journey control SHALL show path completion or terminal-validation status
 - **AND** its primary continuation SHALL lead to the same path's summary rather than fabricate another node.
 
+#### Scenario: Resource opens outside a path
+- **WHEN** a destination page has no valid path launch context
+- **THEN** its normal contextual return action SHALL remain available
+- **AND** the page SHALL NOT fabricate or duplicate a `返回学习路径` action.
+
+### Requirement: Student portrait surfaces render the canonical cumulative state
+Student profile and growth surfaces SHALL render the canonical cumulative
+portrait, overall diagnosis, last trend, last risk, cumulative evidence
+summary, newest activity, and meaningful growth events from one learner-state
+response.
+
+#### Scenario: Learner has cumulative evidence without newer activity
+- **WHEN** a learner with a valid cumulative portrait opens profile or growth without newer facts
+- **THEN** the page SHALL display the existing portrait values, overall level, diagnosis, trend, risk, and evidence cutoff
+- **AND** it SHALL NOT create an activity-window portrait, empty state, risk, trend, or diagnosis.
+
+#### Scenario: Learner has partial dimension coverage
+- **WHEN** a learner has valid evidence for only some portrait dimensions
+- **THEN** the page SHALL display values for evidenced dimensions and identify missing dimensions separately
+- **AND** it SHALL NOT render missing dimensions as zero or hide the entire portrait.
+
+#### Scenario: Learner opens growth history
+- **WHEN** meaningful cumulative growth events exist
+- **THEN** the growth surface SHALL show those events in newest-first order with evidence type and occurrence time
+- **AND** ordinary activity records SHALL remain available through the paginated evidence or activity view rather than being duplicated as growth events.
+
+#### Scenario: Removed recent portrait route or control is requested
+- **WHEN** a client requests a removed recent portrait API, query scope, route, or UI control
+- **THEN** the system SHALL return an explicit unsupported-scope or removed-contract outcome
+- **AND** it SHALL NOT silently render the cumulative portrait as if the recent request were accepted.
+
+### Requirement: Learning portrait surfaces use explicit availability states
+Student and teacher learning portrait surfaces SHALL preserve every available
+section and explain unavailable sections with specific product-facing reasons
+and actions.
+
+#### Scenario: One section is unavailable
+- **WHEN** portrait data exists but one of comparison, recommendation, growth, risk, or activity is unavailable
+- **THEN** the page SHALL continue to render the available portrait and diagnosis sections
+- **AND** the unavailable section SHALL show its specific reason and an applicable action instead of a generic `暂无`, `待生成`, or `无证据` message.
+
+#### Scenario: Reconciliation is available
+- **WHEN** the current user is allowed to reconcile the learner portrait
+- **THEN** the page SHALL provide an update action and show queued, processing, completed, no-change, or failed status
+- **AND** repeated activation SHALL reuse the idempotent learner-scoped task.
+
+### Requirement: Teacher portrait surfaces render overall cumulative diagnosis
+Teacher student-detail and class-insight surfaces SHALL use the canonical
+cumulative contracts for their primary cards and SHALL present goal-specific
+diagnoses only as subordinate drilldowns.
+
+#### Scenario: Teacher opens a student detail
+- **WHEN** an authorized teacher opens a current class member with cumulative portrait data
+- **THEN** the page SHALL show overall level, seven-dimension coverage, strengths, improvement areas, last trend, last risk, cumulative evidence, growth summary, class comparisons where available, and evidence cutoff
+- **AND** a control-correction diagnosis SHALL NOT replace the overall diagnosis.
+
+#### Scenario: Teacher opens a class insight
+- **WHEN** an authorized teacher opens a class containing members with cumulative portraits
+- **THEN** the page SHALL show overall coverage, seven-dimension aggregates, trend distribution, risk distribution, strengths, improvement clusters, cumulative evidence summary, and member drilldowns
+- **AND** members without a dimension SHALL be reported as missing rather than marked `累计口径不适用` or assigned zero.
+
+### Requirement: Generated path comparison exposes ordered resource previews
+The adaptive learning center SHALL present every generated, selectable path option as an ordered, read-only preview before the student chooses it. The preview SHALL use the planner-provided node order and node summaries, show the first four contiguous nodes by default, and allow the student to disclose the full route without launching a resource.
+
+#### Scenario: Generated options include ordered node summaries
+- **WHEN** the path center receives multiple generated options with ordered `nodeIds` and `nodeSummaries`
+- **THEN** each formal comparison option SHALL show concrete resource title, resource type, single-node estimated time, and student-facing readiness state in the planner order
+- **AND** the option SHALL reveal the remaining route through an in-module disclosure when it contains more than four nodes
+
+#### Scenario: Generated option contains a locked node
+- **WHEN** an ordered preview includes a locked node
+- **THEN** the node SHALL show a student-facing locked state and its preparation or unlock condition
+- **AND** the node SHALL remain non-startable until the student selects a path and receives an authorized execution context
+
+#### Scenario: Historic path payload lacks usable node summaries
+- **WHEN** an option lacks usable ordered node summaries
+- **THEN** the comparison surface SHALL retain its other student-facing fields and explain that the detailed route is unavailable
+- **AND** it SHALL NOT invent resource titles, order, or readiness details
+
+### Requirement: Generated path comparison explains overlap and diversity limits
+The adaptive learning center SHALL explain meaningful path differences from stable resource-node identity across the currently generated comparison set.
+
+#### Scenario: A resource appears in all generated options
+- **WHEN** the same `nodeId` occurs in every generated, selectable option
+- **THEN** each occurrence SHALL be labelled “所有方案均包含”
+
+#### Scenario: A resource appears in only one generated option
+- **WHEN** a `nodeId` occurs in exactly one generated, selectable option
+- **THEN** that occurrence SHALL be labelled “本方案特有”
+
+#### Scenario: Existing planner data reports insufficient distinction
+- **WHEN** existing planner diversity or limitation data establishes that available resources cannot produce meaningfully distinct options
+- **THEN** the comparison region SHALL display “当前可用资源有限，推荐方案差异较小” in student-facing language
+- **AND** students SHALL retain access to the route previews and path-selection actions
+
+### Requirement: Starter examples are distinct from formal path comparisons
+The adaptive learning center SHALL distinguish pre-generation starter examples from generated path options.
+
+#### Scenario: The learner has no generated path options
+- **WHEN** the path center displays starter learning approaches before a planner response
+- **THEN** the UI SHALL identify them as examples rather than formal comparable paths
+- **AND** it SHALL NOT apply generated-node ordering, overlap, uniqueness, or formal selection semantics to them
+
+### Requirement: Adaptive path comparison exposes configuration fulfillment
+The adaptive learning center SHALL render a student-safe configuration-fulfillment summary with generated path options. The summary SHALL identify which requested settings were applied, their planning effect where available, and which settings were unmet with an actionable reason; it SHALL not expose internal reason codes or raw free-text input.
+
+#### Scenario: Generated options honor configuration
+- **WHEN** path generation returns one or more options with fulfilled configuration entries
+- **THEN** the comparison interface SHALL show the applied settings and their path effect in student-facing language
+- **AND** the information SHALL remain associated with the generation result rather than only server diagnostics.
+
+#### Scenario: Configuration or intent is unmet
+- **WHEN** the planner returns an unmet configuration or unsupported free-text intent entry
+- **THEN** the interface SHALL show a student-safe explanation and a corrective action where one exists
+- **AND** it SHALL not claim that the unmet entry personalized the displayed options.
+
+#### Scenario: Option count is reduced for lack of diversity
+- **WHEN** the planner returns fewer than the preferred number of options because no meaningful alternative is feasible
+- **THEN** the interface SHALL present the retained options as valid choices
+- **AND** it SHALL explain the reduced count without rendering cosmetic placeholder options.
+
+#### Scenario: Requested time is insufficient
+- **WHEN** generation returns a minimum executable duration that exceeds the student's requested budget
+- **THEN** the interface SHALL show the requested and minimum durations in student-facing language
+- **AND** it SHALL offer an adjustment action without implying that the requested budget was silently changed.
+
+### Requirement: Path difference actions display the compared path facts
+The adaptive learning center SHALL render the server-owned structured result of an “解释差异” action inside the selected option's decision module and SHALL identify both compared paths.
+
+#### Scenario: Student explains a non-recommended option
+- **WHEN** a student requests an explanation for an option that is not the recommended option
+- **THEN** the page SHALL compare it with the recommended option and show both path names
+- **AND** the result SHALL render common nodes, each option's unique nodes, order differences, metrics, trade-offs and limitations supplied by the server.
+
+#### Scenario: Student explains the recommended option
+- **WHEN** a student requests an explanation for the recommended option
+- **THEN** the page SHALL compare it with the next ordered candidate option and show both path names.
+
+#### Scenario: Candidate path set changes
+- **WHEN** path generation or revision changes the active path id or the ordered candidate node identities
+- **THEN** the page SHALL remove explanations from the previous candidate path set
+- **AND** it SHALL NOT present a stale result as a comparison of the new options.
+
+#### Scenario: Difference result is read on a narrow viewport
+- **WHEN** the structured explanation is displayed at a 320px viewport width
+- **THEN** path names, node lists, metric labels, values, units, trade-offs and limitations SHALL remain readable without page-level horizontal overflow.
+
+### Requirement: Candidate path cards expose aggregate recommendation basis
+The adaptive learning center SHALL let students inspect how generation-time aggregate learning state influenced each formally generated candidate path before selecting it.
+#### Scenario: Candidate path has aggregate recommendation basis
+- **WHEN** a formally generated candidate path includes an aggregate recommendation basis
+- **THEN** its card SHALL always show a concise recommendation-basis summary
+- **AND** an on-demand disclosure SHALL show aggregate state summary, capability or knowledge judgment, affected recommended resources, confidence, limitations, and a governed link to review learning records.
+- **AND** the disclosure SHALL NOT claim to identify a specific evidence event, source occurrence, or event timestamp.
+#### Scenario: Candidate path has low-confidence provenance
+- **WHEN** the candidate path provenance is marked low confidence
+- **THEN** the card SHALL explain that the path primarily follows course structure, prerequisite rules, and available resources
+- **AND** it SHALL offer a student action such as completing diagnosis or practice to improve later recommendations.
+#### Scenario: Candidate path predates provenance support
+- **WHEN** a restored candidate path does not contain recommendation provenance
+- **THEN** the card SHALL retain the existing student-facing recommendation summary
+- **AND** it SHALL NOT synthesize a historical evidence chain from the student's current learner state.
+#### Scenario: Recommendation provenance is viewed on narrow screens
+- **WHEN** the candidate path card is rendered at a 320px viewport
+- **THEN** the summary, disclosure control, explanation chain, evidence link, and existing path actions SHALL remain readable and operable without horizontal clipping or action overlap.
+
+### Requirement: Recommendation explanations expose verifiable learning events
+The adaptive learning center SHALL display student-safe event references within candidate-path recommendation explanations, including event type, occurrence time, readable summary, affected judgment, affected resources, and a valid student navigation action.
+
+#### Scenario: Candidate path has sufficient event evidence
+- **WHEN** a student expands recommendation provenance containing event references
+- **THEN** the center displays each reference's type, occurrence time, summary, affected judgment and affected resources
+- **AND** provides the source-specific safe navigation action
+
+#### Scenario: Candidate path has low-confidence evidence
+- **WHEN** event references exist but the associated judgment is low confidence
+- **THEN** the center labels the evidence limitation and does not claim that the event directly selected a specific resource
+
+#### Scenario: Candidate path has no verifiable event reference
+- **WHEN** provenance contains only aggregate evidence or no evidence
+- **THEN** the center explains that no verifiable event-level record is available
+- **AND** does not present unrelated recent learning records as recommendation evidence
+
+#### Scenario: Event reference is opened
+- **WHEN** a student activates an event reference action
+- **THEN** navigation uses the existing safe destination for that evidence source
+- **AND** never exposes an internal source identifier in the URL
+
+### Requirement: Active path nodes expose their historical event basis
+The adaptive learning center SHALL display persisted event references in an active node's historical selection explanation separately from current readiness and latest adjustment state.
+
+#### Scenario: Active node contains historical event references
+- **WHEN** a student expands an active node whose selection basis includes event references
+- **THEN** the center displays those references under the historical selection explanation
+- **AND** current lock, completion, skip, or adjustment state is displayed separately
+
+#### Scenario: Active node predates event-reference support
+- **WHEN** a student expands an active node without persisted event references
+- **THEN** the center shows the existing legacy evidence limitation without inventing event history
+
+#### Scenario: Event evidence is viewed at supported widths
+- **WHEN** candidate or active-node event evidence is rendered at desktop width or 320px mobile width
+- **THEN** labels, timestamps, summaries and actions remain readable without overlap or horizontal clipping

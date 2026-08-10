@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-57afdf17705015f8527052c5",
+  "safe_id": "ctkg_v3e-object-57afdf17705015f8527052c5",
+  "node": {
+    "name": "Neutral Stability",
+    "name_en": "Neutral Stability",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Neutral Stability：A condition where a closed-loop root falls on the imaginary axis, i.e., s = jω, and the system is on the boundary betwe…",
+  "intuition": null,
+  "explanation": "A condition where a closed-loop root falls on the imaginary axis, i.e., s = jω, and the system is on the boundary between stability and instability.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Neutral Sta…",
+    "Neutral Stab"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-57afdf17705015f8527052c5.md",
+  "provider_policy": "grok-image_gen"
+}

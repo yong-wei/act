@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0138",
+  "offset": 690,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-ed6a447b53f709e139144374",
+      "batch": "B",
+      "name": "采样频谱主分量",
+      "definition": "采样频谱中 n=0 的频谱，与连续频谱形状一致，幅值变化为 1/T。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样频谱主分量",
+        "关联·采样频谱补分量"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样频谱主分量\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 采样频谱中 n=0 的频谱，与连续频谱形状一致，幅值变化为 1/T。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样频谱主分量」、「关联·采样频谱补分量」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-6987c534ece89cf4c3586091",
+      "batch": "B",
+      "name": "每一个输入量影响所有输出量",
+      "definition": "每一个输入量影响所有输出量，每一个输出量也受所有输入量影响的系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "每一个输入量影响所有输…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 每一个输入量影响所有输出量\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 每一个输入量影响所有输出量，每一个输出量也受所有输入量影响的系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「每一个输入量影响所有」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-6ba251594a75698f1a092f8d",
+      "batch": "B",
+      "name": "系统的输入-输出描述",
+      "definition": "系统的输入-输出描述，将系统看作黑箱，只反映外部变量间的因果关系。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统的输入-输出描述",
+        "关联·input"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 系统的输入-输出描述\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统的输入-输出描述，将系统看作黑箱，只反映外部变量间的因果关系。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「系统的输入-输出描述」、「关联·input」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "batch": "B",
+      "name": "终值定理法求稳态误差",
+      "definition": "设sEn(s)的极点位于s左半平面，则可用终值定理法求得稳态误差。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "终值定理法求稳态误差"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 终值定理法求稳态误差\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 设sEn(s)的极点位于s左半平面，则可用终值定理法求得稳态误差。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「终值定理法求稳态误差」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-64830154d494eaf7d38d905c",
+      "batch": "B",
+      "name": "高阶系统时域指标估算经验公式法",
+      "definition": "利用式(5-107)和(5-108)估算高阶系统超调量和调节时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "高阶系统时域指标估算经…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 高阶系统时域指标估算经验公式法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 利用式(5-107)和(5-108)估算高阶系统超调量和调节时间。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「高阶系统时域指标估算」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

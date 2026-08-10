@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0109",
+  "offset": 545,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+      "batch": "B",
+      "name": "过阻尼",
+      "definition": "ζ > 1，特征方程有两个不相等的负实根，单位阶跃响应非周期地趋于稳态输出，但响应速度比临界阻尼情况缓慢。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "过阻尼"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 过阻尼\nSOURCE DEFINITION (fail-closed, do not invent beyond this): ζ > 1，特征方程有两个不相等的负实根，单位阶跃响应非周期地趋于稳态输出，但响应速度比临界阻尼情况缓慢。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「过阻尼」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0fb119433b4fd68aebe1b4f8",
+      "batch": "B",
+      "name": "离散系统的可控性矩阵 (dis…",
+      "definition": "离散系统的可控性矩阵 (discrete-time controllability matrix S1)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散系统的可控性矩阵 …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 离散系统的可控性矩阵 (dis…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 离散系统的可控性矩阵 (discrete-time controllability matrix S1)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「离散系统的可控性矩阵」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2c4bb4e99c2a8a48b91e625a",
+      "batch": "B",
+      "name": "random-access memory (RAM)",
+      "definition": "random-access memory (RAM)：random-access memory (RAM)",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "random-acce…",
+        "关联·read-o…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: random-access memory (RAM)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): random-access memory (RAM)：random-access memory (RAM)\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「random-acc」、「关联·read-o…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "batch": "B",
+      "name": "比例控制规律",
+      "definition": "具有比例控制规律的控制器，称为P控制器，实质上是一个具有可调增益的放大器，只改变信号的增益而不影响其相位。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "比例控制规律",
+        "包含组件·P控制器",
+        "包含组件·比例系数",
+        "关联·P控制器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 比例控制规律\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 具有比例控制规律的控制器，称为P控制器，实质上是一个具有可调增益的放大器，只改变信号的增益而不影响其相位。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「比例控制规律」、「包含组件·P控制器」、「包含组件·比例系数」、「关联·P控制器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7aef0becfa3e700facb7a80e",
+      "batch": "B",
+      "name": "开环幅相特性曲线终点",
+      "definition": "开环幅相特性曲线在ω=∞处的点，取决于开环传递函数分子、分母多项式中最小相位环节和非最小相位环节的阶次和。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "开环幅相特性曲线终点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 开环幅相特性曲线终点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 开环幅相特性曲线在ω=∞处的点，取决于开环传递函数分子、分母多项式中最小相位环节和非最小相位环节的阶次和。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「开环幅相特性曲线终点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

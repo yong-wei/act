@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-c48ceeda1ba4dc2b7714e367",
+  "safe_id": "ctkg_v3e-object-c48ceeda1ba4dc2b7714e367",
+  "node": {
+    "name": "Discrete design",
+    "name_en": "Discrete design",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Discrete design：A technique for finding difference equations directly without designing D_c(s) first.",
+  "intuition": "在图谱邻接中可把握：前置 → Difference equations、Discrete equivalent · 后续 → Difference equations。",
+  "explanation": "A technique for finding difference equations directly without designing D_c(s) first.",
+  "relation_head": "前置 → Difference equations、Discrete equivalent · 后续 → Difference equations",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Difference equations",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Difference equations",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Discrete equivalent",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Discrete equivalent",
+      "relation": "派生自"
+    }
+  ],
+  "labels": [
+    "Discrete de…",
+    "Discrete des",
+    "属于·Differ…",
+    "包含组件·Diff…",
+    "包含组件·Disc…",
+    "派生自·Discr…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c48ceeda1ba4dc2b7714e367.md",
+  "provider_policy": "grok-image_gen"
+}

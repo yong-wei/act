@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0004",
+  "offset": 20,
+  "items": [
+    {
+      "safe_id": "ctc_v11g-6bfefff084f66202b9af9dd4",
+      "batch": "B",
+      "name": "ziegler nichols pid tuning method",
+      "definition": "ziegler nichols pid tuning method：The process of determining the PID controller gains using one of several analytic methods based on open-loop and closed…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "ziegler nic…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: ziegler nichols pid tuning method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): ziegler nichols pid tuning method：The process of determining the PID controller gains using one of several analytic methods based on open-loop and closed…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「ziegler ni」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "batch": "B",
+      "name": "Acceleration Error Constant (K a)",
+      "definition": "Acceleration Error Constant (K a)：For a Type 2 system (two integrators in the loop transfer function), the constant defined as K_a = lim_{s->0} s^2 G D_c…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Acceleratio…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Acceleration Error Constant (K a)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Acceleration Error Constant (K a)：For a Type 2 system (two integrators in the loop transfer function), the constant defined as K_a = lim_{s->0} s^2 G D_c…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Accelerati」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3847cfa432063f1287f51ce5",
+      "batch": "B",
+      "name": "Frequency-Response Stability Test",
+      "definition": "Frequency-Response Stability Test：A method to determine closed-loop stability by evaluating the frequency response of the open-loop transfer function KG(…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Frequency-R…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Frequency-Response Stability Test\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Frequency-Response Stability Test：A method to determine closed-loop stability by evaluating the frequency response of the open-loop transfer function KG(…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Frequency-」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3973827146163f9a2a059307",
+      "batch": "B",
+      "name": "Desired closed-loop poles location",
+      "definition": "Desired closed-loop poles location：Desired poles of the closed-loop system are positioned further left in the stable region, roughly at (-1, 0), (-8, 6),…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Desired clo…",
+        "有表示·Desir…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Desired closed-loop poles location\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Desired closed-loop poles location：Desired poles of the closed-loop system are positioned further left in the stable region, roughly at (-1, 0), (-8, 6),…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Desired cl」、「有表示·Desir…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4750f985e21b1a39f40e0473",
+      "batch": "B",
+      "name": "Output compensation (as a scheme)",
+      "definition": "Output compensation (as a scheme)：A compensation scheme where the compensator is placed after the process (at the output or load) in a single-loop feedba…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Output comp…",
+        "一种·Output"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Output compensation (as a scheme)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Output compensation (as a scheme)：A compensation scheme where the compensator is placed after the process (at the output or load) in a single-loop feedba…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Output com」、「一种·Output」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

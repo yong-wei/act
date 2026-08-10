@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0147",
+  "offset": 735,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-d09d1eba56a786a96d39d085",
+      "batch": "B",
+      "name": "稳定性",
+      "definition": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳定性",
+        "一种·平衡状态稳定性",
+        "一种·大范围稳定系统",
+        "一种·Neutra…",
+        "一种·Margin…",
+        "一种·BIBO"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 稳定性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「稳定性」、「一种·平衡状态稳定性」、「一种·大范围稳定系统」、「一种·Neutra…」、「一种·Margin…」、「一种·BIBO」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d4e994e83801bfcca363b375",
+      "batch": "B",
+      "name": "不稳定焦点",
+      "definition": "当特征根为一对具有正实部的共轭复根时，奇点为不稳定焦点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "不稳定焦点",
+        "是一种·奇点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 不稳定焦点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当特征根为一对具有正实部的共轭复根时，奇点为不稳定焦点。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「不稳定焦点」、「是一种·奇点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ecc6832589e61331293846d6",
+      "batch": "B",
+      "name": "理想采样器",
+      "definition": "理想采样器好像是一个载波为 δ_T(t) 的幅值调制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "理想采样器",
+        "是一种·采样器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 理想采样器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 理想采样器好像是一个载波为 δ_T(t) 的幅值调制器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「理想采样器」、「是一种·采样器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f04f82217525c5c412d0d180",
+      "batch": "B",
+      "name": "非最小相位系统",
+      "definition": "开环传递函数含有非最小相位环节的系统称为非最小相位系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非最小相位系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 非最小相位系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 开环传递函数含有非最小相位环节的系统称为非最小相位系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「非最小相位系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "batch": "B",
+      "name": "二阶系统",
+      "definition": "凡以二阶微分方程描述运动方程的控制系统，称为二阶系统。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "二阶系统",
+        "一种·有零点的二阶…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 二阶系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 凡以二阶微分方程描述运动方程的控制系统，称为二阶系统。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「二阶系统」、「一种·有零点的二阶…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

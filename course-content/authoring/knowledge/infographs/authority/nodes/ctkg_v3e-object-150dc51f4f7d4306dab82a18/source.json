@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-150dc51f4f7d4306dab82a18",
+  "safe_id": "ctkg_v3e-object-150dc51f4f7d4306dab82a18",
+  "node": {
+    "name": "脉冲序列",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "脉冲序列。",
+  "intuition": null,
+  "explanation": "脉冲序列",
+  "relation_head": "前置 → 离散模拟信号、理想脉冲、离散时间系统",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "离散模拟信号",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "理想脉冲",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "离散时间系统",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "采样控制系统",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "脉冲序列",
+    "是一种·离散模拟信号",
+    "是一种·理想脉冲",
+    "包含组件·离散时间…",
+    "包含组件·采样控制…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-150dc51f4f7d4306dab82a18.md",
+  "provider_policy": "grok-image_gen"
+}

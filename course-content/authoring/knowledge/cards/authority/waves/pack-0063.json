@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0063",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-fc2e0621725b902101011b9d",
+      "name": "开关线",
+      "definition": "非线性特性曲线的折线的各转折点，构成了相平面区域的分界线，称为开关线。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fe85b0f6dfed46e36c9f87a0",
+      "name": "Bel",
+      "definition": "Bel：A unit of power gain named after Alexander Graham Bell, later subdivided into decibels for practical use."
+    },
+    {
+      "safe_id": "ctc_modeling-5da44f2fc98d268259459e04",
+      "name": "impulse response",
+      "definition": "impulse response：v3T accepted candidate for impulse response."
+    },
+    {
+      "safe_id": "ctc_v11g-3919da0292885d130aff2c77",
+      "name": "反应速率",
+      "definition": "反应速率：The slope parameter characterizing the reaction curve, computed as R = M/τ where M is the steady-state magnitude and τ…"
+    },
+    {
+      "safe_id": "ctc_v11g-5322cdb3c781cb7b9828732a",
+      "name": "nonminimum phase system",
+      "definition": "nonminimum phase system：A system whose transfer function has a zero in the right half-plane (RHP)."
+    }
+  ],
+  "created_at": "2026-08-05T15:56:00.579414+00:00"
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-37427c0ceefae90634f93312",
+  "safe_id": "ctkg_v3e-object-37427c0ceefae90634f93312",
+  "node": {
+    "name": "Sector conditions",
+    "name_en": "Sector conditions",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Sector conditions：Conditions defining a function f(x) belonging to the sector [k1, k2] if k1 x^2 ≤ f(x) x ≤ k2 x^2 for all inputs x.",
+  "intuition": "在图谱邻接中可把握：后续 → Circle Criterion。",
+  "explanation": "Conditions defining a function f(x) belonging to the sector [k1, k2] if k1 x^2 ≤ f(x) x ≤ k2 x^2 for all inputs x.",
+  "relation_head": "后续 → Circle Criterion",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Circle Criterion",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Sector cond…",
+    "Sector condi",
+    "关联·Circle…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-37427c0ceefae90634f93312.md",
+  "provider_policy": "grok-image_gen"
+}

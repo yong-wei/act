@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+  "safe_id": "ctkg_v3e-object-08f6a7abc7b7ea5ad8d1063c",
+  "node": {
+    "name": "Eigenvalue",
+    "name_en": "Eigenvalue",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Eigenvalue：A scalar p_i such that A t_i = p_i t_i",
+  "intuition": "在图谱邻接中可把握：前置 → Computing poles  · 后续 → Eigenvector、特征方程、Computing poles 。",
+  "explanation": "A scalar p_i such that A t_i = p_i t_i; eigenvalues are the poles of the system.",
+  "relation_head": "前置 → Computing poles  · 后续 → Eigenvector、特征方程、Computing poles",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Computing poles ",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Eigenvector",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "特征方程",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Computing poles ",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Eigenvalue",
+    "用于分析·Comp…",
+    "关联·Eigenv…",
+    "关联·特征方程",
+    "关联·Comput…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-08f6a7abc7b7ea5ad8d1063c.md",
+  "provider_policy": "grok-image_gen"
+}

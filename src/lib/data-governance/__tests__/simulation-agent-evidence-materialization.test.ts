@@ -164,7 +164,7 @@ describe('simulation agent evidence materialization', () => {
         simulation: {
           runId: 'run-1',
           traceReference: 'SimulationTrace:trace-1',
-          replayConfidence: 0.82,
+          replayConfidence: 0.45,
           agentAssisted: true,
           governanceContext: {
             classId: 'class-1',
@@ -175,6 +175,44 @@ describe('simulation agent evidence materialization', () => {
     });
     expect(JSON.stringify(result.learningFacts[0].contextJson)).not.toContain('samples');
     expect(JSON.stringify(result.learningFacts[0].contextJson)).not.toContain('sampleStorageUri');
+  });
+
+  it('caps preview replay confidence before feature-cache aggregation without changing non-preview trace confidence', () => {
+    const preview = buildSimulationAgentEvidenceMaterialization({
+      simulationRuns: [
+        {
+          run: simulationRun(),
+          trace: simulationTrace(),
+        },
+      ],
+      now: completedAt,
+    });
+    const nonPreview = buildSimulationAgentEvidenceMaterialization({
+      simulationRuns: [
+        {
+          run: simulationRun({
+            runKind: 'official_evaluation',
+            sourceDomain: 'official_simulation',
+            summary: {
+              score: 74,
+              valid: true,
+            },
+          }),
+          trace: simulationTrace(),
+        },
+      ],
+      now: completedAt,
+    });
+
+    expect(preview.drafts[0]?.confidence).toBe(0.45);
+    expect(preview.learningFacts[0]).toMatchObject({
+      contextJson: {
+        simulation: {
+          replayConfidence: 0.45,
+        },
+      },
+    });
+    expect(nonPreview.drafts[0]?.confidence).toBe(0.8);
   });
 
   it('keeps Arena preview top-level metrics when generating simulation LearningFacts', () => {
@@ -505,7 +543,9 @@ describe('simulation agent evidence materialization', () => {
       agentAssistedCount: 1,
       traceReferenceCount: 1,
       replayConfidence: {
-        average: 0.82,
+        average: 0.45,
+        highConfidenceCount: 0,
+        lowConfidenceCount: 1,
       },
     });
     expect(JSON.stringify(payload.features.simulationArena)).not.toContain('samples');

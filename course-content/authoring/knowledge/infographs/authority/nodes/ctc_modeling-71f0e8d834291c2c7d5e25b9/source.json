@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+  "safe_id": "ctc_modeling-71f0e8d834291c2c7d5e25b9",
+  "node": {
+    "name": "输出方程中D≡0的系统",
+    "name_en": "modeling_71f0e8d834291c2c7d5e25b9",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "输出方程中D≡0的系统。",
+  "intuition": null,
+  "explanation": "输出方程中D≡0的系统。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "输出方程中D≡0的系统"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-71f0e8d834291c2c7d5e25b9.md",
+  "provider_policy": "grok-image_gen"
+}

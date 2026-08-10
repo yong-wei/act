@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0126",
+  "offset": 630,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-f20650600a6b6301d29c6025",
+      "batch": "B",
+      "name": "最大超前角",
+      "definition": "超前网络在最大超前角频率处达到的最大相角，φm=arcsin((a-1)/(a+1))。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "最大超前角"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 最大超前角\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 超前网络在最大超前角频率处达到的最大相角，φm=arcsin((a-1)/(a+1))。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「最大超前角」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0fa44601675cb175f5df9562",
+      "batch": "B",
+      "name": "Steady-state response",
+      "definition": "Steady-state response：Steady-state response",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Steady-stat…",
+        "Steady-state"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Steady-state response\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Steady-state response：Steady-state response\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Steady-sta」、「Steady-sta」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-3f9a17723cabd4ab7d19c3da",
+      "batch": "B",
+      "name": "Unit impulse function",
+      "definition": "Unit impulse function：Unit impulse function",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Unit impuls…",
+        "Unit impulse"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Unit impulse function\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Unit impulse function：Unit impulse function\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Unit impul」、「Unit impul」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "batch": "B",
+      "name": "Left half-plane (LHP)",
+      "definition": "Left half-plane (LHP)：Left half-plane (LHP)",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Left half-p…",
+        "Left half-pl",
+        "关联·Right …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Left half-plane (LHP)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Left half-plane (LHP)：Left half-plane (LHP)\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Left half-」、「Left half-」、「关联·Right …」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ea380a2917dde24b49c608e4",
+      "batch": "B",
+      "name": "可求出单位阶跃响应",
+      "definition": "利用MATLAB软件，先建立高阶系统模型，再直接调用step命令即可求出单位阶跃响应。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "可求出单位阶跃响应",
+        "包含组件·利用MA…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 可求出单位阶跃响应\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 利用MATLAB软件，先建立高阶系统模型，再直接调用step命令即可求出单位阶跃响应。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「可求出单位阶跃响应」、「包含组件·利用MA…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

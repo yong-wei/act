@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+  "safe_id": "ctkg_v3e-object-c866a4872c0f99bf61bb4859",
+  "node": {
+    "name": "不稳定极限环",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "当 t → ∞ 时，起始于极限环内部或外部的相轨迹均卷离极限环，则该极限环称为不稳定的极限环。",
+  "intuition": "极限环内部的相轨迹收敛至环内的奇点，说明极限环的内部是稳定区域。",
+  "explanation": "当 t → ∞ 时，起始于极限环内部或外部的相轨迹均卷离极限环，则该极限环称为不稳定的极限环。极限环内部的相轨迹收敛至环内的奇点，说明极限环的内部是稳定区域；极限环外部的相轨迹发散至无穷远处，说明极限环的外部是不稳定区域。",
+  "relation_head": "前置 → 双极限环 · 后续 → 极限环",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "极限环",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "双极限环",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "不稳定极限环",
+    "是一种·极限环",
+    "包含组件·双极限环"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c866a4872c0f99bf61bb4859.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:17:41+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+  "safe_id": "ctkg_domainconcept_1de40a30b1c09d8f5bdd595a",
+  "node_name": "超调量 σ%",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1092-1096"
+}

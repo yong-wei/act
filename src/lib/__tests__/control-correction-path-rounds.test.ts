@@ -114,6 +114,7 @@ function samplePlan(): AdaptiveLearningPathPlan {
       selectedReasons: ['matches-knowledge-deficit'],
       rejectedAlternatives: [],
       fallbackReasons: [],
+      configurationFulfillment: [],
     },
     executionStatus: {
       adopted: false,
@@ -201,6 +202,7 @@ function frequencyResponsePlan(): AdaptiveLearningPathPlan {
       selectedReasons: ['matches-knowledge-deficit'],
       rejectedAlternatives: [],
       fallbackReasons: ['learner-evidence-low-confidence'],
+      configurationFulfillment: [],
     },
     executionStatus: {
       adopted: false,
@@ -527,6 +529,7 @@ describe('control-correction path rounds', () => {
         selectedReasons: ['matches-knowledge-deficit'],
         rejectedAlternatives: [],
         fallbackReasons: ['learner-evidence-low-confidence'],
+        configurationFulfillment: [],
       },
       executionStatus: {
         adopted: false,
@@ -1235,6 +1238,71 @@ describe('control-correction path rounds', () => {
     });
     expect(view?.executions[0]).not.toHaveProperty('liftMetadata');
     expect(JSON.stringify(view)).not.toContain('do-not-expose');
+  });
+
+  it('projects configuration fulfillment without internal limitation codes', () => {
+    const view = toControlCorrectionPathRoundView({
+      id: 'path-1',
+      userId: 'student-1',
+      pathPayload: {
+        configurationFulfillment: [{
+          key: 'natural-language-intent',
+          status: 'unmet',
+          source: 'request',
+          effect: '未完全满足',
+          message: '请调整表达。',
+          limitationCode: 'natural-language-intent-conflict',
+        }],
+        explanations: {
+          configurationFulfillment: [{
+            key: 'difficulty-rhythm',
+            status: 'unmet',
+            source: 'intent',
+            effect: '未完全满足',
+            message: '请只选择一种节奏。',
+            limitationCode: 'natural-language-intent-conflict',
+          }],
+        },
+      },
+      explanationPayload: {
+        configurationFulfillment: [{
+          key: 'checkpoint-preference',
+          status: 'unmet',
+          effect: '未完全满足',
+          message: '请只选择一种检查点密度。',
+          limitationCode: 'natural-language-intent-conflict',
+        }],
+      },
+      executions: [],
+      deviations: [],
+      interventions: [],
+    });
+
+    expect(view?.pathPayload).toEqual({
+      configurationFulfillment: [{
+        key: 'natural-language-intent',
+        status: 'unmet',
+        effect: '未完全满足',
+        message: '请调整表达。',
+      }],
+      explanations: {
+        configurationFulfillment: [{
+          key: 'difficulty-rhythm',
+          status: 'unmet',
+          effect: '未完全满足',
+          message: '请只选择一种节奏。',
+        }],
+      },
+    });
+    expect(view?.explanationPayload).toEqual({
+      configurationFulfillment: [{
+        key: 'checkpoint-preference',
+        status: 'unmet',
+        effect: '未完全满足',
+        message: '请只选择一种检查点密度。',
+      }],
+    });
+    expect(JSON.stringify(view)).not.toContain('limitationCode');
   });
 
   it('keeps completed-node continued interaction from double-counting first completion', async () => {

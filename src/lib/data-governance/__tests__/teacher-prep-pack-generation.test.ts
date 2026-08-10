@@ -1,4 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('server-only', () => ({}));
 
 import {
   getPathNodeSemanticsForResourceType,
@@ -173,6 +175,15 @@ function teacherReport(): ControlCorrectionTeacherReport {
       simulationPassRate: metric('simulationPassRate', '仿真通过率', 0.45),
       arenaValidSubmissionRate: metric('arenaValidSubmissionRate', 'Arena 有效提交率', 0.52),
     } as ControlCorrectionTeacherReport['metrics'],
+    correctionOutcomeSummary: {
+      total: 0,
+      states: {
+        improved: { count: 0, rate: 0 },
+        'needs-review': { count: 0, rate: 0 },
+        'pending-verification': { count: 0, rate: 0 },
+        indeterminate: { count: 0, rate: 0 },
+      },
+    },
     studentDrilldowns: [],
     resourceContribution: [],
     konlingEntryPoint: {

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-865eb1c8824e157c2f05a903",
+  "safe_id": "ctc_modeling-865eb1c8824e157c2f05a903",
+  "node": {
+    "name": "传递函数",
+    "name_en": "transfer_function",
+    "concept_kind": "representation_kind",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "传递函数：v3T accepted candidate for transfer function.。",
+  "intuition": "在图谱邻接中可把握：前置 → evans root locus construction method、根轨迹法、The ratio of the · 后续 → 在时间域描述系统动态性能的数学…、impulse response。",
+  "explanation": "v3T accepted candidate for transfer function.",
+  "relation_head": "前置 → evans root locus construction method、根轨迹法、The ratio of the · 后续 → 在时间域描述系统动态性能的数学…、impulse response",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "evans root locus construction method",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "根轨迹法",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "在时间域描述系统动态性能的数学…",
+      "relation": "派生自"
+    },
+    {
+      "direction": "前置",
+      "peer": "The ratio of the",
+      "relation": "派生自"
+    },
+    {
+      "direction": "前置",
+      "peer": "零点",
+      "relation": "派生自"
+    },
+    {
+      "direction": "前置",
+      "peer": "root of the denominator",
+      "relation": "派生自"
+    }
+  ],
+  "labels": [
+    "传递函数",
+    "transfer fun",
+    "应用于·evans…",
+    "应用于·根轨迹法",
+    "派生自·在时间域描…",
+    "派生自·The r…",
+    "派生自·零点"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md",
+  "provider_policy": "grok-image_gen"
+}

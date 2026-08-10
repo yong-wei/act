@@ -1,6 +1,8 @@
 #!/usr/bin/env tsx
 
 import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 
 import {
   inspectPortraitV2PrimaryUsage,
@@ -37,12 +39,13 @@ function resolveDiffOptions(input: { staged: boolean; base: string | null }) {
   return {
     staged: input.staged,
     base: input.staged ? null : resolveDiffBase(input.base),
+    stagedBase: input.staged ? resolveStagedDiffBase() : null,
   };
 }
 
-function readChangedFiles(input: { staged: boolean; base: string | null }): string[] {
+function readChangedFiles(input: { staged: boolean; base: string | null; stagedBase: string | null }): string[] {
   const args = input.staged
-    ? ['diff', '--cached', '--name-only', '--diff-filter=ACMR', '-z', '--no-ext-diff']
+    ? ['diff', '--cached', '--name-only', '--diff-filter=ACMR', '-z', '--no-ext-diff', input.stagedBase!]
     : buildUnstagedDiffArgs(input.base, true);
   try {
     return execFileSync('git', args, {
@@ -55,9 +58,9 @@ function readChangedFiles(input: { staged: boolean; base: string | null }): stri
   }
 }
 
-function readGitDiff(input: { staged: boolean; base: string | null }, filePath: string): string {
+function readGitDiff(input: { staged: boolean; base: string | null; stagedBase: string | null }, filePath: string): string {
   const args = input.staged
-    ? ['diff', '--cached', '--unified=0', '--no-ext-diff', '--', filePath]
+    ? ['diff', '--cached', '--unified=0', '--no-ext-diff', input.stagedBase!, '--', filePath]
     : [...buildUnstagedDiffArgs(input.base, false), '--', filePath];
   try {
     return execFileSync('git', args, {
@@ -102,6 +105,63 @@ function resolveDiffBase(requestedBase: string | null): string | null {
     if (resolved) return resolved;
   }
   return null;
+}
+
+function resolveStagedDiffBase(): string {
+  try {
+    const mergeHeadPath = execFileSync('git', ['rev-parse', '--git-path', 'MERGE_HEAD'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    const fullMergeHeadPath = path.resolve(process.cwd(), mergeHeadPath);
+    if (!existsSync(fullMergeHeadPath)) return 'HEAD';
+    const mergeHeads = readFileSync(fullMergeHeadPath, 'utf8').trim().split(/\s+/).filter(Boolean);
+    if (mergeHeads.length > 1) {
+      throw new Error('portrait-v2 primary usage gate does not support octopus merge staging');
+    }
+    const incomingHead = resolveCommit(mergeHeads[0]);
+    const integrationHead = resolveCommit('origin/integration');
+    const currentHead = resolveCommit('HEAD');
+    if (
+      incomingHead &&
+      integrationHead &&
+      currentHead &&
+      isAncestor(incomingHead, integrationHead) &&
+      !isAncestor(currentHead, integrationHead)
+    ) {
+      return incomingHead;
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('does not support octopus merge staging')) {
+      throw error;
+    }
+    // Missing or malformed merge metadata conservatively compares the index with HEAD.
+  }
+  return 'HEAD';
+}
+
+function resolveCommit(ref: string | undefined): string | null {
+  if (!ref) return null;
+  try {
+    return execFileSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function isAncestor(candidate: string, descendant: string): boolean {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', candidate, descendant], { stdio: 'ignore' });
+    return true;
+  } catch (error) {
+    if (error && typeof error === 'object' && 'status' in error && error.status === 1) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 function resolveGitRef(ref: string): string | null {

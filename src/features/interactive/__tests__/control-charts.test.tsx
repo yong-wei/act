@@ -19,6 +19,7 @@ import {
   buildLineOption,
   buildNyquistOption,
   buildPhaseOption,
+  BodePanel,
   buildRootLocusOption,
   ControlPerformanceBar,
   CONTROL_SIGNAL_CURVE_STYLES,
@@ -27,6 +28,7 @@ import {
   calculateCartesianDragRange,
   calculateEqualAspectCartesianRange,
   formatFrequencyResponseReading,
+  NyquistPanel,
 } from '@/resources/control-system/charts/control-analysis-panels';
 import { applyControlChartTheme } from '@/resources/control-system/charts/control-chart-theme';
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
@@ -41,6 +43,7 @@ const repoRoot = process.cwd();
 
 type ChartSeriesLike = {
   name?: string;
+  type?: string;
   data?: unknown[];
   lineStyle?: { color?: string; type?: string; width?: number };
   itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
@@ -50,6 +53,7 @@ type ChartSeriesLike = {
   xAxisIndex?: number;
   yAxisIndex?: number;
   z?: number;
+  silent?: boolean;
 };
 
 function getTooltipFormatter(option: unknown): unknown {
@@ -58,6 +62,16 @@ function getTooltipFormatter(option: unknown): unknown {
 
 function getChartSeries(option: unknown): ChartSeriesLike[] {
   return ((option as { series?: unknown }).series ?? []) as ChartSeriesLike[];
+}
+
+function getMemoizedCallArguments(source: string, functionName: string): string {
+  const escapedFunctionName = functionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = source.match(
+    new RegExp(`\\(\\)\\s*=>\\s*${escapedFunctionName}\\(([^)]*)\\)\\s*,\\s*\\[`),
+  );
+
+  expect(match, `Expected a memoized ${functionName} call`).not.toBeNull();
+  return match?.[1] ?? '';
 }
 
 const SAMPLE_RESULT: ControlAnalysisResult = {
@@ -71,6 +85,7 @@ const SAMPLE_RESULT: ControlAnalysisResult = {
     gainMarginDb: null,
     gainCrossoverRadPerSec: null,
     phaseCrossoverRadPerSec: null,
+    phaseCrossoverStatus: 'notObservedInFrequencyRange',
     bandwidthRadPerSec: null,
   },
   stepResponse: { points: [] },
@@ -105,6 +120,7 @@ const MARGIN_RESULT: ControlAnalysisResult = {
     gainMarginDb: 12,
     gainCrossoverRadPerSec: 2,
     phaseCrossoverRadPerSec: 8,
+    phaseCrossoverStatus: 'finite',
   },
   nyquist: {
     mode: 'full',
@@ -353,6 +369,42 @@ describe('control chart shared presets and themes', () => {
     expect(series.some((item) => item.label?.formatter === 'GM ∞')).toBe(true);
   });
 
+  it('distinguishes an unobserved phase crossover from unavailable frequency response data', () => {
+    const noCrossoverMarkup = renderToStaticMarkup(<ControlPerformanceBar result={SAMPLE_RESULT} />);
+    const finiteMarkup = renderToStaticMarkup(<ControlPerformanceBar result={MARGIN_RESULT} />);
+    const unavailableResult = {
+      ...SAMPLE_RESULT,
+      metrics: {
+        ...SAMPLE_RESULT.metrics,
+        gainMarginDb: Number.POSITIVE_INFINITY,
+      },
+      magnitude: { points: [] },
+      phase: { points: [] },
+    };
+    const unavailableMarkup = renderToStaticMarkup(<ControlPerformanceBar result={unavailableResult} />);
+    const bodeMarkup = renderToStaticMarkup(
+      <ThemeProvider>
+        <BodePanel result={SAMPLE_RESULT} />
+      </ThemeProvider>,
+    );
+    const nyquistMarkup = renderToStaticMarkup(
+      <ThemeProvider>
+        <NyquistPanel result={SAMPLE_RESULT} />
+      </ThemeProvider>,
+    );
+
+    expect(noCrossoverMarkup).toContain('>--<');
+    expect(noCrossoverMarkup).toContain('未在当前频率范围内观测到');
+    expect(finiteMarkup).toContain('12.00 dB');
+    expect(finiteMarkup).toContain('8.00 rad/s');
+    expect(unavailableMarkup).toContain('>--<');
+    expect(unavailableMarkup).not.toContain('未在当前频率范围内观测到');
+    expect(bodeMarkup).toContain('GM --');
+    expect(bodeMarkup).toContain('ωg 未在当前频率范围内观测到');
+    expect(nyquistMarkup).toContain('GM --');
+    expect(nyquistMarkup).toContain('ωg 未在当前频率范围内观测到');
+  });
+
   it('renders root-locus analysis metadata from the shared Rust result', () => {
     const option = buildRootLocusOption(MARGIN_RESULT.rootLocus, undefined, 'full');
     const series = option.series as Array<{
@@ -419,6 +471,41 @@ describe('control chart shared presets and themes', () => {
       expect.objectContaining({ icon: 'path://M2 6 L26 6' }),
     ]));
     expect(legendItems).not.toContain('实轴根轨迹段');
+  });
+
+  it('renders static root-locus snapshot markers from saved analysis results', () => {
+    const snapshotColor = '#d946ef';
+    const option = buildRootLocusOption(
+      MARGIN_RESULT.rootLocus,
+      undefined,
+      'full',
+      undefined,
+      undefined,
+      [{ label: '方案 1', color: snapshotColor, result: MARGIN_RESULT }],
+    );
+    const series = getChartSeries(option);
+    const snapshotOpenLoopPoles = series.find((item) =>
+      item.type === 'scatter' && item.silent === true && item.z === 8 && item.symbolSize === 11,
+    );
+    const snapshotOpenLoopZeros = series.find((item) =>
+      item.type === 'scatter' && item.silent === true && item.z === 8 && item.symbolSize === 13,
+    );
+    const snapshotCurrentPoles = series.find((item) =>
+      item.type === 'scatter' && item.silent === true && item.z === 9 && item.symbolSize === 13,
+    );
+
+    expect(snapshotOpenLoopPoles).toMatchObject({
+      itemStyle: { color: snapshotColor },
+      data: MARGIN_RESULT.rootLocus.openLoopPoles.map((point) => [point.re, point.im]),
+    });
+    expect(snapshotOpenLoopZeros).toMatchObject({
+      itemStyle: { color: 'rgba(255, 255, 255, 0)', borderColor: snapshotColor },
+      data: MARGIN_RESULT.rootLocus.openLoopZeros.map((point) => [point.re, point.im]),
+    });
+    expect(snapshotCurrentPoles).toMatchObject({
+      itemStyle: { color: snapshotColor },
+      data: MARGIN_RESULT.rootLocus.currentPoles.map((point) => [point.re, point.im]),
+    });
   });
 
   it('keeps near-zero root-locus endpoints in feature view while hiding asymptotic tails', () => {
@@ -635,7 +722,8 @@ describe('control chart shared presets and themes', () => {
     expect(turnSeries.map((series) => series.name)).toEqual(['超前零点', '超前极点']);
     expect(turnSeries.every((series) => series.xAxisIndex === 0 && series.yAxisIndex === 0)).toBe(true);
     expect(panelSource).toContain('installBodeFrequencyPanZoom');
-    expect(panelSource).toContain('turnFrequencyHandles,\n      showFrequencyReadings,');
+    expect(getMemoizedCallArguments(panelSource, 'buildBodePanelOption'))
+      .toMatch(/\bshowFrequencyReadings\b/);
     expect(panelSource).toContain('buildBodeComparisonOption(panels, caseId, displayedFrequencyRange, turnFrequencyHandles)');
     expect(panelSource).toContain('installBodeTurnFrequencyDrag(chart, turnFrequencyHandles, onTurnFrequencyCommit, refreshRange)');
     expect(panelSource).toContain('findBodeTurnHandleAt(chart, turnFrequencyHandles, event)');
@@ -862,7 +950,10 @@ describe('control chart shared presets and themes', () => {
     expect(yAxis.min).toBe(-0.8);
     expect(yAxis.max).toBe(0.8);
     expect(panelSource).toContain('const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;');
-    expect(panelSource).toContain('buildNyquistOption(result, caseId, displayedAxisPreset, showFrequencyReadings)');
+    const nyquistArguments = getMemoizedCallArguments(panelSource, 'buildNyquistOption');
+    expect(nyquistArguments).toMatch(/\bdisplayedAxisPreset\b/);
+    expect(nyquistArguments).toMatch(/\bshowFrequencyReadings\b/);
+    expect(nyquistArguments).toMatch(/\bcomparisonSeries\b/);
   });
 
   it('renders Nyquist criterion and margin geometry annotations together', () => {

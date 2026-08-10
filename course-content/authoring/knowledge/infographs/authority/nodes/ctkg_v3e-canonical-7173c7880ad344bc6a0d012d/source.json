@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-7173c7880ad344bc6a0d012d",
+  "safe_id": "ctkg_v3e-canonical-7173c7880ad344bc6a0d012d",
+  "node": {
+    "name": "Frequency respon",
+    "name_en": "Frequency response matching method for order reduction",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Frequency respon：A more sophisticated approach attempts to match the frequency response of the reduced-order transfer function with the…",
+  "intuition": null,
+  "explanation": "A more sophisticated approach attempts to match the frequency response of the reduced-order transfer function with the original transfer function frequency response as closely as possible.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Frequency r…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7173c7880ad344bc6a0d012d.md",
+  "provider_policy": "grok-image_gen"
+}
