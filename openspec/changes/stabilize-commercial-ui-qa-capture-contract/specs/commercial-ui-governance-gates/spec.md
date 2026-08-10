@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Governed browser capture binds service and dock readiness
-Commercial UI browser capture for a route with a shared floating Dock SHALL bind each run to an explicit reachable service URL and the current clean source input. The runner SHALL wait for the route's required Dock control to be observable in its required enabled or disabled state before it writes a screenshot or manifest. A missing URL, unreachable service, missing Dock control, or readiness timeout SHALL fail the capture without producing accepted evidence.
+Commercial UI browser capture for a route with a shared floating Dock SHALL bind each run to an explicit reachable service URL and the current clean source input. For a capture state that requires an observable Dock, the runner SHALL wait for the required Dock control to be observable in its required enabled or disabled state before it writes that state’s screenshot. A missing URL, unreachable service, missing required Dock control, or readiness timeout SHALL fail the capture without producing accepted evidence.
 
 #### Scenario: Adaptive-path capture waits for shared Dock registration
 - **WHEN** the adaptive-path product QA runner captures a state that requires the disabled Konling Dock

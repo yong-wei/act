@@ -659,10 +659,6 @@ async function main() {
       }
       assertCapturePageUrl(targetUrl, page.url());
       await page.waitForSelector('[data-adaptive-path-center="generation-selection"]', { timeout: 30000 });
-      await waitForDockReadiness(
-        () => readDockReadiness(page, targetUrl),
-        { targetUrl, actualUrl: page.url() },
-      );
       if (state.beforeScreenshot) await state.beforeScreenshot(page);
       const absolutePath = path.join(outputDir, `${state.name}.png`);
       const manifestPath = manifestFilePath(absolutePath);

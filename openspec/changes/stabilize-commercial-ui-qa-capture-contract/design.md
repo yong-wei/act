@@ -30,7 +30,7 @@ runner 接受明确的 base URL，并在 capture manifest 中记录实际地址�
 
 ### Dock 就绪使用语义信号，不使用固定延时
 
-runner 等待共享 Dock 和其 primary Konling trigger 出现、可见且保留禁用状态。超时错误必须包含目标 URL、可观察的 Dock 状态和缺失控件，便于区分服务地址与页面注册问题。
+对于声明需要可见 Dock 的 capture state，runner 等待共享 Dock 和其 primary Konling trigger 出现、可见且保留禁用状态。移动执行态因碰撞策略有意隐藏 Dock，不以可见性作为该状态的通过条件。超时错误必须包含目标 URL、可观察的 Dock 状态和缺失控件，便于区分服务地址与页面注册问题。
 
 ### 证明绑定保持现有 fail-closed 原则
 
