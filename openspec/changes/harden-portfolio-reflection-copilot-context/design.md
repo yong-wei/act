@@ -33,6 +33,8 @@ The change crosses the Copilot client, the chat route, the shared task-contract 
 
 5. **Inject a bounded private instruction.** The route appends a server-generated task section to the system prompt. It states the learning intent and candidate writeback boundary but does not expose raw task JSON, internal runtime state, or authorization details to the model's visible answer.
 
+6. **Trace the resolved contract with a redacted server event.** A valid reflection request emits a single JSON audit record with a request correlation id and only the server-resolved task fields. Raw messages, auth/session data, provider configuration, and runtime context remain excluded from both the event and the model-visible response.
+
 ## Risks / Trade-offs
 
 - [Risk] A stale or malformed URL-derived source may prevent a reflection chat from starting. -> Mitigation: constrain lengths, return a safe validation error, and keep the normal Copilot entrypoint available without a task descriptor.

@@ -13,6 +13,7 @@ import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
+  buildAiAuditTaskLogEntry,
   buildAiAuditTaskPrompt,
   resolveAiAuditTaskContext,
 } from '@/lib/ai-task-boundary-contracts';
@@ -199,6 +200,11 @@ export async function POST(request: Request) {
     const serverTaskContext = taskContextResolution.status === 'valid'
       ? taskContextResolution.context
       : null;
+    const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
+
+    if (serverTaskContext) {
+      console.info('[ai.task-context]', JSON.stringify(buildAiAuditTaskLogEntry(serverTaskContext, requestId)));
+    }
 
     const uiMessages = rawMessages.map(toUIMessage);
     const messages = uiMessages.map(toLegacyMessage);

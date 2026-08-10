@@ -10,6 +10,7 @@ The portfolio-reflection Copilot currently builds a reflection draft and task co
 - Keep internal runtime context and authorization fields server-only and excluded from visible assistant output.
 - Keep portfolio-reflection output as a candidate draft until the existing explicit save flow is used; do not write to official learning facts, portraits, or scores.
 - Preserve existing evidence-Copilot and general-chat behavior.
+- Emit a redacted server audit event so the resolved reflection contract is traceable without logging raw messages or internal runtime data.
 - Add unit, route, and browser-level regression coverage for reflection versus ordinary chat and malformed or unauthorized task descriptors.
 
 ## Capabilities
@@ -25,6 +26,6 @@ None.
 ## Impact
 
 - Client: `src/app/ai/copilot/page.tsx` and the legacy chat request body contract.
-- Server: `src/app/api/ai/chat/route.ts` plus a small task-context validation/runtime helper.
+- Server: `src/app/api/ai/chat/route.ts` plus a small task-context validation/runtime helper and redacted audit event.
 - Tests: AI task boundary and chat route tests, with a focused browser request assertion if the local browser harness is available.
 - No database schema, official learning-record, score, or portrait writeback changes are required.

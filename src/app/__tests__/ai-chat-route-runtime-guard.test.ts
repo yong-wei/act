@@ -75,6 +75,9 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('resolveAiAuditTaskContext');
     expect(chatRouteSource).toContain('INVALID_AI_TASK_CONTEXT');
     expect(chatRouteSource).toContain('buildAiAuditTaskPrompt');
+    expect(chatRouteSource).toContain('buildAiAuditTaskLogEntry');
+    expect(chatRouteSource).toContain("console.info('[ai.task-context]'");
+    expect(chatRouteSource).toContain("request.headers.get('x-request-id') ?? crypto.randomUUID()");
   });
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
     expect(chatRouteSource).toContain('const hasRuntimeContext = Boolean');

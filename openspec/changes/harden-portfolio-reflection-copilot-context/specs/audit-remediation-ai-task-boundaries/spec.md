@@ -29,3 +29,8 @@ The system SHALL map audited AI and Prompt actions to explicit task outputs such
 - **WHEN** a request does not contain `auditTaskContext`
 - **THEN** the server preserves the existing general page-context and evidence-summary behavior
 - **AND** it does not infer a portfolio-reflection task from arbitrary message text
+
+#### Scenario: Reflection task context is traceable in server logs
+- **WHEN** the server accepts a valid portfolio-reflection task descriptor
+- **THEN** it emits one structured, redacted audit event containing a request correlation id, source, assignment, intent, resolved output target, writeback boundary, and promotion policy
+- **AND** the event excludes raw messages, authorization data, provider credentials, and internal runtime context
