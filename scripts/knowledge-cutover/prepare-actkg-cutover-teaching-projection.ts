@@ -35,6 +35,10 @@ import {
   defaultAuthorDecisionsPath,
 } from '../../src/lib/teaching-projection/author-decisions';
 import {
+  assertBlueprintBindingsMatchRevision,
+  loadActkgCutoverBlueprintBindings,
+} from '../../src/lib/teaching-projection/actkg-cutover-blueprint-bindings';
+import {
   loadCardCrosswalk,
 } from '../../src/lib/teaching-projection/cards/crosswalk';
 import {
@@ -665,6 +669,8 @@ async function main(): Promise<void> {
   }));
   const decisionPath = defaultAuthorDecisionsPath(path.join(repoRoot, 'course-content/authoring/knowledge/teaching-projection'));
   const authorDecisions = loadAuthorDecisionsFromFile(decisionPath);
+  const blueprintBindings = loadActkgCutoverBlueprintBindings({ repoRoot });
+  assertBlueprintBindingsMatchRevision({ repoRoot, authoringRevision });
   const candidate = buildTeachingProjectionCandidate({
     repoRoot,
     authoringRevision,
@@ -672,6 +678,7 @@ async function main(): Promise<void> {
     crosswalk: legacy.entries,
     cards,
     authorDecisions,
+    authorDecisionContextDigest: blueprintBindings.digest,
     assertRealInventoryCounts: true,
   });
   await mkdir(outputRoot, { recursive: true });
