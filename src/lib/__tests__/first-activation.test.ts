@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -130,6 +130,19 @@ function writeInterruptedJournal(
     }, null, 2)}\n`,
     'utf8',
   );
+}
+
+function runRecoveryCli(args: readonly string[]) {
+  const tsxCli = path.resolve(process.cwd(), 'node_modules/tsx/dist/cli.mjs');
+  const cliPath = path.resolve(
+    process.cwd(),
+    'scripts/knowledge-cutover/recover-actkg-to-act-first-activation.ts',
+  );
+  return spawnSync(process.execPath, [tsxCli, cliPath, ...args], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    env: process.env,
+  });
 }
 
 async function waitForMarker(child: ReturnType<typeof spawn>, markerPath: string): Promise<void> {
@@ -334,6 +347,99 @@ describe('all-ABSENT first activation protocol', () => {
     expect(plan.steps.every((step) => !existsSync(step.pointerPath))).toBe(true);
   });
 
+  it('provides an explicit recovery CLI without echoing operator paths', () => {
+    const plan = makePlan();
+    plan.steps[0]!.activate();
+    writeInterruptedJournal(plan, {
+      status: 'PREPARED',
+      stepStatuses: ['STARTED', 'PENDING', 'PENDING', 'PENDING'],
+    });
+
+    const result = runRecoveryCli([
+      '--repo-root', plan.repoRoot,
+      '--journal', plan.journalPath,
+      '--lock', plan.lockPath,
+    ]);
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).not.toContain(plan.repoRoot);
+    const output = JSON.parse(result.stdout) as {
+      transactionId: string;
+      status: string;
+      receipt: {
+        contract: string;
+        action: string;
+        transactionId: string;
+        journalHash: string;
+        steps: Array<{ component: string; status: string }>;
+      };
+    };
+    expect(output.transactionId).toBe('interrupted-first-test');
+    expect(output.status).toBe('ROLLED_BACK');
+    expect(output.receipt).toMatchObject({
+      contract: 'actkg-to-act-first-activation-recovery/v1',
+      action: 'recover-interrupted-first-activation',
+      transactionId: 'interrupted-first-test',
+    });
+    expect(output.receipt.journalHash).toMatch(/^[a-f0-9]{64}$/u);
+    expect(output.receipt.steps.every((step) => step.status === 'ROLLED_BACK')).toBe(true);
+    expect(plan.steps.every((step) => !existsSync(step.pointerPath))).toBe(true);
+    expect(existsSync(plan.lockPath)).toBe(false);
+  });
+
+  it('rejects COMMITTED journals and stale locks without changing either', () => {
+    const committed = makePlan();
+    executeFirstActivation(committed);
+    const committedBefore = readFileSync(committed.journalPath, 'utf8');
+    const committedResult = runRecoveryCli([
+      '--repo-root', committed.repoRoot,
+      '--journal', committed.journalPath,
+      '--lock', committed.lockPath,
+    ]);
+    expect(committedResult.status).not.toBe(0);
+    expect(`${committedResult.stdout}${committedResult.stderr}`).toContain('COMMITTED');
+    expect(`${committedResult.stdout}${committedResult.stderr}`).not.toContain(committed.repoRoot);
+    expect(readFileSync(committed.journalPath, 'utf8')).toBe(committedBefore);
+    expect(committed.steps.every((step) => existsSync(step.pointerPath))).toBe(true);
+
+    const interrupted = makePlan();
+    interrupted.steps[0]!.activate();
+    writeInterruptedJournal(interrupted, {
+      status: 'PREPARED',
+      stepStatuses: ['STARTED', 'PENDING', 'PENDING', 'PENDING'],
+    });
+    mkdirSync(path.dirname(interrupted.lockPath), { recursive: true });
+    writeFileSync(interrupted.lockPath, 'operator-owned-lock\n', 'utf8');
+    const interruptedBefore = readFileSync(interrupted.journalPath, 'utf8');
+    const staleLockResult = runRecoveryCli([
+      '--repo-root', interrupted.repoRoot,
+      '--journal', interrupted.journalPath,
+      '--lock', interrupted.lockPath,
+    ]);
+    expect(staleLockResult.status).not.toBe(0);
+    expect(`${staleLockResult.stdout}${staleLockResult.stderr}`).toContain(
+      'another first-activation transaction is already running',
+    );
+    expect(readFileSync(interrupted.journalPath, 'utf8')).toBe(interruptedBefore);
+    expect(existsSync(interrupted.lockPath)).toBe(true);
+    expect(existsSync(interrupted.steps[0]!.pointerPath)).toBe(true);
+  });
+
+  it('requires explicit repository, journal, and lock arguments', () => {
+    const missingRoot = runRecoveryCli([]);
+    expect(missingRoot.status).not.toBe(0);
+    expect(missingRoot.stderr).toContain('missing --repo-root');
+
+    const plan = makePlan();
+    const missingLock = runRecoveryCli([
+      '--repo-root', plan.repoRoot,
+      '--journal', plan.journalPath,
+    ]);
+    expect(missingLock.status).not.toBe(0);
+    expect(missingLock.stderr).toContain('missing --lock');
+  });
+
   it('stops reverse compensation at the first identity mismatch without continuing', () => {
     const plan = makePlan();
     for (const step of plan.steps) step.activate();
@@ -387,6 +493,7 @@ describe('all-ABSENT first activation protocol', () => {
     const plan = makePlan();
     const markerPath = path.join(plan.repoRoot, 'pointer-written.marker');
     const modulePath = path.resolve(process.cwd(), 'src/lib/knowledge-cutover/first-activation.ts');
+    const workerPath = path.join(plan.repoRoot, 'first-activation-sigkill-worker.ts');
     const childScript = `
       import { mkdirSync, writeFileSync } from 'node:fs';
       import path from 'node:path';
@@ -425,9 +532,10 @@ describe('all-ABSENT first activation protocol', () => {
         createdAt: '2026-08-10T00:00:00.000Z',
       });
     `;
+    writeFileSync(workerPath, childScript, 'utf8');
     const child = spawn(
       process.execPath,
-      ['--import', 'tsx', '--input-type=module', '--eval', childScript],
+      [path.resolve(process.cwd(), 'node_modules/tsx/dist/cli.mjs'), workerPath],
       {
         cwd: process.cwd(),
         env: {
