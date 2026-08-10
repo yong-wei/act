@@ -78,6 +78,8 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('buildAiAuditTaskLogEntry');
     expect(chatRouteSource).toContain("console.info('[ai.task-context]'");
     expect(chatRouteSource).toContain("request.headers.get('x-request-id') ?? crypto.randomUUID()");
+    expect(chatRouteSource.indexOf('const taskContextResolution = resolveAiAuditTaskContext'))
+      .toBeLessThan(chatRouteSource.indexOf('const responseModel = await getConfiguredAIModel'));
   });
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
     expect(chatRouteSource).toContain('const hasRuntimeContext = Boolean');

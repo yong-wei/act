@@ -25,6 +25,11 @@ The system SHALL map audited AI and Prompt actions to explicit task outputs such
 - **WHEN** `auditTaskContext` is present but has an unsupported task type, missing required fields, or values outside the bounded input shape
 - **THEN** `/api/ai/chat` returns a safe 400 response without invoking the model
 
+#### Scenario: Descriptor values cannot become prompt instructions
+- **WHEN** a present descriptor contains a control character, including a newline, carriage return, or tab, in `source`, `assignment`, or `intent`
+- **THEN** the server rejects it before trimming or prompt construction and returns the same safe 400 response without invoking the model
+- **AND** accepted descriptor values reach the private system context only as delimited JSON data, never as directly interpolated instruction lines
+
 #### Scenario: General chat remains compatible
 - **WHEN** a request does not contain `auditTaskContext`
 - **THEN** the server preserves the existing general page-context and evidence-summary behavior

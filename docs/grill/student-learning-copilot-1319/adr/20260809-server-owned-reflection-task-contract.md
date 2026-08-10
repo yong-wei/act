@@ -11,3 +11,7 @@ The portfolio-reflection Copilot request SHALL carry only a bounded, student-saf
 ## Consequences
 
 The client must send a stable task descriptor for portfolio reflection. The server must reject malformed or unsupported descriptors, inject only verified evidence and bounded task semantics into the model prompt, and keep the resulting content a candidate until an explicit portfolio save flow persists it.
+
+## Follow-up: keep descriptor values as data
+
+The server-owned boundary also rejects control characters in client-supplied `source`, `assignment`, and `intent` before trimming. Accepted values are serialized as delimited JSON data in the private task section; they are never interpolated into instruction-shaped prompt lines. This prevents URL-derived multiline content from becoming a competing system instruction while preserving the existing candidate-only and explicit-save boundary.

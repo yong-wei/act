@@ -31,7 +31,7 @@ The change crosses the Copilot client, the chat route, the shared task-contract 
 
 4. **Fail closed only when the field is present.** Requests without `auditTaskContext` remain compatible with general chat and evidence Copilot. A present but malformed descriptor returns a generic 400 error without echoing internal fields.
 
-5. **Inject a bounded private instruction.** The route appends a server-generated task section to the system prompt. It states the learning intent and candidate writeback boundary but does not expose raw task JSON, internal runtime state, or authorization details to the model's visible answer.
+5. **Inject bounded structured task data.** The route appends a server-generated task section to the system prompt. Client descriptor values are rejected when they contain control characters, including newlines and tabs, before trimming. The accepted descriptor is serialized as JSON inside explicit `<ai-task-descriptor>` delimiters, so values are represented as data rather than interpolated as prompt syntax; fixed candidate-only rules remain separate server-authored instructions.
 
 6. **Trace the resolved contract with a redacted server event.** A valid reflection request emits a single JSON audit record with a request correlation id and only the server-resolved task fields. Raw messages, auth/session data, provider configuration, and runtime context remain excluded from both the event and the model-visible response.
 
@@ -39,6 +39,7 @@ The change crosses the Copilot client, the chat route, the shared task-contract 
 
 - [Risk] A stale or malformed URL-derived source may prevent a reflection chat from starting. -> Mitigation: constrain lengths, return a safe validation error, and keep the normal Copilot entrypoint available without a task descriptor.
 - [Risk] The model may claim that a candidate was saved. -> Mitigation: the server-generated instruction explicitly requires candidate language and the existing visible-content sanitization and portfolio save flow remain unchanged.
+- [Risk] A client-controlled descriptor value could be interpreted as a system instruction. -> Mitigation: reject control characters at the API boundary before normalization and encode accepted values as delimited JSON data in the private prompt.
 - [Risk] Static source tests can pass while the browser request is wrong. -> Mitigation: add a focused client source assertion for the descriptor shape and an API-boundary helper test; run the browser route smoke when the local environment is available.
 
 ## Migration Plan

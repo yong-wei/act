@@ -20,4 +20,12 @@
 - [x] 4.1 Add a route-level regression for accepted and rejected task contexts, including the emitted audit event payload and the absence of sensitive fields.
 - [x] 4.2 Re-run focused tests, repository-wide TypeScript checks, strict OpenSpec validation, browser smoke, and `git diff --check` on the synchronized integration merge.
 
+## 5. Prompt-boundary remediation
+
+- [x] 5.1 Add helper and route-contract regressions proving control characters are rejected before trimming and rejected descriptors cannot reach model setup.
+- [x] 5.2 Reject control characters in `source`, `assignment`, and `intent`, and encode accepted descriptor values as delimited JSON data in the private task prompt while preserving the server-owned candidate-only rules.
+- [x] 5.3 Re-run focused tests, full TypeScript verification, strict OpenSpec validation, and `git diff --check` on the remediation head.
+
 Remediation verification on synchronized head `3f7dabb16a`: focused Vitest coverage passed (61 tests across four files); `npx prisma generate` refreshed the worktree's shared Prisma client and `npx next typegen` regenerated Next route types; the full repository `npm run typecheck` then passed; both strict OpenSpec validations passed (change plus 208 specs); and `git diff --check` passed. Existing browser smoke evidence covers `/ai/copilot?context=portfolio-reflection`, the rendered reflection task surface, the `整理目标` action, an `/api/ai/chat` request containing `auditTaskContext`, and a null `taskContext`.
+
+Prompt-boundary remediation verification on the working tree based on `d341a2bed2`: the focused task-contract and chat-route suites passed (64 tests across four files); `npm run typecheck` passed; change and repository strict OpenSpec validation passed (208 specs); and `git diff --check` passed. A full `npx vitest run` completed with 1,718 suites and 8,711 tests, including 92 unrelated failed suites / 156 failed tests; none of the changed AI task-boundary or chat-route suites were among the failures, so the focused gate is the reliable evidence for this remediation while the repository-wide test debt remains separately visible.
