@@ -6,12 +6,14 @@ consumer activation, and legacy runtime retirement. Those stages must remain
 separate because the same release can be complete for engineering identity while
 its teaching projection or consumer evidence remains incomplete.
 
-This change is executed from the permanent `resource` worktree. It prepares
-files only: no database import, selector update, active consumer pointer update,
-remote-server operation, deployment, or legacy-retirement operation is in scope.
-The existing 34-batch CourseCoverage audit and its 4,880 DEFER outcomes are
-historical evidence. They are immutable inputs, not candidates in this release
-delta denominator.
+This change is executed from the permanent `resource` worktree. It may use the
+main worktree's local PostgreSQL service only through a unique, disposable
+task-specific schema to validate candidate import and materialize a staged
+Authority Snapshot. It does not write the shared `public` schema, a selector,
+an active consumer pointer, a remote server, a deployment, or a
+legacy-retirement operation. The existing 34-batch CourseCoverage audit and its
+4,880 DEFER outcomes are historical evidence. They are immutable inputs, not
+candidates in this release delta denominator.
 
 ## Goals / Non-Goals
 
@@ -31,9 +33,11 @@ delta denominator.
 
 **Non-Goals:**
 
-- Changing `current.json`, an active consumer selector, a database authority
-  record, a deployed runtime, remote server, Docker image, or production
-  configuration.
+- Changing `current.json`, an active consumer selector, a shared database
+  authority record, a deployed runtime, remote server, Docker image, or
+  production configuration. Candidate records in the unique disposable local
+  schema are permitted only for import and snapshot verification; they are not
+  production authority and must be cleaned up.
 - Treating candidate import as activation, or treating shadow verification as a
   production cutover.
 - Retiring legacy knowledge, mutating historical CourseCoverage evidence, or
@@ -105,6 +109,22 @@ Directly exercising live selectors was rejected because the requested work is
 preparation only. Skipping rollback evidence was rejected because a candidate
 cannot support a later reversible switch without it.
 
+### 6. Use a disposable local schema for candidate import only
+
+The local `DATABASE_URL` may be used only after it is verified to address the
+local PostgreSQL service. Candidate import, Prisma migration, repository reads,
+and raw SQL must all inherit one explicitly schema-qualified connection URL
+(`schema=<unique-name>` and an explicit `search_path`). The run records a
+before-and-after fingerprint of the shared `public` schema and default pointer
+bytes. Its cleanup removes only the exact schema it created, on both success and
+failure. The staged Authority files remain under the preparation root and are
+marked `staged`, never `current`.
+
+Writing candidate rows to `public` was rejected because it creates durable,
+default-discoverable state without cutover authorization. Keeping the schema
+after a successful run was rejected because the preparation package itself is
+the audit artifact and does not require a live database residue.
+
 ## Risks / Trade-offs
 
 - [No compatible locally available Release] → stop at Phase 1 with a signed
@@ -113,9 +133,10 @@ cannot support a later reversible switch without it.
 - [A local artifact lacks a trusted capture revision or digest] → mark the
   affected Authority, Projection, or consumer as `BLOCKED` and preserve the
   raw observation.
-- [The deterministic delta needs a database-only input] → record the exact
-  missing local evidence and stop rather than write a database record or infer
-  impact from filenames.
+- [The deterministic delta needs a database-only input] → use only the
+  task-specific local schema after its connection, migration isolation, and
+  shared-schema fingerprints pass; otherwise record the exact missing evidence
+  and stop rather than infer impact from filenames.
 - [A pointer changes while preparing] → fail the manifest comparison and leave
   the candidate unactivated; no pointer-repair action is permitted here.
 - [A staged shadow read cannot execute locally] → retain its manifest as

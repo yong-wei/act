@@ -44,6 +44,8 @@ the exact source release, affected teaching projection, and all consumers.
   staging root and a readiness report under this change.
 - Existing local ActKG release artifacts, ACT knowledge artifacts, and existing
   preparation/validation scripts are read as inputs.
-- No runtime selector, default `current.json`, database authority record,
+- No runtime selector, default `current.json`, shared database authority record,
   deployed service, Docker image, remote server, or legacy-retirement pointer is
-  changed by this proposal.
+  changed by this proposal. A disposable, task-specific local database schema
+  may hold candidate-import records solely to verify the staged Authority
+  Snapshot; it is never a default read path and is removed after verification.

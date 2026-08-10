@@ -30,7 +30,9 @@ Release and validate its release identity, schema version, bundle digest,
 closure, and compatibility before creating a candidate. It MUST write the
 candidate and all derived evidence below a unique non-default preparation root,
 and MUST NOT write a default Authority `current.json` or treat admission as
-consumer activation.
+consumer activation. Where database-backed import is required, it MAY use only
+a unique, disposable local schema with an explicit schema-qualified connection;
+it MUST NOT write candidate records to the shared `public` schema.
 
 #### Scenario: Compatible local Release is available
 
@@ -45,6 +47,15 @@ consumer activation.
   predecessor baseline, or required closure proof
 - **THEN** the workflow SHALL record the failed check as `BLOCKED` and SHALL
   NOT synthesize a candidate, modify a default pointer, or infer missing data
+
+#### Scenario: Local candidate import is isolated
+
+- **WHEN** database-backed validation is required for a compatible local Release
+- **THEN** the workflow SHALL record the unique schema identity and before/after
+  shared-schema fingerprints, run every importer and repository read with the
+  same schema-qualified connection, materialize only a `staged` Authority
+  Snapshot below the preparation root, and clean up that exact schema on both
+  success and failure
 
 ### Requirement: Prepare a deterministic teaching projection delta
 
