@@ -356,12 +356,12 @@ describe('arena student portfolio', () => {
     expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskIds: arenaTaskIds })');
     expect(routeSource).toContain('buildArenaStudentPortfolio(');
     expect(routeSource).toContain('userArenaVirtualSimulationSnapshot');
-    expect(routeSource).toContain('where: {\n      userId,');
+    expect(routeSource).toContain("taskId: { not: '' }");
     expect(routeSource).toContain("orderBy: [{ createdAt: 'desc' }, { id: 'desc' }]");
     expect(routeSource).toContain('const ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT = 100;');
     expect(routeSource).toContain('take: ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT');
-    expect(routeSource).not.toContain('cursor: { id: cursorId }');
-    expect(routeSource).not.toContain('skip: 1');
+    expect(routeSource).toContain('cursor: { id: cursorId }');
+    expect(routeSource).toContain('skip: 1');
     expect(routeSource).toContain('arenaPortfolio:');
     expect(pageSource).toContain('arenaPortfolio');
     expect(pageSource).toContain('竞技场画像');
@@ -409,8 +409,8 @@ describe('arena student portfolio', () => {
     });
     expect(portfolio.personalBestByTask).toHaveLength(1);
     expect(portfolio.trainingSummary).toMatchObject({
-      total: 2,
-      previewCount: 2,
+      total: 1,
+      previewCount: 1,
       evidenceConfidence: 'low',
       latestTrainedAt: '2026-05-11T08:45:00.000Z',
       recentRuns: [expect.objectContaining({
@@ -445,13 +445,33 @@ describe('arena student portfolio', () => {
         id: 'training-damaged-only',
         payload: { summary: { trackingError: Number.NaN } },
       })],
-      1,
     ).trainingSummary;
 
     expect(summary).toMatchObject({
-      total: 1,
-      previewCount: 1,
+      total: 0,
+      previewCount: 0,
       evidenceConfidence: 'low',
+      recentRuns: [],
+    });
+  });
+
+  it('excludes pending runs even when their payload has a complete preview boundary and metrics', () => {
+    const summary = buildArenaStudentPortfolio(
+      [],
+      targetUserId,
+      [virtualTraining({
+        id: 'training-pending',
+        simulationRun: {
+          status: 'pending',
+          completedAt: null,
+          summary: {},
+        },
+      })],
+    ).trainingSummary;
+
+    expect(summary).toMatchObject({
+      total: 0,
+      previewCount: 0,
       recentRuns: [],
     });
   });
