@@ -190,6 +190,12 @@ function buildGlobalAuthoring(input: {
   authorityNodes: ReturnType<typeof buildTeachingProjectionCandidate>['authorityNodes'];
   packageAuthoring: ReturnType<typeof buildTeachingProjectionCandidate>['packageAuthoring'];
   prerequisite: ReturnType<typeof buildPrerequisitePublication>;
+  cards: ReadonlyArray<{
+    cardId: string;
+    canonicalId: string;
+    active: boolean;
+    sourceEvidence?: string | null;
+  }>;
 }): TeachingProjectionAuthoringInput {
   const canonicalIds = new Set(
     input.authorityNodes
@@ -205,6 +211,11 @@ function buildGlobalAuthoring(input: {
   const textbookAuthoring = textbookProjectionToTeachingAuthoring({ projection: textbook });
   if (!textbookAuthoring.included) fail(textbookAuthoring.reason ?? 'textbook slice is not publishable');
   const packageRows = input.packageAuthoring.map((entry) => entry.authoring);
+  const requiredCoreIds = new Set(
+    input.prerequisite.projectionCoreNodes
+      .filter((node) => node.cardPolicy === 'required')
+      .map((node) => node.canonicalId),
+  );
   return {
     contract: 'act-teaching-projection-authoring/v1',
     scopeId: 'act-control-theory-active-courses',
@@ -223,7 +234,13 @@ function buildGlobalAuthoring(input: {
     ],
     prerequisites: input.prerequisite.projectionPrerequisites,
     coreNodes: input.prerequisite.projectionCoreNodes,
-    cards: [],
+    cards: input.cards.map((card) => ({
+      cardId: card.cardId,
+      canonicalId: card.canonicalId,
+      active: card.active,
+      required: requiredCoreIds.has(card.canonicalId),
+      sourcePath: card.sourceEvidence ?? undefined,
+    })),
     authorityNodes: input.authorityNodes,
   };
 }
@@ -444,6 +461,12 @@ async function main(): Promise<void> {
     authorityNodes: candidate.authorityNodes,
     packageAuthoring: candidate.packageAuthoring,
     prerequisite: prerequisiteArtifacts,
+    cards: cardDocument.entries.map((entry) => ({
+      cardId: entry.cardId ?? entry.legacyNodeId,
+      canonicalId: entry.canonicalId,
+      active: !entry.stale,
+      sourceEvidence: entry.sourceEvidence,
+    })),
   });
   const globalArtifacts = buildTeachingProjection(globalAuthoring);
   assertion(globalArtifacts.gate.passed, 'global Teaching Projection gate failed');
