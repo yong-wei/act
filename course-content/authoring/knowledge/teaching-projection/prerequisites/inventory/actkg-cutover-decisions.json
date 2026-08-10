@@ -8,8 +8,8 @@
     "curatorId": "act.cutover.blueprint",
     "decidedAt": null,
     "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
-    "projectionCaptureId": "snap-22864bc2397d434a331e47c29d09aa95589fd5a59784aa1b0651b5844eb73461",
-    "authoringRevision": "866798961f26cea69922923290906a5ac351da89"
+    "projectionCaptureId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0"
   },
   {
     "decisionId": "prereq-decision-actkg-laplace-transfer",
@@ -20,8 +20,8 @@
     "curatorId": "act.cutover.blueprint",
     "decidedAt": null,
     "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
-    "projectionCaptureId": "snap-22864bc2397d434a331e47c29d09aa95589fd5a59784aa1b0651b5844eb73461",
-    "authoringRevision": "866798961f26cea69922923290906a5ac351da89"
+    "projectionCaptureId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0"
   },
   {
     "decisionId": "prereq-decision-actkg-transfer-block",
@@ -32,8 +32,8 @@
     "curatorId": "act.cutover.blueprint",
     "decidedAt": null,
     "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
-    "projectionCaptureId": "snap-22864bc2397d434a331e47c29d09aa95589fd5a59784aa1b0651b5844eb73461",
-    "authoringRevision": "866798961f26cea69922923290906a5ac351da89"
+    "projectionCaptureId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0"
   },
   {
     "decisionId": "prereq-decision-actkg-transfer-stability",
@@ -44,7 +44,7 @@
     "curatorId": "act.cutover.blueprint",
     "decidedAt": null,
     "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
-    "projectionCaptureId": "snap-22864bc2397d434a331e47c29d09aa95589fd5a59784aa1b0651b5844eb73461",
-    "authoringRevision": "866798961f26cea69922923290906a5ac351da89"
+    "projectionCaptureId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0"
   }
 ]

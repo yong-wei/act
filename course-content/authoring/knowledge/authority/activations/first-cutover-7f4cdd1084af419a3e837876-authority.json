@@ -1,0 +1,37 @@
+{
+  "contract": "actkg-engineering-authority-activation-receipt/v1",
+  "receiptId": "first-cutover-7f4cdd1084af419a3e837876-authority",
+  "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+  "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+  "previousSnapshotId": null,
+  "previousSnapshotHash": null,
+  "activatedAt": "2026-08-10T15:32:51.447Z",
+  "status": "activated",
+  "engineeringConsumersAdvanced": [
+    "engineering-graph",
+    "engineering-rag"
+  ],
+  "teachingSelectorsAdvanced": false,
+  "teachingSelectorFingerprintBefore": {
+    "courseSelector": null,
+    "kaqSelector": null,
+    "pathSelector": null,
+    "teachingResourceRagSelector": null,
+    "legacySelector": null
+  },
+  "teachingSelectorFingerprintAfter": {
+    "courseSelector": null,
+    "kaqSelector": null,
+    "pathSelector": null,
+    "teachingResourceRagSelector": null,
+    "legacySelector": null
+  },
+  "teachingProjectionRequired": false,
+  "courseCoverageRequired": false,
+  "reasons": [
+    "explicit-authority-activation",
+    "teaching-projection-not-required",
+    "course-coverage-not-consulted",
+    "engineering-consumers-only"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "contract": "actkg-to-act-first-activation-journal/v2",
+  "transactionId": "first-cutover-7f4cdd1084af419a3e837876",
+  "createdAt": "2026-08-10T15:32:51.447Z",
+  "status": "COMMITTED",
+  "prestate": "ALL_POINTERS_ABSENT",
+  "steps": [
+    {
+      "component": "authority",
+      "pointer": {
+        "kind": "repo-relative",
+        "path": "course-content/authoring/knowledge/authority/current.json"
+      },
+      "target": {
+        "component": "authority",
+        "id": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+        "hash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+      },
+      "status": "STARTED"
+    },
+    {
+      "component": "projection",
+      "pointer": {
+        "kind": "repo-relative",
+        "path": "course-content/runtime/knowledge/projection/current.json"
+      },
+      "target": {
+        "component": "projection",
+        "id": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+        "hash": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d"
+      },
+      "status": "STARTED"
+    },
+    {
+      "component": "prerequisite",
+      "pointer": {
+        "kind": "repo-relative",
+        "path": "course-content/runtime/knowledge/prerequisites/current.json"
+      },
+      "target": {
+        "component": "prerequisite",
+        "id": "proj-b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b",
+        "hash": "b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b"
+      },
+      "status": "STARTED"
+    },
+    {
+      "component": "consumer-activation",
+      "pointer": {
+        "kind": "repo-relative",
+        "path": "course-content/runtime/knowledge/consumer-activation/current.json"
+      },
+      "target": {
+        "component": "consumer-activation",
+        "id": "first-cutover-7f4cdd1084af-769b1a832622",
+        "hash": "e1d353fd1b544b3115dec62f8206b027784e0f50b1c66406c8556049d9e7ecb5"
+      },
+      "status": "STARTED"
+    }
+  ],
+  "failure": null,
+  "journalHash": "5b5ea2ddd9a9e495957c975c430fc9596affdb902f802b9d73d3a14df127aef3"
+}
