@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { courseBasisErrorResponse, importCourseBasisVersion, requireCourseBasisActor } from '@/lib/course-basis';
+import { normalizedUploadMimeType } from '@/lib/course-basis-upload';
 import { prisma } from '@/lib/prisma';
 
 const textSchema = z.object({
@@ -54,14 +55,4 @@ export async function POST(request: Request, context: { params: Promise<{ docume
   } catch (error) {
     return courseBasisErrorResponse(error);
   }
-}
-
-export function normalizedUploadMimeType(
-  mimeType: string,
-  sourceType: 'SEARCHABLE_PDF' | 'MARKDOWN' | 'PLAIN_TEXT',
-) {
-  const genericMimeTypes = new Set(['', 'application/octet-stream', 'binary/octet-stream', 'application/x-binary']);
-  if (!genericMimeTypes.has(mimeType.toLowerCase())) return mimeType;
-  if (sourceType === 'SEARCHABLE_PDF') return 'application/pdf';
-  return sourceType === 'MARKDOWN' ? 'text/markdown' : 'text/plain';
 }

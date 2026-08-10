@@ -4,7 +4,6 @@ import { useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, Filter, Network, PanelRightOpen, UserRound, UsersRound } from 'lucide-react';
 import {
-  buildGraphCenterPayload,
   type GraphCenterAction,
   type GraphCenterDomain,
   type GraphCenterLearnerOverlayReasonCode,
@@ -77,23 +76,13 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
   );
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialPayload.selectedNode?.node.id ?? null);
   const payload = useMemo(() => {
-    const rootPayload = rootPayloads?.[domain] ?? (
-      domain === initialPayload.activeDomain ? initialPayload : null
-    );
+    const rootPayload = rootPayloads?.[domain];
     const canReuseInitialPayload = domain === initialPayload.activeDomain &&
       objectiveId === initialPayload.objectiveId &&
       portraitDimension === initialPayload.portraitDimension;
     const initialSelectedNodeId = initialPayload.selectedNode?.node.id ?? null;
     if (canReuseInitialPayload && selectedNodeId === initialSelectedNodeId) return initialPayload;
-    if (rootPayload) {
-      return filterGraphCenterPayload(rootPayload, {
-        objectiveId,
-        portraitDimension,
-        selectedNodeId,
-      });
-    }
-    return buildGraphCenterPayload({
-      domain,
+    return filterGraphCenterPayload(rootPayload ?? initialPayload, {
       objectiveId,
       portraitDimension,
       selectedNodeId,

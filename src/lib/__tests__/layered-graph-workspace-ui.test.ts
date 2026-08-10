@@ -8,12 +8,14 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
-  LAYERED_GRAPH_FILTER_MODES,
   LAYERED_GRAPH_INSPECTOR_REGIONS,
-  buildLayeredGraphWorkspaceFilterState,
   defaultLayeredGraphFilterMode,
-  layeredStatusLabel,
 } from '@/features/knowledge/layered-graph-workspace-contracts';
+import {
+  LAYERED_GRAPH_FILTER_MODES,
+  buildLayeredGraphWorkspaceFilterState,
+  layeredStatusLabel,
+} from '@/lib/layered-graph/workspace';
 
 const repoRoot = process.cwd();
 
@@ -111,9 +113,9 @@ describe('layered graph workspace UI contracts (#1273)', () => {
     // Existing engineering predicate contract module remains the source of truth.
     expect(relationContract).toContain('getKnowledgeGraphRelationContract');
     const workspace = readRepoFile(
-      'src/features/knowledge/layered-graph-workspace-contracts.ts',
+      'src/lib/layered-graph/workspace.ts',
     );
     expect(workspace).toContain('selectLayeredGraphView');
-    expect(workspace).toContain('does not alter existing engineering predicate');
+    expect(workspace).toContain('Does not change engineering predicate rendering');
   });
 });
