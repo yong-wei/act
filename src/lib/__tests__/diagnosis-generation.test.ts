@@ -1,16 +1,19 @@
 import { Prisma } from '@prisma/client';
+import { UnrecoverableError } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
-import { z } from 'zod';
+
+vi.mock('server-only', () => ({}));
 
 import {
   claimDiagnosisGenerationAttempt,
-  classifyDiagnosisGenerationOutputValidationError,
   DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
   diagnosisGenerationRequestSchema,
   projectDiagnosisGenerationJob,
   retryDiagnosisGenerationJob,
   startDiagnosisGenerationJob,
 } from '@/lib/diagnosis-generation';
+import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
+import { processDiagnosisGenerationJob } from '@/lib/diagnosis-generation-worker';
 
 const now = new Date('2026-08-08T08:00:00.000Z');
 
@@ -59,21 +62,93 @@ function dbFixture() {
   };
 }
 
+function workerDbFixture() {
+  const tx = {
+    diagnosisGenerationJob: {
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      findUniqueOrThrow: vi.fn().mockResolvedValue({
+        id: 'job-1',
+        userId: 'teacher-1',
+        classId: 'class-1',
+        targetUserId: null,
+        evidenceCutoff: now,
+        generatorVersion: 'teacher-diagnosis.v1',
+      }),
+      update: vi.fn().mockResolvedValue({ id: 'job-1' }),
+    },
+    diagnosisGenerationAttempt: {
+      updateMany: vi.fn()
+        .mockResolvedValueOnce({ count: 0 })
+        .mockResolvedValue({ count: 1 }),
+      count: vi.fn().mockResolvedValue(0),
+      create: vi.fn().mockResolvedValue({ id: 'attempt-1', attemptNumber: 1 }),
+    },
+  };
+  return {
+    db: {
+      $transaction: vi.fn(async (callback: (client: typeof tx) => unknown) => callback(tx)),
+    },
+    tx,
+  };
+}
+
 describe('teacher diagnosis generation contracts', () => {
-  it('marks a malformed provider report as non-retryable output validation', () => {
-    const result = z.object({
-      findings: z.array(z.object({ knowledgeNodeId: z.string().min(1) })),
-    }).safeParse({
-      findings: [{ knowledgeNodeId: '' }],
+  it('records malformed provider output as non-retryable and stops the worker', async () => {
+    const parsed = diagnosisReportBodySchema.safeParse({
+      summary: 'Malformed diagnosis output.',
+      findings: [],
+      evidenceRefs: [],
+      evidenceCutoff: now.toISOString(),
+      sourceCoverage: { progressRows: 1 },
+      confidence: 'medium',
     });
+    expect(parsed.success).toBe(false);
+    if (parsed.success) return;
 
-    expect(result.success).toBe(false);
-    if (result.success) return;
+    const { db, tx } = workerDbFixture();
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw parsed.error; },
+    )).rejects.toBeInstanceOf(UnrecoverableError);
 
-    expect(classifyDiagnosisGenerationOutputValidationError(result.error)).toEqual({
-      code: 'diagnosis-output-invalid',
-      message: '诊断结果结构无效：findings.0.knowledgeNodeId。',
-    });
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-output-invalid',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        activeScopeKey: null,
+        failureCode: 'diagnosis-output-invalid',
+        retryable: false,
+      }),
+    }));
+  });
+
+  it('keeps ordinary provider failures retryable', async () => {
+    const providerError = new Error('provider unavailable');
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw providerError; },
+    )).rejects.toBe(providerError);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-provider-unavailable',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'QUEUED', startedAt: null },
+    }));
   });
 
   it('rejects factual report content from the browser', () => {

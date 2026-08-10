@@ -351,13 +351,14 @@ export async function persistDiagnosisReport(
   });
   const reportBody = {
     ...parsedReportBody,
-    findings: parsedReportBody.findings.map((finding) => {
-      const knowledgeNodeId = typeof finding.knowledgeNodeId === 'string'
-        ? finding.knowledgeNodeId.trim()
+    findings: parsedReportBody.findings.map(({ knowledgeNodeId: rawKnowledgeNodeId, ...finding }) => {
+      const knowledgeNodeId = typeof rawKnowledgeNodeId === 'string'
+        ? rawKnowledgeNodeId.trim()
         : '';
       return knowledgeNodeId
         ? {
             ...finding,
+            knowledgeNodeId,
             prepLink: buildDiagnosisPrepLink(knowledgeNodeId, params.classId),
           }
         : finding;
