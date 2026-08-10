@@ -156,6 +156,19 @@ function sha256AtRevision(revision, file) {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
+function assertSourceCheckpointStable(stage) {
+  const currentRevision = execFileSync('git', ['rev-parse', 'HEAD'], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  }).trim();
+  assert(currentRevision === sourceRevision, `${stage}: HEAD changed from ${sourceRevision} to ${currentRevision}`);
+  const sourceStatus = execFileSync('git', ['status', '--porcelain', '--', ...sourceFiles], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  }).trim();
+  assert(sourceStatus === '', `${stage}: source files are no longer clean: ${sourceStatus}`);
+}
+
 async function captureScreenshot(page, relativePath) {
   const image = await page.screenshot({
     ...(writeEvidence ? { path: path.join(repoRoot, relativePath) } : {}),
@@ -201,11 +214,7 @@ async function geometry(page) {
 }
 
 async function main() {
-  const sourceStatus = execFileSync('git', ['status', '--porcelain', '--', ...sourceFiles], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-  }).trim();
-  assert(sourceStatus === '', `source files must be clean at ${sourceRevision}: ${sourceStatus}`);
+  assertSourceCheckpointStable('capture start');
   if (writeEvidence) await mkdir(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   try {
@@ -293,6 +302,7 @@ async function main() {
       responsiveAndKeyboardChecksPassed: results.every((result) => !result.geometry.horizontalOverflow) && results.filter((result) => result.pathContext).every((result) => result.keyboardFocus),
     };
     const failedAssertions = Object.entries(assertions).filter(([, value]) => value !== true).map(([key]) => key);
+    assertSourceCheckpointStable('capture completion');
     const sourceSha256 = Object.fromEntries(sourceFiles.map((file) => [
       file,
       sha256AtRevision(sourceRevision, file),
