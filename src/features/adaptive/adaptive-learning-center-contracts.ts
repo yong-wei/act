@@ -1317,6 +1317,16 @@ function toStudentConfigurationFulfillment(
   };
 }
 
+function pathReadinessDetails(nodes: AdaptiveLearningPathPlan['mainPath']) {
+  return nodes.map((node) => ({
+    nodeId: node.nodeId,
+    title: node.title,
+    target: node.target,
+    prerequisiteNodeIds: node.prerequisiteNodeIds,
+    readiness: node.readiness,
+  }));
+}
+
 function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
   const actionablePaths = pathPlan.policyBundle?.paths
     .map((path, index) => ({ path, index }))
@@ -1352,6 +1362,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
         state: node.readiness?.state ?? 'unknown',
         message: node.readiness?.message ?? '准备条件待确认。',
       })),
+      readinessDetails: pathReadinessDetails(pathPlan.mainPath),
       targetDeficits: generationEvidenceDeficits?.map(toStudentDeficit) ?? [],
       ...(persistedProvenance ? { recommendationProvenance: persistedProvenance } : {}),
       evidenceBasis: pathPlan.confidence.level === 'low'
@@ -1388,6 +1399,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     nodeSummaries: path.nodeSummaries,
     lockedNodeIds: path.lockedNodeIds,
     readinessSummary: path.readinessSummary,
+    readinessDetails: pathReadinessDetails(path.planNodes?.length ? path.planNodes : pathPlan.mainPath),
     targetDeficits: path.targetDeficits.map(toStudentDeficit),
     recommendationProvenance: path.recommendationProvenance,
     evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
