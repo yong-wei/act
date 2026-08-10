@@ -389,6 +389,7 @@ function buildConsumerActivation(input: {
     previousActivationId: null,
     previous: [],
     next: shadowViewsFromManifest(preflightManifest),
+    allowInitialAbsentPrevious: true,
     comparedAt: input.stagedAt,
   });
   assertShadowNoWriteInvariants(shadow);

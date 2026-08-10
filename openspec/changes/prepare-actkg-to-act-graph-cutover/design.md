@@ -162,6 +162,11 @@ the journal removes only pointers whose current identity exactly matches the
 target identity, in reverse order; any mismatch is concurrent drift and stops
 compensation. The legacy-retirement pointer is neither staged nor changed.
 
+For this all-ABSENT baseline, the shadow report records the empty predecessor
+and the six staged successors. Expected predecessor absence is not itself a
+discrepancy; it must still verify all six successor identities and reject any
+missing successor, mixed identity, readiness failure, or write side effect.
+
 Writing the four pointers without a journal was rejected because a failed first
 switch has no predecessor pointer to restore. Extending every generic store
 with an all-ABSENT rollback mode was rejected because the first-activation
