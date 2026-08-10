@@ -36,4 +36,5 @@
 - [x] 创建 target=integration 的 PR
 - [x] 处理 PR review P1：trusted filter 改为正向 allowlist 并拒绝未知/缺锚点事实
 - [x] 处理 PR review P2：recommendation-engine 仅跳过向量规则并保留 context-only 推荐
-- [ ] 在 PR 上回复 review 并执行中文 `@codex review`
+- [x] 在 PR 上回复 review
+- [ ] 执行中文 `@codex review`（请求已发布，但 GitHub Codex connector 回复未连接，需连接后重跑）
