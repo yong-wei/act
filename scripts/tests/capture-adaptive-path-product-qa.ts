@@ -30,6 +30,11 @@ const DEFAULT_DOCK_POLL_INTERVAL_MS = 50;
 export const DOCK_SELECTOR = '[data-platform-floating-dock]';
 export const PRIMARY_KONLING_SELECTOR =
   '[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]';
+export const SECONDARY_DOCK_SELECTOR =
+  '[data-platform-floating-dock] button[data-platform-floating-dock-secondary-trigger]';
+export const EXPANDED_DOCK_PANEL_SELECTOR = '[data-platform-floating-dock-expanded-panel]';
+export const ADAPTIVE_PATH_KONLING_SELECTOR =
+  `${EXPANDED_DOCK_PANEL_SELECTOR} button[aria-label="控灵助手"]`;
 export const DOCK_REGISTRATION_SELECTOR = '[data-platform-floating-dock-registration="true"]';
 export const CAPTURE_SOURCE_FILES = CAPTURE_REVISION_SOURCE_FILES;
 
@@ -40,8 +45,30 @@ type CaptureState = {
   width: number;
   height: number;
   query: string;
+  qaMode?: 'knowledge-product';
   selector?: string;
   beforeScreenshot?: (page: Page) => Promise<void>;
+};
+
+export type ExpandedDockState = {
+  appShellNavigationState: string | null;
+  appShellNavigationPreference: string | null;
+  appShellNavigationExpanded: boolean;
+  appShellNavigationToggleExpanded: boolean;
+  platformDockBehavior: string | null;
+  globalAiPrimaryPresent: boolean;
+  globalAiPrimaryVisible: boolean;
+  globalAiPrimaryDisabled: boolean | null;
+  secondaryTriggerPresent: boolean;
+  secondaryTriggerVisible: boolean;
+  secondaryTriggerExpanded: boolean;
+  expandedPanelPresent: boolean;
+  expandedPanelVisible: boolean;
+  expandedPanelWidth: number | null;
+  expandedPanelHeight: number | null;
+  adaptivePathKonlingPresent: boolean;
+  adaptivePathKonlingVisible: boolean;
+  adaptivePathKonlingDisabled: boolean | null;
 };
 
 export type CaptureRevision = CaptureRevisionProof & {
@@ -417,6 +444,43 @@ export async function waitForDockReadiness(
   return snapshot;
 }
 
+export function dockInteractionReadinessSatisfied(snapshot: DockReadinessSnapshot) {
+  return snapshot.dockPresent
+    && snapshot.dockVisible
+    && snapshot.registrationPresent
+    && snapshot.primaryPresent
+    && snapshot.primaryVisible
+    && !snapshot.primaryDisabled;
+}
+
+export function createDockInteractionReadinessTimeoutMessage(snapshot: DockReadinessSnapshot, timeoutMs: number) {
+  return createDockReadinessTimeoutMessage(snapshot, timeoutMs)
+    .replace('Shared Konling Dock readiness', 'Shared Konling Dock interaction readiness');
+}
+
+export async function waitForDockInteractionReadiness(
+  readSnapshot: () => Promise<DockReadinessSnapshot>,
+  options: DockReadinessWaitOptions,
+) {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_DOCK_READY_TIMEOUT_MS;
+  const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_DOCK_POLL_INTERVAL_MS;
+  const now = options.now ?? Date.now;
+  const sleep = options.sleep ?? ((milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
+  const deadline = now() + timeoutMs;
+  let snapshot = await readSnapshot();
+
+  while (!dockInteractionReadinessSatisfied(snapshot)) {
+    const remainingMs = deadline - now();
+    if (remainingMs <= 0) {
+      throw new Error(createDockInteractionReadinessTimeoutMessage(snapshot, timeoutMs));
+    }
+    await sleep(Math.min(pollIntervalMs, remainingMs));
+    snapshot = await readSnapshot();
+  }
+
+  return snapshot;
+}
+
 function sha256File(absolutePath: string) {
   return createHash('sha256').update(readFileSync(absolutePath)).digest('hex');
 }
@@ -580,11 +644,18 @@ export function publishStagedCapture(
   }
 }
 
-async function setTheme(page: Page, theme: Theme) {
-  await page.addInitScript((nextTheme) => {
+async function setTheme(page: Page, theme: Theme, qaMode?: CaptureState['qaMode']) {
+  await page.addInitScript(({ nextTheme, qaMode }) => {
     window.localStorage.setItem('ai-obe-theme', nextTheme);
     window.localStorage.setItem('act:app-shell-navigation-preference', 'collapsed');
-  }, theme);
+    if (qaMode === 'knowledge-product') {
+      window.localStorage.setItem('act:knowledge-product-qa', 'true');
+      (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__ = true;
+    } else {
+      window.localStorage.removeItem('act:knowledge-product-qa');
+      delete (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__;
+    }
+  }, { nextTheme: theme, qaMode });
 }
 
 async function readDockReadiness(page: Page, targetUrl: string): Promise<DockReadinessSnapshot> {
@@ -646,6 +717,165 @@ async function readDockReadiness(page: Page, targetUrl: string): Promise<DockRea
     primarySelector: PRIMARY_KONLING_SELECTOR,
     registrationSelector: DOCK_REGISTRATION_SELECTOR,
   });
+}
+
+export async function readExpandedDockState(page: Page): Promise<ExpandedDockState> {
+  return page.evaluate(({
+    dockSelector,
+    primarySelector,
+    secondarySelector,
+    expandedPanelSelector,
+    adaptivePathKonlingSelector,
+  }) => {
+    const appShell = document.querySelector<HTMLElement>('[data-app-shell-layout="collapsible"]');
+    const navigationToggle = appShell?.querySelector<HTMLButtonElement>('button[aria-label="收起平台导航"]');
+    const dock = document.querySelector<HTMLElement>(dockSelector);
+    const dockPrimary = document.querySelector<HTMLButtonElement>(primarySelector);
+    const secondaryTrigger = document.querySelector<HTMLButtonElement>(secondarySelector);
+    const expandedPanel = document.querySelector<HTMLElement>(expandedPanelSelector);
+    const adaptivePathKonling = document.querySelector<HTMLButtonElement>(adaptivePathKonlingSelector);
+    const dockPrimaryRect = dockPrimary?.getBoundingClientRect();
+    const dockPrimaryStyle = dockPrimary ? window.getComputedStyle(dockPrimary) : null;
+    const dockPrimaryVisible = Boolean(dockPrimaryRect && dockPrimaryStyle
+      && dockPrimaryRect.width > 0
+      && dockPrimaryRect.height > 0
+      && dockPrimaryStyle.display !== 'none'
+      && dockPrimaryStyle.visibility !== 'hidden');
+    const secondaryTriggerRect = secondaryTrigger?.getBoundingClientRect();
+    const secondaryTriggerStyle = secondaryTrigger ? window.getComputedStyle(secondaryTrigger) : null;
+    const secondaryTriggerVisible = Boolean(secondaryTriggerRect && secondaryTriggerStyle
+      && secondaryTriggerRect.width > 0
+      && secondaryTriggerRect.height > 0
+      && secondaryTriggerStyle.display !== 'none'
+      && secondaryTriggerStyle.visibility !== 'hidden');
+    const expandedPanelRect = expandedPanel?.getBoundingClientRect();
+    const expandedPanelStyle = expandedPanel ? window.getComputedStyle(expandedPanel) : null;
+    const expandedPanelVisible = Boolean(expandedPanelRect && expandedPanelStyle
+      && expandedPanelRect.width > 0
+      && expandedPanelRect.height > 0
+      && expandedPanelStyle.display !== 'none'
+      && expandedPanelStyle.visibility !== 'hidden');
+    const adaptivePathKonlingRect = adaptivePathKonling?.getBoundingClientRect();
+    const adaptivePathKonlingStyle = adaptivePathKonling ? window.getComputedStyle(adaptivePathKonling) : null;
+    const adaptivePathKonlingVisible = Boolean(adaptivePathKonlingRect && adaptivePathKonlingStyle
+      && adaptivePathKonlingRect.width > 0
+      && adaptivePathKonlingRect.height > 0
+      && adaptivePathKonlingStyle.display !== 'none'
+      && adaptivePathKonlingStyle.visibility !== 'hidden');
+
+    return {
+      appShellNavigationState: appShell?.getAttribute('data-app-shell-navigation-state') ?? null,
+      appShellNavigationPreference: appShell?.getAttribute('data-app-shell-navigation-preference') ?? null,
+      appShellNavigationExpanded: appShell?.getAttribute('data-app-shell-navigation-state') === 'expanded',
+      appShellNavigationToggleExpanded: navigationToggle?.getAttribute('aria-expanded') === 'true',
+      platformDockBehavior: dock?.getAttribute('data-platform-floating-dock') ?? null,
+      globalAiPrimaryPresent: Boolean(dockPrimary),
+      globalAiPrimaryVisible: dockPrimaryVisible,
+      globalAiPrimaryDisabled: dockPrimary?.disabled ?? null,
+      secondaryTriggerPresent: Boolean(secondaryTrigger),
+      secondaryTriggerVisible,
+      secondaryTriggerExpanded: secondaryTrigger?.getAttribute('aria-expanded') === 'true',
+      expandedPanelPresent: Boolean(expandedPanel),
+      expandedPanelVisible,
+      expandedPanelWidth: expandedPanelRect?.width ?? null,
+      expandedPanelHeight: expandedPanelRect?.height ?? null,
+      adaptivePathKonlingPresent: Boolean(adaptivePathKonling),
+      adaptivePathKonlingVisible,
+      adaptivePathKonlingDisabled: adaptivePathKonling?.disabled ?? null,
+    };
+  }, {
+    dockSelector: DOCK_SELECTOR,
+    primarySelector: PRIMARY_KONLING_SELECTOR,
+    secondarySelector: SECONDARY_DOCK_SELECTOR,
+    expandedPanelSelector: EXPANDED_DOCK_PANEL_SELECTOR,
+    adaptivePathKonlingSelector: ADAPTIVE_PATH_KONLING_SELECTOR,
+  });
+}
+
+export function assertExpandedDockState(state: ExpandedDockState) {
+  const issues = [
+    state.appShellNavigationState === 'expanded' ? null : `appShellNavigationState=${state.appShellNavigationState ?? 'missing'}`,
+    state.appShellNavigationPreference === 'expanded' ? null : `appShellNavigationPreference=${state.appShellNavigationPreference ?? 'missing'}`,
+    state.appShellNavigationExpanded ? null : 'appShellNavigationExpanded=false',
+    state.appShellNavigationToggleExpanded ? null : 'appShellNavigationToggleExpanded=false',
+    state.platformDockBehavior === 'enabled' ? null : `platformDockBehavior=${state.platformDockBehavior ?? 'missing'}`,
+    state.globalAiPrimaryPresent ? null : 'globalAiPrimaryPresent=false',
+    state.globalAiPrimaryVisible ? null : 'globalAiPrimaryVisible=false',
+    state.globalAiPrimaryDisabled === false ? null : `globalAiPrimaryDisabled=${String(state.globalAiPrimaryDisabled)}`,
+    state.secondaryTriggerPresent ? null : 'secondaryTriggerPresent=false',
+    state.secondaryTriggerVisible ? null : 'secondaryTriggerVisible=false',
+    state.secondaryTriggerExpanded ? null : 'secondaryTriggerExpanded=false',
+    state.expandedPanelPresent ? null : 'expandedPanelPresent=false',
+    state.expandedPanelVisible ? null : 'expandedPanelVisible=false',
+    typeof state.expandedPanelWidth === 'number' && state.expandedPanelWidth > 0
+      ? null
+      : `expandedPanelWidth=${String(state.expandedPanelWidth)}`,
+    typeof state.expandedPanelHeight === 'number' && state.expandedPanelHeight > 0
+      ? null
+      : `expandedPanelHeight=${String(state.expandedPanelHeight)}`,
+    state.adaptivePathKonlingPresent ? null : 'adaptivePathKonlingPresent=false',
+    state.adaptivePathKonlingVisible ? null : 'adaptivePathKonlingVisible=false',
+    state.adaptivePathKonlingDisabled === true
+      ? null
+      : `adaptivePathKonlingDisabled=${String(state.adaptivePathKonlingDisabled)}`,
+  ].filter((issue): issue is string => Boolean(issue));
+  if (issues.length > 0) {
+    throw new Error(`Expanded AppShell and secondary dock menu state failed validation: ${issues.join(', ')}\n${JSON.stringify(state)}`);
+  }
+}
+
+export async function openExpandedAppShellAndDock(page: Page) {
+  const shell = page.locator('[data-app-shell-layout="collapsible"]');
+  await shell.waitFor({ state: 'attached', timeout: 10_000 });
+  const expandNavigationButton = shell.getByRole('button', { name: '展开平台导航', exact: true });
+  if (await expandNavigationButton.count()) {
+    await expandNavigationButton.click();
+  }
+  await page.waitForFunction(() => {
+    const appShell = document.querySelector<HTMLElement>('[data-app-shell-layout="collapsible"]');
+    const navigationToggle = appShell?.querySelector<HTMLButtonElement>('button[aria-label="收起平台导航"]');
+    return appShell?.getAttribute('data-app-shell-navigation-state') === 'expanded'
+      && appShell.getAttribute('data-app-shell-navigation-preference') === 'expanded'
+      && navigationToggle?.getAttribute('aria-expanded') === 'true';
+  }, undefined, { timeout: 10_000, polling: 'raf' });
+
+  const targetUrl = page.url();
+  await waitForDockInteractionReadiness(
+    () => readDockReadiness(page, targetUrl),
+    { targetUrl, actualUrl: page.url() },
+  );
+  const secondaryTrigger = page.locator(SECONDARY_DOCK_SELECTOR);
+  await secondaryTrigger.waitFor({ state: 'visible', timeout: 10_000 });
+  await secondaryTrigger.click();
+  await page.waitForFunction(() => {
+    const dock = document.querySelector<HTMLElement>('[data-platform-floating-dock]');
+    const primary = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]');
+    const trigger = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-secondary-trigger]');
+    const panel = document.querySelector<HTMLElement>('[data-platform-floating-dock-expanded-panel]');
+    const adaptivePathKonling = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock-expanded-panel] button[aria-label="控灵助手"]');
+    const panelRect = panel?.getBoundingClientRect();
+    const panelStyle = panel ? window.getComputedStyle(panel) : null;
+    const adaptiveRect = adaptivePathKonling?.getBoundingClientRect();
+    const adaptiveStyle = adaptivePathKonling ? window.getComputedStyle(adaptivePathKonling) : null;
+    return dock?.getAttribute('data-platform-floating-dock') === 'enabled'
+      && primary?.disabled === false
+      && trigger?.getAttribute('aria-expanded') === 'true'
+      && Boolean(panelRect && panelStyle
+        && panelRect.width > 0
+        && panelRect.height > 0
+        && panelStyle.display !== 'none'
+        && panelStyle.visibility !== 'hidden')
+      && Boolean(adaptiveRect && adaptiveStyle
+        && adaptiveRect.width > 0
+        && adaptiveRect.height > 0
+        && adaptiveStyle.display !== 'none'
+        && adaptiveStyle.visibility !== 'hidden'
+        && adaptivePathKonling?.disabled === true)
+      && !document.querySelector('[data-global-ai-sidebar="open"]');
+  }, undefined, { timeout: 10_000, polling: 'raf' });
+
+  const state = await readExpandedDockState(page);
+  assertExpandedDockState(state);
 }
 
 async function assertDisabledDock(page: Page) {
@@ -812,14 +1042,9 @@ const states: CaptureState[] = [
     theme: 'dark',
     width: 1440,
     height: 1100,
-    query: '?demo=1&goal=control-correction&intent=path-execution',
-    beforeScreenshot: async (page) => {
-      await page.evaluate(() => {
-        window.localStorage.setItem('act:app-shell-navigation-preference', 'expanded');
-      });
-      await page.reload({ waitUntil: 'networkidle' });
-      await assertDisabledDock(page);
-    },
+    query: '?demo=1&goal=control-correction&intent=path-execution&qa=knowledge-product',
+    qaMode: 'knowledge-product',
+    beforeScreenshot: openExpandedAppShellAndDock,
   },
 ];
 
@@ -829,6 +1054,40 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
     const question = document.querySelector('[data-adaptive-practice-question="active"]');
     const questionSummary = document.querySelector('[data-adaptive-practice-question="summary"]');
     const dock = document.querySelector('[data-page-floating-controls], [data-platform-floating-dock]');
+    const appShell = document.querySelector('[data-app-shell-layout="collapsible"]');
+    const navigationToggle = appShell?.querySelector<HTMLButtonElement>('button[aria-label="收起平台导航"]');
+    const dockPrimary = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]');
+    const secondaryTrigger = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-secondary-trigger]');
+    const expandedPanel = document.querySelector<HTMLElement>('[data-platform-floating-dock-expanded-panel]');
+    const adaptivePathKonling = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock-expanded-panel] button[aria-label="控灵助手"]');
+    const dockPrimaryRect = dockPrimary?.getBoundingClientRect();
+    const dockPrimaryStyle = dockPrimary ? window.getComputedStyle(dockPrimary) : null;
+    const dockPrimaryVisible = Boolean(dockPrimaryRect && dockPrimaryStyle
+      && dockPrimaryRect.width > 0
+      && dockPrimaryRect.height > 0
+      && dockPrimaryStyle.display !== 'none'
+      && dockPrimaryStyle.visibility !== 'hidden');
+    const secondaryTriggerRect = secondaryTrigger?.getBoundingClientRect();
+    const secondaryTriggerStyle = secondaryTrigger ? window.getComputedStyle(secondaryTrigger) : null;
+    const secondaryTriggerVisible = Boolean(secondaryTriggerRect && secondaryTriggerStyle
+      && secondaryTriggerRect.width > 0
+      && secondaryTriggerRect.height > 0
+      && secondaryTriggerStyle.display !== 'none'
+      && secondaryTriggerStyle.visibility !== 'hidden');
+    const expandedPanelRect = expandedPanel?.getBoundingClientRect();
+    const expandedPanelStyle = expandedPanel ? window.getComputedStyle(expandedPanel) : null;
+    const expandedPanelVisible = Boolean(expandedPanelRect && expandedPanelStyle
+      && expandedPanelRect.width > 0
+      && expandedPanelRect.height > 0
+      && expandedPanelStyle.display !== 'none'
+      && expandedPanelStyle.visibility !== 'hidden');
+    const adaptivePathKonlingRect = adaptivePathKonling?.getBoundingClientRect();
+    const adaptivePathKonlingStyle = adaptivePathKonling ? window.getComputedStyle(adaptivePathKonling) : null;
+    const adaptivePathKonlingVisible = Boolean(adaptivePathKonlingRect && adaptivePathKonlingStyle
+      && adaptivePathKonlingRect.width > 0
+      && adaptivePathKonlingRect.height > 0
+      && adaptivePathKonlingStyle.display !== 'none'
+      && adaptivePathKonlingStyle.visibility !== 'hidden');
     const routeFlow = document.querySelector('[data-adaptive-path-route-flow="connected"]');
     const comparison = document.querySelector('[data-learning-path-options-layout="route-modules"]');
     const routeModules = Array.from(document.querySelectorAll('[data-learning-path-option-module="route"]'))
@@ -883,12 +1142,31 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
       bodyWidth: document.body.getBoundingClientRect().width,
       scrollWidth: document.documentElement.scrollWidth,
       innerWidth: window.innerWidth,
+      appShellNavigationState: appShell?.getAttribute('data-app-shell-navigation-state') ?? null,
+      appShellNavigationPreference: appShell?.getAttribute('data-app-shell-navigation-preference') ?? null,
+      appShellNavigationExpanded: appShell?.getAttribute('data-app-shell-navigation-state') === 'expanded',
+      appShellNavigationToggleExpanded: navigationToggle?.getAttribute('aria-expanded') === 'true',
+      platformDockBehavior: document.querySelector<HTMLElement>('[data-platform-floating-dock]')
+        ?.getAttribute('data-platform-floating-dock') ?? null,
+      globalAiPrimaryPresent: Boolean(dockPrimary),
+      globalAiPrimaryVisible: dockPrimaryVisible,
+      globalAiPrimaryDisabled: dockPrimary?.disabled ?? null,
+      secondaryTriggerPresent: Boolean(secondaryTrigger),
+      secondaryTriggerVisible,
+      secondaryTriggerExpanded: secondaryTrigger?.getAttribute('aria-expanded') === 'true',
+      expandedPanelPresent: Boolean(expandedPanel),
+      expandedPanelVisible,
+      expandedPanelWidth: expandedPanelRect?.width ?? null,
+      expandedPanelHeight: expandedPanelRect?.height ?? null,
+      adaptivePathKonlingPresent: Boolean(adaptivePathKonling),
+      adaptivePathKonlingVisible,
+      adaptivePathKonlingDisabled: adaptivePathKonling?.disabled ?? null,
       forbidden: [
         ...forbiddenPatterns.filter((pattern) => text.includes(pattern)),
         ...missingRaw,
       ],
     };
-  }, { name: state.name, theme: state.theme, width: state.width, screenshotPath });
+    }, { name: state.name, theme: state.theme, width: state.width, screenshotPath });
 }
 
 type CaptureSignal = Awaited<ReturnType<typeof collectSignals>>;
@@ -944,7 +1222,7 @@ async function main() {
     try {
       for (const state of states) {
         const page = await browser.newPage({ viewport: { width: state.width, height: state.height } });
-        await setTheme(page, state.theme);
+        await setTheme(page, state.theme, state.qaMode);
         const targetUrl = createCaptureUrl(targetBaseUrl, state.query);
         const response = await page.goto(targetUrl, { waitUntil: 'networkidle' });
         if (!response || response.status() >= 400) {
@@ -963,6 +1241,10 @@ async function main() {
           await page.screenshot({ path: absolutePath, fullPage: true });
         }
         const sha256 = sha256File(absolutePath);
+        const signal = await collectSignals(page, state, manifestPath);
+        if (state.name === 'app-shell-expanded-dock-desktop-dark') {
+          assertExpandedDockState(signal as ExpandedDockState);
+        }
         captures.push({
           name: state.name,
           theme: state.theme,
@@ -973,8 +1255,28 @@ async function main() {
           selector: state.selector,
           file: manifestPath,
           sha256,
+          assertions: {
+            appShellNavigationState: signal.appShellNavigationState,
+            appShellNavigationPreference: signal.appShellNavigationPreference,
+            appShellNavigationExpanded: signal.appShellNavigationExpanded,
+            appShellNavigationToggleExpanded: signal.appShellNavigationToggleExpanded,
+            platformDockBehavior: signal.platformDockBehavior,
+            globalAiPrimaryPresent: signal.globalAiPrimaryPresent,
+            globalAiPrimaryVisible: signal.globalAiPrimaryVisible,
+            globalAiPrimaryDisabled: signal.globalAiPrimaryDisabled,
+            secondaryTriggerPresent: signal.secondaryTriggerPresent,
+            secondaryTriggerVisible: signal.secondaryTriggerVisible,
+            secondaryTriggerExpanded: signal.secondaryTriggerExpanded,
+            expandedPanelPresent: signal.expandedPanelPresent,
+            expandedPanelVisible: signal.expandedPanelVisible,
+            expandedPanelWidth: signal.expandedPanelWidth,
+            expandedPanelHeight: signal.expandedPanelHeight,
+            adaptivePathKonlingPresent: signal.adaptivePathKonlingPresent,
+            adaptivePathKonlingVisible: signal.adaptivePathKonlingVisible,
+            adaptivePathKonlingDisabled: signal.adaptivePathKonlingDisabled,
+          },
         });
-        signals.push(await collectSignals(page, state, manifestPath));
+        signals.push(signal);
         await page.close();
       }
     } finally {
@@ -1010,6 +1312,7 @@ async function main() {
       captureSourceFiles: [...CAPTURE_SOURCE_FILES],
       sourceFiles: [...CAPTURE_SOURCE_FILES],
       outputDirectory: resolveManifestOutputRoot(outputDir),
+      captureStateAssertions: captures.map((capture) => ({ name: capture.name, ...capture.assertions })),
       captures,
     }, null, 2)}\n`);
     writeFileSync(path.join(stagingDir, 'visual-signals.json'), `${JSON.stringify(signals, null, 2)}\n`);
