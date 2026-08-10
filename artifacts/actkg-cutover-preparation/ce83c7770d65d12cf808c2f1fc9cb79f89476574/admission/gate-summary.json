@@ -1,0 +1,19 @@
+{
+  "PRODUCTION_SELECTOR_CHANGE": 0,
+  "GRAPH_RAG_SELECTOR_CHANGE": 0,
+  "CANONICAL_LEARNING_FACT_WRITER_FENCE_CHANGE": 0,
+  "before": {
+    "productionAuthority": "LEGACY",
+    "productionCanonicalWriterEnabled": false,
+    "graphRagAuthority": "LEGACY",
+    "graphRagCanonicalExpansionVisible": false,
+    "canonicalWriterFenceDigest": "3cd1a3946b515d147ad65bbff76828373d486e8574e39c2a64afcbebc79e806e"
+  },
+  "after": {
+    "productionAuthority": "LEGACY",
+    "productionCanonicalWriterEnabled": false,
+    "graphRagAuthority": "LEGACY",
+    "graphRagCanonicalExpansionVisible": false,
+    "canonicalWriterFenceDigest": "3cd1a3946b515d147ad65bbff76828373d486e8574e39c2a64afcbebc79e806e"
+  }
+}

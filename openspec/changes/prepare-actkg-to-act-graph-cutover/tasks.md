@@ -15,7 +15,7 @@
   compatibility using existing local tooling.
 - [x] 2.3 Materialize an immutable staged Engineering Authority candidate and
   hash its manifest, or record a concrete `BLOCKED` evidence gap.
-- [ ] 2.4 Re-run the candidate import through a unique local schema, prove
+- [x] 2.4 Re-run the candidate import through a unique local schema, prove
   shared-schema and default-pointer non-mutation, materialize the staged
   Authority Snapshot, and prove cleanup on success and forced failure.
 
