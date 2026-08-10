@@ -8,8 +8,16 @@ The system SHALL determine whether a LearningFact is trusted for Portrait v2 by 
 - **WHEN** a LearningFact has an empty or missing `sourceEventId`
 - **THEN** the fact SHALL be classified as not trusted for Portrait v2
 
+#### Scenario: Unknown source event id is rejected
+- **WHEN** `sourceEventId` is non-empty but does not match a controlled producer prefix and is not an unprefixed core materialization event
+- **THEN** the fact SHALL be classified as not trusted for Portrait v2
+
 #### Scenario: Fact originates from a known non-trusted prefix
 - **WHEN** `sourceEventId` starts with a policy-declared non-trusted prefix such as `historical:`, `interaction-log:`, `yangfan-diagnostic-fixture:`, `backfill:`, or `recompute:`
+- **THEN** the fact SHALL be classified as not trusted for Portrait v2
+
+#### Scenario: Non-trusted marker is nested under a controlled producer prefix
+- **WHEN** `sourceEventId` contains a policy-declared non-trusted marker as a path segment even when it also starts with a controlled producer prefix
 - **THEN** the fact SHALL be classified as not trusted for Portrait v2
 
 #### Scenario: Simulation agent fact has a server-side log anchor
@@ -24,6 +32,18 @@ The system SHALL determine whether a LearningFact is trusted for Portrait v2 by 
 - **WHEN** a fact has a producer or source prefix that appears in the controlled producer inventory
 - **THEN** the producer prefix SHALL NOT override a failed evidence-anchor check
 - **AND** the fact SHALL remain not trusted unless every policy rule is satisfied
+
+#### Scenario: Controlled producer prefix lacks a server-side log anchor
+- **WHEN** `sourceEventId` starts with a controlled producer prefix and `sourceLogId` is empty or missing
+- **THEN** the fact SHALL be classified as not trusted for Portrait v2
+
+#### Scenario: Formal producer event has a server-side log anchor
+- **WHEN** `sourceEventId` starts with a controlled producer prefix and `sourceLogId` is non-empty
+- **THEN** the fact SHALL be classified as trusted for Portrait v2
+
+#### Scenario: Unprefixed core event has a server-side log anchor
+- **WHEN** `sourceEventId` is an unprefixed core materialization event and `sourceLogId` is non-empty
+- **THEN** the fact SHALL be classified as trusted for Portrait v2
 
 ### Requirement: Portrait materialization applies one trusted fact filter
 

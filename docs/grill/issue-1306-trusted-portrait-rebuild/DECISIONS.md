@@ -7,10 +7,12 @@
 结论：新增 `trusted-learning-fact-policy.v1`，用服务端证据锚点和受控来源特征判断：
 
 - `sourceEventId` 为空的事实不可信。
-- `sourceEventId` 以 `historical:`、`interaction-log:`、`yangfan-diagnostic-fixture:`、`backfill:`、`recompute:` 等非可信特征开头的事实不可信。
+- `sourceEventId` 中任意路径段命中 `historical`、`interaction-log`、`yangfan-diagnostic-fixture`、`backfill`、`recompute` 等非可信特征的事实不可信。
 - `sourceLogId` 非空是服务端证据锚点；正式生产事件入口会剥离客户端伪造 `sourceLogId`，只替换为服务端持久化 InteractionLog id。
-- `simulation-agent-evidence:` 必须同时带非空 `sourceLogId`。
-- 受控服务端 producer 的明确前缀可增强判定，但不单独作为充分条件。
+- 未知或未列入受控 producer inventory 的带冒号 `sourceEventId` 默认不可信。
+- 所有受控 producer 前缀和 `simulation-task-evidence:` 必须带非空 `sourceLogId`；无前缀的 core materialization 事件也必须带服务端日志锚点。
+- producer/source 前缀不能单独作为充分条件；任何来源都必须满足证据锚点检查。
+- 当前 `grading:`、`document-rubric-grading:`、`adaptive-assessment:document-rubric-grading:` 写入若未补 `sourceLogId`，会先 fail closed，直到对应 producer 补齐持久化锚点。
 
 不新增数据库字段，不修改 LearningFact schema。
 
@@ -38,7 +40,7 @@
 
 问题：NO_EVIDENCE 时推荐引擎仍可能读取旧画像。
 
-结论：可信 Portrait 仅指当前 cumulative SNAPSHOT 且至少一个维度有证据。NO_EVIDENCE 或无有效 Portrait 时，禁止回退到 legacy snapshot、feature cache、旧 StudentCompetencySnapshot、旧 competency vector。允许默认学习路径或非个性化路径，但禁止基于非可信能力画像生成个性化推荐。
+结论：可信 Portrait 仅指当前 cumulative SNAPSHOT 且至少一个维度有证据。NO_EVIDENCE 或无有效 Portrait 时，禁止回退到 legacy snapshot、feature cache、旧 StudentCompetencySnapshot、旧 competency vector。路径规划允许默认或 starter path；推荐引擎跳过依赖能力向量的规则，但保留风险、学习历史和 context-only 推荐，不允许整个推荐接口退化为空结果。
 
 ## 6. 确定性如何定义
 

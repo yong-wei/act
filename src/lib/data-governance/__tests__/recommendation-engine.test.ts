@@ -1200,16 +1200,17 @@ describe('generateRecommendations', () => {
     expect(titles).not.toContain('优化提示词设计');
   });
 
-  it('fails closed when the feature cache is absent without a trusted cumulative portrait', async () => {
+  it('keeps non-vector context recommendations when no trusted cumulative portrait exists', async () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
     mocks.prisma.userProgress.count.mockResolvedValue(0);
 
     const recommendations = await generateRecommendations('student-1');
 
-    expect(recommendations).toEqual([]);
+    expect(recommendations.map((item) => item.title)).toContain('探索知识图谱');
+    expect(recommendations.map((item) => item.title)).not.toContain('提升迁移整合与应用能力');
   });
 
-  it('exposes simulation and Arena rationale without treating preview-only context as high-confidence competency evidence', async () => {
+  it('keeps preview-only simulation Arena rationale without promoting it to competency evidence', async () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
       confidenceMarkers: {
         level: 'high',
@@ -1238,8 +1239,12 @@ describe('generateRecommendations', () => {
     mocks.prisma.userProgress.count.mockResolvedValue(0);
 
     const recommendations = await generateRecommendations('student-1');
+    const knowledgeGraph = recommendations
+      .find((item) => item.title === '探索知识图谱');
 
-    expect(recommendations).toEqual([]);
+    expect(knowledgeGraph?.rationale.contextOnly).toBe(true);
+    expect(knowledgeGraph?.rationale.simulationArena?.readiness).toBe('low-confidence');
+    expect(recommendations.map((item) => item.title)).not.toContain('提升迁移整合与应用能力');
   });
 
   it('cites governed path execution features without raw execution scans or model-authored text', async () => {

@@ -37,8 +37,9 @@ Portrait v2 当前从 `LearningFact` 全量派生。历史客户端贡献、回�
 判定规则：
 
 - `sourceEventId` 为空或缺失：不可信。
-- `sourceEventId` 以 `historical:`、`interaction-log:`、`yangfan-diagnostic-fixture:`、`backfill:`、`recompute:` 开头：不可信。
-- `simulation-agent-evidence:` 或 `simulation-task-evidence:` 必须有非空 `sourceLogId`。
+- `sourceEventId` 中任意路径段命中 `historical`、`interaction-log`、`yangfan-diagnostic-fixture`、`backfill`、`recompute` 之一：不可信。
+- 未知或未列入受控 producer inventory 的带冒号 `sourceEventId`：不可信。
+- 受控 producer 前缀和 `simulation-task-evidence:` 必须有非空 `sourceLogId`；无前缀的 core materialization 事件也必须带非空 `sourceLogId`。
 - producer/source 前缀不能单独作为充分条件；任何来源都必须满足证据锚点检查。
 - 不读取 `trusted` 字段，不新增该字段。
 
@@ -71,12 +72,12 @@ Portrait v2 当前从 `LearningFact` 全量派生。历史客户端贡献、回�
 ### 6. 消费侧 fail closed
 
 - `adaptive-learner-state-service`：在 `resolveFencedAdaptivePortrait` 输出明确的 `primaryPortraitState` 与 `primaryPortraitAvailability`；`NO_EVIDENCE` 或无可信 current portrait 时不得构造 legacy vector 作为个性化主画像。
-- `recommendation-engine`：可信 Portrait 不可用时不得读取 legacy snapshot、feature cache、旧 `StudentCompetencySnapshot` 或旧 competency vector 作为个性化推荐依据；允许默认或非个性化路径。
+- `recommendation-engine`：可信 Portrait 不可用时跳过依赖能力向量的规则，不得读取 legacy snapshot、feature cache、旧 `StudentCompetencySnapshot` 或旧 competency vector 作为个性化推荐依据；保留风险、学习历史和 context-only 推荐。
 - `adaptive-learning-path-planner`：`NO_EVIDENCE` 或无可信 current portrait 时不得使用 legacy 能力向量或旧快照做个性化评分；返回默认或 starter path。
 
 ## Risks / Trade-offs
 
-- [判定过严清空有效画像] -> 策略只排除明确不可信来源，带服务端日志锚点的正式来源继续可信。
+- [判定过严清空有效画像] -> 策略采用正向 admission：只有受控 producer 或 core materialization 且带服务端日志锚点的事实才可信。现有 grading producer 若未补齐 `sourceLogId`，其事实会先 fail closed，直到写入链路补齐持久化锚点。
 - [消费侧 fallback 分散] -> 在 learner-state 状态契约处收口，推荐与规划器只消费显式可信 availability。
 - [版本提升触发大范围重建] -> 保留旧快照、幂等 digest 和 current pointer，重建可重复执行。
 - [schema 字段增加影响 fixture] -> 字段全部有默认值，现有读取路径继续兼容；直接相关测试补齐信任锚点。

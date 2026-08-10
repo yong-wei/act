@@ -68,3 +68,12 @@ LearningFact 由受控 sink inventory 分类。与画像相关的来源包括：
 - 判定过严会清空当前有效画像；判定过松会继续吸收污染事实。
 - 消费侧 fallback 分散，需在同一状态契约处收口。
 - 版本提升触发全量重建，必须保证确定性并可重复执行。
+
+## PR review 修订记录
+
+PR #1334 首轮 review 提出两项问题，本轮已按问题边界整改：
+
+1. P1：`trusted-learning-fact-filter` 从黑名单改为正向 admission。受控 producer 前缀和手动补充的 simulation task evidence 都要求非空 `sourceLogId`；未知带冒号前缀默认拒绝；无前缀事件仅作为 core materialization 契约，在服务端日志锚点存在时接受；嵌套路径中的历史、交互日志、fixture、backfill、recompute 标记仍拒绝。
+2. P2：`recommendation-engine` 不再因缺少可信 Portrait 全局清空结果，仅跳过依赖向量/画像证据的规则，保留风险、学习历史和 context-only 推荐。
+
+本轮验证已通过 `trusted-learning-fact-filter`、`recommendation-engine`、`adaptive-learner-state-service`、`adaptive-learning-path-planner` 四个 Vitest 文件，随后执行 `npm run typecheck`。

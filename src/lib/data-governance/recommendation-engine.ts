@@ -492,18 +492,22 @@ export async function generateRecommendations(userId: string): Promise<Recommend
   if (derivationState === 'no-recent-evidence' || derivationState === 'no-evidence-after-revocation') return [];
   // Get context data
   const context = await buildRecommendationContext(userId);
-  if (
-    context.primaryPortraitState !== 'SNAPSHOT' ||
-    context.primaryPortraitAvailability !== 'available'
-  ) {
-    return [];
-  }
 
   // Apply rules to generate recommendations
   const recommendations: Recommendation[] = [];
 
   for (const rule of RECOMMENDATION_RULES) {
     try {
+      if (
+        VECTOR_COMPATIBILITY_RULE_IDS.has(rule.id) &&
+        (
+          context.primaryPortraitState !== 'SNAPSHOT' ||
+          context.primaryPortraitAvailability !== 'available' ||
+          !context.portraitEvidence
+        )
+      ) {
+        continue;
+      }
       if (rule.condition(context)) {
         const generated = rule.generate(context);
         recommendations.push({

@@ -34,4 +34,6 @@
 - [x] 校验 OpenSpec 文档
 - [x] 创建单提交并推送到 issue 分支
 - [x] 创建 target=integration 的 PR
-- [ ] 在 PR 上执行中文 `@codex review`
+- [x] 处理 PR review P1：trusted filter 改为正向 allowlist 并拒绝未知/缺锚点事实
+- [x] 处理 PR review P2：recommendation-engine 仅跳过向量规则并保留 context-only 推荐
+- [ ] 在 PR 上回复 review 并执行中文 `@codex review`
