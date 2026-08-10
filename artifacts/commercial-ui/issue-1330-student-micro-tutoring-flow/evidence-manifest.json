@@ -1,0 +1,57 @@
+{
+  "capturedAt": "2026-08-10T06:45:48.324Z",
+  "commitSha": "35c0bf0037c1ee97f794a9ea41a9f0acb3ba7a82",
+  "route": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
+  "captureMethod": "Playwright with Google Chrome channel against local Next.js Webpack dev server",
+  "fixtureAuthority": "Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are scoped Playwright fixtures so available, unavailable, and retry states are deterministic; route and component tests cover the server contract.",
+  "sourceSha256": {
+    "src/features/assessment/student-micro-tutoring-panel.tsx": "eb514c58e31f43e314615ad2d3832f184eef1f6b1902db902cf4f633302953b9",
+    "src/lib/sha256.ts": "9e9b82ed451bc3de9c41ceba73f2d3d094859046dd6614f525f8ecaefc6ed0db",
+    "src/lib/source-pack/builder.ts": "2d5fabf7ea02554e10e079aef5b520b678e383d5336a35413c6a4951211af677",
+    "tests/student-micro-tutoring-evidence.spec.ts": "6967b62b47bc1fe8094a09903d6485d85b07e0f3fa450feea54624f88fb23390"
+  },
+  "outcomes": {
+    "availableFullLoop": "The persisted wrong-answer entry creates, starts, completes, answers validation, and renders the validated recommendation.",
+    "unavailable": "ATTRIBUTION_UNCERTAIN remains fail-closed and exposes no retry action.",
+    "recoverableFailure": "A 503 create failure offers retry and succeeds on the second request.",
+    "accessibility": "The changed primary entry owns an explicit focus-visible ring before activation; both viewports have no horizontal overflow."
+  },
+  "screenshots": [
+    {
+      "file": "playwright/available-full-loop-1440.png",
+      "sha256": "51b3d2b1dfc4b88f4361634b503c723a2d12dc3e89ec84e03f3eb4ea788e387a",
+      "viewport": "1440x1000",
+      "state": "validated"
+    },
+    {
+      "file": "playwright/unavailable-fail-closed-1440.png",
+      "sha256": "19c5460731570c7a40d86d58a67d85c56d7c5004ddfb3ce18762f0ce3929f734",
+      "viewport": "1440x1000",
+      "state": "unavailable-fail-closed"
+    },
+    {
+      "file": "playwright/recoverable-retry-1440.png",
+      "sha256": "82e36b6846e66f2a52a3742ab7317eb12832e7f18c96170161cc7e0ca8658976",
+      "viewport": "1440x1000",
+      "state": "recovered-after-503"
+    },
+    {
+      "file": "playwright/available-full-loop-320.png",
+      "sha256": "a1297eefe4b0013589b559afa8a7b407a6964541bbcc6501ed88c4f65f0bb666",
+      "viewport": "320x900",
+      "state": "validated"
+    },
+    {
+      "file": "playwright/unavailable-fail-closed-320.png",
+      "sha256": "058ed3870f18e19f32a1ddb8ca04bc3f72cb4935fe44e8f5a435433d3f24a2d4",
+      "viewport": "320x900",
+      "state": "unavailable-fail-closed"
+    },
+    {
+      "file": "playwright/recoverable-retry-320.png",
+      "sha256": "25d84ce3f666104ec19a69e4b64304cdce9016b37dec190563a5be94a1222953",
+      "viewport": "320x900",
+      "state": "recovered-after-503"
+    }
+  ]
+}

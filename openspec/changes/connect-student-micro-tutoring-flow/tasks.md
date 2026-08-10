@@ -13,4 +13,4 @@
 ## 3. Verification
 
 - [x] 3.1 Add component and integration regressions for the complete available, unavailable, retry and terminal-validation journeys.
-- [x] 3.2 Run targeted tests, typecheck, strict OpenSpec validation, relevant browser acceptance, build and diff checks.（全量构建已执行，但被既有互动课客户端引入 `node:fs` 的两处 Turbopack 错误阻断。）
+- [x] 3.2 Run targeted tests, typecheck, strict OpenSpec validation, relevant browser acceptance, build and diff checks. Browser acceptance is recorded in `artifacts/commercial-ui/issue-1330-student-micro-tutoring-flow/evidence-manifest.json` for commit `35c0bf0037c1ee97f794a9ea41a9f0acb3ba7a82`; it covers 1440px and 320px available, fail-closed unavailable, and 503 recovery states with screenshot hashes and no-overflow checks.
