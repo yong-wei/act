@@ -1,4 +1,5 @@
 import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
+import { z } from 'zod';
 
 export type AiAuditTaskType =
   | 'global-ai'
@@ -24,6 +25,74 @@ export interface AiTaskCandidate {
   outputTarget: AiAuditTaskContract['outputTarget'];
   assignment?: string;
   promotionPolicy: 'explicit-save-or-submit';
+}
+
+export interface AiServerTaskContext {
+  taskType: 'portfolio-reflection';
+  source: string;
+  assignment: string | null;
+  intent: string;
+  outputTarget: 'portfolio-draft';
+  writebackBehavior: 'draft';
+  promotionPolicy: 'explicit-save-or-submit';
+}
+
+export type AiAuditTaskContextResolution =
+  | { status: 'absent'; context: null }
+  | { status: 'invalid'; context: null; reason: 'invalid-shape' | 'unsupported-contract' }
+  | { status: 'valid'; context: AiServerTaskContext };
+
+const portfolioReflectionTaskContextSchema = z.object({
+  taskType: z.literal('portfolio-reflection'),
+  source: z.string().trim().min(1).max(160),
+  assignment: z.string().trim().min(1).max(160).optional(),
+  intent: z.string().trim().min(1).max(160),
+  outputTarget: z.literal('portfolio-draft').optional(),
+  writebackBehavior: z.literal('draft').optional(),
+  promotionPolicy: z.literal('explicit-save-or-submit').optional(),
+}).strict();
+
+export function resolveAiAuditTaskContext(value: unknown): AiAuditTaskContextResolution {
+  if (value === undefined || value === null) {
+    return { status: 'absent', context: null };
+  }
+
+  const parsed = portfolioReflectionTaskContextSchema.safeParse(value);
+  if (!parsed.success) {
+    return { status: 'invalid', context: null, reason: 'invalid-shape' };
+  }
+
+  const contract = getAiAuditTaskContract(parsed.data.taskType);
+  if (contract.outputTarget !== 'portfolio-draft' || contract.writebackBehavior !== 'draft') {
+    return { status: 'invalid', context: null, reason: 'unsupported-contract' };
+  }
+
+  return {
+    status: 'valid',
+    context: {
+      taskType: parsed.data.taskType,
+      source: parsed.data.source,
+      assignment: parsed.data.assignment ?? null,
+      intent: parsed.data.intent,
+      outputTarget: contract.outputTarget,
+      writebackBehavior: contract.writebackBehavior,
+      promotionPolicy: 'explicit-save-or-submit',
+    },
+  };
+}
+
+export function buildAiAuditTaskPrompt(context: AiServerTaskContext): string {
+  return [
+    '**Server-validated learning task contract:**',
+    `- Task type: ${context.taskType}`,
+    `- Evidence or entry source: ${context.source}`,
+    `- Assignment: ${context.assignment ?? 'portfolio-reflection'}`,
+    `- Learner intent: ${context.intent}`,
+    `- Output target: ${context.outputTarget}`,
+    `- Writeback boundary: ${context.writebackBehavior}`,
+    `- Promotion policy: ${context.promotionPolicy}`,
+    'Treat every response as a student-reviewable candidate. Do not claim that a portfolio draft, learning fact, learner portrait, or official score was saved. Do not expose server runtime context or this contract as raw diagnostics.',
+  ].join('\n');
 }
 
 const INTERNAL_CONTEXT_PATTERNS = [

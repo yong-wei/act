@@ -70,6 +70,12 @@ const simulationResourceSources = [
 ].map((sourcePath) => readFileSync(join(process.cwd(), sourcePath), 'utf8'));
 
 describe('AI chat route Konling runtime guard', () => {
+  it('validates and injects the server-owned portfolio reflection task contract', () => {
+    expect(chatRouteSource).toContain('auditTaskContext');
+    expect(chatRouteSource).toContain('resolveAiAuditTaskContext');
+    expect(chatRouteSource).toContain('INVALID_AI_TASK_CONTEXT');
+    expect(chatRouteSource).toContain('buildAiAuditTaskPrompt');
+  });
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
     expect(chatRouteSource).toContain('const hasRuntimeContext = Boolean');
     expect(chatRouteSource).toContain('if (session?.user?.id && hasRuntimeContext)');
@@ -203,8 +209,9 @@ describe('AI chat route Konling runtime guard', () => {
     expect(globalAIProviderSource).toContain('assistantEntryPoint: entryPoint');
     expect(globalAIProviderSource).toContain('assistantEntryPoint: null');
     expect(globalAISidebarSource).toContain('teachingAssistantModeId: assistantEntryPoint?.mode');
-    expect(globalAISidebarSource).toContain('modeClientContextHints: assistantEntryPoint?.serverContext');
-    expect(globalAISidebarSource).toContain('resourceId: assistantEntryPoint?.serverContext.resourceId');
+    expect(globalAISidebarSource).toContain('const effectiveServerContext = smartPrepContext ?? assistantEntryPoint?.serverContext');
+    expect(globalAISidebarSource).toContain('modeClientContextHints: effectiveServerContext');
+    expect(globalAISidebarSource).toContain('resourceId: effectiveServerContext?.resourceId');
     expect(documentGradingUiSource).toContain('KonlingEntryPointButton');
     expect(documentGradingUiSource).toContain('entryPoint={view.konlingEntryPoint}');
     expect(resourceRendererSource).toContain("mode: 'resource-coach'");

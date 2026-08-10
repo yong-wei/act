@@ -6,9 +6,11 @@ import {
 } from '@/features/evaluation/prompt-quality';
 import {
   buildAiAuditTaskState,
+  buildAiAuditTaskPrompt,
   buildPortfolioReflectionDraft,
   buildReportFeedbackTaskCandidates,
   getAiAuditTaskContract,
+  resolveAiAuditTaskContext,
   sanitizeAiVisibleContent,
   summarizeAiToolResult,
 } from '../ai-task-boundary-contracts';
@@ -269,6 +271,53 @@ describe('ai task boundary contracts', () => {
       outputTarget: 'portfolio-draft',
       writebackBehavior: 'draft',
     });
+  });
+
+  it('normalizes a portfolio reflection descriptor with server-owned output rules', () => {
+    expect(resolveAiAuditTaskContext({
+      taskType: 'portfolio-reflection',
+      source: 'arena:task-1',
+      assignment: 'task-1',
+      intent: 'create-reflection',
+    })).toEqual({
+      status: 'valid',
+      context: {
+        taskType: 'portfolio-reflection',
+        source: 'arena:task-1',
+        assignment: 'task-1',
+        intent: 'create-reflection',
+        outputTarget: 'portfolio-draft',
+        writebackBehavior: 'draft',
+        promotionPolicy: 'explicit-save-or-submit',
+      },
+    });
+  });
+
+  it('rejects a descriptor that attempts to widen the server-owned output contract', () => {
+    expect(resolveAiAuditTaskContext({
+      taskType: 'portfolio-reflection',
+      source: 'arena:task-1',
+      intent: 'create-reflection',
+      outputTarget: 'answer',
+    })).toMatchObject({ status: 'invalid' });
+  });
+
+  it('builds a private reflection instruction without raw internal context', () => {
+    const resolved = resolveAiAuditTaskContext({
+      taskType: 'portfolio-reflection',
+      source: 'arena:task-1',
+      assignment: 'task-1',
+      intent: 'create-reflection',
+    });
+
+    if (resolved.status !== 'valid') throw new Error('expected valid task context');
+    const prompt = buildAiAuditTaskPrompt(resolved.context);
+
+    expect(prompt).toContain('portfolio-reflection');
+    expect(prompt).toContain('portfolio-draft');
+    expect(prompt).toContain('explicit-save-or-submit');
+    expect(prompt).not.toContain('resourceId');
+    expect(prompt).not.toContain('agentSessionId');
   });
 
   it('creates scoped task candidates and audited status states', () => {

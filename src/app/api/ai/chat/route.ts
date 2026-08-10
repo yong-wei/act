@@ -12,6 +12,10 @@ import { toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } f
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import {
+  buildAiAuditTaskPrompt,
+  resolveAiAuditTaskContext,
+} from '@/lib/ai-task-boundary-contracts';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
@@ -127,9 +131,10 @@ export async function POST(request: Request) {
       pathNodeId,
       agentSessionId,
       teachingAssistantModeId,
-      modeClientContextHints,
-      knowledgeWorkspaceHint,
-    } = body as {
+       modeClientContextHints,
+       knowledgeWorkspaceHint,
+       auditTaskContext,
+      } = body as {
       messages: IncomingMessage[];
       simulationState?: Record<string, unknown>;
       lessonContext?: LessonContext;
@@ -142,9 +147,10 @@ export async function POST(request: Request) {
       pathNodeId?: string;
       agentSessionId?: string;
       teachingAssistantModeId?: string;
-      modeClientContextHints?: Record<string, unknown>;
-      knowledgeWorkspaceHint?: Record<string, unknown>;
-    };
+        modeClientContextHints?: Record<string, unknown>;
+        knowledgeWorkspaceHint?: Record<string, unknown>;
+        auditTaskContext?: unknown;
+      };
 
     // 验证用户身份
     const session = await getServerAuthSession();
@@ -182,6 +188,17 @@ export async function POST(request: Request) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    const taskContextResolution = resolveAiAuditTaskContext(auditTaskContext);
+    if (taskContextResolution.status === 'invalid') {
+      return new Response(JSON.stringify({ error: 'INVALID_AI_TASK_CONTEXT' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    const serverTaskContext = taskContextResolution.status === 'valid'
+      ? taskContextResolution.context
+      : null;
 
     const uiMessages = rawMessages.map(toUIMessage);
     const messages = uiMessages.map(toLegacyMessage);
@@ -432,6 +449,10 @@ export async function POST(request: Request) {
     } else {
       // 回退到旧的提示词构建方式
       systemPrompt = buildContextAwarePrompt(SYSTEM_PROMPT, lessonContext);
+    }
+
+    if (serverTaskContext) {
+      systemPrompt = `${systemPrompt}\n\n${buildAiAuditTaskPrompt(serverTaskContext)}`;
     }
 
     // 检查 API Key 配置
