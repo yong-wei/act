@@ -45,6 +45,7 @@ import {
 } from '@/features/adaptive/path-workspace-module';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
@@ -5985,6 +5986,12 @@ export default function AdaptivePracticePage() {
                                 </span>
                               ) : null}
                             </div>
+                          ) : null}
+                          {!feedback.isCorrect && feedback.durableAnswerId ? (
+                            <StudentMicroTutoringPanel
+                              answerId={feedback.durableAnswerId}
+                              onRequestHint={requestAttemptDiagnosis}
+                            />
                           ) : null}
                         </div>
                       ) : null}

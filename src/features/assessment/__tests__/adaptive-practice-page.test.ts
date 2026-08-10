@@ -29,6 +29,15 @@ describe('adaptive practice page entry states', () => {
     expect(source).not.toContain('serverContext: { question');
   });
 
+  it('offers micro tutoring only for persisted incorrect answers while retaining the diagnosis entry', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';");
+    expect(source).toContain('!feedback.isCorrect && feedback.durableAnswerId');
+    expect(source).toContain('<StudentMicroTutoringPanel');
+    expect(source).toContain('onRequestHint={requestAttemptDiagnosis}');
+  });
+
   it('does not leave unauthenticated homepage entry in an empty loading state', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
