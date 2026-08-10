@@ -150,12 +150,15 @@ const learnerState = {
   missingEvidence: [],
 };
 
-async function installRoutes(page: Page) {
+async function installRoutes(page: Page, candidateBatchDelayMs = 0) {
   await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerState }));
   await page.route('**/api/learning-paths/latest?**', (route) => route.fulfill({ json: activePath }));
   await page.route(`**/api/learning-paths/${activePathId}`, (route) => route.fulfill({ json: activePath }));
   await page.route('**/api/learning-paths/candidate-batches/latest?**', (route) => route.fulfill({ json: { batch: candidateBatch } }));
   await page.route(`**/api/learning-paths/candidate-batches/${batchId}**`, async (route) => {
+    if (candidateBatchDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, candidateBatchDelayMs));
+    }
     const candidateId = new URL(route.request().url()).searchParams.get('candidate');
     if (candidateId && !candidateIds.includes(candidateId)) {
       await route.fulfill({ status: 404, json: { error: 'Candidate does not belong to batch' } });
@@ -164,6 +167,24 @@ async function installRoutes(page: Page) {
     await route.fulfill({ json: { batch: candidateBatch } });
   });
 }
+
+test('keeps the comparison surface visible while a candidate batch is loading', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await installRoutes(page, 500);
+
+  const query = new URLSearchParams({
+    demo: '1',
+    goal: 'control-correction',
+    intent: 'path-selection',
+    batch: batchId,
+  });
+  await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+
+  await expect(page.locator('[data-adaptive-path-candidate-state="loading"]')).toBeVisible();
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
+  await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+});
 
 async function openSelection(page: Page, candidateId?: string) {
   const query = new URLSearchParams({

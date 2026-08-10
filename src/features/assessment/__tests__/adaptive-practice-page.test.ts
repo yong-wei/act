@@ -342,6 +342,19 @@ describe('adaptive practice page entry states', () => {
     expect(source).not.toContain('setActivePathRound(loadedBatch');
   });
 
+  it('keeps candidate selection visible while its batch is loading independently', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("const hasCandidateBatchContext = showSelectionWorkspace");
+    expect(source).toContain("candidateBatchLoadState !== 'missing'");
+    expect(source).toContain("candidateBatchLoadState !== 'failed'");
+    expect(source).toContain('hasLoadedPathContextForRecovery');
+    expect(source).toContain('data-adaptive-path-candidate-state="loading"');
+    expect(source).toContain('正在加载候选学习路径');
+    expect(source).toContain('showSelectionWorkspace && !showPathContextRecovery');
+    expect(source).toContain('data-learning-path-options-layout="route-modules"');
+  });
+
   it('keeps candidate identity fail-closed and writes selections to the source path', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
     const sidebarSource = readRepoFile('src/components/ai/global-ai-sidebar.tsx');

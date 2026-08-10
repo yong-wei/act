@@ -2857,15 +2857,19 @@ export default function AdaptivePracticePage() {
     requestedPathContextKey &&
     loadedPathContextKey === requestedPathContextKey,
   );
+  const hasCandidateBatchContext = showSelectionWorkspace &&
+    candidateBatchLoadState !== 'missing' &&
+    candidateBatchLoadState !== 'failed';
+  const hasLoadedPathContextForRecovery = hasLoadedCurrentPathContext || hasCandidateBatchContext;
   const pathContextRecoveryState = useMemo(() => resolveAdaptivePathContextRecoveryState({
     workspaceIntent,
     activeGoal: Boolean(activeGoal),
     authStatus,
     isDemoMode,
     requestedPathId: activePathId,
-    hasLoadedPathContext: hasLoadedCurrentPathContext,
+    hasLoadedPathContext: hasLoadedPathContextForRecovery,
     loadState: pathContextLoadState,
-  }), [activeGoal, activePathId, authStatus, hasLoadedCurrentPathContext, isDemoMode, pathContextLoadState, workspaceIntent]);
+  }), [activeGoal, activePathId, authStatus, hasLoadedPathContextForRecovery, isDemoMode, pathContextLoadState, workspaceIntent]);
   const showPathContextRecovery = pathContextRecoveryState.shouldRecover;
   const pathLandingState = useMemo(() => resolveAdaptivePathLandingState({
     authStatus,
@@ -5076,6 +5080,17 @@ export default function AdaptivePracticePage() {
                 </Link>
               </div>
             </section>
+          ) : null}
+
+          {showSelectionWorkspace && candidateBatchLoadState === 'loading' ? (
+            <p
+              className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-subtle"
+              role="status"
+              aria-live="polite"
+              data-adaptive-path-candidate-state="loading"
+            >
+              正在加载候选学习路径…
+            </p>
           ) : null}
 
           {showSelectionWorkspace && !showPathContextRecovery ? (
