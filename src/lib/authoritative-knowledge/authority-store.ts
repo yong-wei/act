@@ -145,28 +145,31 @@ export interface StagedAuthoritySnapshotFiles {
   reused: boolean;
 }
 
-/**
- * Stage an immutable Authority Snapshot from a validated Repository view.
- * Never mutates authority/current.json or teaching selectors.
- */
-export function stageAuthoritySnapshot(
+function stageMaterializedAuthoritySnapshot(
   paths: AuthorityStorePaths,
-  input: MaterializeAuthoritySnapshotInput,
-  options: { stagedAt?: string; receiptId?: string } = {},
+  input: {
+    manifest: AuthoritySnapshotManifest;
+    engineering: AuthorityEngineeringBody;
+  },
+  options: {
+    stagedAt?: string;
+    receiptId?: string;
+    reasons: string[];
+  },
 ): StagedAuthoritySnapshotFiles {
   ensureAuthorityStore(paths);
-  let materialized;
+  const { manifest, engineering } = input;
   try {
-    materialized = materializeAuthoritySnapshot(input);
+    verifyMaterializedSnapshot({ manifest, engineering });
   } catch (error) {
     if (error instanceof AuthoritySnapshotError) throw error;
     throw new AuthoritySnapshotError(
       'materialization-failed',
-      error instanceof Error ? error.message : 'materialization failed',
+      error instanceof Error ? error.message : 'materialized snapshot validation failed',
     );
   }
 
-  const { snapshotId, snapshotHash, manifest, engineering } = materialized;
+  const { snapshotId, snapshotHash } = manifest;
   const dir = releaseDir(paths, snapshotId);
   const manifestPath = join(dir, 'manifest.json');
   const engineeringPath = join(dir, 'engineering.json');
@@ -182,10 +185,11 @@ export function stageAuthoritySnapshot(
     if (
       existingManifest.snapshotHash !== snapshotHash
       || existingManifest.snapshotId !== snapshotId
+      || authorityCanonicalJson(existingEngineering) !== authorityCanonicalJson(engineering)
     ) {
       throw new AuthoritySnapshotError(
         'hash-invalid',
-        'existing snapshot identity conflicts with recomputed digest',
+        'existing snapshot identity conflicts with validated materialization',
       );
     }
     const existingReceipt = existsSync(stageReceiptPath)
@@ -212,26 +216,22 @@ export function stageAuthoritySnapshot(
     };
   }
 
-  // Write into a temporary directory, then rename into place so interrupted
-  // staging never exposes a partial release directory as current.
   const stagingDir = `${dir}.staging-${process.pid}-${randomUUID()}`;
   mkdirSync(stagingDir, { recursive: true });
-  const stagedAt = options.stagedAt ?? new Date().toISOString();
   const stageReceipt = buildStageReceipt({
     snapshotId,
     snapshotHash,
     releaseId: manifest.releaseId,
     releaseSetId: manifest.releaseSetId,
-    stagedAt,
+    stagedAt: options.stagedAt ?? new Date().toISOString(),
     receiptId: options.receiptId,
-    reasons: ['staged-candidate-only', 'selectors-unchanged'],
+    reasons: options.reasons,
   });
 
   try {
     writeJsonAtomic(join(stagingDir, 'engineering.json'), engineering);
     writeJsonAtomic(join(stagingDir, 'manifest.json'), manifest);
     writeJsonAtomic(join(stagingDir, 'stage-receipt.json'), stageReceipt);
-    // Validate what we wrote before publishing the directory name.
     verifyMaterializedSnapshot({
       manifest: readJsonFile(join(stagingDir, 'manifest.json')),
       engineering: readJsonFile(join(stagingDir, 'engineering.json')),
@@ -239,40 +239,12 @@ export function stageAuthoritySnapshot(
     try {
       authorityStoreFs.renameSync(stagingDir, dir);
     } catch (renameError) {
-      // Concurrent stage of the same snapshotId: if an identical published
-      // directory already exists, reuse it instead of failing open races.
       if (existsSync(manifestPath) && existsSync(engineeringPath)) {
         rmSync(stagingDir, { recursive: true, force: true });
-        const existingManifest = readJsonFile<AuthoritySnapshotManifest>(manifestPath);
-        const existingEngineering = readJsonFile<AuthorityEngineeringBody>(engineeringPath);
-        verifyMaterializedSnapshot({
-          manifest: existingManifest,
-          engineering: existingEngineering,
+        return stageMaterializedAuthoritySnapshot(paths, input, {
+          ...options,
+          reasons: ['idempotent-reuse'],
         });
-        if (
-          existingManifest.snapshotHash !== snapshotHash
-          || existingManifest.snapshotId !== snapshotId
-          || authorityCanonicalJson(existingEngineering) !== authorityCanonicalJson(engineering)
-        ) {
-          throw new AuthoritySnapshotError(
-            'hash-invalid',
-            'concurrent staged snapshot identity conflicts with recomputed digest',
-          );
-        }
-        const existingReceipt = existsSync(stageReceiptPath)
-          ? readJsonFile<AuthorityStageReceipt>(stageReceiptPath)
-          : null;
-        return {
-          snapshotId,
-          snapshotHash,
-          manifestPath,
-          engineeringPath,
-          stageReceiptPath,
-          manifest: existingManifest,
-          engineering: existingEngineering,
-          stageReceipt: existingReceipt ?? stageReceipt,
-          reused: true,
-        };
       }
       throw renameError;
     }
@@ -296,6 +268,51 @@ export function stageAuthoritySnapshot(
     stageReceipt,
     reused: false,
   };
+}
+
+/**
+ * Stage an immutable Authority Snapshot from a validated Repository view.
+ * Never mutates authority/current.json or teaching selectors.
+ */
+export function stageAuthoritySnapshot(
+  paths: AuthorityStorePaths,
+  input: MaterializeAuthoritySnapshotInput,
+  options: { stagedAt?: string; receiptId?: string } = {},
+): StagedAuthoritySnapshotFiles {
+  let materialized;
+  try {
+    materialized = materializeAuthoritySnapshot(input);
+  } catch (error) {
+    if (error instanceof AuthoritySnapshotError) throw error;
+    throw new AuthoritySnapshotError(
+      'materialization-failed',
+      error instanceof Error ? error.message : 'materialization failed',
+    );
+  }
+
+  return stageMaterializedAuthoritySnapshot(paths, materialized, {
+    ...options,
+    reasons: ['staged-candidate-only', 'selectors-unchanged'],
+  });
+}
+
+/**
+ * Stage a previously validated, immutable Authority materialization without
+ * reconstructing its upstream repository snapshot. This is for local
+ * promotion of an already verified candidate; it never writes current.json.
+ */
+export function stageAuthoritySnapshotArtifacts(
+  paths: AuthorityStorePaths,
+  input: {
+    manifest: AuthoritySnapshotManifest;
+    engineering: AuthorityEngineeringBody;
+  },
+  options: { stagedAt?: string; receiptId?: string } = {},
+): StagedAuthoritySnapshotFiles {
+  return stageMaterializedAuthoritySnapshot(paths, input, {
+    ...options,
+    reasons: ['staged-from-validated-artifacts', 'selectors-unchanged'],
+  });
 }
 
 function buildStageReceipt(input: {

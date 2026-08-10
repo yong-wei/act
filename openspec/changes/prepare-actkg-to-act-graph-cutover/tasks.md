@@ -57,11 +57,13 @@
   require zero REVIEW_REQUIRED active resources, all package gates published,
   and Authority endpoint closure before staging default-root releases.
 - [ ] 6.3 Build one six-consumer manifest with same-release Authority/Projection
-  pins, successful local shadow evidence, and an exercised old-to-new-to-old
-  rollback path.
+  pins, successful local shadow evidence, and an exercised all-ABSENT to
+  ready to all-ABSENT rollback path.
 - [ ] 6.4 Atomically activate the local Authority, Projection, prerequisite, and
-  shared consumer manifest; re-read all six consumers and preserve rollback
-  receipts without changing legacy-retirement state.
+  shared consumer manifest through a write-ahead, identity-constrained first
+  activation; the consumer pointer is the READY commit point. Re-read all six
+  consumers and preserve rollback receipts without changing legacy-retirement
+  state.
 - [ ] 6.5 Emit the final readiness/activation report, validate the changed
   OpenSpec contract, run the required test suites, and submit the scoped change
   for current-head review.

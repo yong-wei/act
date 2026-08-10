@@ -35,6 +35,7 @@ import {
   shouldStageAuthorityAfterDelta,
   stageAuthorityAfterValidatedBundleImport,
   stageAuthoritySnapshot,
+  stageAuthoritySnapshotArtifacts,
   stagedSnapshotNormalizedBytes,
   type AuthoritativeKnowledgeSnapshot,
   type AuthorityStorePaths,
@@ -337,6 +338,25 @@ describe('Authority Snapshot materialization (#1266)', () => {
     expect(a.manifest.deltaReceiptIds).toEqual(['delta-receipt:x']);
     // No teaching review item created — only stage receipt.
     expect(a.stageReceipt.teachingSelectorsAdvanced).toBe(false);
+  });
+
+  it('stages a separately validated materialization without reconstructing its source snapshot', () => {
+    const sourcePaths = tempAuthorityRoot();
+    const materialized = stageAuthoritySnapshot(sourcePaths, {
+      snapshot: baseSnapshot(),
+      deltaReceiptIds: ['delta-receipt:artifact-stage'],
+    });
+    const targetPaths = tempAuthorityRoot();
+
+    const staged = stageAuthoritySnapshotArtifacts(targetPaths, {
+      manifest: materialized.manifest,
+      engineering: materialized.engineering,
+    });
+
+    expect(staged.snapshotId).toBe(materialized.snapshotId);
+    expect(staged.snapshotHash).toBe(materialized.snapshotHash);
+    expect(staged.stageReceipt.reasons).toContain('staged-from-validated-artifacts');
+    expect(readCurrentAuthorityPointer(targetPaths)).toBeNull();
   });
 });
 

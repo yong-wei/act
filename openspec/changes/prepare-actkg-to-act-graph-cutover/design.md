@@ -145,6 +145,28 @@ would recast missing evidence as intentional absence. Binding every unresolved
 row to a single generic endpoint was rejected because package BOPPPS evidence
 must select the relevant canonical endpoint and remain independently auditable.
 
+### 8. Use a write-ahead first-activation transaction for an all-ABSENT baseline
+
+The current local baseline has no Authority, Teaching Projection, prerequisite,
+or consumer-activation pointer. The switch therefore records a durable,
+hash-sealed write-ahead journal before the first pointer write, holds an
+exclusive local lock, and rechecks that all four pointers remain absent. It
+stages immutable release directories first, verifies an equivalent temporary
+activate-to-ready-to-absent exercise, then advances component pointers in the
+fixed order Authority, Teaching Projection, prerequisite, and shared consumer
+activation.
+
+The consumer pointer is the only READY commit point. Before it is written,
+consumers cannot resolve the new combination. If a write or post-read fails,
+the journal removes only pointers whose current identity exactly matches the
+target identity, in reverse order; any mismatch is concurrent drift and stops
+compensation. The legacy-retirement pointer is neither staged nor changed.
+
+Writing the four pointers without a journal was rejected because a failed first
+switch has no predecessor pointer to restore. Extending every generic store
+with an all-ABSENT rollback mode was rejected because the first-activation
+protocol is narrower and preserves the existing store rollback contracts.
+
 ## Risks / Trade-offs
 
 - [No compatible locally available Release] → stop at Phase 1 with a signed
@@ -171,9 +193,9 @@ must select the relevant canonical endpoint and remain independently auditable.
 2. Materialize and verify the Authority candidate under the per-run root.
 3. Generate and validate formal ACT author decisions, prerequisite decisions,
    deterministic projection, consumer, and readiness evidence.
-4. Exercise rollback, atomically activate the single consumer manifest and its
-   matching Authority/Projection/prerequisite pointers, then re-read all six
-   consumers and record the result.
+4. Exercise the all-ABSENT write-ahead rollback protocol, advance the matching
+   Authority/Projection/prerequisite pointers, atomically commit the single
+   consumer manifest, then re-read all six consumers and record the result.
 5. Commit the activation package. Legacy retirement remains a later operation
    after a zero-fallback observation window.
 

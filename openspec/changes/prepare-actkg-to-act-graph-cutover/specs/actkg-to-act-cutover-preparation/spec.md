@@ -191,4 +191,6 @@ unchanged.
 - **WHEN** a post-switch consumer read does not resolve the pinned Authority or
   Projection identity
 - **THEN** the workflow SHALL restore the preserved predecessor pointer through
-  the existing rollback contract and report the failed observation
+  the existing rollback contract, or, for an all-ABSENT first activation,
+  remove only the journal-bound pointers whose current identities exactly match
+  the new release and report the failed observation
