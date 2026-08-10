@@ -1,9 +1,9 @@
 {
   "status": "passed",
-  "capturedAt": "2026-08-10T15:52:10.222Z",
+  "capturedAt": "2026-08-10T16:52:19.507Z",
   "generatorPath": "tests/arena-training-profile-1040.spec.ts",
-  "generatorSha256": "62b7c2703fc2f65e4f79704e1ec72cbccb90292bc52d4712592bd3d710e051c1",
-  "sourceRevision": "25941e87dcdb98452d4879605a1bc4157e451d6c",
+  "generatorSha256": "4ff4a0935a450612467ad7bdf875c20cf807bd409267cba951d2f816e112036c",
+  "sourceRevision": "904887652a161d4d07fa9322956721524d696633",
   "sourceFiles": {
     "src/app/(main)/profile/page.tsx": "a7fc605f87ff83a419083432e6e2ee5747328a549f919e865841576e0cde88fb",
     "src/app/api/user/profile/route.ts": "efa94aa562e7d6971049b27a6819b431a474bdd4b1b72a27143c51dbeb2b2f00",
@@ -14,8 +14,8 @@
   "fixtureAuthority": "deterministic profile API projection; backend behavior separately verified by profile-route.test.ts",
   "route": "/profile",
   "role": "STUDENT",
-  "captureBeforeHead": "25941e87dcdb98452d4879605a1bc4157e451d6c",
-  "captureAfterHead": "25941e87dcdb98452d4879605a1bc4157e451d6c",
+  "captureBeforeHead": "904887652a161d4d07fa9322956721524d696633",
+  "captureAfterHead": "904887652a161d4d07fa9322956721524d696633",
   "screenshots": [
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-complete-1440x1000.png",
@@ -45,7 +45,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-damaged-320x900.png",
-      "sha256": "5d54ff648f029fed459b4ae848939b5645e4287d8402631a8c04a6d49489ebb9",
+      "sha256": "1f88d7bff51124019bb1b1fbe283c15686cef365d3094996a814dfa3fbfbc8d0",
       "viewport": {
         "width": 320,
         "height": 900
@@ -113,10 +113,9 @@
       "profileVisible:320x900": true,
       "officialSubmissionEmpty:320x900": true,
       "officialEvidenceEmpty:320x900": true,
-      "trainingCard:320x900": true,
-      "previewAndUnofficial:320x900": true,
-      "lowConfidence:320x900": true,
-      "unavailableQualitySummary:320x900": true,
+      "noTrainingSummary:320x900": true,
+      "zeroTrainingCount:320x900": true,
+      "damagedTrainingNotDisplayed:320x900": true,
       "noRawQualityMetricLabels:320x900": true,
       "noUndefined:320x900": true,
       "noHorizontalOverflow:320x900": true
