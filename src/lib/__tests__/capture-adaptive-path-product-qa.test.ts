@@ -1,17 +1,24 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
   assertCapturePageUrl,
+  assertCaptureRevisionProofMatches,
+  assertCaptureRevisionProofUnchanged,
   assertCaptureRevisionUnchanged,
   assertSourcePathsExcludeOutput,
   assertTargetServiceReachable,
   createCaptureUrl,
   createDockReadinessTimeoutMessage,
+  createRevisionProbeUrl,
   dockReadinessSatisfied,
+  fetchCaptureRevisionProof,
+  parseCaptureRevisionProof,
+  PRODUCT_OUTPUT_ROOT,
+  publishStagedCapture,
   readCaptureRevision,
   resolveOutputDirectory,
   resolveTargetBaseUrl,
@@ -70,6 +77,7 @@ describe('adaptive-path QA capture contract', () => {
     expect(() => resolveTargetBaseUrl('localhost:3002')).toThrow(/http or https/);
     expect(() => resolveTargetBaseUrl('ftp://localhost:3002')).toThrow(/http or https/);
     expect(() => resolveTargetBaseUrl('http://user:secret@localhost:3002')).toThrow(/credentials/);
+    expect(() => resolveTargetBaseUrl('https://example.test')).toThrow(/local loopback host/);
 
     const targetUrl = createCaptureUrl('http://localhost:3002', '?demo=1');
     expect(targetUrl).toBe('http://localhost:3002/assessment/adaptive-practice?demo=1');
@@ -86,6 +94,42 @@ describe('adaptive-path QA capture contract', () => {
     })).rejects.toThrow(/ECONNREFUSED/);
     await expect(assertTargetServiceReachable('http://localhost:3002', async () => ({ status: 307 })))
       .resolves.toBeUndefined();
+  });
+
+  it('derives a same-origin revision probe and rejects old, malformed, dirty, or forged proofs', async () => {
+    const proof = {
+      commitSha: 'a'.repeat(40),
+      treeSha: 'b'.repeat(40),
+      sourceFingerprint: 'c'.repeat(64),
+      clean: true,
+    } as const;
+    const probeUrl = 'http://localhost:3002/api/internal/local-qa/revision';
+    expect(createRevisionProbeUrl('http://localhost:3002')).toBe(probeUrl);
+    expect(createRevisionProbeUrl('http://localhost:3002/')).toBe(probeUrl);
+    expect(parseCaptureRevisionProof(proof)).toEqual(proof);
+
+    await expect(fetchCaptureRevisionProof('http://localhost:3002', async (input) => {
+      expect(input).toBe(probeUrl);
+      return new Response(null, { status: 404 });
+    })).rejects.toThrow(/HTTP 404/u);
+    await expect(fetchCaptureRevisionProof('http://localhost:3002', async () => (
+      new Response(JSON.stringify({ ...proof, suppliedByCaller: true }), { status: 200 })
+    ))).rejects.toThrow(/unexpected fields/u);
+    await expect(fetchCaptureRevisionProof('http://localhost:3002', async () => (
+      new Response(JSON.stringify({ ...proof, clean: false }), { status: 200 })
+    ))).rejects.toThrow(/dirty service/u);
+    await expect(fetchCaptureRevisionProof('http://localhost:3002', async () => (
+      new Response('{not-json', { status: 200 })
+    ))).rejects.toThrow(/invalid JSON/u);
+
+    expect(() => assertCaptureRevisionProofMatches(proof, {
+      ...proof,
+      commitSha: 'd'.repeat(40),
+    })).toThrow(/commitSha/u);
+    expect(() => assertCaptureRevisionProofUnchanged(proof, {
+      ...proof,
+      sourceFingerprint: 'e'.repeat(64),
+    })).toThrow(/sourceFingerprint/u);
   });
 
   it('waits through delayed dock registration instead of accepting the first DOM snapshot', async () => {
@@ -151,6 +195,8 @@ describe('adaptive-path QA capture contract', () => {
       const revision = readCaptureRevision(fixtureRoot, sourceFiles);
       expect(revision.commitSha).toMatch(/^[0-9a-f]{40}$/u);
       expect(revision.treeSha).toMatch(/^[0-9a-f]{40}$/u);
+      expect(revision.sourceFingerprint).toMatch(/^[0-9a-f]{64}$/u);
+      expect(revision.clean).toBe(true);
       expect(revision.sourceFiles['src/page.tsx']).toBeTruthy();
 
       const matchingRevision: CaptureRevision = {
@@ -173,7 +219,30 @@ describe('adaptive-path QA capture contract', () => {
   it('defaults verification output outside the repository and resolves explicit paths', () => {
     const repositoryRoot = '/repo/act';
     expect(resolveOutputDirectory(undefined, repositoryRoot)).toContain(os.tmpdir());
-    expect(resolveOutputDirectory('tmp/capture', repositoryRoot)).toBe('/repo/act/tmp/capture');
-    expect(resolveOutputDirectory('/var/tmp/capture', repositoryRoot)).toBe('/var/tmp/capture');
+    expect(resolveOutputDirectory('.', repositoryRoot)).toBe(`/repo/act/${PRODUCT_OUTPUT_ROOT}`);
+    expect(resolveOutputDirectory('tmp/capture', repositoryRoot)).toBe(`/repo/act/${PRODUCT_OUTPUT_ROOT}/tmp/capture`);
+    expect(() => resolveOutputDirectory('/var/tmp/capture', repositoryRoot)).toThrow(/relative subpath/u);
+    expect(() => resolveOutputDirectory('../capture', repositoryRoot)).toThrow(/remain below/u);
+  });
+
+  it('publishes a complete temp capture atomically and rejects symlink escape', () => {
+    const fixtureRoot = createRevisionFixture();
+    const stagingRoot = mkdtempSync(path.join(os.tmpdir(), 'adaptive-path-capture-staging-'));
+    const targetRoot = path.join(fixtureRoot, PRODUCT_OUTPUT_ROOT);
+    try {
+      writeFileSync(path.join(stagingRoot, 'capture-manifest.json'), '{"ok":true}\n');
+      writeFileSync(path.join(stagingRoot, 'state.png'), 'png-bytes');
+      publishStagedCapture(stagingRoot, targetRoot, fixtureRoot);
+      expect(readFileSync(path.join(targetRoot, 'capture-manifest.json'), 'utf8')).toBe('{"ok":true}\n');
+      expect(readFileSync(path.join(targetRoot, 'state.png'), 'utf8')).toBe('png-bytes');
+
+      const escaped = path.join(targetRoot, 'escape');
+      symlinkSync(os.tmpdir(), escaped, 'dir');
+      expect(() => publishStagedCapture(stagingRoot, escaped, fixtureRoot)).toThrow(/symbolic link/u);
+      expect(existsSync(path.join(targetRoot, 'capture-manifest.json'))).toBe(true);
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+      rmSync(stagingRoot, { recursive: true, force: true });
+    }
   });
 });

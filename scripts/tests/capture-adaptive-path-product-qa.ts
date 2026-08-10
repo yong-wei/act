@@ -1,9 +1,28 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { chromium, type Page } from 'playwright';
+
+import {
+  CAPTURE_REVISION_SOURCE_FILES,
+  ADAPTIVE_PATH_QA_PRODUCT_OUTPUT_ROOT,
+  REVISION_PROBE_PATH,
+  computeCaptureRevisionProof,
+  type CaptureRevisionProof,
+} from '../../src/lib/commercial-ui-capture-revision';
 
 const repoRoot = path.resolve(__dirname, '../..');
 const DEFAULT_DOCK_READY_TIMEOUT_MS = 30_000;
@@ -12,12 +31,7 @@ export const DOCK_SELECTOR = '[data-platform-floating-dock]';
 export const PRIMARY_KONLING_SELECTOR =
   '[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]';
 export const DOCK_REGISTRATION_SELECTOR = '[data-platform-floating-dock-registration="true"]';
-export const CAPTURE_SOURCE_FILES = [
-  'src/app/assessment/adaptive-practice/page.tsx',
-  'src/components/platform/app-shell.tsx',
-  'src/components/shared/page-floating-controls.tsx',
-  'scripts/tests/capture-adaptive-path-product-qa.ts',
-] as const;
+export const CAPTURE_SOURCE_FILES = CAPTURE_REVISION_SOURCE_FILES;
 
 type Theme = 'light' | 'dark';
 type CaptureState = {
@@ -30,11 +44,110 @@ type CaptureState = {
   beforeScreenshot?: (page: Page) => Promise<void>;
 };
 
-export type CaptureRevision = {
-  commitSha: string;
-  treeSha: string;
+export type CaptureRevision = CaptureRevisionProof & {
   sourceFiles: Record<string, string>;
 };
+
+export const PRODUCT_OUTPUT_ROOT = ADAPTIVE_PATH_QA_PRODUCT_OUTPUT_ROOT;
+
+const REVISION_SHA_PATTERN = /^[0-9a-f]{40}$/u;
+const SOURCE_FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/u;
+const REVISION_PROOF_KEYS = ['clean', 'commitSha', 'sourceFingerprint', 'treeSha'] as const;
+
+type RevisionProbeFetcher = (
+  input: string,
+  init?: RequestInit,
+) => Promise<Pick<Response, 'status' | 'json'>>;
+
+export function createRevisionProbeUrl(baseUrl: string) {
+  return new URL(REVISION_PROBE_PATH, `${baseUrl}/`).toString();
+}
+
+export function parseCaptureRevisionProof(payload: unknown): CaptureRevisionProof {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new Error('Revision probe returned a malformed proof.');
+  }
+
+  const record = payload as Record<string, unknown>;
+  const actualKeys = Object.keys(record).sort();
+  const expectedKeys = [...REVISION_PROOF_KEYS].sort();
+  if (actualKeys.length !== expectedKeys.length || actualKeys.some((key, index) => key !== expectedKeys[index])) {
+    throw new Error('Revision probe returned a proof with unexpected fields.');
+  }
+  if (
+    typeof record.commitSha !== 'string'
+    || !REVISION_SHA_PATTERN.test(record.commitSha)
+    || typeof record.treeSha !== 'string'
+    || !REVISION_SHA_PATTERN.test(record.treeSha)
+    || typeof record.sourceFingerprint !== 'string'
+    || !SOURCE_FINGERPRINT_PATTERN.test(record.sourceFingerprint)
+    || typeof record.clean !== 'boolean'
+  ) {
+    throw new Error('Revision probe returned a proof with invalid fields.');
+  }
+
+  return {
+    commitSha: record.commitSha,
+    treeSha: record.treeSha,
+    sourceFingerprint: record.sourceFingerprint,
+    clean: record.clean,
+  };
+}
+
+export async function fetchCaptureRevisionProof(
+  baseUrl: string,
+  fetcher: RevisionProbeFetcher = fetch,
+) {
+  const probeUrl = createRevisionProbeUrl(baseUrl);
+  let response: Pick<Response, 'status' | 'json'>;
+  try {
+    response = await fetcher(probeUrl, {
+      cache: 'no-store',
+      redirect: 'manual',
+      headers: { accept: 'application/json' },
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`Adaptive-path QA revision probe is unreachable: ${probeUrl} (${detail})`);
+  }
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(`Adaptive-path QA revision probe failed: ${probeUrl} HTTP ${response.status}`);
+  }
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error(`Adaptive-path QA revision probe returned invalid JSON: ${probeUrl}`);
+  }
+  const proof = parseCaptureRevisionProof(payload);
+  if (!proof.clean) {
+    throw new Error(`Adaptive-path QA revision probe reported a dirty service: ${probeUrl}`);
+  }
+  return proof;
+}
+
+export function assertCaptureRevisionProofMatches(
+  expected: CaptureRevisionProof,
+  actual: CaptureRevisionProof,
+  label = 'capture revision proof',
+) {
+  if (!actual.clean) {
+    throw new Error(`${label} is dirty; refusing to accept capture evidence.`);
+  }
+  for (const field of ['commitSha', 'treeSha', 'sourceFingerprint'] as const) {
+    if (actual[field] !== expected[field]) {
+      throw new Error(`${label} mismatch: ${field} expected=${expected[field]} actual=${actual[field]}`);
+    }
+  }
+}
+
+export function assertCaptureRevisionProofUnchanged(
+  initial: CaptureRevisionProof,
+  current: CaptureRevisionProof,
+) {
+  assertCaptureRevisionProofMatches(initial, current, 'capture service revision proof');
+}
 
 export type DockReadinessSnapshot = {
   targetUrl: string;
@@ -116,6 +229,9 @@ export function resolveTargetBaseUrl(rawValue = process.env.ADAPTIVE_PATH_QA_BAS
   if (parsed.username || parsed.password || parsed.search || parsed.hash) {
     throw new Error('Adaptive-path QA target URL must not contain credentials, query, or hash.');
   }
+  if (!['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname)) {
+    throw new Error(`Adaptive-path QA target URL must use a local loopback host: ${value}`);
+  }
 
   parsed.pathname = parsed.pathname.replace(/\/+$/u, '');
   return parsed.toString().replace(/\/$/u, '');
@@ -129,7 +245,20 @@ export function resolveOutputDirectory(
   if (!value) {
     return path.join(os.tmpdir(), `act-adaptive-path-product-qa-${process.pid}`);
   }
-  return path.isAbsolute(value) ? path.resolve(value) : path.resolve(repositoryRoot, value);
+  if (path.isAbsolute(value)) {
+    throw new Error(
+      `ADAPTIVE_PATH_QA_OUTPUT_DIR must be a relative subpath below ${PRODUCT_OUTPUT_ROOT}.`,
+    );
+  }
+
+  const productRoot = path.resolve(repositoryRoot, PRODUCT_OUTPUT_ROOT);
+  const outputDirectory = path.resolve(productRoot, value);
+  if (!pathIsWithin(outputDirectory, productRoot)) {
+    throw new Error(
+      `ADAPTIVE_PATH_QA_OUTPUT_DIR must remain below ${PRODUCT_OUTPUT_ROOT}: ${value}`,
+    );
+  }
+  return outputDirectory;
 }
 
 export function assertSourcePathsExcludeOutput(
@@ -156,8 +285,10 @@ export function readCaptureRevision(
     throw new Error(`Capture requires a clean source tree:\n${dirtyPaths.join('\n')}`);
   }
 
-  const commitSha = gitOutput(repositoryRoot, ['rev-parse', '--verify', 'HEAD^{commit}']);
-  const treeSha = gitOutput(repositoryRoot, ['rev-parse', '--verify', 'HEAD^{tree}']);
+  const proof = computeCaptureRevisionProof(repositoryRoot, sourceFiles, ignoredPaths);
+  if (!proof.clean) {
+    throw new Error('Capture requires a clean source tree.');
+  }
   const sourceHashes: Record<string, string> = {};
   for (const sourceFile of sourceFiles) {
     gitOutput(repositoryRoot, ['ls-files', '--error-unmatch', '--', sourceFile]);
@@ -172,7 +303,7 @@ export function readCaptureRevision(
     sourceHashes[sourceFile] = workingTreeSha;
   }
 
-  return { commitSha, treeSha, sourceFiles: sourceHashes };
+  return { ...proof, sourceFiles: sourceHashes };
 }
 
 export function assertCaptureRevisionUnchanged(
@@ -184,6 +315,14 @@ export function assertCaptureRevisionUnchanged(
   }
   if (currentRevision.treeSha !== initialRevision.treeSha) {
     throw new Error(`Capture tree drifted: ${initialRevision.treeSha}->${currentRevision.treeSha}`);
+  }
+  if (currentRevision.sourceFingerprint !== initialRevision.sourceFingerprint) {
+    throw new Error(
+      `Capture source fingerprint drifted: ${initialRevision.sourceFingerprint}->${currentRevision.sourceFingerprint}`,
+    );
+  }
+  if (!currentRevision.clean) {
+    throw new Error('Capture source tree became dirty during capture.');
   }
   for (const [sourceFile, sourceSha] of Object.entries(initialRevision.sourceFiles)) {
     if (currentRevision.sourceFiles[sourceFile] !== sourceSha) {
@@ -282,10 +421,142 @@ function sha256File(absolutePath: string) {
   return createHash('sha256').update(readFileSync(absolutePath)).digest('hex');
 }
 
-function manifestFilePath(absolutePath: string, repositoryRoot = repoRoot) {
-  return pathIsWithin(absolutePath, repositoryRoot)
-    ? path.relative(repositoryRoot, absolutePath)
-    : absolutePath;
+function manifestFilePath(absolutePath: string, stagingDirectory: string) {
+  const relative = path.relative(stagingDirectory, absolutePath);
+  if (relative === '' || relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error(`Capture artifact escaped staging directory: ${absolutePath}`);
+  }
+  return path.posix.join(PRODUCT_OUTPUT_ROOT, relative.split(path.sep).join('/'));
+}
+
+function pathExists(absolutePath: string) {
+  try {
+    lstatSync(absolutePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function assertNoSymlinkPath(absolutePath: string, boundary: string) {
+  const resolvedPath = path.resolve(absolutePath);
+  const resolvedBoundary = path.resolve(boundary);
+  if (!pathIsWithin(resolvedPath, resolvedBoundary)) {
+    throw new Error(`Capture publish path escaped its boundary: ${absolutePath}`);
+  }
+  if (pathExists(resolvedBoundary) && lstatSync(resolvedBoundary).isSymbolicLink()) {
+    throw new Error(`Capture publish path contains a symbolic link: ${resolvedBoundary}`);
+  }
+  if (pathExists(resolvedPath) && lstatSync(resolvedPath).isSymbolicLink()) {
+    throw new Error(`Capture publish path contains a symbolic link: ${resolvedPath}`);
+  }
+
+  const relative = path.relative(resolvedBoundary, resolvedPath);
+  const segments = relative ? relative.split(path.sep) : [];
+  let cursor = resolvedBoundary;
+  for (const segment of segments) {
+    cursor = path.join(cursor, segment);
+    if (pathExists(cursor) && lstatSync(cursor).isSymbolicLink()) {
+      throw new Error(`Capture publish path contains a symbolic link: ${cursor}`);
+    }
+  }
+}
+
+function listRegularFiles(root: string, current = root): string[] {
+  const entries = readdirSync(current, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const absolutePath = path.join(current, entry.name);
+    if (entry.isSymbolicLink()) {
+      throw new Error(`Capture staging contains a symbolic link: ${absolutePath}`);
+    }
+    if (entry.isDirectory()) {
+      files.push(...listRegularFiles(root, absolutePath));
+    } else if (entry.isFile()) {
+      files.push(path.relative(root, absolutePath));
+    } else {
+      throw new Error(`Capture staging contains an unsupported entry: ${absolutePath}`);
+    }
+  }
+  return files.sort();
+}
+
+function hashDirectoryFiles(root: string) {
+  return new Map(listRegularFiles(root).map((relativePath) => [
+    relativePath,
+    sha256File(path.join(root, relativePath)),
+  ]));
+}
+
+function assertDirectoryHashesMatch(root: string, expected: Map<string, string>) {
+  const actual = hashDirectoryFiles(root);
+  if (actual.size !== expected.size) {
+    throw new Error(`Published capture file count changed: expected=${expected.size} actual=${actual.size}`);
+  }
+  for (const [relativePath, expectedSha] of expected) {
+    if (actual.get(relativePath) !== expectedSha) {
+      throw new Error(`Published capture file changed: ${relativePath}`);
+    }
+  }
+}
+
+/**
+ * Publish a fully verified temp capture as one directory replacement. The
+ * target is never touched until all capture proofs have passed and every
+ * staged file has a recorded hash.
+ */
+export function publishStagedCapture(
+  stagingDirectory: string,
+  outputDirectory: string,
+  repositoryRoot = repoRoot,
+) {
+  const stagingRoot = path.resolve(stagingDirectory);
+  const target = path.resolve(outputDirectory);
+  const productRoot = path.resolve(repositoryRoot, PRODUCT_OUTPUT_ROOT);
+  if (!pathExists(stagingRoot) || !lstatSync(stagingRoot).isDirectory()) {
+    throw new Error(`Capture staging directory is missing: ${stagingDirectory}`);
+  }
+  if (pathIsWithin(target, productRoot)) {
+    assertNoSymlinkPath(productRoot, path.resolve(repositoryRoot));
+    assertNoSymlinkPath(target, productRoot);
+  } else {
+    assertNoSymlinkPath(target, os.tmpdir());
+  }
+
+  const expectedHashes = hashDirectoryFiles(stagingRoot);
+  if (expectedHashes.size === 0) {
+    throw new Error('Capture staging directory is empty.');
+  }
+
+  const parent = path.dirname(target);
+  mkdirSync(parent, { recursive: true });
+  const sibling = path.join(parent, `.${path.basename(target)}.staging-${process.pid}-${randomUUID()}`);
+  const backup = path.join(parent, `.${path.basename(target)}.backup-${process.pid}-${randomUUID()}`);
+  let targetMovedToBackup = false;
+  let targetInstalled = false;
+
+  try {
+    cpSync(stagingRoot, sibling, { recursive: true, force: false, errorOnExist: true });
+    assertDirectoryHashesMatch(sibling, expectedHashes);
+
+    if (pathExists(target)) {
+      if (lstatSync(target).isSymbolicLink()) {
+        throw new Error(`Capture publish target is a symbolic link: ${target}`);
+      }
+      renameSync(target, backup);
+      targetMovedToBackup = true;
+    }
+    renameSync(sibling, target);
+    targetInstalled = true;
+    assertDirectoryHashesMatch(target, expectedHashes);
+    if (targetMovedToBackup) rmSync(backup, { recursive: true, force: true });
+  } catch (error) {
+    if (targetInstalled && pathExists(target)) rmSync(target, { recursive: true, force: true });
+    if (targetMovedToBackup && pathExists(backup)) renameSync(backup, target);
+    throw error;
+  } finally {
+    if (pathExists(sibling)) rmSync(sibling, { recursive: true, force: true });
+  }
 }
 
 async function setTheme(page: Page, theme: Theme) {
@@ -642,74 +913,90 @@ async function main() {
   assertSourcePathsExcludeOutput(CAPTURE_SOURCE_FILES, outputDir);
   await assertTargetServiceReachable(targetBaseUrl);
   const initialRevision = readCaptureRevision(repoRoot, CAPTURE_SOURCE_FILES);
-  mkdirSync(outputDir, { recursive: true });
-  const browser = await chromium.launch({ headless: true });
-  const captures = [];
-  const signals: CaptureSignal[] = [];
+  const initialServiceProof = await fetchCaptureRevisionProof(targetBaseUrl);
+  assertCaptureRevisionProofMatches(initialRevision, initialServiceProof, 'initial target service revision proof');
+  const stagingDir = mkdtempSync(path.join(os.tmpdir(), `act-adaptive-path-product-qa-${process.pid}-`));
   try {
-    for (const state of states) {
-      const page = await browser.newPage({ viewport: { width: state.width, height: state.height } });
-      await setTheme(page, state.theme);
-      const targetUrl = createCaptureUrl(targetBaseUrl, state.query);
-      const response = await page.goto(targetUrl, { waitUntil: 'networkidle' });
-      if (!response || response.status() >= 400) {
-        throw new Error(
-          `Adaptive-path QA navigation failed: targetUrl=${targetUrl} actualUrl=${page.url()} status=${response?.status() ?? 'no-response'}`,
-        );
+    const browser = await chromium.launch({ headless: true });
+    const captures = [];
+    const signals: CaptureSignal[] = [];
+    try {
+      for (const state of states) {
+        const page = await browser.newPage({ viewport: { width: state.width, height: state.height } });
+        await setTheme(page, state.theme);
+        const targetUrl = createCaptureUrl(targetBaseUrl, state.query);
+        const response = await page.goto(targetUrl, { waitUntil: 'networkidle' });
+        if (!response || response.status() >= 400) {
+          throw new Error(
+            `Adaptive-path QA navigation failed: targetUrl=${targetUrl} actualUrl=${page.url()} status=${response?.status() ?? 'no-response'}`,
+          );
+        }
+        assertCapturePageUrl(targetUrl, page.url());
+        await page.waitForSelector('[data-adaptive-path-center="generation-selection"]', { timeout: 30000 });
+        if (state.beforeScreenshot) await state.beforeScreenshot(page);
+        const absolutePath = path.join(stagingDir, `${state.name}.png`);
+        const manifestPath = manifestFilePath(absolutePath, stagingDir);
+        if (state.selector) {
+          await page.locator(state.selector).first().screenshot({ path: absolutePath });
+        } else {
+          await page.screenshot({ path: absolutePath, fullPage: true });
+        }
+        const sha256 = sha256File(absolutePath);
+        captures.push({
+          name: state.name,
+          theme: state.theme,
+          width: state.width,
+          height: state.height,
+          url: page.url(),
+          targetUrl,
+          selector: state.selector,
+          file: manifestPath,
+          sha256,
+        });
+        signals.push(await collectSignals(page, state, manifestPath));
+        await page.close();
       }
-      assertCapturePageUrl(targetUrl, page.url());
-      await page.waitForSelector('[data-adaptive-path-center="generation-selection"]', { timeout: 30000 });
-      if (state.beforeScreenshot) await state.beforeScreenshot(page);
-      const absolutePath = path.join(outputDir, `${state.name}.png`);
-      const manifestPath = manifestFilePath(absolutePath);
-      if (state.selector) {
-        await page.locator(state.selector).first().screenshot({ path: absolutePath });
-      } else {
-        await page.screenshot({ path: absolutePath, fullPage: true });
-      }
-      const sha256 = sha256File(absolutePath);
-      captures.push({
-        name: state.name,
-        theme: state.theme,
-        width: state.width,
-        height: state.height,
-        url: page.url(),
-        targetUrl,
-        selector: state.selector,
-        file: manifestPath,
-        sha256,
-      });
-      signals.push(await collectSignals(page, state, manifestPath));
-      await page.close();
+    } finally {
+      await browser.close();
     }
+
+    assertPathComparisonSignals(signals);
+
+    const finalRevision = readCaptureRevision(
+      repoRoot,
+      CAPTURE_SOURCE_FILES,
+    );
+    const finalServiceProof = await fetchCaptureRevisionProof(targetBaseUrl);
+    assertCaptureRevisionProofMatches(finalRevision, finalServiceProof, 'final target service revision proof');
+    assertCaptureRevisionProofUnchanged(initialServiceProof, finalServiceProof);
+    const postProbeRevision = readCaptureRevision(
+      repoRoot,
+      CAPTURE_SOURCE_FILES,
+    );
+    assertCaptureRevisionUnchanged(initialRevision, postProbeRevision);
+    assertCaptureRevisionProofMatches(postProbeRevision, finalServiceProof, 'post-probe local revision proof');
+
+    writeFileSync(path.join(stagingDir, 'capture-manifest.json'), `${JSON.stringify({
+      schemaVersion: 'adaptive-path-product-qa-capture.v2',
+      capturedAt: new Date().toISOString(),
+      baseUrl: targetBaseUrl,
+      targetBaseUrl,
+      workspaceClean: postProbeRevision.clean,
+      captureRevision: finalServiceProof.commitSha,
+      captureTreeSha: finalServiceProof.treeSha,
+      captureSourceFingerprint: finalServiceProof.sourceFingerprint,
+      captureRevisionProof: finalServiceProof,
+      captureSourceFiles: [...CAPTURE_SOURCE_FILES],
+      sourceFiles: [...CAPTURE_SOURCE_FILES],
+      outputDirectory: PRODUCT_OUTPUT_ROOT,
+      captures,
+    }, null, 2)}\n`);
+    writeFileSync(path.join(stagingDir, 'visual-signals.json'), `${JSON.stringify(signals, null, 2)}\n`);
+    publishStagedCapture(stagingDir, outputDir);
+    console.log(`Captured ${captures.length} adaptive path QA states in ${manifestFilePath(path.join(outputDir, 'capture-manifest.json'), outputDir)}`);
   } finally {
-    await browser.close();
+    if (pathExists(stagingDir)) rmSync(stagingDir, { recursive: true, force: true });
   }
-
-  assertPathComparisonSignals(signals);
-
-  const finalRevision = readCaptureRevision(
-    repoRoot,
-    CAPTURE_SOURCE_FILES,
-    pathIsWithin(outputDir, repoRoot) ? [outputDir] : [],
-  );
-  assertCaptureRevisionUnchanged(initialRevision, finalRevision);
-
-  writeFileSync(path.join(outputDir, 'capture-manifest.json'), `${JSON.stringify({
-    schemaVersion: 'adaptive-path-product-qa-capture.v2',
-    capturedAt: new Date().toISOString(),
-    baseUrl: targetBaseUrl,
-    targetBaseUrl,
-    workspaceClean: true,
-    captureRevision: initialRevision.commitSha,
-    captureTreeSha: initialRevision.treeSha,
-    captureSourceFiles: initialRevision.sourceFiles,
-    sourceFiles: Object.keys(initialRevision.sourceFiles),
-    outputDirectory: manifestFilePath(outputDir),
-    captures,
-  }, null, 2)}\n`);
-  writeFileSync(path.join(outputDir, 'visual-signals.json'), `${JSON.stringify(signals, null, 2)}\n`);
-  console.log(`Captured ${captures.length} adaptive path QA states in ${manifestFilePath(outputDir)}`);
 }
 
 if (require.main === module) {
