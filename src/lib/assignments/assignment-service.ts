@@ -4,6 +4,10 @@ import {
   AssignmentDomainError,
   assignmentDraftPersistenceSchema,
   assignmentDraftSchema,
+  createDraftQuestionSnapshot,
+  createQuestionSnapshot,
+  stableHash,
+  verifyCatalogSelectionIdentity,
   validatePublicationSchedule,
   validatePublicationScores,
   type AssignmentAudienceInput,
@@ -11,12 +15,6 @@ import {
   type AssignmentDraftPersistenceInput,
   type AssignmentQuestionSnapshot,
 } from './assignment-domain';
-import {
-  createDraftQuestionSnapshot,
-  createQuestionSnapshot,
-  stableHash,
-  verifyCatalogSelectionIdentity,
-} from './assignment-integrity';
 import { migrateLegacyAssignmentDraftToRubricV2 } from './assignment-rubric-migration';
 import {
   assertAssignmentRevisionAssetReferences,

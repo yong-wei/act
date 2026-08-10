@@ -1,6 +1,6 @@
 {
   "capturedAt": "2026-08-10T06:45:48.324Z",
-  "commitSha": "35c0bf0030370235252034b396eae0c4f11c2d1a",
+  "commitSha": "35c0bf0037c1ee97f794a9ea41a9f0acb3ba7a82",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
   "captureMethod": "Playwright with Google Chrome channel against local Next.js Webpack dev server",
   "fixtureAuthority": "Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are scoped Playwright fixtures so available, unavailable, and retry states are deterministic; route and component tests cover the server contract.",

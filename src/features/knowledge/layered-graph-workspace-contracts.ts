@@ -6,6 +6,22 @@
  */
 
 export {
+  LAYERED_GRAPH_FILTER_MODES,
+  buildLayeredGraphWorkspaceFilterState,
+  buildLayeredInspectorEvidenceGroups,
+  layeredStatusLabel,
+  selectLayeredGraphView,
+} from '@/lib/layered-graph/workspace';
+
+export type {
+  LayerFilterMode,
+  LayeredGraphWorkspaceFilterState,
+  LayeredNodeInspectorSections,
+} from '@/lib/layered-graph/contracts';
+
+export type { LayeredInspectorEvidenceGroup } from '@/lib/layered-graph/workspace';
+
+export {
   resolveStepDrawerContent,
   resolveStepDrawerEntries,
   teachingResourceTypeLabel,

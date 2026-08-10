@@ -3,8 +3,7 @@ import { join } from 'node:path';
 import { Prisma } from '@prisma/client';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AssignmentDomainError } from '../assignments/assignment-domain';
-import { createQuestionSnapshot, signCatalogSelectionIdentity, stableHash } from '../assignments/assignment-integrity';
+import { AssignmentDomainError, createQuestionSnapshot, signCatalogSelectionIdentity, stableHash } from '../assignments/assignment-domain';
 import { buildRubricBackedSubjectiveAssignmentFixture } from '../assignments/assignment-fixtures';
 import { assignmentPublicationIdempotencyKey, createAssignmentDraft, createNextDraftRevision, deleteDraftRevision, publishAssignmentRevision, updateAssignmentDraft } from '../assignments/assignment-service';
 

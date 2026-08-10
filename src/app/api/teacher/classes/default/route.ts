@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { teacherDefaultClassService } from '@/lib/teacher-default-class-service';
-import { defaultClassServiceErrorResponse } from '@/lib/teacher-default-class-route-error';
+import { defaultClassServiceErrorResponse } from '../route';
 
 export const dynamic = 'force-dynamic';
 

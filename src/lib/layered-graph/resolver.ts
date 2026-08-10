@@ -30,7 +30,6 @@ import type {
   LayeredGraphScope,
   TeachingResourceBindingView,
 } from './contracts';
-export { buildTeachingResourceBindingViews } from './bindings';
 
 export interface LayeredGraphAuthorityPin {
   /** Explicit Authority snapshot from a non-engineering consumer activation. */
@@ -738,5 +737,29 @@ function legacyFallback(
     reasons: fallback.reasons,
     fallback,
     scope,
+  });
+}
+
+export function buildTeachingResourceBindingViews(input: {
+  bindings: readonly TeachingBindingRuntime[];
+  resources: readonly TeachingResourceRuntime[];
+}): TeachingResourceBindingView[] {
+  const resourcesById = new Map(
+    input.resources.map((resource) => [resource.resourceId, resource]),
+  );
+  return input.bindings.map((binding) => {
+    const resource = resourcesById.get(binding.resourceId);
+    return {
+      bindingId: binding.bindingId,
+      resourceId: binding.resourceId,
+      canonicalId: binding.canonicalId,
+      role: binding.role,
+      scopeId: binding.scopeId,
+      primary: binding.primary,
+      resourceType: resource?.resourceType ?? null,
+      resourceTitle: resource?.title ?? null,
+      projectionMode: resource?.projectionMode ?? null,
+      sourcePath: binding.sourcePath ?? resource?.sourcePath ?? null,
+    };
   });
 }

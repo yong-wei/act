@@ -5,7 +5,9 @@ import { tmpdir } from 'node:os';
 import { extname, join } from 'node:path';
 import { promisify } from 'node:util';
 
-import { assertSubmissionObjectIntegrity } from '@/lib/assignments/submission-integrity';
+import {
+  assertSubmissionObjectIntegrity,
+} from '@/lib/assignments/submission-domain';
 import type { StoredObjectMetadata, SubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import {
   assignmentAttachmentRoute,
