@@ -22,6 +22,9 @@ import {
   buildTeachingResourceLaunchMaps,
 } from '../../src/lib/layered-graph/course-page-context';
 import {
+  buildActiveCourseInventory,
+} from '../../src/lib/teaching-projection/active-inventory';
+import {
   executeFirstActivation,
   readFirstActivationPointerIdentity,
   rollbackCommittedFirstActivation,
@@ -48,7 +51,6 @@ import {
   stageTeachingProjectionArtifacts,
 } from '../../src/lib/teaching-projection/store';
 import {
-  assertBlueprintBindingsMatchRevision,
   loadActkgCutoverBlueprintBindings,
 } from '../../src/lib/teaching-projection/actkg-cutover-blueprint-bindings';
 import {
@@ -78,6 +80,10 @@ import {
   type ConsumerActivationId,
   type StagedActivationArtifactSet,
 } from '../../src/lib/versioned-knowledge-activation';
+import {
+  DEFAULT_CAPTURE_BOUND_INPUT_MANIFEST_RELATIVE,
+  materializeCaptureBoundInputs,
+} from '../../src/lib/knowledge-cutover/capture-bound-inputs';
 
 const COMMIT = /^[a-f0-9]{40}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -414,31 +420,56 @@ async function main(): Promise<void> {
   const outputRoot = path.resolve(option('--output-root'));
   if (!COMMIT.test(captureRevision)) fail('captureRevision must be a 40-character Git SHA');
   assertCaptureHead(repoRoot, captureRevision);
+  const capturedInputs = materializeCaptureBoundInputs({
+    repoRoot,
+    captureRevision,
+    manifestPath: DEFAULT_CAPTURE_BOUND_INPUT_MANIFEST_RELATIVE,
+  });
+  try {
+    const captureRoot = capturedInputs.snapshotRoot;
   assertFirstActivationPrestate(repoRoot);
 
   const authorityCandidate = loadStagedAuthority({
     manifestPath: authorityManifestPath,
     authorityCaptureRevision: captureRevision,
   });
-  const legacy = loadLegacyCrosswalk(path.join(repoRoot, 'course-content/authoring/knowledge/teaching-projection/legacy-crosswalk.jsonl'));
-  const cardDocument = loadCardCrosswalk(path.join(repoRoot, 'course-content/authoring/knowledge/teaching-projection/cards/card-crosswalk.jsonl'));
+  const inventory = buildActiveCourseInventory({
+    repoRoot: captureRoot,
+    authoringRevision: captureRevision,
+    packages: capturedInputs.manifest.inventorySelection.packages,
+    allowWorkingTreeBytes: true,
+    skipMissingRuntime: false,
+    includeIdentityDenominator: false,
+  });
+  const capturedPaths = new Set([
+    ...capturedInputs.receipt.files.map((file) => file.path),
+    ...capturedInputs.receipt.collections.flatMap((collection) => collection.members.map((file) => file.path)),
+  ]);
+  for (const sourcePath of inventory.packages.flatMap((pkg) => pkg.sourcePaths)) {
+    const pathWithoutFragment = sourcePath.split('#', 1)[0]!;
+    if (!capturedPaths.has(pathWithoutFragment)) {
+      fail(`active inventory read is not capture-declared: ${pathWithoutFragment}`);
+    }
+  }
+  const legacy = loadLegacyCrosswalk(path.join(captureRoot, 'course-content/authoring/knowledge/teaching-projection/legacy-crosswalk.jsonl'));
+  const cardDocument = loadCardCrosswalk(path.join(captureRoot, 'course-content/authoring/knowledge/teaching-projection/cards/card-crosswalk.jsonl'));
   const cards = cardDocument.entries.map((entry) => ({
     cardId: entry.cardId ?? entry.legacyNodeId,
     canonicalId: entry.canonicalId,
     active: !entry.stale,
     legacyNodeId: entry.legacyNodeId,
   }));
-  const decisions = loadAuthorDecisionsFromFile(defaultAuthorDecisionsPath(path.join(repoRoot, 'course-content/authoring/knowledge/teaching-projection')));
-  const bindings = loadActkgCutoverBlueprintBindings({ repoRoot });
-  assertBlueprintBindingsMatchRevision({ repoRoot, authoringRevision: captureRevision });
+  const decisions = loadAuthorDecisionsFromFile(defaultAuthorDecisionsPath(path.join(captureRoot, 'course-content/authoring/knowledge/teaching-projection')));
+  const bindings = loadActkgCutoverBlueprintBindings({ repoRoot: captureRoot });
   const candidate = buildTeachingProjectionCandidate({
-    repoRoot,
+    repoRoot: captureRoot,
     authoringRevision: captureRevision,
     authority: authorityCandidate,
     crosswalk: legacy.entries,
     cards,
     authorDecisions: decisions,
     authorDecisionContextDigest: bindings.digest,
+    inventory,
     assertRealInventoryCounts: true,
   });
   assertion(candidate.inventory.packageCount === ACTIVE_PACKAGE_COUNT, 'active package denominator changed');
@@ -449,7 +480,7 @@ async function main(): Promise<void> {
   assertion(candidate.packageReports.every((report) => report.ready), 'one or more package gates are not ready');
 
   const prerequisiteInput = buildPrerequisiteInput({
-    repoRoot,
+    repoRoot: captureRoot,
     captureRevision,
     authority: authorityCandidate.manifest,
     authorityNodes: candidate.authorityNodes,
@@ -458,7 +489,7 @@ async function main(): Promise<void> {
   assertion(prerequisiteArtifacts.gate.passed, 'prerequisite publication gate failed');
 
   const globalAuthoring = buildGlobalAuthoring({
-    repoRoot,
+    repoRoot: captureRoot,
     captureRevision,
     authority: authorityCandidate.manifest,
     authorityNodes: candidate.authorityNodes,
@@ -475,6 +506,9 @@ async function main(): Promise<void> {
   assertion(globalArtifacts.gate.passed, 'global Teaching Projection gate failed');
   assertion(globalArtifacts.resources.filter((resource) => resource.resourceId.startsWith('act:')).length >= ACTIVE_RESOURCE_COUNT, 'global Teaching Projection lost active resources');
 
+  // The snapshot is immutable, but the checkout identity must still be the
+  // requested capture at the first write boundary.
+  assertCaptureHead(repoRoot, captureRevision);
   const stagedAt = new Date().toISOString();
   const authorityPaths = resolveAuthorityStorePaths(path.join(repoRoot, DEFAULTS.authority));
   const projectionPaths = resolveTeachingProjectionStorePaths(path.join(repoRoot, DEFAULTS.projection));
@@ -682,6 +716,15 @@ async function main(): Promise<void> {
     contract: 'actkg-to-act-first-activation-report/v1',
     status: 'COMMITTED',
     captureRevision,
+    captureBoundInputs: {
+      manifestContract: capturedInputs.receipt.manifestContract,
+      schemaVersion: capturedInputs.receipt.schemaVersion,
+      manifestPath: capturedInputs.receipt.manifestPath,
+      manifestDigest: capturedInputs.receipt.manifestDigest,
+      inputDigest: capturedInputs.receipt.inputDigest,
+      fileCount: capturedInputs.receipt.files.length,
+      collectionCount: capturedInputs.receipt.collections.length,
+    },
     sourceRelease: {
       releaseSetId: stagedAuthority.manifest.releaseSetId,
       releaseId: stagedAuthority.manifest.releaseId,
@@ -709,8 +752,12 @@ async function main(): Promise<void> {
     legacyRetirementPointer: 'ABSENT',
     journalHash: journal.journalHash,
   };
+  await writeCanonical(path.join(outputRoot, 'capture-bound-input-receipt.json'), capturedInputs.receipt);
   await writeCanonical(path.join(outputRoot, 'first-activation-report.json'), report);
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  } finally {
+    capturedInputs.cleanup();
+  }
 }
 
 main().catch((error: unknown) => {

@@ -218,6 +218,22 @@ it lets a prestate exception enter the destructive compensation path. The
 explicit control-flow boundary preserves the difference between an existing
 active state and a partially executed first activation.
 
+### 12. Build the teaching projection from a capture-bound ACT input snapshot
+
+The activation entry resolves a versioned manifest from the capture Git tree
+before any staging or pointer write. It verifies each direct file and each
+declared collection member against the working tree by normalized path, Git
+mode, and SHA-256, then materializes the capture bytes into an immutable local
+snapshot. The active inventory, crosswalks, author decisions, prerequisites,
+textbook inputs, and package blueprints are read only from that snapshot.
+
+Unrelated working-tree changes do not block activation. Changes to a declared
+input, a selected collection member, or the narrow course-inventory execution
+closure fail before staging. A preflight-only hash check was rejected because a
+file could change between verification and a later working-tree read; requiring
+the whole repository to be clean was rejected because it makes unrelated work
+an activation blocker.
+
 ## Risks / Trade-offs
 
 - [No compatible locally available Release] → stop at Phase 1 with a signed
