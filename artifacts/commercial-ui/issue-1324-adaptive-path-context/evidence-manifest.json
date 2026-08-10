@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "status": "passed",
+  "capturedAt": "2026-08-10T08:25:16.868Z",
+  "sourceRevision": "c2456d9a0437feb7b4fc1b344bc06ba3984256c3",
+  "generator": "artifacts/commercial-ui/issue-1324-adaptive-path-context/capture-evidence.mjs",
+  "generatorSha256": "59b0feda07658cb870c4990a8de3d8063fa9b50f4cd911fb6289776bb609be07",
+  "sourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "1cd7aad3b9f092f919ae680f04b2ef5945584e820aba1786562b6429c384b903",
+    "src/features/assessment/__tests__/adaptive-practice-page.test.ts": "81fc91d661e2d71f4ac57954f0dd611db9fae7f110784a9b23a08bb97375a682",
+    "tests/adaptive-path-active-context.spec.ts": "47b04559fdc0bcf735475a2cb9425d5ed0d77eed5d2c3c7304738f1e3e3418c1",
+    "artifacts/commercial-ui/issue-1324-adaptive-path-context/capture-evidence.mjs": "59b0feda07658cb870c4990a8de3d8063fa9b50f4cd911fb6289776bb609be07"
+  },
+  "baseUrl": "http://localhost:3002",
+  "backendE2EStatus": "blocked-by-local-schema-drift",
+  "projectionFixtureEvidence": {
+    "status": "ui-projection-only",
+    "note": "Playwright route fulfillment exercises the real current-head page and routing state. The local StudentProfile schema drift blocks student-session enrichment, so this is not backend, authorization, or production E2E evidence."
+  },
+  "environmentOperations": {
+    "scope": "local-only",
+    "routeFulfillment": true,
+    "authFixtureRole": "TEACHER",
+    "authFixtureReason": "Avoid the unrelated StudentProfile enrichment failure while exercising the student-facing page projection.",
+    "remoteOrProductionMutation": false
+  },
+  "assertions": {
+    "nonDefaultGoalPreserved": true,
+    "sourcePathPreserved": true,
+    "continueActionPreservesPathAndNode": true,
+    "activePathAndGenerationRoutesReachable": true,
+    "responsiveAndKeyboardChecksPassed": true
+  },
+  "failedAssertions": [],
+  "results": [
+    {
+      "name": "active-path-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "artifacts/commercial-ui/issue-1324-adaptive-path-context/active-path-1440.png",
+      "screenshotSha256": "3dde42cf17479d05c5b8fea6b39f8a062a0799bee4f1b89c82448a85ffef5f7c",
+      "url": "http://localhost:3002/assessment/adaptive-practice?goal=frequency-response-foundations&pathId=issue1324-active-path",
+      "pathContext": {
+        "goal": "frequency-response-foundations",
+        "intent": "contextual-recommendation",
+        "pathId": "issue1324-active-path",
+        "continueHref": "/assessment/adaptive-practice?goal=frequency-response-foundations&intent=path-execution&pathId=issue1324-active-path&nodeId=issue1324-foundation"
+      },
+      "keyboardFocus": true,
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentScrollWidth": 1440,
+        "horizontalOverflow": false,
+        "actionLinks": [
+          {
+            "text": "继续当前路径",
+            "width": 142,
+            "height": 38,
+            "right": 1101
+          },
+          {
+            "text": "新建学习路径",
+            "width": 140,
+            "height": 38,
+            "right": 1249
+          },
+          {
+            "text": "查看学习记录",
+            "width": 142,
+            "height": 38,
+            "right": 1399
+          }
+        ]
+      }
+    },
+    {
+      "name": "generation-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "artifacts/commercial-ui/issue-1324-adaptive-path-context/generation-1440.png",
+      "screenshotSha256": "4dcaf5646fdaaa0bf7cbfcf538e2a49462369d336605ca757c99e21617d5b92a",
+      "url": "http://localhost:3002/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation&pathTime=90&pathRhythm=steady&pathResources=knowledge_card%2Cadaptive_quiz%2Csimulation&pathCheckpoint=standard&pathId=issue1324-active-path&batch=issue1324-candidate-batch",
+      "selectedGoal": "frequency-response-foundations",
+      "pathId": "issue1324-active-path",
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentScrollWidth": 1440,
+        "horizontalOverflow": false,
+        "actionLinks": []
+      }
+    },
+    {
+      "name": "active-path-320",
+      "viewport": {
+        "width": 320,
+        "height": 1000
+      },
+      "screenshot": "artifacts/commercial-ui/issue-1324-adaptive-path-context/active-path-320.png",
+      "screenshotSha256": "69005ca0de4e9ba28e7fab95d4a10de7a74cf578b1b9ef70a6781d899e32b766",
+      "url": "http://localhost:3002/assessment/adaptive-practice?goal=frequency-response-foundations&pathId=issue1324-active-path",
+      "pathContext": {
+        "goal": "frequency-response-foundations",
+        "intent": "contextual-recommendation",
+        "pathId": "issue1324-active-path",
+        "continueHref": "/assessment/adaptive-practice?goal=frequency-response-foundations&intent=path-execution&pathId=issue1324-active-path&nodeId=issue1324-foundation"
+      },
+      "keyboardFocus": true,
+      "geometry": {
+        "viewportWidth": 320,
+        "documentScrollWidth": 320,
+        "horizontalOverflow": false,
+        "actionLinks": [
+          {
+            "text": "继续当前路径",
+            "width": 142,
+            "height": 38,
+            "right": 187
+          },
+          {
+            "text": "新建学习路径",
+            "width": 140,
+            "height": 36,
+            "right": 185
+          },
+          {
+            "text": "查看学习记录",
+            "width": 142,
+            "height": 38,
+            "right": 187
+          }
+        ]
+      }
+    },
+    {
+      "name": "generation-320",
+      "viewport": {
+        "width": 320,
+        "height": 1000
+      },
+      "screenshot": "artifacts/commercial-ui/issue-1324-adaptive-path-context/generation-320.png",
+      "screenshotSha256": "1b55f0b83807d2b62fee15b5f8845e81312a9335feb522f791d76bb822ee0bd7",
+      "url": "http://localhost:3002/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation&pathTime=90&pathRhythm=steady&pathResources=knowledge_card%2Cadaptive_quiz%2Csimulation&pathCheckpoint=standard&pathId=issue1324-active-path",
+      "selectedGoal": "frequency-response-foundations",
+      "pathId": "issue1324-active-path",
+      "geometry": {
+        "viewportWidth": 320,
+        "documentScrollWidth": 320,
+        "horizontalOverflow": false,
+        "actionLinks": []
+      }
+    }
+  ]
+}
