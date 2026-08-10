@@ -274,14 +274,16 @@ function activationArtifacts(input: {
     .filter((resource) => !routeMaps.resourceLaunchTargets[resource.resourceId])
     .map((resource) => resource.resourceId)
     .sort();
+  const hasRagEvidence = input.authority.engineering.evidence.length > 0
+    || input.authority.engineering.upstreamRagReferences.length > 0;
   const routeSmoke = {
     'engineering-graph': {
       ok: input.authority.engineering.objects.length > 0,
       reasons: input.authority.engineering.objects.length > 0 ? [] : ['authority-objects-empty'],
     },
     'engineering-rag': {
-      ok: input.authority.engineering.evidence.length > 0,
-      reasons: input.authority.engineering.evidence.length > 0 ? [] : ['authority-evidence-empty'],
+      ok: hasRagEvidence,
+      reasons: hasRagEvidence ? [] : ['authority-rag-references-empty'],
     },
     'course-runtime': {
       ok: missingLaunches.length === 0,
