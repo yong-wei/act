@@ -150,15 +150,13 @@ const learnerState = {
   missingEvidence: [],
 };
 
-async function installRoutes(page: Page, candidateBatchDelayMs = 0) {
+async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<void>) {
   await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerState }));
   await page.route('**/api/learning-paths/latest?**', (route) => route.fulfill({ json: activePath }));
   await page.route(`**/api/learning-paths/${activePathId}`, (route) => route.fulfill({ json: activePath }));
   await page.route('**/api/learning-paths/candidate-batches/latest?**', (route) => route.fulfill({ json: { batch: candidateBatch } }));
   await page.route(`**/api/learning-paths/candidate-batches/${batchId}**`, async (route) => {
-    if (candidateBatchDelayMs > 0) {
-      await new Promise((resolve) => setTimeout(resolve, candidateBatchDelayMs));
-    }
+    await waitForCandidateBatch?.();
     const candidateId = new URL(route.request().url()).searchParams.get('candidate');
     if (candidateId && !candidateIds.includes(candidateId)) {
       await route.fulfill({ status: 404, json: { error: 'Candidate does not belong to batch' } });
@@ -170,7 +168,11 @@ async function installRoutes(page: Page, candidateBatchDelayMs = 0) {
 
 test('keeps the comparison surface visible while a candidate batch is loading', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await installRoutes(page, 500);
+  let releaseCandidateBatch: (() => void) | undefined;
+  const candidateBatchGate = new Promise<void>((resolve) => {
+    releaseCandidateBatch = resolve;
+  });
+  await installRoutes(page, () => candidateBatchGate);
 
   const query = new URLSearchParams({
     demo: '1',
@@ -181,9 +183,24 @@ test('keeps the comparison surface visible while a candidate batch is loading', 
   await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('[data-adaptive-path-candidate-state="loading"]')).toBeVisible();
+  releaseCandidateBatch?.();
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
   await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
   await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+});
+
+test('hides candidate comparison when continuing without a new candidate batch', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  const query = new URLSearchParams({
+    demo: '1',
+    goal: 'control-correction',
+    intent: 'path-selection',
+  });
+  await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+
+  await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
 
 async function openSelection(page: Page, candidateId?: string) {

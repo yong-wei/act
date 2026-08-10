@@ -2636,6 +2636,7 @@ export default function AdaptivePracticePage() {
   const activeOptionId = searchParams.get('optionId');
   const requestedBatchId = searchParams.get('batch');
   const requestedCandidateId = searchParams.get('candidate');
+  const shouldShowCandidateComparison = showSelectionWorkspace && Boolean(requestedBatchId);
   const activeGoalQuery = activeGoal ? new URLSearchParams({ goal: activeGoal, intent: routeIntent }) : null;
   if (activeGoalQuery && activePathId) activeGoalQuery.set('pathId', activePathId);
   if (activeGoalQuery && activeNodeId) activeGoalQuery.set('nodeId', activeNodeId);
@@ -2857,7 +2858,7 @@ export default function AdaptivePracticePage() {
     requestedPathContextKey &&
     loadedPathContextKey === requestedPathContextKey,
   );
-  const hasCandidateBatchContext = showSelectionWorkspace &&
+  const hasCandidateBatchContext = shouldShowCandidateComparison &&
     candidateBatchLoadState !== 'missing' &&
     candidateBatchLoadState !== 'failed';
   const hasLoadedPathContextForRecovery = hasLoadedCurrentPathContext || hasCandidateBatchContext;
@@ -2971,7 +2972,7 @@ export default function AdaptivePracticePage() {
     if (!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace) && pathExecutionNodes.length > 0) {
       return 'current-path';
     }
-    if (!showPathContextRecovery && showSelectionWorkspace && visiblePathOptions.length > 0) {
+    if (!showPathContextRecovery && shouldShowCandidateComparison && visiblePathOptions.length > 0) {
       return 'path-selection';
     }
     if (!showPathContextRecovery && showPracticeWorkspace) {
@@ -2993,7 +2994,7 @@ export default function AdaptivePracticePage() {
     showPracticeWorkspace,
     showPresetGoalCards,
     showRecoveredExecutionWorkspace,
-    showSelectionWorkspace,
+    shouldShowCandidateComparison,
     visiblePathOptions.length,
   ]);
   const pathWorkspaceAutoOpenKey = useMemo(() => {
@@ -3375,7 +3376,7 @@ export default function AdaptivePracticePage() {
   }, [requestedCandidateId]);
 
   useEffect(() => {
-    if (!activeGoal || (!isDemoMode && authStatus !== 'authenticated') || (!showSelectionWorkspace && !showGenerationWorkspace)) {
+    if (!activeGoal || (!isDemoMode && authStatus !== 'authenticated') || (!shouldShowCandidateComparison && !showGenerationWorkspace)) {
       setActiveCandidateBatch(null);
       setCandidateBatchLoadState('idle');
       return;
@@ -3400,7 +3401,7 @@ export default function AdaptivePracticePage() {
     return () => {
       cancelled = true;
     };
-  }, [activeGoal, authStatus, isDemoMode, requestedBatchId, requestedCandidateId, showGenerationWorkspace, showSelectionWorkspace]);
+  }, [activeGoal, authStatus, isDemoMode, requestedBatchId, requestedCandidateId, shouldShowCandidateComparison, showGenerationWorkspace]);
 
   useEffect(() => {
     if (activeGoal || !pathAdvisorContextGoal || !showGenerationWorkspace || isDemoMode) return;
@@ -5082,7 +5083,7 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {showSelectionWorkspace && candidateBatchLoadState === 'loading' ? (
+          {shouldShowCandidateComparison && candidateBatchLoadState === 'loading' ? (
             <p
               className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-subtle"
               role="status"
@@ -5093,7 +5094,7 @@ export default function AdaptivePracticePage() {
             </p>
           ) : null}
 
-          {showSelectionWorkspace && !showPathContextRecovery ? (
+          {shouldShowCandidateComparison && !showPathContextRecovery ? (
             <PathWorkspaceModule
               moduleId="path-selection"
               openModuleId={openPathModuleId}
