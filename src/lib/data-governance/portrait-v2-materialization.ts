@@ -19,6 +19,10 @@ import {
   type PortraitLearningFactDelta,
 } from './portrait-v2-incremental-update';
 import {
+  isTrustedLearningFact,
+  TRUSTED_LEARNING_FACT_POLICY_VERSION,
+} from './trusted-learning-fact-filter';
+import {
   PORTRAIT_V2_CALCULATION_VERSION,
   createPortraitV2Payload,
   summarizeCumulativePortraitV2,
@@ -61,6 +65,8 @@ interface CurrentStateRow {
     lastTrend: string | null;
     lastRisk: unknown;
     stateKind: 'SNAPSHOT' | 'NO_EVIDENCE';
+    trustedFactPolicyVersion?: string;
+    trustedInputDigest?: string;
     snapshot?: { id?: string; payload: unknown } | null;
   };
 }
@@ -155,7 +161,7 @@ export async function materializeIncrementalPortraitV2(
     transactionDb: PortraitV2MaterializationDb,
   ): Promise<PortraitV2MaterializationResult> => {
     const now = options.now ?? new Date();
-    const facts = await transactionDb.learningFact.findMany({
+    const facts = (await transactionDb.learningFact.findMany({
       where: { userId },
       orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
       select: {
@@ -167,8 +173,11 @@ export async function materializeIncrementalPortraitV2(
         competencyContribution: true,
         contextJson: true,
         createdAt: true,
+        sourceEventId: true,
+        sourceLogId: true,
+        knowledgeRevisionRef: true,
       },
-    });
+    })).filter(isTrustedLearningFact);
 
     if (!hasCumulativeStateDb(transactionDb)) {
       return materializeLegacyCompatibleSnapshot(transactionDb, userId, facts, now, options.dryRun === true);
@@ -184,6 +193,9 @@ export async function materializeIncrementalPortraitV2(
       : await appendDrafts(transactionDb, drafts);
     const transitions = [...journal, ...appended];
     const reduction = reduceLearnerFactTransitions({ facts, transitions });
+    const trustedFactIds = reduction.activeFacts
+      .map((fact) => fact.id)
+      .sort();
     const mapped = mapLearningFactsToPortraitEvidence(reduction.activeFacts);
     const profileEvidence = mapped.evidence.filter(isPortraitV2ProfileEvidence);
     const current = await transactionDb.learnerPortraitCurrentState.findUnique({
@@ -198,6 +210,12 @@ export async function materializeIncrementalPortraitV2(
       where: { id: 'global' },
     });
     const expectation = validatePublicationFence(fence, options.publication);
+    const trustedInputDigest = buildTrustedInputDigest({
+      policyVersion: TRUSTED_LEARNING_FACT_POLICY_VERSION,
+      calculationVersion: expectation.calculationVersion,
+      stateWatermark: reduction.stateWatermark,
+      factIds: trustedFactIds,
+    });
     const currentPayload = readCurrentPayload(current);
     const taskProjection = projectSimulationTaskAttainment(reduction.activeFacts);
     const taskProjectionActive = taskProjection.hasGovernedTaskEvidence ||
@@ -248,7 +266,9 @@ export async function materializeIncrementalPortraitV2(
       current.generation === expectation.generation &&
       current.queueGeneration === expectation.queueGeneration &&
       current.cutoverFence === expectation.cutoverFence &&
-      (current.taskInputDigest ?? '') === taskInputDigest;
+      (current.taskInputDigest ?? '') === taskInputDigest &&
+      current.stateVersion.trustedFactPolicyVersion === TRUSTED_LEARNING_FACT_POLICY_VERSION &&
+      current.stateVersion.trustedInputDigest === trustedInputDigest;
     if (unchanged) {
       return {
         written: false,
@@ -309,6 +329,9 @@ export async function materializeIncrementalPortraitV2(
         evidenceCount: 0,
         affectedDimensions: [],
         mappingIssues: mapped.mappingIssues,
+        trustedFactIds,
+        trustedFactPolicyVersion: TRUSTED_LEARNING_FACT_POLICY_VERSION,
+        trustedInputDigest,
         rebuildRequired,
       });
     }
@@ -390,6 +413,9 @@ export async function materializeIncrementalPortraitV2(
         ...updateMapped.mappingIssues,
         ...updated.mappingIssues,
       ])],
+      trustedFactIds,
+      trustedFactPolicyVersion: TRUSTED_LEARNING_FACT_POLICY_VERSION,
+      trustedInputDigest,
       rebuildRequired,
     });
   };
@@ -499,6 +525,9 @@ async function publishState(
     evidenceCount: number;
     affectedDimensions: string[];
     mappingIssues: string[];
+    trustedFactIds: string[];
+    trustedFactPolicyVersion: string;
+    trustedInputDigest: string;
     rebuildRequired: boolean;
   },
 ): Promise<PortraitV2MaterializationResult> {
@@ -527,6 +556,9 @@ async function publishState(
       generatedAt: input.generatedAt,
       cutoverFence: input.expectation.cutoverFence,
       migrationRunId: input.expectation.migrationRunId ?? null,
+      trustedFactIds: input.trustedFactIds,
+      trustedFactPolicyVersion: input.trustedFactPolicyVersion,
+      trustedInputDigest: input.trustedInputDigest,
     },
   });
   await db.learnerPortraitCurrentState.upsert({
@@ -1016,6 +1048,20 @@ function hashIdentity(value: string): string {
 
 function hashJson(value: unknown): string {
   return createHash('sha256').update(stableJson(value)).digest('hex');
+}
+
+function buildTrustedInputDigest(input: {
+  policyVersion: string;
+  calculationVersion: string;
+  stateWatermark: bigint;
+  factIds: string[];
+}): string {
+  return hashJson({
+    policyVersion: input.policyVersion,
+    calculationVersion: input.calculationVersion,
+    stateWatermark: input.stateWatermark.toString(),
+    factIds: input.factIds,
+  });
 }
 
 function stableJson(value: unknown): string {

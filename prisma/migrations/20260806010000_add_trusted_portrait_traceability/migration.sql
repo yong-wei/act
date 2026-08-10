@@ -1,0 +1,4 @@
+ALTER TABLE "LearnerPortraitStateVersion"
+  ADD COLUMN IF NOT EXISTS "trustedFactIds" JSONB NOT NULL DEFAULT '[]',
+  ADD COLUMN IF NOT EXISTS "trustedFactPolicyVersion" TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS "trustedInputDigest" TEXT NOT NULL DEFAULT '';

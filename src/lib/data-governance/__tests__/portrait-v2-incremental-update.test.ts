@@ -1050,6 +1050,9 @@ describe('portrait v2 incremental updates', () => {
 function fact(id: string, contribution: Record<string, number>, contextJson: unknown) {
   return {
     id,
+    sourceEventId: `governed-event:${id}`,
+    sourceLogId: `governed-log:${id}`,
+    knowledgeRevisionRef: null,
     startedAt: new Date('2026-05-02T00:00:00.000Z'),
     outcome: 'success',
     score: 1,

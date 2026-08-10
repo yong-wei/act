@@ -28,6 +28,7 @@ import {
   resolvePrimaryPortraitV2,
   type PortraitV2ConsumerDb,
   type PortraitV2Consumer,
+  type PortraitV2LegacyCompatibility,
 } from './portrait-v2-consumer';
 import { readCurrentCumulativePortrait } from './cumulative-portrait-read-model';
 import {
@@ -36,8 +37,6 @@ import {
 } from './kaq-objective-taxonomy';
 import {
   PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
-  derivePortraitV2Compatibility,
-  projectPortraitV2ForConsumer,
   type PortraitV2ProjectedPayload,
 } from './portrait-v2-model';
 
@@ -52,6 +51,7 @@ export type AdaptiveLearnerStatePrivacyScope =
   | 'admin-scoped'
   | 'audit-only'
   | 'system-internal';
+export type AdaptiveLearnerStatePrimaryPortraitState = 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE';
 
 export type AdaptiveLearnerStateFieldFamily =
   | 'primaryPortrait'
@@ -394,7 +394,9 @@ export interface AdaptiveLearnerState {
     authoritative: false;
     reason: 'client-hints-non-authoritative';
   };
-  primaryPortrait: PortraitV2ProjectedPayload;
+  primaryPortrait: PortraitV2ProjectedPayload | null;
+  primaryPortraitState: AdaptiveLearnerStatePrimaryPortraitState;
+  primaryPortraitAvailability: string;
   primaryCompetencies: {
     authority: 'legacy-compatibility-only';
     source: 'latest-snapshot' | 'feature-cache' | 'portrait-v2-derived' | 'portrait-v2-mixed' | 'fallback-empty';
@@ -491,6 +493,14 @@ export interface AdaptiveLearnerState {
   fieldContracts: typeof ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS;
   missingEvidence: string[];
 }
+
+type PortraitResolution = {
+  primaryPortrait: PortraitV2ProjectedPayload | null;
+  primaryPortraitState: AdaptiveLearnerStatePrimaryPortraitState;
+  primaryPortraitAvailability: string;
+  legacyCompatibility: PortraitV2LegacyCompatibility;
+  limitations: string[];
+};
 
 interface AdaptiveLearnerStateDb extends PortraitV2ConsumerDb {
   cumulativePortraitCutoverFence?: { findUnique?: (args: any) => Promise<any | null> };
@@ -844,7 +854,7 @@ export async function readAdaptiveLearnerState(
     db.cumulativePortraitMigrationRun?.findUnique &&
     db.learnerPortraitCurrentState?.findUnique,
   );
-  const portraitResolution = supportsFencedCumulativePortrait
+  const resolvedPortrait = supportsFencedCumulativePortrait
     ? await resolveFencedAdaptivePortrait(db, {
         userId: input.userId,
         consumer: portraitConsumer,
@@ -857,6 +867,16 @@ export async function readAdaptiveLearnerState(
         portraitConsumer,
         { now, legacySnapshot: latestSnapshot, featureCache },
       );
+  // PORTRAIT_V2_TRUSTED_BOUNDARY: without an active cumulative-portrait fence,
+  // the legacy consumer resolver must never become a primary personalization source.
+  const portraitResolution = (supportsFencedCumulativePortrait
+    ? resolvedPortrait
+    : {
+        ...resolvedPortrait,
+        primaryPortrait: null,
+        primaryPortraitState: 'UNAVAILABLE' as const,
+        primaryPortraitAvailability: 'cumulative-portrait-fence-unavailable',
+      }) as PortraitResolution;
   const {
     vector: legacyCompatibilityVector,
     source: compatibilitySource,
@@ -870,6 +890,9 @@ export async function readAdaptiveLearnerState(
   );
   const portraitCompatibilityVector = portraitCompatibility?.vector ?? null;
   const vector = portraitCompatibilityVector ?? legacyCompatibilityVector;
+  const portraitDrivenVector = portraitResolution.primaryPortraitState === 'SNAPSHOT'
+    ? (portraitCompatibilityVector ?? createEmptyCompetencyVector())
+    : createEmptyCompetencyVector();
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: expose legacy provenance only for compatibility consumers.
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: map the compatibility source to the legacy output label.
   const source: AdaptiveLearnerState['primaryCompetencies']['source'] =
@@ -889,7 +912,7 @@ export async function readAdaptiveLearnerState(
   const evidence = buildEvidenceSummary(featureRead, featureCache);
   const masteryTraceability = filterMasteryTraceabilityForRole(buildMasteryTraceability({
     knowledgeMastery,
-    vector,
+    vector: portraitDrivenVector,
     facts: controlCorrectionFacts,
     arenaSubmissions: controlCorrectionArenaSubmissionsWithWriteback,
     agentToolRuns: controlCorrectionAgentToolRuns,
@@ -897,7 +920,7 @@ export async function readAdaptiveLearnerState(
     evidence,
     now,
   }), input.role, now);
-  const secondaryDimensions = buildSecondaryDimensions(vector);
+  const secondaryDimensions = buildSecondaryDimensions(portraitDrivenVector);
   const prerequisiteFeatureGroups = {
     simulationArena: Object.keys(featureSimulationArena).length > 0
       ? getObject(featureSimulationArena.allTime)
@@ -919,9 +942,9 @@ export async function readAdaptiveLearnerState(
     requestedGoalDefinition,
     shouldBuildControlCorrectionGoalSlice,
     now,
-    vector,
+    vector: portraitDrivenVector,
     primaryPortrait,
-    usePrimaryPortrait: ['native', 'migrated'].includes(primaryPortrait.derivation.kind),
+    usePrimaryPortrait: portraitResolution.primaryPortraitState === 'SNAPSHOT',
     evidence,
     knowledgeMastery,
     masteryTraceability,
@@ -953,6 +976,8 @@ export async function readAdaptiveLearnerState(
       reason: 'client-hints-non-authoritative',
     },
     primaryPortrait,
+    primaryPortraitState: portraitResolution.primaryPortraitState,
+    primaryPortraitAvailability: portraitResolution.primaryPortraitAvailability,
     primaryCompetencies: {
       authority: 'legacy-compatibility-only',
       source,
@@ -984,7 +1009,7 @@ async function resolveFencedAdaptivePortrait(
     now: Date;
     legacySnapshot: any;
   },
-) {
+): Promise<PortraitResolution> {
   const current = await readCurrentCumulativePortrait(db, input.userId, input.consumer);
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the legacy vector is retained only as non-authoritative compatibility output.
   const legacyVector = input.legacySnapshot?.competencyVector &&
@@ -993,15 +1018,17 @@ async function resolveFencedAdaptivePortrait(
     : createEmptyCompetencyVector();
   const primaryPortrait = current.stateKind === 'SNAPSHOT' && current.payload
     ? current.payload
-    : projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
-        userId: input.userId,
-        snapshotAt: input.now.toISOString(),
-        sourceFamily: null,
-        vector: createEmptyCompetencyVector(),
-        now: input.now,
-      }), input.consumer, { now: input.now });
+    : null;
   return {
     primaryPortrait,
+    primaryPortraitState: current.stateKind === 'SNAPSHOT'
+      ? 'SNAPSHOT'
+      : current.stateKind === 'NO_EVIDENCE'
+        ? 'NO_EVIDENCE'
+        : 'UNAVAILABLE',
+    primaryPortraitAvailability: current.stateKind === 'SNAPSHOT'
+      ? 'available'
+      : current.availabilityReason,
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this source label documents non-authoritative legacy provenance.
     legacyCompatibility: {
       authority: 'legacy-compatibility-only' as const,
@@ -1090,11 +1117,12 @@ function buildSecondaryDimensions(vector: CompetencyVector): AdaptiveLearnerStat
 }
 
 function deriveLearnerStateCompatibilityVector(
-  portrait: PortraitV2ProjectedPayload,
+  portrait: PortraitV2ProjectedPayload | null,
   now: Date,
   fallback: CompetencyVector,
 ): { vector: CompetencyVector; derivedDimensionCount: number } | null {
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: project v2 dimensions into the legacy competency vector shape.
+  if (!portrait) return null;
   if (!['native', 'migrated'].includes(portrait.derivation.kind)) return null;
 
   const entries: Array<[CompetencyDimension, CompetencyVector[CompetencyDimension]]> = [];
@@ -1133,11 +1161,12 @@ function deriveLearnerStateCompatibilityVector(
 }
 
 function deriveControlCorrectionDimensionFromPortrait(
-  portrait: PortraitV2ProjectedPayload,
+  portrait: PortraitV2ProjectedPayload | null,
   dimensionId: ControlCorrectionDimensionId,
   now: Date,
 ): CompetencyVector[CompetencyDimension] | null {
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: project each v2 goal dimension into its legacy vector field.
+  if (!portrait) return null;
   const targetDimensions = mapAdaptiveGoalSliceDimensionToPortraitV2(dimensionId).targetDimensions;
   const mapped = targetDimensions
     .map((id) => portrait.dimensions.find((item) => item.id === id))
@@ -1181,7 +1210,7 @@ function buildAdaptiveGoalSlices(input: {
   shouldBuildControlCorrectionGoalSlice: boolean;
   now: Date;
   vector: CompetencyVector;
-  primaryPortrait: PortraitV2ProjectedPayload;
+  primaryPortrait: PortraitV2ProjectedPayload | null;
   usePrimaryPortrait: boolean;
   evidence: AdaptiveLearnerState['evidence'];
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
@@ -1232,7 +1261,7 @@ function buildAdaptiveGoalSlices(input: {
 function buildControlCorrectionGoalSlice(input: {
   now: Date;
   vector: CompetencyVector;
-  primaryPortrait: PortraitV2ProjectedPayload;
+  primaryPortrait: PortraitV2ProjectedPayload | null;
   usePrimaryPortrait: boolean;
   evidence: AdaptiveLearnerState['evidence'];
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
@@ -1244,6 +1273,7 @@ function buildControlCorrectionGoalSlice(input: {
   activeControlCorrectionPath: Record<string, unknown> | null;
 }): ControlCorrectionGoalSlice {
   const simulationArena = getObject(input.prerequisiteFeatureGroups.simulationArena);
+  const emptyVector = createEmptyCompetencyVector();
   const sourceEvidence = buildControlCorrectionSourceEvidence({
     facts: input.facts,
     arenaSubmissions: input.arenaSubmissions,
@@ -1253,8 +1283,8 @@ function buildControlCorrectionGoalSlice(input: {
   const dimensions = CONTROL_CORRECTION_GOAL_DIMENSIONS.map((id) => {
     const primary = input.usePrimaryPortrait
       ? deriveControlCorrectionDimensionFromPortrait(input.primaryPortrait, id, input.now)
-        ?? input.vector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]]
-      : input.vector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]];
+        ?? emptyVector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]]
+      : emptyVector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]];
     const sourceCoverage = buildControlCorrectionDimensionSourceCoverage(id, sourceEvidence);
     const evidenceCount = buildControlCorrectionDimensionEvidenceCount(id, primary.evidenceCount, sourceEvidence);
     const evidenceProvenance = buildControlCorrectionEvidenceProvenance(sourceEvidence);

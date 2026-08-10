@@ -13,6 +13,7 @@ import {
   type PortraitV2DimensionId,
 } from './data-governance/kaq-objective-taxonomy';
 import type { PortraitV2ProjectedPayload } from './data-governance/portrait-v2-model';
+import { hasAuthoritativePortraitV2Evidence } from './data-governance/portrait-v2-consumer';
 import type {
   ExpandedGoalSubgraph,
   GoalSubgraphLimitation,
@@ -328,6 +329,8 @@ export interface AdaptiveLearningPathLearnerState {
     }>;
   };
   primaryPortrait?: PortraitV2ProjectedPayload;
+  primaryPortraitState?: 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE';
+  primaryPortraitAvailability?: string;
   resourcePreference?: {
     preferredModalities?: string[];
   };
@@ -350,6 +353,18 @@ export interface AdaptiveLearningPathLearnerState {
       severity: string;
     }>;
   };
+}
+
+export function hasTrustedPortraitForPersonalization(
+  state: AdaptiveLearningPathLearnerState | null | undefined,
+): boolean {
+  return Boolean(
+    state
+      && state.primaryPortraitState === 'SNAPSHOT'
+      && state.primaryPortraitAvailability === 'available'
+      && state.primaryPortrait
+      && hasAuthoritativePortraitV2Evidence(state.primaryPortrait),
+  );
 }
 
 export interface AdaptiveLearningPathConstraints {
@@ -2488,7 +2503,6 @@ function inferDeficits(
   learnerState: AdaptiveLearningPathLearnerState | null,
 ): AdaptiveLearningPathDeficit[] {
   const knowledgeTags = learnerState?.knowledgeMastery?.tags ?? {};
-  const competencies = learnerState?.primaryCompetencies?.vector ?? {};
   return [
     ...goal.knowledgeTargets
       .map((targetId) => {
@@ -2506,18 +2520,17 @@ function inferDeficits(
       .filter((item) => item.value < 0.85),
     ...(goal.competencyTargets ?? [])
       .map((targetId) => {
-        const competency = competencies[targetId];
         const portraitDimensionIds = portraitDimensionIdsForTarget(targetId);
         const portraitScores = usablePortraitDimensionsForTarget(learnerState, targetId);
         const value = portraitScores.length > 0
           ? normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length)
-          : normalizeCompetencyScore(competency?.score ?? 0);
+          : 0;
         const confidence = portraitScores.length > 0
           ? portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length
-          : competency?.confidence ?? 0;
+          : 0;
         const evidenceCount = portraitScores.length > 0
           ? Math.max(...portraitScores.map((dimension) => dimension.evidenceSummary.totalCount))
-          : competency?.evidenceCount ?? 0;
+          : 0;
         return {
           targetId,
           kind: 'competency' as const,
@@ -2722,11 +2735,7 @@ function buildCapabilityEvidence(
             confidence: value.confidence,
             evidenceCount: value.evidenceSummary.totalCount,
           }));
-        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: use legacy values only when portrait v2 has no usable evidence.
-        const legacyValue = learnerState?.primaryCompetencies?.vector?.[dimension];
-        return portraitValues.length > 0
-          ? portraitValues
-          : legacyValue ? [legacyValue] : [];
+        return portraitValues;
       });
     const competencyScore = competencies.length > 0
       ? round(competencies.reduce((sum, competency) => sum + (competency.score ?? 0), 0) / competencies.length, 2)
@@ -4108,20 +4117,21 @@ function learnerCompetencyScore(
   learnerState: AdaptiveLearningPathLearnerState | null,
   dimension: string,
 ): number {
+  if (!hasTrustedPortraitForPersonalization(learnerState)) return 0;
   const portraitScores = usablePortraitDimensionsForTarget(learnerState, dimension)
     .map((item) => item.score)
     .filter((score): score is number => typeof score === 'number' && Number.isFinite(score));
   if (portraitScores.length > 0) {
     return normalizeCompetencyScore(portraitScores.reduce((sum, score) => sum + score, 0) / portraitScores.length);
   }
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: use the legacy vector only as a fallback.
-  return normalizeCompetencyScore(learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0);
+  return 0;
 }
 
 function usablePortraitDimensionsForTarget(
   learnerState: AdaptiveLearningPathLearnerState | null,
   targetId: string,
 ): PortraitV2ProjectedPayload['dimensions'] {
+  if (!hasTrustedPortraitForPersonalization(learnerState)) return [];
   return portraitDimensionIdsForTarget(targetId)
     .map((id) => learnerState?.primaryPortrait?.dimensions.find((item) => item.id === id))
     .filter((item): item is PortraitV2ProjectedPayload['dimensions'][number] => Boolean(item
@@ -4145,20 +4155,17 @@ function learnerEvidenceCount(
   learnerState: AdaptiveLearningPathLearnerState | null,
   readiness: ResourceNodeReadinessMetadata,
 ): number {
-  const competencyEvidence = Object.keys(readiness.minimumCompetency)
-    .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension]?.evidenceCount ?? 0);
+  if (!hasTrustedPortraitForPersonalization(learnerState)) return 0;
   const portraitCompetencyEvidence = Object.keys(readiness.minimumCompetency)
     .flatMap((dimension) => portraitDimensionIdsForTarget(dimension))
     .map((portraitDimensionId) =>
       learnerState?.primaryPortrait?.dimensions.find((dimension) => dimension.id === portraitDimensionId)
         ?.evidenceSummary.totalCount ?? 0,
     );
-  return Math.max(
-    learnerState?.evidence?.confidence?.evidenceCount ?? 0,
-    ...competencyEvidence,
-    ...portraitCompetencyEvidence,
-    0,
-  );
+  const overallTrustedEvidence = Object.keys(readiness.minimumCompetency).length === 0
+    ? learnerState?.primaryPortrait?.dimensions.map((dimension) => dimension.evidenceSummary.totalCount) ?? []
+    : [];
+  return Math.max(...portraitCompetencyEvidence, ...overallTrustedEvidence, 0);
 }
 
 function readStringArray(value: unknown): string[] {
@@ -4244,6 +4251,11 @@ function buildFallbackReasons(input: {
     activeGraphContext,
   );
   if (!input.learnerState) reasons.push('learner-state-missing');
+  if (input.learnerState?.primaryPortraitState === 'NO_EVIDENCE') {
+    reasons.push('trusted-portrait-no-evidence');
+  } else if (input.learnerState && !hasTrustedPortraitForPersonalization(input.learnerState)) {
+    reasons.push('trusted-portrait-unavailable');
+  }
   if ((confidence?.score ?? 0) < 0.35 || (confidence?.evidenceCount ?? 0) === 0) reasons.push('learner-evidence-low-confidence');
   if (input.deficits.length === 0) reasons.push('learner-deficit-not-detected');
   const hasGraphStarterPath = input.hasGraphCandidateCoverage
@@ -5404,6 +5416,13 @@ function buildTimelinePayload(
 }
 
 function resolvePlanConfidence(learnerState: AdaptiveLearningPathLearnerState | null): AdaptiveLearningPathPlan['confidence'] {
+  if (!hasTrustedPortraitForPersonalization(learnerState)) {
+    return {
+      level: 'low',
+      score: 0,
+      sourceCoverage: 0,
+    };
+  }
   const confidence = learnerState?.evidence?.confidence;
   const score = confidence?.score ?? 0;
   const sourceCoverage = confidence?.sourceCompleteness ?? 0;

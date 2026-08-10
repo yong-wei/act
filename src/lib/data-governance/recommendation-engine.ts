@@ -27,12 +27,13 @@ import {
 } from './adaptive-learner-state-service';
 import {
   hasPortraitV2Evidence,
-  resolvePrimaryPortraitV2,
   summarizePortraitV2,
 } from './portrait-v2-consumer';
 import {
   PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
   PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS,
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
   type PortraitV2ProjectedPayload,
 } from './portrait-v2-model';
 import { mapLegacyCompetencyDimensionToPortraitV2 } from './kaq-objective-taxonomy';
@@ -128,6 +129,8 @@ export interface RecommendationContext {
   }>;
   learnerState: AdaptiveLearnerState | null;
   portraitV2: PortraitV2ProjectedPayload;
+  primaryPortraitState: AdaptiveLearnerState['primaryPortraitState'];
+  primaryPortraitAvailability: string;
   portraitEvidence: RecommendationEvidenceContext | null;
   now: Date;
   evidence: RecommendationEvidenceContext;
@@ -489,6 +492,12 @@ export async function generateRecommendations(userId: string): Promise<Recommend
   if (derivationState === 'no-recent-evidence' || derivationState === 'no-evidence-after-revocation') return [];
   // Get context data
   const context = await buildRecommendationContext(userId);
+  if (
+    context.primaryPortraitState !== 'SNAPSHOT' ||
+    context.primaryPortraitAvailability !== 'available'
+  ) {
+    return [];
+  }
 
   // Apply rules to generate recommendations
   const recommendations: Recommendation[] = [];
@@ -584,21 +593,18 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
 
   const streakDays = calculateStreak(recentFacts.map(f => f.startedAt));
   const learnerStateUsable = isLearnerStateUsableForDirectPersonalization(learnerState);
-  const learnerStateVector = learnerStateUsable
-    ? learnerState.primaryCompetencies.vector
-    : null;
-  const portraitV2 = learnerStateUsable && Array.isArray(learnerState.primaryPortrait?.dimensions)
+  const primaryPortraitState = learnerState?.primaryPortraitState ?? 'UNAVAILABLE';
+  const primaryPortraitAvailability = learnerState?.primaryPortraitAvailability
+    ?? 'learner-state-unavailable';
+  const portraitV2 = learnerStateUsable && learnerState.primaryPortrait
     ? learnerState.primaryPortrait
-    : (await resolvePrimaryPortraitV2(
-    prisma,
-    userId,
-    'student',
-    {
-      now,
-      legacySnapshot: snapshot,
-      featureCache,
-    },
-  )).primaryPortrait;
+    : projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+        userId,
+        snapshotAt: now.toISOString(),
+        sourceFamily: null,
+        vector: createEmptyVector(),
+        now,
+      }), 'student', { now });
   const portraitCompatibilityCandidate = ['native', 'migrated'].includes(portraitV2.derivation.kind)
     && hasPortraitV2Evidence(portraitV2)
     ? deriveLegacyCompatibilityVectorFromPortrait(portraitV2, now)
@@ -614,19 +620,10 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: all fallback vector sources are non-authoritative.
   const competencyVector =
     portraitCompatibilityVector ??
-    (!hasAuthoritativePortrait ? learnerStateVector : null) ??
-    (!hasAuthoritativePortrait ? cachedVector : null) ??
-    (!hasAuthoritativePortrait ? snapshot?.competencyVector as unknown as CompetencyVector | null : null) ??
     createEmptyVector();
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this source vector is compatibility provenance only.
-  const legacyVector = cachedVector ?? (snapshot?.competencyVector as unknown as CompetencyVector | null);
   const competencyVectorBasis = portraitCompatibilityVector
       ? 'portrait-v2'
-      : !hasAuthoritativePortrait && learnerStateVector
-        ? 'learner-state'
-        : !hasAuthoritativePortrait && legacyVector
-          ? 'legacy'
-          : 'none';
+      : 'none';
   const portraitEvidence = hasUsablePortraitDimensions
     ? buildPortraitRecommendationEvidenceContext(portraitV2, now)
     : null;
@@ -648,6 +645,8 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
     })),
     learnerState,
     portraitV2,
+    primaryPortraitState,
+    primaryPortraitAvailability,
     portraitEvidence,
     now,
     evidence: buildRecommendationEvidenceContext({
@@ -719,17 +718,7 @@ function hasVectorEvidenceFor(
           && portraitDimension.confidence >= 0.45);
       }));
   }
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: validate non-authoritative vector evidence per dimension.
-  return (context.competencyVectorBasis === 'legacy' || context.competencyVectorBasis === 'learner-state')
-    && dimensions.every((dimension) =>
-    Number.isFinite(context.competencyVector[dimension].evidenceCount)
-      && context.competencyVector[dimension].evidenceCount > 0
-      && Number.isFinite(Date.parse(context.competencyVector[dimension].lastUpdated))
-      && context.now.getTime() - Date.parse(context.competencyVector[dimension].lastUpdated) >= 0
-      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: bound compatibility evidence freshness.
-      && context.now.getTime() - Date.parse(context.competencyVector[dimension].lastUpdated)
-          <= PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS * 86_400_000
-  );
+  return false;
 }
 
 function isLearnerStateUsableForDirectPersonalization(
@@ -738,20 +727,14 @@ function isLearnerStateUsableForDirectPersonalization(
   if (!learnerState) {
     return false;
   }
-
-  const blockedMarkers: StudentEvidenceStatusMarker[] = [
-    'stale',
-    'partial',
-    'low-confidence',
-    'missing-source',
-  ];
-
-  return learnerState.evidence.readState === 'ready' &&
-    learnerState.evidence.sourceCoverage.StudentCompetencySnapshot === 'available' &&
-    learnerState.evidence.sourceCoverage.LearningFact !== 'missing' &&
-    learnerState.evidence.confidence.evidenceCount > 0 &&
-    learnerState.evidence.confidence.sourceCompleteness >= 0.5 &&
-    !blockedMarkers.some((marker) => learnerState.evidence.statusMarkers.includes(marker));
+  if (
+    learnerState.primaryPortraitState !== 'SNAPSHOT' ||
+    learnerState.primaryPortraitAvailability !== 'available' ||
+    !learnerState.primaryPortrait
+  ) {
+    return false;
+  }
+  return true;
 }
 
 function buildRecommendationRationale(

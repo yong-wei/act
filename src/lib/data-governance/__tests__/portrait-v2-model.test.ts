@@ -123,6 +123,96 @@ function snapshotRow(
   };
 }
 
+function fencedTrustedPortraitDb(
+  payload: PortraitV2Payload,
+  overrides: Record<string, unknown> = {},
+) {
+  const userId = payload.userId;
+  const evidencedDimensionIds = payload.dimensions
+    .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
+    .map((dimension) => dimension.id);
+  const missingDimensionIds = payload.dimensions
+    .filter((dimension) => dimension.evidenceSummary.totalCount === 0)
+    .map((dimension) => dimension.id);
+  return {
+    cumulativePortraitCutoverFence: {
+      findUnique: async () => ({
+        fence: BigInt(1),
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        learnerGeneration: BigInt(1),
+        queueGeneration: BigInt(1),
+        activeMigrationRunId: 'migration-1',
+      }),
+    },
+    cumulativePortraitMigrationRun: {
+      findUnique: async () => ({
+        id: 'migration-1',
+        mode: 'APPLY',
+        status: 'COMPLETED',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        learnerGeneration: BigInt(1),
+        queueGeneration: BigInt(1),
+        cutoverFence: BigInt(1),
+      }),
+    },
+    learningMaterializationRebuildRequest: {
+      findFirst: async () => null,
+    },
+    learnerPortraitCurrentState: {
+      findUnique: async () => ({
+        userId,
+        stateVersionId: 'state-trusted',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        generation: BigInt(1),
+        queueGeneration: BigInt(1),
+        stateWatermark: BigInt(1),
+        taskInputDigest: 'task-input-digest',
+        cutoverFence: BigInt(1),
+        stateVersion: {
+          id: 'state-trusted',
+          userId,
+          calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+          generation: BigInt(1),
+          queueGeneration: BigInt(1),
+          stateWatermark: BigInt(1),
+          taskInputDigest: 'task-input-digest',
+          stateKind: 'SNAPSHOT',
+          snapshotId: 'snapshot-trusted',
+          overallScore: scoreForState(payload),
+          dimensionCoverage: {
+            evidencedDimensionIds,
+            missingDimensionIds,
+          },
+          evidenceAsOf: new Date(payload.dimensions[0]?.freshness.asOf ?? payload.generatedAt),
+          confidence: payload.dimensions[0]?.confidence ?? null,
+          lastTrend: 'stable',
+          lastRisk: [],
+          availabilityReason: 'available',
+          generatedAt: new Date(payload.generatedAt),
+          cutoverFence: BigInt(1),
+          migrationRunId: 'migration-1',
+          snapshot: {
+            id: 'snapshot-trusted',
+            userId,
+            snapshotAt: new Date(payload.generatedAt),
+            payloadVersion: payload.payloadVersion,
+            calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+            migrationVersion: payload.migrationVersion,
+            derivationKind: payload.derivation.kind,
+            payload,
+          },
+        },
+      }),
+    },
+    ...overrides,
+  };
+}
+
+function scoreForState(payload: PortraitV2Payload): number {
+  const scores = payload.dimensions.map((dimension) => dimension.score);
+  return Math.round(scores.reduce((sum, score) => sum + score, 0) / Math.max(scores.length, 1));
+}
+
 describe('portrait v2 primary model', () => {
   it('defines exactly the seven canonical dimensions with complete primary metadata', () => {
     const payload = nativePayload();
@@ -967,17 +1057,15 @@ describe('portrait v2 primary model', () => {
     ['admin', 'private-fixture'],
   ] as const)('preserves authorized %s lineage for direct learner-state reads', async (role, expectedKind) => {
     const payload = nativePayload();
-    const state = await readAdaptiveLearnerState({
-      studentPortraitV2Snapshot: {
-        findFirst: async () => snapshotRow(payload),
-      },
-    }, {
+    const state = await readAdaptiveLearnerState(fencedTrustedPortraitDb(payload), {
       userId: 'student-1',
       role,
       now: new Date(generatedAt),
     });
 
-    const kinds = state.primaryPortrait.dimensions.flatMap((dimension) =>
+    const primaryPortrait = state.primaryPortrait;
+    expect(primaryPortrait).not.toBeNull();
+    const kinds = primaryPortrait!.dimensions.flatMap((dimension) =>
       dimension.sourceLineage.map((ref) => ref.kind));
     expect(kinds).toContain(expectedKind);
     expect(kinds).not.toContain('raw-source');
@@ -993,10 +1081,7 @@ describe('portrait v2 primary model', () => {
       inquiryReflection: { score: 64, trend: 'stable', confidence: 0.6, evidenceCount: 2, lastUpdated: generatedAt },
       selfDirectedLearning: { score: 65, trend: 'stable', confidence: 0.6, evidenceCount: 2, lastUpdated: generatedAt },
     } satisfies CompetencyVector;
-    const state = await readAdaptiveLearnerState({
-      studentPortraitV2Snapshot: {
-        findFirst: async () => snapshotRow(payload),
-      },
+    const state = await readAdaptiveLearnerState(fencedTrustedPortraitDb(payload, {
       studentCompetencySnapshot: {
         findFirst: async () => ({
           id: 'legacy-1',
@@ -1004,18 +1089,20 @@ describe('portrait v2 primary model', () => {
           competencyVector: legacyVector,
         }),
       },
-    }, {
+    }), {
       userId: 'student-1',
       role: 'student',
       now: new Date(generatedAt),
     });
 
-    expect(state.primaryPortrait.dimensions.map((dimension) => dimension.id)).toEqual(PORTRAIT_V2_DIMENSION_IDS);
-    expect(state.primaryPortrait.derivation.kind).toBe('native');
+    const primaryPortrait = state.primaryPortrait;
+    expect(primaryPortrait).not.toBeNull();
+    expect(primaryPortrait!.dimensions.map((dimension) => dimension.id)).toEqual(PORTRAIT_V2_DIMENSION_IDS);
+    expect(primaryPortrait!.derivation.kind).toBe('native');
     expect(state.primaryCompetencies.authority).toBe('legacy-compatibility-only');
   });
 
-  it('falls back to legacy compatibility when a persisted portrait row is invalid and records the limitation', async () => {
+  it('fails closed when a persisted portrait row is invalid without a trusted cumulative portrait', async () => {
     const payload = nativePayload();
     const state = await readAdaptiveLearnerState({
       studentPortraitV2Snapshot: {
@@ -1041,12 +1128,12 @@ describe('portrait v2 primary model', () => {
       now: new Date(generatedAt),
     });
 
-    expect(state.primaryPortrait.derivation.kind).toBe('compatibility-derived');
-    expect(state.primaryPortrait.derivation.limitations).toContain('persisted-portrait-v2-invalid-or-incompatible');
-    expect(state.primaryPortrait.userId).toBe('student-1');
+    expect(state.primaryPortrait).toBeNull();
+    expect(state.primaryPortraitState).toBe('UNAVAILABLE');
+    expect(state.primaryPortraitAvailability).toBe('cumulative-portrait-fence-unavailable');
   });
 
-  it('uses one injected service clock to reject a future persisted portrait and generate the compatibility fallback', async () => {
+  it('uses one injected service clock to reject a future persisted portrait without a trusted cumulative state', async () => {
     const now = new Date('2020-06-15T00:00:00.000Z');
     const futurePayload = nativePayload();
     const legacyVector = legacyVectorAt({
@@ -1072,13 +1159,12 @@ describe('portrait v2 primary model', () => {
     });
 
     expect(state.generatedAt).toBe(now.toISOString());
-    expect(state.primaryPortrait.generatedAt).toBe(now.toISOString());
-    expect(state.primaryPortrait.derivation.kind).toBe('compatibility-derived');
-    expect(state.primaryPortrait.derivation.limitations)
-      .toContain('persisted-portrait-v2-invalid-or-incompatible');
+    expect(state.primaryPortrait).toBeNull();
+    expect(state.primaryPortraitState).toBe('UNAVAILABLE');
+    expect(state.primaryPortraitAvailability).toBe('cumulative-portrait-fence-unavailable');
   });
 
-  it('records StudentEvidenceFeatureCache as the compatibility source when no direct legacy snapshot is readable', async () => {
+  it('fails closed when only StudentEvidenceFeatureCache is available without a trusted cumulative portrait', async () => {
     const now = new Date('2026-07-11T00:00:00.000Z');
     const vector = legacyVectorAt({
       up: '2026-07-01T00:00:00.000Z',
@@ -1109,14 +1195,9 @@ describe('portrait v2 primary model', () => {
       now,
     });
 
-    expect(state.primaryCompetencies.source).toBe('feature-cache');
-    expect(state.primaryPortrait.dimensions[0].evidenceSummary.sourceFamilyCounts)
-      .toEqual({ StudentEvidenceFeatureCache: 2 });
-    expect(state.primaryPortrait.dimensions[0].sourceLineage).toContainEqual({
-      kind: 'evidence-family',
-      ref: 'StudentEvidenceFeatureCache',
-      privacyScope: 'student-visible',
-    });
+    expect(state.primaryPortrait).toBeNull();
+    expect(state.primaryPortraitState).toBe('UNAVAILABLE');
+    expect(state.primaryPortraitAvailability).toBe('cumulative-portrait-fence-unavailable');
   });
 
   it('does not swallow portrait persistence service failures', async () => {
@@ -1133,7 +1214,7 @@ describe('portrait v2 primary model', () => {
     })).rejects.toBe(persistenceError);
   });
 
-  it('derives an explicitly non-authoritative seven-dimensional compatibility view when only legacy data exists', async () => {
+  it('fails closed when only legacy snapshot data exists without a trusted cumulative portrait', async () => {
     const legacyVector = {
       controlModeling: { score: 60, trend: 'stable', confidence: 0.6, evidenceCount: 2, lastUpdated: generatedAt },
       parameterDesign: { score: 61, trend: 'stable', confidence: 0.6, evidenceCount: 2, lastUpdated: generatedAt },
@@ -1156,16 +1237,8 @@ describe('portrait v2 primary model', () => {
       now: new Date(generatedAt),
     });
 
-    expect(state.primaryPortrait.dimensions).toHaveLength(7);
-    expect(state.primaryPortrait.derivation).toMatchObject({
-      kind: 'compatibility-derived',
-      limitations: ['legacy-six-dimensional-input-is-non-authoritative'],
-    });
-    expect(state.primaryPortrait.derivation.sourceLegacySnapshotId).toBeUndefined();
-    expect(state.primaryPortrait.dimensions.flatMap((dimension) => dimension.sourceLineage)).toEqual(
-      expect.arrayContaining([
-        { kind: 'evidence-family', ref: 'StudentCompetencySnapshot', privacyScope: 'student-visible' },
-      ]),
-    );
+    expect(state.primaryPortrait).toBeNull();
+    expect(state.primaryPortraitState).toBe('UNAVAILABLE');
+    expect(state.primaryPortraitAvailability).toBe('cumulative-portrait-fence-unavailable');
   });
 });

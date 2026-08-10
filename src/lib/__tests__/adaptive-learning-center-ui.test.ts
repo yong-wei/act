@@ -94,6 +94,8 @@ function learnerState(overrides: Partial<AdaptiveLearnerState> = {}): AdaptiveLe
       }),
       'student',
     ),
+    primaryPortraitState: 'SNAPSHOT',
+    primaryPortraitAvailability: 'available',
     primaryCompetencies: {
       authority: 'legacy-compatibility-only',
       source: 'latest-snapshot',

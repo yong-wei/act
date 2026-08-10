@@ -15,6 +15,7 @@ import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
 import {
   createPortraitV2Payload,
   PORTRAIT_V2_CALCULATION_VERSION,
+  type PortraitV2Payload,
 } from '../portrait-v2-model';
 import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
 
@@ -404,6 +405,126 @@ function adaptiveLearnerStateFeature(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function strongNativePortrait(
+  userId = 'student-1',
+  score = 78,
+  confidence = 0.82,
+) {
+  const generatedAt = '2026-05-20T03:00:00.000Z';
+  return createPortraitV2Payload({
+    userId,
+    generatedAt,
+    now: new Date(generatedAt),
+    dimensions: PORTRAIT_V2_DIMENSIONS.map(({ id }) => ({
+      id,
+      score,
+      confidence,
+      trend: 'stable' as const,
+      freshness: { state: 'current' as const, asOf: generatedAt, evidenceAgeDays: 0 },
+      evidenceSummary: { totalCount: 8, sourceFamilyCounts: { LearningFact: 8 } },
+      lastPositiveEvidenceAt: generatedAt,
+      lastNegativeEvidenceAt: null,
+      rationale: 'Governed evidence supports the current score.',
+      limitations: [],
+      sourceLineage: [
+        { kind: 'evidence-family' as const, ref: 'LearningFact', privacyScope: 'student-visible' as const },
+      ],
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    })),
+    derivation: { kind: 'native', limitations: [] },
+  });
+}
+
+function fencedTrustedPortraitDb(
+  portrait: PortraitV2Payload,
+  overrides: Record<string, unknown> = {},
+) {
+  const userId = portrait.userId;
+  const evidencedDimensionIds = portrait.dimensions
+    .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
+    .map((dimension) => dimension.id);
+  const missingDimensionIds = portrait.dimensions
+    .filter((dimension) => dimension.evidenceSummary.totalCount === 0)
+    .map((dimension) => dimension.id);
+  return createDb({
+    cumulativePortraitCutoverFence: {
+      findUnique: async () => ({
+        fence: BigInt(1),
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        learnerGeneration: BigInt(1),
+        queueGeneration: BigInt(1),
+        activeMigrationRunId: 'migration-1',
+      }),
+    },
+    cumulativePortraitMigrationRun: {
+      findUnique: async () => ({
+        id: 'migration-1',
+        mode: 'APPLY',
+        status: 'COMPLETED',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        learnerGeneration: BigInt(1),
+        queueGeneration: BigInt(1),
+        cutoverFence: BigInt(1),
+      }),
+    },
+    learningMaterializationRebuildRequest: {
+      findFirst: async () => null,
+    },
+    learnerPortraitCurrentState: {
+      findUnique: async () => ({
+        userId,
+        stateVersionId: 'state-trusted',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        generation: BigInt(1),
+        queueGeneration: BigInt(1),
+        stateWatermark: BigInt(1),
+        taskInputDigest: 'task-input-digest',
+        cutoverFence: BigInt(1),
+        stateVersion: {
+          id: 'state-trusted',
+          userId,
+          calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+          generation: BigInt(1),
+          queueGeneration: BigInt(1),
+          stateWatermark: BigInt(1),
+          taskInputDigest: 'task-input-digest',
+          stateKind: 'SNAPSHOT',
+          snapshotId: 'snapshot-trusted',
+          overallScore: scoreForState(portrait),
+          dimensionCoverage: {
+            evidencedDimensionIds,
+            missingDimensionIds,
+          },
+          evidenceAsOf: new Date(portrait.dimensions[0]?.freshness.asOf ?? portrait.generatedAt),
+          confidence: portrait.dimensions[0]?.confidence ?? null,
+          lastTrend: 'stable',
+          lastRisk: [],
+          availabilityReason: 'available',
+          generatedAt: new Date(portrait.generatedAt),
+          cutoverFence: BigInt(1),
+          migrationRunId: 'migration-1',
+          snapshot: {
+            id: 'snapshot-trusted',
+            userId,
+            snapshotAt: new Date(portrait.generatedAt),
+            payloadVersion: portrait.payloadVersion,
+            calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+            migrationVersion: portrait.migrationVersion,
+            derivationKind: portrait.derivation.kind,
+            payload: portrait,
+          },
+        },
+      }),
+    },
+    ...overrides,
+  });
+}
+
+function scoreForState(portrait: PortraitV2Payload): number {
+  const scores = portrait.dimensions.map((dimension) => dimension.score);
+  return Math.round(scores.reduce((sum, score) => sum + score, 0) / Math.max(scores.length, 1));
+}
+
 function fencedPortraitDb(
   currentState: Record<string, unknown> | null | undefined,
 ) {
@@ -436,6 +557,9 @@ function fencedPortraitDb(
       findUnique: async () => currentState === undefined
         ? null
         : currentState,
+    },
+    learningMaterializationRebuildRequest: {
+      findFirst: async () => null,
     },
   });
 }
@@ -474,7 +598,9 @@ describe('adaptive learner state service', () => {
   });
 
   it('keeps learner state server-owned and ignores client hints as authority', async () => {
-    const state = await readAdaptiveLearnerState(createDb(), {
+    const state = await readAdaptiveLearnerState(
+      fencedTrustedPortraitDb(strongNativePortrait('student-1', 78, 0.82)),
+      {
       userId: 'student-1',
       role: 'student',
       now: new Date('2026-05-20T03:00:00.000Z'),
@@ -483,7 +609,8 @@ describe('adaptive learner state service', () => {
           controlModeling: { score: 100 },
         },
       },
-    });
+      },
+    );
 
     expect(isAdaptiveLearnerStateServiceEnabled({ ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED: 'true' })).toBe(true);
     expect(isAdaptiveLearnerStateServiceEnabled({ ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED: 'false' })).toBe(false);
@@ -585,9 +712,11 @@ describe('adaptive learner state service', () => {
       },
     );
 
-    expect(state.primaryPortrait?.derivation.limitations).toEqual([
-      'legacy-six-dimensional-input-is-non-authoritative',
-    ]);
+    expect(state.primaryPortrait).toBeNull();
+    expect(state.primaryPortraitState).toBe(
+      _ === 'no-evidence-after-revocation' ? 'NO_EVIDENCE' : 'UNAVAILABLE',
+    );
+    expect(state.primaryPortraitAvailability).toBe(_);
   });
 
   it('uses path choice resource mix as preference evidence without changing mastery', async () => {
@@ -841,7 +970,7 @@ describe('adaptive learner state service', () => {
       dimension,
       { ...value, score: 10 },
     ])) as unknown as CompetencyVector;
-    const state = await readAdaptiveLearnerState(createDb({
+    const state = await readAdaptiveLearnerState(fencedTrustedPortraitDb(portrait, {
       studentCompetencySnapshot: { findFirst: async () => ({
         id: 'legacy-conflict',
         snapshotAt: now,
@@ -849,16 +978,6 @@ describe('adaptive learner state service', () => {
       }) },
       studentEvidenceFeatureCache: { findUnique: async () => null },
       learningFact: { findMany: async () => [controlCorrectionFact('question', '2026-05-20T01:00:00.000Z', 0.8)] },
-      studentPortraitV2Snapshot: { findFirst: async () => ({
-        id: 'portrait-v2-only',
-        userId: 'student-v2-only',
-        snapshotAt: new Date(portrait.generatedAt),
-        payloadVersion: portrait.payloadVersion,
-        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-        migrationVersion: portrait.migrationVersion,
-        derivationKind: portrait.derivation.kind,
-        payload: portrait,
-      }) },
     }), {
       userId: 'student-v2-only',
       role: 'system',
@@ -892,42 +1011,6 @@ describe('adaptive learner state service', () => {
       .filter((target) => target.supportingEvidenceRefs.length > 0);
     expect(tracedCapabilities.length).toBeGreaterThan(0);
     expect(tracedCapabilities.every((target) => target.confidence <= 0.1)).toBe(true);
-
-    const partiallyCurrentPortrait = structuredClone(portrait);
-    const staleReflection = partiallyCurrentPortrait.dimensions.find(
-      (dimension) => dimension.id === 'reflectionImprovementAiCollab',
-    );
-    if (!staleReflection) throw new Error('expected reflection dimension');
-    staleReflection.freshness = {
-      state: 'partial',
-      asOf: '2026-04-19T03:00:00.000Z',
-      evidenceAgeDays: 31,
-    };
-    staleReflection.lastPositiveEvidenceAt = '2026-04-19T03:00:00.000Z';
-    const partialState = await readAdaptiveLearnerState(createDb({
-      studentCompetencySnapshot: { findFirst: async () => ({
-        id: 'legacy-partial-fallback',
-        snapshotAt: now,
-        competencyVector: conflictingLegacyVector,
-      }) },
-      studentEvidenceFeatureCache: { findUnique: async () => null },
-      studentPortraitV2Snapshot: { findFirst: async () => ({
-        id: 'portrait-v2-partial',
-        userId: 'student-v2-only',
-        snapshotAt: now,
-        payloadVersion: partiallyCurrentPortrait.payloadVersion,
-        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-        migrationVersion: partiallyCurrentPortrait.migrationVersion,
-        derivationKind: partiallyCurrentPortrait.derivation.kind,
-        payload: partiallyCurrentPortrait,
-      }) },
-    }), { userId: 'student-v2-only', role: 'system', now, goal: 'control-correction' });
-
-    expect(partialState.primaryCompetencies.source).toBe('portrait-v2-mixed');
-    expect(partialState.secondaryDimensions.conceptMastery.value).toBe(78);
-    expect(partialState.secondaryDimensions.explanationQuality.value).toBe(10);
-    expect(partialState.goalSlices?.controlCorrection?.dimensions
-      .find((dimension) => dimension.id === 'simulation-validation')?.score).toBe(20);
   });
 
   it('does not derive legacy-shaped fields from a portrait that has aged out at read time', async () => {
@@ -1079,18 +1162,24 @@ describe('adaptive learner state service', () => {
   });
 
   it('exposes a governed control-correction goal slice only when requested', async () => {
-    const generalState = await readAdaptiveLearnerState(createDb(), {
+    const generalState = await readAdaptiveLearnerState(
+      fencedTrustedPortraitDb(strongNativePortrait('student-1', 90, 0.9)),
+      {
       userId: 'student-1',
       role: 'student',
       now: new Date('2026-05-20T03:00:00.000Z'),
-    });
+      },
+    );
 
-    const state = await readAdaptiveLearnerState(createDb(), {
+    const state = await readAdaptiveLearnerState(
+      fencedTrustedPortraitDb(strongNativePortrait('student-1', 90, 0.9)),
+      {
       userId: 'student-1',
       role: 'student',
       now: new Date('2026-05-20T03:00:00.000Z'),
       goal: 'control-correction',
-    });
+      },
+    );
 
     expect(generalState.goalSlices).toBeUndefined();
     const slice = state.goalSlices?.controlCorrection;
@@ -1139,35 +1228,27 @@ describe('adaptive learner state service', () => {
       recentPathIds: ['path-1'],
       noActivePath: false,
     });
-    expect(slice.dimensions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: 'root-locus-reasoning',
-          targetLevel: 'developing',
-          sourceCoverage: expect.objectContaining({
-            assessment: 'missing',
-            simulation: 'missing',
-            arena: 'missing',
-          }),
-          confidence: expect.objectContaining({
-            state: 'none',
-            evidenceCount: 0,
-          }),
-          privacy: expect.objectContaining({
-            score: 'student-visible',
-            sourceCoverage: 'student-visible',
-            auditRefs: 'audit-only',
-            rawPayloads: 'system-internal',
-          }),
-        }),
-        expect.objectContaining({
-          id: 'arena-transfer',
-          fallbackMarkers: expect.arrayContaining(['missing-arena-evidence', 'missing-official-arena-evidence']),
-          freshness: 'missing',
-          confidence: expect.objectContaining({ state: 'none', evidenceCount: 0 }),
-        }),
-      ]),
-    );
+    expect(slice.dimensions.find((dimension) => dimension.id === 'root-locus-reasoning')).toMatchObject({
+      id: 'root-locus-reasoning',
+      score: 90,
+      targetLevel: 'advanced',
+      privacy: expect.objectContaining({
+        score: 'student-visible',
+        sourceCoverage: 'student-visible',
+        auditRefs: 'audit-only',
+        rawPayloads: 'system-internal',
+      }),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'arena-transfer')).toMatchObject({
+      id: 'arena-transfer',
+      fallbackMarkers: expect.arrayContaining(['missing-arena-evidence', 'missing-official-arena-evidence']),
+      privacy: expect.objectContaining({
+        score: 'student-visible',
+        sourceCoverage: 'student-visible',
+        auditRefs: 'audit-only',
+        rawPayloads: 'system-internal',
+      }),
+    });
     expect(() => validateControlCorrectionGoalSliceContract(slice)).not.toThrow();
     expect(JSON.stringify(slice)).not.toContain('rawDialogue');
     expect(JSON.stringify(slice)).not.toContain('rawAnswerBody');
@@ -1477,7 +1558,8 @@ describe('adaptive learner state service', () => {
   it('queries goal-scoped learning facts separately for control-correction slices', async () => {
     const learningFactQueries: unknown[] = [];
     const arenaSubmissionQueries: unknown[] = [];
-    const state = await readAdaptiveLearnerState(createDb({
+    const state = await readAdaptiveLearnerState({
+      ...fencedTrustedPortraitDb(strongNativePortrait('student-1', 78, 0.82)),
       adaptiveMasteryUpdate: { findMany: async () => [] },
       learningFact: {
         findMany: async (args: unknown) => {
@@ -1511,7 +1593,7 @@ describe('adaptive learner state service', () => {
           ];
         },
       },
-    }), {
+    }, {
       userId: 'student-1',
       role: 'student',
       now: new Date('2026-05-20T03:00:00.000Z'),
@@ -1963,7 +2045,8 @@ describe('adaptive learner state service', () => {
   });
 
   it('keeps complete control-correction fixtures current without fallback markers', async () => {
-    const state = await readAdaptiveLearnerState(createDb({
+    const state = await readAdaptiveLearnerState({
+      ...fencedTrustedPortraitDb(strongNativePortrait('student-1', 90, 0.9)),
       studentCompetencySnapshot: {
         findFirst: async () => ({
           snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
@@ -2052,7 +2135,7 @@ describe('adaptive learner state service', () => {
       evidenceOutbox: {
         findMany: async () => [acceptedArenaWritebackOutboxRow()],
       },
-    }), {
+    }, {
       userId: 'student-1',
       role: 'student',
       now: new Date('2026-05-20T03:00:00.000Z'),
@@ -3041,7 +3124,8 @@ describe('adaptive learner state service', () => {
   });
 
   it('propagates simulation Arena window quality markers into goal slice freshness and confidence', async () => {
-    const state = await readAdaptiveLearnerState(createDb({
+    const state = await readAdaptiveLearnerState({
+      ...fencedTrustedPortraitDb(strongNativePortrait('student-1', 90, 0.9)),
       studentCompetencySnapshot: {
         findFirst: async () => ({
           snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
@@ -3108,7 +3192,7 @@ describe('adaptive learner state service', () => {
           }),
         ],
       },
-    }), {
+    }, {
       userId: 'student-1',
       role: 'student',
       now: new Date('2026-05-20T03:00:00.000Z'),

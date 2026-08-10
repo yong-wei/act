@@ -238,6 +238,8 @@ function materializationFixture(input: {
             lastTrend: stateData?.lastTrend ?? null,
             lastRisk: stateData?.lastRisk ?? [],
             stateKind: stateData?.stateKind,
+            trustedFactPolicyVersion: stateData?.trustedFactPolicyVersion ?? null,
+            trustedInputDigest: stateData?.trustedInputDigest ?? null,
             snapshot: snapshotId
               ? { id: snapshotId, payload: snapshots.get(snapshotId) }
               : null,
@@ -273,6 +275,9 @@ function materializationFixture(input: {
 function learningFact(id: string, overrides: Record<string, unknown> = {}) {
   return {
     id,
+    sourceEventId: `governed-event:${id}`,
+    sourceLogId: `governed-log:${id}`,
+    knowledgeRevisionRef: null,
     factType: 'question',
     startedAt: baseAt,
     outcome: 'success',
