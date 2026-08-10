@@ -597,6 +597,7 @@ async function main(): Promise<void> {
   });
   assertion(exerciseJournal.status === 'COMMITTED', 'exercise did not commit');
   const exerciseRollback = rollbackCommittedFirstActivation({
+    repoRoot: exerciseRoot,
     journalPath: exerciseJournalPath,
     lockPath: path.join(exerciseRoot, DEFAULTS.consumer, '.first-activation.lock'),
   });

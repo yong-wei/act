@@ -1,14 +1,17 @@
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   executeFirstActivation,
+  migrateLegacyFirstActivationJournal,
   readFirstActivationJournal,
   rollbackCommittedFirstActivation,
 } from '../knowledge-cutover/first-activation';
+import { activationCanonicalJson } from '../versioned-knowledge-activation/hash';
 
 const roots: string[] = [];
 const hash = 'a'.repeat(64);
@@ -65,6 +68,13 @@ describe('all-ABSENT first activation protocol', () => {
 
     expect(journal.status).toBe('COMMITTED');
     expect(plan.steps.every((step) => existsSync(step.pointerPath))).toBe(true);
+    expect(journal.steps.map((step) => step.pointer.path)).toEqual([
+      'authority/current.json',
+      'projection/current.json',
+      'prerequisite/current.json',
+      'consumer/current.json',
+    ]);
+    expect(readFileSync(plan.journalPath, 'utf8')).not.toContain(plan.repoRoot);
 
     const rolledBack = rollbackCommittedFirstActivation(plan);
     expect(rolledBack.status).toBe('ROLLED_BACK');
@@ -101,5 +111,74 @@ describe('all-ABSENT first activation protocol', () => {
     expect(() => executeFirstActivation(plan)).toThrow(/post-write identity mismatch.*compensation failed: rollback drift/u);
     expect(readFirstActivationJournal(plan.journalPath).status).toBe('ROLLBACK_FAILED');
     expect(existsSync(projection.pointerPath)).toBe(true);
+  });
+
+  it('migrates the legacy journal without retaining its local root and preserves rollback', () => {
+    const plan = makePlan();
+    for (const step of plan.steps) step.activate();
+    const legacyBody = {
+      contract: 'actkg-to-act-first-activation-journal/v1',
+      transactionId: 'legacy-first-test',
+      repoRoot: plan.repoRoot,
+      createdAt: '2026-08-10T00:00:00.000Z',
+      status: 'COMMITTED' as const,
+      prestate: 'ALL_POINTERS_ABSENT' as const,
+      steps: plan.steps.map((step) => ({
+        component: step.component,
+        pointerPath: step.pointerPath,
+        target: step.target,
+        status: 'APPLIED' as const,
+      })),
+      failure: null,
+    };
+    mkdirSync(path.dirname(plan.journalPath), { recursive: true });
+    writeFileSync(
+      plan.journalPath,
+      `${JSON.stringify({
+        ...legacyBody,
+        journalHash: createHash('sha256').update(activationCanonicalJson(legacyBody)).digest('hex'),
+      }, null, 2)}\n`,
+      'utf8',
+    );
+
+    const receipt = migrateLegacyFirstActivationJournal({
+      ...plan,
+      migratedAt: '2026-08-10T01:00:00.000Z',
+    });
+    expect(receipt.legacyJournalHash).not.toBe(receipt.journalHash);
+    expect(readFileSync(plan.journalPath, 'utf8')).not.toContain(plan.repoRoot);
+    expect(readFirstActivationJournal(plan.journalPath).contract)
+      .toBe('actkg-to-act-first-activation-journal/v2');
+
+    const rolledBack = rollbackCommittedFirstActivation(plan);
+    expect(rolledBack.status).toBe('ROLLED_BACK');
+    expect(plan.steps.some((step) => existsSync(step.pointerPath))).toBe(false);
+  });
+
+  it('reuses a repo-relative journal after moving the repository root', () => {
+    const source = makePlan();
+    executeFirstActivation(source);
+    const destination = makePlan();
+    for (const step of destination.steps) step.activate();
+    mkdirSync(path.dirname(destination.journalPath), { recursive: true });
+    writeFileSync(
+      destination.journalPath,
+      readFileSync(source.journalPath, 'utf8'),
+      'utf8',
+    );
+
+    const rolledBack = rollbackCommittedFirstActivation(destination);
+    expect(rolledBack.status).toBe('ROLLED_BACK');
+    expect(destination.steps.some((step) => existsSync(step.pointerPath))).toBe(false);
+  });
+
+  it('fails closed when a pointer path crosses a symbolic link', () => {
+    const plan = makePlan();
+    const outside = mkdtempSync(path.join(tmpdir(), 'act-first-activation-outside-'));
+    roots.push(outside);
+    symlinkSync(outside, path.join(plan.repoRoot, 'authority'));
+
+    expect(() => executeFirstActivation(plan)).toThrow(/symbolic link/u);
+    expect(existsSync(plan.journalPath)).toBe(false);
   });
 });

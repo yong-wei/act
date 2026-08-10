@@ -172,6 +172,21 @@ switch has no predecessor pointer to restore. Extending every generic store
 with an all-ABSENT rollback mode was rejected because the first-activation
 protocol is narrower and preserves the existing store rollback contracts.
 
+### 9. Persist only repository-relative first-activation locators
+
+The journal records a versioned `repo-relative` locator for each pointer and
+never serializes the local repository root or an absolute pointer path. Rollback
+receives its current repository root explicitly, rejects escaping or symbolic
+link traversal, and resolves each locator only inside that root before its
+identity-constrained deletion. The one predecessor journal written before this
+rule is converted once after its hash and legacy root are verified; normal
+readers do not accept that absolute-path format.
+
+Keeping absolute paths was rejected because these durable audit files are
+shareable repository artifacts and must not disclose a developer workstation.
+Replacing locators with component-name reconstruction was rejected because it
+would remove the transaction's explicit, extensible recovery target.
+
 ## Risks / Trade-offs
 
 - [No compatible locally available Release] → stop at Phase 1 with a signed

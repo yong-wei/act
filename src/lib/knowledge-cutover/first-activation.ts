@@ -8,6 +8,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import {
   closeSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readFileSync,
@@ -19,6 +20,9 @@ import { activationCanonicalJson } from '@/lib/versioned-knowledge-activation/ha
 import { atomicWriteFile } from '@/lib/versioned-knowledge-activation/store';
 
 export const FIRST_ACTIVATION_JOURNAL_CONTRACT =
+  'actkg-to-act-first-activation-journal/v2' as const;
+
+const LEGACY_FIRST_ACTIVATION_JOURNAL_CONTRACT =
   'actkg-to-act-first-activation-journal/v1' as const;
 
 export const FIRST_ACTIVATION_COMPONENTS = [
@@ -44,9 +48,14 @@ export interface FirstActivationStep {
   activate: () => void;
 }
 
+export interface FirstActivationPointerLocator {
+  kind: 'repo-relative';
+  path: string;
+}
+
 interface FirstActivationJournalStep {
   component: FirstActivationComponent;
-  pointerPath: string;
+  pointer: FirstActivationPointerLocator;
   target: FirstActivationPointerIdentity;
   status: 'PENDING' | 'STARTED' | 'APPLIED' | 'ROLLED_BACK';
 }
@@ -54,13 +63,37 @@ interface FirstActivationJournalStep {
 export interface FirstActivationJournal {
   contract: typeof FIRST_ACTIVATION_JOURNAL_CONTRACT;
   transactionId: string;
-  repoRoot: string;
   createdAt: string;
   status: 'PREPARED' | 'COMMITTED' | 'ROLLING_BACK' | 'ROLLED_BACK' | 'ROLLBACK_FAILED';
   prestate: 'ALL_POINTERS_ABSENT';
   steps: FirstActivationJournalStep[];
   failure: string | null;
   journalHash: string;
+}
+
+interface LegacyFirstActivationJournal {
+  contract: typeof LEGACY_FIRST_ACTIVATION_JOURNAL_CONTRACT;
+  transactionId: string;
+  repoRoot: string;
+  createdAt: string;
+  status: FirstActivationJournal['status'];
+  prestate: 'ALL_POINTERS_ABSENT';
+  steps: Array<{
+    component: FirstActivationComponent;
+    pointerPath: string;
+    target: FirstActivationPointerIdentity;
+    status: FirstActivationJournalStep['status'];
+  }>;
+  failure: string | null;
+  journalHash: string;
+}
+
+export interface FirstActivationJournalMigrationReceipt {
+  contract: 'actkg-to-act-first-activation-journal-migration/v1';
+  transactionId: string;
+  legacyJournalHash: string;
+  journalHash: string;
+  migratedAt: string;
 }
 
 export class FirstActivationError extends Error {
@@ -72,6 +105,74 @@ export class FirstActivationError extends Error {
 
 function sha256(value: string): string {
   return createHash('sha256').update(value).digest('hex');
+}
+
+function isComponent(value: unknown): value is FirstActivationComponent {
+  return typeof value === 'string'
+    && FIRST_ACTIVATION_COMPONENTS.includes(value as FirstActivationComponent);
+}
+
+function normalizeLocatorPath(value: unknown): string {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new FirstActivationError('journal pointer locator path is missing');
+  }
+  if (
+    value.includes('\\')
+    || value.startsWith('//')
+    || /^[A-Za-z]:/u.test(value)
+    || path.posix.isAbsolute(value)
+  ) {
+    throw new FirstActivationError('journal pointer locator must be repo-relative');
+  }
+  const normalized = path.posix.normalize(value);
+  if (
+    normalized === '.'
+    || normalized === '..'
+    || normalized.startsWith('../')
+    || normalized !== value
+  ) {
+    throw new FirstActivationError('journal pointer locator escapes repository root');
+  }
+  return normalized;
+}
+
+function assertNoSymlinkAncestor(repoRoot: string, targetPath: string): void {
+  const relative = path.relative(repoRoot, targetPath);
+  let current = repoRoot;
+  for (const part of relative.split(path.sep).filter(Boolean)) {
+    current = path.join(current, part);
+    if (existsSync(current) && lstatSync(current).isSymbolicLink()) {
+      throw new FirstActivationError(`pointer locator crosses a symbolic link: ${relative}`);
+    }
+  }
+}
+
+function locatorForPointerPath(
+  repoRoot: string,
+  pointerPath: string,
+): FirstActivationPointerLocator {
+  const targetPath = path.resolve(pointerPath);
+  const relative = path.relative(repoRoot, targetPath).split(path.sep).join('/');
+  const normalized = normalizeLocatorPath(relative);
+  assertNoSymlinkAncestor(repoRoot, targetPath);
+  return { kind: 'repo-relative', path: normalized };
+}
+
+function resolvePointerLocator(
+  repoRoot: string,
+  locator: FirstActivationPointerLocator,
+): string {
+  if (locator.kind !== 'repo-relative') {
+    throw new FirstActivationError('journal pointer locator kind is invalid');
+  }
+  const normalized = normalizeLocatorPath(locator.path);
+  const targetPath = path.resolve(repoRoot, ...normalized.split('/'));
+  const relative = path.relative(repoRoot, targetPath);
+  if (relative === '' || relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new FirstActivationError('journal pointer locator resolves outside repository root');
+  }
+  assertNoSymlinkAncestor(repoRoot, targetPath);
+  return targetPath;
 }
 
 function sealJournal(
@@ -109,7 +210,107 @@ export function readFirstActivationJournal(journalPath: string): FirstActivation
   ) {
     throw new FirstActivationError('first-activation journal hash or contract mismatch');
   }
+  if (!Array.isArray(journal.steps) || journal.steps.length !== FIRST_ACTIVATION_COMPONENTS.length) {
+    throw new FirstActivationError('first-activation journal steps are invalid');
+  }
+  for (const [index, component] of FIRST_ACTIVATION_COMPONENTS.entries()) {
+    const step = journal.steps[index];
+    if (!step || step.component !== component || !isComponent(step.target?.component)) {
+      throw new FirstActivationError('first-activation journal step order is invalid');
+    }
+    if (!step.pointer || step.pointer.kind !== 'repo-relative') {
+      throw new FirstActivationError('first-activation journal pointer locator is invalid');
+    }
+    normalizeLocatorPath(step.pointer.path);
+  }
   return journal;
+}
+
+function readLegacyFirstActivationJournal(
+  journalPath: string,
+): LegacyFirstActivationJournal {
+  let value: unknown;
+  try {
+    value = JSON.parse(readFileSync(journalPath, 'utf8')) as unknown;
+  } catch (error) {
+    throw new FirstActivationError(
+      `cannot read legacy first-activation journal: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new FirstActivationError('legacy first-activation journal is not an object');
+  }
+  const journal = value as LegacyFirstActivationJournal;
+  const { journalHash, ...body } = journal;
+  if (
+    journal.contract !== LEGACY_FIRST_ACTIVATION_JOURNAL_CONTRACT
+    || typeof journalHash !== 'string'
+    || journalHash !== sha256(activationCanonicalJson(body))
+  ) {
+    throw new FirstActivationError('legacy first-activation journal hash or contract mismatch');
+  }
+  return journal;
+}
+
+/**
+ * One-time conversion of the predecessor journal format. Runtime readers only
+ * accept v2; this explicit operation removes historical local paths after
+ * checking every legacy path against the supplied repository root.
+ */
+export function migrateLegacyFirstActivationJournal(input: {
+  repoRoot: string;
+  journalPath: string;
+  lockPath: string;
+  migratedAt?: string;
+}): FirstActivationJournalMigrationReceipt {
+  const repoRoot = path.resolve(input.repoRoot);
+  const descriptor = acquireLock(input.lockPath);
+  try {
+    const legacy = readLegacyFirstActivationJournal(input.journalPath);
+    if (!path.isAbsolute(legacy.repoRoot) || path.resolve(legacy.repoRoot) !== repoRoot) {
+      throw new FirstActivationError('legacy journal repository root does not match migration root');
+    }
+    if (
+      !Array.isArray(legacy.steps)
+      || legacy.steps.length !== FIRST_ACTIVATION_COMPONENTS.length
+    ) {
+      throw new FirstActivationError('legacy first-activation journal steps are invalid');
+    }
+    const steps: FirstActivationJournalStep[] = legacy.steps.map((step, index) => {
+      const component = FIRST_ACTIVATION_COMPONENTS[index];
+      if (
+        !component
+        || step.component !== component
+        || step.target?.component !== component
+        || !path.isAbsolute(step.pointerPath)
+      ) {
+        throw new FirstActivationError('legacy first-activation journal step is invalid');
+      }
+      return {
+        component,
+        pointer: locatorForPointerPath(repoRoot, step.pointerPath),
+        target: step.target,
+        status: step.status,
+      };
+    });
+    const journal = asJournal({
+      transactionId: legacy.transactionId,
+      createdAt: legacy.createdAt,
+      status: legacy.status,
+      steps,
+      failure: legacy.failure,
+    });
+    writeJournal(input.journalPath, journal);
+    return {
+      contract: 'actkg-to-act-first-activation-journal-migration/v1',
+      transactionId: journal.transactionId,
+      legacyJournalHash: legacy.journalHash,
+      journalHash: journal.journalHash,
+      migratedAt: input.migratedAt ?? new Date().toISOString(),
+    };
+  } finally {
+    releaseLock(input.lockPath, descriptor);
+  }
 }
 
 export function readFirstActivationPointerIdentity(input: {
@@ -166,10 +367,7 @@ function assertPlan(input: {
     if (!step || step.component !== component || step.target.component !== component) {
       throw new FirstActivationError(`first activation step order must be ${FIRST_ACTIVATION_COMPONENTS.join(' → ')}`);
     }
-    const relative = path.relative(input.repoRoot, step.pointerPath);
-    if (relative.startsWith('..') || path.isAbsolute(relative)) {
-      throw new FirstActivationError(`pointer path escapes repository root: ${step.pointerPath}`);
-    }
+    locatorForPointerPath(input.repoRoot, step.pointerPath);
   }
 }
 
@@ -193,7 +391,6 @@ function releaseLock(lockPath: string, descriptor: number): void {
 
 function asJournal(input: {
   transactionId: string;
-  repoRoot: string;
   createdAt: string;
   status: FirstActivationJournal['status'];
   steps: FirstActivationJournalStep[];
@@ -202,7 +399,6 @@ function asJournal(input: {
   return sealJournal({
     contract: FIRST_ACTIVATION_JOURNAL_CONTRACT,
     transactionId: input.transactionId,
-    repoRoot: input.repoRoot,
     createdAt: input.createdAt,
     status: input.status,
     prestate: 'ALL_POINTERS_ABSENT',
@@ -212,6 +408,7 @@ function asJournal(input: {
 }
 
 function compensate(input: {
+  repoRoot: string;
   journalPath: string;
   journal: FirstActivationJournal;
 }): FirstActivationJournal {
@@ -225,14 +422,15 @@ function compensate(input: {
   try {
     for (const step of [...journal.steps].reverse()) {
       if (step.status !== 'STARTED' && step.status !== 'APPLIED') continue;
+      const pointerPath = resolvePointerLocator(input.repoRoot, step.pointer);
       const current = readFirstActivationPointerIdentity({
         component: step.component,
-        pointerPath: step.pointerPath,
+        pointerPath,
       });
       if (current && !sameIdentity(current, step.target)) {
         throw new FirstActivationError(`rollback drift at ${step.component}`);
       }
-      if (current) unlinkSync(step.pointerPath);
+      if (current) unlinkSync(pointerPath);
       step.status = 'ROLLED_BACK';
       journal = asJournal({ ...journal, steps: journal.steps.map((row) => ({ ...row })) });
       writeJournal(input.journalPath, journal);
@@ -266,12 +464,11 @@ export function executeFirstActivation(input: {
   const descriptor = acquireLock(input.lockPath);
   let journal = asJournal({
     transactionId: input.transactionId ?? `first-activation-${randomUUID()}`,
-    repoRoot,
     createdAt: input.createdAt ?? new Date().toISOString(),
     status: 'PREPARED',
     steps: input.steps.map((step) => ({
       component: step.component,
-      pointerPath: step.pointerPath,
+      pointer: locatorForPointerPath(repoRoot, step.pointerPath),
       target: step.target,
       status: 'PENDING',
     })),
@@ -311,7 +508,7 @@ export function executeFirstActivation(input: {
     journal = asJournal({ ...journal, failure });
     writeJournal(input.journalPath, journal);
     try {
-      compensate({ journalPath: input.journalPath, journal });
+      compensate({ repoRoot, journalPath: input.journalPath, journal });
     } catch (rollbackError) {
       throw new FirstActivationError(
         `${failure}; compensation failed: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`,
@@ -324,6 +521,7 @@ export function executeFirstActivation(input: {
 }
 
 export function rollbackCommittedFirstActivation(input: {
+  repoRoot: string;
   journalPath: string;
   lockPath: string;
 }): FirstActivationJournal {
@@ -333,7 +531,11 @@ export function rollbackCommittedFirstActivation(input: {
     if (journal.status !== 'COMMITTED') {
       throw new FirstActivationError(`cannot rollback first activation from ${journal.status}`);
     }
-    return compensate({ journalPath: input.journalPath, journal });
+    return compensate({
+      repoRoot: path.resolve(input.repoRoot),
+      journalPath: input.journalPath,
+      journal,
+    });
   } finally {
     releaseLock(input.lockPath, descriptor);
   }
