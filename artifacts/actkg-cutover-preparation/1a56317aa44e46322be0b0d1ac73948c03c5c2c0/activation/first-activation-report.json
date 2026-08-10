@@ -43,7 +43,7 @@
     "protocol": "identity-constrained-first-activation-compensation"
   },
   "legacyRetirementPointer": "ABSENT",
-  "journalHash": "5b5ea2ddd9a9e495957c975c430fc9596affdb902f802b9d73d3a14df127aef3",
+  "journalHash": "fcb5822b4cced3bf6e76102f49bc6ceb89b53823ebca86d6766521c4b463f277",
   "journalMigration": {
     "contract": "actkg-to-act-first-activation-journal-migration/v1",
     "transactionId": "first-cutover-7f4cdd1084af419a3e837876",
@@ -51,5 +51,12 @@
     "journalHash": "5b5ea2ddd9a9e495957c975c430fc9596affdb902f802b9d73d3a14df127aef3",
     "migratedAt": "2026-08-10T16:10:00.000Z",
     "migrationRevision": "a9f5723fa44434a8c7169b70684e4e32c9e7dec9"
+  },
+  "journalStateCorrection": {
+    "contract": "actkg-to-act-first-activation-journal-state-correction/v1",
+    "transactionId": "first-cutover-7f4cdd1084af419a3e837876",
+    "beforeJournalHash": "5b5ea2ddd9a9e495957c975c430fc9596affdb902f802b9d73d3a14df127aef3",
+    "afterJournalHash": "fcb5822b4cced3bf6e76102f49bc6ceb89b53823ebca86d6766521c4b463f277",
+    "correctedAt": "2026-08-11T00:30:00.000Z"
   }
 }

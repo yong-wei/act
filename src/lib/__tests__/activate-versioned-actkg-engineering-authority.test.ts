@@ -32,6 +32,7 @@ import {
   resolveEngineeringRagAuthority,
   rollbackAuthorityPointer,
   authorityStoreFs,
+  DEFAULT_AUTHORITY_ROOT_RELATIVE,
   shouldStageAuthorityAfterDelta,
   stageAuthorityAfterValidatedBundleImport,
   stageAuthoritySnapshot,
@@ -41,6 +42,7 @@ import {
   type AuthorityStorePaths,
   type TeachingSelectorFingerprint,
 } from '../authoritative-knowledge';
+import { DEFAULT_CONSUMER_ACTIVATION_ROOT_RELATIVE } from '../versioned-knowledge-activation';
 
 const hash = 'a'.repeat(64);
 const commit = 'b'.repeat(40);
@@ -582,8 +584,41 @@ describe('Engineering consumers and Repository active resolution (#1266)', () =>
     expect(activation.receipt.teachingSelectorsAdvanced).toBe(false);
     expect(activation.receipt.teachingSelectorFingerprintAfter).toEqual(teaching);
 
-    expect(resolveEngineeringGraphAuthority(paths).status).toBe('ready');
-    expect(resolveEngineeringRagAuthority(paths).status).toBe('ready');
+    expect(resolveEngineeringGraphAuthority(paths)).toMatchObject({
+      status: 'ready',
+      activationMode: 'absent',
+    });
+    expect(resolveEngineeringRagAuthority(paths)).toMatchObject({
+      status: 'ready',
+      activationMode: 'absent',
+    });
+  });
+
+  it('default Authority root uses the active consumer pointer', () => {
+    const previousAuthorityRoot = process.env.ACT_AUTHORITY_STORE_ROOT;
+    const previousConsumerRoot = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+    const authorityRoot = path.resolve(process.cwd(), DEFAULT_AUTHORITY_ROOT_RELATIVE);
+    const consumerRoot = path.resolve(
+      process.cwd(),
+      DEFAULT_CONSUMER_ACTIVATION_ROOT_RELATIVE,
+    );
+    process.env.ACT_AUTHORITY_STORE_ROOT = authorityRoot;
+    process.env.ACT_CONSUMER_ACTIVATION_ROOT = consumerRoot;
+    try {
+      expect(resolveEngineeringGraphAuthority(resolveAuthorityStorePaths(authorityRoot))).toMatchObject({
+        status: 'ready',
+        activationMode: 'use-combination',
+      });
+      expect(resolveEngineeringRagAuthority(resolveAuthorityStorePaths(authorityRoot))).toMatchObject({
+        status: 'ready',
+        activationMode: 'use-combination',
+      });
+    } finally {
+      if (previousAuthorityRoot === undefined) delete process.env.ACT_AUTHORITY_STORE_ROOT;
+      else process.env.ACT_AUTHORITY_STORE_ROOT = previousAuthorityRoot;
+      if (previousConsumerRoot === undefined) delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+      else process.env.ACT_CONSUMER_ACTIVATION_ROOT = previousConsumerRoot;
+    }
   });
 
   it('capture-drift and schema drift fail closed before activation', () => {

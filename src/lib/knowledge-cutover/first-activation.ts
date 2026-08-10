@@ -60,6 +60,15 @@ interface FirstActivationJournalStep {
   status: 'PENDING' | 'STARTED' | 'APPLIED' | 'ROLLED_BACK';
 }
 
+type FirstActivationJournalStatus =
+  | 'PREPARED'
+  | 'COMMITTED'
+  | 'ROLLING_BACK'
+  | 'ROLLED_BACK'
+  | 'ROLLBACK_FAILED';
+
+type FirstActivationJournalStepStatus = FirstActivationJournalStep['status'];
+
 export interface FirstActivationJournal {
   contract: typeof FIRST_ACTIVATION_JOURNAL_CONTRACT;
   transactionId: string;
@@ -96,6 +105,14 @@ export interface FirstActivationJournalMigrationReceipt {
   migratedAt: string;
 }
 
+export interface FirstActivationJournalStateCorrectionReceipt {
+  contract: 'actkg-to-act-first-activation-journal-state-correction/v1';
+  transactionId: string;
+  beforeJournalHash: string;
+  afterJournalHash: string;
+  correctedAt: string;
+}
+
 export class FirstActivationError extends Error {
   constructor(message: string) {
     super(message);
@@ -107,9 +124,37 @@ function sha256(value: string): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
-function isComponent(value: unknown): value is FirstActivationComponent {
-  return typeof value === 'string'
-    && FIRST_ACTIVATION_COMPONENTS.includes(value as FirstActivationComponent);
+function isJournalStatus(value: unknown): value is FirstActivationJournalStatus {
+  return value === 'PREPARED'
+    || value === 'COMMITTED'
+    || value === 'ROLLING_BACK'
+    || value === 'ROLLED_BACK'
+    || value === 'ROLLBACK_FAILED';
+}
+
+function isJournalStepStatus(value: unknown): value is FirstActivationJournalStepStatus {
+  return value === 'PENDING'
+    || value === 'STARTED'
+    || value === 'APPLIED'
+    || value === 'ROLLED_BACK';
+}
+
+function assertTargetIdentity(
+  value: unknown,
+  component: FirstActivationComponent,
+): asserts value is FirstActivationPointerIdentity {
+  if (
+    !value
+    || typeof value !== 'object'
+    || Array.isArray(value)
+    || (value as FirstActivationPointerIdentity).component !== component
+    || typeof (value as FirstActivationPointerIdentity).id !== 'string'
+    || (value as FirstActivationPointerIdentity).id.length === 0
+    || typeof (value as FirstActivationPointerIdentity).hash !== 'string'
+    || !/^[a-f0-9]{64}$/u.test((value as FirstActivationPointerIdentity).hash)
+  ) {
+    throw new FirstActivationError('first-activation journal target identity is invalid');
+  }
 }
 
 function normalizeLocatorPath(value: unknown): string {
@@ -205,6 +250,8 @@ export function readFirstActivationJournal(journalPath: string): FirstActivation
   const { journalHash, ...body } = journal;
   if (
     journal.contract !== FIRST_ACTIVATION_JOURNAL_CONTRACT
+    || !isJournalStatus(journal.status)
+    || journal.prestate !== 'ALL_POINTERS_ABSENT'
     || typeof journalHash !== 'string'
     || journalHash !== sha256(activationCanonicalJson(body))
   ) {
@@ -215,8 +262,12 @@ export function readFirstActivationJournal(journalPath: string): FirstActivation
   }
   for (const [index, component] of FIRST_ACTIVATION_COMPONENTS.entries()) {
     const step = journal.steps[index];
-    if (!step || step.component !== component || !isComponent(step.target?.component)) {
+    if (!step || step.component !== component) {
       throw new FirstActivationError('first-activation journal step order is invalid');
+    }
+    assertTargetIdentity(step.target, component);
+    if (!isJournalStepStatus(step.status)) {
+      throw new FirstActivationError('first-activation journal step status is invalid');
     }
     if (!step.pointer || step.pointer.kind !== 'repo-relative') {
       throw new FirstActivationError('first-activation journal pointer locator is invalid');
@@ -244,6 +295,8 @@ function readLegacyFirstActivationJournal(
   const { journalHash, ...body } = journal;
   if (
     journal.contract !== LEGACY_FIRST_ACTIVATION_JOURNAL_CONTRACT
+    || !isJournalStatus(journal.status)
+    || journal.prestate !== 'ALL_POINTERS_ABSENT'
     || typeof journalHash !== 'string'
     || journalHash !== sha256(activationCanonicalJson(body))
   ) {
@@ -281,16 +334,24 @@ export function migrateLegacyFirstActivationJournal(input: {
       if (
         !component
         || step.component !== component
-        || step.target?.component !== component
         || !path.isAbsolute(step.pointerPath)
       ) {
         throw new FirstActivationError('legacy first-activation journal step is invalid');
+      }
+      assertTargetIdentity(step.target, component);
+      if (!isJournalStepStatus(step.status)) {
+        throw new FirstActivationError('legacy first-activation journal step status is invalid');
       }
       return {
         component,
         pointer: locatorForPointerPath(repoRoot, step.pointerPath),
         target: step.target,
-        status: step.status,
+        status:
+          legacy.status === 'COMMITTED'
+            ? 'APPLIED'
+            : legacy.status === 'ROLLED_BACK'
+              ? 'ROLLED_BACK'
+              : step.status,
       };
     });
     const journal = asJournal({
@@ -307,6 +368,50 @@ export function migrateLegacyFirstActivationJournal(input: {
       legacyJournalHash: legacy.journalHash,
       journalHash: journal.journalHash,
       migratedAt: input.migratedAt ?? new Date().toISOString(),
+    };
+  } finally {
+    releaseLock(input.lockPath, descriptor);
+  }
+}
+
+/**
+ * Repair a migrated v2 journal whose terminal status is authoritative but
+ * whose per-step statuses were persisted from stale object references.
+ *
+ * This operation never touches pointer artifacts. It only normalizes all four
+ * step statuses when the terminal journal status determines the result, and
+ * returns both hashes so the caller can retain an auditable correction record.
+ */
+export function repairMigratedFirstActivationJournal(input: {
+  journalPath: string;
+  lockPath: string;
+  correctedAt?: string;
+}): FirstActivationJournalStateCorrectionReceipt {
+  const descriptor = acquireLock(input.lockPath);
+  try {
+    const before = readFirstActivationJournal(input.journalPath);
+    const stepStatus =
+      before.status === 'COMMITTED'
+        ? 'APPLIED'
+        : before.status === 'ROLLED_BACK'
+          ? 'ROLLED_BACK'
+          : null;
+    if (!stepStatus) {
+      throw new FirstActivationError(
+        `cannot repair first-activation journal from ${before.status}`,
+      );
+    }
+    const after = asJournal({
+      ...before,
+      steps: before.steps.map((step) => ({ ...step, status: stepStatus })),
+    });
+    writeJournal(input.journalPath, after);
+    return {
+      contract: 'actkg-to-act-first-activation-journal-state-correction/v1',
+      transactionId: before.transactionId,
+      beforeJournalHash: before.journalHash,
+      afterJournalHash: after.journalHash,
+      correctedAt: input.correctedAt ?? new Date().toISOString(),
     };
   } finally {
     releaseLock(input.lockPath, descriptor);
@@ -407,6 +512,18 @@ function asJournal(input: {
   });
 }
 
+function withStepStatus(
+  journal: FirstActivationJournal,
+  component: FirstActivationComponent,
+  status: FirstActivationJournalStepStatus,
+): FirstActivationJournal {
+  return asJournal({
+    ...journal,
+    steps: journal.steps.map((step) =>
+      step.component === component ? { ...step, status } : { ...step }),
+  });
+}
+
 function compensate(input: {
   repoRoot: string;
   journalPath: string;
@@ -431,8 +548,7 @@ function compensate(input: {
         throw new FirstActivationError(`rollback drift at ${step.component}`);
       }
       if (current) unlinkSync(pointerPath);
-      step.status = 'ROLLED_BACK';
-      journal = asJournal({ ...journal, steps: journal.steps.map((row) => ({ ...row })) });
+      journal = withStepStatus(journal, step.component, 'ROLLED_BACK');
       writeJournal(input.journalPath, journal);
     }
     journal = asJournal({ ...journal, status: 'ROLLED_BACK' });
@@ -484,18 +600,17 @@ export function executeFirstActivation(input: {
 
     for (const step of input.steps) {
       input.beforeActivate?.(step.component);
-      const journalStep = journal.steps.find((row) => row.component === step.component);
-      if (!journalStep) throw new FirstActivationError(`journal step missing: ${step.component}`);
-      journalStep.status = 'STARTED';
-      journal = asJournal({ ...journal, steps: journal.steps.map((row) => ({ ...row })) });
+      if (!journal.steps.some((row) => row.component === step.component)) {
+        throw new FirstActivationError(`journal step missing: ${step.component}`);
+      }
+      journal = withStepStatus(journal, step.component, 'STARTED');
       writeJournal(input.journalPath, journal);
       step.activate();
       const current = readFirstActivationPointerIdentity(step);
       if (!sameIdentity(current, step.target)) {
         throw new FirstActivationError(`post-write identity mismatch: ${step.component}`);
       }
-      journalStep.status = 'APPLIED';
-      journal = asJournal({ ...journal, steps: journal.steps.map((row) => ({ ...row })) });
+      journal = withStepStatus(journal, step.component, 'APPLIED');
       writeJournal(input.journalPath, journal);
     }
 

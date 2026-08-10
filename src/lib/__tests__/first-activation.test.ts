@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   executeFirstActivation,
   migrateLegacyFirstActivationJournal,
+  repairMigratedFirstActivationJournal,
   readFirstActivationJournal,
   rollbackCommittedFirstActivation,
 } from '../knowledge-cutover/first-activation';
@@ -67,6 +68,14 @@ describe('all-ABSENT first activation protocol', () => {
     });
 
     expect(journal.status).toBe('COMMITTED');
+    expect(journal.steps.map((step) => step.status)).toEqual([
+      'APPLIED',
+      'APPLIED',
+      'APPLIED',
+      'APPLIED',
+    ]);
+    expect(readFirstActivationJournal(plan.journalPath).steps.every((step) => step.status === 'APPLIED'))
+      .toBe(true);
     expect(plan.steps.every((step) => existsSync(step.pointerPath))).toBe(true);
     expect(journal.steps.map((step) => step.pointer.path)).toEqual([
       'authority/current.json',
@@ -78,6 +87,14 @@ describe('all-ABSENT first activation protocol', () => {
 
     const rolledBack = rollbackCommittedFirstActivation(plan);
     expect(rolledBack.status).toBe('ROLLED_BACK');
+    expect(rolledBack.steps.map((step) => step.status)).toEqual([
+      'ROLLED_BACK',
+      'ROLLED_BACK',
+      'ROLLED_BACK',
+      'ROLLED_BACK',
+    ]);
+    expect(readFirstActivationJournal(plan.journalPath).steps.every((step) => step.status === 'ROLLED_BACK'))
+      .toBe(true);
     expect(plan.steps.some((step) => existsSync(step.pointerPath))).toBe(false);
     expect(readFirstActivationJournal(plan.journalPath).journalHash).toBe(rolledBack.journalHash);
   });
@@ -127,7 +144,9 @@ describe('all-ABSENT first activation protocol', () => {
         component: step.component,
         pointerPath: step.pointerPath,
         target: step.target,
-        status: 'APPLIED' as const,
+        // Legacy v1 journals written by the buggy coordinator could retain
+        // STARTED even though the terminal status was already COMMITTED.
+        status: 'STARTED' as const,
       })),
       failure: null,
     };
@@ -147,12 +166,99 @@ describe('all-ABSENT first activation protocol', () => {
     });
     expect(receipt.legacyJournalHash).not.toBe(receipt.journalHash);
     expect(readFileSync(plan.journalPath, 'utf8')).not.toContain(plan.repoRoot);
-    expect(readFirstActivationJournal(plan.journalPath).contract)
-      .toBe('actkg-to-act-first-activation-journal/v2');
+    const migrated = readFirstActivationJournal(plan.journalPath);
+    expect(migrated.contract).toBe('actkg-to-act-first-activation-journal/v2');
+    expect(migrated.steps.every((step) => step.status === 'APPLIED')).toBe(true);
 
     const rolledBack = rollbackCommittedFirstActivation(plan);
     expect(rolledBack.status).toBe('ROLLED_BACK');
     expect(plan.steps.some((step) => existsSync(step.pointerPath))).toBe(false);
+  });
+
+  it('maps a terminal legacy rollback to four ROLLED_BACK steps', () => {
+    const plan = makePlan();
+    const legacyBody = {
+      contract: 'actkg-to-act-first-activation-journal/v1',
+      transactionId: 'legacy-rollback-test',
+      repoRoot: plan.repoRoot,
+      createdAt: '2026-08-10T00:00:00.000Z',
+      status: 'ROLLED_BACK' as const,
+      prestate: 'ALL_POINTERS_ABSENT' as const,
+      steps: plan.steps.map((step) => ({
+        component: step.component,
+        pointerPath: step.pointerPath,
+        target: step.target,
+        status: 'STARTED' as const,
+      })),
+      failure: 'injected-failure',
+    };
+    mkdirSync(path.dirname(plan.journalPath), { recursive: true });
+    writeFileSync(
+      plan.journalPath,
+      `${JSON.stringify({
+        ...legacyBody,
+        journalHash: createHash('sha256').update(activationCanonicalJson(legacyBody)).digest('hex'),
+      }, null, 2)}\n`,
+      'utf8',
+    );
+
+    migrateLegacyFirstActivationJournal({
+      ...plan,
+      migratedAt: '2026-08-10T01:00:00.000Z',
+    });
+    const migrated = readFirstActivationJournal(plan.journalPath);
+    expect(migrated.status).toBe('ROLLED_BACK');
+    expect(migrated.steps.every((step) => step.status === 'ROLLED_BACK')).toBe(true);
+  });
+
+  it('repairs terminal v2 step states with before/after hashes and fails closed otherwise', () => {
+    const plan = makePlan();
+    executeFirstActivation(plan);
+
+    const writeBrokenJournal = (status: 'COMMITTED' | 'ROLLED_BACK' | 'PREPARED') => {
+      const current = JSON.parse(readFileSync(plan.journalPath, 'utf8')) as Record<string, unknown>;
+      const { journalHash: _journalHash, ...body } = current;
+      const broken = {
+        ...body,
+        status,
+        steps: (body.steps as Array<Record<string, unknown>>).map((step) => ({
+          ...step,
+          status: 'STARTED',
+        })),
+      };
+      writeFileSync(
+        plan.journalPath,
+        `${JSON.stringify({
+          ...broken,
+          journalHash: createHash('sha256').update(activationCanonicalJson(broken)).digest('hex'),
+        }, null, 2)}\n`,
+        'utf8',
+      );
+    };
+
+    writeBrokenJournal('COMMITTED');
+    const beforeCommit = readFirstActivationJournal(plan.journalPath);
+    const committedReceipt = repairMigratedFirstActivationJournal(plan);
+    expect(committedReceipt.beforeJournalHash).toBe(beforeCommit.journalHash);
+    expect(committedReceipt.afterJournalHash).not.toBe(beforeCommit.journalHash);
+    expect(readFirstActivationJournal(plan.journalPath).steps.every((step) => step.status === 'APPLIED'))
+      .toBe(true);
+
+    const rolledBack = rollbackCommittedFirstActivation(plan);
+    expect(rolledBack.status).toBe('ROLLED_BACK');
+    writeBrokenJournal('ROLLED_BACK');
+    const beforeRollback = readFirstActivationJournal(plan.journalPath);
+    const rollbackReceipt = repairMigratedFirstActivationJournal(plan);
+    expect(rollbackReceipt.beforeJournalHash).toBe(beforeRollback.journalHash);
+    expect(rollbackReceipt.afterJournalHash).not.toBe(beforeRollback.journalHash);
+    expect(readFirstActivationJournal(plan.journalPath).steps.every((step) => step.status === 'ROLLED_BACK'))
+      .toBe(true);
+
+    writeBrokenJournal('PREPARED');
+    expect(() => repairMigratedFirstActivationJournal(plan)).toThrow(
+      'cannot repair first-activation journal from PREPARED',
+    );
+    expect(readFirstActivationJournal(plan.journalPath).status).toBe('PREPARED');
   });
 
   it('reuses a repo-relative journal after moving the repository root', () => {
