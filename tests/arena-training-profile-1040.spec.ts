@@ -53,6 +53,10 @@ function assertClean(label: string): void {
   }
 }
 
+function toRepositoryPath(path: string): string {
+  return path.replace(/\\/g, '/');
+}
+
 function readSourceHashes(head: string): CaptureState {
   const paths = [generatorPath, ...sourceFiles];
   const hashes = Object.fromEntries(paths.map((path) => {
@@ -77,16 +81,16 @@ function prepareCapture(): CaptureState {
 }
 
 function assertOnlyExpectedScreenshotChanges(expectedPaths: readonly string[]): void {
-  const expected = new Set(expectedPaths);
+  const expected = new Set(expectedPaths.map(toRepositoryPath));
   const statusLines = git(['status', '--porcelain', '--untracked-files=all'])
     .toString('utf8')
     .split('\n')
     .map((line) => line.trimEnd())
     .filter(Boolean);
-  const actualPaths = new Set(statusLines.map((line) => line.slice(3)));
+  const actualPaths = new Set(statusLines.map((line) => toRepositoryPath(line.slice(3))));
   const unexpected = statusLines.filter((line) => {
     const status = line.slice(0, 2);
-    return (status !== '??' && status !== ' M') || !expected.has(line.slice(3));
+    return (status !== '??' && status !== ' M') || !expected.has(toRepositoryPath(line.slice(3)));
   });
   if (unexpected.length > 0 || [...actualPaths].some((path) => !expected.has(path))) {
     throw new Error(`after screenshot capture only expected screenshot changes are allowed: ${statusLines.join(' | ')}`);
@@ -361,7 +365,7 @@ test('Issue 1040 profile exposes training-only Arena evidence at desktop and mob
           mkdirSync(evidenceDir, { recursive: true });
           await page.screenshot({ path: screenshotPath, fullPage: true });
           screenshots.push({
-            path: relative(process.cwd(), screenshotPath),
+            path: toRepositoryPath(relative(process.cwd(), screenshotPath)),
             sha256: sha256(readFileSync(screenshotPath)),
             viewport,
             overflowMetrics,
