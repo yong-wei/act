@@ -8,6 +8,7 @@ import {
   assertCapturePageUrl,
   assertCaptureRevisionProofMatches,
   assertCaptureRevisionProofUnchanged,
+  assertExpandedDockState,
   assertCaptureRevisionUnchanged,
   assertSourcePathsExcludeOutput,
   assertTargetServiceReachable,
@@ -15,6 +16,7 @@ import {
   createDockReadinessTimeoutMessage,
   createRevisionProbeUrl,
   dockReadinessSatisfied,
+  dockInteractionReadinessSatisfied,
   fetchCaptureRevisionProof,
   parseCaptureRevisionProof,
   PRODUCT_OUTPUT_ROOT,
@@ -24,9 +26,11 @@ import {
   resolveOutputDirectory,
   resolveManifestOutputRoot,
   resolveTargetBaseUrl,
+  waitForDockInteractionReadiness,
   waitForDockReadiness,
   type CaptureRevision,
   type DockReadinessSnapshot,
+  type ExpandedDockState,
 } from '../../../scripts/tests/capture-adaptive-path-product-qa';
 
 function snapshot(overrides: Partial<DockReadinessSnapshot> = {}): DockReadinessSnapshot {
@@ -48,6 +52,23 @@ function snapshot(overrides: Partial<DockReadinessSnapshot> = {}): DockReadiness
       '[data-platform-floating-dock-registration="true"]',
       '[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]',
     ],
+    ...overrides,
+  };
+}
+
+function expandedDockState(overrides: Partial<ExpandedDockState> = {}): ExpandedDockState {
+  return {
+    appShellNavigationState: 'expanded',
+    appShellNavigationPreference: 'expanded',
+    appShellNavigationExpanded: true,
+    appShellNavigationToggleExpanded: true,
+    konlingDockState: 'expanded',
+    konlingDockTriggerPresent: true,
+    konlingDockTriggerVisible: true,
+    konlingDockTriggerDisabled: true,
+    konlingSidebarState: 'open',
+    konlingSidebarVisible: true,
+    konlingSidebarPresentationMode: 'side',
     ...overrides,
   };
 }
@@ -160,6 +181,32 @@ describe('adaptive-path QA capture contract', () => {
     expect(reads).toBe(3);
     expect(dockReadinessSatisfied(result)).toBe(true);
     expect(result.primaryDisabled).toBe(true);
+  });
+
+  it('waits for an enabled dock primary before user interaction', async () => {
+    const snapshots = [
+      snapshot({ dockPresent: true, dockVisible: true, registrationPresent: true, primaryPresent: true, primaryVisible: true, primaryDisabled: true }),
+      snapshot({ dockPresent: true, dockVisible: true, registrationPresent: true, primaryPresent: true, primaryVisible: true, primaryDisabled: false, missingSelectors: [] }),
+    ];
+    let reads = 0;
+    const result = await waitForDockInteractionReadiness(
+      async () => snapshots[Math.min(reads++, snapshots.length - 1)],
+      { targetUrl: snapshots[0].targetUrl, actualUrl: snapshots[0].actualUrl, pollIntervalMs: 0, sleep: async () => undefined },
+    );
+
+    expect(reads).toBe(2);
+    expect(dockInteractionReadinessSatisfied(result)).toBe(true);
+    expect(result.primaryDisabled).toBe(false);
+  });
+
+  it('requires observed expanded navigation and an open Konling sidebar', () => {
+    expect(() => assertExpandedDockState(expandedDockState())).not.toThrow();
+    expect(() => assertExpandedDockState(expandedDockState({ appShellNavigationState: 'collapsed' })))
+      .toThrow(/appShellNavigationState=collapsed/u);
+    expect(() => assertExpandedDockState(expandedDockState({ konlingDockState: 'collapsed' })))
+      .toThrow(/konlingDockState=collapsed/u);
+    expect(() => assertExpandedDockState(expandedDockState({ konlingSidebarVisible: false })))
+      .toThrow(/konlingSidebarVisible=false/u);
   });
 
   it('reports target URL, observed dock state, and missing selectors on timeout', async () => {

@@ -40,8 +40,23 @@ type CaptureState = {
   width: number;
   height: number;
   query: string;
+  qaMode?: 'knowledge-product';
   selector?: string;
   beforeScreenshot?: (page: Page) => Promise<void>;
+};
+
+export type ExpandedDockState = {
+  appShellNavigationState: string | null;
+  appShellNavigationPreference: string | null;
+  appShellNavigationExpanded: boolean;
+  appShellNavigationToggleExpanded: boolean;
+  konlingDockState: 'collapsed' | 'expanded' | 'hidden';
+  konlingDockTriggerPresent: boolean;
+  konlingDockTriggerVisible: boolean;
+  konlingDockTriggerDisabled: boolean | null;
+  konlingSidebarState: string | null;
+  konlingSidebarVisible: boolean;
+  konlingSidebarPresentationMode: string | null;
 };
 
 export type CaptureRevision = CaptureRevisionProof & {
@@ -417,6 +432,43 @@ export async function waitForDockReadiness(
   return snapshot;
 }
 
+export function dockInteractionReadinessSatisfied(snapshot: DockReadinessSnapshot) {
+  return snapshot.dockPresent
+    && snapshot.dockVisible
+    && snapshot.registrationPresent
+    && snapshot.primaryPresent
+    && snapshot.primaryVisible
+    && !snapshot.primaryDisabled;
+}
+
+export function createDockInteractionReadinessTimeoutMessage(snapshot: DockReadinessSnapshot, timeoutMs: number) {
+  return createDockReadinessTimeoutMessage(snapshot, timeoutMs)
+    .replace('Shared Konling Dock readiness', 'Shared Konling Dock interaction readiness');
+}
+
+export async function waitForDockInteractionReadiness(
+  readSnapshot: () => Promise<DockReadinessSnapshot>,
+  options: DockReadinessWaitOptions,
+) {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_DOCK_READY_TIMEOUT_MS;
+  const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_DOCK_POLL_INTERVAL_MS;
+  const now = options.now ?? Date.now;
+  const sleep = options.sleep ?? ((milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
+  const deadline = now() + timeoutMs;
+  let snapshot = await readSnapshot();
+
+  while (!dockInteractionReadinessSatisfied(snapshot)) {
+    const remainingMs = deadline - now();
+    if (remainingMs <= 0) {
+      throw new Error(createDockInteractionReadinessTimeoutMessage(snapshot, timeoutMs));
+    }
+    await sleep(Math.min(pollIntervalMs, remainingMs));
+    snapshot = await readSnapshot();
+  }
+
+  return snapshot;
+}
+
 function sha256File(absolutePath: string) {
   return createHash('sha256').update(readFileSync(absolutePath)).digest('hex');
 }
@@ -580,11 +632,18 @@ export function publishStagedCapture(
   }
 }
 
-async function setTheme(page: Page, theme: Theme) {
-  await page.addInitScript((nextTheme) => {
+async function setTheme(page: Page, theme: Theme, qaMode?: CaptureState['qaMode']) {
+  await page.addInitScript(({ nextTheme, qaMode }) => {
     window.localStorage.setItem('ai-obe-theme', nextTheme);
     window.localStorage.setItem('act:app-shell-navigation-preference', 'collapsed');
-  }, theme);
+    if (qaMode === 'knowledge-product') {
+      window.localStorage.setItem('act:knowledge-product-qa', 'true');
+      (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__ = true;
+    } else {
+      window.localStorage.removeItem('act:knowledge-product-qa');
+      delete (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__;
+    }
+  }, { nextTheme: theme, qaMode });
 }
 
 async function readDockReadiness(page: Page, targetUrl: string): Promise<DockReadinessSnapshot> {
@@ -646,6 +705,114 @@ async function readDockReadiness(page: Page, targetUrl: string): Promise<DockRea
     primarySelector: PRIMARY_KONLING_SELECTOR,
     registrationSelector: DOCK_REGISTRATION_SELECTOR,
   });
+}
+
+export async function readExpandedDockState(page: Page): Promise<ExpandedDockState> {
+  return page.evaluate(({ dockSelector, primarySelector }) => {
+    const appShell = document.querySelector<HTMLElement>('[data-app-shell-layout="collapsible"]');
+    const navigationToggle = appShell?.querySelector<HTMLButtonElement>('button[aria-label="收起平台导航"]');
+    const dock = document.querySelector<HTMLElement>(dockSelector);
+    const dockPrimary = document.querySelector<HTMLButtonElement>(primarySelector);
+    const sidebar = document.querySelector<HTMLElement>('[data-global-ai-sidebar]');
+    const sidebarState = sidebar?.getAttribute('data-global-ai-sidebar') ?? null;
+    const dockRect = dock?.getBoundingClientRect();
+    const dockStyle = dock ? window.getComputedStyle(dock) : null;
+    const dockVisible = Boolean(dockRect && dockStyle
+      && dockRect.width > 0
+      && dockRect.height > 0
+      && dockStyle.display !== 'none'
+      && dockStyle.visibility !== 'hidden');
+    const dockPrimaryRect = dockPrimary?.getBoundingClientRect();
+    const dockPrimaryStyle = dockPrimary ? window.getComputedStyle(dockPrimary) : null;
+    const dockPrimaryVisible = Boolean(dockPrimaryRect && dockPrimaryStyle
+      && dockPrimaryRect.width > 0
+      && dockPrimaryRect.height > 0
+      && dockPrimaryStyle.display !== 'none'
+      && dockPrimaryStyle.visibility !== 'hidden');
+    const sidebarRect = sidebar?.getBoundingClientRect();
+    const sidebarStyle = sidebar ? window.getComputedStyle(sidebar) : null;
+    const sidebarVisible = sidebarState === 'open' && Boolean(sidebarRect && sidebarStyle
+      && sidebarRect.width > 0
+      && sidebarRect.height > 0
+      && sidebarStyle.display !== 'none'
+      && sidebarStyle.visibility !== 'hidden');
+
+    return {
+      appShellNavigationState: appShell?.getAttribute('data-app-shell-navigation-state') ?? null,
+      appShellNavigationPreference: appShell?.getAttribute('data-app-shell-navigation-preference') ?? null,
+      appShellNavigationExpanded: appShell?.getAttribute('data-app-shell-navigation-state') === 'expanded',
+      appShellNavigationToggleExpanded: navigationToggle?.getAttribute('aria-expanded') === 'true',
+      konlingDockState: sidebarVisible
+        ? 'expanded'
+        : dock && dockVisible
+          ? 'collapsed'
+          : 'hidden',
+      konlingDockTriggerPresent: Boolean(dockPrimary),
+      konlingDockTriggerVisible: dockPrimaryVisible,
+      konlingDockTriggerDisabled: dockPrimary?.disabled ?? null,
+      konlingSidebarState: sidebarState,
+      konlingSidebarVisible: sidebarVisible,
+      konlingSidebarPresentationMode: sidebar?.getAttribute('data-konling-presentation-mode') ?? null,
+    };
+  }, {
+    dockSelector: DOCK_SELECTOR,
+    primarySelector: PRIMARY_KONLING_SELECTOR,
+  });
+}
+
+export function assertExpandedDockState(state: ExpandedDockState) {
+  const issues = [
+    state.appShellNavigationState === 'expanded' ? null : `appShellNavigationState=${state.appShellNavigationState ?? 'missing'}`,
+    state.appShellNavigationPreference === 'expanded' ? null : `appShellNavigationPreference=${state.appShellNavigationPreference ?? 'missing'}`,
+    state.appShellNavigationExpanded ? null : 'appShellNavigationExpanded=false',
+    state.appShellNavigationToggleExpanded ? null : 'appShellNavigationToggleExpanded=false',
+    state.konlingDockState === 'expanded' ? null : `konlingDockState=${state.konlingDockState}`,
+    state.konlingSidebarState === 'open' ? null : `konlingSidebarState=${state.konlingSidebarState ?? 'missing'}`,
+    state.konlingSidebarVisible ? null : 'konlingSidebarVisible=false',
+    state.konlingSidebarPresentationMode === 'side'
+      ? null
+      : `konlingSidebarPresentationMode=${state.konlingSidebarPresentationMode ?? 'missing'}`,
+  ].filter((issue): issue is string => Boolean(issue));
+  if (issues.length > 0) {
+    throw new Error(`Expanded AppShell and Konling dock state failed validation: ${issues.join(', ')}\n${JSON.stringify(state)}`);
+  }
+}
+
+export async function openExpandedAppShellAndDock(page: Page) {
+  const shell = page.locator('[data-app-shell-layout="collapsible"]');
+  await shell.waitFor({ state: 'attached', timeout: 10_000 });
+  const expandNavigationButton = shell.getByRole('button', { name: '展开平台导航', exact: true });
+  if (await expandNavigationButton.count()) {
+    await expandNavigationButton.click();
+  }
+  await page.waitForFunction(() => {
+    const appShell = document.querySelector<HTMLElement>('[data-app-shell-layout="collapsible"]');
+    const navigationToggle = appShell?.querySelector<HTMLButtonElement>('button[aria-label="收起平台导航"]');
+    return appShell?.getAttribute('data-app-shell-navigation-state') === 'expanded'
+      && appShell.getAttribute('data-app-shell-navigation-preference') === 'expanded'
+      && navigationToggle?.getAttribute('aria-expanded') === 'true';
+  }, undefined, { timeout: 10_000, polling: 'raf' });
+
+  const targetUrl = page.url();
+  await waitForDockInteractionReadiness(
+    () => readDockReadiness(page, targetUrl),
+    { targetUrl, actualUrl: page.url() },
+  );
+  await page.locator(PRIMARY_KONLING_SELECTOR).click();
+  await page.waitForFunction(() => {
+    const sidebar = document.querySelector<HTMLElement>('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
+    if (!sidebar) return false;
+    const rect = sidebar.getBoundingClientRect();
+    const style = window.getComputedStyle(sidebar);
+    return rect.width > 0
+      && rect.height > 0
+      && style.display !== 'none'
+      && style.visibility !== 'hidden'
+      && sidebar.getAttribute('data-konling-presentation-mode') === 'side';
+  }, undefined, { timeout: 10_000, polling: 'raf' });
+
+  const state = await readExpandedDockState(page);
+  assertExpandedDockState(state);
 }
 
 async function assertDisabledDock(page: Page) {
@@ -812,14 +979,9 @@ const states: CaptureState[] = [
     theme: 'dark',
     width: 1440,
     height: 1100,
-    query: '?demo=1&goal=control-correction&intent=path-execution',
-    beforeScreenshot: async (page) => {
-      await page.evaluate(() => {
-        window.localStorage.setItem('act:app-shell-navigation-preference', 'expanded');
-      });
-      await page.reload({ waitUntil: 'networkidle' });
-      await assertDisabledDock(page);
-    },
+    query: '?demo=1&goal=control-correction&intent=path-execution&qa=knowledge-product',
+    qaMode: 'knowledge-product',
+    beforeScreenshot: openExpandedAppShellAndDock,
   },
 ];
 
@@ -829,6 +991,21 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
     const question = document.querySelector('[data-adaptive-practice-question="active"]');
     const questionSummary = document.querySelector('[data-adaptive-practice-question="summary"]');
     const dock = document.querySelector('[data-page-floating-controls], [data-platform-floating-dock]');
+    const appShell = document.querySelector('[data-app-shell-layout="collapsible"]');
+    const navigationToggle = appShell?.querySelector<HTMLButtonElement>('button[aria-label="收起平台导航"]');
+    const dockPrimary = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]');
+    const konlingSidebar = document.querySelector<HTMLElement>('[data-global-ai-sidebar]');
+    const isVisible = (element: Element | null) => {
+      if (!(element instanceof HTMLElement)) return false;
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      return rect.width > 0
+        && rect.height > 0
+        && style.display !== 'none'
+        && style.visibility !== 'hidden';
+    };
+    const konlingSidebarState = konlingSidebar?.getAttribute('data-global-ai-sidebar') ?? null;
+    const konlingSidebarVisible = konlingSidebarState === 'open' && isVisible(konlingSidebar);
     const routeFlow = document.querySelector('[data-adaptive-path-route-flow="connected"]');
     const comparison = document.querySelector('[data-learning-path-options-layout="route-modules"]');
     const routeModules = Array.from(document.querySelectorAll('[data-learning-path-option-module="route"]'))
@@ -883,12 +1060,27 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
       bodyWidth: document.body.getBoundingClientRect().width,
       scrollWidth: document.documentElement.scrollWidth,
       innerWidth: window.innerWidth,
+      appShellNavigationState: appShell?.getAttribute('data-app-shell-navigation-state') ?? null,
+      appShellNavigationPreference: appShell?.getAttribute('data-app-shell-navigation-preference') ?? null,
+      appShellNavigationExpanded: appShell?.getAttribute('data-app-shell-navigation-state') === 'expanded',
+      appShellNavigationToggleExpanded: navigationToggle?.getAttribute('aria-expanded') === 'true',
+      konlingDockState: konlingSidebarVisible
+        ? 'expanded'
+        : dock && isVisible(dock)
+          ? 'collapsed'
+          : 'hidden',
+      konlingDockTriggerPresent: Boolean(dockPrimary),
+      konlingDockTriggerVisible: isVisible(dockPrimary),
+      konlingDockTriggerDisabled: dockPrimary?.disabled ?? null,
+      konlingSidebarState,
+      konlingSidebarVisible,
+      konlingSidebarPresentationMode: konlingSidebar?.getAttribute('data-konling-presentation-mode') ?? null,
       forbidden: [
         ...forbiddenPatterns.filter((pattern) => text.includes(pattern)),
         ...missingRaw,
       ],
     };
-  }, { name: state.name, theme: state.theme, width: state.width, screenshotPath });
+    }, { name: state.name, theme: state.theme, width: state.width, screenshotPath });
 }
 
 type CaptureSignal = Awaited<ReturnType<typeof collectSignals>>;
@@ -963,6 +1155,10 @@ async function main() {
           await page.screenshot({ path: absolutePath, fullPage: true });
         }
         const sha256 = sha256File(absolutePath);
+        const signal = await collectSignals(page, state, manifestPath);
+        if (state.name === 'app-shell-expanded-dock-desktop-dark') {
+          assertExpandedDockState(signal as ExpandedDockState);
+        }
         captures.push({
           name: state.name,
           theme: state.theme,
@@ -973,8 +1169,21 @@ async function main() {
           selector: state.selector,
           file: manifestPath,
           sha256,
+          assertions: {
+            appShellNavigationState: signal.appShellNavigationState,
+            appShellNavigationPreference: signal.appShellNavigationPreference,
+            appShellNavigationExpanded: signal.appShellNavigationExpanded,
+            appShellNavigationToggleExpanded: signal.appShellNavigationToggleExpanded,
+            konlingDockState: signal.konlingDockState,
+            konlingDockTriggerPresent: signal.konlingDockTriggerPresent,
+            konlingDockTriggerVisible: signal.konlingDockTriggerVisible,
+            konlingDockTriggerDisabled: signal.konlingDockTriggerDisabled,
+            konlingSidebarState: signal.konlingSidebarState,
+            konlingSidebarVisible: signal.konlingSidebarVisible,
+            konlingSidebarPresentationMode: signal.konlingSidebarPresentationMode,
+          },
         });
-        signals.push(await collectSignals(page, state, manifestPath));
+        signals.push(signal);
         await page.close();
       }
     } finally {
@@ -1010,6 +1219,7 @@ async function main() {
       captureSourceFiles: [...CAPTURE_SOURCE_FILES],
       sourceFiles: [...CAPTURE_SOURCE_FILES],
       outputDirectory: resolveManifestOutputRoot(outputDir),
+      captureStateAssertions: captures.map((capture) => ({ name: capture.name, ...capture.assertions })),
       captures,
     }, null, 2)}\n`);
     writeFileSync(path.join(stagingDir, 'visual-signals.json'), `${JSON.stringify(signals, null, 2)}\n`);
