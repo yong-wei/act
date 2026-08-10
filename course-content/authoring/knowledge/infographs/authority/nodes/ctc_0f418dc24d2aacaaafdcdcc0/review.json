@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:46:00+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:0f418dc24d2aacaaafdcdcc0",
+  "safe_id": "ctc_0f418dc24d2aacaaafdcdcc0",
+  "node_name": "前向通路上各支路增益之乘积",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch3 A accept"
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-0bfd48327659b66aa7d95f32",
+  "safe_id": "ctkg_v3e-object-0bfd48327659b66aa7d95f32",
+  "node": {
+    "name": "Determining GM from root locus",
+    "name_en": "Determining GM from root locus",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Determining GM from root locus：Determining GM from root locus",
+  "intuition": null,
+  "explanation": "Determining GM from root locus",
+  "relation_head": "前置 → Gain Margin (GM) · 后续 → Gain Margin (GM)、Determining GM from Bode plot",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Gain Margin (GM)",
+      "relation": "派生自"
+    },
+    {
+      "direction": "后续",
+      "peer": "Gain Margin (GM)",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Determining GM from Bode plot",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Determining…",
+    "派生自·Gain …",
+    "关联·Gain M…",
+    "关联·Determ…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-0bfd48327659b66aa7d95f32.md",
+  "provider_policy": "grok-image_gen"
+}

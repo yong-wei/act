@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+  "safe_id": "ctkg_v3e-object-ff560d5d53d578d0bc57baeb",
+  "node": {
+    "name": "输出可控性",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "若在有限时间间隔内，存在无约束分段连续控制函数，能使任意初始输出转移到任意最终输出，则称此系统输出完全可控。",
+  "intuition": null,
+  "explanation": "若在有限时间间隔内，存在无约束分段连续控制函数，能使任意初始输出转移到任意最终输出，则称此系统输出完全可控。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "输出可控性"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ff560d5d53d578d0bc57baeb.md",
+  "provider_policy": "grok-image_gen"
+}

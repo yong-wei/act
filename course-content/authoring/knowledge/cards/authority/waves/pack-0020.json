@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0020",
+  "offset": 100,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-acda4bbdef07ca9542e1d914",
+      "batch": "B",
+      "name": "type of ideal element",
+      "definition": "type of ideal element：A type of ideal element that stores energy in a capacitive form, including capacitance, mass, moment of inertia, fluid…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "type of ide…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: type of ideal element\nSOURCE DEFINITION (fail-closed, do not invent beyond this): type of ideal element：A type of ideal element that stores energy in a capacitive form, including capacitance, mass, moment of inertia, fluid…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「type of id」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-1c6e0da621b7f363c81a8901",
+      "batch": "B",
+      "name": "ℒ  Laplace transform",
+      "definition": "ℒ  Laplace transform：In this book it is useful to define a one-sided (or unilateral) Laplace transform, which uses 0^- as the lower limit of…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "ℒ Laplace t…",
+        "ℒ  Laplace t",
+        "一种·One-si…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: ℒ  Laplace transform\nSOURCE DEFINITION (fail-closed, do not invent beyond this): ℒ  Laplace transform：In this book it is useful to define a one-sided (or unilateral) Laplace transform, which uses 0^- as the lower limit of…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「ℒ Laplace 」、「ℒ  Laplace」、「一种·One-si…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-23665070dce851fbb0ebda8b",
+      "batch": "B",
+      "name": "Auxiliary polynomial",
+      "definition": "Auxiliary polynomial：The polynomial which immediately precedes the zero entry in the Routh array. The order of the auxiliary polynomial is a…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Auxiliary p…",
+        "Auxiliary po",
+        "属于·Routh …",
+        "包含组件·Symm…",
+        "关联·Symmet…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Auxiliary polynomial\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Auxiliary polynomial：The polynomial which immediately precedes the zero entry in the Routh array. The order of the auxiliary polynomial is a…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Auxiliary 」、「Auxiliary 」、「属于·Routh …」、「包含组件·Symm…」、「关联·Symmet…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4a235944f67a06a4209d2422",
+      "batch": "B",
+      "name": "Bode plot techniques",
+      "definition": "Bode plot techniques：A technique for hand plotting frequency response using logarithmic scale for magnitude and linear scale for phase, allo…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Bode plot t…",
+        "Bode plot te",
+        "用于分析·Freq…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Bode plot techniques\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Bode plot techniques：A technique for hand plotting frequency response using logarithmic scale for magnitude and linear scale for phase, allo…\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Bode plot 」、「Bode plot 」、「用于分析·Freq…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-670bb910ee2a73c3ebcc0c39",
+      "batch": "B",
+      "name": "Weak controllability",
+      "definition": "Weak controllability：A situation where a system is mathematically controllable, but certain modes are so weakly affected by the control inpu…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Weak contro…",
+        "Weak control"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Weak controllability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Weak controllability：A situation where a system is mathematically controllable, but certain modes are so weakly affected by the control inpu…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Weak contr」、「Weak contr」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

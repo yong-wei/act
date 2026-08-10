@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0142",
+  "offset": 710,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-f0c0278d57559730f124c4e3",
+      "batch": "B",
+      "name": "解码过程",
+      "definition": "D/A 转换的第一个过程：把离散数字信号转换为离散的模拟信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "解码过程",
+        "属于·D/A转换器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 解码过程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): D/A 转换的第一个过程：把离散数字信号转换为离散的模拟信号。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「解码过程」、「属于·D/A转换器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-a650a5ff9a3147b7d49b45b0",
+      "batch": "B",
+      "name": "单容水槽增益K=Ku R",
+      "definition": "单容水槽增益K=Ku R，其中Ku为阀门流量系数，R为液阻。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单容水槽增益K=Ku R"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 单容水槽增益K=Ku R\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 单容水槽增益K=Ku R，其中Ku为阀门流量系数，R为液阻。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「单容水槽增益K=Ku」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "batch": "B",
+      "name": "系统带宽",
+      "definition": "性能指标中的带宽频率 ω_b 的要求，是一项重要的技术指标。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "系统带宽",
+        "是一种·性能指标"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 系统带宽\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 性能指标中的带宽频率 ω_b 的要求，是一项重要的技术指标。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「系统带宽」、「是一种·性能指标」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5104f48a9527029987e0519a",
+      "batch": "B",
+      "name": "前馈校正",
+      "definition": "前馈校正又称顺馈校正，是在系统主反馈回路之外采用的校正方式。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "前馈校正",
+        "是一种·校正装置",
+        "是一种·前置滤波器",
+        "关联·前置滤波器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 前馈校正\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 前馈校正又称顺馈校正，是在系统主反馈回路之外采用的校正方式。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「前馈校正」、「是一种·校正装置」、「是一种·前置滤波器」、「关联·前置滤波器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6ecfad78b7fb0ba7b233047c",
+      "batch": "B",
+      "name": "数字控制系统",
+      "definition": "把数字序列形式的离散系统，称为数字控制系统或计算机控制系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字控制系统",
+        "是一种·离散时间系统",
+        "包含组件·模拟信号",
+        "包含组件·数字信号"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 数字控制系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 把数字序列形式的离散系统，称为数字控制系统或计算机控制系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「数字控制系统」、「是一种·离散时间系统」、「包含组件·模拟信号」、「包含组件·数字信号」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

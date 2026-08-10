@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0121",
+  "offset": 605,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-9b3052d4d15a96d495d8e6f5",
+      "batch": "B",
+      "name": "积分控制规律",
+      "definition": "具有积分控制规律的控制器，称为I控制器，其输出信号u(t)与其输入信号e(t)的积分成正比。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "积分控制规律",
+        "关联·I控制器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 积分控制规律\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 具有积分控制规律的控制器，称为I控制器，其输出信号u(t)与其输入信号e(t)的积分成正比。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「积分控制规律」、「关联·I控制器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f1c8cab76dae17e688eaa668",
+      "batch": "B",
+      "name": "否成立",
+      "definition": "构造可控性矩阵S1=[h Gh ... G^{n-1}h]，检验rank S1=n是否成立。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "否成立"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 否成立\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 构造可控性矩阵S1=[h Gh ... G^{n-1}h]，检验rank S1=n是否成立。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「否成立」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-5182a714c3b04737e54be937",
+      "batch": "B",
+      "name": "复合控制系统",
+      "definition": "复合控制系统是在系统的反馈控制回路中加入前馈通路，组成一个前馈控制与反馈控制相结合的系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "复合控制系统",
+        "包含组件·前馈通路"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 复合控制系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 复合控制系统是在系统的反馈控制回路中加入前馈通路，组成一个前馈控制与反馈控制相结合的系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「复合控制系统」、「包含组件·前馈通路」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-62cf713a7c61ab2457825678",
+      "batch": "B",
+      "name": "一阶系统的单位斜坡响应",
+      "definition": "一阶系统在单位斜坡函数输入下的输出响应，表达式为c(t)=(t-T)+Te^{-t/T}。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一阶系统的单位斜坡响应"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 一阶系统的单位斜坡响应\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一阶系统在单位斜坡函数输入下的输出响应，表达式为c(t)=(t-T)+Te^{-t/T}。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「一阶系统的单位斜坡响」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8d146e4add26f71181e7c891",
+      "batch": "B",
+      "name": "Right half-plane (RHP)",
+      "definition": "Right half-plane (RHP)：Right half-plane (RHP)",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Right half-…",
+        "Right half-p",
+        "关联·Left h…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Right half-plane (RHP)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Right half-plane (RHP)：Right half-plane (RHP)\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Right half」、「Right half」、「关联·Left h…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0013",
+  "offset": 65,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-6a408c0b64c072f7bea3db47",
+      "batch": "B",
+      "name": "Dominant second-order pole locations",
+      "definition": "Dominant second-order pole locations：A pole placement strategy that shifts only the slow (low-frequency) poles while leaving fast poles unchanged.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Dominant se…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Dominant second-order pole locations\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Dominant second-order pole locations：A pole placement strategy that shifts only the slow (low-frequency) poles while leaving fast poles unchanged.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Dominant s」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-d978f6c1e3903da5373e65e3",
+      "batch": "B",
+      "name": "Knowledge of the initial",
+      "definition": "Knowledge of the initial：Knowledge of the initial values of the state variables x(t0) = (x1(t0), x2(t0), ..., xn(t0)) at the initial time t0, an…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Knowledge o…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Knowledge of the initial\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Knowledge of the initial：Knowledge of the initial values of the state variables x(t0) = (x1(t0), x2(t0), ..., xn(t0)) at the initial time t0, an…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Knowledge 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1946643d6912e8d8aeb2decb",
+      "batch": "B",
+      "name": "Internal Model Principle",
+      "definition": "Internal Model Principle：The principle stating that if the product of the process transfer function G(s) and the cascade controller transfer fun…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Internal Mo…",
+        "Internal Mod"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Internal Model Principle\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Internal Model Principle：The principle stating that if the product of the process transfer function G(s) and the cascade controller transfer fun…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Internal M」、「Internal M」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-570b74ec5294ac993add9b5f",
+      "batch": "B",
+      "name": "Marginally Stable System",
+      "definition": "Marginally Stable System：A system where the characteristic equation has simple roots on the imaginary axis (jω-axis) with all other roots in the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Marginally …",
+        "Marginally S",
+        "一种·Stable"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Marginally Stable System\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Marginally Stable System：A system where the characteristic equation has simple roots on the imaginary axis (jω-axis) with all other roots in the…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Marginally」、「Marginally」、「一种·Stable」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-890515b8726faee2a75243f0",
+      "batch": "B",
+      "name": "general element with an",
+      "definition": "general element with an：A general element with an excitation (through-) variable x(t) and a response (across-) variable y(t), where the relatio…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "general ele…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: general element with an\nSOURCE DEFINITION (fail-closed, do not invent beyond this): general element with an：A general element with an excitation (through-) variable x(t) and a response (across-) variable y(t), where the relatio…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「general el」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

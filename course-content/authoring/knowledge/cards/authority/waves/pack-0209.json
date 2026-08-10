@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0209",
+  "offset": 1045,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-9457cf16dcef3b40a9253837",
+      "batch": "C",
+      "name": "阶梯信号",
+      "definition": "阶梯信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阶梯信号",
+        "是一种·模拟信号",
+        "包含组件·保持器",
+        "包含组件·信号复现…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 阶梯信号\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 阶梯信号。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「阶梯信号」、「是一种·模拟信号」、「包含组件·保持器」、「包含组件·信号复现…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9615125c7f9a504980e7ca04",
+      "batch": "C",
+      "name": "前馈信号",
+      "definition": "前馈信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "前馈信号",
+        "关联·PWM放大器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 前馈信号\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 前馈信号。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「前馈信号」、「关联·PWM放大器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9a4c8dc9963685a6c39a5653",
+      "batch": "C",
+      "name": "容许控制",
+      "definition": "容许控制。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "容许控制",
+        "应用于·状态可控"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 容许控制\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 容许控制。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「容许控制」、「应用于·状态可控」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9bad410f2b9662132c16c8f2",
+      "batch": "C",
+      "name": "z变换法",
+      "definition": "z变换法。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "z变换法",
+        "用于分析·线性定常…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: z变换法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): z变换法。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「z变换法」、「用于分析·线性定常…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a2b0a7b010b1060501e788c2",
+      "batch": "C",
+      "name": "数字信号",
+      "definition": "数字信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字信号",
+        "包含组件·数字控制…",
+        "关联·A/D转换器",
+        "关联·D/A转换器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 数字信号\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 数字信号。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「数字信号」、「包含组件·数字控制…」、「关联·A/D转换器」、「关联·D/A转换器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

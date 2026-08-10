@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:domainconcept:cd1a5e4071f81f8cf97f7eb7",
+  "safe_id": "ctkg_domainconcept_cd1a5e4071f81f8cf97f7eb7",
+  "node": {
+    "name": "Discrete Lead Compensation",
+    "name_en": "Discrete Lead Compensation",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Discrete Lead Compensation是自动控制原理权威图谱中的领域概念。",
+  "intuition": null,
+  "explanation": "权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Discrete Le…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_cd1a5e4071f81f8cf97f7eb7.md",
+  "provider_policy": "grok-image_gen"
+}

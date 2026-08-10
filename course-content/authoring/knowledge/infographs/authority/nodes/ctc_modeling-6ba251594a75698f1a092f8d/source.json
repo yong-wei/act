@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-6ba251594a75698f1a092f8d",
+  "safe_id": "ctc_modeling-6ba251594a75698f1a092f8d",
+  "node": {
+    "name": "系统的输入-输出描述",
+    "name_en": "modeling_6ba251594a75698f1a092f8d",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "系统的输入-输出描述，将系统看作黑箱，只反映外部变量间的因果关系。",
+  "intuition": null,
+  "explanation": "系统的输入-输出描述，将系统看作黑箱，只反映外部变量间的因果关系。",
+  "relation_head": "后续 → input",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "input",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "系统的输入-输出描述",
+    "关联·input"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-6ba251594a75698f1a092f8d.md",
+  "provider_policy": "grok-image_gen"
+}

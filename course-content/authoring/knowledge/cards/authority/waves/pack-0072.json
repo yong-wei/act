@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0072",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-87148367d17fdbebd5a95319",
+      "name": "开环采样系统",
+      "definition": "如果采样器位于系统闭合回路之外，或者系统本身不存在闭合回路，则称为开环采样系统。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-89ada9ada357e26bcd83dc11",
+      "name": "线性离散系统",
+      "definition": "如果离散系统满足叠加原理，则称为线性离散系统。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-963133ef890ba8f3bfeefcc5",
+      "name": "线性采样系统",
+      "definition": "当采样开关和系统其余部分的传递函数都具有线性特性时，这样的系统就称为线性采样系统。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9b795692bacd0f13270cc086",
+      "name": "秩判据",
+      "definition": "线性定常连续系统完全可控的充分必要条件是 rank[B AB ... A^{n-1}B] = n，其中 n 为矩阵 A 的维数。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9c2c202d7940f9cd4af8fae8",
+      "name": "采样周期",
+      "definition": "每隔 T 秒与电位器接触一次，T 称为采样周期。"
+    }
+  ],
+  "created_at": "2026-08-05T16:07:26.914103+00:00"
+}

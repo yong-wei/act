@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T16:58:38+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-697391470a76199a5aa695d7",
+  "safe_id": "ctc_modeling-697391470a76199a5aa695d7",
+  "node_name": "The determinant with the",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (离散求解/poles/Δ(s)/全耦合/I=ml2)"
+}

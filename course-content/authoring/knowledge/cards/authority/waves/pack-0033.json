@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0033",
+  "offset": 165,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-4b313e6e83be36dcd1a914f3",
+      "batch": "B",
+      "name": "Damping ratio ζ",
+      "definition": "Damping ratio ζ：A dimensionless parameter that describes how oscillations in a second-order system decay after a disturbance. For 0 < ζ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Damping rat…",
+        "Damping rati"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Damping ratio ζ\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Damping ratio ζ：A dimensionless parameter that describes how oscillations in a second-order system decay after a disturbance. For 0 < ζ…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Damping ra」、「Damping ra」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7173c7880ad344bc6a0d012d",
+      "batch": "B",
+      "name": "Frequency respon",
+      "definition": "Frequency respon：A more sophisticated approach attempts to match the frequency response of the reduced-order transfer function with the…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Frequency r…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Frequency respon\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Frequency respon：A more sophisticated approach attempts to match the frequency response of the reduced-order transfer function with the…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Frequency 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-de2d118612aaa2d2d0061b93",
+      "batch": "B",
+      "name": "Finding transfer",
+      "definition": "Finding transfer：Take the Laplace transform of both sides of the differential equation assuming zero initial conditions, then solve for…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Finding tra…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Finding transfer\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Finding transfer：Take the Laplace transform of both sides of the differential equation assuming zero initial conditions, then solve for…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Finding tr」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-133c90435f61b9a83b7d4aaf",
+      "batch": "B",
+      "name": "Controllability",
+      "definition": "Controllability：A system is completely controllable if there exists an unconstrained control u(t) that can transfer any initial state x…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Controllabi…",
+        "Controllabil",
+        "用于分析·Cont…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Controllability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Controllability：A system is completely controllable if there exists an unconstrained control u(t) that can transfer any initial state x…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Controllab」、「Controllab」、「用于分析·Cont…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-232cff230e48397cf46cb944",
+      "batch": "B",
+      "name": "microcontroller",
+      "definition": "microcontroller：A unit that contains both a microprocessor and most other needed functions, including A/D and D/A conversion, used in m…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "microcontro…",
+        "microcontrol"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: microcontroller\nSOURCE DEFINITION (fail-closed, do not invent beyond this): microcontroller：A unit that contains both a microprocessor and most other needed functions, including A/D and D/A conversion, used in m…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「microcontr」、「microcontr」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

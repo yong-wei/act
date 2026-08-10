@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0143",
+  "offset": 715,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-924174fe69be3e335cca76d8",
+      "batch": "B",
+      "name": "有源校正装置",
+      "definition": "包含运算放大器等有源元件的校正装置，用于实现复杂的控制规律。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "有源校正装置"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 有源校正装置\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 包含运算放大器等有源元件的校正装置，用于实现复杂的控制规律。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「有源校正装置」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "batch": "B",
+      "name": "幅值裕度",
+      "definition": "开环频率特性在相角为-180°时的幅值倒数，记为h(dB)。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "幅值裕度",
+        "关联·穿越频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 幅值裕度\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 开环频率特性在相角为-180°时的幅值倒数，记为h(dB)。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「幅值裕度」、「关联·穿越频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-987e08a63a394f1a848101dc",
+      "batch": "B",
+      "name": "只有输入支路而没有输出支路的节点",
+      "definition": "只有输入支路而没有输出支路的节点，一般代表系统的输出变量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "只有输入支路而没有输出…",
+        "包含组件·sign…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 只有输入支路而没有输出支路的节点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 只有输入支路而没有输出支路的节点，一般代表系统的输出变量。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「只有输入支路而没有输」、「包含组件·sign…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "batch": "B",
+      "name": "相角裕度",
+      "definition": "开环频率特性在截止频率处的相角与-180°的差值，记为γ。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "相角裕度",
+        "用于分析·相频特性",
+        "用于分析·利用开环…",
+        "关联·截止频率",
+        "关联·利用开环频域…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 相角裕度\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 开环频率特性在截止频率处的相角与-180°的差值，记为γ。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「相角裕度」、「用于分析·相频特性」、「用于分析·利用开环…」、「关联·截止频率」、「关联·利用开环频域…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2fd3b8dfc79284046cb06990",
+      "batch": "B",
+      "name": "A/D转换器",
+      "definition": "A/D 转换器是把连续的模拟信号转换为离散数字信号的装置。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "A/D转换器",
+        "关联·模拟信号",
+        "关联·数字信号"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: A/D转换器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): A/D 转换器是把连续的模拟信号转换为离散数字信号的装置。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「A/D转换器」、「关联·模拟信号」、「关联·数字信号」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

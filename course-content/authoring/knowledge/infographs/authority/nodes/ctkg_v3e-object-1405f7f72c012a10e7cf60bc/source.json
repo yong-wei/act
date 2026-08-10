@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-1405f7f72c012a10e7cf60bc",
+  "safe_id": "ctkg_v3e-object-1405f7f72c012a10e7cf60bc",
+  "node": {
+    "name": "Nonminimum-Phase Compensator",
+    "name_en": "Nonminimum-Phase Compensator",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Nonminimum-Phase Compensator：Nonminimum-Phase Compensator",
+  "intuition": null,
+  "explanation": "Nonminimum-Phase Compensator",
+  "relation_head": "后续 → Zerodegree root locus",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Zerodegree root locus",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Nonminimum-…",
+    "关联·Zerode…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-1405f7f72c012a10e7cf60bc.md",
+  "provider_policy": "grok-image_gen"
+}

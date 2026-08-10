@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+  "safe_id": "ctc_v11g-d71c2fc537d5d1aa270768ec",
+  "node": {
+    "name": "three way catalyst",
+    "name_en": "three_way_catalyst",
+    "concept_kind": "system_component",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "three way catalyst：A catalyst used for controlling HC, CO, and NOx emissions in conjunction with a closed-loop engine-control system.",
+  "intuition": "在图谱邻接中可把握：前置 → exhaust gas sensor。",
+  "explanation": "A catalyst used for controlling HC, CO, and NOx emissions in conjunction with a closed-loop engine-control system.",
+  "relation_head": "前置 → exhaust gas sensor",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "exhaust gas sensor",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "three way c…",
+    "three way ca",
+    "关联·exhaus…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-d71c2fc537d5d1aa270768ec.md",
+  "provider_policy": "grok-image_gen"
+}

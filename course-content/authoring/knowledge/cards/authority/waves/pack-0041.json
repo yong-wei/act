@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0041",
+  "offset": 205,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-331ee4b283af66a85a6bfa1c",
+      "batch": "B",
+      "name": "Open-Loop Estimator",
+      "definition": "Open-Loop Estimator：An estimator that uses a model of the plant without feedback correction, relying on correct initial conditions.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Open-Loop E…",
+        "Open-Loop Es"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Open-Loop Estimator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Open-Loop Estimator：An estimator that uses a model of the plant without feedback correction, relying on correct initial conditions.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Open-Loop 」、「Open-Loop 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7055a0e2be50abb18ea92c6a",
+      "batch": "B",
+      "name": "Decibel (dB)",
+      "definition": "Decibel (dB)：A unit of power gain, defined as 1/10 of a bel, used in Bode plots to express magnitude ratios on a logarithmic scale.",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Decibel (dB)",
+        "属于·Bel",
+        "派生自·Bel",
+        "关联·Decibel",
+        "关联·Bel"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Decibel (dB)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Decibel (dB)：A unit of power gain, defined as 1/10 of a bel, used in Bode plots to express magnitude ratios on a logarithmic scale.\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Decibel (d」、「属于·Bel」、「派生自·Bel」、「关联·Decibel」、「关联·Bel」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9acaab765d45527c6988c564",
+      "batch": "B",
+      "name": "polar plot",
+      "definition": "polar plot：A graphical representation of the frequency response of a system using the real and imaginary parts of G(jω) as coordin…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "polar plot",
+        "用于分析·Grap…",
+        "有表示·Frequ…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: polar plot\nSOURCE DEFINITION (fail-closed, do not invent beyond this): polar plot：A graphical representation of the frequency response of a system using the real and imaginary parts of G(jω) as coordin…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「polar plot」、「用于分析·Grap…」、「有表示·Frequ…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bdb527f3245189eaf48b43e5",
+      "batch": "B",
+      "name": "Prefilter",
+      "definition": "Prefilter：A prefilter is a transfer function G_p(s) placed before the compensator in a control system to shape the reference inpu…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Prefilter"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Prefilter\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Prefilter：A prefilter is a transfer function G_p(s) placed before the compensator in a control system to shape the reference inpu…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Prefilter」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cb18c47f552c6b128f9b52c8",
+      "batch": "B",
+      "name": "Detectability",
+      "definition": "Detectability：A system is detectable if the states (or linear combinations thereof) that cannot be observed are inherently stable.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Detectabili…",
+        "Detectabilit"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Detectability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Detectability：A system is detectable if the states (or linear combinations thereof) that cannot be observed are inherently stable.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Detectabil」、「Detectabil」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

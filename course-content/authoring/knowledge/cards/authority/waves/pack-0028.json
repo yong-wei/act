@@ -1,0 +1,67 @@
+{
+  "pack_id": "P0028",
+  "offset": 140,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "batch": "B",
+      "name": "System Type for ",
+      "definition": "System Type for ：A classification of a system based on its ability to reject polynomial disturbance inputs, analogous to the classificat…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "System Type…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: System Type for \nSOURCE DEFINITION (fail-closed, do not invent beyond this): System Type for ：A classification of a system based on its ability to reject polynomial disturbance inputs, analogous to the classificat…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「System Typ」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-01daeca5c38811f6a58fcb01",
+      "batch": "B",
+      "name": "Equivalent gain ",
+      "definition": "Equivalent gain ：A technique to study the stability of systems with memoryless nonlinearities by replacing the nonlinearity with an equi…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Equivalent …",
+        "包含组件·equi…",
+        "用于分析·memo…",
+        "关联·Root-L…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Equivalent gain \nSOURCE DEFINITION (fail-closed, do not invent beyond this): Equivalent gain ：A technique to study the stability of systems with memoryless nonlinearities by replacing the nonlinearity with an equi…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Equivalent」、「包含组件·equi…」、「用于分析·memo…」、「关联·Root-L…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-07c345d26a1c74830e0a5c94",
+      "batch": "B",
+      "name": "Arc at infinity in Nyquist plot",
+      "definition": "Arc at infinity in Nyquist plot：An arc at infinity in the Nyquist plot occurs when there is a pole on the imaginary axis, such as at ω=0.",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Arc at infi…",
+        "应用于·C1 co…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Arc at infinity in Nyquist plot\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Arc at infinity in Nyquist plot：An arc at infinity in the Nyquist plot occurs when there is a pole on the imaginary axis, such as at ω=0.\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Arc at inf」、「应用于·C1 co…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0eadd6f972de0e7b503343cf",
+      "batch": "B",
+      "name": "PID controller d",
+      "definition": "PID controller d：The design procedure involves: 1) Adjusting T_D to achieve the desired phase margin (PM) at a reasonably high frequency…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PID control…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: PID controller d\nSOURCE DEFINITION (fail-closed, do not invent beyond this): PID controller d：The design procedure involves: 1) Adjusting T_D to achieve the desired phase margin (PM) at a reasonably high frequency…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「PID contro」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-11feec6295c98da3e56a7832",
+      "batch": "B",
+      "name": "Estimator Gain S",
+      "definition": "Estimator Gain S：Solve for L by comparing coefficients of the estimator error characteristic equation (det[sI-(A-LC)]=0) with the desire…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Estimator G…",
+        "包含组件·Esti…",
+        "用于分析·Esti…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Estimator Gain S\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Estimator Gain S：Solve for L by comparing coefficients of the estimator error characteristic equation (det[sI-(A-LC)]=0) with the desire…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Estimator 」、「包含组件·Esti…」、「用于分析·Esti…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

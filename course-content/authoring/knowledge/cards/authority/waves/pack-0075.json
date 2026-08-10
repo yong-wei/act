@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0075",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-d537d542fc83f3d91e2f6d72",
+      "name": "coulomb plus viscous friction",
+      "definition": "coulomb plus viscous friction：coulomb plus viscous friction"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "name": "串联滞后-超前校正",
+      "definition": "这种校正方法兼有滞后校正和超前校正的优点，即已校正系统响应速度较快，超调量较小，抑制高频噪声的性能也较好。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d930507f1d5291f37ede5af7",
+      "name": "反演积分法",
+      "definition": "采用反演积分法求取z反变换，适用于E(z)为超越函数的情况，通过柯西留数定理计算积分值。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-dd83c852f8ae95a9d7f5041f",
+      "name": "Aizermann's conjecture",
+      "definition": "Aizermann's conjecture：Aizermann's conjecture"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-de1fcfcdabd2e7cb8d74e01a",
+      "name": "齐次状态方程",
+      "definition": "形如 \\dot{x}(t) = A x(t) 的状态方程，不含输入项。"
+    }
+  ],
+  "created_at": "2026-08-05T16:11:35.515458+00:00"
+}

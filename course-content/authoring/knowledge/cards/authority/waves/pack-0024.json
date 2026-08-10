@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0024",
+  "offset": 120,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-4c3c3615b8526799e61d3615",
+      "batch": "B",
+      "name": "Closed-Loop Estimator",
+      "definition": "Closed-Loop Estimator：An estimator that feeds back the difference between measured and estimated outputs to correct the model continuously.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Closed-Loop…",
+        "Closed-Loop "
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Closed-Loop Estimator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Closed-Loop Estimator：An estimator that feeds back the difference between measured and estimated outputs to correct the model continuously.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Closed-Loo」、「Closed-Loo」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6d78bc7ec6f37d397dd08c67",
+      "batch": "B",
+      "name": "Relative Stability",
+      "definition": "Relative Stability：Given that a closed-loop system is stable, the degree of stability can be further characterized. This is referred to as…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Relative St…",
+        "Relative Sta",
+        "用于分析·Axis…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Relative Stability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Relative Stability：Given that a closed-loop system is stable, the degree of stability can be further characterized. This is referred to as…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Relative S」、「Relative S」、「用于分析·Axis…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7aeaea4f1aef78c48c3e8340",
+      "batch": "B",
+      "name": "Ackermann's formula",
+      "definition": "Ackermann's formula：A compact formula for computing the state feedback gain matrix K for pole placement, given by K = [0 ... 0 1] * C^{-1}…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Ackermann's…",
+        "Ackermann's ",
+        "派生自·Pole …",
+        "关联·Pole p…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Ackermann's formula\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Ackermann's formula：A compact formula for computing the state feedback gain matrix K for pole placement, given by K = [0 ... 0 1] * C^{-1}…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Ackermann'」、「Ackermann'」、「派生自·Pole …」、「关联·Pole p…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b3c5cdff9a0cefd89c42db14",
+      "batch": "B",
+      "name": "Absolute Stability",
+      "definition": "Absolute Stability：A type of stability characterization where a closed-loop feedback system is either stable or not stable. A system posse…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Absolute St…",
+        "Absolute Sta",
+        "一种·Stable",
+        "是一种·稳定性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Absolute Stability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Absolute Stability：A type of stability characterization where a closed-loop feedback system is either stable or not stable. A system posse…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Absolute S」、「Absolute S」、「一种·Stable」、「是一种·稳定性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c257d94caf0f579cc0a8dd67",
+      "batch": "B",
+      "name": "Gain stabilization",
+      "definition": "Gain stabilization：A stabilization method that ensures stability by tailoring the high-frequency magnitude never to exceed 1, thereby redu…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Gain stabil…",
+        "Gain stabili"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Gain stabilization\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Gain stabilization：A stabilization method that ensures stability by tailoring the high-frequency magnitude never to exceed 1, thereby redu…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Gain stabi」、「Gain stabi」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T16:28:51+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-2e91a0da0c74ca85ce8f952b",
+  "safe_id": "ctkg_v3e-object-2e91a0da0c74ca85ce8f952b",
+  "node_name": "Determining PM from Bode plot",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0087 vision-mapped accept"
+}

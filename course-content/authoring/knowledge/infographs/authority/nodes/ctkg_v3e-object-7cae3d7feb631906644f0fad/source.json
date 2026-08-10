@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+  "safe_id": "ctkg_v3e-object-7cae3d7feb631906644f0fad",
+  "node": {
+    "name": "Neutral Stability",
+    "name_en": "Neutral Stability",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Neutral Stability：A position where if a cone rests on its side and is displaced slightly, it rolls with no tendency to leave the position…",
+  "intuition": "在图谱邻接中可把握：前置 → Stability boundary · 后续 → Stable System、稳定性。",
+  "explanation": "A position where if a cone rests on its side and is displaced slightly, it rolls with no tendency to leave the position on its side.",
+  "relation_head": "前置 → Stability boundary · 后续 → Stable System、稳定性",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Stable System",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "稳定性",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "Stability boundary",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Neutral Sta…",
+    "Neutral Stab",
+    "一种·Stable",
+    "是一种·稳定性",
+    "关联·Stabil…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7cae3d7feb631906644f0fad.md",
+  "provider_policy": "grok-image_gen"
+}

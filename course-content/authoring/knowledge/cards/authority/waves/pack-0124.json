@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0124",
+  "offset": 620,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-e9b365b3f16db46b1e342744",
+      "batch": "B",
+      "name": "sample and hold device",
+      "definition": "sample and hold device：sample and hold device",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "sample and …",
+        "sample and h",
+        "一种·D/A",
+        "有表示·D/A c…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: sample and hold device\nSOURCE DEFINITION (fail-closed, do not invent beyond this): sample and hold device：sample and hold device\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「sample and」、「sample and」、「一种·D/A」、「有表示·D/A c…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-23a1c9229387ded552fbdbb3",
+      "batch": "B",
+      "name": "PBH秩判据",
+      "definition": "由波波夫、贝尔维奇和豪塔斯提出的可控性和可观测性判据，基于对矩阵A的特征值检验矩阵的秩。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PBH秩判据",
+        "是一种·否成立"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: PBH秩判据\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由波波夫、贝尔维奇和豪塔斯提出的可控性和可观测性判据，基于对矩阵A的特征值检验矩阵的秩。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「PBH秩判据」、「是一种·否成立」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-24abf351ed0af6684efdb4b7",
+      "batch": "B",
+      "name": "非齐次状态方程",
+      "definition": "形如 \\dot{x}(t) = A x(t) + B u(t) 的状态方程，包含输入项。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非齐次状态方程",
+        "用于分析·积分法求…",
+        "用于分析·拉普拉斯…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 非齐次状态方程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 形如 \\dot{x}(t) = A x(t) + B u(t) 的状态方程，包含输入项。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「非齐次状态方程」、「用于分析·积分法求…」、「用于分析·拉普拉斯…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3dcfcc93901edd979be43f5c",
+      "batch": "B",
+      "name": "否包含元素全…",
+      "definition": "当A的特征值两两相异时，通过线性变换化为对角线规范型，检查B矩阵是否包含元素全为零的行。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "否包含元素全…",
+        "一种·对角线规范型…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 否包含元素全…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当A的特征值两两相异时，通过线性变换化为对角线规范型，检查B矩阵是否包含元素全为零的行。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「否包含元素全…」、「一种·对角线规范型…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6d1db6977ad62639b73afe79",
+      "batch": "B",
+      "name": "等σ线映射",
+      "definition": "s平面上的等σ垂线映射到z平面上的轨迹是以原点为圆心、以|z|=e^{σT}为半径的圆。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "等σ线映射"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 等σ线映射\nSOURCE DEFINITION (fail-closed, do not invent beyond this): s平面上的等σ垂线映射到z平面上的轨迹是以原点为圆心、以|z|=e^{σT}为半径的圆。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「等σ线映射」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

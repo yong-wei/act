@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0135",
+  "offset": 675,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-56e0945e8704fa9f3c1dc356",
+      "batch": "B",
+      "name": "低频段",
+      "definition": "记 ω_min 为最小交接频率，称 ω<ω_min 的频率范围为低频段。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "低频段",
+        "应用于·对数幅频渐…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 低频段\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 记 ω_min 为最小交接频率，称 ω<ω_min 的频率范围为低频段。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「低频段」、「应用于·对数幅频渐…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-953374e261302cfdff02144d",
+      "batch": "B",
+      "name": "相平面",
+      "definition": "以 x(t) 为横坐标，ẋ(t) 为纵坐标构成的直角坐标平面称为相平面。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "相平面",
+        "属于·等倾线",
+        "属于·极限环",
+        "属于·相轨迹",
+        "属于·奇线",
+        "属于·奇点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 相平面\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 以 x(t) 为横坐标，ẋ(t) 为纵坐标构成的直角坐标平面称为相平面。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「相平面」、「属于·等倾线」、「属于·极限环」、「属于·相轨迹」、「属于·奇线」、「属于·奇点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-b5aa1e9d744b24db0fdc4884",
+      "batch": "B",
+      "name": "一对电位器组成误差检测器时",
+      "definition": "一对电位器组成误差检测器时，两个电位器电刷角位移之差，记为Δθ(t)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一对电位器组成误差检测…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 一对电位器组成误差检测器时\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一对电位器组成误差检测器时，两个电位器电刷角位移之差，记为Δθ(t)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「一对电位器组成误差检」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-80d226d08d089c2c8bbd2219",
+      "batch": "B",
+      "name": "直接积分法求相轨迹",
+      "definition": "通过将微分方程转化为可分离变量的形式，然后积分得到ẋ和x的解析关系式。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "直接积分法求相轨迹",
+        "用于分析·相轨迹"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 直接积分法求相轨迹\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 通过将微分方程转化为可分离变量的形式，然后积分得到ẋ和x的解析关系式。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「直接积分法求相轨迹」、「用于分析·相轨迹」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-de1fcfcdabd2e7cb8d74e01a",
+      "batch": "B",
+      "name": "齐次状态方程",
+      "definition": "形如 \\dot{x}(t) = A x(t) 的状态方程，不含输入项。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "齐次状态方程",
+        "用于分析·幂级数法…",
+        "用于分析·拉普拉斯…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 齐次状态方程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 形如 \\dot{x}(t) = A x(t) 的状态方程，不含输入项。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「齐次状态方程」、「用于分析·幂级数法…」、「用于分析·拉普拉斯…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

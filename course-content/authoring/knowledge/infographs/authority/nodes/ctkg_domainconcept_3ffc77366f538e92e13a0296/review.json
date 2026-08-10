@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:53:19+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+  "safe_id": "ctkg_domainconcept_3ffc77366f538e92e13a0296",
+  "node_name": "能量函数（李雅普诺夫）",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-C vision-mapped accept (完全可控/LyapStab/Jury/能量函数/LyapFunc)"
+}

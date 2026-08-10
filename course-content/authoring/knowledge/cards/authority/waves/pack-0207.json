@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0207",
+  "offset": 1035,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-150dc51f4f7d4306dab82a18",
+      "batch": "C",
+      "name": "脉冲序列",
+      "definition": "脉冲序列。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "脉冲序列",
+        "是一种·离散模拟信号",
+        "是一种·理想脉冲",
+        "包含组件·离散时间…",
+        "包含组件·采样控制…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 脉冲序列\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 脉冲序列。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「脉冲序列」、「是一种·离散模拟信号」、「是一种·理想脉冲」、「包含组件·离散时间…」、「包含组件·采样控制…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-22b4d8381af61f295e88100e",
+      "batch": "C",
+      "name": "编码过程",
+      "definition": "编码过程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "编码过程"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 编码过程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 编码过程。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「编码过程」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-239fecfdb347e1a48fb9d7cc",
+      "batch": "C",
+      "name": "完全可达",
+      "definition": "完全可达。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "完全可达",
+        "是一种·状态完全可达"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 完全可达\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 完全可达。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「完全可达」、「是一种·状态完全可达」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-35942e1152c99bd94bdecd00",
+      "batch": "C",
+      "name": "I控制器",
+      "definition": "I控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "I控制器",
+        "关联·积分控制规律"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: I控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): I控制器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「I控制器」、「关联·积分控制规律」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-508501381207b32fdb98c6c2",
+      "batch": "C",
+      "name": "比例系数",
+      "definition": "比例系数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "比例系数",
+        "包含组件·PID控…",
+        "包含组件·比例控制…",
+        "包含组件·衰减曲线法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 比例系数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 比例系数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「比例系数」、「包含组件·PID控…」、「包含组件·比例控制…」、「包含组件·衰减曲线法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

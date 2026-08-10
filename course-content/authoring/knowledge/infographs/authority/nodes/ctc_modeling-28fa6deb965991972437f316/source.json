@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-28fa6deb965991972437f316",
+  "safe_id": "ctc_modeling-28fa6deb965991972437f316",
+  "node": {
+    "name": "method of using computer",
+    "name_en": "modeling_28fa6deb965991972437f316",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "method of using computer：A method of using computer simulations of both linear and nonlinear mathematical models to obtain a more complete repre…",
+  "intuition": null,
+  "explanation": "A method of using computer simulations of both linear and nonlinear mathematical models to obtain a more complete representation of system behavior, with varying levels of fidelity (accuracy) available to the control engineer.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "method of u…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-28fa6deb965991972437f316.md",
+  "provider_policy": "grok-image_gen"
+}

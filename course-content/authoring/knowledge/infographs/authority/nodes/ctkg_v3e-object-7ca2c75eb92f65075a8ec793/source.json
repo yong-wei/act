@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7ca2c75eb92f65075a8ec793",
+  "safe_id": "ctkg_v3e-object-7ca2c75eb92f65075a8ec793",
+  "node": {
+    "name": "successive-approximation technique",
+    "name_en": "successive-approximation technique",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "successive-approximation technique：An A/D conversion technique based on successively comparing the input voltage to reference levels representing the vari…",
+  "intuition": "在图谱邻接中可把握：后续 → A/D converter。",
+  "explanation": "An A/D conversion technique based on successively comparing the input voltage to reference levels representing the various bits in the digital word; one clock cycle is required to set each bit.",
+  "relation_head": "后续 → A/D converter",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "A/D converter",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "successive-…",
+    "关联·A/D co…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7ca2c75eb92f65075a8ec793.md",
+  "provider_policy": "grok-image_gen"
+}

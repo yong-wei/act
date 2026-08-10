@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0128",
+  "offset": 640,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-736212ccb3694d44a24fa358",
+      "batch": "B",
+      "name": "output",
+      "definition": "output：v3T accepted candidate for output.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "output"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: output\nSOURCE DEFINITION (fail-closed, do not invent beyond this): output：v3T accepted candidate for output.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「output」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "batch": "B",
+      "name": "Difference equations",
+      "definition": "Difference equations：Difference equations",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Difference …",
+        "Difference e",
+        "属于·Discre…",
+        "包含组件·Disc…",
+        "应用于·Sampl…",
+        "派生自·Discr…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Difference equations\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Difference equations：Difference equations\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Difference」、「Difference」、「属于·Discre…」、「包含组件·Disc…」、「应用于·Sampl…」、「派生自·Discr…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8cf39aebda1d87c8394a3f9d",
+      "batch": "B",
+      "name": "relay with dead zone",
+      "definition": "relay with dead zone：relay with dead zone",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "relay with …",
+        "relay with d",
+        "一种·memory…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: relay with dead zone\nSOURCE DEFINITION (fail-closed, do not invent beyond this): relay with dead zone：relay with dead zone\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「relay with」、「relay with」、「一种·memory…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-963133ef890ba8f3bfeefcc5",
+      "batch": "B",
+      "name": "线性采样系统",
+      "definition": "当采样开关和系统其余部分的传递函数都具有线性特性时，这样的系统就称为线性采样系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "线性采样系统",
+        "是一种·采样控制系统",
+        "包含组件·采样开关"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 线性采样系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当采样开关和系统其余部分的传递函数都具有线性特性时，这样的系统就称为线性采样系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「线性采样系统」、「是一种·采样控制系统」、「包含组件·采样开关」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c39d1d0090637db4b51bde73",
+      "batch": "B",
+      "name": "绘制概略开环幅相特性曲线方法",
+      "definition": "根据系统开环频率特性的表达式，通过取点、计算和作图等方法绘制系统开环幅相特性曲线。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "绘制概略开环幅相特性曲…",
+        "用于分析·频率特性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 绘制概略开环幅相特性曲线方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 根据系统开环频率特性的表达式，通过取点、计算和作图等方法绘制系统开环幅相特性曲线。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「绘制概略开环幅相特性」、「用于分析·频率特性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

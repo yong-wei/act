@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0111",
+  "offset": 555,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-fb437f813c7792e130b8a3df",
+      "batch": "B",
+      "name": "给定稳定度检验方法",
+      "definition": "为了使稳定的系统具有良好的动态响应，我们常常希望在 s 左半平面上系统特征根的位置与虚轴之间有一定的距离。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "给定稳定度检验方法",
+        "包含组件·通过变量…",
+        "用于分析·稳定性",
+        "应用于·特征方程"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 给定稳定度检验方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 为了使稳定的系统具有良好的动态响应，我们常常希望在 s 左半平面上系统特征根的位置与虚轴之间有一定的距离。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「给定稳定度检验方法」、「包含组件·通过变量…」、「用于分析·稳定性」、「应用于·特征方程」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-23e85dbf38c6880d27e4d02b",
+      "batch": "B",
+      "name": "阻尼系数",
+      "definition": "在位置控制系统中，F = f + C_m C_e / R_a，称为阻尼系数，是影响系统阻尼程度的物理量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阻尼系数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 阻尼系数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在位置控制系统中，F = f + C_m C_e / R_a，称为阻尼系数，是影响系统阻尼程度的物理量。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「阻尼系数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-9cfc0f6b382440f46c1f3302",
+      "batch": "B",
+      "name": "Rise time T r",
+      "definition": "Rise time T r：A measure of the swiftness of response",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Rise time T…",
+        "Rise time T "
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Rise time T r\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Rise time T r：A measure of the swiftness of response\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Rise time 」、「Rise time 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1724fe5a62311ceb13ab05bd",
+      "batch": "B",
+      "name": "格拉姆矩阵判据",
+      "definition": "线性定常连续系统完全可控的充分必要条件是，存在时刻 t1>0，使格拉姆矩阵 W(0, t1) 为非奇异。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "格拉姆矩阵判据",
+        "应用于·系统完全可控"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 格拉姆矩阵判据\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 线性定常连续系统完全可控的充分必要条件是，存在时刻 t1>0，使格拉姆矩阵 W(0, t1) 为非奇异。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「格拉姆矩阵判据」、「应用于·系统完全可控」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-42df8c524c1d9b3e8ae03275",
+      "batch": "B",
+      "name": "期望的开环频率特性形状",
+      "definition": "低频段增益充分大，中频段对数幅频特性斜率一般为-20dB/dec并占据充分宽的频带，高频段增益尽快减小。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "期望的开环频率特性形状"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 期望的开环频率特性形状\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 低频段增益充分大，中频段对数幅频特性斜率一般为-20dB/dec并占据充分宽的频带，高频段增益尽快减小。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「期望的开环频率特性形」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

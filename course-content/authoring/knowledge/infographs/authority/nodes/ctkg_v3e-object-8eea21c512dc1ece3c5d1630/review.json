@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:39:38+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-8eea21c512dc1ece3c5d1630",
+  "safe_id": "ctkg_v3e-object-8eea21c512dc1ece3c5d1630",
+  "node_name": "临界比例度法",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (滞后校正/FPGA/临界比例度/条件稳定/可观测Gramian)"
+}

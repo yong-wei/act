@@ -73,6 +73,29 @@ const reportBody = {
 };
 
 describe('diagnosis report persistence', () => {
+  it('persists a blank optional knowledge node id as missing without a preparation link', async () => {
+    const db = createDb();
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody: {
+        ...reportBody,
+        findings: [{
+          ...reportBody.findings[0],
+          knowledgeNodeId: '   ',
+        }],
+      },
+    }, db);
+
+    const createCall = vi.mocked(db.diagnosisReport.create).mock.calls[0]?.[0] as {
+      data: { reportBody: { findings: Array<Record<string, unknown>> } };
+    };
+    const storedFinding = createCall.data.reportBody.findings[0];
+    expect(storedFinding).not.toHaveProperty('knowledgeNodeId');
+    expect(storedFinding).not.toHaveProperty('prepLink');
+  });
+
   it('derives the student scope, validates membership, and stores governed evidence metadata', async () => {
     const db = createDb();
 

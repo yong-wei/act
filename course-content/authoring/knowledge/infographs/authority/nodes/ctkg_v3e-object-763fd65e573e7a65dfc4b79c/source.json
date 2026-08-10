@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+  "safe_id": "ctkg_v3e-object-763fd65e573e7a65dfc4b79c",
+  "node": {
+    "name": "Nyquist图",
+    "name_en": "Nyquist plot",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Nyquist图：A plot of the magnitude of KG(s) versus the angle of KG(s) used to evaluate the open-loop transfer function for stabili…",
+  "intuition": "在图谱邻接中可把握：前置 → Frequency response method。",
+  "explanation": "A plot of the magnitude of KG(s) versus the angle of KG(s) used to evaluate the open-loop transfer function for stability analysis.",
+  "relation_head": "前置 → Frequency response method",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Frequency response method",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Nyquist图",
+    "Nyquist plot",
+    "关联·Freque…"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-763fd65e573e7a65dfc4b79c.md",
+  "provider_policy": "grok-image_gen"
+}

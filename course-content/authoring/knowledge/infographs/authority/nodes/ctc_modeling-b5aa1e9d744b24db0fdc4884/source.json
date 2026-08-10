@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-b5aa1e9d744b24db0fdc4884",
+  "safe_id": "ctc_modeling-b5aa1e9d744b24db0fdc4884",
+  "node": {
+    "name": "一对电位器组成误差检测器时",
+    "name_en": "modeling_b5aa1e9d744b24db0fdc4884",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "一对电位器组成误差检测器时，两个电位器电刷角位移之差，记为Δθ(t)。",
+  "intuition": null,
+  "explanation": "一对电位器组成误差检测器时，两个电位器电刷角位移之差，记为Δθ(t)。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "一对电位器组成误差检测…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-b5aa1e9d744b24db0fdc4884.md",
+  "provider_policy": "grok-image_gen"
+}

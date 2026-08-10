@@ -1,0 +1,36 @@
+{
+  "pack_id": "P0048",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-232e387ed53e92abee078346",
+      "batch": "B",
+      "name": "截止频率",
+      "definition": "开环幅频特性A(ω)=1时的频率，记为ω_c。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-51cfdcf1f943a39dfc550be1",
+      "batch": "B",
+      "name": "Stable System",
+      "definition": "Stable System：A dynamic system with a bounded response to a bounded input."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8a7f5fdab24fd119e93f1c2f",
+      "batch": "B",
+      "name": "Resonant frequency",
+      "definition": "Resonant frequency：The resonant frequency ω_r and the -3 dB bandwidth can be related to the speed of the transient response."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "batch": "B",
+      "name": "Routh-Hurwitz stability criterion",
+      "definition": "Routh-Hurwitz stability criterion：Routh-Hurwitz stability criterion"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b03bdd7d909a44a2830459ca",
+      "batch": "B",
+      "name": "典型输入信号",
+      "definition": "根据系统常遇到的输入信号形式，在数学描述上加以理想化的一些基本输入函数。"
+    }
+  ],
+  "created_at": "2026-08-05T15:35:24.414771+00:00"
+}

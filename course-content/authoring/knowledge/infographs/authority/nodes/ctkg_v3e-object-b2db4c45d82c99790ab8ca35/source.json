@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-b2db4c45d82c99790ab8ca35",
+  "safe_id": "ctkg_v3e-object-b2db4c45d82c99790ab8ca35",
+  "node": {
+    "name": "李雅普诺夫稳定性分析方法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "按照李雅普诺夫分析稳定性的观点，首先假设系统具有一个平衡工作点，在该平衡工作点上，当输入信号为零时，系统的输出信号亦为零。",
+  "intuition": "一旦扰动信号作用于系统，系统的输出量将偏离原平衡工作点。",
+  "explanation": "按照李雅普诺夫分析稳定性的观点，首先假设系统具有一个平衡工作点，在该平衡工作点上，当输入信号为零时，系统的输出信号亦为零。一旦扰动信号作用于系统，系统的输出量将偏离原平衡工作点。若取扰动信号的消失瞬间作为计时起点，则t=0时刻系统输出量增量及其各阶导数，便是研究t≥0时系统输出量增量的初始偏差。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "李雅普诺夫稳定性分析方法"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b2db4c45d82c99790ab8ca35.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-ed01c7b027040e58ad92fa35",
+  "safe_id": "ctkg_v3e-object-ed01c7b027040e58ad92fa35",
+  "node": {
+    "name": "线性定常离散系统",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "输入与输出关系不随时间而改变的线性离散系统，称为线性定常离散系统。",
+  "intuition": null,
+  "explanation": "输入与输出关系不随时间而改变的线性离散系统，称为线性定常离散系统。",
+  "relation_head": "前置 → 迭代法、z变换法、加权序列 · 后续 → 线性离散系统",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "线性离散系统",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "迭代法",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "z变换法",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "加权序列",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "脉冲传递函数",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "线性定常离散系统",
+    "是一种·线性离散系统",
+    "用于分析·迭代法",
+    "用于分析·z变换法",
+    "关联·加权序列",
+    "关联·脉冲传递函数"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ed01c7b027040e58ad92fa35.md",
+  "provider_policy": "grok-image_gen"
+}

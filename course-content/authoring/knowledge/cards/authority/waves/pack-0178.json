@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0178",
+  "offset": 890,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_01352d9fa7bd87ffcb11e7c8",
+      "batch": "C",
+      "name": "题7-22系统结构图",
+      "definition": "题7-22系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-22系统结构图"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-22系统结构图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-22系统结构图是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-22系统结构图」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_0dfe26d4bf0c2174a0a4b176",
+      "batch": "C",
+      "name": "负半定性（标量函数）",
+      "definition": "负半定性（标量函数）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "负半定性（标量函数）"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 负半定性（标量函数）\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 负半定性（标量函数）是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「负半定性（标量函数）」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1fe958ff9947220990074dbc",
+      "batch": "C",
+      "name": "正半定性（标量函数）",
+      "definition": "正半定性（标量函数）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "正半定性（标量函数）"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 正半定性（标量函数）\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 正半定性（标量函数）是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「正半定性（标量函数）」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_2207a84d0bef6d71a51fe50b",
+      "batch": "C",
+      "name": "题7-25系统结构图",
+      "definition": "题7-25系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-25系统结构图"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-25系统结构图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-25系统结构图是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-25系统结构图」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_4440d7aea649c55d0359385c",
+      "batch": "C",
+      "name": "Eigenvalue",
+      "definition": "Eigenvalue是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Eigenvalue"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Eigenvalue\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Eigenvalue是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Eigenvalue」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

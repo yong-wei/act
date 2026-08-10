@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0206",
+  "offset": 1030,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "batch": "C",
+      "name": "稳态性能",
+      "definition": "稳态性能。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳态性能"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 稳态性能\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 稳态性能。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「稳态性能」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-47a2e3c44742b45c55ac902d",
+      "batch": "C",
+      "name": "闭环极点",
+      "definition": "闭环极点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "闭环极点",
+        "是一种·非主导极点",
+        "是一种·闭环主导极点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 闭环极点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 闭环极点。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「闭环极点」、「是一种·非主导极点」、「是一种·闭环主导极点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-813c3692771aa00de2a18d93",
+      "batch": "C",
+      "name": "动态性能",
+      "definition": "动态性能。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "动态性能"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 动态性能\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 动态性能。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「动态性能」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ff87028e0a7bcda2c586a550",
+      "batch": "C",
+      "name": "闭环零点",
+      "definition": "闭环零点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "闭环零点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 闭环零点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 闭环零点。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「闭环零点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-01762eade052b1f22b1318c1",
+      "batch": "C",
+      "name": "P控制器",
+      "definition": "P控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "P控制器",
+        "包含组件·比例控制…",
+        "关联·比例控制规律"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: P控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): P控制器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「P控制器」、「包含组件·比例控制…」、「关联·比例控制规律」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-69118dc66489d66b1732901b",
+  "safe_id": "ctc_v11g-69118dc66489d66b1732901b",
+  "node": {
+    "name": "闭环传递函数",
+    "name_en": "closed_loop_transfer_function",
+    "concept_kind": "representation_kind",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "闭环传递函数：The transfer function describing the dynamic performance of a closed-loop control system, given by T(s)=Y(s)/R(s)=p(s)/…",
+  "intuition": "在图谱邻接中可把握：后续 → 合同明确要求 composit…。",
+  "explanation": "The transfer function describing the dynamic performance of a closed-loop control system, given by T(s)=Y(s)/R(s)=p(s)/q(s).",
+  "relation_head": "后续 → 合同明确要求 composit…",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "合同明确要求 composit…",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "闭环传递函数",
+    "关联·合同明确要求…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-69118dc66489d66b1732901b.md",
+  "provider_policy": "grok-image_gen"
+}

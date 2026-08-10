@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-9c45067d35487ce7a3ce6871",
+  "safe_id": "ctc_modeling-9c45067d35487ce7a3ce6871",
+  "node": {
+    "name": "The voltage across resistor",
+    "name_en": "modeling_9c45067d35487ce7a3ce6871",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "The voltage across resistor：The voltage across a resistor is proportional to the current through it, v = Ri.",
+  "intuition": null,
+  "explanation": "The voltage across a resistor is proportional to the current through it, v = Ri.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "The voltage…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-9c45067d35487ce7a3ce6871.md",
+  "provider_policy": "grok-image_gen"
+}

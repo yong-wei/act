@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:51:27+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+  "safe_id": "ctkg_v3e-object-508501381207b32fdb98c6c2",
+  "node_name": "比例系数",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-C vision-mapped accept (脉冲序列/李雅候选/李雅函数/相平面/比例系数)"
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-a9170d459013db92d3250926",
+  "safe_id": "ctkg_v3e-object-a9170d459013db92d3250926",
+  "node": {
+    "name": "Nichols chart for compensated system",
+    "name_en": "Nichols chart for compensated system",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Nichols chart for compensated system：The Nichols chart is used to check the closed-loop bandwidth and the reshaping of the frequency response locus.",
+  "intuition": "在图谱邻接中可把握：后续 → Compensated system。",
+  "explanation": "The Nichols chart is used to check the closed-loop bandwidth and the reshaping of the frequency response locus.",
+  "relation_head": "后续 → Compensated system",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Compensated system",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Nichols cha…",
+    "用于分析·Comp…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-a9170d459013db92d3250926.md",
+  "provider_policy": "grok-image_gen"
+}

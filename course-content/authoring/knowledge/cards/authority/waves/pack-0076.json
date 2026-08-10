@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0076",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-de873c97a924107857f79242",
+      "name": "幅频特性",
+      "definition": "谐波输入下，输出响应中与输入同频率的谐波分量与谐波输入的幅值之比A(ω)。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e56e84bbefb19024f10b648c",
+      "name": "小范围稳定系统",
+      "definition": "系统受到有界扰动作用后，只有当扰动引起的初始偏差小于某一范围时，系统才能在取消扰动后恢复到初始平衡状态，否则就不能恢复到初始平衡状态。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e9b365b3f16db46b1e342744",
+      "name": "sample and hold device",
+      "definition": "sample and hold device：sample and hold device"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ef5734bee71ec75e999c13bf",
+      "name": "Computing poles ",
+      "definition": "Computing poles ：Solve det(sI - A) = 0 to find the poles (eigenvalues) of the system."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f1582fd7cc28d16eb111854d",
+      "name": "可控性",
+      "definition": "如果系统所有状态变量的运动都可以由输人来影响和控制而由任意的初态达到原点，则称系统是完全可控的，或者更确切地说是状态完全可控的，简称为系统可控；否则，就称系统是不完全可控的，或简称为系统不可控。"
+    }
+  ],
+  "created_at": "2026-08-05T16:12:47.524326+00:00"
+}

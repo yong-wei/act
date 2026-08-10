@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0100",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-b8d0052e096e5047cdccb00e",
+      "name": "Linear Quadratic Regulator (LQR)",
+      "definition": "Linear Quadratic Regulator (LQR)：Linear Quadratic Regulator (LQR)"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-be9c82d423b46b7fc6937236",
+      "name": "对数频率特性曲线",
+      "definition": "由对数幅频曲线和对数相频曲线组成，横坐标按lgω分度，纵坐标分别为20lg|G(jω)|（dB）和φ(ω)（度）。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "name": "幅值裕度",
+      "definition": "开环频率特性在相角为-180°时的幅值倒数，记为h(dB)。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c39d1d0090637db4b51bde73",
+      "name": "绘制概略开环幅相特性曲线方法",
+      "definition": "根据系统开环频率特性的表达式，通过取点、计算和作图等方法绘制系统开环幅相特性曲线。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c7bd7c6faa85c19988a82491",
+      "name": "内模",
+      "definition": "在校正控制器中引入参考输入的内模，即参考输入信号的生成模型，以实现零稳态误差跟踪。"
+    }
+  ],
+  "created_at": "2026-08-05T16:47:20.339980+00:00"
+}

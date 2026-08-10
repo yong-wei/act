@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+  "safe_id": "ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+  "node": {
+    "name": "Final Value Theorem",
+    "name_en": "Final Value Theorem",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Final Value Theorem：Final Value Theorem",
+  "intuition": null,
+  "explanation": "Final Value Theorem",
+  "relation_head": "后续 → Partial-fraction expansion",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Partial-fraction expansion",
+      "relation": "派生自"
+    }
+  ],
+  "labels": [
+    "Final Value…",
+    "Final Value ",
+    "派生自·Parti…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-115de5ef0289a778cf5b69c6.md",
+  "provider_policy": "grok-image_gen"
+}

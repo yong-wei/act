@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-47995819305793bf4c946953",
+  "safe_id": "ctkg_v3e-canonical-47995819305793bf4c946953",
+  "node": {
+    "name": "极点",
+    "name_en": "Pole",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "极点：Values of s such that a(s)=0 will represent points where H(s) is infinity. These s-values are called poles of H(s).。",
+  "intuition": "在图谱邻接中可把握：前置 → Undamped natural frequency omega n、Fast pole and slow pole。",
+  "explanation": "Values of s such that a(s)=0 will represent points where H(s) is infinity. These s-values are called poles of H(s).",
+  "relation_head": "前置 → Undamped natural frequency omega n、Fast pole and slow pole",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Undamped natural frequency omega n",
+      "relation": "派生自"
+    },
+    {
+      "direction": "前置",
+      "peer": "Fast pole and slow pole",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "极点",
+    "Pole",
+    "派生自·Undam…",
+    "关联·Fast p…"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47995819305793bf4c946953.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:54:34+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+  "safe_id": "ctc_modeling-4c7a0114a15c9e4039f6d193",
+  "node_name": "回路中所有支路增益之乘积",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch8 A accept"
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-2e91a0da0c74ca85ce8f952b",
+  "safe_id": "ctkg_v3e-object-2e91a0da0c74ca85ce8f952b",
+  "node": {
+    "name": "Determining PM from Bode plot",
+    "name_en": "Determining PM from Bode plot",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Determining PM from Bode plot：Measure angle of G(jω) as it crosses the magnitude=1 circle.",
+  "intuition": "在图谱邻接中可把握：后续 → Crossover frequency。",
+  "explanation": "Measure angle of G(jω) as it crosses the magnitude=1 circle.",
+  "relation_head": "后续 → Crossover frequency",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Crossover frequency",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Determining…",
+    "用于分析·Cros…"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-2e91a0da0c74ca85ce8f952b.md",
+  "provider_policy": "grok-image_gen"
+}

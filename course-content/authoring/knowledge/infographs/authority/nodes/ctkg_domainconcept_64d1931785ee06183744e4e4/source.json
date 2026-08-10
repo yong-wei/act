@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:domainconcept:64d1931785ee06183744e4e4",
+  "safe_id": "ctkg_domainconcept_64d1931785ee06183744e4e4",
+  "node": {
+    "name": "超前校正网络",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "超前校正网络是自动控制原理权威图谱中的领域概念。",
+  "intuition": null,
+  "explanation": "权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。",
+  "relation_head": "后续 → Phase-lead compensator",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Phase-lead compensator",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "超前校正网络",
+    "一种·Phase-…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_64d1931785ee06183744e4e4.md",
+  "provider_policy": "grok-image_gen"
+}

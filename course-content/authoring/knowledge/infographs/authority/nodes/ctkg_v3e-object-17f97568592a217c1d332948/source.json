@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-17f97568592a217c1d332948",
+  "safe_id": "ctkg_v3e-object-17f97568592a217c1d332948",
+  "node": {
+    "name": "Compensated system",
+    "name_en": "Compensated system",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Compensated system：The system after adding the phase-lag compensator.",
+  "intuition": "在图谱邻接中可把握：前置 → Frequency response method、Nichols chart for compensated system。",
+  "explanation": "The system after adding the phase-lag compensator.",
+  "relation_head": "前置 → Frequency response method、Nichols chart for compensated system",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Frequency response method",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Nichols chart for compensated system",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Compensated…",
+    "Compensated ",
+    "用于分析·Freq…",
+    "用于分析·Nich…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-17f97568592a217c1d332948.md",
+  "provider_policy": "grok-image_gen"
+}

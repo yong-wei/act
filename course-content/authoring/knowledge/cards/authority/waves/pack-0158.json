@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0158",
+  "offset": 790,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_a007da62df7bd509e16eab25",
+      "batch": "C",
+      "name": "Discrete Proportional Control",
+      "definition": "Discrete Proportional Control是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete Pr…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete Proportional Control\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete Proportional Control是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete P」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d128c3dba70d4cc962b3e854",
+      "batch": "C",
+      "name": "Digital lead-lag compensation",
+      "definition": "Digital lead-lag compensation是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital lea…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Digital lead-lag compensation\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Digital lead-lag compensation是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Digital le」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_09da4c7fe48a9407a1d68ec5",
+      "batch": "C",
+      "name": "Discrete Analysis Procedure",
+      "definition": "Discrete Analysis Procedure是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete An…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete Analysis Procedure\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete Analysis Procedure是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete A」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bb073f59e79dbee61e794fa1",
+      "batch": "C",
+      "name": "Discrete Derivative Control",
+      "definition": "Discrete Derivative Control是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete De…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete Derivative Control\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete Derivative Control是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete D」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_fe96c44d0bc1b877a573201e",
+      "batch": "C",
+      "name": "Lyapunov function candidate",
+      "definition": "Lyapunov function candidate是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov fu…",
+        "用于分析·stat…",
+        "应用于·Equil…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov function candidate\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov function candidate是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov f」、「用于分析·stat…」、「应用于·Equil…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

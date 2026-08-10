@@ -1,0 +1,712 @@
+{
+  "wave_id": "W5",
+  "batch": "B",
+  "title": "Batch B slice 5",
+  "offset": 200,
+  "items": [
+    {
+      "safe_id": "ctc_v11g-caa20b325717f0a3c570f16b",
+      "entity_id": "ctc:v11g-caa20b325717f0a3c570f16b",
+      "name": "time delay",
+      "name_en": "time_delay",
+      "definition": "time delay：A delay in a control system, often arising from delays in the process itself or from delays in the processing of sensed…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "time delay"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-cd72ae39f59955a649bff662",
+      "entity_id": "ctc:v11g-cd72ae39f59955a649bff662",
+      "name": "exhaust gas recirculation egr",
+      "name_en": "exhaust_gas_recirculation_egr",
+      "definition": "exhaust gas recirculation egr：A technique used to meet nitrogen oxides (NOx) emissions standards by recirculating exhaust gas.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "exhaust gas…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-d33302c76f8fb40aa020b7aa",
+      "entity_id": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+      "name": "angle of the asymptotes",
+      "name_en": "angle_of_the_asymptotes",
+      "definition": "angle of the asymptotes：The angle φ_A that the asymptote makes with respect to the real axis.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "angle of th…",
+        "angle of the"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-d71c2fc537d5d1aa270768ec",
+      "entity_id": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+      "name": "three way catalyst",
+      "name_en": "three_way_catalyst",
+      "definition": "three way catalyst：A catalyst used for controlling HC, CO, and NOx emissions in conjunction with a closed-loop engine-control system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "three way c…",
+        "three way ca",
+        "关联·exhaus…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-d81f72b09d08ab1f36c29305",
+      "entity_id": "ctc:v11g-d81f72b09d08ab1f36c29305",
+      "name": "相距很近的闭环零点和极点",
+      "name_en": "pole_zero_dipole",
+      "definition": "相距很近的闭环零点和极点，若距离比模值小一个数量级则构成偶极子。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "相距很近的闭环零点和极点",
+        "pole zero di"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-d8b2b97adf60410d7cbf4b0f",
+      "entity_id": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+      "name": "root sensitivity",
+      "name_en": "root_sensitivity",
+      "definition": "root sensitivity：The sensitivity of the roots as a parameter changes from its normal value.",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "root sensit…",
+        "root sensiti"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-daefb900250d1b7d86e36bdd",
+      "entity_id": "ctc:v11g-daefb900250d1b7d86e36bdd",
+      "name": "ultimate gain",
+      "name_en": "ultimate_gain",
+      "definition": "ultimate gain：The gain on the border of instability, denoted by K_U, used in the closed-loop Ziegler-Nichols tuning method.",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "ultimate ga…",
+        "ultimate gai",
+        "是一种·增益"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-e00aa88647adaaf1c5d57462",
+      "entity_id": "ctc:v11g-e00aa88647adaaf1c5d57462",
+      "name": "asymptote centroid",
+      "name_en": "asymptote_centroid",
+      "definition": "asymptote centroid：The center of the linear asymptotes, σ_A.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "asymptote c…",
+        "asymptote ce"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-e63bdb130c5a92d4eb8d936d",
+      "entity_id": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+      "name": "filter compensator",
+      "name_en": "filter_compensator",
+      "definition": "filter compensator：A filter with transfer function (αs+1)/(βs+1) used in a feedback control system, often called a compensator, with desig…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "filter comp…",
+        "filter compe"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-e85c0145d63244c46853c9cf",
+      "entity_id": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "name": "lead compensation",
+      "name_en": "lead_compensation",
+      "definition": "lead compensation：A compensation scheme that approximates PD control, used to speed up response by lowering rise time and decreasing tran…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "lead compen…",
+        "lead compens"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "entity_id": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "name": "根轨迹法",
+      "name_en": "root_locus_method",
+      "definition": "根轨迹法：A graphical method for sketching the locus of roots in the s-plane as a parameter is varied, used to analyze the relati…",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "根轨迹法",
+        "root locus m",
+        "用于分析·root…",
+        "用于分析·特征方程",
+        "应用于·传递函数",
+        "应用于·根轨迹",
+        "派生自·Root …"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-eae7ec2310ca8844d0af49bb",
+      "entity_id": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+      "name": "传输延迟",
+      "name_en": "transport_delay",
+      "definition": "传输延迟：The time delay parameter characterizing the reaction curve in the open-loop Ziegler-Nichols tuning method.。",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "传输延迟",
+        "transport de",
+        "关联·反应曲线",
+        "关联·反应曲线参数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-f3a9655898917afa28e9c600",
+      "entity_id": "ctc:v11g-f3a9655898917afa28e9c600",
+      "name": "manual pid tuning methods",
+      "name_en": "manual_pid_tuning_methods",
+      "definition": "manual pid tuning methods：The process of determining the PID controller gains by trial-and-error with minimal analytic analysis.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "manual pid …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v12g-8f6f1a49cc2cbdfe216e5204",
+      "entity_id": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+      "name": "dominant roots",
+      "name_en": "dominant_roots",
+      "definition": "dominant roots：Complex conjugate roots near the origin of the s-plane relative to other closed-loop system roots, which dominate the t…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "dominant ro…",
+        "dominant roo"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v12g-b536959708e2d0fe3c8c791a",
+      "entity_id": "ctc:v12g-b536959708e2d0fe3c8c791a",
+      "name": "自然频率",
+      "name_en": "natural_frequency",
+      "definition": "自然频率：The natural frequency is denoted by ω_n and appears in the characteristic equation Δ(s)=s^2+2ζω_n s+ω_n^2=0. It is also…",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "自然频率",
+        "natural freq"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v12g-b6ec19cda5342874277159e7",
+      "entity_id": "ctc:v12g-b6ec19cda5342874277159e7",
+      "name": "real axis root locus",
+      "name_en": "real_axis_root_locus",
+      "definition": "real axis root locus：The root locus lying in a section of the real axis to the left of an odd number of poles and zeros.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "real axis r…",
+        "real axis ro"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v12g-d1e6f12e1e95f6477c66bdc1",
+      "entity_id": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+      "name": "break in point",
+      "name_en": "break_in_point",
+      "definition": "break in point：A point on the root locus where two or more roots come into the real axis.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "break in po…",
+        "break in poi"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v12g-e3580535c0a12b79e0509f97",
+      "entity_id": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "name": "negative gain root locus",
+      "name_en": "negative_gain_root_locus",
+      "definition": "negative gain root locus：A root locus plotted for negative values of the gain parameter K, also referred to as a 0° root locus.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "negative ga…",
+        "negative gai",
+        "关联·增益",
+        "关联·nonmin…",
+        "关联·正反馈内回路"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-00c82f915797f85ae708834a",
+      "entity_id": "ctkg:v3e-canonical-00c82f915797f85ae708834a",
+      "name": "前馈通路",
+      "name_en": null,
+      "definition": "在复合控制系统中，前馈通路是加入反馈控制回路中的前向通路，用于组成前馈控制与反馈控制相结合的系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "前馈通路",
+        "包含组件·前馈控制",
+        "包含组件·复合控制…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "entity_id": "ctkg:v3e-canonical-01549ef9b34888b89b55f224",
+      "name": "终值定理法求稳态误差",
+      "name_en": null,
+      "definition": "设sEn(s)的极点位于s左半平面，则可用终值定理法求得稳态误差。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "终值定理法求稳态误差"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-02cce0b1ff76d0c0dbaba18a",
+      "entity_id": "ctkg:v3e-canonical-02cce0b1ff76d0c0dbaba18a",
+      "name": "一阶系统的单位加速度响应",
+      "name_en": null,
+      "definition": "一阶系统在单位加速度函数输入下的输出响应，表达式为c(t)=1/2 t^2 - T t + T^2(1-e^{-t/T})。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一阶系统的单位加速度响应"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "entity_id": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+      "name": "One-sided (unilateral) Laplace transform",
+      "name_en": "One-sided (unilateral) Laplace transform",
+      "definition": "One-sided (unilateral) Laplace transform：In this book it is useful to define a one-sided (or unilateral) Laplace transform, which uses 0- (that is, a value just…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "One-sided (…",
+        "一种·ℒ"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "entity_id": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+      "name": "Cover-up method ",
+      "name_en": "Cover-up method for partial fraction expansion",
+      "definition": "Cover-up method ：This process is called the cover-up method because, in the factored form of F(s), we can cover up the individual denomi…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Cover-up me…",
+        "一种·Cover-…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-09a1d7c35806072ff403281d",
+      "entity_id": "ctkg:v3e-canonical-09a1d7c35806072ff403281d",
+      "name": "主回路",
+      "name_en": null,
+      "definition": "串级控制系统中，由主调节器、副回路等效环节、被控对象和测量变送器构成的外部回路。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "主回路",
+        "属于·主调节器",
+        "包含组件·主调节器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "entity_id": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+      "name": "静态误差系数法求稳态误差",
+      "name_en": null,
+      "definition": "利用静态位置误差系数 K_p、静态速度误差系数 K_v 和静态加速度误差系数 K_a，根据输入信号形式（阶跃、斜坡、加速度）计算稳态误差。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "静态误差系数法求稳态误差"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0a39d839518b55dc77e9d083",
+      "entity_id": "ctkg:v3e-canonical-0a39d839518b55dc77e9d083",
+      "name": "Qualitative anal",
+      "name_en": "Qualitative analysis using pole-zero locations",
+      "definition": "Qualitative anal：Rather than inverting Y(s), one can use prior knowledge and intuition about the effects of pole and zero locations in Y…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Qualitative…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0ac685dbd2c95e94576fcf5b",
+      "entity_id": "ctkg:v3e-canonical-0ac685dbd2c95e94576fcf5b",
+      "name": "Damped natural frequency omega d",
+      "name_en": "Damped natural frequency omega_d",
+      "definition": "Damped natural frequency omega d：The damped natural frequency is the imaginary part of the complex pole location.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Damped natu…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0f7959abbcc9c7170d23770b",
+      "entity_id": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+      "name": "非主导极点",
+      "name_en": null,
+      "definition": "除闭环主导极点外，所有其他闭环极点由于其对应的响应分量随时间的推移迅速衰减，对系统的时间响应过程影响甚微，统称为非主导极点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "非主导极点",
+        "是一种·闭环极点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0fa44601675cb175f5df9562",
+      "entity_id": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+      "name": "Steady-state response",
+      "name_en": "Steady-state response",
+      "definition": "Steady-state response：Steady-state response",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Steady-stat…",
+        "Steady-state"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-11f09aa0d0d4b13271f48dc5",
+      "entity_id": "ctkg:v3e-canonical-11f09aa0d0d4b13271f48dc5",
+      "name": "主调节器",
+      "name_en": null,
+      "definition": "串级控制系统中的主调节器，传递函数为Gc1(s)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "主调节器",
+        "属于·主回路",
+        "包含组件·主回路"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-128a0f144821b8292a40f391",
+      "entity_id": "ctkg:v3e-canonical-128a0f144821b8292a40f391",
+      "name": "前馈控制",
+      "name_en": null,
+      "definition": "在复合控制系统中，前馈控制与反馈控制相结合，用于抑制可量测扰动，包括低频强扰动。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "前馈控制",
+        "包含组件·前馈通路"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-137c2c4e6fd2c142416cd412",
+      "entity_id": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+      "name": "动态性能指标",
+      "name_en": null,
+      "definition": "描述稳定的系统在单位阶跃函数作用下，动态过程随时间 t 的变化状况的指标。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "动态性能指标",
+        "包含组件·峰值时间",
+        "包含组件·调节时间",
+        "包含组件·上升时间",
+        "包含组件·超调量"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-15b23d588244f407f6ed4b35",
+      "entity_id": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+      "name": "Undamped Natural Frequency",
+      "name_en": "Undamped Natural Frequency",
+      "definition": "Undamped Natural Frequency：The frequency at which a system would oscillate if damping were zero, denoted by ω_n.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Undamped Na…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-1647a1b078950a5b81783825",
+      "entity_id": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+      "name": "测速反馈控制改善系统性能的方法",
+      "name_en": null,
+      "definition": "在设计测速反馈控制系统时，可以适当增大原系统的开环增益，以弥补稳态误差的损失，同时适当选择测速反馈系数 K_t，使阻尼比 ζ_t 为 0.4~0.8，从而满足给定的各项动态性能指标。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "测速反馈控制改善系统性…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-1c6e0da621b7f363c81a8901",
+      "entity_id": "ctkg:v3e-canonical-1c6e0da621b7f363c81a8901",
+      "name": "ℒ  Laplace transform",
+      "name_en": "ℒ_ Laplace transform",
+      "definition": "ℒ  Laplace transform：In this book it is useful to define a one-sided (or unilateral) Laplace transform, which uses 0^- as the lower limit of…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "ℒ Laplace t…",
+        "ℒ  Laplace t",
+        "一种·One-si…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-1ea3eb2ff15aa544b230f02f",
+      "entity_id": "ctkg:v3e-canonical-1ea3eb2ff15aa544b230f02f",
+      "name": "Determining y(t)",
+      "name_en": "Determining y(t) using Laplace transform (5-step procedure)",
+      "definition": "Determining y(t)：STEP 1: Determine H(s). STEP 2: Determine U(s). STEP 3: Compute Y(s)=H(s)U(s). STEP 4: Break up Y(s) by partial-fractio…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Determining…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-207d2721a1e69d2051980b49",
+      "entity_id": "ctkg:v3e-canonical-207d2721a1e69d2051980b49",
+      "name": "Pole-zero constellation",
+      "name_en": "Pole-zero constellation",
+      "definition": "Pole-zero constellation：Information about y(t) can be obtained from the pole-zero constellation of Y(s) without actually inverting it.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pole-zero c…",
+        "Pole-zero co"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-22a72191e400b17e9a066416",
+      "entity_id": "ctkg:v3e-canonical-22a72191e400b17e9a066416",
+      "name": "用矩形脉动函数近似单位脉冲函数…",
+      "name_en": null,
+      "definition": "常用具有一定脉宽 b 和有限幅度的矩形脉动函数来代替理想单位脉冲函数，要求实际脉动函数的宽度 b 远小于系统的时间常数 T，一般规定 b<0.1T。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "用矩形脉动函数近似单位…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-23e85dbf38c6880d27e4d02b",
+      "entity_id": "ctkg:v3e-canonical-23e85dbf38c6880d27e4d02b",
+      "name": "阻尼系数",
+      "name_en": null,
+      "definition": "在位置控制系统中，F = f + C_m C_e / R_a，称为阻尼系数，是影响系统阻尼程度的物理量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阻尼系数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-26666fcfa05a85fef00fa4dd",
+      "entity_id": "ctkg:v3e-canonical-26666fcfa05a85fef00fa4dd",
+      "name": "过阻尼二阶系统动态性能指标工程…",
+      "name_en": null,
+      "definition": "利用数值解法求出不同 ζ 值下的无因次时间制成曲线以供查用，或者利用曲线拟合法给出近似计算公式。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "过阻尼二阶系统动态性能…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "entity_id": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "name": "Convolution",
+      "name_en": "Convolution",
+      "definition": "Convolution：The response of an LTI system can be expressed as the convolution of the input with the unit impulse response of the sy…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Convolution",
+        "包含组件·Comp…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-303314b2f1d601cdba5e3f99",
+      "entity_id": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+      "name": "Step input",
+      "name_en": "Step input",
+      "definition": "Step input：A standard test input signal where r(t)=A for t>0 and r(t)=0 for t<0.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Step input"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-3311578f3f7796d3b9ff0830",
+      "entity_id": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+      "name": "时间常数",
+      "name_en": null,
+      "definition": "一阶系统运动微分方程中T=RC，反映系统惯性，度量系统输出量的数值。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "时间常数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-39f6714b8cafaaf18e43b898",
+      "entity_id": "ctkg:v3e-canonical-39f6714b8cafaaf18e43b898",
+      "name": "串级控制方法",
+      "name_en": null,
+      "definition": "串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "串级控制方法",
+        "包含组件·副回路"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "entity_id": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "name": "测速反馈控制",
+      "name_en": null,
+      "definition": "通过将输出的速度信号反馈到系统输入端，并与误差信号比较，其效果与比例-微分控制相似，可以增大系统阻尼，改善系统动态性能。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "测速反馈控制",
+        "关联·阻尼比"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-3f9a17723cabd4ab7d19c3da",
+      "entity_id": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+      "name": "Unit impulse function",
+      "name_en": "Unit impulse function",
+      "definition": "Unit impulse function：Unit impulse function",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Unit impuls…",
+        "Unit impulse"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-40d0c236680874a1246a0536",
+      "entity_id": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+      "name": "Damping ratio zeta",
+      "name_en": "Damping ratio zeta",
+      "definition": "Damping ratio zeta：The damping ratio reflects the level of damping as a fraction of the critical damping value where the poles become real.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Damping rat…",
+        "Damping rati"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "entity_id": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+      "name": "Position Error Constant (K p)",
+      "name_en": "Position Error Constant (K_p)",
+      "definition": "Position Error Constant (K p)：For a Type 0 system (no integrator in the loop transfer function), the constant defined as K_p = G D_cl(0). It determin…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Position Er…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-423faabaff2ff11b70399228",
+      "entity_id": "ctkg:v3e-canonical-423faabaff2ff11b70399228",
+      "name": "临界阻尼系数",
+      "name_en": null,
+      "definition": "F_c = 2 sqrt(J K_1)，为阻尼比ζ=1时的阻尼系数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "临界阻尼系数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-47995819305793bf4c946953",
+      "entity_id": "ctkg:v3e-canonical-47995819305793bf4c946953",
+      "name": "极点",
+      "name_en": "Pole",
+      "definition": "极点：Values of s such that a(s)=0 will represent points where H(s) is infinity. These s-values are called poles of H(s).。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "极点",
+        "Pole",
+        "派生自·Undam…",
+        "关联·Fast p…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

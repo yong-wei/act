@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7f8322d930ad015c80e143ed",
+  "safe_id": "ctkg_v3e-object-7f8322d930ad015c80e143ed",
+  "node": {
+    "name": "Digital-to-analog converter",
+    "name_en": "Digital-to-analog converter",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Digital-to-analog converter：Digital-to-analog converter",
+  "intuition": null,
+  "explanation": "Digital-to-analog converter",
+  "relation_head": "后续 → Sampled-data system、Continuous signal",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Sampled-data system",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Continuous signal",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Digital-to-…",
+    "属于·Sample…",
+    "关联·Contin…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7f8322d930ad015c80e143ed.md",
+  "provider_policy": "grok-image_gen"
+}

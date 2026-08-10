@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-ecc6832589e61331293846d6",
+  "safe_id": "ctkg_v3e-object-ecc6832589e61331293846d6",
+  "node": {
+    "name": "理想采样器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "理想采样器好像是一个载波为 δ_T(t) 的幅值调制器。",
+  "intuition": "采样过程可以看成是一个幅值调制过程。",
+  "explanation": "理想采样器好像是一个载波为 δ_T(t) 的幅值调制器。采样过程可以看成是一个幅值调制过程。",
+  "relation_head": "后续 → 采样器",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "采样器",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "理想采样器",
+    "是一种·采样器"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ecc6832589e61331293846d6.md",
+  "provider_policy": "grok-image_gen"
+}

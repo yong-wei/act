@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-60dc281db22fe43eefe4ae57",
+  "safe_id": "ctkg_v3e-object-60dc281db22fe43eefe4ae57",
+  "node": {
+    "name": "Finite word length",
+    "name_en": "Finite word length",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Finite word length：Finite word length",
+  "intuition": null,
+  "explanation": "Finite word length",
+  "relation_head": "前置 → Precision · 后续 → Precision",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Precision",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Precision",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Finite word…",
+    "Finite word ",
+    "应用于·Preci…",
+    "关联·Precis…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-60dc281db22fe43eefe4ae57.md",
+  "provider_policy": "grok-image_gen"
+}

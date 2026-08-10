@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+  "safe_id": "ctkg_v3e-object-5a7582dcb72b1d33d09ca641",
+  "node": {
+    "name": "非最小相位环节",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "开环零极点位于s右半平面的典型环节，包括比例环节(K<0)、不稳定惯性环节、不稳定一阶微分环节、不稳定振荡环节、不稳定二阶微分环节五种。",
+  "intuition": null,
+  "explanation": "开环零极点位于s右半平面的典型环节，包括比例环节(K<0)、不稳定惯性环节、不稳定一阶微分环节、不稳定振荡环节、不稳定二阶微分环节五种。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "非最小相位环节"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5a7582dcb72b1d33d09ca641.md",
+  "provider_policy": "grok-image_gen"
+}

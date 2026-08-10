@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-62fdc01d171ed1ecf803d7d9",
+  "safe_id": "ctkg_v3e-object-62fdc01d171ed1ecf803d7d9",
+  "node": {
+    "name": "比例-微分控制规律",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "具有比例-微分控制规律的控制器，称为PD控制器，其输出u(t)与输入e(t)的关系为u(t)=Kp e(t) ± Kp Td de(t)/dt。",
+  "intuition": "在图谱邻接中可把握：前置 → PD控制器。",
+  "explanation": "具有比例-微分控制规律的控制器，称为PD控制器，其输出u(t)与输入e(t)的关系为u(t)=Kp e(t) ± Kp Td de(t)/dt。",
+  "relation_head": "前置 → PD控制器",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "PD控制器",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "PD控制器",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "比例-微分控制规律",
+    "包含组件·PD控制器",
+    "关联·PD控制器"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-62fdc01d171ed1ecf803d7d9.md",
+  "provider_policy": "grok-image_gen"
+}

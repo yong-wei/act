@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5c2ad2da07903ca99b2b1f08",
+  "safe_id": "ctkg_v3e-object-5c2ad2da07903ca99b2b1f08",
+  "node": {
+    "name": "Frequency-domain performance measures",
+    "name_en": "Frequency-domain performance measures",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Frequency-domain performance measures：Performance measures used to describe control system behavior in the frequency domain, including peak of closed-loop fr…",
+  "intuition": "在图谱邻接中可把握：前置 → Frequency response method。",
+  "explanation": "Performance measures used to describe control system behavior in the frequency domain, including peak of closed-loop frequency response, resonant frequency, bandwidth, gain margin, and phase margin.",
+  "relation_head": "前置 → Frequency response method",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Frequency response method",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Frequency-d…",
+    "应用于·Frequ…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5c2ad2da07903ca99b2b1f08.md",
+  "provider_policy": "grok-image_gen"
+}

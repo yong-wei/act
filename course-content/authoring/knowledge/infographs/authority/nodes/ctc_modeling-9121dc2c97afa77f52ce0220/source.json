@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-9121dc2c97afa77f52ce0220",
+  "safe_id": "ctc_modeling-9121dc2c97afa77f52ce0220",
+  "node": {
+    "name": "signal flow graph",
+    "name_en": "signal_flow_graph",
+    "concept_kind": "representation_kind",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "signal flow graph：v3T accepted candidate for signal flow graph.",
+  "intuition": "在图谱邻接中可把握：前置 → forward path、loop、formula for evaluating the · 后续 → 只有输入支路而没有输出支路的节点。",
+  "explanation": "v3T accepted candidate for signal flow graph.",
+  "relation_head": "前置 → forward path、loop、formula for evaluating the · 后续 → 只有输入支路而没有输出支路的节点",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "forward path",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "loop",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "只有输入支路而没有输出支路的节点",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "formula for evaluating the",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "signal flow…",
+    "signal flow ",
+    "属于·forwar…",
+    "属于·loop",
+    "包含组件·只有输入…",
+    "应用于·formu…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-9121dc2c97afa77f52ce0220.md",
+  "provider_policy": "grok-image_gen"
+}

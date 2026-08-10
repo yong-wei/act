@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+  "safe_id": "ctkg_v3e-object-003aff0599f6e3790bfdb93a",
+  "node": {
+    "name": "根轨迹法",
+    "name_en": "Root locus method",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "根轨迹法：A method for designing compensators by altering the root locus of the closed-loop system to achieve desired root locati…",
+  "intuition": "在图谱邻接中可把握：后续 → Compensator、根轨迹。",
+  "explanation": "A method for designing compensators by altering the root locus of the closed-loop system to achieve desired root locations in the s-plane.",
+  "relation_head": "后续 → Compensator、根轨迹",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Compensator",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "根轨迹",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Compensator",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "根轨迹",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "根轨迹法",
+    "Root locus m",
+    "应用于·Compe…",
+    "应用于·根轨迹",
+    "关联·Compen…",
+    "关联·根轨迹"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-003aff0599f6e3790bfdb93a.md",
+  "provider_policy": "grok-image_gen"
+}

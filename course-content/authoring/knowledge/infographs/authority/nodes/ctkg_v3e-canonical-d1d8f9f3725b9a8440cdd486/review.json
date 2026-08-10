@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:26:19+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+  "safe_id": "ctkg_v3e-canonical-d1d8f9f3725b9a8440cdd486",
+  "node_name": "过阻尼响应",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (主导极点/过阻尼响应/Truxal/M/稳态y2)"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:52:40+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-2175d5717ff3333e7780bba0",
+  "safe_id": "ctc_modeling-2175d5717ff3333e7780bba0",
+  "node_name": "线性定常微分方程的求解方法有经…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch6 A accept"
+}

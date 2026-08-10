@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-daefb900250d1b7d86e36bdd",
+  "safe_id": "ctc_v11g-daefb900250d1b7d86e36bdd",
+  "node": {
+    "name": "ultimate gain",
+    "name_en": "ultimate_gain",
+    "concept_kind": "performance_metric",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "ultimate gain：The gain on the border of instability, denoted by K_U, used in the closed-loop Ziegler-Nichols tuning method.",
+  "intuition": "在图谱邻接中可把握：后续 → 增益。",
+  "explanation": "The gain on the border of instability, denoted by K_U, used in the closed-loop Ziegler-Nichols tuning method.",
+  "relation_head": "后续 → 增益",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "增益",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "ultimate ga…",
+    "ultimate gai",
+    "是一种·增益"
+  ],
+  "visual_archetype": "工程评审板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-daefb900250d1b7d86e36bdd.md",
+  "provider_policy": "grok-image_gen"
+}

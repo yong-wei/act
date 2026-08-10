@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-30d05b970a0d4a71c9d243c3",
+  "safe_id": "ctc_modeling-30d05b970a0d4a71c9d243c3",
+  "node": {
+    "name": "Various levels of simulation",
+    "name_en": "modeling_30d05b970a0d4a71c9d243c3",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "explicit_extension"
+  },
+  "definition": "Various levels of simulation：Various levels of simulation fidelity (accuracy) are available to the control engineer: low-fidelity simulations in ear…",
+  "intuition": null,
+  "explanation": "Various levels of simulation fidelity (accuracy) are available to the control engineer: low-fidelity simulations in early design stages using interactive design software with good graphics, where computer speed is less important; and high-fidelity simulations as the design matures, where processing speed becomes more important, typically programmed in FORTRAN, C, C++, MATLAB, LabVIEW or similar languages.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Various lev…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-30d05b970a0d4a71c9d243c3.md",
+  "provider_policy": "grok-image_gen"
+}

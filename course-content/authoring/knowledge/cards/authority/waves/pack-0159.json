@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0159",
+  "offset": 795,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_bcb4481c7a310fb698ee71fb",
+      "batch": "C",
+      "name": "Positive Definite Function",
+      "definition": "Positive Definite Function是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Positive De…",
+        "一种·Lyapun…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Positive Definite Function\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Positive Definite Function是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Positive D」、「一种·Lyapun…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bcb984982bdc0a405f967351",
+      "batch": "C",
+      "name": "Lyapunov's indirect method",
+      "definition": "Lyapunov's indirect method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov's …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lyapunov's indirect method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lyapunov's indirect method是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lyapunov's」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_cd1a5e4071f81f8cf97f7eb7",
+      "batch": "C",
+      "name": "Discrete Lead Compensation",
+      "definition": "Discrete Lead Compensation是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete Le…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete Lead Compensation\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete Lead Compensation是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete L」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9bec0d6aa9ae6cf731207e85",
+      "batch": "C",
+      "name": "Root locus z-plane method",
+      "definition": "Root locus z-plane method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Root locus …",
+        "派生自·根轨迹法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Root locus z-plane method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Root locus z-plane method是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Root locus」、「派生自·根轨迹法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b33901638cba88f3f2ea5a20",
+      "batch": "C",
+      "name": "Discrete Integral Control",
+      "definition": "Discrete Integral Control是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete In…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete Integral Control\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete Integral Control是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete I」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

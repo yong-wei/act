@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-2088bbde171b2e9ef66070d5",
+  "safe_id": "ctc_modeling-2088bbde171b2e9ef66070d5",
+  "node": {
+    "name": "block diagram reduction",
+    "name_en": "block_diagram_reduction",
+    "concept_kind": "analysis_method",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "block diagram reduction：v3T accepted candidate for block-diagram reduction.",
+  "intuition": "在图谱邻接中可把握：后续 → block diagram。",
+  "explanation": "v3T accepted candidate for block-diagram reduction.",
+  "relation_head": "后续 → block diagram",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "block diagram",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "block diagr…",
+    "block diagra",
+    "应用于·block…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-2088bbde171b2e9ef66070d5.md",
+  "provider_policy": "grok-image_gen"
+}

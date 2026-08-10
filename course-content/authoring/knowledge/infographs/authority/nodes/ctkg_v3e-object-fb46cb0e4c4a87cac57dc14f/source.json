@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-fb46cb0e4c4a87cac57dc14f",
+  "safe_id": "ctkg_v3e-object-fb46cb0e4c4a87cac57dc14f",
+  "node": {
+    "name": "A/D converter",
+    "name_en": "A/D converter",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "A/D converter：A device to sample the continuous signal voltage from the sensor and to convert that signal to a digital word.",
+  "intuition": "在图谱邻接中可把握：前置 → anti-alias prefilter、D/A converter、counting scheme A/D conversion。",
+  "explanation": "A device to sample the continuous signal voltage from the sensor and to convert that signal to a digital word.",
+  "relation_head": "前置 → anti-alias prefilter、D/A converter、counting scheme A/D conversion",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "anti-alias prefilter",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "D/A converter",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "counting scheme A/D conversion",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "successive-approximation technique",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "multiplexer",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "A/D convert…",
+    "A/D converte",
+    "关联·anti-a…",
+    "关联·D/A co…",
+    "关联·counti…",
+    "关联·succes…",
+    "关联·multip…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-fb46cb0e4c4a87cac57dc14f.md",
+  "provider_policy": "grok-image_gen"
+}
