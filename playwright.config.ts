@@ -7,6 +7,11 @@ process.env.no_proxy = process.env.no_proxy ? `${process.env.no_proxy},${noProxy
 const port = Number(process.env.PLAYWRIGHT_PORT ?? 3200);
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://127.0.0.1:${port}`;
 const devServerCommand = `node ./node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port ${port}`;
+const authSecret = process.env.NEXTAUTH_SECRET
+  ?? process.env.AUTH_SECRET
+  ?? 'playwright-local-auth-secret-at-least-32-bytes';
+
+process.env.NEXTAUTH_SECRET = authSecret;
 
 export default defineConfig({
   testDir: './tests',
