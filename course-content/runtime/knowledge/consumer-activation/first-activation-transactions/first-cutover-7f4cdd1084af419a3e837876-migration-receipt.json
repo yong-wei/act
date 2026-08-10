@@ -1,0 +1,8 @@
+{
+  "contract": "actkg-to-act-first-activation-journal-migration/v1",
+  "transactionId": "first-cutover-7f4cdd1084af419a3e837876",
+  "legacyJournalHash": "382828011e7c24385af20b3b974fe09da7f7fad601c807d16a2c8821870b3d4e",
+  "journalHash": "5b5ea2ddd9a9e495957c975c430fc9596affdb902f802b9d73d3a14df127aef3",
+  "migratedAt": "2026-08-10T16:10:00.000Z",
+  "migrationRevision": "a9f5723fa44434a8c7169b70684e4e32c9e7dec9"
+}

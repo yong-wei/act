@@ -1002,6 +1002,29 @@ describe('Staged activation and atomic pointer (#1276)', () => {
 // ---------------------------------------------------------------------------
 
 describe('Shadow validation (#1276)', () => {
+  it('accepts the expected absence of predecessors during a first activation', () => {
+    const report = runConsumerActivationShadow({
+      activationId: 'activation-first-shadow',
+      previous: [],
+      next: [{
+        consumerId: 'engineering-graph',
+        status: 'READY',
+        authorityReleaseId: 'ctr:release:eng-v1',
+        authoritySnapshotId: 'snap-first',
+        authoritySnapshotHash: fixedHash,
+        projectionId: null,
+        projectionHash: null,
+        scopeId: null,
+        captureRevision: commitA,
+      }],
+      allowInitialAbsentPrevious: true,
+      comparedAt: '2026-08-10T15:00:00.000Z',
+    });
+    expect(report.discrepancies).toEqual([]);
+    expect(report.samples.previous).toEqual([]);
+    expect(report.samples.next).toHaveLength(1);
+  });
+
   it('records discrepancies without writing learning/teaching/upstream state', () => {
     const previousViews: ShadowConsumerView[] = [
       {

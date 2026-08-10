@@ -1,0 +1,50 @@
+[
+  {
+    "decisionId": "prereq-decision-actkg-block-feedback",
+    "edgeKey": "ctc:modeling-2088bbde171b2e9ef66070d5\u001fctc:modeling-e442dacbfef4a0d7ea3c4c15\u001fREQUIRED\u001fact-control-theory-core",
+    "scopeId": "act-control-theory-core",
+    "inputDigest": "e3bedac1030b08cc7fe0bcfa07a4dad4534dfba6cda9f20d2e77576d5ddd4187",
+    "rationale": "方框图化简使学生能够建立并分析反馈连接。",
+    "curatorId": "act.cutover.blueprint",
+    "decidedAt": null,
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+    "projectionCaptureId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0"
+  },
+  {
+    "decisionId": "prereq-decision-actkg-laplace-transfer",
+    "edgeKey": "ctkg:v3e-object-8c4354096b719a1d5e090da4\u001fctc:modeling-865eb1c8824e157c2f05a903\u001fREQUIRED\u001fact-control-theory-core",
+    "scopeId": "act-control-theory-core",
+    "inputDigest": "a35ea0be7612585c430eb30ec31e305e62f0e9990fe7c4630d29127cb2193d88",
+    "rationale": "当前建模蓝图先以拉普拉斯变换建立传递函数，再进入统一分析对象。",
+    "curatorId": "act.cutover.blueprint",
+    "decidedAt": null,
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+    "projectionCaptureId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0"
+  },
+  {
+    "decisionId": "prereq-decision-actkg-transfer-block",
+    "edgeKey": "ctc:modeling-865eb1c8824e157c2f05a903\u001fctc:modeling-2088bbde171b2e9ef66070d5\u001fREQUIRED\u001fact-control-theory-core",
+    "scopeId": "act-control-theory-core",
+    "inputDigest": "f92315917faed8c1a883ac20f53269d7c46571708b49ea4d6249f909fcd533e5",
+    "rationale": "当前互动课程以传递函数之间的方框图化简推进闭环分析。",
+    "curatorId": "act.cutover.blueprint",
+    "decidedAt": null,
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+    "projectionCaptureId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0"
+  },
+  {
+    "decisionId": "prereq-decision-actkg-transfer-stability",
+    "edgeKey": "ctc:modeling-865eb1c8824e157c2f05a903\u001fctkg:v3e-canonical-ec8dceb901656a3a0a32d12b\u001fRECOMMENDED\u001fact-control-theory-core",
+    "scopeId": "act-control-theory-core",
+    "inputDigest": "2c7dd846be60b5f2cbacd2d4b61912cf89ea114bb5f7779c8b542a302d100d6d",
+    "rationale": "稳定性分析以传递函数和极点语言为先行理解基础。",
+    "curatorId": "act.cutover.blueprint",
+    "decidedAt": null,
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+    "projectionCaptureId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0"
+  }
+]

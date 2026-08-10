@@ -1,0 +1,29 @@
+{
+  "contract": "act-teaching-projection-manifest/v1",
+  "builderVersion": "act-teaching-projection-builder/v1",
+  "scopeId": "course-package:1-1",
+  "authoringRevision": "ce83c7770d65d12cf808c2f1fc9cb79f89476574",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+  "authorityReleaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+  "authoritySnapshotId": "snap-1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+  "authoritySnapshotHash": "1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+  "sourceHashes": {
+    "resources": "ca5f6fa12c2ede6b1b6099eecda63a21dd285914497ac2a9895bbd3828ed2aa1",
+    "bindings": "b94cff9932930fbbe6f56f67c9b355a35ea628ad0fc4cbee5f9db03653c5d90b",
+    "prerequisites": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "coreNodes": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "cards": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "authorityNodes": "8bbd80424b55f217a43c6da760d3dc0a0dfa80dd80c352ca1a15da96955bc885",
+    "authoringBody": "00a3636ef9cfb647d91c2aa7c9e7118a9573b7a93936d30a1bca2559d25611a2",
+    "gate": "bd40d0ade4a1230c1319d526e2c3121d1e182ef62c1726de836c6db038814049"
+  },
+  "resourceCount": 17,
+  "bindingCount": 2,
+  "prerequisiteCount": 0,
+  "coreNodeCount": 0,
+  "cardCount": 0,
+  "gateStatus": "REVIEW_REQUIRED",
+  "gatePassed": false,
+  "projectionId": "proj-ea15f2867fbf83195e68fc74f5effd6a18f3f079f2b80a532f268a0641d62ff8",
+  "projectionHash": "ea15f2867fbf83195e68fc74f5effd6a18f3f079f2b80a532f268a0641d62ff8"
+}

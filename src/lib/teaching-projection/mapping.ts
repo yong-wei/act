@@ -113,11 +113,15 @@ function resolveRole(
 export function computeMappingInputDigest(
   resource: ActiveCourseInventoryResource,
   candidates: readonly MappingCandidate[],
+  authorDecisionContextDigest: string | null = null,
 ): string {
   return projectionDigest({
     resourceId: resource.resourceId,
     scopeId: resource.scopeId,
     sourceDigest: resource.sourceDigest,
+    blueprintPath: resource.blueprintPath ?? null,
+    blueprintDigest: resource.blueprintDigest ?? null,
+    authorDecisionContextDigest,
     projectionMode: resource.projectionMode,
     legacyIds: [...resource.legacyIds].sort(),
     labels: [...resource.labels].map(normalizeExactLabel).sort(),
@@ -486,7 +490,11 @@ export function mapActiveCourseResource(
     ...collectExactLabelCandidates(resource, ctx.authorityLabels, ctx.authorityCanonicalIds),
   ]);
 
-  const inputDigest = computeMappingInputDigest(resource, allCandidates);
+  const inputDigest = computeMappingInputDigest(
+    resource,
+    allCandidates,
+    ctx.authorDecisionContextDigest ?? null,
+  );
   const decision = findAuthorDecision(resource, inputDigest, ctx.authorDecisions);
 
   if (decision) {
