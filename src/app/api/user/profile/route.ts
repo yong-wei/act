@@ -143,82 +143,91 @@ interface ArenaPortfolioTrainingSnapshot {
 async function readArenaPortfolioTrainingRuns(
   tx: Prisma.TransactionClient,
   userId: string,
-): Promise<ArenaVirtualTrainingRunRecord[]> {
+): Promise<ArenaPortfolioTrainingSnapshot> {
   const collected: ArenaVirtualTrainingRunRecord[] = [];
-  const candidates: ArenaVirtualTrainingRunRecord[] = await tx.arenaVirtualSimulationRun.findMany({
-    where: {
-      userId,
-      taskId: { not: '' },
-      scenarioId: { not: '' },
-      AND: [
-        {
-          OR: [
-            { simulationRun: null },
-            {
-              simulationRun: {
-                is: {
-                  status: { in: ARENA_COMPLETED_SIMULATION_STATUSES },
+  let total = 0;
+  let cursorId: string | undefined;
+
+  while (true) {
+    const candidates: ArenaVirtualTrainingRunRecord[] = await tx.arenaVirtualSimulationRun.findMany({
+      where: {
+        userId,
+        taskId: { not: '' },
+        scenarioId: { not: '' },
+        AND: [
+          {
+            OR: [
+              { simulationRun: null },
+              {
+                simulationRun: {
+                  is: {
+                    status: { in: ARENA_COMPLETED_SIMULATION_STATUSES },
+                  },
                 },
               },
-            },
-          ],
-        },
-        {
-          OR: [
-            { simulationRun: { is: { summary: { path: ['arenaTraining', 'evaluationVisibility'], equals: 'preview' } } } },
-            { simulationRun: { is: { summary: { path: ['previewBoundary', 'evaluationVisibility'], equals: 'preview' } } } },
-            { payload: { path: ['summary', 'arenaTraining', 'evaluationVisibility'], equals: 'preview' } },
-            { payload: { path: ['metadata', 'evaluationVisibility'], equals: 'preview' } },
-            { payload: { path: ['previewBoundary', 'evaluationVisibility'], equals: 'preview' } },
-          ],
-        },
-        {
-          OR: [
-            { simulationRun: { is: { summary: { path: ['arenaTraining', 'officialEligible'], equals: false } } } },
-            { simulationRun: { is: { summary: { path: ['previewBoundary', 'officialEligible'], equals: false } } } },
-            { payload: { path: ['summary', 'arenaTraining', 'officialEligible'], equals: false } },
-            { payload: { path: ['metadata', 'officialEligible'], equals: false } },
-            { payload: { path: ['previewBoundary', 'officialEligible'], equals: false } },
-          ],
-        },
-      ],
-    },
-    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-    take: ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT,
-    select: {
-      id: true,
-      userId: true,
-      taskId: true,
-      scenarioId: true,
-      simulationRunId: true,
-      payload: true,
-      createdAt: true,
-      simulationRun: {
-        select: {
-          status: true,
-          completedAt: true,
-          summary: true,
+            ],
+          },
+          {
+            OR: [
+              { simulationRun: { is: { summary: { path: ['arenaTraining', 'evaluationVisibility'], equals: 'preview' } } } },
+              { simulationRun: { is: { summary: { path: ['previewBoundary', 'evaluationVisibility'], equals: 'preview' } } } },
+              { payload: { path: ['summary', 'arenaTraining', 'evaluationVisibility'], equals: 'preview' } },
+              { payload: { path: ['metadata', 'evaluationVisibility'], equals: 'preview' } },
+              { payload: { path: ['previewBoundary', 'evaluationVisibility'], equals: 'preview' } },
+            ],
+          },
+          {
+            OR: [
+              { simulationRun: { is: { summary: { path: ['arenaTraining', 'officialEligible'], equals: false } } } },
+              { simulationRun: { is: { summary: { path: ['previewBoundary', 'officialEligible'], equals: false } } } },
+              { payload: { path: ['summary', 'arenaTraining', 'officialEligible'], equals: false } },
+              { payload: { path: ['metadata', 'officialEligible'], equals: false } },
+              { payload: { path: ['previewBoundary', 'officialEligible'], equals: false } },
+            ],
+          },
+        ],
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT,
+      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+      select: {
+        id: true,
+        userId: true,
+        taskId: true,
+        scenarioId: true,
+        simulationRunId: true,
+        payload: true,
+        createdAt: true,
+        simulationRun: {
+          select: {
+            status: true,
+            completedAt: true,
+            summary: true,
+          },
         },
       },
-    },
-  }) as ArenaVirtualTrainingRunRecord[];
+    }) as ArenaVirtualTrainingRunRecord[];
 
-  for (const run of candidates.slice(0, ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT)) {
-    if (projectArenaPortfolioRecentTrainingRun(run)) collected.push(run);
-    if (collected.length >= ARENA_PORTFOLIO_RECENT_LIMIT) break;
+    const page = candidates.slice(0, ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT);
+    for (const run of page) {
+      if (!projectArenaPortfolioRecentTrainingRun(run)) continue;
+      total += 1;
+      if (collected.length < ARENA_PORTFOLIO_RECENT_LIMIT) collected.push(run);
+    }
+
+    if (page.length < ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT) break;
+    cursorId = page[page.length - 1]?.id;
+    if (!cursorId) break;
   }
 
-  return collected;
+  return { total, runs: collected };
 }
 
 async function readArenaPortfolioTrainingSnapshot(userId: string): Promise<ArenaPortfolioTrainingSnapshot> {
-  return prisma.$transaction(async (tx) => {
-    const [total, runs] = await Promise.all([
-      tx.arenaVirtualSimulationRun.count({ where: { userId } }),
-      readArenaPortfolioTrainingRuns(tx, userId),
-    ]);
-    return { total, runs };
-  }, { isolationLevel: 'RepeatableRead' });
+  return prisma.$transaction(
+    (tx) => readArenaPortfolioTrainingRuns(tx, userId),
+    { isolationLevel: 'RepeatableRead' },
+  );
 }
 
 function describeFactOutcome(outcome: string) {

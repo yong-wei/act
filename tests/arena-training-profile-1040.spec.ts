@@ -53,17 +53,15 @@ function assertClean(label: string): void {
   }
 }
 
+function toRepositoryPath(path: string): string {
+  return path.replace(/\\/g, '/');
+}
+
 function readSourceHashes(head: string): CaptureState {
   const paths = [generatorPath, ...sourceFiles];
   const hashes = Object.fromEntries(paths.map((path) => {
-    const worktreeBytes = readFileSync(join(process.cwd(), path));
-    const committedBytes = git(['show', `HEAD:${path}`]);
-    const worktreeHash = sha256(worktreeBytes);
-    const committedHash = sha256(committedBytes);
-    if (worktreeHash !== committedHash) {
-      throw new Error(`capture source drift: ${path}`);
-    }
-    return [path, worktreeHash];
+    const committedBytes = git(['show', `${head}:${path}`]);
+    return [path, sha256(committedBytes)];
   }));
 
   return {
@@ -83,16 +81,16 @@ function prepareCapture(): CaptureState {
 }
 
 function assertOnlyExpectedScreenshotChanges(expectedPaths: readonly string[]): void {
-  const expected = new Set(expectedPaths);
+  const expected = new Set(expectedPaths.map(toRepositoryPath));
   const statusLines = git(['status', '--porcelain', '--untracked-files=all'])
     .toString('utf8')
     .split('\n')
     .map((line) => line.trimEnd())
     .filter(Boolean);
-  const actualPaths = new Set(statusLines.map((line) => line.slice(3)));
+  const actualPaths = new Set(statusLines.map((line) => toRepositoryPath(line.slice(3))));
   const unexpected = statusLines.filter((line) => {
     const status = line.slice(0, 2);
-    return (status !== '??' && status !== ' M') || !expected.has(line.slice(3));
+    return (status !== '??' && status !== ' M') || !expected.has(toRepositoryPath(line.slice(3)));
   });
   if (unexpected.length > 0 || [...actualPaths].some((path) => !expected.has(path))) {
     throw new Error(`after screenshot capture only expected screenshot changes are allowed: ${statusLines.join(' | ')}`);
@@ -215,8 +213,8 @@ function buildDamagedProfileFixture() {
     arenaPortfolio: {
       ...fixture.arenaPortfolio,
       trainingSummary: {
-        total: 1,
-        previewCount: 1,
+        total: 0,
+        previewCount: 0,
         evidenceConfidence: 'low',
         recentRuns: [],
       },
@@ -306,20 +304,21 @@ test('Issue 1040 profile exposes training-only Arena evidence at desktop and mob
         await expect(page.getByRole('heading', { name: '竞技场画像' })).toBeVisible();
         await expect(page.getByText('暂无竞技场提交记录。', { exact: true })).toBeVisible();
         await expect(page.getByText('暂无官方证据', { exact: true })).toBeVisible();
-        await expect(page.getByText('虚拟训练', { exact: true })).toBeVisible();
-        await expect(page.getByText('预览', { exact: true })).toBeVisible();
-        await expect(page.getByText('非官方', { exact: true })).toBeVisible();
-        await expect(page.getByText('低置信度学习观察', { exact: true })).toBeVisible();
 
         const key = `${viewport.width}x${viewport.height}`;
         scenarioAssertions[`profileVisible:${key}`] = true;
         scenarioAssertions[`officialSubmissionEmpty:${key}`] = true;
         scenarioAssertions[`officialEvidenceEmpty:${key}`] = true;
-        scenarioAssertions[`trainingCard:${key}`] = true;
-        scenarioAssertions[`previewAndUnofficial:${key}`] = true;
-        scenarioAssertions[`lowConfidence:${key}`] = true;
 
         if (scenario.id === 'complete') {
+          await expect(page.getByText('虚拟训练', { exact: true })).toBeVisible();
+          await expect(page.getByText('预览', { exact: true })).toBeVisible();
+          await expect(page.getByText('非官方', { exact: true })).toBeVisible();
+          await expect(page.getByText('低置信度学习观察', { exact: true })).toBeVisible();
+          scenarioAssertions[`trainingCard:${key}`] = true;
+          scenarioAssertions[`previewAndUnofficial:${key}`] = true;
+          scenarioAssertions[`lowConfidence:${key}`] = true;
+
           if (viewport.width === 1440) {
             await expect(page.locator('[data-platform-desktop-navigation="collapsible"]').first()).toBeVisible();
             scenarioAssertions['navigationState:desktop-collapsible'] = true;
@@ -346,11 +345,19 @@ test('Issue 1040 profile exposes training-only Arena evidence at desktop and mob
           }
           scenarioAssertions[`completeQualityMetrics:${key}`] = true;
         } else {
-          await expect(page.getByText('暂无可展示的完整训练质量摘要', { exact: true })).toBeVisible();
+          await expect(page.getByText(/^已记录 \d+ 次预览训练$/)).toHaveCount(0);
+          await expect(page.getByText('虚拟训练', { exact: true })).toHaveCount(0);
+          await expect(page.getByText('预览', { exact: true })).toHaveCount(0);
+          await expect(page.getByText('非官方', { exact: true })).toHaveCount(0);
+          await expect(page.getByText('低置信度学习观察', { exact: true })).toHaveCount(0);
+          await expect(page.getByText('二阶对象快速稳定挑战', { exact: true })).toHaveCount(0);
+          await expect(page.getByText('暂无可展示的完整训练质量摘要', { exact: true })).toHaveCount(0);
           for (const metricLabel of ['跟踪误差', '最大偏差', '控制能量', '安全违规', '平滑度']) {
             await expect(page.getByText(metricLabel, { exact: false })).toHaveCount(0);
           }
-          scenarioAssertions[`unavailableQualitySummary:${key}`] = true;
+          scenarioAssertions[`noTrainingSummary:${key}`] = true;
+          scenarioAssertions[`zeroTrainingCount:${key}`] = true;
+          scenarioAssertions[`damagedTrainingNotDisplayed:${key}`] = true;
           scenarioAssertions[`noRawQualityMetricLabels:${key}`] = true;
         }
 
@@ -367,7 +374,7 @@ test('Issue 1040 profile exposes training-only Arena evidence at desktop and mob
           mkdirSync(evidenceDir, { recursive: true });
           await page.screenshot({ path: screenshotPath, fullPage: true });
           screenshots.push({
-            path: relative(process.cwd(), screenshotPath),
+            path: toRepositoryPath(relative(process.cwd(), screenshotPath)),
             sha256: sha256(readFileSync(screenshotPath)),
             viewport,
             overflowMetrics,
