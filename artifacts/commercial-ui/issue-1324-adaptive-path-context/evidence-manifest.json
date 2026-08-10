@@ -1,16 +1,16 @@
 {
   "schemaVersion": "commercial-ui-evidence.v1",
   "status": "passed",
-  "capturedAt": "2026-08-10T09:40:43.440Z",
-  "sourceRevision": "b0f65f7d66cda18a34458a2b5858d319adac7ffe",
+  "capturedAt": "2026-08-10T10:55:50.890Z",
+  "sourceRevision": "87e463a0de118b5f5e66868b4eeb2a58f5fffc84",
   "generator": "artifacts/commercial-ui/issue-1324-adaptive-path-context/capture-evidence.mjs",
-  "generatorSha256": "888e5990b883afd17f9e194ef0799e617ffb758924f4e568e76e0787bc74a7d0",
+  "generatorSha256": "949019c38e9d55b216cfe3c13b21ac0bc0b02e863fe7254f79ee0952dd9ee859",
   "sourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "561ed70e60468d861e6f2c5b819d238daf2d04c7ea186a26848d59edd1f87c97",
     "src/features/assessment/__tests__/adaptive-practice-page.test.ts": "abd9873b65299551491e5093a06f97e5efe196c4b1003c6fd3da7223f6e08b8a",
     "tests/adaptive-path-active-context.spec.ts": "d82b6008514edf433052f96f7f35ce84c1235ea7f66c36493f695478b3942a16",
     "playwright.config.ts": "9a849d431a679440fa7720bfe84d3ce567a4ede32144cc69eef59cd675f466ed",
-    "artifacts/commercial-ui/issue-1324-adaptive-path-context/capture-evidence.mjs": "888e5990b883afd17f9e194ef0799e617ffb758924f4e568e76e0787bc74a7d0"
+    "artifacts/commercial-ui/issue-1324-adaptive-path-context/capture-evidence.mjs": "949019c38e9d55b216cfe3c13b21ac0bc0b02e863fe7254f79ee0952dd9ee859"
   },
   "baseUrl": "http://127.0.0.1:3200",
   "backendE2EStatus": "blocked-by-local-schema-drift",
@@ -83,7 +83,7 @@
         "height": 1000
       },
       "screenshot": "artifacts/commercial-ui/issue-1324-adaptive-path-context/generation-1440.png",
-      "screenshotSha256": "4dcaf5646fdaaa0bf7cbfcf538e2a49462369d336605ca757c99e21617d5b92a",
+      "screenshotSha256": "20d28e353a3d337774be580edd69c813da3251c91a6c9d686bbed750d0d2f495",
       "url": "http://127.0.0.1:3200/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation&pathTime=90&pathRhythm=steady&pathResources=knowledge_card%2Cadaptive_quiz%2Csimulation&pathCheckpoint=standard&pathId=issue1324-active-path&batch=issue1324-candidate-batch",
       "selectedGoal": "frequency-response-foundations",
       "pathId": "issue1324-active-path",
@@ -101,7 +101,7 @@
         "height": 1000
       },
       "screenshot": "artifacts/commercial-ui/issue-1324-adaptive-path-context/active-path-320.png",
-      "screenshotSha256": "69005ca0de4e9ba28e7fab95d4a10de7a74cf578b1b9ef70a6781d899e32b766",
+      "screenshotSha256": "1f8770150cc242dc3ab9dd2108249a9a9adb0bd9bede0bd28340d1568331f7a4",
       "url": "http://127.0.0.1:3200/assessment/adaptive-practice?goal=frequency-response-foundations&pathId=issue1324-active-path",
       "pathContext": {
         "goal": "frequency-response-foundations",
@@ -143,7 +143,7 @@
         "height": 1000
       },
       "screenshot": "artifacts/commercial-ui/issue-1324-adaptive-path-context/generation-320.png",
-      "screenshotSha256": "1b55f0b83807d2b62fee15b5f8845e81312a9335feb522f791d76bb822ee0bd7",
+      "screenshotSha256": "d411c0cf8b3d2c0f2bc430e1c5dce5f9cef0aace20f78cb2584fcc59cd9d4662",
       "url": "http://127.0.0.1:3200/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation&pathTime=90&pathRhythm=steady&pathResources=knowledge_card%2Cadaptive_quiz%2Csimulation&pathCheckpoint=standard&pathId=issue1324-active-path",
       "selectedGoal": "frequency-response-foundations",
       "pathId": "issue1324-active-path",
