@@ -61,7 +61,7 @@ function boundedDescriptorString() {
   return z.string()
     .min(1)
     .max(160)
-    .refine((value) => !/[\u0000-\u001f\u007f\u2028\u2029]/.test(value), {
+    .refine((value) => !/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(value), {
       message: 'descriptor values cannot contain control characters',
     })
     .transform((value) => value.trim())

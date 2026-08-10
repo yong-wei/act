@@ -26,7 +26,7 @@ The system SHALL map audited AI and Prompt actions to explicit task outputs such
 - **THEN** `/api/ai/chat` returns a safe 400 response without invoking the model
 
 #### Scenario: Descriptor values cannot become prompt instructions
-- **WHEN** a present descriptor contains a control character, including a newline, carriage return, or tab, in `source`, `assignment`, or `intent`
+- **WHEN** a present descriptor contains any Unicode `Cc` control character, including a C0 or C1 control, in `source`, `assignment`, or `intent`
 - **THEN** the server rejects it before trimming or prompt construction and returns the same safe 400 response without invoking the model
 - **AND** accepted descriptor values reach the private system context only as delimited JSON data, never as directly interpolated instruction lines
 

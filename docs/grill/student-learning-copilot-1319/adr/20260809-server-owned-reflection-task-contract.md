@@ -14,4 +14,4 @@ The client must send a stable task descriptor for portfolio reflection. The serv
 
 ## Follow-up: keep descriptor values as data
 
-The server-owned boundary also rejects control characters in client-supplied `source`, `assignment`, and `intent` before trimming. Accepted values are serialized as delimited JSON data in the private task section; they are never interpolated into instruction-shaped prompt lines. This prevents URL-derived multiline content from becoming a competing system instruction while preserving the existing candidate-only and explicit-save boundary.
+The server-owned boundary also rejects Unicode `Cc` controls, including C0 and C1 characters, in client-supplied `source`, `assignment`, and `intent` before trimming. It also rejects Unicode line and paragraph separators. Accepted values are serialized as delimited JSON data in the private task section; they are never interpolated into instruction-shaped prompt lines. This prevents URL-derived multiline content from becoming a competing system instruction while preserving the existing candidate-only and explicit-save boundary.

@@ -31,7 +31,7 @@ The change crosses the Copilot client, the chat route, the shared task-contract 
 
 4. **Fail closed only when the field is present.** Requests without `auditTaskContext` remain compatible with general chat and evidence Copilot. A present but malformed descriptor returns a generic 400 error without echoing internal fields.
 
-5. **Inject bounded structured task data.** The route appends a server-generated task section to the system prompt. Client descriptor values are rejected when they contain control characters, including newlines and tabs, before trimming. The accepted descriptor is serialized as JSON inside explicit `<ai-task-descriptor>` delimiters, so values are represented as data rather than interpolated as prompt syntax; fixed candidate-only rules remain separate server-authored instructions.
+5. **Inject bounded structured task data.** The route appends a server-generated task section to the system prompt. Client descriptor values are rejected when they contain Unicode `Cc` control characters, including C0/C1 controls, DEL, newlines, and tabs, plus Unicode line and paragraph separators, before trimming. The accepted descriptor is serialized as JSON inside explicit `<ai-task-descriptor>` delimiters, so values are represented as data rather than interpolated as prompt syntax; fixed candidate-only rules remain separate server-authored instructions.
 
 6. **Trace the resolved contract with a redacted server event.** A valid reflection request emits a single JSON audit record with a request correlation id and only the server-resolved task fields. Raw messages, auth/session data, provider configuration, and runtime context remain excluded from both the event and the model-visible response.
 
