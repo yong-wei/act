@@ -300,18 +300,30 @@ async function readDockReadiness(page: Page, targetUrl: string): Promise<DockRea
     const dock = document.querySelector(dockSelector);
     const registration = document.querySelector(registrationSelector);
     const primary = document.querySelector(primarySelector);
-    const isVisible = (element: Element | null) => {
-      if (!element) return false;
-      const rect = element.getBoundingClientRect();
-      const style = window.getComputedStyle(element);
-      return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
-    };
     const primaryButton = primary instanceof HTMLButtonElement ? primary : null;
     const dockPresent = Boolean(dock);
-    const dockVisible = isVisible(dock);
+    const dockRect = dock?.getBoundingClientRect();
+    const dockStyle = dock ? window.getComputedStyle(dock) : null;
+    const dockVisible = Boolean(
+      dockRect
+      && dockStyle
+      && dockRect.width > 0
+      && dockRect.height > 0
+      && dockStyle.display !== 'none'
+      && dockStyle.visibility !== 'hidden',
+    );
     const registrationPresent = Boolean(registration);
     const primaryPresent = Boolean(primaryButton);
-    const primaryVisible = isVisible(primaryButton);
+    const primaryRect = primaryButton?.getBoundingClientRect();
+    const primaryStyle = primaryButton ? window.getComputedStyle(primaryButton) : null;
+    const primaryVisible = Boolean(
+      primaryRect
+      && primaryStyle
+      && primaryRect.width > 0
+      && primaryRect.height > 0
+      && primaryStyle.display !== 'none'
+      && primaryStyle.visibility !== 'hidden',
+    );
     const primaryDisabled = primaryButton?.disabled === true;
     const missingSelectors = [
       !dockPresent || !dockVisible ? dockSelector : null,
