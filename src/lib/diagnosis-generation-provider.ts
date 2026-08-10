@@ -107,6 +107,7 @@ export async function generateGovernedDiagnosisReport(
     system: [
       '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
       '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
+      '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
       `evidenceCutoff 必须严格等于 ${input.evidenceCutoff.toISOString()}。`,
     ].join('\n'),
     prompt: JSON.stringify({

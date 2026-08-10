@@ -1,6 +1,7 @@
 import {
   DIAGNOSIS_REPORT_GENERATOR_VERSION,
   DiagnosisReportScopeError,
+  diagnosisReportBodySchema,
   diagnosisReportWriteSchema,
   persistDiagnosisReport,
   readDiagnosisReports,
@@ -73,6 +74,18 @@ const reportBody = {
 };
 
 describe('diagnosis report persistence', () => {
+  it('normalizes blank optional knowledge node ids to an omitted value', () => {
+    const parsed = diagnosisReportBodySchema.parse({
+      ...reportBody,
+      findings: [{
+        ...reportBody.findings[0],
+        knowledgeNodeId: '   ',
+      }],
+    });
+
+    expect(parsed.findings[0]?.knowledgeNodeId).toBeUndefined();
+  });
+
   it('derives the student scope, validates membership, and stores governed evidence metadata', async () => {
     const db = createDb();
 

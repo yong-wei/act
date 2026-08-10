@@ -1,5 +1,5 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
-import { z } from 'zod';
+import { ZodError, z } from 'zod';
 
 import {
   assertTeacherClassScope,
@@ -29,6 +29,15 @@ export class DiagnosisGenerationError extends Error {
     super(code);
     this.name = 'DiagnosisGenerationError';
   }
+}
+
+export function classifyDiagnosisGenerationOutputValidationError(error: unknown) {
+  if (!(error instanceof ZodError)) return null;
+  const path = error.issues[0]?.path.map(String).join('.') || 'reportBody';
+  return {
+    code: 'diagnosis-output-invalid',
+    message: `诊断结果结构无效：${path}。`,
+  };
 }
 
 const publicJobSelect = {

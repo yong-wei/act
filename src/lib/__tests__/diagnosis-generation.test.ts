@@ -1,8 +1,10 @@
 import { Prisma } from '@prisma/client';
 import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 
 import {
   claimDiagnosisGenerationAttempt,
+  classifyDiagnosisGenerationOutputValidationError,
   DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
   diagnosisGenerationRequestSchema,
   projectDiagnosisGenerationJob,
@@ -58,6 +60,22 @@ function dbFixture() {
 }
 
 describe('teacher diagnosis generation contracts', () => {
+  it('marks a malformed provider report as non-retryable output validation', () => {
+    const result = z.object({
+      findings: z.array(z.object({ knowledgeNodeId: z.string().min(1) })),
+    }).safeParse({
+      findings: [{ knowledgeNodeId: '' }],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    expect(classifyDiagnosisGenerationOutputValidationError(result.error)).toEqual({
+      code: 'diagnosis-output-invalid',
+      message: '诊断结果结构无效：findings.0.knowledgeNodeId。',
+    });
+  });
+
   it('rejects factual report content from the browser', () => {
     expect(() => diagnosisGenerationRequestSchema.parse({
       idempotencyKey: 'request-123',

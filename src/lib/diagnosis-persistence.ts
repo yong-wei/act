@@ -12,10 +12,19 @@ const diagnosisEvidenceRefSchema = z.string()
     'diagnosis evidence reference uses an unsupported source',
   );
 
+const optionalKnowledgeNodeIdSchema = z.preprocess(
+  (value) => (
+    typeof value === 'string' && value.trim().length === 0
+      ? undefined
+      : value
+  ),
+  z.string().trim().min(1).max(200).optional(),
+);
+
 const diagnosisFindingSchema = z.object({
   title: z.string().trim().min(1).max(500),
   summary: z.string().trim().min(1).max(2_000).optional(),
-  knowledgeNodeId: z.string().trim().min(1).max(200).optional(),
+  knowledgeNodeId: optionalKnowledgeNodeIdSchema,
   riskType: z.enum(['stagnation', 'constraint', 'cross_domain']).optional(),
   severity: z.enum(['low', 'medium', 'high']).optional(),
   evidenceRefs: z.array(diagnosisEvidenceRefSchema).max(100).default([]),
