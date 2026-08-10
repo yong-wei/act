@@ -995,17 +995,28 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
     const navigationToggle = appShell?.querySelector<HTMLButtonElement>('button[aria-label="收起平台导航"]');
     const dockPrimary = document.querySelector<HTMLButtonElement>('[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]');
     const konlingSidebar = document.querySelector<HTMLElement>('[data-global-ai-sidebar]');
-    const isVisible = (element: Element | null) => {
-      if (!(element instanceof HTMLElement)) return false;
-      const rect = element.getBoundingClientRect();
-      const style = window.getComputedStyle(element);
-      return rect.width > 0
-        && rect.height > 0
-        && style.display !== 'none'
-        && style.visibility !== 'hidden';
-    };
     const konlingSidebarState = konlingSidebar?.getAttribute('data-global-ai-sidebar') ?? null;
-    const konlingSidebarVisible = konlingSidebarState === 'open' && isVisible(konlingSidebar);
+    const dockRectForVisibility = dock?.getBoundingClientRect();
+    const dockStyleForVisibility = dock ? window.getComputedStyle(dock) : null;
+    const dockVisible = Boolean(dockRectForVisibility && dockStyleForVisibility
+      && dockRectForVisibility.width > 0
+      && dockRectForVisibility.height > 0
+      && dockStyleForVisibility.display !== 'none'
+      && dockStyleForVisibility.visibility !== 'hidden');
+    const dockPrimaryRect = dockPrimary?.getBoundingClientRect();
+    const dockPrimaryStyle = dockPrimary ? window.getComputedStyle(dockPrimary) : null;
+    const dockPrimaryVisible = Boolean(dockPrimaryRect && dockPrimaryStyle
+      && dockPrimaryRect.width > 0
+      && dockPrimaryRect.height > 0
+      && dockPrimaryStyle.display !== 'none'
+      && dockPrimaryStyle.visibility !== 'hidden');
+    const sidebarRectForVisibility = konlingSidebar?.getBoundingClientRect();
+    const sidebarStyleForVisibility = konlingSidebar ? window.getComputedStyle(konlingSidebar) : null;
+    const konlingSidebarVisible = konlingSidebarState === 'open' && Boolean(sidebarRectForVisibility && sidebarStyleForVisibility
+      && sidebarRectForVisibility.width > 0
+      && sidebarRectForVisibility.height > 0
+      && sidebarStyleForVisibility.display !== 'none'
+      && sidebarStyleForVisibility.visibility !== 'hidden');
     const routeFlow = document.querySelector('[data-adaptive-path-route-flow="connected"]');
     const comparison = document.querySelector('[data-learning-path-options-layout="route-modules"]');
     const routeModules = Array.from(document.querySelectorAll('[data-learning-path-option-module="route"]'))
@@ -1066,11 +1077,11 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
       appShellNavigationToggleExpanded: navigationToggle?.getAttribute('aria-expanded') === 'true',
       konlingDockState: konlingSidebarVisible
         ? 'expanded'
-        : dock && isVisible(dock)
+        : dock && dockVisible
           ? 'collapsed'
           : 'hidden',
       konlingDockTriggerPresent: Boolean(dockPrimary),
-      konlingDockTriggerVisible: isVisible(dockPrimary),
+      konlingDockTriggerVisible: dockPrimaryVisible,
       konlingDockTriggerDisabled: dockPrimary?.disabled ?? null,
       konlingSidebarState,
       konlingSidebarVisible,
