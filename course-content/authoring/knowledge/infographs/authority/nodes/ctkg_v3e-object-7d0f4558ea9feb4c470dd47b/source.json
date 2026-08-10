@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7d0f4558ea9feb4c470dd47b",
+  "safe_id": "ctkg_v3e-object-7d0f4558ea9feb4c470dd47b",
+  "node": {
+    "name": "系统完全可观测",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "对于式（9－81）所示线性时变系统，如果取定初始时刻 t0∈Tt，存在一个有限时刻 t1∈Tt, t1>t0，对于所有 t∈[t0, t1]，系统的输出 y(t) 能唯一确定状态向量的初值 x(t0)，则称系统在 [t0, t1] 内是完…",
+  "intuition": "如果对于一切 t1>t0系统都是可观测的，则称系统在 [t0, ∞) 内完全可观测。",
+  "explanation": "对于式（9－81）所示线性时变系统，如果取定初始时刻 t0∈Tt，存在一个有限时刻 t1∈Tt, t1>t0，对于所有 t∈[t0, t1]，系统的输出 y(t) 能唯一确定状态向量的初值 x(t0)，则称系统在 [t0, t1] 内是完全可观测的，简称系统可观测。如果对于一切 t1>t0系统都是可观测的，则称系统在 [t0, ∞) 内完全可观测。",
+  "relation_head": "后续 → 可观测性",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "可观测性",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "可观测性",
+      "relation": "属于"
+    }
+  ],
+  "labels": [
+    "系统完全可观测",
+    "是一种·可观测性",
+    "属于·可观测性"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7d0f4558ea9feb4c470dd47b.md",
+  "provider_policy": "grok-image_gen"
+}

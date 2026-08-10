@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0183",
+  "offset": 915,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_28c066f4f9ccd20a720fc299",
+      "batch": "C",
+      "name": "单位阶跃响应曲线",
+      "definition": "单位阶跃响应曲线是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位阶跃响应曲线"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 单位阶跃响应曲线\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 单位阶跃响应曲线是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「单位阶跃响应曲线」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_357a51cbd9882d80503815d3",
+      "batch": "C",
+      "name": "误差脉冲传递函数",
+      "definition": "误差脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "误差脉冲传递函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 误差脉冲传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 误差脉冲传递函数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「误差脉冲传递函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_6ab0d98e17a500ee2a2f5133",
+      "batch": "C",
+      "name": "无纹波最少拍系统",
+      "definition": "无纹波最少拍系统是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "无纹波最少拍系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 无纹波最少拍系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 无纹波最少拍系统是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「无纹波最少拍系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_7a638e1fe4a39f6b09d2cd5a",
+      "batch": "C",
+      "name": "调节时间 t_s",
+      "definition": "调节时间 t_s是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "调节时间 t_s"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 调节时间 t_s\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 调节时间 t_s是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「调节时间 t_s」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_7ba6b61691803d7422f99c16",
+      "batch": "C",
+      "name": "闭环脉冲传递函数",
+      "definition": "闭环脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "闭环脉冲传递函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 闭环脉冲传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 闭环脉冲传递函数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「闭环脉冲传递函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

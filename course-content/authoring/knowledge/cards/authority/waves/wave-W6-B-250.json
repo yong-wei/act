@@ -1,0 +1,695 @@
+{
+  "wave_id": "W6",
+  "batch": "B",
+  "title": "Batch B slice 6",
+  "offset": 250,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-47b1f3cc3b2b99907ed5541d",
+      "entity_id": "ctkg:v3e-canonical-47b1f3cc3b2b99907ed5541d",
+      "name": "Parabolic input",
+      "name_en": "Parabolic input",
+      "definition": "Parabolic input：A standard test input signal where r(t)=At^2 for t>0 and r(t)=0 for t<0.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Parabolic i…",
+        "Parabolic in"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-4b313e6e83be36dcd1a914f3",
+      "entity_id": "ctkg:v3e-canonical-4b313e6e83be36dcd1a914f3",
+      "name": "Damping ratio ζ",
+      "name_en": "Damping ratio ζ",
+      "definition": "Damping ratio ζ：A dimensionless parameter that describes how oscillations in a second-order system decay after a disturbance. For 0 < ζ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Damping rat…",
+        "Damping rati"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-4c11f89842e11d4bc17a5b71",
+      "entity_id": "ctkg:v3e-canonical-4c11f89842e11d4bc17a5b71",
+      "name": "副调节器",
+      "name_en": null,
+      "definition": "串级控制系统中的副调节器，传递函数为Gc2(s)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "副调节器",
+        "属于·副回路",
+        "包含组件·副回路"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-4ce9b77cff23117a65f42588",
+      "entity_id": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+      "name": "有零点的二阶系统",
+      "name_en": null,
+      "definition": "由于 PD 控制相当于给系统增加了一个闭环零点，-z=-1/T_d，故比例-微分控制的二阶系统称为有零点的二阶系统。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "有零点的二阶系统",
+        "是一种·二阶系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "entity_id": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "name": "Left half-plane (LHP)",
+      "name_en": "Left half-plane (LHP)",
+      "definition": "Left half-plane (LHP)：Left half-plane (LHP)",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Left half-p…",
+        "Left half-pl",
+        "关联·Right …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-502e49562e7e2a940900a00f",
+      "entity_id": "ctkg:v3e-canonical-502e49562e7e2a940900a00f",
+      "name": "Finding transfer",
+      "name_en": "Finding transfer function by assuming exponential solution",
+      "definition": "Finding transfer：Assume a solution of the form y(t)=H(s)e^{st}, substitute into the differential equation, and solve for H(s).",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Finding tra…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-503d2c6683ea029b37af79d3",
+      "entity_id": "ctkg:v3e-canonical-503d2c6683ea029b37af79d3",
+      "name": "Causal system",
+      "name_en": "Causal system",
+      "definition": "Causal system：A system is said to be causal if the output is not dependent on future inputs, that is, 'the system does not laugh befo…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Causal syst…",
+        "Causal syste"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "entity_id": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "name": "Bode plots",
+      "name_en": "Bode plots",
+      "definition": "Bode plots：Presenting frequency response in this manner (that is, on a log-log scale) was originated by H. W. Bode",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Bode plots"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-5182a714c3b04737e54be937",
+      "entity_id": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+      "name": "复合控制系统",
+      "name_en": null,
+      "definition": "复合控制系统是在系统的反馈控制回路中加入前馈通路，组成一个前馈控制与反馈控制相结合的系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "复合控制系统",
+        "包含组件·前馈通路"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-589fba9b74d146b6eea6b269",
+      "entity_id": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+      "name": "Phase (frequency response)",
+      "name_en": "Phase (frequency response)",
+      "definition": "Phase (frequency response)：φ is referred to as the phase and is a function of the input frequency ω.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase (freq…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-5feb0e2f507966e1ca9ac627",
+      "entity_id": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+      "name": "Time Constant",
+      "name_en": "Time Constant",
+      "definition": "Time Constant：For a first-order system, the time constant is τ=1/σ.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Time Consta…",
+        "Time Constan"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-62cf713a7c61ab2457825678",
+      "entity_id": "ctkg:v3e-canonical-62cf713a7c61ab2457825678",
+      "name": "一阶系统的单位斜坡响应",
+      "name_en": null,
+      "definition": "一阶系统在单位斜坡函数输入下的输出响应，表达式为c(t)=(t-T)+Te^{-t/T}。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一阶系统的单位斜坡响应"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "entity_id": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "name": "Velocity Error Constant (K v)",
+      "name_en": "Velocity Error Constant (K_v)",
+      "definition": "Velocity Error Constant (K v)：For a Type 1 system (one integrator in the loop transfer function), the constant defined as K_v = lim_{s->0} s G D_cl(s…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Velocity Er…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-677f91cec4356ce5a40ceb97",
+      "entity_id": "ctkg:v3e-canonical-677f91cec4356ce5a40ceb97",
+      "name": "Routh approximat",
+      "name_en": "Routh approximation method for order reduction",
+      "definition": "Routh approximat：Another novel and useful method for reducing the order is the Routh approximation method based on the idea of truncatin…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Routh appro…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6bb580c242f908566ab53b18",
+      "entity_id": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+      "name": "临界阻尼",
+      "name_en": null,
+      "definition": "ζ = 1，特征方程具有两个相等的负实根，阶跃响应非周期地趋于稳态输出。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "临界阻尼"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6db84c73a9b0e833400e64fc",
+      "entity_id": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "name": "比例-微分控制",
+      "name_en": null,
+      "definition": "一种早期控制，可在出现位置误差前，提前产生修正作用，从而达到改善系统性能的目的。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-微分控制"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6dbb5c144b45c1f35822330c",
+      "entity_id": "ctkg:v3e-canonical-6dbb5c144b45c1f35822330c",
+      "name": "无零点的二阶系统",
+      "name_en": null,
+      "definition": "比例控制时的二阶系统则称为无零点的二阶系统。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "无零点的二阶系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "entity_id": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "name": "Acceleration Error Constant (K a)",
+      "name_en": "Acceleration Error Constant (K_a)",
+      "definition": "Acceleration Error Constant (K a)：For a Type 2 system (two integrators in the loop transfer function), the constant defined as K_a = lim_{s->0} s^2 G D_c…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Acceleratio…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6f4cdd499aa7be5c5b2ffa0f",
+      "entity_id": "ctkg:v3e-canonical-6f4cdd499aa7be5c5b2ffa0f",
+      "name": "常用的确定一阶系统时间常数的方…",
+      "name_en": null,
+      "definition": "初始斜率特性是常用的确定一阶系统时间常数的方法之一。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "常用的确定一阶系统时间…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7147bc2427dae1863e06ef77",
+      "entity_id": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "name": "闭环主导极点",
+      "name_en": null,
+      "definition": "在稳定的高阶系统中，距虚轴最近的极点周围没有闭环零点，而其他闭环极点又远离虚轴，该极点对应的响应分量衰减缓慢，在系统的时间响应过程中起主导作用，称为闭环主导极点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "闭环主导极点",
+        "是一种·闭环极点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7173c7880ad344bc6a0d012d",
+      "entity_id": "ctkg:v3e-canonical-7173c7880ad344bc6a0d012d",
+      "name": "Frequency respon",
+      "name_en": "Frequency response matching method for order reduction",
+      "definition": "Frequency respon：A more sophisticated approach attempts to match the frequency response of the reduced-order transfer function with the…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Frequency r…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "entity_id": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+      "name": "二阶系统",
+      "name_en": null,
+      "definition": "凡以二阶微分方程描述运动方程的控制系统，称为二阶系统。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "二阶系统",
+        "一种·有零点的二阶…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7dd23917c751bd4b10cfc11f",
+      "entity_id": "ctkg:v3e-canonical-7dd23917c751bd4b10cfc11f",
+      "name": "非零初始条件响应分量",
+      "name_en": null,
+      "definition": "c_2(t) 为非零初始条件响应分量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非零初始条件响应分量"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "entity_id": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "name": "Frequency response",
+      "name_en": "Frequency response",
+      "definition": "Frequency response：A very common way to use the exponential response of LTIs is in finding the frequency response, or response to a sinuso…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Frequency r…",
+        "Frequency re",
+        "有表示·polar…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "entity_id": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "name": "自然频率",
+      "name_en": null,
+      "definition": "ω_n = √(K/T_m) 为自然频率（或无阻尼振荡频率）。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "自然频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-85a699e349c4185cc163c16e",
+      "entity_id": "ctkg:v3e-canonical-85a699e349c4185cc163c16e",
+      "name": "Two-sided Laplace transform",
+      "name_en": "Two-sided Laplace transform",
+      "definition": "Two-sided Laplace transform：If Eq. (3.32) is a one-sided transform, then by extension, Eq. (3.30) is a two-sided Laplace transform.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Two-sided L…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-85a8c51ad4bbae148e040776",
+      "entity_id": "ctkg:v3e-canonical-85a8c51ad4bbae148e040776",
+      "name": "利用单位脉冲响应求闭环传递函数…",
+      "name_en": null,
+      "definition": "在初始条件为零的情况下，一阶系统的闭环传递函数与脉冲响应函数之间包含相同的动态过程信息，因此常以单位脉冲输入信号作用于系统，根据被测定系统的单位脉冲响应求得被测系统的闭环传递函数。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "利用单位脉冲响应求闭环…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8821eda7812d88a26a449d71",
+      "entity_id": "ctkg:v3e-canonical-8821eda7812d88a26a449d71",
+      "name": "利用MATLAB进行高阶系统建…",
+      "name_en": null,
+      "definition": "利用MATLAB进行高阶系统建模和单位阶跃响应计算。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "利用MATLAB进行高…",
+        "包含组件·可求出单…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8d146e4add26f71181e7c891",
+      "entity_id": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+      "name": "Right half-plane (RHP)",
+      "name_en": "Right half-plane (RHP)",
+      "definition": "Right half-plane (RHP)：Right half-plane (RHP)",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Right half-…",
+        "Right half-p",
+        "关联·Left h…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "entity_id": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "name": "稳态误差",
+      "name_en": null,
+      "definition": "当时间 t 趋于无穷时，误差响应 e(t) 的稳态值称为稳态误差，以 e_ss(∞) 标志。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳态误差",
+        "关联·误差响应"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8d347fba98e0aff074800c8e",
+      "entity_id": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e",
+      "name": "Insignificant pole",
+      "name_en": "Insignificant pole",
+      "definition": "Insignificant pole：A pole with a negative real part that is much more negative than the other poles, expected to affect the transient resp…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Insignifica…",
+        "Insignifican"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "entity_id": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "name": "一阶系统",
+      "name_en": null,
+      "definition": "凡以一阶微分方程作为运动方程的控制系统，称为一阶系统。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "一阶系统",
+        "派生自·一阶系统的…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "entity_id": "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+      "name": "开环增益",
+      "name_en": null,
+      "definition": "在位置控制系统中，K = K_1 / F，称为开环增益。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "开环增益"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-9988510f6127d3086f4aa265",
+      "entity_id": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+      "name": "峰值时间",
+      "name_en": null,
+      "definition": "响应超过其终值到达第一个峰值所需的时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "峰值时间",
+        "包含组件·动态性能…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "entity_id": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "name": "Natural frequency ω n",
+      "name_en": "Natural frequency ω_n",
+      "definition": "Natural frequency ω n：The frequency of oscillation of the system without damping.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Natural fre…",
+        "Natural freq"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "entity_id": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "name": "调节时间",
+      "name_en": null,
+      "definition": "响应曲线达到并保持在稳态值允许误差范围内所需的最短时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "调节时间",
+        "包含组件·动态性能…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-9cfc0f6b382440f46c1f3302",
+      "entity_id": "ctkg:v3e-canonical-9cfc0f6b382440f46c1f3302",
+      "name": "Rise time T r",
+      "name_en": "Rise time T_r",
+      "definition": "Rise time T r：A measure of the swiftness of response",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Rise time T…",
+        "Rise time T "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-a2746b2f0c88f376c4d86e7a",
+      "entity_id": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+      "name": "Peak Time",
+      "name_en": "Peak Time",
+      "definition": "Peak Time：The time it takes the system to reach the maximum overshoot point.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Peak Time"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "entity_id": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+      "name": "系统型别",
+      "name_en": null,
+      "definition": "以开环系统在 s 平面坐标原点上的极点数 v 来划分：v=0 称为 0 型系统；v=1 称为 I 型系统；v=2 称为 II 型系统。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "系统型别"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "entity_id": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "name": "上升时间",
+      "name_en": null,
+      "definition": "响应曲线从零第一次上升到稳态值所需的时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "上升时间",
+        "包含组件·动态性能…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ab642a336bbbbafc6327f6f2",
+      "entity_id": "ctkg:v3e-canonical-ab642a336bbbbafc6327f6f2",
+      "name": "阻尼比",
+      "name_en": null,
+      "definition": "ζ = 1/(2√(T_m K)) 为阻尼比（或相对阻尼系数）。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阻尼比",
+        "关联·测速反馈控制"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ac9111bcfe5798a35bf92638",
+      "entity_id": "ctkg:v3e-canonical-ac9111bcfe5798a35bf92638",
+      "name": "机电时间常数",
+      "name_en": null,
+      "definition": "T_m = J / F，称为机电时间常数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "机电时间常数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "entity_id": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "name": "欠阻尼",
+      "name_en": null,
+      "definition": "0 < ζ < 1，特征方程有一对具有负实部的共轭复根，阶跃响应为衰减振荡过程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "欠阻尼"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "entity_id": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+      "name": "Partial-fraction expansion",
+      "name_en": "Partial-fraction expansion",
+      "definition": "Partial-fraction expansion：The easiest way to find f(t) from its Laplace transform F(s), if F(s) is rational, is to expand F(s) as a sum of simple…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Partial-fra…",
+        "一种·Partia…",
+        "派生自·Final…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ade112ca8305a54c0b76a828",
+      "entity_id": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+      "name": "Rise Time",
+      "name_en": "Rise Time",
+      "definition": "Rise Time：The time it takes the system to reach the vicinity of its new set point.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Rise Time"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-af59ae82af84ba274864a121",
+      "entity_id": "ctkg:v3e-canonical-af59ae82af84ba274864a121",
+      "name": "一阶系统的单位脉冲响应",
+      "name_en": null,
+      "definition": "一阶系统在理想单位脉冲函数输入下的输出响应，表达式为c(t)=(1/T)e^{-t/T}。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一阶系统的单位脉冲响应",
+        "派生自·一阶系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b03bdd7d909a44a2830459ca",
+      "entity_id": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "name": "典型输入信号",
+      "name_en": null,
+      "definition": "根据系统常遇到的输入信号形式，在数学描述上加以理想化的一些基本输入函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "典型输入信号",
+        "包含组件·正弦函数",
+        "包含组件·单位阶跃…",
+        "包含组件·单位斜坡…",
+        "包含组件·单位加速…",
+        "包含组件·单位脉冲…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b09a84cc18c0b52151894b0f",
+      "entity_id": "ctkg:v3e-canonical-b09a84cc18c0b52151894b0f",
+      "name": "比例-微分控制改善系统性能的方法",
+      "name_en": null,
+      "definition": "适当选择开环增益和微分器时间常数，既可减小系统在斜坡输入时的稳态误差，又可使系统在阶跃输入时有满意的动态性能。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-微分控制改善系统…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b13c33b1236afe625bffacb7",
+      "entity_id": "ctkg:v3e-canonical-b13c33b1236afe625bffacb7",
+      "name": "Settling time T s",
+      "name_en": "Settling time T_s",
+      "definition": "Settling time T s：The time required for the system to settle within a certain percentage δ of the input amplitude.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Settling ti…",
+        "Settling tim"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "entity_id": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+      "name": "Partial-fraction",
+      "name_en": "Partial-fraction expansion method for distinct poles",
+      "definition": "Partial-fraction：Partial-fraction expansion method for distinct poles",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Partial-fra…",
+        "一种·Partia…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

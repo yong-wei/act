@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-8064c799039f6d83a3cf4f29",
+  "safe_id": "ctkg_v3e-object-8064c799039f6d83a3cf4f29",
+  "node": {
+    "name": "Continuous signal",
+    "name_en": "Continuous signal",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Continuous signal：Continuous signal",
+  "intuition": null,
+  "explanation": "Continuous signal",
+  "relation_head": "前置 → Digital-to-analog converter · 后续 → Discrete signal",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Digital-to-analog converter",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Discrete signal",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Continuous …",
+    "Continuous s",
+    "关联·Digita…",
+    "关联·Discre…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8064c799039f6d83a3cf4f29.md",
+  "provider_policy": "grok-image_gen"
+}

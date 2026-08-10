@@ -1,0 +1,62 @@
+{
+  "pack_id": "P0157",
+  "offset": 785,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_69b64bbfce9e45828d270eb4",
+      "batch": "C",
+      "name": "First-Order Plant Discrete Model",
+      "definition": "First-Order Plant Discrete Model是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "First-Order…",
+        "派生自·z-tra…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: First-Order Plant Discrete Model\nSOURCE DEFINITION (fail-closed, do not invent beyond this): First-Order Plant Discrete Model是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「First-Orde」、「派生自·z-tra…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a55a1dccfb81a726e05539cc",
+      "batch": "C",
+      "name": "G c(s)-to-D(z) conversion method",
+      "definition": "G c(s)-to-D(z) conversion method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "G c(s)-to-D…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: G c(s)-to-D(z) conversion method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): G c(s)-to-D(z) conversion method是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「G c(s)-to-」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_c8c9bf27db6d626df6437323",
+      "batch": "C",
+      "name": "Mixed Continuous-Discrete System",
+      "definition": "Mixed Continuous-Discrete System是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Mixed Conti…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Mixed Continuous-Discrete System\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Mixed Continuous-Discrete System是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Mixed Cont」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_38cc333389960ef01572e768",
+      "batch": "C",
+      "name": "Pure Discrete Equivalent System",
+      "definition": "Pure Discrete Equivalent System是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pure Discre…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Pure Discrete Equivalent System\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Pure Discrete Equivalent System是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Pure Discr」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_402f9f89ded980774ffb02c4",
+      "batch": "C",
+      "name": "forward rectangular integration",
+      "definition": "forward rectangular integration是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "forward rec…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: forward rectangular integration\nSOURCE DEFINITION (fail-closed, do not invent beyond this): forward rectangular integration是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「forward re」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

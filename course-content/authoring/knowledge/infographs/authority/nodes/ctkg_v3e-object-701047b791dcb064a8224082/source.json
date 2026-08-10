@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-701047b791dcb064a8224082",
+  "safe_id": "ctkg_v3e-object-701047b791dcb064a8224082",
+  "node": {
+    "name": "Bryson's Rule",
+    "name_en": "Bryson's Rule",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Bryson's Rule：A method to start the LQR design iteration by initially choosing diagonal matrices Q and R such that Q_ii = 1 / maximum…",
+  "intuition": null,
+  "explanation": "A method to start the LQR design iteration by initially choosing diagonal matrices Q and R such that Q_ii = 1 / maximum acceptable value of [x_i^2] and R_ii = 1 / maximum acceptable value of [u_i^2].",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Bryson's Ru…",
+    "Bryson's Rul"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-701047b791dcb064a8224082.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+  "safe_id": "ctkg_v3e-object-f2f59dc7fc5571446872d432",
+  "node": {
+    "name": "系统完全可控",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "系统完全可控。",
+  "intuition": null,
+  "explanation": "系统完全可控",
+  "relation_head": "前置 → 秩判据、格拉姆矩阵判据 · 后续 → 可控性",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "可控性",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "秩判据",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "格拉姆矩阵判据",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "系统完全可控",
+    "是一种·可控性",
+    "包含组件·秩判据",
+    "应用于·格拉姆矩阵…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f2f59dc7fc5571446872d432.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0105",
+  "offset": 525,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-cc879188760f9c79394713cb",
+      "batch": "B",
+      "name": "s平面到z平面的映射",
+      "definition": "通过z=e^{sT}将s域映射到z域，s平面虚轴映射为单位圆，左半s平面映射为单位圆内，右半s平面映射为单位圆外。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "s平面到z平面的映射",
+        "属于·主要带与次要带"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: s平面到z平面的映射\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 通过z=e^{sT}将s域映射到z域，s平面虚轴映射为单位圆，左半s平面映射为单位圆内，右半s平面映射为单位圆外。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「s平面到z平面的映射」、「属于·主要带与次要带」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fac170446815fe168f9a5469",
+      "batch": "B",
+      "name": "对角线规范型判据",
+      "definition": "当矩阵A的特征值两两相异时，通过线性变换化为对角线规范型，根据B或C矩阵的行或列是否全为零来判断可控性或可观测性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "对角线规范型判据",
+        "一种·否包含元素全…",
+        "应用于·系统不可观测"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 对角线规范型判据\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当矩阵A的特征值两两相异时，通过线性变换化为对角线规范型，根据B或C矩阵的行或列是否全为零来判断可控性或可观测性。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「对角线规范型判据」、「一种·否包含元素全…」、「应用于·系统不可观测」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0b64035d71e363318c3d8d2d",
+      "batch": "B",
+      "name": "频率法校正",
+      "definition": "如果性能指标以系统的相角裕度、幅值裕度、谐振峰值、闭环带宽、静态误差系数等频域特征量给出时，一般采用频率法校正。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "频率法校正"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 频率法校正\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 如果性能指标以系统的相角裕度、幅值裕度、谐振峰值、闭环带宽、静态误差系数等频域特征量给出时，一般采用频率法校正。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「频率法校正」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-58432d31be025457910862bc",
+      "batch": "B",
+      "name": "离散系统的可控性与可达性",
+      "definition": "对于离散时间系统，可控性指从任意非零状态转移至零状态，可达性指从零状态转移至任意非零状态，两者在G非奇异时等价。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散系统的可控性与可达性",
+        "包含组件·可控性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 离散系统的可控性与可达性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 对于离散时间系统，可控性指从任意非零状态转移至零状态，可达性指从零状态转移至任意非零状态，两者在G非奇异时等价。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「离散系统的可控性与可」、「包含组件·可控性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-683669a4b467dc55ddcf5d48",
+      "batch": "B",
+      "name": "朱利稳定判据",
+      "definition": "直接在z域内应用的稳定性判据，根据离散系统的闭环特征方程D(z)=0的系数，判别其根是否位于z平面上的单位圆内。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "朱利稳定判据",
+        "包含组件·朱利阵列",
+        "用于分析·朱利稳定…",
+        "用于分析·Unit…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 朱利稳定判据\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 直接在z域内应用的稳定性判据，根据离散系统的闭环特征方程D(z)=0的系数，判别其根是否位于z平面上的单位圆内。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「朱利稳定判据」、「包含组件·朱利阵列」、「用于分析·朱利稳定…」、「用于分析·Unit…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

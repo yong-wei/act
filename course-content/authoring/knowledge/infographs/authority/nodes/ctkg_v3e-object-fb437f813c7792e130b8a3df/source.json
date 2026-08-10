@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+  "safe_id": "ctkg_v3e-object-fb437f813c7792e130b8a3df",
+  "node": {
+    "name": "给定稳定度检验方法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "为了使稳定的系统具有良好的动态响应，我们常常希望在 s 左半平面上系统特征根的位置与虚轴之间有一定的距离。",
+  "intuition": "为此，可在 s 左半平面上作一条 s=-a 的垂线，而 a 是系统特征根位置与虚轴之间的最小给定距离，通常称为给定稳定度，然后用新变量 s1=s+a 代入原系统特征方程，得到一个以 s1 为变量的新特征方程，对新特征方程应用劳斯稳定判据，可以判别系统的特征根是否全部位于 s=-a 垂线之左。",
+  "explanation": "为了使稳定的系统具有良好的动态响应，我们常常希望在 s 左半平面上系统特征根的位置与虚轴之间有一定的距离。为此，可在 s 左半平面上作一条 s=-a 的垂线，而 a 是系统特征根位置与虚轴之间的最小给定距离，通常称为给定稳定度，然后用新变量 s1=s+a 代入原系统特征方程，得到一个以 s1 为变量的新特征方程，对新特征方程应用劳斯稳定判据，可以判别系统的特征根是否全部位于 s=-a 垂线之左。",
+  "relation_head": "后续 → 通过变量替换检验给定稳定度的方法、稳定性、特征方程",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "通过变量替换检验给定稳定度的方法",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "稳定性",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "特征方程",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "给定稳定度检验方法",
+    "包含组件·通过变量…",
+    "用于分析·稳定性",
+    "应用于·特征方程"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-fb437f813c7792e130b8a3df.md",
+  "provider_policy": "grok-image_gen"
+}

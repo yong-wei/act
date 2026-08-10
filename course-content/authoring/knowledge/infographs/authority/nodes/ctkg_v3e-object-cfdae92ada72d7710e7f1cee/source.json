@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+  "safe_id": "ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+  "node": {
+    "name": "Routh-Hurwitz stability criterion",
+    "name_en": "Routh-Hurwitz stability criterion",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Routh-Hurwitz stability criterion：Routh-Hurwitz stability criterion",
+  "intuition": null,
+  "explanation": "Routh-Hurwitz stability criterion",
+  "relation_head": "前置 → 朱利稳定判据、Routh array · 后续 → Routh array、特征方程、稳定性",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "朱利稳定判据",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "Routh array",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Routh array",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "特征方程",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "特征方程",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "稳定性",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Routh-Hurwi…",
+    "是一种·朱利稳定判据",
+    "属于·Routh …",
+    "包含组件·Rout…",
+    "关联·特征方程"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-cfdae92ada72d7710e7f1cee.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+  "safe_id": "ctkg_v3e-object-b0896b071da350e2cc6ca186",
+  "node": {
+    "name": "间隙特性",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "间隙特性。",
+  "intuition": null,
+  "explanation": "间隙特性",
+  "relation_head": "前置 → 等效增益、死区 · 后续 → 自振荡",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "等效增益",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "死区",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "自振荡",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "间隙特性",
+    "关联·等效增益",
+    "关联·死区",
+    "关联·自振荡"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b0896b071da350e2cc6ca186.md",
+  "provider_policy": "grok-image_gen"
+}

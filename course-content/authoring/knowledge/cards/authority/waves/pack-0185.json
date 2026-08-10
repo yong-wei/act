@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0185",
+  "offset": 925,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_6e5429ed119ba2156807f7a0",
+      "batch": "C",
+      "name": "模拟化设计方法",
+      "definition": "模拟化设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "模拟化设计方法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 模拟化设计方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 模拟化设计方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「模拟化设计方法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9431ee70cd4c3af657882c63",
+      "batch": "C",
+      "name": "直接数字设计法",
+      "definition": "直接数字设计法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "直接数字设计法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 直接数字设计法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 直接数字设计法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「直接数字设计法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9a8a7e75e47dc5117ebb7adc",
+      "batch": "C",
+      "name": "李雅普诺夫函数",
+      "definition": "李雅普诺夫函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "李雅普诺夫函数",
+        "一种·能量函数（李…",
+        "用于分析·stat…",
+        "应用于·Equil…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 李雅普诺夫函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 李雅普诺夫函数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「李雅普诺夫函数」、「一种·能量函数（李…」、「用于分析·stat…」、「应用于·Equil…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d071dec567505ce641aa9b15",
+      "batch": "C",
+      "name": "一致渐近稳定性",
+      "definition": "一致渐近稳定性是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一致渐近稳定性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 一致渐近稳定性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一致渐近稳定性是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「一致渐近稳定性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-24049f89f0fc4303e892fc37",
+      "batch": "C",
+      "name": "Nichols Plot",
+      "definition": "Nichols Plot：Nichols Plot",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Nichols Plot"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Nichols Plot\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Nichols Plot：Nichols Plot\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Nichols Pl」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

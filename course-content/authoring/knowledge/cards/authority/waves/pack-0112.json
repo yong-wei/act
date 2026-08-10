@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0112",
+  "offset": 560,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-86d5f30d2f3bbb90aaccb759",
+      "batch": "B",
+      "name": "等ζ线映射",
+      "definition": "s平面上的等ζ线（β为常数）映射到z平面上单位圆内一簇收敛的对数螺旋线，起点为正实轴的1处，终点为原点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "等ζ线映射"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 等ζ线映射\nSOURCE DEFINITION (fail-closed, do not invent beyond this): s平面上的等ζ线（β为常数）映射到z平面上单位圆内一簇收敛的对数螺旋线，起点为正实轴的1处，终点为原点。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「等ζ线映射」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e90594bf67aa0149a800d9db",
+      "batch": "B",
+      "name": "负倒描述函数",
+      "definition": "非线性环节的负倒描述函数，记为 -1/N(A)，用于在复平面上与 G(jω) 曲线比较以分析系统稳定性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "负倒描述函数",
+        "派生自·描述函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 负倒描述函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 非线性环节的负倒描述函数，记为 -1/N(A)，用于在复平面上与 G(jω) 曲线比较以分析系统稳定性。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「负倒描述函数」、「派生自·描述函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f5e744188b4f574f567a1a8e",
+      "batch": "B",
+      "name": "状态转移矩阵",
+      "definition": "矩阵指数函数 e^{A t}，记为 \\Phi(t)，用于描述线性定常系统状态从初始时刻到任意时刻的转移。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "状态转移矩阵",
+        "是一种·矩阵指数函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 状态转移矩阵\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 矩阵指数函数 e^{A t}，记为 \\Phi(t)，用于描述线性定常系统状态从初始时刻到任意时刻的转移。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「状态转移矩阵」、「是一种·矩阵指数函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-865eb1c8824e157c2f05a903",
+      "batch": "B",
+      "name": "传递函数",
+      "definition": "传递函数：v3T accepted candidate for transfer function.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "传递函数",
+        "transfer fun",
+        "应用于·evans…",
+        "应用于·根轨迹法",
+        "派生自·在时间域描…",
+        "派生自·The r…",
+        "派生自·零点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 传递函数：v3T accepted candidate for transfer function.。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「传递函数」、「transfer f」、「应用于·evans…」、「应用于·根轨迹法」、「派生自·在时间域描…」、「派生自·The r…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-v2r-8e433b427ffa0e0dc5fd3d64",
+      "batch": "B",
+      "name": "branch gain",
+      "definition": "branch gain：v3T accepted candidate for branch gain.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "branch gain"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: branch gain\nSOURCE DEFINITION (fail-closed, do not invent beyond this): branch gain：v3T accepted candidate for branch gain.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「branch gai」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

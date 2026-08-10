@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0030",
+  "offset": 150,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-59f5159cc11cb67f131e14a1",
+      "batch": "B",
+      "name": "Transformation t",
+      "definition": "Transformation t：The transformation matrix T is composed of the eigenvectors of A. The transformed system matrices are A_m = T^{-1} A T,…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Transformat…",
+        "关联·Eigenv…",
+        "关联·Modal …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Transformation t\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Transformation t：The transformation matrix T is composed of the eigenvectors of A. The transformed system matrices are A_m = T^{-1} A T,…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Transforma」、「关联·Eigenv…」、「关联·Modal …」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-695b9c7d4ee82924a8d65b12",
+      "batch": "B",
+      "name": "Pole placement b",
+      "definition": "Pole placement b：A method for designing a full-state feedback control law by transforming the system to control canonical form, then equ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pole placem…",
+        "用于分析·Cont…",
+        "派生自·Acker…",
+        "关联·Ackerm…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Pole placement b\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Pole placement b：A method for designing a full-state feedback control law by transforming the system to control canonical form, then equ…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Pole place」、「用于分析·Cont…」、「派生自·Acker…」、「关联·Ackerm…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-757a3f48777c318642e275e3",
+      "batch": "B",
+      "name": "Estimator Gain S",
+      "definition": "Estimator Gain S：Specify desired estimator error poles, form the desired characteristic equation, and solve for L by comparing coefficie…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Estimator G…",
+        "包含组件·Esti…",
+        "用于分析·Esti…",
+        "应用于·Estim…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Estimator Gain S\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Estimator Gain S：Specify desired estimator error poles, form the desired characteristic equation, and solve for L by comparing coefficie…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Estimator 」、「包含组件·Esti…」、「用于分析·Esti…」、「应用于·Estim…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7e19f05879897a5e2d7c3e97",
+      "batch": "B",
+      "name": "Ackermann's form",
+      "definition": "Ackermann's form：For a single-input, single-output system, Ackermann's formula is useful for determining the state variable feedback mat…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Ackermann's…",
+        "包含组件·Cont…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Ackermann's form\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Ackermann's form：For a single-input, single-output system, Ackermann's formula is useful for determining the state variable feedback mat…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Ackermann'」、「包含组件·Cont…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7ec200eb09dcb2beb627f1eb",
+      "batch": "B",
+      "name": "Duality-Based Es",
+      "definition": "Duality-Based Es：Use the duality relationships (A→Aᵀ, B→Cᵀ, C→Bᵀ) to apply control design tools (acker, place) for estimator gain comput…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Duality-Bas…",
+        "一种·Dualit…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Duality-Based Es\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Duality-Based Es：Use the duality relationships (A→Aᵀ, B→Cᵀ, C→Bᵀ) to apply control design tools (acker, place) for estimator gain comput…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Duality-Ba」、「一种·Dualit…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

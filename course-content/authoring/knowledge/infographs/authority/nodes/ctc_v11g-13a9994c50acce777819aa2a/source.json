@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-13a9994c50acce777819aa2a",
+  "safe_id": "ctc_v11g-13a9994c50acce777819aa2a",
+  "node": {
+    "name": "闭环极点",
+    "name_en": "closed_loop_poles",
+    "concept_kind": "mathematical_object",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "闭环系统特征方程式的根，即闭环传递函数的极点。",
+  "intuition": null,
+  "explanation": "闭环系统特征方程式的根，即闭环传递函数的极点。",
+  "relation_head": "前置 → 根轨迹 · 后续 → root of the denominator、合同明确要求 composit…、根轨迹法",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "root of the denominator",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "合同明确要求 composit…",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "根轨迹法",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "稳定性",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "根轨迹",
+      "relation": "有表示"
+    }
+  ],
+  "labels": [
+    "闭环极点",
+    "closed loop ",
+    "一种·root",
+    "属于·合同明确要求…",
+    "关联·根轨迹法",
+    "关联·稳定性",
+    "有表示·根轨迹"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-13a9994c50acce777819aa2a.md",
+  "provider_policy": "grok-image_gen"
+}

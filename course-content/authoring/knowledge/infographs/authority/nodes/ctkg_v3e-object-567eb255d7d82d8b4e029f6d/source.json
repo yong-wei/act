@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-567eb255d7d82d8b4e029f6d",
+  "safe_id": "ctkg_v3e-object-567eb255d7d82d8b4e029f6d",
+  "node": {
+    "name": "状态可达",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "对于式（9－76）所示线性时变系统，若存在能将状态 x(t0)=0 转移到 x(tf)=xf 的控制作用，则称状态 xf 是 t0 时刻可达的。",
+  "intuition": "若 xf 对所有时刻都是可达的，则称 xf 为完全可达或一致可达。",
+  "explanation": "对于式（9－76）所示线性时变系统，若存在能将状态 x(t0)=0 转移到 x(tf)=xf 的控制作用，则称状态 xf 是 t0 时刻可达的。若 xf 对所有时刻都是可达的，则称 xf 为完全可达或一致可达。若系统对于状态空间中的每一个状态都是时刻 t0 可达的，则称该系统是 t0 时刻状态完全可达的，或简称该系统是 t0 时刻可达的。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "状态可达"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-567eb255d7d82d8b4e029f6d.md",
+  "provider_policy": "grok-image_gen"
+}

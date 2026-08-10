@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0118",
+  "offset": 590,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-d1a6e648c1524a51f3c42346",
+      "batch": "B",
+      "name": "描述函数",
+      "definition": "正弦输入信号作用下，非线性环节的稳态输出中一次谐波分量和输入信号的复数比，用 N(A) 表示。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "描述函数",
+        "包含组件·描述函数法",
+        "用于分析·谐波线性化",
+        "派生自·负倒描述函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 描述函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 正弦输入信号作用下，非线性环节的稳态输出中一次谐波分量和输入信号的复数比，用 N(A) 表示。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「描述函数」、「包含组件·描述函数法」、「用于分析·谐波线性化」、「派生自·负倒描述函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-eb888f17c38a0db4c0e3233d",
+      "batch": "B",
+      "name": "离散系统时域分析法（z变换法）",
+      "definition": "应用z变换法分析线性定常离散系统的动态性能，通常有时域法、根轨迹法和频域法，其中时域法最简便。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "离散系统时域分析法（z…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 离散系统时域分析法（z变换法）\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 应用z变换法分析线性定常离散系统的动态性能，通常有时域法、根轨迹法和频域法，其中时域法最简便。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「离散系统时域分析法（」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f610316f690e0731396e26ab",
+      "batch": "B",
+      "name": "Airplane control system",
+      "definition": "Airplane control system：Airplane control system",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Airplane co…",
+        "Airplane con"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Airplane control system\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Airplane control system：Airplane control system\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Airplane c」、「Airplane c」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "batch": "B",
+      "name": "一个由反馈闭合的整体",
+      "definition": "由一些相互制约的部分构成的整体，可能是一个由反馈闭合的整体，也可能是某一控制装置或被控对象。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一个由反馈闭合的整体"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 一个由反馈闭合的整体\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由一些相互制约的部分构成的整体，可能是一个由反馈闭合的整体，也可能是某一控制装置或被控对象。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「一个由反馈闭合的整体」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-92c8c5f262eab442578925e6",
+      "batch": "B",
+      "name": "K1",
+      "definition": "电位器电刷单位角位移对应的输出电压，记为K1，等于电源电压E与最大工作角度θ_max的比值。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: K1\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 电位器电刷单位角位移对应的输出电压，记为K1，等于电源电压E与最大工作角度θ_max的比值。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「K1」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

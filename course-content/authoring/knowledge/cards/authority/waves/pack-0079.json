@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0079",
+  "items": [
+    {
+      "safe_id": "ctc_v11g-24c15d67a9c0976814a4d3c2",
+      "name": "exhaust gas sensor",
+      "definition": "exhaust gas sensor：A sensor that gives an indication of a rich or lean exhaust and compares it to a reference."
+    },
+    {
+      "safe_id": "ctc_v11g-991f1cc82c973b44856c40f1",
+      "name": "angle of arrival",
+      "definition": "angle of arrival：The angle at which a locus arrives at a complex zero in the s-plane."
+    },
+    {
+      "safe_id": "ctc_v11g-9c541f3aa2bc9db1fe6a6c02",
+      "name": "阻尼比",
+      "definition": "阻尼比：A measure of the damping of a system's dominant roots, often specified as a target value such as ζ=0.707.。"
+    },
+    {
+      "safe_id": "ctc_v11g-b79da91dde120d5d6d3721cd",
+      "name": "zeros of l s",
+      "definition": "zeros of l s：The roots of b(s)=0, labeled z_i."
+    },
+    {
+      "safe_id": "ctc_v11g-bd59ac156c37a1e319ab71c8",
+      "name": "poles of l s",
+      "definition": "poles of l s：The roots of a(s)=0, labeled p_i."
+    }
+  ],
+  "created_at": "2026-08-05T16:16:54.010568+00:00"
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-828de2183a73570e15acd937",
+  "safe_id": "ctkg_v3e-object-828de2183a73570e15acd937",
+  "node": {
+    "name": "PWM放大器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "PWM放大器。",
+  "intuition": null,
+  "explanation": "PWM放大器",
+  "relation_head": "前置 → 复合控制信号 · 后续 → 前馈信号",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "复合控制信号",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "前馈信号",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "PWM放大器",
+    "包含组件·复合控制…",
+    "关联·前馈信号"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-828de2183a73570e15acd937.md",
+  "provider_policy": "grok-image_gen"
+}

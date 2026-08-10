@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0104",
+  "offset": 520,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-16f7c2fa5fc07204ca43c086",
+      "batch": "B",
+      "name": "PID控制器",
+      "definition": "由比例单元、微分单元和积分单元组合而成的有源串联校正装置，可以实现各种要求的控制规律，在工业自动化设备中经常采用。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "PID控制器",
+        "是一种·校正装置",
+        "包含组件·比例系数",
+        "包含组件·微分时间…",
+        "包含组件·积分时间…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: PID控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由比例单元、微分单元和积分单元组合而成的有源串联校正装置，可以实现各种要求的控制规律，在工业自动化设备中经常采用。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「PID控制器」、「是一种·校正装置」、「包含组件·比例系数」、「包含组件·微分时间…」、「包含组件·积分时间…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-256b7b4e6dd8071dc7ce3512",
+      "batch": "B",
+      "name": "z变换",
+      "definition": "z变换是从拉氏变换直接引申出来的一种变换方法，它实际上是采样函数拉氏变换的变形，是研究线性离散系统的重要数学工具。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "z变换",
+        "是一种·z变换算子",
+        "包含组件·级数求和法",
+        "关联·z变换算子"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: z变换\nSOURCE DEFINITION (fail-closed, do not invent beyond this): z变换是从拉氏变换直接引申出来的一种变换方法，它实际上是采样函数拉氏变换的变形，是研究线性离散系统的重要数学工具。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「z变换」、「是一种·z变换算子」、「包含组件·级数求和法」、「关联·z变换算子」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-60799f4e66c540f93f3c0085",
+      "batch": "B",
+      "name": "加权序列",
+      "definition": "线性定常离散系统中，单位脉冲响应序列K(nT)的专有名称，表示对连续信号采样时每一时刻的脉冲值等于该时刻的函数值。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "加权序列",
+        "关联·线性定常离散…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 加权序列\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 线性定常离散系统中，单位脉冲响应序列K(nT)的专有名称，表示对连续信号采样时每一时刻的脉冲值等于该时刻的函数值。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「加权序列」、「关联·线性定常离散…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8e2d1a59b0583cad1108b4b6",
+      "batch": "B",
+      "name": "幂级数法",
+      "definition": "通过对z变换函数E(z)直接作综合除法，得到按z^{-1}升幂排列的幂级数展开式，从而得到采样脉冲序列的脉冲强度。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "幂级数法",
+        "关联·反演积分法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 幂级数法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 通过对z变换函数E(z)直接作综合除法，得到按z^{-1}升幂排列的幂级数展开式，从而得到采样脉冲序列的脉冲强度。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「幂级数法」、「关联·反演积分法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-be9c82d423b46b7fc6937236",
+      "batch": "B",
+      "name": "对数频率特性曲线",
+      "definition": "由对数幅频曲线和对数相频曲线组成，横坐标按lgω分度，纵坐标分别为20lg|G(jω)|（dB）和φ(ω)（度）。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "对数频率特性曲线",
+        "关联·对数频率特性…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 对数频率特性曲线\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由对数幅频曲线和对数相频曲线组成，横坐标按lgω分度，纵坐标分别为20lg|G(jω)|（dB）和φ(ω)（度）。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「对数频率特性曲线」、「关联·对数频率特性…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-bde559972a3c77718ce84d2e",
+  "safe_id": "ctc_v11g-bde559972a3c77718ce84d2e",
+  "node": {
+    "name": "广义根轨迹",
+    "name_en": "generalized_root_locus",
+    "concept_kind": "representation_kind",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "在控制系统中，除根轨迹增益 K* 为变化参数的根轨迹以外，其他情形下的根轨迹统称为广义根轨迹。",
+  "intuition": "在图谱邻接中可把握：前置 → 参数根轨迹、常规根轨迹。",
+  "explanation": "在控制系统中，除根轨迹增益 K* 为变化参数的根轨迹以外，其他情形下的根轨迹统称为广义根轨迹。",
+  "relation_head": "前置 → 参数根轨迹、常规根轨迹",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "参数根轨迹",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "常规根轨迹",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "广义根轨迹",
+    "generalized ",
+    "是一种·参数根轨迹",
+    "关联·常规根轨迹"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-bde559972a3c77718ce84d2e.md",
+  "provider_policy": "grok-image_gen"
+}

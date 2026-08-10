@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-271dc725adcf9cbd115e003f",
+  "safe_id": "ctkg_v3e-object-271dc725adcf9cbd115e003f",
+  "node": {
+    "name": "误差采样控制",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "误差采样控制。",
+  "intuition": null,
+  "explanation": "误差采样控制",
+  "relation_head": "前置 → 采样控制系统 · 后续 → 采样控制系统",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "采样控制系统",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "采样控制系统",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "误差采样控制",
+    "是一种·采样控制系统",
+    "包含组件·采样控制…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-271dc725adcf9cbd115e003f.md",
+  "provider_policy": "grok-image_gen"
+}

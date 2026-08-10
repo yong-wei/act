@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+  "safe_id": "ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+  "node": {
+    "name": "Frequency response",
+    "name_en": "Frequency response",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Frequency response：A very common way to use the exponential response of LTIs is in finding the frequency response, or response to a sinuso…",
+  "intuition": "在图谱邻接中可把握：后续 → polar plot。",
+  "explanation": "A very common way to use the exponential response of LTIs is in finding the frequency response, or response to a sinusoid.",
+  "relation_head": "后续 → polar plot",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "polar plot",
+      "relation": "有表示"
+    }
+  ],
+  "labels": [
+    "Frequency r…",
+    "Frequency re",
+    "有表示·polar…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7e46e083227dc119d597d82b.md",
+  "provider_policy": "grok-image_gen"
+}

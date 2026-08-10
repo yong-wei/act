@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0169",
+  "offset": 845,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_86e0adb71633ae527d8afb11",
+      "batch": "C",
+      "name": "forward rectangu",
+      "definition": "forward rectangu是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "forward rec…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: forward rectangu\nSOURCE DEFINITION (fail-closed, do not invent beyond this): forward rectangu是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「forward re」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9411610b02962c59cae258a3",
+      "batch": "C",
+      "name": "G_c(s)-D(z) 变换方法",
+      "definition": "G_c(s)-D(z) 变换方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "G_c(s)-D(z)…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: G_c(s)-D(z) 变换方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): G_c(s)-D(z) 变换方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「G_c(s)-D(z」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9788d660e7e83cadc79a4ba6",
+      "batch": "C",
+      "name": "G_c(s)-D(z) 变换方法",
+      "definition": "G_c(s)-D(z) 变换方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "G_c(s)-D(z)…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: G_c(s)-D(z) 变换方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): G_c(s)-D(z) 变换方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「G_c(s)-D(z」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_98fd8fbe7aa3340c7fe6bc08",
+      "batch": "C",
+      "name": "Root locus plot ",
+      "definition": "Root locus plot 是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Root locus …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Root locus plot \nSOURCE DEFINITION (fail-closed, do not invent beyond this): Root locus plot 是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Root locus」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a85bf0c53a7d633a260a63d7",
+      "batch": "C",
+      "name": "单位反馈线性定常离散系统（例7…",
+      "definition": "单位反馈线性定常离散系统（例7…是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位反馈线性定常离散系…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 单位反馈线性定常离散系统（例7…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 单位反馈线性定常离散系统（例7…是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「单位反馈线性定常离散」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

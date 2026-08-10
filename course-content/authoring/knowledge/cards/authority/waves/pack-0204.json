@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0204",
+  "offset": 1020,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-c48bcd580d97376ade8dda83",
+      "batch": "C",
+      "name": "状态反馈镇定",
+      "definition": "状态反馈镇定。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "状态反馈镇定"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 状态反馈镇定\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 状态反馈镇定。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「状态反馈镇定」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f2f59dc7fc5571446872d432",
+      "batch": "C",
+      "name": "系统完全可控",
+      "definition": "系统完全可控。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统完全可控",
+        "是一种·可控性",
+        "包含组件·秩判据",
+        "应用于·格拉姆矩阵…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 系统完全可控\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统完全可控。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「系统完全可控」、「是一种·可控性」、「包含组件·秩判据」、「应用于·格拉姆矩阵…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1a1e0cd76a6ae24441079e22",
+      "batch": "C",
+      "name": "数字控制器",
+      "definition": "数字控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字控制器",
+        "关联·脉冲控制器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 数字控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 数字控制器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「数字控制器」、「关联·脉冲控制器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2805a69722f0a741c2479d22",
+      "batch": "C",
+      "name": "PD控制器",
+      "definition": "PD控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PD控制器",
+        "包含组件·比例-微…",
+        "关联·比例-微分控…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: PD控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): PD控制器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「PD控制器」、「包含组件·比例-微…」、「关联·比例-微分控…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-49948e2349b89d3c04b12d39",
+      "batch": "C",
+      "name": "脉冲控制器",
+      "definition": "脉冲控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "脉冲控制器",
+        "关联·数字控制器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 脉冲控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 脉冲控制器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「脉冲控制器」、「关联·数字控制器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

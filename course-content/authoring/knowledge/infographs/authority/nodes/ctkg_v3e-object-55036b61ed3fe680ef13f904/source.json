@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-55036b61ed3fe680ef13f904",
+  "safe_id": "ctkg_v3e-object-55036b61ed3fe680ef13f904",
+  "node": {
+    "name": "Input Compensation",
+    "name_en": "Input Compensation",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Input Compensation：A compensation scheme where the compensator is placed at the input.",
+  "intuition": "在图谱邻接中可把握：后续 → Input compensation (as a scheme)、Compensation。",
+  "explanation": "A compensation scheme where the compensator is placed at the input.",
+  "relation_head": "后续 → Input compensation (as a scheme)、Compensation",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Input compensation (as a scheme)",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "Compensation",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "Input Compe…",
+    "Input Compen",
+    "一种·Input",
+    "一种·Compen…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-55036b61ed3fe680ef13f904.md",
+  "provider_policy": "grok-image_gen"
+}

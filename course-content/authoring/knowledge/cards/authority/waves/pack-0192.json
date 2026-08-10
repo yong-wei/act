@@ -1,0 +1,62 @@
+{
+  "pack_id": "P0192",
+  "offset": 960,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_1574c7db84468964721bb443",
+      "batch": "C",
+      "name": "主导极点",
+      "definition": "主导极点是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "主导极点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 主导极点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 主导极点是自动控制原理权威图谱中的领域概念。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「主导极点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_57f94170125768449cdfa1ba",
+      "batch": "C",
+      "name": "受扰运动",
+      "definition": "受扰运动是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "受扰运动"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 受扰运动\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 受扰运动是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「受扰运动」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_7ea75380edbf9be4e15dd503",
+      "batch": "C",
+      "name": "特征方程",
+      "definition": "特征方程是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "特征方程",
+        "Characterist"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 特征方程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 特征方程是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「特征方程」、「Characteri」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9e0ece5ddc1de81897928b5f",
+      "batch": "C",
+      "name": "采样周期",
+      "definition": "采样周期是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样周期"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样周期\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 采样周期是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样周期」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ad75410e5a16550ce25a6d8a",
+      "batch": "C",
+      "name": "一拍系统",
+      "definition": "一拍系统是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一拍系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 一拍系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一拍系统是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「一拍系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

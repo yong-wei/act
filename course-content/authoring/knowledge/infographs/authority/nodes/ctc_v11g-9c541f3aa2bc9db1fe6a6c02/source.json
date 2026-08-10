@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+  "safe_id": "ctc_v11g-9c541f3aa2bc9db1fe6a6c02",
+  "node": {
+    "name": "阻尼比",
+    "name_en": "damping_ratio",
+    "concept_kind": "performance_metric",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "阻尼比：A measure of the damping of a system's dominant roots, often specified as a target value such as ζ=0.707.。",
+  "intuition": "在图谱邻接中可把握：前置 → root_locus_contr。",
+  "explanation": "A measure of the damping of a system's dominant roots, often specified as a target value such as ζ=0.707.",
+  "relation_head": "前置 → root_locus_contr",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "root_locus_contr",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "阻尼比",
+    "damping rati",
+    "用于分析·root…"
+  ],
+  "visual_archetype": "工程评审板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-9c541f3aa2bc9db1fe6a6c02.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-166cf6d8d911865faa1f8f30",
+  "safe_id": "ctkg_v3e-object-166cf6d8d911865faa1f8f30",
+  "node": {
+    "name": "Digital-to-analog (D/A) converter",
+    "name_en": "Digital-to-analog (D/A) converter",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Digital-to-analog (D/A) converter：Digital-to-analog (D/A) converter",
+  "intuition": null,
+  "explanation": "Digital-to-analog (D/A) converter",
+  "relation_head": "前置 → Sample period · 后续 → Zero-order hold (ZOH)、Discrete equivalent、Discrete signal",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Zero-order hold (ZOH)",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Sample period",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Discrete equivalent",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Discrete signal",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Digital-to-…",
+    "包含组件·Zero…",
+    "应用于·Sampl…",
+    "关联·Discre…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-166cf6d8d911865faa1f8f30.md",
+  "provider_policy": "grok-image_gen"
+}

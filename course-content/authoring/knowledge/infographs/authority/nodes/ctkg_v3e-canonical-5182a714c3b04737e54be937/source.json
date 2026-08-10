@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+  "safe_id": "ctkg_v3e-canonical-5182a714c3b04737e54be937",
+  "node": {
+    "name": "复合控制系统",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "复合控制系统是在系统的反馈控制回路中加入前馈通路，组成一个前馈控制与反馈控制相结合的系统。",
+  "intuition": "在图谱邻接中可把握：后续 → 前馈通路。",
+  "explanation": "复合控制系统是在系统的反馈控制回路中加入前馈通路，组成一个前馈控制与反馈控制相结合的系统。",
+  "relation_head": "后续 → 前馈通路",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "前馈通路",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "复合控制系统",
+    "包含组件·前馈通路"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-5182a714c3b04737e54be937.md",
+  "provider_policy": "grok-image_gen"
+}

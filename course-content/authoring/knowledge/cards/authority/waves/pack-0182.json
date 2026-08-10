@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0182",
+  "offset": 910,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_dd4c15f1669f9b04911032e5",
+      "batch": "C",
+      "name": "不定性（标量函数）",
+      "definition": "不定性（标量函数）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "不定性（标量函数）"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 不定性（标量函数）\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 不定性（标量函数）是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「不定性（标量函数）」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0648b4124cfb8bb86fb66bd1",
+      "batch": "C",
+      "name": "Sample period",
+      "definition": "Sample period：Sample period",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sample peri…",
+        "Sample perio",
+        "包含组件·Zero…",
+        "包含组件·Disc…",
+        "包含组件·Samp…",
+        "应用于·Digit…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Sample period\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Sample period：Sample period\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Sample per」、「Sample per」、「包含组件·Zero…」、「包含组件·Disc…」、「包含组件·Samp…」、「应用于·Digit…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "batch": "C",
+      "name": "Ideal sampler",
+      "definition": "Ideal sampler：Ideal sampler",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Ideal sampl…",
+        "Ideal sample",
+        "一种·Sampler"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Ideal sampler\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Ideal sampler：Ideal sampler\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Ideal samp」、「Ideal samp」、「一种·Sampler」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-af604268b1e07a0ddba886f3",
+      "batch": "C",
+      "name": "Nichols chart",
+      "definition": "Nichols chart：Nichols chart",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Nichols cha…",
+        "Nichols char",
+        "关联·Freque…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Nichols chart\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Nichols chart：Nichols chart\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Nichols ch」、「Nichols ch」、「关联·Freque…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_05c3bce244e51f0c3dae9747",
+      "batch": "C",
+      "name": "误差脉冲传递函数",
+      "definition": "误差脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "误差脉冲传递函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 误差脉冲传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 误差脉冲传递函数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「误差脉冲传递函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

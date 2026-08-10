@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:18:32+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:289e3beca59c9ef373836b12",
+  "safe_id": "ctkg_domainconcept_289e3beca59c9ef373836b12",
+  "node_name": "零阶保持器",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1097-1101"
+}

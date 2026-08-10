@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:09:55+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-bf9e8241330bdf92c90e15f7",
+  "safe_id": "ctkg_v3e-object-bf9e8241330bdf92c90e15f7",
+  "node_name": "积分时间常数",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-C vision-mapped accept (Qc/Ti/quant err/sat/flash)"
+}

@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0122",
+  "offset": 610,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-af59ae82af84ba274864a121",
+      "batch": "B",
+      "name": "一阶系统的单位脉冲响应",
+      "definition": "一阶系统在理想单位脉冲函数输入下的输出响应，表达式为c(t)=(1/T)e^{-t/T}。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一阶系统的单位脉冲响应",
+        "派生自·一阶系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 一阶系统的单位脉冲响应\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一阶系统在理想单位脉冲函数输入下的输出响应，表达式为c(t)=(1/T)e^{-t/T}。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「一阶系统的单位脉冲响」、「派生自·一阶系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "batch": "B",
+      "name": "比例-积分-微分控制规律",
+      "definition": "具有比例-积分-微分控制规律的控制器，称PID控制器，这种组合具有三种基本规律各自的特点。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-积分-微分控制规律"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 比例-积分-微分控制规律\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 具有比例-积分-微分控制规律的控制器，称PID控制器，这种组合具有三种基本规律各自的特点。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「比例-积分-微分控制」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-22c09bec3824e6b6d0e4d83b",
+      "batch": "B",
+      "name": "Phase-lead compensator",
+      "definition": "Phase-lead compensator：Phase-lead compensator",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase-lead …",
+        "Phase-lead c",
+        "一种·Phase-…",
+        "是一种·超前校正网络",
+        "一种·Compen…",
+        "用于分析·Phas…",
+        "用于分析·根轨迹"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Phase-lead compensator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Phase-lead compensator：Phase-lead compensator\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Phase-lead」、「Phase-lead」、「一种·Phase-…」、「是一种·超前校正网络」、「一种·Compen…」、「用于分析·Phas…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2352b539ff08187f42885709",
+      "batch": "B",
+      "name": "时间常数",
+      "definition": "对于无源超前网络，T=R1R2C/(R1+R2)；对于无源滞后网络，T=(R1+R2)C。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "时间常数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 时间常数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 对于无源超前网络，T=R1R2C/(R1+R2)；对于无源滞后网络，T=(R1+R2)C。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「时间常数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2eb64f744b929432a6394ee5",
+      "batch": "B",
+      "name": "Symmetrical root pairs",
+      "definition": "Symmetrical root pairs：Symmetrical root pairs",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Symmetrical…",
+        "Symmetrical ",
+        "包含组件·Auxi…",
+        "关联·Auxili…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Symmetrical root pairs\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Symmetrical root pairs：Symmetrical root pairs\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Symmetrica」、「Symmetrica」、「包含组件·Auxi…」、「关联·Auxili…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

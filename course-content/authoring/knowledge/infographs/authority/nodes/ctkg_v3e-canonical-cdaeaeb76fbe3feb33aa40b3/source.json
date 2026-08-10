@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-cdaeaeb76fbe3feb33aa40b3",
+  "safe_id": "ctkg_v3e-canonical-cdaeaeb76fbe3feb33aa40b3",
+  "node": {
+    "name": "Undamped natural frequency omega n",
+    "name_en": "Undamped natural frequency omega_n",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Undamped natural frequency omega n：The undamped natural frequency is the radius at which the poles are located in the s-plane.",
+  "intuition": "在图谱邻接中可把握：前置 → Band center · 后续 → 极点。",
+  "explanation": "The undamped natural frequency is the radius at which the poles are located in the s-plane.",
+  "relation_head": "前置 → Band center · 后续 → 极点",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Band center",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "极点",
+      "relation": "派生自"
+    }
+  ],
+  "labels": [
+    "Undamped na…",
+    "一种·Band",
+    "派生自·极点"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-cdaeaeb76fbe3feb33aa40b3.md",
+  "provider_policy": "grok-image_gen"
+}

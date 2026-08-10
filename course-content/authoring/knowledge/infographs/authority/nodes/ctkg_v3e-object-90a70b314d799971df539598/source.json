@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-90a70b314d799971df539598",
+  "safe_id": "ctkg_v3e-object-90a70b314d799971df539598",
+  "node": {
+    "name": "否成立",
+    "name_en": "Output controllability rank test",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "构造输出可控性矩阵S0=[CB CAB ... CA^{n-1}B D]，检验rank S0=q是否成立。",
+  "intuition": "在图谱邻接中可把握：后续 → 输出可控性矩阵 (output…。",
+  "explanation": "构造输出可控性矩阵S0=[CB CAB ... CA^{n-1}B D]，检验rank S0=q是否成立。",
+  "relation_head": "后续 → 输出可控性矩阵 (output…",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "输出可控性矩阵 (output…",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "否成立",
+    "包含组件·输出可控…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-90a70b314d799971df539598.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0096",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-863069c1389e01dcca80138a",
+      "name": "Marginal stability",
+      "definition": "Marginal stability：If the jω-axis roots of the characteristic equation are simple, the system is neither stable nor unstable"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8c3a7904cf80848febaed676",
+      "name": "Open-loop system poles location",
+      "definition": "Open-loop system poles location：Open-loop system poles are located at approximately (10, 0), (-1, 0), and (-10, 0)."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8cf39aebda1d87c8394a3f9d",
+      "name": "relay with dead zone",
+      "definition": "relay with dead zone：relay with dead zone"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8db9674c3550d1d151df7573",
+      "name": "周期采样",
+      "definition": "如果在有规律的间隔上，系统取到了离散信息，则这种采样称为周期采样。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8e2d1a59b0583cad1108b4b6",
+      "name": "幂级数法",
+      "definition": "通过对z变换函数E(z)直接作综合除法，得到按z^{-1}升幂排列的幂级数展开式，从而得到采样脉冲序列的脉冲强度。"
+    }
+  ],
+  "created_at": "2026-08-05T16:40:40.749633+00:00"
+}

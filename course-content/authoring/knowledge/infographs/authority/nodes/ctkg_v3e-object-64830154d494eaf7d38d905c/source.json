@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-64830154d494eaf7d38d905c",
+  "safe_id": "ctkg_v3e-object-64830154d494eaf7d38d905c",
+  "node": {
+    "name": "高阶系统时域指标估算经验公式法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "利用式(5-107)和(5-108)估算高阶系统超调量和调节时间。",
+  "intuition": null,
+  "explanation": "利用式(5-107)和(5-108)估算高阶系统超调量和调节时间",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "高阶系统时域指标估算经…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-64830154d494eaf7d38d905c.md",
+  "provider_policy": "grok-image_gen"
+}

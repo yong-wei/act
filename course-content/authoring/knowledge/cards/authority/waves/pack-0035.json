@@ -1,0 +1,72 @@
+{
+  "pack_id": "P0035",
+  "offset": 175,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-bdaced0dc441be53ee6a1b64",
+      "batch": "B",
+      "name": "Time invariance",
+      "definition": "Time invariance：If the input is delayed or shifted in time, then the output is unchanged except also being shifted by exactly the same…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Time invari…",
+        "Time invaria"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Time invariance\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Time invariance：If the input is delayed or shifted in time, then the output is unchanged except also being shifted by exactly the same…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Time invar」、「Time invar」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-58cea2373f68416e096759a9",
+      "batch": "B",
+      "name": "Dominant roots",
+      "definition": "Dominant roots：The usefulness of the frequency response specifications and their relation to the actual transient performance depend u…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Dominant ro…",
+        "Dominant roo"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Dominant roots\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Dominant roots：The usefulness of the frequency response specifications and their relation to the actual transient performance depend u…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Dominant r」、「Dominant r」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-865b301177a623225344064f",
+      "batch": "B",
+      "name": "BIBO stability",
+      "definition": "BIBO stability：A system is said to have bounded input-bounded output (BIBO) stability if every bounded input results in a bounded outp…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "BIBO stabil…",
+        "BIBO stabili",
+        "是一种·稳定性",
+        "关联·root o…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: BIBO stability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): BIBO stability：A system is said to have bounded input-bounded output (BIBO) stability if every bounded input results in a bounded outp…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「BIBO stabi」、「BIBO stabi」、「是一种·稳定性」、「关联·root o…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a241f1b04d77793cee60f9d5",
+      "batch": "B",
+      "name": "Zero-Memory Nonlinear Element",
+      "definition": "Zero-Memory Nonlinear Element：A nonlinear element whose output depends only on the instantaneous input, without any memory or dynamics.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Zero-Memory…",
+        "应用于·Root-…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Zero-Memory Nonlinear Element\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Zero-Memory Nonlinear Element：A nonlinear element whose output depends only on the instantaneous input, without any memory or dynamics.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Zero-Memor」、「应用于·Root-…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cd2b9611c4934fe067e8786a",
+      "batch": "B",
+      "name": "Sample-Rate Selection",
+      "definition": "Sample-Rate Selection：The selection of the best sample rate for a digital control system is the result of a compromise of many factors.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sample-Rate…",
+        "Sample-Rate ",
+        "属于·Effect…",
+        "属于·Distur…",
+        "属于·Tracki…",
+        "应用于·Distu…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Sample-Rate Selection\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Sample-Rate Selection：The selection of the best sample rate for a digital control system is the result of a compromise of many factors.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Sample-Rat」、「Sample-Rat」、「属于·Effect…」、「属于·Distur…」、「属于·Tracki…」、「应用于·Distu…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0068",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-2eb64f744b929432a6394ee5",
+      "name": "Symmetrical root pairs",
+      "definition": "Symmetrical root pairs：Symmetrical root pairs"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2f12669555aed67867c3b7cd",
+      "name": "零阶保持器",
+      "definition": "零阶保持器是一种按常值外推的保持器，它把前一采样时刻nT的采样值e(nT)一直保持到下一采样时刻(n+1)T到来之前。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2fd3b8dfc79284046cb06990",
+      "name": "A/D转换器",
+      "definition": "A/D 转换器是把连续的模拟信号转换为离散数字信号的装置。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-35264ec175b811e30fa55aab",
+      "name": "Method 2: Using ",
+      "definition": "Method 2: Using ：Select N=0 and M=-L so that the observer is driven by the tracking error y(t)-r(t)."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3584625f5f11346155d538d3",
+      "name": "平衡状态稳定性",
+      "definition": "系统在平衡工作点处，当输入信号为零时输出信号亦为零，在扰动作用下偏离平衡点后，系统输出量增量随时间变化趋于原平衡点的性质。"
+    }
+  ],
+  "created_at": "2026-08-05T16:02:31.116579+00:00"
+}

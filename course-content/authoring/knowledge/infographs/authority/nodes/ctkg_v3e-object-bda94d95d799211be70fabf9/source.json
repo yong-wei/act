@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+  "safe_id": "ctkg_v3e-object-bda94d95d799211be70fabf9",
+  "node": {
+    "name": "自振荡",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "自振荡。",
+  "intuition": null,
+  "explanation": "自振荡",
+  "relation_head": "前置 → 极限环、稳定极限环、间隙特性",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "极限环",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "稳定极限环",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "间隙特性",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "自振荡",
+    "关联·极限环",
+    "关联·稳定极限环",
+    "关联·间隙特性"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-bda94d95d799211be70fabf9.md",
+  "provider_policy": "grok-image_gen"
+}

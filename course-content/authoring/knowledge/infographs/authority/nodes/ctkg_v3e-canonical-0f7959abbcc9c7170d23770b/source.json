@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+  "safe_id": "ctkg_v3e-canonical-0f7959abbcc9c7170d23770b",
+  "node": {
+    "name": "非主导极点",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "除闭环主导极点外，所有其他闭环极点由于其对应的响应分量随时间的推移迅速衰减，对系统的时间响应过程影响甚微，统称为非主导极点。",
+  "intuition": "在图谱邻接中可把握：后续 → 闭环极点。",
+  "explanation": "除闭环主导极点外，所有其他闭环极点由于其对应的响应分量随时间的推移迅速衰减，对系统的时间响应过程影响甚微，统称为非主导极点。",
+  "relation_head": "后续 → 闭环极点",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "闭环极点",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "非主导极点",
+    "是一种·闭环极点"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-0f7959abbcc9c7170d23770b.md",
+  "provider_policy": "grok-image_gen"
+}

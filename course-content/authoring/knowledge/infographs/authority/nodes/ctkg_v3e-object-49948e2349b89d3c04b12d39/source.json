@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-49948e2349b89d3c04b12d39",
+  "safe_id": "ctkg_v3e-object-49948e2349b89d3c04b12d39",
+  "node": {
+    "name": "脉冲控制器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "脉冲控制器。",
+  "intuition": null,
+  "explanation": "脉冲控制器",
+  "relation_head": "前置 → 数字控制器",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "数字控制器",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "脉冲控制器",
+    "关联·数字控制器"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-49948e2349b89d3c04b12d39.md",
+  "provider_policy": "grok-image_gen"
+}

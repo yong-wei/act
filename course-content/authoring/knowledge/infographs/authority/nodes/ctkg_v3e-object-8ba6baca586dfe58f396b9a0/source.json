@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-8ba6baca586dfe58f396b9a0",
+  "safe_id": "ctkg_v3e-object-8ba6baca586dfe58f396b9a0",
+  "node": {
+    "name": "Phase-lead compe",
+    "name_en": "Phase-lead compensator design for phase margin or root locus reshaping",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Phase-lead compe：The lead compensator can provide a phase-lead angle and thus a satisfactory phase margin for a system. Alternatively, t…",
+  "intuition": "在图谱邻接中可把握：后续 → Phase-Lead Compensator。",
+  "explanation": "The lead compensator can provide a phase-lead angle and thus a satisfactory phase margin for a system. Alternatively, the phase-lead compensator can enable us to reshape the root locus and thus provide the desired root locations.",
+  "relation_head": "后续 → Phase-Lead Compensator",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Phase-Lead Compensator",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Phase-lead …",
+    "应用于·Phase…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8ba6baca586dfe58f396b9a0.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0208",
+  "offset": 1040,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-563729def6c074a2e1ae6d1d",
+      "batch": "C",
+      "name": "继电特性",
+      "definition": "继电特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "继电特性",
+        "关联·自激振荡"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 继电特性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 继电特性。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「继电特性」、「关联·自激振荡」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5c04a71914f42217047a20bf",
+      "batch": "C",
+      "name": "振荡周期",
+      "definition": "振荡周期。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "振荡周期"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 振荡周期\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 振荡周期。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「振荡周期」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5ed5fc7d05f77452e100406b",
+      "batch": "C",
+      "name": "双极限环",
+      "definition": "双极限环。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "双极限环",
+        "包含组件·稳定极限环",
+        "包含组件·不稳定极…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 双极限环\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 双极限环。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「双极限环」、「包含组件·稳定极限环」、「包含组件·不稳定极…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6cac20a7c9621cb54a42d57d",
+      "batch": "C",
+      "name": "采样开关",
+      "definition": "采样开关。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样开关",
+        "包含组件·采样控制…",
+        "包含组件·线性采样…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样开关\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 采样开关。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样开关」、「包含组件·采样控制…」、「包含组件·线性采样…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7e0291af0b752655e0d98328",
+      "batch": "C",
+      "name": "一致可达",
+      "definition": "一致可达。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一致可达"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 一致可达\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一致可达。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「一致可达」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

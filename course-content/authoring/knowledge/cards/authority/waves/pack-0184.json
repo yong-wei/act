@@ -1,0 +1,62 @@
+{
+  "pack_id": "P0184",
+  "offset": 920,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_821f239699f8571f105125f0",
+      "batch": "C",
+      "name": "二阶采样系统模型",
+      "definition": "二阶采样系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "二阶采样系统模型"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 二阶采样系统模型\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 二阶采样系统模型是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「二阶采样系统模型」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_83e1bbae1654f73fec3c77f3",
+      "batch": "C",
+      "name": "无纹波最少拍系统",
+      "definition": "无纹波最少拍系统是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "无纹波最少拍系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 无纹波最少拍系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 无纹波最少拍系统是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「无纹波最少拍系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_84a6b99accd85ba35da5a6a6",
+      "batch": "C",
+      "name": "开环脉冲传递函数",
+      "definition": "开环脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "开环脉冲传递函数",
+        "派生自·z-tra…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 开环脉冲传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 开环脉冲传递函数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「开环脉冲传递函数」、「派生自·z-tra…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ceba1e9ff71d5f284ca106d9",
+      "batch": "C",
+      "name": "闭环脉冲传递函数",
+      "definition": "闭环脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "闭环脉冲传递函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 闭环脉冲传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 闭环脉冲传递函数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「闭环脉冲传递函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1a8ef03e3724854770d0995b",
+      "batch": "C",
+      "name": "离散化设计方法",
+      "definition": "离散化设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "离散化设计方法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 离散化设计方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 离散化设计方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「离散化设计方法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

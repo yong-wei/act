@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-8eea21c512dc1ece3c5d1630",
+  "safe_id": "ctkg_v3e-object-8eea21c512dc1ece3c5d1630",
+  "node": {
+    "name": "临界比例度法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "一种经典的PID参数整定方法，首先设PID控制器的积分时间系数Ti=∞，微分时间系数Td=0，比例系数设为较小的值；然后增大Kp，观察系统的输出曲线，当系统输出出现等幅振荡时记下临界比例值Km及振荡周期Tc；然后按经验数据表调整比例系数、…",
+  "intuition": "然后增大Kp，观察系统的输出曲线，当系统输出出现等幅振荡时记下临界比例值Km及振荡周期Tc。",
+  "explanation": "一种经典的PID参数整定方法，首先设PID控制器的积分时间系数Ti=∞，微分时间系数Td=0，比例系数设为较小的值；然后增大Kp，观察系统的输出曲线，当系统输出出现等幅振荡时记下临界比例值Km及振荡周期Tc；然后按经验数据表调整比例系数、积分和微分时间常数。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "临界比例度法"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8eea21c512dc1ece3c5d1630.md",
+  "provider_policy": "grok-image_gen"
+}

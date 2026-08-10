@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:54:34+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-46c092af27c437226e4dc849",
+  "safe_id": "ctc_modeling-46c092af27c437226e4dc849",
+  "node_name": "状态空间表达式中n×p的系数矩阵",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch8 A accept"
+}

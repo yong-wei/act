@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0019",
+  "offset": 95,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-89a95ab28be324dc6d7040c5",
+      "batch": "B",
+      "name": "Disturbance Rejection",
+      "definition": "Disturbance Rejection：Disturbance rejection is an important—if not the most important—aspect of any control system. Disturbances enter a syst…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Disturbance…",
+        "Disturbance ",
+        "属于·Sample…",
+        "应用于·Sampl…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Disturbance Rejection\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Disturbance Rejection：Disturbance rejection is an important—if not the most important—aspect of any control system. Disturbances enter a syst…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Disturbanc」、「Disturbanc」、「属于·Sample…」、「应用于·Sampl…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-90fe9648723adb7fc20557a7",
+      "batch": "B",
+      "name": "Steady-state accuracy",
+      "definition": "Steady-state accuracy：The primary objective of obtaining a high steady-state accuracy in control systems, which can be improved by increasing…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Steady-stat…",
+        "Steady-state"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Steady-state accuracy\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Steady-state accuracy：The primary objective of obtaining a high steady-state accuracy in control systems, which can be improved by increasing…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Steady-sta」、「Steady-sta」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-db0fc6571dad5000caf9cbf7",
+      "batch": "B",
+      "name": "Strophoid plane curve",
+      "definition": "Strophoid plane curve：The shape of the Nyquist plot for G(s)=1/(s(s+1)^2) is a translated strophoid plane curve, meaning 'a belt with a twist…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Strophoid p…",
+        "Strophoid pl"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Strophoid plane curve\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Strophoid plane curve：The shape of the Nyquist plot for G(s)=1/(s(s+1)^2) is a translated strophoid plane curve, meaning 'a belt with a twist…\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Strophoid 」、「Strophoid 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e106c00b460b0d79496f817b",
+      "batch": "B",
+      "name": "Tracking Effectiveness",
+      "definition": "Tracking Effectiveness：An absolute lower bound on the sample rate is set by a specification to track a command input with a certain frequency…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Tracking Ef…",
+        "Tracking Eff",
+        "属于·Sample…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Tracking Effectiveness\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Tracking Effectiveness：An absolute lower bound on the sample rate is set by a specification to track a command input with a certain frequency…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Tracking E」、「Tracking E」、「属于·Sample…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-6bc695e4ba1784407e920056",
+      "batch": "B",
+      "name": "The time constant of",
+      "definition": "The time constant of：The time constant of the op-amp integrator, defined as the product of the input resistance and the feedback capacitance…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The time co…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: The time constant of\nSOURCE DEFINITION (fail-closed, do not invent beyond this): The time constant of：The time constant of the op-amp integrator, defined as the product of the input resistance and the feedback capacitance…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「The time c」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

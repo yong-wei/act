@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0029",
+  "offset": 145,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-18c55a9b153179a638ff5dc2",
+      "batch": "B",
+      "name": "Evaluating effec",
+      "definition": "Evaluating effec：Indicate on the figure where |KG(jω)|=1 for selected trial values of K without redrawing magnitude or phase information.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Evaluating …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Evaluating effec\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Evaluating effec：Indicate on the figure where |KG(jω)|=1 for selected trial values of K without redrawing magnitude or phase information.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Evaluating」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-241503a6440d96140036a51f",
+      "batch": "B",
+      "name": "anti-alias prefilter",
+      "definition": "anti-alias prefilter：An analog device designed to reduce the effects of aliasing, placed between the analog sensor and the A/D converter.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "anti-alias …",
+        "anti-alias p",
+        "用于分析·alia…",
+        "关联·A/D co…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: anti-alias prefilter\nSOURCE DEFINITION (fail-closed, do not invent beyond this): anti-alias prefilter：An analog device designed to reduce the effects of aliasing, placed between the analog sensor and the A/D converter.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「anti-alias」、「anti-alias」、「用于分析·alia…」、「关联·A/D co…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-31fd73d9e24d1077744bf193",
+      "batch": "B",
+      "name": "Root locus metho",
+      "definition": "Root locus metho：Adjusting the compensator zero so that the negative real part of the complex roots is zeta*omega_n=0.75, and determinin…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Root locus …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Root locus metho\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Root locus metho：Adjusting the compensator zero so that the negative real part of the complex roots is zeta*omega_n=0.75, and determinin…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Root locus」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-327cafd07ac8956536bab418",
+      "batch": "B",
+      "name": "Routh's method f",
+      "definition": "Routh's method f：Routh's method is useful for determining the range of parameters for which a feedback system remains stable, especially…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Routh's met…",
+        "用于分析·Stab…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Routh's method f\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Routh's method f：Routh's method is useful for determining the range of parameters for which a feedback system remains stable, especially…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Routh's me」、「用于分析·Stab…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-411b4330ef1d812cf20b125d",
+      "batch": "B",
+      "name": "Root-Locus Techn",
+      "definition": "Root-Locus Techn：A heuristic method that combines the root-locus technique with the observation that many nonlinear elements can be view…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Root-Locus …",
+        "用于分析·memo…",
+        "用于分析·Nonl…",
+        "应用于·Zero-…",
+        "派生自·根轨迹法",
+        "关联·Equiva…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Root-Locus Techn\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Root-Locus Techn：A heuristic method that combines the root-locus technique with the observation that many nonlinear elements can be view…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Root-Locus」、「用于分析·memo…」、「用于分析·Nonl…」、「应用于·Zero-…」、「派生自·根轨迹法」、「关联·Equiva…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

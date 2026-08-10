@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-4d4f55b60c7a23596a921468",
+  "safe_id": "ctkg_v3e-object-4d4f55b60c7a23596a921468",
+  "node": {
+    "name": "Zerodegree root locus",
+    "name_en": "Zerodegree root locus",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Zerodegree root locus：A root locus where the number of zeros equals the number of poles, resulting in no asymptotes.",
+  "intuition": "在图谱邻接中可把握：前置 → Nonminimum-Phase Compensator。",
+  "explanation": "A root locus where the number of zeros equals the number of poles, resulting in no asymptotes.",
+  "relation_head": "前置 → Nonminimum-Phase Compensator",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Nonminimum-Phase Compensator",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Zerodegree …",
+    "Zerodegree r",
+    "关联·Nonmin…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-4d4f55b60c7a23596a921468.md",
+  "provider_policy": "grok-image_gen"
+}

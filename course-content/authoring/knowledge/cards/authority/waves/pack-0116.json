@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0116",
+  "offset": 580,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-10392ceace3daf30af90f6e7",
+      "batch": "B",
+      "name": "迭代法",
+      "definition": "若已知差分方程，并且给定输出序列的初值，则可以利用递推关系，在计算机上一步一步地算出输出序列。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "迭代法",
+        "用于分析·线性定常…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 迭代法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 若已知差分方程，并且给定输出序列的初值，则可以利用递推关系，在计算机上一步一步地算出输出序列。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「迭代法」、「用于分析·线性定常…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1046498f1c5d17864ddaeb71",
+      "batch": "B",
+      "name": "等ω线映射",
+      "definition": "s平面上的等ω水平线映射到z平面上的轨迹是一簇从原点出发的射线，其相角∠z=ωT从正实轴计量。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "等ω线映射"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 等ω线映射\nSOURCE DEFINITION (fail-closed, do not invent beyond this): s平面上的等ω水平线映射到z平面上的轨迹是一簇从原点出发的射线，其相角∠z=ωT从正实轴计量。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「等ω线映射」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "batch": "B",
+      "name": "Integration compensator",
+      "definition": "Integration compensator：Integration compensator",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Integration…",
+        "Integration ",
+        "一种·Compen…",
+        "一种·Propor…",
+        "用于分析·根轨迹"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Integration compensator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Integration compensator：Integration compensator\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Integratio」、「Integratio」、「一种·Compen…」、「一种·Propor…」、「用于分析·根轨迹」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-27e0a7e37803fbebc1b6f65a",
+      "batch": "B",
+      "name": "对数幅相曲线",
+      "definition": "纵坐标为L(ω)（dB），横坐标为φ(ω)（度），均为线性分度，频率ω为参变量的频率特性曲线。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "对数幅相曲线"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 对数幅相曲线\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 纵坐标为L(ω)（dB），横坐标为φ(ω)（度），均为线性分度，频率ω为参变量的频率特性曲线。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「对数幅相曲线」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5e3ecb030d6a454633f0a09a",
+      "batch": "B",
+      "name": "内模控制器",
+      "definition": "一类校正控制器，通过在控制器中引入参考输入信号的内模，能以零稳态误差渐近跟踪各类参考输入信号。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "内模控制器",
+        "包含组件·内模",
+        "应用于·内模控制器…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 内模控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一类校正控制器，通过在控制器中引入参考输入信号的内模，能以零稳态误差渐近跟踪各类参考输入信号。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「内模控制器」、「包含组件·内模」、「应用于·内模控制器…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

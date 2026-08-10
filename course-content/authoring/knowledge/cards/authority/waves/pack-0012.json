@@ -1,0 +1,67 @@
+{
+  "pack_id": "P0012",
+  "offset": 60,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-d5d32667c2633ba60a243b36",
+      "batch": "B",
+      "name": "The initial conditions of",
+      "definition": "The initial conditions of：The initial conditions of the system can be represented by the initial conditions of the integrators, denoted as x1(0),…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The initial…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: The initial conditions of\nSOURCE DEFINITION (fail-closed, do not invent beyond this): The initial conditions of：The initial conditions of the system can be represented by the initial conditions of the integrators, denoted as x1(0),…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「The initia」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-e4b326508cc8d382de9da525",
+      "batch": "B",
+      "name": "When the numerator degree",
+      "definition": "When the numerator degree：When the numerator degree m is less than the denominator degree n, the transfer function approaches zero as s approache…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "When the nu…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: When the numerator degree\nSOURCE DEFINITION (fail-closed, do not invent beyond this): When the numerator degree：When the numerator degree m is less than the denominator degree n, the transfer function approaches zero as s approache…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「When the n」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-36f969bb5befa8ef9f8d0a99",
+      "batch": "B",
+      "name": "Frequency response method",
+      "definition": "Frequency response method：A method for designing compensators by altering the frequency response of the system as portrayed on Nyquist plot, Bode…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Frequency r…",
+        "用于分析·Comp…",
+        "应用于·Compe…",
+        "应用于·Frequ…",
+        "关联·Nyquis…",
+        "关联·Nichol…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Frequency response method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Frequency response method：A method for designing compensators by altering the frequency response of the system as portrayed on Nyquist plot, Bode…\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Frequency 」、「用于分析·Comp…」、「应用于·Compe…」、「应用于·Frequ…」、「关联·Nyquis…」、「关联·Nichol…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3ede6055b0d6c0cf75f44e89",
+      "batch": "B",
+      "name": "Natural unforced response",
+      "definition": "Natural unforced response：The part of the system response due to its own dynamics (poles), which decays to zero if all poles have negative real p…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Natural unf…",
+        "关联·Sinuso…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Natural unforced response\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Natural unforced response：The part of the system response due to its own dynamics (poles), which decays to zero if all poles have negative real p…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Natural un」、「关联·Sinuso…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-51398ddba323aa3beeb5d89a",
+      "batch": "B",
+      "name": "Zero-assignment estimator",
+      "definition": "Zero-assignment estimator：A configuration where M and N̄ are chosen so that n zeros of the overall transfer function are assigned at places of th…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Zero-assign…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Zero-assignment estimator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Zero-assignment estimator：A configuration where M and N̄ are chosen so that n zeros of the overall transfer function are assigned at places of th…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Zero-assig」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

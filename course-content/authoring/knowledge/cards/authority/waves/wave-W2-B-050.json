@@ -1,0 +1,687 @@
+{
+  "wave_id": "W2",
+  "batch": "B",
+  "title": "Batch B slice 2",
+  "offset": 50,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-597d8adce926a462905a0f63",
+      "entity_id": "ctc:modeling-597d8adce926a462905a0f63",
+      "name": "领域概念",
+      "name_en": "modeling_597d8adce926a462905a0f63",
+      "definition": "领域概念：An intermediate variable Z(s) introduced to rewrite a transfer function G(s) as a product of numerator and denominator…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-5da44f2fc98d268259459e04",
+      "entity_id": "ctc:modeling-5da44f2fc98d268259459e04",
+      "name": "impulse response",
+      "name_en": "impulse_response",
+      "definition": "impulse response：v3T accepted candidate for impulse response.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "impulse res…",
+        "impulse resp",
+        "一种·Natura…",
+        "关联·传递函数"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-5e62391de61ac1af304601cb",
+      "entity_id": "ctc:modeling-5e62391de61ac1af304601cb",
+      "name": "领域概念",
+      "name_en": "modeling_5e62391de61ac1af304601cb",
+      "definition": "领域概念：A unidirectional path segment in a signal-flow graph that relates the dependency of an input and an output variable.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-5f0178db5e9334312de23135",
+      "entity_id": "ctc:modeling-5f0178db5e9334312de23135",
+      "name": "求解离散动态方程的一种方法",
+      "name_en": "modeling_5f0178db5e9334312de23135",
+      "definition": "求解离散动态方程的一种方法，此处仅提及但未展开。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "求解离散动态方程的一种…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-63b5f9f3e52c50193ddb626f",
+      "entity_id": "ctc:modeling-63b5f9f3e52c50193ddb626f",
+      "name": "The roots of the",
+      "name_en": "modeling_63b5f9f3e52c50193ddb626f",
+      "definition": "The roots of the：The roots of the denominator of a transfer function that determine system stability and transient response.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The roots o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-697391470a76199a5aa695d7",
+      "entity_id": "ctc:modeling-697391470a76199a5aa695d7",
+      "name": "The determinant with the",
+      "name_en": "modeling_697391470a76199a5aa695d7",
+      "definition": "The determinant with the：The determinant Δ(s) with the loops that touch a given forward path removed.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The determi…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-6987c534ece89cf4c3586091",
+      "entity_id": "ctc:modeling-6987c534ece89cf4c3586091",
+      "name": "每一个输入量影响所有输出量",
+      "name_en": "modeling_6987c534ece89cf4c3586091",
+      "definition": "每一个输入量影响所有输出量，每一个输出量也受所有输入量影响的系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "每一个输入量影响所有输…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-6b165cbc25cc6e0afb6f4614",
+      "entity_id": "ctc:modeling-6b165cbc25cc6e0afb6f4614",
+      "name": "The rotational inertia of",
+      "name_en": "modeling_6b165cbc25cc6e0afb6f4614",
+      "definition": "The rotational inertia of：The rotational inertia of a point mass at distance l from the pivot, given by I = m l^2.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The rotatio…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-6ba251594a75698f1a092f8d",
+      "entity_id": "ctc:modeling-6ba251594a75698f1a092f8d",
+      "name": "系统的输入-输出描述",
+      "name_en": "modeling_6ba251594a75698f1a092f8d",
+      "definition": "系统的输入-输出描述，将系统看作黑箱，只反映外部变量间的因果关系。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统的输入-输出描述",
+        "关联·input"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-6bc695e4ba1784407e920056",
+      "entity_id": "ctc:modeling-6bc695e4ba1784407e920056",
+      "name": "The time constant of",
+      "name_en": "modeling_6bc695e4ba1784407e920056",
+      "definition": "The time constant of：The time constant of the op-amp integrator, defined as the product of the input resistance and the feedback capacitance…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The time co…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-6e03c54be64721caf66c75c5",
+      "entity_id": "ctc:modeling-6e03c54be64721caf66c75c5",
+      "name": "state space model",
+      "name_en": "state_space_model",
+      "definition": "state space model：v3T accepted candidate for state space model.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "state space…",
+        "state space ",
+        "用于分析·Lyap…",
+        "用于分析·李雅普诺…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-6ed1719a7e3ec5719fba4276",
+      "entity_id": "ctc:modeling-6ed1719a7e3ec5719fba4276",
+      "name": "An matrix in the",
+      "name_en": "modeling_6ed1719a7e3ec5719fba4276",
+      "definition": "An matrix in the：An n x n matrix in the state-variable form.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "An matrix i…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-70629af71e754aac8b740638",
+      "entity_id": "ctc:modeling-70629af71e754aac8b740638",
+      "name": "procedure to obtain set",
+      "name_en": "modeling_70629af71e754aac8b740638",
+      "definition": "procedure to obtain set：A procedure to obtain a set of linearized equations describing a nonlinear system by expanding the nonlinear functions…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "procedure t…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-70b08efcf6bb085e05de94cd",
+      "entity_id": "ctc:modeling-70b08efcf6bb085e05de94cd",
+      "name": "领域概念",
+      "name_en": "modeling_70b08efcf6bb085e05de94cd",
+      "definition": "领域概念：A method to approximate a nonlinear function g(x(t)) about an operating point x0 using a Taylor series expansion, negle…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-736212ccb3694d44a24fa358",
+      "entity_id": "ctc:modeling-736212ccb3694d44a24fa358",
+      "name": "output",
+      "name_en": "output",
+      "definition": "output：v3T accepted candidate for output.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "output"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-73858eee00fb3199420afaf9",
+      "entity_id": "ctc:modeling-73858eee00fb3199420afaf9",
+      "name": "Constant that relates the",
+      "name_en": "modeling_73858eee00fb3199420afaf9",
+      "definition": "Constant that relates the：Constant K_b that relates the back electromotive-force voltage to the angular speed of the motor: V_b(s) = K_b * omega(…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Constant th…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-745a1d21b416613f01958a3e",
+      "entity_id": "ctc:modeling-745a1d21b416613f01958a3e",
+      "name": "The ratio of the",
+      "name_en": "modeling_745a1d21b416613f01958a3e",
+      "definition": "The ratio of the：The ratio of the steady-state output of a system to a constant input, computed as the limit of the transfer function as…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The ratio o…",
+        "派生自·传递函数"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-7734a0845c335f160395bac0",
+      "entity_id": "ctc:modeling-7734a0845c335f160395bac0",
+      "name": "mathematical model",
+      "name_en": "mathematical_model",
+      "definition": "mathematical model：v3T accepted candidate for mathematical model.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "mathematica…",
+        "mathematical"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-7eda83cdbc9e753480c9189c",
+      "entity_id": "ctc:modeling-7eda83cdbc9e753480c9189c",
+      "name": "以n个状态变量作为基底所组成的…",
+      "name_en": "modeling_7eda83cdbc9e753480c9189c",
+      "definition": "以n个状态变量作为基底所组成的n维空间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "以n个状态变量作为基底…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-7ef5ce337a4ffe79fc6bc123",
+      "entity_id": "ctc:modeling-7ef5ce337a4ffe79fc6bc123",
+      "name": "领域概念",
+      "name_en": "modeling_7ef5ce337a4ffe79fc6bc123",
+      "definition": "领域概念：A branch or a continuous sequence of branches that can be traversed from one signal (node) to another signal (node).。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-80022cac122c3cd819ff4f51",
+      "entity_id": "ctc:modeling-80022cac122c3cd819ff4f51",
+      "name": "两相伺服电动机的转矩-速度特性…",
+      "name_en": "modeling_80022cac122c3cd819ff4f51",
+      "definition": "两相伺服电动机的转矩-速度特性曲线有负的斜率且呈非线性，通常把低速部分的线性段延伸到高速范围，用低速直线近似代替非线性特性，也可用小偏差线性化方法。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "两相伺服电动机的转矩-…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-8010502b57930c3dcb915af9",
+      "entity_id": "ctc:modeling-8010502b57930c3dcb915af9",
+      "name": "零点",
+      "name_en": "zero",
+      "definition": "零点：v3T accepted candidate for zero.。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "零点",
+        "zero",
+        "是一种·开环零点",
+        "一种·zeros",
+        "派生自·传递函数",
+        "关联·nonmin…",
+        "关联·angle …"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-865eb1c8824e157c2f05a903",
+      "entity_id": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "name": "传递函数",
+      "name_en": "transfer_function",
+      "definition": "传递函数：v3T accepted candidate for transfer function.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "传递函数",
+        "transfer fun",
+        "应用于·evans…",
+        "应用于·根轨迹法",
+        "派生自·在时间域描…",
+        "派生自·The r…",
+        "派生自·零点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-87e2a628713912440978a4ac",
+      "entity_id": "ctc:modeling-87e2a628713912440978a4ac",
+      "name": "system without component in",
+      "name_en": "modeling_87e2a628713912440978a4ac",
+      "definition": "system without component in：A system without a component in the feedback path, obtained by converting a general system through block-diagram algebr…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "system with…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-88b31a8b95da7d5a6fbcabbf",
+      "entity_id": "ctc:modeling-88b31a8b95da7d5a6fbcabbf",
+      "name": "Time constant of the",
+      "name_en": "modeling_88b31a8b95da7d5a6fbcabbf",
+      "definition": "Time constant of the：Time constant of the field circuit in a DC motor, defined as tau_f = L_f / R_f.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Time consta…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-88ca0516dba9ab8b7d08cf39",
+      "entity_id": "ctc:modeling-88ca0516dba9ab8b7d08cf39",
+      "name": "Time constant of the",
+      "name_en": "modeling_88ca0516dba9ab8b7d08cf39",
+      "definition": "Time constant of the：Time constant of the armature circuit in a DC motor, defined as tau_a = L_a / R_a.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Time consta…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-890515b8726faee2a75243f0",
+      "entity_id": "ctc:modeling-890515b8726faee2a75243f0",
+      "name": "general element with an",
+      "name_en": "modeling_890515b8726faee2a75243f0",
+      "definition": "general element with an：A general element with an excitation (through-) variable x(t) and a response (across-) variable y(t), where the relatio…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "general ele…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-892213909ed6f15a62b43309",
+      "entity_id": "ctc:modeling-892213909ed6f15a62b43309",
+      "name": "system whose output does",
+      "name_en": "modeling_892213909ed6f15a62b43309",
+      "definition": "system whose output does：A system whose output does not depend on future inputs",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "system whos…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-8a0ff75844bf161eeea3c542",
+      "entity_id": "ctc:modeling-8a0ff75844bf161eeea3c542",
+      "name": "set of state variables",
+      "name_en": "modeling_8a0ff75844bf161eeea3c542",
+      "definition": "set of state variables：A set of state variables \\(x_1(t), x_2(t), \\ldots, x_n(t)\\) that are the outputs of integrators in a chain, used in the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "set of stat…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "entity_id": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+      "name": "一个由反馈闭合的整体",
+      "name_en": "modeling_8aa475ed6514adc11f9b5c8d",
+      "definition": "由一些相互制约的部分构成的整体，可能是一个由反馈闭合的整体，也可能是某一控制装置或被控对象。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一个由反馈闭合的整体"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-8bf044c43e3936166dff5b1c",
+      "entity_id": "ctc:modeling-8bf044c43e3936166dff5b1c",
+      "name": "领域概念",
+      "name_en": "modeling_8bf044c43e3936166dff5b1c",
+      "definition": "领域概念：A feedback configuration where the feedback signal is subtracted from the input at the summing junction.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-8c8d6e7cf3e42a3cfc970dcb",
+      "entity_id": "ctc:modeling-8c8d6e7cf3e42a3cfc970dcb",
+      "name": "system with several input",
+      "name_en": "modeling_8c8d6e7cf3e42a3cfc970dcb",
+      "definition": "system with several input：A system with several input and output signals.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "system with…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-8d3c115cdb81c364733e1e43",
+      "entity_id": "ctc:modeling-8d3c115cdb81c364733e1e43",
+      "name": "The frequency of undamped",
+      "name_en": "modeling_8d3c115cdb81c364733e1e43",
+      "definition": "The frequency of undamped：The frequency of undamped natural oscillation for a linearized pendulum, given by ω_n = sqrt(g/l).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The frequen…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-8da5f6b9e31ffc9cd7f99f2b",
+      "entity_id": "ctc:modeling-8da5f6b9e31ffc9cd7f99f2b",
+      "name": "将严格有理真分式N(s)/D(…",
+      "name_en": "modeling_8da5f6b9e31ffc9cd7f99f2b",
+      "definition": "将严格有理真分式N(s)/D(s)串联分解为两部分，选取状态变量为 x1=z, x2=dz/dt, ..., xn=z^(n-1)，其中z为中间变量。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "将严格有理真分式N(s…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-8e366031873dad8735f0502c",
+      "entity_id": "ctc:modeling-8e366031873dad8735f0502c",
+      "name": "由网络输入电压产生的输出分量",
+      "name_en": "modeling_8e366031873dad8735f0502c",
+      "definition": "由网络输入电压产生的输出分量，与初始条件无关。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "由网络输入电压产生的输…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-9121dc2c97afa77f52ce0220",
+      "entity_id": "ctc:modeling-9121dc2c97afa77f52ce0220",
+      "name": "signal flow graph",
+      "name_en": "signal_flow_graph",
+      "definition": "signal flow graph：v3T accepted candidate for signal flow graph.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "signal flow…",
+        "signal flow ",
+        "属于·forwar…",
+        "属于·loop",
+        "包含组件·只有输入…",
+        "应用于·formu…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-91ba2fdc8dde496250e3fd3a",
+      "entity_id": "ctc:modeling-91ba2fdc8dde496250e3fd3a",
+      "name": "领域概念",
+      "name_en": "modeling_91ba2fdc8dde496250e3fd3a",
+      "definition": "领域概念：The transfer function H(jω) expressed in magnitude-and-phase form as H(jω)=M(ω)e^{jφ(ω)}.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-921bc3037657731382363bae",
+      "entity_id": "ctc:modeling-921bc3037657731382363bae",
+      "name": "The natural or unforced",
+      "name_en": "modeling_921bc3037657731382363bae",
+      "definition": "The natural or unforced：The natural or unforced behavior of the system, determined by the poles of the system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The natural…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-92585a5a20a461e4bd471802",
+      "entity_id": "ctc:modeling-92585a5a20a461e4bd471802",
+      "name": "领域概念",
+      "name_en": "modeling_92585a5a20a461e4bd471802",
+      "definition": "领域概念：Techniques for reducing a block diagram representation of a given system to a simplified block diagram with fewer block…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-92c8c5f262eab442578925e6",
+      "entity_id": "ctc:modeling-92c8c5f262eab442578925e6",
+      "name": "K1",
+      "name_en": "modeling_92c8c5f262eab442578925e6",
+      "definition": "电位器电刷单位角位移对应的输出电压，记为K1，等于电源电压E与最大工作角度θ_max的比值。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-930ada7e5567a735a2feadc9",
+      "entity_id": "ctc:modeling-930ada7e5567a735a2feadc9",
+      "name": "block diagram",
+      "name_en": "block_diagram",
+      "definition": "block diagram：v3T accepted candidate for block diagram.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "block diagr…",
+        "block diagra",
+        "应用于·block…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-9496aabdf225c6359c6ca1cc",
+      "entity_id": "ctc:modeling-9496aabdf225c6359c6ca1cc",
+      "name": "feedback loop where the",
+      "name_en": "modeling_9496aabdf225c6359c6ca1cc",
+      "definition": "feedback loop where the：A feedback loop where the feedback signal is added (positive) rather than subtracted, resulting in a plus sign in the d…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "feedback lo…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-96baafc3f8054624b245801f",
+      "entity_id": "ctc:modeling-96baafc3f8054624b245801f",
+      "name": "纯延迟时间",
+      "name_en": "modeling_96baafc3f8054624b245801f",
+      "definition": "调节阀开度变化所引起的流入量变化需要经过一段传输时间才能对液位产生影响，该时间称为纯延迟时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "纯延迟时间"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-973bf20855fa91de0e571199",
+      "entity_id": "ctc:modeling-973bf20855fa91de0e571199",
+      "name": "The voltage across an",
+      "name_en": "modeling_973bf20855fa91de0e571199",
+      "definition": "The voltage across an：The voltage across an inductor is proportional to the rate of change of current through it, v = L di/dt.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The voltage…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-987e08a63a394f1a848101dc",
+      "entity_id": "ctc:modeling-987e08a63a394f1a848101dc",
+      "name": "只有输入支路而没有输出支路的节点",
+      "name_en": "modeling_987e08a63a394f1a848101dc",
+      "definition": "只有输入支路而没有输出支路的节点，一般代表系统的输出变量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "只有输入支路而没有输出…",
+        "包含组件·sign…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-9b8a43928af77103270d5f9c",
+      "entity_id": "ctc:modeling-9b8a43928af77103270d5f9c",
+      "name": "nontouching loops",
+      "name_en": "nontouching_loops",
+      "definition": "nontouching loops：v3T accepted candidate for nontouching loops.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "nontouching…",
+        "nontouching "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-9ba52fe3ff16aed315b747c8",
+      "entity_id": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+      "name": "mathematical tool used to",
+      "name_en": "modeling_9ba52fe3ff16aed315b747c8",
+      "definition": "mathematical tool used to：A mathematical tool used to simplify the solution of linearized differential equations.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "mathematica…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-9c45067d35487ce7a3ce6871",
+      "entity_id": "ctc:modeling-9c45067d35487ce7a3ce6871",
+      "name": "The voltage across resistor",
+      "name_en": "modeling_9c45067d35487ce7a3ce6871",
+      "definition": "The voltage across resistor：The voltage across a resistor is proportional to the current through it, v = Ri.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The voltage…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-9ed0a45a858cba840a8775a3",
+      "entity_id": "ctc:modeling-9ed0a45a858cba840a8775a3",
+      "name": "在控制系统中广泛用作执行机构",
+      "name_en": "modeling_9ed0a45a858cba840a8775a3",
+      "definition": "在控制系统中广泛用作执行机构，用来对被控对象的机械运动实现快速控制。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "在控制系统中广泛用作执…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-a0578e35574b6bf2399d6a93",
+      "entity_id": "ctc:modeling-a0578e35574b6bf2399d6a93",
+      "name": "Two loops that share",
+      "name_en": "modeling_a0578e35574b6bf2399d6a93",
+      "definition": "Two loops that share：Two loops that share one or more common nodes.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Two loops t…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0087",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-27f13707df83e3cfd476ba33",
+      "name": "Sampled data",
+      "definition": "Sampled data：Data obtained for the system variables only at discrete intervals."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2be71df1c8c0152ac5f69c1b",
+      "name": "Steady-state tracking error",
+      "definition": "Steady-state tracking error：The error between the output and the reference input after transients have died out."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2c4bb4e99c2a8a48b91e625a",
+      "name": "random-access memory (RAM)",
+      "definition": "random-access memory (RAM)：random-access memory (RAM)"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2e2707d377000d69ac75b508",
+      "name": "幅相频率特性曲线",
+      "definition": "以横轴为实轴、纵轴为虚轴构成的复数平面上，以频率ω为参变量绘制的频率特性曲线。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2e91a0da0c74ca85ce8f952b",
+      "name": "Determining PM from Bode plot",
+      "definition": "Determining PM from Bode plot：Measure angle of G(jω) as it crosses the magnitude=1 circle."
+    }
+  ],
+  "created_at": "2026-08-05T16:27:22.627938+00:00"
+}

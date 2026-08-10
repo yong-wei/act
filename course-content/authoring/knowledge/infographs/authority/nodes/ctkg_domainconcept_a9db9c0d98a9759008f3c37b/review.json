@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:27:41+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:a9db9c0d98a9759008f3c37b",
+  "safe_id": "ctkg_domainconcept_a9db9c0d98a9759008f3c37b",
+  "node_name": "题7-17闭环离散系统模型",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1162-1166"
+}

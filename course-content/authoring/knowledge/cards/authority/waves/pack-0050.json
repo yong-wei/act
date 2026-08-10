@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0050",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-ed01c7b027040e58ad92fa35",
+      "name": "线性定常离散系统",
+      "definition": "输入与输出关系不随时间而改变的线性离散系统，称为线性定常离散系统。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "name": "校正装置",
+      "definition": "如果通过调整放大器增益后仍然不能全面满足设计要求的性能指标，就需要在系统中增加一些参数及特性可按需要改变的校正装置，使系统性能全面满足设计要求。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fb46cb0e4c4a87cac57dc14f",
+      "name": "A/D converter",
+      "definition": "A/D converter：A device to sample the continuous signal voltage from the sensor and to convert that signal to a digital word."
+    },
+    {
+      "safe_id": "ctc_modeling-9121dc2c97afa77f52ce0220",
+      "name": "signal flow graph",
+      "definition": "signal flow graph：v3T accepted candidate for signal flow graph."
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-137c2c4e6fd2c142416cd412",
+      "name": "动态性能指标",
+      "definition": "描述稳定的系统在单位阶跃函数作用下，动态过程随时间 t 的变化状况的指标。"
+    }
+  ],
+  "created_at": "2026-08-05T15:37:55.469036+00:00"
+}

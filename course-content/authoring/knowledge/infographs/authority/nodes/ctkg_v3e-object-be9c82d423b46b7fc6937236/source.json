@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+  "safe_id": "ctkg_v3e-object-be9c82d423b46b7fc6937236",
+  "node": {
+    "name": "对数频率特性曲线",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "由对数幅频曲线和对数相频曲线组成，横坐标按lgω分度，纵坐标分别为20lg|G(jω)|（dB）和φ(ω)（度）。",
+  "intuition": "在图谱邻接中可把握：后续 → 对数频率特性曲线绘制方法。",
+  "explanation": "由对数幅频曲线和对数相频曲线组成，横坐标按lgω分度，纵坐标分别为20lg|G(jω)|（dB）和φ(ω)（度）。",
+  "relation_head": "后续 → 对数频率特性曲线绘制方法",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "对数频率特性曲线绘制方法",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "对数频率特性曲线",
+    "关联·对数频率特性…"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-be9c82d423b46b7fc6937236.md",
+  "provider_policy": "grok-image_gen"
+}

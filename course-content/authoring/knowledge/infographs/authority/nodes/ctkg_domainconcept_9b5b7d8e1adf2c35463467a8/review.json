@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:01:53+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:9b5b7d8e1adf2c35463467a8",
+  "safe_id": "ctkg_domainconcept_9b5b7d8e1adf2c35463467a8",
+  "node_name": "Unit circle in z-plane",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-C vision-mapped accept (开环脉冲TF/单位圆/z根轨迹/正弦/终值定理)"
+}

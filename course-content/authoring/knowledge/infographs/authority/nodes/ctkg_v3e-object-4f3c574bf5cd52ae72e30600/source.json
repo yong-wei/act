@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+  "safe_id": "ctkg_v3e-object-4f3c574bf5cd52ae72e30600",
+  "node": {
+    "name": "Describing Function",
+    "name_en": "Describing Function",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Describing Function：A frequency-dependent equivalent gain used to approximate the behavior of a nonlinear element under sinusoidal excitati…",
+  "intuition": "在图谱邻接中可把握：前置 → Nonlinear Element with Sinusoidal Input · 后续 → Describing Function Method、Limit Cycle、Nonlinear Element with Sinusoidal Input。",
+  "explanation": "A frequency-dependent equivalent gain used to approximate the behavior of a nonlinear element under sinusoidal excitation, defined as the ratio of the fundamental component of the output to the amplitude of the sinusoidal input.",
+  "relation_head": "前置 → Nonlinear Element with Sinusoidal Input · 后续 → Describing Function Method、Limit Cycle、Nonlinear Element with Sinusoidal Input",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Describing Function Method",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Limit Cycle",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Nonlinear Element with Sinusoidal Input",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Nonlinear Element with Sinusoidal Input",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Describing …",
+    "Describing F",
+    "属于·Descri…",
+    "用于分析·Limi…",
+    "应用于·Nonli…",
+    "关联·Nonlin…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-4f3c574bf5cd52ae72e30600.md",
+  "provider_policy": "grok-image_gen"
+}

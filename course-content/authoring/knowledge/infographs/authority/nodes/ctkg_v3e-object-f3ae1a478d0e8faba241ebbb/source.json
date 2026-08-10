@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-f3ae1a478d0e8faba241ebbb",
+  "safe_id": "ctkg_v3e-object-f3ae1a478d0e8faba241ebbb",
+  "node": {
+    "name": "preloaded spring",
+    "name_en": "preloaded spring",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "preloaded spring：preloaded spring",
+  "intuition": null,
+  "explanation": "preloaded spring",
+  "relation_head": "前置 → coulomb plus viscous friction · 后续 → memoryless nonlinearity",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "memoryless nonlinearity",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "coulomb plus viscous friction",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "preloaded s…",
+    "preloaded sp",
+    "一种·memory…",
+    "关联·coulom…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f3ae1a478d0e8faba241ebbb.md",
+  "provider_policy": "grok-image_gen"
+}

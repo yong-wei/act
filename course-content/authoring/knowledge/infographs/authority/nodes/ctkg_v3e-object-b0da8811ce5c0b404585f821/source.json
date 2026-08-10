@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+  "safe_id": "ctkg_v3e-object-b0da8811ce5c0b404585f821",
+  "node": {
+    "name": "Stability boundary",
+    "name_en": "Stability boundary",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Stability boundary：The jω axis is the stability boundary between asymptotically stable and unstable response.",
+  "intuition": "在图谱邻接中可把握：后续 → Neutral Stability。",
+  "explanation": "The jω axis is the stability boundary between asymptotically stable and unstable response.",
+  "relation_head": "后续 → Neutral Stability",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Neutral Stability",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Stability b…",
+    "Stability bo",
+    "关联·Neutra…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b0da8811ce5c0b404585f821.md",
+  "provider_policy": "grok-image_gen"
+}

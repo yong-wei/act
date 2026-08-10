@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:26:26+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:98fd8fbe7aa3340c7fe6bc08",
+  "safe_id": "ctkg_domainconcept_98fd8fbe7aa3340c7fe6bc08",
+  "node_name": "Root locus plot ",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1152-1156"
+}

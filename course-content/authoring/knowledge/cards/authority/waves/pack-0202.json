@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0202",
+  "offset": 1010,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "batch": "C",
+      "name": "单位脉冲函数",
+      "definition": "单位脉冲函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位脉冲函数",
+        "包含组件·典型输入…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 单位脉冲函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 单位脉冲函数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「单位脉冲函数」、「包含组件·典型输入…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-271dc725adcf9cbd115e003f",
+      "batch": "C",
+      "name": "误差采样控制",
+      "definition": "误差采样控制。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "误差采样控制",
+        "是一种·采样控制系统",
+        "包含组件·采样控制…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 误差采样控制\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 误差采样控制。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「误差采样控制」、「是一种·采样控制系统」、「包含组件·采样控制…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-62869ccc95b976e198517c73",
+      "batch": "C",
+      "name": "复合控制信号",
+      "definition": "复合控制信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "复合控制信号",
+        "包含组件·PWM放…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 复合控制信号\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 复合控制信号。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「复合控制信号」、「包含组件·PWM放…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-78aceee1453c8c629dcfdd7e",
+      "batch": "C",
+      "name": "低速爬行现象",
+      "definition": "低速爬行现象。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "低速爬行现象",
+        "关联·摩擦特性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 低速爬行现象\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 低速爬行现象。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「低速爬行现象」、「关联·摩擦特性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-828de2183a73570e15acd937",
+      "batch": "C",
+      "name": "PWM放大器",
+      "definition": "PWM放大器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PWM放大器",
+        "包含组件·复合控制…",
+        "关联·前馈信号"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: PWM放大器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): PWM放大器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「PWM放大器」、「包含组件·复合控制…」、「关联·前馈信号」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5856b2f2fd4c962c52631609",
+  "safe_id": "ctkg_v3e-object-5856b2f2fd4c962c52631609",
+  "node": {
+    "name": "阻尼比",
+    "name_en": "Damping ratio",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "阻尼比：The overshoot to a step input can be related to M_pω through the damping ratio ζ.。",
+  "intuition": "在图谱邻接中可把握：前置 → Resonant peak · 后续 → Resonant frequency、Resonant magnitude。",
+  "explanation": "The overshoot to a step input can be related to M_pω through the damping ratio ζ.",
+  "relation_head": "前置 → Resonant peak · 后续 → Resonant frequency、Resonant magnitude",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Resonant peak",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Resonant frequency",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Resonant magnitude",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "阻尼比",
+    "Damping rati",
+    "关联·Resona…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5856b2f2fd4c962c52631609.md",
+  "provider_policy": "grok-image_gen"
+}

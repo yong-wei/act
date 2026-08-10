@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0103",
+  "offset": 515,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-401d4e9068e3907ca0e6ccc5",
+      "batch": "B",
+      "name": "Using tzero to c",
+      "definition": "Using tzero to c：Using tzero to compute transmission zeros",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Using tzero…",
+        "用于分析·Tran…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Using tzero to c\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Using tzero to c：Using tzero to compute transmission zeros\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Using tzer」、「用于分析·Tran…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-69529eb08c9279e8b19dc4f6",
+      "batch": "B",
+      "name": "交接频率",
+      "definition": "惯性环节的对数幅频渐近特性曲线低频部分和高频部分两条直线交于 ω=1/T 处，称频率 1/T 为惯性环节的交接频率。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "交接频率",
+        "属于·对数幅频渐近…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 交接频率\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 惯性环节的对数幅频渐近特性曲线低频部分和高频部分两条直线交于 ω=1/T 处，称频率 1/T 为惯性环节的交接频率。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「交接频率」、「属于·对数幅频渐近…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8f93b6b3842cc39fa81d8bc1",
+      "batch": "B",
+      "name": "主要带与次要带",
+      "definition": "s平面上从-ωs/2到ωs/2的周期带称为主要带，其余周期带称为次要带，均映射到z平面上的单位圆及单位圆内的负实轴。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "主要带与次要带",
+        "属于·s平面到z平…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 主要带与次要带\nSOURCE DEFINITION (fail-closed, do not invent beyond this): s平面上从-ωs/2到ωs/2的周期带称为主要带，其余周期带称为次要带，均映射到z平面上的单位圆及单位圆内的负实轴。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「主要带与次要带」、「属于·s平面到z平…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1170a798229324f8a6276262",
+      "batch": "B",
+      "name": "不可变部分",
+      "definition": "由被控对象、执行元件、测量变送元件、前置放大器与功率放大器等初步选定的元件构成，是系统中参数和特性固定不变的部分。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "不可变部分"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 不可变部分\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由被控对象、执行元件、测量变送元件、前置放大器与功率放大器等初步选定的元件构成，是系统中参数和特性固定不变的部分。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「不可变部分」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1405f7f72c012a10e7cf60bc",
+      "batch": "B",
+      "name": "Nonminimum-Phase Compensator",
+      "definition": "Nonminimum-Phase Compensator：Nonminimum-Phase Compensator",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Nonminimum-…",
+        "关联·Zerode…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Nonminimum-Phase Compensator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Nonminimum-Phase Compensator：Nonminimum-Phase Compensator\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Nonminimum」、「关联·Zerode…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

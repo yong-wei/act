@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T12:00:01+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-c0359c7c7e3a044d422b43d4",
+  "safe_id": "ctc_modeling-c0359c7c7e3a044d422b43d4",
+  "node_name": "将微分方程或积分方程通过拉氏变…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch13 A accept"
+}

@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0098",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-9b3052d4d15a96d495d8e6f5",
+      "name": "积分控制规律",
+      "definition": "具有积分控制规律的控制器，称为I控制器，其输出信号u(t)与其输入信号e(t)的积分成正比。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "name": "w变换（双线性变换）",
+      "definition": "将z平面上的单位圆内区域映射成w平面上的左半平面的线性变换，变换公式为z=(w+1)/(w-1)或w=(z+1)/(z-1)。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a4bbf36e5da58c0e926d8829",
+      "name": "比例-积分控制规律",
+      "definition": "具有比例-积分控制规律的控制器，称PI控制器，其输出信号u(t)同时成比例地反映输入信号e(t)及其积分。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a5bc9701adc27b91f6da074b",
+      "name": "First column of Routh array",
+      "definition": "First column of Routh array：First column of Routh array"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ade57f97833b42fe6394301d",
+      "name": "否成立",
+      "definition": "对矩阵A的所有特征值检验rank[λI-A B]=n是否成立。"
+    }
+  ],
+  "created_at": "2026-08-05T16:44:24.912720+00:00"
+}

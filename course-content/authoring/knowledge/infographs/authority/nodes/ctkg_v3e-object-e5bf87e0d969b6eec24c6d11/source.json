@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-e5bf87e0d969b6eec24c6d11",
+  "safe_id": "ctkg_v3e-object-e5bf87e0d969b6eec24c6d11",
+  "node": {
+    "name": "DSP chips",
+    "name_en": "DSP chips",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "DSP chips：Computers originally designed for digital signal-processing applications, giving the control designer full freedom to i…",
+  "intuition": null,
+  "explanation": "Computers originally designed for digital signal-processing applications, giving the control designer full freedom to implement computationally advanced control schemes at high sample rates on the order of MHz.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "DSP chips"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e5bf87e0d969b6eec24c6d11.md",
+  "provider_policy": "grok-image_gen"
+}

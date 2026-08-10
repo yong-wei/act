@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+  "safe_id": "ctkg_v3e-object-9b795692bacd0f13270cc086",
+  "node": {
+    "name": "秩判据",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "线性定常连续系统完全可控的充分必要条件是 rank[B AB ... A^{n-1}B] = n，其中 n 为矩阵 A 的维数。",
+  "intuition": "在图谱邻接中可把握：后续 → 可控性判别阵、系统完全可控。",
+  "explanation": "线性定常连续系统完全可控的充分必要条件是 rank[B AB ... A^{n-1}B] = n，其中 n 为矩阵 A 的维数。",
+  "relation_head": "后续 → 可控性判别阵、系统完全可控",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "可控性判别阵",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "系统完全可控",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "秩判据",
+    "包含组件·可控性判…",
+    "包含组件·系统完全…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-9b795692bacd0f13270cc086.md",
+  "provider_policy": "grok-image_gen"
+}

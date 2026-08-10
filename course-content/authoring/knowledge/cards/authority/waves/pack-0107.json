@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0107",
+  "offset": 535,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-7f8322d930ad015c80e143ed",
+      "batch": "B",
+      "name": "Digital-to-analog converter",
+      "definition": "Digital-to-analog converter：Digital-to-analog converter",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital-to-…",
+        "属于·Sample…",
+        "关联·Contin…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Digital-to-analog converter\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Digital-to-analog converter：Digital-to-analog converter\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Digital-to」、「属于·Sample…」、「关联·Contin…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-905e09b9921961a6115e4603",
+      "batch": "B",
+      "name": "Conditionally Stable System",
+      "definition": "Conditionally Stable System：Conditionally Stable System",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Conditional…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Conditionally Stable System\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Conditionally Stable System：Conditionally Stable System\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Conditiona」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-938404536c1bcf749b8cda6d",
+      "batch": "B",
+      "name": "格拉姆矩阵判据 (Gramia…",
+      "definition": "格拉姆矩阵判据 (Gramian matrix criterion for controllability)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "格拉姆矩阵判据 (Gr…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 格拉姆矩阵判据 (Gramia…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 格拉姆矩阵判据 (Gramian matrix criterion for controllability)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「格拉姆矩阵判据 (G」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a5bc9701adc27b91f6da074b",
+      "batch": "B",
+      "name": "First column of Routh array",
+      "definition": "First column of Routh array：First column of Routh array",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "First colum…",
+        "属于·Routh …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: First column of Routh array\nSOURCE DEFINITION (fail-closed, do not invent beyond this): First column of Routh array：First column of Routh array\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「First colu」、「属于·Routh …」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1b7b0dc48c95ff419467dd86",
+      "batch": "B",
+      "name": "模拟信号",
+      "definition": "测量元件、执行元件和被控对象是模拟元件，其输入和输出是连续信号，即时间上和幅值上都连续的信号，称为模拟信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "模拟信号",
+        "是一种·阶梯信号",
+        "包含组件·采样控制…",
+        "包含组件·数字控制…",
+        "关联·采样过程",
+        "关联·A/D转换器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 模拟信号\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 测量元件、执行元件和被控对象是模拟元件，其输入和输出是连续信号，即时间上和幅值上都连续的信号，称为模拟信号。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「模拟信号」、「是一种·阶梯信号」、「包含组件·采样控制…」、「包含组件·数字控制…」、「关联·采样过程」、「关联·A/D转换器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+  "safe_id": "ctkg_v3e-object-16f7c2fa5fc07204ca43c086",
+  "node": {
+    "name": "PID控制器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "由比例单元、微分单元和积分单元组合而成的有源串联校正装置，可以实现各种要求的控制规律，在工业自动化设备中经常采用。",
+  "intuition": "在图谱邻接中可把握：后续 → 校正装置、比例系数、微分时间常数。",
+  "explanation": "由比例单元、微分单元和积分单元组合而成的有源串联校正装置，可以实现各种要求的控制规律，在工业自动化设备中经常采用。",
+  "relation_head": "后续 → 校正装置、比例系数、微分时间常数",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "校正装置",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "比例系数",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "微分时间常数",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "积分时间常数",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "PID控制器",
+    "是一种·校正装置",
+    "包含组件·比例系数",
+    "包含组件·微分时间…",
+    "包含组件·积分时间…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-16f7c2fa5fc07204ca43c086.md",
+  "provider_policy": "grok-image_gen"
+}

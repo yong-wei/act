@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-cd450f490c2d0e12795560a9",
+  "safe_id": "ctc_modeling-cd450f490c2d0e12795560a9",
+  "node": {
+    "name": "K1",
+    "name_en": "modeling_cd450f490c2d0e12795560a9",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "电位器电刷单位角位移对应的输出电压，记为K1，等于电源电压E与最大工作角度θ_max的比值。",
+  "intuition": null,
+  "explanation": "电位器电刷单位角位移对应的输出电压，记为K1，等于电源电压E与最大工作角度θ_max的比值。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-cd450f490c2d0e12795560a9.md",
+  "provider_policy": "grok-image_gen"
+}

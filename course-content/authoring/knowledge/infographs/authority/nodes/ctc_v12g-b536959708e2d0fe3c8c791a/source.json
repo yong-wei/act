@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v12g-b536959708e2d0fe3c8c791a",
+  "safe_id": "ctc_v12g-b536959708e2d0fe3c8c791a",
+  "node": {
+    "name": "自然频率",
+    "name_en": "natural_frequency",
+    "concept_kind": "performance_metric",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "自然频率：The natural frequency is denoted by ω_n and appears in the characteristic equation Δ(s)=s^2+2ζω_n s+ω_n^2=0. It is also…",
+  "intuition": null,
+  "explanation": "The natural frequency is denoted by ω_n and appears in the characteristic equation Δ(s)=s^2+2ζω_n s+ω_n^2=0. It is also used in the expression for the roots s_1,s_2=-ζω_n±ω_n√(ζ^2-1).",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "自然频率",
+    "natural freq"
+  ],
+  "visual_archetype": "工程评审板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v12g-b536959708e2d0fe3c8c791a.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7055a0e2be50abb18ea92c6a",
+  "safe_id": "ctkg_v3e-object-7055a0e2be50abb18ea92c6a",
+  "node": {
+    "name": "Decibel (dB)",
+    "name_en": "Decibel (dB)",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Decibel (dB)：A unit of power gain, defined as 1/10 of a bel, used in Bode plots to express magnitude ratios on a logarithmic scale.",
+  "intuition": "在图谱邻接中可把握：后续 → Bel、Decibel。",
+  "explanation": "A unit of power gain, defined as 1/10 of a bel, used in Bode plots to express magnitude ratios on a logarithmic scale.",
+  "relation_head": "后续 → Bel、Decibel",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Bel",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Bel",
+      "relation": "派生自"
+    },
+    {
+      "direction": "后续",
+      "peer": "Decibel",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Bel",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Decibel (dB)",
+    "属于·Bel",
+    "派生自·Bel",
+    "关联·Decibel",
+    "关联·Bel"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7055a0e2be50abb18ea92c6a.md",
+  "provider_policy": "grok-image_gen"
+}

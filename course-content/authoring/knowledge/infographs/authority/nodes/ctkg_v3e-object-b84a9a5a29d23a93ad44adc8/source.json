@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+  "safe_id": "ctkg_v3e-object-b84a9a5a29d23a93ad44adc8",
+  "node": {
+    "name": "Integral Control",
+    "name_en": "Integral Control",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Integral Control：An ad hoc solution to integral control by augmenting the state vector with the integrator dynamics.",
+  "intuition": null,
+  "explanation": "An ad hoc solution to integral control by augmenting the state vector with the integrator dynamics.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Integral Co…",
+    "Integral Con"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b84a9a5a29d23a93ad44adc8.md",
+  "provider_policy": "grok-image_gen"
+}

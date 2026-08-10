@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0115",
+  "offset": 575,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+      "batch": "B",
+      "name": "谐振频率",
+      "definition": "振荡环节幅频特性出现峰值时所对应的频率，ω_r = ω_n √(1-2ζ²)，0<ζ≤√2/2。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "谐振频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 谐振频率\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 振荡环节幅频特性出现峰值时所对应的频率，ω_r = ω_n √(1-2ζ²)，0<ζ≤√2/2。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「谐振频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-302e66995736fab70bde0338",
+      "batch": "B",
+      "name": "构造可观测性矩阵V=[C",
+      "definition": "构造可观测性矩阵V=[C; CA; ...; CA^{n-1}]，检验rank V=n是否成立。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "构造可观测性矩阵V=[C"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 构造可观测性矩阵V=[C\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 构造可观测性矩阵V=[C; CA; ...; CA^{n-1}]，检验rank V=n是否成立。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「构造可观测性矩阵V=」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e9769878ab175b13dde19719",
+      "batch": "B",
+      "name": "分度系数",
+      "definition": "对于无源超前网络，a=(R1+R2)/R2>1；对于无源滞后网络，b=R2/(R1+R2)<1。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "分度系数",
+        "关联·滞后深度"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 分度系数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 对于无源超前网络，a=(R1+R2)/R2>1；对于无源滞后网络，b=R2/(R1+R2)<1。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「分度系数」、「关联·滞后深度」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-96baafc3f8054624b245801f",
+      "batch": "B",
+      "name": "纯延迟时间",
+      "definition": "调节阀开度变化所引起的流入量变化需要经过一段传输时间才能对液位产生影响，该时间称为纯延迟时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "纯延迟时间"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 纯延迟时间\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 调节阀开度变化所引起的流入量变化需要经过一段传输时间才能对液位产生影响，该时间称为纯延迟时间。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「纯延迟时间」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "batch": "B",
+      "name": "Hysteresis Nonlinearity",
+      "definition": "Hysteresis Nonlinearity：Hysteresis Nonlinearity",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Hysteresis …",
+        "Hysteresis N",
+        "一种·Schmit…",
+        "关联·Schmit…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Hysteresis Nonlinearity\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Hysteresis Nonlinearity：Hysteresis Nonlinearity\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Hysteresis」、「Hysteresis」、「一种·Schmit…」、「关联·Schmit…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

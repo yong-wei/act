@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-35264ec175b811e30fa55aab",
+  "safe_id": "ctkg_v3e-object-35264ec175b811e30fa55aab",
+  "node": {
+    "name": "Method 2: Using ",
+    "name_en": "Method 2: Using tracking error as compensator input",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Method 2: Using ：Select N=0 and M=-L so that the observer is driven by the tracking error y(t)-r(t).",
+  "intuition": "在图谱邻接中可把握：后续 → Tracking error。",
+  "explanation": "Select N=0 and M=-L so that the observer is driven by the tracking error y(t)-r(t).",
+  "relation_head": "后续 → Tracking error",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Tracking error",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "Tracking error",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Method 2",
+    "包含组件·Trac…",
+    "应用于·Track…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-35264ec175b811e30fa55aab.md",
+  "provider_policy": "grok-image_gen"
+}

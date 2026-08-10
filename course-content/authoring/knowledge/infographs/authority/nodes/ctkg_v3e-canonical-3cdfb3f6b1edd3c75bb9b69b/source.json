@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+  "safe_id": "ctkg_v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+  "node": {
+    "name": "测速反馈控制",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "通过将输出的速度信号反馈到系统输入端，并与误差信号比较，其效果与比例-微分控制相似，可以增大系统阻尼，改善系统动态性能。",
+  "intuition": "在图谱邻接中可把握：后续 → 阻尼比。",
+  "explanation": "通过将输出的速度信号反馈到系统输入端，并与误差信号比较，其效果与比例-微分控制相似，可以增大系统阻尼，改善系统动态性能。",
+  "relation_head": "后续 → 阻尼比",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "阻尼比",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "测速反馈控制",
+    "关联·阻尼比"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-3cdfb3f6b1edd3c75bb9b69b.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-991f1cc82c973b44856c40f1",
+  "safe_id": "ctc_v11g-991f1cc82c973b44856c40f1",
+  "node": {
+    "name": "angle of arrival",
+    "name_en": "angle_of_arrival",
+    "concept_kind": "mathematical_object",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "angle of arrival：The angle at which a locus arrives at a complex zero in the s-plane.",
+  "intuition": "在图谱邻接中可把握：后续 → 零点。",
+  "explanation": "The angle at which a locus arrives at a complex zero in the s-plane.",
+  "relation_head": "后续 → 零点",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "零点",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "angle of ar…",
+    "angle of arr",
+    "关联·零点"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-991f1cc82c973b44856c40f1.md",
+  "provider_policy": "grok-image_gen"
+}

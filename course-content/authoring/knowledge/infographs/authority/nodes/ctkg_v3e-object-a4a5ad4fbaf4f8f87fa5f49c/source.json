@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-a4a5ad4fbaf4f8f87fa5f49c",
+  "safe_id": "ctkg_v3e-object-a4a5ad4fbaf4f8f87fa5f49c",
+  "node": {
+    "name": "最大超前角频率",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "超前网络相角达到最大值的频率，ωm=1/(T√a)。",
+  "intuition": null,
+  "explanation": "超前网络相角达到最大值的频率，ωm=1/(T√a)。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "最大超前角频率"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-a4a5ad4fbaf4f8f87fa5f49c.md",
+  "provider_policy": "grok-image_gen"
+}

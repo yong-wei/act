@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0090",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-4b7254aa73329cdcc5057159",
+      "name": "Separation principle",
+      "definition": "Separation principle：The principle that the full-state feedback law and the observer can be designed independently"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4cccd13f596146e4afdba37c",
+      "name": "Closed-loop system transfer function",
+      "definition": "Closed-loop system transfer function：Closed-loop system transfer function"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4d4f55b60c7a23596a921468",
+      "name": "Zerodegree root locus",
+      "definition": "Zerodegree root locus：A root locus where the number of zeros equals the number of poles, resulting in no asymptotes."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4f050a1dd9ee29fe0988036d",
+      "name": "增广系统可控性",
+      "definition": "增广系统可控的条件是 rank 矩阵等于 n+1（阶跃输入）或 n+2（斜坡输入），其中矩阵包含系统矩阵 A、输入矩阵 b 和输出矩阵 c 的乘积项。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-51995a76d497d06a87b69675",
+      "name": "连续时间系统",
+      "definition": "如果控制系统中的所有信号都是时间变量的连续函数，换句话说，这些信号在全部时间上都是已知的，则这样的系统称为连续时间系统，简称连续系统。"
+    }
+  ],
+  "created_at": "2026-08-05T16:31:28.169917+00:00"
+}

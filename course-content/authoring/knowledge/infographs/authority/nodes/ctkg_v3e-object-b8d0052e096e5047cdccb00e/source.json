@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-b8d0052e096e5047cdccb00e",
+  "safe_id": "ctkg_v3e-object-b8d0052e096e5047cdccb00e",
+  "node": {
+    "name": "Linear Quadratic Regulator (LQR)",
+    "name_en": "Linear Quadratic Regulator (LQR)",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Linear Quadratic Regulator (LQR)：Linear Quadratic Regulator (LQR)",
+  "intuition": null,
+  "explanation": "Linear Quadratic Regulator (LQR)",
+  "relation_head": "前置 → Symmetric Root Locus (SRL) Method",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Symmetric Root Locus (SRL) Method",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Linear Quad…",
+    "应用于·Symme…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b8d0052e096e5047cdccb00e.md",
+  "provider_policy": "grok-image_gen"
+}

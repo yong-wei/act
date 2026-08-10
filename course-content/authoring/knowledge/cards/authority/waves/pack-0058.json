@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0058",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-3f8e288fedb8ba46bfd02185",
+      "name": "频率响应法校正设计",
+      "definition": "在线性控制系统中，常用的校正装置设计方法有分析法和综合法两种。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "name": "比例控制规律",
+      "definition": "具有比例控制规律的控制器，称为P控制器，实质上是一个具有可调增益的放大器，只改变信号的增益而不影响其相位。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-42be29933b0ae43fc424465b",
+      "name": "Estimator Error Poles",
+      "definition": "Estimator Error Poles：The desired poles of the estimator error dynamics, specified as β₁, β₂, …, βₙ."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5104f48a9527029987e0519a",
+      "name": "前馈校正",
+      "definition": "前馈校正又称顺馈校正，是在系统主反馈回路之外采用的校正方式。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5856b2f2fd4c962c52631609",
+      "name": "阻尼比",
+      "definition": "阻尼比：The overshoot to a step input can be related to M_pω through the damping ratio ζ.。"
+    }
+  ],
+  "created_at": "2026-08-05T15:49:23.551254+00:00"
+}

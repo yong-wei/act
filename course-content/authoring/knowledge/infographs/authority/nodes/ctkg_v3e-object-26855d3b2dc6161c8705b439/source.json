@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-26855d3b2dc6161c8705b439",
+  "safe_id": "ctkg_v3e-object-26855d3b2dc6161c8705b439",
+  "node": {
+    "name": "无源校正网络",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "由电阻、电容等无源元件组成的校正网络，用于控制系统校正。",
+  "intuition": null,
+  "explanation": "由电阻、电容等无源元件组成的校正网络，用于控制系统校正",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "无源校正网络"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-26855d3b2dc6161c8705b439.md",
+  "provider_policy": "grok-image_gen"
+}

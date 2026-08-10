@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+  "safe_id": "ctc_v11g-ab8978b79838ecaf3e856d0f",
+  "node": {
+    "name": "quarter amplitude decay",
+    "name_en": "quarter_amplitude_decay",
+    "concept_kind": "criterion",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "quarter amplitude decay：A condition where the amplitude of the closed-loop response is reduced approximately to one-fourth of the maximum value…",
+  "intuition": null,
+  "explanation": "A condition where the amplitude of the closed-loop response is reduced approximately to one-fourth of the maximum value in one oscillatory period.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "quarter amp…",
+    "quarter ampl"
+  ],
+  "visual_archetype": "工程评审板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-ab8978b79838ecaf3e856d0f.md",
+  "provider_policy": "grok-image_gen"
+}
