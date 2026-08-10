@@ -20,7 +20,9 @@ import {
   PRODUCT_OUTPUT_ROOT,
   publishStagedCapture,
   readCaptureRevision,
+  manifestFilePath,
   resolveOutputDirectory,
+  resolveManifestOutputRoot,
   resolveTargetBaseUrl,
   waitForDockReadiness,
   type CaptureRevision,
@@ -223,6 +225,18 @@ describe('adaptive-path QA capture contract', () => {
     expect(resolveOutputDirectory('tmp/capture', repositoryRoot)).toBe(`/repo/act/${PRODUCT_OUTPUT_ROOT}/tmp/capture`);
     expect(() => resolveOutputDirectory('/var/tmp/capture', repositoryRoot)).toThrow(/relative subpath/u);
     expect(() => resolveOutputDirectory('../capture', repositoryRoot)).toThrow(/remain below/u);
+  });
+
+  it('keeps a product subdirectory in logical manifest paths without exposing staging paths', () => {
+    const repositoryRoot = '/repo/act';
+    const stagingRoot = '/private/tmp/adaptive-path-staging';
+    const outputDirectory = `${repositoryRoot}/${PRODUCT_OUTPUT_ROOT}/final-v1`;
+    expect(resolveManifestOutputRoot(outputDirectory, repositoryRoot))
+      .toBe(`${PRODUCT_OUTPUT_ROOT}/final-v1`);
+    expect(manifestFilePath(`${stagingRoot}/state.png`, stagingRoot, outputDirectory, repositoryRoot))
+      .toBe(`${PRODUCT_OUTPUT_ROOT}/final-v1/state.png`);
+    expect(manifestFilePath(`${stagingRoot}/capture-manifest.json`, stagingRoot, '/private/tmp/result', repositoryRoot))
+      .toBe(`${PRODUCT_OUTPUT_ROOT}/capture-manifest.json`);
   });
 
   it('publishes a complete temp capture atomically and rejects symlink escape', () => {

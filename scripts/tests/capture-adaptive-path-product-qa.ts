@@ -421,12 +421,33 @@ function sha256File(absolutePath: string) {
   return createHash('sha256').update(readFileSync(absolutePath)).digest('hex');
 }
 
-function manifestFilePath(absolutePath: string, stagingDirectory: string) {
+export function resolveManifestOutputRoot(
+  outputDirectory: string,
+  repositoryRoot = repoRoot,
+) {
+  const productRoot = path.resolve(repositoryRoot, PRODUCT_OUTPUT_ROOT);
+  const resolvedOutput = path.resolve(outputDirectory);
+  if (!pathIsWithin(resolvedOutput, productRoot)) return PRODUCT_OUTPUT_ROOT;
+  const relativeOutput = path.relative(productRoot, resolvedOutput);
+  return relativeOutput
+    ? path.posix.join(PRODUCT_OUTPUT_ROOT, relativeOutput.split(path.sep).join('/'))
+    : PRODUCT_OUTPUT_ROOT;
+}
+
+export function manifestFilePath(
+  absolutePath: string,
+  stagingDirectory: string,
+  outputDirectory = path.resolve(repoRoot, PRODUCT_OUTPUT_ROOT),
+  repositoryRoot = repoRoot,
+) {
   const relative = path.relative(stagingDirectory, absolutePath);
   if (relative === '' || relative.startsWith('..') || path.isAbsolute(relative)) {
     throw new Error(`Capture artifact escaped staging directory: ${absolutePath}`);
   }
-  return path.posix.join(PRODUCT_OUTPUT_ROOT, relative.split(path.sep).join('/'));
+  return path.posix.join(
+    resolveManifestOutputRoot(outputDirectory, repositoryRoot),
+    relative.split(path.sep).join('/'),
+  );
 }
 
 function pathExists(absolutePath: string) {
@@ -935,7 +956,7 @@ async function main() {
         await page.waitForSelector('[data-adaptive-path-center="generation-selection"]', { timeout: 30000 });
         if (state.beforeScreenshot) await state.beforeScreenshot(page);
         const absolutePath = path.join(stagingDir, `${state.name}.png`);
-        const manifestPath = manifestFilePath(absolutePath, stagingDir);
+        const manifestPath = manifestFilePath(absolutePath, stagingDir, outputDir);
         if (state.selector) {
           await page.locator(state.selector).first().screenshot({ path: absolutePath });
         } else {
@@ -988,12 +1009,12 @@ async function main() {
       captureRevisionProof: finalServiceProof,
       captureSourceFiles: [...CAPTURE_SOURCE_FILES],
       sourceFiles: [...CAPTURE_SOURCE_FILES],
-      outputDirectory: PRODUCT_OUTPUT_ROOT,
+      outputDirectory: resolveManifestOutputRoot(outputDir),
       captures,
     }, null, 2)}\n`);
     writeFileSync(path.join(stagingDir, 'visual-signals.json'), `${JSON.stringify(signals, null, 2)}\n`);
     publishStagedCapture(stagingDir, outputDir);
-    console.log(`Captured ${captures.length} adaptive path QA states in ${manifestFilePath(path.join(outputDir, 'capture-manifest.json'), outputDir)}`);
+    console.log(`Captured ${captures.length} adaptive path QA states in ${manifestFilePath(path.join(outputDir, 'capture-manifest.json'), outputDir, outputDir)}`);
   } finally {
     if (pathExists(stagingDir)) rmSync(stagingDir, { recursive: true, force: true });
   }
