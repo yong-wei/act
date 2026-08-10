@@ -203,6 +203,21 @@ it must not silently become crash recovery. Automatic recovery and stale-lock
 deletion were rejected because they combine execution with destructive recovery
 and cannot safely infer operator intent or process liveness.
 
+### 11. Treat the all-ABSENT prestate as a transaction-entry boundary
+
+Before writing any first-activation journal, the executor validates that all
+four current pointers are absent. A failed prestate is a refusal to enter the
+transaction: it must not create a journal, invoke compensation, or modify any
+pointer, even when an existing pointer happens to match the proposed target.
+Only after the initial write-ahead journal is durably written and read back with
+its transaction, locator, identity, status, and hash verified may an activation
+failure enter identity-constrained compensation.
+
+Inferring this boundary from a catch guard or step status was rejected because
+it lets a prestate exception enter the destructive compensation path. The
+explicit control-flow boundary preserves the difference between an existing
+active state and a partially executed first activation.
+
 ## Risks / Trade-offs
 
 - [No compatible locally available Release] → stop at Phase 1 with a signed

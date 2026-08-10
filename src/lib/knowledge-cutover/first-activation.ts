@@ -550,6 +550,41 @@ function resolveJournalPointerPaths(
   return pointerPaths;
 }
 
+function assertInitialJournalMatches(
+  expected: FirstActivationJournal,
+  persisted: FirstActivationJournal,
+): void {
+  if (
+    persisted.transactionId !== expected.transactionId
+    || persisted.createdAt !== expected.createdAt
+    || persisted.status !== expected.status
+    || persisted.prestate !== expected.prestate
+    || persisted.failure !== expected.failure
+    || persisted.journalHash !== expected.journalHash
+    || persisted.steps.length !== expected.steps.length
+  ) {
+    throw new FirstActivationError(
+      'first-activation initial journal write could not be confirmed',
+    );
+  }
+
+  for (const [index, expectedStep] of expected.steps.entries()) {
+    const persistedStep = persisted.steps[index];
+    if (
+      !persistedStep
+      || persistedStep.component !== expectedStep.component
+      || persistedStep.pointer.kind !== expectedStep.pointer.kind
+      || persistedStep.pointer.path !== expectedStep.pointer.path
+      || persistedStep.status !== expectedStep.status
+      || !sameIdentity(persistedStep.target, expectedStep.target)
+    ) {
+      throw new FirstActivationError(
+        'first-activation initial journal identity could not be confirmed',
+      );
+    }
+  }
+}
+
 function compensate(input: {
   repoRoot: string;
   journalPath: string;
@@ -632,6 +667,12 @@ export function executeFirstActivation(input: {
       );
     }
 
+    for (const step of input.steps) {
+      if (readFirstActivationPointerIdentity(step) !== null) {
+        throw new FirstActivationError(`first activation requires absent pointer: ${step.component}`);
+      }
+    }
+
     let journal = asJournal({
       transactionId: input.transactionId ?? `first-activation-${randomUUID()}`,
       createdAt: input.createdAt ?? new Date().toISOString(),
@@ -645,13 +686,25 @@ export function executeFirstActivation(input: {
     });
 
     try {
-      for (const step of input.steps) {
-        if (readFirstActivationPointerIdentity(step) !== null) {
-          throw new FirstActivationError(`first activation requires absent pointer: ${step.component}`);
-        }
-      }
       writeJournal(input.journalPath, journal);
+    } catch (error) {
+      throw new FirstActivationError(
+        `first-activation initial journal write failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
 
+    let persistedJournal: FirstActivationJournal;
+    try {
+      persistedJournal = readFirstActivationJournal(input.journalPath);
+    } catch (error) {
+      throw new FirstActivationError(
+        `first-activation initial journal write could not be confirmed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    assertInitialJournalMatches(journal, persistedJournal);
+    journal = persistedJournal;
+
+    try {
       for (const step of input.steps) {
         input.beforeActivate?.(step.component);
         if (!journal.steps.some((row) => row.component === step.component)) {

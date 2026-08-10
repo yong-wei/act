@@ -4,7 +4,24 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const fsReadFailure = vi.hoisted(() => ({ path: null as string | null }));
+
+vi.mock('node:fs', async () => {
+  const actual = await vi.importActual<typeof import('node:fs')>('node:fs');
+  return {
+    ...actual,
+    readFileSync: (...args: Parameters<typeof actual.readFileSync>) => {
+      const [filePath] = args;
+      if (fsReadFailure.path !== null && String(filePath) === fsReadFailure.path) {
+        fsReadFailure.path = null;
+        throw new Error('injected-initial-journal-read-failure');
+      }
+      return actual.readFileSync(...args);
+    },
+  };
+});
 
 import {
   executeFirstActivation,
@@ -58,6 +75,25 @@ function makePlan() {
     journalPath: path.join(root, 'journals', 'first.json'),
     lockPath: path.join(root, 'locks', 'first.lock'),
   };
+}
+
+function writePointer(
+  step: ReturnType<typeof makePlan>['steps'][number],
+  identity: { id: string; hash: string },
+): void {
+  const fields = {
+    authority: ['snapshotId', 'snapshotHash'],
+    projection: ['projectionId', 'projectionHash'],
+    prerequisite: ['publicationId', 'publicationHash'],
+    'consumer-activation': ['activationId', 'activationHash'],
+  } as const;
+  const [idField, hashField] = fields[step.component];
+  mkdirSync(path.dirname(step.pointerPath), { recursive: true });
+  writeFileSync(
+    step.pointerPath,
+    `${JSON.stringify({ [idField]: identity.id, [hashField]: identity.hash })}\n`,
+    'utf8',
+  );
 }
 
 function writeInterruptedJournal(
@@ -177,6 +213,76 @@ describe('all-ABSENT first activation protocol', () => {
     expect(() => executeFirstActivation(plan)).toThrow(/post-write identity mismatch.*compensation failed: rollback drift/u);
     expect(readFirstActivationJournal(plan.journalPath).status).toBe('ROLLBACK_FAILED');
     expect(existsSync(projection.pointerPath)).toBe(true);
+  });
+
+  it('refuses every existing pointer before creating a journal, including matching identities', () => {
+    for (const existingIdentity of ['target', 'different'] as const) {
+      for (const pointerIndex of [0, 1, 2, 3]) {
+        const plan = makePlan();
+        const existingStep = plan.steps[pointerIndex]!;
+        const pointerBytes = {
+          id: existingIdentity === 'target'
+            ? existingStep.target.id
+            : `${existingStep.component}-existing-id`,
+          hash: existingIdentity === 'target' ? hash : 'b'.repeat(64),
+        };
+        writePointer(existingStep, pointerBytes);
+        const beforePointer = readFileSync(existingStep.pointerPath, 'utf8');
+        let activationCalls = 0;
+        existingStep.activate = () => {
+          activationCalls += 1;
+        };
+
+        expect(() => executeFirstActivation(plan)).toThrow(
+          `first activation requires absent pointer: ${existingStep.component}`,
+        );
+        expect(activationCalls).toBe(0);
+        expect(existsSync(plan.journalPath)).toBe(false);
+        expect(readFileSync(existingStep.pointerPath, 'utf8')).toBe(beforePointer);
+        expect(plan.steps.filter((step) => existsSync(step.pointerPath))).toHaveLength(1);
+      }
+    }
+  });
+
+  it('does not activate or compensate when the initial journal write fails', () => {
+    const plan = makePlan();
+    const journalParent = path.join(plan.repoRoot, 'journal-parent');
+    writeFileSync(journalParent, 'not-a-directory', 'utf8');
+    plan.journalPath = path.join(journalParent, 'first.json');
+    let activationCalls = 0;
+    for (const step of plan.steps) {
+      step.activate = () => {
+        activationCalls += 1;
+      };
+    }
+
+    expect(() => executeFirstActivation(plan)).toThrow(/initial journal write failed/u);
+    expect(activationCalls).toBe(0);
+    expect(plan.steps.every((step) => !existsSync(step.pointerPath))).toBe(true);
+    expect(existsSync(plan.journalPath)).toBe(false);
+  });
+
+  it('does not activate or compensate when the initial journal write cannot be confirmed', () => {
+    const plan = makePlan();
+    let activationCalls = 0;
+    for (const step of plan.steps) {
+      step.activate = () => {
+        activationCalls += 1;
+      };
+    }
+    fsReadFailure.path = plan.journalPath;
+
+    try {
+      expect(() => executeFirstActivation(plan)).toThrow(
+        /initial journal write could not be confirmed/u,
+      );
+    } finally {
+      fsReadFailure.path = null;
+    }
+
+    expect(activationCalls).toBe(0);
+    expect(plan.steps.every((step) => !existsSync(step.pointerPath))).toBe(true);
+    expect(readFirstActivationJournal(plan.journalPath).status).toBe('PREPARED');
   });
 
   it('recovers each pointer-write crash window from a durable PREPARED journal', () => {
