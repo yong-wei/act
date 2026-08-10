@@ -4,7 +4,7 @@
   "locked": true,
   "lockedAt": "2026-07-25T23:48:16+08:00",
   "sourceRevision": "d3b22612f155bfc52c7f41e2b679519c02d990ed",
-  "selectionReportHash": "sha256:f665c235d7a745c30c1cb496720df5eab227b936b30dbf2a6220cf17cf1c02a5",
+  "selectionReportHash": "sha256:3fea7c46e2f5dde84d94a6052308f8599ec3ed2321a9874e8dfe60ed28b12a0b",
   "selectedModel": "BAAI/bge-m3",
   "selectedObservedDimension": 1024,
   "selectedNormalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
