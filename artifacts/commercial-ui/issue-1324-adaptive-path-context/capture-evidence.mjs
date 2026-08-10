@@ -19,6 +19,7 @@ const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/assessment/__tests__/adaptive-practice-page.test.ts',
   'tests/adaptive-path-active-context.spec.ts',
+  'playwright.config.ts',
   generator,
 ];
 const writeEvidence = process.env.ISSUE_1324_WRITE_EVIDENCE !== '0';
@@ -150,9 +151,8 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-async function sha256(filePath) {
-  const response = await import('node:fs/promises');
-  const bytes = await response.readFile(filePath);
+function sha256AtRevision(revision, file) {
+  const bytes = execFileSync('git', ['show', `${revision}:${file}`], { cwd: repoRoot });
   return createHash('sha256').update(bytes).digest('hex');
 }
 
@@ -201,6 +201,11 @@ async function geometry(page) {
 }
 
 async function main() {
+  const sourceStatus = execFileSync('git', ['status', '--porcelain', '--', ...sourceFiles], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  }).trim();
+  assert(sourceStatus === '', `source files must be clean at ${sourceRevision}: ${sourceStatus}`);
   if (writeEvidence) await mkdir(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   try {
@@ -288,7 +293,10 @@ async function main() {
       responsiveAndKeyboardChecksPassed: results.every((result) => !result.geometry.horizontalOverflow) && results.filter((result) => result.pathContext).every((result) => result.keyboardFocus),
     };
     const failedAssertions = Object.entries(assertions).filter(([, value]) => value !== true).map(([key]) => key);
-    const sourceSha256 = Object.fromEntries(await Promise.all(sourceFiles.map(async (file) => [file, await sha256(path.join(repoRoot, file))])));
+    const sourceSha256 = Object.fromEntries(sourceFiles.map((file) => [
+      file,
+      sha256AtRevision(sourceRevision, file),
+    ]));
     const manifest = {
       schemaVersion: 'commercial-ui-evidence.v1',
       status: failedAssertions.length === 0 ? 'passed' : 'blocked',

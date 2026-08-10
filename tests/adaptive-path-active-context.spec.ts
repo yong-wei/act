@@ -15,6 +15,12 @@ function sha256(file: string) {
   return createHash('sha256').update(readFileSync(path.resolve(process.cwd(), file))).digest('hex');
 }
 
+function sha256AtRevision(revision: string, file: string) {
+  return createHash('sha256')
+    .update(execFileSync('git', ['show', `${revision}:${file}`], { cwd: process.cwd() }))
+    .digest('hex');
+}
+
 test.describe.configure({ mode: 'serial' });
 
 test('keeps the active non-default goal and path while generating candidates', () => {
@@ -45,7 +51,14 @@ test('evidence manifest fails closed on source or screenshot drift', () => {
   expect(manifest.failedAssertions).toEqual([]);
   for (const [file, expectedHash] of Object.entries(manifest.sourceSha256 ?? {})) {
     expect(existsSync(path.resolve(process.cwd(), file)), `${file} must exist`).toBe(true);
-    expect(sha256(file), `${file} changed after evidence capture`).toBe(expectedHash);
+    expect(
+      sha256AtRevision(manifest.sourceRevision!, file),
+      `${file} did not match the evidence checkpoint`,
+    ).toBe(expectedHash);
+    expect(
+      sha256AtRevision('HEAD', file),
+      `${file} changed after evidence capture`,
+    ).toBe(expectedHash);
   }
   expect(manifest.results).toHaveLength(4);
   for (const result of manifest.results ?? []) {
