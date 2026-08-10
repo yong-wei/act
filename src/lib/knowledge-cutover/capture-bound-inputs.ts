@@ -15,7 +15,6 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
-  readdirSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
@@ -335,36 +334,6 @@ function selectedPath(relativePath: string, root: string, prefixes?: readonly st
   return prefixes.some((prefix) => child === prefix || child.startsWith(`${prefix}/`));
 }
 
-function mayContainSelectedPath(relativePath: string, root: string, prefixes?: readonly string[]): boolean {
-  if (!prefixes || prefixes.length === 0) return true;
-  if (relativePath === root) return true;
-  const child = relativePath.slice(`${root}/`.length);
-  return prefixes.some((prefix) => prefix === child || prefix.startsWith(`${child}/`) || child.startsWith(`${prefix}/`));
-}
-
-function worktreeFiles(repoRoot: string, root: string, prefixes?: readonly string[]): Map<string, { mode: string; bytes: Buffer }> {
-  const base = path.resolve(repoRoot, root);
-  if (!existsSync(base)) fail('missing-input', `declared collection root is missing: ${root}`);
-  const result = new Map<string, { mode: string; bytes: Buffer }>();
-  const visit = (current: string): void => {
-    const currentRelative = path.relative(path.resolve(repoRoot), current).split(path.sep).join('/');
-    if (!mayContainSelectedPath(currentRelative, root, prefixes)) return;
-    const stat = lstatSync(current);
-    if (stat.isSymbolicLink()) fail('symlink-rejected', `declared collection contains a symlink: ${current}`);
-    if (stat.isFile()) {
-      const rel = path.relative(path.resolve(repoRoot), current).split(path.sep).join('/');
-      if (selectedPath(rel, root, prefixes)) {
-        result.set(rel, { mode: worktreeMode(current), bytes: readFileSync(current) });
-      }
-      return;
-    }
-    if (!stat.isDirectory()) fail('worktree-type-mismatch', `declared collection contains an unsupported entry: ${current}`);
-    for (const name of readdirSync(current).sort()) visit(path.join(current, name));
-  };
-  visit(base);
-  return result;
-}
-
 function validateFile(
   repoRoot: string,
   revision: string,
@@ -467,6 +436,9 @@ export function resolveCaptureBoundInputs(input: {
 
   const collections: ResolvedCaptureBoundInputCollection[] = [];
   for (const collection of manifest.collections) {
+    if (!existsSync(path.resolve(repoRoot, collection.root))) {
+      fail('missing-input', `declared collection root is missing: ${collection.root}`);
+    }
     assertNoSymlinkComponents(repoRoot, collection.root);
     const captureMembers = gitTreeEntries(repoRoot, captureRevision, collection.root);
     for (const memberPath of [...captureMembers.keys()]) {
@@ -477,16 +449,12 @@ export function resolveCaptureBoundInputs(input: {
     if (collection.members && canonical(collection.members) !== canonical(capturePaths)) {
       fail('collection-membership-mismatch', `collection ${collection.id} members differ from captureRevision`);
     }
-    const current = worktreeFiles(repoRoot, collection.root, collection.prefixes);
-    const currentPaths = [...current.keys()].sort();
-    if (canonical(currentPaths) !== canonical(capturePaths)) {
-      fail('collection-membership-mismatch', `collection ${collection.id} members differ from captureRevision`);
-    }
+    // The capture tree defines membership. Inspect the working tree only at
+    // those paths so unrelated ignored or untracked artifacts cannot drift
+    // the selected input set or enter the materialized snapshot.
     const members: ResolvedCaptureBoundInputFile[] = [];
     for (const memberPath of capturePaths) {
       const resolved = validateFile(repoRoot, captureRevision, memberPath, undefined, undefined, captureMembers, 'collection');
-      const currentBytes = current.get(memberPath)?.bytes;
-      if (!currentBytes || sha256(currentBytes) !== resolved.sha256) fail('worktree-bytes-mismatch', `${memberPath} differs from captureRevision ${captureRevision}`);
       members.push(resolved);
       blobs.set(memberPath, gitBlob(repoRoot, captureRevision, memberPath));
     }

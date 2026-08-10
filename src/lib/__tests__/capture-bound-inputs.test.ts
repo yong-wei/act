@@ -79,9 +79,28 @@ describe('capture-bound ACT inputs', () => {
     }
   });
 
-  it('rejects collection additions, deletions, and renames before any output write', () => {
+  it('ignores untracked additions inside selected collections', () => {
+    const f = fixture();
+    let capture: ReturnType<typeof materializeCaptureBoundInputs> | undefined;
+    try {
+      const extraPath = 'inputs/course/review-artifact.pdf';
+      writeFileSync(path.join(f.root, extraPath), '%PDF-review-artifact%\n');
+      capture = materializeCaptureBoundInputs({
+        repoRoot: f.root,
+        captureRevision: f.revision,
+        manifestPath: 'manifest.json',
+      });
+      expect(capture.receipt.collections[0]?.members.map((member) => member.path))
+        .toEqual(['inputs/course/course.json']);
+      expect(existsSync(path.join(capture.snapshotRoot, extraPath))).toBe(false);
+    } finally {
+      capture?.cleanup();
+      f.cleanup();
+    }
+  });
+
+  it('rejects collection member deletions and renames before any output write', () => {
     const cases = [
-      (root: string) => writeFileSync(path.join(root, 'inputs/course/added.json'), '{}'),
       (root: string) => rmSync(path.join(root, 'inputs/course/course.json')),
       (root: string) => {
         rmSync(path.join(root, 'inputs/course/course.json'));
@@ -102,6 +121,20 @@ describe('capture-bound ACT inputs', () => {
       } finally {
         f.cleanup();
       }
+    }
+  });
+
+  it('rejects dirty captured collection members', () => {
+    const f = fixture();
+    try {
+      writeFileSync(path.join(f.root, 'inputs/course/course.json'), '{"lesson":"dirty"}\n');
+      expect(() => resolveCaptureBoundInputs({
+        repoRoot: f.root,
+        captureRevision: f.revision,
+        manifestPath: 'manifest.json',
+      })).toThrow(/differs from captureRevision/);
+    } finally {
+      f.cleanup();
     }
   });
 
