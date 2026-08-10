@@ -212,6 +212,12 @@ describe('adaptive practice page entry states', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
     expect(source).toContain('resolveAdaptivePathLandingState({');
+    expect(source).toContain('data-adaptive-path-landing-state="active"');
+    expect(source).toContain('data-adaptive-path-action-bar="active"');
+    expect(source).toContain('data-adaptive-path-continue-action="current-path"');
+    expect(source).toContain('data-adaptive-path-generation-action="new-path"');
+    expect(source).toContain('原路径仍会保留；你可以继续学习，也可以生成新的候选路径进行比较。');
+    expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null :');
     expect(source).toContain("const showColdStartLandingWorkspace = showLandingWorkspace && pathLandingState === 'cold-start';");
     expect(source).toContain('data-adaptive-path-landing-state="loading"');
     expect(source).toContain('正在加载学习路径');
