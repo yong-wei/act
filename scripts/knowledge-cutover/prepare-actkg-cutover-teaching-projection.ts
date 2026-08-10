@@ -73,6 +73,7 @@ import {
   parseCoreNodesDocument,
 } from '../../src/lib/teaching-projection/prerequisites';
 import { parseEdgesDocument } from '../../src/lib/teaching-projection/prerequisites/edges';
+import type { PrerequisiteAuthorDecision } from '../../src/lib/teaching-projection/prerequisites/contracts';
 
 const COMMIT = /^[a-f0-9]{40}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -593,15 +594,22 @@ async function writePrerequisiteAssessment(input: {
   const root = path.join(input.repoRoot, 'course-content/authoring/knowledge/teaching-projection/prerequisites/inventory');
   const corePath = path.join(root, 'core-nodes.yaml');
   const edgesPath = path.join(root, 'edges.yaml');
+  const decisionsPath = path.join(root, 'actkg-cutover-decisions.json');
   let result: ReturnType<typeof buildPrerequisitePublicationFailClosed>;
   let inputFiles: string[] = [];
   try {
-    if (!existsSync(corePath) || !existsSync(edgesPath)) {
+    if (!existsSync(corePath) || !existsSync(edgesPath) || !existsSync(decisionsPath)) {
       throw new Error('prerequisite inventory files are missing');
     }
-    inputFiles = [relative(input.repoRoot, corePath), relative(input.repoRoot, edgesPath)];
+    inputFiles = [
+      relative(input.repoRoot, corePath),
+      relative(input.repoRoot, edgesPath),
+      relative(input.repoRoot, decisionsPath),
+    ];
     const core = parseCoreNodesDocument(parseYaml(readFileSync(corePath, 'utf8')));
     const edges = parseEdgesDocument(parseYaml(readFileSync(edgesPath, 'utf8')));
+    const decisions = readJson(decisionsPath) as PrerequisiteAuthorDecision[];
+    if (!Array.isArray(decisions)) throw new Error('prerequisite decisions must be an array');
     result = buildPrerequisitePublicationFailClosed({
       scopeId: core.scopeId,
       authoringRevision: input.authoringRevision,
@@ -610,7 +618,7 @@ async function writePrerequisiteAssessment(input: {
       authorityNodes: input.authorityNodes,
       coreNodes: core.nodes,
       edges: edges.edges,
-      decisions: [],
+      decisions,
       candidates: [],
     });
   } catch (error) {
