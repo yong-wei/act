@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { listStudentAssignments, presentRevision, presentStudentAssignmentFeedback, submitQuestionAnswer } from '@/lib/assignments/submission-service';
-import { submissionHash } from '@/lib/assignments/submission-domain';
+import { submissionHash } from '@/lib/assignments/submission-integrity';
 
 const question = { id: 'question-1', promptSnapshot: { prompt: '解释闭环稳定性' } };
 const snapshot = {

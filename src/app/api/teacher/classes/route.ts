@@ -3,9 +3,9 @@ import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
-  TeacherDefaultClassServiceError,
   teacherDefaultClassService,
 } from '@/lib/teacher-default-class-service';
+import { defaultClassServiceErrorResponse } from '@/lib/teacher-default-class-route-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,21 +98,4 @@ export async function POST(request: Request) {
     console.error('创建班级失败:', error);
     return NextResponse.json({ error: '创建班级失败' }, { status: 500 });
   }
-}
-
-export function defaultClassServiceErrorResponse(error: unknown) {
-  if (!(error instanceof TeacherDefaultClassServiceError)) return null;
-  if (error.code === 'class-not-found') {
-    return NextResponse.json({ error: '班级不存在' }, { status: 404 });
-  }
-  if (error.code === 'class-not-active') {
-    return NextResponse.json({ error: '班级未启用' }, { status: 409 });
-  }
-  if (error.code === 'class-has-sessions') {
-    return NextResponse.json({ error: '已有课堂记录的班级不能删除，请改为停用。' }, { status: 409 });
-  }
-  if (error.code === 'transaction-conflict-retryable') {
-    return NextResponse.json({ error: '班级状态正在更新，请稍后重试。' }, { status: 409 });
-  }
-  return NextResponse.json({ error: '班级教师不存在' }, { status: 404 });
 }

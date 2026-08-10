@@ -10,8 +10,8 @@ import {
   ASSIGNMENT_LIMITS,
   AssignmentDomainError,
   scoringRubricV2Schema,
-  stableHash,
 } from './assignment-domain';
+import { stableHash } from './assignment-integrity';
 
 export const ASSIGNMENT_RUBRIC_GENERATION_SCHEMA_VERSION =
   'assignment-rubric-guidelines.v1';

@@ -14,6 +14,7 @@ import {
   validateSourcePack,
   type SourcePackItem,
 } from '../source-pack';
+import { sha256Text } from '../source-pack/sha256';
 
 const sampleItem: SourcePackItem = {
   id: 'item:textbook:ch08:chunk-001',
@@ -51,6 +52,12 @@ const sampleItem: SourcePackItem = {
 };
 
 describe('source pack contract', () => {
+  it('keeps browser-safe hashes byte-compatible with SHA-256', () => {
+    expect(sha256Text('abc')).toBe(
+      'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+    );
+  });
+
   it('preserves stable ids in JSON and Markdown serializers', () => {
     const pack = buildSourcePack({
       query: '解释 PID 参数整定',
