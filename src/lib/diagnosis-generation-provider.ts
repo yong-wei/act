@@ -1,6 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
 
 import {
+  DiagnosisGenerationOutputValidationError,
+} from '@/lib/diagnosis-generation';
+import {
   diagnosisReportBodySchema,
   type DiagnosisReportBody,
 } from '@/lib/diagnosis-persistence';
@@ -119,9 +122,14 @@ export async function generateGovernedDiagnosisReport(
     }),
     idempotencyKey: input.attemptId,
     maxOutputTokens: 8_000,
+    deferValidation: true,
     timeoutMs: 120_000,
   });
-  const reportBody = diagnosisReportBodySchema.parse(generated.output) as DiagnosisReportBody;
+  const parsedReportBody = diagnosisReportBodySchema.safeParse(generated.output);
+  if (!parsedReportBody.success) {
+    throw new DiagnosisGenerationOutputValidationError(parsedReportBody.error);
+  }
+  const reportBody = parsedReportBody.data as DiagnosisReportBody;
   if (reportBody.evidenceCutoff !== input.evidenceCutoff.toISOString()) {
     throw new DiagnosisGenerationValidationError('diagnosis-evidence-cutoff-mismatch');
   }

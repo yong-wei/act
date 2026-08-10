@@ -1,11 +1,13 @@
 import { Prisma } from '@prisma/client';
 import { UnrecoverableError } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 
 vi.mock('server-only', () => ({}));
 
 import {
   claimDiagnosisGenerationAttempt,
+  DiagnosisGenerationOutputValidationError,
   DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
   diagnosisGenerationRequestSchema,
   projectDiagnosisGenerationJob,
@@ -110,7 +112,7 @@ describe('teacher diagnosis generation contracts', () => {
       db as never,
       'job-1',
       { attemptsMade: 0, opts: { attempts: 3 } } as never,
-      async () => { throw parsed.error; },
+      async () => { throw new DiagnosisGenerationOutputValidationError(parsed.error); },
     )).rejects.toBeInstanceOf(UnrecoverableError);
 
     expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
@@ -146,6 +148,24 @@ describe('teacher diagnosis generation contracts', () => {
         errorCode: 'diagnosis-provider-unavailable',
       }),
     }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'QUEUED', startedAt: null },
+    }));
+  });
+
+  it('keeps non-report Zod errors on the ordinary retry path', async () => {
+    const metadataError = z.object({ responseId: z.string().max(3) }).safeParse({ responseId: 'response-id-too-long' });
+    expect(metadataError.success).toBe(false);
+    if (metadataError.success) return;
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw metadataError.error; },
+    )).rejects.toBe(metadataError.error);
+
     expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
       data: { state: 'QUEUED', startedAt: null },
     }));
