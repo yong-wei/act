@@ -1,0 +1,109 @@
+{
+  "contract": "actkg-to-act-cutover-preparation-phase-1/v1",
+  "captureRevision": "7cf10253884e0c5188b4b1b471d0efd5af36f087",
+  "status": "BLOCKED",
+  "sourceRelease": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseVersion": "control-theory-engineering-v0.9",
+    "releaseHash": "bf885accc94ad95fea40a042600181606e076625ea3e9e6452137c261e4b1f92",
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "releaseStage": "stable",
+    "actkgMainCommit": "0a19ee2bcd6a9fbfbce35a0b7756b99dbfd2879d",
+    "sourceCommit": "83a0da8ca9944befcac9808812104b45bfb44eb2",
+    "sourceTag": "control-theory-engineering-v0.9-r2-source",
+    "packagingCommit": "9ccbfdbf6bd455c70ecb9e8921755ec01496e2fd",
+    "publicationTag": "control-theory-engineering-v0.9-r2"
+  },
+  "validatedBundle": {
+    "bundleId": "ctb:control-theory-engineering-v0.9:r2",
+    "bundleRevision": 2,
+    "bundleDigest": "25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "bundleContract": "actkg-public-bundle/1",
+    "compatibility": "COMPATIBLE_PACKAGING_REVISION",
+    "schemaVersion": "0.2.0",
+    "schemaSha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "lock": {
+      "path": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/release-set.lock.v3.control-theory-engineering-v0.9-r2.json",
+      "sha256": "7f8fe12f653555b789f4c08dd5b8c1e5e67186b58548a3b224530d4ea396c3e7"
+    },
+    "bundleRoot": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/releases/control-theory-engineering-v0.9",
+    "bundleManifestSha256": "6446af841fefcfc356cb763639da06c0eb82d9fd39ad2ce2d39dee73c3667987",
+    "sha256sumsSha256": "873b9812879b3ce1c11e759e2605ce4da75b7bec62925db7fefa0cfe78f2bdfc",
+    "validationReportSha256": "82ba6974ed23f9310f55727e52834171574f87f432f05ce490f351985ea84dec",
+    "statistics": {
+      "releaseEntries": 7417,
+      "knowledgeNodes": 4891,
+      "publishedRelations": 2409,
+      "projectionNodes": 4891,
+      "projectionLinks": 2409,
+      "ragCrosswalkRows": 9504,
+      "componentCount": 9,
+      "relationTypeCount": 9
+    }
+  },
+  "admissionEvidence": {
+    "bindingPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/latest-stable-binding.json",
+    "bindingSha256": "c453c61fe26b751645d1d877dc66f5d20ebd1b086cf74e7f3952bde597d265cd",
+    "bindingResolutionDigest": "1ca0b7b22b8a4fc80bd5484966344a3034edb44cec1bb96e50443731a7e0d78d",
+    "priorRelease": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.8",
+      "bundleId": "ctb:control-theory-engineering-v0.8:r3",
+      "releaseHash": "caf4cf31b54675952cb65d635a29e07fa4a5729686b9875f78db3904a6497beb"
+    },
+    "admissionReceiptPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/admission/admission-receipt.json",
+    "admissionReceiptSha256": "a10038db6155e990ebbb64f06e878653b8366baf604922f05dbe981d6c08b7c3",
+    "historicalAdmissionCaptureRevision": "c1398ba5e381341999b6dc2f9165e7491cdb1531",
+    "acceptedDeltaReceiptCount": 7,
+    "allUpstreamCrosschecks": "AGREED",
+    "allHistoricalSelectorsUnchanged": true
+  },
+  "validation": {
+    "tool": "loadAndValidatePublicBundleV1",
+    "result": "PASS",
+    "validatedAtCaptureRevision": "7cf10253884e0c5188b4b1b471d0efd5af36f087",
+    "engineeringSemanticReviewPerformed": false,
+    "validationScope": [
+      "release-identity",
+      "schema-identity",
+      "bundle-digest",
+      "artifact-closure",
+      "component-identity",
+      "compatibility"
+    ]
+  },
+  "staging": {
+    "root": "artifacts/actkg-cutover-preparation/7cf10253884e0c5188b4b1b471d0efd5af36f087",
+    "defaultAuthorityCurrentWritten": false,
+    "candidateBundleAcceptedByReference": true,
+    "authoritySnapshot": {
+      "state": "NOT_MATERIALIZED",
+      "requiredContract": "actkg-engineering-authority-snapshot/v1",
+      "reason": "DATABASE_URL is unset; the repository-supported snapshot materializer requires a validated local candidate Repository snapshot produced by the import path.",
+      "requiredEvidence": [
+        "isolated local PostgreSQL candidate import",
+        "accepted current-release delta receipt bound to this capture revision",
+        "materialized authority snapshot manifest and engineering body"
+      ]
+    }
+  },
+  "blockers": [
+    {
+      "code": "LOCAL_AUTHORITY_SNAPSHOT_INPUT_UNAVAILABLE",
+      "phase": 1,
+      "impact": "A valid Bundle candidate exists, but no immutable Engineering Authority Snapshot can truthfully be staged in this worktree.",
+      "evidence": [
+        "DATABASE_URL=UNSET",
+        "course-content/authoring/knowledge/authority/current.json=ABSENT",
+        "no local authority snapshot release directory exists"
+      ],
+      "nextRequiredAction": "Provide an explicitly authorized isolated local PostgreSQL candidate-import environment or an existing verified actkg-engineering-authority-snapshot/v1 for this exact Release and capture revision."
+    }
+  ],
+  "activation": {
+    "performed": false,
+    "defaultPointerModified": false,
+    "consumerPointerModified": false,
+    "legacyRetirementModified": false
+  }
+}
