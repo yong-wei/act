@@ -125,6 +125,22 @@ default-discoverable state without cutover authorization. Keeping the schema
 after a successful run was rejected because the preparation package itself is
 the audit artifact and does not require a live database residue.
 
+### 7. Materialize an initial review candidate when no prior Projection exists
+
+The absence of a default Teaching Projection does not justify an empty
+projection or a guessed mapping. The run must freeze the active-course
+inventory, construct one non-default candidate per active course package, and
+mark every resource without actual ACT binding evidence `REVIEW_REQUIRED`.
+Each such item appears once in the worklist with its package, resource, source
+locator, and missing evidence type. A failed package gate is still staged for
+review; it never changes a Projection pointer or makes a teaching consumer
+ready.
+
+Stopping after only an aggregate blocker was rejected because it loses the
+resource-level boundary needed for later author decisions. Treating the active
+packages as an empty projection was rejected because it would recast missing
+evidence as an intentional `EXPLICIT_NONE` decision.
+
 ## Risks / Trade-offs
 
 - [No compatible locally available Release] → stop at Phase 1 with a signed
@@ -141,6 +157,9 @@ the audit artifact and does not require a live database residue.
   the candidate unactivated; no pointer-repair action is permitted here.
 - [A staged shadow read cannot execute locally] → retain its manifest as
   `BLOCKED`; no claim of runtime compatibility is made.
+- [No prior Teaching Projection exists] → stage package-level
+  `REVIEW_REQUIRED` candidates and their exact worklist from the frozen active
+  inventory; do not produce an empty projection or infer mappings.
 
 ## Migration Plan
 
