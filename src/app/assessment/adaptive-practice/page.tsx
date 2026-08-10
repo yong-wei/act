@@ -2928,6 +2928,20 @@ export default function AdaptivePracticePage() {
     if (currentPathNode?.nodeId) params.set('nodeId', currentPathNode.nodeId);
     return withFeedbackTaskHref(`/assessment/adaptive-practice?${params.toString()}`);
   }, [activeExecutionGoalId, activeExecutionPathId, currentPathNode?.nodeId, withFeedbackTaskHref]);
+  const activePathGenerationHref = useMemo(() => {
+    if (!activeExecutionGoalId) return feedbackGenericPathGenerationHref;
+    const generationQuery = new URLSearchParams(
+      buildPathGenerationGoalHref(activeExecutionGoalId, pathGenerationPanel).split('?')[1] ?? '',
+    );
+    if (activeExecutionPathId) generationQuery.set('pathId', activeExecutionPathId);
+    return withFeedbackTaskHref(`/assessment/adaptive-practice?${generationQuery.toString()}`);
+  }, [
+    activeExecutionGoalId,
+    activeExecutionPathId,
+    feedbackGenericPathGenerationHref,
+    pathGenerationPanel,
+    withFeedbackTaskHref,
+  ]);
   const pathExecutionSummary = useMemo(
     () => getPathExecutionSummary(pathExecutionNodes, activePathRound),
     [activePathRound, pathExecutionNodes],
@@ -4406,7 +4420,7 @@ export default function AdaptivePracticePage() {
                 </Link>
               ) : null}
               <Link
-                href={feedbackGenericPathGenerationHref}
+                href={activePathGenerationHref}
                 data-adaptive-path-generation-action="new-path"
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
               >
