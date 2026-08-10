@@ -187,6 +187,22 @@ shareable repository artifacts and must not disclose a developer workstation.
 Replacing locators with component-name reconstruction was rejected because it
 would remove the transaction's explicit, extensible recovery target.
 
+### 10. Recover an interrupted first activation only through an explicit action
+
+An uncompleted `PREPARED` or `ROLLING_BACK` first-activation journal is durable
+recovery evidence, not a new execution baseline. The normal executor refuses
+to replace any existing journal. An explicit operator recovery action validates
+the journal and then compensates the four target pointers in reverse order.
+An absent pointer is an idempotently completed compensation step; a present
+pointer may be removed only when its identity exactly equals the journal target;
+any other identity stops recovery without touching later steps. Only a readback
+with all four pointers absent can finalize the journal as `ROLLED_BACK`.
+
+The existing committed rollback API remains limited to `COMMITTED` journals;
+it must not silently become crash recovery. Automatic recovery and stale-lock
+deletion were rejected because they combine execution with destructive recovery
+and cannot safely infer operator intent or process liveness.
+
 ## Risks / Trade-offs
 
 - [No compatible locally available Release] → stop at Phase 1 with a signed

@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -8,6 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   executeFirstActivation,
   migrateLegacyFirstActivationJournal,
+  recoverInterruptedFirstActivation,
   repairMigratedFirstActivationJournal,
   readFirstActivationJournal,
   rollbackCommittedFirstActivation,
@@ -56,6 +58,53 @@ function makePlan() {
     journalPath: path.join(root, 'journals', 'first.json'),
     lockPath: path.join(root, 'locks', 'first.lock'),
   };
+}
+
+function writeInterruptedJournal(
+  plan: ReturnType<typeof makePlan>,
+  input: {
+    status: 'PREPARED' | 'ROLLING_BACK';
+    stepStatuses: Array<'PENDING' | 'STARTED' | 'APPLIED' | 'ROLLED_BACK'>;
+    failure?: string | null;
+  },
+): void {
+  const body = {
+    contract: 'actkg-to-act-first-activation-journal/v2' as const,
+    transactionId: 'interrupted-first-test',
+    createdAt: '2026-08-10T00:00:00.000Z',
+    status: input.status,
+    prestate: 'ALL_POINTERS_ABSENT' as const,
+    steps: plan.steps.map((step, index) => ({
+      component: step.component,
+      pointer: {
+        kind: 'repo-relative' as const,
+        path: path.relative(plan.repoRoot, step.pointerPath).split(path.sep).join('/'),
+      },
+      target: step.target,
+      status: input.stepStatuses[index]!,
+    })),
+    failure: input.failure ?? null,
+  };
+  mkdirSync(path.dirname(plan.journalPath), { recursive: true });
+  writeFileSync(
+    plan.journalPath,
+    `${JSON.stringify({
+      ...body,
+      journalHash: createHash('sha256').update(activationCanonicalJson(body)).digest('hex'),
+    }, null, 2)}\n`,
+    'utf8',
+  );
+}
+
+async function waitForMarker(child: ReturnType<typeof spawn>, markerPath: string): Promise<void> {
+  for (let attempt = 0; attempt < 200; attempt += 1) {
+    if (existsSync(markerPath)) return;
+    if (child.exitCode !== null) {
+      throw new Error(`first-activation child exited before marker: ${child.exitCode}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error('first-activation child did not reach the pointer-write marker');
 }
 
 describe('all-ABSENT first activation protocol', () => {
@@ -128,6 +177,183 @@ describe('all-ABSENT first activation protocol', () => {
     expect(() => executeFirstActivation(plan)).toThrow(/post-write identity mismatch.*compensation failed: rollback drift/u);
     expect(readFirstActivationJournal(plan.journalPath).status).toBe('ROLLBACK_FAILED');
     expect(existsSync(projection.pointerPath)).toBe(true);
+  });
+
+  it('recovers each pointer-write crash window from a durable PREPARED journal', () => {
+    for (let index = 0; index < 4; index += 1) {
+      const plan = makePlan();
+      for (let pointerIndex = 0; pointerIndex <= index; pointerIndex += 1) {
+        plan.steps[pointerIndex]!.activate();
+      }
+      writeInterruptedJournal(plan, {
+        status: 'PREPARED',
+        stepStatuses: plan.steps.map((_, stepIndex) =>
+          stepIndex < index
+            ? 'APPLIED'
+            : stepIndex === index
+              ? 'STARTED'
+              : 'PENDING'),
+      });
+
+      const recovered = recoverInterruptedFirstActivation(plan);
+      expect(recovered.status).toBe('ROLLED_BACK');
+      expect(recovered.steps.every((step) => step.status === 'ROLLED_BACK')).toBe(true);
+      expect(plan.steps.every((step) => !existsSync(step.pointerPath))).toBe(true);
+    }
+  });
+
+  it('is re-entrant for a ROLLING_BACK journal whose pointers are already absent', () => {
+    const plan = makePlan();
+    writeInterruptedJournal(plan, {
+      status: 'ROLLING_BACK',
+      stepStatuses: ['ROLLED_BACK', 'ROLLED_BACK', 'ROLLED_BACK', 'ROLLED_BACK'],
+    });
+
+    const recovered = recoverInterruptedFirstActivation(plan);
+    expect(recovered.status).toBe('ROLLED_BACK');
+    expect(recovered.steps.every((step) => step.status === 'ROLLED_BACK')).toBe(true);
+    expect(readFirstActivationJournal(plan.journalPath).journalHash).toBe(recovered.journalHash);
+  });
+
+  it('recovers a PREPARED journal with all pointers absent without activating anything', () => {
+    const plan = makePlan();
+    writeInterruptedJournal(plan, {
+      status: 'PREPARED',
+      stepStatuses: ['PENDING', 'PENDING', 'PENDING', 'PENDING'],
+    });
+
+    const recovered = recoverInterruptedFirstActivation(plan);
+    expect(recovered.status).toBe('ROLLED_BACK');
+    expect(recovered.steps.every((step) => step.status === 'ROLLED_BACK')).toBe(true);
+    expect(plan.steps.every((step) => !existsSync(step.pointerPath))).toBe(true);
+  });
+
+  it('stops reverse compensation at the first identity mismatch without continuing', () => {
+    const plan = makePlan();
+    for (const step of plan.steps) step.activate();
+    const prerequisite = plan.steps[2]!;
+    writeFileSync(
+      prerequisite.pointerPath,
+      JSON.stringify({ publicationId: 'wrong-publication', publicationHash: hash }),
+      'utf8',
+    );
+    writeInterruptedJournal(plan, {
+      status: 'ROLLING_BACK',
+      stepStatuses: ['APPLIED', 'APPLIED', 'APPLIED', 'APPLIED'],
+    });
+
+    expect(() => recoverInterruptedFirstActivation(plan)).toThrow('rollback drift at prerequisite');
+    expect(readFirstActivationJournal(plan.journalPath).status).toBe('ROLLING_BACK');
+    expect(existsSync(plan.steps[3]!.pointerPath)).toBe(false);
+    expect(existsSync(prerequisite.pointerPath)).toBe(true);
+    expect(existsSync(plan.steps[1]!.pointerPath)).toBe(true);
+    expect(existsSync(plan.steps[0]!.pointerPath)).toBe(true);
+  });
+
+  it('refuses execute when the transaction journal is non-terminal and preserves it', () => {
+    const plan = makePlan();
+    writeInterruptedJournal(plan, {
+      status: 'PREPARED',
+      stepStatuses: ['PENDING', 'PENDING', 'PENDING', 'PENDING'],
+    });
+    const before = readFileSync(plan.journalPath, 'utf8');
+
+    expect(() => executeFirstActivation(plan)).toThrow(
+      'first-activation journal already exists with status PREPARED',
+    );
+    expect(readFileSync(plan.journalPath, 'utf8')).toBe(before);
+    expect(plan.steps.every((step) => !existsSync(step.pointerPath))).toBe(true);
+  });
+
+  it('rejects recovery of a COMMITTED journal and leaves the active pointers intact', () => {
+    const plan = makePlan();
+    executeFirstActivation(plan);
+    const before = readFileSync(plan.journalPath, 'utf8');
+
+    expect(() => recoverInterruptedFirstActivation(plan)).toThrow(
+      'cannot recover first activation from COMMITTED',
+    );
+    expect(readFileSync(plan.journalPath, 'utf8')).toBe(before);
+    expect(plan.steps.every((step) => existsSync(step.pointerPath))).toBe(true);
+  });
+
+  it('recovers a real SIGKILL between pointer write and journal APPLIED write', async () => {
+    const plan = makePlan();
+    const markerPath = path.join(plan.repoRoot, 'pointer-written.marker');
+    const modulePath = path.resolve(process.cwd(), 'src/lib/knowledge-cutover/first-activation.ts');
+    const childScript = `
+      import { mkdirSync, writeFileSync } from 'node:fs';
+      import path from 'node:path';
+      import { executeFirstActivation } from ${JSON.stringify(modulePath)};
+
+      const input = JSON.parse(process.env.FIRST_ACTIVATION_CHILD_INPUT);
+      const hash = 'a'.repeat(64);
+      const definitions = [
+        ['authority', 'authority/current.json', 'snapshotId', 'snapshotHash'],
+        ['projection', 'projection/current.json', 'projectionId', 'projectionHash'],
+        ['prerequisite', 'prerequisite/current.json', 'publicationId', 'publicationHash'],
+        ['consumer-activation', 'consumer/current.json', 'activationId', 'activationHash'],
+      ];
+      const steps = definitions.map(([component, relative, idField, hashField]) => {
+        const pointerPath = path.join(input.repoRoot, relative);
+        const target = { component, id: component + '-id', hash };
+        return {
+          component,
+          pointerPath,
+          target,
+          activate: () => {
+            mkdirSync(path.dirname(pointerPath), { recursive: true });
+            writeFileSync(pointerPath, JSON.stringify({ [idField]: target.id, [hashField]: target.hash }));
+            writeFileSync(input.markerPath, 'pointer-written\\n');
+            const blocker = new Int32Array(new SharedArrayBuffer(4));
+            while (true) Atomics.wait(blocker, 0, 0, 1000);
+          },
+        };
+      });
+      executeFirstActivation({
+        repoRoot: input.repoRoot,
+        journalPath: input.journalPath,
+        lockPath: input.lockPath,
+        steps,
+        transactionId: 'sigkill-first-test',
+        createdAt: '2026-08-10T00:00:00.000Z',
+      });
+    `;
+    const child = spawn(
+      process.execPath,
+      ['--import', 'tsx', '--input-type=module', '--eval', childScript],
+      {
+        cwd: process.cwd(),
+        env: {
+          ...process.env,
+          FIRST_ACTIVATION_CHILD_INPUT: JSON.stringify({
+            repoRoot: plan.repoRoot,
+            journalPath: plan.journalPath,
+            lockPath: plan.lockPath,
+            markerPath,
+          }),
+        },
+        stdio: 'ignore',
+      },
+    );
+    const closed = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve) => {
+      child.once('close', (code, signal) => resolve({ code, signal }));
+    });
+
+    await waitForMarker(child, markerPath);
+    expect(readFirstActivationJournal(plan.journalPath).status).toBe('PREPARED');
+    expect(readFirstActivationJournal(plan.journalPath).steps[0]!.status).toBe('STARTED');
+    expect(existsSync(plan.steps[0]!.pointerPath)).toBe(true);
+    expect(child.kill('SIGKILL')).toBe(true);
+    expect((await closed).signal).toBe('SIGKILL');
+    expect(existsSync(plan.lockPath)).toBe(true);
+
+    // Explicit operator action after verifying the child is dead. Recovery never
+    // removes stale locks implicitly.
+    rmSync(plan.lockPath);
+    const recovered = recoverInterruptedFirstActivation(plan);
+    expect(recovered.status).toBe('ROLLED_BACK');
+    expect(plan.steps.every((step) => !existsSync(step.pointerPath))).toBe(true);
   });
 
   it('migrates the legacy journal without retaining its local root and preserves rollback', () => {

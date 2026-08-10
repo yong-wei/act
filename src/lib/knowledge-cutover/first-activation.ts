@@ -252,6 +252,11 @@ export function readFirstActivationJournal(journalPath: string): FirstActivation
     journal.contract !== FIRST_ACTIVATION_JOURNAL_CONTRACT
     || !isJournalStatus(journal.status)
     || journal.prestate !== 'ALL_POINTERS_ABSENT'
+    || typeof journal.transactionId !== 'string'
+    || journal.transactionId.length === 0
+    || typeof journal.createdAt !== 'string'
+    || journal.createdAt.length === 0
+    || (journal.failure !== null && typeof journal.failure !== 'string')
     || typeof journalHash !== 'string'
     || journalHash !== sha256(activationCanonicalJson(body))
   ) {
@@ -273,6 +278,10 @@ export function readFirstActivationJournal(journalPath: string): FirstActivation
       throw new FirstActivationError('first-activation journal pointer locator is invalid');
     }
     normalizeLocatorPath(step.pointer.path);
+  }
+  const pointerLocators = journal.steps.map((step) => step.pointer.path);
+  if (new Set(pointerLocators).size !== FIRST_ACTIVATION_COMPONENTS.length) {
+    throw new FirstActivationError('first-activation journal pointer locators must be unique');
   }
   return journal;
 }
@@ -467,12 +476,18 @@ function assertPlan(input: {
   if (input.steps.length !== FIRST_ACTIVATION_COMPONENTS.length) {
     throw new FirstActivationError('first activation requires exactly four component steps');
   }
+  const pointerPaths = new Set<string>();
   for (const [index, component] of FIRST_ACTIVATION_COMPONENTS.entries()) {
     const step = input.steps[index];
     if (!step || step.component !== component || step.target.component !== component) {
       throw new FirstActivationError(`first activation step order must be ${FIRST_ACTIVATION_COMPONENTS.join(' → ')}`);
     }
-    locatorForPointerPath(input.repoRoot, step.pointerPath);
+    assertTargetIdentity(step.target, component);
+    const pointerPath = locatorForPointerPath(input.repoRoot, step.pointerPath).path;
+    if (pointerPaths.has(pointerPath)) {
+      throw new FirstActivationError('first activation pointer locators must be unique');
+    }
+    pointerPaths.add(pointerPath);
   }
 }
 
@@ -524,11 +539,25 @@ function withStepStatus(
   });
 }
 
+function resolveJournalPointerPaths(
+  repoRoot: string,
+  journal: FirstActivationJournal,
+): string[] {
+  const pointerPaths = journal.steps.map((step) => resolvePointerLocator(repoRoot, step.pointer));
+  if (new Set(pointerPaths).size !== FIRST_ACTIVATION_COMPONENTS.length) {
+    throw new FirstActivationError('first-activation journal pointer locators must be unique');
+  }
+  return pointerPaths;
+}
+
 function compensate(input: {
   repoRoot: string;
   journalPath: string;
   journal: FirstActivationJournal;
+  pointerPaths?: readonly string[];
+  failureStatus: 'ROLLBACK_FAILED' | 'ROLLING_BACK';
 }): FirstActivationJournal {
+  const pointerPaths = input.pointerPaths ?? resolveJournalPointerPaths(input.repoRoot, input.journal);
   let journal = asJournal({
     ...input.journal,
     status: 'ROLLING_BACK',
@@ -537,9 +566,12 @@ function compensate(input: {
   writeJournal(input.journalPath, journal);
 
   try {
-    for (const step of [...journal.steps].reverse()) {
-      if (step.status !== 'STARTED' && step.status !== 'APPLIED') continue;
-      const pointerPath = resolvePointerLocator(input.repoRoot, step.pointer);
+    for (const index of [...journal.steps.keys()].reverse()) {
+      const step = journal.steps[index];
+      const pointerPath = pointerPaths[index];
+      if (!step || !pointerPath) {
+        throw new FirstActivationError('first-activation journal step or pointer is missing');
+      }
       const current = readFirstActivationPointerIdentity({
         component: step.component,
         pointerPath,
@@ -551,13 +583,25 @@ function compensate(input: {
       journal = withStepStatus(journal, step.component, 'ROLLED_BACK');
       writeJournal(input.journalPath, journal);
     }
+    for (const [index, step] of journal.steps.entries()) {
+      const pointerPath = pointerPaths[index];
+      if (!step || !pointerPath) {
+        throw new FirstActivationError('first-activation journal step or pointer is missing');
+      }
+      if (readFirstActivationPointerIdentity({
+        component: step.component,
+        pointerPath,
+      }) !== null) {
+        throw new FirstActivationError(`rollback did not remove ${step.component}`);
+      }
+    }
     journal = asJournal({ ...journal, status: 'ROLLED_BACK' });
     writeJournal(input.journalPath, journal);
     return journal;
   } catch (error) {
     journal = asJournal({
       ...journal,
-      status: 'ROLLBACK_FAILED',
+      status: input.failureStatus,
       failure: error instanceof Error ? error.message : String(error),
     });
     writeJournal(input.journalPath, journal);
@@ -578,58 +622,99 @@ export function executeFirstActivation(input: {
   const repoRoot = path.resolve(input.repoRoot);
   assertPlan({ repoRoot, steps: input.steps });
   const descriptor = acquireLock(input.lockPath);
-  let journal = asJournal({
-    transactionId: input.transactionId ?? `first-activation-${randomUUID()}`,
-    createdAt: input.createdAt ?? new Date().toISOString(),
-    status: 'PREPARED',
-    steps: input.steps.map((step) => ({
-      component: step.component,
-      pointer: locatorForPointerPath(repoRoot, step.pointerPath),
-      target: step.target,
-      status: 'PENDING',
-    })),
-  });
 
   try {
-    for (const step of input.steps) {
-      if (readFirstActivationPointerIdentity(step) !== null) {
-        throw new FirstActivationError(`first activation requires absent pointer: ${step.component}`);
-      }
-    }
-    writeJournal(input.journalPath, journal);
-
-    for (const step of input.steps) {
-      input.beforeActivate?.(step.component);
-      if (!journal.steps.some((row) => row.component === step.component)) {
-        throw new FirstActivationError(`journal step missing: ${step.component}`);
-      }
-      journal = withStepStatus(journal, step.component, 'STARTED');
-      writeJournal(input.journalPath, journal);
-      step.activate();
-      const current = readFirstActivationPointerIdentity(step);
-      if (!sameIdentity(current, step.target)) {
-        throw new FirstActivationError(`post-write identity mismatch: ${step.component}`);
-      }
-      journal = withStepStatus(journal, step.component, 'APPLIED');
-      writeJournal(input.journalPath, journal);
-    }
-
-    input.postCommit?.();
-    journal = asJournal({ ...journal, status: 'COMMITTED' });
-    writeJournal(input.journalPath, journal);
-    return journal;
-  } catch (error) {
-    const failure = error instanceof Error ? error.message : String(error);
-    journal = asJournal({ ...journal, failure });
-    writeJournal(input.journalPath, journal);
-    try {
-      compensate({ repoRoot, journalPath: input.journalPath, journal });
-    } catch (rollbackError) {
+    if (existsSync(input.journalPath)) {
+      const existing = readFirstActivationJournal(input.journalPath);
+      resolveJournalPointerPaths(repoRoot, existing);
       throw new FirstActivationError(
-        `${failure}; compensation failed: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`,
+        `first-activation journal already exists with status ${existing.status}; execute cannot overwrite it (non-terminal journals require explicit recovery); explicit operator action is required`,
       );
     }
-    throw error;
+
+    let journal = asJournal({
+      transactionId: input.transactionId ?? `first-activation-${randomUUID()}`,
+      createdAt: input.createdAt ?? new Date().toISOString(),
+      status: 'PREPARED',
+      steps: input.steps.map((step) => ({
+        component: step.component,
+        pointer: locatorForPointerPath(repoRoot, step.pointerPath),
+        target: step.target,
+        status: 'PENDING',
+      })),
+    });
+
+    try {
+      for (const step of input.steps) {
+        if (readFirstActivationPointerIdentity(step) !== null) {
+          throw new FirstActivationError(`first activation requires absent pointer: ${step.component}`);
+        }
+      }
+      writeJournal(input.journalPath, journal);
+
+      for (const step of input.steps) {
+        input.beforeActivate?.(step.component);
+        if (!journal.steps.some((row) => row.component === step.component)) {
+          throw new FirstActivationError(`journal step missing: ${step.component}`);
+        }
+        journal = withStepStatus(journal, step.component, 'STARTED');
+        writeJournal(input.journalPath, journal);
+        step.activate();
+        const current = readFirstActivationPointerIdentity(step);
+        if (!sameIdentity(current, step.target)) {
+          throw new FirstActivationError(`post-write identity mismatch: ${step.component}`);
+        }
+        journal = withStepStatus(journal, step.component, 'APPLIED');
+        writeJournal(input.journalPath, journal);
+      }
+
+      input.postCommit?.();
+      journal = asJournal({ ...journal, status: 'COMMITTED' });
+      writeJournal(input.journalPath, journal);
+      return journal;
+    } catch (error) {
+      const failure = error instanceof Error ? error.message : String(error);
+      journal = asJournal({ ...journal, failure });
+      writeJournal(input.journalPath, journal);
+      try {
+        compensate({
+          repoRoot,
+          journalPath: input.journalPath,
+          journal,
+          failureStatus: 'ROLLBACK_FAILED',
+        });
+      } catch (rollbackError) {
+        throw new FirstActivationError(
+          `${failure}; compensation failed: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`,
+        );
+      }
+      throw error;
+    }
+  } finally {
+    releaseLock(input.lockPath, descriptor);
+  }
+}
+
+export function recoverInterruptedFirstActivation(input: {
+  repoRoot: string;
+  journalPath: string;
+  lockPath: string;
+}): FirstActivationJournal {
+  const repoRoot = path.resolve(input.repoRoot);
+  const descriptor = acquireLock(input.lockPath);
+  try {
+    const journal = readFirstActivationJournal(input.journalPath);
+    const pointerPaths = resolveJournalPointerPaths(repoRoot, journal);
+    if (journal.status !== 'PREPARED' && journal.status !== 'ROLLING_BACK') {
+      throw new FirstActivationError(`cannot recover first activation from ${journal.status}`);
+    }
+    return compensate({
+      repoRoot,
+      journalPath: input.journalPath,
+      journal,
+      pointerPaths,
+      failureStatus: 'ROLLING_BACK',
+    });
   } finally {
     releaseLock(input.lockPath, descriptor);
   }
@@ -643,6 +728,7 @@ export function rollbackCommittedFirstActivation(input: {
   const descriptor = acquireLock(input.lockPath);
   try {
     const journal = readFirstActivationJournal(input.journalPath);
+    const pointerPaths = resolveJournalPointerPaths(path.resolve(input.repoRoot), journal);
     if (journal.status !== 'COMMITTED') {
       throw new FirstActivationError(`cannot rollback first activation from ${journal.status}`);
     }
@@ -650,6 +736,8 @@ export function rollbackCommittedFirstActivation(input: {
       repoRoot: path.resolve(input.repoRoot),
       journalPath: input.journalPath,
       journal,
+      pointerPaths,
+      failureStatus: 'ROLLBACK_FAILED',
     });
   } finally {
     releaseLock(input.lockPath, descriptor);
