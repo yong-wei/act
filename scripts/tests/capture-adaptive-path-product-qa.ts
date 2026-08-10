@@ -1,11 +1,23 @@
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { chromium, type Page } from 'playwright';
 
 const repoRoot = path.resolve(__dirname, '../..');
-const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/adaptive-path-product-qa-516');
-const baseUrl = process.env.ADAPTIVE_PATH_QA_BASE_URL ?? 'http://localhost:3001';
+const DEFAULT_DOCK_READY_TIMEOUT_MS = 30_000;
+const DEFAULT_DOCK_POLL_INTERVAL_MS = 50;
+export const DOCK_SELECTOR = '[data-platform-floating-dock]';
+export const PRIMARY_KONLING_SELECTOR =
+  '[data-platform-floating-dock] button[data-platform-floating-dock-primary="konling"]';
+export const DOCK_REGISTRATION_SELECTOR = '[data-platform-floating-dock-registration="true"]';
+export const CAPTURE_SOURCE_FILES = [
+  'src/app/assessment/adaptive-practice/page.tsx',
+  'src/components/platform/app-shell.tsx',
+  'src/components/shared/page-floating-controls.tsx',
+  'scripts/tests/capture-adaptive-path-product-qa.ts',
+] as const;
 
 type Theme = 'light' | 'dark';
 type CaptureState = {
@@ -18,12 +30,262 @@ type CaptureState = {
   beforeScreenshot?: (page: Page) => Promise<void>;
 };
 
-function sha256File(relativePath: string) {
-  return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+export type CaptureRevision = {
+  commitSha: string;
+  treeSha: string;
+  sourceFiles: Record<string, string>;
+};
+
+export type DockReadinessSnapshot = {
+  targetUrl: string;
+  actualUrl: string;
+  dockPresent: boolean;
+  dockVisible: boolean;
+  dockState: string | null;
+  registrationPresent: boolean;
+  registrationBehavior: string | null;
+  registeredControls: string | null;
+  primaryPresent: boolean;
+  primaryVisible: boolean;
+  primaryDisabled: boolean;
+  primaryLabel: string | null;
+  missingSelectors: string[];
+};
+
+type DockReadinessWaitOptions = {
+  targetUrl: string;
+  actualUrl: string;
+  timeoutMs?: number;
+  pollIntervalMs?: number;
+  now?: () => number;
+  sleep?: (milliseconds: number) => Promise<void>;
+};
+
+function gitOutput(repositoryRoot: string, args: string[]) {
+  return execFileSync('git', args, {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim();
 }
 
-function relativeOutput(name: string) {
-  return `artifacts/commercial-ui/adaptive-path-product-qa-516/${name}.png`;
+function gitBlob(repositoryRoot: string, revision: string, relativePath: string) {
+  return execFileSync('git', ['show', `${revision}:${relativePath}`], {
+    cwd: repositoryRoot,
+    encoding: null,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+}
+
+function pathIsWithin(candidate: string, parent: string) {
+  const relative = path.relative(parent, candidate);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function untrackedOrModifiedPaths(repositoryRoot: string, ignoredPaths: readonly string[]) {
+  const status = gitOutput(repositoryRoot, ['status', '--porcelain', '--untracked-files=all']);
+  return status
+    .split(/\r?\n/u)
+    .map((line) => line.trimEnd())
+    .filter(Boolean)
+    .filter((line) => {
+      const statusPath = line.slice(3).trim().replace(/^"|"$/gu, '');
+      const absolutePath = path.resolve(repositoryRoot, statusPath);
+      return !ignoredPaths.some((ignoredPath) => pathIsWithin(absolutePath, ignoredPath));
+    });
+}
+
+export function resolveTargetBaseUrl(rawValue = process.env.ADAPTIVE_PATH_QA_BASE_URL) {
+  const value = rawValue?.trim();
+  if (!value) {
+    throw new Error(
+      'ADAPTIVE_PATH_QA_BASE_URL is required; refusing to fall back to an implicit local service.',
+    );
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(`Invalid adaptive-path QA target URL: ${value}`);
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`Adaptive-path QA target URL must use http or https: ${value}`);
+  }
+  if (parsed.username || parsed.password || parsed.search || parsed.hash) {
+    throw new Error('Adaptive-path QA target URL must not contain credentials, query, or hash.');
+  }
+
+  parsed.pathname = parsed.pathname.replace(/\/+$/u, '');
+  return parsed.toString().replace(/\/$/u, '');
+}
+
+export function resolveOutputDirectory(
+  rawValue = process.env.ADAPTIVE_PATH_QA_OUTPUT_DIR,
+  repositoryRoot = repoRoot,
+) {
+  const value = rawValue?.trim();
+  if (!value) {
+    return path.join(os.tmpdir(), `act-adaptive-path-product-qa-${process.pid}`);
+  }
+  return path.isAbsolute(value) ? path.resolve(value) : path.resolve(repositoryRoot, value);
+}
+
+export function assertSourcePathsExcludeOutput(
+  sourceFiles: readonly string[],
+  outputDirectory: string,
+  repositoryRoot = repoRoot,
+) {
+  const outputAbsolutePath = path.resolve(outputDirectory);
+  for (const sourceFile of sourceFiles) {
+    const sourceAbsolutePath = path.resolve(repositoryRoot, sourceFile);
+    if (pathIsWithin(sourceAbsolutePath, outputAbsolutePath)) {
+      throw new Error(`Capture source list must not include output artifacts: ${sourceFile}`);
+    }
+  }
+}
+
+export function readCaptureRevision(
+  repositoryRoot = repoRoot,
+  sourceFiles: readonly string[] = CAPTURE_SOURCE_FILES,
+  ignoredPaths: readonly string[] = [],
+): CaptureRevision {
+  const dirtyPaths = untrackedOrModifiedPaths(repositoryRoot, ignoredPaths);
+  if (dirtyPaths.length > 0) {
+    throw new Error(`Capture requires a clean source tree:\n${dirtyPaths.join('\n')}`);
+  }
+
+  const commitSha = gitOutput(repositoryRoot, ['rev-parse', '--verify', 'HEAD^{commit}']);
+  const treeSha = gitOutput(repositoryRoot, ['rev-parse', '--verify', 'HEAD^{tree}']);
+  const sourceHashes: Record<string, string> = {};
+  for (const sourceFile of sourceFiles) {
+    gitOutput(repositoryRoot, ['ls-files', '--error-unmatch', '--', sourceFile]);
+    const sourcePath = path.join(repositoryRoot, sourceFile);
+    if (!existsSync(sourcePath)) throw new Error(`Capture source file is missing: ${sourceFile}`);
+
+    const workingTreeSha = createHash('sha256').update(readFileSync(sourcePath)).digest('hex');
+    const committedSha = createHash('sha256').update(gitBlob(repositoryRoot, 'HEAD', sourceFile)).digest('hex');
+    if (workingTreeSha !== committedSha) {
+      throw new Error(`Capture source file drifted from HEAD: ${sourceFile}`);
+    }
+    sourceHashes[sourceFile] = workingTreeSha;
+  }
+
+  return { commitSha, treeSha, sourceFiles: sourceHashes };
+}
+
+export function assertCaptureRevisionUnchanged(
+  initialRevision: CaptureRevision,
+  currentRevision: CaptureRevision,
+) {
+  if (currentRevision.commitSha !== initialRevision.commitSha) {
+    throw new Error(`Capture HEAD drifted: ${initialRevision.commitSha}->${currentRevision.commitSha}`);
+  }
+  if (currentRevision.treeSha !== initialRevision.treeSha) {
+    throw new Error(`Capture tree drifted: ${initialRevision.treeSha}->${currentRevision.treeSha}`);
+  }
+  for (const [sourceFile, sourceSha] of Object.entries(initialRevision.sourceFiles)) {
+    if (currentRevision.sourceFiles[sourceFile] !== sourceSha) {
+      throw new Error(`Capture source file drifted during capture: ${sourceFile}`);
+    }
+  }
+}
+
+export function createCaptureUrl(baseUrl: string, query: string) {
+  const url = new URL('/assessment/adaptive-practice', `${baseUrl}/`);
+  url.search = query.startsWith('?') ? query.slice(1) : query;
+  return url.toString();
+}
+
+export function assertCapturePageUrl(expectedUrl: string, actualUrl: string) {
+  const expected = new URL(expectedUrl);
+  const actual = new URL(actualUrl);
+  if (
+    actual.origin !== expected.origin
+    || actual.pathname !== expected.pathname
+    || actual.search !== expected.search
+  ) {
+    throw new Error(`Capture navigated away from declared target: expected=${expectedUrl} actual=${actualUrl}`);
+  }
+}
+
+export async function assertTargetServiceReachable(
+  targetUrl: string,
+  fetcher: (input: string, init?: RequestInit) => Promise<{ status: number }> = fetch,
+) {
+  try {
+    const response = await fetcher(targetUrl, { redirect: 'manual' });
+    if (response.status >= 500) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`Adaptive-path QA target is unreachable: ${targetUrl} (${detail})`);
+  }
+}
+
+export function dockReadinessSatisfied(snapshot: DockReadinessSnapshot) {
+  return snapshot.dockPresent
+    && snapshot.dockVisible
+    && snapshot.registrationPresent
+    && snapshot.primaryPresent
+    && snapshot.primaryVisible
+    && snapshot.primaryDisabled;
+}
+
+export function createDockReadinessTimeoutMessage(snapshot: DockReadinessSnapshot, timeoutMs: number) {
+  return [
+    `Shared Konling Dock readiness timed out after ${timeoutMs}ms.`,
+    `targetUrl=${snapshot.targetUrl}`,
+    `actualUrl=${snapshot.actualUrl}`,
+    `observedDock=${JSON.stringify({
+      dockPresent: snapshot.dockPresent,
+      dockVisible: snapshot.dockVisible,
+      dockState: snapshot.dockState,
+      registrationPresent: snapshot.registrationPresent,
+      registrationBehavior: snapshot.registrationBehavior,
+      registeredControls: snapshot.registeredControls,
+      primaryPresent: snapshot.primaryPresent,
+      primaryVisible: snapshot.primaryVisible,
+      primaryDisabled: snapshot.primaryDisabled,
+      primaryLabel: snapshot.primaryLabel,
+    })}`,
+    `missingSelectors=${snapshot.missingSelectors.join(',') || 'none'}`,
+  ].join(' ');
+}
+
+export async function waitForDockReadiness(
+  readSnapshot: () => Promise<DockReadinessSnapshot>,
+  options: DockReadinessWaitOptions,
+) {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_DOCK_READY_TIMEOUT_MS;
+  const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_DOCK_POLL_INTERVAL_MS;
+  const now = options.now ?? Date.now;
+  const sleep = options.sleep ?? ((milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
+  const deadline = now() + timeoutMs;
+  let snapshot = await readSnapshot();
+
+  while (!dockReadinessSatisfied(snapshot)) {
+    const remainingMs = deadline - now();
+    if (remainingMs <= 0) {
+      throw new Error(createDockReadinessTimeoutMessage(snapshot, timeoutMs));
+    }
+    await sleep(Math.min(pollIntervalMs, remainingMs));
+    snapshot = await readSnapshot();
+  }
+
+  return snapshot;
+}
+
+function sha256File(absolutePath: string) {
+  return createHash('sha256').update(readFileSync(absolutePath)).digest('hex');
+}
+
+function manifestFilePath(absolutePath: string, repositoryRoot = repoRoot) {
+  return pathIsWithin(absolutePath, repositoryRoot)
+    ? path.relative(repositoryRoot, absolutePath)
+    : absolutePath;
 }
 
 async function setTheme(page: Page, theme: Theme) {
@@ -33,10 +295,61 @@ async function setTheme(page: Page, theme: Theme) {
   }, theme);
 }
 
+async function readDockReadiness(page: Page, targetUrl: string): Promise<DockReadinessSnapshot> {
+  return page.evaluate(({ targetUrl, actualUrl, dockSelector, primarySelector, registrationSelector }) => {
+    const dock = document.querySelector(dockSelector);
+    const registration = document.querySelector(registrationSelector);
+    const primary = document.querySelector(primarySelector);
+    const isVisible = (element: Element | null) => {
+      if (!element) return false;
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+    };
+    const primaryButton = primary instanceof HTMLButtonElement ? primary : null;
+    const dockPresent = Boolean(dock);
+    const dockVisible = isVisible(dock);
+    const registrationPresent = Boolean(registration);
+    const primaryPresent = Boolean(primaryButton);
+    const primaryVisible = isVisible(primaryButton);
+    const primaryDisabled = primaryButton?.disabled === true;
+    const missingSelectors = [
+      !dockPresent || !dockVisible ? dockSelector : null,
+      !registrationPresent ? registrationSelector : null,
+      !primaryPresent || !primaryVisible ? primarySelector : null,
+      primaryPresent && primaryVisible && !primaryDisabled ? `${primarySelector}[disabled]` : null,
+    ].filter((selector): selector is string => Boolean(selector));
+
+    return {
+      targetUrl,
+      actualUrl,
+      dockPresent,
+      dockVisible,
+      dockState: dock?.getAttribute('data-platform-floating-dock') ?? null,
+      registrationPresent,
+      registrationBehavior: registration?.getAttribute('data-platform-floating-dock-behavior') ?? null,
+      registeredControls: registration?.getAttribute('data-platform-floating-dock-controls') ?? null,
+      primaryPresent,
+      primaryVisible,
+      primaryDisabled,
+      primaryLabel: primary?.getAttribute('data-platform-floating-dock-trigger-label') ?? null,
+      missingSelectors,
+    };
+  }, {
+    targetUrl,
+    actualUrl: page.url(),
+    dockSelector: DOCK_SELECTOR,
+    primarySelector: PRIMARY_KONLING_SELECTOR,
+    registrationSelector: DOCK_REGISTRATION_SELECTOR,
+  });
+}
+
 async function assertDisabledDock(page: Page) {
-  const trigger = page.locator('[data-page-floating-controls] button, [data-platform-floating-dock] button').first();
-  if (!await trigger.count()) throw new Error('Expected shared dock trigger');
-  if (await trigger.isEnabled()) throw new Error('Expected demo dock trigger to be disabled');
+  const targetUrl = page.url();
+  await waitForDockReadiness(
+    () => readDockReadiness(page, targetUrl),
+    { targetUrl, actualUrl: page.url() },
+  );
 }
 
 async function openPathModule(page: Page, moduleId: string) {
@@ -44,7 +357,9 @@ async function openPathModule(page: Page, moduleId: string) {
   if (!await modulePanel.count()) return;
   if (await modulePanel.getAttribute('data-adaptive-path-module-state') === 'expanded') return;
   await modulePanel.getByRole('button').first().click();
-  await page.waitForTimeout(250);
+  await page.waitForFunction((id) => {
+    return document.querySelector(`[data-adaptive-path-module="${id}"]`)?.getAttribute('data-adaptive-path-module-state') === 'expanded';
+  }, moduleId, { timeout: 10_000, polling: 'raf' });
 }
 
 async function openPathSelectionModule(page: Page) {
@@ -64,7 +379,7 @@ async function selectCompletedNode(page: Page) {
   const completed = page.locator('[data-adaptive-path-node-state="completed"]').first();
   if (await completed.count()) {
     await completed.click();
-    await page.waitForTimeout(250);
+    await page.waitForSelector('[data-adaptive-path-node-detail="inline"]', { timeout: 10_000 });
   }
 }
 
@@ -73,7 +388,7 @@ async function openSkipWarning(page: Page) {
   const current = page.locator('[data-adaptive-path-node-state="current"]').first();
   if (await current.count()) {
     await current.click();
-    await page.waitForTimeout(200);
+    await page.waitForSelector('[data-adaptive-path-node-detail="inline"]', { timeout: 10_000 });
   }
   const skipButton = page
     .locator('[data-adaptive-path-node-detail="inline"]')
@@ -81,7 +396,7 @@ async function openSkipWarning(page: Page) {
     .first();
   if (await skipButton.count()) {
     await skipButton.click();
-    await page.waitForTimeout(250);
+    await page.waitForSelector('[data-adaptive-path-skip-warning="visible"]', { timeout: 10_000 });
   }
 }
 
@@ -310,6 +625,11 @@ function assertPathComparisonSignals(signals: CaptureSignal[]) {
 }
 
 async function main() {
+  const targetBaseUrl = resolveTargetBaseUrl();
+  const outputDir = resolveOutputDirectory();
+  assertSourcePathsExcludeOutput(CAPTURE_SOURCE_FILES, outputDir);
+  await assertTargetServiceReachable(targetBaseUrl);
+  const initialRevision = readCaptureRevision(repoRoot, CAPTURE_SOURCE_FILES);
   mkdirSync(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const captures = [];
@@ -318,28 +638,40 @@ async function main() {
     for (const state of states) {
       const page = await browser.newPage({ viewport: { width: state.width, height: state.height } });
       await setTheme(page, state.theme);
-      await page.goto(`${baseUrl}/assessment/adaptive-practice${state.query}`, { waitUntil: 'networkidle' });
+      const targetUrl = createCaptureUrl(targetBaseUrl, state.query);
+      const response = await page.goto(targetUrl, { waitUntil: 'networkidle' });
+      if (!response || response.status() >= 400) {
+        throw new Error(
+          `Adaptive-path QA navigation failed: targetUrl=${targetUrl} actualUrl=${page.url()} status=${response?.status() ?? 'no-response'}`,
+        );
+      }
+      assertCapturePageUrl(targetUrl, page.url());
       await page.waitForSelector('[data-adaptive-path-center="generation-selection"]', { timeout: 30000 });
+      await waitForDockReadiness(
+        () => readDockReadiness(page, targetUrl),
+        { targetUrl, actualUrl: page.url() },
+      );
       if (state.beforeScreenshot) await state.beforeScreenshot(page);
-      const relativePath = relativeOutput(state.name);
-      const absolutePath = path.join(repoRoot, relativePath);
+      const absolutePath = path.join(outputDir, `${state.name}.png`);
+      const manifestPath = manifestFilePath(absolutePath);
       if (state.selector) {
         await page.locator(state.selector).first().screenshot({ path: absolutePath });
       } else {
         await page.screenshot({ path: absolutePath, fullPage: true });
       }
-      const sha256 = sha256File(relativePath);
+      const sha256 = sha256File(absolutePath);
       captures.push({
         name: state.name,
         theme: state.theme,
         width: state.width,
         height: state.height,
-        url: `${baseUrl}/assessment/adaptive-practice${state.query}`,
+        url: page.url(),
+        targetUrl,
         selector: state.selector,
-        file: relativePath,
+        file: manifestPath,
         sha256,
       });
-      signals.push(await collectSignals(page, state, relativePath));
+      signals.push(await collectSignals(page, state, manifestPath));
       await page.close();
     }
   } finally {
@@ -348,16 +680,33 @@ async function main() {
 
   assertPathComparisonSignals(signals);
 
+  const finalRevision = readCaptureRevision(
+    repoRoot,
+    CAPTURE_SOURCE_FILES,
+    pathIsWithin(outputDir, repoRoot) ? [outputDir] : [],
+  );
+  assertCaptureRevisionUnchanged(initialRevision, finalRevision);
+
   writeFileSync(path.join(outputDir, 'capture-manifest.json'), `${JSON.stringify({
+    schemaVersion: 'adaptive-path-product-qa-capture.v2',
     capturedAt: new Date().toISOString(),
-    baseUrl,
+    baseUrl: targetBaseUrl,
+    targetBaseUrl,
+    workspaceClean: true,
+    captureRevision: initialRevision.commitSha,
+    captureTreeSha: initialRevision.treeSha,
+    captureSourceFiles: initialRevision.sourceFiles,
+    sourceFiles: Object.keys(initialRevision.sourceFiles),
+    outputDirectory: manifestFilePath(outputDir),
     captures,
   }, null, 2)}\n`);
   writeFileSync(path.join(outputDir, 'visual-signals.json'), `${JSON.stringify(signals, null, 2)}\n`);
-  console.log(`Captured ${captures.length} adaptive path QA states in ${path.relative(repoRoot, outputDir)}`);
+  console.log(`Captured ${captures.length} adaptive path QA states in ${manifestFilePath(outputDir)}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
