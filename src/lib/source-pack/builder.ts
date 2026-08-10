@@ -1,6 +1,5 @@
-import { createHash } from 'node:crypto';
-
 import { validateSourcePack } from './schema';
+import { sha256 } from '@/lib/sha256';
 import {
   SOURCE_PACK_SCHEMA_VERSION,
   type SourcePack,
@@ -109,7 +108,7 @@ function stableId(prefix: string, parts: unknown[]): string {
 }
 
 function stableHash(parts: unknown[]): string {
-  return createHash('sha256').update(JSON.stringify(parts)).digest('hex');
+  return sha256(JSON.stringify(parts));
 }
 
 function unique(values: string[]): string[] {

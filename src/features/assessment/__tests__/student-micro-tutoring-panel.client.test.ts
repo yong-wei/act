@@ -2,7 +2,7 @@
 
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { fireEvent, getByRole, getByText } from '@testing-library/dom';
+import { fireEvent, getByRole, getByText, queryByRole } from '@testing-library/dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StudentMicroTutoringPanel } from '../student-micro-tutoring-panel';
 
@@ -118,6 +118,83 @@ describe('StudentMicroTutoringPanel', () => {
 
     expect(getByText(container, '任务内容已更新，请返回练习后重新开始。')).toBeTruthy();
     expect(container.querySelector('[name="micro-tutoring-validation"]')).toBeNull();
+  });
+
+  it.each([401, 403])('does not offer a same-request retry after a %i authorization failure', async (status) => {
+    fetchMock
+      .mockResolvedValueOnce(json(AVAILABLE))
+      .mockResolvedValueOnce(json({ error: status === 401 ? 'UNAUTHENTICATED' : 'LEARNER_REQUIRED' }, status));
+
+    await act(async () => root.render(createElement(StudentMicroTutoringPanel, { answerId: 'answer-1', onRequestHint })));
+    fireEvent.click(getByRole(container, 'button', { name: '开始微辅导' }));
+    await flush();
+    fireEvent.click(getByRole(container, 'button', { name: '开始本次辅导' }));
+    await flush();
+
+    expect(getByRole(container, 'alert').textContent).toContain('登录状态或学生权限已经变化');
+    expect(queryByRole(container, 'button', { name: '重试' })).toBeNull();
+  });
+
+  it('retries a network-failed event with the same event identity', async () => {
+    fetchMock
+      .mockResolvedValueOnce(json(AVAILABLE))
+      .mockResolvedValueOnce(json(STARTED))
+      .mockRejectedValueOnce(new TypeError('network unavailable'))
+      .mockResolvedValueOnce(json({ ...STARTED, progress: { ...STARTED.progress, resourceUseCount: 1 } }));
+
+    await act(async () => root.render(createElement(StudentMicroTutoringPanel, { answerId: 'answer-1', onRequestHint })));
+    fireEvent.click(getByRole(container, 'button', { name: '开始微辅导' }));
+    await flush();
+    fireEvent.click(getByRole(container, 'button', { name: '开始本次辅导' }));
+    await flush();
+    fireEvent.click(getByRole(container, 'button', { name: /相位裕度案例/ }));
+    await flush();
+    fireEvent.click(getByRole(container, 'button', { name: '重试' }));
+    await flush();
+
+    const initialEvent = JSON.parse(fetchMock.mock.calls[2][1].body);
+    const retriedEvent = JSON.parse(fetchMock.mock.calls[3][1].body);
+    expect(retriedEvent.eventKey).toBe(initialEvent.eventKey);
+    expect(container.textContent).toContain('已使用 1 项资源');
+  });
+
+  it('synchronizes an already-recorded validation instead of retrying an idempotency conflict', async () => {
+    const completed = {
+      ...STARTED,
+      status: 'COMPLETED',
+      progress: { resourceUseCount: 0, hintCount: 0, completedAt: '2026-08-10T00:01:00.000Z', durationSeconds: 60 },
+    };
+    const validated = {
+      ...completed,
+      status: 'VALIDATED',
+      validation: { isCorrect: true, submittedAt: '2026-08-10T00:02:00.000Z' },
+      recommendation: { kind: 'TRANSFER_PRACTICE_UNAVAILABLE', basisSummary: '验证已经记录。', actions: [] },
+    };
+    fetchMock
+      .mockResolvedValueOnce(json(AVAILABLE))
+      .mockResolvedValueOnce(json(STARTED))
+      .mockResolvedValueOnce(json(completed))
+      .mockResolvedValueOnce(json({ id: 'validation-1', prompt: '应优先检查哪一项？', options: [{ label: 'A', text: '相位裕度' }] }))
+      .mockResolvedValueOnce(json({ error: 'IDEMPOTENCY_CONFLICT' }, 409))
+      .mockResolvedValueOnce(json(validated));
+
+    await act(async () => root.render(createElement(StudentMicroTutoringPanel, { answerId: 'answer-1', onRequestHint })));
+    fireEvent.click(getByRole(container, 'button', { name: '开始微辅导' }));
+    await flush();
+    fireEvent.click(getByRole(container, 'button', { name: '开始本次辅导' }));
+    await flush();
+    fireEvent.click(getByRole(container, 'button', { name: '完成学习，进入验证' }));
+    await flush();
+    fireEvent.click(getByRole(container, 'button', { name: '获取验证题' }));
+    await flush();
+    fireEvent.click(getByRole(container, 'radio', { name: /相位裕度/ }));
+    fireEvent.click(getByRole(container, 'button', { name: '提交验证' }));
+    await flush();
+
+    expect(getByText(container, '验证通过')).toBeTruthy();
+    expect(getByRole(container, 'alert').textContent).toContain('已在服务端处理');
+    expect(queryByRole(container, 'button', { name: '重试' })).toBeNull();
+    expect(fetchMock.mock.calls[5][0]).toContain('/api/assessment/remediation/interventions?interventionId=intervention-1');
   });
 
   it('retries a failed hint delivery without recording a second learner event', async () => {

@@ -59,6 +59,18 @@ type ValidationQuestion = {
 };
 
 type RetryAction = (() => Promise<void>) | null;
+type RequestFailureKind = 'authorization' | 'duplicate-action' | 'rejected' | 'retryable';
+const focusRingClass = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2';
+
+class RequestFailure extends Error {
+  constructor(
+    readonly kind: RequestFailureKind,
+    readonly retryable: boolean,
+    message: string,
+  ) {
+    super(message);
+  }
+}
 
 function isUnavailable(result: unknown): result is UnavailableResult {
   return Boolean(result && typeof result === 'object' && (result as { status?: string }).status === 'UNAVAILABLE');
@@ -78,14 +90,33 @@ function humanizeUnavailable(reason: string): string {
 }
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, init);
-  const payload = await response.json().catch(() => null) as T | { error?: string } | null;
-  if (!response.ok && !isUnavailable(payload)) {
-    throw new Error(payload && typeof payload === 'object' && 'error' in payload && payload.error
-      ? payload.error
-      : 'REQUEST_FAILED');
+  let response: Response;
+  try {
+    response = await fetch(url, init);
+  } catch {
+    throw new RequestFailure('retryable', true, '请求未完成，请重试。');
   }
-  return payload as T;
+  const payload = await response.json().catch(() => null) as T | { error?: string } | null;
+  if (response.ok || isUnavailable(payload)) {
+    return payload as T;
+  }
+  const errorCode = payload && typeof payload === 'object' && 'error' in payload
+    ? payload.error
+    : null;
+  if (response.status === 401 || response.status === 403) {
+    throw new RequestFailure('authorization', false, '登录状态或学生权限已经变化，请重新登录后从错题反馈重新开始。');
+  }
+  if (response.status === 409 && errorCode === 'IDEMPOTENCY_CONFLICT') {
+    throw new RequestFailure('duplicate-action', false, '该操作已在服务端处理，请返回练习后查看当前状态。');
+  }
+  if (response.status >= 500) {
+    throw new RequestFailure('retryable', true, '请求未完成，请重试。');
+  }
+  throw new RequestFailure('rejected', false, '当前请求不能继续执行，请返回练习后重新开始。');
+}
+
+function isDuplicateActionFailure(error: unknown): error is RequestFailure {
+  return error instanceof RequestFailure && error.kind === 'duplicate-action';
 }
 
 function elapsedSeconds(startedAt: string): number {
@@ -109,7 +140,7 @@ export function StudentMicroTutoringPanel({
   const [question, setQuestion] = useState<ValidationQuestion | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<RequestFailure | null>(null);
   const retryAction = useRef<RetryAction>(null);
   const eventKeys = useRef(new Map<string, string>());
   const hintEventRecorded = useRef(false);
@@ -129,11 +160,30 @@ export function StudentMicroTutoringPanel({
       await action();
       retryAction.current = null;
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : '请求失败，请重试。');
+      const failure = requestError instanceof RequestFailure
+        ? requestError
+        : new RequestFailure('retryable', true, '请求未完成，请重试。');
+      if (!failure.retryable) retryAction.current = null;
+      setError(failure);
     } finally {
       setPending(null);
     }
   }, []);
+
+  const refreshIntervention = useCallback(async (interventionId: string) => {
+    const result = await requestJson<InterventionResult>(
+      `/api/assessment/remediation/interventions?interventionId=${encodeURIComponent(interventionId)}`,
+    );
+    if (isUnavailable(result)) {
+      setUnavailable(result);
+      return;
+    }
+    setIntervention(result);
+    if (result.status === 'VALIDATED') {
+      setQuestion(null);
+      setSelectedOption(null);
+    }
+  }, [setUnavailable]);
 
   const createOrchestration = useCallback(async () => {
     const result = await requestJson<OrchestrationResult>('/api/assessment/remediation', {
@@ -173,25 +223,36 @@ export function StudentMicroTutoringPanel({
     const identity = `${eventType}:${resourceId ?? 'task'}`;
     const key = eventKeys.current.get(identity) ?? eventKey();
     eventKeys.current.set(identity, key);
-    const result = await requestJson<InterventionResult>('/api/assessment/remediation/interventions/events', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        interventionId: intervention.id,
-        eventKey: key,
-        eventType,
-        resourceId,
-        durationSeconds: eventType === 'COMPLETED' ? elapsedSeconds(intervention.startedAt) : undefined,
-      }),
-    });
-    if (isUnavailable(result)) {
-      setUnavailable(result);
-      return null;
+    try {
+      const result = await requestJson<InterventionResult>('/api/assessment/remediation/interventions/events', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          interventionId: intervention.id,
+          eventKey: key,
+          eventType,
+          resourceId,
+          durationSeconds: eventType === 'COMPLETED' ? elapsedSeconds(intervention.startedAt) : undefined,
+        }),
+      });
+      if (isUnavailable(result)) {
+        eventKeys.current.delete(identity);
+        setUnavailable(result);
+        return null;
+      }
+      eventKeys.current.delete(identity);
+      setIntervention(result);
+      return result;
+    } catch (error) {
+      if (isDuplicateActionFailure(error)) {
+        eventKeys.current.delete(identity);
+        await refreshIntervention(intervention.id).catch(() => undefined);
+      } else if (error instanceof RequestFailure && !error.retryable) {
+        eventKeys.current.delete(identity);
+      }
+      throw error;
     }
-    eventKeys.current.delete(identity);
-    setIntervention(result);
-    return result;
-  }, [intervention, setUnavailable]);
+  }, [intervention, refreshIntervention, setUnavailable]);
 
   const openResource = useCallback(async (resource: { id: string; actionPath: string }) => {
     if (!isPlatformRelativePath(resource.actionPath)) {
@@ -199,13 +260,18 @@ export function StudentMicroTutoringPanel({
     }
     const resourceWindow = window.open('', '_blank');
     if (resourceWindow) resourceWindow.opener = null;
-    const result = await recordEvent('RESOURCE_USED', resource.id);
-    if (!result) {
+    try {
+      const result = await recordEvent('RESOURCE_USED', resource.id);
+      if (!result) {
+        resourceWindow?.close();
+        return;
+      }
+      if (resourceWindow) resourceWindow.location.replace(resource.actionPath);
+      else window.location.assign(resource.actionPath);
+    } catch (error) {
       resourceWindow?.close();
-      return;
+      throw error;
     }
-    if (resourceWindow) resourceWindow.location.replace(resource.actionPath);
-    else window.location.assign(resource.actionPath);
   }, [recordEvent]);
 
   const requestHint = useCallback(async () => {
@@ -235,25 +301,36 @@ export function StudentMicroTutoringPanel({
     if (!intervention || isUnavailable(intervention) || !question || !selectedOption) return;
     const key = eventKeys.current.get('validation') ?? eventKey();
     eventKeys.current.set('validation', key);
-    const result = await requestJson<InterventionResult>('/api/assessment/remediation/interventions/validation', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        interventionId: intervention.id,
-        eventKey: key,
-        questionId: question.id,
-        selectedOption,
-        durationSeconds: elapsedSeconds(intervention.startedAt),
-      }),
-    });
-    if (isUnavailable(result)) {
-      setUnavailable(result);
-      return;
+    try {
+      const result = await requestJson<InterventionResult>('/api/assessment/remediation/interventions/validation', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          interventionId: intervention.id,
+          eventKey: key,
+          questionId: question.id,
+          selectedOption,
+          durationSeconds: elapsedSeconds(intervention.startedAt),
+        }),
+      });
+      if (isUnavailable(result)) {
+        eventKeys.current.delete('validation');
+        setUnavailable(result);
+        return;
+      }
+      eventKeys.current.delete('validation');
+      setIntervention(result);
+      setQuestion(null);
+    } catch (error) {
+      if (isDuplicateActionFailure(error)) {
+        eventKeys.current.delete('validation');
+        await refreshIntervention(intervention.id).catch(() => undefined);
+      } else if (error instanceof RequestFailure && !error.retryable) {
+        eventKeys.current.delete('validation');
+      }
+      throw error;
     }
-    eventKeys.current.delete('validation');
-    setIntervention(result);
-    setQuestion(null);
-  }, [intervention, question, selectedOption, setUnavailable]);
+  }, [intervention, question, refreshIntervention, selectedOption, setUnavailable]);
 
   const unavailable = (isUnavailable(intervention) && intervention) || (isUnavailable(orchestration) && orchestration);
   const available = orchestration && !isUnavailable(orchestration) ? orchestration : null;
@@ -271,7 +348,7 @@ export function StudentMicroTutoringPanel({
             type="button"
             onClick={() => void execute('create', createOrchestration)}
             disabled={pending !== null}
-            className="inline-flex items-center gap-2 rounded-lg border border-primary px-3 py-2 text-xs font-semibold text-primary disabled:opacity-60"
+            className={`inline-flex items-center gap-2 rounded-lg border border-primary px-3 py-2 text-xs font-semibold text-primary disabled:opacity-60 ${focusRingClass}`}
           >
             {pending === 'create' ? <RefreshCw className="size-3.5 animate-spin" aria-hidden="true" /> : <Sparkles className="size-3.5" aria-hidden="true" />}
             开始微辅导
@@ -296,7 +373,7 @@ export function StudentMicroTutoringPanel({
             type="button"
             onClick={() => void execute('start', startIntervention)}
             disabled={pending !== null}
-            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+            className={`mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60 ${focusRingClass}`}
           >
             {pending === 'start' ? <RefreshCw className="size-3.5 animate-spin" aria-hidden="true" /> : <BookOpenCheck className="size-3.5" aria-hidden="true" />}
             开始本次辅导
@@ -318,7 +395,7 @@ export function StudentMicroTutoringPanel({
                     type="button"
                     onClick={() => void execute(`resource:${resource.id}`, () => openResource(resource))}
                     disabled={pending !== null}
-                    className="flex items-center justify-between rounded border border-border bg-background px-3 py-2 text-left text-xs font-medium text-foreground disabled:opacity-60"
+                    className={`flex items-center justify-between rounded border border-border bg-background px-3 py-2 text-left text-xs font-medium text-foreground disabled:opacity-60 ${focusRingClass}`}
                   >
                     <span>{resource.title}（约 {resource.estimatedMinutes} 分钟）</span>
                     <ExternalLink className="size-3.5 text-primary" aria-hidden="true" />
@@ -326,13 +403,13 @@ export function StudentMicroTutoringPanel({
                 ))}
               </div>
               <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => void execute('hint', requestHint)} disabled={pending !== null} className="rounded border border-border px-3 py-2 text-xs font-semibold text-foreground disabled:opacity-60">请求提示</button>
-                <button type="button" onClick={() => void execute('complete', () => recordEvent('COMPLETED').then(() => undefined))} disabled={pending !== null} className="rounded bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60">完成学习，进入验证</button>
+                <button type="button" onClick={() => void execute('hint', requestHint)} disabled={pending !== null} className={`rounded border border-border px-3 py-2 text-xs font-semibold text-foreground disabled:opacity-60 ${focusRingClass}`}>请求提示</button>
+                <button type="button" onClick={() => void execute('complete', () => recordEvent('COMPLETED').then(() => undefined))} disabled={pending !== null} className={`rounded bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60 ${focusRingClass}`}>完成学习，进入验证</button>
               </div>
             </>
           ) : null}
           {active.status === 'COMPLETED' && !question ? (
-            <button type="button" onClick={() => void execute('question', loadQuestion)} disabled={pending !== null} className="inline-flex items-center gap-2 rounded bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60">
+            <button type="button" onClick={() => void execute('question', loadQuestion)} disabled={pending !== null} className={`inline-flex items-center gap-2 rounded bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60 ${focusRingClass}`}>
               {pending === 'question' ? <RefreshCw className="size-3.5 animate-spin" aria-hidden="true" /> : <CheckCircle2 className="size-3.5" aria-hidden="true" />}
               获取验证题
             </button>
@@ -342,13 +419,13 @@ export function StudentMicroTutoringPanel({
               <legend className="px-1 text-sm font-medium text-foreground">{question.prompt}</legend>
               <div className="mt-2 grid gap-2">
                 {question.options.map((option) => (
-                  <label key={option.label} className="flex gap-2 rounded border border-border p-2 text-xs text-foreground">
-                    <input type="radio" name="micro-tutoring-validation" value={option.label} checked={selectedOption === option.label} onChange={() => setSelectedOption(option.label)} />
+                  <label key={option.label} className="flex gap-2 rounded border border-border p-2 text-xs text-foreground focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/40">
+                    <input type="radio" name="micro-tutoring-validation" value={option.label} checked={selectedOption === option.label} onChange={() => setSelectedOption(option.label)} className={focusRingClass} />
                     <span>{option.label}. {option.text}</span>
                   </label>
                 ))}
               </div>
-              <button type="button" onClick={() => void execute('validation', submitValidation)} disabled={!selectedOption || pending !== null} className="mt-3 rounded bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60">提交验证</button>
+              <button type="button" onClick={() => void execute('validation', submitValidation)} disabled={!selectedOption || pending !== null} className={`mt-3 rounded bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60 ${focusRingClass}`}>提交验证</button>
             </fieldset>
           ) : null}
         </div>
@@ -368,8 +445,8 @@ export function StudentMicroTutoringPanel({
 
       {error ? (
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-destructive" role="alert">
-          请求未完成，请重试。
-          <button type="button" onClick={() => retryAction.current && void execute('retry', retryAction.current)} className="font-semibold underline">重试</button>
+          {error.message}
+          {error.retryable ? <button type="button" onClick={() => retryAction.current && void execute('retry', retryAction.current)} className={`font-semibold underline ${focusRingClass}`}>重试</button> : null}
         </div>
       ) : null}
     </section>
