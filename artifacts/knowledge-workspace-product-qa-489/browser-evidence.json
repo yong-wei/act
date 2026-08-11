@@ -1,10 +1,10 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-08-11T14:29:43.819Z",
+  "capturedAt": "2026-08-11T15:02:15.132Z",
   "captureRevision": {
-    "commitSha": "634ce64f4b693b3eeedc3317438e7bd6a1c8347c",
-    "treeSha": "d2b2ee52c4ab6864992181dc7f2f41f83913cfb5"
+    "commitSha": "94b785a7ec7879543fabb9233f37521346dfe71f",
+    "treeSha": "67c388b67de01651b971d3814a670710b1b02bda"
   },
   "baseUrl": "http://127.0.0.1:3002",
   "selectedNodeId": "稳定性_1_7288b4ea",
@@ -96,7 +96,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458424749
+          "capturedAt": 1786460407465
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -120,7 +120,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458426556
+          "capturedAt": 1786460408645
         },
         "candidate": null
       },
@@ -272,7 +272,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458428099
+          "capturedAt": 1786460409968
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -296,7 +296,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458429620
+          "capturedAt": 1786460410956
         },
         "candidate": null
       },
@@ -448,7 +448,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458431114
+          "capturedAt": 1786460412235
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -472,7 +472,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458432672
+          "capturedAt": 1786460413219
         },
         "candidate": null
       },
@@ -631,7 +631,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458434965
+          "capturedAt": 1786460415357
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -655,7 +655,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458436350
+          "capturedAt": 1786460416330
         },
         "candidate": null
       },
@@ -814,7 +814,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458438711
+          "capturedAt": 1786460418440
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -838,7 +838,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458440119
+          "capturedAt": 1786460419447
         },
         "candidate": null
       },
@@ -1003,7 +1003,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458442482
+          "capturedAt": 1786460421534
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -1027,7 +1027,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458444128
+          "capturedAt": 1786460422712
         },
         "candidate": null
       },
@@ -1211,7 +1211,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458446594
+          "capturedAt": 1786460424911
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -1235,7 +1235,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458448024
+          "capturedAt": 1786460425899
         },
         "candidate": null
       },
@@ -1387,7 +1387,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458450416
+          "capturedAt": 1786460427990
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -1411,7 +1411,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458452171
+          "capturedAt": 1786460429145
         },
         "candidate": null
       },
@@ -1582,7 +1582,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458453969
+          "capturedAt": 1786460430735
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -1606,13 +1606,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458455693
+          "capturedAt": 1786460431873
         },
         "candidate": null
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "35b65f193645238424b4d2f2f823961739e67379fee604c98fc7da52f93950b7",
+      "screenshotSha256": "030793d9dceab213e59a0ee309835751ba2d693ed21ab7d66f4556115589656a",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1952,7 +1952,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458465081
+          "capturedAt": 1786460440275
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -1976,7 +1976,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458466838
+          "capturedAt": 1786460441420
         },
         "candidate": null
       },
@@ -2160,7 +2160,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458469394
+          "capturedAt": 1786460443627
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -2184,7 +2184,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458470903
+          "capturedAt": 1786460444602
         },
         "candidate": null
       },
@@ -3936,7 +3936,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458480276
+          "capturedAt": 1786460452999
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -3960,7 +3960,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458481623
+          "capturedAt": 1786460454179
         },
         "candidate": null
       },
@@ -4119,7 +4119,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458484299
+          "capturedAt": 1786460456645
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -4143,7 +4143,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458485703
+          "capturedAt": 1786460457630
         },
         "candidate": null
       },
@@ -4302,7 +4302,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458488302
+          "capturedAt": 1786460459987
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -4326,7 +4326,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458489712
+          "capturedAt": 1786460460957
         },
         "candidate": null
       },
@@ -4485,7 +4485,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458492304
+          "capturedAt": 1786460463329
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -4509,13 +4509,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458494026
+          "capturedAt": 1786460464496
         },
         "candidate": null
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "d9e0a7cd4e7ad808aae3d08d801971e75d225325ef0fd48aedd43d0b8c0083b6",
+      "screenshotSha256": "cf6255a5090e96e8080a3129a790e63117e55032ad77c277dbb04620c42fe7ba",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4694,7 +4694,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458496793
+          "capturedAt": 1786460466988
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -4718,7 +4718,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458498203
+          "capturedAt": 1786460467978
         },
         "candidate": null
       },
@@ -4870,7 +4870,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458499833
+          "capturedAt": 1786460469318
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -4894,13 +4894,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458501614
+          "capturedAt": 1786460470471
         },
         "candidate": null
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-wide-inspector-tools-dark.png",
-      "screenshotSha256": "42a4f7a016b08e1a0f9eaa4828bca8fe3bbb1dce2ce16ecae7c99484f70e9c3e",
+      "screenshotSha256": "fb641196da4d239c1ca122f515d67ba910c8f0f1393925f9b0d9d1a004e41f25",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5072,7 +5072,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458503891
+          "capturedAt": 1786460472440
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -5096,13 +5096,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458505438
+          "capturedAt": 1786460473424
         },
         "candidate": null
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-default-dark.png",
-      "screenshotSha256": "536d936cae4b6776091bdadaf304baead1f5b1d817d6e5b1e3a2e4f5c43b575b",
+      "screenshotSha256": "732722dd8ed6028ff4b8f44816223fdfbe211eaba193941feb48aac9a2e72de2",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5248,7 +5248,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458506949
+          "capturedAt": 1786460474743
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -5272,13 +5272,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458508477
+          "capturedAt": 1786460475761
         },
         "candidate": null
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-local-tools-filter-dark.png",
-      "screenshotSha256": "e2bec20babcae35dde2b8e1bdcf21629aa71363aebbc77b3a9e1a61f253dc0ef",
+      "screenshotSha256": "1471b5da35875b1ac4995588b61df453bd8b95193810cefd03e989dd559d63ac",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5431,7 +5431,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458510818
+          "capturedAt": 1786460477825
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -5455,13 +5455,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458512592
+          "capturedAt": 1786460479036
         },
         "candidate": null
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-selected-inspector-dark.png",
-      "screenshotSha256": "6c913f2f122508e7734197c633ca835af243eac617fc4e5e5b4c8096338477ff",
+      "screenshotSha256": "533589ff262753f1e98e1b86b7898ea7e22b4bdd96948d03a117f5b34086517b",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5626,7 +5626,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458514346
+          "capturedAt": 1786460480654
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -5650,13 +5650,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458516126
+          "capturedAt": 1786460481830
         },
         "candidate": null
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "10bc82bfe7a94c0ac0fb06da643b534fe4fc174db860053ea5deee45fbe0b884",
+      "screenshotSha256": "2befd3e15b40380f69cb592bb15b449f512a4a2b8b54dff58fc8d1146a48de25",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5814,7 +5814,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458518948
+          "capturedAt": 1786460484337
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -5838,13 +5838,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458520744
+          "capturedAt": 1786460485511
         },
         "candidate": null
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "5957a04226adc76ce9a54cf1ed12609c9981fe964578b8f1e8811f2c86386223",
+      "screenshotSha256": "084a4e39dea303f09f53444a0ae94de3b504ac9bebc1c6d3e9e0e63b53626305",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6009,7 +6009,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458523565
+          "capturedAt": 1786460487991
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -6033,13 +6033,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458525327
+          "capturedAt": 1786460489170
         },
         "candidate": null
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "8e8c270d992e133cdb0e3c1ffe0a626711f2444c1ada2da9fedcdb353e469ff0",
+      "screenshotSha256": "8c2616a768b83b3399a5bc3f1871b5a83a10682838b5a6c541fec652512b2774",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6204,7 +6204,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458527991
+          "capturedAt": 1786460491657
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -6228,7 +6228,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458529226
+          "capturedAt": 1786460492626
         },
         "candidate": null
       },
@@ -6386,7 +6386,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458531481
+          "capturedAt": 1786460494645
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -6410,7 +6410,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458533140
+          "capturedAt": 1786460495777
         },
         "candidate": null
       },
@@ -6581,7 +6581,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458534846
+          "capturedAt": 1786460497396
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -6605,7 +6605,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458536480
+          "capturedAt": 1786460498521
         },
         "candidate": null
       },
@@ -6750,7 +6750,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458539142
+          "capturedAt": 1786460500968
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -6774,7 +6774,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458540780
+          "capturedAt": 1786460502113
         },
         "candidate": null
       },
@@ -6919,7 +6919,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458543162
+          "capturedAt": 1786460504278
         },
         "legacy": {
           "path": "/api/knowledge/graph",
@@ -6943,7 +6943,7 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458544576
+          "capturedAt": 1786460505242
         },
         "candidate": null
       },
@@ -7136,7 +7136,7 @@
         "hasCoverageFields": true,
         "projectionId": null,
         "projectionHash": null,
-        "capturedAt": 1786458568241
+        "capturedAt": 1786460522677
       },
       "apiSequence": [
         {
@@ -7226,7 +7226,7 @@
         }
       },
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-dark.png",
-      "screenshotSha256": "b3b160fd85ee4627364d4bc01e4ba354a62773827df57bdb58b180054952e74c"
+      "screenshotSha256": "5c863f763bf76f8d8411086a00aa146c40f0a6a3150e5d0d26dd5c91d8a5a635"
     },
     {
       "name": "active-desktop-light",
@@ -7261,7 +7261,7 @@
         "hasCoverageFields": true,
         "projectionId": null,
         "projectionHash": null,
-        "capturedAt": 1786458570229
+        "capturedAt": 1786460523993
       },
       "apiSequence": [
         {
@@ -7351,7 +7351,7 @@
         }
       },
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-light.png",
-      "screenshotSha256": "38472a208f8d40cfb8274a32f71fd0a948b4eef4dba7abf25cdb1bd4cfa50d66"
+      "screenshotSha256": "b035b4045d3ab34be0d4414d27cbc2842ec2e6da2aab61dd7df10418f0d1a8ae"
     },
     {
       "name": "active-tablet",
@@ -7386,7 +7386,7 @@
         "hasCoverageFields": true,
         "projectionId": null,
         "projectionHash": null,
-        "capturedAt": 1786458572141
+        "capturedAt": 1786460525334
       },
       "apiSequence": [
         {
@@ -7511,7 +7511,7 @@
         "hasCoverageFields": true,
         "projectionId": null,
         "projectionHash": null,
-        "capturedAt": 1786458573995
+        "capturedAt": 1786460526636
       },
       "apiSequence": [
         {
@@ -7631,7 +7631,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458575458
+          "capturedAt": 1786460527969
         },
         "graphVisible": true,
         "nonEmptyCanvas": true,
@@ -7645,7 +7645,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-default.png",
-        "screenshotSha256": "38472a208f8d40cfb8274a32f71fd0a948b4eef4dba7abf25cdb1bd4cfa50d66"
+        "screenshotSha256": "b035b4045d3ab34be0d4414d27cbc2842ec2e6da2aab61dd7df10418f0d1a8ae"
       },
       "legacy": {
         "mode": "legacy",
@@ -7671,13 +7671,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458576986
+          "capturedAt": 1786460529048
         },
         "legacyView": true,
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-legacy.png",
-        "screenshotSha256": "254929d2e85721088365a760f4ab68e40c74a243fd9754d57ba16efb5c25f7fd"
+        "screenshotSha256": "f4b033d082dd4295383f6ee41797aff16ca41135715e044a061cb44c228e93b9"
       },
       "candidate": null,
       "apiSequence": [
@@ -7717,7 +7717,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458578064
+          "capturedAt": 1786460529891
         },
         "graphVisible": true,
         "nonEmptyCanvas": true,
@@ -7731,7 +7731,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-default.png",
-        "screenshotSha256": "181b242015c1ad53d277b11adea6ee1e2bd98b5b69b585d8560dd44edc645be9"
+        "screenshotSha256": "77ffc0b5233345711fc7842afcc92941a84dede4acdae5429b92319bb2a46935"
       },
       "legacy": {
         "mode": "legacy",
@@ -7757,13 +7757,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458579555
+          "capturedAt": 1786460530983
         },
         "legacyView": true,
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-legacy.png",
-        "screenshotSha256": "c06535c6855a7d03b0519c2ced0002a0537a7fa9bbadd5604550ca7b68555c5a"
+        "screenshotSha256": "f22a5a771d2c1d3ef5f00cd00521e109d85fd92d94e3efdcd777e34929dffb29"
       },
       "candidate": null,
       "apiSequence": [
@@ -7803,7 +7803,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458580604
+          "capturedAt": 1786460531871
         },
         "graphVisible": true,
         "nonEmptyCanvas": true,
@@ -7817,7 +7817,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-default.png",
-        "screenshotSha256": "c7161da800d2364ed5dce7df3187d07cfdbac24ee0df1e75f6634a38f6bdf4c1"
+        "screenshotSha256": "a810d611d33ac2af8fc3af0e81297143e0509e98171eb4336f74c1dd521587ae"
       },
       "legacy": {
         "mode": "legacy",
@@ -7843,13 +7843,13 @@
           "hasCoverageFields": false,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458582195
+          "capturedAt": 1786460532997
         },
         "legacyView": true,
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-legacy.png",
-        "screenshotSha256": "566df56bd0dcdfc96e24f57cef1e377ef8d53ed39d3e88cef77ed70651bd3c68"
+        "screenshotSha256": "d3639e49c3b5daf671c644c5e1598648a22348c2097663c8da0c41bc3e83b99d"
       },
       "candidate": {
         "mode": "candidate",
@@ -7880,7 +7880,7 @@
           "hasCoverageFields": true,
           "projectionId": null,
           "projectionHash": null,
-          "capturedAt": 1786458583322
+          "capturedAt": 1786460534761
         },
         "graphVisible": true,
         "nodeCount": 744,
@@ -7906,6 +7906,10 @@
         },
         {
           "path": "/api/knowledge/graph",
+          "status": 200
+        },
+        {
+          "path": "/api/knowledge/graph/active",
           "status": 200
         },
         {
@@ -7963,29 +7967,29 @@
       "desktop-selected-focus-dark": "c2cd4e53cd20becf864da4c345dc7384eb3ea49fe77affc9fc1ef753f1c1b5b2",
       "desktop-all-relation-families-dark": "2a4e2a6d81b528c8cb2fb72da42e6a2e88856d77264baa1b45e00bcdc19dedff",
       "desktop-selected-inspector-light": "4c2a999af3429acb250876229388950cceb6ebddd6995ef5015a466e68b6e4c5",
-      "desktop-hover-click-drag-dark": "35b65f193645238424b4d2f2f823961739e67379fee604c98fc7da52f93950b7",
+      "desktop-hover-click-drag-dark": "030793d9dceab213e59a0ee309835751ba2d693ed21ab7d66f4556115589656a",
       "desktop-selected-page-tools-menu-dark": "c2a8d218135d11891217a28a65ab7e924dfaccbbc4b75a879e4fdf87e1ddfac0",
       "desktop-explicit-relayout-dark": "b1f2e942edaeb7e05e217c34e7ddc71f597eef857ac3f182e87cddf9b530695c",
       "desktop-3d-fit-relayout-dark": "4ad79e2fea63d8511e5decefbfa8273fe2231a9f33bba3cf1f35a68811f4ef79",
       "desktop-konling-selected-expanded-dark": "09500523bd6a502d95116949ca701008b3f13611a7ff19f07ba223caffe8d220",
       "desktop-konling-no-selection-dark": "80066ce65c5c50ef3bb5e22ddeea6408004c6bd219c52f27d7deb20fb3849a48",
       "desktop-konling-degraded-dark": "79bd22245e534377371340103ffe559b989fd10fd965fd5a90f8d3e49dd1e92f",
-      "desktop-stress-expanded-tool-inspector-konling-dark": "d9e0a7cd4e7ad808aae3d08d801971e75d225325ef0fd48aedd43d0b8c0083b6",
+      "desktop-stress-expanded-tool-inspector-konling-dark": "cf6255a5090e96e8080a3129a790e63117e55032ad77c277dbb04620c42fe7ba",
       "desktop-wide-default-dark": "2022f806b7a8ed289d663c5f6ef773fbd9d63738d47dcfe9489c554c6145ba45",
-      "desktop-wide-inspector-tools-dark": "42a4f7a016b08e1a0f9eaa4828bca8fe3bbb1dce2ce16ecae7c99484f70e9c3e",
-      "tablet-1100-default-dark": "536d936cae4b6776091bdadaf304baead1f5b1d817d6e5b1e3a2e4f5c43b575b",
-      "tablet-1100-local-tools-filter-dark": "e2bec20babcae35dde2b8e1bdcf21629aa71363aebbc77b3a9e1a61f253dc0ef",
-      "tablet-1100-selected-inspector-dark": "6c913f2f122508e7734197c633ca835af243eac617fc4e5e5b4c8096338477ff",
-      "tablet-1024-inspector-tools-konling-dark": "10bc82bfe7a94c0ac0fb06da643b534fe4fc174db860053ea5deee45fbe0b884",
-      "tablet-1100-inspector-tools-konling-dark": "5957a04226adc76ce9a54cf1ed12609c9981fe964578b8f1e8811f2c86386223",
-      "tablet-1279-inspector-tools-konling-dark": "8e8c270d992e133cdb0e3c1ffe0a626711f2444c1ada2da9fedcdb353e469ff0",
+      "desktop-wide-inspector-tools-dark": "fb641196da4d239c1ca122f515d67ba910c8f0f1393925f9b0d9d1a004e41f25",
+      "tablet-1100-default-dark": "732722dd8ed6028ff4b8f44816223fdfbe211eaba193941feb48aac9a2e72de2",
+      "tablet-1100-local-tools-filter-dark": "1471b5da35875b1ac4995588b61df453bd8b95193810cefd03e989dd559d63ac",
+      "tablet-1100-selected-inspector-dark": "533589ff262753f1e98e1b86b7898ea7e22b4bdd96948d03a117f5b34086517b",
+      "tablet-1024-inspector-tools-konling-dark": "2befd3e15b40380f69cb592bb15b449f512a4a2b8b54dff58fc8d1146a48de25",
+      "tablet-1100-inspector-tools-konling-dark": "084a4e39dea303f09f53444a0ae94de3b504ac9bebc1c6d3e9e0e63b53626305",
+      "tablet-1279-inspector-tools-konling-dark": "8c2616a768b83b3399a5bc3f1871b5a83a10682838b5a6c541fec652512b2774",
       "mobile-320-local-tools-dark": "1d3c56bcff1dd443c7d83600d47db1e196c6fe7e273b4c628d1451b65dfc92ef",
       "mobile-320-selected-inspector-dark": "4dcf3f3ee1843baec6819846aded2b20eedb741873553f5e88c389808534fef3",
       "mobile-320-konling-expanded-dark": "d51392053b6d575885faf0993ee7dedb690364e54df787410ce77e45e2724ed4",
       "mobile-320-inspector-konling-stress-dark": "d51392053b6d575885faf0993ee7dedb690364e54df787410ce77e45e2724ed4",
       "light-theme-default": "52a2a79df6f9786f23e5cd2c5b6a8f2f81b86b48b4cbbec2c2c27f2b3d629aeb",
-      "active-desktop-dark": "b3b160fd85ee4627364d4bc01e4ba354a62773827df57bdb58b180054952e74c",
-      "active-desktop-light": "38472a208f8d40cfb8274a32f71fd0a948b4eef4dba7abf25cdb1bd4cfa50d66",
+      "active-desktop-dark": "5c863f763bf76f8d8411086a00aa146c40f0a6a3150e5d0d26dd5c91d8a5a635",
+      "active-desktop-light": "b035b4045d3ab34be0d4414d27cbc2842ec2e6da2aab61dd7df10418f0d1a8ae",
       "active-tablet": "1af7b2a32fdcc30a8452543bd2f138a075f18468ebda44ea6faf089d9df64a42",
       "active-mobile": "ca18e56a7713b9df6edd931b91d16fd62d9745fb35e7c86ffa837a40e8f9b7ee"
     },
