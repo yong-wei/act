@@ -9,6 +9,7 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
 const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/issue-1330-student-micro-tutoring-flow/playwright');
 const manifestPath = join(process.cwd(), 'artifacts/commercial-ui/issue-1330-student-micro-tutoring-flow/evidence-manifest.json');
 const screenshotsManifestPath = join(evidenceDir, 'screenshots.json');
+const evidenceOutputPath = 'artifacts/commercial-ui/issue-1330-student-micro-tutoring-flow';
 const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
 const evidenceSourceFiles = [
   'src/app/api/assessment/remediation/interventions/validation/route.ts',
@@ -84,9 +85,9 @@ function sourceHashAtRevision(revision: string, file: string): string {
   return sha256(execFileSync('git', ['show', `${revision}:${file}`]));
 }
 
-function hasWorkingTreeSourceDrift(): boolean {
+function hasWorkingTreeRuntimeDrift(): boolean {
   try {
-    execFileSync('git', ['diff', '--quiet', 'HEAD', '--', ...evidenceSourceFiles]);
+    execFileSync('git', ['diff', '--quiet', 'HEAD', '--', '.', `:(exclude)${evidenceOutputPath}`]);
     return false;
   } catch {
     return true;
@@ -94,8 +95,8 @@ function hasWorkingTreeSourceDrift(): boolean {
 }
 
 function captureSourceSnapshot(): SourceSnapshot {
-  if (hasWorkingTreeSourceDrift()) {
-    throw new Error('Student micro-tutoring evidence capture requires clean tracked sources.');
+  if (hasWorkingTreeRuntimeDrift()) {
+    throw new Error('Student micro-tutoring evidence capture requires clean tracked runtime inputs.');
   }
   const revision = currentHead();
   const hashes = Object.fromEntries(evidenceSourceFiles.map((file) => [file, sourceHash(file)]));
@@ -111,8 +112,8 @@ function assertCaptureSourceSnapshot(snapshot: SourceSnapshot) {
   if (currentHead() !== snapshot.revision) {
     throw new Error('Student micro-tutoring evidence capture HEAD changed.');
   }
-  if (hasWorkingTreeSourceDrift()) {
-    throw new Error('Student micro-tutoring evidence capture tracked sources changed.');
+  if (hasWorkingTreeRuntimeDrift()) {
+    throw new Error('Student micro-tutoring evidence capture tracked runtime inputs changed.');
   }
   for (const file of evidenceSourceFiles) {
     if (sourceHash(file) !== snapshot.hashes[file]) {
@@ -136,7 +137,7 @@ function validatePersistedEvidence() {
   };
   expect(manifest.commitSha).toMatch(/^[0-9a-f]{40}$/);
   expect(screenshotsManifest.gitRevision).toBe(manifest.commitSha);
-  expect(hasWorkingTreeSourceDrift(), 'tracked evidence sources must match HEAD').toBe(false);
+  expect(hasWorkingTreeRuntimeDrift(), 'tracked runtime inputs must match HEAD').toBe(false);
   for (const file of evidenceSourceFiles) {
     expect(manifest.sourceSha256?.[file], `${file} source hash missing`).toBe(sourceHash(file));
   }
