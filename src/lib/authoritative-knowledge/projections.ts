@@ -409,13 +409,36 @@ export function buildCanvasProjection(
   if (isAggregateReleaseProtocol(snapshot.release.protocol)) {
     return buildAggregateCanvasProjection(snapshot, support);
   }
+  return buildCanonicalCanvasProjection(snapshot, support, HISTORICAL_RELEASE_LABEL);
+}
+
+/**
+ * Build the Engineering Authority canvas from its canonical object/relation
+ * tables.  Active Engineering Authority snapshots intentionally have no
+ * Teaching Projection, and their materialized view may also have an empty
+ * `projectionNodes`/`projectionLinks` set.  Keep this path separate from the
+ * standard candidate runtime Projection contract so an active snapshot is not
+ * rejected merely because that candidate-only projection is absent.
+ */
+export function buildActiveAuthorityCanvasProjection(
+  snapshot: AuthoritativeKnowledgeSnapshot,
+  support: ConsumerSemanticSupport,
+): CanvasProjection {
+  return buildCanonicalCanvasProjection(snapshot, support, 'Engineering Authority');
+}
+
+function buildCanonicalCanvasProjection(
+  snapshot: AuthoritativeKnowledgeSnapshot,
+  support: ConsumerSemanticSupport,
+  releaseLabel: string,
+): CanvasProjection {
   const supportedTypes = new Set(support.supportedObjectTypes);
   const supportedPredicates = new Set(support.supportedPredicates);
   return {
     projectionVersion: CANVAS_PROJECTION_VERSION,
     source: identity(snapshot),
     release: {
-      label: HISTORICAL_RELEASE_LABEL,
+      label: releaseLabel,
       version: snapshot.release.releaseVersion,
       scope: snapshot.release.scope,
     },
@@ -865,6 +888,35 @@ export function buildNodeDetailProjection(
   if (isAggregateReleaseProtocol(snapshot.release.protocol)) {
     return buildAggregateNodeDetailProjection(snapshot, role, nodeId, support, diagnostics);
   }
+  return buildCanonicalNodeDetailProjection(snapshot, role, nodeId, support, diagnostics);
+}
+
+/**
+ * Build an Engineering Authority node detail from canonical object/relation
+ * tables.  This deliberately does not assert a standard candidate runtime
+ * Projection: active Engineering Authority has no Teaching Projection and
+ * may have no materialized `projectionNodes` rows.
+ */
+export function buildActiveAuthorityNodeDetailProjection(
+  snapshot: AuthoritativeKnowledgeSnapshot,
+  role: KnowledgeRole,
+  nodeId: string,
+  support: ConsumerSemanticSupport,
+  diagnostics: RepositoryDiagnostic[] = [],
+): NodeDetailProjection | null {
+  if (role !== 'STUDENT' && role !== 'TEACHER' && role !== 'ADMIN') {
+    throw new TypeError(`Unsupported authoritative knowledge role: ${String(role)}`);
+  }
+  return buildCanonicalNodeDetailProjection(snapshot, role, nodeId, support, diagnostics);
+}
+
+function buildCanonicalNodeDetailProjection(
+  snapshot: AuthoritativeKnowledgeSnapshot,
+  role: KnowledgeRole,
+  nodeId: string,
+  support: ConsumerSemanticSupport,
+  diagnostics: RepositoryDiagnostic[],
+): NodeDetailProjection | null {
   const row = snapshot.objects.find((item) => item.canonicalId === nodeId);
   if (!row) return null;
   const payload = object(row.payload);

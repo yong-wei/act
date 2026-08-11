@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 
 import { authOptions } from '@/lib/auth';
 import {
-  buildCanvasProjection,
-  buildNodeDetailProjection,
+  buildActiveAuthorityCanvasProjection,
+  buildActiveAuthorityNodeDetailProjection,
   type AdminNodeDetailProjection,
   type NodeDetailProjection,
 } from '@/lib/authoritative-knowledge/projections';
@@ -196,7 +196,10 @@ export function readActiveCanvas():
     return { status: 'unavailable', reason: resolved.reason };
   }
   try {
-    const projection = buildCanvasProjection(resolved.snapshot, ACTIVE_GRAPH_SUPPORT);
+    const projection = buildActiveAuthorityCanvasProjection(
+      resolved.snapshot,
+      ACTIVE_GRAPH_SUPPORT,
+    );
     return {
       status: 'available',
       projection: {
@@ -278,7 +281,7 @@ export function readActiveNode(
     return { status: 'unavailable', reason: resolved.reason };
   }
   try {
-    const detail = buildNodeDetailProjection(
+    const detail = buildActiveAuthorityNodeDetailProjection(
       resolved.snapshot,
       role,
       nodeId,

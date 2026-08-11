@@ -11,8 +11,8 @@ vi.mock('@/lib/authoritative-knowledge/engineering-authority-consumers', () => (
   resolveConfiguredAuthorityRoot: () => '/tmp/authority',
 }));
 vi.mock('@/lib/authoritative-knowledge/projections', () => ({
-  buildCanvasProjection: mocks.canvas,
-  buildNodeDetailProjection: mocks.nodeDetail,
+  buildActiveAuthorityCanvasProjection: mocks.canvas,
+  buildActiveAuthorityNodeDetailProjection: mocks.nodeDetail,
 }));
 
 import { readActiveCanvas, readActiveNode } from '@/app/api/knowledge/_active-authority';
@@ -141,4 +141,3 @@ describe('active Authority role-safe projections', () => {
     expect(mocks.canvas).not.toHaveBeenCalled();
   });
 });
-
