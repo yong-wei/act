@@ -61,6 +61,7 @@ await mkdir(outputDirectory, { recursive: true });
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 execFileSync(npx, ['playwright', 'test', 'tests/portfolio-reflection-drafts-1321.spec.ts', '--workers=1'], {
   cwd: repositoryRoot,
+  shell: true,
   env: {
     ...process.env,
     PLAYWRIGHT_PORT: '3200',
