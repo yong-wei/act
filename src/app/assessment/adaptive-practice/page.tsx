@@ -2636,7 +2636,7 @@ export default function AdaptivePracticePage() {
   const activeOptionId = searchParams.get('optionId');
   const requestedBatchId = searchParams.get('batch');
   const requestedCandidateId = searchParams.get('candidate');
-  const shouldShowCandidateComparison = showSelectionWorkspace && Boolean(requestedBatchId);
+  const shouldShowCandidateComparison = (showGenerationWorkspace || showSelectionWorkspace) && Boolean(requestedBatchId);
   const activeGoalQuery = activeGoal ? new URLSearchParams({ goal: activeGoal, intent: routeIntent }) : null;
   if (activeGoalQuery && activePathId) activeGoalQuery.set('pathId', activePathId);
   if (activeGoalQuery && activeNodeId) activeGoalQuery.set('nodeId', activeNodeId);
@@ -2999,7 +2999,7 @@ export default function AdaptivePracticePage() {
   ]);
   const pathWorkspaceAutoOpenKey = useMemo(() => {
     if (!pathManagementTargetModuleId) return null;
-    if (workspaceIntent !== 'selection' && workspaceIntent !== 'execution' && workspaceIntent !== 'evidence-review') {
+    if (workspaceIntent !== 'generation' && workspaceIntent !== 'selection' && workspaceIntent !== 'execution' && workspaceIntent !== 'evidence-review') {
       return null;
     }
     return [
@@ -3007,9 +3007,10 @@ export default function AdaptivePracticePage() {
       activeGoal ?? 'goal:none',
       activePathId ?? 'path:none',
       activeOptionId ?? 'option:none',
+      requestedBatchId ?? 'batch:none',
       pathManagementTargetModuleId,
     ].join(':');
-  }, [activeGoal, activeOptionId, activePathId, pathManagementTargetModuleId, workspaceIntent]);
+  }, [activeGoal, activeOptionId, activePathId, pathManagementTargetModuleId, requestedBatchId, workspaceIntent]);
   useEffect(() => {
     if (!pathManagementTargetModuleId || !pathWorkspaceAutoOpenKey) return;
     if (autoOpenedPathWorkspaceKeyRef.current === pathWorkspaceAutoOpenKey) return;

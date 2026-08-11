@@ -237,6 +237,25 @@ test('keeps the active path available while configuring a new path', async ({ co
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
 
+test('shows candidate comparison after generation adds a candidate batch', async ({ context, page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await login(context);
+  await installRoutes(page);
+
+  const query = new URLSearchParams({
+    goal: 'control-correction',
+    intent: 'contextual-recommendation',
+    batch: batchId,
+  });
+  await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+
+  await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-generation-panel="editable"]')).toBeVisible();
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
+  await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+});
+
 async function openSelection(page: Page, candidateId?: string) {
   const query = new URLSearchParams({
     demo: '1',

@@ -348,7 +348,9 @@ describe('adaptive practice page entry states', () => {
   it('keeps candidate selection visible while its batch is loading independently', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
-    expect(source).toContain("const shouldShowCandidateComparison = showSelectionWorkspace && Boolean(requestedBatchId)");
+    expect(source).toContain("const shouldShowCandidateComparison = (showGenerationWorkspace || showSelectionWorkspace) && Boolean(requestedBatchId)");
+    expect(source).toContain("workspaceIntent !== 'generation' && workspaceIntent !== 'selection'");
+    expect(source).toContain("requestedBatchId ?? 'batch:none'");
     expect(source).toContain("const hasCandidateBatchContext = shouldShowCandidateComparison");
     expect(source).toContain("candidateBatchLoadState !== 'missing'");
     expect(source).toContain("candidateBatchLoadState !== 'failed'");
