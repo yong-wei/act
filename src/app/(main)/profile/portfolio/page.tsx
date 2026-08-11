@@ -701,7 +701,7 @@ function PortfolioReflectionCandidate({
           className="mt-2 w-full resize-y rounded border border-border bg-background px-3 py-2 text-sm text-foreground"
           data-portfolio-reflection-draft-editor
         />
-        {saveError && <p className="mt-2 text-sm text-red-500" role="alert">{saveError}</p>}
+        {saveError && <p className="mt-2 text-sm text-destructive" role="alert">{saveError}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
@@ -827,7 +827,7 @@ function SavedReflectionDraft({
           className="mt-2 w-full resize-y rounded border border-border bg-background px-3 py-2 text-sm text-foreground"
           data-portfolio-reflection-draft-editor
         />
-        {actionError && <p className="mt-2 text-sm text-red-500" role="alert">{actionError}</p>}
+        {actionError && <p className="mt-2 text-sm text-destructive" role="alert">{actionError}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
