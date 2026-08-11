@@ -5,7 +5,7 @@ import path from 'node:path';
  * Konling Teaching Projection context + dual-domain RAG composition (#1274).
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
@@ -436,6 +436,26 @@ describe('1. Konling teaching projection context contract', () => {
 });
 
 describe('2. RAG domain split', () => {
+  const previousConsumerActivationRoot = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+  const legacyActivationRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'act-rag-legacy-activation-'),
+  );
+
+  beforeAll(() => {
+    // The repository fixture carries a staged first-cutover candidate. These
+    // domain tests exercise the default Legacy path explicitly.
+    process.env.ACT_CONSUMER_ACTIVATION_ROOT = legacyActivationRoot;
+  });
+
+  afterAll(() => {
+    if (previousConsumerActivationRoot === undefined) {
+      delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+    } else {
+      process.env.ACT_CONSUMER_ACTIVATION_ROOT = previousConsumerActivationRoot;
+    }
+    fs.rmSync(legacyActivationRoot, { recursive: true, force: true });
+  });
+
   it('2.1 engineering-only query does not require Teaching Projection', () => {
     const payload = basePayload();
     const result = runEngineeringRagQuery({
@@ -992,6 +1012,28 @@ describe('production Authority/Projection packaging (#1274 P1)', () => {
     expect(deploy).toContain('ACT_AUTHORITY_STORE_ROOT');
     expect(deploy).toContain('ACT_TEACHING_PROJECTION_STORE_ROOT');
     expect(deploy).toContain('require_actkg_activation_store_pointers');
+    expect(deploy).toContain(
+      'ACT_KNOWLEDGE_DEPLOYMENT_MODE="${ACT_KNOWLEDGE_DEPLOYMENT_MODE:-legacy}"',
+    );
+    expect(deploy).toMatch(
+      /case "\$ACT_KNOWLEDGE_DEPLOYMENT_MODE"[\s\S]*legacy\)[\s\S]*cutover\)[\s\S]*\*\)/,
+    );
+    // Legacy is fail-closed on all four host current pointers; cutover only
+    // opts into the corresponding presence gate.
+    expect(deploy).toMatch(
+      /legacy\)[\s\S]*\[ -e "\$pointer" \] \|\| \[ -L "\$pointer" \][\s\S]*cutover\)[\s\S]*\[ ! -f "\$pointer" \]/,
+    );
+    for (const pointer of [
+      '${AUTHORITY_STORE_DIR}/current.json',
+      '${TEACHING_PROJECTION_STORE_DIR}/current.json',
+      '${RUNTIME_CONTENT_DIR}/knowledge/consumer-activation/current.json',
+      '${RUNTIME_CONTENT_DIR}/knowledge/prerequisites/current.json',
+    ]) {
+      expect(deploy).toContain(`"${pointer}"`);
+    }
+    expect(deploy).toMatch(
+      /ACT_KNOWLEDGE_DEPLOYMENT_MODE.*必须为 legacy 或 cutover/,
+    );
     expect(deploy).toContain(
       'AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}',
     );

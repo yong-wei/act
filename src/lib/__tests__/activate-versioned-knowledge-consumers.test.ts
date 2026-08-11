@@ -22,8 +22,19 @@ import { activationDigest } from '../versioned-knowledge-activation/hash';
 import {
   stageAuthoritySnapshot,
   resolveAuthorityStorePaths,
+  resolveEngineeringAuthorityConsumer,
   type AuthoritativeKnowledgeSnapshot,
 } from '../authoritative-knowledge';
+import {
+  applyEngineeringRagConsumerActivation,
+  applyTeachingResourceRagConsumerActivation,
+  runEngineeringRagQuery,
+} from '../canonical-rag/domain-composition';
+import { applyLearningPathConsumerActivation } from '../act-prerequisite-path-planner/planner';
+import {
+  buildCoursePackageLayeredScope,
+  resolveCoursePageLayeredGraphContext,
+} from '../layered-graph';
 import {
   stageTeachingProjection,
   resolveTeachingProjectionStorePaths,
@@ -84,6 +95,18 @@ function tempActivationRoot(): ConsumerActivationStorePaths {
   const root = mkdtempSync(path.join(tmpdir(), 'act-consumer-activation-'));
   tempRoots.push(root);
   return resolveConsumerActivationStorePaths(root);
+}
+
+function tempAuthorityStore() {
+  const root = mkdtempSync(path.join(tmpdir(), 'act-consumer-authority-'));
+  tempRoots.push(root);
+  return resolveAuthorityStorePaths(root);
+}
+
+function tempProjectionStore() {
+  const root = mkdtempSync(path.join(tmpdir(), 'act-consumer-projection-'));
+  tempRoots.push(root);
+  return resolveTeachingProjectionStorePaths(root);
 }
 
 function fileSha(filePath: string): string {
@@ -1356,7 +1379,7 @@ describe('Consumer wiring and scope guards (#1276)', () => {
     );
   });
 
-it('treats corrupted activation pointer as unavailable not absent', () => {
+  it('treats corrupted activation pointer as unavailable not absent', () => {
     const prev = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
     const paths = tempActivationRoot();
     process.env.ACT_CONSUMER_ACTIVATION_ROOT = paths.root;
@@ -1367,6 +1390,138 @@ it('treats corrupted activation pointer as unavailable not absent', () => {
       const selection = resolveEngineeringGraphProductionSelection();
       expect(selection.mode).toBe('unavailable');
       expect(selection.mode).not.toBe('absent');
+    } finally {
+      if (prev === undefined) delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+      else process.env.ACT_CONSUMER_ACTIVATION_ROOT = prev;
+    }
+  });
+
+  it('falls back to absent for every named consumer when activation current is missing', () => {
+    const prev = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+    const paths = tempActivationRoot();
+    process.env.ACT_CONSUMER_ACTIVATION_ROOT = paths.root;
+    try {
+      const selectors = [
+        resolveEngineeringGraphProductionSelection,
+        resolveEngineeringRagProductionSelection,
+        resolveCourseRuntimeProductionSelection,
+        resolveKonlingProductionSelection,
+        resolveTeachingResourceRagProductionSelection,
+        resolveLearningPathProductionSelection,
+      ];
+      for (const select of selectors) {
+        const selection = select();
+        expect(selection.mode).toBe('absent');
+        expect(selection.mode).not.toBe('use-combination');
+        expect(selection.reasons).toContain('current-pointer-missing');
+      }
+
+      const authorityPaths = tempAuthorityStore();
+      const graph = resolveEngineeringAuthorityConsumer(
+        authorityPaths,
+        'engineering-graph',
+        { activationSelection: resolveEngineeringGraphProductionSelection() },
+      );
+      const engineeringRag = resolveEngineeringAuthorityConsumer(
+        authorityPaths,
+        'engineering-rag',
+        { activationSelection: resolveEngineeringRagProductionSelection() },
+      );
+      expect(graph.status).toBe('unavailable');
+      expect(graph.activationMode).toBe('absent');
+      expect(engineeringRag.status).toBe('unavailable');
+      expect(engineeringRag.activationMode).toBe('absent');
+
+      const ragQuery = {
+        domain: 'engineering' as const,
+        query: '稳定性',
+        authorityReleaseId: null,
+        mode: 'production' as const,
+      };
+      const appliedRagQuery = applyEngineeringRagConsumerActivation(ragQuery, {
+        activationSelection: resolveEngineeringRagProductionSelection(),
+      });
+      expect(appliedRagQuery.activationMode).toBe('absent');
+      expect(appliedRagQuery.authorityReleaseId).toBeNull();
+      const ragResult = runEngineeringRagQuery({
+        query: ragQuery,
+        corpus: [
+          {
+            canonicalId: 'legacy-node',
+            label: 'legacy',
+            predicates: [],
+            relationIds: [],
+            authorityReleaseId: 'first-cutover',
+          },
+        ],
+        activationSelection: resolveEngineeringRagProductionSelection(),
+      });
+      expect(ragResult.metadata.availability).toBe('unavailable');
+
+      const teachingRagQuery = {
+        domain: 'teaching-resource' as const,
+        query: '稳定性',
+        projectionId: 'legacy-projection',
+        projectionHash: 'legacy-projection-hash',
+        authorityReleaseId: 'legacy-authority',
+        scopeId: 'legacy-scope',
+        mode: 'production' as const,
+      };
+      const teachingRag = applyTeachingResourceRagConsumerActivation(
+        teachingRagQuery,
+        { activationSelection: resolveTeachingResourceRagProductionSelection() },
+      );
+      expect(teachingRag.activationMode).toBe('absent');
+      expect(teachingRag.projectionId).toBe('legacy-projection');
+      expect(teachingRag.projectionHash).toBe('legacy-projection-hash');
+      expect(teachingRag.authorityReleaseId).toBe('legacy-authority');
+
+      const legacyPathProjection = {
+        authorityReleaseId: 'legacy-authority',
+        projectionId: 'legacy-projection',
+        projectionHash: 'legacy-projection-hash',
+        scopeId: 'legacy-scope',
+      };
+      const learningPath = applyLearningPathConsumerActivation(
+        legacyPathProjection,
+        { activationSelection: resolveLearningPathProductionSelection() },
+      );
+      expect(learningPath.activationMode).toBe('absent');
+      expect(learningPath.projection).toEqual(legacyPathProjection);
+      expect(learningPath.reasons).not.toContain(
+        'learning-path-activation-forced-pin',
+      );
+
+      const legacyContext = resolveCoursePageLayeredGraphContext({
+        scope: buildCoursePackageLayeredScope({
+          packageCanonicalId: 'legacy-lesson',
+          lessonKey: 'legacy-lesson',
+        }),
+        authorityPaths,
+        projectionPaths: tempProjectionStore(),
+        consumerActivationSelection: resolveCourseRuntimeProductionSelection(),
+        lessonRuntime: {
+          lesson: { lesson_id: 'legacy-lesson' },
+          graphOverlay: {
+            lesson_id: 'legacy-lesson',
+            focus_node_ids: ['legacy-node'],
+            card_order: [],
+            groups: [],
+            nodes: [{ id: 'legacy-node' }],
+            links: [],
+          },
+        } as never,
+        allowLegacyFallback: true,
+      });
+      expect(legacyContext.payload.teachingResources.identity.status).toBe(
+        'fallback',
+      );
+      expect(legacyContext.payload.fallback?.adapterId).toBe(
+        'legacy-runtime-projection',
+      );
+      expect(legacyContext.payload.teachingResources.identity.projectionId).toMatch(
+        /^legacy-runtime-graph-overlay:/,
+      );
     } finally {
       if (prev === undefined) delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
       else process.env.ACT_CONSUMER_ACTIVATION_ROOT = prev;

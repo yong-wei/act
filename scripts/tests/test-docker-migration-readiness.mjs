@@ -63,6 +63,30 @@ function main() {
       `Docker runner 必须包含权威知识部署输入: ${requiredCopy}`,
     );
   }
+  const runnerStage = dockerfile.slice(dockerfile.indexOf('FROM base AS runner'));
+  assert.match(
+    runnerStage,
+    /COPY --from=builder \/app\/course-content\/authoring\/knowledge\/authority[\s\S]*RUN rm -f[\s\S]*course-content\/authoring\/knowledge\/authority\/current\.json[\s\S]*course-content\/runtime\/knowledge\/projection\/current\.json/,
+    'Docker runner 必须在复制候选 authority/projection 工件后删除 production current pointer',
+  );
+  assert.ok(
+    runnerStage.indexOf('course-content/authoring/knowledge/releases') >= 0,
+    'Docker runner 必须保留 authority candidate release assets',
+  );
+  assert.ok(
+    runnerStage.indexOf('RUN rm -f') >
+      runnerStage.indexOf('COPY --from=builder /app/course-content/runtime/knowledge/projection'),
+    'Docker runner 的 current pointer 删除必须发生在 projection COPY 之后',
+  );
+  assert.match(
+    remoteDeployScript,
+    /REMOTE_AUTHORITY_CURRENT_POINTER="\$\{REMOTE_AUTHORITY_CURRENT_POINTER:-\$\{REMOTE_PROJECT_DIR\}\/course-content\/authoring\/knowledge\/authority\/current\.json\}"/,
+    'remote deploy 必须固定检查远端 host authoring Authority current pointer',
+  );
+  assert.ok(
+    (remoteDeployScript.match(/check_remote_authority_current_pointer_absence/g) ?? []).length >= 3,
+    'remote deploy 必须在部署前与部署后检查 host Authority current pointer 不存在',
+  );
   assert.match(
     dockerfile,
     /ARG APP_REVISION[\s\S]*printf '%s\\n' "\$\{APP_REVISION\}" > \/app\/\.app-revision/,
