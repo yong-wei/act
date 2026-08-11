@@ -72,8 +72,7 @@ APP_REVISION="${APP_REVISION}" ./node_modules/.bin/tsx \
 echo "[preflight] 校验七套外置教材 v2 runtime"
 node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
   --runtime-root "${TEXTBOOK_V2_RUNTIME_DIR}" \
-  --index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
-  --expected-source-revision "${APP_REVISION}"
+  --index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}"
 
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
 rm -rf "${ROOT_DIR}/.next"

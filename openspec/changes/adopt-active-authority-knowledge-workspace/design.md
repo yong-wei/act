@@ -44,6 +44,8 @@ active 页首显示可读的 Authority Snapshot/Release、activation 和 project
 
 新远端 refresh 工具先在本地验证最终镜像 tar、OCI config digest、provenance 与运行时构建，再在远端锁内读取 committed marker、receipt、journal 和四枚 selector，并记录其摘要。只有这些身份与已运行 cutover 一致时才传输/装载新镜像、重建 app/worker，并以 `ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover` 运行。它不调用 pointer-deleting 的 `remote-deploy.sh`，不复制或写入 Authority 数据，也不创建、修改、删除或替换首次切换的 marker、receipt、journal 或 selector。
 
+应用镜像 revision 与外置教材 runtime/index 的 source revision 是两个独立身份。对于已冻结且外置 runtime 的 application-only refresh，构建只校验七本 runtime 的内部一致性、retrieval index 的完整性以及二者严格相同的 source revision，并在 provenance 中分别记录 `appRevision`、`runtimeSourceRevision` 与 `indexSourceRevision`；app HEAD 不得被当作重新导出教材 runtime 的条件。`verify-image` 与 `verify-runtime` 仍要求三者均为 40 位 revision、runtime/index revision 相同，并继续校验输入 provenance、runtime/index digest、镜像 tar SHA 与所有结构化内容。该例外不能绕过教材输入导出、schema、媒体闭合或其他数据/provenance 校验。
+
 若 preflight 失败，工具在停止消费者前退出；若容器替换后验证失败，恢复明确记录的前驱 image 和同一 cutover mode，再报告失败。成功或恢复后均须复读并比较 preflight marker、receipt、journal 与 selector 摘要，且复验普通 `remote-deploy.sh` 仍会受 marker 阻断。这样解决发布运输缺口而不把应用更新伪装成 selector transaction。
 
 ### 已提交 cutover 的运行模式持久化

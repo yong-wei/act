@@ -27,7 +27,7 @@
 ## 5. Release and production verification
 
 - [ ] 5.1 Commit the completed change, integrate the frozen revision into `integration` and then `main`, and record the release revision/image identity.
-- [ ] 5.2 Build the fixed production image locally with Docker Desktop configured to 24 GiB memory and 8 GiB swap, `NODE_MAX_OLD_SPACE_SIZE=12288`, tar export and provenance verification.
+- [ ] 5.2 Build the fixed production image locally with Docker Desktop configured to 24 GiB memory and 8 GiB swap, `NODE_MAX_OLD_SPACE_SIZE=12288`, tar export and provenance verification; for the frozen external-runtime application refresh, record independent 40-character app/runtime/index revisions while requiring runtime and index to share one source revision.
 - [ ] 5.3 Revalidate the remote committed cutover receipt, marker, journal, four selectors, `engineering-graph` READY/null-projection combination, six READY consumers, OCI identity and capacity before refresh.
 - [ ] 5.4 Deploy through the cutover-aware refresh transaction and verify app/worker mode and image identity, local/public readiness, active Authority API identity and authenticated active/Legacy workspace switching.
 - [ ] 5.5 Confirm no parallel local build remains and close Docker Desktop after final deployment verification.

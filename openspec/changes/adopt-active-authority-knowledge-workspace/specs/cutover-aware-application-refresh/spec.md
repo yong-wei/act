@@ -3,11 +3,18 @@
 ### Requirement: Post-cutover application refresh preserves committed selector state
 The system SHALL provide a dedicated application refresh transaction for a host with a committed production knowledge cutover. Under the shared deployment lock, it SHALL verify and record immutable digests of the committed marker, receipt, journal, all four selectors and their identities before replacing application containers, and SHALL not write, delete, copy or rewrite any selector, Authority artifact, production cutover marker, receipt or journal. It SHALL atomically normalize the existing runtime env file to exactly one durable `ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover` key while preserving other env content, file ownership and permissions; that durable file SHALL be the single mode source for app, worker, manual and systemd-equivalent starts. An ambient process value SHALL NOT downgrade a committed cutover to legacy.
 
+For an application-only refresh using an already frozen external textbook runtime, the release provenance SHALL record `appRevision`, `runtimeSourceRevision` and `indexSourceRevision` as independent 40-character revisions. The build SHALL validate the external runtime and retrieval index internally and SHALL require the runtime and index source revisions to match each other, but SHALL NOT require either external source revision to equal the application revision. This allowance SHALL NOT bypass textbook input provenance, schema, media-closure, digest or image-tar validation.
+
 #### Scenario: Refresh preflight succeeds
 - **WHEN** the remote host has a valid committed cutover marker, matching receipt, four regular selector files and consistent Authority/Projection/consumer identities
 - **THEN** the refresh transaction MAY proceed with the declared application image
 - **AND** it SHALL record the prior image and the verified cutover identities plus marker/receipt/journal digests in its refresh receipt
 - **AND** a clean shell and systemd-equivalent `--app-only` start SHALL resolve `cutover` from the persisted runtime env without an ambient mode override
+
+#### Scenario: Application-only refresh retains the frozen external textbook runtime
+- **WHEN** the declared application revision differs from the already frozen external textbook runtime/index source revision, while the runtime and retrieval index are internally valid and share the same source revision
+- **THEN** the build and provenance validation SHALL accept the independent revisions and record all three identities
+- **AND** it SHALL continue to reject any runtime/index revision mismatch, invalid revision, input or content digest mismatch, tar SHA mismatch or other provenance inconsistency
 
 #### Scenario: Cutover evidence is missing or inconsistent
 - **WHEN** any committed marker, receipt, selector, pointer identity or consumer readiness prerequisite is absent, corrupt or mismatched

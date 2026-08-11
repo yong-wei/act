@@ -408,6 +408,7 @@ try {
   const indexRoot = path.join(mediaFixtureRoot, 'textbook-retrieval');
   const assetsRoot = path.join(mediaFixtureRoot, 'textbooks');
   const revision = '1111111111111111111111111111111111111111';
+  const appRevision = '2222222222222222222222222222222222222222';
   for (const [index, bookId] of textbookV2BookIds.entries()) {
     const bookRoot = path.join(runtimeRoot, bookId);
     fs.mkdirSync(bookRoot, { recursive: true });
@@ -513,18 +514,23 @@ try {
       '--image-tar',
       imageTar,
       '--app-revision',
-      revision,
+      appRevision,
       '--output',
       sidecar,
     ],
     { cwd: root, encoding: 'utf8' },
   );
   assert.equal(writeSidecarResult.status, 0, writeSidecarResult.stderr);
-  assert.equal(
-    JSON.parse(fs.readFileSync(sidecar, 'utf8')).runtimeInputDigest,
-    'a'.repeat(64),
-    'sidecar 必须绑定 runtime 输入摘要',
+  const sidecarPayload = JSON.parse(fs.readFileSync(sidecar, 'utf8'));
+  assert.equal(sidecarPayload.appRevision, appRevision);
+  assert.equal(sidecarPayload.runtimeSourceRevision, revision);
+  assert.equal(sidecarPayload.indexSourceRevision, revision);
+  assert.notEqual(
+    sidecarPayload.appRevision,
+    sidecarPayload.runtimeSourceRevision,
+    'application-only refresh 必须允许 appRevision 与外置教材 sourceRevision 独立记录',
   );
+  assert.equal(sidecarPayload.runtimeInputDigest, 'a'.repeat(64), 'sidecar 必须绑定 runtime 输入摘要');
 
   fs.writeFileSync(mediaPath, 'fixture-v2-tampered');
   const tamperedInspect = spawnSync(process.execPath, preflightArgs, {
@@ -627,7 +633,7 @@ try {
   );
   fs.writeFileSync(sidecar, `${JSON.stringify({
     schemaVersion: 'act.textbook-runtime-release-provenance.v2',
-    appRevision: '1111111111111111111111111111111111111111',
+    appRevision: '3333333333333333333333333333333333333333',
     imageTarSha256: '0'.repeat(64),
     runtimeSourceRevision: '2222222222222222222222222222222222222222',
     runtimeDigest: '1'.repeat(64),
@@ -650,12 +656,12 @@ try {
   assert.notEqual(
     revisionMismatchResult.status,
     0,
-    'sidecar 的应用与 runtime 修订不一致时必须 fail closed',
+    'sidecar 的 runtime 与 retrieval index 修订不一致时必须 fail closed',
   );
   assert.match(
     revisionMismatchResult.stderr,
-    /textbook-v2-provenance-revision-mismatch/u,
-    'sidecar 校验应明确报告应用与 runtime 修订不一致',
+    /textbook-v2-provenance-runtime-index-revision-mismatch/u,
+    'sidecar 校验应明确报告 runtime 与 retrieval index 修订不一致',
   );
 } finally {
   fs.rmSync(tarMismatchRoot, { recursive: true, force: true });
@@ -671,7 +677,7 @@ assert.equal(
 assert.equal(
   buildScript.includes('git status --porcelain=v1 --untracked-files=normal') &&
     buildScript.includes('APP_REVISION="$(git rev-parse HEAD)"') &&
-    buildScript.includes('--expected-source-revision "${APP_REVISION}"') &&
+    !buildScript.includes('--expected-source-revision "${APP_REVISION}"') &&
     buildScript.includes('--label "org.opencontainers.image.revision=${APP_REVISION}"') &&
     buildScript.includes('textbook-runtime-v2-provenance.mjs" write-sidecar') &&
     textbookV2ProvenanceHelper.includes('fs.renameSync(temporary, output)') &&
