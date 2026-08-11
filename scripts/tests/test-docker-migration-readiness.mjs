@@ -630,6 +630,23 @@ function main() {
   );
   assert.match(
     localImageBuildScript,
+    /SKIP_WASM_BUILD=1 npm run build/,
+    'release build 宿主 Next 校验必须复用已提交的控制分析 Wasm 包，不得重写 tracked Wasm 输出',
+  );
+  const localNpmBuildIndex = localImageBuildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n');
+  const postLocalNpmBuildCleanCheckIndex = localImageBuildScript.indexOf(
+    'assert_clean_release_worktree',
+    localNpmBuildIndex,
+  );
+  const dockerBuildIndex = localImageBuildScript.indexOf('docker buildx build');
+  assert.ok(
+    localNpmBuildIndex >= 0
+      && postLocalNpmBuildCleanCheckIndex > localNpmBuildIndex
+      && dockerBuildIndex > postLocalNpmBuildCleanCheckIndex,
+    'release build 必须在宿主 npm build 后再次 fail-closed 检查可见工作树',
+  );
+  assert.match(
+    localImageBuildScript,
     /--build-arg "APP_REVISION=\$\{APP_REVISION\}"/,
     'release build 必须向镜像传递已验证的 APP_REVISION',
   );
@@ -675,7 +692,8 @@ function main() {
   );
   assert.ok(
     dockerMemoryCheckIndex >= 0
-      && dockerMemoryCheckIndex < localImageBuildScript.indexOf('\nnpm run build\n')
+      && localNpmBuildIndex >= 0
+      && dockerMemoryCheckIndex < localNpmBuildIndex
       && dockerMemoryCheckIndex < localImageBuildScript.indexOf('docker buildx build'),
     'Docker VM 内存门禁必须早于本地 npm build 与 Docker build',
   );

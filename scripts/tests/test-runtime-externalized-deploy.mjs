@@ -682,7 +682,7 @@ try {
 
 assert.equal(
   buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
-    buildScript.indexOf('\nnpm run build\n'),
+    buildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n'),
   true,
   'release build 必须在应用构建前执行七书教材 v2 preflight',
 );

@@ -54,11 +54,15 @@ for required_script in scripts/build-next-with-trace-check.mjs scripts/prune-nex
   fi
 done
 
-if [[ -n "$(git status --porcelain=v1 --untracked-files=normal)" ]]; then
-  echo "ERROR: release build 要求 tracked/untracked 可见工作树干净；ignored runtime 不计入检查。" >&2
-  git status --short --untracked-files=normal >&2
-  exit 1
-fi
+assert_clean_release_worktree() {
+  if [[ -n "$(git status --porcelain=v1 --untracked-files=normal)" ]]; then
+    echo "ERROR: release build 要求 tracked/untracked 可见工作树干净；ignored runtime 不计入检查。" >&2
+    git status --short --untracked-files=normal >&2
+    exit 1
+  fi
+}
+
+assert_clean_release_worktree
 APP_REVISION="$(git rev-parse HEAD)"
 if [[ ! "${APP_REVISION}" =~ ^[0-9a-f]{40}$ ]]; then
   echo "ERROR: 无法取得有效的 40 位 Git HEAD。" >&2
@@ -76,7 +80,8 @@ node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
 
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
 rm -rf "${ROOT_DIR}/.next"
-npm run build
+SKIP_WASM_BUILD=1 npm run build
+assert_clean_release_worktree
 
 mkdir -p "$(dirname "${OUTPUT_TAR}")"
 mkdir -p "${CACHE_ROOT}"
