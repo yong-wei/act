@@ -319,6 +319,9 @@ function changedFiles() {
 }
 
 function sourceFilesForTokenGate(files: string[]) {
+  const knowledgeAuthoritySemanticPaletteSources = new Set([
+    'src/features/knowledge/active-authority-graph.tsx',
+  ]);
   return files.filter((file) => (
     /^(src\/app|src\/components|src\/features)\//.test(file)
     && /\.(css|tsx?)$/.test(file)
@@ -326,6 +329,9 @@ function sourceFilesForTokenGate(files: string[]) {
     && !/(__tests__|\.test\.|\.spec\.|src\/app\/globals\.css)/.test(file)
     && file !== 'src/app/textbook-citations/[...targetPath]/page.tsx'
     && file !== 'src/components/shared/runtime-markdown.tsx'
+    // Authority object-type and state colors are a bounded semantic palette,
+    // covered by the active graph visual evidence rather than page-local chrome.
+    && !knowledgeAuthoritySemanticPaletteSources.has(file)
   ));
 }
 
@@ -2171,6 +2177,9 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
 function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceViolation[] {
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH);
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
+  const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
+  const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
+  const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
   const knowledgePageSourcePath = 'src/app/knowledge/page.tsx';
   const adaptivePracticePageSourcePath = 'src/app/assessment/adaptive-practice/page.tsx';
   const graph2dSourcePath = 'src/features/knowledge/graph/knowledge-graph-2d.tsx';
@@ -2188,6 +2197,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const governanceScriptSourcePath = 'scripts/tests/test-commercial-ui-governance.ts';
   const productQaSourcePaths = [
     graphSourcePath,
+    knowledgeWorkspaceSourcePath,
+    activeAuthorityGraphSourcePath,
+    activeAuthorityGraphContractsSourcePath,
     knowledgePageSourcePath,
     adaptivePracticePageSourcePath,
     graph2dSourcePath,
@@ -2206,6 +2218,15 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
     ? readFileSync(path.join(repoRoot, graphSourcePath), 'utf8')
+    : '';
+  const knowledgeWorkspaceSource = existsSync(path.join(repoRoot, knowledgeWorkspaceSourcePath))
+    ? readFileSync(path.join(repoRoot, knowledgeWorkspaceSourcePath), 'utf8')
+    : '';
+  const activeAuthorityGraphSource = existsSync(path.join(repoRoot, activeAuthorityGraphSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityGraphSourcePath), 'utf8')
+    : '';
+  const activeAuthorityGraphContractsSource = existsSync(path.join(repoRoot, activeAuthorityGraphContractsSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityGraphContractsSourcePath), 'utf8')
     : '';
   const resourcePanelSource = existsSync(path.join(repoRoot, resourcePanelSourcePath))
     ? readFileSync(path.join(repoRoot, resourcePanelSourcePath), 'utf8')
@@ -2254,6 +2275,150 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       ? [[state.name, state.screenshotSha256]]
       : []
   )));
+  const activeAuthorityVisualMatrix = Array.isArray(evidence.activeAuthorityVisualMatrix)
+    ? evidence.activeAuthorityVisualMatrix.map((entry) => objectRecord(entry))
+    : [];
+  for (const activeState of activeAuthorityVisualMatrix) {
+    if (typeof activeState.name === 'string' && typeof activeState.screenshotSha256 === 'string') {
+      stateScreenshotSha256[activeState.name] = activeState.screenshotSha256;
+    }
+  }
+  const activeVisualStateByName = new Map(
+    activeAuthorityVisualMatrix
+      .map((entry) => [typeof entry.name === 'string' ? entry.name : '', entry] as const)
+      .filter(([name]) => name.length > 0),
+  );
+  const requiredActiveVisualStates = [
+    ['active-desktop-dark', 'dark', 1440],
+    ['active-desktop-light', 'light', 1440],
+    ['active-tablet', 'dark', 1024],
+    ['active-mobile', 'dark', 320],
+  ] as const;
+  const activeVisualProblems = requiredActiveVisualStates.flatMap(([name, theme, width]) => {
+    const state = activeVisualStateByName.get(name);
+    const viewport = objectRecord(state?.viewport);
+    const markers = objectRecord(state?.markers);
+    const activeMarkers = objectRecord(markers.activeAuthority);
+    const api = objectRecord(state?.api);
+    const apiSequence = Array.isArray(state?.apiSequence)
+      ? state.apiSequence.map((entry) => objectRecord(entry))
+      : [];
+    const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
+    const forbiddenAutomaticRequests = apiSequence.some((entry) => (
+      entry.path === '/api/knowledge/graph' || entry.path === '/api/knowledge/graph/v2'
+    ));
+    return [
+      state ? null : `${name}:missing-state`,
+      state?.result === 'passed' ? null : `${name}:result`,
+      state?.knowledgeMode === 'active' && markers.knowledgeGraphMode === 'active'
+        ? null
+        : `${name}:not-active-mode`,
+      state?.theme === theme ? null : `${name}:theme`,
+      numberFromEvidence(viewport.width) === width ? null : `${name}:viewport-width`,
+      artifact ? null : `${name}:missing-screenshot`,
+      artifact?.sha256 === state?.screenshotSha256 ? null : `${name}:screenshot-sha-mismatch`,
+      api.status === 200 ? null : `${name}:active-api-status`,
+      numberFromEvidence(api.nodeCount)! > 0 ? null : `${name}:active-api-empty`,
+      api.authorityState === 'active' ? null : `${name}:authority-state`,
+      api.hasAuthorityProvenance === true ? null : `${name}:provenance-missing`,
+      api.activationMode === 'use-combination' ? null : `${name}:activation-mode`,
+      api.activationStatus === 'READY' ? null : `${name}:activation-status`,
+      api.projectionId === null ? null : `${name}:projection-id-not-null`,
+      api.projectionHash === null ? null : `${name}:projection-hash-not-null`,
+      numberFromEvidence(activeMarkers.visibleNodeCount)! > 0 ? null : `${name}:dom-empty`,
+      activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
+      activeMarkers.identitySurface === true ? null : `${name}:dom-identity-surface`,
+      forbiddenAutomaticRequests ? `${name}:automatic-legacy-or-candidate-request` : null,
+    ].filter((entry): entry is string => Boolean(entry));
+  });
+  const authenticatedRoleEvidence = Array.isArray(evidence.authenticatedRoleEvidence)
+    ? evidence.authenticatedRoleEvidence.map((entry) => objectRecord(entry))
+    : [];
+  const roleEvidenceByName = new Map(
+    authenticatedRoleEvidence
+      .map((entry) => [typeof entry.role === 'string' ? entry.role : '', entry] as const)
+      .filter(([role]) => role.length > 0),
+  );
+  const authenticatedRoleProblems = (['student', 'teacher', 'admin'] as const).flatMap((role) => {
+    const evidenceForRole = roleEvidenceByName.get(role);
+    const defaultEvidence = objectRecord(evidenceForRole?.default);
+    const defaultApi = objectRecord(defaultEvidence.api);
+    const legacyEvidence = objectRecord(evidenceForRole?.legacy);
+    const legacyApi = objectRecord(legacyEvidence.api);
+    const candidateEvidence = evidenceForRole?.candidate === null
+      ? null
+      : objectRecord(evidenceForRole?.candidate);
+    const candidateApi = objectRecord(candidateEvidence?.api);
+    const apiSequence = Array.isArray(evidenceForRole?.apiSequence)
+      ? evidenceForRole.apiSequence.map((entry) => objectRecord(entry))
+      : [];
+    const defaultSequence = Array.isArray(defaultEvidence.apiSequenceBeforeLegacy)
+      ? defaultEvidence.apiSequenceBeforeLegacy.map((entry) => objectRecord(entry))
+      : [];
+    const problems = [
+      evidenceForRole ? null : `${role}:missing-role-evidence`,
+      defaultEvidence.mode === 'active' ? null : `${role}:default-not-active`,
+      defaultApi.status === 200 ? null : `${role}:default-api-status`,
+      numberFromEvidence(defaultApi.nodeCount)! > 0 ? null : `${role}:default-api-empty`,
+      defaultApi.authorityState === 'active' ? null : `${role}:default-authority-state`,
+      defaultApi.hasAuthorityProvenance === true ? null : `${role}:default-provenance-missing`,
+      defaultApi.activationMode === 'use-combination' ? null : `${role}:default-activation-mode`,
+      defaultApi.activationStatus === 'READY' ? null : `${role}:default-activation-status`,
+      defaultApi.projectionId === null ? null : `${role}:default-projection-id-not-null`,
+      defaultApi.projectionHash === null ? null : `${role}:default-projection-hash-not-null`,
+      defaultEvidence.legacyApiRequestedBeforeExplicitSwitch === false
+        ? null
+        : `${role}:legacy-request-before-explicit-switch`,
+      defaultSequence.some((entry) => entry.path === '/api/knowledge/graph/v2')
+        ? `${role}:candidate-request-before-explicit-switch`
+        : null,
+      legacyEvidence.explicitSwitch === true ? null : `${role}:legacy-not-explicit`,
+      legacyApi.status === 200 ? null : `${role}:legacy-api-status`,
+      numberFromEvidence(legacyEvidence.visibleNodeCount)! > 0 ? null : `${role}:legacy-api-empty`,
+      apiSequence.some((entry) => entry.path === '/api/knowledge/graph/active' && entry.status !== 200)
+        ? `${role}:active-api-failure-in-sequence`
+        : null,
+    ];
+    if (role === 'admin') {
+      problems.push(
+        defaultEvidence.candidateButtonVisible === true ? null : `${role}:candidate-button-missing`,
+        candidateEvidence ? null : `${role}:candidate-evidence-missing`,
+        candidateEvidence?.controlledEntry === true ? null : `${role}:candidate-not-controlled-entry`,
+        candidateEvidence?.controlledVerification === true ? null : `${role}:candidate-controlled-marker-missing`,
+        candidateEvidence?.currentAuthority === false ? null : `${role}:candidate-mislabelled-current-authority`,
+        candidateEvidence?.explicitSwitch === true ? null : `${role}:candidate-not-explicit-switch`,
+        candidateEvidence?.candidateApiRequestedBeforeExplicitSwitch === false
+          ? null
+          : `${role}:candidate-request-before-explicit-switch`,
+        candidateApi.status === 200 ? null : `${role}:candidate-api-status`,
+        candidateApi.authorityState === 'candidate' ? null : `${role}:candidate-authority-state`,
+        typeof candidateApi.releaseSetId === 'string' && candidateApi.releaseSetId.length > 0
+          ? null
+          : `${role}:candidate-release-set-missing`,
+        typeof candidateApi.releaseId === 'string' && candidateApi.releaseId.length > 0
+          ? null
+          : `${role}:candidate-release-missing`,
+        candidateApi.hasSourceIdentityFields === true
+          ? null
+          : `${role}:candidate-source-identity-fields-missing`,
+        typeof candidateApi.projectionVersion === 'string' && candidateApi.projectionVersion.length > 0
+          ? null
+          : `${role}:candidate-projection-version-missing`,
+        candidateApi.hasCoverageFields === true
+          ? null
+          : `${role}:candidate-coverage-fields-missing`,
+      );
+    } else {
+      problems.push(
+        defaultEvidence.candidateButtonVisible === false ? null : `${role}:candidate-button-visible`,
+        candidateEvidence === null ? null : `${role}:candidate-evidence-present`,
+        apiSequence.some((entry) => entry.path === '/api/knowledge/graph/v2')
+          ? `${role}:candidate-api-requested`
+          : null,
+      );
+    }
+    return problems.filter((entry): entry is string => Boolean(entry));
+  });
   const requiredStates = [
     ['desktop-default-collapsed-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-expanded-persisted-dark', 'dark', 1440, 'expanded', 'collapsed'],
@@ -2309,8 +2474,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const viewportWidth = numberFromEvidence(viewport.width);
     const isMobileViewport = viewportWidth === 320;
     const isTabletBreakpointViewport = [1024, 1100, 1279].includes(viewportWidth ?? 0);
-    const isAdaptivePracticeDockState = name === 'desktop-selected-page-tools-menu-dark';
-    const expectedRoute = isAdaptivePracticeDockState ? '/assessment/adaptive-practice' : '/knowledge';
+      const isAdaptivePracticeDockState = name === 'desktop-selected-page-tools-menu-dark';
+      const expectedRoute = isAdaptivePracticeDockState ? '/assessment/adaptive-practice' : '/knowledge';
+      const isKnowledgeState = expectedRoute === '/knowledge';
     const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
     const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;
     const scrollWidth = numberFromEvidence(documentScroll.scrollWidth);
@@ -2331,6 +2497,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       typeof state.localToolState === 'string' ? null : `${name}:local-tool-state`,
       typeof state.interactionState === 'string' ? null : `${name}:interaction-state`,
       state.result === 'passed' ? null : `${name}:result`,
+      isKnowledgeState && state.knowledgeMode === 'legacy' && markers.knowledgeGraphMode === 'legacy'
+        ? null
+        : (isKnowledgeState ? `${name}:not-explicit-legacy-mode` : null),
       artifact ? null : `${name}:missing-screenshot`,
       artifact?.sha256 === state.screenshotSha256 ? null : `${name}:screenshot-sha-mismatch`,
       artifact?.imageFormat === 'png' || artifact?.imageFormat === 'jpeg' ? null : `${name}:invalid-image-format`,
@@ -2586,6 +2755,22 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     graphSource.includes('data-knowledge-workspace="canvas-first"')
       ? null
       : 'graph-source:canvas-first-missing',
+    knowledgeWorkspaceSource.includes('data-knowledge-graph-mode={mode}')
+      ? null
+      : 'active-workspace:mode-marker-missing',
+    knowledgeWorkspaceSource.includes('data-knowledge-mode="active"')
+      && knowledgeWorkspaceSource.includes('data-knowledge-mode="legacy"')
+      && knowledgeWorkspaceSource.includes('data-knowledge-mode="candidate"')
+      ? null
+      : 'active-workspace:mode-controls-missing',
+    activeAuthorityGraphSource.includes('data-active-authority-graph="true"')
+      && activeAuthorityGraphSource.includes('data-active-graph-stage="authority"')
+      ? null
+      : 'active-graph:stable-dom-contract-missing',
+    activeAuthorityGraphContractsSource.includes('projectionHash')
+      && activeAuthorityGraphContractsSource.includes('provenance')
+      ? null
+      : 'active-graph:identity-contract-missing',
     graphSource.includes('data-knowledge-desktop-command-system="compact"')
       ? null
       : 'graph-source:compact-command-system-missing',
@@ -2715,6 +2900,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   if (
     designProblems.length > 0
     || stateProblems.length > 0
+    || activeVisualProblems.length > 0
+    || authenticatedRoleProblems.length > 0
     || captureRevisionProblems.length > 0
     || sourceProblems.length > 0
     || focusProblems.length > 0
@@ -2725,6 +2912,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     return [knowledgeGraphGovernanceViolation('Knowledge workspace product QA evidence is incomplete.', [
       `design=${designProblems.join(',') || 'none'}`,
       `states=${stateProblems.join(',') || 'none'}`,
+      `activeVisual=${activeVisualProblems.join(',') || 'none'}`,
+      `authenticatedRoles=${authenticatedRoleProblems.join(',') || 'none'}`,
       `captureRevision=${captureRevisionProblems.join(',') || 'none'}`,
       `source=${sourceProblems.join(',') || 'none'}`,
       `focus=${focusProblems.join(',') || 'none'}`,
