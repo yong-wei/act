@@ -39,8 +39,9 @@ for command in git ssh scp python3 node; do command -v "$command" >/dev/null 2>&
 
 git fetch origin integration --quiet
 integration_revision="$(git rev-parse origin/integration)"
+head_revision="$(git rev-parse HEAD)"
 [[ -z "$(git status --porcelain=v1 --untracked-files=normal)" ]] || { echo 'ERROR: production image build input must be clean' >&2; exit 1; }
-git merge-base --is-ancestor "$integration_revision" HEAD || { echo 'ERROR: local checkout is not fast-forward aligned to origin/integration' >&2; exit 1; }
+[[ "$head_revision" == "$integration_revision" ]] || { echo 'ERROR: local checkout must exactly match origin/integration' >&2; exit 1; }
 provenance="${image_tar}.provenance.json"
 node scripts/release/textbook-runtime-v2-provenance.mjs verify-image --sidecar "$provenance" --image-tar "$image_tar" >/dev/null
 python3 - "$integration_revision" "$release_id" "$verification_receipt" "$release_locator" "$media_closure" <<'PY'

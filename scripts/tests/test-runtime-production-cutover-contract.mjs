@@ -7,7 +7,8 @@ const local = fs.readFileSync(path.join(root, 'scripts/runtime-release/execute-p
 const remote = fs.readFileSync(path.join(root, 'scripts/runtime-release/perform-production-runtime-cutover.sh'), 'utf8');
 
 assert.match(local, /git fetch origin integration/, 'cutover must resolve the live integration revision');
-assert.match(local, /git merge-base --is-ancestor/, 'cutover must build only an integration-aligned checkout');
+assert.match(local, /local checkout must exactly match origin\/integration/, 'cutover must reject a merely descendant topic branch');
+assert.match(local, /head_revision.*integration_revision/, 'cutover must use the exact integration revision for every staged script');
 assert.match(local, /verify-image --sidecar/, 'cutover must verify image-tar provenance before transfer');
 assert.match(local, /published-media closure is not ready/, 'cutover must reject an incomplete published-media closure');
 assert.match(local, /staged filename is invalid/, 'cutover must reject unsafe staging filenames');
