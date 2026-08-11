@@ -1,15 +1,25 @@
 {
   "schemaVersion": 1,
   "issue": 1327,
-  "capturedAt": "2026-08-11T08:25:47.151Z",
-  "commitSha": "f4d402bf479fbbf92cf4fa13428941b0e6c556c5",
+  "capturedAt": "2026-08-11T09:55:03.051Z",
+  "commitSha": "065b1d130b3c7393a6a15e2cbbf5733bb7001619",
   "generator": "tests/adaptive-path-candidate-batches.spec.ts",
-  "generatorSha256": "7ad1d1196f19560e3fe75d223be8460d8f9b06236e20153044145fd39a5b2aba",
+  "generatorSha256": "9a4047160bde3343b5ea9c64d0f18e2e174bbdaad3192a842b2acffd72edc38f",
   "representativeRoute": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327",
   "sourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "c32021542ba8a33a3bda49c3e20c4a1241dbe330c476fdc3beb9f24ea2335b4c",
     "src/lib/adaptive-path-candidate-batches.ts": "d4dc4fc6a030337ebaad1d747894950bb73c86d01dc22572a5abe16c655510b5",
-    "tests/adaptive-path-candidate-batches.spec.ts": "7ad1d1196f19560e3fe75d223be8460d8f9b06236e20153044145fd39a5b2aba"
+    "tests/adaptive-path-candidate-batches.spec.ts": "9a4047160bde3343b5ea9c64d0f18e2e174bbdaad3192a842b2acffd72edc38f"
+  },
+  "captureWorkingTreeSourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "2b45f1f84b886a4eddacf4709a21530fe316114dd72c838a228838580859d384",
+    "src/lib/adaptive-path-candidate-batches.ts": "d32e9c1baf3aed737d6fe18a9c35f4eaf7f5b85cbef7b3ddb2dcb58fc0b2fcbd",
+    "tests/adaptive-path-candidate-batches.spec.ts": "6cff729d2c024f2348e5a8b70c0c6072139029c5b4dca716d1abcdc7a93039f4"
+  },
+  "sourceGitBlobIds": {
+    "src/app/assessment/adaptive-practice/page.tsx": "98abaaf6580a3e34a5088e54bc8d6d2871e47bb5",
+    "src/lib/adaptive-path-candidate-batches.ts": "46b1ba49a7abc372e4c0da619f85fc72f369bb79",
+    "tests/adaptive-path-candidate-batches.spec.ts": "e084888cafd27f440349593212fecfb8e308c524"
   },
   "screenshots": [
     {
