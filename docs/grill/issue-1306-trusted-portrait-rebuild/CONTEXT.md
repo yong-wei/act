@@ -78,7 +78,7 @@ PR #1334 首轮 review 提出两项问题，本轮已按问题边界整改：
 
 本轮验证已通过 `trusted-learning-fact-filter`、`recommendation-engine`、`adaptive-learner-state-service`、`adaptive-learning-path-planner` 四个 Vitest 文件，随后执行 `npm run typecheck`。
 
-PR #1334 第二轮人工 review 确认 GitHub Codex connector 已在 Reviewed commit `77cd568c9b` 清场，未发现重大问题；同一代码 head 不重复请求。最终 head `bb07a5750` 的补充门禁结果如下：
+PR #1334 第二轮人工 review 针对 head `bb07a5750` 确认 GitHub Codex connector 已在 Reviewed commit `77cd568c9b` 清场，未发现重大问题；同一代码 head 不重复请求。随后写入的补充门禁结果如下：
 
 - `openspec validate rebuild-portrait-v2-from-trusted-facts --type change --strict` 通过。
 - `prisma validate` 通过。
