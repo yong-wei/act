@@ -36,6 +36,7 @@ type EvidenceRoute = {
   href: string;
   ready: string;
   focus: string;
+  focusRole?: 'button' | 'tab';
   role?: 'STUDENT' | 'TEACHER';
 };
 
@@ -58,6 +59,7 @@ const routes: readonly EvidenceRoute[] = [
     href: '/graph-center',
     ready: '图谱中心',
     focus: '知识',
+    focusRole: 'tab',
   },
   {
     name: 'student-assignment',
@@ -221,7 +223,7 @@ for (const viewport of viewports) {
       if (route.name === 'student-assignment') await installAssignmentRoute(page);
       await page.goto(route.href, { waitUntil: 'domcontentloaded' });
       await expect(page.getByText(route.ready, { exact: true }).first()).toBeVisible();
-      const focusTarget = page.getByRole('button', { name: route.focus, exact: true }).first();
+      const focusTarget = page.getByRole(route.focusRole ?? 'button', { name: route.focus, exact: true }).first();
       await expect(focusTarget).toBeVisible();
       await focusTarget.focus();
       await expect(focusTarget).toBeFocused();
