@@ -22,12 +22,15 @@ function extractTemplateConstant(source: string, name: string) {
 }
 
 describe('React Doctor security surface policy', () => {
-  it('initializes theme without raw HTML injection in the root layout', () => {
+  it('initializes theme before hydration without raw HTML injection in the root layout', () => {
     const layoutSource = readProjectFile('src/app/layout.tsx');
     const themeScript = buildThemeInitScript('dark');
 
     expect(layoutSource).not.toContain('dangerouslySetInnerHTML');
-    expect(layoutSource).toContain('<script id="theme-init">{buildThemeInitScript()}</script>');
+    expect(layoutSource).toContain("import Script from 'next/script'");
+    expect(layoutSource).toMatch(
+      /<Script\s+id="theme-init"\s+strategy="beforeInteractive">[\s\S]*\{buildThemeInitScript\(\)\}[\s\S]*<\/Script>/,
+    );
     expect(themeScript).not.toMatch(/<\/script/i);
   });
 
