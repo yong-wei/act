@@ -1,12 +1,47 @@
-import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { createHash, randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
 const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/issue-1330-student-micro-tutoring-flow/playwright');
-const evidence: Array<Record<string, unknown>> = [];
+const manifestPath = join(process.cwd(), 'artifacts/commercial-ui/issue-1330-student-micro-tutoring-flow/evidence-manifest.json');
+const screenshotsManifestPath = join(evidenceDir, 'screenshots.json');
+const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
+const evidenceSourceFiles = [
+  'src/app/api/assessment/remediation/interventions/validation/route.ts',
+  'src/app/api/assessment/remediation/route.ts',
+  'src/app/assessment/adaptive-practice/page.tsx',
+  'src/features/assessment/micro-intervention-outcomes.ts',
+  'src/features/assessment/student-micro-tutoring-panel.tsx',
+  'tests/student-micro-tutoring-evidence.spec.ts',
+];
+const expectedEvidenceFiles = [
+  'available-full-loop-1440.png',
+  'unavailable-fail-closed-1440.png',
+  'recoverable-retry-1440.png',
+  'available-full-loop-320.png',
+  'unavailable-fail-closed-320.png',
+  'recoverable-retry-320.png',
+];
+
+type SourceSnapshot = {
+  revision: string;
+  hashes: Record<string, string>;
+};
+type CapturedEvidence = {
+  file: string;
+  screenshotSha256: string;
+  width: number;
+  state: string;
+  noHorizontalOverflow: boolean;
+  assertions: Record<string, unknown>;
+  image: Buffer;
+};
+
+const evidence: CapturedEvidence[] = [];
 
 interface PersistedAnswerFixture {
   question: { question: { id: string; options: Array<{ label: string }> } };
@@ -33,6 +68,91 @@ const STARTED = {
   recommendation: null,
 };
 
+function sha256(value: Buffer): string {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+function currentHead(): string {
+  return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+}
+
+function sourceHash(file: string): string {
+  return sha256(readFileSync(join(process.cwd(), file)));
+}
+
+function sourceHashAtRevision(revision: string, file: string): string {
+  return sha256(execFileSync('git', ['show', `${revision}:${file}`]));
+}
+
+function hasWorkingTreeSourceDrift(): boolean {
+  try {
+    execFileSync('git', ['diff', '--quiet', 'HEAD', '--', ...evidenceSourceFiles]);
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+function captureSourceSnapshot(): SourceSnapshot {
+  if (hasWorkingTreeSourceDrift()) {
+    throw new Error('Student micro-tutoring evidence capture requires clean tracked sources.');
+  }
+  const revision = currentHead();
+  const hashes = Object.fromEntries(evidenceSourceFiles.map((file) => [file, sourceHash(file)]));
+  for (const file of evidenceSourceFiles) {
+    if (sourceHashAtRevision(revision, file) !== hashes[file]) {
+      throw new Error(`Student micro-tutoring evidence capture source drift: ${file}`);
+    }
+  }
+  return { revision, hashes };
+}
+
+function assertCaptureSourceSnapshot(snapshot: SourceSnapshot) {
+  if (currentHead() !== snapshot.revision) {
+    throw new Error('Student micro-tutoring evidence capture HEAD changed.');
+  }
+  if (hasWorkingTreeSourceDrift()) {
+    throw new Error('Student micro-tutoring evidence capture tracked sources changed.');
+  }
+  for (const file of evidenceSourceFiles) {
+    if (sourceHash(file) !== snapshot.hashes[file]) {
+      throw new Error(`Student micro-tutoring evidence capture content changed: ${file}`);
+    }
+    if (sourceHashAtRevision(snapshot.revision, file) !== snapshot.hashes[file]) {
+      throw new Error(`Student micro-tutoring evidence capture revision mismatch: ${file}`);
+    }
+  }
+}
+
+function validatePersistedEvidence() {
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+    commitSha?: string;
+    sourceSha256?: Record<string, string>;
+    screenshots?: Array<{ file: string; sha256: string }>;
+  };
+  const screenshotsManifest = JSON.parse(readFileSync(screenshotsManifestPath, 'utf8')) as {
+    gitRevision?: string;
+    evidence?: Array<{ file: string; screenshotSha256: string }>;
+  };
+  expect(manifest.commitSha).toMatch(/^[0-9a-f]{40}$/);
+  expect(screenshotsManifest.gitRevision).toBe(manifest.commitSha);
+  expect(hasWorkingTreeSourceDrift(), 'tracked evidence sources must match HEAD').toBe(false);
+  for (const file of evidenceSourceFiles) {
+    expect(manifest.sourceSha256?.[file], `${file} source hash missing`).toBe(sourceHash(file));
+  }
+  expect(manifest.screenshots?.map((entry) => entry.file).sort()).toEqual(
+    expectedEvidenceFiles.map((file) => `playwright/${file}`).sort(),
+  );
+  expect(screenshotsManifest.evidence?.map((entry) => entry.file).sort()).toEqual([...expectedEvidenceFiles].sort());
+  for (const screenshot of manifest.screenshots ?? []) {
+    const file = join(process.cwd(), 'artifacts/commercial-ui/issue-1330-student-micro-tutoring-flow', screenshot.file);
+    expect(existsSync(file), screenshot.file).toBe(true);
+    expect(sha256(readFileSync(file))).toBe(screenshot.sha256);
+  }
+}
+
+const captureSource = updateEvidence ? captureSourceSnapshot() : null;
+
 test.describe.configure({ mode: 'serial', timeout: 120_000 });
 
 test.beforeEach(async ({ context }) => {
@@ -40,14 +160,64 @@ test.beforeEach(async ({ context }) => {
 });
 
 test.afterAll(() => {
+  if (!updateEvidence) {
+    validatePersistedEvidence();
+    return;
+  }
+  expect(captureSource).not.toBeNull();
+  expect(evidence).toHaveLength(expectedEvidenceFiles.length);
+  assertCaptureSourceSnapshot(captureSource!);
   mkdirSync(evidenceDir, { recursive: true });
-  writeFileSync(join(evidenceDir, 'screenshots.json'), JSON.stringify({
-    capturedAt: new Date().toISOString(),
-    gitRevision: process.env.EVIDENCE_GIT_REVISION ?? 'working-tree',
+  const capturedAt = new Date().toISOString();
+  const screenshotsManifest = `${JSON.stringify({
+    capturedAt,
+    gitRevision: captureSource!.revision,
     route: '/assessment/adaptive-practice?goal=control-correction&intent=practice',
     fixtureAuthority: 'Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are Playwright route fixtures so each commercial state is deterministic; route and component tests cover their server contracts.',
-    evidence,
-  }, null, 2));
+    evidence: evidence.map(({ image: _image, ...entry }) => entry),
+  }, null, 2)}\n`;
+  const manifest = `${JSON.stringify({
+    capturedAt,
+    commitSha: captureSource!.revision,
+    route: '/assessment/adaptive-practice?goal=control-correction&intent=practice',
+    captureMethod: 'Playwright with Google Chrome channel against local Next.js Webpack dev server',
+    fixtureAuthority: 'Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are scoped Playwright fixtures so available, unavailable, and retry states are deterministic; route and component tests cover the server contract.',
+    sourceSha256: captureSource!.hashes,
+    outcomes: {
+      availableFullLoop: 'The persisted wrong-answer entry creates, starts, completes, answers validation, and renders the validated recommendation.',
+      unavailable: 'ATTRIBUTION_UNCERTAIN remains fail-closed and exposes no retry action.',
+      recoverableFailure: 'A 503 create failure offers retry and succeeds on the second request.',
+      accessibility: 'The changed primary entry owns an explicit focus-visible ring before activation; both viewports have no horizontal overflow.',
+    },
+    screenshots: evidence.map(({ image: _image, file, screenshotSha256, width, state }) => ({
+      file: `playwright/${file}`,
+      sha256: screenshotSha256,
+      viewport: `${width}x${width === 320 ? 900 : 1000}`,
+      state,
+    })),
+  }, null, 2)}\n`;
+  const temporaryFiles = new Map<string, string>();
+  try {
+    for (const entry of evidence) {
+      const target = join(evidenceDir, entry.file);
+      const temporary = `${target}.${randomUUID()}.tmp`;
+      writeFileSync(temporary, entry.image);
+      temporaryFiles.set(target, temporary);
+    }
+    const temporaryScreenshotsManifest = `${screenshotsManifestPath}.${randomUUID()}.tmp`;
+    writeFileSync(temporaryScreenshotsManifest, screenshotsManifest, 'utf8');
+    temporaryFiles.set(screenshotsManifestPath, temporaryScreenshotsManifest);
+    const temporaryManifest = `${manifestPath}.${randomUUID()}.tmp`;
+    writeFileSync(temporaryManifest, manifest, 'utf8');
+    temporaryFiles.set(manifestPath, temporaryManifest);
+    assertCaptureSourceSnapshot(captureSource!);
+    for (const [target, temporary] of temporaryFiles) renameSync(temporary, target);
+    assertCaptureSourceSnapshot(captureSource!);
+  } finally {
+    for (const temporary of temporaryFiles.values()) {
+      if (existsSync(temporary)) unlinkSync(temporary);
+    }
+  }
 });
 
 async function establishAuthenticatedSession(context: BrowserContext) {
@@ -178,20 +348,21 @@ async function openIncorrectAnswer(page: Page, fixture: PersistedAnswerFixture, 
 }
 
 async function capture(page: Page, name: string, state: string, assertions: Record<string, unknown>) {
-  mkdirSync(evidenceDir, { recursive: true });
-  const screenshot = join(evidenceDir, `${name}.png`);
-  await page.screenshot({ path: screenshot, fullPage: true });
+  const screenshot = await page.screenshot({ fullPage: true });
   const metrics = await page.evaluate(() => ({ viewport: window.innerWidth, bodyWidth: document.body.scrollWidth, documentWidth: document.documentElement.scrollWidth }));
   expect(metrics.bodyWidth).toBeLessThanOrEqual(metrics.viewport);
   expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewport);
-  evidence.push({
-    file: `${name}.png`,
-    screenshotSha256: createHash('sha256').update(readFileSync(screenshot)).digest('hex'),
-    width: metrics.viewport,
-    state,
-    noHorizontalOverflow: true,
-    assertions,
-  });
+  if (updateEvidence) {
+    evidence.push({
+      file: `${name}.png`,
+      screenshotSha256: sha256(screenshot),
+      width: metrics.viewport,
+      state,
+      noHorizontalOverflow: true,
+      assertions,
+      image: screenshot,
+    });
+  }
 }
 
 for (const width of [1440, 320]) {
