@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   readMicroIntervention: vi.fn(),
   recordMicroInterventionEvent: vi.fn(),
   submitMicroInterventionValidation: vi.fn(),
+  readMicroInterventionValidationQuestion: vi.fn(),
   MicroInterventionRequestError: class MicroInterventionRequestError extends Error {
     constructor(readonly code: string) {
       super(code);
@@ -21,11 +22,12 @@ vi.mock('@/features/assessment/micro-intervention-outcomes', () => ({
   readMicroIntervention: mocks.readMicroIntervention,
   recordMicroInterventionEvent: mocks.recordMicroInterventionEvent,
   submitMicroInterventionValidation: mocks.submitMicroInterventionValidation,
+  readMicroInterventionValidationQuestion: mocks.readMicroInterventionValidationQuestion,
 }));
 
 import { GET, POST as start } from '@/app/api/assessment/remediation/interventions/route';
 import { POST as event } from '@/app/api/assessment/remediation/interventions/events/route';
-import { POST as validation } from '@/app/api/assessment/remediation/interventions/validation/route';
+import { GET as readValidationQuestion, POST as validation } from '@/app/api/assessment/remediation/interventions/validation/route';
 
 describe('micro intervention routes', () => {
   beforeEach(() => {
@@ -122,5 +124,44 @@ describe('micro intervention routes', () => {
     expect(await eventResponse.json()).toEqual({ error: 'IDEMPOTENCY_CONFLICT' });
     expect(validationResponse.status).toBe(409);
     expect(await validationResponse.json()).toEqual({ error: 'IDEMPOTENCY_CONFLICT' });
+  });
+
+  it('reads only a learner-safe validation question after intervention authorization', async () => {
+    mocks.readMicroInterventionValidationQuestion.mockResolvedValue({
+      id: 'validation-1',
+      prompt: '请选择合适的控制器。',
+      options: [{ label: 'A', text: '选项 A' }, { label: 'B', text: '选项 B' }],
+    });
+
+    const response = await readValidationQuestion(new Request(
+      'http://localhost/api/assessment/remediation/interventions/validation?interventionId=intervention-1',
+    ));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual({
+      id: 'validation-1',
+      prompt: '请选择合适的控制器。',
+      options: [{ label: 'A', text: '选项 A' }, { label: 'B', text: '选项 B' }],
+    });
+    expect(JSON.stringify(payload)).not.toContain('isCorrect');
+    expect(mocks.readMicroInterventionValidationQuestion).toHaveBeenCalledWith(expect.objectContaining({
+      authenticatedUserId: 'learner-1', interventionId: 'intervention-1',
+    }));
+  });
+
+  it('does not disclose validation content when the intervention is unavailable', async () => {
+    mocks.readMicroInterventionValidationQuestion.mockResolvedValue({
+      id: 'intervention-1', status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT',
+    });
+
+    const response = await readValidationQuestion(new Request(
+      'http://localhost/api/assessment/remediation/interventions/validation?interventionId=intervention-1',
+    ));
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      id: 'intervention-1', status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT',
+    });
   });
 });
