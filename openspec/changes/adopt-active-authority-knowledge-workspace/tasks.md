@@ -12,11 +12,11 @@
 
 ## 3. Cutover-aware application refresh
 
-- [ ] 3.1 Implement a dedicated local-to-remote application refresh command that validates final image provenance plus the remote immutable marker/receipt/journal/selector cutover baseline before remote mutation.
-- [ ] 3.2 Under the shared deployment lock, atomically normalize the durable runtime env to one `ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover` value while retaining other content, ownership and permissions; a clean shell and systemd-equivalent `--app-only` start must read that persisted mode without an ambient override.
-- [ ] 3.3 Make the refresh transaction preserve all Authority/Projection/prerequisite/consumer selectors and production cutover marker/receipt/journal, replace app and worker with one declared image digest in cutover mode, and write one non-overwritable `app-refresh/<refreshId>.json` receipt with only safe hashes/status.
-- [ ] 3.4 Implement identity-constrained post-replacement recovery to the recorded preceding image digest for both app and worker while retaining persistent cutover mode and leaving selector or production cutover control state untouched.
-- [ ] 3.5 Add static and behavior tests proving the refresh rejects missing/drifted cutover evidence, never invokes the Legacy deploy path, never mutates selectors/marker/receipt/journal, retains the Legacy guard, rejects mixed app/worker identities, covers env missing/legacy/cutover/duplicate normalization, clean systemd-equivalent starts, protected-digest drift, receipt redaction and recovery after app/worker/postflight failure.
+- [x] 3.1 Implement a dedicated local-to-remote application refresh command that validates final image provenance plus the remote immutable marker/receipt/journal/selector cutover baseline before remote mutation.
+- [x] 3.2 Under the shared deployment lock, atomically normalize the durable runtime env to one `ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover` value while retaining other content, ownership and permissions; a clean shell and systemd-equivalent `--app-only` start must read that persisted mode without an ambient override.
+- [x] 3.3 Make the refresh transaction preserve all Authority/Projection/prerequisite/consumer selectors and production cutover marker/receipt/journal, replace app and worker with one declared image digest in cutover mode, and write one non-overwritable `app-refresh/<refreshId>.json` receipt with only safe hashes/status.
+- [x] 3.4 Implement identity-constrained post-replacement recovery to the recorded preceding image digest for both app and worker while retaining persistent cutover mode and leaving selector or production cutover control state untouched.
+- [x] 3.5 Add static and behavior tests proving the refresh rejects missing/drifted cutover evidence, never invokes the Legacy deploy path, never mutates selectors/marker/receipt/journal, retains the Legacy guard, rejects mixed app/worker identities, covers env missing/legacy/cutover/duplicate normalization, clean systemd-equivalent starts, protected-digest drift, receipt redaction and recovery after app/worker/postflight failure.
 
 ## 4. Local acceptance
 

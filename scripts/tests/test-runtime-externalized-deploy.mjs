@@ -744,7 +744,8 @@ assert.equal(
 );
 
 assert.equal(
-  remoteDeployScript.includes('rsync -az --delete') &&
+  remoteDeployScript.includes('runtime_rsync_args=(') &&
+    remoteDeployScript.includes('rsync "${runtime_rsync_args[@]}"') &&
     remoteDeployScript.includes('REMOTE_RUNTIME_STAGING_DIR') &&
     remoteDeployScript.includes('stop_remote_runtime_consumers') &&
     remoteDeployScript.includes('course-content/runtime') &&
@@ -757,7 +758,7 @@ assert.equal(
 const remotePreflightIndex = remoteDeployScript.indexOf(
   'scripts/release/validate-textbook-runtime-v2.mjs',
 );
-const runtimeRsyncIndex = remoteDeployScript.indexOf('rsync -az --delete');
+const runtimeRsyncIndex = remoteDeployScript.indexOf('rsync "${runtime_rsync_args[@]}"');
 const runtimeStopIndex = remoteDeployScript.indexOf(
   'stop_remote_runtime_consumers',
   remotePreflightIndex,

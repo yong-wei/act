@@ -19,9 +19,9 @@ case "$MODE" in
     ;;
 esac
 
-# Capture true caller environment before any file sources so explicit
-# APP_IMAGE / ACT_KNOWLEDGE_DEPLOYMENT_MODE from the invoking process win over
-# .env.server and runtime env files. Unset caller values keep file/default behavior.
+# Capture caller values before any file sources. APP_IMAGE remains an explicit
+# operator override; a persisted cutover mode is authoritative for the mode
+# and cannot be downgraded by an ambient legacy value.
 operator_app_image_was_set=0
 operator_app_image=""
 if [ "${APP_IMAGE+x}" = "x" ]; then
@@ -65,11 +65,18 @@ if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
   file_knowledge_mode="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
 fi
 
+runtime_knowledge_mode_was_set=0
+runtime_knowledge_mode=""
+
 if [ -f "$RUNTIME_ENV_FILE" ]; then
   set -a
   # shellcheck disable=SC1090
   . "$RUNTIME_ENV_FILE"
   set +a
+  if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
+    runtime_knowledge_mode_was_set=1
+    runtime_knowledge_mode="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
+  fi
 fi
 
 if [ "$operator_adaptive_learner_state_service_enabled_was_set" = "1" ]; then
@@ -84,7 +91,17 @@ elif [ "$file_app_image_was_set" = "1" ]; then
 else
   unset APP_IMAGE
 fi
-if [ "$operator_knowledge_mode_was_set" = "1" ]; then
+if [ "$runtime_knowledge_mode_was_set" = "1" ]; then
+  if [ "$runtime_knowledge_mode" = "cutover" ]; then
+    ACT_KNOWLEDGE_DEPLOYMENT_MODE='cutover'
+  elif [ "$operator_knowledge_mode_was_set" = "1" ] && [ "$operator_knowledge_mode" = "cutover" ]; then
+    # An explicit cutover is allowed to promote a legacy/missing runtime env
+    # during the first activation; it can never demote a persisted cutover.
+    ACT_KNOWLEDGE_DEPLOYMENT_MODE='cutover'
+  else
+    ACT_KNOWLEDGE_DEPLOYMENT_MODE="$runtime_knowledge_mode"
+  fi
+elif [ "$operator_knowledge_mode_was_set" = "1" ]; then
   ACT_KNOWLEDGE_DEPLOYMENT_MODE="$operator_knowledge_mode"
 elif [ "$file_knowledge_mode_was_set" = "1" ]; then
   ACT_KNOWLEDGE_DEPLOYMENT_MODE="$file_knowledge_mode"
@@ -633,9 +650,34 @@ resolve_container_ip() {
 write_runtime_env() {
   local selected_app_port="$1"
   local redis_url_value="$2"
+  local runtime_env_temp="${RUNTIME_ENV_FILE}.tmp.$$"
+  local runtime_env_mode='600'
+  local runtime_env_owner=''
 
   mkdir -p "$(dirname "$RUNTIME_ENV_FILE")"
-  cat > "$RUNTIME_ENV_FILE" <<EOF
+  if [ -e "$RUNTIME_ENV_FILE" ] || [ -L "$RUNTIME_ENV_FILE" ]; then
+    if [ ! -f "$RUNTIME_ENV_FILE" ] || [ -L "$RUNTIME_ENV_FILE" ]; then
+      echo "ERROR: runtime env 必须是常规文件: $RUNTIME_ENV_FILE" >&2
+      exit 1
+    fi
+    if stat -c '%a' "$RUNTIME_ENV_FILE" >/dev/null 2>&1; then
+      runtime_env_mode="$(stat -c '%a' "$RUNTIME_ENV_FILE")"
+      runtime_env_owner="$(stat -c '%u:%g' "$RUNTIME_ENV_FILE")"
+    else
+      runtime_env_mode="$(stat -f '%Lp' "$RUNTIME_ENV_FILE")"
+      runtime_env_owner="$(stat -f '%u:%g' "$RUNTIME_ENV_FILE")"
+    fi
+    awk -F= '
+      BEGIN {
+        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
+        for (index in keys) managed[keys[index]] = 1;
+      }
+      !managed[$1] { print }
+    ' "$RUNTIME_ENV_FILE" > "$runtime_env_temp"
+  else
+    : > "$runtime_env_temp"
+  fi
+  cat >> "$runtime_env_temp" <<EOF
 APP_PORT=$selected_app_port
 APP_CONTAINER_PORT=$APP_CONTAINER_PORT
 APP_DOMAIN=$APP_DOMAIN
@@ -660,7 +702,13 @@ AUTHORITY_STORE_DIR=$AUTHORITY_STORE_DIR
 TEACHING_PROJECTION_STORE_DIR=$TEACHING_PROJECTION_STORE_DIR
 ACT_AUTHORITY_STORE_ROOT=$ACT_AUTHORITY_STORE_ROOT
 ACT_TEACHING_PROJECTION_STORE_ROOT=$ACT_TEACHING_PROJECTION_STORE_ROOT
+ACT_KNOWLEDGE_DEPLOYMENT_MODE=$ACT_KNOWLEDGE_DEPLOYMENT_MODE
 EOF
+  chmod "$runtime_env_mode" "$runtime_env_temp"
+  if [ -n "$runtime_env_owner" ]; then
+    chown "$runtime_env_owner" "$runtime_env_temp"
+  fi
+  mv -f "$runtime_env_temp" "$RUNTIME_ENV_FILE"
   echo "- 运行参数已写入: $RUNTIME_ENV_FILE"
 }
 
