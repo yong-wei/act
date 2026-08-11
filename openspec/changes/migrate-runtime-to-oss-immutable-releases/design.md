@@ -64,6 +64,12 @@ release manifest 为每个 runtime 文件提供 object key、SHA-256 和 size。
 
 `vectors.f32`、`bodies.utf8`、`lexical-postings.bin` 的候选 mount 先跑固定 benchmark，记录 cold/warm 启动和代表性 lookup。只有结果超过配置阈值，才允许把这些确切对象复制到 bounded local cache；缓存目录包含 manifest digest，任何 mismatch 直接拒绝复用。目的不是形式上的全量 OSS，而是降低课程检索回归风险。
 
+### 6. 生产切换使用零数据库变更的专用 app-only 编排
+
+2026-08-12 Sol medium 决策确认：`scripts/remote-deploy.sh` 的数据库导出、导入、迁移、seed 与 runtime 切换不是同一事务，禁止用于本次生产切换。专用编排仅允许本地构建并验证 `origin/integration` 的确定提交、传输并加载其 image tar、同步必要 runtime host tools、调用受限的 `--runtime-cutover-app-only` callback 与既有 activation script。callback 必须显式禁用迁移、seed、scheduler 初始化、数据库/Redis 容器重建和任意参数透传；它只替换使用同一 image digest 的 app、worker 与 submission 容器。
+
+切换的单主机原子边界是 `verified candidate mount → app-only replacement → readyz → active receipt`，而非数据库事务。全程持有 host `flock`；失败必须恢复旧容器配置、legacy runtime bind 或旧 active mount，并且不更新 active receipt。release locator 与 published-media closure 先作为凭据无关工件合入 integration；production image 只能由含该工件的 integration commit 构建。Legacy runtime 保留，直到独立删除授权。
+
 ## Risks / Trade-offs
 
 - [ECS 无 RAM role 或 ossfs] → 本地实现可以完成，生产写入与激活保持阻断；人工绑定 role 后先运行无凭据 probe 和最小 mount 验证。

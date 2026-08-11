@@ -57,6 +57,28 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             invalid = self.call("active", "--state-dir", str(state), expect_ok=False)
             self.assertIn("must not be a symlink", invalid.stderr)
 
+    def test_records_complete_deployment_proof_with_active_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            receipt = self.receipt(root, "runtime-a", "a" * 64)
+            self.call("select", "--state-dir", str(state), "--expected-active-release", "none", "--verification-receipt", str(receipt))
+            self.call(
+                "mark-active", "--state-dir", str(state), "--release-id", "runtime-a",
+                "--app-revision", "c" * 40,
+                "--image-digest", "sha256:" + "d" * 64,
+                "--release-locator-sha256", "e" * 64,
+            )
+            active = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(active["deployment"]["appRevision"], "c" * 40)
+            self.assertEqual(active["deployment"]["imageDigest"], "sha256:" + "d" * 64)
+            incomplete = self.call(
+                "mark-active", "--state-dir", str(state), "--release-id", "runtime-a",
+                "--app-revision", "c" * 40,
+                expect_ok=False,
+            )
+            self.assertIn("deployment proof is incomplete", incomplete.stderr)
+
     def test_verifies_mounted_file_set_and_hashes_against_receipt(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

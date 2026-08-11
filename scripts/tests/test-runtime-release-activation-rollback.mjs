@@ -42,8 +42,18 @@ print(json.dumps({'activeReleaseId': None} if sys.argv[1] == 'active' else {}))
 `);
   const config = executable('configure-ossfs', 'exit 0');
   executable('flock', 'exit 0');
+  executable('podman', `
+if [[ "$1" == 'inspect' && "$2" == '--format' ]]; then
+  case "$4" in
+    act-obe-app|act-obe-worker) printf '%s\\n' 'sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' ;;
+    *) exit 1 ;;
+  esac
+  exit 0
+fi
+exit 1
+`);
   const deploy = executable('deploy-app', `
-printf 'deploy:%s:%s\\n' "\${RUNTIME_DELIVERY_MODE:-}" "\${RUNTIME_CONTENT_DIR:-}" >> "$ACT_TEST_EVENT_LOG"
+printf 'deploy:%s:%s:%s\\n' "\${RUNTIME_DELIVERY_MODE:-}" "\${RUNTIME_CONTENT_DIR:-}" "\${APP_IMAGE:-}" >> "$ACT_TEST_EVENT_LOG"
 `);
   executable('systemctl', `
 printf 'systemctl:%s:%s\\n' "$1" "$2" >> "$ACT_TEST_EVENT_LOG"
@@ -75,6 +85,7 @@ fi
       ACT_RUNTIME_DEPLOY_SCRIPT: deploy,
       ACT_RUNTIME_ENV_FILE: environment,
       ACT_RUNTIME_LEGACY_ROOT: legacyRoot,
+      ACT_RUNTIME_APP_SERVICE_DROPIN_PATH: path.join(temporary, 'act-obe-stack.service.d', '20-runtime-ossfs.conf'),
       ACT_TEST_EVENT_LOG: log,
     },
   });
@@ -82,8 +93,8 @@ fi
   assert.notEqual(result.status, 0, 'failed candidate readiness must fail activation');
   assert.ok(fs.existsSync(log), `activation did not reach its controlled candidate attempt: ${result.stderr}`);
   const events = fs.readFileSync(log, 'utf8').trim().split('\n');
-  const candidate = `deploy:ossfs-release:${mountRoot}/runtime-candidate`;
-  const legacy = `deploy:legacy-rsync:${legacyRoot}`;
+  const candidate = `deploy:ossfs-release:${mountRoot}/runtime-candidate:`;
+  const legacy = `deploy:legacy-rsync:${legacyRoot}:sha256:${'c'.repeat(64)}`;
   assert.ok(events.includes(candidate), 'candidate deployment must be attempted before readiness');
   assert.ok(events.includes(legacy), 'first activation readiness failure must restore the legacy runtime deployment');
   assert.ok(events.indexOf(legacy) < events.indexOf('systemctl:stop:act-runtime-ossfs@runtime-candidate.service'), 'candidate mount is stopped only after legacy deployment is restored');

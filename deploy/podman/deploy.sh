@@ -11,10 +11,10 @@ RUNTIME_ENV_FILE="${RUNTIME_ENV_FILE:-$PROJECT_DIR/data/runtime/act-obe.env}"
 
 MODE="${1:---all}"
 case "$MODE" in
-  --all|--db-only|--app-only)
+--all|--db-only|--app-only|--runtime-cutover-app-only)
     ;;
   *)
-    echo "用法: $0 [--all|--db-only|--app-only]" >&2
+echo "用法: $0 [--all|--db-only|--app-only|--runtime-cutover-app-only]" >&2
     exit 1
     ;;
 esac
@@ -219,7 +219,12 @@ POLICY_SEED_ENV_NAMES=(
 )
 RUN_MIGRATIONS_ON_START="${RUN_MIGRATIONS_ON_START:-}"
 if [ -z "$RUN_MIGRATIONS_ON_START" ]; then
-  RUN_MIGRATIONS_ON_START="1"
+RUN_MIGRATIONS_ON_START="1"
+fi
+RUNTIME_CUTOVER_APP_ONLY=0
+if [ "$MODE" = "--runtime-cutover-app-only" ]; then
+  RUNTIME_CUTOVER_APP_ONLY=1
+  RUN_MIGRATIONS_ON_START=0
 fi
 RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/course-content/runtime}"
 RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-legacy-rsync}"
@@ -812,7 +817,13 @@ echo "- 应用镜像: $APP_IMAGE"
 echo "- 数据库镜像: $DB_IMAGE"
 echo "- Redis 镜像: $REDIS_IMAGE"
 
-ensure_network_and_volume
+if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  podman network exists "$NETWORK_NAME" || { echo "ERROR: runtime cutover requires existing network: $NETWORK_NAME" >&2; exit 1; }
+  ensure_db_running
+  ensure_redis_running
+else
+  ensure_network_and_volume
+fi
 require_runtime_delivery_mount
 ensure_actkg_activation_store_dirs
 
@@ -862,6 +873,11 @@ if [ "$MODE" = "--all" ] || [ "$MODE" = "--db-only" ]; then
   remove_if_exists "$APP_CONTAINER"
   remove_if_exists "$REDIS_CONTAINER"
   remove_if_exists "$DB_CONTAINER"
+elif [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  remove_if_exists "$SUBMISSION_SCANNER_CONTAINER"
+  remove_if_exists "$SUBMISSION_GC_CONTAINER"
+  remove_if_exists "$WORKER_CONTAINER"
+  remove_if_exists "$APP_CONTAINER"
 else
   remove_if_exists "$SUBMISSION_SCANNER_CONTAINER"
   remove_if_exists "$SUBMISSION_GC_CONTAINER"
@@ -913,15 +929,19 @@ DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@localhost:#@${DB_HOST_ALIA
 DATABASE_URL="$(ensure_database_url_param "$DATABASE_URL" "connection_limit" "10")"
 DATABASE_URL="$(ensure_database_url_param "$DATABASE_URL" "pool_timeout" "20")"
 
-echo "- 启动 Redis 容器: $REDIS_CONTAINER"
-podman run -d \
-  --name "$REDIS_CONTAINER" \
-  --restart unless-stopped \
-  --network "$NETWORK_NAME" \
-  --network-alias "$REDIS_CONTAINER" \
-  -v "$REDIS_VOLUME":/data:Z \
-  "$REDIS_IMAGE" \
-  redis-server --appendonly yes --maxmemory "$REDIS_MAXMEMORY" --maxmemory-policy "$REDIS_MAXMEMORY_POLICY" >/dev/null
+if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  echo "- 保留既有 Redis 容器: $REDIS_CONTAINER"
+else
+  echo "- 启动 Redis 容器: $REDIS_CONTAINER"
+  podman run -d \
+    --name "$REDIS_CONTAINER" \
+    --restart unless-stopped \
+    --network "$NETWORK_NAME" \
+    --network-alias "$REDIS_CONTAINER" \
+    -v "$REDIS_VOLUME":/data:Z \
+    "$REDIS_IMAGE" \
+    redis-server --appendonly yes --maxmemory "$REDIS_MAXMEMORY" --maxmemory-policy "$REDIS_MAXMEMORY_POLICY" >/dev/null
+fi
 
 ensure_redis_running
 
@@ -971,7 +991,9 @@ fi
 APP_STORAGE_ENV_ARGS=()
 SCANNER_ENV_ARGS=()
 GC_ENV_ARGS=()
-if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  echo "- runtime cutover 跳过 Prisma 迁移和策略物化"
+elif [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
   APP_STORAGE_ENV_ARGS=(-e SUBMISSION_OBJECT_STORE="$SUBMISSION_OBJECT_STORE" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_S3_ACCESS_KEY="$SUBMISSION_S3_ACCESS_KEY" -e SUBMISSION_S3_SECRET_KEY="$SUBMISSION_S3_SECRET_KEY" -e SUBMISSION_SCANNER_MODE="$SUBMISSION_SCANNER_MODE" -e SUBMISSION_CONTENT_SCANNER="$SUBMISSION_CONTENT_SCANNER")
   SCANNER_ENV_ARGS=("${SHARED_ENV_ARGS[@]}" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_SCANNER_MODE="$SUBMISSION_SCANNER_MODE" -e SUBMISSION_SCANNER_ACCESS_KEY="$SUBMISSION_SCANNER_ACCESS_KEY" -e SUBMISSION_SCANNER_SECRET_KEY="$SUBMISSION_SCANNER_SECRET_KEY" -e SUBMISSION_SCANNER_PROBE_KEY="$SUBMISSION_SCANNER_PROBE_KEY" -e SUBMISSION_CONTENT_SCANNER="$SUBMISSION_CONTENT_SCANNER" -e SUBMISSION_SCAN_BATCH_SIZE="${SUBMISSION_SCAN_BATCH_SIZE:-25}")
   if [ "$SUBMISSION_CONTENT_SCANNER" = "clamav-tcp" ]; then SCANNER_ENV_ARGS+=(-e SUBMISSION_CLAMAV_HOST="$SUBMISSION_CLAMAV_HOST" -e SUBMISSION_CLAMAV_PORT="$SUBMISSION_CLAMAV_PORT"); else SCANNER_ENV_ARGS+=(-e SUBMISSION_SCANNER_URL="$SUBMISSION_SCANNER_URL" -e SUBMISSION_SCANNER_TOKEN="$SUBMISSION_SCANNER_TOKEN"); fi
@@ -1139,7 +1161,11 @@ run_detached_container "$WORKER_CONTAINER" podman run -d \
   "$APP_IMAGE" \
   /app-container-start-wrapper.sh worker
 
-run_scheduler_once
+if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  echo "- runtime cutover 跳过 scheduler 初始化"
+else
+  run_scheduler_once
+fi
 
 if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
   echo "- 启动学生作业扫描 worker 容器: $SUBMISSION_SCANNER_CONTAINER"

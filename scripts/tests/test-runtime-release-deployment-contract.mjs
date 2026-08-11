@@ -38,9 +38,24 @@ for (const invariant of [
   'candidate_deploy_attempted=1',
   'mark-active',
   'rollback()',
+  'ACT_RUNTIME_DEPLOY_MODE',
+  'invalid runtime deploy mode',
+  'capture_rollback_image()',
+  'existing app image digest is invalid',
+  'app and worker must use the same image before runtime cutover',
+  'APP_IMAGE="$rollback_app_image"',
+  'ACT_RUNTIME_APP_REVISION',
+  'ACT_RUNTIME_IMAGE_DIGEST',
+  'ACT_RUNTIME_RELEASE_LOCATOR_SHA256',
+  'configure_startup_order()',
+  'restore_startup_order()',
+  'Requires=act-runtime-ossfs@${release_id}.service',
+  'systemctl enable "act-runtime-ossfs@${release_id}.service"',
 ]) {
   assert.ok(activation.includes(invariant), `activation must include ${invariant}`);
 }
+assert.match(config, /--ram_role=\$\{ram_role\}/, 'ossfs configuration must bind the ECS RAM role');
+assert.match(activation, /\[\[ "\$DEPLOY_MODE" == "--app-only" \|\| "\$DEPLOY_MODE" == "--runtime-cutover-app-only" \]\]/, 'activation must allow only fixed app deployment modes');
 assert.match(rollback, /--expected-active-release/, 'rollback must fence the actually active release before switching');
 assert.match(rollback, /--verification-receipt/, 'rollback must require a revalidated immutable release receipt');
 assert.doesNotMatch(hostState, /from __future__ import annotations|\b(?:list|dict|tuple|set)\[/, 'host state utility must remain Python 3.6 syntax-compatible with ECS');

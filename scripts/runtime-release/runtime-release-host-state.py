@@ -13,6 +13,8 @@ from typing import Any
 
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
+GIT_REVISION = re.compile(r"^[a-f0-9]{40}$")
+IMAGE_DIGEST = re.compile(r"^sha256:[a-f0-9]{64}$")
 SELECTION_FILE = "act-runtime-selection.json"
 ACTIVE_RECEIPT_FILE = "act-runtime-active-receipt.json"
 
@@ -31,6 +33,30 @@ def require_release_id(value: Any, name: str = "releaseId") -> str:
     if not isinstance(value, str) or not RELEASE_ID.fullmatch(value):
         fail(f"{name} is invalid")
     return value
+
+
+def require_git_revision(value: Any, name: str) -> str:
+    if not isinstance(value, str) or not GIT_REVISION.fullmatch(value):
+        fail(f"{name} must be a lowercase Git revision")
+    return value
+
+
+def require_image_digest(value: Any, name: str) -> str:
+    if not isinstance(value, str) or not IMAGE_DIGEST.fullmatch(value):
+        fail(f"{name} must be a sha256 image digest")
+    return value
+
+
+def require_deployment(value: Any):
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        fail("active receipt deployment is invalid")
+    return {
+        "appRevision": require_git_revision(value.get("appRevision"), "deployment.appRevision"),
+        "imageDigest": require_image_digest(value.get("imageDigest"), "deployment.imageDigest"),
+        "releaseLocatorSha256": require_digest(value.get("releaseLocatorSha256"), "deployment.releaseLocatorSha256"),
+    }
 
 
 def require_selection(value: Any):
@@ -53,11 +79,15 @@ def require_active_receipt(value: Any):
         fail("active receipt is invalid")
     if value.get("healthCheck") != "readyz":
         fail("active receipt does not prove readyz")
-    return {
+    receipt = {
         "schemaVersion": "runtime-release-active-receipt.v1",
         "selection": require_selection(value.get("selection")),
         "healthCheck": "readyz",
     }
+    deployment = require_deployment(value.get("deployment"))
+    if deployment:
+        receipt["deployment"] = deployment
+    return receipt
 
 
 def read_json(path: Path, validator):
@@ -126,11 +156,20 @@ def mark_active(args: argparse.Namespace):
         fail("desired runtime selection is absent")
     if args.release_id != selection["releaseId"]:
         fail("requested active release does not match desired selection")
+    deployment_values = [args.app_revision, args.image_digest, args.release_locator_sha256]
+    if any(value is not None for value in deployment_values) and not all(value is not None for value in deployment_values):
+        fail("active receipt deployment proof is incomplete")
     receipt = {
         "schemaVersion": "runtime-release-active-receipt.v1",
         "selection": selection,
         "healthCheck": "readyz",
     }
+    if all(value is not None for value in deployment_values):
+        receipt["deployment"] = require_deployment({
+            "appRevision": args.app_revision,
+            "imageDigest": args.image_digest,
+            "releaseLocatorSha256": args.release_locator_sha256,
+        })
     write_atomic(state_dir / ACTIVE_RECEIPT_FILE, receipt)
     return receipt
 
@@ -216,6 +255,9 @@ def main() -> None:
     marker = subcommands.add_parser("mark-active")
     marker.add_argument("--state-dir", required=True)
     marker.add_argument("--release-id", required=True)
+    marker.add_argument("--app-revision")
+    marker.add_argument("--image-digest")
+    marker.add_argument("--release-locator-sha256")
     active_parser = subcommands.add_parser("active")
     active_parser.add_argument("--state-dir", required=True)
     mounted = subcommands.add_parser("verify-mounted")
