@@ -4,6 +4,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
   MicroInterventionRequestError,
+  readMicroInterventionValidationQuestion,
   submitMicroInterventionValidation,
   type MicroInterventionDb,
 } from '@/features/assessment/micro-intervention-outcomes';
@@ -19,6 +20,32 @@ async function learner() {
   if (!session?.user?.id) return { error: 'UNAUTHENTICATED' as const, status: 401 as const };
   if (session.user.role !== 'STUDENT') return { error: 'LEARNER_REQUIRED' as const, status: 403 as const };
   return { userId: session.user.id };
+}
+
+export async function GET(request: Request) {
+  try {
+    const authenticated = await learner();
+    if ('error' in authenticated) {
+      return NextResponse.json({ error: authenticated.error }, { status: authenticated.status });
+    }
+    const interventionId = identifier(new URL(request.url).searchParams.get('interventionId'));
+    if (!interventionId) {
+      return NextResponse.json({ error: 'INTERVENTION_ID_REQUIRED' }, { status: 400 });
+    }
+    const result = await readMicroInterventionValidationQuestion({
+      db: prisma as unknown as MicroInterventionDb,
+      authenticatedUserId: authenticated.userId,
+      interventionId,
+    });
+    if (!result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
+    return 'status' in result
+      ? NextResponse.json(result, { status: 409 })
+      : NextResponse.json(result);
+  } catch (error) {
+    rethrowIfNextDynamicError(error);
+    console.error('[MicroIntervention] validation question read failed:', error);
+    return NextResponse.json({ error: 'MICRO_INTERVENTION_VALIDATION_READ_FAILED' }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {

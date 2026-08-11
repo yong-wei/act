@@ -66,6 +66,19 @@ export type MicroInterventionReadResult = MicroInterventionProjection | {
   unavailableReason: MicroInterventionUnavailableReason;
 };
 
+export type MicroInterventionValidationQuestionProjection = {
+  id: string;
+  prompt: string;
+  options: Array<{
+    label: string;
+    text: string;
+  }>;
+};
+
+export type MicroInterventionValidationQuestionReadResult =
+  | MicroInterventionValidationQuestionProjection
+  | Extract<MicroInterventionReadResult, { status: 'UNAVAILABLE' }>;
+
 interface InterventionRow {
   id: string;
   remediationOrchestrationResultId: string;
@@ -283,7 +296,10 @@ function sameSource(
     JSON.stringify(storedTask.resources) === JSON.stringify(currentTask.resources);
 }
 
-function unavailable(row: InterventionRow, unavailableReason: MicroInterventionUnavailableReason): MicroInterventionReadResult {
+function unavailable(
+  row: InterventionRow,
+  unavailableReason: MicroInterventionUnavailableReason,
+): Extract<MicroInterventionReadResult, { status: 'UNAVAILABLE' }> {
   return { id: row.id, status: 'UNAVAILABLE', unavailableReason };
 }
 
@@ -396,7 +412,10 @@ async function currentIntervention(input: {
   db: MicroInterventionDb;
   authenticatedUserId: string;
   interventionId: string;
-}): Promise<{ row: InterventionRow; source: InterventionSourceSnapshot } | MicroInterventionReadResult | null> {
+}): Promise<{
+  row: InterventionRow;
+  source: InterventionSourceSnapshot;
+} | Extract<MicroInterventionReadResult, { status: 'UNAVAILABLE' }> | null> {
   const row = await findOwnedIntervention(input);
   if (!row) return null;
   const snapshot = sourceSnapshot(row.sourceSnapshot);
@@ -603,6 +622,40 @@ export async function readMicroIntervention(input: {
   const current = await currentIntervention(input);
   if (!current || 'status' in current) return current;
   return projection(current.row) ?? unavailable(current.row, 'REFERENCE_DRIFT');
+}
+
+export async function readMicroInterventionValidationQuestion(input: {
+  db: MicroInterventionDb;
+  authenticatedUserId: string;
+  interventionId: string;
+}): Promise<MicroInterventionValidationQuestionReadResult | null> {
+  const current = await currentIntervention(input);
+  if (!current) return null;
+  if (!('row' in current)) {
+    return {
+      id: current.id,
+      status: 'UNAVAILABLE',
+      unavailableReason: current.unavailableReason,
+    };
+  }
+  const question = getAdaptiveQuestionById(current.source.task.validationQuestion.questionId);
+  if (
+    !question ||
+    question.id !== current.source.task.validationQuestion.questionId ||
+    !current.source.validationRuntimeHash ||
+    validationRuntimeHash(question) !== current.source.validationRuntimeHash
+  ) {
+    return {
+      id: current.row.id,
+      status: 'UNAVAILABLE',
+      unavailableReason: 'REFERENCE_DRIFT',
+    };
+  }
+  return {
+    id: question.id,
+    prompt: question.stem,
+    options: question.options.map(({ label, text }) => ({ label, text })),
+  };
 }
 
 export async function recordMicroInterventionEvent(input: {
