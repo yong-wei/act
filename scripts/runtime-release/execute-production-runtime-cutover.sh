@@ -42,25 +42,51 @@ integration_revision="$(git rev-parse origin/integration)"
 head_revision="$(git rev-parse HEAD)"
 [[ -z "$(git status --porcelain=v1 --untracked-files=normal)" ]] || { echo 'ERROR: production image build input must be clean' >&2; exit 1; }
 [[ "$head_revision" == "$integration_revision" ]] || { echo 'ERROR: local checkout must exactly match origin/integration' >&2; exit 1; }
+release_locator_relative="$(python3 - "$ROOT_DIR" "$release_locator" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]).resolve()
+candidate = Path(sys.argv[2]).resolve()
+try:
+    print(candidate.relative_to(root).as_posix())
+except ValueError:
+    raise SystemExit('release locator must be inside the integration checkout')
+PY
+)"
+git ls-files --error-unmatch -- "$release_locator_relative" >/dev/null 2>&1 || { echo 'ERROR: release locator must be tracked by integration' >&2; exit 1; }
+git diff --quiet HEAD -- "$release_locator_relative" || { echo 'ERROR: release locator differs from the integration checkout' >&2; exit 1; }
 provenance="${image_tar}.provenance.json"
 node scripts/release/textbook-runtime-v2-provenance.mjs verify-image --sidecar "$provenance" --image-tar "$image_tar" >/dev/null
-python3 - "$integration_revision" "$release_id" "$verification_receipt" "$release_locator" "$media_closure" <<'PY'
+release_source_revision="$(python3 - "$release_id" "$verification_receipt" "$release_locator" "$media_closure" <<'PY'
+import hashlib
 import json
+import re
 import sys
-revision, release_id, receipt_path, locator_path, closure_path = sys.argv[1:]
+release_id, receipt_path, locator_path, closure_path = sys.argv[1:]
 def load(path):
     with open(path, encoding='utf-8') as handle:
         return json.load(handle)
 receipt, locator, closure = load(receipt_path), load(locator_path), load(closure_path)
+source_revision = locator.get('sourceRevision')
+tree_sha256 = locator.get('treeSha256')
+if not isinstance(source_revision, str) or not re.fullmatch(r'[a-f0-9]{40}', source_revision):
+    raise SystemExit('release locator source revision is invalid')
+if not isinstance(tree_sha256, str) or not re.fullmatch(r'[a-f0-9]{64}', tree_sha256):
+    raise SystemExit('release locator tree digest is invalid')
+expected_release_id = 'runtime-' + hashlib.sha256(json.dumps({'sourceRevision': source_revision, 'treeSha256': tree_sha256}, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()[:55]
 if receipt.get('releaseId') != release_id or locator.get('releaseId') != release_id:
     raise SystemExit('release proof does not match --release-id')
-if locator.get('sourceRevision') != revision:
-    raise SystemExit('release locator source revision is not origin/integration')
+if expected_release_id != release_id:
+    raise SystemExit('release locator source revision and tree digest do not bind --release-id')
 if locator.get('manifestSha256') != receipt.get('manifestSha256') or locator.get('treeSha256') != receipt.get('treeSha256'):
     raise SystemExit('release locator does not match the verification receipt')
-if closure.get('releaseId') != release_id or closure.get('ready') is not True or closure.get('failures'):
+if closure.get('releaseId') != release_id or closure.get('sourceRevision') != source_revision or closure.get('treeSha256') != tree_sha256 or closure.get('manifestSha256') != locator.get('manifestSha256') or closure.get('ready') is not True or closure.get('failures'):
     raise SystemExit('published-media closure is not ready')
+print(source_revision)
 PY
+)"
+git merge-base --is-ancestor "$release_source_revision" "$integration_revision" || { echo 'ERROR: release source revision is not an ancestor of origin/integration' >&2; exit 1; }
 
 stage_dir="/home/projects/act/runtime-cutover/${release_id}-${integration_revision:0:12}"
 ssh_args=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=${known_hosts}" -o IdentitiesOnly=yes -i "$identity_file")

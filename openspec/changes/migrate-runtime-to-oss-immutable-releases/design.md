@@ -70,6 +70,8 @@ release manifest 为每个 runtime 文件提供 object key、SHA-256 和 size。
 
 切换的单主机原子边界是 `verified candidate mount → app-only replacement → readyz → active receipt`，而非数据库事务。全程持有 host `flock`；失败必须恢复旧容器配置、legacy runtime bind 或旧 active mount，并且不更新 active receipt。release locator 与 published-media closure 先作为凭据无关工件合入 integration；production image 只能由含该工件的 integration commit 构建。Legacy runtime 保留，直到独立删除授权。
 
+runtime Release 的 `sourceRevision` 与生产镜像的 integration revision 是两个不同身份：前者描述冻结的内容输入，后者描述包含 locator 的应用代码。切换入口必须要求 locator 已由当前干净 integration checkout 跟踪，且其 `sourceRevision` 是该 integration revision 的祖先；本地和 ECS 两侧均以 `SHA-256(canonical({sourceRevision, treeSha256}))` 重算 release id，闭包也必须匹配相同 source revision、tree 与 manifest。这样不会因 locator 合入产生新的 application commit 而重发相同 runtime 内容，同时保持内容、locator、镜像和 active receipt 的可审计闭合。
+
 ## Risks / Trade-offs
 
 - [ECS 无 RAM role 或 ossfs] → 本地实现可以完成，生产写入与激活保持阻断；人工绑定 role 后先运行无凭据 probe 和最小 mount 验证。
