@@ -264,18 +264,21 @@ run_cleanup_failed_authority() {
     fi
   done
 
-  if [ -d "$transaction_dir" ]; then
-    leftover="$(find "$transaction_dir" -mindepth 1 \( -type f -o -type l \) -print -quit)"
-    if [ -n "$leftover" ]; then
-      die "failed Authority cleanup refuses existing production receipt/marker residue: $leftover"
+  # Runtime release history is retained during Legacy deployment. It may
+  # legitimately contain another transaction's journal or receipt while all
+  # selectors are absent. Only state attributed to this failed transaction can
+  # make its Authority extraction unsafe to remove.
+  for leftover in \
+    "${transaction_dir}/${transaction_id}.json" \
+    "${transaction_dir}/${transaction_id}.rollback.json" \
+    "${transaction_dir}/${transaction_id}.recovery.json" \
+    "${journal_dir}/${transaction_id}.json" \
+    "${journal_dir}/${transaction_id}-migration-receipt.json" \
+    "${journal_dir}/${transaction_id}-state-correction-receipt.json"; do
+    if [ -e "$leftover" ] || [ -L "$leftover" ]; then
+      die "failed Authority cleanup refuses same-transaction residue: $leftover"
     fi
-  fi
-  if [ -d "$journal_dir" ]; then
-    leftover="$(find "$journal_dir" -mindepth 1 \( -type f -o -type l \) -print -quit)"
-    if [ -n "$leftover" ]; then
-      die "failed Authority cleanup refuses existing first-activation journal residue: $leftover"
-    fi
-  fi
+  done
 
   cleanup_failed_authority_identity_delete \
     "${stage}/plan.json" \

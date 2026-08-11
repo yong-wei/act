@@ -428,7 +428,8 @@ function testCleanupFailedAuthorityGuards() {
     }
   }
 
-  // Another transaction journal residue must refuse cleanup.
+  // Historical journals are retained with runtime releases and do not make a
+  // pre-journal Authority extraction active when every selector is absent.
   {
     const { projectDir, authorityRoot } = prepareCleanupProject('foreign-journal');
     try {
@@ -439,12 +440,66 @@ function testCleanupFailedAuthorityGuards() {
         'course-content/runtime/knowledge/consumer-activation/first-activation-transactions',
       );
       fs.mkdirSync(journalDir, { recursive: true });
-      fs.writeFileSync(path.join(journalDir, 'foreign-transaction.json'), '{"foreign":true}\n');
+      const foreignJournal = path.join(journalDir, 'foreign-transaction.json');
+      fs.writeFileSync(foreignJournal, '{"foreign":true}\n');
+      const foreignReceipt = path.join(
+        projectDir,
+        'course-content/runtime/knowledge/production-cutover-transactions/foreign-transaction.json',
+      );
+      fs.writeFileSync(foreignReceipt, '{"foreign":true}\n');
+      const result = runCleanup(projectDir, stage, transactionId);
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(fs.readdirSync(authorityRoot).length, 0);
+      assert.equal(fs.existsSync(foreignJournal), true, 'cleanup must retain historical journal evidence');
+      assert.equal(fs.existsSync(foreignReceipt), true, 'cleanup must retain historical receipt evidence');
+      assert.equal(fs.existsSync(path.join(stage, 'failed-authority-cleanup.json')), true);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // A journal attributed to the failed transaction must still refuse cleanup.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('same-journal');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, matchingTree);
+      const journalDir = path.join(
+        projectDir,
+        'course-content/runtime/knowledge/consumer-activation/first-activation-transactions',
+      );
+      fs.mkdirSync(journalDir, { recursive: true });
+      fs.writeFileSync(path.join(journalDir, `${transactionId}.json`), '{"same":true}\n');
       const result = runCleanup(projectDir, stage, transactionId);
       expectFailure(
         result,
-        /first-activation journal residue/u,
-        'cleanup must refuse when any first-activation journal residue exists',
+        /same-transaction residue/u,
+        'cleanup must refuse a journal attributed to the failed transaction',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'activations/failed.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // A receipt attributed to the failed transaction must also refuse cleanup.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('same-receipt');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, matchingTree);
+      const receipt = path.join(
+        projectDir,
+        'course-content/runtime/knowledge/production-cutover-transactions',
+        `${transactionId}.json`,
+      );
+      fs.writeFileSync(receipt, '{"same":true}\n');
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /same-transaction residue/u,
+        'cleanup must refuse a receipt attributed to the failed transaction',
       );
       assertAuthorityPathRetained(authorityRoot, 'activations/failed.json');
       assertNoSuccessReceipt(stage);
