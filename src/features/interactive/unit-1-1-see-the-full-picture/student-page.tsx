@@ -55,7 +55,7 @@ export function UNIT_1_1StudentPage({
   lessonRuntime: RuntimeLessonEntryBundle;
   demoStepId?: string;
   /** Server-resolved Teaching Projection layered payload (active/candidate/pin). */
-  layeredGraphPayload?: LayeredGraphPayload | null;
+  layeredGraphPayload: LayeredGraphPayload;
   layeredResourceLaunchTargets?: Record<string, string | null>;
   layeredResourceRegistryIds?: Record<string, string>;
 }) {
