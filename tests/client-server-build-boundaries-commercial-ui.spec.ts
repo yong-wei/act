@@ -223,7 +223,9 @@ for (const viewport of viewports) {
       if (route.name === 'student-assignment') await installAssignmentRoute(page);
       await page.goto(route.href, { waitUntil: 'domcontentloaded' });
       await expect(page.getByText(route.ready, { exact: true }).first()).toBeVisible();
-      const focusTarget = page.getByRole(route.focusRole ?? 'button', { name: route.focus, exact: true }).first();
+      const focusTarget = route.focusRole === 'tab'
+        ? page.getByRole('tab').first()
+        : page.getByRole('button', { name: route.focus, exact: true }).first();
       await expect(focusTarget).toBeVisible();
       await focusTarget.focus();
       await expect(focusTarget).toBeFocused();
