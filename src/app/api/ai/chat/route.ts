@@ -18,6 +18,11 @@ import {
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import {
+  buildAiAuditTaskLogEntry,
+  buildAiAuditTaskPrompt,
+  resolveAiAuditTaskContext,
+} from '@/lib/ai-task-boundary-contracts';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
@@ -210,6 +215,7 @@ export async function POST(request: Request) {
       teachingAssistantModeId,
       modeClientContextHints,
       knowledgeWorkspaceHint,
+      auditTaskContext,
       studyAnswerPreferences,
     } = body as {
       messages: IncomingMessage[];
@@ -227,6 +233,7 @@ export async function POST(request: Request) {
       teachingAssistantModeId?: string;
       modeClientContextHints?: Record<string, unknown>;
       knowledgeWorkspaceHint?: Record<string, unknown>;
+      auditTaskContext?: unknown;
       studyAnswerPreferences?: unknown;
     };
 
@@ -265,6 +272,22 @@ export async function POST(request: Request) {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    const taskContextResolution = resolveAiAuditTaskContext(auditTaskContext);
+    if (taskContextResolution.status === 'invalid') {
+      return new Response(JSON.stringify({ error: 'INVALID_AI_TASK_CONTEXT' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    const serverTaskContext = taskContextResolution.status === 'valid'
+      ? taskContextResolution.context
+      : null;
+    const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
+
+    if (serverTaskContext) {
+      console.info('[ai.task-context]', JSON.stringify(buildAiAuditTaskLogEntry(serverTaskContext, requestId)));
     }
 
     let uiMessages = rawMessages.map(toUIMessage);
@@ -707,6 +730,10 @@ export async function POST(request: Request) {
     } else {
       // 回退到旧的提示词构建方式
       systemPrompt = buildContextAwarePrompt(SYSTEM_PROMPT, lessonContext);
+    }
+
+    if (serverTaskContext) {
+      systemPrompt = `${systemPrompt}\n\n${buildAiAuditTaskPrompt(serverTaskContext)}`;
     }
 
     // 检查 API Key 配置

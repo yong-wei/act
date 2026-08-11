@@ -94,6 +94,18 @@ export default function CopilotPage() {
       : context === 'evidence'
         ? getAiAuditTaskContract('evidence-copilot')
         : null;
+  const portfolioReflectionTaskContext = useMemo(
+    () =>
+      context === 'portfolio-reflection' && reflectionDraft
+        ? {
+            taskType: 'portfolio-reflection' as const,
+            source: reflectionDraft.source,
+            assignment: reflectionDraft.assignment,
+            intent: reflectionDraft.intent,
+          }
+        : undefined,
+    [context, reflectionDraft],
+  );
 
   // 获取页面上下文和用户画像
   const { pageContext, userProfile } = usePageAIContext({
@@ -123,6 +135,7 @@ export default function CopilotPage() {
         pageContext: copilotPageContext,
         userProfile,
         taskContext: evidenceSummary,
+        auditTaskContext: portfolioReflectionTaskContext,
       },
     });
 
