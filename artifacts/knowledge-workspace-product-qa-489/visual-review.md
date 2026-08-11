@@ -8,8 +8,8 @@
 
 Capture 绑定如下：
 
-- commit：`8aa1dfa0fe67f1a1f2c8c3660f655a924f0ccfc1`
-- tree：`80a1d5233687cff831bb30697f14715d902f410d`
+- commit：`dc58050ed126f0ca7af5d3b8eff13aef8f83f09c`
+- tree：`9f6a58229b0b9096eb87ea5d79a710cce8dcd9bc`
 - source SHA：与 `browser-evidence.json` 的 `currentSourceSha256` 精确匹配（17/17）；`reviewedSourceSha256` 已记录同一组值。
 - state SHA：与 `browser-evidence.json` 的 `stateMatrix` 截图 SHA 精确匹配（29/29）；`reviewedStateSha256` 已记录完整映射。
 
@@ -73,3 +73,5 @@ Capture 绑定如下：
 - 320px 状态存在次级文字截断。
 - 移动端 N 头像靠近助手输入框。
 - 静态截图不能证明 focus ring。
+- `desktop-selected-page-tools-menu-dark` 呈现自适应路径空错态；这不构成知识图谱布局重叠或壳层断裂。
+- `desktop-local-tools-legend-dark.png` 不属于当前 29 个 `stateMatrix` 状态，未纳入判定。
