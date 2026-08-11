@@ -50,6 +50,10 @@ import {
   type TeachingProjectionAuthoringInput,
   type TeachingProjectionStorePaths,
 } from '../teaching-projection';
+import {
+  resolveConsumerActivationStorePaths,
+  resolveCourseRuntimeProductionSelection,
+} from '../versioned-knowledge-activation';
 
 const hash = 'a'.repeat(64);
 const commit = 'b'.repeat(40);
@@ -74,6 +78,14 @@ function tempProjectionRoot(): TeachingProjectionStorePaths {
   const root = mkdtempSync(path.join(tmpdir(), 'layered-proj-'));
   tempRoots.push(root);
   return resolveTeachingProjectionStorePaths(root);
+}
+
+function tempConsumerActivationSelection() {
+  const root = mkdtempSync(path.join(tmpdir(), 'layered-activation-'));
+  tempRoots.push(root);
+  return resolveCourseRuntimeProductionSelection({
+    activationPaths: resolveConsumerActivationStorePaths(root),
+  });
 }
 
 function baseSnapshot(
@@ -369,6 +381,40 @@ function boundAuthoring(
   };
 }
 
+function authoringWithDeclaredScope(
+  projectionScopeId: string,
+  declaredScopeId: string = projectionScopeId,
+): TeachingProjectionAuthoringInput {
+  const authoring = boundAuthoring();
+  return {
+    ...authoring,
+    scopeId: projectionScopeId,
+    resources: (authoring.resources ?? []).map((resource) => ({
+      ...resource,
+      scopeId: declaredScopeId,
+    })),
+    bindings: (authoring.bindings ?? []).map((binding) => ({
+      ...binding,
+      scopeId: declaredScopeId,
+    })),
+    prerequisites: (authoring.prerequisites ?? []).map((edge) => ({
+      ...edge,
+      scopeId: declaredScopeId,
+    })),
+    coreNodes: (authoring.coreNodes ?? []).map((node) => ({
+      ...node,
+      scopeId: declaredScopeId,
+    })),
+  };
+}
+
+function aggregateAuthoring(): TeachingProjectionAuthoringInput {
+  return authoringWithDeclaredScope(
+    'act-control-theory-active-courses',
+    'course-package:1-1',
+  );
+}
+
 function activateProjection(
   paths: TeachingProjectionStorePaths,
   authoring: TeachingProjectionAuthoringInput = boundAuthoring(),
@@ -620,6 +666,53 @@ describe('Scope-aware Teaching Projection resolver (#1273)', () => {
     expect(projection.fallback?.kind).toBe('pinned-previous');
   });
 
+  it('accepts a declared package scope from aggregate candidate, active, and pinned projections', () => {
+    const aggregate = aggregateAuthoring();
+    const candidatePaths = tempProjectionRoot();
+    const candidateStaged = stageTeachingProjection(candidatePaths, aggregate);
+    const request = {
+      scope: { scopeId: 'course-package:1-1' },
+      includeTeaching: true,
+    } as const;
+
+    const candidate = resolveTeachingProjectionForScope({
+      projectionPaths: candidatePaths,
+      request: {
+        ...request,
+        candidateProjectionId: candidateStaged.projectionId,
+      },
+    });
+    expect(candidate.status).toBe('ready');
+    expect(candidate.resources.length).toBeGreaterThan(0);
+    expect(candidate.bindings.length).toBeGreaterThan(0);
+
+    activateTeachingProjection(candidatePaths, {
+      projectionId: candidateStaged.projectionId,
+    });
+    const active = resolveTeachingProjectionForScope({
+      projectionPaths: candidatePaths,
+      request,
+    });
+    expect(active.status).toBe('ready');
+    expect(active.resources.length).toBeGreaterThan(0);
+    expect(active.bindings.length).toBeGreaterThan(0);
+
+    const pinnedPaths = tempProjectionRoot();
+    const pinnedStaged = stageTeachingProjection(pinnedPaths, aggregate);
+    const pinned = resolveTeachingProjectionForScope({
+      projectionPaths: pinnedPaths,
+      request: {
+        ...request,
+        pinnedProjectionId: pinnedStaged.projectionId,
+        pinnedProjectionHash: pinnedStaged.projectionHash,
+      },
+    });
+    expect(pinned.status).toBe('fallback');
+    expect(pinned.source).toBe('pinned');
+    expect(pinned.resources.length).toBeGreaterThan(0);
+    expect(pinned.bindings.length).toBeGreaterThan(0);
+  });
+
   it('fails closed when pinned projection Authority or scope drifts', () => {
     const projectionPaths = tempProjectionRoot();
     const wrongAuthority = stageTeachingProjection(
@@ -628,7 +721,7 @@ describe('Scope-aware Teaching Projection resolver (#1273)', () => {
     );
     const wrongScope = stageTeachingProjection(
       projectionPaths,
-      boundAuthoring({ scopeId: 'other-course-scope' }),
+      authoringWithDeclaredScope('other-course-scope'),
     );
 
     const authorityDrift = resolveTeachingProjectionForScope({
@@ -1298,7 +1391,7 @@ describe('Course page layered drawer entry (#1273 P1)', () => {
     activateProjection(
       projectionPaths,
       boundAuthoring({
-        scopeId: 'course-package:1-1',
+        scopeId: 'act-control-theory-active-courses',
         resources: [
           {
             resourceType: 'step',
@@ -1377,6 +1470,7 @@ describe('Course page layered drawer entry (#1273 P1)', () => {
       scope,
       authorityPaths,
       projectionPaths,
+      consumerActivationSelection: tempConsumerActivationSelection(),
       allowLegacyFallback: false,
     });
 

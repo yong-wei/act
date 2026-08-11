@@ -277,6 +277,39 @@ export function filterProjectionToScope(input: {
   };
 }
 
+/**
+ * An aggregate Projection may advertise a broader manifest scope than the
+ * package requested by a course consumer.  Reuse the normal scope filter to
+ * prove that the requested scope is actually declared by the Projection
+ * before allowing the aggregate identity through.
+ */
+function projectionDeclaresScope(input: {
+  requestedScopeId: string;
+  resources: readonly TeachingResourceRuntime[];
+  bindings: readonly TeachingBindingRuntime[];
+  prerequisites: readonly TeachingPrerequisiteRuntime[];
+  coreNodes: readonly TeachingCoreNodeRuntime[];
+}): boolean {
+  const scoped = filterProjectionToScope({
+    resources: input.resources,
+    bindings: input.bindings,
+    prerequisites: input.prerequisites,
+    coreNodes: input.coreNodes,
+    cards: [],
+    notProjectedCanonicalIds: [],
+    // Membership is checked at the scope boundary only.  Lesson/step
+    // narrowing remains the responsibility of the final projection filter.
+    scope: { scopeId: input.requestedScopeId },
+  });
+
+  return (
+    scoped.resources.length > 0
+    || scoped.bindings.length > 0
+    || scoped.prerequisites.length > 0
+    || scoped.coreNodes.length > 0
+  );
+}
+
 function projectionArtifactsToInput(input: {
   status: LayeredGraphProjectionInput['status'];
   source: LayeredGraphProjectionInput['source'];
@@ -418,6 +451,13 @@ export function resolveTeachingProjectionForScope(input: {
         scope?.scopeId
         && manifest.scopeId
         && scope.scopeId !== manifest.scopeId
+        && !projectionDeclaresScope({
+          requestedScopeId: scope.scopeId,
+          resources: staged.artifacts.resources,
+          bindings: staged.artifacts.bindings,
+          prerequisites: staged.artifacts.prerequisites,
+          coreNodes: staged.artifacts.coreNodes,
+        })
       ) {
         // Scope mismatch: return NOT_PROJECTED for this scope, not a mix.
         return emptyProjection({
@@ -514,6 +554,13 @@ export function resolveTeachingProjectionForScope(input: {
       scope?.scopeId
       && manifest.scopeId
       && scope.scopeId !== manifest.scopeId
+      && !projectionDeclaresScope({
+        requestedScopeId: scope.scopeId,
+        resources: staged.artifacts.resources,
+        bindings: staged.artifacts.bindings,
+        prerequisites: staged.artifacts.prerequisites,
+        coreNodes: staged.artifacts.coreNodes,
+      })
     ) {
       return emptyProjection({
         status: 'NOT_PROJECTED',
@@ -640,6 +687,13 @@ function tryPinnedFallback(
         scope?.scopeId
         && manifest.scopeId
         && scope.scopeId !== manifest.scopeId
+        && !projectionDeclaresScope({
+          requestedScopeId: scope.scopeId,
+          resources: staged.artifacts.resources,
+          bindings: staged.artifacts.bindings,
+          prerequisites: staged.artifacts.prerequisites,
+          coreNodes: staged.artifacts.coreNodes,
+        })
       ) {
         return emptyProjection({
           status: 'NOT_PROJECTED',
