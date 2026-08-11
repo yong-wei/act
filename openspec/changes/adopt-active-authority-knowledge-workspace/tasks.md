@@ -20,9 +20,9 @@
 
 ## 4. Local acceptance
 
-- [ ] 4.1 Run focused unit, API and deployment tests; then run typecheck, lint and the affected domain suite with the 12 GiB Node heap.
-- [ ] 4.2 Capture the required `/knowledge` product QA states from the final source revision and obtain independent visual review evidence.
-- [ ] 4.3 Run the final full test suite and strict OpenSpec validation; resolve accepted findings and record non-blocking residual test scope.
+- [x] 4.1 Run focused unit, API and deployment tests; then run typecheck, lint and the affected domain suite with the 12 GiB Node heap.
+- [x] 4.2 Capture the required `/knowledge` product QA states from the final source revision and obtain independent visual review evidence.
+- [x] 4.3 Run the final full test suite and strict OpenSpec validation; resolve accepted findings and record non-blocking residual test scope.
 
 ## 5. Release and production verification
 
