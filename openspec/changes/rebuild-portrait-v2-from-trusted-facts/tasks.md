@@ -37,4 +37,8 @@
 - [x] 处理 PR review P1：trusted filter 改为正向 allowlist 并拒绝未知/缺锚点事实
 - [x] 处理 PR review P2：recommendation-engine 仅跳过向量规则并保留 context-only 推荐
 - [x] 在 PR 上回复 review
-- [ ] 执行中文 `@codex review`（请求已发布，但 GitHub Codex connector 回复未连接，需连接后重跑）
+- [x] 执行中文 `@codex review`（Reviewed commit `77cd568c9b` 未发现重大问题）
+- [x] `openspec validate rebuild-portrait-v2-from-trusted-facts --type change --strict`
+- [x] `prisma validate`
+- [x] `prisma generate`
+- [ ] 真实 PostgreSQL migration smoke（本机无可用 PostgreSQL/pg_config，未执行）
