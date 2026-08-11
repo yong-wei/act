@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
 const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1140-pr-b');
 const manifestPath = path.join(evidenceDir, 'candidate-batch-manifest.json');
@@ -166,6 +166,23 @@ async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<v
   });
 }
 
+async function login(context: BrowserContext) {
+  const csrfResponse = await context.request.get('/api/auth/csrf');
+  const csrf = await csrfResponse.json() as { csrfToken?: string };
+  expect(csrfResponse.ok()).toBe(true);
+  expect(csrf.csrfToken).toBeTruthy();
+  const response = await context.request.post('/api/auth/callback/credentials?json=true', {
+    form: {
+      csrfToken: csrf.csrfToken!,
+      email: 'demo',
+      password: 'DemoStudent@Just2026!',
+      callbackUrl: '/',
+      json: 'true',
+    },
+  });
+  expect(response.ok() || (response.status() >= 300 && response.status() < 400), await response.text()).toBe(true);
+}
+
 test('keeps the comparison surface visible while a candidate batch is loading', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   let releaseCandidateBatch: (() => void) | undefined;
@@ -200,6 +217,23 @@ test('hides candidate comparison when continuing without a new candidate batch',
   await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
+});
+
+test('keeps the active path available while configuring a new path', async ({ context, page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await login(context);
+  await installRoutes(page);
+
+  const query = new URLSearchParams({
+    goal: 'control-correction',
+    intent: 'contextual-recommendation',
+  });
+  await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+
+  await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-generation-panel="editable"]')).toBeVisible();
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
 

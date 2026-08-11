@@ -107,7 +107,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain("const showPresetGoalCards = isPresetGoalLanding && pathLandingState === 'cold-start';");
     expect(source).toContain("shouldShowCandidateComparison && !showPathContextRecovery ? (");
-    expect(source).toContain("!showPathContextRecovery && (showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("!showPathContextRecovery && (showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
     expect(source).toContain("!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)");
     expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (");
     expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
@@ -222,6 +222,9 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('data-adaptive-path-continue-action="current-path"');
     expect(source).toContain('data-adaptive-path-generation-action="new-path"');
     expect(source).toContain('原路径仍会保留；你可以继续学习，也可以生成新的候选路径进行比较。');
+    expect(source).toContain("(showLandingWorkspace || showGenerationWorkspace) && pathLandingState === 'active'");
+    expect(source).toContain('(showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
+    expect(source).toContain('showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (');
     expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null :');
     expect(source).toContain("const showColdStartLandingWorkspace = showLandingWorkspace && pathLandingState === 'cold-start';");
     expect(source).toContain('data-adaptive-path-landing-state="loading"');
@@ -371,7 +374,7 @@ describe('adaptive practice page entry states', () => {
     expect(sidebarSource).toContain("/choices`");
     expect(source).toContain("setPathChoiceMessage('路径已选中，等待你开始学习。')");
     expect(sidebarSource).not.toContain('/execute');
-    expect(source).toContain('(showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
+    expect(source).toContain('(showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
   });
 
   it('renders student-safe event evidence for candidates and persisted active nodes', () => {

@@ -4398,7 +4398,7 @@ export default function AdaptivePracticePage() {
               data-control-correction-alternative-count={controlCorrectionAlternativeCount(adaptivePathCenter)}
             />
           ) : null}
-          {showLandingWorkspace && pathLandingState === 'active' ? (
+          {(showLandingWorkspace || showGenerationWorkspace) && pathLandingState === 'active' ? (
           <section
             className="surface-card flex flex-wrap items-center justify-between gap-4 p-4"
             data-adaptive-path-landing-state="active"
@@ -4424,14 +4424,16 @@ export default function AdaptivePracticePage() {
                   继续当前路径
                 </Link>
               ) : null}
-              <Link
-                href={activePathGenerationHref}
-                data-adaptive-path-generation-action="new-path"
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-              >
-                <Sparkles className="size-4" aria-hidden="true" />
-                新建学习路径
-              </Link>
+              {showLandingWorkspace ? (
+                <Link
+                  href={activePathGenerationHref}
+                  data-adaptive-path-generation-action="new-path"
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                >
+                  <Sparkles className="size-4" aria-hidden="true" />
+                  新建学习路径
+                </Link>
+              ) : null}
               <Link
                 href="/profile/evidence"
                 className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
@@ -5537,9 +5539,9 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {!showPathContextRecovery && (showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
+          {!showPathContextRecovery && (showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
             <section className="order-20 grid min-w-0 w-full gap-4">
-              {showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
+              {showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
               <PathWorkspaceModule
                 moduleId="current-path"
                 openModuleId={openPathModuleId}
