@@ -150,8 +150,15 @@ run_stage_cleanup_engine() {
       || die 'existing cleanup engine is not a regular file'
     [ "$(hash_file "$engine_path")" = "$cleanup_engine_sha" ] \
       || die 'existing cleanup engine hash mismatch'
-    [ ! -e "$engine_tmp" ] && [ ! -L "$engine_tmp" ] \
-      || die 'staged cleanup engine temporary residue already exists'
+    if [ -e "$engine_tmp" ] || [ -L "$engine_tmp" ]; then
+      [ -f "$engine_tmp" ] && [ ! -L "$engine_tmp" ] \
+        || die 'staged cleanup engine temporary residue is not a regular file'
+      [ "$(hash_file "$engine_tmp")" = "$cleanup_engine_sha" ] \
+        || die 'staged cleanup engine temporary residue hash mismatch'
+      # A retry can upload the exact immutable engine after the first upload
+      # already promoted it. Remove only that hash-verified duplicate.
+      rm -- "$engine_tmp" || die 'failed to clear hash-verified cleanup engine temporary duplicate'
+    fi
   else
     [ -f "$engine_tmp" ] && [ ! -L "$engine_tmp" ] \
       || die 'staged cleanup engine is missing or invalid'

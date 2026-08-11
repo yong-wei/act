@@ -840,6 +840,45 @@ with tarfile.open(out, "w:gz") as archive:
       assert.equal(fs.existsSync(stagedEngine), true, 'hash-checked cleanup engine must be promoted');
       assert.equal(fs.existsSync(stagedTmp), false, 'staged cleanup engine temp must be atomically consumed');
       assert.equal(fs.existsSync(path.join(stage, 'cleanup-engine.json')), true);
+
+      // Retrying after promotion uploads only an exact duplicate; it is safe to
+      // consume, while a mismatched temporary file remains fail-closed.
+      fs.copyFileSync(cleanupEngine, stagedTmp);
+      const retry = spawnSync(
+        'bash',
+        [
+          remoteOperator,
+          'stage-cleanup-engine',
+          projectDir,
+          stage,
+          transactionId,
+          sha256File(cleanupEngine),
+        ],
+        { cwd: root, encoding: 'utf8' },
+      );
+      assert.equal(retry.status, 0, `${retry.stdout}\n${retry.stderr}`);
+      assert.equal(fs.existsSync(stagedTmp), false, 'only a hash-verified duplicate temp may be removed');
+
+      fs.writeFileSync(stagedTmp, 'tampered\n');
+      const mismatch = spawnSync(
+        'bash',
+        [
+          remoteOperator,
+          'stage-cleanup-engine',
+          projectDir,
+          stage,
+          transactionId,
+          sha256File(cleanupEngine),
+        ],
+        { cwd: root, encoding: 'utf8' },
+      );
+      expectFailure(
+        mismatch,
+        /temporary residue hash mismatch/u,
+        'cleanup engine staging must not remove a mismatched temporary artifact',
+      );
+      assert.equal(fs.existsSync(stagedTmp), true);
+      fs.unlinkSync(stagedTmp);
       const cleanup = runCleanup(projectDir, stage, transactionId);
       assert.equal(cleanup.status, 0, `${cleanup.stdout}\n${cleanup.stderr}`);
     } finally {
