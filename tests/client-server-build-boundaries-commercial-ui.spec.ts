@@ -36,7 +36,7 @@ type EvidenceRoute = {
   href: string;
   ready: string;
   focus: string;
-  focusRole?: 'button' | 'tab';
+  focusRole?: 'button' | 'tab' | 'assignment-nav';
   role?: 'STUDENT' | 'TEACHER';
 };
 
@@ -66,6 +66,7 @@ const routes: readonly EvidenceRoute[] = [
     href: '/missions/assignments/assignment-1338?revisionId=revision-1338',
     ready: '闭环系统稳态误差分析',
     focus: '第 1 题',
+    focusRole: 'assignment-nav',
     role: 'STUDENT',
   },
 ] as const;
@@ -225,7 +226,9 @@ for (const viewport of viewports) {
       await expect(page.getByText(route.ready, { exact: true }).first()).toBeVisible();
       const focusTarget = route.focusRole === 'tab'
         ? page.getByRole('tab').first()
-        : page.getByRole('button', { name: route.focus, exact: true }).first();
+        : route.focusRole === 'assignment-nav'
+          ? page.getByRole('navigation', { name: '作业题目' }).getByRole('button').first()
+          : page.getByRole('button', { name: route.focus, exact: true }).first();
       await expect(focusTarget).toBeVisible();
       await focusTarget.focus();
       await expect(focusTarget).toBeFocused();
