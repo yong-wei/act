@@ -1,0 +1,56 @@
+{
+  "change": "persist-portfolio-reflection-drafts",
+  "capturedAt": "2026-08-11T16:15:28.877Z",
+  "captureRevision": "6dae102b2d2ec36eca8dece2b2d402b6326f73fe",
+  "generator": "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/capture-portfolio-reflection-drafts-evidence.mjs",
+  "sourceHashes": {
+    "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/capture-portfolio-reflection-drafts-evidence.mjs": "aea6def7701725ff106f816ba6f89399326a33f17d45764ccda05c5e072a6a1f",
+    "tests/portfolio-reflection-drafts-1321.spec.ts": "08822610f543241f50aeb8d2aef2860de4e026d0c97470799ee5de10930d95dc",
+    "src/app/(main)/profile/portfolio/page.tsx": "93ed8beb4bb4f08deac8144a669873a4b0184588f8bb72acf3837e17d0139d7b",
+    "src/app/api/profile/portfolio-reflection-drafts/route.ts": "49fa4bf73b9b4701e7d7262d5df3e1b4bf24207c0e6a16fe73d5651f7871c1ab",
+    "src/app/api/profile/portfolio-reflection-drafts/[draftId]/route.ts": "4c334de61a84d3e5c806e9e8b5ba44e65384f13ee1cb908edcc4b86327c3241d",
+    "src/lib/ai-task-boundary-contracts.ts": "0f562796be698ff4f725fb446e943bf6e9249ac2fbd0a11b66ab00342a991986"
+  },
+  "route": "/profile/portfolio?category=reflection&intent=create&source=portfolio&taskIntent=create-portfolio-reflection",
+  "screenshots": [
+    {
+      "screenshot": "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/portfolio-reflection-draft-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "43b3396f81329861051ff819c34c218f89e9b1b05a0aa5a7611ac4d7b824aa77",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "screenshot": "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/portfolio-reflection-draft-320.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "sha256": "41f904b590b23080bf225d5aa0c99414641c0bb47d399a909e6214ac39feb1d0",
+      "dimensions": {
+        "width": 320,
+        "height": 1320
+      }
+    }
+  ],
+  "assertions": [
+    "desktop save, edit, and reopen state captured",
+    "320px reopen and discard state captured",
+    "keyboard focus and no horizontal overflow asserted by the Playwright test"
+  ],
+  "drift": {
+    "cleanCaptureStart": true,
+    "headUnchanged": true,
+    "boundSourcesUnchanged": true,
+    "allowedOutputPaths": [
+      "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/browser-evidence.json",
+      "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/portfolio-reflection-draft-1440.png",
+      "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/portfolio-reflection-draft-320.png"
+    ]
+  }
+}

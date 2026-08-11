@@ -25,3 +25,9 @@
 - `node --max-old-space-size=8192 node_modules/typescript/bin/tsc --noEmit --pretty false --incremental --tsBuildInfoFile C:\\Users\\liu20\\AppData\\Local\\Temp\\portfolio-draft-1321.tsbuildinfo` (passed)
 - `npx openspec validate persist-portfolio-reflection-drafts --strict` and `npx openspec validate --specs --strict` (passed)
 - `git diff --check` (passed; pre-existing CRLF warnings only)
+
+## Review remediation
+
+- [x] Restrict item updates to content and reject provenance mutation attempts.
+- [x] Keep repeated idempotent saves unchanged and reject replays for discarded drafts.
+- [x] Capture stable 1440px and 320px browser evidence with revision, source hashes, screenshot hashes, and fail-closed drift checks.

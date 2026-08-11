@@ -30,6 +30,8 @@ The portfolio page builds a `portfolio-reflection` candidate from bounded naviga
 
 5. **Use bounded input validation at the persistence boundary.** Provenance uses the existing descriptor constraints; editable content permits normal paragraph formatting but rejects disallowed control characters and has a strict size limit. The draft is rendered as React text, never as HTML.
 
+6. **Keep provenance and lifecycle immutable after creation.** The item edit API accepts only `content`; `source`, `assignment`, `intent`, `title`, and the idempotency identity remain the original saved candidate metadata. A repeated collection save returns the existing active draft unchanged, while a replay for a discarded identity returns a conflict and cannot reactivate it.
+
 ## Risks / Trade-offs
 
 - [Risk] A browser retry could duplicate a draft. -> The client holds a UUID per candidate and the database enforces a user-scoped idempotency uniqueness constraint.

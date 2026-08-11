@@ -94,7 +94,7 @@ await writeFile(join(outputDirectory, 'browser-evidence.json'), JSON.stringify({
   screenshots: screenshotEvidence,
   assertions: [
     'desktop save, edit, and reopen state captured',
-    '320px reopen and discard state captured',
+    '320px reopened draft captured and discard asserted by the Playwright test',
     'keyboard focus and no horizontal overflow asserted by the Playwright test',
   ],
   drift: {
