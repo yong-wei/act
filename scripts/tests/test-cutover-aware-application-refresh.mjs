@@ -15,6 +15,7 @@ const revision = '58f70df257f493f7dc13b2dabfb0383b972ee017';
 const transactionId = 'first-cutover-7f4cdd1084af419a3e837876';
 const previousDigest = `sha256:${'a'.repeat(64)}`;
 const targetDigest = `sha256:${'b'.repeat(64)}`;
+const targetDigestHex = targetDigest.slice('sha256:'.length);
 const targetImage = 'localhost/act-obe-platform:test-refresh';
 
 function sha256File(filePath) {
@@ -139,6 +140,7 @@ function createFixture(name, { marker = true, mode = 'duplicate', failTarget = f
 set -eu
 printf '%s\n' "\${APP_IMAGE:-}" >> "\${DEPLOY_LOG:-/tmp/refresh-deploy.log}"
 if [ "\${FAIL_TARGET:-0}" = 1 ] && [ "\${APP_IMAGE:-}" = "${targetImage}" ]; then exit 42; fi
+if [ "\${FAIL_RECOVERY:-0}" = 1 ] && [ "\${APP_IMAGE:-}" != "${targetImage}" ]; then exit 43; fi
   if [ "\${APP_IMAGE:-}" = "${targetImage}" ]; then printf '%s\n' target > "\${STATE_FILE}"; else printf '%s\n' previous > "\${STATE_FILE}"; fi
 `);
   fs.mkdirSync(path.join(project, 'scripts'), { recursive: true });
@@ -166,7 +168,15 @@ if [ "\${1:-}" = inspect ]; then
 fi
 if [ "\${1:-}" = image ] && [ "\${2:-}" = inspect ]; then
   format="\${5:-}"
-  if [[ "$format" == *Labels* ]]; then echo "${revision}"; else echo "${targetDigest}"; fi
+  if [[ "$format" == *Labels* ]]; then
+    echo "${revision}"
+  elif [ "\${IMAGE_ID_BAD:-0}" = 1 ]; then
+    echo "sha256:${'c'.repeat(64)}"
+  elif [ "\${IMAGE_ID_NO_PREFIX:-0}" = 1 ]; then
+    echo "${targetDigestHex}"
+  else
+    echo "${targetDigest}"
+  fi
   exit 0
 fi
 if [ "\${1:-}" = load ]; then exit 0; fi
@@ -266,6 +276,7 @@ function testSuccessfulRefresh() {
     const result = runOperator(fixture, {
       STATE_FILE: fixture.stateFile,
       FAIL_TARGET: '0',
+      IMAGE_ID_NO_PREFIX: '1',
     });
     assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
     assert.equal(fs.readFileSync(fixture.stateFile, 'utf8').trim(), 'target');
@@ -276,6 +287,7 @@ function testSuccessfulRefresh() {
     assert.match(env, /^ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover$/mu);
     const receipt = JSON.parse(fs.readFileSync(fixture.receipt, 'utf8'));
     assert.equal(receipt.result, 'SUCCEEDED');
+    assert.equal(receipt.failurePhase, null);
     assert.equal(receipt.mode.before, 'duplicate');
     assert.equal(receipt.mode.after, 'cutover');
     assert.equal(receipt.finalAppImageDigest, targetDigest);
@@ -411,6 +423,19 @@ function testPreflightAndRecoveryGuards() {
     fs.rmSync(mixedDigest.root, { recursive: true, force: true });
   }
 
+  const wrongImageId = createFixture('wrong-image-id');
+  try {
+    const result = runOperator(wrongImageId, {
+      STATE_FILE: wrongImageId.stateFile,
+      IMAGE_ID_BAD: '1',
+    });
+    assert.notEqual(result.status, 0, 'an incorrect loaded image Id must be rejected');
+    assert.equal(fs.readFileSync(wrongImageId.stateFile, 'utf8').trim(), 'previous');
+    assert.equal(JSON.parse(fs.readFileSync(wrongImageId.receipt, 'utf8')).result, 'FAILED');
+  } finally {
+    fs.rmSync(wrongImageId.root, { recursive: true, force: true });
+  }
+
   const failed = createFixture('replace-failure');
   try {
     const result = runOperator(failed, { STATE_FILE: failed.stateFile, FAIL_TARGET: '1' });
@@ -418,12 +443,28 @@ function testPreflightAndRecoveryGuards() {
     assert.equal(fs.readFileSync(failed.stateFile, 'utf8').trim(), 'previous', 'replace failure must recover the preceding digest');
     const receipt = JSON.parse(fs.readFileSync(failed.receipt, 'utf8'));
     assert.equal(receipt.result, 'FAILED');
+    assert.equal(receipt.failurePhase, 'replace');
     assert.equal(receipt.mode.after, 'cutover');
     assert.equal(receipt.previousAppWorkerImageDigest, previousDigest);
     assert.equal(receipt.finalAppImageDigest, previousDigest);
     assert.equal(receipt.finalWorkerImageDigest, previousDigest);
   } finally {
     fs.rmSync(failed.root, { recursive: true, force: true });
+  }
+
+  const recoveryFailed = createFixture('recovery-failure');
+  try {
+    const result = runOperator(recoveryFailed, {
+      STATE_FILE: recoveryFailed.stateFile,
+      FAIL_TARGET: '1',
+      FAIL_RECOVERY: '1',
+    });
+    assert.notEqual(result.status, 0);
+    const receipt = JSON.parse(fs.readFileSync(recoveryFailed.receipt, 'utf8'));
+    assert.equal(receipt.result, 'FAILED');
+    assert.equal(receipt.failurePhase, 'replace:recovery');
+  } finally {
+    fs.rmSync(recoveryFailed.root, { recursive: true, force: true });
   }
 }
 
