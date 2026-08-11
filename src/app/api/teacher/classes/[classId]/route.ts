@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import {
   teacherDefaultClassService,
 } from '@/lib/teacher-default-class-service';
-import { defaultClassServiceErrorResponse } from '../route';
+import { defaultClassServiceErrorResponse } from '@/lib/teacher-default-class-route-error';
 
 export const dynamic = 'force-dynamic';
 

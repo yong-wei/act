@@ -4,7 +4,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import { AssignmentDomainError, signCatalogSelectionIdentity, stableHash } from '@/lib/assignments/assignment-domain';
+import { AssignmentDomainError } from '@/lib/assignments/assignment-domain';
+import { signCatalogSelectionIdentity, stableHash } from '@/lib/assignments/assignment-integrity';
 import { assignmentErrorResponse, readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
 import { prisma } from '@/lib/prisma';
 

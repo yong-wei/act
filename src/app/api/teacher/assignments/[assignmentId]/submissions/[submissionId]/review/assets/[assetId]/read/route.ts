@@ -6,9 +6,9 @@ import {
   requireAssignmentMutation,
 } from '@/lib/assignments/assignment-route-guards';
 import {
-  assertSubmissionObjectIntegrity,
   SubmissionError,
 } from '@/lib/assignments/submission-domain';
+import { assertSubmissionObjectIntegrity } from '@/lib/assignments/submission-integrity';
 import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import { submissionErrorResponse } from '@/lib/assignments/submission-route-guards';
 import {

@@ -15,7 +15,7 @@ import type {
   TeachingResourcesLayer,
 } from './contracts';
 import { LAYERED_GRAPH_PAYLOAD_CONTRACT } from './contracts';
-import { buildTeachingResourceBindingViews } from './resolver';
+import { buildTeachingResourceBindingViews } from './bindings';
 
 function engineeringIdentity(
   authority: LayeredGraphAuthorityInput,
