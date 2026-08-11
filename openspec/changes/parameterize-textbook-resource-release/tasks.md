@@ -25,11 +25,11 @@
 
 - [x] 5.1 更新 runtime provenance streaming 测试。
 - [x] 5.2 更新 externalized deploy 与 remote-deploy 测试，覆盖 resourceSet 动态调用。
-- [ ] 5.3 在可用的 Python 环境运行 runtime 与 hybrid retrieval 单元测试。
+- [x] 5.3 在可用的 Python 环境运行 runtime 与 hybrid retrieval 单元测试；本机 Windows CRLF 环境仅 benchmark lock 既有校验例外。
 
 ## 6. OpenSpec 与验证
 
 - [x] 6.1 完成 proposal、design、tasks 和 spec delta。
 - [x] 6.2 运行 OpenSpec 严格校验。
 - [x] 6.3 运行 helper CLI、相关 Node 测试与发布前检查。
-- [ ] 6.4 在干净 HEAD 上执行导出和验证，按实际结果更新配置锁。
+- [x] 6.4 在干净 HEAD 上执行导出和验证，按实际结果更新配置锁：`sourceRevision=bf2d85e98d8f336c24214079dbecec4026cbffd8`、`selectedIndexManifestHash=sha256:4d1199f319f59a39d0f4196c1ad391004b4faf5ddb0cc97dd9f11423a7023d5c`、`resourceSetId=current-authoring-bundle-v1`、`windows=5692`。

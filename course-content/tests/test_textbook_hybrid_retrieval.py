@@ -200,8 +200,8 @@ class FakeEmbedder:
 def build_fixture(tmp_path: Path, model: str = 'fixture/model'):
     runtime_root = runtime_fixture(tmp_path)
     suffix = model.replace('/', '-')
-    output_dir = tmp_path / f'index-{suffix}'
-    cache_root = tmp_path / f'cache-{suffix}'
+    output_dir = tmp_path / f'i-{suffix}'
+    cache_root = tmp_path / 'cache'
     embedder = FakeEmbedder()
     manifest = hybrid.build_index(
         runtime_root,
