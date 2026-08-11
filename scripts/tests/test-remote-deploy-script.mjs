@@ -26,6 +26,9 @@ function verifyCutoverFailureGate() {
     writeExecutable(fakeBin, 'ssh', [
       '#!/usr/bin/env bash',
       `printf '%s\\n' "$*" >> ${JSON.stringify(sshLog)}`,
+      'if [[ "${CUTOVER_MARKER_PRESENT:-0}" == "1" && "$*" == *"production-cutover-transactions/current.json"* ]]; then',
+      '  exit 1',
+      'fi',
       'exit 0',
       '',
     ].join('\n'));
@@ -171,6 +174,40 @@ function verifyCutoverFailureGate() {
       2,
       'cutover 开始后的显式非零 EXIT 必须执行初始 stop，并在退出处理时再次确认消费者停止',
     );
+
+    fs.writeFileSync(sshLog, '');
+    fs.rmSync(rsyncLog, { force: true });
+    const committedCutover = spawnSync(
+      'bash',
+      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        env: {
+          ...baseEnv,
+          CUTOVER_MARKER_PRESENT: '1',
+          LOCAL_IMAGE_TAR: imageTar,
+          LOCAL_PROVENANCE_FILE: provenance,
+          LOCAL_RUNTIME_DIR: runtimeRoot,
+        },
+      },
+    );
+    assert.notEqual(committedCutover.status, 0, '已提交切换 marker 必须阻止 Legacy 部署');
+    assert.match(
+      committedCutover.stderr,
+      /已提交的生产图谱切换/u,
+      'marker 阻断必须明确指向切换感知流程或显式回滚',
+    );
+    assert.equal(
+      fs.existsSync(rsyncLog),
+      false,
+      '已提交切换 marker 必须在 runtime rsync 前中止 Legacy 部署',
+    );
+    assert.equal(
+      (fs.readFileSync(sshLog, 'utf8').match(/runtime consumer still running/gu) ?? []).length,
+      0,
+      '已提交切换 marker 必须在停止消费者前中止 Legacy 部署',
+    );
   } finally {
     fs.rmSync(fixtureRoot, { recursive: true, force: true });
   }
@@ -267,6 +304,17 @@ function main() {
     script,
     /check_remote_runtime_pointer_absence "\$\{REMOTE_RUNTIME_STAGING_DIR\}"/,
     'runtime staging 同步后必须验证三个 production pointer 均不存在',
+  );
+  assert.match(
+    script,
+    /REMOTE_PRODUCTION_CUTOVER_MARKER="\$\{REMOTE_PRODUCTION_CUTOVER_MARKER:-\$\{REMOTE_RUNTIME_DIR\}\/knowledge\/production-cutover-transactions\/current\.json\}"/,
+    'Legacy 部署必须定位已提交的生产切换 marker',
+  );
+  assert.ok(
+    script.includes('guard_no_committed_production_cutover')
+      && script.indexOf('guard_no_committed_production_cutover')
+        < script.indexOf('[2/5] 同步运行时资源与部署脚本'),
+    'Legacy 部署必须在远端 runtime 同步和停止消费者之前拒绝已提交切换',
   );
   assert.ok(
     (script.match(/check_remote_runtime_pointer_absence\n(?:check_remote_authority_current_pointer_absence\n)?remote "node /g) ?? []).length >= 2,
