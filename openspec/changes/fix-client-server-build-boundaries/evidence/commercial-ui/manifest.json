@@ -1,10 +1,10 @@
 {
   "schemaVersion": "commercial-ui-evidence.v1",
-  "capturedAt": "2026-08-11T02:16:54.085Z",
-  "sourceRevision": "5d23fffb00b2ac022b764a268ecf94a28be51125",
+  "capturedAt": "2026-08-11T02:56:20.058Z",
+  "sourceRevision": "b86ec32d9f8b2327f27f82c9f8c8a5a1517e5b37",
   "generator": {
     "file": "tests/client-server-build-boundaries-commercial-ui.spec.ts",
-    "sha256": "cb2a1b8caeebde74532ab29ecd567edc0436fc772ed7c7a1e6f9be0d2add87fb"
+    "sha256": "32b9ed64f536c6d51ff04cc6d8796ffe65caa32acd86a750fc6544d88934ff44"
   },
   "productionSourceSha256": {
     "src/features/assignments/student-assignment-workspace.tsx": "c4404bd0b5851c6e04d33da91bf7c579751e10f520ff819b5a024e87418f32c8",
@@ -145,7 +145,7 @@
       "width": 1440,
       "height": 1000,
       "file": "openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui/interactive-teacher-desktop-1440.png",
-      "sha256": "59fe2b1c18ab6ec42cc802030372fdd088a22f03bc03fd14a9627bc227ed43d0",
+      "sha256": "bdb8315e056f9ee569c3a1527530abda8d2a39dcedbadefdfff97123248fe3d4",
       "noHorizontalOverflow": true
     },
     {

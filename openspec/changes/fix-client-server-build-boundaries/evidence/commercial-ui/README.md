@@ -9,7 +9,7 @@
 | 图谱中心 | [截图](./graph-center-desktop-1440.png) | [截图](./graph-center-mobile-320.png) |
 | 学生作业 | [截图](./student-assignment-desktop-1440.png) | [截图](./student-assignment-mobile-320.png) |
 
-`manifest.json` 记录捕获时间、源码修订、生成器与生产源码 SHA-256、截图 SHA-256 及每个路由的几何和键盘焦点断言。`tests/client-server-build-boundaries-commercial-ui.spec.ts` 会在源码或截图漂移时失败。
+`manifest.json` 记录捕获时间、源码修订、生成器与生产源码 SHA-256、截图 SHA-256 及每个路由的几何和键盘焦点断言。`tests/client-server-build-boundaries-commercial-ui.spec.ts` 直接比对当前受跟踪源码与 manifest 中的 SHA-256，不依赖历史提交对象，因此在浅克隆环境同样会在源码或截图漂移时失败。
 
 捕获命令：
 
