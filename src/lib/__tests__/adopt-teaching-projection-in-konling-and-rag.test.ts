@@ -1011,6 +1011,7 @@ describe('production Authority/Projection packaging (#1274 P1)', () => {
     expect(dockerignore).toContain('!course-content/runtime/knowledge/projection');
     expect(deploy).toContain('ACT_AUTHORITY_STORE_ROOT');
     expect(deploy).toContain('ACT_TEACHING_PROJECTION_STORE_ROOT');
+    expect(deploy).toContain('ACT_KNOWLEDGE_DEPLOYMENT_MODE="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"');
     expect(deploy).toContain('require_actkg_activation_store_pointers');
     expect(deploy).toContain(
       'ACT_KNOWLEDGE_DEPLOYMENT_MODE="${ACT_KNOWLEDGE_DEPLOYMENT_MODE:-legacy}"',

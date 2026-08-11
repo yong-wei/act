@@ -1,0 +1,1474 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
+const root = process.cwd();
+const tsx = path.join(root, 'node_modules', '.bin', 'tsx');
+const tool = path.join(root, 'scripts', 'knowledge-cutover', 'production-cutover.ts');
+const revision = '58f70df257f493f7dc13b2dabfb0383b972ee017';
+const imageTag = 'localhost/act-obe-platform:v0.4.0-58f70df';
+const imageTar = path.join(root, 'deploy', 'images', 'act-obe-v0.4.0-58f70df.tar');
+const remoteActivator = path.join(root, 'scripts', 'remote-activate-knowledge-cutover.sh');
+const remoteOperator = path.join(root, 'scripts', 'knowledge-cutover', 'remote-production-cutover.sh');
+const cleanupEngine = path.join(root, 'scripts', 'knowledge-cutover', 'cleanup-failed-authority-identity.cjs');
+const AUTHORITY_PREFIX = 'course-content/authoring/knowledge/authority/';
+const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v1';
+
+function imageConfigDigest(archive) {
+  const read = (entry) => execFileSync('tar', ['-xOf', archive, entry]);
+  const index = JSON.parse(read('index.json').toString('utf8'));
+  assert.equal(index.manifests.length, 1, 'fixture image must contain exactly one manifest');
+  const manifestDigest = index.manifests[0].digest;
+  const manifest = JSON.parse(
+    read(`blobs/sha256/${manifestDigest.slice('sha256:'.length)}`).toString('utf8'),
+  );
+  const configDigest = manifest.config.digest;
+  assert.equal(
+    `sha256:${createHash('sha256').update(read(`blobs/sha256/${configDigest.slice('sha256:'.length)}`)).digest('hex')}`,
+    configDigest,
+    'fixture image config bytes must match its OCI digest',
+  );
+  return configDigest;
+}
+
+function sha256Bytes(value) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+function sha256File(filePath) {
+  const command = process.platform === 'darwin' ? 'shasum' : 'sha256sum';
+  const args = command === 'shasum' ? ['-a', '256', filePath] : [filePath];
+  return execFileSync(command, args, { encoding: 'utf8' }).trim().split(/\s+/u)[0];
+}
+
+function canonicalJson(value) {
+  if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`)
+      .join(',')}}`;
+  }
+  throw new Error('unsupported canonical JSON value');
+}
+
+function run(args, env = {}) {
+  return spawnSync(tsx, [tool, ...args], {
+    cwd: root,
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      APP_REVISION: revision,
+      ...env,
+    },
+  });
+}
+
+function copyFile(relativePath, fixtureRoot) {
+  const target = path.join(fixtureRoot, relativePath);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.copyFileSync(path.join(root, relativePath), target);
+}
+
+function createFixture(plan, name) {
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), `production-cutover-${name}-`));
+  for (const file of plan.files) copyFile(file.path, fixtureRoot);
+  return fixtureRoot;
+}
+
+function pointerPath(fixtureRoot, plan, component) {
+  const pointer = plan.pointers.find((entry) => entry.component === component);
+  assert.ok(pointer, `missing ${component} pointer`);
+  return path.join(fixtureRoot, pointer.path);
+}
+
+function driverEnv(fixtureRoot) {
+  return {
+    ACT_AUTHORITY_STORE_ROOT: path.join(
+      fixtureRoot,
+      'course-content/authoring/knowledge/authority',
+    ),
+    ACT_CONSUMER_ACTIVATION_ROOT: path.join(
+      fixtureRoot,
+      'course-content/runtime/knowledge/consumer-activation',
+    ),
+  };
+}
+
+function expectFailure(result, expression, message) {
+  assert.notEqual(result.status, 0, message);
+  assert.match(`${result.stdout}\n${result.stderr}`, expression, message);
+}
+
+function writeSealedCleanupPlan(planPath, transactionId, authorityFiles) {
+  const body = {
+    contract: PLAN_CONTRACT,
+    transactionId,
+    createdAt: '2026-08-11T00:00:00.000Z',
+    source: {
+      releaseTag: 'v0.4.0',
+      imageRevision: revision,
+      imageTag,
+      imageConfigDigest: `sha256:${'a'.repeat(64)}`,
+      imageTarSha256: 'b'.repeat(64),
+      captureRevision: revision,
+      toolSha256: 'c'.repeat(64),
+      deploymentScriptSha256: 'd'.repeat(64),
+      cleanupEngineSha256: sha256File(cleanupEngine),
+    },
+    authority: {
+      snapshotId: 'snap-test',
+      snapshotHash: 'e'.repeat(64),
+      releaseId: 'release-test',
+      releaseSetId: 'set-test',
+      releaseHash: 'f'.repeat(64),
+    },
+    projection: {
+      projectionId: 'proj-test',
+      projectionHash: '1'.repeat(64),
+    },
+    prerequisite: {
+      publicationId: 'pub-test',
+      publicationHash: '2'.repeat(64),
+    },
+    activation: {
+      activationId: 'act-test',
+      activationHash: '3'.repeat(64),
+      readyConsumerIds: [
+        'engineering-graph',
+        'engineering-rag',
+        'course-runtime',
+        'konling',
+        'teaching-resource-rag',
+        'learning-path',
+      ],
+    },
+    localFirstActivationReportSha256: '4'.repeat(64),
+    pointers: [
+      {
+        component: 'authority',
+        path: 'course-content/authoring/knowledge/authority/current.json',
+        id: 'snap-test',
+        hash: 'e'.repeat(64),
+        sourcePointerSha256: '5'.repeat(64),
+      },
+      {
+        component: 'projection',
+        path: 'course-content/runtime/knowledge/projection/current.json',
+        id: 'proj-test',
+        hash: '1'.repeat(64),
+        sourcePointerSha256: '6'.repeat(64),
+      },
+      {
+        component: 'prerequisite',
+        path: 'course-content/runtime/knowledge/prerequisites/current.json',
+        id: 'pub-test',
+        hash: '2'.repeat(64),
+        sourcePointerSha256: '7'.repeat(64),
+      },
+      {
+        component: 'consumer-activation',
+        path: 'course-content/runtime/knowledge/consumer-activation/current.json',
+        id: 'act-test',
+        hash: '3'.repeat(64),
+        sourcePointerSha256: '8'.repeat(64),
+      },
+    ],
+    files: authorityFiles,
+  };
+  const plan = {
+    ...body,
+    planHash: sha256Bytes(canonicalJson(body)),
+  };
+  fs.writeFileSync(planPath, `${JSON.stringify(plan, null, 2)}\n`);
+  return plan;
+}
+
+function isAppleDoubleRelativePath(relativePath) {
+  return path.posix.basename(relativePath).startsWith('._');
+}
+
+function sealedAuthorityFiles() {
+  return {
+    'releases/snap-test/manifest.json': '{"ok":true}\n',
+    'activations/failed.json': '{"failed":true}\n',
+  };
+}
+
+function failureStyleAppleDoubleFiles() {
+  return {
+    '._.': 'root-ad\n',
+    '._activations': 'act-ad\n',
+    '._releases': 'rel-ad\n',
+    'releases/._snap-test': 'snap-ad\n',
+  };
+}
+
+function materializeAuthorityTree(authorityRoot, relativeFiles) {
+  for (const [relativePath, contents] of Object.entries(relativeFiles)) {
+    const fullPath = path.join(authorityRoot, relativePath);
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    fs.writeFileSync(fullPath, contents);
+  }
+}
+
+function createAuthorityArchive(archivePath, relativeFiles) {
+  // Use Python tarfile so AppleDouble members are preserved on macOS bsdtar hosts.
+  const payload = Object.fromEntries(
+    Object.entries(relativeFiles).map(([relativePath, contents]) => [
+      relativePath,
+      Buffer.from(contents).toString('base64'),
+    ]),
+  );
+  execFileSync(
+    'python3',
+    [
+      '-c',
+      `
+import base64, io, json, tarfile, sys
+files = json.loads(sys.argv[1])
+out = sys.argv[2]
+with tarfile.open(out, "w:gz") as archive:
+    for name, b64 in sorted(files.items()):
+        raw = base64.b64decode(b64.encode("ascii"))
+        info = tarfile.TarInfo(name=name)
+        info.size = len(raw)
+        archive.addfile(info, io.BytesIO(raw))
+`,
+      JSON.stringify(payload),
+      archivePath,
+    ],
+    { encoding: 'utf8' },
+  );
+  return Object.entries(relativeFiles)
+    .filter(([relativePath]) => !isAppleDoubleRelativePath(relativePath))
+    .map(([relativePath, contents]) => ({
+      path: `${AUTHORITY_PREFIX}${relativePath}`,
+      sha256: sha256Bytes(contents),
+      size: Buffer.byteLength(contents),
+      group: 'authority',
+    }));
+}
+
+function stageCleanupTransaction(projectDir, transactionId, archiveFiles) {
+  const stage = path.join(projectDir, 'data/runtime/knowledge-cutover/staging', transactionId);
+  fs.mkdirSync(stage, { recursive: true });
+  const archivePath = path.join(stage, 'authority.tar.gz');
+  const digests = createAuthorityArchive(archivePath, archiveFiles);
+  writeSealedCleanupPlan(path.join(stage, 'plan.json'), transactionId, digests);
+  return { stage, archivePath, digests };
+}
+
+function runCleanup(projectDir, stage, transactionId) {
+  const stagedEngine = path.join(stage, 'cleanup-failed-authority-identity.cjs');
+  if (!fs.existsSync(stagedEngine)) {
+    fs.copyFileSync(cleanupEngine, stagedEngine);
+  }
+  return spawnSync(
+    'bash',
+    [
+      remoteOperator,
+      'cleanup-failed-authority',
+      projectDir,
+      stage,
+      transactionId,
+      sha256File(cleanupEngine),
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+}
+
+function prepareCleanupProject(name) {
+  const projectDir = fs.mkdtempSync(path.join(os.tmpdir(), `cleanup-authority-${name}-`));
+  const authorityRoot = path.join(projectDir, 'course-content/authoring/knowledge/authority');
+  fs.mkdirSync(authorityRoot, { recursive: true });
+  fs.mkdirSync(path.join(projectDir, 'course-content/runtime/knowledge/projection'), {
+    recursive: true,
+  });
+  fs.mkdirSync(path.join(projectDir, 'course-content/runtime/knowledge/prerequisites'), {
+    recursive: true,
+  });
+  fs.mkdirSync(path.join(projectDir, 'course-content/runtime/knowledge/consumer-activation'), {
+    recursive: true,
+  });
+  fs.mkdirSync(path.join(projectDir, 'course-content/runtime/knowledge/production-cutover-transactions'), {
+    recursive: true,
+  });
+  return { projectDir, authorityRoot };
+}
+
+function assertAuthorityPathRetained(authorityRoot, relativePath) {
+  assert.equal(
+    fs.existsSync(path.join(authorityRoot, relativePath)),
+    true,
+    `rejected cleanup must retain ${relativePath}`,
+  );
+}
+
+function assertNoSuccessReceipt(stage) {
+  assert.equal(
+    fs.existsSync(path.join(stage, 'failed-authority-cleanup.json')),
+    false,
+    'failed cleanup must not write success receipt',
+  );
+}
+
+function testCleanupFailedAuthorityGuards() {
+  const transactionId = 'production-v040-58f70df-20260811T120000Z';
+  const sealed = sealedAuthorityFiles();
+  const appleDouble = failureStyleAppleDoubleFiles();
+  const matchingTree = { ...sealed, ...appleDouble };
+
+  const operatorSource = fs.readFileSync(remoteOperator, 'utf8');
+  const engineSource = fs.readFileSync(cleanupEngine, 'utf8');
+  assert.doesNotMatch(
+    operatorSource.slice(
+      operatorSource.indexOf('run_cleanup_failed_authority()'),
+      operatorSource.indexOf('run_activate()'),
+    ),
+    /rm\s+-rf\b/u,
+    'production cleanup must not use rm -rf',
+  );
+  assert.match(
+    operatorSource,
+    /\.production-cutover-operator\.lock/u,
+    'cleanup/activate must share an independent production operator lock',
+  );
+  assert.match(
+    engineSource,
+    /fs\.unlinkSync|unlinkSync/u,
+    'cleanup must delete expected files via per-file unlink',
+  );
+  assert.match(
+    engineSource,
+    /fs\.rmdirSync|rmdirSync/u,
+    'cleanup must remove directories via reverse-depth rmdir',
+  );
+  const cleanupBody = operatorSource.slice(
+    operatorSource.indexOf('run_cleanup_failed_authority()'),
+    operatorSource.indexOf('\nrun_activate()'),
+  );
+  assert.ok(
+    cleanupBody.indexOf('lock_dir="$(acquire_production_operator_lock') <
+      cleanupBody.indexOf('for pointer in'),
+    'cleanup must acquire its exclusive lock before checking mutable transaction state',
+  );
+
+  // Counterexample: arbitrary empty stage + fake transactionId must not wipe Authority residual.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('arbitrary-stage');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const arbitraryStage = fs.mkdtempSync(path.join(os.tmpdir(), 'arbitrary-stage-'));
+      try {
+        const result = runCleanup(projectDir, arbitraryStage, transactionId);
+        expectFailure(
+          result,
+          /canonical stage path/u,
+          'cleanup must reject an arbitrary non-canonical stage path',
+        );
+        assertAuthorityPathRetained(authorityRoot, 'activations/failed.json');
+        assertAuthorityPathRetained(authorityRoot, 'releases/snap-test/manifest.json');
+      } finally {
+        fs.rmSync(arbitraryStage, { recursive: true, force: true });
+      }
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Canonical stage without sealed plan/archive must refuse cleanup.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('missing-plan');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const stage = path.join(
+        projectDir,
+        'data/runtime/knowledge-cutover/staging',
+        transactionId,
+      );
+      fs.mkdirSync(stage, { recursive: true });
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /sealed plan\.json|authority\.tar\.gz/u,
+        'cleanup must require sealed plan and archive in the canonical stage',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'activations/failed.json');
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Sealed plan for another transaction id must refuse cleanup.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('mismatched-plan');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const stage = path.join(projectDir, 'data/runtime/knowledge-cutover/staging', transactionId);
+      fs.mkdirSync(stage, { recursive: true });
+      const digests = createAuthorityArchive(path.join(stage, 'authority.tar.gz'), matchingTree);
+      writeSealedCleanupPlan(path.join(stage, 'plan.json'), 'other-transaction-id', digests);
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /transactionId mismatch|exact identity validation/u,
+        'cleanup must reject a sealed plan owned by another transaction',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'activations/failed.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Historical journals are retained with runtime releases and do not make a
+  // pre-journal Authority extraction active when every selector is absent.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('foreign-journal');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, matchingTree);
+      const journalDir = path.join(
+        projectDir,
+        'course-content/runtime/knowledge/consumer-activation/first-activation-transactions',
+      );
+      fs.mkdirSync(journalDir, { recursive: true });
+      const foreignJournal = path.join(journalDir, 'foreign-transaction.json');
+      fs.writeFileSync(foreignJournal, '{"foreign":true}\n');
+      const foreignReceipt = path.join(
+        projectDir,
+        'course-content/runtime/knowledge/production-cutover-transactions/foreign-transaction.json',
+      );
+      fs.writeFileSync(foreignReceipt, '{"foreign":true}\n');
+      const result = runCleanup(projectDir, stage, transactionId);
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(fs.readdirSync(authorityRoot).length, 0);
+      assert.equal(fs.existsSync(foreignJournal), true, 'cleanup must retain historical journal evidence');
+      assert.equal(fs.existsSync(foreignReceipt), true, 'cleanup must retain historical receipt evidence');
+      assert.equal(fs.existsSync(path.join(stage, 'failed-authority-cleanup.json')), true);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // A journal attributed to the failed transaction must still refuse cleanup.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('same-journal');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, matchingTree);
+      const journalDir = path.join(
+        projectDir,
+        'course-content/runtime/knowledge/consumer-activation/first-activation-transactions',
+      );
+      fs.mkdirSync(journalDir, { recursive: true });
+      fs.writeFileSync(path.join(journalDir, `${transactionId}.json`), '{"same":true}\n');
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /same-transaction residue/u,
+        'cleanup must refuse a journal attributed to the failed transaction',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'activations/failed.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // A receipt attributed to the failed transaction must also refuse cleanup.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('same-receipt');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, matchingTree);
+      const receipt = path.join(
+        projectDir,
+        'course-content/runtime/knowledge/production-cutover-transactions',
+        `${transactionId}.json`,
+      );
+      fs.writeFileSync(receipt, '{"same":true}\n');
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /same-transaction residue/u,
+        'cleanup must refuse a receipt attributed to the failed transaction',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'activations/failed.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Accepted review counterexample: sealed archive only has snap-test, host also has foreign nested file.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('foreign-nested');
+    try {
+      materializeAuthorityTree(authorityRoot, {
+        ...sealed,
+        'releases/foreign/manifest.json': '{"foreign":true}\n',
+      });
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, sealed);
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /unexpected path|foreign/u,
+        'cleanup must reject host foreign nested Authority content',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'releases/foreign/manifest.json');
+      assertAuthorityPathRetained(authorityRoot, 'releases/snap-test/manifest.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Archive contains extra unsealed ordinary member (not present in sealed plan).
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('archive-extra');
+    try {
+      materializeAuthorityTree(authorityRoot, sealed);
+      const stage = path.join(projectDir, 'data/runtime/knowledge-cutover/staging', transactionId);
+      fs.mkdirSync(stage, { recursive: true });
+      const sealedDigests = Object.entries(sealed).map(([relativePath, contents]) => ({
+        path: `${AUTHORITY_PREFIX}${relativePath}`,
+        sha256: sha256Bytes(contents),
+        size: Buffer.byteLength(contents),
+        group: 'authority',
+      }));
+      writeSealedCleanupPlan(path.join(stage, 'plan.json'), transactionId, sealedDigests);
+      createAuthorityArchive(path.join(stage, 'authority.tar.gz'), {
+        ...sealed,
+        'releases/extra.json': '{"extra":true}\n',
+      });
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /unsealed non-metadata regular file/u,
+        'cleanup must reject archive extra non-metadata members',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'releases/snap-test/manifest.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Archive may not carry an unsealed empty directory merely because the host has it too.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('archive-extra-directory');
+    try {
+      materializeAuthorityTree(authorityRoot, sealed);
+      fs.mkdirSync(path.join(authorityRoot, 'releases', 'foreign'), { recursive: true });
+      const stage = path.join(projectDir, 'data/runtime/knowledge-cutover/staging', transactionId);
+      fs.mkdirSync(stage, { recursive: true });
+      const archivePath = path.join(stage, 'authority.tar.gz');
+      execFileSync(
+        'python3',
+        [
+          '-c',
+          `
+import io, tarfile, sys
+out = sys.argv[1]
+with tarfile.open(out, 'w:gz') as archive:
+    for name, payload in [
+        ('releases/snap-test/manifest.json', b'{"ok":true}\\n'),
+        ('activations/failed.json', b'{"failed":true}\\n'),
+    ]:
+        info = tarfile.TarInfo(name=name)
+        info.size = len(payload)
+        archive.addfile(info, io.BytesIO(payload))
+    directory = tarfile.TarInfo(name='releases/foreign')
+    directory.type = tarfile.DIRTYPE
+    archive.addfile(directory)
+`,
+          archivePath,
+        ],
+        { encoding: 'utf8' },
+      );
+      writeSealedCleanupPlan(
+        path.join(stage, 'plan.json'),
+        transactionId,
+        Object.entries(sealed).map(([relativePath, contents]) => ({
+          path: `${AUTHORITY_PREFIX}${relativePath}`,
+          sha256: sha256Bytes(contents),
+          size: Buffer.byteLength(contents),
+          group: 'authority',
+        })),
+      );
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /unsealed directory/u,
+        'cleanup must reject archive empty directories outside the sealed Authority identity',
+      );
+      assert.equal(
+        fs.existsSync(path.join(authorityRoot, 'releases', 'foreign')),
+        true,
+        'cleanup must retain an unsealed host directory',
+      );
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Host deep extra ordinary file.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('host-deep-extra');
+    try {
+      materializeAuthorityTree(authorityRoot, {
+        ...sealed,
+        'releases/snap-test/deep/extra.json': '{"extra":true}\n',
+      });
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, sealed);
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /unexpected path/u,
+        'cleanup must reject host deep extra ordinary files',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'releases/snap-test/deep/extra.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Host extra AppleDouble not present in archive.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('host-extra-ad');
+    try {
+      materializeAuthorityTree(authorityRoot, {
+        ...sealed,
+        '._activations': 'only-on-host\n',
+      });
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, sealed);
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /unexpected path/u,
+        'cleanup must reject host extra AppleDouble files',
+      );
+      assertAuthorityPathRetained(authorityRoot, '._activations');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Host orphan metadata (AppleDouble without sealed companion/ancestor in map).
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('orphan-metadata');
+    try {
+      materializeAuthorityTree(authorityRoot, {
+        ...sealed,
+        '._orphan': 'orphan\n',
+      });
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, {
+        ...sealed,
+        '._orphan': 'orphan\n',
+      });
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /AppleDouble is not a sealed-file or sealed-ancestor companion/u,
+        'cleanup must reject orphan AppleDouble metadata',
+      );
+      assertAuthorityPathRetained(authorityRoot, '._orphan');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Host hash mismatch against archive/plan.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('hash-mismatch');
+    try {
+      materializeAuthorityTree(authorityRoot, {
+        'releases/snap-test/manifest.json': '{"ok":false,"tampered":true}\n',
+        'activations/failed.json': '{"failed":true}\n',
+      });
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, sealed);
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /hash mismatch/u,
+        'cleanup must reject host/archive hash mismatch',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'releases/snap-test/manifest.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Host symlink (platform-stable).
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('host-symlink');
+    try {
+      materializeAuthorityTree(authorityRoot, sealed);
+      fs.symlinkSync('manifest.json', path.join(authorityRoot, 'releases/snap-test/link.json'));
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, sealed);
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /symlink/u,
+        'cleanup must reject host symlinks',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'releases/snap-test/manifest.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Archive symlink member rejected by parser.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('archive-symlink');
+    try {
+      materializeAuthorityTree(authorityRoot, sealed);
+      const stage = path.join(projectDir, 'data/runtime/knowledge-cutover/staging', transactionId);
+      fs.mkdirSync(stage, { recursive: true });
+      const archivePath = path.join(stage, 'authority.tar.gz');
+      execFileSync(
+        'python3',
+        [
+          '-c',
+          `
+import io, tarfile, sys
+out = sys.argv[1]
+with tarfile.open(out, "w:gz") as archive:
+    payload = b'{"ok":true}\\n'
+    info = tarfile.TarInfo(name="releases/snap-test/manifest.json")
+    info.size = len(payload)
+    archive.addfile(info, io.BytesIO(payload))
+    payload2 = b'{"failed":true}\\n'
+    info2 = tarfile.TarInfo(name="activations/failed.json")
+    info2.size = len(payload2)
+    archive.addfile(info2, io.BytesIO(payload2))
+    link = tarfile.TarInfo(name="releases/snap-test/evil-link")
+    link.type = tarfile.SYMTYPE
+    link.linkname = "manifest.json"
+    archive.addfile(link)
+`,
+          archivePath,
+        ],
+        { encoding: 'utf8' },
+      );
+      writeSealedCleanupPlan(
+        path.join(stage, 'plan.json'),
+        transactionId,
+        Object.entries(sealed).map(([relativePath, contents]) => ({
+          path: `${AUTHORITY_PREFIX}${relativePath}`,
+          sha256: sha256Bytes(contents),
+          size: Buffer.byteLength(contents),
+          group: 'authority',
+        })),
+      );
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /symlink|hardlink|special/u,
+        'cleanup must reject archive symlink members',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'releases/snap-test/manifest.json');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Preexisting operator exclusive lock must fail closed without deletion.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('preexisting-lock');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, matchingTree);
+      const lockDir = path.join(
+        projectDir,
+        'course-content/runtime/knowledge/.production-cutover-operator.lock',
+      );
+      fs.mkdirSync(lockDir, { recursive: true });
+      fs.writeFileSync(path.join(lockDir, 'owner.pid'), '1\n');
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /operator exclusive lock unavailable/u,
+        'cleanup must fail closed when operator lock already exists',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'releases/snap-test/manifest.json');
+      assert.equal(fs.existsSync(lockDir), true, 'cleanup must not steal or rewrite preexisting lock');
+      assert.equal(fs.readFileSync(path.join(lockDir, 'owner.pid'), 'utf8'), '1\n');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // A standalone cleanup engine is atomically admitted only after its declared hash matches.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('stage-cleanup-engine');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, matchingTree);
+      const stagedEngine = path.join(stage, 'cleanup-failed-authority-identity.cjs');
+      const stagedTmp = `${stagedEngine}.tmp`;
+      fs.copyFileSync(cleanupEngine, stagedTmp);
+      const result = spawnSync(
+        'bash',
+        [
+          remoteOperator,
+          'stage-cleanup-engine',
+          projectDir,
+          stage,
+          transactionId,
+          sha256File(cleanupEngine),
+        ],
+        { cwd: root, encoding: 'utf8' },
+      );
+      assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+      assert.equal(fs.existsSync(stagedEngine), true, 'hash-checked cleanup engine must be promoted');
+      assert.equal(fs.existsSync(stagedTmp), false, 'staged cleanup engine temp must be atomically consumed');
+      assert.equal(fs.existsSync(path.join(stage, 'cleanup-engine.json')), true);
+
+      // Retrying after promotion uploads only an exact duplicate; it is safe to
+      // consume, while a mismatched temporary file remains fail-closed.
+      fs.copyFileSync(cleanupEngine, stagedTmp);
+      const retry = spawnSync(
+        'bash',
+        [
+          remoteOperator,
+          'stage-cleanup-engine',
+          projectDir,
+          stage,
+          transactionId,
+          sha256File(cleanupEngine),
+        ],
+        { cwd: root, encoding: 'utf8' },
+      );
+      assert.equal(retry.status, 0, `${retry.stdout}\n${retry.stderr}`);
+      assert.equal(fs.existsSync(stagedTmp), false, 'only a hash-verified duplicate temp may be removed');
+
+      fs.writeFileSync(stagedTmp, 'tampered\n');
+      const mismatch = spawnSync(
+        'bash',
+        [
+          remoteOperator,
+          'stage-cleanup-engine',
+          projectDir,
+          stage,
+          transactionId,
+          sha256File(cleanupEngine),
+        ],
+        { cwd: root, encoding: 'utf8' },
+      );
+      expectFailure(
+        mismatch,
+        /temporary residue hash mismatch/u,
+        'cleanup engine staging must not remove a mismatched temporary artifact',
+      );
+      assert.equal(fs.existsSync(stagedTmp), true);
+      fs.unlinkSync(stagedTmp);
+      const cleanup = runCleanup(projectDir, stage, transactionId);
+      assert.equal(cleanup.status, 0, `${cleanup.stdout}\n${cleanup.stderr}`);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Pre-extra file proves no recursive wipe and no success receipt (rmdir/foreign injection class).
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('no-recursive-wipe');
+    try {
+      materializeAuthorityTree(authorityRoot, {
+        ...matchingTree,
+        'releases/injected-after-style.json': '{"inject":true}\n',
+      });
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, matchingTree);
+      const result = runCleanup(projectDir, stage, transactionId);
+      expectFailure(
+        result,
+        /unexpected path/u,
+        'cleanup must fail closed on extra host files instead of recursively deleting them',
+      );
+      assertAuthorityPathRetained(authorityRoot, 'releases/injected-after-style.json');
+      assertAuthorityPathRetained(authorityRoot, 'releases/snap-test/manifest.json');
+      assertAuthorityPathRetained(authorityRoot, '._activations');
+      assertNoSuccessReceipt(stage);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+
+  // Happy path: exact recursive identity including real failure-style AppleDouble companions.
+  {
+    const { projectDir, authorityRoot } = prepareCleanupProject('happy-path-ad');
+    try {
+      materializeAuthorityTree(authorityRoot, matchingTree);
+      const { stage } = stageCleanupTransaction(projectDir, transactionId, matchingTree);
+      const result = runCleanup(projectDir, stage, transactionId);
+      assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+      assert.match(result.stdout, /failed_authority_cleanup=cleared/u);
+      assert.equal(fs.existsSync(path.join(authorityRoot, 'activations')), false);
+      assert.equal(fs.existsSync(path.join(authorityRoot, 'releases')), false);
+      assert.equal(fs.existsSync(path.join(authorityRoot, '._.')), false);
+      assert.equal(fs.existsSync(path.join(authorityRoot, '._activations')), false);
+      assert.equal(fs.existsSync(path.join(authorityRoot, '._releases')), false);
+      assert.equal(fs.existsSync(path.join(stage, 'failed-authority-cleanup.json')), true);
+      assert.equal(
+        fs.existsSync(
+          path.join(projectDir, 'course-content/runtime/knowledge/.production-cutover-operator.lock'),
+        ),
+        false,
+        'successful cleanup must release operator lock',
+      );
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  }
+}
+
+function testArchiveValidationOrder() {
+  const activateBody = remoteOperatorSourceSlice();
+  const validateIdx = activateBody.indexOf('validate_authority_archive_listing "${stage}/authority.tar.gz"');
+  assert.notEqual(validateIdx, -1, 'activate must call shared Authority archive validation');
+  const stopIntentIdx = activateBody.indexOf('consumer_stop_started=1\n  stop_consumers');
+  assert.notEqual(
+    stopIntentIdx,
+    -1,
+    'activate must mark consumer-stop intent before invoking stop_consumers',
+  );
+  assert.ok(
+    validateIdx < stopIntentIdx,
+    'Authority archive validation must occur before any consumer stop intent',
+  );
+  const recoveryGateIdx = activateBody.indexOf('if [ "$consumer_stop_started" -eq 1 ]; then');
+  assert.ok(
+    recoveryGateIdx >= 0 && recoveryGateIdx < validateIdx,
+    'failure recovery must gate Legacy restore on consumer_stop_started intent',
+  );
+  assert.match(
+    activateBody,
+    /podman stop -t 30 "\$container" >\/dev\/null \|\| return 1/u,
+    'stop_consumers must return non-zero on partial stop so ERR recovery can run',
+  );
+  assert.doesNotMatch(
+    activateBody.slice(activateBody.indexOf('stop_consumers()'), activateBody.indexOf('run_driver()')),
+    /\bdie\b/u,
+    'stop_consumers must not exit via die and bypass the activate ERR trap',
+  );
+
+  const harnessDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archive-validate-harness-'));
+  try {
+    const harness = path.join(harnessDir, 'validate.sh');
+    const operatorSource = fs.readFileSync(remoteOperator, 'utf8');
+    const functionStart = operatorSource.indexOf('validate_authority_archive_listing()');
+    const functionEnd = operatorSource.indexOf('\nrun_cleanup_failed_authority()');
+    assert.ok(functionStart >= 0 && functionEnd > functionStart);
+    fs.writeFileSync(
+      harness,
+      [
+        '#!/usr/bin/env bash',
+        'set -euo pipefail',
+        'die() { printf \'ERROR: %s\\n\' "$*" >&2; exit 1; }',
+        operatorSource.slice(functionStart, functionEnd).trim(),
+        'validate_authority_archive_listing "$1"',
+        '',
+      ].join('\n'),
+    );
+
+    // macOS bsdtar may hide `._*` members from `tar -tzf`, so prove the reject
+    // rule with a synthetic listing (AppleDouble) plus real archives (.DS_Store /
+    // current.json) that system tar will list on every platform.
+    const awkRule =
+      '/(^|\\/)current\\.json$/ || /(^|\\/)\\._/ || /(^|\\/)\\.DS_Store$/ || /^\\// || /(^|\\/)\\.\\.\\// { invalid = 1 } END { exit invalid }';
+    const appleDoubleListing = spawnSync(
+      'bash',
+      [
+        '-c',
+        `printf '%s\\n' 'releases/manifest.json' 'releases/._AppleDouble' | awk '${awkRule}'`,
+      ],
+      { encoding: 'utf8' },
+    );
+    assert.notEqual(
+      appleDoubleListing.status,
+      0,
+      'archive reject rule must treat nested AppleDouble paths as invalid',
+    );
+
+    for (const [label, files] of [
+      ['.DS_Store', { 'releases/manifest.json': '{"ok":true}\n', 'releases/.DS_Store': 'store\n' }],
+      ['current.json', { 'releases/manifest.json': '{"ok":true}\n', 'current.json': '{}\n' }],
+    ]) {
+      const payload = path.join(harnessDir, `payload-${label.replace(/[^a-z0-9]+/giu, '-')}`);
+      for (const [relativePath, contents] of Object.entries(files)) {
+        const fullPath = path.join(payload, relativePath);
+        fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+        fs.writeFileSync(fullPath, contents);
+      }
+      const archivePath = path.join(harnessDir, `bad-${label.replace(/[^a-z0-9]+/giu, '-')}.tar.gz`);
+      execFileSync(
+        'tar',
+        ['-C', payload, '-czf', archivePath, '.'],
+        { env: { ...process.env, COPYFILE_DISABLE: '1' } },
+      );
+      const invalid = spawnSync('bash', [harness, archivePath], { cwd: root, encoding: 'utf8' });
+      expectFailure(
+        invalid,
+        /Authority archive 包含 selector、macOS metadata 或不安全路径/u,
+        `shared archive validator must reject ${label}`,
+      );
+    }
+
+    const cleanPayload = path.join(harnessDir, 'clean-payload');
+    fs.mkdirSync(path.join(cleanPayload, 'releases'), { recursive: true });
+    fs.writeFileSync(path.join(cleanPayload, 'releases', 'manifest.json'), '{"ok":true}\n');
+    const cleanArchive = path.join(harnessDir, 'clean-authority.tar.gz');
+    execFileSync(
+      'tar',
+      ['-C', cleanPayload, '-czf', cleanArchive, '.'],
+      { env: { ...process.env, COPYFILE_DISABLE: '1' } },
+    );
+    const valid = spawnSync('bash', [harness, cleanArchive], { cwd: root, encoding: 'utf8' });
+    assert.equal(valid.status, 0, valid.stderr);
+  } finally {
+    fs.rmSync(harnessDir, { recursive: true, force: true });
+  }
+
+  testConsumerStopRecoveryIntent();
+}
+
+function testConsumerStopRecoveryIntent() {
+  const harnessDir = fs.mkdtempSync(path.join(os.tmpdir(), 'consumer-stop-intent-'));
+  try {
+    const partialStopHarness = path.join(harnessDir, 'partial-stop.sh');
+    fs.writeFileSync(
+      partialStopHarness,
+      `#!/usr/bin/env bash
+set -eEuo pipefail
+consumer_stop_started=0
+stop_calls=0
+restore_mode=""
+legacy_restore_calls=0
+
+stop_consumers() {
+  stop_calls=$((stop_calls + 1))
+  # First transactional stop partially succeeds then fails (app stopped, worker fails).
+  if [ "$stop_calls" -eq 1 ]; then
+    printf 'stopped act-obe-app\\n'
+    return 1
+  fi
+  # Recovery path finishes remaining consumers.
+  printf 'stopped remaining consumers\\n'
+  return 0
+}
+
+restore_legacy_after_failure() {
+  local status="$1"
+  trap - ERR INT TERM
+  set +e
+  if [ "$consumer_stop_started" -eq 1 ]; then
+    restore_mode="legacy"
+    stop_consumers
+    legacy_restore_calls=$((legacy_restore_calls + 1))
+    printf 'LEGACY_RESTORE_RAN stop_calls=%s\\n' "$stop_calls"
+  else
+    restore_mode="pre-stop"
+    printf 'PRE_STOP_NO_RESTORE stop_calls=%s\\n' "$stop_calls"
+  fi
+  printf 'RESTORE_STATUS=%s MODE=%s\\n' "$status" "$restore_mode"
+  exit "$status"
+}
+
+trap 'restore_legacy_after_failure $?' ERR
+
+# Pre-stop validation succeeds with zero consumer interruption.
+true
+
+consumer_stop_started=1
+stop_consumers
+printf 'UNEXPECTED_CONTINUE\\n'
+exit 0
+`,
+    );
+
+    const partial = spawnSync('bash', [partialStopHarness], { cwd: root, encoding: 'utf8' });
+    assert.notEqual(partial.status, 0, 'partial consumer stop must fail closed');
+    assert.match(
+      `${partial.stdout}\n${partial.stderr}`,
+      /LEGACY_RESTORE_RAN stop_calls=2/u,
+      'partial stop failure must enter Legacy restore and finish remaining stops',
+    );
+    assert.match(
+      `${partial.stdout}\n${partial.stderr}`,
+      /RESTORE_STATUS=1 MODE=legacy/u,
+      'partial stop failure must preserve fail-closed status while taking Legacy restore',
+    );
+    assert.doesNotMatch(
+      `${partial.stdout}\n${partial.stderr}`,
+      /UNEXPECTED_CONTINUE/u,
+      'partial stop failure must not continue the cutover path',
+    );
+
+    const preStopHarness = path.join(harnessDir, 'prestop-archive-fail.sh');
+    fs.writeFileSync(
+      preStopHarness,
+      `#!/usr/bin/env bash
+set -eEuo pipefail
+consumer_stop_started=0
+stop_calls=0
+
+stop_consumers() {
+  stop_calls=$((stop_calls + 1))
+  printf 'STOP_CALLED\\n'
+  return 0
+}
+
+restore_legacy_after_failure() {
+  local status="$1"
+  trap - ERR INT TERM
+  set +e
+  if [ "$consumer_stop_started" -eq 1 ]; then
+    stop_consumers
+    printf 'LEGACY_RESTORE_RAN\\n'
+  else
+    printf 'PRE_STOP_NO_RESTORE stop_calls=%s\\n' "$stop_calls"
+  fi
+  exit "$status"
+}
+
+trap 'restore_legacy_after_failure $?' ERR
+
+# Simulate archive validation failure before any stop intent.
+false
+
+consumer_stop_started=1
+stop_consumers
+printf 'UNEXPECTED_CONTINUE\\n'
+exit 0
+`,
+    );
+
+    const preStop = spawnSync('bash', [preStopHarness], { cwd: root, encoding: 'utf8' });
+    assert.notEqual(preStop.status, 0, 'pre-stop archive validation failure must fail closed');
+    assert.match(
+      `${preStop.stdout}\n${preStop.stderr}`,
+      /PRE_STOP_NO_RESTORE stop_calls=0/u,
+      'pre-stop validation failure must not call stop_consumers or Legacy restore',
+    );
+    assert.doesNotMatch(
+      `${preStop.stdout}\n${preStop.stderr}`,
+      /LEGACY_RESTORE_RAN|STOP_CALLED|UNEXPECTED_CONTINUE/u,
+      'pre-stop validation failure must leave running consumers untouched',
+    );
+  } finally {
+    fs.rmSync(harnessDir, { recursive: true, force: true });
+  }
+}
+
+function remoteOperatorSourceSlice() {
+  const source = fs.readFileSync(remoteOperator, 'utf8');
+  const start = source.indexOf('run_activate()');
+  const end = source.indexOf('\ncase "$action" in');
+  assert.ok(start >= 0 && end > start, 'run_activate body must be locatable');
+  return source.slice(start, end);
+}
+
+function main() {
+  assert.ok(fs.existsSync(tsx), 'tsx runtime must be available for production cutover tests');
+  assert.ok(fs.existsSync(imageTar), 'frozen v0.4.0 OCI image tar must be available');
+  const remoteActivatorSource = fs.readFileSync(remoteActivator, 'utf8');
+  const remoteOperatorSource = fs.readFileSync(remoteOperator, 'utf8');
+  const cleanupEngineSource = fs.readFileSync(cleanupEngine, 'utf8');
+  assert.match(
+    remoteActivatorSource,
+    /oci_image_config_digest\(\)[\s\S]*--image-config-digest "\$image_config_digest"/u,
+    'remote activation must derive and seal the OCI config digest from the frozen tar',
+  );
+  assert.match(
+    remoteActivatorSource,
+    /REMOTE_OPERATOR_SCRIPT=.*remote-production-cutover\.sh/u,
+    'remote activation must use the versioned remote operator transport',
+  );
+  assert.equal(
+    (remoteActivatorSource.match(/< "\$REMOTE_OPERATOR_SCRIPT"/gu) ?? []).length,
+    5,
+    'every remote preflight, cleanup staging, cleanup, normal staging, and activation step must stream the versioned operator file',
+  );
+  assert.doesNotMatch(
+    remoteActivatorSource,
+    /<<'REMOTE_(?:PREFLIGHT|STAGE|TRANSACTION)'/u,
+    'RTK 包装下的 remote operation transport must not use SSH heredocs',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /podman image inspect "\$image_tag" --format '\{\{\.Id\}\}'[\s\S]*image_config_digest/u,
+    'remote activation must compare the loaded image ID with the sealed OCI config digest',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /podman inspect "\$container" --format '\{\{\.Image\}\}'[\s\S]*OCI config digest/u,
+    'post-cutover containers must be checked against the sealed OCI config digest',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /APP_IMAGE="\$image_tag" ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover "\$deploy_script" --app-only/u,
+    'cutover deployment must pass its mode directly to the deployment command',
+  );
+  assert.doesNotMatch(
+    remoteOperatorSource,
+    /printf 'APP_IMAGE=%s\\nACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover\\n'/u,
+    'cutover must not overwrite the existing secret-bearing .env.server file',
+  );
+  assert.match(
+    remoteActivatorSource,
+    /COPYFILE_DISABLE=1 tar[\s\S]*--exclude='\._\*'/u,
+    'Authority archive creation must disable macOS metadata and exclude AppleDouble entries',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /validate_authority_archive_listing "\$\{stage\}\/authority\.tar\.gz"/u,
+    'remote activation must validate Authority archive listing before consumer stop/extraction',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /Authority archive 包含 selector、macOS metadata 或不安全路径/u,
+    'remote activation must reject selector or macOS metadata before extracting Authority artifacts',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /stage-cleanup-engine\) run_stage_cleanup_engine/u,
+    'failed Authority cleanup must stage one hash-checked standalone engine',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /cleanup-failed-authority\) run_cleanup_failed_authority/u,
+    'a failed pre-journal Authority extraction must have an identity-constrained cleanup action',
+  );
+  assert.match(
+    remoteActivatorSource,
+    /--cleanup-failed-authority.*cleanup-failed-authority-identity\.cjs\.tmp/su,
+    'the cleanup-only path must upload the standalone engine before remote cleanup',
+  );
+  assert.doesNotMatch(
+    remoteOperatorSource,
+    /cat\s+>"\$engine_path"\s+<<'NODE'/u,
+    'remote cleanup must not construct the Node engine through a large heredoc',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /data\/runtime\/knowledge-cutover\/staging\/\$\{transaction_id\}/u,
+    'cleanup must bind to the canonical staging path for the transaction id',
+  );
+  assert.match(
+    cleanupEngineSource,
+    /cleanup sealed plan transactionId mismatch|plan\.transactionId !== transactionId/u,
+    'standalone cleanup engine must close sealed plan identity with the requested transaction id',
+  );
+  for (const scriptPath of [remoteActivator, remoteOperator]) {
+    const syntax = spawnSync('bash', ['-n', scriptPath], { cwd: root, encoding: 'utf8' });
+    assert.equal(syntax.status, 0, syntax.stderr);
+  }
+  testArchiveValidationOrder();
+  testCleanupFailedAuthorityGuards();
+  const ociDigestHelper = remoteActivatorSource.slice(
+    remoteActivatorSource.indexOf('oci_image_config_digest()'),
+    remoteActivatorSource.indexOf('safe_remote_value()'),
+  );
+  assert.doesNotMatch(
+    ociDigestHelper,
+    /<<['"]?NODE/u,
+    'RTK 包装的部署脚本不得在 OCI digest command substitution 中写 Node heredoc',
+  );
+  const configDigest = imageConfigDigest(imageTar);
+  const helperResult = spawnSync(
+    'bash',
+    ['-c', `${ociDigestHelper}\noci_image_config_digest "$1"`, 'bash', imageTar],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(helperResult.status, 0, helperResult.stderr);
+  assert.equal(helperResult.stdout, configDigest, 'OCI helper must resolve the frozen image config digest');
+  const tarSha256 = sha256File(imageTar);
+  const workRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'production-cutover-plan-'));
+  try {
+    const planPath = path.join(workRoot, 'plan.json');
+    const transactionId = 'test-production-cutover';
+    const planResult = run([
+      'plan',
+      '--repo-root',
+      root,
+      '--output',
+      planPath,
+      '--transaction-id',
+      transactionId,
+      '--release-tag',
+      'v0.4.0',
+      '--image-revision',
+      revision,
+      '--image-tag',
+      imageTag,
+      '--image-config-digest',
+      configDigest,
+      '--image-tar-sha256',
+      tarSha256,
+      '--deployment-script',
+      path.join(root, 'deploy', 'podman', 'deploy.sh'),
+      '--cleanup-engine',
+      cleanupEngine,
+    ]);
+    assert.equal(planResult.status, 0, planResult.stderr);
+    const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+    assert.equal(plan.pointers.length, 4, 'plan must seal every current pointer');
+    assert.equal(plan.files.length > 0, true, 'plan must seal staged artifacts');
+    assert.equal(plan.source.imageConfigDigest, configDigest, 'plan must bind the exact OCI config digest');
+    assert.equal(plan.source.imageTarSha256, tarSha256, 'plan must bind the frozen image tar hash');
+    assert.equal(
+      plan.source.cleanupEngineSha256,
+      sha256File(cleanupEngine),
+      'plan must bind the standalone failed Authority cleanup engine',
+    );
+
+    const driftFixture = createFixture(plan, 'drift');
+    try {
+      const drifted = plan.files.find((file) => file.group === 'authority');
+      assert.ok(drifted, 'plan must seal an Authority artifact');
+      fs.appendFileSync(path.join(driftFixture, drifted.path), '\n');
+      const result = run(
+        ['activate', '--root', driftFixture, '--plan', planPath],
+        driverEnv(driftFixture),
+      );
+      expectFailure(result, /sealed artifact hash mismatch/u, 'artifact drift must fail before activation');
+      for (const pointer of plan.pointers) {
+        assert.equal(fs.existsSync(path.join(driftFixture, pointer.path)), false);
+      }
+    } finally {
+      fs.rmSync(driftFixture, { recursive: true, force: true });
+    }
+
+    const nonAbsentFixture = createFixture(plan, 'non-absent');
+    try {
+      const authorityPointer = pointerPath(nonAbsentFixture, plan, 'authority');
+      fs.mkdirSync(path.dirname(authorityPointer), { recursive: true });
+      fs.writeFileSync(authorityPointer, '{}\n');
+      const result = run(
+        ['activate', '--root', nonAbsentFixture, '--plan', planPath],
+        driverEnv(nonAbsentFixture),
+      );
+      expectFailure(
+        result,
+        /first activation requires absent pointer: authority/u,
+        'one present pointer must reject first activation',
+      );
+      assert.equal(
+        fs.existsSync(
+          path.join(
+            nonAbsentFixture,
+            'course-content/runtime/knowledge/production-cutover-transactions',
+          ),
+        ),
+        false,
+        'all-ABSENT rejection must occur before the production receipt is created',
+      );
+    } finally {
+      fs.rmSync(nonAbsentFixture, { recursive: true, force: true });
+    }
+
+    const activeFixture = createFixture(plan, 'active');
+    try {
+      const env = driverEnv(activeFixture);
+      const activation = run(
+        ['activate', '--root', activeFixture, '--plan', planPath],
+        env,
+      );
+      assert.equal(activation.status, 0, activation.stderr);
+      const journalPath = path.join(
+        activeFixture,
+        'course-content/runtime/knowledge/consumer-activation/first-activation-transactions',
+        `${transactionId}.json`,
+      );
+      const journal = JSON.parse(fs.readFileSync(journalPath, 'utf8'));
+      assert.deepEqual(
+        journal.steps.map((step) => step.component),
+        ['authority', 'projection', 'prerequisite', 'consumer-activation'],
+        'production activation must retain consumer-last order',
+      );
+      assert.deepEqual(
+        journal.steps.map((step) => step.status),
+        ['APPLIED', 'APPLIED', 'APPLIED', 'APPLIED'],
+      );
+      for (const pointer of plan.pointers) {
+        assert.equal(fs.existsSync(path.join(activeFixture, pointer.path)), true);
+      }
+
+      const verified = run(
+        ['verify', '--root', activeFixture, '--plan', planPath],
+        env,
+      );
+      assert.equal(verified.status, 0, verified.stderr);
+
+      const markerPath = path.join(
+        activeFixture,
+        'course-content/runtime/knowledge/production-cutover-transactions/current.json',
+      );
+      const marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
+      marker.transactionId = 'foreign-production-cutover';
+      fs.writeFileSync(markerPath, `${JSON.stringify(marker)}\n`);
+      const markerDriftRollback = run(
+        ['rollback', '--root', activeFixture, '--plan', planPath],
+        env,
+      );
+      expectFailure(
+        markerDriftRollback,
+        /production cutover marker mismatch/u,
+        'rollback must validate marker ownership before mutating any selector',
+      );
+      for (const pointer of plan.pointers) {
+        assert.equal(
+          fs.existsSync(path.join(activeFixture, pointer.path)),
+          true,
+          'foreign marker must retain every selected pointer',
+        );
+      }
+      marker.transactionId = transactionId;
+      fs.writeFileSync(markerPath, `${JSON.stringify(marker)}\n`);
+
+      const consumerPointer = pointerPath(activeFixture, plan, 'consumer-activation');
+      const forgedPointer = JSON.parse(fs.readFileSync(consumerPointer, 'utf8'));
+      forgedPointer.activationId = 'foreign-activation';
+      forgedPointer.activationHash = '0'.repeat(64);
+      fs.writeFileSync(consumerPointer, `${JSON.stringify(forgedPointer)}\n`);
+      const rollback = run(
+        ['rollback', '--root', activeFixture, '--plan', planPath],
+        env,
+      );
+      expectFailure(
+        rollback,
+        /rollback drift at consumer-activation/u,
+        'rollback must not delete a pointer that belongs to another activation',
+      );
+      assert.equal(
+        fs.existsSync(markerPath),
+        true,
+        'failed identity-constrained rollback must retain the production marker',
+      );
+    } finally {
+      fs.rmSync(activeFixture, { recursive: true, force: true });
+    }
+
+    process.stdout.write('production knowledge cutover transaction tests passed\n');
+  } finally {
+    fs.rmSync(workRoot, { recursive: true, force: true });
+  }
+}
+
+main();

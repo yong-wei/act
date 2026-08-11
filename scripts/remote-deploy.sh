@@ -16,6 +16,7 @@ LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
 REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
 REMOTE_RUNTIME_PARENT_DIR="$(dirname "${REMOTE_RUNTIME_DIR}")"
 REMOTE_AUTHORITY_CURRENT_POINTER="${REMOTE_AUTHORITY_CURRENT_POINTER:-${REMOTE_PROJECT_DIR}/course-content/authoring/knowledge/authority/current.json}"
+REMOTE_PRODUCTION_CUTOVER_MARKER="${REMOTE_PRODUCTION_CUTOVER_MARKER:-${REMOTE_RUNTIME_DIR}/knowledge/production-cutover-transactions/current.json}"
 LOCAL_TEXTBOOK_V2_RUNTIME_DIR="${LOCAL_RUNTIME_DIR}/resources/textbooks-v2"
 REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
 LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-retrieval"
@@ -174,6 +175,19 @@ if [ -e \"\${pointer}\" ] || [ -L \"\${pointer}\" ]; then
   exit 1
 fi
 '"
+}
+
+guard_no_committed_production_cutover() {
+  if ! remote "bash -lc '
+set -euo pipefail
+marker=\"${REMOTE_PRODUCTION_CUTOVER_MARKER}\"
+if [ -e \"\${marker}\" ] || [ -L \"\${marker}\" ]; then
+  echo \"ERROR: committed production knowledge cutover marker is present: \${marker}\" >&2
+  exit 1
+fi
+'"; then
+    fail "检测到已提交的生产图谱切换；普通 Legacy 部署会删除 selector，必须使用切换感知的发布流程或先执行显式回滚"
+  fi
 }
 
 check_container_textbook_v2_files() {
@@ -440,6 +454,11 @@ node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
 LOCAL_SHA="$(local_sha256 "${LOCAL_IMAGE_TAR}")"
 log "本地镜像: ${LOCAL_IMAGE_TAR}"
 log "本地 SHA256: ${LOCAL_SHA}"
+
+# This command deliberately removes activation pointers from runtime syncs.
+# A committed production cutover must stop here, before it opens any remote
+# staging directory or stops an active graph consumer.
+guard_no_committed_production_cutover
 
 log
 log "[2/5] 同步运行时资源与部署脚本"

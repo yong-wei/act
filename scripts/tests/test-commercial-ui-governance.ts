@@ -3071,6 +3071,129 @@ const INTERACTIVE_VISUAL_COMPONENT_SOURCE_PATTERNS = [
   /^src\/resources\/control-system\/analysis\//,
 ] as const;
 
+const PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS: Readonly<Record<string, readonly string[]>> = {
+  'src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx': [
+    '-layeredGraphPayload?: LayeredGraphPayload | null;',
+    '+layeredGraphPayload: LayeredGraphPayload;',
+  ],
+  'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx': [
+    '-layeredGraphPayload?: LayeredGraphPayload | null;',
+    '+layeredGraphPayload: LayeredGraphPayload;',
+  ],
+};
+
+function normalizeBoundaryDiffLine(line: string) {
+  return `${line[0] ?? ''}${line.slice(1).trim()}`;
+}
+
+function matchesPureClientBoundaryRefactorDiff(file: string, changedLines: readonly string[]) {
+  const expected = PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS[file];
+  if (!expected) return false;
+  const actual = changedLines
+    .filter((line) => /^[+-]/.test(line) && !line.startsWith('+++') && !line.startsWith('---'))
+    .map(normalizeBoundaryDiffLine)
+    .sort();
+  return actual.length === expected.length
+    && actual.every((line, index) => line === [...expected].sort()[index]);
+}
+
+function isPureClientBoundaryRefactorFile(file: string, files: readonly string[]) {
+  if (!Object.hasOwn(PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS, file) || !files.includes(file)) return false;
+  return matchesPureClientBoundaryRefactorDiff(file, diffForFile(file).split('\n'));
+}
+
+function shouldRefreshInteractiveLearningProductQaSource(files: readonly string[]) {
+  return files.some((file) => (
+    INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
+    && !isPureClientBoundaryRefactorFile(file, files)
+  ));
+}
+
+function assertPureClientBoundaryRefactorGuard(files?: readonly string[]) {
+  const studentFile = 'src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx';
+  const teacherFile = 'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx';
+  const allowedStudentDiff = PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS[studentFile];
+  const allowedTeacherDiff = PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS[teacherFile];
+  for (const [file, allowedDiff] of [
+    [studentFile, allowedStudentDiff],
+    [teacherFile, allowedTeacherDiff],
+  ] as const) {
+    assert.equal(
+      matchesPureClientBoundaryRefactorDiff(file, allowedDiff ?? []),
+      true,
+      `${file} pure client-boundary regression fixture must remain recognized`,
+    );
+  }
+  assert.equal(
+    matchesPureClientBoundaryRefactorDiff(studentFile, [...(allowedStudentDiff ?? []), '+return <div />;']),
+    false,
+    'client-boundary exemption must reject JSX/rendering changes',
+  );
+  assert.equal(
+    matchesPureClientBoundaryRefactorDiff(studentFile, [
+      ...(allowedStudentDiff ?? []),
+      '+const changed = resolveCoursePageLayeredDrawerEntries();',
+    ]),
+    false,
+    'client-boundary exemption must reject logic changes',
+  );
+  assert.equal(
+    matchesPureClientBoundaryRefactorDiff('src/features/interactive/shared/step-knowledge-drawer.tsx', allowedStudentDiff ?? []),
+    false,
+    'deleted client boundary module must not remain an exemption fixture',
+  );
+  assert.equal(
+    matchesPureClientBoundaryRefactorDiff('src/features/interactive/unit-1-1-see-the-full-picture/step-panels.tsx', allowedStudentDiff ?? []),
+    false,
+    'payload-shape exemption must remain scoped to the student and teacher entry pages',
+  );
+  assert.equal(
+    shouldRefreshInteractiveLearningProductQaSource(['src/features/interactive/shared/step-knowledge-drawer.tsx']),
+    true,
+    'other interactive files must continue to refresh Product QA source evidence',
+  );
+  assert.equal(
+    shouldRequireInteractiveLearningProductQa(['scripts/tests/test-commercial-ui-governance.ts']),
+    true,
+    'changing the governance script must continue to require existing Product QA evidence',
+  );
+  if (files) {
+    const currentBoundaryFiles = Object.keys(PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS)
+      .filter((file) => files.includes(file));
+    if (currentBoundaryFiles.length > 0) {
+      assert.equal(
+        currentBoundaryFiles.every((file) => isPureClientBoundaryRefactorFile(file, files)),
+        true,
+        'current client-boundary files must match the exact exemption diff',
+      );
+      assert.equal(
+        shouldRequireInteractiveVisualComponentArtifacts(currentBoundaryFiles),
+        false,
+        'pure client-boundary files must not require visual component artifacts',
+      );
+      assert.equal(
+        shouldRefreshInteractiveLearningProductQaSource(currentBoundaryFiles),
+        false,
+        'pure client-boundary files must not refresh Product QA source evidence',
+      );
+      const mixedFiles = [
+        ...currentBoundaryFiles,
+        'src/features/interactive/unit-1-1-see-the-full-picture/step-panels.tsx',
+      ];
+      assert.equal(
+        shouldRefreshInteractiveLearningProductQaSource(mixedFiles),
+        true,
+        'adding another interactive source file must restore Product QA source refresh',
+      );
+      assert.equal(
+        shouldRequireInteractiveVisualComponentArtifacts(mixedFiles),
+        true,
+        'adding another interactive source file must restore visual artifact requirements',
+      );
+    }
+  }
+}
+
 const CLASSROOM_LIFECYCLE_ONLY_TEACHER_PAGE_PATTERN =
   /^src\/features\/interactive\/unit-[^/]+\/teacher-page\.tsx$/;
 
@@ -3097,6 +3220,7 @@ function shouldRequireInteractiveVisualComponentArtifacts(files: readonly string
   return files.some((file) => (
     INTERACTIVE_VISUAL_COMPONENT_SOURCE_PATTERNS.some((pattern) => pattern.test(file))
     && !isClassroomLifecycleOnlyTeacherPageDiff(file)
+    && !isPureClientBoundaryRefactorFile(file, files)
   ));
 }
 
@@ -3210,6 +3334,7 @@ function readInteractiveVisualComponentAcceptanceArtifacts(
 
 function runCommercialUiGovernanceScript() {
   const files = changedFiles();
+  assertPureClientBoundaryRefactorGuard(files);
   const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
   const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
   const visualEvidence = readVisualEvidenceManifest();
@@ -3334,9 +3459,7 @@ const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVi
     || simulationSharedDetailRouteAffected(route.href, files)
   ));
 const interactiveLearningProductQaRequired = shouldRequireInteractiveLearningProductQa(files);
-const interactiveLearningProductQaSourceRefreshRequired = files.some((file) => (
-  INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
-));
+const interactiveLearningProductQaSourceRefreshRequired = shouldRefreshInteractiveLearningProductQaSource(files);
 const interactiveLearningProductQaEvidenceRefreshed = interactiveLearningProductQaEvidenceCoversLatestSource(files);
 const adaptivePathProductQaRequired = shouldRequireAdaptivePathProductQa(files);
 const adaptivePathProductQaSourceRefreshRequired = files.some(adaptivePathSourceFileChanged);
