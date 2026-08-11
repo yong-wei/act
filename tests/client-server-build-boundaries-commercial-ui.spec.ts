@@ -1,8 +1,8 @@
 import 'dotenv/config';
 
 import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
@@ -74,7 +74,22 @@ const expectedScreenshotFiles = viewports.flatMap((viewport) => routes.map((rout
   'openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui',
   `${route.name}-${viewport.name}.png`,
 )));
-const screenshots: Array<Record<string, unknown>> = [];
+type SourceSnapshot = {
+  revision: string;
+  hashes: Record<string, string>;
+};
+type CapturedScreenshot = {
+  route: string;
+  viewport: string;
+  width: number;
+  height: number;
+  file: string;
+  sha256: string;
+  noHorizontalOverflow: boolean;
+  image: Buffer;
+};
+
+const screenshots: CapturedScreenshot[] = [];
 const assertions: Array<Record<string, unknown>> = [];
 
 function sha256(value: Buffer): string {
@@ -83,6 +98,10 @@ function sha256(value: Buffer): string {
 
 function sourceHash(file: string): string {
   return sha256(readFileSync(path.resolve(process.cwd(), file)));
+}
+
+function sourceHashAtRevision(revision: string, file: string): string {
+  return sha256(execFileSync('git', ['show', `${revision}:${file}`]));
 }
 
 function currentHead(): string {
@@ -97,6 +116,39 @@ function hasWorkingTreeSourceDrift(): boolean {
     return true;
   }
 }
+
+function captureSourceSnapshot(): SourceSnapshot {
+  if (hasWorkingTreeSourceDrift()) {
+    throw new Error('Commercial UI evidence capture requires clean tracked sources.');
+  }
+  const revision = currentHead();
+  const hashes = Object.fromEntries(trackedSourceFiles.map((file) => [file, sourceHash(file)]));
+  for (const file of trackedSourceFiles) {
+    if (sourceHashAtRevision(revision, file) !== hashes[file]) {
+      throw new Error(`Commercial UI evidence capture source drift: ${file}`);
+    }
+  }
+  return { revision, hashes };
+}
+
+function assertCaptureSourceSnapshot(snapshot: SourceSnapshot) {
+  if (currentHead() !== snapshot.revision) {
+    throw new Error('Commercial UI evidence capture HEAD changed.');
+  }
+  if (hasWorkingTreeSourceDrift()) {
+    throw new Error('Commercial UI evidence capture tracked sources changed.');
+  }
+  for (const file of trackedSourceFiles) {
+    if (sourceHash(file) !== snapshot.hashes[file]) {
+      throw new Error(`Commercial UI evidence capture content changed: ${file}`);
+    }
+    if (sourceHashAtRevision(snapshot.revision, file) !== snapshot.hashes[file]) {
+      throw new Error(`Commercial UI evidence capture revision mismatch: ${file}`);
+    }
+  }
+}
+
+const captureSource = updateEvidence ? captureSourceSnapshot() : null;
 
 async function addSession(context: BrowserContext, role: 'STUDENT' | 'TEACHER') {
   const token = await encode({
@@ -222,7 +274,6 @@ for (const viewport of viewports) {
       await assertNoHorizontalOverflow(page);
       const file = path.join(evidenceDir, `${route.name}-${viewport.name}.png`);
       const image = await page.screenshot({
-        path: updateEvidence ? file : undefined,
         fullPage: false,
         animations: 'disabled',
       });
@@ -243,6 +294,7 @@ for (const viewport of viewports) {
           file: path.relative(process.cwd(), file).replaceAll('\\', '/'),
           sha256: sha256(image),
           noHorizontalOverflow: true,
+          image,
         });
       }
     });
@@ -253,18 +305,38 @@ test.afterAll(() => {
   if (!updateEvidence) return;
   expect(assertions).toHaveLength(viewports.length * routes.length);
   expect(screenshots).toHaveLength(viewports.length * routes.length);
+  expect(captureSource).not.toBeNull();
+  assertCaptureSourceSnapshot(captureSource!);
   mkdirSync(evidenceDir, { recursive: true });
-  const sourceRevision = currentHead();
-  writeFileSync(manifestPath, `${JSON.stringify({
+  const manifest = `${JSON.stringify({
     schemaVersion: 'commercial-ui-evidence.v1',
     capturedAt: new Date().toISOString(),
-    sourceRevision,
-    generator: { file: generatorFile, sha256: sourceHash(generatorFile) },
+    sourceRevision: captureSource!.revision,
+    generator: { file: generatorFile, sha256: captureSource!.hashes[generatorFile] },
     productionSourceSha256: Object.fromEntries(
-      productionSourceFiles.map((file) => [file, sourceHash(file)]),
+      productionSourceFiles.map((file) => [file, captureSource!.hashes[file]]),
     ),
     routes: routes.map((route) => route.href),
     assertions,
-    screenshots,
-  }, null, 2)}\n`, 'utf8');
+    screenshots: screenshots.map(({ image: _image, ...screenshot }) => screenshot),
+  }, null, 2)}\n`;
+  const temporaryFiles = new Map<string, string>();
+  try {
+    for (const screenshot of screenshots) {
+      const target = path.resolve(process.cwd(), screenshot.file);
+      const temporary = `${target}.${randomUUID()}.tmp`;
+      writeFileSync(temporary, screenshot.image);
+      temporaryFiles.set(target, temporary);
+    }
+    const temporaryManifest = `${manifestPath}.${randomUUID()}.tmp`;
+    writeFileSync(temporaryManifest, manifest, 'utf8');
+    temporaryFiles.set(manifestPath, temporaryManifest);
+    assertCaptureSourceSnapshot(captureSource!);
+    for (const [target, temporary] of temporaryFiles) renameSync(temporary, target);
+    assertCaptureSourceSnapshot(captureSource!);
+  } finally {
+    for (const temporary of temporaryFiles.values()) {
+      if (existsSync(temporary)) unlinkSync(temporary);
+    }
+  }
 });
