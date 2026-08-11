@@ -1,8 +1,10 @@
 # Base image
 FROM node:20-alpine AS base
 ARG APK_MIRROR=https://mirrors.aliyun.com/alpine
+COPY scripts/math-calc/requirements.txt /tmp/math-calc-requirements.txt
 RUN sed -i "s|https://dl-cdn.alpinelinux.org/alpine|${APK_MIRROR}|g" /etc/apk/repositories \
-  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip
+  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip \
+  && pip install --no-cache-dir --break-system-packages -r /tmp/math-calc-requirements.txt
 
 # Dependencies stage
 FROM base AS deps
@@ -60,6 +62,11 @@ ARG NODE_MAX_OLD_SPACE_SIZE=12288
 RUN apk add --no-cache python3
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Ensure Authority / Teaching Projection store roots exist for runner packaging
+# even when the build context has not activated a gate output yet (#1274).
+RUN mkdir -p \
+  course-content/authoring/knowledge/authority \
+  course-content/runtime/knowledge/projection
 RUN case "${APP_REVISION}" in \
     [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;; \
     *) echo "APP_REVISION must be one 40-character lowercase Git commit" >&2; exit 1 ;; \
@@ -118,10 +125,30 @@ COPY --from=builder /app/scripts/knowledge ./scripts/knowledge
 COPY --from=builder /app/scripts/assignments ./scripts/assignments
 COPY --from=builder /app/scripts/lib ./scripts/lib
 COPY --from=builder /app/scripts/workers ./scripts/workers
+COPY --from=builder /app/scripts/math-calc ./scripts/math-calc
 COPY --from=builder /app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases
 COPY --from=builder /app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage
 COPY --from=builder /app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl
+# Authority + Teaching Projection stores selected by activation gate (#1274).
+# Builder materializes these directories (empty scaffold when no activation
+# output is present) so COPY is stable; production mounts via
+# ACT_AUTHORITY_STORE_ROOT / ACT_TEACHING_PROJECTION_STORE_ROOT or build-time
+# packaging of current.json + releases make Konling teaching context reachable.
+COPY --from=builder /app/course-content/authoring/knowledge/authority ./course-content/authoring/knowledge/authority
+COPY --from=builder /app/course-content/runtime/knowledge/projection ./course-content/runtime/knowledge/projection
+# Production keeps candidate releases/receipts but never packages an authority
+# or teaching-projection current pointer without an explicit production cutover.
+RUN rm -f \
+  course-content/authoring/knowledge/authority/current.json \
+  course-content/runtime/knowledge/projection/current.json
 COPY --from=builder /app/.app-revision ./.app-revision
+
+# 验证生产镜像内的 SymPy 与 LaTeX parser 依赖，并运行真实计算烟测。
+RUN python3 -c 'import json, subprocess; result = subprocess.run(["python3", "scripts/math-calc/calc.py"], input=json.dumps({"expression": r"\frac{1}{s}", "operation": "simplify"}), text=True, capture_output=True, check=True); payload = json.loads(result.stdout); assert payload["status"] == "ok", payload; assert payload["steps"][0]["operation"] == "identify", payload'
+
+# 验证公式推导脚本与 LaTeX 解析依赖在生产镜像内可执行。
+RUN python3 -m py_compile scripts/math-calc/calc.py \
+  && python3 -c "import sympy; assert sympy.__version__ == '1.13.3', sympy.__version__; from sympy.parsing.latex import parse_latex; assert str(parse_latex(r'\\frac{1}{s}')) == '1/s'"
 
 # Set the correct permission for prerender cache
 RUN mkdir .next

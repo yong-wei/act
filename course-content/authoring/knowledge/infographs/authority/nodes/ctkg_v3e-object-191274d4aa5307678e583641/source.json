@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-191274d4aa5307678e583641",
+  "safe_id": "ctkg_v3e-object-191274d4aa5307678e583641",
+  "node": {
+    "name": "Bode plots (logarithmic plots)",
+    "name_en": "Bode plots (logarithmic plots)",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Bode plots (logarithmic plots)：Bode plots (logarithmic plots)",
+  "intuition": null,
+  "explanation": "Bode plots (logarithmic plots)",
+  "relation_head": "前置 → Bode diagram · 后续 → Bode diagram",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Bode diagram",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Bode diagram",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "Bode diagram",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Bode plots …",
+    "关联·Bode d…"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-191274d4aa5307678e583641.md",
+  "provider_policy": "grok-image_gen"
+}

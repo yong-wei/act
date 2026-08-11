@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-8e2d1a59b0583cad1108b4b6",
+  "safe_id": "ctkg_v3e-object-8e2d1a59b0583cad1108b4b6",
+  "node": {
+    "name": "幂级数法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "通过对z变换函数E(z)直接作综合除法，得到按z^{-1}升幂排列的幂级数展开式，从而得到采样脉冲序列的脉冲强度。",
+  "intuition": "在图谱邻接中可把握：后续 → 反演积分法。",
+  "explanation": "通过对z变换函数E(z)直接作综合除法，得到按z^{-1}升幂排列的幂级数展开式，从而得到采样脉冲序列的脉冲强度。",
+  "relation_head": "后续 → 反演积分法",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "反演积分法",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "幂级数法",
+    "关联·反演积分法"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8e2d1a59b0583cad1108b4b6.md",
+  "provider_policy": "grok-image_gen"
+}

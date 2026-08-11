@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-9acaab765d45527c6988c564",
+  "safe_id": "ctkg_v3e-object-9acaab765d45527c6988c564",
+  "node": {
+    "name": "polar plot",
+    "name_en": "polar plot",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "polar plot：A graphical representation of the frequency response of a system using the real and imaginary parts of G(jω) as coordin…",
+  "intuition": "在图谱邻接中可把握：前置 → Graphical evalua、Frequency response。",
+  "explanation": "A graphical representation of the frequency response of a system using the real and imaginary parts of G(jω) as coordinates.",
+  "relation_head": "前置 → Graphical evalua、Frequency response",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Graphical evalua",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Frequency response",
+      "relation": "有表示"
+    }
+  ],
+  "labels": [
+    "polar plot",
+    "用于分析·Grap…",
+    "有表示·Frequ…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-9acaab765d45527c6988c564.md",
+  "provider_policy": "grok-image_gen"
+}

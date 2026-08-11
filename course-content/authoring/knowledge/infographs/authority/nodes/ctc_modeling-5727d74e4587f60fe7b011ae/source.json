@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-5727d74e4587f60fe7b011ae",
+  "safe_id": "ctc_modeling-5727d74e4587f60fe7b011ae",
+  "node": {
+    "name": "二阶微分方程",
+    "name_en": "modeling_5727d74e4587f60fe7b011ae",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "不同类型的元件或系统可具有形式相同的数学模型，例如RLC无源网络和弹簧-质量-阻尼器机械系统均是二阶微分方程。",
+  "intuition": null,
+  "explanation": "不同类型的元件或系统可具有形式相同的数学模型，例如RLC无源网络和弹簧-质量-阻尼器机械系统均是二阶微分方程。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "二阶微分方程"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-5727d74e4587f60fe7b011ae.md",
+  "provider_policy": "grok-image_gen"
+}

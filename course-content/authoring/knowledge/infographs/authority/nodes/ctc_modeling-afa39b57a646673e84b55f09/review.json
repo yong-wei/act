@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:58:57+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-afa39b57a646673e84b55f09",
+  "safe_id": "ctc_modeling-afa39b57a646673e84b55f09",
+  "node_name": "在电位器输出端接有负载时所产生…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch12 A accept"
+}

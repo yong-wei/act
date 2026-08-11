@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-2d0a8b878047bb6a5effc783",
+  "safe_id": "ctc_v11g-2d0a8b878047bb6a5effc783",
+  "node": {
+    "name": "在绘制参数根轨迹之前引入的概念",
+    "name_en": "equivalent_unity_feedback_system",
+    "concept_kind": "system_kind",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "在绘制参数根轨迹之前引入的概念，使得常规根轨迹的所有绘制法则均适用于参数根轨迹的绘制。",
+  "intuition": "在图谱邻接中可把握：后续 → 参数根轨迹、等效开环传递函数。",
+  "explanation": "在绘制参数根轨迹之前引入的概念，使得常规根轨迹的所有绘制法则均适用于参数根轨迹的绘制。",
+  "relation_head": "后续 → 参数根轨迹、等效开环传递函数",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "参数根轨迹",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "等效开环传递函数",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "在绘制参数根轨迹之前引…",
+    "关联·参数根轨迹",
+    "关联·等效开环传递…"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-2d0a8b878047bb6a5effc783.md",
+  "provider_policy": "grok-image_gen"
+}

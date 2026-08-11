@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-3584625f5f11346155d538d3",
+  "safe_id": "ctkg_v3e-object-3584625f5f11346155d538d3",
+  "node": {
+    "name": "平衡状态稳定性",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "系统在平衡工作点处，当输入信号为零时输出信号亦为零，在扰动作用下偏离平衡点后，系统输出量增量随时间变化趋于原平衡点的性质。",
+  "intuition": "对于线性系统，运动稳定性与平衡状态稳定性等价。",
+  "explanation": "系统在平衡工作点处，当输入信号为零时输出信号亦为零，在扰动作用下偏离平衡点后，系统输出量增量随时间变化趋于原平衡点的性质。对于线性系统，运动稳定性与平衡状态稳定性等价。",
+  "relation_head": "后续 → 稳定性、运动稳定性",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "稳定性",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "运动稳定性",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "平衡状态稳定性",
+    "是一种·稳定性",
+    "关联·运动稳定性"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3584625f5f11346155d538d3.md",
+  "provider_policy": "grok-image_gen"
+}

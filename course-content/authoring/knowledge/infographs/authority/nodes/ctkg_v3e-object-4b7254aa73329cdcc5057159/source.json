@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-4b7254aa73329cdcc5057159",
+  "safe_id": "ctkg_v3e-object-4b7254aa73329cdcc5057159",
+  "node": {
+    "name": "Separation principle",
+    "name_en": "Separation principle",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Separation principle：The principle that the full-state feedback law and the observer can be designed independently",
+  "intuition": "在图谱邻接中可把握：后续 → Full-state feedback design procedure。",
+  "explanation": "The principle that the full-state feedback law and the observer can be designed independently; the combined closed-loop system is stable if both the state feedback and observer error dynamics are stable.",
+  "relation_head": "后续 → Full-state feedback design procedure",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Full-state feedback design procedure",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Separation …",
+    "Separation p",
+    "关联·Full-s…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-4b7254aa73329cdcc5057159.md",
+  "provider_policy": "grok-image_gen"
+}

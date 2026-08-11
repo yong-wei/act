@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-ac356855cd7f28c6cbacea72",
+  "safe_id": "ctkg_v3e-object-ac356855cd7f28c6cbacea72",
+  "node": {
+    "name": "Signal-flow graph state model",
+    "name_en": "Signal-flow graph state model",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Signal-flow graph state model：A graphical representation of the state model that includes initial conditions of each state variable at the output of…",
+  "intuition": "在图谱邻接中可把握：后续 → State transition。",
+  "explanation": "A graphical representation of the state model that includes initial conditions of each state variable at the output of each integrator, used to evaluate the state transition matrix via Mason's gain formula.",
+  "relation_head": "后续 → State transition",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "State transition",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Signal-flow…",
+    "用于分析·Stat…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ac356855cd7f28c6cbacea72.md",
+  "provider_policy": "grok-image_gen"
+}

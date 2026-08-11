@@ -4657,7 +4657,13 @@ describe('commercial UI governance', () => {
     expect(pageSource).toContain("label: '控灵助手'");
     expect(pageSource).toContain('路径管理');
     expect(pageSource).toContain('openAndScrollPathModule(pathManagementTargetModuleId)');
-    const studentVisibleSource = pageSource.replaceAll('data-learner-record-missing-source', '');
+    const internalPathOptionVersionKey = pageSource.match(
+      /const pathOptionVersionKey = useMemo\(\(\) => \[[\s\S]*?\n  \]\.join\('\|',?\)?,?\s*\[[^\n]*\]\);/,
+    )?.[0] ?? null;
+    expect(internalPathOptionVersionKey).not.toBeNull();
+    const studentVisibleSource = pageSource
+      .replaceAll('data-learner-record-missing-source', '')
+      .replace(internalPathOptionVersionKey ?? '', '');
     expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|no-path|low-evidence/);
   });
 

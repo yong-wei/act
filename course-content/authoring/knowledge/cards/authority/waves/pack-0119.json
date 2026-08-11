@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0119",
+  "offset": 595,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-b78ed64321ecf6db80e791bc",
+      "batch": "B",
+      "name": "两相伺服电动机堵转转矩Ms",
+      "definition": "两相伺服电动机堵转转矩Ms，可由Ms=Cm ua确定，其中Cm可用额定电压时的堵转转矩确定。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "两相伺服电动机堵转转矩…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 两相伺服电动机堵转转矩Ms\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 两相伺服电动机堵转转矩Ms，可由Ms=Cm ua确定，其中Cm可用额定电压时的堵转转矩确定。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「两相伺服电动机堵转转」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-cd450f490c2d0e12795560a9",
+      "batch": "B",
+      "name": "K1",
+      "definition": "电位器电刷单位角位移对应的输出电压，记为K1，等于电源电压E与最大工作角度θ_max的比值。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: K1\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 电位器电刷单位角位移对应的输出电压，记为K1，等于电源电压E与最大工作角度θ_max的比值。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「K1」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-d558fb5e651ada9ab0cf60e9",
+      "batch": "B",
+      "name": "离散化系统中用于描述状态转移的…",
+      "definition": "离散化系统中用于描述状态转移的矩阵，记为 Φ(k)，满足 x(k) = Φ(k) x(0)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散化系统中用于描述状…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 离散化系统中用于描述状态转移的…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 离散化系统中用于描述状态转移的矩阵，记为 Φ(k)，满足 x(k) = Φ(k) x(0)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「离散化系统中用于描述」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-b79da91dde120d5d6d3721cd",
+      "batch": "B",
+      "name": "zeros of l s",
+      "definition": "zeros of l s：The roots of b(s)=0, labeled z_i.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "zeros of l s",
+        "是一种·零点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: zeros of l s\nSOURCE DEFINITION (fail-closed, do not invent beyond this): zeros of l s：The roots of b(s)=0, labeled z_i.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「zeros of l」、「是一种·零点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-bd59ac156c37a1e319ab71c8",
+      "batch": "B",
+      "name": "poles of l s",
+      "definition": "poles of l s：The roots of a(s)=0, labeled p_i.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "poles of l s",
+        "一种·root"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: poles of l s\nSOURCE DEFINITION (fail-closed, do not invent beyond this): poles of l s：The roots of a(s)=0, labeled p_i.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「poles of l」、「一种·root」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

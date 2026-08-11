@@ -14,7 +14,11 @@ import {
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
 } from '@/lib/data-governance/adaptive-learner-state-service';
-import { buildKonlingRuntimeContext, type KonlingKnowledgeWorkspaceHint } from '@/lib/konling-agent-runtime';
+import {
+  buildKonlingDualDomainProvenanceMetadataPayload,
+  buildKonlingRuntimeContext,
+  type KonlingKnowledgeWorkspaceHint,
+} from '@/lib/konling-agent-runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -113,6 +117,8 @@ export async function GET(request: NextRequest) {
         learner_state_context: learnerState,
         plan_context: runtimeContext?.planContext ?? null,
         knowledge_workspace_context: runtimeContext?.knowledgeWorkspace ?? null,
+        teaching_projection_context: runtimeContext?.teachingProjectionContext ?? null,
+        dual_domain_provenance: buildKonlingDualDomainProvenanceMetadataPayload(runtimeContext),
         scoped_memory: runtimeContext?.memory ?? [],
         permitted_tools: runtimeContext?.permittedTools ?? [],
         missing_context: runtimeContext?.missingContext ?? [],
@@ -148,6 +154,8 @@ export async function GET(request: NextRequest) {
       learner_state_context: learnerState,
       plan_context: runtimeContext?.planContext ?? null,
       knowledge_workspace_context: runtimeContext?.knowledgeWorkspace ?? null,
+      teaching_projection_context: runtimeContext?.teachingProjectionContext ?? null,
+      dual_domain_provenance: buildKonlingDualDomainProvenanceMetadataPayload(runtimeContext),
       scoped_memory: runtimeContext?.memory ?? [],
       permitted_tools: runtimeContext?.permittedTools ?? [],
       missing_context: runtimeContext?.missingContext ?? [],

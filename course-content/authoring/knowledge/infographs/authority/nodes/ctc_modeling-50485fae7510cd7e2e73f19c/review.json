@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T07:53:30+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-50485fae7510cd7e2e73f19c",
+  "safe_id": "ctc_modeling-50485fae7510cd7e2e73f19c",
+  "node_name": "表示对两个以上的信号进行加减运算",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "W1 r9 accept"
+}

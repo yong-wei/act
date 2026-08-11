@@ -1,0 +1,87 @@
+{
+  "protocol": "act-latest-stable-aggregate-chain-intake/1",
+  "outputRoot": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain",
+  "bindingPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain/metadata/latest-stable-aggregate-binding.json",
+  "predecessorClosurePath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain/metadata/predecessor-closure.json",
+  "predecessorClosureArtifactHash": "41745f666ae98bc7944bb9d5c5fd0045e3b06043df7e87b61d198bc4cb540138",
+  "resolutionDigest": "203ce8a45352b66c67911c4e798e71e54e0686b00cf15c1659351d41db03c17e",
+  "chain": [
+    {
+      "order": 1,
+      "lockPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain/release-set.lock.v3.control-theory-engineering-v0.3-r2.json",
+      "lockSha256": "0f2c558b3022b212ff7ed360cb2039d24d168f155b5d70965569b1052b0d04b2",
+      "releaseSetId": "actkg-authoritative-candidate-ab6c33fb06d4beefda1c23f8329619caf4e572e252ddd69ba443d2a48364acb9",
+      "releaseId": "ctr:release:control-theory-engineering-v0.3",
+      "releaseVersion": "control-theory-engineering-v0.3",
+      "releaseHash": "13fc60a0a4e1706095f4db89f0a0db4cba10525f4cd6e9ec08b7d44acd7a4ffc",
+      "bundleId": "ctb:control-theory-engineering-v0.3:r2",
+      "bundleDigest": "ab6c33fb06d4beefda1c23f8329619caf4e572e252ddd69ba443d2a48364acb9"
+    },
+    {
+      "order": 2,
+      "lockPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain/release-set.lock.v3.control-theory-engineering-v0.4-r3.json",
+      "lockSha256": "72444ea92f95a7a7ec3a40c7c49fd80510cb805149b54fd6237d26377c319844",
+      "releaseSetId": "actkg-authoritative-candidate-1051c008525d02dcd23b851c713cc172d932f9374e7834061307abb42d3b18ee",
+      "releaseId": "ctr:release:control-theory-engineering-v0.4",
+      "releaseVersion": "control-theory-engineering-v0.4",
+      "releaseHash": "46ce6f09afba677358749f854d2797895e05dda875c8b1c197437d742c7f0b4b",
+      "bundleId": "ctb:control-theory-engineering-v0.4:r3",
+      "bundleDigest": "1051c008525d02dcd23b851c713cc172d932f9374e7834061307abb42d3b18ee"
+    },
+    {
+      "order": 3,
+      "lockPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain/release-set.lock.v3.control-theory-engineering-v0.5-r3.json",
+      "lockSha256": "4f6a530b7b3de3711458bd25acc7a155334042e7d30b940fb0749bf3a1e02bda",
+      "releaseSetId": "actkg-authoritative-candidate-fd1516f178bc564c2ae63f211dd69128c2c6a99510c7a6e8bcb91df02aba3d1f",
+      "releaseId": "ctr:release:control-theory-engineering-v0.5",
+      "releaseVersion": "control-theory-engineering-v0.5",
+      "releaseHash": "33e464b0617c21dec92a6ed98a0b95f78e8e27f31e4e988dc59de21afd5b4bde",
+      "bundleId": "ctb:control-theory-engineering-v0.5:r3",
+      "bundleDigest": "fd1516f178bc564c2ae63f211dd69128c2c6a99510c7a6e8bcb91df02aba3d1f"
+    },
+    {
+      "order": 4,
+      "lockPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain/release-set.lock.v3.control-theory-engineering-v0.6-r3.json",
+      "lockSha256": "8d486dbb3a1b68574c50de4f7999599762efc7db46f6720271ca8a2cd7f3299b",
+      "releaseSetId": "actkg-authoritative-candidate-ba1e2b23e9c38b85c7d67fc00322ae1029082afef9658e2e46ce6334f28b19c7",
+      "releaseId": "ctr:release:control-theory-engineering-v0.6",
+      "releaseVersion": "control-theory-engineering-v0.6",
+      "releaseHash": "4cd57e594a5d329e848cbf871d5f4beb6e0a92a1dd68518102d4d658497165cf",
+      "bundleId": "ctb:control-theory-engineering-v0.6:r3",
+      "bundleDigest": "ba1e2b23e9c38b85c7d67fc00322ae1029082afef9658e2e46ce6334f28b19c7"
+    },
+    {
+      "order": 5,
+      "lockPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain/release-set.lock.v3.control-theory-engineering-v0.7-r3.json",
+      "lockSha256": "98e3c5981bd52f87a56e411285a46020ff898d9f6e708725e5c1b8caa6a5bc40",
+      "releaseSetId": "actkg-authoritative-candidate-b980166e0ba4cd61405b2b4c4ecd1a54e91c3d2556825b057294450d912532e5",
+      "releaseId": "ctr:release:control-theory-engineering-v0.7",
+      "releaseVersion": "control-theory-engineering-v0.7",
+      "releaseHash": "e46f854d7a05fd4ec840c5eaff69288e7ce34cb2119da501913cbf457ce91f8e",
+      "bundleId": "ctb:control-theory-engineering-v0.7:r3",
+      "bundleDigest": "b980166e0ba4cd61405b2b4c4ecd1a54e91c3d2556825b057294450d912532e5"
+    },
+    {
+      "order": 6,
+      "lockPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain/release-set.lock.v3.control-theory-engineering-v0.8-r3.json",
+      "lockSha256": "cbd712dc2d1f1c5e43b6f7b763149f5d1eeddd7c293d7cb9d3b045cbaa3ad2bd",
+      "releaseSetId": "actkg-authoritative-candidate-00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6",
+      "releaseId": "ctr:release:control-theory-engineering-v0.8",
+      "releaseVersion": "control-theory-engineering-v0.8",
+      "releaseHash": "caf4cf31b54675952cb65d635a29e07fa4a5729686b9875f78db3904a6497beb",
+      "bundleId": "ctb:control-theory-engineering-v0.8:r3",
+      "bundleDigest": "00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6"
+    },
+    {
+      "order": 7,
+      "lockPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission/chain/release-set.lock.v3.control-theory-engineering-v0.9-r2.json",
+      "lockSha256": "a47a41e4729be2ed9ec79e38399073b045bd87ec9e6abee5651d9af38afc038f",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseVersion": "control-theory-engineering-v0.9",
+      "releaseHash": "bf885accc94ad95fea40a042600181606e076625ea3e9e6452137c261e4b1f92",
+      "bundleId": "ctb:control-theory-engineering-v0.9:r2",
+      "bundleDigest": "25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6"
+    }
+  ]
+}

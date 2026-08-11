@@ -1,0 +1,82 @@
+{
+  "pack_id": "P0045",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-953374e261302cfdff02144d",
+      "batch": "B",
+      "name": "相平面",
+      "definition": "以 x(t) 为横坐标，ẋ(t) 为纵坐标构成的直角坐标平面称为相平面。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "相平面",
+        "属于·等倾线",
+        "属于·极限环",
+        "属于·相轨迹",
+        "属于·奇线",
+        "属于·奇点"
+      ]
+    },
+    {
+      "safe_id": "ctc_modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+      "batch": "B",
+      "name": "root of the denominator",
+      "definition": "root of the denominator：A root of the denominator polynomial of a transfer function",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "root of the…",
+        "是一种·闭环极点",
+        "一种·poles",
+        "是一种·开环极点",
+        "用于分析·根轨迹法",
+        "派生自·传递函数"
+      ]
+    },
+    {
+      "safe_id": "ctc_v11g-40ac1517fc1bfb398dd75afe",
+      "batch": "B",
+      "name": "特征方程",
+      "definition": "特征方程：The equation whose closed-loop roots in the s-plane determine the relative stability and transient performance of a clo…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "特征方程",
+        "characterist",
+        "用于分析·根轨迹法",
+        "应用于·给定稳定度…",
+        "派生自·Routh…",
+        "派生自·Norma…",
+        "关联·根轨迹"
+      ]
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "batch": "B",
+      "name": "Compensator",
+      "definition": "Compensator：An additional component that is inserted into a control system to compensate for a deficient performance.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Compensator",
+        "一种·Integr…",
+        "一种·Cascad…",
+        "一种·Phase-…",
+        "应用于·根轨迹法",
+        "应用于·Frequ…"
+      ]
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1107a657eb90b8264d4dac38",
+      "batch": "B",
+      "name": "非线性系统",
+      "definition": "当系统中含有一个或多个具有非线性特性的元件时，该系统称为非线性系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非线性系统",
+        "用于分析·小偏差线…",
+        "用于分析·相平面法…",
+        "用于分析·描述函数法",
+        "用于分析·相平面法",
+        "用于分析·平衡点附…"
+      ]
+    }
+  ],
+  "created_at": "2026-08-05T15:31:46.025587+00:00"
+}

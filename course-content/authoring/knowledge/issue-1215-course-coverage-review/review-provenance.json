@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "b8c877df21b1ebb0ce5c6356",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "permission": "workspace",
+    "independentCourseEvidenceCount": 34,
+    "evidenceRefCount": 566,
+    "independentCourseEvidenceRefCount": 55,
+    "duplicateSelectorGroupCount": 21,
+    "duplicateSelectorRefCount": 42,
+    "sessionId": "e0bc3434-6424-4782-88b5-a78fc7e18bf2",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "cbda7f5c7122f5d0b457a63de56a6cbc9bf7b199f1cad4833dc1e2b37e826044",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedDocumentDigest": "162ac8b0a4c5f3569bec61da996deffb6ba3c2e6936c0b92253963104c5ca59a",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 171
+    },
+    "structuredTranscription": "The independent Primary remediation session accepted PR #1253 P1, re-audited only ordinals 69,109,132,137,142 against their frozen selectors without reading Challenger/Third artifacts, and preserved every raw conclusion, rationale, role, evidence sufficiency, frozen evidence selector, and exact evidence ID in order in the v2 normalized stage.",
+    "remediation": {
+      "trigger": "PR #1253 P1",
+      "scope": "act:issue-1215:primary-remediation-v2",
+      "reAuditedOrdinals": [69, 109, 132, 137, 142],
+      "readChallengerArtifacts": false,
+      "readThirdArtifacts": false
+    },
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1215-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "cbda7f5c7122f5d0b457a63de56a6cbc9bf7b199f1cad4833dc1e2b37e826044",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "e0bc3434-6424-4782-88b5-a78fc7e18bf2"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "workspace",
+    "independentCourseEvidenceCount": 0,
+    "evidenceRefCount": 393,
+    "independentCourseEvidenceRefCount": 0,
+    "duplicateSelectorGroupCount": 0,
+    "duplicateSelectorRefCount": 0,
+    "sessionId": "74224160-f779-4995-bf7e-6ae8e8105f26",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "5a7521ced17491a3e325dd321468e3afe73074e194e53e031dd539192e5edc23",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedDocumentDigest": "f8c5ab643f335e77a681ceadc85c3c32a1eeb607e6c241a09fce3b4825ad65cc",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 137
+    },
+    "structuredTranscription": "The independent Challenger session preserved conclusions, rationales, explicit evidence sufficiency, frozen evidence selectors, and exact evidence IDs in raw order; every required risk member remains role-free DEFER with insufficient evidence.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1215-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "5a7521ced17491a3e325dd321468e3afe73074e194e53e031dd539192e5edc23",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "74224160-f779-4995-bf7e-6ae8e8105f26"
+    }
+  },
+  "frozenEvidenceBoundary": {
+    "memberCount": 171,
+    "profileOnlyHighRiskMemberCount": 137,
+    "aggregateEvidenceRefCount": 340,
+    "profileEvidenceRefCount": 171,
+    "independentCourseEvidenceMemberCount": 34,
+    "admittedBoundaries": [
+      "aggregate",
+      "profile",
+      "independent-course"
+    ],
+    "diagnosticCandidatesAreNotAdmitted": true,
+    "diagnosticCandidatesRequireUpstreamIssue": "#1180"
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}

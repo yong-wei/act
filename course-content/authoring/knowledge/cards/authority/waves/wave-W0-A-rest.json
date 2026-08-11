@@ -1,0 +1,495 @@
+{
+  "wave_id": "W0",
+  "batch": "A",
+  "title": "Batch A remainder",
+  "items": [
+    {
+      "safe_id": "ctc_909e732d40f972bf760fa8ff",
+      "entity_id": "ctc:909e732d40f972bf760fa8ff",
+      "name": "v5c disturbance targeted",
+      "name_en": "v5c_disturbance_targeted",
+      "definition": "v5c disturbance targeted：In spacecraft attitude control, disturbances are torques that are ignored in the dynamic model and treated as disturban…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "v5c disturb…",
+        "v5c disturba"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_c782502fe412ef828c662650",
+      "entity_id": "ctc:c782502fe412ef828c662650",
+      "name": "合同明确要求 composit…",
+      "name_en": "v5c_closed_loop_transfer_function_companion",
+      "definition": "合同明确要求 composite/has_formula。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "合同明确要求 comp…",
+        "属于·闭环极点",
+        "关联·闭环传递函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-0ae282f545b3c7aad3f3b142",
+      "entity_id": "ctc:modeling-0ae282f545b3c7aad3f3b142",
+      "name": "领域概念",
+      "name_en": "modeling_0ae282f545b3c7aad3f3b142",
+      "definition": "领域概念：To find state-space equations, define a state vector of appropriate variables, then derive the A, B, C, D matrices from…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-0cb360fdf4bd5a71b47de347",
+      "entity_id": "ctc:modeling-0cb360fdf4bd5a71b47de347",
+      "name": "method to derive state",
+      "name_en": "modeling_0cb360fdf4bd5a71b47de347",
+      "definition": "method to derive state：A method to derive a state model from a transfer function by introducing an intermediate variable Z(s), equating numera…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method to d…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-0d2d78a5b1450e4732ac262c",
+      "entity_id": "ctc:modeling-0d2d78a5b1450e4732ac262c",
+      "name": "领域概念",
+      "name_en": "modeling_0d2d78a5b1450e4732ac262c",
+      "definition": "领域概念：A technique to determine partial-fraction coefficients by evaluating the factored form at each pole after covering the…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-137c3394c7a146209fe2cd37",
+      "entity_id": "ctc:modeling-137c3394c7a146209fe2cd37",
+      "name": "领域概念",
+      "name_en": "modeling_137c3394c7a146209fe2cd37",
+      "definition": "领域概念：Define convenient coordinates for position, velocity, and acceleration。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-1856c331960e3c439dcc999f",
+      "entity_id": "ctc:modeling-1856c331960e3c439dcc999f",
+      "name": "领域概念",
+      "name_en": "modeling_1856c331960e3c439dcc999f",
+      "definition": "领域概念：A divide-and-conquer design approach for systems described in state form: first design control with full-state feedback…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-24b7f0a084cdfe7e6f1b42dc",
+      "entity_id": "ctc:modeling-24b7f0a084cdfe7e6f1b42dc",
+      "name": "Methods for the solution",
+      "name_en": "modeling_24b7f0a084cdfe7e6f1b42dc",
+      "definition": "Methods for the solution：Methods for the solution of the system time response and for designing optimum control systems.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Methods for…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-2b2438ba804d1feebcee9a96",
+      "entity_id": "ctc:modeling-2b2438ba804d1feebcee9a96",
+      "name": "method for obtaining the",
+      "name_en": "modeling_2b2438ba804d1feebcee9a96",
+      "definition": "method for obtaining the：A method for obtaining the inverse Laplace transformation, particularly useful for systems analysis and design because…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method for …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-30d05b970a0d4a71c9d243c3",
+      "entity_id": "ctc:modeling-30d05b970a0d4a71c9d243c3",
+      "name": "Various levels of simulation",
+      "name_en": "modeling_30d05b970a0d4a71c9d243c3",
+      "definition": "Various levels of simulation：Various levels of simulation fidelity (accuracy) are available to the control engineer: low-fidelity simulations in ear…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Various lev…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-352b9bfe27ba1ab6b9c9672e",
+      "entity_id": "ctc:modeling-352b9bfe27ba1ab6b9c9672e",
+      "name": "When the sensor and",
+      "name_en": "modeling_352b9bfe27ba1ab6b9c9672e",
+      "definition": "When the sensor and：When the sensor and actuator are rigidly attached to one another, the situation is referred to as the collocated case.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "When the se…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-3abaeb7a2cbf8d77276bf23c",
+      "entity_id": "ctc:modeling-3abaeb7a2cbf8d77276bf23c",
+      "name": "领域概念",
+      "name_en": "modeling_3abaeb7a2cbf8d77276bf23c",
+      "definition": "领域概念：Systems (e.g., electrical, mechanical, thermal, fluid) that share the same describing differential equations, allowing…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念",
+        "关联·The co…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-4633e458d7b6508b49488fbb",
+      "entity_id": "ctc:modeling-4633e458d7b6508b49488fbb",
+      "name": "领域概念",
+      "name_en": "modeling_4633e458d7b6508b49488fbb",
+      "definition": "领域概念：A method of describing ordinary differential equations that has been in use for over 100 years and was introduced to co…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-47a00ebb2fb5027988fd918d",
+      "entity_id": "ctc:modeling-47a00ebb2fb5027988fd918d",
+      "name": "type of ideal element",
+      "name_en": "modeling_47a00ebb2fb5027988fd918d",
+      "definition": "type of ideal element：A type of ideal element that stores energy in an inductive form, including electrical inductance, translational spring,…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "type of ide…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-4ab0ef32a4b6e8688292e5d1",
+      "entity_id": "ctc:modeling-4ab0ef32a4b6e8688292e5d1",
+      "name": "signal that is zero",
+      "name_en": "modeling_4ab0ef32a4b6e8688292e5d1",
+      "definition": "signal that is zero：A signal δ(t) that is zero for t≠0 and has unit area.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "signal that…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-4d823b7e3681c86fecb9559a",
+      "entity_id": "ctc:modeling-4d823b7e3681c86fecb9559a",
+      "name": "The coefficients in partial",
+      "name_en": "modeling_4d823b7e3681c86fecb9559a",
+      "definition": "The coefficients in partial：The coefficients k_i in a partial fraction expansion are called residues and are evaluated by multiplying through by th…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The coeffic…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-508c28b45e84e9ad245a12e1",
+      "entity_id": "ctc:modeling-508c28b45e84e9ad245a12e1",
+      "name": "领域概念",
+      "name_en": "modeling_508c28b45e84e9ad245a12e1",
+      "definition": "领域概念：A method for evaluating residues of the partial fraction expansion by measuring distances and angles between poles and…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-59dac2e92350a8942f2838bf",
+      "entity_id": "ctc:modeling-59dac2e92350a8942f2838bf",
+      "name": "领域概念",
+      "name_en": "modeling_59dac2e92350a8942f2838bf",
+      "definition": "领域概念：Techniques that easily extend to systems with multiple inputs and/or multiple outputs.。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-5a8212ba438fbb1d8c953300",
+      "entity_id": "ctc:modeling-5a8212ba438fbb1d8c953300",
+      "name": "An alternative approach to",
+      "name_en": "modeling_5a8212ba438fbb1d8c953300",
+      "definition": "An alternative approach to：An alternative approach to developing a model of a device is the use of the bond graph. Bond graphs can be used for ele…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "An alternat…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-655f0fd8bf0c0c43b2d79f1e",
+      "entity_id": "ctc:modeling-655f0fd8bf0c0c43b2d79f1e",
+      "name": "device composed of electric",
+      "name_en": "modeling_655f0fd8bf0c0c43b2d79f1e",
+      "definition": "device composed of electric：A device composed of electric components designed to simulate ordinary differential equations (ODEs).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "device comp…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-74c7bd3161fdfc16eaf91e7d",
+      "entity_id": "ctc:modeling-74c7bd3161fdfc16eaf91e7d",
+      "name": "领域概念",
+      "name_en": "modeling_74c7bd3161fdfc16eaf91e7d",
+      "definition": "领域概念：Method for solving a first-order differential equation using Laplace transform, resulting in an exponential solution.。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-7d3f65e0e26470e469650c4d",
+      "entity_id": "ctc:modeling-7d3f65e0e26470e469650c4d",
+      "name": "领域概念",
+      "name_en": "modeling_7d3f65e0e26470e469650c4d",
+      "definition": "领域概念：A five-step procedure: (1) determine the transfer function H(s), (2) determine the Laplace transform of the input U(s),…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-7fa2352b16acf995839bcabf",
+      "entity_id": "ctc:modeling-7fa2352b16acf995839bcabf",
+      "name": "representation of the motion",
+      "name_en": "modeling_7fa2352b16acf995839bcabf",
+      "definition": "representation of the motion：A representation of the motion of any finite dynamic system as a set of first-order ODEs.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "representat…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-88620d843ba8358a9c157a2c",
+      "entity_id": "ctc:modeling-88620d843ba8358a9c157a2c",
+      "name": "领域概念",
+      "name_en": "modeling_88620d843ba8358a9c157a2c",
+      "definition": "领域概念：A five-step method using Newton's laws to write equations of motion for a rigid body.。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-954f858741527b57a495472c",
+      "entity_id": "ctc:modeling-954f858741527b57a495472c",
+      "name": "The operational amplifier in",
+      "name_en": "modeling_954f858741527b57a495472c",
+      "definition": "The operational amplifier in：The operational amplifier in an analog computer has a sign change that gives it a negative gain.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The operati…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-9693e33e440380c4bb0d1269",
+      "entity_id": "ctc:modeling-9693e33e440380c4bb0d1269",
+      "name": "The distribution of internal",
+      "name_en": "modeling_9693e33e440380c4bb0d1269",
+      "definition": "The distribution of internal：The distribution of internal energy in a dynamic system, often directly described by the state variables (e.g., positio…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The distrib…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-a5274fe5fb3f346f6aff0ddd",
+      "entity_id": "ctc:modeling-a5274fe5fb3f346f6aff0ddd",
+      "name": "Analytical results and tools",
+      "name_en": "modeling_a5274fe5fb3f346f6aff0ddd",
+      "definition": "Analytical results and tools：Analytical results and tools from matrix linear algebra (including identity matrix, triangular and diagonal matrices, t…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Analytical …",
+        "关联·Design…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-a6cbd3670d6f4922a66a4807",
+      "entity_id": "ctc:modeling-a6cbd3670d6f4922a66a4807",
+      "name": "rectangular pulse of width",
+      "name_en": "modeling_a6cbd3670d6f4922a66a4807",
+      "definition": "rectangular pulse of width：A rectangular pulse p_Δ(t) of width Δ and height 1/Δ, having unit area.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "rectangular…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-b51e05d922d0e35d648451de",
+      "entity_id": "ctc:modeling-b51e05d922d0e35d648451de",
+      "name": "The complex plane used",
+      "name_en": "modeling_b51e05d922d0e35d648451de",
+      "definition": "The complex plane used：The complex plane used to display the locations of poles and zeros of a transfer function.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The complex…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-c04df490ee00ab5968835058",
+      "entity_id": "ctc:modeling-c04df490ee00ab5968835058",
+      "name": "领域概念",
+      "name_en": "modeling_c04df490ee00ab5968835058",
+      "definition": "领域概念：The introduction of geometric concepts (distance, orthogonal and parallel lines) into differential equations to visuali…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-d1d778fef91f78f0d3490f87",
+      "entity_id": "ctc:modeling-d1d778fef91f78f0d3490f87",
+      "name": "The impulse response is",
+      "name_en": "modeling_d1d778fef91f78f0d3490f87",
+      "definition": "The impulse response is：The impulse response h(t) is defined as the limit of the response to a short pulse p_Δ(t) as Δ approaches 0.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The impulse…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-db7aabf07d906f63b237e10d",
+      "entity_id": "ctc:modeling-db7aabf07d906f63b237e10d",
+      "name": "λ₁,",
+      "name_en": "modeling_db7aabf07d906f63b237e10d",
+      "definition": "如果n阶微分方程的特征根是λ₁, λ₂, ..., λₙ且无重根，则把函数e^(λ₁t), e^(λ₂t), ..., e^(λₙt)称为该微分方程所描述运动的模态，也称为振型。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "λ₁"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-e4d5dedd058631068d41b452",
+      "entity_id": "ctc:modeling-e4d5dedd058631068d41b452",
+      "name": "The process of analyzing",
+      "name_en": "modeling_e4d5dedd058631068d41b452",
+      "definition": "The process of analyzing：The process of analyzing a system: write time-domain differential equations from physical laws, determine inputs and ou…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "The process…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-f3651eb0cd08666096abebe0",
+      "entity_id": "ctc:modeling-f3651eb0cd08666096abebe0",
+      "name": "The steps to obtain",
+      "name_en": "modeling_f3651eb0cd08666096abebe0",
+      "definition": "The steps to obtain：The steps to obtain the time-response solution using the Laplace transform: 1. Obtain the linearized differential equat…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "The steps t…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-v2r-split-0045791b9009bbe457f6e17a",
+      "entity_id": "ctc:modeling-v2r-split-0045791b9009bbe457f6e17a",
+      "name": "领域概念",
+      "name_en": "modeling_v2r_split_0045791b9009bbe457f6e17a",
+      "definition": "领域概念：A one-sided (unilateral) integral transform of a time function f(t) into a function F(s) of the complex variable s = σ₁…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-076d3bf7d03f4a7a06d5371a",
+      "entity_id": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+      "name": "K_H*",
+      "name_en": "feedback_path_root_locus_gain",
+      "definition": "反馈通路传递函数中分子多项式最高项系数归一化后的增益，记为K_H*。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "K H*"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-6b04c8283d317cd809eae369",
+      "entity_id": "ctc:v11g-6b04c8283d317cd809eae369",
+      "name": "notch compensation",
+      "name_en": "notch_compensation",
+      "definition": "notch compensation：A compensation scheme used to achieve stability for systems with lightly damped flexible modes, particularly with nonco…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "notch compe…",
+        "notch compen"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

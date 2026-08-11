@@ -64,6 +64,7 @@ interface AppendOnlyDelegate {
 
 export interface PersistControlCorrectionPathRoundInput {
   plan: AdaptiveLearningPathPlan;
+  pathStatus?: 'active' | 'fallback' | 'candidate';
   learnerStateRef?: string | null;
   inputSnapshot?: Record<string, unknown> | null;
   pathPayloadMetadata?: Record<string, unknown> | null;
@@ -104,7 +105,7 @@ export interface PathDeviationInput {
   pathId: string;
   userId: string;
   goalId?: string | null;
-  deviationType: 'skip' | 'timeout' | 'manual-jump' | 'resource-failure' | 'abandonment' | 'help-request';
+  deviationType: 'skip' | 'timeout' | 'manual-jump' | 'resource-failure' | 'replacement' | 'abandonment' | 'help-request';
   priorNodeId?: string | null;
   targetNodeId?: string | null;
   context?: Record<string, unknown>;
@@ -192,6 +193,7 @@ export async function persistLearningPathRound(
 ): Promise<any> {
   validateLearningPathPlanForPersistence(input.plan);
   const record = serializeLearningPathPlan(input.plan);
+  const pathStatus = input.pathStatus ?? (input.plan.status === 'ready' ? 'active' : 'fallback');
 
   // Existing-path read, conflict check, payload merge, and upsert must share one
   // Serializable/FOR UPDATE fence so cutover cannot stop a Legacy path between
@@ -264,7 +266,7 @@ export async function persistLearningPathRound(
       isAiGenerated: true,
       goalId: input.plan.goal.id,
       plannerVersion: input.plan.stage,
-      pathStatus: input.plan.status === 'ready' ? 'active' : 'fallback',
+      pathStatus,
       currentNodeId: input.plan.currentNodeId,
       learnerStateRef: input.learnerStateRef ?? null,
       classId: input.classId ?? null,
@@ -282,7 +284,7 @@ export async function persistLearningPathRound(
         estimatedTime: record.estimatedTime,
         nodeIds: record.nodeIds,
         isAiGenerated: true,
-        pathStatus: input.plan.status === 'ready' ? 'active' : 'fallback',
+        pathStatus,
         currentNodeId: input.plan.currentNodeId,
       }),
     };
@@ -1042,8 +1044,8 @@ export function toControlCorrectionPathRoundView(path: any) {
     pathStatus: path.pathStatus,
     currentNodeId: path.currentNodeId,
     classId: path.classId,
-    pathPayload: derivePathPayloadExecutionState(path),
-    explanationPayload: path.explanationPayload,
+    pathPayload: toStudentSafePathPayload(derivePathPayloadExecutionState(path)),
+    explanationPayload: toStudentSafePathPayload(path.explanationPayload),
     alternativePayload: path.alternativePayload,
     entryNodeId: path.entryNodeId,
     terminalValidation: path.terminalValidation,
@@ -1084,6 +1086,32 @@ export function toControlCorrectionPathRoundView(path: any) {
         }))
       : [],
   };
+}
+
+function toStudentSafePathPayload(payload: unknown): unknown {
+  if (payload === null || payload === undefined) return payload;
+  const record = toRecord(payload);
+  const sanitized: Record<string, unknown> = { ...record };
+  if (Array.isArray(record.configurationFulfillment)) {
+    sanitized.configurationFulfillment = toStudentConfigurationFulfillment(record.configurationFulfillment);
+  }
+  const explanations = toRecord(record.explanations);
+  if (Object.keys(explanations).length > 0 && Array.isArray(explanations.configurationFulfillment)) {
+    sanitized.explanations = {
+      ...explanations,
+      configurationFulfillment: toStudentConfigurationFulfillment(explanations.configurationFulfillment),
+    };
+  }
+  return sanitized;
+}
+
+function toStudentConfigurationFulfillment(value: unknown): Array<Record<string, unknown>> {
+  return arrayOfRecords(value).map((entry) => ({
+    key: typeof entry.key === 'string' ? entry.key : 'configuration',
+    status: entry.status === 'unmet' ? 'unmet' : 'applied',
+    effect: typeof entry.effect === 'string' ? entry.effect : '',
+    message: typeof entry.message === 'string' ? entry.message : '',
+  }));
 }
 
 function derivePathPayloadExecutionState(path: any): unknown {

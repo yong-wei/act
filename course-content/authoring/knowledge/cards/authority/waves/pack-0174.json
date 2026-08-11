@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0174",
+  "offset": 870,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_8985a8b639467c8e28fad417",
+      "batch": "C",
+      "name": "李雅普诺夫第二法（直接法）",
+      "definition": "李雅普诺夫第二法（直接法）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "李雅普诺夫第二法（直接…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 李雅普诺夫第二法（直接法）\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 李雅普诺夫第二法（直接法）是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「李雅普诺夫第二法（直」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a9db9c0d98a9759008f3c37b",
+      "batch": "C",
+      "name": "题7-17闭环离散系统模型",
+      "definition": "题7-17闭环离散系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-17闭环离散系统…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-17闭环离散系统模型\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-17闭环离散系统模型是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-17闭环离散系」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b621a897dafceaba35cce329",
+      "batch": "C",
+      "name": "题7-26闭环离散系统模型",
+      "definition": "题7-26闭环离散系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-26闭环离散系统…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-26闭环离散系统模型\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-26闭环离散系统模型是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-26闭环离散系」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ddb1cbf0f8a591b01ba3373b",
+      "batch": "C",
+      "name": "题7-22电机控制系统模型",
+      "definition": "题7-22电机控制系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-22电机控制系统…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-22电机控制系统模型\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-22电机控制系统模型是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-22电机控制系」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_df606d1cc343f73f1c9af59a",
+      "batch": "C",
+      "name": "PID 数字控制器实现方法",
+      "definition": "PID 数字控制器实现方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PID 数字控制器实现…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: PID 数字控制器实现方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): PID 数字控制器实现方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「PID 数字控制器实」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

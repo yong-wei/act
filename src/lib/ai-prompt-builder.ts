@@ -7,6 +7,10 @@
 import type { AIContext, PageContext, UserProfile, LearningStyle, KnowledgeType, PromptBuilderOptions } from '@/types/ai-context';
 import { KONLING_BRAND } from './ai-branding';
 import type { KaqArtifactVersionRefs } from './kaq-artifact-versioning';
+import {
+  buildKonlingTeachingProjectionGroundingLines,
+  type KonlingTeachingProjectionContext,
+} from './konling-teaching-projection-context';
 
 interface KonlingPromptRuntimeContext {
   learnerState?: unknown;
@@ -15,6 +19,7 @@ interface KonlingPromptRuntimeContext {
     nextNodeIds?: string[];
     status?: string;
   };
+  teachingProjectionContext?: KonlingTeachingProjectionContext | null;
   memory?: Array<{
     memoryType: string;
     summary: string;
@@ -90,6 +95,7 @@ interface KonlingPromptRuntimeContext {
       reason?: string;
       severity?: string;
     }>;
+    teachingProjectionContext?: KonlingTeachingProjectionContext | null;
   } | null;
   citationContext?: {
     required?: boolean;
@@ -153,6 +159,12 @@ interface KonlingPromptRuntimeContext {
     } | null;
     smartPreparation?: unknown;
     adaptiveAttempt?: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext | null;
+    authorizedCandidateBatch?: {
+      batchId: string;
+      pathId: string;
+      goalId: string;
+      classId: string | null;
+    } | null;
   };
 }
 
@@ -375,6 +387,23 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       lines.push(`  - graph grounding 限制: ${graph.missingGrounding.map((item) => `${item.class}:${item.reason}`).join(', ')}`);
     }
   }
+  {
+    const teachingProjection =
+      runtime.teachingProjectionContext
+      ?? runtime.graphContext?.teachingProjectionContext
+      ?? null;
+    const teachingLines = buildKonlingTeachingProjectionGroundingLines(teachingProjection);
+    if (teachingLines.length > 0) {
+      lines.push('- Teaching Projection grounding (server-owned):');
+      for (const line of teachingLines.slice(0, 12)) {
+        lines.push(`  - ${line}`);
+      }
+      lines.push('  - 教学先修/资源关系仅来自 ACT Teaching Projection，不得写成 ActKG 工程谓词，不得写回图谱。');
+      if (teachingProjection?.optionalCardStatus === 'absent') {
+        lines.push('  - 可选知识卡缺失时，使用 Canonical 摘要或其他已投影资源，不得声称节点不存在。');
+      }
+    }
+  }
   if (runtime.citationContext?.required) {
     lines.push('- 引用协议: 概念解释、个性化建议、仿真/Arena 失败分析、路径纠偏和报告解释必须至少使用 1 个内容引用；有学习者、路径、仿真、Arena 或干预证据时还必须使用 1 个证据引用。');
     lines.push('- 回答正文只能使用服务器已分配的 `[n]` 引用编号。不得输出原始 citation ID、`[content: ...]`、`[证据: ...]`、内部路径、脚注链接或自行创建 URL。');
@@ -401,6 +430,10 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     if (mode.mode.id === 'path-advisor') {
       lines.push('  - 路径工具调用边界: 只有用户明确要求生成、重建、重新规划或调整学习路径时，才调用 generate_learning_path 或 revise_learning_path_options。解释失败原因、回顾生成依据、咨询生成条件、推荐当前路径下一步、比较既有方案或查看路径状态时，不得调用路径写入工具；应优先使用 get_learner_state、get_plan_context、recommend_next_action 或 explain_learning_path_tradeoff。');
       lines.push('  - 路径工具参数: 调用 generate_learning_path 或 revise_learning_path_options 时，将用户自然语言约束写入 naturalLanguageIntent，并尽量结构化 timeBudgetMinutes、resourcePreference、difficultyRhythm、checkpointPreference 与 allowExternalResources。');
+      lines.push('  - 候选选路边界: 用户明确选择已有候选时，只能调用 select_learning_path，并传入当前上下文提供的 authorized-candidate-batch 标识；有明确 candidateId 时一并传入，否则把用户原话放入 naturalLanguageIntent。不得提交标题、序号或 selectedStyleId 代替持久化身份。工具返回 clarification_required 时必须按原顺序展示 alternatives 并提问，不得自行选择；返回 pending_commit 仅表示已解析出待提交选择，不得表述为已选中或已同步。');
+      if (mode.authorizedCandidateBatch) {
+        lines.push(`  - authorized-candidate-batch: batchId=${mode.authorizedCandidateBatch.batchId}; pathId=${mode.authorizedCandidateBatch.pathId}; goalId=${mode.authorizedCandidateBatch.goalId}`);
+      }
     }
     if (mode.mode.id === 'diagnosis-explainer' && mode.adaptiveAttempt) {
       const attempt = mode.adaptiveAttempt;

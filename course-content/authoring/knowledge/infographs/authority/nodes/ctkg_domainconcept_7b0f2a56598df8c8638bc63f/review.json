@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:24:39+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:7b0f2a56598df8c8638bc63f",
+  "safe_id": "ctkg_domainconcept_7b0f2a56598df8c8638bc63f",
+  "node_name": "Region of Attraction",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1137-1141"
+}

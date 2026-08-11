@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+  "safe_id": "ctkg_v3e-object-7aa500461c5109b7cffd9b19",
+  "node": {
+    "name": "Routh array",
+    "name_en": "Routh array",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Routh array：An array used in the Routh-Hurwitz stability criterion, constructed from the coefficients of the characteristic equatio…",
+  "intuition": "在图谱邻接中可把握：前置 → Auxiliary polynomial、First column of Routh array、Routh-Hurwitz stability criterion · 后续 → Routh-Hurwitz stability criterion、特征方程。",
+  "explanation": "An array used in the Routh-Hurwitz stability criterion, constructed from the coefficients of the characteristic equation. Further rows of the array, known as the Routh array, are then completed.",
+  "relation_head": "前置 → Auxiliary polynomial、First column of Routh array、Routh-Hurwitz stability criterion · 后续 → Routh-Hurwitz stability criterion、特征方程",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Auxiliary polynomial",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "First column of Routh array",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Routh-Hurwitz stability criterion",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Routh-Hurwitz stability criterion",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "特征方程",
+      "relation": "派生自"
+    }
+  ],
+  "labels": [
+    "Routh array",
+    "属于·Auxili…",
+    "属于·First …",
+    "属于·Routh-…",
+    "包含组件·Rout…",
+    "派生自·特征方程"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7aa500461c5109b7cffd9b19.md",
+  "provider_policy": "grok-image_gen"
+}

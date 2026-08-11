@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-4f050a1dd9ee29fe0988036d",
+  "safe_id": "ctkg_v3e-object-4f050a1dd9ee29fe0988036d",
+  "node": {
+    "name": "增广系统可控性",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "增广系统可控的条件是 rank 矩阵等于 n+1（阶跃输入）或 n+2（斜坡输入），其中矩阵包含系统矩阵 A、输入矩阵 b 和输出矩阵 c 的乘积项。",
+  "intuition": "在图谱邻接中可把握：后续 → 增广系统。",
+  "explanation": "增广系统可控的条件是 rank 矩阵等于 n+1（阶跃输入）或 n+2（斜坡输入），其中矩阵包含系统矩阵 A、输入矩阵 b 和输出矩阵 c 的乘积项。",
+  "relation_head": "后续 → 增广系统",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "增广系统",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "增广系统可控性",
+    "应用于·增广系统"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-4f050a1dd9ee29fe0988036d.md",
+  "provider_policy": "grok-image_gen"
+}

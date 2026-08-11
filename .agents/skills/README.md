@@ -70,7 +70,7 @@
 | 技能 | 入口 | 适用场景 |
 | --- | --- | --- |
 | `full-output-enforcement` | `full-output-enforcement/SKILL.md` | 要求完整、无省略、无占位符的大段输出。 |
-| `server-ops` | `server-ops/SKILL.md` | 服务器运维、在线故障调查、远端部署、数据库同步。 |
+| `server-ops` | `server-ops/SKILL.md` | 仅用于明确的服务器发布/部署，或必须读取、诊断、修改远端服务器状态的任务。 |
 
 ### 代理技能优化
 

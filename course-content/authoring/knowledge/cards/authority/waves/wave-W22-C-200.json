@@ -1,0 +1,741 @@
+{
+  "wave_id": "W22",
+  "batch": "C",
+  "title": "Batch C slice 5",
+  "offset": 200,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-0648b4124cfb8bb86fb66bd1",
+      "entity_id": "ctkg:v3e-object-0648b4124cfb8bb86fb66bd1",
+      "name": "Sample period",
+      "name_en": "Sample period",
+      "definition": "Sample period：Sample period",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sample peri…",
+        "Sample perio",
+        "包含组件·Zero…",
+        "包含组件·Disc…",
+        "包含组件·Samp…",
+        "应用于·Digit…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-098bda907dad6f5e7b697506",
+      "entity_id": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "name": "Limit Cycle",
+      "name_en": "Limit Cycle",
+      "definition": "Limit Cycle：Limit Cycle",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Limit Cycle",
+        "用于分析·Desc…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-150dc51f4f7d4306dab82a18",
+      "entity_id": "ctkg:v3e-object-150dc51f4f7d4306dab82a18",
+      "name": "脉冲序列",
+      "name_en": null,
+      "definition": "脉冲序列。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "脉冲序列",
+        "是一种·离散模拟信号",
+        "是一种·理想脉冲",
+        "包含组件·离散时间…",
+        "包含组件·采样控制…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-15bb04de4783aac94efc5a01",
+      "entity_id": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+      "name": "Schmitt Trigger",
+      "name_en": "Schmitt Trigger",
+      "definition": "Schmitt Trigger：Schmitt Trigger",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Schmitt Tri…",
+        "Schmitt Trig",
+        "一种·Hyster…",
+        "关联·Hyster…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1a1e0cd76a6ae24441079e22",
+      "entity_id": "ctkg:v3e-object-1a1e0cd76a6ae24441079e22",
+      "name": "数字控制器",
+      "name_en": null,
+      "definition": "数字控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字控制器",
+        "关联·脉冲控制器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1ee77aa2b862870735a63c50",
+      "entity_id": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "name": "相平面图",
+      "name_en": null,
+      "definition": "由一簇相轨迹所组成的图形称为相平面图。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "相平面图",
+        "属于·相轨迹",
+        "包含组件·相轨迹",
+        "包含组件·分隔线"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-22b4d8381af61f295e88100e",
+      "entity_id": "ctkg:v3e-object-22b4d8381af61f295e88100e",
+      "name": "编码过程",
+      "name_en": null,
+      "definition": "编码过程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "编码过程"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-239fecfdb347e1a48fb9d7cc",
+      "entity_id": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+      "name": "完全可达",
+      "name_en": null,
+      "definition": "完全可达。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "完全可达",
+        "是一种·状态完全可达"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-24049f89f0fc4303e892fc37",
+      "entity_id": "ctkg:v3e-object-24049f89f0fc4303e892fc37",
+      "name": "Nichols Plot",
+      "name_en": "Nichols Plot",
+      "definition": "Nichols Plot：Nichols Plot",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Nichols Plot"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2472530b842ec00599809720",
+      "entity_id": "ctkg:v3e-object-2472530b842ec00599809720",
+      "name": "Relay Nonlinearity",
+      "name_en": "Relay Nonlinearity",
+      "definition": "Relay Nonlinearity：Relay Nonlinearity",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Relay Nonli…",
+        "Relay Nonlin"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-271dc725adcf9cbd115e003f",
+      "entity_id": "ctkg:v3e-object-271dc725adcf9cbd115e003f",
+      "name": "误差采样控制",
+      "name_en": null,
+      "definition": "误差采样控制。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "误差采样控制",
+        "是一种·采样控制系统",
+        "包含组件·采样控制…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-27eb45a250307fcc571ac92c",
+      "entity_id": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+      "name": "Sample rate",
+      "name_en": "Sample rate",
+      "definition": "Sample rate：Sample rate",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sample rate",
+        "包含组件·Disc…",
+        "包含组件·Samp…",
+        "应用于·Diffe…",
+        "派生自·Sampl…",
+        "派生自·Discr…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2805a69722f0a741c2479d22",
+      "entity_id": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+      "name": "PD控制器",
+      "name_en": null,
+      "definition": "PD控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PD控制器",
+        "包含组件·比例-微…",
+        "关联·比例-微分控…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2c7489771bec99ead56be2ef",
+      "entity_id": "ctkg:v3e-object-2c7489771bec99ead56be2ef",
+      "name": "gain with dead zone",
+      "name_en": "gain with dead zone",
+      "definition": "gain with dead zone：gain with dead zone",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "gain with d…",
+        "gain with de",
+        "一种·memory…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "entity_id": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "name": "Ideal sampler",
+      "name_en": "Ideal sampler",
+      "definition": "Ideal sampler：Ideal sampler",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Ideal sampl…",
+        "Ideal sample",
+        "一种·Sampler"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-35942e1152c99bd94bdecd00",
+      "entity_id": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+      "name": "I控制器",
+      "name_en": null,
+      "definition": "I控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "I控制器",
+        "关联·积分控制规律"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-385e97c5f142fee4c5791b7f",
+      "entity_id": "ctkg:v3e-object-385e97c5f142fee4c5791b7f",
+      "name": "幂级数法求解齐次状态方程",
+      "name_en": null,
+      "definition": "幂级数法求解齐次状态方程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "幂级数法求解齐次状态方程",
+        "用于分析·齐次状态…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3aa81efa3f16e1fc9210fdc8",
+      "entity_id": "ctkg:v3e-object-3aa81efa3f16e1fc9210fdc8",
+      "name": "多极双通道旋转变压器",
+      "name_en": null,
+      "definition": "多极双通道旋转变压器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "多极双通道旋转变压器",
+        "包含组件·绝对式轴…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3efb972a33b0a45162a5d04a",
+      "entity_id": "ctkg:v3e-object-3efb972a33b0a45162a5d04a",
+      "name": "根轨迹",
+      "name_en": "Root locus",
+      "definition": "根轨迹：Root locus。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "根轨迹",
+        "Root locus",
+        "用于分析·Inte…",
+        "用于分析·Phas…",
+        "应用于·根轨迹法",
+        "关联·根轨迹法",
+        "关联·Compen…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-49948e2349b89d3c04b12d39",
+      "entity_id": "ctkg:v3e-object-49948e2349b89d3c04b12d39",
+      "name": "脉冲控制器",
+      "name_en": null,
+      "definition": "脉冲控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "脉冲控制器",
+        "关联·数字控制器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-508501381207b32fdb98c6c2",
+      "entity_id": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+      "name": "比例系数",
+      "name_en": null,
+      "definition": "比例系数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "比例系数",
+        "包含组件·PID控…",
+        "包含组件·比例控制…",
+        "包含组件·衰减曲线法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-526906541f641018cd576367",
+      "entity_id": "ctkg:v3e-object-526906541f641018cd576367",
+      "name": "通过变量替换检验给定稳定度的方法",
+      "name_en": null,
+      "definition": "通过变量替换检验给定稳定度的方法。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "通过变量替换检验给定稳…",
+        "包含组件·给定稳定…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-563729def6c074a2e1ae6d1d",
+      "entity_id": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "name": "继电特性",
+      "name_en": null,
+      "definition": "继电特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "继电特性",
+        "关联·自激振荡"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5c04a71914f42217047a20bf",
+      "entity_id": "ctkg:v3e-object-5c04a71914f42217047a20bf",
+      "name": "振荡周期",
+      "name_en": null,
+      "definition": "振荡周期。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "振荡周期"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "entity_id": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "name": "一阶保持器",
+      "name_en": null,
+      "definition": "采用一阶多项式外推的保持器，m=1。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一阶保持器",
+        "是一种·保持器",
+        "关联·零阶保持器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5ed5fc7d05f77452e100406b",
+      "entity_id": "ctkg:v3e-object-5ed5fc7d05f77452e100406b",
+      "name": "双极限环",
+      "name_en": null,
+      "definition": "双极限环。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "双极限环",
+        "包含组件·稳定极限环",
+        "包含组件·不稳定极…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-60dc281db22fe43eefe4ae57",
+      "entity_id": "ctkg:v3e-object-60dc281db22fe43eefe4ae57",
+      "name": "Finite word length",
+      "name_en": "Finite word length",
+      "definition": "Finite word length：Finite word length",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Finite word…",
+        "Finite word ",
+        "应用于·Preci…",
+        "关联·Precis…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-60e97b106df3b47840a4b6fd",
+      "entity_id": "ctkg:v3e-object-60e97b106df3b47840a4b6fd",
+      "name": "衰减比",
+      "name_en": null,
+      "definition": "衰减比。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "衰减比",
+        "包含组件·衰减曲线法",
+        "关联·衰减曲线法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-61714a8a2f0cfb4c33ab4552",
+      "entity_id": "ctkg:v3e-object-61714a8a2f0cfb4c33ab4552",
+      "name": "Nyquist rate",
+      "name_en": "Nyquist rate",
+      "definition": "Nyquist rate：Nyquist rate",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Nyquist rate",
+        "包含组件·Nyqu…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-62869ccc95b976e198517c73",
+      "entity_id": "ctkg:v3e-object-62869ccc95b976e198517c73",
+      "name": "复合控制信号",
+      "name_en": null,
+      "definition": "复合控制信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "复合控制信号",
+        "包含组件·PWM放…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "entity_id": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "name": "PI控制器",
+      "name_en": null,
+      "definition": "PI控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PI控制器",
+        "关联·比例-积分控…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-69aaaef625010f7755f253e8",
+      "entity_id": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+      "name": "死区",
+      "name_en": null,
+      "definition": "死区。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "死区",
+        "关联·间隙特性",
+        "关联·死区特性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6cac20a7c9621cb54a42d57d",
+      "entity_id": "ctkg:v3e-object-6cac20a7c9621cb54a42d57d",
+      "name": "采样开关",
+      "name_en": null,
+      "definition": "采样开关。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样开关",
+        "包含组件·采样控制…",
+        "包含组件·线性采样…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-726a2bc09a6a129dc57128b2",
+      "entity_id": "ctkg:v3e-object-726a2bc09a6a129dc57128b2",
+      "name": "double precision",
+      "name_en": "double precision",
+      "definition": "double precision：double precision",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "double prec…",
+        "double preci"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7555b4760da0d42ee2e4c36a",
+      "entity_id": "ctkg:v3e-object-7555b4760da0d42ee2e4c36a",
+      "name": "积分法求解非齐次状态方程",
+      "name_en": null,
+      "definition": "积分法求解非齐次状态方程。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "积分法求解非齐次状态方程",
+        "用于分析·非齐次状…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-78aceee1453c8c629dcfdd7e",
+      "entity_id": "ctkg:v3e-object-78aceee1453c8c629dcfdd7e",
+      "name": "低速爬行现象",
+      "name_en": null,
+      "definition": "低速爬行现象。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "低速爬行现象",
+        "关联·摩擦特性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7e0291af0b752655e0d98328",
+      "entity_id": "ctkg:v3e-object-7e0291af0b752655e0d98328",
+      "name": "一致可达",
+      "name_en": null,
+      "definition": "一致可达。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一致可达"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7f0c681f4f5c2b69597b6f4c",
+      "entity_id": "ctkg:v3e-object-7f0c681f4f5c2b69597b6f4c",
+      "name": "系统不完全可观测",
+      "name_en": null,
+      "definition": "系统不完全可观测。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统不完全可观测"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8064c799039f6d83a3cf4f29",
+      "entity_id": "ctkg:v3e-object-8064c799039f6d83a3cf4f29",
+      "name": "Continuous signal",
+      "name_en": "Continuous signal",
+      "definition": "Continuous signal：Continuous signal",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Continuous …",
+        "Continuous s",
+        "关联·Digita…",
+        "关联·Discre…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-806d8586fa5ceca0613b844d",
+      "entity_id": "ctkg:v3e-object-806d8586fa5ceca0613b844d",
+      "name": "连续谱",
+      "name_en": null,
+      "definition": "非周期信号的频谱特性，频谱为连续分布。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "连续谱"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-82784a1896512b7f3297d710",
+      "entity_id": "ctkg:v3e-object-82784a1896512b7f3297d710",
+      "name": "临界比例值",
+      "name_en": null,
+      "definition": "临界比例值。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "临界比例值"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-828de2183a73570e15acd937",
+      "entity_id": "ctkg:v3e-object-828de2183a73570e15acd937",
+      "name": "PWM放大器",
+      "name_en": null,
+      "definition": "PWM放大器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PWM放大器",
+        "包含组件·复合控制…",
+        "关联·前馈信号"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-82a3bb18a814af1836288fe0",
+      "entity_id": "ctkg:v3e-object-82a3bb18a814af1836288fe0",
+      "name": "Extraneous roots",
+      "name_en": "Extraneous roots",
+      "definition": "Extraneous roots：Extraneous roots",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Extraneous …",
+        "Extraneous r"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-868cdcdd22cf6d7b46ac2aa8",
+      "entity_id": "ctkg:v3e-object-868cdcdd22cf6d7b46ac2aa8",
+      "name": "线性叠加原理",
+      "name_en": null,
+      "definition": "线性叠加原理。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "线性叠加原理"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-875c91c5ad48c74f08a863e3",
+      "entity_id": "ctkg:v3e-object-875c91c5ad48c74f08a863e3",
+      "name": "Free running",
+      "name_en": "Free running",
+      "definition": "Free running：Free running",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Free running",
+        "应用于·Sampl…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-89f58618b8927a2026f2799b",
+      "entity_id": "ctkg:v3e-object-89f58618b8927a2026f2799b",
+      "name": "微分时间常数",
+      "name_en": null,
+      "definition": "微分时间常数。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "微分时间常数",
+        "包含组件·PID控…",
+        "包含组件·衰减曲线法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "entity_id": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "name": "Laplace transform",
+      "name_en": "Laplace transform",
+      "definition": "Laplace transform：Laplace transform",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Laplace tra…",
+        "Laplace tran",
+        "关联·z-tran…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-902a7486fad0f7f8ea7accb9",
+      "entity_id": "ctkg:v3e-object-902a7486fad0f7f8ea7accb9",
+      "name": "状态完全可达",
+      "name_en": null,
+      "definition": "状态完全可达。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "状态完全可达",
+        "是一种·完全可达"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9457cf16dcef3b40a9253837",
+      "entity_id": "ctkg:v3e-object-9457cf16dcef3b40a9253837",
+      "name": "阶梯信号",
+      "name_en": null,
+      "definition": "阶梯信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阶梯信号",
+        "是一种·模拟信号",
+        "包含组件·保持器",
+        "包含组件·信号复现…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9615125c7f9a504980e7ca04",
+      "entity_id": "ctkg:v3e-object-9615125c7f9a504980e7ca04",
+      "name": "前馈信号",
+      "name_en": null,
+      "definition": "前馈信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "前馈信号",
+        "关联·PWM放大器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

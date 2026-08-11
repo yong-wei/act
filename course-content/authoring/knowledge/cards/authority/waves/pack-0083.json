@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0083",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "name": "调节时间",
+      "definition": "响应曲线达到并保持在稳态值允许误差范围内所需的最短时间。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "name": "上升时间",
+      "definition": "响应曲线从零第一次上升到稳态值所需的时间。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ab642a336bbbbafc6327f6f2",
+      "name": "阻尼比",
+      "definition": "ζ = 1/(2√(T_m K)) 为阻尼比（或相对阻尼系数）。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-af59ae82af84ba274864a121",
+      "name": "一阶系统的单位脉冲响应",
+      "definition": "一阶系统在理想单位脉冲函数输入下的输出响应，表达式为c(t)=(1/T)e^{-t/T}。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "name": "Partial-fraction",
+      "definition": "Partial-fraction：Partial-fraction expansion method for distinct poles"
+    }
+  ],
+  "created_at": "2026-08-05T16:21:59.542931+00:00"
+}

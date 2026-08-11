@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "PRIMARY",
+  "sessionIndependence": "Independent Primary CourseCoverage review for issue-1193 batch db0c70336e831eda0052423c; no Challenger/Third artifacts or other-batch conclusions consulted; authority limited to frozen worklist.json, batch-manifest.json#/batches/3/members, openspec change review-course-coverage-db0c70336e831eda0052423c, and archived shared current-course-coverage-review specs.",
+  "batchBinding": {
+    "batchId": "db0c70336e831eda0052423c",
+    "manifestBatchIndex": 3,
+    "sequence": 1,
+    "group": "ctr:release:classical-control-design-engineering-v0.1::entityType:KnowledgeStatement",
+    "memberCount": 11,
+    "memberDigest": "619a093c3c0bfdfbf0097d8ec2ef420c3032619d3efe15caa06e417c16724f33",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818"
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-object-fa608bff0600eccf5efed50f",
+      "canonicalRevision": "a1526bd29a02b4bf102c607054d8072526b9ee574d4476939ae2678df9f3c5c7",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-fa608bff0600eccf5efed50f at revision a1526bd29a02b4bf102c607054d8072526b9ee574d4476939ae2678df9f3c5c7 contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=控制系统如图6-24所示，要求校正后系统静态速度误差系数等于30 s^{-1}，相角裕度不低于40°，幅值裕度不小于10 dB，截止频率不小于2.3 rad/s。设计串联校正装置。",
+      "evidenceRefs": [
+        "57a094ab93273c9cd6f10f02bdd711f3",
+        "ccbcee41c7e53730e8660e62e98b3184",
+        "e5f30592179d00bdde92092e0b56972f",
+        "91a41a20ba5e4640acc8c3e7941cc9b7",
+        "2e2596c95142cdc946f70fb4083aaf19",
+        "ee2eb40e962f0bccbd6d461992d42bce",
+        "eef5fd4578e9b16553142ea0364296bb",
+        "feb71401092e7384871e0bcba4774e8c"
+      ]
+    },
+    {
+      "ordinal": 1,
+      "canonicalId": "ctkg:v3e-object-fb525449805d77c1ca9375f2",
+      "canonicalRevision": "8846ed01968843897d3bf328952c13e6ecdd5ec1772bf130397e988185f77923",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-fb525449805d77c1ca9375f2 at revision 8846ed01968843897d3bf328952c13e6ecdd5ec1772bf130397e988185f77923 contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=性能指标的提出应符合实际系统的需要与可能，不应比完成给定任务所需要的指标更高，且受组成元部件的固有误差、非线性特性、能源功率及机械强度等实际物理条件的制约。",
+      "evidenceRefs": [
+        "6c6fdfcbf3964d565132e1dd446d30bb",
+        "544201881290f9be54b742c3488395eb"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "canonicalId": "ctkg:v3e-object-fb8230675873bf85596e1d76",
+      "canonicalRevision": "4d66d72d593a8ad8127a610cc40ab9880e018219af44326eee75ec4dde232e6b",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-fb8230675873bf85596e1d76 at revision 4d66d72d593a8ad8127a610cc40ab9880e018219af44326eee75ec4dde232e6b contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=When |z| < |p| and the pole is negligible (|p| >> |z|) and the zero occurs at the origin, the phase-lead compensator app",
+      "evidenceRefs": [
+        "217d3cd30711cc62a6d7bca3220c625a",
+        "598b59b6f24db03ceaa7f412f81356ca"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "canonicalId": "ctkg:v3e-object-fc00742a9c63e1f15d3d765b",
+      "canonicalRevision": "b3d193fde9e61267c0941fae40f45dd004c09c67a4e3adb3e2676cae8f6358ba",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-fc00742a9c63e1f15d3d765b at revision b3d193fde9e61267c0941fae40f45dd004c09c67a4e3adb3e2676cae8f6358ba contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=临界比例度法经验数据表",
+      "evidenceRefs": [
+        "c7922d6410db3d7e0681fdb4e7f97736",
+        "ee5080f6de81d33307d70b98a08e53c1"
+      ]
+    },
+    {
+      "ordinal": 4,
+      "canonicalId": "ctkg:v3e-object-fc41b6f2605524d8dfad1dd7",
+      "canonicalRevision": "214df75527ed64297d0bb438798462b889f034d85f673555937744be5f9ee4a6",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-fc41b6f2605524d8dfad1dd7 at revision 214df75527ed64297d0bb438798462b889f034d85f673555937744be5f9ee4a6 contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=Characteristic equation for Example 10.3",
+      "evidenceRefs": [
+        "33dd7c558c54d9f1169b8c38ba022a63",
+        "73bc72dde373c18634ad77d444c74814"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "canonicalId": "ctkg:v3e-object-fc8afce726e9b1a4faeb7752",
+      "canonicalRevision": "062ff20b02f5a6ae670dc6375e933aa5b3fbae7eeae83c0cb3cf3a9137b4e834",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-fc8afce726e9b1a4faeb7752 at revision 062ff20b02f5a6ae670dc6375e933aa5b3fbae7eeae83c0cb3cf3a9137b4e834 contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=待校正系统开环传递函数为G0(s)=Kv/[s(1/6 s+1)(1/2 s+1)]，要求：最大指令速度180°/s时位置滞后误差不超过1°，相角裕度45°±3°，幅值裕度不低于10 dB，动态过程调节时间不超过3 s。设计校正装置。",
+      "evidenceRefs": [
+        "8f6e987859f9185d7f8e7eb989ce32dd",
+        "174de84d3da3933173969ad28c842aff",
+        "f9e9a91fdb6fc4c59d72f8a878133a59",
+        "40326c62c65ef23b5fba7cf73b2f0e70",
+        "4e97e9f29e8c567d7ae9cecacc02f044",
+        "7e5c0fecafcf063ac0563468e8c7fdf8",
+        "5d68311c4975ad30f94e4bafdc0491be",
+        "c4a8577deb36ca1c31f0b12eb4dd3ec4",
+        "0d59c174931a2690b183c697ebca706a",
+        "9dba4c068af17eb91848b2d7e9c8be75"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "canonicalId": "ctkg:v3e-object-fcb9165bfdf5d4a88a1931de",
+      "canonicalRevision": "8b5a191b6a7b6ccff34e75e13fa5c0a73c2ad1b526611d7dbbbd79da36f199c6",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-fcb9165bfdf5d4a88a1931de at revision 8b5a191b6a7b6ccff34e75e13fa5c0a73c2ad1b526611d7dbbbd79da36f199c6 contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=Prefilter transfer function (first example)",
+      "evidenceRefs": [
+        "90dd14b3509ccc2729567afdf64f805d",
+        "c654af5fa723767ec8be3a09565382c4"
+      ]
+    },
+    {
+      "ordinal": 7,
+      "canonicalId": "ctkg:v3e-object-fd4966d27d4c4edcb0911d50",
+      "canonicalRevision": "a844489ce7b4411ed7e18fa6d2b22d95619d3d316ffa2a40967c7093f5f00986",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-fd4966d27d4c4edcb0911d50 at revision a844489ce7b4411ed7e18fa6d2b22d95619d3d316ffa2a40967c7093f5f00986 contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=No iteration is required in this case.",
+      "evidenceRefs": [
+        "a32028d011e4c6c3c060830a7b39d951",
+        "a04e7db2a506b5d330133fb06073b2c6"
+      ]
+    },
+    {
+      "ordinal": 8,
+      "canonicalId": "ctkg:v3e-object-fe1b1a974e4e81971a526d63",
+      "canonicalRevision": "cb86be3cf3be62d745ad392f57facbcba8ae0e9fe391d9337703a0fc1154ae43",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-fe1b1a974e4e81971a526d63 at revision cb86be3cf3be62d745ad392f57facbcba8ae0e9fe391d9337703a0fc1154ae43 contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=Angle condition at desired root",
+      "evidenceRefs": [
+        "3d66ca61e3ba463c521b0a6407c42269",
+        "1b845cf3c06ae2e9e0f47a9e9eb05b8d"
+      ]
+    },
+    {
+      "ordinal": 9,
+      "canonicalId": "ctkg:v3e-object-ff2e6e2a650b23fc1008979f",
+      "canonicalRevision": "0ffe3bef29f7f4244bd472177f3f2f4c36e0998dc227d7267ecd3d4379e90717",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-ff2e6e2a650b23fc1008979f at revision 0ffe3bef29f7f4244bd472177f3f2f4c36e0998dc227d7267ecd3d4379e90717 contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=The step response shows no steady-state error (Type 1 system), but the slow root from lag compensation causes the respon",
+      "evidenceRefs": [
+        "be628a108363c7f2243ba30eb2e0d1ea",
+        "dbedc5defdca79f198887534fcaf89ab"
+      ]
+    },
+    {
+      "ordinal": 10,
+      "canonicalId": "ctkg:v3e-object-ff42260ed1aee73673ffe963",
+      "canonicalRevision": "1ea26d71a4580e79a77b6301b9acb8d62e2d3690f77768bfc1d7766d5ede1cc1",
+      "stageConclusion": "DEFER",
+      "rationale": "role-free DEFER: frozen worklist evidence for ctkg:v3e-object-ff42260ed1aee73673ffe963 at revision 1ea26d71a4580e79a77b6301b9acb8d62e2d3690f77768bfc1d7766d5ede1cc1 contains only boundary=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile']; profileOnly=true and priorDecisionRefs empty. No independent-course / course-authoring-evidence ref is present, so INCLUDE/EXCLUDE cannot be supported under current-course-coverage-review (independent-course limited to lesson authoring and syllabus blueprint/main). Member remains in denominator; CourseCoverage authority stays unresolved. preferredLabel=For a system with L(s)=K/(s(s+10)^2), requiring Kv>=20 and damping ratio 0.707, the compensated loop transfer function i",
+      "evidenceRefs": [
+        "9dbbae91f094c5553fea6ec6a6657349",
+        "44ddd549b61b055f291917630f3be1a1"
+      ]
+    }
+  ],
+  "counts": {
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 11
+  },
+  "unresolvedRisks": [
+    "All 11 members are review-stage terminal DEFER with no CourseCoverage role; CourseCoverage authority remains unresolved and aggregate Coverage gate stays blocked for this batch.",
+    "Every member is profileOnly/highRisk with only aggregate-projection + canonical-profile evidence; independent-course authoring linkage is absent, so no INCLUDE/EXCLUDE admission is possible from frozen evidence.",
+    "Required Challenger stage still applies (profileOnly/highRisk); Primary DEFER does not resolve authority alone."
+  ]
+}

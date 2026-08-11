@@ -1,0 +1,1 @@
+{"authority":{"incremental_replay":"gates/incremental-replay-validation.json","query":"gates/query-gate.json","rag":"gates/rag-gate.json"},"graph_rag_runtime_intake":"UNCHANGED_BLOCKED","module_release_authorization":"CANDIDATE","private_content_included":false,"protocol":"ctkg-m1m-v2n-nonlinear-scope-routed-recovery-and-release-v1"}

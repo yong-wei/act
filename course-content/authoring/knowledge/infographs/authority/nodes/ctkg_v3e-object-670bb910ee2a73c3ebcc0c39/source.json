@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-670bb910ee2a73c3ebcc0c39",
+  "safe_id": "ctkg_v3e-object-670bb910ee2a73c3ebcc0c39",
+  "node": {
+    "name": "Weak controllability",
+    "name_en": "Weak controllability",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Weak controllability：A situation where a system is mathematically controllable, but certain modes are so weakly affected by the control inpu…",
+  "intuition": null,
+  "explanation": "A situation where a system is mathematically controllable, but certain modes are so weakly affected by the control input that practical designs to control them are ineffective, as illustrated by the airplane control example where pitch motion is weakly controllable by ailerons.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Weak contro…",
+    "Weak control"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-670bb910ee2a73c3ebcc0c39.md",
+  "provider_policy": "grok-image_gen"
+}

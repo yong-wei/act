@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0123",
+  "offset": 615,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "batch": "B",
+      "name": "串联超前校正",
+      "definition": "利用超前网络或PD控制器进行串联校正的基本原理，是利用超前网络或PD控制器的相角超前特性。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "串联超前校正",
+        "属于·频率响应法校…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 串联超前校正\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 利用超前网络或PD控制器进行串联校正的基本原理，是利用超前网络或PD控制器的相角超前特性。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「串联超前校正」、「属于·频率响应法校…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-780e0248e98d1a241ff3f3d5",
+      "batch": "B",
+      "name": "量化过程",
+      "definition": "在计算机中，任何数值的离散信号必须表示成最小位二进制的整数倍，成为数字信号，才能进行运算。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "量化过程"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 量化过程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在计算机中，任何数值的离散信号必须表示成最小位二进制的整数倍，成为数字信号，才能进行运算。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「量化过程」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7f2e4a28791adc1aab82c6d2",
+      "batch": "B",
+      "name": "read-only memory (ROM)",
+      "definition": "read-only memory (ROM)：read-only memory (ROM)",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "read-only m…",
+        "read-only me",
+        "一种·flash",
+        "一种·progra…",
+        "关联·random…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: read-only memory (ROM)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): read-only memory (ROM)：read-only memory (ROM)\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「read-only 」、「read-only 」、「一种·flash」、「一种·progra…」、「关联·random…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cccba806baf3e7a86cade9e4",
+      "batch": "B",
+      "name": "Right half-plane roots",
+      "definition": "Right half-plane roots：Right half-plane roots",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Right half-…",
+        "Right half-p"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Right half-plane roots\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Right half-plane roots：Right half-plane roots\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Right half」、「Right half」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-dd83c852f8ae95a9d7f5041f",
+      "batch": "B",
+      "name": "Aizermann's conjecture",
+      "definition": "Aizermann's conjecture：Aizermann's conjecture",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Aizermann's…",
+        "Aizermann's ",
+        "应用于·Lur'e…",
+        "关联·Lur'e …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Aizermann's conjecture\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Aizermann's conjecture：Aizermann's conjecture\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Aizermann'」、「Aizermann'」、「应用于·Lur'e…」、「关联·Lur'e …」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

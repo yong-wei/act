@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-e9b365b3f16db46b1e342744",
+  "safe_id": "ctkg_v3e-object-e9b365b3f16db46b1e342744",
+  "node": {
+    "name": "sample and hold device",
+    "name_en": "sample and hold device",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "sample and hold device：sample and hold device",
+  "intuition": null,
+  "explanation": "sample and hold device",
+  "relation_head": "前置 → D/A converter · 后续 → D/A converter",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "D/A converter",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "D/A converter",
+      "relation": "有表示"
+    }
+  ],
+  "labels": [
+    "sample and …",
+    "sample and h",
+    "一种·D/A",
+    "有表示·D/A c…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e9b365b3f16db46b1e342744.md",
+  "provider_policy": "grok-image_gen"
+}

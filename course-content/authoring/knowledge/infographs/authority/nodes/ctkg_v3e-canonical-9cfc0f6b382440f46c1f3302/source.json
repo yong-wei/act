@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-9cfc0f6b382440f46c1f3302",
+  "safe_id": "ctkg_v3e-canonical-9cfc0f6b382440f46c1f3302",
+  "node": {
+    "name": "Rise time T r",
+    "name_en": "Rise time T_r",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Rise time T r：A measure of the swiftness of response",
+  "intuition": null,
+  "explanation": "A measure of the swiftness of response; for underdamped systems with overshoot, the 0–100% rise time is used; for overdamped systems, the 10–90% rise time T_{r1} is used.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Rise time T…",
+    "Rise time T "
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-9cfc0f6b382440f46c1f3302.md",
+  "provider_policy": "grok-image_gen"
+}

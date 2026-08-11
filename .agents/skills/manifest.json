@@ -194,7 +194,7 @@
       "name": "server-ops",
       "path": "server-ops/SKILL.md",
       "category": "operations",
-      "description": "Investigate server-side operations, production faults, remote deployment, runtime environment, or database sync."
+      "description": "Use only for explicit deployment or publication of this project to a server, or tasks that necessarily inspect or change remote server state."
     },
     {
       "name": "skillopt-sleep",

@@ -1297,10 +1297,34 @@ function currentPathPanel(pathPlan: AdaptiveLearningPathPlan | null): AdaptiveLe
           alternatives: pathPlan.alternatives.map(toStudentPathAlternative),
           pathOptions: buildPathOptionSummaries(pathPlan),
           pathOptionFallback: buildPathOptionFallback(pathPlan),
+          configurationFulfillment: (pathPlan.explanations.configurationFulfillment ?? []).map(
+            toStudentConfigurationFulfillment,
+          ),
           selectionHistory: buildPathSelectionHistory(pathPlan),
         }
       : null,
   };
+}
+
+function toStudentConfigurationFulfillment(
+  fulfillment: AdaptiveLearningPathPlan['explanations']['configurationFulfillment'][number],
+) {
+  return {
+    key: fulfillment.key,
+    status: fulfillment.status,
+    effect: fulfillment.effect,
+    message: fulfillment.message,
+  };
+}
+
+function pathReadinessDetails(nodes: AdaptiveLearningPathPlan['mainPath']) {
+  return nodes.map((node) => ({
+    nodeId: node.nodeId,
+    title: node.title,
+    target: node.target,
+    prerequisiteNodeIds: node.prerequisiteNodeIds,
+    readiness: node.readiness,
+  }));
 }
 
 function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
@@ -1312,6 +1336,8 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     const terminalValidationNodeIds = pathPlan.mainPath
       .filter((node) => node.terminalConstraints.includes('terminal-validation'))
       .map((node) => node.nodeId);
+    const generationEvidenceDeficits = pathPlan.visualization?.evidence?.learnerStateDeficits;
+    const persistedProvenance = pathPlan.pathOptions?.[0]?.recommendationProvenance;
     return [{
       optionId: 'path-option-1',
       label: '推荐学习路径',
@@ -1336,7 +1362,9 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
         state: node.readiness?.state ?? 'unknown',
         message: node.readiness?.message ?? '准备条件待确认。',
       })),
-      targetDeficits: [],
+      readinessDetails: pathReadinessDetails(pathPlan.mainPath),
+      targetDeficits: generationEvidenceDeficits?.map(toStudentDeficit) ?? [],
+      ...(persistedProvenance ? { recommendationProvenance: persistedProvenance } : {}),
       evidenceBasis: pathPlan.confidence.level === 'low'
         ? ['当前证据较少，路径会从基础资源开始。']
         : ['路径已结合你的近期学习证据。'],
@@ -1371,7 +1399,9 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     nodeSummaries: path.nodeSummaries,
     lockedNodeIds: path.lockedNodeIds,
     readinessSummary: path.readinessSummary,
+    readinessDetails: pathReadinessDetails(path.planNodes?.length ? path.planNodes : pathPlan.mainPath),
     targetDeficits: path.targetDeficits.map(toStudentDeficit),
+    recommendationProvenance: path.recommendationProvenance,
     evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
     resourceMix: path.resourceMix,
     overlap: path.overlap,
@@ -1567,6 +1597,7 @@ function toStudentPathReason(reason: string): string {
     'path-modality-diversity-insufficient': '资源形式差异不足',
     'path-effort-diversity-insufficient': '学习时长差异不足',
     'terminal-validation-diversity-insufficient': '终点检验差异不足',
+    'policy-option-diversity-unavailable': '当前资源只能形成单一推荐方案',
     'policy-path-resource-missing': '路径资源不足',
     'policy-paths-identical': '路径选项过于接近',
     'terminal-validation-missing': '需要完成终点检验',

@@ -57,9 +57,17 @@ course-content/runtime/resource-governance/*
 !course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl
 !course-content/runtime/resource-governance/learning-goal-assessment-coverage-matrix.json
 !course-content/runtime/resource-governance/runtime-resource-projections.jsonl
+# Activation-gate Authority / Teaching Projection stores (Konling dual-domain #1274)
+!course-content/runtime/knowledge
+course-content/runtime/knowledge/*
+!course-content/runtime/knowledge/projection
+!course-content/runtime/knowledge/projection/**
+# Authoring authority store is under authoring/knowledge (not fully ignored by default)
 scripts/
 !scripts/
 scripts/*
+!scripts/math-calc/
+!scripts/math-calc/**
 !scripts/build-next-with-trace-check.mjs
 !scripts/prune-next-trace-boundary.mjs
 !scripts/assets/

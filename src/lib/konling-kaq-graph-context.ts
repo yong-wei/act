@@ -25,6 +25,12 @@ import type {
   KonlingPlanContext,
   KonlingRuntimeScope,
 } from './konling-agent-runtime';
+import type { LayeredGraphPayload } from './layered-graph/contracts';
+import {
+  resolveKonlingTeachingProjectionContext,
+  type KonlingTeachingProjectionClientHints,
+  type KonlingTeachingProjectionContext,
+} from './konling-teaching-projection-context';
 
 export type KonlingGraphGroundingClass =
   | 'learning-goal'
@@ -33,7 +39,8 @@ export type KonlingGraphGroundingClass =
   | 'resource'
   | 'path'
   | 'citation'
-  | 'version';
+  | 'version'
+  | 'teaching-projection';
 
 export interface KonlingGraphMissingGrounding {
   class: KonlingGraphGroundingClass;
@@ -90,6 +97,11 @@ export interface KonlingKaqGraphContext {
   citationRefs: string[];
   evidenceRefs: string[];
   versionRefs: KaqArtifactVersionRefs | null;
+  /**
+   * Authority / Teaching Projection combination with scoped Canonical,
+   * linked resources, prerequisite neighborhood, and optional card metadata.
+   */
+  teachingProjectionContext?: KonlingTeachingProjectionContext | null;
   confidence: 'high' | 'medium' | 'low';
   missingGrounding: KonlingGraphMissingGrounding[];
   clientHintsAccepted: string[];
@@ -108,6 +120,16 @@ export interface KonlingKaqGraphContextInput {
   planContext?: KonlingPlanContext | null;
   citationContext?: KonlingCitationContext | null;
   clientHints?: Record<string, unknown> | null;
+  /** Layered graph payload for Authority/Projection grounding (#1274). */
+  layeredGraphPayload?: LayeredGraphPayload | null;
+  teachingProjectionClientHints?: KonlingTeachingProjectionClientHints | null;
+  teachingProjectionAuthorized?: boolean;
+  permittedTeachingScopeIds?: readonly string[] | null;
+  requiredAuthorityReleaseId?: string | null;
+  requiredProjectionId?: string | null;
+  evidenceCutoff?: string | null;
+  /** Pre-resolved teaching projection context (skips re-resolve when set). */
+  teachingProjectionContext?: KonlingTeachingProjectionContext | null;
 }
 
 const GRAPH_DOMAINS: GraphCenterDomain[] = ['knowledge', 'capability', 'quality'];
@@ -166,6 +188,7 @@ export function buildKonlingKaqGraphContext(input: KonlingKaqGraphContextInput):
   const citationRefs = buildCitationRefs(input.citationContext);
   const evidenceRefs = buildEvidenceRefs(learnerOverlay, input.citationContext);
   const versionRefs = expandedSubgraph?.fixtures.konling.versionRefs ?? null;
+  const teachingProjectionContext = resolveTeachingProjectionForGraphContext(input);
   const missingGrounding = buildMissingGrounding({
     learningGoal,
     expandedSubgraph,
@@ -175,6 +198,7 @@ export function buildKonlingKaqGraphContext(input: KonlingKaqGraphContextInput):
     pathArtifact,
     citationContext: input.citationContext,
     versionRefs,
+    teachingProjectionContext,
   });
 
   return {
@@ -191,11 +215,50 @@ export function buildKonlingKaqGraphContext(input: KonlingKaqGraphContextInput):
     citationRefs,
     evidenceRefs,
     versionRefs,
+    teachingProjectionContext,
     confidence: buildGraphContextConfidence(missingGrounding),
     missingGrounding,
-    clientHintsAccepted: graphNodeHint.clientHintsAccepted,
-    clientHintsRejected: graphNodeHint.clientHintsRejected,
+    clientHintsAccepted: uniquePreserveOrder([
+      ...graphNodeHint.clientHintsAccepted,
+      ...(teachingProjectionContext?.clientHintsAccepted ?? []),
+    ]),
+    clientHintsRejected: uniquePreserveOrder([
+      ...graphNodeHint.clientHintsRejected,
+      ...(teachingProjectionContext?.clientHintsRejected ?? []),
+    ]),
   };
+}
+
+function uniquePreserveOrder(values: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    if (seen.has(value)) continue;
+    seen.add(value);
+    result.push(value);
+  }
+  return result;
+}
+
+function resolveTeachingProjectionForGraphContext(
+  input: KonlingKaqGraphContextInput,
+): KonlingTeachingProjectionContext | null {
+  if (input.teachingProjectionContext) {
+    return input.teachingProjectionContext;
+  }
+  if (!input.layeredGraphPayload && !input.teachingProjectionClientHints) {
+    return null;
+  }
+  return resolveKonlingTeachingProjectionContext({
+    payload: input.layeredGraphPayload,
+    focusCanonicalIds: input.selectedGraphNodeIds,
+    clientHints: input.teachingProjectionClientHints,
+    authorized: input.teachingProjectionAuthorized,
+    permittedScopeIds: input.permittedTeachingScopeIds,
+    requiredAuthorityReleaseId: input.requiredAuthorityReleaseId,
+    requiredProjectionId: input.requiredProjectionId,
+    evidenceCutoff: input.evidenceCutoff,
+  });
 }
 
 export function projectKonlingGraphContextForRole(
@@ -482,6 +545,7 @@ function buildMissingGrounding(input: {
   pathArtifact: KonlingPathArtifactContext | null;
   citationContext?: KonlingCitationContext | null;
   versionRefs: KaqArtifactVersionRefs | null;
+  teachingProjectionContext?: KonlingTeachingProjectionContext | null;
 }): KonlingGraphMissingGrounding[] {
   const missing: KonlingGraphMissingGrounding[] = [];
   if (!input.learningGoal) {
@@ -509,6 +573,20 @@ function buildMissingGrounding(input: {
   }
   if (!input.versionRefs || !input.versionRefs.graphCatalogVersion || !input.versionRefs.groundingVersion) {
     missing.push({ class: 'version', severity: 'warning', reason: 'version-refs-missing' });
+  }
+  if (input.teachingProjectionContext) {
+    const tp = input.teachingProjectionContext;
+    if (
+      tp.status === 'unavailable'
+      || tp.status === 'identity-drift'
+      || tp.status === 'unauthorized'
+    ) {
+      missing.push({
+        class: 'teaching-projection',
+        severity: 'warning',
+        reason: `teaching-projection-${tp.status}`,
+      });
+    }
   }
   return missing;
 }

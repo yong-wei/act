@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0036",
+  "offset": 180,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-d36def50dedc036b5c5db035",
+      "batch": "B",
+      "name": "Pole placement",
+      "definition": "Pole placement：A full-state feedback design technique that places closed-loop system poles at desired locations, requiring complete co…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pole placem…",
+        "Pole placeme",
+        "用于分析·Obse…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Pole placement\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Pole placement：A full-state feedback design technique that places closed-loop system poles at desired locations, requiring complete co…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Pole place」、「Pole place」、「用于分析·Obse…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-de79f06574782620fb5a2094",
+      "batch": "B",
+      "name": "Twin-T Network",
+      "definition": "Twin-T Network：A network whose pole-zero pattern and frequency response are illustrated in Figure 8.15, featuring two zeros on the rea…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Twin-T Netw…",
+        "Twin-T Netwo"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Twin-T Network\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Twin-T Network：A network whose pole-zero pattern and frequency response are illustrated in Figure 8.15, featuring two zeros on the rea…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Twin-T Net」、「Twin-T Net」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-4aec82cd79a002c70fb185b3",
+      "batch": "B",
+      "name": "loop transfer function l s",
+      "definition": "loop transfer function l s：The transfer function defined as L(s)=b(s)/a(s) used in the root-locus form of the characteristic equation.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "loop transf…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: loop transfer function l s\nSOURCE DEFINITION (fail-closed, do not invent beyond this): loop transfer function l s：The transfer function defined as L(s)=b(s)/a(s) used in the root-locus form of the characteristic equation.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「loop trans」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-bc5c0019cf8dd79ee47861ea",
+      "batch": "B",
+      "name": "root contours",
+      "definition": "root contours：A family of root loci for two parameters, illustrating the effect of both parameters on the roots of the characteristic…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "root contou…",
+        "root contour"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: root contours\nSOURCE DEFINITION (fail-closed, do not invent beyond this): root contours：A family of root loci for two parameters, illustrating the effect of both parameters on the roots of the characteristic…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「root conto」、「root conto」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-207d2721a1e69d2051980b49",
+      "batch": "B",
+      "name": "Pole-zero constellation",
+      "definition": "Pole-zero constellation：Information about y(t) can be obtained from the pole-zero constellation of Y(s) without actually inverting it.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pole-zero c…",
+        "Pole-zero co"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Pole-zero constellation\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Pole-zero constellation：Information about y(t) can be obtained from the pole-zero constellation of Y(s) without actually inverting it.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Pole-zero 」、「Pole-zero 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0061",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-8d8c5b1f62747c3d046a53cb",
+      "name": "系统不可观测",
+      "definition": "对于式（9－81）所示线性时变系统，如果取定初始时刻 t0∈Tt，存在一个有限时刻 t1∈Tt, t1>t0，对于所有 t∈[t0, t1]，系统的输出 y(t) 不能唯一确定所有状态的初值 xi(t0), i=1,2,⋯,n，即至少有一…"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "name": "相频特性",
+      "definition": "谐波输入下，输出响应中与输入同频率的谐波分量与谐波输入的相位之差φ(ω)。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a20d4b8eab718e1261ba5442",
+      "name": "奇线",
+      "definition": "特殊的相轨迹，它将相平面划分为具有不同运动特点的各个区域。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d1a6e648c1524a51f3c42346",
+      "name": "描述函数",
+      "definition": "正弦输入信号作用下，非线性环节的稳态输出中一次谐波分量和输入信号的复数比，用 N(A) 表示。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d5867ef3a2e3dc60bcbeeec5",
+      "name": "相变量",
+      "definition": "系统运动的相变量（状态变量），即 x(t) 和 ẋ(t)。"
+    }
+  ],
+  "created_at": "2026-08-05T15:53:25.847482+00:00"
+}

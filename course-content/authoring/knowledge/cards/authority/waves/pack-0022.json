@@ -1,0 +1,72 @@
+{
+  "pack_id": "P0022",
+  "offset": 110,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-83d0805f5bcd8a6654402540",
+      "batch": "B",
+      "name": "Cascade compensation",
+      "definition": "Cascade compensation：A compensation scheme where the compensator is placed in the feedforward path of a single-loop feedback control system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Cascade com…",
+        "Cascade comp",
+        "关联·Cascad…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Cascade compensation\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Cascade compensation：A compensation scheme where the compensator is placed in the feedforward path of a single-loop feedback control system.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Cascade co」、「Cascade co」、「关联·Cascad…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8ecd4d6352467b3444880809",
+      "batch": "B",
+      "name": "Reduced-Order Estimator",
+      "definition": "Reduced-Order Estimator：An estimator that reduces the order by the number of sensed outputs, estimating only the unmeasured state variables.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Reduced-Ord…",
+        "Reduced-Orde"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Reduced-Order Estimator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Reduced-Order Estimator：An estimator that reduces the order by the number of sensed outputs, estimating only the unmeasured state variables.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Reduced-Or」、「Reduced-Or」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9b91b4b29c27f8d8916d9626",
+      "batch": "B",
+      "name": "Full-state observer",
+      "definition": "Full-state observer：A dynamic system that estimates the state vector x(t) of a plant using the system model and output measurements, such t…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Full-state …",
+        "Full-state o",
+        "一种·Kalman",
+        "用于分析·Acke…",
+        "关联·Reduce…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Full-state observer\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Full-state observer：A dynamic system that estimates the state vector x(t) of a plant using the system model and output measurements, such t…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Full-state」、「Full-state」、「一种·Kalman」、「用于分析·Acke…」、「关联·Reduce…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e28c6b3ef5b1335c8a086f34",
+      "batch": "B",
+      "name": "Full-state feedback",
+      "definition": "Full-state feedback：A control design approach where all state variables are assumed available for feedback, and the control input is a line…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Full-state …",
+        "Full-state f",
+        "应用于·Full-…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Full-state feedback\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Full-state feedback：A control design approach where all state variables are assumed available for feedback, and the control input is a line…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Full-state」、「Full-state」、「应用于·Full-…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-6c5064d654265c2b32389beb",
+      "batch": "B",
+      "name": "gain stabilization",
+      "definition": "gain stabilization：A method to eliminate oscillation by lowering the loop gain at high frequency to reduce spillover into lightly damped f…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "gain stabil…",
+        "gain stabili",
+        "应用于·增益"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: gain stabilization\nSOURCE DEFINITION (fail-closed, do not invent beyond this): gain stabilization：A method to eliminate oscillation by lowering the loop gain at high frequency to reduce spillover into lightly damped f…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「gain stabi」、「gain stabi」、「应用于·增益」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

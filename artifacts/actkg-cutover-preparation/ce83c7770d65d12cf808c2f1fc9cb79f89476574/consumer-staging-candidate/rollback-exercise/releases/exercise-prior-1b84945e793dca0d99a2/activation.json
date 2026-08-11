@@ -1,0 +1,160 @@
+{
+  "contract": "act-versioned-knowledge-consumer-activation/v1",
+  "captureRevision": "ce83c7770d65d12cf808c2f1fc9cb79f89476574",
+  "stagedAt": "2026-08-10T13:41:03.000Z",
+  "consumers": [
+    {
+      "consumerId": "course-runtime",
+      "status": "BLOCKED_LOCAL_DEPENDENCY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+        "authoritySnapshotId": "snap-1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "authoritySnapshotHash": "1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "projectionId": null,
+        "projectionHash": null,
+        "scopeId": null,
+        "captureRevision": "ce83c7770d65d12cf808c2f1fc9cb79f89476574"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "f8ee9ab2400aad6ca14010096b9046e9dca9e864982b68c17a33126338377bc4",
+        "engineering.json": "bf25630617d97ffd1b3353b23c51f0e8e7227546d346818f7f1abc6019e4ea57"
+      },
+      "reasons": [
+        "projection-missing"
+      ],
+      "activatedAt": "2026-08-10T13:41:03.000Z"
+    },
+    {
+      "consumerId": "engineering-graph",
+      "status": "READY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+        "authoritySnapshotId": "snap-1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "authoritySnapshotHash": "1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "projectionId": null,
+        "projectionHash": null,
+        "scopeId": null,
+        "captureRevision": "ce83c7770d65d12cf808c2f1fc9cb79f89476574"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "f8ee9ab2400aad6ca14010096b9046e9dca9e864982b68c17a33126338377bc4",
+        "engineering.json": "bf25630617d97ffd1b3353b23c51f0e8e7227546d346818f7f1abc6019e4ea57"
+      },
+      "reasons": [
+        "engineering-only-no-projection-required",
+        "authority-ready"
+      ],
+      "activatedAt": "2026-08-10T13:41:03.000Z"
+    },
+    {
+      "consumerId": "engineering-rag",
+      "status": "READY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+        "authoritySnapshotId": "snap-1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "authoritySnapshotHash": "1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "projectionId": null,
+        "projectionHash": null,
+        "scopeId": null,
+        "captureRevision": "ce83c7770d65d12cf808c2f1fc9cb79f89476574"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "f8ee9ab2400aad6ca14010096b9046e9dca9e864982b68c17a33126338377bc4",
+        "engineering.json": "bf25630617d97ffd1b3353b23c51f0e8e7227546d346818f7f1abc6019e4ea57"
+      },
+      "reasons": [
+        "engineering-only-no-projection-required",
+        "authority-ready"
+      ],
+      "activatedAt": "2026-08-10T13:41:03.000Z"
+    },
+    {
+      "consumerId": "konling",
+      "status": "BLOCKED_LOCAL_DEPENDENCY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+        "authoritySnapshotId": "snap-1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "authoritySnapshotHash": "1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "projectionId": null,
+        "projectionHash": null,
+        "scopeId": null,
+        "captureRevision": "ce83c7770d65d12cf808c2f1fc9cb79f89476574"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "f8ee9ab2400aad6ca14010096b9046e9dca9e864982b68c17a33126338377bc4",
+        "engineering.json": "bf25630617d97ffd1b3353b23c51f0e8e7227546d346818f7f1abc6019e4ea57"
+      },
+      "reasons": [
+        "projection-missing"
+      ],
+      "activatedAt": "2026-08-10T13:41:03.000Z"
+    },
+    {
+      "consumerId": "learning-path",
+      "status": "BLOCKED_LOCAL_DEPENDENCY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+        "authoritySnapshotId": "snap-1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "authoritySnapshotHash": "1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "projectionId": null,
+        "projectionHash": null,
+        "scopeId": null,
+        "captureRevision": "ce83c7770d65d12cf808c2f1fc9cb79f89476574"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "f8ee9ab2400aad6ca14010096b9046e9dca9e864982b68c17a33126338377bc4",
+        "engineering.json": "bf25630617d97ffd1b3353b23c51f0e8e7227546d346818f7f1abc6019e4ea57"
+      },
+      "reasons": [
+        "projection-missing"
+      ],
+      "activatedAt": "2026-08-10T13:41:03.000Z"
+    },
+    {
+      "consumerId": "teaching-resource-rag",
+      "status": "BLOCKED_LOCAL_DEPENDENCY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+        "authoritySnapshotId": "snap-1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "authoritySnapshotHash": "1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+        "projectionId": null,
+        "projectionHash": null,
+        "scopeId": null,
+        "captureRevision": "ce83c7770d65d12cf808c2f1fc9cb79f89476574"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "f8ee9ab2400aad6ca14010096b9046e9dca9e864982b68c17a33126338377bc4",
+        "engineering.json": "bf25630617d97ffd1b3353b23c51f0e8e7227546d346818f7f1abc6019e4ea57"
+      },
+      "reasons": [
+        "projection-missing"
+      ],
+      "activatedAt": "2026-08-10T13:41:03.000Z"
+    }
+  ],
+  "impact": {
+    "readyConsumerIds": [
+      "engineering-graph",
+      "engineering-rag"
+    ],
+    "pinnedConsumerIds": [],
+    "blockedConsumerIds": [
+      "course-runtime",
+      "konling",
+      "learning-path",
+      "teaching-resource-rag"
+    ],
+    "shadowConsumerIds": []
+  },
+  "shadowReportHash": null,
+  "priorActivationId": null,
+  "priorActivationHash": null,
+  "activationId": "exercise-prior-1b84945e793dca0d99a2",
+  "activationHash": "95da19a5ab53fa20bb8a8b9a94775c5cf380dee31ac4cd7f00d1911061b3b685"
+}

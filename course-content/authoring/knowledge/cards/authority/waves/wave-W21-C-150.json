@@ -1,0 +1,696 @@
+{
+  "wave_id": "W21",
+  "batch": "C",
+  "title": "Batch C slice 4",
+  "offset": 150,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_ddb1cbf0f8a591b01ba3373b",
+      "entity_id": "ctkg:domainconcept:ddb1cbf0f8a591b01ba3373b",
+      "name": "题7-22电机控制系统模型",
+      "name_en": null,
+      "definition": "题7-22电机控制系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-22电机控制系统…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_de6aac43614a90c9b0d828a9",
+      "entity_id": "ctkg:domainconcept:de6aac43614a90c9b0d828a9",
+      "name": "Marginal Stability",
+      "name_en": "Marginal Stability",
+      "definition": "Marginal Stability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Marginal St…",
+        "Marginal Sta"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_df606d1cc343f73f1c9af59a",
+      "entity_id": "ctkg:domainconcept:df606d1cc343f73f1c9af59a",
+      "name": "PID 数字控制器实现方法",
+      "name_en": null,
+      "definition": "PID 数字控制器实现方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PID 数字控制器实现…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_e037175898e502a748c0341d",
+      "entity_id": "ctkg:domainconcept:e037175898e502a748c0341d",
+      "name": "有纹波最少拍系统结构图",
+      "name_en": null,
+      "definition": "有纹波最少拍系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "有纹波最少拍系统结构图"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_e125c73a1fa9700b183695ce",
+      "entity_id": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+      "name": "闭环特征方程",
+      "name_en": null,
+      "definition": "闭环特征方程是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "闭环特征方程"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_e23f10cef7e7b7c484be97c9",
+      "entity_id": "ctkg:domainconcept:e23f10cef7e7b7c484be97c9",
+      "name": "Lines of constan",
+      "name_en": "Lines of constant damping ratio in z-plane",
+      "definition": "Lines of constan是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lines of co…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_e5a2fdfc7f92f0f96dd773fd",
+      "entity_id": "ctkg:domainconcept:e5a2fdfc7f92f0f96dd773fd",
+      "name": "Asymptotic Stability",
+      "name_en": "Asymptotic Stability",
+      "definition": "Asymptotic Stability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Asymptotic …",
+        "Asymptotic S"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_e64c6ad0fa1d0483faf9aa7c",
+      "entity_id": "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c",
+      "name": "纹波",
+      "name_en": null,
+      "definition": "纹波是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "纹波"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_e981b0bcba817f0997c460e8",
+      "entity_id": "ctkg:domainconcept:e981b0bcba817f0997c460e8",
+      "name": "digital implementation of PID controller",
+      "name_en": "digital implementation of PID controller",
+      "definition": "digital implementation of PID controller是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "digital imp…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ea66b99fa9c8cac1f149c856",
+      "entity_id": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+      "name": "调节时间",
+      "name_en": null,
+      "definition": "调节时间是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "调节时间"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ee5adf8518a6ea2ab503ae7f",
+      "entity_id": "ctkg:domainconcept:ee5adf8518a6ea2ab503ae7f",
+      "name": "Closed-loop syst",
+      "name_en": "Closed-loop system with digital controller (Figure 13.24)",
+      "definition": "Closed-loop syst是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Closed-loop…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ef3b1e7fb0615020b11a78f9",
+      "entity_id": "ctkg:domainconcept:ef3b1e7fb0615020b11a78f9",
+      "name": "backward differe",
+      "name_en": "backward difference rule for derivative approximation",
+      "definition": "backward differe是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "backward di…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_f1074549d93c62bc34bd9b3a",
+      "entity_id": "ctkg:domainconcept:f1074549d93c62bc34bd9b3a",
+      "name": "平衡状态",
+      "name_en": null,
+      "definition": "平衡状态是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "平衡状态"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_f2d758b656ba6d55337462e6",
+      "entity_id": "ctkg:domainconcept:f2d758b656ba6d55337462e6",
+      "name": "Exponential Stability",
+      "name_en": "Exponential Stability",
+      "definition": "Exponential Stability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Exponential…",
+        "Exponential "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_f4736bb9065505bbc327e2b7",
+      "entity_id": "ctkg:domainconcept:f4736bb9065505bbc327e2b7",
+      "name": "Continuous syste",
+      "name_en": "Continuous system model of a sampled system",
+      "definition": "Continuous syste是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Continuous …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_f4808ef41d5a4821c75f5a83",
+      "entity_id": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+      "name": "PID控制器",
+      "name_en": "PID controller",
+      "definition": "PID控制器是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PID控制器",
+        "PID controll"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_f51115d2ed968014f4f4b3e9",
+      "entity_id": "ctkg:domainconcept:f51115d2ed968014f4f4b3e9",
+      "name": "单位斜坡响应",
+      "name_en": null,
+      "definition": "单位斜坡响应是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位斜坡响应"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_f713a296511f858ae3f3bfde",
+      "entity_id": "ctkg:domainconcept:f713a296511f858ae3f3bfde",
+      "name": "大范围（全局）渐近稳定性",
+      "name_en": null,
+      "definition": "大范围（全局）渐近稳定性是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "大范围（全局）渐近稳定性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_fa0849954056406029bd497f",
+      "entity_id": "ctkg:domainconcept:fa0849954056406029bd497f",
+      "name": "脉冲传递函数 G(z)",
+      "name_en": null,
+      "definition": "脉冲传递函数 G(z)是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "脉冲传递函数 G(z)"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_facdf919012f47aa910cae13",
+      "entity_id": "ctkg:domainconcept:facdf919012f47aa910cae13",
+      "name": "采样周期 T",
+      "name_en": null,
+      "definition": "采样周期 T是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样周期 T"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_fe96c44d0bc1b877a573201e",
+      "entity_id": "ctkg:domainconcept:fe96c44d0bc1b877a573201e",
+      "name": "Lyapunov function candidate",
+      "name_en": "Lyapunov function candidate",
+      "definition": "Lyapunov function candidate是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov fu…",
+        "用于分析·stat…",
+        "应用于·Equil…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ff2d00a3489f08f635fff5b4",
+      "entity_id": "ctkg:domainconcept:ff2d00a3489f08f635fff5b4",
+      "name": "region of attraction",
+      "name_en": "region of attraction",
+      "definition": "region of attraction是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "region of a…",
+        "region of at"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0c0b4e9e214ae42d511dda74",
+      "entity_id": "ctkg:v3e-canonical-0c0b4e9e214ae42d511dda74",
+      "name": "s-plane",
+      "name_en": "s-plane",
+      "definition": "s-plane：s-plane",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "s-plane"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0e5d22ed0afee37f65584d36",
+      "entity_id": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "name": "正弦函数",
+      "name_en": null,
+      "definition": "正弦函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "正弦函数",
+        "包含组件·典型输入…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "entity_id": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "name": "Final Value Theorem",
+      "name_en": "Final Value Theorem",
+      "definition": "Final Value Theorem：Final Value Theorem",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Final Value…",
+        "Final Value ",
+        "派生自·Parti…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "entity_id": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "name": "Natural response",
+      "name_en": "Natural response",
+      "definition": "Natural response：Natural response",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Natural res…",
+        "Natural resp",
+        "一种·impuls…",
+        "关联·Fast p…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-23c4127cb1ffab795d290351",
+      "entity_id": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+      "name": "Modes of the system",
+      "name_en": "Modes of the system",
+      "definition": "Modes of the system：Modes of the system",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Modes of th…",
+        "Modes of the",
+        "派生自·传递函数"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-2624e6b30f6178715ae3b198",
+      "entity_id": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+      "name": "比例-积分控制器",
+      "name_en": null,
+      "definition": "包含比例和积分控制作用的控制器。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-积分控制器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-262c2f2661df3c6d1086a95e",
+      "entity_id": "ctkg:v3e-canonical-262c2f2661df3c6d1086a95e",
+      "name": "二次扰动",
+      "name_en": null,
+      "definition": "加在副回路上的扰动，如N2(s)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "二次扰动"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "entity_id": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+      "name": "稳态性能",
+      "name_en": null,
+      "definition": "稳态性能。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳态性能"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "entity_id": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "name": "单位阶跃响应",
+      "name_en": null,
+      "definition": "单位阶跃响应。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位阶跃响应",
+        "派生自·单位阶跃函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-3484a3239128bda292d300f9",
+      "entity_id": "ctkg:v3e-canonical-3484a3239128bda292d300f9",
+      "name": "利用解析法求解高阶系统单位阶跃…",
+      "name_en": null,
+      "definition": "利用解析法求解高阶系统单位阶跃响应。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "利用解析法求解高阶系统…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-37b4b074acb6cd0044127737",
+      "entity_id": "ctkg:v3e-canonical-37b4b074acb6cd0044127737",
+      "name": "Cover-up method",
+      "name_en": "Cover-up method",
+      "definition": "Cover-up method：Cover-up method",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Cover-up me…",
+        "Cover-up met",
+        "一种·Cover-…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-471a0b49b030d7d76e7e7159",
+      "entity_id": "ctkg:v3e-canonical-471a0b49b030d7d76e7e7159",
+      "name": "Band center",
+      "name_en": "Band center",
+      "definition": "Band center：Band center",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Band center",
+        "一种·Undamp…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-47a2e3c44742b45c55ac902d",
+      "entity_id": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "name": "闭环极点",
+      "name_en": null,
+      "definition": "闭环极点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "闭环极点",
+        "是一种·非主导极点",
+        "是一种·闭环主导极点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "entity_id": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "name": "单位阶跃函数",
+      "name_en": null,
+      "definition": "单位阶跃函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位阶跃函数",
+        "包含组件·典型输入…",
+        "派生自·单位阶跃响应"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-55743366373a5197b074831b",
+      "entity_id": "ctkg:v3e-canonical-55743366373a5197b074831b",
+      "name": "Unit step function",
+      "name_en": "Unit step function",
+      "definition": "Unit step function：Unit step function",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Unit step f…",
+        "Unit step fu"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "entity_id": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+      "name": "单位斜坡函数",
+      "name_en": null,
+      "definition": "单位斜坡函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位斜坡函数",
+        "包含组件·典型输入…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "entity_id": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "name": "Transmission zeros",
+      "name_en": "Transmission zeros",
+      "definition": "Transmission zeros：Transmission zeros",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Transmissio…",
+        "Transmission",
+        "一种·Transm…",
+        "用于分析·Usin…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-813c3692771aa00de2a18d93",
+      "entity_id": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+      "name": "动态性能",
+      "name_en": null,
+      "definition": "动态性能。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "动态性能"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-a9b5aa38cf8c93e8dc4533da",
+      "entity_id": "ctkg:v3e-canonical-a9b5aa38cf8c93e8dc4533da",
+      "name": "Quality factor Q",
+      "name_en": "Quality factor Q",
+      "definition": "Quality factor Q：Quality factor Q",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Quality fac…",
+        "Quality fact"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "entity_id": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "name": "DC gain",
+      "name_en": "DC gain",
+      "definition": "DC gain：DC gain",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "DC gain"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "entity_id": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+      "name": "单位加速度函数",
+      "name_en": null,
+      "definition": "单位加速度函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位加速度函数",
+        "包含组件·典型输入…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-df3167f36376f526f6ec5562",
+      "entity_id": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "name": "超调量",
+      "name_en": null,
+      "definition": "响应曲线的最大偏离量与稳态值之比。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "超调量",
+        "包含组件·动态性能…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "entity_id": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "name": "稳定性",
+      "name_en": "Stability",
+      "definition": "稳定性：Stability。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳定性",
+        "Stability"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-f5ab87cb5fc7e1f248b279e0",
+      "entity_id": "ctkg:v3e-canonical-f5ab87cb5fc7e1f248b279e0",
+      "name": "Zeros at infinity",
+      "name_en": "Zeros at infinity",
+      "definition": "Zeros at infinity：Zeros at infinity",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Zeros at in…",
+        "Zeros at inf"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "entity_id": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "name": "单位脉冲函数",
+      "name_en": null,
+      "definition": "单位脉冲函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位脉冲函数",
+        "包含组件·典型输入…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-fabd3ae6177fe2f84e1bde6a",
+      "entity_id": "ctkg:v3e-canonical-fabd3ae6177fe2f84e1bde6a",
+      "name": "Sifting property",
+      "name_en": "Sifting property",
+      "definition": "Sifting property：Sifting property",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sifting pro…",
+        "Sifting prop"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ff87028e0a7bcda2c586a550",
+      "entity_id": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+      "name": "闭环零点",
+      "name_en": null,
+      "definition": "闭环零点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "闭环零点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-01762eade052b1f22b1318c1",
+      "entity_id": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "name": "P控制器",
+      "name_en": null,
+      "definition": "P控制器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "P控制器",
+        "包含组件·比例控制…",
+        "关联·比例控制规律"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

@@ -1,12 +1,32 @@
 # Independent Visual Review
 
+Review status: passed — the final 13-state capture completed independent GPT visual review.
+
 Change: `govern-adaptive-path-product-qa`
 
-Reviewer: `ui-flow-reviewer`
+Reviewer: GPT ui-flow-reviewer
 
-Reviewer session: `019eccd3-4a79-71d1-be53-df4f89c4f334`
+Review scope: accepted-P1-expanded-dock-remediation
 
-Final verdict: PASS
+Final verdict: PASS — no P0/P1 blocking findings.
+
+## Current refresh
+
+The 13-state PNG matrix was regenerated against clean source HEAD `39a41ddb9431fba73699c58813363dc01cf97cb2` (tree `45b320e5377ccd002afc562b69fce0edefd8d432`, fixed-source fingerprint `c3fbe6363b2c6a73bea8ffcb8eff122ed8bab5a895a15209dc1eb068a3a33a57`). Independent review verified all 13 PNG hashes against the capture manifest and visual signals. All states report no horizontal overflow and no forbidden diagnostics.
+
+The repaired `app-shell-expanded-dock-desktop-dark` state now proves its actual contract: the shared AppShell navigation is expanded, the floating-control secondary trigger and its 224×62 panel are visible, GlobalAI is the enabled primary control, and the adaptive-path `控灵助手` appears in that panel while remaining disabled. The Global AI sidebar is not opened. The expanded panel does not obstruct the path workspace or its critical actions.
+
+Blocking findings: none.
+
+No unresolved BLOCK findings remain.
+
+Residual risk: this expanded-dock semantic is intentionally desktop-only; existing mobile capture states continue to cover responsive behavior and do not claim that a dock panel should be expanded.
+
+## 2026-08-01 PR #1152 Refresh
+
+The 13-state adaptive-path matrix was recaptured after the cold-start explanation change. The reviewer confirmed that the recommendation basis and improvement guidance remain readable at desktop and 320px widths, the mobile navigation entry is visible, all mobile signals remain free of horizontal overflow, and the existing comparison, execution, skip-confirmation, and learning-record states remain usable. No P0/P1 regression introduced by PR #1152 was found.
+
+The initial concern that the `contextual-recommendation` demo showed an unavailable path-advisor dependency was rejected as a PR blocker: that external demo dependency state predates this change, PR #1152 does not modify path generation, and its declared scope is the student-facing cold-start explanation. The dedicated checkout-bound `cold-start-1151` capture separately verifies that the landing-intent generation action is visible and enabled at 1440px and 320px. Expanding the mobile navigation drawer and exercising a real backend generation-to-execution journey remain non-blocking acceptance gaps outside this display-only change.
 
 ## 2026-07-11 Source Refresh
 

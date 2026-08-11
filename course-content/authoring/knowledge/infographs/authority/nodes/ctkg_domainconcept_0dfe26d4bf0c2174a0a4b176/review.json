@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:16:50+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:0dfe26d4bf0c2174a0a4b176",
+  "safe_id": "ctkg_domainconcept_0dfe26d4bf0c2174a0a4b176",
+  "node_name": "负半定性（标量函数）",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1087-1091"
+}

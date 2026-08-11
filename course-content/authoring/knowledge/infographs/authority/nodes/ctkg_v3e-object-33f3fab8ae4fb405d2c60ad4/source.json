@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+  "safe_id": "ctkg_v3e-object-33f3fab8ae4fb405d2c60ad4",
+  "node": {
+    "name": "Ideal sampler",
+    "name_en": "Ideal sampler",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Ideal sampler：Ideal sampler",
+  "intuition": null,
+  "explanation": "Ideal sampler",
+  "relation_head": "后续 → Sampler",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Sampler",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "Ideal sampl…",
+    "Ideal sample",
+    "一种·Sampler"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-33f3fab8ae4fb405d2c60ad4.md",
+  "provider_policy": "grok-image_gen"
+}

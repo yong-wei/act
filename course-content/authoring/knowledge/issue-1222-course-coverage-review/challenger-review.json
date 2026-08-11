@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v2",
+  "batchBinding": {
+    "batchId": "edaaa5e622fe34eac8d7a53c",
+    "manifestBatchIndex": 32,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement",
+    "memberCount": 1,
+    "memberDigest": "c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "CHALLENGER",
+  "reviewer": {
+    "identity": "grok-independent-challenger",
+    "provider": "grok-4.5-build",
+    "sessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad",
+    "promptVersion": "issue-1222-challenger-recovery-v2"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-independent-stage-source.json",
+    "artifactSha256": "84a27e0daf6c1c0dbc3eab0d316ba7ee51142312c6642690c3f8edf62879038f",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "CHALLENGER",
+    "writerSessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad"
+  },
+  "reviewInputDigest": "ee0eae07d08967b93d648befbcf7552fd65e3cb48dd0941562d27d373a80c620",
+  "decisions": [
+    {
+      "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+      "canonicalRevision": "8c339f0697b375665b3f09de708bf3e1f4790cd27b4f22ac7abd857412b25465",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:4bea63c0ac4a09c3606550af",
+        "evidence:ctr:86523c17c42be030895f844f",
+        "canonicalId:ctk:v11g-9840f883d2655d2a1322fb60"
+      ],
+      "evidenceIds": [
+        "0d75ef1eabff67d440f4a492286165e3",
+        "c6cd1f9d524f1359268435c783e14629",
+        "923732b4fbbf19b21fbd2dd26e5fed0d"
+      ],
+      "rationale": "已精确核验冻结绑定：batch-manifest#/batches/32 的 batchId=edaaa5e622fe34eac8d7a53c、sequence=0、semanticGroupKey=ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement、memberCount=1、memberDigest=c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8，以及 worklistInputDigest/worklistDigest/manifestDigest 与成员 canonicalId/canonicalRevision 全部与冻结值一致。从冻结 worklist 读取该成员完整 evidenceRefs（原序 3 条）：boundary 分别为 aggregate、aggregate、profile，independent-course 计数为 0；profileOnly=true 且 highRisk=true。按 receiver 不变量，非 DEFER 结论必须引用 boundary=independent-course 的冻结 evidenceRef，本成员不具备该边界证据。priorDecisionRefs 与课程材料仅可作解释性/诊断上下文，不得替代或新增冻结 evidenceRef，也不能继承历史角色或裁决。因此 fail closed：结论为 role-free DEFER，evidenceSufficiency=INSUFFICIENT，完整保留冻结 evidenceSelectors/evidenceIds 原序身份；不激活 CourseCoverage 角色，不改变 production authority/selector/writer fence。",
+      "decisionDigest": "c853b191889c07c9e91e7edde142b79d7e5aeb10d1444bc63680af57062559c2"
+    }
+  ],
+  "documentDigest": "c0d87524a7c950e135385e2e2af6c3266b39aa72431b0c30e773bf806c5343e0"
+}

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-0b94edb93771b955eedd5d9f",
+  "safe_id": "ctkg_v3e-object-0b94edb93771b955eedd5d9f",
+  "node": {
+    "name": "得到闭环对数幅频和相频曲线",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "在已知系统开环传递函数条件下，直接调用命令 feedback 和 bode，可立即得到闭环对数幅频和相频曲线，然后可判读出系统谐振频率 ω_r、谐振峰值 M_r(dB) 及带宽频率 ω_b。",
+  "intuition": "在图谱邻接中可把握：前置 → 谐振峰值 · 后续 → 谐振峰值、谐振频率、带宽频率。",
+  "explanation": "在已知系统开环传递函数条件下，直接调用命令 feedback 和 bode，可立即得到闭环对数幅频和相频曲线，然后可判读出系统谐振频率 ω_r、谐振峰值 M_r(dB) 及带宽频率 ω_b。",
+  "relation_head": "前置 → 谐振峰值 · 后续 → 谐振峰值、谐振频率、带宽频率",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "谐振峰值",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "谐振频率",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "带宽频率",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "谐振峰值",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "谐振频率",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "带宽频率",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "得到闭环对数幅频和相频…",
+    "用于分析·谐振峰值",
+    "用于分析·谐振频率",
+    "用于分析·带宽频率",
+    "关联·谐振峰值",
+    "关联·谐振频率"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-0b94edb93771b955eedd5d9f.md",
+  "provider_policy": "grok-image_gen"
+}

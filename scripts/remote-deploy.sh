@@ -14,6 +14,8 @@ REMOTE_IMAGE_TAR="${REMOTE_IMAGE_TAR:-${REMOTE_IMAGES_DIR}/act-obe.tar}"
 REMOTE_PROVENANCE_FILE="${REMOTE_PROVENANCE_FILE:-${REMOTE_IMAGE_TAR}.provenance.json}"
 LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
 REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
+REMOTE_RUNTIME_PARENT_DIR="$(dirname "${REMOTE_RUNTIME_DIR}")"
+REMOTE_AUTHORITY_CURRENT_POINTER="${REMOTE_AUTHORITY_CURRENT_POINTER:-${REMOTE_PROJECT_DIR}/course-content/authoring/knowledge/authority/current.json}"
 LOCAL_TEXTBOOK_V2_RUNTIME_DIR="${LOCAL_RUNTIME_DIR}/resources/textbooks-v2"
 REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
 LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-retrieval"
@@ -143,6 +145,34 @@ for file_name in ${TEXTBOOK_RETRIEVAL_REQUIRED_FILES}; do
 done
 grep -q \"formatVersion.*textbook-hybrid-retrieval.v1\" \"\${index_root}/manifest.json\"
 grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION:-__preflight_pending__}\" \"\${index_root}/manifest.json\"
+'"
+}
+
+check_remote_runtime_pointer_absence() {
+  local runtime_dir="${1:-${REMOTE_RUNTIME_DIR}}"
+  remote "bash -lc '
+set -euo pipefail
+runtime_root=\"${runtime_dir}\"
+for pointer in \
+  knowledge/consumer-activation/current.json \
+  knowledge/projection/current.json \
+  knowledge/prerequisites/current.json; do
+  if [ -e \"\${runtime_root}/\${pointer}\" ]; then
+    echo \"ERROR: production runtime pointer must be absent: \${pointer}\" >&2
+    exit 1
+  fi
+done
+'"
+}
+
+check_remote_authority_current_pointer_absence() {
+  remote "bash -lc '
+set -euo pipefail
+pointer=\"${REMOTE_AUTHORITY_CURRENT_POINTER}\"
+if [ -e \"\${pointer}\" ] || [ -L \"\${pointer}\" ]; then
+  echo \"ERROR: production legacy runtime must not contain host Authority current pointer: \${pointer}\" >&2
+  exit 1
+fi
 '"
 }
 
@@ -419,7 +449,8 @@ log "[2/5] 同步运行时资源与部署脚本"
 [[ -f "${LOCAL_SERVICE_SCRIPT}" ]] || fail "本地 systemd 配置脚本不存在: ${LOCAL_SERVICE_SCRIPT}"
 [[ -f "${LOCAL_START_WRAPPER_SCRIPT}" ]] || fail "本地容器启动包装脚本不存在: ${LOCAL_START_WRAPPER_SCRIPT}"
 
-remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")'"
+remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_PARENT_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")'"
+check_remote_authority_current_pointer_absence
 
 scp -q "${LOCAL_PROVENANCE_FILE}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_FILE}"
 remote "mv '${REMOTE_TMP_PROVENANCE_FILE}' '${REMOTE_PROVENANCE_FILE}'"
@@ -431,8 +462,21 @@ CUTOVER_STARTED=1
 stop_remote_runtime_consumers
 
 remote "rm -rf '${REMOTE_RUNTIME_STAGING_DIR}' && mkdir -p '${REMOTE_RUNTIME_STAGING_DIR}'"
-rsync -az --delete -e "ssh -o BatchMode=yes" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_STAGING_DIR}/"
+runtime_rsync_args=(
+  -az
+  --delete
+  --delete-excluded
+  --exclude=knowledge/consumer-activation/current.json
+  --exclude=knowledge/projection/current.json
+  --exclude=knowledge/prerequisites/current.json
+  -e "ssh -o BatchMode=yes"
+)
+if remote "test -d '${REMOTE_RUNTIME_DIR}'"; then
+  runtime_rsync_args+=(--link-dest="${REMOTE_RUNTIME_DIR}")
+fi
+rsync "${runtime_rsync_args[@]}" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_STAGING_DIR}/"
 check_remote_textbook_v2_files "${REMOTE_RUNTIME_STAGING_DIR}"
+check_remote_runtime_pointer_absence "${REMOTE_RUNTIME_STAGING_DIR}"
 remote "command -v node >/dev/null"
 remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
   --runtime-root '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbooks-v2' \
@@ -452,6 +496,7 @@ fi
 rm -rf \"\${previous}\"
 '"
 check_remote_textbook_v2_files
+check_remote_runtime_pointer_absence
 remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
   --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
   --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
@@ -541,6 +586,8 @@ remote "test -f '${REMOTE_PROVENANCE_FILE}'"
 log "- 校验远端 runtime 目录"
 remote "test -d '${REMOTE_PROJECT_DIR}/course-content/runtime'"
 check_remote_textbook_v2_files
+check_remote_runtime_pointer_absence
+check_remote_authority_current_pointer_absence
 remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
   --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
   --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \

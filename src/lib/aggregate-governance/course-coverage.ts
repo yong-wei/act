@@ -147,8 +147,17 @@ export interface CoverageValidationResult {
 }
 
 /**
- * Validate exhaustive unique dispositions for baseline, or scoped entries for
- * incremental authoring patches (caller still merges with current set).
+ * Validate unique dispositions for ACT teaching-scope authoring.
+ *
+ * `currentCanonicalIds` MUST be the ACT teaching denominator (selected
+ * resources/core nodes), never the exhaustive ActKG Release membership.
+ * Exhaustive checks apply only within that ACT scope. Empty scope is valid
+ * (Teaching Projection may be NOT_PROJECTED) and does not block Engineering
+ * Authority.
+ *
+ * Historical full-Release baseline tooling may still pass
+ * `coverageDenominator: 'historical-release'` with requireExhaustive true; new
+ * selectors MUST use `coverageDenominator: 'act-teaching'` (default).
  */
 export function validateCourseCoverageAuthoring(
   value: unknown,
@@ -160,6 +169,12 @@ export function validateCourseCoverageAuthoring(
     sourceDatasetHash?: string | null;
     mode: 'baseline' | 'incremental';
     requireExhaustive?: boolean;
+    /**
+     * Denominator semantics for exhaustive checks.
+     * - `act-teaching` (default): ACT resource/core-node scope; empty allowed.
+     * - `historical-release`: legacy full-membership baseline tooling only.
+     */
+    coverageDenominator?: 'act-teaching' | 'historical-release';
   },
 ): CoverageValidationResult {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -250,7 +265,11 @@ export function validateCourseCoverageAuthoring(
     }
   }
 
-  const exhaustive = input.requireExhaustive ?? input.mode === 'baseline';
+  const denominator = input.coverageDenominator ?? 'act-teaching';
+  // ACT teaching scope: exhaustive only over the provided ACT denominator.
+  // Historical-release keeps the prior baseline default (exhaustive when baseline).
+  const exhaustive = input.requireExhaustive
+    ?? (denominator === 'historical-release' && input.mode === 'baseline');
   if (exhaustive) {
     const missing = [...current].filter((id) => !byCanonical.has(id)).sort();
     if (missing.length > 0) {
@@ -258,6 +277,12 @@ export function validateCourseCoverageAuthoring(
         `Course coverage rejected: baseline missing dispositions for ${missing.length} objects (first=${missing[0]})`,
       );
     }
+  }
+  // Empty ACT teaching denominator is explicitly allowed under act-teaching scope.
+  if (denominator === 'act-teaching' && current.size === 0 && byCanonical.size > 0) {
+    throw new Error(
+      'Course coverage rejected: ACT teaching denominator is empty but dispositions were supplied',
+    );
   }
 
   const sorted = [...byCanonical.values()].sort((a, b) => (

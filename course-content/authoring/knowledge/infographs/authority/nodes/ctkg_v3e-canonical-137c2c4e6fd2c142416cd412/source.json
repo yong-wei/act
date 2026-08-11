@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+  "safe_id": "ctkg_v3e-canonical-137c2c4e6fd2c142416cd412",
+  "node": {
+    "name": "动态性能指标",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "描述稳定的系统在单位阶跃函数作用下，动态过程随时间 t 的变化状况的指标。",
+  "intuition": null,
+  "explanation": "描述稳定的系统在单位阶跃函数作用下，动态过程随时间 t 的变化状况的指标。",
+  "relation_head": "后续 → 峰值时间、调节时间、上升时间",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "峰值时间",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "调节时间",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "上升时间",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "超调量",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "动态性能指标",
+    "包含组件·峰值时间",
+    "包含组件·调节时间",
+    "包含组件·上升时间",
+    "包含组件·超调量"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-137c2c4e6fd2c142416cd412.md",
+  "provider_policy": "grok-image_gen"
+}

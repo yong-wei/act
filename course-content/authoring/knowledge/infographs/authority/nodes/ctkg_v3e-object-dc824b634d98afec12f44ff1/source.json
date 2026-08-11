@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-dc824b634d98afec12f44ff1",
+  "safe_id": "ctkg_v3e-object-dc824b634d98afec12f44ff1",
+  "node": {
+    "name": "Control canonical form",
+    "name_en": "Control canonical form",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Control canonical form：A canonical form of state-space representation where the system matrix is in upper companion form, with the coefficient…",
+  "intuition": "在图谱邻接中可把握：前置 → Pole placement b。",
+  "explanation": "A canonical form of state-space representation where the system matrix is in upper companion form, with the coefficients of the characteristic polynomial appearing in the first row, and the input matrix has a single 1 in the first row. This form simplifies the calculation of state feedback gains for pole placement.",
+  "relation_head": "前置 → Pole placement b",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Pole placement b",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Control can…",
+    "Control cano",
+    "用于分析·Pole…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-dc824b634d98afec12f44ff1.md",
+  "provider_policy": "grok-image_gen"
+}

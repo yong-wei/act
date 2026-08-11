@@ -1,0 +1,100 @@
+{
+  "status": "passed",
+  "capturedAt": "2026-08-09T05:50:58.214Z",
+  "sourceRevision": "adc0ebffec70072465820d1fcc5c329f7a66270d",
+  "generatorPath": "tests/adaptive-path-evidence-links-1186-p3.spec.ts",
+  "generatorSha256": "faa2740249601bbc7e924a08063afa0b8b087cd0d0fc620bb0ec3b15dc8d7f18",
+  "sourceFiles": {
+    "src/app/assessment/adaptive-practice/page.tsx": "cdf27ab999b489e4309288352f11ca532156d3ee7c4a04ad439d168f3770e16d",
+    "src/lib/adaptive-learning-path-planner.ts": "74c6d3e223a946b89a1d5f615cc91bf6dbbec9972e1b40d47d70a3a173df9a74",
+    "src/lib/adaptive-path-node-decisions.ts": "29b91325d4ee95f3bc0bf45fb6a7d1924ff812e8a0b66362d96ed2600b141dbb",
+    "src/lib/data-governance/adaptive-learner-state-service.ts": "56be03351a0443311e376fc4e8c5c67a8bf1b62e1937b2431be6bd7172e28344",
+    "src/lib/data-governance/evidence-timeline.ts": "4819ee612cc90f0b70e7d92b0f66fb5ba2587baa1ecbc2ce8ed283aed7617852"
+  },
+  "captureBeforeHead": "adc0ebffec70072465820d1fcc5c329f7a66270d",
+  "captureAfterHead": "adc0ebffec70072465820d1fcc5c329f7a66270d",
+  "routes": [
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=sufficient",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&provenanceFixture=sufficient"
+  ],
+  "assertions": [
+    {
+      "state": "candidate",
+      "viewport": "1280x720",
+      "passed": true,
+      "checks": [
+        "event source, occurrence time, summary, and safe action are readable",
+        "candidate and active-node evidence remain distinct",
+        "event actions contain no internal source identifier",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "state": "active-node",
+      "viewport": "1280x720",
+      "passed": true,
+      "checks": [
+        "event source, occurrence time, summary, and safe action are readable",
+        "candidate and active-node evidence remain distinct",
+        "event actions contain no internal source identifier",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "state": "candidate",
+      "viewport": "320x720",
+      "passed": true,
+      "checks": [
+        "event source, occurrence time, summary, and safe action are readable",
+        "candidate and active-node evidence remain distinct",
+        "event actions contain no internal source identifier",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "state": "active-node",
+      "viewport": "320x720",
+      "passed": true,
+      "checks": [
+        "event source, occurrence time, summary, and safe action are readable",
+        "candidate and active-node evidence remain distinct",
+        "event actions contain no internal source identifier",
+        "no horizontal overflow"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "state": "candidate",
+      "viewport": "1280x720",
+      "file": "artifacts/commercial-ui/issue-1186-p3/desktop-candidate-evidence.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "e55268dec8608d815b17853c9565e619e77b30c823f0fdfcead935b9c5610df6"
+    },
+    {
+      "state": "active-node",
+      "viewport": "1280x720",
+      "file": "artifacts/commercial-ui/issue-1186-p3/desktop-active-node-evidence.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "a6dfb964344fc4dca48538993888964fbb8178fb2108eca844dfa3531d37af05"
+    },
+    {
+      "state": "candidate",
+      "viewport": "320x720",
+      "file": "artifacts/commercial-ui/issue-1186-p3/mobile-320-candidate-evidence.png",
+      "width": 320,
+      "height": 720,
+      "sha256": "9b26f140905e57a31db5ed70ecce4b335668503bbc4decba1c7dc699acd4ea87"
+    },
+    {
+      "state": "active-node",
+      "viewport": "320x720",
+      "file": "artifacts/commercial-ui/issue-1186-p3/mobile-320-active-node-evidence.png",
+      "width": 320,
+      "height": 720,
+      "sha256": "afc8f212dc17031ca62fe8fa56f45214e8f7d7cc25a7b795d01c773734c92e72"
+    }
+  ]
+}

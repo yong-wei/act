@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0195",
+  "offset": 975,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_e64c6ad0fa1d0483faf9aa7c",
+      "batch": "C",
+      "name": "纹波",
+      "definition": "纹波是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "纹波"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 纹波\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 纹波是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「纹波」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-6280f0cd5c8f281d399cb327",
+      "batch": "C",
+      "name": "系统在时间域中的行为或运动信息…",
+      "definition": "系统在时间域中的行为或运动信息的集合。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统在时间域中的行为或…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 系统在时间域中的行为或运动信息…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统在时间域中的行为或运动信息的集合。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「系统在时间域中的行为」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1ee77aa2b862870735a63c50",
+      "batch": "C",
+      "name": "相平面图",
+      "definition": "由一簇相轨迹所组成的图形称为相平面图。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "相平面图",
+        "属于·相轨迹",
+        "包含组件·相轨迹",
+        "包含组件·分隔线"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 相平面图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由一簇相轨迹所组成的图形称为相平面图。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「相平面图」、「属于·相轨迹」、「包含组件·相轨迹」、「包含组件·分隔线」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-806d8586fa5ceca0613b844d",
+      "batch": "C",
+      "name": "连续谱",
+      "definition": "非周期信号的频谱特性，频谱为连续分布。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "连续谱"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 连续谱\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 非周期信号的频谱特性，频谱为连续分布。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「连续谱」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "batch": "C",
+      "name": "反馈校正",
+      "definition": "反馈校正装置接在系统局部反馈通路之中。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "反馈校正",
+        "是一种·校正装置"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 反馈校正\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 反馈校正装置接在系统局部反馈通路之中。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「反馈校正」、「是一种·校正装置」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -94,7 +94,7 @@ export function DiagnosisSurfacePanel({
           </div>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-subtle">{description}</p>
         </div>
-        <div className="grid min-w-[260px] grid-cols-3 gap-2 text-center">
+        <div className="grid min-w-0 grid-cols-3 gap-2 text-center sm:min-w-[260px]">
           <MetricPill label="维度" value={claims.length} />
           <MetricPill label="证据" value={evidenceCount} />
           <MetricPill label="限制" value={limitations.length} />

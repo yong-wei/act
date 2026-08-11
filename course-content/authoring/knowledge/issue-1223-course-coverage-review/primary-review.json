@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v2",
+  "batchBinding": {
+    "batchId": "84aa72597e8fe1d9ee6f0602",
+    "manifestBatchIndex": 33,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 1,
+    "memberDigest": "8ee4109996fc05d510290a3620c6172e8107421e9695a1aa79c13e5cbe4040e4",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-independent-primary",
+    "provider": "grok-4.5-build",
+    "sessionId": "5b2678f1-d651-4046-a1d1-6691280ac762",
+    "promptVersion": "issue-1223-primary-v1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/primary-independent-stage-source.json",
+    "artifactSha256": "068447628380c57b5bd38d2397c1ac58ceb584f67caa2a8309ffe10b1e0fd342",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "PRIMARY",
+    "writerSessionId": "5b2678f1-d651-4046-a1d1-6691280ac762"
+  },
+  "reviewInputDigest": "d9ce2f983a332170c8fde25824e34e2995c5bac32ffdc9546ce22f32027e899f",
+  "decisions": [
+    {
+      "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+      "canonicalRevision": "d43c4e7c9a96a3b2f5b5f5f71bd20b145a6c4d07c563371902ccd33854830430",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:c017d99634d38d5b97730906",
+        "evidence:ctr:fc21f12ca7add7a360e6aa50",
+        "topic:transfer function",
+        "canonicalId:ctm:v11g-6b66a370b1cd788194b0f8ab"
+      ],
+      "evidenceIds": [
+        "4720bc25816a80b9284352bf0d9be61e",
+        "e9b59a0f36a47ae3deaceca0e9ae7063",
+        "5ab5da9bd3b2647768c42f06ae1a33e1",
+        "0e1df03545c39c4ef3567b4965678117"
+      ],
+      "rationale": "profileOnly/highRisk 成员，冻结证据仅有聚合投影、词表与规范 profile，无独立课程权威证据，无法判定覆盖角色。",
+      "decisionDigest": "a559f5a1dcd5bb0a97d0d0ab2d9f73109845b88b89746d26d57d4ddfb147db73"
+    }
+  ],
+  "documentDigest": "48b8e434628b78ff268dec6b4802f1888c7343bb013e75ea9aae8a76af1c11bc"
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-a5274fe5fb3f346f6aff0ddd",
+  "safe_id": "ctc_modeling-a5274fe5fb3f346f6aff0ddd",
+  "node": {
+    "name": "Analytical results and tools",
+    "name_en": "modeling_a5274fe5fb3f346f6aff0ddd",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "explicit_extension"
+  },
+  "definition": "Analytical results and tools：Analytical results and tools from matrix linear algebra (including identity matrix, triangular and diagonal matrices, t…",
+  "intuition": "在图谱邻接中可把握：后续 → Designing the control law。",
+  "explanation": "Analytical results and tools from matrix linear algebra (including identity matrix, triangular and diagonal matrices, transpose, and matrix algebra mechanics) used in state-space design.",
+  "relation_head": "后续 → Designing the control law",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Designing the control law",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Analytical …",
+    "关联·Design…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-a5274fe5fb3f346f6aff0ddd.md",
+  "provider_policy": "grok-image_gen"
+}

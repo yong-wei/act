@@ -51,6 +51,12 @@ export interface PathConstraintRepairResult {
   status: PathConstraintRepairStatus;
   draftNodeIds: string[];
   repairedNodeIds: string[];
+  /**
+   * Duration of the final constraint-repaired executable node set. Candidate
+   * durations already account for completed nodes (the planner assigns them
+   * zero minutes), so this remains a remaining-duration value.
+   */
+  minimumExecutableDurationMinutes: number | null;
   insertedNodeIds: string[];
   removedNodeIds: string[];
   checkpointNodeIds: string[];
@@ -633,6 +639,10 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     limitations.push('parallel-grouping-not-supported');
   }
 
+  const minimumExecutableDurationMinutes = selectedIds.length > 0
+    ? estimatedMinutes(selectedIds, candidatesById)
+    : null;
+
   return {
     status: infeasibleReasons.length > 0
       ? 'infeasible'
@@ -641,6 +651,7 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
         : 'satisfied',
     draftNodeIds: input.draftNodeIds,
     repairedNodeIds: selectedIds,
+    minimumExecutableDurationMinutes,
     insertedNodeIds: unique(insertedNodeIds),
     removedNodeIds: unique(removedNodeIds),
     checkpointNodeIds,

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-2175d5717ff3333e7780bba0",
+  "safe_id": "ctc_modeling-2175d5717ff3333e7780bba0",
+  "node": {
+    "name": "线性定常微分方程的求解方法有经…",
+    "name_en": "modeling_2175d5717ff3333e7780bba0",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "线性定常微分方程的求解方法有经典法和拉普拉斯变换法两种，也可借助电子计算机求解。",
+  "intuition": null,
+  "explanation": "线性定常微分方程的求解方法有经典法和拉普拉斯变换法两种，也可借助电子计算机求解。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "线性定常微分方程的求解…"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-2175d5717ff3333e7780bba0.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,46 @@
+{
+  "description": "Minimal valid published REQUIRED edge with author decision and evidence.",
+  "scopeId": "act-control-theory-core",
+  "authoringRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "authorityReleaseId": "ctr:release:eng-fixture-v1",
+  "projectionCaptureId": "proj-fixture-capture-1",
+  "authorityNodes": [
+    { "canonicalId": "node.laplace-transform", "lifecycleStatus": "active" },
+    { "canonicalId": "node.transfer-function", "lifecycleStatus": "active" },
+    { "canonicalId": "node.upstream-only", "lifecycleStatus": "active" }
+  ],
+  "coreNodes": [
+    {
+      "canonicalId": "node.laplace-transform",
+      "scopeId": "act-control-theory-core",
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-1",
+      "rationale": "Formal objective",
+      "sourceKind": "OBJECTIVE",
+      "sourceEvidence": ["authoring/objectives/laplace.md"]
+    },
+    {
+      "canonicalId": "node.transfer-function",
+      "scopeId": "act-control-theory-core",
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-1",
+      "rationale": "Primary COVERS",
+      "sourceKind": "PRIMARY_COVERS",
+      "sourceEvidence": ["act:step:unit-1-1:tf"]
+    }
+  ],
+  "edges": [
+    {
+      "sourceNodeId": "node.laplace-transform",
+      "targetNodeId": "node.transfer-function",
+      "strength": "REQUIRED",
+      "scopeId": "act-control-theory-core",
+      "evidenceRefs": ["authoring/handouts/1-1/laplace-to-tf.md"],
+      "curatorId": "teacher.core-path",
+      "curatorRationale": "Hard teaching dependency",
+      "status": "PUBLISHED"
+    }
+  ]
+}

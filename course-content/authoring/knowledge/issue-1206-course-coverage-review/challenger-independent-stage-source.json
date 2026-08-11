@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "batchBinding": {
+    "batchId": "bbd99e29d4339410c06d0528",
+    "manifestBatchIndex": 16,
+    "sequence": 0,
+    "group": "ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 1,
+    "memberDigest": "bbf983851280ba71a7ae3ffd4dd5e3923bb68a2b5fad50031ffad0bc54662417",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "sessionId": "7aa9a3b2-4780-435f-817f-cdc585543b53",
+  "writerSessionId": "7aa9a3b2-4780-435f-817f-cdc585543b53",
+  "reviewSessionId": "7aa9a3b2-4780-435f-817f-cdc585543b53",
+  "sessionIndependence": {
+    "readPrimaryStage": false,
+    "readThirdStage": false,
+    "readPrimaryThirdReceiptOrAttestationArtifacts": false,
+    "readOtherBatchConclusions": false,
+    "statement": "Issue #1206 CHALLENGER-only independent session for batch bbd99e29d4339410c06d0528 batches[16]. Did not read, open, probe, or infer from the Primary stage artifact, any Third artifact, normalized reviews, receipt, attestation, provenance, or other-batch conclusions. Conclusions are limited to the frozen issue-1180 worklist.json and batch-manifest.json#/batches/16/members plus the independent-course evidence scope course-content/authoring/lessons/** and course-content/syllabus-refactor/**. The Grok session ended in structured terminal state with 0 INCLUDE, 0 EXCLUDE, 1 DEFER and evidenceSufficiency=INSUFFICIENT."
+  },
+  "diagnosticCandidates": [
+    {
+      "path": "course-content/authoring/lessons/3-1/manifest.json",
+      "kind": "lesson-manifest",
+      "authority": "diagnostic-only",
+      "observation": "3-1 manifest is a nearby lesson index but does not carry a frozen independent-course evidenceRef for this member."
+    },
+    {
+      "path": "course-content/authoring/lessons/3-2/manifest.json",
+      "kind": "lesson-manifest",
+      "authority": "diagnostic-only",
+      "observation": "3-2 manifest is a nearby stability lesson index but does not carry a frozen independent-course evidenceRef for this member."
+    },
+    {
+      "path": "course-content/syllabus-refactor/unit-design-details/module3.md",
+      "kind": "syllabus-blueprint",
+      "authority": "diagnostic-only",
+      "observation": "Module 3 syllabus material is a neighboring stability source but is not a frozen evidenceRef for this member."
+    },
+    {
+      "path": "course-content/authoring/lessons/1-2/manifest.json",
+      "kind": "lesson-manifest",
+      "authority": "diagnostic-only",
+      "observation": "1-2 manifest is a nearby modeling lesson index but is not a frozen evidenceRef for this member."
+    }
+  ],
+  "diagnosticSearch": {
+    "scope": "course-content/authoring/lessons/**",
+    "term": "welding-head",
+    "result": "not-found",
+    "authority": "diagnostic-only"
+  },
+  "reFreezeRequired": true,
+  "reFreezeReason": "Issue #1180 must bind and classify any diagnostic course candidates into independent-course evidence, re-freeze the ordered batch, and then rerun this review; absence or presence of nearby text cannot upgrade the current DEFER.",
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+      "canonicalRevision": "007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "CHALLENGER independent CourseCoverage review for SystemModel ctkg:v3e-object-8febbacce7243f4fa8086290 (preferredLabel='A block diagram of a welding head positioning system is shown in Figure 6.5. The welding head is moved to different positions on the auto body, and a rapid, accurate response is required.') at canonicalRevision=007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe. Frozen binding: batchId=bbd99e29d4339410c06d0528 batches[16] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1']; profileOnly=true, riskFlags.new=false, changed=false, highRisk=true, reasons=['high-risk','profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs_count=0. Both frozen evidenceRefs are aggregate-projection only: aggregate-evidence selector evidence:ctkg:v3e-evidence-e7e840270dcfa4baab7a1b68 and canonical-profile selector canonicalId:ctkg:v3e-object-8febbacce7243f4fa8086290; no admitted independent-course boundary exists. Challenger diagnostic inspection checked the 3-1 manifest, 3-2 manifest, syllabus-refactor module3, and 1-2 manifest as nearby candidates, and found no welding-head text in the lesson search scope; these observations remain non-authoritative diagnosticCandidates and are not frozen selectors. Aggregate/profile evidence, module membership, or a failed text search cannot establish an independent CourseCoverage role. Therefore stageConclusion=DEFER, role=null, evidenceSufficiency=INSUFFICIENT; Issue #1180 must bind/classify candidates, re-freeze, and rerun before any INCLUDE/EXCLUDE consideration.",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-e7e840270dcfa4baab7a1b68|a71b0999c3880d163499b7acdabb28d0bc86dc343ea2b3a82a29c3e5dce1fdfc",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-8febbacce7243f4fa8086290|007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe"
+      ]
+    }
+  ],
+  "counts": {
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 1,
+    "memberCount": 1,
+    "profileOnly": 1,
+    "highRisk": 1,
+    "new": 0,
+    "changed": 0,
+    "independentCourseEvidenceMembers": 0,
+    "priorDecisionRefsNonEmpty": 0,
+    "evidenceBoundaryAggregateProfileOnly": 1,
+    "roleNull": 1,
+    "evidenceSufficiencyINSUFFICIENT": 1
+  },
+  "unresolvedRisks": [
+    "Frozen evidenceRefs remain aggregate/profile only; no independent-course selector is admitted, so CourseCoverage authority remains unresolved.",
+    "The four nearby manifests/module files and the no-welding-head search result are diagnostic only and must not be promoted into frozen evidenceRefs.",
+    "reFreezeRequired=true: Issue #1180 must bind/classify candidates and re-freeze before a later re-review."
+  ]
+}

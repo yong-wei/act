@@ -124,13 +124,13 @@ const KONLING_ASSISTANT_BINDING_HINT_KEYS: Record<
   readonly string[]
 > = {
   'diagnosis-explainer': ['answerId'],
-  'path-advisor': ['classId', 'courseId', 'goalId', 'graphNodeId', 'modeContextToken'],
+  'path-advisor': ['classId', 'courseId', 'goalId', 'graphNodeId', 'candidateBatchId', 'modeContextToken'],
   'resource-coach': ['resourceId'],
   'grading-assistant': ['gradingRunId'],
   'feedback-explainer': ['gradingRunId'],
   'class-summarizer': ['goalId', 'classReportId', 'modeContextToken'],
-  'prep-coauthor': ['smartTaskId', 'smartTaskRevision', 'goalId', 'prepPackId', 'modeContextToken'],
   'teacher-diagnosis': [],
+  'prep-coauthor': ['smartTaskId', 'smartTaskRevision', 'goalId', 'prepPackId', 'modeContextToken'],
 };
 
 export class KonlingConversationTurnConflictError extends Error {

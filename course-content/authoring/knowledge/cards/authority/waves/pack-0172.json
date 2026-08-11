@@ -1,0 +1,67 @@
+{
+  "pack_id": "P0172",
+  "offset": 860,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-fabd3ae6177fe2f84e1bde6a",
+      "batch": "C",
+      "name": "Sifting property",
+      "definition": "Sifting property：Sifting property",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sifting pro…",
+        "Sifting prop"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Sifting property\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Sifting property：Sifting property\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Sifting pr」、「Sifting pr」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-726a2bc09a6a129dc57128b2",
+      "batch": "C",
+      "name": "double precision",
+      "definition": "double precision：double precision",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "double prec…",
+        "double preci"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: double precision\nSOURCE DEFINITION (fail-closed, do not invent beyond this): double precision：double precision\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「double pre」、「double pre」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-82a3bb18a814af1836288fe0",
+      "batch": "C",
+      "name": "Extraneous roots",
+      "definition": "Extraneous roots：Extraneous roots",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Extraneous …",
+        "Extraneous r"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Extraneous roots\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Extraneous roots：Extraneous roots\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Extraneous」、「Extraneous」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f3ae1a478d0e8faba241ebbb",
+      "batch": "C",
+      "name": "preloaded spring",
+      "definition": "preloaded spring：preloaded spring",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "preloaded s…",
+        "preloaded sp",
+        "一种·memory…",
+        "关联·coulom…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: preloaded spring\nSOURCE DEFINITION (fail-closed, do not invent beyond this): preloaded spring：preloaded spring\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「preloaded 」、「preloaded 」、「一种·memory…」、「关联·coulom…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1d3fbc0debb0aa898ddc8773",
+      "batch": "C",
+      "name": "题7-19闭环离散系统模型",
+      "definition": "题7-19闭环离散系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-19闭环离散系统…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 题7-19闭环离散系统模型\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 题7-19闭环离散系统模型是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「题7-19闭环离散系」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

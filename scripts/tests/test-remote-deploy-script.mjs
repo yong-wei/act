@@ -21,6 +21,7 @@ function verifyCutoverFailureGate() {
   try {
     const fakeBin = path.join(fixtureRoot, 'bin');
     const sshLog = path.join(fixtureRoot, 'ssh.log');
+    const rsyncLog = path.join(fixtureRoot, 'rsync.log');
     fs.mkdirSync(fakeBin);
     writeExecutable(fakeBin, 'ssh', [
       '#!/usr/bin/env bash',
@@ -89,7 +90,12 @@ function verifyCutoverFailureGate() {
       path.join(runtimeRoot, 'resources', 'textbook-retrieval', 'manifest.json'),
       '{}\n',
     );
-    writeExecutable(fakeBin, 'rsync', '#!/usr/bin/env bash\nexit 73\n');
+    writeExecutable(fakeBin, 'rsync', [
+      '#!/usr/bin/env bash',
+      `printf '%s\\n' "$*" >> ${JSON.stringify(rsyncLog)}`,
+      'exit 73',
+      '',
+    ].join('\n'));
     const postCutover = spawnSync(
       'bash',
       [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
@@ -105,6 +111,23 @@ function verifyCutoverFailureGate() {
       },
     );
     assert.notEqual(postCutover.status, 0, 'runtime rsync 失败应终止 cutover');
+    const rsyncArgs = fs.readFileSync(rsyncLog, 'utf8');
+    for (const pointer of [
+      'knowledge/consumer-activation/current.json',
+      'knowledge/projection/current.json',
+      'knowledge/prerequisites/current.json',
+    ]) {
+      assert.match(
+        rsyncArgs,
+        new RegExp(`--exclude=${pointer.replaceAll('/', '\\/')}(?: |$)`),
+        `runtime rsync 必须精确排除 production pointer: ${pointer}`,
+      );
+    }
+    assert.match(
+      rsyncArgs,
+      /--delete-excluded(?: |$)/,
+      'runtime rsync 必须删除远端残留的 excluded pointer',
+    );
     const stopCalls = (
       fs.readFileSync(sshLog, 'utf8').match(/runtime consumer still running/gu) ?? []
     ).length;
@@ -198,12 +221,56 @@ function main() {
   assert.equal(
     script.includes('stop_remote_runtime_consumers') &&
       script.indexOf('stop_remote_runtime_consumers', script.indexOf('[2/5]')) <
-        script.indexOf('rsync -az --delete') &&
+        script.indexOf('rsync "${runtime_rsync_args[@]}"') &&
       script.includes('REMOTE_RUNTIME_STAGING_DIR') &&
       script.includes('保持教材 runtime 消费者停止') &&
       script.includes('trap on_exit EXIT'),
     true,
     '远端部署必须在 runtime 同步前停止消费者，并让 ERR 或显式非零退出都保持消费者停止',
+  );
+
+  assert.equal(
+    script.includes('REMOTE_RUNTIME_PARENT_DIR="$(dirname "${REMOTE_RUNTIME_DIR}")"') &&
+      script.includes(
+        'remote "mkdir -p \'${REMOTE_IMAGES_DIR}\' \'${REMOTE_RUNTIME_PARENT_DIR}\'',
+      ) &&
+      script.includes('runtime_rsync_args=(') &&
+      script.includes('if remote "test -d \'${REMOTE_RUNTIME_DIR}\'"; then') &&
+      script.includes('runtime_rsync_args+=(--link-dest="${REMOTE_RUNTIME_DIR}")') &&
+      script.includes('rsync "${runtime_rsync_args[@]}"'),
+    true,
+    'runtime rsync 只有在远端当前目录存在时才启用 link-dest，首次同步保持完整复制且参数通过数组传递',
+  );
+
+  for (const pointer of [
+    'knowledge/consumer-activation/current.json',
+    'knowledge/projection/current.json',
+    'knowledge/prerequisites/current.json',
+  ]) {
+    assert.match(
+      script,
+      new RegExp(`--exclude=${pointer.replaceAll('/', '\\/')}`),
+      `runtime rsync 必须精确排除 ${pointer}`,
+    );
+  }
+  assert.match(
+    script,
+    /--delete-excluded/,
+    'runtime rsync 必须删除 excluded pointer 的远端残留',
+  );
+  assert.doesNotMatch(
+    script,
+    /--exclude=[^\n]*knowledge\/(?:consumer-activation|projection|prerequisites)\/releases/,
+    'runtime rsync 必须保留 candidate release assets，不得排除 releases 目录',
+  );
+  assert.match(
+    script,
+    /check_remote_runtime_pointer_absence "\$\{REMOTE_RUNTIME_STAGING_DIR\}"/,
+    'runtime staging 同步后必须验证三个 production pointer 均不存在',
+  );
+  assert.ok(
+    (script.match(/check_remote_runtime_pointer_absence\n(?:check_remote_authority_current_pointer_absence\n)?remote "node /g) ?? []).length >= 2,
+    'runtime 切换后及最终 remote runtime 验证都必须断言三个 production pointer 均不存在',
   );
 
   assert.match(

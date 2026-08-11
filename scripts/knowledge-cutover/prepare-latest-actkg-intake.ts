@@ -16,9 +16,11 @@ import {
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { sha256 } from '../actkg-release/authoritative-release';
+import { canonicalJson, sha256 } from '../actkg-release/authoritative-release';
 import {
+  loadLatestStableAggregateAdmittedEndpoint,
   resolveLatestStableAggregate,
+  type LatestStableAggregateAdmittedEndpoint,
   type LatestStableAggregateBinding,
 } from '../actkg-release/latest-stable-aggregate';
 import {
@@ -51,6 +53,8 @@ function parseArgs(argv: string[]): {
   bindingPath: string;
   outputRoot: string;
   mainRef: string;
+  admittedEndpointPath?: string;
+  predecessorRootClosurePath?: string;
 } {
   const values = new Map<string, string>();
   for (let index = 0; index < argv.length; index += 2) {
@@ -72,12 +76,33 @@ function parseArgs(argv: string[]): {
     bindingPath: path.resolve(required('--binding')),
     outputRoot: path.resolve(required('--output-root')),
     mainRef: values.get('--main-ref') ?? 'origin/main',
+    admittedEndpointPath: values.has('--admitted-endpoint')
+      ? path.resolve(required('--admitted-endpoint'))
+      : undefined,
+    predecessorRootClosurePath: values.get('--predecessor-closure'),
   };
 }
 
 function bindingIdentity(binding: LatestStableAggregateBinding): JsonObject {
-  const { resolutionDigest: _, ...body } = binding;
+  const {
+    resolutionDigest: _resolutionDigest,
+    resolvedAt: _resolvedAt,
+    ...body
+  } = binding;
   return body;
+}
+
+function assertBindingMatches(
+  expected: LatestStableAggregateBinding,
+  actual: LatestStableAggregateBinding,
+  label: string,
+): void {
+  if (
+    actual.resolutionDigest !== expected.resolutionDigest
+    || canonicalJson(bindingIdentity(actual)) !== canonicalJson(bindingIdentity(expected))
+  ) {
+    fail(label);
+  }
 }
 
 async function loadBinding(filePath: string): Promise<LatestStableAggregateBinding> {
@@ -147,23 +172,28 @@ export type PrepareLatestActkgIntakeOptions = {
   bindingPath: string;
   outputRoot: string;
   mainRef: string;
+  admittedEndpointPath?: string;
+  predecessorRootClosurePath?: string;
+  /** Test-only lifecycle seam; the CLI never exposes this callback. */
+  beforeFinalResolution?: () => void | Promise<void>;
 };
 
 export async function prepareLatestActkgIntake(
   args: PrepareLatestActkgIntakeOptions,
 ): Promise<JsonObject> {
   const expected = await loadBinding(args.bindingPath);
+  const admittedEndpoint: LatestStableAggregateAdmittedEndpoint | undefined = args.admittedEndpointPath
+    ? await loadLatestStableAggregateAdmittedEndpoint(path.resolve(args.admittedEndpointPath))
+    : expected.admittedEndpoint;
+  const predecessorRootClosurePath = args.predecessorRootClosurePath
+    ?? expected.predecessorRootClosure?.path;
   const resolved = await resolveLatestStableAggregate({
     actkgRoot: args.actkgRoot,
     mainRef: args.mainRef,
+    admittedEndpoint,
+    predecessorRootClosurePath,
   });
-  if (
-    resolved.resolutionDigest !== expected.resolutionDigest
-    || JSON.stringify(bindingIdentity(resolved))
-      !== JSON.stringify(bindingIdentity(expected))
-  ) {
-    fail('live ActKG resolution no longer matches the frozen binding');
-  }
+  assertBindingMatches(expected, resolved, 'live ActKG resolution no longer matches the frozen binding');
 
   const sourceBundle = path.join(args.actkgRoot, resolved.bundlePath);
   const targetBundlePath = path.posix.join(
@@ -356,6 +386,18 @@ export async function prepareLatestActkgIntake(
         fail(`staged legacy Release bytes drift: ${legacy.targetPath}`);
       }
     }
+    await args.beforeFinalResolution?.();
+    const finalResolved = await resolveLatestStableAggregate({
+      actkgRoot: args.actkgRoot,
+      mainRef: args.mainRef,
+      admittedEndpoint,
+      predecessorRootClosurePath,
+    });
+    assertBindingMatches(
+      expected,
+      finalResolved,
+      'live ActKG resolution drifted during staging',
+    );
     const lockName = 'release-set.lock.v3.latest.json';
     const lockPath = path.join(stagingRoot, lockName);
     await writeImmutable(lockPath, `${JSON.stringify(lock, null, 2)}\n`);

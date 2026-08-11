@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-teaching-projection-activation/v1",
+  "title": "ACT Teaching Projection Consumer Activation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "activationId", "activationHash", "consumers"],
+  "properties": {
+    "contract": { "const": "act-teaching-projection-activation/v1" },
+    "activationId": { "type": "string", "minLength": 1 },
+    "activationHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "consumers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "consumerId",
+          "consumerKind",
+          "authorityReleaseId",
+          "projectionId",
+          "projectionHash",
+          "requiresProjection",
+          "readiness",
+          "reasons"
+        ],
+        "properties": {
+          "consumerId": { "type": "string", "minLength": 1 },
+          "consumerKind": {
+            "type": "string",
+            "enum": [
+              "engineering-graph",
+              "engineering-rag",
+              "teaching-resource-rag",
+              "course-package",
+              "learning-path",
+              "konling",
+              "cards"
+            ]
+          },
+          "authorityReleaseId": { "type": "string", "minLength": 1 },
+          "projectionId": { "type": ["string", "null"] },
+          "projectionHash": {
+            "type": ["string", "null"],
+            "pattern": "^([a-f0-9]{64})?$"
+          },
+          "requiresProjection": { "type": "boolean" },
+          "readiness": {
+            "type": "string",
+            "enum": [
+              "READY",
+              "PINNED_PREVIOUS",
+              "BLOCKED_LOCAL_DEPENDENCY",
+              "NOT_PROJECTED"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

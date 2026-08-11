@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-695b9c7d4ee82924a8d65b12",
+  "safe_id": "ctkg_v3e-object-695b9c7d4ee82924a8d65b12",
+  "node": {
+    "name": "Pole placement b",
+    "name_en": "Pole placement by coefficient matching in control canonical form",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Pole placement b：A method for designing a full-state feedback control law by transforming the system to control canonical form, then equ…",
+  "intuition": "在图谱邻接中可把握：前置 → Ackermann's formula · 后续 → Control canonical form、Ackermann's formula。",
+  "explanation": "A method for designing a full-state feedback control law by transforming the system to control canonical form, then equating the coefficients of the closed-loop characteristic polynomial with those of the desired polynomial to directly obtain the feedback gains.",
+  "relation_head": "前置 → Ackermann's formula · 后续 → Control canonical form、Ackermann's formula",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Control canonical form",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Ackermann's formula",
+      "relation": "派生自"
+    },
+    {
+      "direction": "后续",
+      "peer": "Ackermann's formula",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Pole placem…",
+    "用于分析·Cont…",
+    "派生自·Acker…",
+    "关联·Ackerm…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-695b9c7d4ee82924a8d65b12.md",
+  "provider_policy": "grok-image_gen"
+}

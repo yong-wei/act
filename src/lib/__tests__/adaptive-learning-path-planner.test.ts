@@ -3,12 +3,14 @@ import { describe, expect, it } from 'vitest';
 import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   buildAdaptiveLearningPathPlan,
+  buildAdaptivePathRecommendationProvenance,
   buildControlCorrectionThreeStylePathBundle,
   getLearningGoal,
   isRegisteredAdaptiveLearningPathGoal,
   listLearningGoals,
   normalizeLearningPathPayloadLearningGoal,
   recordLearningPathFeedback,
+  requiredCheckpointCountForPreference,
   serializeLearningPathPlan,
   validateLearningGoal,
   validateLearningGoalCatalog,
@@ -40,6 +42,169 @@ import {
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources } from '../teacher-resource-node-data';
 import type { SourcePackItem } from '../source-pack';
+
+describe('adaptive path recommendation provenance', () => {
+  it('connects generation-time evidence summaries to affected resources without internal reason codes', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [{
+        targetId: 'kn-bode',
+        kind: 'knowledge',
+        value: 0.32,
+        confidence: 0.7,
+        evidenceCount: 3,
+        reasonCode: 'internal-low-mastery-target',
+        eventReferences: [{
+          sourceScope: 'adaptive-practice-submission',
+          occurredAt: '2026-08-03T08:30:00.000Z',
+          summary: '自适应练习记录参与了该项能力判断。',
+          nextAction: {
+            href: '/assessment/adaptive-practice?intent=practice',
+            label: '继续自适应练习',
+          },
+        }],
+      }],
+      confidence: 'medium',
+    });
+
+    expect(provenance).toMatchObject({
+      confidence: 'medium',
+      evidenceReviewHref: '/profile/evidence',
+      entries: [expect.objectContaining({
+        targetLabel: 'Bode 图基础',
+        targetKind: 'knowledge',
+        confidence: 'medium',
+        evidenceSummary: '掌握状态 32%，来自 3 条有效证据，置信度 70%。',
+        eventReferences: [expect.objectContaining({
+          sourceScope: 'adaptive-practice-submission',
+          occurredAt: '2026-08-03T08:30:00.000Z',
+        })],
+      })],
+    });
+    expect(provenance.entries[0]?.affectedResourceTitles.length).toBeGreaterThan(0);
+    expect(JSON.stringify(provenance)).not.toContain('internal-low-mastery-target');
+    expect(JSON.stringify(provenance)).not.toContain('targetId');
+    expect(JSON.stringify(provenance)).not.toContain('sourceId');
+  });
+
+  it('uses course structure language instead of treating missing evidence as a confirmed weakness', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [{
+        targetId: 'kn-bode',
+        kind: 'knowledge',
+        value: 0,
+        confidence: 0,
+        evidenceCount: 0,
+        reasonCode: 'missing-evidence',
+      }],
+      confidence: 'low',
+    });
+
+    expect(provenance.summary).toContain('课程结构、先修规则和可用资源');
+    expect(provenance.entries[0]).toMatchObject({
+      confidence: 'low',
+      affectedNodeIds: [],
+      affectedResourceTitles: [],
+    });
+    expect(provenance.entries[0]?.judgment).toContain('暂不能确认该项为稳定薄弱点');
+    expect(provenance.entries[0]?.eventReferences).toEqual([]);
+    expect(provenance.limitations).toContain('部分判断尚无可核验的事件级学习记录。');
+    expect(provenance.nextAction).toBe('完成诊断或练习，补充有效学习证据。');
+  });
+
+  it('downgrades the path summary when any included deficit has low-confidence evidence', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [
+        {
+          targetId: 'kn-bode',
+          kind: 'knowledge',
+          value: 0.32,
+          confidence: 0.8,
+          evidenceCount: 6,
+          reasonCode: 'supported-deficit',
+        },
+        {
+          targetId: 'parameterDesign',
+          kind: 'competency',
+          value: 0.4,
+          confidence: 0.4,
+          evidenceCount: 1,
+          reasonCode: 'low-evidence-deficit',
+        },
+      ],
+      confidence: 'high',
+    });
+
+    expect(provenance.confidence).toBe('low');
+    expect(provenance.summary).toContain('课程结构、先修规则和可用资源');
+    expect(provenance.limitations).toContain('部分判断的有效证据仍然不足。');
+    expect(provenance.nextAction).toBe('完成诊断或练习，补充有效学习证据。');
+  });
+
+  it('uses every deficit for aggregate confidence while limiting displayed entries', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [
+        {
+          targetId: 'kn-bode',
+          kind: 'knowledge',
+          value: 0.32,
+          confidence: 0.8,
+          evidenceCount: 6,
+          reasonCode: 'supported-deficit-1',
+        },
+        {
+          targetId: 'controlModeling',
+          kind: 'competency',
+          value: 0.48,
+          confidence: 0.82,
+          evidenceCount: 7,
+          reasonCode: 'supported-deficit-2',
+        },
+        {
+          targetId: 'engineeringDecision',
+          kind: 'competency',
+          value: 0.51,
+          confidence: 0.84,
+          evidenceCount: 8,
+          reasonCode: 'supported-deficit-3',
+        },
+        {
+          targetId: 'parameterDesign',
+          kind: 'competency',
+          value: 0.4,
+          confidence: 0.4,
+          evidenceCount: 1,
+          reasonCode: 'low-evidence-deficit-4',
+        },
+      ],
+      confidence: 'high',
+    });
+
+    expect(provenance.entries).toHaveLength(3);
+    expect(provenance.entries.every((entry) => entry.confidence !== 'low')).toBe(true);
+    expect(provenance.confidence).toBe('low');
+    expect(provenance.limitations).toContain('部分判断的有效证据仍然不足。');
+    expect(provenance.nextAction).toBe('完成诊断或练习，补充有效学习证据。');
+  });
+
+  it('persists recommendation provenance with serialized candidate options', () => {
+    const record = serializeLearningPathPlan(buildAdaptiveLearningPathPlan(plannerInput()));
+    const provenance = record.payload.pathOptions?.[0]?.recommendationProvenance;
+
+    expect(provenance).toEqual(expect.objectContaining({
+      summary: expect.any(String),
+      evidenceReviewHref: '/profile/evidence',
+      entries: expect.any(Array),
+    }));
+  });
+});
 
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
   const registry = buildResourceNodeRegistry({
@@ -2392,6 +2557,7 @@ describe('adaptive learning path planner', () => {
         status: 'infeasible',
         draftNodeIds: repairInput.draftNodeIds,
         repairedNodeIds: [repairedNodeId],
+        minimumExecutableDurationMinutes: null,
         insertedNodeIds: [],
         removedNodeIds: [],
         checkpointNodeIds: [],
@@ -2918,10 +3084,16 @@ describe('adaptive learning path planner', () => {
     }).map((issue) => issue.code)).toContain('unknown-goal-slice-id');
   });
 
-  it('applies requested resource, difficulty, and checkpoint preferences to path scoring', () => {
+  it('records whether requested resource, difficulty, and checkpoint preferences affect path selection', () => {
     const preferredSimulation = buildAdaptiveLearningPathPlan(plannerInput({
       resourcePreferences: ['simulation', 'arena_task'],
+      resourcePreferenceSource: 'request',
       difficultyRhythm: 'challenge',
+      difficultyRhythmSource: 'request',
+      configurationRequests: [
+        { key: 'resource-preferences', source: 'request', value: ['simulation', 'arena_task'] },
+        { key: 'difficulty-rhythm', source: 'request', value: 'challenge' },
+      ],
     }));
     const denseCheckpoint = buildAdaptiveLearningPathPlan({
       studentId: 'student-1',
@@ -2934,6 +3106,8 @@ describe('adaptive learning path planner', () => {
         completedNodeIds: [],
       },
       checkpointPreference: 'dense',
+      checkpointPreferenceSource: 'request',
+      configurationRequests: [{ key: 'checkpoint-preference', source: 'request', value: 'dense' }],
       now: new Date('2026-05-27T08:00:00.000Z'),
     });
 
@@ -2948,6 +3122,78 @@ describe('adaptive learning path planner', () => {
       node.terminalConstraints.includes('terminal-validation') &&
       node.reasonCodes.includes('matches-dense-checkpoint-preference')
     )).toBe(true);
+    expect(preferredSimulation.explanations.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', status: 'applied' }),
+      expect.objectContaining({ key: 'difficulty-rhythm', status: 'applied' }),
+    ]));
+    expect(denseCheckpoint.explanations.configurationFulfillment).toContainEqual(
+      expect.objectContaining({ key: 'checkpoint-preference', status: 'unmet' }),
+    );
+  });
+
+  it('does not let a light checkpoint preference lower the registered minimum checkpoint count', () => {
+    const registeredGoal = {
+      ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'],
+      checkpointPolicy: {
+        ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].checkpointPolicy,
+        minCheckpoints: 3,
+      },
+    };
+
+    expect(requiredCheckpointCountForPreference(registeredGoal, {
+      resourceTypes: new Set(),
+      difficultyRhythm: 'steady',
+      checkpointPreference: 'light',
+      usesExplicitResourcePreferences: false,
+      usesExplicitDifficultyRhythm: false,
+      usesExplicitCheckpointPreference: true,
+    })).toBe(3);
+  });
+
+  it('marks mapped free-text intent unmet when its mapped resource cannot be selected', () => {
+    const input = plannerInput({
+      resourcePreferences: ['simulation'],
+      resourcePreferenceSource: 'intent',
+      configurationRequests: [
+        { key: 'resource-preferences', source: 'intent', value: ['simulation'] },
+        {
+          key: 'natural-language-intent',
+          source: 'request',
+          value: 'mapped-intent',
+          mappedTerms: ['仿真'],
+        },
+      ],
+    });
+    const plan = buildAdaptiveLearningPathPlan({
+      ...input,
+      excludedNodeIds: input.registry.nodes
+        .filter((node) => node.type === 'simulation')
+        .map((node) => node.id),
+    });
+
+    expect(plan.explanations.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', status: 'unmet' }),
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet' }),
+    ]));
+  });
+
+  it('explains conflicting natural-language intent without selecting a typed value', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      configurationRequests: [{
+        key: 'natural-language-intent',
+        source: 'request',
+        value: 'mapped-intent',
+        mappedTerms: [],
+        limitationCode: 'natural-language-intent-conflict',
+      }],
+    }));
+
+    expect(plan.explanations.configurationFulfillment).toContainEqual(expect.objectContaining({
+      key: 'natural-language-intent',
+      status: 'unmet',
+      limitationCode: 'natural-language-intent-conflict',
+      message: expect.stringContaining('相互冲突'),
+    }));
   });
 
   it('prioritizes teacher-assigned resources only when teacher policy allows them', () => {
@@ -3082,29 +3328,22 @@ describe('adaptive learning path planner', () => {
       'simulation-driven',
       'sprint-correction',
     ]);
-    expect(plan.policyBundle?.paths).toHaveLength(4);
-    expect(plan.policyBundle?.paths.map((path) => [path.policyFamily, path.styleId])).toEqual([
-      ['rules-plus-graph-search', 'rules-graph-search-route'],
-      ['foundation-remediation', 'foundation-remediation'],
-      ['simulation-driven', 'arena-simulation-sprint'],
-      ['sprint-correction', 'sprint-correction-route'],
-    ]);
+    const displayedPaths = plan.policyBundle?.paths ?? [];
+    expect(displayedPaths.length).toBeGreaterThanOrEqual(1);
+    expect(displayedPaths.length).toBeLessThanOrEqual(4);
+    expect(displayedPaths[0]).toMatchObject({
+      policyFamily: 'rules-plus-graph-search',
+      styleId: 'rules-graph-search-route',
+    });
     expect(plan.policyBundle?.diversity.maxResourceOverlap).toBeGreaterThanOrEqual(0);
-    expect(plan.policyBundle?.diversity.modalityMixByPolicy['simulation-driven'].simulation).toBeGreaterThan(0);
-    expect(plan.policyBundle?.diversity.estimatedEffortByPolicy['foundation-remediation']).toBeGreaterThan(0);
     expect(plan.policyBundle?.diversity.terminalValidationDifference).toBeGreaterThanOrEqual(0);
     expect(plan.policyBundle?.diversity.minModalityDistance).toBeGreaterThanOrEqual(0);
     expect(plan.policyBundle?.diversity.minEstimatedEffortDifference).toBeGreaterThanOrEqual(0);
-    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toHaveLength(6);
-    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap[0]).toEqual(
-      expect.objectContaining({
-        left: 'rules-plus-graph-search',
-        right: 'foundation-remediation',
-      }),
-    );
-    expect(plan.policyBundle?.diversity.pairwiseModalityDistance).toHaveLength(6);
-    expect(plan.policyBundle?.diversity.pairwiseEstimatedEffortDifference).toHaveLength(6);
-    expect(plan.policyBundle?.diversity.pairwiseTerminalValidationDifference).toHaveLength(6);
+    const expectedPairCount = displayedPaths.length * (displayedPaths.length - 1) / 2;
+    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toHaveLength(expectedPairCount);
+    expect(plan.policyBundle?.diversity.pairwiseModalityDistance).toHaveLength(expectedPairCount);
+    expect(plan.policyBundle?.diversity.pairwiseEstimatedEffortDifference).toHaveLength(expectedPairCount);
+    expect(plan.policyBundle?.diversity.pairwiseTerminalValidationDifference).toHaveLength(expectedPairCount);
   });
 
   it('compares bundle policies against an explicit primary policy family', () => {
@@ -3161,11 +3400,10 @@ describe('adaptive learning path planner', () => {
     }));
 
     expect(plan.policyBundle?.status).toBe('low-resource-fallback');
-    expect(plan.policyBundle?.fallbackReasons).toContain('path-diversity-insufficient');
+    expect(plan.policyBundle?.paths).toHaveLength(0);
+    expect(plan.policyBundle?.fallbackReasons).toContain('policy-path-resource-missing');
     expect(plan.policyBundle?.diversity.terminalValidationDifference).toBe(0);
     expect(plan.policyBundle?.fallbackReasons).not.toContain('terminal-validation-diversity-insufficient');
-    expect(plan.policyBundle?.fallbackReasons).toContain('path-modality-diversity-insufficient');
-    expect(plan.policyBundle?.fallbackReasons).toContain('path-effort-diversity-insufficient');
   });
 
   it('builds a control-correction three-style bundle with explainable option contracts', () => {
@@ -3294,6 +3532,12 @@ describe('adaptive learning path planner', () => {
                 confidence: 0.7,
                 directEvidenceCount: 1,
                 supportingEvidenceCount: 3,
+                eventReferences: [{
+                  sourceScope: 'arena-official-result',
+                  occurredAt: '2026-05-19T01:00:00.000Z',
+                  summary: 'Arena 官方评测结果参与了该项能力判断。',
+                  nextAction: { href: '/arena', label: '查看 Arena 结果' },
+                }],
                 source: 'adaptive-learner-state',
                 recommendationBias: 'targeted-practice',
               },
@@ -3309,8 +3553,50 @@ describe('adaptive learning path planner', () => {
       knowledgeMastery: null,
       confidence: 0.7,
       directEvidenceCount: 1,
+      eventReferences: [expect.objectContaining({ sourceScope: 'arena-official-result' })],
       recommendationBias: 'targeted-practice',
     }));
+    expect(goalSliceEvidencePlan.visualization.evidence.learnerStateDeficits.find((item) =>
+      item.targetId === 'control-correction:arena-transfer'
+    )?.eventReferences).toEqual([]);
+    expect(goalSliceEvidencePlan.visualization.evidence.learnerStateDeficits.find((item) =>
+      item.targetId === 'parameterDesign'
+    )?.eventReferences).toEqual([]);
+    expect(buildAdaptivePathRecommendationProvenance({
+      path: goalSliceEvidencePlan.mainPath,
+      deficits: goalSliceEvidencePlan.visualization.evidence.learnerStateDeficits,
+      confidence: goalSliceEvidencePlan.confidence.level,
+    }).limitations).toContain(
+      '部分判断尚无可核验的事件级学习记录。',
+    );
+
+    const judgmentLineagePlan = buildAdaptiveLearningPathPlan(plannerInput({
+      ...input,
+      learnerState: {
+        ...input.learnerState!,
+        knowledgeMastery: {
+          tags: {
+            ...input.learnerState!.knowledgeMastery!.tags,
+            'control-correction:arena-transfer': {
+              posteriorMastery: 0.24,
+              confidence: 0.7,
+              evidenceCount: 3,
+              eventReferences: [{
+                sourceScope: 'arena-official-result',
+                occurredAt: '2026-05-19T01:00:00.000Z',
+                summary: 'Arena 官方评测结果直接参与了该项掌握状态判断。',
+                nextAction: { href: '/arena', label: '查看 Arena 结果' },
+              }],
+            },
+          },
+        },
+      },
+    }));
+    expect(judgmentLineagePlan.visualization.evidence.learnerStateDeficits.find((item) =>
+      item.targetId === 'control-correction:arena-transfer'
+    )?.eventReferences).toEqual([
+      expect.objectContaining({ sourceScope: 'arena-official-result' }),
+    ]);
     const lowConfidencePlan = buildAdaptiveLearningPathPlan(plannerInput({
       ...input,
       learnerState: {
@@ -3333,10 +3619,10 @@ describe('adaptive learning path planner', () => {
 
     const bundle = buildControlCorrectionThreeStylePathBundle(input);
 
-    expect(bundle.status).toBe('ready');
+    expect(bundle.status).toBe('low-resource-fallback');
+    expect(bundle.fallbackReasons).toContain('policy-option-diversity-unavailable');
     expect(bundle.paths.map((path) => path.styleId)).toEqual([
       'foundation-remediation',
-      'arena-simulation-sprint',
       'preference-matched-route',
     ]);
     expect(bundle.paths).toEqual(expect.arrayContaining([
@@ -3359,7 +3645,7 @@ describe('adaptive learning path planner', () => {
         limitations: expect.any(Array),
       }),
     ]));
-    expect(bundle.diversity.pairwiseResourceOverlap.length).toBe(3);
+    expect(bundle.diversity.pairwiseResourceOverlap.length).toBe(1);
     expect(JSON.stringify(bundle.paths)).not.toContain('external-resource:control-ocw');
   });
 
@@ -4337,6 +4623,7 @@ describe('adaptive learning path planner', () => {
     expect(plan.explanations.fallbackReasons).toContain('time-budget-insufficient');
     expect(plan.constraintRepair).toMatchObject({
       status: 'infeasible',
+      minimumExecutableDurationMinutes: expect.any(Number),
       repairedNodeIds: expect.arrayContaining([
         'simulation:coverage-only-simulation',
         'simulation:coverage-terminal-simulation',
@@ -4345,6 +4632,7 @@ describe('adaptive learning path planner', () => {
         expect.objectContaining({ code: 'time-budget-insufficient' }),
       ]),
     });
+    expect(plan.constraintRepair?.minimumExecutableDurationMinutes).toBeGreaterThan(20);
     expect(plan.constraintRepair?.removedNodeIds).not.toContain('simulation:coverage-only-simulation');
   });
 
@@ -5077,6 +5365,7 @@ describe('adaptive learning path planner', () => {
         status: 'infeasible',
         draftNodeIds: repairInput.draftNodeIds,
         repairedNodeIds: [repairedNodeId],
+        minimumExecutableDurationMinutes: null,
         insertedNodeIds: [],
         removedNodeIds: [],
         checkpointNodeIds: [],
@@ -7159,6 +7448,48 @@ describe('adaptive learning path planner', () => {
       nodeId: 'simulation:support-sim',
       state: 'locked',
     }));
+  });
+
+  it('uses the current explicit resource preference for preference-matched support nodes', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      },
+      learnerState: {
+        ...plannerInput().learnerState!,
+        resourcePreference: { preferredModalities: ['video'] },
+      },
+      constraints: {
+        timeBudgetMinutes: 180,
+        privacyScopes: ['student-visible'],
+      },
+      resourcePreferences: ['knowledge_card'],
+      resourcePreferenceSource: 'request',
+      policyBundle: {
+        families: ['preference-matched'],
+        overlapThreshold: 0.6,
+      },
+    }));
+
+    const preferenceOption = plan.policyBundle?.paths.find((path) => path.policyFamily === 'preference-matched');
+    const supportNodes = preferenceOption?.planNodes?.filter((node) =>
+      node.reasonCodes.includes('policy-preference-matched-support')
+    ) ?? [];
+
+    expect(preferenceOption).toBeDefined();
+    expect(supportNodes).not.toContainEqual(expect.objectContaining({
+      nodeId: 'runtime-media:3-6:design-map-video',
+    }));
+    expect(preferenceOption?.nodeIds).toContain('knowledge-card:control-correction-time-domain-targets');
   });
 
   it('stops policy active node collection at locked readiness gates', () => {

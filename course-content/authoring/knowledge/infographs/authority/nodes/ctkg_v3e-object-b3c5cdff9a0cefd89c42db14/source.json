@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+  "safe_id": "ctkg_v3e-object-b3c5cdff9a0cefd89c42db14",
+  "node": {
+    "name": "Absolute Stability",
+    "name_en": "Absolute Stability",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Absolute Stability：A type of stability characterization where a closed-loop feedback system is either stable or not stable. A system posse…",
+  "intuition": "在图谱邻接中可把握：后续 → Stable System、稳定性。",
+  "explanation": "A type of stability characterization where a closed-loop feedback system is either stable or not stable. A system possessing absolute stability is called a stable system.",
+  "relation_head": "后续 → Stable System、稳定性",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Stable System",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "稳定性",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "Absolute St…",
+    "Absolute Sta",
+    "一种·Stable",
+    "是一种·稳定性"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b3c5cdff9a0cefd89c42db14.md",
+  "provider_policy": "grok-image_gen"
+}

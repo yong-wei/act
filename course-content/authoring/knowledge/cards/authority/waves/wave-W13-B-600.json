@@ -1,0 +1,732 @@
+{
+  "wave_id": "W13",
+  "batch": "B",
+  "title": "Batch B slice 13",
+  "offset": 600,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-7fd09957133988dbf413a2df",
+      "entity_id": "ctkg:v3e-object-7fd09957133988dbf413a2df",
+      "name": "时域法校正",
+      "name_en": null,
+      "definition": "如果性能指标以单位阶跃响应的峰值时间、调节时间、超调量、阻尼比、稳态误差等时域特征量给出时，一般采用时域法校正。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "时域法校正"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-801c2bf7fd001c355296f342",
+      "entity_id": "ctkg:v3e-object-801c2bf7fd001c355296f342",
+      "name": "Transformation t",
+      "name_en": "Transformation to Observer Canonical Form",
+      "definition": "Transformation t：Find a transformation to take a given system to observer canonical form if and only if the system is observable (observ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Transformat…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8092204c03a8af260e3e672f",
+      "entity_id": "ctkg:v3e-object-8092204c03a8af260e3e672f",
+      "name": "离散系统时域性能指标",
+      "name_en": null,
+      "definition": "离散系统时域性能指标包括上升时间、峰值时间、调节时间和超调量，其定义与连续系统相同，但只能按采样周期整数倍的采样值计算，因此是近似的。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散系统时域性能指标"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-80b836e636775916830b5a21",
+      "entity_id": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "name": "相轨迹",
+      "name_en": null,
+      "definition": "相变量从初始时刻 t₀ 对应的状态点 (x₀, ẋ₀) 起，随着时间 t 的推移，在相平面上运动形成的曲线称为相轨迹。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "相轨迹",
+        "是一种·奇线",
+        "属于·相平面图",
+        "属于·相平面",
+        "包含组件·相平面图",
+        "用于分析·MATL…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-80d226d08d089c2c8bbd2219",
+      "entity_id": "ctkg:v3e-object-80d226d08d089c2c8bbd2219",
+      "name": "直接积分法求相轨迹",
+      "name_en": null,
+      "definition": "通过将微分方程转化为可分离变量的形式，然后积分得到ẋ和x的解析关系式。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "直接积分法求相轨迹",
+        "用于分析·相轨迹"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-81a7cae1259fabcfe3390cd2",
+      "entity_id": "ctkg:v3e-object-81a7cae1259fabcfe3390cd2",
+      "name": "Resonant-peak magnitude Mr",
+      "name_en": "Resonant-peak magnitude Mr",
+      "definition": "Resonant-peak magnitude Mr：The resonant-peak magnitude Mr is a specification related to the closed-loop frequency response, defined in Fig. 6.5.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Resonant-pe…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-820fb2c5830d5ebc1878a753",
+      "entity_id": "ctkg:v3e-object-820fb2c5830d5ebc1878a753",
+      "name": "Reduced-order estimator design method",
+      "name_en": "Reduced-order estimator design method",
+      "definition": "Reduced-order estimator design method：A method to design an estimator of reduced order by partitioning the state into measured and unmeasured parts, establis…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Reduced-ord…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-821d0c6dd9fb62ae909fb60f",
+      "entity_id": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+      "name": "稳定极限环",
+      "name_en": null,
+      "definition": "当 t → ∞ 时，起始于极限环内部或外部的相轨迹均卷向极限环，则该极限环称为稳定的极限环。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳定极限环",
+        "是一种·极限环",
+        "包含组件·双极限环",
+        "关联·自振荡"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "entity_id": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "name": "Lead Compensation",
+      "name_en": "Lead Compensation",
+      "definition": "Lead Compensation：Dynamic compensation that approximates proportional-derivative (PD) feedback, implemented by adding a first-order pole…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lead Compen…",
+        "Lead Compens"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-83d0805f5bcd8a6654402540",
+      "entity_id": "ctkg:v3e-object-83d0805f5bcd8a6654402540",
+      "name": "Cascade compensation",
+      "name_en": "Cascade compensation",
+      "definition": "Cascade compensation：A compensation scheme where the compensator is placed in the feedforward path of a single-loop feedback control system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Cascade com…",
+        "Cascade comp",
+        "关联·Cascad…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-84350edf4a87ec7d0552e03e",
+      "entity_id": "ctkg:v3e-object-84350edf4a87ec7d0552e03e",
+      "name": "Phase-Lead Compensator",
+      "name_en": "Phase-Lead Compensator",
+      "definition": "Phase-Lead Compensator：A first-order compensator where |z|<|p|, providing a phase-lead characteristic.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase-Lead …",
+        "Phase-Lead C",
+        "包含组件·串联滞后…",
+        "应用于·Phase…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8496155b16d82318d90949d0",
+      "entity_id": "ctkg:v3e-object-8496155b16d82318d90949d0",
+      "name": "Frequency Response",
+      "name_en": "Frequency Response",
+      "definition": "Frequency Response：A linear system's response to sinusoidal inputs, obtained from knowledge of its pole and zero locations.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Frequency R…",
+        "Frequency Re",
+        "用于分析·Expe…",
+        "用于分析·Bode…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-84d4e25a62819cdb7ccb6caf",
+      "entity_id": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "name": "Type-zero system",
+      "name_en": "Type-zero system",
+      "definition": "Type-zero system：A system with no poles at the origin in the loop transfer function.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Type-zero s…",
+        "Type-zero sy"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-863069c1389e01dcca80138a",
+      "entity_id": "ctkg:v3e-object-863069c1389e01dcca80138a",
+      "name": "Marginal stability",
+      "name_en": "Marginal stability",
+      "definition": "Marginal stability：If the jω-axis roots of the characteristic equation are simple, the system is neither stable nor unstable",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Marginal st…",
+        "Marginal sta",
+        "是一种·稳定性"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-865b301177a623225344064f",
+      "entity_id": "ctkg:v3e-object-865b301177a623225344064f",
+      "name": "BIBO stability",
+      "name_en": "BIBO stability",
+      "definition": "BIBO stability：A system is said to have bounded input-bounded output (BIBO) stability if every bounded input results in a bounded outp…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "BIBO stabil…",
+        "BIBO stabili",
+        "是一种·稳定性",
+        "关联·root o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-86a182d9c2c23936967de7ef",
+      "entity_id": "ctkg:v3e-object-86a182d9c2c23936967de7ef",
+      "name": "Safety margin in phase-lead design",
+      "name_en": "Safety margin in phase-lead design",
+      "definition": "Safety margin in phase-lead design：A small amount of safety is allowed when determining the necessary additional phase lead φ_m.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Safety marg…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-86d5f30d2f3bbb90aaccb759",
+      "entity_id": "ctkg:v3e-object-86d5f30d2f3bbb90aaccb759",
+      "name": "等ζ线映射",
+      "name_en": null,
+      "definition": "s平面上的等ζ线（β为常数）映射到z平面上单位圆内一簇收敛的对数螺旋线，起点为正实轴的1处，终点为原点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "等ζ线映射"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-87119ed807a83a53c1444215",
+      "entity_id": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "name": "Lag Compensation",
+      "name_en": "Lag Compensation",
+      "definition": "Lag Compensation：Dynamic compensation that approximates proportional-integral (PI) control.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lag Compens…",
+        "Lag Compensa"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-87148367d17fdbebd5a95319",
+      "entity_id": "ctkg:v3e-object-87148367d17fdbebd5a95319",
+      "name": "开环采样系统",
+      "name_en": null,
+      "definition": "如果采样器位于系统闭合回路之外，或者系统本身不存在闭合回路，则称为开环采样系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "开环采样系统",
+        "是一种·采样控制系统",
+        "关联·采样控制系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "entity_id": "ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "name": "z-transform",
+      "name_en": "z-transform",
+      "definition": "z-transform：A transform defined as Z{r(t)} = Z{r*(t)} = sum_{k=0}^{∞} r(kT) z^{-k}, where z = e^{sT}.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "z-transform",
+        "派生自·First…",
+        "派生自·开环脉冲传…",
+        "关联·Laplac…",
+        "关联·confor…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-89a95ab28be324dc6d7040c5",
+      "entity_id": "ctkg:v3e-object-89a95ab28be324dc6d7040c5",
+      "name": "Disturbance Rejection",
+      "name_en": "Disturbance Rejection",
+      "definition": "Disturbance Rejection：Disturbance rejection is an important—if not the most important—aspect of any control system. Disturbances enter a syst…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Disturbance…",
+        "Disturbance ",
+        "属于·Sample…",
+        "应用于·Sampl…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-89ada9ada357e26bcd83dc11",
+      "entity_id": "ctkg:v3e-object-89ada9ada357e26bcd83dc11",
+      "name": "线性离散系统",
+      "name_en": null,
+      "definition": "如果离散系统满足叠加原理，则称为线性离散系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "线性离散系统",
+        "是一种·离散系统",
+        "一种·线性定常离散…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8a3c314c47ad84ae14ce5cb8",
+      "entity_id": "ctkg:v3e-object-8a3c314c47ad84ae14ce5cb8",
+      "name": "Phase stabilizat",
+      "name_en": "Phase stabilization via notch compensation",
+      "definition": "Phase stabilizat：A method to prevent limit cycles by placing compensation zeros near the poles of a lightly damped oscillatory mode such…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase stabi…",
+        "包含组件·Phas…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8a7f5fdab24fd119e93f1c2f",
+      "entity_id": "ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f",
+      "name": "Resonant frequency",
+      "name_en": "Resonant frequency",
+      "definition": "Resonant frequency：The resonant frequency ω_r and the -3 dB bandwidth can be related to the speed of the transient response.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Resonant fr…",
+        "Resonant fre",
+        "关联·Resona…",
+        "关联·Bandwi…",
+        "关联·带宽",
+        "关联·阻尼比"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8b07ea11e0e619b2bc498119",
+      "entity_id": "ctkg:v3e-object-8b07ea11e0e619b2bc498119",
+      "name": "Field Programmable Gate Arrays",
+      "name_en": "Field Programmable Gate Arrays",
+      "definition": "Field Programmable Gate Arrays：Devices sometimes preferred for even higher sample rates than DSP chips.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Field Progr…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8ba6baca586dfe58f396b9a0",
+      "entity_id": "ctkg:v3e-object-8ba6baca586dfe58f396b9a0",
+      "name": "Phase-lead compe",
+      "name_en": "Phase-lead compensator design for phase margin or root locus reshaping",
+      "definition": "Phase-lead compe：The lead compensator can provide a phase-lead angle and thus a satisfactory phase margin for a system. Alternatively, t…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase-lead …",
+        "应用于·Phase…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8c3a7904cf80848febaed676",
+      "entity_id": "ctkg:v3e-object-8c3a7904cf80848febaed676",
+      "name": "Open-loop system poles location",
+      "name_en": "Open-loop system poles location",
+      "definition": "Open-loop system poles location：Open-loop system poles are located at approximately (10, 0), (-1, 0), and (-10, 0).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Open-loop s…",
+        "有表示·Open-…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8cf39aebda1d87c8394a3f9d",
+      "entity_id": "ctkg:v3e-object-8cf39aebda1d87c8394a3f9d",
+      "name": "relay with dead zone",
+      "name_en": "relay with dead zone",
+      "definition": "relay with dead zone：relay with dead zone",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "relay with …",
+        "relay with d",
+        "一种·memory…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8d8c5b1f62747c3d046a53cb",
+      "entity_id": "ctkg:v3e-object-8d8c5b1f62747c3d046a53cb",
+      "name": "系统不可观测",
+      "name_en": null,
+      "definition": "对于式（9－81）所示线性时变系统，如果取定初始时刻 t0∈Tt，存在一个有限时刻 t1∈Tt, t1>t0，对于所有 t∈[t0, t1]，系统的输出 y(t) 不能唯一确定所有状态的初值 xi(t0), i=1,2,⋯,n，即至少有一…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统不可观测",
+        "属于·可观测性",
+        "应用于·否包含元素…",
+        "应用于·对角线规范…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8db9674c3550d1d151df7573",
+      "entity_id": "ctkg:v3e-object-8db9674c3550d1d151df7573",
+      "name": "周期采样",
+      "name_en": null,
+      "definition": "如果在有规律的间隔上，系统取到了离散信息，则这种采样称为周期采样。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "周期采样",
+        "关联·非周期采样"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8e2d1a59b0583cad1108b4b6",
+      "entity_id": "ctkg:v3e-object-8e2d1a59b0583cad1108b4b6",
+      "name": "幂级数法",
+      "name_en": null,
+      "definition": "通过对z变换函数E(z)直接作综合除法，得到按z^{-1}升幂排列的幂级数展开式，从而得到采样脉冲序列的脉冲强度。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "幂级数法",
+        "关联·反演积分法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8ecd4d6352467b3444880809",
+      "entity_id": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+      "name": "Reduced-Order Estimator",
+      "name_en": "Reduced-Order Estimator",
+      "definition": "Reduced-Order Estimator：An estimator that reduces the order by the number of sensed outputs, estimating only the unmeasured state variables.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Reduced-Ord…",
+        "Reduced-Orde"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8eea21c512dc1ece3c5d1630",
+      "entity_id": "ctkg:v3e-object-8eea21c512dc1ece3c5d1630",
+      "name": "临界比例度法",
+      "name_en": null,
+      "definition": "一种经典的PID参数整定方法，首先设PID控制器的积分时间系数Ti=∞，微分时间系数Td=0，比例系数设为较小的值；然后增大Kp，观察系统的输出曲线，当系统输出出现等幅振荡时记下临界比例值Km及振荡周期Tc；然后按经验数据表调整比例系数、…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "临界比例度法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8eef39678d2ca15d781ee16d",
+      "entity_id": "ctkg:v3e-object-8eef39678d2ca15d781ee16d",
+      "name": "Observer poles",
+      "name_en": "Observer poles",
+      "definition": "Observer poles：Poles of the observer, located furthest to the left for faster convergence.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Observer po…",
+        "Observer pol",
+        "有表示·Obser…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8f93b6b3842cc39fa81d8bc1",
+      "entity_id": "ctkg:v3e-object-8f93b6b3842cc39fa81d8bc1",
+      "name": "主要带与次要带",
+      "name_en": null,
+      "definition": "s平面上从-ωs/2到ωs/2的周期带称为主要带，其余周期带称为次要带，均映射到z平面上的单位圆及单位圆内的负实轴。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "主要带与次要带",
+        "属于·s平面到z平…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-905e09b9921961a6115e4603",
+      "entity_id": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "name": "Conditionally Stable System",
+      "name_en": "Conditionally Stable System",
+      "definition": "Conditionally Stable System：Conditionally Stable System",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Conditional…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-90a70b314d799971df539598",
+      "entity_id": "ctkg:v3e-object-90a70b314d799971df539598",
+      "name": "否成立",
+      "name_en": "Output controllability rank test",
+      "definition": "构造输出可控性矩阵S0=[CB CAB ... CA^{n-1}B D]，检验rank S0=q是否成立。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "否成立",
+        "包含组件·输出可控…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-90b61fb22c14c7c7328d0283",
+      "entity_id": "ctkg:v3e-object-90b61fb22c14c7c7328d0283",
+      "name": "Evaluation of st",
+      "name_en": "Evaluation of state transition matrix via signal-flow graph",
+      "definition": "Evaluation of st：Set U(s)=0, use the signal-flow graph with initial conditions, and apply Mason's signal-flow gain formula to obtain the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Evaluation …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-90fe9648723adb7fc20557a7",
+      "entity_id": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+      "name": "Steady-state accuracy",
+      "name_en": "Steady-state accuracy",
+      "definition": "Steady-state accuracy：The primary objective of obtaining a high steady-state accuracy in control systems, which can be improved by increasing…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Steady-stat…",
+        "Steady-state"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-92036a27c9d71cee9eb07bf5",
+      "entity_id": "ctkg:v3e-object-92036a27c9d71cee9eb07bf5",
+      "name": "格拉姆矩阵判据 (Gramia…",
+      "name_en": null,
+      "definition": "格拉姆矩阵判据 (Gramian matrix criterion for observability)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "格拉姆矩阵判据 (Gr…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-924174fe69be3e335cca76d8",
+      "entity_id": "ctkg:v3e-object-924174fe69be3e335cca76d8",
+      "name": "有源校正装置",
+      "name_en": null,
+      "definition": "包含运算放大器等有源元件的校正装置，用于实现复杂的控制规律。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "有源校正装置"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-92d2247647a43c16c2a637b8",
+      "entity_id": "ctkg:v3e-object-92d2247647a43c16c2a637b8",
+      "name": "Sampled-data system",
+      "name_en": "Sampled-data system",
+      "definition": "Sampled-data system：A system where part of the system acts on sampled data.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sampled-dat…",
+        "Sampled-data",
+        "属于·Digita…",
+        "包含组件·Samp…",
+        "包含组件·Disc…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-938404536c1bcf749b8cda6d",
+      "entity_id": "ctkg:v3e-object-938404536c1bcf749b8cda6d",
+      "name": "格拉姆矩阵判据 (Gramia…",
+      "name_en": null,
+      "definition": "格拉姆矩阵判据 (Gramian matrix criterion for controllability)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "格拉姆矩阵判据 (Gr…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-953374e261302cfdff02144d",
+      "entity_id": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "name": "相平面",
+      "name_en": null,
+      "definition": "以 x(t) 为横坐标，ẋ(t) 为纵坐标构成的直角坐标平面称为相平面。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "相平面",
+        "属于·等倾线",
+        "属于·极限环",
+        "属于·相轨迹",
+        "属于·奇线",
+        "属于·奇点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-963133ef890ba8f3bfeefcc5",
+      "entity_id": "ctkg:v3e-object-963133ef890ba8f3bfeefcc5",
+      "name": "线性采样系统",
+      "name_en": null,
+      "definition": "当采样开关和系统其余部分的传递函数都具有线性特性时，这样的系统就称为线性采样系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "线性采样系统",
+        "是一种·采样控制系统",
+        "包含组件·采样开关"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-96f2adc33e58f93e24be1b42",
+      "entity_id": "ctkg:v3e-object-96f2adc33e58f93e24be1b42",
+      "name": "Determining PM from Nyquist plot",
+      "name_en": "Determining PM from Nyquist plot",
+      "definition": "Determining PM from Nyquist plot：Determining PM from Nyquist plot",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Determining…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-97fe46ae03d1bbad4abbc906",
+      "entity_id": "ctkg:v3e-object-97fe46ae03d1bbad4abbc906",
+      "name": "系统可控",
+      "name_en": null,
+      "definition": "对于式（9－76）所示线性时变系统，如果状态空间中的所有非零状态都是在 t0(t0∈Tt) 时刻可控的，则称系统在时刻 t0 是完全可控或一致可控的，简称系统在时刻 t0可控。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统可控",
+        "是一种·状态可控"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-983964fdaa7a8bf62f5dc787",
+      "entity_id": "ctkg:v3e-object-983964fdaa7a8bf62f5dc787",
+      "name": "幅相频率特性曲线绘制方法",
+      "name_en": null,
+      "definition": "以横轴为实轴、纵轴为虚轴构成复数平面，对于任一给定频率ω，频率特性值为复数，实部为实轴坐标值，虚部为虚轴坐标值，或表示为复平面上的向量，向量长度为幅值，向量与实轴正方向的夹角等于相位。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "幅相频率特性曲线绘制方法",
+        "关联·幅相频率特性…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-98863d255f5bdc0c59c9b50b",
+      "entity_id": "ctkg:v3e-object-98863d255f5bdc0c59c9b50b",
+      "name": "否成立",
+      "name_en": "PBH rank test method for observability",
+      "definition": "对矩阵A的所有特征值检验rank[C; λI-A]=n是否成立。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "否成立"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "entity_id": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "name": "相频特性",
+      "name_en": null,
+      "definition": "谐波输入下，输出响应中与输入同频率的谐波分量与谐波输入的相位之差φ(ω)。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "相频特性",
+        "用于分析·相角裕度",
+        "关联·频率特性",
+        "关联·幅频特性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

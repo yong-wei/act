@@ -35,6 +35,13 @@ const mocks = vi.hoisted(() => ({
     adaptiveAssessmentAnswer: {
       findFirst: vi.fn(),
     },
+    adaptivePathCandidateBatch: {
+      findUnique: vi.fn(),
+    },
+    agentToolRun: {
+      findFirst: vi.fn(),
+      updateMany: vi.fn(),
+    },
     studentProfile: {
       findUnique: vi.fn(),
     },
@@ -1113,6 +1120,24 @@ describe('learning path round API routes', () => {
       },
       cacheRefresh: 'completed',
     });
+  });
+
+  it('accepts a governed replacement deviation for the student owner', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(journeyPathRecord());
+    const response = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'replacement',
+      priorNodeId: 'node-1',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'replacement-dev-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathDeviation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      deviationType: 'replacement',
+      priorNodeId: 'node-1',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'replacement-dev-key',
+    }));
   });
 
   it('keeps a sanitized simple resource completion result for governed path advancement', async () => {
@@ -3170,6 +3195,161 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('rejects a candidate identity that is not bound to the selected path batch', async () => {
+    mocks.prisma.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'another-path',
+      status: 'succeeded',
+      candidates: [{
+        id: 'candidate-1',
+        styleId: 'foundation-remediation',
+        snapshot: { styleId: 'foundation-remediation' },
+      }],
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'candidate-mismatch-key',
+    }), params);
+
+    expect(response.status).toBe(404);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
+  });
+
+  it('executes the immutable candidate snapshot instead of mutable source path options', async () => {
+    mocks.prisma.agentToolRun.findFirst.mockResolvedValue({
+      id: 'tool-run-selection-1', status: 'running', startedAt: new Date('2026-08-05T00:00:00Z'),
+      inputSummary: {
+        batchId: 'batch-1', candidateId: 'candidate-1', pathId: 'path-1', goalId: 'control-correction',
+      },
+      outputSummary: null,
+    });
+    mocks.prisma.agentToolRun.updateMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      status: 'succeeded',
+      candidates: [{
+        id: 'candidate-1',
+        styleId: 'foundation-remediation',
+        snapshot: {
+          optionId: 'path-option-a',
+          styleId: 'foundation-remediation',
+          policyFamily: 'foundation-remediation',
+          nodeIds: ['snapshot-a-1', 'snapshot-a-2'],
+          activeNodeIds: ['snapshot-a-1'],
+          planNodes: [
+            { nodeId: 'snapshot-a-1', type: 'knowledge_card', target: '/knowledge/snapshot-a-1' },
+            { nodeId: 'snapshot-a-2', type: 'adaptive_quiz', target: '/assessment/snapshot-a-2' },
+          ],
+          resourceMix: { knowledge_card: 1, adaptive_quiz: 1 },
+          evidenceBasis: ['candidate-snapshot-a'],
+          terminalValidationNodeIds: [],
+        },
+      }],
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      selectedOptionId: 'path-option-a',
+      selectedStyleId: 'foundation-remediation',
+      idempotencyKey: 'candidate-snapshot-key',
+      toolRunId: 'tool-run-selection-1',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      resourceMix: { knowledge_card: 1, adaptive_quiz: 1 },
+      rationaleMetadata: expect.objectContaining({ evidenceBasis: ['candidate-snapshot-a'] }),
+    }));
+    expect(mocks.prisma.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'tool-run-selection-1', status: 'running' },
+      data: expect.objectContaining({ status: 'succeeded' }),
+    }));
+    expect(mocks.recordPathChoiceEvidence.mock.invocationCallOrder[0])
+      .toBeLessThan(mocks.prisma.agentToolRun.updateMany.mock.invocationCallOrder[0]);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        nodeIds: ['snapshot-a-1', 'snapshot-a-2'],
+        currentNodeId: 'snapshot-a-1',
+        pathPayload: expect.objectContaining({
+          selectedOptionId: 'path-option-a',
+          selectedStyleId: 'foundation-remediation',
+        }),
+      }),
+    }));
+    expect(JSON.stringify(mocks.prisma.learningPath.update.mock.calls)).not.toContain('knowledge-card:targets');
+  });
+
+  it('records an immutable candidate rejection without selecting or adopting it', async () => {
+    mocks.prisma.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      status: 'succeeded',
+      candidates: [{
+        id: 'candidate-1',
+        styleId: 'foundation-remediation',
+        snapshot: {
+          optionId: 'path-option-a',
+          styleId: 'foundation-remediation',
+          policyFamily: 'foundation-remediation',
+          nodeIds: ['snapshot-a-1'],
+          activeNodeIds: ['snapshot-a-1'],
+          planNodes: [
+            { nodeId: 'snapshot-a-1', type: 'knowledge_card', target: '/knowledge/snapshot-a-1' },
+          ],
+          resourceMix: { knowledge_card: 1 },
+          evidenceBasis: ['candidate-snapshot-a'],
+          terminalValidationNodeIds: [],
+        },
+      }],
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'rejection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      rejectedOptionIds: ['path-option-a'],
+      idempotencyKey: 'candidate-rejection-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      selectedStyleId: null,
+      selectedPolicyFamily: null,
+      rejectedStyleIds: ['foundation-remediation'],
+    }));
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-selection actions that attempt to complete a candidate selection tool run', async () => {
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'rejection',
+      batchId: 'batch-1',
+      candidateId: 'candidate-1',
+      rejectedOptionIds: ['path-option-a'],
+      idempotencyKey: 'candidate-rejection-tool-run-key',
+      toolRunId: 'tool-run-selection-1',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
+    expect(mocks.prisma.agentToolRun.findFirst).not.toHaveBeenCalled();
+    expect(mocks.prisma.agentToolRun.updateMany).not.toHaveBeenCalled();
+  });
+
   it('records choices from persisted fallback pathOptions when no policy bundle paths exist', async () => {
     const fallbackPath = {
       id: 'path-1',
@@ -3475,6 +3655,16 @@ describe('learning path round API routes', () => {
             ],
             resourceMix: { simulation: 1, arena_task: 1 },
             evidenceBasis: ['simulation-run'],
+            recommendationProvenance: {
+              summary: '依据仿真实验与终点检查证据安排本路径。',
+              confidence: 'medium',
+              entries: [{
+                evidenceSummary: '最近一次仿真实验已形成有效记录。',
+                judgment: '先复核仿真，再进入终点检查。',
+                affectedNodeIds: ['simulation:control-correction-step-response-lab'],
+              }],
+              limitations: ['终点检查仍需补充结果。'],
+            },
             terminalValidationNodeIds: ['arena-task:terminal'],
           },
         ],
@@ -3548,11 +3738,28 @@ describe('learning path round API routes', () => {
             expect.objectContaining({
               nodeId: 'simulation:control-correction-step-response-lab',
               type: 'simulation',
+              decisionExplanation: {
+                selectionBasis: {
+                  summary: '依据仿真实验与终点检查证据安排本路径。',
+                  confidence: 'medium',
+                  supportingFacts: [
+                    '最近一次仿真实验已形成有效记录。',
+                    '先复核仿真，再进入终点检查。',
+                  ],
+                  limitations: ['终点检查仍需补充结果。'],
+                },
+              },
             }),
             expect.objectContaining({
               nodeId: 'arena-task:terminal',
               type: 'arena_task',
               status: 'current',
+              decisionExplanation: {
+                selectionBasis: expect.objectContaining({
+                  summary: '依据仿真实验与终点检查证据安排本路径。',
+                  supportingFacts: [],
+                }),
+              },
             }),
           ],
         }),

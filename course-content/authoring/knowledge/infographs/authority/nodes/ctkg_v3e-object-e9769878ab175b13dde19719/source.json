@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-e9769878ab175b13dde19719",
+  "safe_id": "ctkg_v3e-object-e9769878ab175b13dde19719",
+  "node": {
+    "name": "分度系数",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "对于无源超前网络，a=(R1+R2)/R2>1；对于无源滞后网络，b=R2/(R1+R2)<1。",
+  "intuition": "对于无源滞后网络，b=R2/(R1+R2)<1。",
+  "explanation": "对于无源超前网络，a=(R1+R2)/R2>1；对于无源滞后网络，b=R2/(R1+R2)<1。",
+  "relation_head": "前置 → 滞后深度",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "滞后深度",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "分度系数",
+    "关联·滞后深度"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e9769878ab175b13dde19719.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,20 @@
+{
+  "routePath": "/teacher/classes/class-evidence",
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "requests": [
+    "/api/teacher/classes/class-evidence",
+    "/api/teacher/classes/class-evidence/sessions",
+    "/api/lesson-plans",
+    "/api/teacher/classes/class-evidence/insights",
+    "/api/teacher/classes/class-evidence/diagnosis-reports",
+    "/api/teacher/classes/class-evidence/sessions",
+    "/api/teacher/classes/class-evidence/diagnosis-reports"
+  ],
+  "selectedReportId": "report-class-older",
+  "consoleErrors": [],
+  "pageErrors": [],
+  "horizontalOverflow": false
+}

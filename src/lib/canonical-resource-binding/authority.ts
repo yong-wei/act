@@ -33,11 +33,28 @@ export interface CanonicalResourceCutoverReadiness {
       | 'binding-not-shadow-published'
       | 'fixture-review';
   }>;
+  /**
+   * #1265: unresolved resources block only the evaluated consumer package.
+   * Engineering Authority and unrelated packages remain independently selectable.
+   */
+  scope: {
+    packageId: string | null;
+    blocksEngineeringAuthority: false;
+    blocksUnrelatedConsumers: false;
+    consumerState: 'READY' | 'PINNED_PREVIOUS' | 'BLOCKED_LOCAL_DEPENDENCY';
+  };
 }
 
 export function evaluateCanonicalResourceCutoverReadiness(input: {
   inventory: ResourceBindingInventory;
   decisions: readonly CanonicalResourceBindingDecision[];
+  /**
+   * Optional ACT consumer package identity. When omitted, readiness is still
+   * computed over the provided inventory only (never the full ActKG Release).
+   */
+  consumerPackageId?: string | null;
+  /** Explicit pin while local readiness is incomplete. */
+  pinnedPrevious?: boolean;
 }): CanonicalResourceCutoverReadiness {
   const blockers: CanonicalResourceCutoverReadiness['blockers'] = [];
   for (const item of input.inventory.items) {
@@ -88,13 +105,47 @@ export function evaluateCanonicalResourceCutoverReadiness(input: {
       blockers.push({ atomicResourceId: item.atomicResourceId, code: 'fixture-review' });
     }
   }
+  const ready = blockers.length === 0;
   return {
-    ready: blockers.length === 0,
+    ready,
     // Readiness is diagnostic only; this change has no activation operation.
     authorityState: 'LEGACY',
     blockers: blockers.sort((left, right) => (
       left.atomicResourceId.localeCompare(right.atomicResourceId)
       || left.code.localeCompare(right.code)
     )),
+    scope: {
+      packageId: input.consumerPackageId ?? null,
+      blocksEngineeringAuthority: false,
+      blocksUnrelatedConsumers: false,
+      consumerState: ready
+        ? 'READY'
+        : input.pinnedPrevious
+          ? 'PINNED_PREVIOUS'
+          : 'BLOCKED_LOCAL_DEPENDENCY',
+    },
+  };
+}
+
+/**
+ * Engineering-only consumers (Engineering RAG) may proceed without ACT resource
+ * bindings when Engineering Authority is ACTIVE (#1265).
+ */
+export function evaluateEngineeringOnlyResourceConsumer(input: {
+  engineeringAuthorityActive: boolean;
+  packageId: string;
+}): {
+  packageId: string;
+  ready: boolean;
+  requiresCanonicalResourceBindings: false;
+  consumerState: 'READY' | 'PINNED_PREVIOUS' | 'BLOCKED_LOCAL_DEPENDENCY';
+  blocksTeachingResourceRag: false;
+} {
+  return {
+    packageId: input.packageId,
+    ready: input.engineeringAuthorityActive,
+    requiresCanonicalResourceBindings: false,
+    consumerState: input.engineeringAuthorityActive ? 'READY' : 'BLOCKED_LOCAL_DEPENDENCY',
+    blocksTeachingResourceRag: false,
   };
 }

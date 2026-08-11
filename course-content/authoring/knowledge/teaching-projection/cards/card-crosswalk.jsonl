@@ -1,0 +1,7 @@
+# ACT knowledge card → Canonical crosswalk (#1271).
+# New authoring must not write legacyNodeId values as Canonical endpoints.
+# Rows seed fixture/history mappings; production rows are added with evidence.
+{"legacyNodeId":"ctkg_v3e-object-8c4354096b719a1d5e090da4","cardId":"ctkg_v3e-object-8c4354096b719a1d5e090da4","canonicalId":"ctkg:v3e-object-8c4354096b719a1d5e090da4","sourceEvidence":"course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md","scopeId":"act-control-theory-core"}
+{"legacyNodeId":"ctc_modeling-865eb1c8824e157c2f05a903","cardId":"ctc_modeling-865eb1c8824e157c2f05a903","canonicalId":"ctc:modeling-865eb1c8824e157c2f05a903","sourceEvidence":"course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md","scopeId":"act-control-theory-core"}
+{"legacyNodeId":"ctc_modeling-2088bbde171b2e9ef66070d5","cardId":"ctc_modeling-2088bbde171b2e9ef66070d5","canonicalId":"ctc:modeling-2088bbde171b2e9ef66070d5","sourceEvidence":"course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-2088bbde171b2e9ef66070d5.md","scopeId":"act-control-theory-core"}
+{"legacyNodeId":"ctc_modeling-e442dacbfef4a0d7ea3c4c15","cardId":"ctc_modeling-e442dacbfef4a0d7ea3c4c15","canonicalId":"ctc:modeling-e442dacbfef4a0d7ea3c4c15","sourceEvidence":"course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-e442dacbfef4a0d7ea3c4c15.md","scopeId":"act-control-theory-core"}

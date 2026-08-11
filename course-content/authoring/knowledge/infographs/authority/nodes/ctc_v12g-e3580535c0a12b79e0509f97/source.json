@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v12g-e3580535c0a12b79e0509f97",
+  "safe_id": "ctc_v12g-e3580535c0a12b79e0509f97",
+  "node": {
+    "name": "negative gain root locus",
+    "name_en": "negative_gain_root_locus",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "negative gain root locus：A root locus plotted for negative values of the gain parameter K, also referred to as a 0° root locus.",
+  "intuition": "在图谱邻接中可把握：前置 → nonminimum phase system、正反馈内回路 · 后续 → 增益。",
+  "explanation": "A root locus plotted for negative values of the gain parameter K, also referred to as a 0° root locus.",
+  "relation_head": "前置 → nonminimum phase system、正反馈内回路 · 后续 → 增益",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "增益",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "nonminimum phase system",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "正反馈内回路",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "negative ga…",
+    "negative gai",
+    "关联·增益",
+    "关联·nonmin…",
+    "关联·正反馈内回路"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v12g-e3580535c0a12b79e0509f97.md",
+  "provider_policy": "grok-image_gen"
+}

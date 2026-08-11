@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "b354cb02317e7a7f534c0208",
+  "batchBinding": {
+    "manifestBatchIndex": 24,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+    "memberCount": 204,
+    "memberDigest": "2f9178a55173b126c348544ebf05dac5b41553da630f95bc67366d0df618179e",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "stageArtifactsExistedDuringReviews": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 3,
+    "sessionId": "fd2080b4-43de-43e0-862d-272b84300271",
+    "reviewSessionId": "fd2080b4-43de-43e0-862d-272b84300271",
+    "reviewSessionScope": "act:issue-1214:primary-review",
+    "sourceWriterSessionId": "fd2080b4-43de-43e0-862d-272b84300271",
+    "sourceWriterPermission": "read-only",
+    "sourceWriterScope": "act:issue-1214:primary-review",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1214-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "11e034eb9602c5562bd33029b0683c64e47fe547bc0700343ec8fbbe18386980",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1214-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "267e657f91c30c43fef084696d6b0207999bae54ecb27c87f4013c61ce271ea8",
+    "reviewInputDigest": "3606902b46b2443c8d75f0490895a87d0d98e3a46cfb5d96210b74fdf3737dc9",
+    "stageMemberCount": 204,
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 204
+    },
+    "structuredTranscription": "Raw independent conclusions, rationales, frozen selectors, and DEFER semantics were preserved; normalized documents were sealed without assembler-generated semantic conclusions.",
+    "diagnosticCandidatesAuthority": "diagnostic-only",
+    "diagnosticCandidates": [
+      "course-content/authoring/knowledge/cards/nodes/梅森增益公式_3_22626435.md",
+      "course-content/authoring/knowledge/cards/nodes/梅森增益公式_2_419eab0c.md",
+      "course-content/authoring/lessons/1-5/design/1-5-interactive-page.md",
+      "course-content/authoring/lessons/5-2/design/5-2-teacher-handout.md",
+      "course-content/authoring/lessons/3-6/design/3-6-interactive-page.md",
+      "course-content/authoring/lessons/2-4/design/2-4-interactive-page.md",
+      "course-content/authoring/lessons/1-4/design/1-4-teacher-handout.md",
+      "course-content/authoring/knowledge/cards/nodes/闭环零点_9_2ab177de.md"
+    ],
+    "semanticExactMatchCandidates": 0,
+    "semanticNearMatchCandidates": 16,
+    "semanticFamilyDiagnosticMembers": 55,
+    "reFreezeRequired": true,
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1214-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "11e034eb9602c5562bd33029b0683c64e47fe547bc0700343ec8fbbe18386980",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "fd2080b4-43de-43e0-862d-272b84300271"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "bca2c71c-055d-4a2f-875b-7fb9e4ec8a77",
+    "reviewSessionId": "bca2c71c-055d-4a2f-875b-7fb9e4ec8a77",
+    "reviewSessionScope": "act:issue-1214:challenger-review",
+    "sourceWriterSessionId": "bca2c71c-055d-4a2f-875b-7fb9e4ec8a77",
+    "sourceWriterPermission": "read-only",
+    "sourceWriterScope": "act:issue-1214:challenger-review",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1214-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "5ab254734562f131f50810ede2f414b42a0f839458fee538afd9b73c75827f4e",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1214-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "f82734b216d3870d1cb41e78c004eb187f5d2d244fbbe568eb25a38903b64570",
+    "reviewInputDigest": "6b6f164a8be5e01daaabcaa1a8214327656509914909fc1cee182712026a5ad2",
+    "stageMemberCount": 202,
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 202
+    },
+    "structuredTranscription": "Raw independent conclusions, rationales, frozen selectors, and DEFER semantics were preserved; normalized documents were sealed without assembler-generated semantic conclusions.",
+    "diagnosticCandidatesAuthority": "diagnostic-only",
+    "diagnosticCandidates": [
+      "course-content/authoring/lessons/1-2/design/1-2-handout.md",
+      "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+      "course-content/authoring/lessons/1-2/design/1-2-teacher-handout.md",
+      "course-content/authoring/lessons/legacy/1-1/design/1-1-handout.md",
+      "course-content/authoring/lessons/legacy/1-1/design/1-1-multimedia.md",
+      "course-content/authoring/lessons/1-2/design/1-2-boppps.md",
+      "course-content/authoring/lessons/1-1/design/1-1-interactive-page.md",
+      "course-content/authoring/lessons/1-1/design/1-1-handout.md",
+      "course-content/authoring/lessons/legacy/1-2/design/1-2-interactive-page.md",
+      "course-content/authoring/lessons/legacy/1-2/design/1-2-handout.md",
+      "course-content/authoring/lessons/legacy/1-1/design/1-1-interactive-page.md",
+      "course-content/authoring/lessons/1-2/design/1-2-interactive-contract.yaml"
+    ],
+    "semanticExactMatchCandidates": 0,
+    "semanticNearMatchCandidates": 204,
+    "semanticFamilyDiagnosticMembers": 202,
+    "reFreezeRequired": true,
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1214-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "5ab254734562f131f50810ede2f414b42a0f839458fee538afd9b73c75827f4e",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "bca2c71c-055d-4a2f-875b-7fb9e4ec8a77"
+    }
+  },
+  "frozenEvidenceBoundary": {
+    "memberCount": 204,
+    "profileOnlyHighRiskMemberCount": 202,
+    "aggregateEvidenceRefCount": 275,
+    "profileEvidenceRefCount": 204,
+    "independentCourseEvidenceRefCount": 3,
+    "totalFrozenEvidenceRefCount": 482,
+    "independentCourseEvidenceMemberCount": 2,
+    "admittedBoundaries": [
+      "aggregate",
+      "profile",
+      "independent-course"
+    ],
+    "independentCourseAdmissionSufficient": false,
+    "diagnosticCandidatesAreNotAdmitted": true,
+    "diagnosticCandidatesRequireUpstreamIssue": "#1180",
+    "nonRiskFrozenBatchOrdinalsOmittedFromChallenger": [
+      2,
+      24
+    ]
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+    "challengerDidNotReadPrimary": true,
+    "challengerStageMemberCount": 202,
+    "unresolvedIndependentCourseEvidence": true,
+    "diagnosticCandidatesExcludedFromAuthority": true,
+    "reFreezeRequired": true,
+    "reFreezeReason": "All 204 frozen Formula members remain DEFER. Challenger covers the shared 202-member risk slice; frozen non-risk ordinals 2 and 24 retain three coarse independent-course refs, but formula-specific semantics are insufficient. Upstream #1180 must bind/classify precise independent-course evidence and re-freeze before any later INCLUDE/EXCLUDE review."
+  },
+  "reFreezeRequired": true,
+  "reFreezeReason": "Primary and Challenger found no sufficient formula-identity independent-course evidence. Coarse heading:传递函数 refs are diagnostic/insufficient; #1180 must bind, classify, and re-freeze the worklist/manifest.",
+  "commandsRun": [
+    "npm exec -- tsx -e 'import { readFile } from \"node:fs/promises\"; import { createHash } from \"node:crypto\"; import { currentCourseCoverageStageInputDigest } from \"./src/lib/aggregate-governance/current-course-coverage-batch-review.ts\"; import { validateCurrentCourseCoverageStageSource } from \"./scripts/course-coverage/review-current-course-coverage-batch.ts\"; import { assertBatchManifestClosure } from \"./src/lib/aggregate-governance/current-course-coverage-review.ts\"; (async()=>{const sha=b=>createHash(\"sha256\").update(b).digest(\"hex\"); const load=async p=>JSON.parse(await readFile(p,\"utf8\")); const d=\"course-content/authoring/knowledge/issue-1214-course-coverage-review\"; const [w,m,pr,cr,ps,cs]=await Promise.all([load(\"course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json\"),load(\"course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json\"),load(`${d}/primary-review.json`),load(`${d}/challenger-review.json`),readFile(`${d}/primary-independent-stage-source.json`),readFile(`${d}/challenger-independent-stage-source.json`)]); assertBatchManifestClosure(w,m); const b=m.batches[24]; const binding={batchId:b.batchId,manifestBatchIndex:24,sequence:b.sequence,semanticGroupKey:b.semanticGroupKey,memberCount:b.members.length,memberDigest:b.memberDigest,worklistInputDigest:w.worklistInputDigest,worklistDigest:w.worklistDigest,manifestDigest:m.manifestDigest,manifestArtifactSha256:sha(await readFile(\"course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json\"))}; for(const [doc,raw] of [[pr,ps],[cr,cs]]){if(doc.reviewInputDigest!==currentCourseCoverageStageInputDigest({worklist:w,manifest:m,binding,stage:doc.stage,promptVersion:doc.reviewer.promptVersion}))throw new Error(`${doc.stage} input digest`); validateCurrentCourseCoverageStageSource({document:doc,sourceBytes:raw}); if(doc.sourceArtifactBinding.artifactSha256!==sha(raw))throw new Error(`${doc.stage} source sha`)} console.log(\"PASS raw-to-normalized closure\")})().catch(e=>{console.error(e);process.exit(1)})'",
+    "npm run course-coverage:review-batch -- --worklist course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json --manifest course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json --primary course-content/authoring/knowledge/issue-1214-course-coverage-review/primary-review.json --challenger course-content/authoring/knowledge/issue-1214-course-coverage-review/challenger-review.json --output course-content/authoring/knowledge/issue-1214-course-coverage-review/batch-receipt.json --expected-batch-id b354cb02317e7a7f534c0208 --batch-index 24 --sequence 0 --semantic-group-key \"ctr:release:system-modeling-engineering-v0.1::entityType:Formula\" --member-count 204 --member-digest 2f9178a55173b126c348544ebf05dac5b41553da630f95bc67366d0df618179e --worklist-input-digest 55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2 --worklist-digest bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489 --manifest-digest 2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818 --manifest-artifact-sha256 786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8",
+    "npm run course-coverage:review-batch -- --worklist course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json --manifest course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json --primary course-content/authoring/knowledge/issue-1214-course-coverage-review/primary-review.json --challenger course-content/authoring/knowledge/issue-1214-course-coverage-review/challenger-review.json --output course-content/authoring/knowledge/issue-1214-course-coverage-review/batch-receipt.json --expected-batch-id b354cb02317e7a7f534c0208 --batch-index 24 --sequence 0 --semantic-group-key \"ctr:release:system-modeling-engineering-v0.1::entityType:Formula\" --member-count 204 --member-digest 2f9178a55173b126c348544ebf05dac5b41553da630f95bc67366d0df618179e --worklist-input-digest 55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2 --worklist-digest bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489 --manifest-digest 2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818 --manifest-artifact-sha256 786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8",
+    "npm exec vitest run src/lib/__tests__/current-course-coverage-batch-review.test.ts",
+    "openspec validate review-course-coverage-b354cb02317e7a7f534c0208 --type change --strict",
+    "python3 -c 'import hashlib,json,pathlib,subprocess; d=pathlib.Path(\"course-content/authoring/knowledge/issue-1214-course-coverage-review\"); m=json.loads(pathlib.Path(\"course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json\").read_text()); w=json.loads(pathlib.Path(\"course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json\").read_text()); r=json.loads((d/\"batch-receipt.json\").read_text()); a=json.loads((d/\"batch-boundary-attestation.json\").read_text()); p=json.loads((d/\"primary-review.json\").read_text()); c=json.loads((d/\"challenger-review.json\").read_text()); b=m[\"batches\"][24]; assert b[\"batchId\"]==\"b354cb02317e7a7f534c0208\" and len(b[\"members\"])==204 and b[\"memberDigest\"]==\"2f9178a55173b126c348544ebf05dac5b41553da630f95bc67366d0df618179e\" and r[\"batchBinding\"]=={**r[\"batchBinding\"]}; assert len(p[\"decisions\"])==204 and len(c[\"decisions\"])==202 and all(x[\"conclusion\"]==\"DEFER\" for x in p[\"decisions\"]+c[\"decisions\"]); assert r[\"counts\"]=={\"members\":204,\"included\":0,\"excluded\":0,\"deferredEvidenceBlocked\":204,\"conflicts\":0,\"thirdReviewed\":0} and not any(r[\"productionBoundaries\"].values()) and r[\"receiptDigest\"]==\"ddde95cd1ead7719aba464043941f05b096eff3c76f80500e94f768e7f7e9b66\" and a[\"attestationDigest\"]==\"9fdce2d23a9fb9b3003bdb6c9d7cf36119597d2eae8d7afa46b09744b018ccd0\"; assert all(\"/\"+\"Users\"+\"/\" not in x.read_text() and \"file:\"+\"//\" not in x.read_text() for x in d.glob(\"*.json\")); subprocess.run([\"git\",\"diff\",\"--check\",\"--\",\"course-content/authoring/knowledge/issue-1214-course-coverage-review\",\"openspec/changes/review-course-coverage-b354cb02317e7a7f534c0208\"],check=True); print(\"PASS artifact/order/binding/digest/no-absolute-path/git-diff-check\")'"
+  ],
+  "artifactClosure": {
+    "receiptPath": "course-content/authoring/knowledge/issue-1214-course-coverage-review/batch-receipt.json",
+    "receiptDigest": "ddde95cd1ead7719aba464043941f05b096eff3c76f80500e94f768e7f7e9b66",
+    "attestationPath": "course-content/authoring/knowledge/issue-1214-course-coverage-review/batch-boundary-attestation.json",
+    "attestationDigest": "9fdce2d23a9fb9b3003bdb6c9d7cf36119597d2eae8d7afa46b09744b018ccd0",
+    "productionBoundaryProof": "git-head-and-production-authority-pre-publication-snapshot/v3",
+    "productionBoundaryAttestation": "current-course-coverage-production-boundary-attestation/v2",
+    "captureHead": "f68954f62b098e18aa728dea0cae5e98fea3de4f",
+    "headAfter": "f68954f62b098e18aa728dea0cae5e98fea3de4f",
+    "reFreezeRequired": true
+  }
+}

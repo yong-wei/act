@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:domainconcept:a09e623edf21b6aaa676b0a5",
+  "safe_id": "ctkg_domainconcept_a09e623edf21b6aaa676b0a5",
+  "node": {
+    "name": "Lyapunov Function",
+    "name_en": "Lyapunov Function",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Lyapunov Function是自动控制原理权威图谱中的领域概念。",
+  "intuition": null,
+  "explanation": "权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。",
+  "relation_head": "后续 → Positive Definite Function、Lyapunov Stability",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Positive Definite Function",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "Lyapunov Stability",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Lyapunov Fu…",
+    "Lyapunov Fun",
+    "一种·Positi…",
+    "用于分析·Lyap…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_a09e623edf21b6aaa676b0a5.md",
+  "provider_policy": "grok-image_gen"
+}

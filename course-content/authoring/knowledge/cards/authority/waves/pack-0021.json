@@ -1,0 +1,74 @@
+{
+  "pack_id": "P0021",
+  "offset": 105,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-d1834c74e0aa9ac9d84af39e",
+      "batch": "B",
+      "name": "Autonomous estimator",
+      "definition": "Autonomous estimator：A configuration where M and N̄ are chosen so that the state estimator error equation is independent of the reference in…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Autonomous …",
+        "Autonomous e"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Autonomous estimator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Autonomous estimator：A configuration where M and N̄ are chosen so that the state estimator error equation is independent of the reference in…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Autonomous」、「Autonomous」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-e442dacbfef4a0d7ea3c4c15",
+      "batch": "B",
+      "name": "feedback connection",
+      "definition": "feedback connection：A block diagram configuration where two blocks are connected in a feedback arrangement so that each feeds into the othe…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "feedback co…",
+        "feedback con"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: feedback connection\nSOURCE DEFINITION (fail-closed, do not invent beyond this): feedback connection：A block diagram configuration where two blocks are connected in a feedback arrangement so that each feeds into the othe…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「feedback c」、「feedback c」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-110c156932e90fe902935cb1",
+      "batch": "B",
+      "name": "Phase stabilization",
+      "definition": "Phase stabilization：A stabilization method that uses specially tailored compensation (e.g., a notch filter) to change the phase at a specif…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase stabi…",
+        "Phase stabil",
+        "包含组件·Phas…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Phase stabilization\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Phase stabilization：A stabilization method that uses specially tailored compensation (e.g., a notch filter) to change the phase at a specif…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Phase stab」、「Phase stab」、「包含组件·Phas…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4f3c574bf5cd52ae72e30600",
+      "batch": "B",
+      "name": "Describing Function",
+      "definition": "Describing Function：A frequency-dependent equivalent gain used to approximate the behavior of a nonlinear element under sinusoidal excitati…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Describing …",
+        "Describing F",
+        "属于·Descri…",
+        "用于分析·Limi…",
+        "应用于·Nonli…",
+        "关联·Nonlin…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Describing Function\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Describing Function：A frequency-dependent equivalent gain used to approximate the behavior of a nonlinear element under sinusoidal excitati…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Describing」、「Describing」、「属于·Descri…」、「用于分析·Limi…」、「应用于·Nonli…」、「关联·Nonlin…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-513a1e2247cca470ce88783f",
+      "batch": "B",
+      "name": "Discrete equivalent",
+      "definition": "Discrete equivalent：A technique for finding difference equations by designing a continuous compensation D_c(s) and then approximating it us…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete eq…",
+        "Discrete equ",
+        "包含组件·Samp…",
+        "包含组件·Diff…",
+        "包含组件·Disc…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete equivalent\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete equivalent：A technique for finding difference equations by designing a continuous compensation D_c(s) and then approximating it us…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete e」、「Discrete e」、「包含组件·Samp…」、「包含组件·Diff…」、「包含组件·Disc…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

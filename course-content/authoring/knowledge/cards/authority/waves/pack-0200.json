@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0200",
+  "offset": 1000,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-4650485d80a606436bc37cc2",
+      "batch": "C",
+      "name": "系统的输入和输出变量",
+      "definition": "系统的输入和输出变量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统的输入和输出变量"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 系统的输入和输出变量\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统的输入和输出变量。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「系统的输入和输出变量」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3aa81efa3f16e1fc9210fdc8",
+      "batch": "C",
+      "name": "多极双通道旋转变压器",
+      "definition": "多极双通道旋转变压器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "多极双通道旋转变压器",
+        "包含组件·绝对式轴…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 多极双通道旋转变压器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 多极双通道旋转变压器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「多极双通道旋转变压器」、「包含组件·绝对式轴…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-aa79b6fedda690cfd68855aa",
+      "batch": "C",
+      "name": "relay",
+      "definition": "relay：relay",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "relay",
+        "一种·memory…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: relay\nSOURCE DEFINITION (fail-closed, do not invent beyond this): relay：relay\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「relay」、「一种·memory…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7f0c681f4f5c2b69597b6f4c",
+      "batch": "C",
+      "name": "系统不完全可观测",
+      "definition": "系统不完全可观测。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统不完全可观测"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 系统不完全可观测\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统不完全可观测。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「系统不完全可观测」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "batch": "C",
+      "name": "单位加速度函数",
+      "definition": "单位加速度函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位加速度函数",
+        "包含组件·典型输入…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 单位加速度函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 单位加速度函数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「单位加速度函数」、「包含组件·典型输入…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

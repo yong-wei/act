@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-963133ef890ba8f3bfeefcc5",
+  "safe_id": "ctkg_v3e-object-963133ef890ba8f3bfeefcc5",
+  "node": {
+    "name": "线性采样系统",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "当采样开关和系统其余部分的传递函数都具有线性特性时，这样的系统就称为线性采样系统。",
+  "intuition": "在图谱邻接中可把握：后续 → 采样控制系统、采样开关。",
+  "explanation": "当采样开关和系统其余部分的传递函数都具有线性特性时，这样的系统就称为线性采样系统。",
+  "relation_head": "后续 → 采样控制系统、采样开关",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "采样控制系统",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "采样开关",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "线性采样系统",
+    "是一种·采样控制系统",
+    "包含组件·采样开关"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-963133ef890ba8f3bfeefcc5.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-6b04c8283d317cd809eae369",
+  "safe_id": "ctc_v11g-6b04c8283d317cd809eae369",
+  "node": {
+    "name": "notch compensation",
+    "name_en": "notch_compensation",
+    "concept_kind": "design_method",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "explicit_extension"
+  },
+  "definition": "notch compensation：A compensation scheme used to achieve stability for systems with lightly damped flexible modes, particularly with nonco…",
+  "intuition": null,
+  "explanation": "A compensation scheme used to achieve stability for systems with lightly damped flexible modes, particularly with noncollocated actuator and sensor.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "notch compe…",
+    "notch compen"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-6b04c8283d317cd809eae369.md",
+  "provider_policy": "grok-image_gen"
+}

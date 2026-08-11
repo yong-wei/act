@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+  "safe_id": "ctkg_v3e-object-5353a18bed51a9273ba59709",
+  "node": {
+    "name": "Describing Function Method",
+    "name_en": "Describing Function Method",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Describing Function Method：A frequency-response-based method where a describing function is defined for nonlinear elements, including those with m…",
+  "intuition": "在图谱邻接中可把握：前置 → Describing Function、Frequency-Respon · 后续 → Limit Cycle、Nonlinear System。",
+  "explanation": "A frequency-response-based method where a describing function is defined for nonlinear elements, including those with memory, by extracting the fundamental component of the output sinusoid.",
+  "relation_head": "前置 → Describing Function、Frequency-Respon · 后续 → Limit Cycle、Nonlinear System",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Describing Function",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Frequency-Respon",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "Limit Cycle",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Nonlinear System",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Describing …",
+    "属于·Descri…",
+    "包含组件·Freq…",
+    "用于分析·Limi…",
+    "用于分析·Nonl…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5353a18bed51a9273ba59709.md",
+  "provider_policy": "grok-image_gen"
+}

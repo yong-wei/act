@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+  "safe_id": "ctkg_v3e-object-a0e00fe181b9ba65bda1824c",
+  "node": {
+    "name": "相平面法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "相平面法是推广应用时域分析法的一种图解分析方法。",
+  "intuition": "该方法通过在相平面上绘制相轨迹曲线，确定非线性微分方程在不同初始条件下解的运动形式。",
+  "explanation": "相平面法是推广应用时域分析法的一种图解分析方法。该方法通过在相平面上绘制相轨迹曲线，确定非线性微分方程在不同初始条件下解的运动形式。相平面法仅适用于一阶和二阶系统。",
+  "relation_head": "前置 → MATLAB绘制相轨迹 · 后续 → 相平面、非线性系统、相轨迹",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "相平面",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "非线性系统",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "非线性系统",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "MATLAB绘制相轨迹",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "相轨迹",
+      "relation": "有表示"
+    }
+  ],
+  "labels": [
+    "相平面法",
+    "包含组件·相平面",
+    "用于分析·非线性系统",
+    "应用于·非线性系统",
+    "关联·MATLAB…",
+    "有表示·相轨迹"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-a0e00fe181b9ba65bda1824c.md",
+  "provider_policy": "grok-image_gen"
+}

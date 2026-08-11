@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0210",
+  "offset": 1050,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-a9730b9a039605d79315e24f",
+      "batch": "C",
+      "name": "摩擦特性",
+      "definition": "摩擦特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "摩擦特性",
+        "关联·等效增益",
+        "关联·低速爬行现象"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 摩擦特性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 摩擦特性。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「摩擦特性」、「关联·等效增益」、「关联·低速爬行现象」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-af9c2e9b81c0a2bc815ac424",
+      "batch": "C",
+      "name": "速度反馈",
+      "definition": "速度反馈。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "速度反馈"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 速度反馈\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 速度反馈。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「速度反馈」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b0896b071da350e2cc6ca186",
+      "batch": "C",
+      "name": "间隙特性",
+      "definition": "间隙特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "间隙特性",
+        "关联·等效增益",
+        "关联·死区",
+        "关联·自振荡"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 间隙特性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 间隙特性。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「间隙特性」、「关联·等效增益」、「关联·死区」、「关联·自振荡」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b2913d437161b8d1e3eecfdf",
+      "batch": "C",
+      "name": "理想脉冲",
+      "definition": "理想脉冲。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "理想脉冲",
+        "是一种·脉冲序列",
+        "包含组件·采样控制…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 理想脉冲\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 理想脉冲。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「理想脉冲」、「是一种·脉冲序列」、「包含组件·采样控制…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "batch": "C",
+      "name": "饱和特性",
+      "definition": "饱和特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "饱和特性",
+        "关联·等效增益"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 饱和特性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 饱和特性。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「饱和特性」、「关联·等效增益」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

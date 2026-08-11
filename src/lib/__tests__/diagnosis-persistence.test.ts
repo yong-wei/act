@@ -36,7 +36,22 @@ function createDb(overrides: Partial<DiagnosisPersistenceDb> = {}): DiagnosisPer
     },
     diagnosisReport: {
       create: vi.fn().mockResolvedValue({ id: 'report-1' }),
-      findMany: vi.fn().mockResolvedValue([{ id: 'report-1' }]),
+      findMany: vi.fn().mockResolvedValue([{
+        id: 'report-1',
+        scopeType: 'class',
+        scopeId: 'class-1',
+        classId: 'class-1',
+        targetUserId: null,
+        reportBody,
+        riskSummary: {
+          total: 1,
+          byType: { stagnation: 0, constraint: 1, cross_domain: 0 },
+          bySeverity: { low: 0, medium: 1, high: 0 },
+        },
+        evidenceCutoff: new Date(reportBody.evidenceCutoff),
+        generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
+        generatedAt: new Date('2026-07-30T08:01:00.000Z'),
+      }]),
     },
     ...overrides,
   };
@@ -58,6 +73,29 @@ const reportBody = {
 };
 
 describe('diagnosis report persistence', () => {
+  it('persists a blank optional knowledge node id as missing without a preparation link', async () => {
+    const db = createDb();
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody: {
+        ...reportBody,
+        findings: [{
+          ...reportBody.findings[0],
+          knowledgeNodeId: '   ',
+        }],
+      },
+    }, db);
+
+    const createCall = vi.mocked(db.diagnosisReport.create).mock.calls[0]?.[0] as {
+      data: { reportBody: { findings: Array<Record<string, unknown>> } };
+    };
+    const storedFinding = createCall.data.reportBody.findings[0];
+    expect(storedFinding).not.toHaveProperty('knowledgeNodeId');
+    expect(storedFinding).not.toHaveProperty('prepLink');
+  });
+
   it('derives the student scope, validates membership, and stores governed evidence metadata', async () => {
     const db = createDb();
 

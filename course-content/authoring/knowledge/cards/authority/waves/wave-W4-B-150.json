@@ -1,0 +1,717 @@
+{
+  "wave_id": "W4",
+  "batch": "B",
+  "title": "Batch B slice 4",
+  "offset": 150,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-ec82c77661197d36bca28424",
+      "entity_id": "ctc:modeling-ec82c77661197d36bca28424",
+      "name": "Designing the control law",
+      "name_en": "modeling_ec82c77661197d36bca28424",
+      "definition": "Designing the control law：Designing the control law as if all state variables are measured and available for use.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Designing t…",
+        "关联·Analyt…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-f2e26b86d409ca068e2cee20",
+      "entity_id": "ctc:modeling-f2e26b86d409ca068e2cee20",
+      "name": "Time constant of the",
+      "name_en": "modeling_f2e26b86d409ca068e2cee20",
+      "definition": "Time constant of the：Time constant of the mechanical load in a DC motor, defined as tau_L = J / b.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Time consta…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-f657ca93b0857c4560ba8c77",
+      "entity_id": "ctc:modeling-f657ca93b0857c4560ba8c77",
+      "name": "method for writing circuit",
+      "name_en": "modeling_f657ca93b0857c4560ba8c77",
+      "definition": "method for writing circuit：A method for writing circuit equations by selecting a reference node, assuming voltages of all other nodes as unknowns,…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method for …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-f67b645861d91ec61618959b",
+      "entity_id": "ctc:modeling-f67b645861d91ec61618959b",
+      "name": "system whose motion is",
+      "name_en": "modeling_f67b645861d91ec61618959b",
+      "definition": "system whose motion is：A system whose motion is described by a partial differential equation because mass elements are continuously distribute…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "system whos…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "entity_id": "ctc:modeling-f6875bd8fd4ad1250d8980d8",
+      "name": "One can often linearize",
+      "name_en": "modeling_f6875bd8fd4ad1250d8980d8",
+      "definition": "One can often linearize：One can often linearize nonlinear elements assuming small-signal conditions, which is the normal approach used to obtai…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "One can oft…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-v2r-5585bf06f0e579bc1c362ac2",
+      "entity_id": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+      "name": "loop",
+      "name_en": "loop",
+      "definition": "loop：v3T accepted candidate for loop.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "loop",
+        "属于·signal…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-v2r-8e433b427ffa0e0dc5fd3d64",
+      "entity_id": "ctc:modeling-v2r-8e433b427ffa0e0dc5fd3d64",
+      "name": "branch gain",
+      "name_en": "branch_gain",
+      "definition": "branch gain：v3T accepted candidate for branch gain.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "branch gain"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+      "entity_id": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+      "name": "root of the denominator",
+      "name_en": "modeling_v2r_split_8f6ccd6e0cf66fa155c20aeb",
+      "definition": "root of the denominator：A root of the denominator polynomial of a transfer function",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "root of the…",
+        "是一种·闭环极点",
+        "一种·poles",
+        "是一种·开环极点",
+        "用于分析·根轨迹法",
+        "派生自·传递函数"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-046d539f3b7005bb49884851",
+      "entity_id": "ctc:v11g-046d539f3b7005bb49884851",
+      "name": "self loop transmittance l n",
+      "name_en": "self_loop_transmittance_l_n",
+      "definition": "self loop transmittance l n：The value of the nth self-loop transmittance in Mason's signal-flow gain formula.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "self loop t…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-160c78d3827065aca5585f55",
+      "entity_id": "ctc:v11g-160c78d3827065aca5585f55",
+      "name": "evans root locus construction method",
+      "name_en": "evans_root_locus_construction_method",
+      "definition": "evans root locus construction method：A set of rules to construct the root-locus graph, used for selecting parameter values and designing dynamic compensatio…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "evans root …",
+        "应用于·传递函数"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-1c9f955b68fd25e1f4ad86f6",
+      "entity_id": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "name": "调节时间",
+      "name_en": "settling_time",
+      "definition": "调节时间：The time for the system response to settle to within 2% of the final value.。",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "调节时间",
+        "settling tim"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-1ebbddfa13931f700f437271",
+      "entity_id": "ctc:v11g-1ebbddfa13931f700f437271",
+      "name": "angle of departure",
+      "name_en": "angle_of_departure",
+      "definition": "angle of departure：The angle at which a locus leaves a complex pole in the s-plane.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "angle of de…",
+        "angle of dep",
+        "关联·root o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-21fba199a9fdef15887d600f",
+      "entity_id": "ctc:v11g-21fba199a9fdef15887d600f",
+      "name": "lag compensation",
+      "name_en": "lag_compensation",
+      "definition": "lag compensation：A compensation scheme that approximates PI control, used to improve steady-state accuracy of the system.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "lag compens…",
+        "lag compensa"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-24c15d67a9c0976814a4d3c2",
+      "entity_id": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+      "name": "exhaust gas sensor",
+      "name_en": "exhaust_gas_sensor",
+      "definition": "exhaust gas sensor：A sensor that gives an indication of a rich or lean exhaust and compares it to a reference.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "exhaust gas…",
+        "exhaust gas ",
+        "关联·three …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-2628d227495a3860151a16c1",
+      "entity_id": "ctc:v11g-2628d227495a3860151a16c1",
+      "name": "imaginary axis crossing",
+      "name_en": "imaginary_axis_crossing",
+      "definition": "imaginary axis crossing：The points at which the root locus crosses the imaginary axis.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "imaginary a…",
+        "imaginary ax"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-29bcae62e44c52ed219e6687",
+      "entity_id": "ctc:v11g-29bcae62e44c52ed219e6687",
+      "name": "logarithmic sensitivity",
+      "name_en": "logarithmic_sensitivity",
+      "definition": "logarithmic sensitivity：A measure of the sensitivity of the system performance to specific parameter changes, given by S_K^T(s) = (∂T(s)/T(s))…",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "logarithmic…",
+        "logarithmic "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-2c9038984a34b530385c3e4a",
+      "entity_id": "ctc:v11g-2c9038984a34b530385c3e4a",
+      "name": "monic polynomial",
+      "name_en": "monic_polynomial",
+      "definition": "monic polynomial：A polynomial whose coefficient of the highest power of s is 1.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "monic polyn…",
+        "monic polyno"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-35bacac12472ebce3fd8ca03",
+      "entity_id": "ctc:v11g-35bacac12472ebce3fd8ca03",
+      "name": "lumped parameter circuit",
+      "name_en": "lumped_parameter_circuit",
+      "definition": "lumped parameter circuit：A circuit with normal attenuation of 20n dB/decade, in contrast to distributed RC networks.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "lumped para…",
+        "lumped param"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-3919da0292885d130aff2c77",
+      "entity_id": "ctc:v11g-3919da0292885d130aff2c77",
+      "name": "反应速率",
+      "name_en": "reaction_rate_r",
+      "definition": "反应速率：The slope parameter characterizing the reaction curve, computed as R = M/τ where M is the steady-state magnitude and τ…",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "反应速率",
+        "reaction rat",
+        "关联·反应曲线",
+        "关联·反应曲线参数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-3a468572771e0b54e23a6ef5",
+      "entity_id": "ctc:v11g-3a468572771e0b54e23a6ef5",
+      "name": "graphical gain calculation method",
+      "name_en": "graphical_gain_calculation_method",
+      "definition": "graphical gain calculation method：Method to compute the gain K by measuring the lengths of vectors from the poles to a point on the root locus and multip…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "graphical g…",
+        "应用于·增益"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-40ac1517fc1bfb398dd75afe",
+      "entity_id": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "name": "特征方程",
+      "name_en": "characteristic_equation",
+      "definition": "特征方程：The equation whose closed-loop roots in the s-plane determine the relative stability and transient performance of a clo…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "特征方程",
+        "characterist",
+        "用于分析·根轨迹法",
+        "应用于·给定稳定度…",
+        "派生自·Routh…",
+        "派生自·Norma…",
+        "关联·根轨迹"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-40aced4eb1298f7db801690b",
+      "entity_id": "ctc:v11g-40aced4eb1298f7db801690b",
+      "name": "branches of the root locus",
+      "name_en": "branches_of_the_root_locus",
+      "definition": "branches of the root locus：The individual loci that make up the root locus",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "branches of…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-44d931dcd9405d845e782f87",
+      "entity_id": "ctc:v11g-44d931dcd9405d845e782f87",
+      "name": "distributed rc network",
+      "name_en": "distributed_rc_network",
+      "definition": "distributed rc network：A network composed of distributed R and C elements, with an attenuation slope of 10n dB/decade, where n is the order of…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "distributed…",
+        "distributed "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-462227b4794133f894bdd0a8",
+      "entity_id": "ctc:v11g-462227b4794133f894bdd0a8",
+      "name": "breakaway point",
+      "name_en": "breakaway_point",
+      "definition": "breakaway point：A point on the root locus where multiple roots meet and then move away from the real axis.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "breakaway p…",
+        "breakaway po"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-485febfa90a27cfcedd997ff",
+      "entity_id": "ctc:v11g-485febfa90a27cfcedd997ff",
+      "name": "ultimate period",
+      "name_en": "ultimate_period",
+      "definition": "ultimate period：The period of the sustained oscillations, denoted by P_U, used in the closed-loop Ziegler-Nichols tuning method.",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "ultimate pe…",
+        "ultimate per"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-4aec82cd79a002c70fb185b3",
+      "entity_id": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "name": "loop transfer function l s",
+      "name_en": "loop_transfer_function_l_s",
+      "definition": "loop transfer function l s：The transfer function defined as L(s)=b(s)/a(s) used in the root-locus form of the characteristic equation.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "loop transf…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-4bb347d0f2aa8859a18073de",
+      "entity_id": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "name": "seven steps for sketching a root locus",
+      "name_en": "seven_steps_for_sketching_a_root_locus",
+      "definition": "seven steps for sketching a root locus：A seven-step procedure for sketching a root locus, including preparing the sketch, locating real-axis segments, determi…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "seven steps…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-4c152561a989c34245c538b6",
+      "entity_id": "ctc:v11g-4c152561a989c34245c538b6",
+      "name": "asymptote",
+      "name_en": "asymptote",
+      "definition": "asymptote：The path the root locus follows as the parameter becomes very large and approaches ∞.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "asymptote"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-5322cdb3c781cb7b9828732a",
+      "entity_id": "ctc:v11g-5322cdb3c781cb7b9828732a",
+      "name": "nonminimum phase system",
+      "name_en": "nonminimum_phase_system",
+      "definition": "nonminimum phase system：A system whose transfer function has a zero in the right half-plane (RHP).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "nonminimum …",
+        "nonminimum p",
+        "关联·零点",
+        "关联·negati…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-546566f01ae374379ec78c1e",
+      "entity_id": "ctc:v11g-546566f01ae374379ec78c1e",
+      "name": "two step parameter design method",
+      "name_en": "two_step_parameter_design_method",
+      "definition": "two step parameter design method：A method to determine the effect of two parameters by repeating the root locus approach twice: first for one parameter,…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "two step pa…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-5845390ded447e37f06ea222",
+      "entity_id": "ctc:v11g-5845390ded447e37f06ea222",
+      "name": "根轨迹",
+      "name_en": "root_locus",
+      "definition": "根轨迹：The locus of roots of the characteristic equation in the s-plane as a parameter is varied.。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "根轨迹",
+        "root locus",
+        "应用于·根轨迹法",
+        "关联·特征方程",
+        "有表示·闭环极点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-69118dc66489d66b1732901b",
+      "entity_id": "ctc:v11g-69118dc66489d66b1732901b",
+      "name": "闭环传递函数",
+      "name_en": "closed_loop_transfer_function",
+      "definition": "闭环传递函数：The transfer function describing the dynamic performance of a closed-loop control system, given by T(s)=Y(s)/R(s)=p(s)/…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "闭环传递函数",
+        "关联·合同明确要求…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-6bfefff084f66202b9af9dd4",
+      "entity_id": "ctc:v11g-6bfefff084f66202b9af9dd4",
+      "name": "ziegler nichols pid tuning method",
+      "name_en": "ziegler_nichols_pid_tuning_method",
+      "definition": "ziegler nichols pid tuning method：The process of determining the PID controller gains using one of several analytic methods based on open-loop and closed…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "ziegler nic…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-6c5064d654265c2b32389beb",
+      "entity_id": "ctc:v11g-6c5064d654265c2b32389beb",
+      "name": "gain stabilization",
+      "name_en": "gain_stabilization",
+      "definition": "gain stabilization：A method to eliminate oscillation by lowering the loop gain at high frequency to reduce spillover into lightly damped f…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "gain stabil…",
+        "gain stabili",
+        "应用于·增益"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-79840533ef35fdf38b995397",
+      "entity_id": "ctc:v11g-79840533ef35fdf38b995397",
+      "name": "variable parameter k",
+      "name_en": "variable_parameter_k",
+      "definition": "variable parameter k：A variable parameter in the characteristic equation 1+KG(s)=0, where 0 ≤ K < ∞.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "variable pa…",
+        "variable par"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-7b077c33b2c8dde2b1980d10",
+      "entity_id": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+      "name": "percent overshoot",
+      "name_en": "percent_overshoot",
+      "definition": "percent overshoot：The percentage by which the output response exceeds the final value in response to a step input.",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "percent ove…",
+        "percent over"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-843da2b954f4e9b0d550f09a",
+      "entity_id": "ctc:v11g-843da2b954f4e9b0d550f09a",
+      "name": "root_locus_contr",
+      "name_en": "root_locus_controller_parameter_selection_method",
+      "definition": "root_locus_contr：A method to select controller parameters by sketching the root locus as a function of a parameter and determining root…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "root locus …",
+        "用于分析·阻尼比"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-91ad9d6426185f59dea4a418",
+      "entity_id": "ctc:v11g-91ad9d6426185f59dea4a418",
+      "name": "稳态误差",
+      "name_en": "steady_state_error",
+      "definition": "稳态误差：The finite error that remains after the output response follows a ramp input.。",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "稳态误差",
+        "steady state"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-93b322aec104af4eb69aa152",
+      "entity_id": "ctc:v11g-93b322aec104af4eb69aa152",
+      "name": "pid tuning",
+      "name_en": "pid_tuning",
+      "definition": "pid tuning：The process of determining acceptable values of the PID gains.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "pid tuning"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-991f1cc82c973b44856c40f1",
+      "entity_id": "ctc:v11g-991f1cc82c973b44856c40f1",
+      "name": "angle of arrival",
+      "name_en": "angle_of_arrival",
+      "definition": "angle of arrival：The angle at which a locus arrives at a complex zero in the s-plane.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "angle of ar…",
+        "angle of arr",
+        "关联·零点"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-9c541f3aa2bc9db1fe6a6c02",
+      "entity_id": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+      "name": "阻尼比",
+      "name_en": "damping_ratio",
+      "definition": "阻尼比：A measure of the damping of a system's dominant roots, often specified as a target value such as ζ=0.707.。",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "阻尼比",
+        "damping rati",
+        "用于分析·root…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-9dfc90c240d6bf3ebc285faf",
+      "entity_id": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+      "name": "frequency of oscillation",
+      "name_en": "frequency_of_oscillation",
+      "definition": "frequency of oscillation：The frequency at which the system oscillates at the borderline stability gain.",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "frequency o…",
+        "frequency of"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-a8b5ea28f2d127b68833e809",
+      "entity_id": "ctc:v11g-a8b5ea28f2d127b68833e809",
+      "name": "transponder tags",
+      "name_en": "transponder_tags",
+      "definition": "transponder tags：Tags placed on the floor to task guided vehicles (e.g., to speed up or slow down) at key locations.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "transponder…",
+        "transponder "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-ab8978b79838ecaf3e856d0f",
+      "entity_id": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+      "name": "quarter amplitude decay",
+      "name_en": "quarter_amplitude_decay",
+      "definition": "quarter amplitude decay：A condition where the amplitude of the closed-loop response is reduced approximately to one-fourth of the maximum value…",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "quarter amp…",
+        "quarter ampl"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-b79da91dde120d5d6d3721cd",
+      "entity_id": "ctc:v11g-b79da91dde120d5d6d3721cd",
+      "name": "zeros of l s",
+      "name_en": "zeros_of_l_s",
+      "definition": "zeros of l s：The roots of b(s)=0, labeled z_i.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "zeros of l s",
+        "是一种·零点"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-b9ec91385b0eff9dbbb78681",
+      "entity_id": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+      "name": "borderline stability",
+      "name_en": "borderline_stability",
+      "definition": "borderline stability：The condition at which the system is on the verge of instability, characterized by purely imaginary roots.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "borderline …",
+        "borderline s"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-bc5c0019cf8dd79ee47861ea",
+      "entity_id": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "name": "root contours",
+      "name_en": "root_contours",
+      "definition": "root contours：A family of root loci for two parameters, illustrating the effect of both parameters on the roots of the characteristic…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "root contou…",
+        "root contour"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-bd59ac156c37a1e319ab71c8",
+      "entity_id": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+      "name": "poles of l s",
+      "name_en": "poles_of_l_s",
+      "definition": "poles of l s：The roots of a(s)=0, labeled p_i.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "poles of l s",
+        "一种·root"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-c8c8aef0d010e68842be7236",
+      "entity_id": "ctc:v11g-c8c8aef0d010e68842be7236",
+      "name": "integral controller",
+      "name_en": "integral_controller",
+      "definition": "integral controller：A controller with transfer function G_c(s) = K/s.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "integral co…",
+        "integral con"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_v11g-ca75f7e80d0a7ffd93fcbae5",
+      "entity_id": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+      "name": "continuation locus",
+      "name_en": "continuation_locus",
+      "definition": "continuation locus：A trick used to compute angles of arrival and departure from a point of multiple roots by plotting a root locus for an…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "continuatio…",
+        "continuation"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

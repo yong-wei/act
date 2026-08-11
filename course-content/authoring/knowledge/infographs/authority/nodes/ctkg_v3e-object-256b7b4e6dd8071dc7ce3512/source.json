@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-256b7b4e6dd8071dc7ce3512",
+  "safe_id": "ctkg_v3e-object-256b7b4e6dd8071dc7ce3512",
+  "node": {
+    "name": "z变换",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "z变换是从拉氏变换直接引申出来的一种变换方法，它实际上是采样函数拉氏变换的变形，是研究线性离散系统的重要数学工具。",
+  "intuition": "在图谱邻接中可把握：前置 → z变换算子 · 后续 → 级数求和法。",
+  "explanation": "z变换是从拉氏变换直接引申出来的一种变换方法，它实际上是采样函数拉氏变换的变形，是研究线性离散系统的重要数学工具。",
+  "relation_head": "前置 → z变换算子 · 后续 → 级数求和法",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "z变换算子",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "级数求和法",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "z变换算子",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "z变换",
+    "是一种·z变换算子",
+    "包含组件·级数求和法",
+    "关联·z变换算子"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-256b7b4e6dd8071dc7ce3512.md",
+  "provider_policy": "grok-image_gen"
+}

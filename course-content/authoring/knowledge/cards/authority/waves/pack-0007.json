@@ -1,0 +1,62 @@
+{
+  "pack_id": "P0007",
+  "offset": 35,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-ad9dd2d6032f3c150c03fc49",
+      "batch": "B",
+      "name": "Compensated crossover frequency",
+      "definition": "Compensated crossover frequency：The frequency where the magnitude of the compensated magnitude curve crosses the 0-dB axis, which is set to coincide wi…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Compensated…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Compensated crossover frequency\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Compensated crossover frequency：The frequency where the magnitude of the compensated magnitude curve crosses the 0-dB axis, which is set to coincide wi…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Compensate」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-581ad59cfd51bb25e50aa652",
+      "batch": "B",
+      "name": "Effect of Anti-Alias Prefilter",
+      "definition": "Effect of Anti-Alias Prefilter：Digital control systems with analog sensors typically include an analog anti-alias prefilter between the sensor and the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Effect of A…",
+        "属于·Sample…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Effect of Anti-Alias Prefilter\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Effect of Anti-Alias Prefilter：Digital control systems with analog sensors typically include an analog anti-alias prefilter between the sensor and the…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Effect of 」、「属于·Sample…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6ca8140f61e8805a2e5c8201",
+      "batch": "B",
+      "name": "Matched Pole-Zero (MPZ) Method",
+      "definition": "Matched Pole-Zero (MPZ) Method：A digitization method that applies the relation z=e^{sT} to the poles and zeros of a transfer function. Steps: 1) Map p…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Matched Pol…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Matched Pole-Zero (MPZ) Method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Matched Pole-Zero (MPZ) Method：A digitization method that applies the relation z=e^{sT} to the poles and zeros of a transfer function. Steps: 1) Map p…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Matched Po」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "batch": "B",
+      "name": "Position Error Constant (K p)",
+      "definition": "Position Error Constant (K p)：For a Type 0 system (no integrator in the loop transfer function), the constant defined as K_p = G D_cl(0). It determin…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Position Er…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Position Error Constant (K p)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Position Error Constant (K p)：For a Type 0 system (no integrator in the loop transfer function), the constant defined as K_p = G D_cl(0). It determin…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Position E」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "batch": "B",
+      "name": "Velocity Error Constant (K v)",
+      "definition": "Velocity Error Constant (K v)：For a Type 1 system (one integrator in the loop transfer function), the constant defined as K_v = lim_{s->0} s G D_cl(s…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Velocity Er…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Velocity Error Constant (K v)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Velocity Error Constant (K v)：For a Type 1 system (one integrator in the loop transfer function), the constant defined as K_v = lim_{s->0} s G D_cl(s…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Velocity E」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

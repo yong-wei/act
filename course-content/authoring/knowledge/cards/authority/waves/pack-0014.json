@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0014",
+  "offset": 70,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-9496aabdf225c6359c6ca1cc",
+      "batch": "B",
+      "name": "feedback loop where the",
+      "definition": "feedback loop where the：A feedback loop where the feedback signal is added (positive) rather than subtracted, resulting in a plus sign in the d…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "feedback lo…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: feedback loop where the\nSOURCE DEFINITION (fail-closed, do not invent beyond this): feedback loop where the：A feedback loop where the feedback signal is added (positive) rather than subtracted, resulting in a plus sign in the d…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「feedback l」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "batch": "B",
+      "name": "One can often linearize",
+      "definition": "One can often linearize：One can often linearize nonlinear elements assuming small-signal conditions, which is the normal approach used to obtai…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "One can oft…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: One can often linearize\nSOURCE DEFINITION (fail-closed, do not invent beyond this): One can often linearize：One can often linearize nonlinear elements assuming small-signal conditions, which is the normal approach used to obtai…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「One can of」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-ab8978b79838ecaf3e856d0f",
+      "batch": "B",
+      "name": "quarter amplitude decay",
+      "definition": "quarter amplitude decay：A condition where the amplitude of the closed-loop response is reduced approximately to one-fourth of the maximum value…",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "quarter amp…",
+        "quarter ampl"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: quarter amplitude decay\nSOURCE DEFINITION (fail-closed, do not invent beyond this): quarter amplitude decay：A condition where the amplitude of the closed-loop response is reduced approximately to one-fourth of the maximum value…\nvisual_archetype: 工程评审板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「quarter am」、「quarter am」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "batch": "B",
+      "name": "Superposition principle",
+      "definition": "Superposition principle：The principle of superposition states that if the system has an input that can be expressed as a sum of signals, then t…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Superpositi…",
+        "Superpositio"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Superposition principle\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Superposition principle：The principle of superposition states that if the system has an input that can be expressed as a sum of signals, then t…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Superposit」、「Superposit」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-f04d9bd8bbd3d7197e2c3b56",
+      "batch": "B",
+      "name": "Negative Real Part of Pole",
+      "definition": "Negative Real Part of Pole：The real part of a complex pole, denoted by σ, which determines the exponential decay rate of the transient response.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Negative Re…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Negative Real Part of Pole\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Negative Real Part of Pole：The real part of a complex pole, denoted by σ, which determines the exponential decay rate of the transient response.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Negative R」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

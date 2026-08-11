@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+  "safe_id": "ctc_v11g-bc5c0019cf8dd79ee47861ea",
+  "node": {
+    "name": "root contours",
+    "name_en": "root_contours",
+    "concept_kind": "representation_kind",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "root contours：A family of root loci for two parameters, illustrating the effect of both parameters on the roots of the characteristic…",
+  "intuition": null,
+  "explanation": "A family of root loci for two parameters, illustrating the effect of both parameters on the roots of the characteristic equation.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "root contou…",
+    "root contour"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-bc5c0019cf8dd79ee47861ea.md",
+  "provider_policy": "grok-image_gen"
+}

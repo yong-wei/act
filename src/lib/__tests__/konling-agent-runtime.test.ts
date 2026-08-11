@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -15,7 +16,18 @@ const mocks = vi.hoisted(() => ({
   loadAllTextbookStructureUnitProjections: vi.fn(),
   loadRuntimeResourceProjectionInputs: vi.fn(),
   retrieveTextbookSourcePackV2Progressive: vi.fn(),
+  runMathCalculate: vi.fn(),
+  MathCalculateCapacityError: class MathCalculateCapacityError extends Error {},
 }));
+
+vi.mock('@/lib/math-calc', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/math-calc')>('@/lib/math-calc');
+  return {
+    ...actual,
+    MathCalculateCapacityError: mocks.MathCalculateCapacityError,
+    runMathCalculate: mocks.runMathCalculate,
+  };
+});
 
 vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
   const actual = await vi.importActual<typeof import('@/lib/data-governance/adaptive-learner-state-service')>(
@@ -84,6 +96,7 @@ import {
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
+import { resolveArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import {
   applyKonlingCitationFallback,
   assignKonlingRuntimeCitationDisplayNumbers,
@@ -103,6 +116,7 @@ import {
   getOrCreateKonlingAgentSession,
   buildKonlingTeachingAssistantRuntimeContract,
   getKonlingTeachingAssistantMountContracts,
+  mapAdaptivePathNaturalLanguageIntent,
   KONLING_TOOL_REGISTRY,
   KONLING_CANDIDATE_READ_TOOLS,
   mergeCandidateAssignedCitations,
@@ -714,6 +728,116 @@ describe('konling agent runtime', () => {
     });
   });
 
+  it('separates canonical intent values from source terms used to consume clauses', () => {
+    const cases = [
+      {
+        intent: '先补相位裕度，再做仿真验证',
+        matchedTerms: ['simulation'],
+        matchedSourceTerms: ['仿真'],
+        limitationCode: 'natural-language-intent-partially-unmapped',
+      },
+      {
+        intent: '挑战，仿真',
+        matchedTerms: ['simulation', 'challenge'],
+        matchedSourceTerms: ['仿真', '挑战'],
+        limitationCode: undefined,
+      },
+      {
+        intent: '轻量检查',
+        matchedTerms: ['light'],
+        matchedSourceTerms: ['轻量检查'],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不要外部'],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要挑战，循序推进',
+        matchedTerms: ['gentle'],
+        matchedSourceTerms: ['挑战', '循序'],
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要密集检查，只要轻量检查',
+        matchedTerms: ['light'],
+        matchedSourceTerms: ['密集检查', '轻量检查'],
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要使用外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不要使用外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不允许外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不允许外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '禁止使用外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['禁止使用外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '挑战但要轻松推进，并完成仿真',
+        matchedTerms: ['simulation'],
+        matchedSourceTerms: ['仿真', '挑战', '轻松'],
+        conflictDimensions: ['difficulty'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '密集检查，同时只要轻量检查',
+        matchedTerms: [],
+        matchedSourceTerms: ['密集检查', '轻量检查'],
+        conflictDimensions: ['checkpoint'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '允许外部资源，但不使用外部资源',
+        matchedTerms: [],
+        matchedSourceTerms: ['不使用外部', '外部资源'],
+        conflictDimensions: ['external-resource'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '先补相位裕度',
+        matchedTerms: [],
+        matchedSourceTerms: [],
+        limitationCode: 'natural-language-intent-unsupported',
+      },
+    ] as const;
+
+    for (const expected of cases) {
+      const mapping = mapAdaptivePathNaturalLanguageIntent(expected.intent);
+      expect(mapping).toMatchObject({
+        resourcePreferences: expected.matchedTerms.filter((term) => term === 'simulation'),
+        matchedTerms: expected.matchedTerms,
+        matchedSourceTerms: expected.matchedSourceTerms,
+      });
+      if ('conflictDimensions' in expected) {
+        expect(mapping.conflictDimensions).toEqual(expected.conflictDimensions);
+      }
+      if ('allowExternalResources' in expected) {
+        expect(mapping.allowExternalResources).toBe(expected.allowExternalResources);
+      }
+      expect(mapping.limitationCode).toBe(expected.limitationCode);
+    }
+  });
+
   it('enforces student and teacher runtime scope before tools can run', async () => {
     await expect(verifyKonlingRuntimeScope({}, {
       authenticatedUserId: 'student-1',
@@ -1270,6 +1394,7 @@ describe('konling agent runtime', () => {
         permittedTools: [...permittedTools],
       }),
       permittedTools: [...permittedTools],
+      evidenceCutoff: new Date('2026-07-30T00:00:00.000Z'),
     });
 
     const riskResult = await runtime.getStudentRiskFlags({ studentId: 'student-1' });
@@ -1292,6 +1417,15 @@ describe('konling agent runtime', () => {
       .resolves.toMatchObject({
         progress: [{ knowledgeNodeId: 'node-1' }],
       });
+    expect(db.studentRiskFlag.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ evidenceObservedAt: { lte: new Date('2026-07-30T00:00:00.000Z') } }),
+    }));
+    expect(db.studentCompetencySnapshot.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ snapshotAt: { lte: new Date('2026-07-30T00:00:00.000Z') } }),
+    }));
+    expect(db.knowledgeProgress.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ lastVisited: { lte: new Date('2026-07-30T00:00:00.000Z') } }),
+    }));
   });
 
   it('exposes only the three candidate read tools for a candidate runtime', () => {
@@ -6820,6 +6954,59 @@ describe('konling agent runtime', () => {
     expect((tools.apply_controller_patch.inputSchema as any).shape).toHaveProperty('idempotencyKey');
   });
 
+  it('registers calculate in the KAQ tool registry and generic-chat mode', () => {
+    expect(KONLING_TOOL_REGISTRY.calculate).toMatchObject({
+      permissionTier: 'analyze',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'none',
+    });
+    expect(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY['generic-chat'].permittedTools).toContain('calculate');
+
+    const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
+    expect(tools).toHaveProperty('calculate');
+  });
+
+  it('runs SymPy calculation through the calculate tool', async () => {
+    mocks.runMathCalculate.mockResolvedValue({
+      status: 'ok',
+      result: '\\frac{1}{s}',
+      steps: [{ step: 1, description: '原始表达式', operation: 'identify', input: '1', output: '1' }],
+    });
+
+    const runtime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope(),
+      context: createRuntimeContext({ permittedTools: ['calculate'] }),
+      permittedTools: ['calculate'],
+    });
+
+    const output = await runtime.calculate({ expression: '1', operation: 'laplace' });
+
+    expect(mocks.runMathCalculate).toHaveBeenCalledWith({
+      expression: '1',
+      operation: 'laplace',
+    });
+    expect(output).toMatchObject({
+      expression: '1',
+      result: '\\frac{1}{s}',
+      steps: [{ step: 1 }],
+    });
+  });
+
+  it('projects shared calculation capacity errors through the KAQ tool boundary', async () => {
+    mocks.runMathCalculate.mockRejectedValue(new mocks.MathCalculateCapacityError());
+    const runtime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope(),
+      context: createRuntimeContext({ permittedTools: ['calculate'] }),
+      permittedTools: ['calculate'],
+    });
+
+    await expect(runtime.calculate({ expression: '1' })).rejects.toMatchObject({
+      status: 429,
+    });
+  });
+
   it('resolves simulation context from persisted runs with student owner isolation and no global state dependency', async () => {
     updateSimulationState({
       isRunning: true,
@@ -9053,6 +9240,15 @@ describe('konling agent runtime', () => {
         findFirst: vi.fn().mockResolvedValue(null),
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
       },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          candidates: data.candidates.create,
+        })),
+      },
       konlingMemory: {
         create: vi.fn(),
       },
@@ -9093,6 +9289,7 @@ describe('konling agent runtime', () => {
       generationStatus: string;
       pathId: string | null;
       pathOptions: Array<Record<string, unknown>>;
+      configurationFulfillment: Array<{ key: string; status: string; message: string }>;
       comparison: { optionCount: number; message: string };
       limitations: string[];
       diagnostics: {
@@ -9110,6 +9307,7 @@ describe('konling agent runtime', () => {
         };
       };
       candidatePoolLimited: boolean;
+      candidateBatch: { id: string; generationRequestId: string; candidateIds: string[] } | null;
     };
 
     expect(result).toMatchObject({
@@ -9127,6 +9325,28 @@ describe('konling agent runtime', () => {
       limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
     });
     expect(result.pathOptions.length).toBeGreaterThan(0);
+    expect(result.candidateBatch).toMatchObject({
+      id: expect.stringMatching(/^path-candidate-batch_/),
+      generationRequestId: 'path-gen-1',
+      candidateIds: expect.arrayContaining([expect.stringMatching(/^path-candidate_/)]),
+    });
+    expect(result.pathId).toMatch(/^adaptive-path:student-1:control-correction:candidate_[a-f0-9]{24}$/);
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: result.pathId },
+      create: expect.objectContaining({ id: result.pathId, pathStatus: 'candidate' }),
+    }));
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ sourcePathId: result.pathId }),
+    }));
+    expect(result.pathOptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ candidateId: expect.stringMatching(/^path-candidate_/) }),
+    ]));
+    expect(result.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'difficulty-rhythm', status: 'applied' }),
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', message: expect.any(String) }),
+    ]));
+    expect(result.configurationFulfillment.find((item) => item.key === 'natural-language-intent')).not.toHaveProperty('limitationCode');
+    expect(JSON.stringify(result.configurationFulfillment)).not.toContain('我想先补相位裕度');
     expect(mocks.loadRuntimeResourceProjectionInputs).toHaveBeenCalled();
     expect(result.diagnostics.candidatePool).toMatchObject({
       registryVersion: 'resource-node-registry.v1',
@@ -9152,12 +9372,14 @@ describe('konling agent runtime', () => {
         idempotencyKey: 'path-gen-1',
         inputSummary: expect.objectContaining({
           graphNodeId: 'kn:autocontrol:controller-correction',
-          naturalLanguageIntent: 'student-provided-natural-language-path-intent',
+          naturalLanguageIntent: `sha256:${createHash('sha256').update('我想先补相位裕度，再做仿真验证。').digest('hex')}`,
         }),
       }),
     }));
     expect(db.learningPath.upsert).toHaveBeenCalled();
     const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.pathStatus).toBe('candidate');
+    expect(createdPath.legacySummaryPayload.status).toBe('candidate');
     expect(createdPath.inputSnapshot.request.candidatePoolDiagnostics).toMatchObject({
       registryVersion: 'resource-node-registry.v1',
       projectionVersion: 'resource-semantic-projection.v1',
@@ -9169,6 +9391,9 @@ describe('konling agent runtime', () => {
         }),
       }),
     });
+    expect(createdPath.pathPayload.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', limitationCode: 'natural-language-intent-partially-unmapped' }),
+    ]));
     expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         status: 'succeeded',
@@ -9178,6 +9403,62 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
+
+    const persistedBatchData = db.adaptivePathCandidateBatch.create.mock.calls[0][0].data;
+    db.learningPath.findFirst.mockResolvedValue(createdPath);
+    db.adaptivePathCandidateBatch.findUnique.mockResolvedValue({
+      ...persistedBatchData,
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      candidates: persistedBatchData.candidates.create,
+    });
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...createdRun, id: 'tool-run-path-retry' });
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValueOnce([]);
+
+    const retryResult = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-1',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
+      timeBudgetMinutes: 30,
+      difficultyRhythm: 'steady',
+      naturalLanguageIntent: '我想先补相位裕度，再做仿真验证。',
+    }) as typeof result;
+
+    expect(db.learningPath.upsert).toHaveBeenCalledOnce();
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledOnce();
+    expect(retryResult.generationStatus).toBe('persisted');
+    expect(retryResult.pathId).toBe(result.pathId);
+    expect(retryResult.candidateBatch).toEqual(result.candidateBatch);
+    expect(retryResult.pathOptions).toEqual(result.pathOptions);
+
+    db.adaptivePathCandidateBatch.findUnique.mockResolvedValue(null);
+    db.learningPath.findFirst.mockResolvedValue(null);
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...createdRun, idempotencyKey: 'path-gen-low-budget' });
+    const lowBudgetResult = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-low-budget',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
+      timeBudgetMinutes: 30,
+    }) as {
+      generationStatus: string;
+      request: {
+        effectiveTimeBudgetMinutes: number;
+        minimumTimeBudgetMinutes: number;
+        timeBudgetInsufficient: boolean;
+      };
+    };
+
+    expect(lowBudgetResult).toMatchObject({
+      generationStatus: 'blocked',
+      request: {
+        effectiveTimeBudgetMinutes: 30,
+        minimumTimeBudgetMinutes: 32,
+        timeBudgetInsufficient: true,
+      },
+    });
     expect(JSON.stringify(result)).not.toMatch(/stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
@@ -9993,6 +10274,419 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('explains deterministic differences between two stored path options', async () => {
+    const createdRun = {
+      id: 'tool-run-path-tradeoff-difference',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'explain_learning_path_tradeoff',
+      permissionTier: 'analyze',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-tradeoff-difference',
+      correlationId: 'corr-path-tradeoff-difference',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'frequency-path-1',
+          pathPayload: {
+            policyBundle: {
+              status: 'ready',
+              paths: [
+                {
+                  optionId: 'path-option-1',
+                  styleId: 'guided',
+                  label: '基础补救路线',
+                  nodeIds: ['foundation', 'shared-analysis', 'guided-checkpoint'],
+                  nodeSummaries: [
+                    { nodeId: 'foundation', title: '频域基础复习', pathNodeType: 'knowledge_card' },
+                    { nodeId: 'shared-analysis', title: '稳定裕度分析', pathNodeType: 'control_workbench' },
+                    { nodeId: 'guided-checkpoint', title: '补救检查点', pathNodeType: 'checkpoint' },
+                  ],
+                  effort: { estimatedMinutes: 55 },
+                  resourceMix: { knowledge_card: 1, control_workbench: 1, checkpoint: 1 },
+                  readinessSummary: [
+                    { nodeId: 'foundation', state: 'ready', message: '可开始' },
+                    { nodeId: 'shared-analysis', state: 'ready', message: '可开始' },
+                    { nodeId: 'guided-checkpoint', state: 'ready', message: '可开始' },
+                  ],
+                  lockedNodeIds: [],
+                  checkpointNodeIds: ['guided-checkpoint'],
+                  terminalValidationNodeIds: ['guided-checkpoint'],
+                  limitations: [],
+                },
+                {
+                  optionId: 'path-option-2',
+                  styleId: 'sprint',
+                  label: '仿真驱动路线',
+                  nodeIds: ['shared-analysis', 'simulation-task', 'terminal-task'],
+                  nodeSummaries: [
+                    { nodeId: 'shared-analysis', title: '稳定裕度分析', pathNodeType: 'control_workbench' },
+                    { nodeId: 'simulation-task', title: '频域仿真实验', pathNodeType: 'simulation' },
+                    { nodeId: 'terminal-task', title: '终点验证', pathNodeType: 'arena_task' },
+                  ],
+                  effort: { estimatedMinutes: 35 },
+                  resourceMix: { control_workbench: 1, simulation: 1, arena_task: 1 },
+                  readinessSummary: [
+                    { nodeId: 'shared-analysis', state: 'ready', message: '可开始' },
+                    { nodeId: 'simulation-task', state: 'ready', message: '可开始' },
+                    { nodeId: 'terminal-task', state: 'locked', message: '完成仿真后解锁' },
+                  ],
+                  lockedNodeIds: ['terminal-task'],
+                  checkpointNodeIds: [],
+                  terminalValidationNodeIds: ['terminal-task'],
+                  limitations: ['终点验证当前尚未解锁'],
+                },
+              ],
+            },
+          },
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'foundation',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    const result = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-difference',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+
+    expect(result.comparison).toMatchObject({
+      status: 'ready',
+      pathId: 'frequency-path-1',
+      options: [
+        {
+          optionId: 'path-option-1',
+          styleId: 'guided',
+          label: '基础补救路线',
+          metrics: {
+            estimatedMinutes: 55,
+            nodeCount: 3,
+            checkpointCount: 1,
+            lockedNodeCount: 0,
+            terminalValidationCount: 1,
+          },
+        },
+        {
+          optionId: 'path-option-2',
+          styleId: 'sprint',
+          label: '仿真驱动路线',
+          metrics: {
+            estimatedMinutes: 35,
+            nodeCount: 3,
+            checkpointCount: 0,
+            lockedNodeCount: 1,
+            terminalValidationCount: 1,
+          },
+        },
+      ],
+      commonNodes: [{
+        nodeId: 'shared-analysis',
+        title: '稳定裕度分析',
+        resourceType: 'control_workbench',
+        positions: [2, 1],
+      }],
+      optionOnlyNodes: [
+        {
+          optionId: 'path-option-1',
+          nodes: [
+            { nodeId: 'foundation', title: '频域基础复习', resourceType: 'knowledge_card', position: 1 },
+            { nodeId: 'guided-checkpoint', title: '补救检查点', resourceType: 'checkpoint', position: 3 },
+          ],
+        },
+        {
+          optionId: 'path-option-2',
+          nodes: [
+            { nodeId: 'simulation-task', title: '频域仿真实验', resourceType: 'simulation', position: 2 },
+            { nodeId: 'terminal-task', title: '终点验证', resourceType: 'arena_task', position: 3 },
+          ],
+        },
+      ],
+      orderDifferences: [{
+        nodeId: 'shared-analysis',
+        title: '稳定裕度分析',
+        positions: [2, 1],
+      }],
+      limitations: ['终点验证当前尚未解锁'],
+    });
+    expect(result.comparison.tradeoffs).toEqual(expect.arrayContaining([
+      '基础补救路线预计比仿真驱动路线多用 20 分钟。',
+      '基础补救路线比仿真驱动路线多 1 个检查点。',
+      '仿真驱动路线比基础补救路线多 1 个锁定节点。',
+    ]));
+    expect(result.studentSafeRationale.join(' ')).toContain('基础补救路线');
+    expect(result.studentSafeRationale.join(' ')).toContain('仿真驱动路线');
+    expect(result.studentSafeRationale.join(' ')).not.toContain('路径差异主要来自学习时间');
+  });
+
+  it('reports identical and insufficient stored path comparisons explicitly', async () => {
+    const createdRun = {
+      id: 'tool-run-path-tradeoff-boundaries',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'explain_learning_path_tradeoff',
+      permissionTier: 'analyze',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-tradeoff-boundaries',
+      correlationId: 'corr-path-tradeoff-boundaries',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    let pathPayload: Record<string, unknown> = {
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            optionId: 'path-option-1',
+            styleId: 'guided',
+            label: '方案甲',
+            nodeIds: ['shared-node'],
+            nodeSummaries: [{ nodeId: 'shared-node', title: '共同节点', pathNodeType: 'knowledge_card' }],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1 },
+            readinessSummary: [{ nodeId: 'shared-node', state: 'ready', message: '可开始' }],
+            lockedNodeIds: [],
+            checkpointNodeIds: [],
+            terminalValidationNodeIds: [],
+            limitations: [],
+          },
+          {
+            optionId: 'path-option-2',
+            styleId: 'sprint',
+            label: '方案乙',
+            nodeIds: ['shared-node'],
+            nodeSummaries: [{ nodeId: 'shared-node', title: '共同节点', pathNodeType: 'knowledge_card' }],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1 },
+            readinessSummary: [{ nodeId: 'shared-node', state: 'ready', message: '可开始' }],
+            lockedNodeIds: [],
+            checkpointNodeIds: [],
+            terminalValidationNodeIds: [],
+            limitations: [],
+          },
+        ],
+      },
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun)
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun)
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockImplementation(async () => ({
+          id: 'frequency-path-1',
+          pathPayload,
+        })),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'shared-node',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    const identicalResult = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-identical',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+    expect(identicalResult.comparison.status).toBe('no-material-difference');
+    expect(identicalResult.studentSafeRationale).toContain('两条路径目前没有实质差异。');
+
+    pathPayload = {
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            optionId: 'path-option-1',
+            styleId: 'guided',
+            label: '方案甲',
+            nodeIds: ['node-a', 'node-b'],
+            nodeSummaries: [
+              { nodeId: 'node-a', title: '节点甲', pathNodeType: 'knowledge_card' },
+              { nodeId: 'node-b', title: '节点乙', pathNodeType: 'checkpoint' },
+            ],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1, checkpoint: 1 },
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'ready', message: '可开始' },
+              { nodeId: 'node-b', state: 'locked', message: '待解锁' },
+            ],
+            lockedNodeIds: ['node-b'],
+            checkpointNodeIds: ['node-a'],
+            terminalValidationNodeIds: ['node-b'],
+            limitations: [],
+          },
+          {
+            optionId: 'path-option-2',
+            styleId: 'sprint',
+            label: '方案乙',
+            nodeIds: ['node-a', 'node-b'],
+            nodeSummaries: [
+              { nodeId: 'node-a', title: '节点甲', pathNodeType: 'knowledge_card' },
+              { nodeId: 'node-b', title: '节点乙', pathNodeType: 'checkpoint' },
+            ],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1, checkpoint: 1 },
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'locked', message: '待解锁' },
+              { nodeId: 'node-b', state: 'ready', message: '可开始' },
+            ],
+            lockedNodeIds: ['node-a'],
+            checkpointNodeIds: ['node-b'],
+            terminalValidationNodeIds: ['node-a'],
+            limitations: [],
+          },
+        ],
+      },
+    };
+    const nodeIdentityResult = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-node-identities',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+    expect(nodeIdentityResult.comparison).toMatchObject({
+      status: 'ready',
+      options: [
+        {
+          metrics: {
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'ready', message: '可开始' },
+              { nodeId: 'node-b', state: 'locked', message: '待解锁' },
+            ],
+            lockedNodeIds: ['node-b'],
+            checkpointNodeIds: ['node-a'],
+            terminalValidationNodeIds: ['node-b'],
+          },
+        },
+        {
+          metrics: {
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'locked', message: '待解锁' },
+              { nodeId: 'node-b', state: 'ready', message: '可开始' },
+            ],
+            lockedNodeIds: ['node-a'],
+            checkpointNodeIds: ['node-b'],
+            terminalValidationNodeIds: ['node-a'],
+          },
+        },
+      ],
+    });
+
+    pathPayload = {
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            optionId: 'path-option-1',
+            styleId: 'guided',
+            label: '方案甲',
+            nodeIds: ['missing-summary'],
+            nodeSummaries: [],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: {},
+          },
+          {
+            optionId: 'path-option-2',
+            styleId: 'sprint',
+            label: '方案乙',
+            nodeIds: ['known-node'],
+            nodeSummaries: [{ nodeId: 'known-node', title: '已知节点', pathNodeType: 'knowledge_card' }],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1 },
+          },
+        ],
+      },
+    };
+    const insufficientResult = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-insufficient',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+    expect(insufficientResult.comparison).toMatchObject({
+      status: 'insufficient-data',
+      tradeoffs: [],
+      limitations: ['方案甲缺少 1 个节点的可靠摘要。'],
+    });
+    expect(insufficientResult.studentSafeRationale).toContain('当前路径缺少完整节点信息，暂时无法生成可靠的差异解释。');
+  });
+
   it('rejects path tradeoff explanations for options outside the scoped path', async () => {
     const db = {
       agentSession: {
@@ -10131,6 +10825,160 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('resolves adaptive path selections only from the authorized persisted candidate batch', async () => {
+    const candidateBatch = {
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      classId: 'class-1',
+      generationRequestId: 'generation-1',
+      sourcePathId: 'path-1',
+      plannerVersion: 'policy-selection-v1',
+      status: 'succeeded',
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      candidates: [
+        {
+          id: 'candidate-guided',
+          ordinal: 0,
+          styleId: 'guided',
+          policyFamily: 'guided',
+          label: '引导巩固路径',
+          snapshot: { optionId: 'option-guided', styleId: 'guided' },
+        },
+        {
+          id: 'candidate-sprint',
+          ordinal: 1,
+          styleId: 'sprint',
+          policyFamily: 'sprint',
+          label: '挑战冲刺路径',
+          snapshot: { optionId: 'option-sprint', styleId: 'sprint' },
+        },
+      ],
+    };
+    const createSelectionRuntime = (batch: typeof candidateBatch, inputSummary: Record<string, unknown> = {}) => {
+      const createdRun = {
+        id: `tool-run-${batch.id}`,
+        ownerUserId: 'student-1',
+        actorUserId: 'student-1',
+        targetUserId: 'student-1',
+        agentSessionId: 'agent-session-1',
+        toolName: 'select_learning_path',
+        permissionTier: 'write',
+        approvalState: 'not_required',
+        status: 'running',
+        inputSummary,
+        outputSummary: null,
+        errorSummary: null,
+        idempotencyKey: `selection-${batch.id}`,
+        correlationId: `correlation-${batch.id}`,
+        startedAt: new Date('2026-05-28T00:00:00Z'),
+        completedAt: null,
+        latencyMs: null,
+      };
+      const db = {
+        agentSession: {
+          findFirst: vi.fn().mockResolvedValue({
+            id: 'agent-session-1',
+            permittedTools: ['select_learning_path'],
+          }),
+        },
+        agentToolRun: {
+          findFirst: vi.fn()
+            .mockResolvedValueOnce(null)
+            .mockResolvedValue(createdRun),
+          create: vi.fn().mockResolvedValue(createdRun),
+          updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        },
+        adaptivePathCandidateBatch: {
+          findUnique: vi.fn().mockResolvedValue(batch),
+        },
+        learningPath: {
+          update: vi.fn(),
+        },
+      };
+      const runtime = buildKonlingToolRuntime({
+        db,
+        scope: createScope({ pageId: 'adaptive-path-center' }),
+        agentSessionId: 'agent-session-1',
+        context: {
+          ...createRuntimeContext({ permittedTools: ['select_learning_path'] }),
+          teachingAssistantMode: {
+            authorizedCandidateBatch: {
+              batchId: batch.id,
+              pathId: batch.sourcePathId,
+              goalId: batch.goalId,
+              classId: batch.classId,
+            },
+          },
+        } as any,
+      });
+      return { db, runtime };
+    };
+
+    const selected = createSelectionRuntime(candidateBatch, {
+      batchId: 'batch-1', candidateId: 'candidate-sprint', pathId: 'path-1', goalId: 'control-correction',
+    });
+    await expect(selected.runtime.selectLearningPath({
+      idempotencyKey: 'selection-batch-1',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      batchId: 'batch-1',
+      candidateId: 'candidate-sprint',
+    })).resolves.toMatchObject({
+      status: 'pending_commit',
+      batchId: 'batch-1',
+      candidateId: 'candidate-sprint',
+      pathId: 'path-1',
+      selectedOptionId: 'option-sprint',
+      selectedStyleId: 'sprint',
+      toolRunId: 'tool-run-batch-1',
+      autoStart: false,
+    });
+    expect(selected.db.learningPath.update).not.toHaveBeenCalled();
+    expect(selected.db.agentToolRun.updateMany).not.toHaveBeenCalled();
+
+    const natural = createSelectionRuntime(candidateBatch, { batchId: 'batch-1' });
+    await expect(natural.runtime.selectLearningPath({
+      idempotencyKey: 'selection-natural-language',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      batchId: 'batch-1',
+      naturalLanguageIntent: '挑战冲刺路径',
+    })).resolves.toMatchObject({
+      status: 'pending_commit', candidateId: 'candidate-sprint', toolRunId: 'tool-run-batch-1',
+    });
+    expect(natural.db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: { inputSummary: expect.objectContaining({ candidateId: 'candidate-sprint' }) },
+    }));
+
+    const ambiguous = createSelectionRuntime(candidateBatch, { batchId: 'batch-1' });
+    await expect(ambiguous.runtime.selectLearningPath({
+      idempotencyKey: 'selection-ambiguous',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      batchId: 'batch-1',
+      naturalLanguageIntent: '那个',
+    })).resolves.toMatchObject({
+      status: 'clarification_required',
+      batchId: 'batch-1',
+      alternatives: [
+        { candidateId: 'candidate-guided', label: '引导巩固路径' },
+        { candidateId: 'candidate-sprint', label: '挑战冲刺路径' },
+      ],
+    });
+    expect(ambiguous.db.learningPath.update).not.toHaveBeenCalled();
+
+    const unauthorized = createSelectionRuntime({ ...candidateBatch, userId: 'student-2' });
+    await expect(unauthorized.runtime.selectLearningPath({
+      idempotencyKey: 'selection-foreign-user',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      batchId: 'batch-1',
+      candidateId: 'candidate-guided',
+    })).resolves.toEqual({ status: 'unavailable' });
+    expect(unauthorized.db.learningPath.update).not.toHaveBeenCalled();
+  });
+
   it('records path-bound choices for registered non-control adaptive path goals', async () => {
     const createdRun = {
       id: 'tool-run-frequency-select-1',
@@ -10155,7 +11003,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -10196,7 +11044,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center' }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: 'frequency-path-1',
           activeNodeId: 'node-1',
@@ -10208,13 +11056,14 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'frequency-select-1',
       goalId: 'frequency-response-foundations',
       pathId: 'frequency-path-1',
+      outcome: 'adopted',
       selectedStyleId: 'guided-frequency-route',
     })).resolves.toMatchObject({
-      outcome: 'selected',
+      outcome: 'adopted',
       evidence: {
         emitted: true,
         dedupeKey: 'learning-path:choice:frequency-path-1:frequency-select-1',
@@ -10230,7 +11079,7 @@ describe('konling agent runtime', () => {
     }));
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        toolName: 'select_learning_path',
+        toolName: 'record_path_adjustment_outcome',
         approvalState: 'not_required',
       }),
     }));
@@ -10274,7 +11123,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -10311,7 +11160,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center', pathNodeId: null }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: null,
           activeNodeId: null,
@@ -10323,12 +11172,13 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-explicit-path-1',
       pathId: 'path-1',
+      outcome: 'adopted',
       selectedStyleId: 'arena-simulation-sprint',
     })).resolves.toMatchObject({
-      outcome: 'selected',
+      outcome: 'adopted',
     });
     expect(db.agentToolRun.create).toHaveBeenCalled();
     expect(db.learningPath.update).toHaveBeenCalled();
@@ -10441,12 +11291,12 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-path-1',
+      outcome: 'adopted',
       selectedStyleId: 'arena-simulation-sprint',
-      helpful: true,
     })).resolves.toMatchObject({
-      outcome: 'selected',
+      outcome: 'adopted',
       evidence: {
         emitted: true,
         dedupeKey: 'control-correction-path:choice:path-1:select-path-1',
@@ -10487,7 +11337,7 @@ describe('konling agent runtime', () => {
               id: 'control-correction-path:choice:path-1:select-path-1',
               type: 'selection',
               selectedStyleId: 'arena-simulation-sprint',
-              helpful: true,
+              helpful: null,
             }),
           ],
         }),
@@ -10763,20 +11613,28 @@ describe('konling agent runtime', () => {
       timeBudgetMinutes: 90,
       difficultyRhythm: 'challenge',
       checkpointPreference: 'dense',
-      naturalLanguageIntent: '我希望减少讲解，先完成仿真和 Arena。',
+      naturalLanguageIntent: '优先完成仿真和 Arena。',
       rejectedStyleIds: ['foundation-remediation'],
       selectedStyleId: 'arena-simulation-sprint',
     });
     expect(result).toMatchObject({
       operation: 'revised',
       generationStatus: 'persisted',
-      limitations: [],
+      limitations: expect.arrayContaining(['policy-option-diversity-unavailable']),
       pathOptions: expect.any(Array),
+      comparison: {
+        optionCount: 1,
+        message: '当前资源只能形成单一推荐方案。',
+      },
     });
-    expect((result as { pathOptions: unknown[] }).pathOptions.length).toBeGreaterThanOrEqual(3);
+    expect((result as { pathOptions: unknown[] }).pathOptions).toHaveLength(1);
     const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(revisedCreate.pathStatus).not.toBe('candidate');
     expect(revisedCreate.pathPayload.graphContext).toBeNull();
-    expect(revisedCreate.pathPayload.pathOptions.length).toBeGreaterThanOrEqual(3);
+    expect(revisedCreate.pathPayload.pathOptions).toHaveLength(1);
+    expect(revisedCreate.pathPayload.policyBundle.fallbackReasons).toEqual(
+      expect.arrayContaining(['policy-option-diversity-unavailable']),
+    );
     expect(revisedCreate.explanationPayload.selectedReasons).toEqual(
       expect.arrayContaining(['policy-simulation-driven']),
     );
@@ -10786,7 +11644,7 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         inputSummary: expect.objectContaining({
-          naturalLanguageIntent: 'student-provided-natural-language-path-intent',
+          naturalLanguageIntent: `sha256:${createHash('sha256').update('优先完成仿真和 Arena。').digest('hex')}`,
         }),
       }),
     }));
@@ -10805,8 +11663,8 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
-    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('我希望减少讲解');
-    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我希望减少讲解');
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('优先完成仿真和 Arena');
+    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('优先完成仿真和 Arena');
   });
 
   it('rejects adaptive path generation when client hints try to expand the scoped goal', async () => {
@@ -11374,7 +12232,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -11397,7 +12255,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center' }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: 'path-1',
           activeNodeId: 'node-1',
@@ -11409,9 +12267,10 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-forged-path',
       pathId: 'foreign-path',
+      outcome: 'adopted',
       selectedStyleId: 'arena-simulation-sprint',
     })).rejects.toMatchObject({ status: 403 });
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
@@ -11425,7 +12284,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -11457,7 +12316,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center' }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: 'path-1',
           activeNodeId: 'node-1',
@@ -11469,8 +12328,9 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-invalid-style',
+      outcome: 'adopted',
       selectedStyleId: 'hallucinated-style',
     })).rejects.toMatchObject({
       status: 403,
@@ -11487,7 +12347,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -11519,7 +12379,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center' }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: 'path-1',
           activeNodeId: 'node-1',
@@ -11531,8 +12391,9 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-hidden-fallback-style',
+      outcome: 'adopted',
       selectedStyleId: 'simulation-driven',
     })).rejects.toMatchObject({
       status: 403,
@@ -11613,7 +12474,7 @@ describe('konling agent runtime', () => {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'agent-session-1',
-          permittedTools: ['select_learning_path'],
+          permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         }),
       },
       agentToolRun: {
@@ -11630,7 +12491,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: 'adaptive-path-center', pathNodeId: null }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
-        permittedTools: ['select_learning_path'],
+        permittedTools: ['select_learning_path', 'record_path_adjustment_outcome'],
         planContext: {
           currentPathId: null,
           activeNodeId: null,
@@ -11642,8 +12503,9 @@ describe('konling agent runtime', () => {
       }),
     });
 
-    await expect(runtime.selectLearningPath({
+    await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'select-without-current-path',
+      outcome: 'adopted',
       selectedStyleId: 'arena-simulation-sprint',
     })).rejects.toMatchObject({
       status: 400,
@@ -11810,16 +12672,42 @@ describe('konling agent runtime', () => {
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
-  it('reuses idempotent adaptive path choices before validating mutable path options', async () => {
+  it('replays the complete persisted candidate selection result for an idempotent retry', async () => {
     const outputSummary = {
-      outcome: 'selected',
-      activity: {
-        selectedStyleId: 'previous-style',
+      status: 'selected',
+      toolRunId: 'tool-run-existing',
+      batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+      pathId: 'path-1',
+      goalId: 'control-correction',
+      selectedOptionId: 'previous-option',
+      selectedStyleId: 'previous-style',
+      idempotencyKey: 'select-retry-key',
+      autoStart: false,
+      studentSafeRationale: 'Selected the previous candidate.',
+    };
+    const persistedToolRun = {
+      id: 'tool-run-existing',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-previous',
+      toolName: 'select_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'succeeded',
+      inputSummary: {
+        batchId: 'previous-batch', candidateId: 'previous-candidate',
+        pathId: 'path-1', goalId: 'control-correction',
+        naturalLanguageIntent: `sha256:${createHash('sha256').update('Challenge sprint path').digest('hex')}`,
       },
-      evidence: {
-        emitted: true,
-        dedupeKey: 'control-correction-path:choice:path-1:select-retry-key',
-      },
+      outputSummary,
+      errorSummary: null,
+      idempotencyKey: 'select-retry-key',
+      correlationId: 'corr-select-existing',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: new Date('2026-05-28T00:00:01Z'),
+      latencyMs: 1000,
     };
     const db = {
       agentSession: {
@@ -11829,25 +12717,7 @@ describe('konling agent runtime', () => {
         }),
       },
       agentToolRun: {
-        findFirst: vi.fn().mockResolvedValue({
-          id: 'tool-run-existing',
-          ownerUserId: 'student-1',
-          actorUserId: 'student-1',
-          targetUserId: 'student-1',
-          agentSessionId: 'agent-session-previous',
-          toolName: 'select_learning_path',
-          permissionTier: 'write',
-          approvalState: 'not_required',
-          status: 'succeeded',
-          inputSummary: {},
-          outputSummary,
-          errorSummary: null,
-          idempotencyKey: 'select-retry-key',
-          correlationId: 'corr-select-existing',
-          startedAt: new Date('2026-05-28T00:00:00Z'),
-          completedAt: new Date('2026-05-28T00:00:01Z'),
-          latencyMs: 1000,
-        }),
+        findFirst: vi.fn().mockResolvedValue(persistedToolRun),
         create: vi.fn(),
         updateMany: vi.fn(),
       },
@@ -11881,8 +12751,48 @@ describe('konling agent runtime', () => {
 
     await expect(runtime.selectLearningPath({
       idempotencyKey: 'select-retry-key',
-      selectedStyleId: 'previous-style',
-    })).resolves.toMatchObject(outputSummary);
+      batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+    })).resolves.toEqual(outputSummary);
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      candidateId: 'different-candidate',
+    })).rejects.toMatchObject({ status: 409 });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      naturalLanguageIntent: 'Challenge sprint path',
+    })).resolves.toEqual(outputSummary);
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
+    db.agentToolRun.findFirst.mockResolvedValue({
+      ...persistedToolRun,
+      status: 'running',
+      outputSummary: null,
+      completedAt: null,
+      latencyMs: null,
+    });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      candidateId: 'previous-candidate',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      batchId: 'previous-batch',
+      naturalLanguageIntent: 'Guided consolidation path',
+    })).rejects.toMatchObject({ status: 409 });
     expect(db.learningPath.findFirst).not.toHaveBeenCalled();
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
     expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
@@ -12296,6 +13206,107 @@ describe('konling agent runtime', () => {
       id: 'intv-current',
     });
     expect(db.aIIntervention.create).toHaveBeenCalled();
+  });
+
+  it('keeps cooldowns for the same Arena control method', async () => {
+    const scope = createScope();
+    const arenaContext = resolveArenaCompanionContext('task-second-order-lead-pid', 'pid');
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'intv-pid',
+          interventionType: 'constraint-hint',
+          cooldownUntil: new Date('2026-05-28T00:30:00Z'),
+        }),
+        create: vi.fn(),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+    };
+
+    const intervention = await createGovernedKonlingIntervention(db, {
+      scope,
+      studentState: createStudentState(),
+      arenaContext,
+      now: new Date('2026-05-28T00:00:00Z'),
+    });
+
+    expect(intervention).toMatchObject({
+      shouldIntervene: false,
+      reason: 'cooldown-active',
+      id: 'intv-pid',
+    });
+    expect(db.aIIntervention.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        sessionId: 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:pid',
+      }),
+    }));
+    expect(db.aIIntervention.create).not.toHaveBeenCalled();
+  });
+
+  it('allows a second Arena method to bypass another method cooldown', async () => {
+    const scope = createScope();
+    const pidContext = resolveArenaCompanionContext('task-second-order-lead-pid', 'pid');
+    const serialContext = resolveArenaCompanionContext('task-second-order-lead-pid', 'serial-compensator');
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockImplementation(async ({ where }) => (
+          where.sessionId === 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:pid'
+            ? {
+                id: 'intv-pid',
+                interventionType: 'constraint-hint',
+                cooldownUntil: new Date('2026-05-28T00:30:00Z'),
+              }
+            : null
+        )),
+        create: vi.fn().mockResolvedValue({ id: 'intv-serial' }),
+      },
+      konlingMemory: {
+        create: vi.fn().mockResolvedValue({ id: 'memory-serial' }),
+      },
+    };
+
+    const pidIntervention = await createGovernedKonlingIntervention(db, {
+      scope,
+      studentState: createStudentState(),
+      arenaContext: pidContext,
+      now: new Date('2026-05-28T00:00:00Z'),
+    });
+    const serialIntervention = await createGovernedKonlingIntervention(db, {
+      scope,
+      studentState: createStudentState(),
+      arenaContext: serialContext,
+      now: new Date('2026-05-28T00:00:00Z'),
+    });
+
+    expect(pidIntervention.reason).toBe('cooldown-active');
+    expect(serialIntervention).toMatchObject({
+      shouldIntervene: true,
+      id: 'intv-serial',
+    });
+    expect(db.aIIntervention.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        sessionId: 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:serial-compensator',
+        evidence: expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'arena-companion-context',
+            ref: 'task-second-order-lead-pid:serial-compensator',
+          }),
+        ]),
+      }),
+    }));
+    expect(db.konlingMemory.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        sessionId: 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:serial-compensator',
+        evidenceRefs: expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'arena-companion-context',
+            ref: 'task-second-order-lead-pid:serial-compensator',
+          }),
+        ]),
+      }),
+    }));
   });
 
   it('does not persist no-op interventions or feedback outside the current scope', async () => {

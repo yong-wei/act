@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0060",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-683669a4b467dc55ddcf5d48",
+      "name": "朱利稳定判据",
+      "definition": "直接在z域内应用的稳定性判据，根据离散系统的闭环特征方程D(z)=0的系数，判别其根是否位于z平面上的单位圆内。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6ecfad78b7fb0ba7b233047c",
+      "name": "数字控制系统",
+      "definition": "把数字序列形式的离散系统，称为数字控制系统或计算机控制系统。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-762239378940cb45b78991b3",
+      "name": "采样器",
+      "definition": "在连续信号和脉冲序列之间要用采样器，实现信号的转换。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7f2e4a28791adc1aab82c6d2",
+      "name": "read-only memory (ROM)",
+      "definition": "read-only memory (ROM)：read-only memory (ROM)"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-821d0c6dd9fb62ae909fb60f",
+      "name": "稳定极限环",
+      "definition": "当 t → ∞ 时，起始于极限环内部或外部的相轨迹均卷向极限环，则该极限环称为稳定的极限环。"
+    }
+  ],
+  "created_at": "2026-08-05T15:52:15.436195+00:00"
+}

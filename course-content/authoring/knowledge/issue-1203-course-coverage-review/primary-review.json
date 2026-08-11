@@ -1,0 +1,410 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "a7a2bc4b76204034bcf56862",
+    "manifestBatchIndex": 13,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 31,
+    "memberDigest": "e1bf8070ee6a7aea245df5e780c2732ce08262e9a28d6dd15db09a71c05a4084",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-independent-primary",
+    "provider": "grok-4.5-build",
+    "sessionId": "c6c52a77-de78-4cf1-b27e-8e3b4cb84c57",
+    "promptVersion": "issue-1203-primary-v2"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1203-course-coverage-review/primary-independent-stage-source.json",
+    "artifactSha256": "7c8ca7c7610922fe0fea4da15dd91c4254ba33de27327b2ac7442e9698f4644f",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "PRIMARY",
+    "writerSessionId": "c6c52a77-de78-4cf1-b27e-8e3b4cb84c57"
+  },
+  "reviewInputDigest": "2e19497c240d7b88ece0b2cad88a0741691f240589a18bb46dfe428604746d37",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+      "canonicalRevision": "88b2d2084f4227882746d4b551a1dcc4b354973a1e5c7554d212767def694a27",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fde39b1993f1516c3f46838b",
+        "canonicalId:ctkg:v3e-object-23665070dce851fbb0ebda8b"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-23665070dce851fbb0ebda8b (preferredLabel='Auxiliary polynomial') at canonicalRevision=88b2d2084f4227882746d4b551a1dcc4b354973a1e5c7554d212767def694a27. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-fde39b1993f1516c3f46838b', 'canonicalId:ctkg:v3e-object-23665070dce851fbb0ebda8b']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Auxiliary polynomial' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "7fe5d0f50988c854b381414e1092041fb9dc6930a6eef0f6db7d25ed8dae218e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+      "canonicalRevision": "b7eb1c57d0b2146ba8b23ea992f308674498ecebe5ba75a4b1d3b6d0902bcb1f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-afeb7858ba9d452b281669fe",
+        "canonicalId:ctkg:v3e-object-2eb64f744b929432a6394ee5"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-2eb64f744b929432a6394ee5 (preferredLabel='Symmetrical root pairs') at canonicalRevision=b7eb1c57d0b2146ba8b23ea992f308674498ecebe5ba75a4b1d3b6d0902bcb1f. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=1; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-afeb7858ba9d452b281669fe', 'canonicalId:ctkg:v3e-object-2eb64f744b929432a6394ee5']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Symmetrical root pairs' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "b49fadf08a3091792b17051cf858fd936d9dad5d0fda5c34e1a6be4eeefd8fe7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+      "canonicalRevision": "3e85767109f8cad1785b2c9fffdf768c6f3f94d674e9cc73ec0334f4cd44fa8c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a28e4ef126e0e851470e5835",
+        "canonicalId:ctkg:v3e-object-327cafd07ac8956536bab418"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-327cafd07ac8956536bab418 (preferredLabel=\"Routh's method for parameter range determination\") at canonicalRevision=3e85767109f8cad1785b2c9fffdf768c6f3f94d674e9cc73ec0334f4cd44fa8c. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=2; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-a28e4ef126e0e851470e5835', 'canonicalId:ctkg:v3e-object-327cafd07ac8956536bab418']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label \"Routh's method for parameter range determination\" is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "6b81a736fe22270a44589a3d96db0ba2d0563ad4de591224fd3e7ec0bde18663"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+      "canonicalRevision": "64d67d489c7b13315c9f2de9b1de12ca9c1fffbff7e60745ec25114217fbaf30",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d5cb8795e3f5a76e5d49ec95",
+        "canonicalId:ctkg:v3e-object-3584625f5f11346155d538d3"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-3584625f5f11346155d538d3 (preferredLabel='平衡状态稳定性') at canonicalRevision=64d67d489c7b13315c9f2de9b1de12ca9c1fffbff7e60745ec25114217fbaf30. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=3; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-d5cb8795e3f5a76e5d49ec95', 'canonicalId:ctkg:v3e-object-3584625f5f11346155d538d3']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label '平衡状态稳定性' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "1254ff13b116dcad7b56f118170751a5724582850c6eb6ecd4e33d153216fd5d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+      "canonicalRevision": "65093bf22d64b5ed9fd37a15e3fcb789cfa3df83627f6fd9da11b0d0166b3069",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-494999bc789571c50bf5f9ad",
+        "evidence:ctkg:v3e-evidence-fbd385346221e8410012df7a",
+        "canonicalId:ctkg:v3e-object-51cfdcf1f943a39dfc550be1"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-51cfdcf1f943a39dfc550be1 (preferredLabel='Stable System') at canonicalRevision=65093bf22d64b5ed9fd37a15e3fcb789cfa3df83627f6fd9da11b0d0166b3069. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=4; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=2. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-494999bc789571c50bf5f9ad', 'evidence:ctkg:v3e-evidence-fbd385346221e8410012df7a', 'canonicalId:ctkg:v3e-object-51cfdcf1f943a39dfc550be1']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Stable System' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "0486e8c1ec4dc6eba8f99b245f3d3ae6c16a39f46b110a024c31db36b78bbc10"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-526906541f641018cd576367",
+      "canonicalRevision": "96499f5503bb2701724aaf9ff7a4c142926e2fecd26f526511b7a577a3f778fe",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5bf4073b7d885e64d7aa8a56",
+        "canonicalId:ctkg:v3e-object-526906541f641018cd576367"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-526906541f641018cd576367 (preferredLabel='通过变量替换检验给定稳定度的方法') at canonicalRevision=96499f5503bb2701724aaf9ff7a4c142926e2fecd26f526511b7a577a3f778fe. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=5; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-5bf4073b7d885e64d7aa8a56', 'canonicalId:ctkg:v3e-object-526906541f641018cd576367']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label '通过变量替换检验给定稳定度的方法' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "4ad2ee18c4023aace28ab9d3a0796e5e9fb2c88eba317abcb82cd3cd5492d688"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+      "canonicalRevision": "5a605bb140cc052920d6f04848b1c0bc999db34264baaf35089092d1ef357263",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3ea521e061c96b0641139d5a",
+        "canonicalId:ctkg:v3e-object-570b74ec5294ac993add9b5f"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-570b74ec5294ac993add9b5f (preferredLabel='Marginally Stable System') at canonicalRevision=5a605bb140cc052920d6f04848b1c0bc999db34264baaf35089092d1ef357263. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=6; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-3ea521e061c96b0641139d5a', 'canonicalId:ctkg:v3e-object-570b74ec5294ac993add9b5f']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Marginally Stable System' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "ada8b9d763b744bf68b546b6ab4b410ca32f48749b4736187c91b2359851e9d0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+      "canonicalRevision": "619bfcbd8dfa362f7a269cacd91e4d7cf363769c92b2ac89d19e2e75af8e27e0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-49895e3dd4a43fd88a3fb5ec",
+        "evidence:ctkg:v3e-evidence-b02f610c2103baaaecd09495",
+        "canonicalId:ctkg:v3e-object-58de4bcc9bc42be0ce31abb7"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-58de4bcc9bc42be0ce31abb7 (preferredLabel='Bounded Input Bounded Output (BIBO) Stability') at canonicalRevision=619bfcbd8dfa362f7a269cacd91e4d7cf363769c92b2ac89d19e2e75af8e27e0. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=7; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=2. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-49895e3dd4a43fd88a3fb5ec', 'evidence:ctkg:v3e-evidence-b02f610c2103baaaecd09495', 'canonicalId:ctkg:v3e-object-58de4bcc9bc42be0ce31abb7']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Bounded Input Bounded Output (BIBO) Stability' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "e836cfa59a143e457385a3ecbfcb0ae3269d8f5188e69d24ec7e1f86f651b656"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+      "canonicalRevision": "3c1e27e876dd35afc2a0566df4f2a6a46ca4c1f02525fce22a6bf31f357e4d82",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-942bab7d630f7bcc820b8f90",
+        "canonicalId:ctkg:v3e-object-592ae79b5fc586a27e9dd7f2"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-592ae79b5fc586a27e9dd7f2 (preferredLabel='Unstable System') at canonicalRevision=3c1e27e876dd35afc2a0566df4f2a6a46ca4c1f02525fce22a6bf31f357e4d82. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=8; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-942bab7d630f7bcc820b8f90', 'canonicalId:ctkg:v3e-object-592ae79b5fc586a27e9dd7f2']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Unstable System' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "a45adeb7b6218b0ed66545b9af51431034d4564e586669a2c51ca4c3af641a9e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+      "canonicalRevision": "cdc794ea56934b1d73c37a63a8aa81a3429107b0cf878c88a1656a4fb4b29589",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6c21b895c3cd34e4886cc446",
+        "canonicalId:ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27 (preferredLabel='大范围稳定系统') at canonicalRevision=cdc794ea56934b1d73c37a63a8aa81a3429107b0cf878c88a1656a4fb4b29589. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=9; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6c21b895c3cd34e4886cc446', 'canonicalId:ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label '大范围稳定系统' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "0acfa03f1d335d2304e01726f5d4cc3aa02d99679f2ca58a522c885091fa91a6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "canonicalRevision": "6da67dcc4f6e106fe677888b2ffeb83e37ede74213dc7b15003bb6ef638ee9a1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-023fac1d0686c9d8be72fb49",
+        "canonicalId:ctkg:v3e-object-64e8b62fbd0bb7ae801304db"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-64e8b62fbd0bb7ae801304db (preferredLabel='Characteristic equation') at canonicalRevision=6da67dcc4f6e106fe677888b2ffeb83e37ede74213dc7b15003bb6ef638ee9a1. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=10; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only', 'relation-neighborhood-changed']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-023fac1d0686c9d8be72fb49', 'canonicalId:ctkg:v3e-object-64e8b62fbd0bb7ae801304db']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Characteristic equation' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "0f3ab0578446c0cbd6fb700051356622f82a226913280e8627e0b08dbdf44632"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6877b35880ea442923e49a5e",
+      "canonicalRevision": "1dd3adbf4a8ba15afd7bdf2a56be3dafde223778c814c91065e50df3559036f5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6e348dbd6aebe11558509051",
+        "canonicalId:ctkg:v3e-object-6877b35880ea442923e49a5e"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-6877b35880ea442923e49a5e (preferredLabel='Internal stability') at canonicalRevision=1dd3adbf4a8ba15afd7bdf2a56be3dafde223778c814c91065e50df3559036f5. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=11; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6e348dbd6aebe11558509051', 'canonicalId:ctkg:v3e-object-6877b35880ea442923e49a5e']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Internal stability' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "4efdaec502da238d7fdfd4219b4dd22ed2c5cfcf2292c68248c5b4a2bb58a3fa"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+      "canonicalRevision": "54380189081ffc47c61e186791fb74d5e7419b6accfe81d6213e2a71b89e3463",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6563b668efaf2f8d62bd5e38",
+        "evidence:ctr:m1g-release-evidence-e2286e1d08a4c65063cb40bb",
+        "canonicalId:ctkg:v3e-object-6d78bc7ec6f37d397dd08c67"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-6d78bc7ec6f37d397dd08c67 (preferredLabel='Relative Stability') at canonicalRevision=54380189081ffc47c61e186791fb74d5e7419b6accfe81d6213e2a71b89e3463. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=12; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=2 releaseTier=silver upstreamEvidenceCount=2. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6563b668efaf2f8d62bd5e38', 'evidence:ctr:m1g-release-evidence-e2286e1d08a4c65063cb40bb', 'canonicalId:ctkg:v3e-object-6d78bc7ec6f37d397dd08c67']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Relative Stability' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "5a4536f07cd1b64d4c55cdbb0f369a3fda6b65ac3cd0ba0a860167469e03f865"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+      "canonicalRevision": "abadcf8a3a7498678c8e16efadc41c1be4caf3791bd0d1a1b0ae1f732e1c9989",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9aeb7de8ade0a0a94ef40b18",
+        "canonicalId:ctkg:v3e-object-7aa500461c5109b7cffd9b19"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-7aa500461c5109b7cffd9b19 (preferredLabel='Routh array') at canonicalRevision=abadcf8a3a7498678c8e16efadc41c1be4caf3791bd0d1a1b0ae1f732e1c9989. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=13; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-9aeb7de8ade0a0a94ef40b18', 'canonicalId:ctkg:v3e-object-7aa500461c5109b7cffd9b19']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Routh array' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "9e785ae9c6c953ef6227dd323ca71ef26c6ee5f116c8bd8ae2b7a5068ed80888"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+      "canonicalRevision": "238a70f899e6dfc914434435362e5797645d75af920e2f3c95e6331175381c7b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1a15b857c30ddbcca89154b5",
+        "canonicalId:ctkg:v3e-object-7cae3d7feb631906644f0fad"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-7cae3d7feb631906644f0fad (preferredLabel='Neutral Stability') at canonicalRevision=238a70f899e6dfc914434435362e5797645d75af920e2f3c95e6331175381c7b. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=14; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-1a15b857c30ddbcca89154b5', 'canonicalId:ctkg:v3e-object-7cae3d7feb631906644f0fad']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Neutral Stability' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "1e03eaa26bc2e892858ec0074ad5c316a605611bd576b489431ea295d05e0d98"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+      "canonicalRevision": "73df3eda5dc47c1b03157dcd3f6ffdae6b635ad7347274f1229824770541d4cf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aeb03e0542a7d99b2a82ae4e",
+        "canonicalId:ctkg:v3e-object-863069c1389e01dcca80138a"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-863069c1389e01dcca80138a (preferredLabel='Marginal stability') at canonicalRevision=73df3eda5dc47c1b03157dcd3f6ffdae6b635ad7347274f1229824770541d4cf. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=15; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-aeb03e0542a7d99b2a82ae4e', 'canonicalId:ctkg:v3e-object-863069c1389e01dcca80138a']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Marginal stability' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "80e54d4941e37ff26d943bf2036f827ed738c556f952067608cdc0ae6ff0701c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+      "canonicalRevision": "24cbb72205112f0a70625db0525bb75f9a7e4e16fb89b874b4d0819e5efebdc8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d011dff75635bc951eb79bc3",
+        "canonicalId:ctkg:v3e-object-865b301177a623225344064f"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-865b301177a623225344064f (preferredLabel='BIBO stability') at canonicalRevision=24cbb72205112f0a70625db0525bb75f9a7e4e16fb89b874b4d0819e5efebdc8. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=16; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-d011dff75635bc951eb79bc3', 'canonicalId:ctkg:v3e-object-865b301177a623225344064f']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'BIBO stability' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "3552e40533c8a422a7c27b51745c98c5b166c93b2202d44e747525c7dc81dfad"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+      "canonicalRevision": "192a3461bbac966d53c66c553938f52f4300ec5629dcd58a62217f7076ab3491",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-52bf0fe8f92fba4afd42c2c7",
+        "canonicalId:ctkg:v3e-object-a5bc9701adc27b91f6da074b"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-a5bc9701adc27b91f6da074b (preferredLabel='First column of Routh array') at canonicalRevision=192a3461bbac966d53c66c553938f52f4300ec5629dcd58a62217f7076ab3491. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=17; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-52bf0fe8f92fba4afd42c2c7', 'canonicalId:ctkg:v3e-object-a5bc9701adc27b91f6da074b']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'First column of Routh array' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "aaf63e019e05d9af41379d38810c31355fb95ba32b01eb4bb075475b68c6548b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+      "canonicalRevision": "02891d442e8ab550485a49940cf4c5118833c3a24459678f6dad97e4517dd4c8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-03381d955d8ebb4b4efb40d7",
+        "canonicalId:ctkg:v3e-object-b0da8811ce5c0b404585f821"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-b0da8811ce5c0b404585f821 (preferredLabel='Stability boundary') at canonicalRevision=02891d442e8ab550485a49940cf4c5118833c3a24459678f6dad97e4517dd4c8. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=18; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-03381d955d8ebb4b4efb40d7', 'canonicalId:ctkg:v3e-object-b0da8811ce5c0b404585f821']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Stability boundary' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "35a60ca080a3dfd7146c15bcc3eba271d91c808b687bb7a158e5f2d86549ba60"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b2db4c45d82c99790ab8ca35",
+      "canonicalRevision": "21ebff44df6a1c658fc8e830a86f20561f1be9e9a45d8d031c65aae67349a7d1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6806d4fffdcfb1e325fead35",
+        "canonicalId:ctkg:v3e-object-b2db4c45d82c99790ab8ca35"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-b2db4c45d82c99790ab8ca35 (preferredLabel='李雅普诺夫稳定性分析方法') at canonicalRevision=21ebff44df6a1c658fc8e830a86f20561f1be9e9a45d8d031c65aae67349a7d1. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=19; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6806d4fffdcfb1e325fead35', 'canonicalId:ctkg:v3e-object-b2db4c45d82c99790ab8ca35']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label '李雅普诺夫稳定性分析方法' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "2d54ea7eee46307b3b94f97f25564b39a436e5e318c93c5d42555a8a5e25f7de"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+      "canonicalRevision": "f0dc69c25e01233d99209923720428fb00898d8d63d3a89247236db5f9317d22",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-11ff192fc3a0d7c83fb117a6",
+        "evidence:ctr:m1g-release-evidence-f3cf3c5a3629291847490514",
+        "canonicalId:ctkg:v3e-object-b3c5cdff9a0cefd89c42db14"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-b3c5cdff9a0cefd89c42db14 (preferredLabel='Absolute Stability') at canonicalRevision=f0dc69c25e01233d99209923720428fb00898d8d63d3a89247236db5f9317d22. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=20; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=2 releaseTier=silver upstreamEvidenceCount=2. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-11ff192fc3a0d7c83fb117a6', 'evidence:ctr:m1g-release-evidence-f3cf3c5a3629291847490514', 'canonicalId:ctkg:v3e-object-b3c5cdff9a0cefd89c42db14']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Absolute Stability' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "d36d21a151a71c986c9e9e605085734ffb6b8eb0099239489cf45a67b5187af8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "canonicalRevision": "816d6a19e107c88260b45b505a5a3fcff49b5fb76ed769eb8b8d4c33c96800fb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9bf2ad4efe5ce5c3fae4e510",
+        "canonicalId:ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d (preferredLabel='Axis Shift Method for Relative Stability') at canonicalRevision=816d6a19e107c88260b45b505a5a3fcff49b5fb76ed769eb8b8d4c33c96800fb. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=21; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-9bf2ad4efe5ce5c3fae4e510', 'canonicalId:ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Axis Shift Method for Relative Stability' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "687f77a87675bb2f57d1b3ec7389c03ba4775fdeaf709fe61c2a2b085807b33e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+      "canonicalRevision": "3156c7a15e11019a9e89bba5f17991335965a29474dc6450c3904593660703d9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7d98e0c1974a1822d1e3e0bd",
+        "canonicalId:ctkg:v3e-object-c36a6e957077c474e91e17ab"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-c36a6e957077c474e91e17ab (preferredLabel='运动稳定性') at canonicalRevision=3156c7a15e11019a9e89bba5f17991335965a29474dc6450c3904593660703d9. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=22; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-7d98e0c1974a1822d1e3e0bd', 'canonicalId:ctkg:v3e-object-c36a6e957077c474e91e17ab']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label '运动稳定性' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "ea825bfe204cae1a90e7d707c4c0d01d7515d1d1fe1a329d67fffade5a9e743e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c429eb75a78f367236589b27",
+      "canonicalRevision": "9e81729eb12c4f5aea85ebb0404775f031ce34be881647cae8a136bd72cfa313",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ae353e0df8f0ecd8be19135f",
+        "canonicalId:ctkg:v3e-object-c429eb75a78f367236589b27"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-c429eb75a78f367236589b27 (preferredLabel='Neutrally stable') at canonicalRevision=9e81729eb12c4f5aea85ebb0404775f031ce34be881647cae8a136bd72cfa313. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=23; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-ae353e0df8f0ecd8be19135f', 'canonicalId:ctkg:v3e-object-c429eb75a78f367236589b27']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Neutrally stable' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "024f3e80defad5ac05c3edc1fdd9ce1357d913c3b6f7d89c374ddf174d8d065e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+      "canonicalRevision": "0909287c7340236c748abe60173bd92c466281b67bef1eb0ece04edf66a35c5d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-450368c8da68bc1b3700c2b6",
+        "canonicalId:ctkg:v3e-object-c6fd3f071d7b3ea64acf9760"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-c6fd3f071d7b3ea64acf9760 (preferredLabel='Routh-Hurwitz stability criterion method') at canonicalRevision=0909287c7340236c748abe60173bd92c466281b67bef1eb0ece04edf66a35c5d. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=24; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-450368c8da68bc1b3700c2b6', 'canonicalId:ctkg:v3e-object-c6fd3f071d7b3ea64acf9760']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Routh-Hurwitz stability criterion method' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "d601fb0846aa0eabf7eeaa9db331637e730ccbbb0e4b7dbf847e1dd8e1139528"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cbbab19b11fc34557c78b5c6",
+      "canonicalRevision": "ecdeb3c9bc6112cc409e1871fa44bcf615d78cb50ca7a946fc52c807ec3e1680",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f58d17e5fb1d0bbf0e05f709",
+        "canonicalId:ctkg:v3e-object-cbbab19b11fc34557c78b5c6"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-cbbab19b11fc34557c78b5c6 (preferredLabel='Normalized characteristic equation') at canonicalRevision=ecdeb3c9bc6112cc409e1871fa44bcf615d78cb50ca7a946fc52c807ec3e1680. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=25; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-f58d17e5fb1d0bbf0e05f709', 'canonicalId:ctkg:v3e-object-cbbab19b11fc34557c78b5c6']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Normalized characteristic equation' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "1711dfdec61f3a5425e2a13011279587af29016e428e939d8a5c5eb138dd9ac4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+      "canonicalRevision": "b1e88e3c4caa69982df0a5d9ad01a299f7291e7c191d762f3713b71fd95bf514",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6111dcb35a64b82d8aa51b51",
+        "canonicalId:ctkg:v3e-object-cccba806baf3e7a86cade9e4"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-cccba806baf3e7a86cade9e4 (preferredLabel='Right half-plane roots') at canonicalRevision=b1e88e3c4caa69982df0a5d9ad01a299f7291e7c191d762f3713b71fd95bf514. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=26; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6111dcb35a64b82d8aa51b51', 'canonicalId:ctkg:v3e-object-cccba806baf3e7a86cade9e4']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Right half-plane roots' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "688ee8488cdfe9ad094bbf99d5073477fd5fa28a35dacca2ed969a7b891d6c36"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "canonicalRevision": "236fadbb0bb2fdce89c4c6258b624f4797e090ccd66fd036c4853ac4fd3c5f51",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6400641aec713b96024a1dd0",
+        "canonicalId:ctkg:v3e-object-cfdae92ada72d7710e7f1cee"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-cfdae92ada72d7710e7f1cee (preferredLabel='Routh-Hurwitz stability criterion') at canonicalRevision=236fadbb0bb2fdce89c4c6258b624f4797e090ccd66fd036c4853ac4fd3c5f51. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=27; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-6400641aec713b96024a1dd0', 'canonicalId:ctkg:v3e-object-cfdae92ada72d7710e7f1cee']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label 'Routh-Hurwitz stability criterion' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "9a89ba691dead13ff8460f3d211e1af01d75541190ffbf44b85415920d7b9391"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+      "canonicalRevision": "4d229d3d529e87d9cf29be5824ef12a7df30ecdc799c2a99aa41862b9c878306",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8dade6a2d84cfceaf52ae837",
+        "evidence:ctkg:v3e-evidence-a80891b010ddbead99edc9f5",
+        "canonicalId:ctkg:v3e-object-d09d1eba56a786a96d39d085"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-d09d1eba56a786a96d39d085 (preferredLabel='稳定性') at canonicalRevision=4d229d3d529e87d9cf29be5824ef12a7df30ecdc799c2a99aa41862b9c878306. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=28; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=2. evidenceRefs=3 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-8dade6a2d84cfceaf52ae837', 'evidence:ctkg:v3e-evidence-a80891b010ddbead99edc9f5', 'canonicalId:ctkg:v3e-object-d09d1eba56a786a96d39d085']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label '稳定性' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "965f8ccaac234967a36527321362bbbf9bf63a7e68eea8fee18364c24d66252f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+      "canonicalRevision": "daf983e97cab5ddc194b0411d24e66eb364f78f310354c0fadb03421a412b7ee",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-be01ec67b17042b6d14433a6",
+        "canonicalId:ctkg:v3e-object-e56e84bbefb19024f10b648c"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-e56e84bbefb19024f10b648c (preferredLabel='小范围稳定系统') at canonicalRevision=daf983e97cab5ddc194b0411d24e66eb364f78f310354c0fadb03421a412b7ee. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=29; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-be01ec67b17042b6d14433a6', 'canonicalId:ctkg:v3e-object-e56e84bbefb19024f10b648c']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label '小范围稳定系统' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "1febf9c56c682622719522cfb1912643b5dd41851847977f39322549b7108b45"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+      "canonicalRevision": "e8c8ad1fdc994b48cf563d56137e73eaba6a8f443b4b05ef725f1e8c4ea5d15e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8d9bf5a3433e4bc8e383749c",
+        "canonicalId:ctkg:v3e-object-fb437f813c7792e130b8a3df"
+      ],
+      "rationale": "PRIMARY independent review of DomainConcept ctkg:v3e-object-fb437f813c7792e130b8a3df (preferredLabel='给定稳定度检验方法') at canonicalRevision=e8c8ad1fdc994b48cf563d56137e73eaba6a8f443b4b05ef725f1e8c4ea5d15e. Frozen batch a7a2bc4b76204034bcf56862 / batches[13] ordinal=30; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:DomainConcept; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1]; entityType=DomainConcept; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=gold upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctkg:v3e-evidence-8d9bf5a3433e4bc8e383749c', 'canonicalId:ctkg:v3e-object-fb437f813c7792e130b8a3df']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=0 (empty — historical Coverage cannot authorize a current role). Semantic note: label '给定稳定度检验方法' is a stability-analysis DomainConcept candidate in module stability-analysis-engineering-v0.1, but preferredLabel/profile metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-a7a2bc4b76204034bcf56862: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate provenance is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "decisionDigest": "ff5c4ff835afe6e7f5dacb7eab480fd43eb000eb45f42fa82b6a97c5f6e86cc3"
+    }
+  ],
+  "documentDigest": "fc4571033ae974a536ea7c0a32fbb7c9f66f71bee1ef2ed12ff8e430d4d1af23"
+}

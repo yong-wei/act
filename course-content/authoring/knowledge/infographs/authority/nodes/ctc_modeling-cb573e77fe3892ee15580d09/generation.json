@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T12:01:15+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-cb573e77fe3892ee15580d09",
+  "safe_id": "ctc_modeling-cb573e77fe3892ee15580d09",
+  "generation_path": "native-image-generation",
+  "provider": "grok-image_gen",
+  "model": "grok-image_gen",
+  "source_image": "ctc_modeling-cb573e77fe3892ee15580d09.png",
+  "output_image": "course-content/authoring/knowledge/infographs/authority/nodes/ctc_modeling-cb573e77fe3892ee15580d09/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/authority/nodes/ctc_modeling-cb573e77fe3892ee15580d09/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/authority/nodes/ctc_modeling-cb573e77fe3892ee15580d09/source.json"
+}

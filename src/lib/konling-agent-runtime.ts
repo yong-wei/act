@@ -43,6 +43,19 @@ import {
   recordPathChoiceEvidence,
   recordPathIntervention,
 } from '@/lib/control-correction-path-rounds';
+import {
+  AdaptivePathCandidateBatchConflictError,
+  persistAdaptivePathCandidateBatch,
+  readAdaptivePathCandidateBatch,
+  readAdaptivePathCandidateBatchByGenerationRequest,
+  resolveAdaptivePathCandidateSelection,
+  type AdaptivePathCandidateBatchView,
+} from '@/lib/adaptive-path-candidate-batches';
+import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
+import {
+  bindKonlingCandidateSelectionToolRun,
+  buildKonlingCandidateSelectionToolResult,
+} from '@/lib/konling-candidate-selection-tool-run';
 import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-runtime';
 import {
   loadAllTextbookStructureRuntimeCatalogEntries,
@@ -52,6 +65,7 @@ import {
   buildAdaptiveLearningPathPlan,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathGraphContextInput,
+  type AdaptiveLearningPathConfigurationRequest,
   type AdaptiveLearningPathPolicyFamily,
   type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
@@ -84,6 +98,18 @@ import {
   type KonlingCanonicalRagShadowContext,
   type KonlingCanonicalRagShadowDiagnostic,
 } from '@/lib/canonical-rag/konling-integration';
+import type { LayeredGraphPayload } from '@/lib/layered-graph/contracts';
+import {
+  extractKonlingTeachingProjectionClientHints,
+  resolveKonlingTeachingProjectionBinding,
+} from '@/lib/konling-teaching-projection-binding';
+import {
+  buildKonlingTeachingProjectionGroundingLines,
+  projectKonlingTeachingProjectionAnswerProvenance,
+  resolveKonlingTeachingProjectionContext,
+  type KonlingTeachingProjectionClientHints,
+  type KonlingTeachingProjectionContext,
+} from '@/lib/konling-teaching-projection-context';
 import {
   assignKonlingCitationDisplayNumbers,
   buildKonlingCitationCanonicalKey,
@@ -111,6 +137,7 @@ import {
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
+import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
 import {
@@ -138,6 +165,11 @@ import {
   projectGovernedSummaryToSar,
   type GovernedSummaryEntityRef,
 } from '@/lib/data-governance/sar-projection';
+import {
+  MATH_CALC_OPERATIONS,
+  MathCalculateCapacityError,
+  runMathCalculate,
+} from '@/lib/math-calc';
 
 export const KONLING_SEMANTIC_MEMORY_FEATURE_FLAG = 'KONLING_SEMANTIC_MEMORY_ENABLED';
 export const KONLING_STRATEGY_MEMORY_FEATURE_FLAG = 'KONLING_STRATEGY_MEMORY_ENABLED';
@@ -173,6 +205,7 @@ export type KonlingToolName =
   | 'analyze_attempt'
   | 'get_student_risk_flags'
   | 'get_class_competency_summary'
+  | 'calculate'
   | 'get_student_knowledge_progress';
 
 export type KonlingMemoryType = 'working-summary' | 'session-summary' | 'episodic' | 'intervention-outcome';
@@ -323,8 +356,17 @@ export interface KonlingTeachingAssistantRuntimeContract {
   outputContract: KonlingTeachingAssistantModeContract['outputContract'];
   smartPreparation: KonlingSmartPreparationServerContext | null;
   adaptiveAttempt: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext | null;
+  wrongAnswerAttribution: import('@/features/assessment/wrong-answer-attribution').WrongAnswerAttributionProjection | null;
+  authorizedCandidateBatch: KonlingAuthorizedCandidateBatchContext | null;
   clientHintsAccepted: string[];
   clientHintsRejected: string[];
+}
+
+export interface KonlingAuthorizedCandidateBatchContext {
+  batchId: string;
+  pathId: string;
+  goalId: string;
+  classId: string | null;
 }
 
 export interface KonlingSmartPreparationAmbiguity {
@@ -371,6 +413,8 @@ export interface KonlingSmartPreparationServerContext {
 export type KonlingTeachingAssistantServerModeContext = Partial<Record<KonlingTeachingAssistantContextKey, boolean>> & {
   smartPreparation?: KonlingSmartPreparationServerContext;
   adaptiveAttempt?: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext;
+  wrongAnswerAttribution?: import('@/features/assessment/wrong-answer-attribution').WrongAnswerAttributionProjection;
+  authorizedCandidateBatch?: KonlingAuthorizedCandidateBatchContext;
 };
 
 export interface KonlingTeachingAssistantEntryPoint {
@@ -405,6 +449,11 @@ export interface KonlingRuntimeContext {
   knowledgeCapabilityContext?: KonlingKnowledgeCapabilityContext;
   sarAssociatedGrounding?: KonlingSarAssociatedGroundingContext | null;
   graphContext?: KonlingKaqGraphContext | null;
+  /**
+   * Server-owned Authority / Teaching Projection combination for dual-domain
+   * grounding (#1274). Absent when no layered payload was supplied.
+   */
+  teachingProjectionContext?: KonlingTeachingProjectionContext | null;
   citationContext?: KonlingCitationContext;
   permittedTools: KonlingToolName[];
   missingContext: string[];
@@ -642,6 +691,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
       'apply_controller_patch',
       'record_intervention_result',
       'analyze_attempt',
+      'calculate',
     ],
     citationClasses: ['content', 'learner-state', 'path-execution', 'memory'],
     payload: 'student-visible-summary',
@@ -848,6 +898,9 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const adaptiveAttempt = mode.id === 'diagnosis-explainer'
     ? input.serverModeContext?.adaptiveAttempt ?? null
     : null;
+  const wrongAnswerAttribution = mode.id === 'diagnosis-explainer'
+    ? input.serverModeContext?.wrongAnswerAttribution ?? null
+    : null;
   const requiredContext = adaptiveAttempt
     ? ['adaptive-attempt'] satisfies KonlingTeachingAssistantContextKey[]
     : smartPreparation
@@ -973,6 +1026,10 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     outputContract: mode.outputContract,
     smartPreparation,
     adaptiveAttempt,
+    wrongAnswerAttribution,
+    authorizedCandidateBatch: mode.id === 'path-advisor'
+      ? input.serverModeContext?.authorizedCandidateBatch ?? null
+      : null,
     clientHintsAccepted: [],
     clientHintsRejected,
   };
@@ -1798,6 +1855,17 @@ interface KonlingRuntimeInput {
   currentUserQuery?: string | null;
   trustedContentContext?: boolean;
   now?: Date;
+  /**
+   * Optional server-resolved layered graph payload for Authority/Projection
+   * grounding. Client hints alone never authorize teaching resources (#1274).
+   */
+  layeredGraphPayload?: LayeredGraphPayload | null;
+  teachingProjectionClientHints?: KonlingTeachingProjectionClientHints | null;
+  teachingProjectionAuthorized?: boolean;
+  permittedTeachingScopeIds?: readonly string[] | null;
+  requiredAuthorityReleaseId?: string | null;
+  requiredProjectionId?: string | null;
+  evidenceCutoff?: string | null;
 }
 
 interface KonlingMemoryCreateInput {
@@ -1820,6 +1888,7 @@ interface KonlingMemoryCreateInput {
 interface KonlingInterventionInput {
   scope: KonlingRuntimeScope;
   studentState: StudentState;
+  arenaContext?: ArenaCompanionContext;
   now?: Date;
 }
 
@@ -1829,6 +1898,7 @@ interface KonlingToolRuntimeInput {
   context: KonlingRuntimeContext;
   agentSessionId?: string | null;
   permittedTools?: string[] | null;
+  evidenceCutoff?: Date;
   scopedSimulationState?: Partial<SimulationStateStore> | null;
   /**
    * Optional #1112 Canonical RAG shadow context. When omitted (default), Konling
@@ -2040,6 +2110,7 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'apply_controller_patch',
   'record_intervention_result',
   'analyze_attempt',
+  'calculate',
 ];
 
 export const KONLING_CANDIDATE_READ_TOOLS: KonlingToolName[] = [
@@ -2169,6 +2240,7 @@ async function readTeacherScopedRiskFlags(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
   args: z.infer<typeof teacherDiagnosisStudentParameters>,
+  evidenceCutoff?: Date,
 ) {
   const parsed = teacherDiagnosisStudentParameters.parse(args);
   const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
@@ -2194,6 +2266,7 @@ async function readTeacherScopedRiskFlags(
       userId: { in: studentIds },
       isResolved: false,
       flagType: { in: ['constraint', 'stagnation', 'cross_domain'] },
+      ...(evidenceCutoff ? { evidenceObservedAt: { lte: evidenceCutoff } } : {}),
     },
     orderBy: { triggeredAt: 'desc' },
     take: 500,
@@ -2241,6 +2314,7 @@ async function readTeacherScopedRiskFlags(
 async function readTeacherScopedClassCompetencySummary(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
+  evidenceCutoff?: Date,
 ) {
   const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope);
   const { studentIds } = memberScope;
@@ -2248,7 +2322,10 @@ async function readTeacherScopedClassCompetencySummary(
     throw new KonlingRuntimeScopeError(409, '班级能力快照暂不可用。');
   }
   const rows = arrayOfRecords(await db.studentCompetencySnapshot.findMany({
-    where: { userId: { in: studentIds } },
+    where: {
+      userId: { in: studentIds },
+      ...(evidenceCutoff ? { snapshotAt: { lte: evidenceCutoff } } : {}),
+    },
     orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
     distinct: ['userId'],
     take: Math.max(studentIds.length, 1),
@@ -2323,6 +2400,7 @@ async function readTeacherScopedKnowledgeProgress(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
   args: z.infer<typeof teacherDiagnosisStudentParameters>,
+  evidenceCutoff?: Date,
 ) {
   const parsed = teacherDiagnosisStudentParameters.parse(args);
   const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
@@ -2331,7 +2409,10 @@ async function readTeacherScopedKnowledgeProgress(
     throw new KonlingRuntimeScopeError(409, '知识点进度数据暂不可用。');
   }
   const rows = arrayOfRecords(await db.knowledgeProgress.findMany({
-    where: { userId: { in: studentIds } },
+    where: {
+      userId: { in: studentIds },
+      ...(evidenceCutoff ? { lastVisited: { lte: evidenceCutoff } } : {}),
+    },
     orderBy: [{ userId: 'asc' }, { lastVisited: 'desc' }],
     take: 1_001,
     select: {
@@ -2405,6 +2486,7 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   explain_learning_path_tradeoff: toolRegistryEntry('explain_learning_path_tradeoff', 'analyze', 'none', 'reuse'),
   record_path_adjustment_outcome: toolRegistryEntry('record_path_adjustment_outcome', 'write', 'none', 'reuse'),
   propose_smart_lesson_task_change: toolRegistryEntry('propose_smart_lesson_task_change', 'analyze'),
+  calculate: toolRegistryEntry('calculate', 'analyze'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
   get_student_risk_flags: toolRegistryEntry('get_student_risk_flags', 'read'),
   get_class_competency_summary: toolRegistryEntry('get_class_competency_summary', 'read'),
@@ -2613,6 +2695,11 @@ const applyControllerPatchParameters = z.object({
   rationale: z.string().min(1).optional(),
 });
 
+const calculateToolParameters = z.object({
+  expression: z.string().min(1).max(300),
+  operation: z.enum(MATH_CALC_OPERATIONS).optional(),
+});
+
 const adaptivePathToolBaseParameters = z.object({
   idempotencyKey: KONLING_REQUIRED_IDEMPOTENCY_KEY_PARAMETER,
   goalId: z.string().min(1).optional(),
@@ -2640,8 +2727,8 @@ const reviseLearningPathOptionsParameters = generateLearningPathParameters.exten
 });
 
 const selectLearningPathParameters = adaptivePathToolBaseParameters.extend({
-  selectedStyleId: z.string().min(1),
-  helpful: z.boolean().optional(),
+  batchId: z.string().min(1),
+  candidateId: z.string().min(1).optional(),
 });
 
 const rejectLearningPathOptionParameters = adaptivePathToolBaseParameters.extend({
@@ -3123,13 +3210,54 @@ export async function buildKonlingRuntimeContext(
       strategyMemory: process.env.KONLING_STRATEGY_MEMORY_ENABLED === 'true',
     },
   };
+  const teachingProjectionBinding = resolveKonlingTeachingProjectionBinding({
+    courseId: scope.courseId,
+    pageId: scope.pageId,
+    resourceId: scope.resourceId,
+    layeredGraphPayload: input.layeredGraphPayload,
+    authorized: input.teachingProjectionAuthorized,
+    pinnedProjectionId: input.requiredProjectionId ?? null,
+  });
+  const teachingProjectionClientHints =
+    input.teachingProjectionClientHints
+    ?? extractKonlingTeachingProjectionClientHints(input.pageContextHint)
+    ?? extractKonlingTeachingProjectionClientHints(
+      input.teachingAssistantServerModeContext,
+    );
+  const teachingProjectionContext = resolveKonlingTeachingProjectionContext({
+    payload: teachingProjectionBinding.payload,
+    focusCanonicalIds: knowledgeWorkspace?.selected_node?.id
+      ? [knowledgeWorkspace.selected_node.id]
+      : teachingProjectionClientHints?.canonicalIds
+        ?? teachingProjectionClientHints?.signedCanonicalIds
+        ?? null,
+    clientHints: teachingProjectionClientHints,
+    authorized: teachingProjectionBinding.authorized,
+    permittedScopeIds:
+      input.permittedTeachingScopeIds
+      ?? teachingProjectionBinding.permittedScopeIds,
+    requiredAuthorityReleaseId: input.requiredAuthorityReleaseId,
+    requiredProjectionId: input.requiredProjectionId,
+    evidenceCutoff: input.evidenceCutoff,
+  });
   const graphContext = buildKonlingRuntimeGraphContext({
     scope,
     runtimeContext: baseRuntimeContext,
     classOverlayInput,
     clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : null,
+    layeredGraphPayload: teachingProjectionBinding.payload,
+    teachingProjectionClientHints,
+    teachingProjectionAuthorized: teachingProjectionBinding.authorized,
+    permittedTeachingScopeIds:
+      input.permittedTeachingScopeIds
+      ?? teachingProjectionBinding.permittedScopeIds,
+    requiredAuthorityReleaseId: input.requiredAuthorityReleaseId,
+    requiredProjectionId: input.requiredProjectionId,
+    evidenceCutoff: input.evidenceCutoff,
+    teachingProjectionContext,
   });
   baseRuntimeContext.graphContext = graphContext;
+  baseRuntimeContext.teachingProjectionContext = teachingProjectionContext;
   const knowledgeCapabilityContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: baseRuntimeContext,
     scope,
@@ -3153,6 +3281,7 @@ export async function buildKonlingRuntimeContext(
     knowledgeCapabilityContext,
     sarAssociatedGrounding: knowledgeCapabilityContext.sarAssociatedGrounding,
     graphContext,
+    teachingProjectionContext,
     citationContext,
     permittedTools: runtimePermittedTools,
     missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext, pageContext, knowledgeWorkspace, graphContext }),
@@ -3169,6 +3298,14 @@ export function buildKonlingRuntimeGraphContext(input: {
   runtimeContext: KonlingRuntimeContext;
   classOverlayInput?: GraphCenterClassOverlayInput | null;
   clientHints?: Record<string, unknown> | null;
+  layeredGraphPayload?: LayeredGraphPayload | null;
+  teachingProjectionClientHints?: KonlingTeachingProjectionClientHints | null;
+  teachingProjectionAuthorized?: boolean;
+  permittedTeachingScopeIds?: readonly string[] | null;
+  requiredAuthorityReleaseId?: string | null;
+  requiredProjectionId?: string | null;
+  evidenceCutoff?: string | null;
+  teachingProjectionContext?: KonlingTeachingProjectionContext | null;
 }): KonlingKaqGraphContext {
   return buildKonlingKaqGraphContext({
     scope: input.scope,
@@ -3188,7 +3325,80 @@ export function buildKonlingRuntimeGraphContext(input: {
     planContext: input.runtimeContext.planContext,
     citationContext: input.runtimeContext.citationContext,
     clientHints: input.clientHints,
+    layeredGraphPayload: input.layeredGraphPayload,
+    teachingProjectionClientHints: input.teachingProjectionClientHints,
+    teachingProjectionAuthorized: input.teachingProjectionAuthorized,
+    permittedTeachingScopeIds: input.permittedTeachingScopeIds,
+    requiredAuthorityReleaseId: input.requiredAuthorityReleaseId,
+    requiredProjectionId: input.requiredProjectionId,
+    evidenceCutoff: input.evidenceCutoff,
+    teachingProjectionContext: input.teachingProjectionContext,
   });
+}
+
+/**
+ * Bounded teaching-projection grounding lines for tools/prompts (#1274).
+ * Does not expose store paths, writer APIs, or engineering predicates as
+ * teaching prerequisites.
+ */
+export function buildKonlingTeachingProjectionToolGrounding(
+  context: KonlingRuntimeContext | null | undefined,
+): string[] {
+  return buildKonlingTeachingProjectionGroundingLines(
+    context?.teachingProjectionContext
+      ?? context?.graphContext?.teachingProjectionContext
+      ?? null,
+  );
+}
+
+/**
+ * Dual-domain answer provenance retained through assembly (#1274).
+ */
+export function buildKonlingDualDomainAnswerProvenance(
+  context: KonlingRuntimeContext | null | undefined,
+): {
+  teaching: ReturnType<typeof projectKonlingTeachingProjectionAnswerProvenance>;
+  engineeringAuthorityReleaseId: string | null;
+  relationWriteback: false;
+} {
+  const teaching =
+    context?.teachingProjectionContext
+    ?? context?.graphContext?.teachingProjectionContext
+    ?? null;
+  return {
+    teaching: projectKonlingTeachingProjectionAnswerProvenance(teaching),
+    engineeringAuthorityReleaseId: teaching?.authorityReleaseId ?? null,
+    relationWriteback: false,
+  };
+}
+
+export interface KonlingDualDomainProvenanceMetadataPayload {
+  source: 'teaching-projection-dual-domain';
+  relationWriteback: false;
+  engineeringAuthorityReleaseId: string | null;
+  teaching: ReturnType<typeof projectKonlingTeachingProjectionAnswerProvenance>;
+  groundingLines: string[];
+}
+
+/**
+ * Metadata retained in answer assembly / streaming for dual-domain provenance.
+ */
+export function buildKonlingDualDomainProvenanceMetadataPayload(
+  context: KonlingRuntimeContext | null | undefined,
+): KonlingDualDomainProvenanceMetadataPayload | null {
+  const teaching =
+    context?.teachingProjectionContext
+    ?? context?.graphContext?.teachingProjectionContext
+    ?? null;
+  if (!teaching) return null;
+  const provenance = buildKonlingDualDomainAnswerProvenance(context);
+  return {
+    source: 'teaching-projection-dual-domain',
+    relationWriteback: false,
+    engineeringAuthorityReleaseId: provenance.engineeringAuthorityReleaseId,
+    teaching: provenance.teaching,
+    groundingLines: buildKonlingTeachingProjectionGroundingLines(teaching),
+  };
 }
 
 export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
@@ -3315,15 +3525,15 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
     getStudentRiskFlags: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
       runKonlingRuntimeTool(input, 'get_student_risk_flags', args, async () =>
-        readTeacherScopedRiskFlags(input.db, input.scope, args)),
+        readTeacherScopedRiskFlags(input.db, input.scope, args, input.evidenceCutoff)),
     getClassCompetencySummary: async (args: z.infer<typeof teacherDiagnosisClassParameters>) =>
       runKonlingRuntimeTool(input, 'get_class_competency_summary', args, async () => {
         teacherDiagnosisClassParameters.parse(args);
-        return readTeacherScopedClassCompetencySummary(input.db, input.scope);
+        return readTeacherScopedClassCompetencySummary(input.db, input.scope, input.evidenceCutoff);
       }),
     getStudentKnowledgeProgress: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
       runKonlingRuntimeTool(input, 'get_student_knowledge_progress', args, async () =>
-        readTeacherScopedKnowledgeProgress(input.db, input.scope, args)),
+        readTeacherScopedKnowledgeProgress(input.db, input.scope, args, input.evidenceCutoff)),
     getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
     searchLearningMemory: async (args: { query?: string; limit?: number } = {}) =>
       runKonlingRuntimeTool(input, 'search_learning_memory', args, async () => searchKonlingMemory(input.db, {
@@ -3508,7 +3718,8 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     reviseLearningPathOptions: async (args: z.infer<typeof reviseLearningPathOptionsParameters>) =>
       runKonlingRuntimeTool(input, 'revise_learning_path_options', args, async () => buildAdaptivePathToolOutput(input, 'revised', args)),
     selectLearningPath: async (args: z.infer<typeof selectLearningPathParameters>) =>
-      runKonlingRuntimeTool(input, 'select_learning_path', args, async () => buildAdaptivePathToolOutcome(input, 'selected', args)),
+      runKonlingRuntimeTool(input, 'select_learning_path', args, async (toolRun) =>
+        buildAdaptivePathCandidateSelectionOutput(input, args, toolRun?.id ?? null)),
     rejectLearningPathOption: async (args: z.infer<typeof rejectLearningPathOptionParameters>) =>
       runKonlingRuntimeTool(input, 'reject_learning_path_option', args, async () => buildAdaptivePathToolOutcome(input, 'rejected', args)),
     explainLearningPathTradeoff: async (args: z.infer<typeof explainLearningPathTradeoffParameters>) =>
@@ -3630,6 +3841,30 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     },
     analyzeAttempt: async (args: { studentState: StudentState }) =>
       runKonlingRuntimeTool(input, 'analyze_attempt', args, async () => analyzeKonlingAttempt(args.studentState)),
+    calculate: async (args: { expression: string; operation?: (typeof MATH_CALC_OPERATIONS)[number] }) =>
+      runKonlingRuntimeTool(input, 'calculate', args, async () => {
+        const parsed = calculateToolParameters.parse(args);
+        let result;
+        try {
+          result = await runMathCalculate({
+            expression: parsed.expression,
+            ...(parsed.operation ? { operation: parsed.operation } : {}),
+          });
+        } catch (error) {
+          if (error instanceof MathCalculateCapacityError) {
+            throw new KonlingRuntimeScopeError(429, error.message);
+          }
+          throw error;
+        }
+        if (result.status === 'error') {
+          throw new KonlingRuntimeScopeError(400, result.error ?? '公式计算失败');
+        }
+        return {
+          expression: parsed.expression,
+          result: result.result,
+          steps: result.steps,
+        };
+      }),
   };
 }
 
@@ -3840,9 +4075,101 @@ async function buildAdaptivePathToolOutput(
     throw new KonlingRuntimeScopeError(404, '当前页面目标没有可生成的学习路径。');
   }
   const { registry, diagnostics: candidatePoolDiagnostics } = await resolveAdaptivePathGenerationRegistry(input, goalId);
-  const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
-  const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
+  // Use the legacy bounded generation cap when the learner omitted one. This
+  // cap only controls candidate generation; the minimum executable duration is
+  // derived from the repaired plan below and never raises an explicit request.
+  const planningTimeBudgetMinutes = args.timeBudgetMinutes ?? resolveAdaptivePathPlanningBudget(registeredGoal);
+  const intentMapping = mapAdaptivePathNaturalLanguageIntent(args.naturalLanguageIntent);
+  const explicitResourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference);
+  const resourcePreferences = explicitResourcePreferences
+    ?? (intentMapping.resourcePreferences.length > 0 ? intentMapping.resourcePreferences : undefined)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
+  const resourcePreferenceSource = explicitResourcePreferences
+    ? 'request'
+    : intentMapping.resourcePreferences.length > 0
+      ? 'intent'
+      : 'fallback';
+  const difficultyRhythm = args.difficultyRhythm
+    ?? (intentMapping.conflictDimensions.includes('difficulty')
+      ? undefined
+      : intentMapping.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm);
+  const difficultyRhythmSource = args.difficultyRhythm
+    ? 'request'
+    : intentMapping.difficultyRhythm
+      ? 'intent'
+      : 'fallback';
+  const checkpointPreference = args.checkpointPreference
+    ?? (intentMapping.conflictDimensions.includes('checkpoint')
+      ? undefined
+      : intentMapping.checkpointPreference ?? 'standard');
+  const checkpointPreferenceSource = args.checkpointPreference
+    ? 'request'
+    : intentMapping.checkpointPreference
+      ? 'intent'
+      : 'fallback';
+  const allowExternalResources = args.allowExternalResources
+    ?? (intentMapping.conflictDimensions.includes('external-resource')
+      ? undefined
+      : intentMapping.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources);
+  const allowExternalResourcesSource = typeof args.allowExternalResources === 'boolean'
+    ? 'request'
+    : intentMapping.allowExternalResources !== undefined
+      ? 'intent'
+      : 'fallback';
+  const configurationRequests: AdaptiveLearningPathConfigurationRequest[] = [
+    ...(explicitResourcePreferences ? [{
+      key: 'resource-preferences' as const,
+      source: 'request' as const,
+      value: explicitResourcePreferences,
+    }] : intentMapping.resourcePreferences.length > 0 ? [{
+      key: 'resource-preferences' as const,
+      source: 'intent' as const,
+      value: intentMapping.resourcePreferences,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(args.difficultyRhythm ? [{
+      key: 'difficulty-rhythm' as const,
+      source: 'request' as const,
+      value: args.difficultyRhythm,
+    }] : intentMapping.difficultyRhythm ? [{
+      key: 'difficulty-rhythm' as const,
+      source: 'intent' as const,
+      value: intentMapping.difficultyRhythm,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(args.checkpointPreference ? [{
+      key: 'checkpoint-preference' as const,
+      source: 'request' as const,
+      value: args.checkpointPreference,
+    }] : intentMapping.checkpointPreference ? [{
+      key: 'checkpoint-preference' as const,
+      source: 'intent' as const,
+      value: intentMapping.checkpointPreference,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(typeof args.allowExternalResources === 'boolean' ? [{
+      key: 'external-resources' as const,
+      source: 'request' as const,
+      value: args.allowExternalResources,
+    }] : intentMapping.allowExternalResources !== undefined ? [{
+      key: 'external-resources' as const,
+      source: 'intent' as const,
+      value: intentMapping.allowExternalResources,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(typeof args.timeBudgetMinutes === 'number' ? [{
+      key: 'time-budget' as const,
+      source: 'request' as const,
+      value: args.timeBudgetMinutes,
+    }] : []),
+    ...(typeof args.naturalLanguageIntent === 'string' && args.naturalLanguageIntent.trim() ? [{
+      key: 'natural-language-intent' as const,
+      source: 'request' as const,
+      value: 'mapped-intent',
+      mappedTerms: intentMapping.matchedTerms,
+      limitationCode: intentMapping.limitationCode,
+    }] : []),
+  ];
   const plannerRevisionPreference = operation === 'revised'
     ? buildAdaptivePathRevisionPlannerPreference(args, registeredGoal)
     : buildAdaptivePathGenerationPlannerPreference(registeredGoal);
@@ -3856,15 +4183,20 @@ async function buildAdaptivePathToolOutput(
     registry,
     graphContext,
     constraints: {
-      timeBudgetMinutes: timeBudget.effectiveMinutes,
+      timeBudgetMinutes: planningTimeBudgetMinutes,
       privacyScopes: ['student-visible'],
       completedNodeIds: input.context.planContext?.completedNodeIds ?? [],
       currentNodeId: input.context.planContext?.activeNodeId ?? null,
     },
-    difficultyRhythm: args.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm,
+    difficultyRhythm,
+    difficultyRhythmSource,
     resourcePreferences,
-    checkpointPreference: args.checkpointPreference ?? 'standard',
-    allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
+    resourcePreferenceSource,
+    checkpointPreference,
+    checkpointPreferenceSource,
+    allowExternalResources,
+    allowExternalResourcesSource,
+    configurationRequests,
     sourcePackCandidates: sourcePackInput.items,
     sourcePackLimitations: sourcePackInput.limitations,
     candidatePoolDiagnostics,
@@ -3875,14 +4207,21 @@ async function buildAdaptivePathToolOutput(
     requestedAt: args.requestedAt,
     now: new Date(),
   });
+  const timeBudget = resolveAdaptivePathTimeBudget(
+    args.timeBudgetMinutes,
+    plan,
+    planningTimeBudgetMinutes,
+  );
   const toolScope = buildAdaptivePathToolScope(input, goalId, args.pathId);
   const requestSnapshot = redactSensitivePayload({
     requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
     effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
-    difficultyRhythm: args.difficultyRhythm ?? null,
+    minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+    timeBudgetInsufficient: timeBudget.insufficient,
+    difficultyRhythm,
     resourcePreference: resourcePreferences,
-    checkpointPreference: args.checkpointPreference ?? null,
-    allowExternalResources: args.allowExternalResources ?? false,
+    checkpointPreference,
+    allowExternalResources,
     graphNodeId: args.graphNodeId ?? null,
     intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
     excludedNodeIds: args.excludedNodeIds ?? [],
@@ -3891,6 +4230,15 @@ async function buildAdaptivePathToolOutput(
     candidatePoolDiagnostics,
   });
   const hasPersistablePath = plan.mainPath.length > 0;
+  const persistedPlan = operation === 'generated'
+    ? {
+        ...plan,
+        id: `${plan.id}:candidate_${createHash('sha256')
+          .update(args.idempotencyKey)
+          .digest('hex')
+          .slice(0, 24)}`,
+      }
+    : plan;
   const candidatePoolLimitationCodes = candidatePoolDiagnostics.sourceFamilies
     .map((source) => source.reason)
     .filter((reason): reason is string => Boolean(reason));
@@ -3899,25 +4247,94 @@ async function buildAdaptivePathToolOutput(
     limited: candidatePoolLimited,
     limitationCodes: candidatePoolLimitationCodes,
   };
-  if (hasPersistablePath) {
-    await persistLearningPathRound(input.db as any, {
-      plan,
-      classId: input.scope.classId ?? null,
-      learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
-      inputSnapshot: {
-        source: 'konling-tool',
-        operation,
-        toolScope,
-        candidatePoolLimited,
-        candidatePoolLimitationCodes,
-        request: requestSnapshot,
-      },
-      pathPayloadMetadata: {
-        candidatePoolLimited,
-        candidatePoolLimitationCodes,
-        candidatePoolStatus,
-      },
-    });
+  const persistSourcePath = (db: any) => persistLearningPathRound(db, {
+    plan: persistedPlan,
+    pathStatus: operation === 'generated' ? 'candidate' : undefined,
+    classId: input.scope.classId ?? null,
+    learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
+    inputSnapshot: {
+      source: 'konling-tool',
+      operation,
+      toolScope,
+      candidatePoolLimited,
+      candidatePoolLimitationCodes,
+      request: requestSnapshot,
+    },
+    pathPayloadMetadata: {
+      candidatePoolLimited,
+      candidatePoolLimitationCodes,
+      candidatePoolStatus,
+      configurationFulfillment: plan.explanations.configurationFulfillment,
+      requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
+      minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+      timeBudgetInsufficient: timeBudget.insufficient,
+    },
+  });
+  let candidateBatch: AdaptivePathCandidateBatchView | null = null;
+  const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
+  const canPersistCandidateBatch = operation === 'generated'
+    && candidateBatchStore
+    && typeof candidateBatchStore.findUnique === 'function'
+    && typeof candidateBatchStore.create === 'function';
+  if (canPersistCandidateBatch) {
+    const readExistingBatch = async () => {
+      const existingBatch = await readAdaptivePathCandidateBatchByGenerationRequest(
+        input.db as any,
+        args.idempotencyKey,
+      );
+      if (
+        existingBatch
+        && (existingBatch.userId !== persistedPlan.userId || existingBatch.goalId !== persistedPlan.goal.id)
+      ) {
+        throw new AdaptivePathCandidateBatchConflictError(
+          'Generation request identity is bound to a different learner or goal',
+        );
+      }
+      return existingBatch;
+    };
+    candidateBatch = await readExistingBatch();
+    if (!candidateBatch && hasPersistablePath) {
+      try {
+        candidateBatch = await runWithLearningPathWriteFence(
+          input.db as any,
+          persistedPlan.id,
+          async (tx, existingPath) => {
+            const existingBatch = await readAdaptivePathCandidateBatchByGenerationRequest(
+              tx as any,
+              args.idempotencyKey,
+            );
+            if (existingBatch) {
+              if (
+                existingBatch.userId !== persistedPlan.userId
+                || existingBatch.goalId !== persistedPlan.goal.id
+              ) {
+                throw new AdaptivePathCandidateBatchConflictError(
+                  'Generation request identity is bound to a different learner or goal',
+                );
+              }
+              return existingBatch;
+            }
+            if (existingPath) {
+              throw new AdaptivePathCandidateBatchConflictError(
+                'Candidate source path exists without its immutable candidate batch',
+              );
+            }
+            await persistSourcePath(tx);
+            return persistAdaptivePathCandidateBatch(tx as any, {
+              generationRequestId: args.idempotencyKey,
+              plan: persistedPlan,
+              classId: input.scope.classId ?? null,
+            });
+          },
+          { requireWritable: false },
+        );
+      } catch (error) {
+        candidateBatch = await readExistingBatch();
+        if (!candidateBatch) throw error;
+      }
+    }
+  } else if (hasPersistablePath) {
+    await persistSourcePath(input.db as any);
   }
   if (operation === 'revised' && hasPersistablePath) {
     await recordPathChoiceEvidence(input.db as any, {
@@ -3943,32 +4360,60 @@ async function buildAdaptivePathToolOutput(
       actorRole: input.scope.role,
     });
   }
-  const pathOptions = hasPersistablePath ? buildStudentSafePathOptions(plan) : [];
-  const fallbackReasons = plan.explanations.fallbackReasons;
+  const hasPersistedOutput = hasPersistablePath || Boolean(candidateBatch);
+  const pathOptions = candidateBatch
+    ? candidateBatch.candidates.map((candidate) => ({
+          ...buildStudentSafeCandidatePathOption(candidate.snapshot),
+          candidateId: candidate.id,
+        }))
+    : hasPersistablePath
+      ? buildStudentSafePathOptions(plan).map((option) => ({
+          ...option,
+          candidateId: null,
+        }))
+      : [];
+  const fallbackReasons = uniqueStringList([
+    ...plan.explanations.fallbackReasons,
+    ...(plan.policyBundle?.fallbackReasons ?? []),
+  ]);
+  const singleOptionDiversityUnavailable = pathOptions.length === 1
+    && fallbackReasons.includes('policy-option-diversity-unavailable');
   return {
     operation,
     scope: toolScope,
-    generationStatus: hasPersistablePath ? 'persisted' : 'blocked',
+    generationStatus: hasPersistedOutput ? 'persisted' : 'blocked',
     request: {
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
       timeBudgetAdjusted: timeBudget.adjusted,
-      difficultyRhythm: args.difficultyRhythm ?? null,
+      minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+      timeBudgetInsufficient: timeBudget.insufficient,
+      difficultyRhythm,
       resourcePreference: resourcePreferences,
-      checkpointPreference: args.checkpointPreference ?? null,
-      allowExternalResources: args.allowExternalResources ?? false,
+      checkpointPreference,
+      allowExternalResources,
       graphNodeId: args.graphNodeId ?? null,
       intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
       excludedNodeIds: args.excludedNodeIds ?? [],
       preferredStyleId: args.preferredStyleId ?? null,
       requestedAt: args.requestedAt ?? null,
     },
-    pathId: hasPersistablePath ? plan.id : null,
+    pathId: candidateBatch?.sourcePathId ?? (hasPersistablePath ? persistedPlan.id : null),
+    candidateBatch: candidateBatch ? {
+      id: candidateBatch.id,
+      generationRequestId: candidateBatch.generationRequestId,
+      candidateIds: candidateBatch.candidates.map((candidate) => candidate.id),
+    } : null,
     pathOptions,
+    configurationFulfillment: plan.explanations.configurationFulfillment.map(
+      toStudentConfigurationFulfillment,
+    ),
     comparison: {
       optionCount: pathOptions.length,
       message: hasPersistablePath
-        ? '已根据你的学习证据生成可比较的路径方案。'
+        ? singleOptionDiversityUnavailable
+          ? '当前资源只能形成单一推荐方案。'
+          : '已根据你的学习证据生成可比较的路径方案。'
         : buildBlockedAdaptivePathGenerationMessage(fallbackReasons),
     },
     limitations: uniqueStringList([...fallbackReasons, ...candidatePoolLimitationCodes]),
@@ -3979,8 +4424,19 @@ async function buildAdaptivePathToolOutput(
     studentSafeRationale: [
       '路径会依据你的当前目标、学习证据和可用时间生成。',
       '证据不足时会先给出可开始的基础路径，并提示需要补充的学习记录。',
-      ...(timeBudget.adjusted ? ['当前目标需要包含终端验证，系统已按最小可行学习时长生成路径。'] : []),
+      ...(timeBudget.insufficient ? [`当前学习时长不足以覆盖必需验证，至少需要 ${timeBudget.minimumMinutes} 分钟。`] : []),
     ],
+  };
+}
+
+function toStudentConfigurationFulfillment(
+  fulfillment: AdaptiveLearningPathPlan['explanations']['configurationFulfillment'][number],
+) {
+  return {
+    key: fulfillment.key,
+    status: fulfillment.status,
+    effect: fulfillment.effect,
+    message: fulfillment.message,
   };
 }
 
@@ -4094,16 +4550,199 @@ function adaptivePathPolicyFamilyFromStyleId(styleId: string | null | undefined)
   return null;
 }
 
-function resolveAdaptivePathTimeBudget(
+function resolveAdaptivePathPlanningBudget(
   registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
-  requestedMinutes: number | undefined,
 ) {
-  const minimumMinutes = registeredGoal.checkpointPolicy.requiresTerminalValidation ? 90 : 45;
-  const effectiveMinutes = Math.max(requestedMinutes ?? minimumMinutes, minimumMinutes);
+  return registeredGoal.checkpointPolicy.requiresTerminalValidation ? 90 : 45;
+}
+
+function resolveAdaptivePathTimeBudget(
+  requestedMinutes: number | undefined,
+  plan: AdaptiveLearningPathPlan,
+  planningBudgetMinutes: number,
+) {
+  const minimumMinutes = deriveMinimumExecutableDurationMinutes(plan);
+  const insufficient = typeof requestedMinutes === 'number' &&
+    minimumMinutes !== null &&
+    requestedMinutes < minimumMinutes;
   return {
-    effectiveMinutes,
-    adjusted: typeof requestedMinutes === 'number' && requestedMinutes < minimumMinutes,
+    effectiveMinutes: requestedMinutes ?? planningBudgetMinutes,
+    minimumMinutes,
+    insufficient,
+    adjusted: false,
   };
+}
+
+function deriveMinimumExecutableDurationMinutes(plan: AdaptiveLearningPathPlan): number | null {
+  const repairFoundInsufficientBudget = plan.constraintRepair?.infeasibleReasons
+    .some((reason) => reason.code === 'time-budget-insufficient') ?? false;
+  if (plan.mainPath.length === 0 && !repairFoundInsufficientBudget) return null;
+  const repairedMinimum = plan.constraintRepair?.minimumExecutableDurationMinutes;
+  if (typeof repairedMinimum === 'number' && Number.isFinite(repairedMinimum)) {
+    return Math.max(0, Math.ceil(repairedMinimum));
+  }
+  const remaining = plan.mainPath.reduce((sum, node) =>
+    sum + (node.status === 'completed' ? 0 : node.estimatedTimeMinutes), 0);
+  return Number.isFinite(remaining) ? Math.max(0, Math.ceil(remaining)) : null;
+}
+
+interface AdaptivePathIntentMapping {
+  resourcePreferences: ResourceNode['type'][];
+  difficultyRhythm?: 'gentle' | 'steady' | 'challenge';
+  checkpointPreference?: 'light' | 'standard' | 'dense';
+  allowExternalResources?: boolean;
+  /** Canonical values passed to the planner as mapping evidence. */
+  matchedTerms: string[];
+  /** Source words matched in the learner's text, used only for clause consumption. */
+  matchedSourceTerms: string[];
+  conflictDimensions: Array<'difficulty' | 'checkpoint' | 'external-resource'>;
+  limitationCode?: string;
+}
+
+export function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): AdaptivePathIntentMapping {
+  const value = typeof intent === 'string' ? intent.trim().toLowerCase() : '';
+  if (!value) {
+    return { resourcePreferences: [], matchedTerms: [], matchedSourceTerms: [], conflictDimensions: [] };
+  }
+  const resourceMappings: Array<{ type: ResourceNode['type']; terms: string[] }> = [
+    { type: 'knowledge_card', terms: ['知识卡', '知识卡片'] },
+    { type: 'textbook_section', terms: ['教材', '课本', '参考章节'] },
+    { type: 'lesson_step', terms: ['互动课', '课程步骤'] },
+    { type: 'quiz', terms: ['测验', '小测'] },
+    { type: 'adaptive_quiz', terms: ['自适应测验', '诊断测验'] },
+    { type: 'simulation', terms: ['仿真', 'simulation'] },
+    { type: 'arena_task', terms: ['arena', '竞技场', '挑战任务'] },
+    { type: 'control_workbench', terms: ['工作台', 'control workbench'] },
+    { type: 'reflection', terms: ['反思', '复盘'] },
+  ];
+  const matchedTerms: string[] = [];
+  const matchedSourceTerms: string[] = [];
+  const intentClauses = value
+    .split(/[，。、；：；,.!:;?？\n]+/)
+    .map((clause) => clause.trim())
+    .filter((clause) => clause.length > 0);
+  const hasPositiveTerm = (term: string, negationPrefixes: string[]) => intentClauses.some((clause) => {
+    let offset = 0;
+    while (offset < clause.length) {
+      const index = clause.indexOf(term, offset);
+      if (index < 0) return false;
+      const negated = negationPrefixes.some((prefix) =>
+        clause.slice(Math.max(0, index - prefix.length), index) === prefix
+      );
+      if (!negated) return true;
+      offset = index + term.length;
+    }
+    return false;
+  });
+  const resourcePreferences = resourceMappings.flatMap(({ type, terms }) => {
+    const matched = terms.filter((term) => value.includes(term));
+    if (matched.length > 0) {
+      matchedTerms.push(type);
+      matchedSourceTerms.push(...matched);
+    }
+    return matched.length > 0 ? [type] : [];
+  });
+  const difficultyNegationPrefixes = ['不要'];
+  const difficultySourceTerms = ['挑战', '高难', '轻松', '循序', '基础'].filter((term) => value.includes(term));
+  const challengeTerms = ['挑战', '高难'].filter((term) => hasPositiveTerm(term, difficultyNegationPrefixes));
+  const gentleTerms = ['轻松', '循序', '基础'].filter((term) => hasPositiveTerm(term, difficultyNegationPrefixes));
+  const difficultyConflict = challengeTerms.length > 0 && gentleTerms.length > 0;
+  const difficultyRhythm = difficultyConflict
+    ? undefined
+    : challengeTerms.length > 0
+    ? 'challenge'
+    : gentleTerms.length > 0
+      ? 'gentle'
+      : undefined;
+  if (difficultyConflict) {
+    matchedSourceTerms.push(...difficultySourceTerms);
+  } else if (difficultyRhythm) {
+    matchedTerms.push(difficultyRhythm);
+    matchedSourceTerms.push(...difficultySourceTerms);
+  }
+  const checkpointSourceTerms = ['密集检查', '多检查点', '少检查', '轻量检查']
+    .filter((term) => value.includes(term));
+  const checkpointNegationPrefixes = ['不要'];
+  const denseCheckpointTerms = ['密集检查', '多检查点'].filter((term) => hasPositiveTerm(term, checkpointNegationPrefixes));
+  const lightCheckpointTerms = ['少检查', '轻量检查'].filter((term) => hasPositiveTerm(term, checkpointNegationPrefixes));
+  const checkpointConflict = denseCheckpointTerms.length > 0 && lightCheckpointTerms.length > 0;
+  const checkpointPreference = checkpointConflict
+    ? undefined
+    : denseCheckpointTerms.length > 0
+    ? 'dense'
+    : lightCheckpointTerms.length > 0
+      ? 'light'
+      : undefined;
+  if (checkpointConflict) {
+    matchedSourceTerms.push(...checkpointSourceTerms);
+  } else if (checkpointPreference) {
+    matchedTerms.push(checkpointPreference);
+    matchedSourceTerms.push(...checkpointSourceTerms);
+  }
+  const externalResourceNegationPrefixes = ['不要使用', '不使用', '不允许', '禁止使用', '不要'];
+  const denyExternalResourceTerms = [
+    '不使用外部',
+    '不要外部',
+    '不要使用外部',
+    '不允许外部',
+    '禁止使用外部',
+  ].filter((term) => value.includes(term));
+  const allowExternalResourceTerms = ['外部资源', '参考资料', '外部链接']
+    .filter((term) => hasPositiveTerm(term, externalResourceNegationPrefixes));
+  const externalResourceConflict = denyExternalResourceTerms.length > 0 && allowExternalResourceTerms.length > 0;
+  const allowExternalResources = externalResourceConflict
+    ? undefined
+    : denyExternalResourceTerms.length > 0
+    ? false
+    : allowExternalResourceTerms.length > 0
+      ? true
+      : undefined;
+  if (externalResourceConflict) {
+    matchedSourceTerms.push(...denyExternalResourceTerms, ...allowExternalResourceTerms);
+  } else if (allowExternalResources !== undefined) {
+    matchedTerms.push('external-resources');
+    matchedSourceTerms.push(...(allowExternalResources ? allowExternalResourceTerms : denyExternalResourceTerms));
+  }
+  const uniqueMatchedTerms = Array.from(new Set(matchedTerms));
+  const uniqueMatchedSourceTerms = Array.from(new Set(matchedSourceTerms));
+  const hasUnconsumedClause = detectUnconsumedIntentClauses(value, uniqueMatchedSourceTerms);
+  const conflictDimensions: AdaptivePathIntentMapping['conflictDimensions'] = [];
+  if (difficultyConflict) conflictDimensions.push('difficulty');
+  if (checkpointConflict) conflictDimensions.push('checkpoint');
+  if (externalResourceConflict) conflictDimensions.push('external-resource');
+  const result = {
+    resourcePreferences: Array.from(new Set(resourcePreferences)),
+    difficultyRhythm,
+    checkpointPreference,
+    allowExternalResources,
+    matchedTerms: uniqueMatchedTerms,
+    matchedSourceTerms: uniqueMatchedSourceTerms,
+    conflictDimensions,
+    ...(conflictDimensions.length > 0
+      ? { limitationCode: 'natural-language-intent-conflict' }
+      : uniqueMatchedTerms.length === 0
+      ? { limitationCode: 'natural-language-intent-unsupported' }
+      : hasUnconsumedClause
+        ? { limitationCode: 'natural-language-intent-partially-unmapped' }
+        : {}
+    ),
+  } satisfies AdaptivePathIntentMapping;
+  return result;
+}
+/**
+ * Detect whether the intent text contains sub-clauses (separated by punctuation)
+ * that have no consumed mapping terms. When some terms match but other sub-clauses
+ * remain unmapped, the intent is only partially actionable.
+ */
+function detectUnconsumedIntentClauses(value: string, matchedSourceTerms: string[]): boolean {
+  const clauses = value
+    .split(/[，。、；：；,.!:;?？\n]+/)
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0);
+  const unconsumedClauses = clauses.filter((clause) =>
+    !matchedSourceTerms.some((term) => clause.includes(term))
+  );
+  return unconsumedClauses.length > 0;
 }
 
 function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]): AdaptiveLearningPathLearnerState {
@@ -4250,6 +4889,58 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
   }];
 }
 
+function buildStudentSafeCandidatePathOption(snapshot: Record<string, unknown>) {
+  const optionId = typeof snapshot.optionId === 'string' ? snapshot.optionId : null;
+  const styleId = typeof snapshot.styleId === 'string' ? snapshot.styleId : null;
+  const label = typeof snapshot.label === 'string' ? snapshot.label : null;
+  const effort = snapshot.effort && typeof snapshot.effort === 'object'
+    ? snapshot.effort as Record<string, unknown>
+    : {};
+  const nodeSummaries = Array.isArray(snapshot.nodeSummaries) ? snapshot.nodeSummaries : [];
+  const targetDeficits = Array.isArray(snapshot.targetDeficits) ? snapshot.targetDeficits : [];
+  const terminalValidationStrategy = snapshot.terminalValidationStrategy
+    && typeof snapshot.terminalValidationStrategy === 'object'
+    ? snapshot.terminalValidationStrategy as Record<string, unknown>
+    : {};
+  const terminalNodeIds = Array.isArray(terminalValidationStrategy.nodeIds)
+    ? terminalValidationStrategy.nodeIds.filter((value): value is string => typeof value === 'string')
+    : [];
+  return {
+    optionId,
+    styleId,
+    label,
+    estimatedMinutes: typeof effort.estimatedMinutes === 'number' ? effort.estimatedMinutes : null,
+    effort: typeof effort.relative === 'string' ? effort.relative : null,
+    nodeSummaries: nodeSummaries.map((value) => {
+      const node = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+      return {
+        nodeId: typeof node.nodeId === 'string' ? node.nodeId : null,
+        title: typeof node.title === 'string' ? node.title : null,
+        resourceType: typeof node.pathNodeType === 'string' ? node.pathNodeType : null,
+        estimatedTimeMinutes: typeof node.estimatedTimeMinutes === 'number' ? node.estimatedTimeMinutes : null,
+        knowledgeCoverage: [],
+      };
+    }),
+    targetDeficits: targetDeficits.flatMap((value) => {
+      if (!value || typeof value !== 'object') return [];
+      const targetId = (value as Record<string, unknown>).targetId;
+      return typeof targetId === 'string' ? [targetId] : [];
+    }),
+    evidenceBasis: buildStudentSafeEvidenceBasis(
+      Array.isArray(snapshot.evidenceBasis)
+        ? snapshot.evidenceBasis.filter((value): value is string => typeof value === 'string')
+        : [],
+    ),
+    lockedNodeIds: Array.isArray(snapshot.lockedNodeIds) ? snapshot.lockedNodeIds : [],
+    readinessSummary: Array.isArray(snapshot.readinessSummary) ? snapshot.readinessSummary : [],
+    limitations: Array.isArray(snapshot.limitations) ? snapshot.limitations : [],
+    terminalValidation: {
+      required: terminalNodeIds.length > 0,
+      nodeIds: terminalNodeIds,
+    },
+  };
+}
+
 function buildStudentSafeEvidenceBasis(values: string[]) {
   const labels = new Set<string>();
   for (const value of values) {
@@ -4271,10 +4962,68 @@ function buildPathResourceMix(nodes: AdaptiveLearningPathPlanNode[]) {
   }, {});
 }
 
+async function buildAdaptivePathCandidateSelectionOutput(
+  input: KonlingToolRuntimeInput,
+  args: z.infer<typeof selectLearningPathParameters>,
+  toolRunId: string | null,
+) {
+  if (!args.candidateId && !args.naturalLanguageIntent?.trim()) {
+    throw new KonlingRuntimeScopeError(400, '选择候选路径需要稳定候选身份或学生原话。');
+  }
+  const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  const authorizedBatch = (input.context as KonlingRuntimeContext & {
+    teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract;
+  }).teachingAssistantMode?.authorizedCandidateBatch;
+  const batch = await readAdaptivePathCandidateBatch(input.db as any, args.batchId);
+  if (
+    !batch
+    || !authorizedBatch
+    || authorizedBatch.batchId !== batch.id
+    || authorizedBatch.pathId !== batch.sourcePathId
+    || authorizedBatch.goalId !== goalId
+    || authorizedBatch.classId !== (input.scope.classId ?? null)
+    || batch.userId !== input.scope.targetUserId
+    || batch.goalId !== goalId
+    || batch.classId !== (input.scope.classId ?? null)
+    || (args.pathId ?? authorizedBatch.pathId) !== batch.sourcePathId
+  ) {
+    return { status: 'unavailable' as const };
+  }
+  const resolution = resolveAdaptivePathCandidateSelection(batch, args);
+  if (resolution.status !== 'selected') return resolution;
+  const snapshot = resolution.candidate.snapshot;
+  const selectedOptionId = getString(snapshot, 'optionId');
+  const selectedStyleId = getString(snapshot, 'styleId');
+  if (!selectedOptionId || selectedStyleId !== resolution.candidate.styleId) {
+    return { status: 'unavailable' as const };
+  }
+  if (!toolRunId) {
+    throw new KonlingRuntimeScopeError(403, 'Candidate selection requires an AgentToolRun');
+  }
+  const selectionResult = {
+    toolRunId,
+    actorUserId: input.scope.authenticatedUserId,
+    targetUserId: input.scope.targetUserId,
+    batchId: batch.id,
+    candidateId: resolution.candidate.id,
+    pathId: batch.sourcePathId,
+    goalId,
+    selectedOptionId,
+    selectedStyleId,
+    idempotencyKey: args.idempotencyKey,
+    studentSafeRationale: `已确认选择“${resolution.candidate.label}”，正在同步到路径中心。`,
+  };
+  await bindKonlingCandidateSelectionToolRun(input.db as any, selectionResult);
+  return {
+    ...buildKonlingCandidateSelectionToolResult(selectionResult),
+    status: 'pending_commit' as const,
+  };
+}
+
 async function buildAdaptivePathToolOutcome(
   input: KonlingToolRuntimeInput,
   outcome: string,
-  args: z.infer<typeof selectLearningPathParameters> | z.infer<typeof rejectLearningPathOptionParameters> | z.infer<typeof recordPathAdjustmentOutcomeParameters>,
+  args: z.infer<typeof rejectLearningPathOptionParameters> | z.infer<typeof recordPathAdjustmentOutcomeParameters>,
 ) {
   const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
   const pathId = args.pathId ?? input.context.planContext?.currentPathId ?? null;
@@ -4287,7 +5036,7 @@ async function buildAdaptivePathToolOutcome(
     rejectedStyleIds: 'rejectedStyleIds' in args
       ? args.rejectedStyleIds ?? []
       : 'rejectedStyleId' in args ? [args.rejectedStyleId] : [],
-    helpful: 'helpful' in args ? args.helpful ?? null : helpfulFromPathAdjustmentOutcome(outcome),
+    helpful: helpfulFromPathAdjustmentOutcome(outcome),
   };
   const selectedOption = activity.selectedStyleId
     ? readStoredAdaptivePathOptions(readRecord(getValue(path, 'pathPayload'))).get(activity.selectedStyleId) ?? null
@@ -4337,20 +5086,41 @@ function resolveAdaptivePathChoiceAction(outcome: string, helpful: boolean | nul
   return 'selection' as const;
 }
 
-function buildAdaptivePathTradeoffOutput(
+async function buildAdaptivePathTradeoffOutput(
   input: KonlingToolRuntimeInput,
   args: z.infer<typeof explainLearningPathTradeoffParameters>,
 ) {
   const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  const pathId = args.pathId ?? input.context.planContext?.currentPathId ?? null;
+  const path = await assertScopedAdaptivePathToolPath(input, pathId, {
+    goalId,
+    requirePath: true,
+    requireExisting: true,
+  });
+  if (!path) {
+    throw new KonlingRuntimeScopeError(400, '解释路径差异需要有效的学习路径。');
+  }
+  const storedOptions = readStoredAdaptivePathOptions(
+    readRecord(getValue(path, 'pathPayload')),
+    { allowPolicyFallback: true },
+  );
+  const options = [...storedOptions.values()];
+  const selectedOption = args.styleId
+    ? storedOptions.get(args.styleId) ?? null
+    : options[0] ?? null;
+  const comparedOption = args.compareWithStyleId
+    ? storedOptions.get(args.compareWithStyleId) ?? null
+    : options.find((option) => option.styleId !== selectedOption?.styleId) ?? null;
+  const comparison = selectedOption && comparedOption && selectedOption.styleId !== comparedOption.styleId
+    ? buildAdaptivePathDifferenceExplanation(path.id, selectedOption, comparedOption)
+    : buildUnavailableAdaptivePathDifferenceExplanation(path.id, options);
   return {
     operation: 'explained',
-    scope: buildAdaptivePathToolScope(input, goalId, args.pathId),
-    styleId: args.styleId ?? null,
-    compareWithStyleId: args.compareWithStyleId ?? null,
-    studentSafeRationale: [
-      '路径差异主要来自学习时间、资源类型、检查点密度和当前证据覆盖。',
-      '你可以选择更稳妥的路径，也可以选择挑战更高的路径；系统会保留选择和调整记录。',
-    ],
+    scope: buildAdaptivePathToolScope(input, goalId, path.id),
+    styleId: selectedOption?.styleId ?? args.styleId ?? null,
+    compareWithStyleId: comparedOption?.styleId ?? args.compareWithStyleId ?? null,
+    comparison,
+    studentSafeRationale: buildAdaptivePathDifferenceRationale(comparison),
   };
 }
 
@@ -4656,10 +5426,69 @@ async function assertScopedAdaptivePathToolPath(
 }
 
 interface AdaptivePathStoredOption {
+  optionId: string;
   styleId: string;
+  label: string;
   policyFamily: string | null;
+  nodeIds: string[];
+  nodeSummaries: AdaptivePathStoredNodeSummary[];
+  estimatedMinutes: number | null;
   resourceMix: Record<string, number>;
+  readinessSummary: Array<{
+    nodeId: string;
+    state: string;
+    message: string;
+  }>;
+  lockedNodeIds: string[];
+  checkpointNodeIds: string[];
+  terminalValidationNodeIds: string[];
+  limitations: string[];
   rationaleMetadata: Record<string, unknown>;
+}
+
+interface AdaptivePathStoredNodeSummary {
+  nodeId: string;
+  title: string;
+  resourceType: string;
+}
+
+interface AdaptivePathDifferenceExplanation {
+  status: 'ready' | 'no-material-difference' | 'insufficient-data';
+  pathId: string;
+  options: Array<{
+    optionId: string;
+    styleId: string;
+    label: string;
+    metrics: {
+      estimatedMinutes: number | null;
+      nodeCount: number;
+      resourceMix: Record<string, number>;
+      readiness: Record<string, number>;
+      readinessSummary: Array<{
+        nodeId: string;
+        state: string;
+        message: string;
+      }>;
+      checkpointCount: number;
+      checkpointNodeIds: string[];
+      lockedNodeCount: number;
+      lockedNodeIds: string[];
+      terminalValidationCount: number;
+      terminalValidationNodeIds: string[];
+    };
+  }>;
+  commonNodes: Array<AdaptivePathStoredNodeSummary & { positions: [number, number] }>;
+  optionOnlyNodes: Array<{
+    optionId: string;
+    nodes: Array<AdaptivePathStoredNodeSummary & { position: number }>;
+  }>;
+  orderDifferences: Array<{
+    nodeId: string;
+    title: string;
+    positions: [number, number];
+  }>;
+  tradeoffs: string[];
+  limitations: string[];
 }
 
 function assertAdaptivePathOptionIds(
@@ -4698,17 +5527,272 @@ function readStoredAdaptivePathOptions(
     ? policyBundlePaths
     : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
   return new Map(options
-    .map((option): [string, AdaptivePathStoredOption] | null => {
+    .map((option, index): [string, AdaptivePathStoredOption] | null => {
       const styleId = getString(option, 'styleId');
       if (!styleId) return null;
+      const effort = readRecord(getValue(option, 'effort'));
+      const estimatedMinutesValue = getValue(effort, 'estimatedMinutes') ?? getValue(option, 'estimatedMinutes');
+      const nodeSummaries = arrayOfRecords(getValue(option, 'nodeSummaries'))
+        .map((summary): AdaptivePathStoredNodeSummary | null => {
+          const nodeId = getString(summary, 'nodeId');
+          if (!nodeId) return null;
+          return {
+            nodeId,
+            title: getString(summary, 'title') || getString(summary, 'displayName'),
+            resourceType: getString(summary, 'pathNodeType') || getString(summary, 'resourceType'),
+          };
+        })
+        .filter((summary): summary is AdaptivePathStoredNodeSummary => Boolean(summary));
+      const readinessSummary = arrayOfRecords(getValue(option, 'readinessSummary'))
+        .map((readiness) => ({
+          nodeId: getString(readiness, 'nodeId'),
+          state: getString(readiness, 'state') || 'unknown',
+          message: getString(readiness, 'message'),
+        }))
+        .filter((readiness) => Boolean(readiness.nodeId));
+      const terminalValidationStrategy = readRecord(getValue(option, 'terminalValidationStrategy'));
       return [styleId, {
+        optionId: getString(option, 'optionId') || `path-option-${index + 1}`,
         styleId,
+        label: getString(option, 'label') || styleId,
         policyFamily: getString(option, 'policyFamily') || null,
+        nodeIds: arrayOfStrings(getValue(option, 'nodeIds')),
+        nodeSummaries,
+        estimatedMinutes: typeof estimatedMinutesValue === 'number' && Number.isFinite(estimatedMinutesValue)
+          ? estimatedMinutesValue
+          : null,
         resourceMix: readNumberRecord(getValue(option, 'resourceMix')),
+        readinessSummary,
+        lockedNodeIds: arrayOfStrings(getValue(option, 'lockedNodeIds')),
+        checkpointNodeIds: arrayOfStrings(getValue(option, 'checkpointNodeIds')),
+        terminalValidationNodeIds: uniqueStringList([
+          ...arrayOfStrings(getValue(option, 'terminalValidationNodeIds')),
+          ...arrayOfStrings(getValue(terminalValidationStrategy, 'nodeIds')),
+        ]),
+        limitations: arrayOfStrings(getValue(option, 'limitations')),
         rationaleMetadata: buildStoredAdaptivePathOptionRationale(option),
       }];
     })
     .filter((entry): entry is [string, AdaptivePathStoredOption] => Boolean(entry)));
+}
+
+function buildAdaptivePathDifferenceExplanation(
+  pathId: string,
+  left: AdaptivePathStoredOption,
+  right: AdaptivePathStoredOption,
+): AdaptivePathDifferenceExplanation {
+  const limitations = uniqueStringList([...left.limitations, ...right.limitations]);
+  const missingFacts = [left, right].flatMap((option) => {
+    if (option.nodeIds.length === 0) return [`${option.label}缺少有序节点。`];
+    const summaries = new Map(option.nodeSummaries.map((node) => [node.nodeId, node]));
+    const missingNodeIds = option.nodeIds.filter((nodeId) => {
+      const summary = summaries.get(nodeId);
+      return !summary?.title || !summary.resourceType;
+    });
+    return missingNodeIds.length > 0
+      ? [`${option.label}缺少 ${missingNodeIds.length} 个节点的可靠摘要。`]
+      : [];
+  });
+  const comparisonLimitations = uniqueStringList([...limitations, ...missingFacts]);
+  const leftSummaryById = new Map(left.nodeSummaries.map((node) => [node.nodeId, node]));
+  const rightSummaryById = new Map(right.nodeSummaries.map((node) => [node.nodeId, node]));
+  const leftNodeIds = new Set(left.nodeIds);
+  const rightNodeIds = new Set(right.nodeIds);
+  const commonNodes = left.nodeIds
+    .filter((nodeId) => rightNodeIds.has(nodeId))
+    .map((nodeId) => ({
+      ...(leftSummaryById.get(nodeId) ?? rightSummaryById.get(nodeId) ?? {
+        nodeId,
+        title: '',
+        resourceType: '',
+      }),
+      positions: [left.nodeIds.indexOf(nodeId) + 1, right.nodeIds.indexOf(nodeId) + 1] as [number, number],
+    }));
+  const optionOnlyNodes = [left, right].map((option) => {
+    const otherNodeIds = option.styleId === left.styleId ? rightNodeIds : leftNodeIds;
+    const summaryById = option.styleId === left.styleId ? leftSummaryById : rightSummaryById;
+    return {
+      optionId: option.optionId,
+      nodes: option.nodeIds
+        .filter((nodeId) => !otherNodeIds.has(nodeId))
+        .map((nodeId) => ({
+          ...(summaryById.get(nodeId) ?? { nodeId, title: '', resourceType: '' }),
+          position: option.nodeIds.indexOf(nodeId) + 1,
+        })),
+    };
+  });
+  const orderDifferences = commonNodes
+    .filter((node) => node.positions[0] !== node.positions[1])
+    .map((node) => ({
+      nodeId: node.nodeId,
+      title: node.title,
+      positions: node.positions,
+    }));
+  const optionMetrics = [left, right].map((option) => ({
+    optionId: option.optionId,
+    styleId: option.styleId,
+    label: option.label,
+    metrics: buildAdaptivePathDifferenceMetrics(option),
+  }));
+  const materiallyEqual = missingFacts.length === 0
+    && left.nodeIds.length === right.nodeIds.length
+    && left.nodeIds.every((nodeId, index) => nodeId === right.nodeIds[index])
+    && areAdaptivePathDifferenceMetricsEqual(optionMetrics[0]?.metrics, optionMetrics[1]?.metrics);
+  return {
+    status: missingFacts.length > 0
+      ? 'insufficient-data'
+      : materiallyEqual ? 'no-material-difference' : 'ready',
+    pathId,
+    options: optionMetrics,
+    commonNodes,
+    optionOnlyNodes,
+    orderDifferences,
+    tradeoffs: missingFacts.length > 0 ? [] : buildAdaptivePathTradeoffs(left, right),
+    limitations: comparisonLimitations,
+  };
+}
+
+function buildUnavailableAdaptivePathDifferenceExplanation(
+  pathId: string,
+  options: AdaptivePathStoredOption[],
+): AdaptivePathDifferenceExplanation {
+  return {
+    status: 'insufficient-data',
+    pathId,
+    options: options.slice(0, 2).map((option) => ({
+      optionId: option.optionId,
+      styleId: option.styleId,
+      label: option.label,
+      metrics: buildAdaptivePathDifferenceMetrics(option),
+    })),
+    commonNodes: [],
+    optionOnlyNodes: [],
+    orderDifferences: [],
+    tradeoffs: [],
+    limitations: ['当前路径缺少两条可比较的候选方案。'],
+  };
+}
+
+function buildAdaptivePathDifferenceMetrics(option: AdaptivePathStoredOption) {
+  const readiness = option.readinessSummary.reduce<Record<string, number>>((counts, item) => {
+    counts[item.state] = (counts[item.state] ?? 0) + 1;
+    return counts;
+  }, {});
+  return {
+    estimatedMinutes: option.estimatedMinutes,
+    nodeCount: option.nodeIds.length,
+    resourceMix: option.resourceMix,
+    readiness,
+    readinessSummary: option.readinessSummary,
+    checkpointCount: option.checkpointNodeIds.length,
+    checkpointNodeIds: option.checkpointNodeIds,
+    lockedNodeCount: option.lockedNodeIds.length,
+    lockedNodeIds: option.lockedNodeIds,
+    terminalValidationCount: option.terminalValidationNodeIds.length,
+    terminalValidationNodeIds: option.terminalValidationNodeIds,
+  };
+}
+
+function areAdaptivePathDifferenceMetricsEqual(
+  left: ReturnType<typeof buildAdaptivePathDifferenceMetrics> | undefined,
+  right: ReturnType<typeof buildAdaptivePathDifferenceMetrics> | undefined,
+) {
+  if (!left || !right) return false;
+  return left.estimatedMinutes === right.estimatedMinutes
+    && left.nodeCount === right.nodeCount
+    && left.checkpointCount === right.checkpointCount
+    && left.lockedNodeCount === right.lockedNodeCount
+    && left.terminalValidationCount === right.terminalValidationCount
+    && areNumberRecordsEqual(left.resourceMix, right.resourceMix)
+    && areNumberRecordsEqual(left.readiness, right.readiness)
+    && areReadinessSummariesEqual(left.readinessSummary, right.readinessSummary)
+    && areStringSetsEqual(left.checkpointNodeIds, right.checkpointNodeIds)
+    && areStringSetsEqual(left.lockedNodeIds, right.lockedNodeIds)
+    && areStringSetsEqual(left.terminalValidationNodeIds, right.terminalValidationNodeIds);
+}
+
+function areNumberRecordsEqual(left: Record<string, number>, right: Record<string, number>) {
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+  return [...keys].every((key) => (left[key] ?? 0) === (right[key] ?? 0));
+}
+
+function areReadinessSummariesEqual(
+  left: AdaptivePathStoredOption['readinessSummary'],
+  right: AdaptivePathStoredOption['readinessSummary'],
+) {
+  if (left.length !== right.length) return false;
+  const normalized = (items: AdaptivePathStoredOption['readinessSummary']) => items
+    .map(({ nodeId, state, message }) => `${nodeId}\u0000${state}\u0000${message}`)
+    .sort();
+  const normalizedLeft = normalized(left);
+  const normalizedRight = normalized(right);
+  return normalizedLeft.every((value, index) => value === normalizedRight[index]);
+}
+
+function areStringSetsEqual(left: readonly string[], right: readonly string[]) {
+  if (left.length !== right.length) return false;
+  const sortedLeft = [...left].sort();
+  const sortedRight = [...right].sort();
+  return sortedLeft.every((value, index) => value === sortedRight[index]);
+}
+
+function buildAdaptivePathTradeoffs(left: AdaptivePathStoredOption, right: AdaptivePathStoredOption): string[] {
+  const tradeoffs: string[] = [];
+  if (left.estimatedMinutes !== null && right.estimatedMinutes !== null && left.estimatedMinutes !== right.estimatedMinutes) {
+    const longer = left.estimatedMinutes > right.estimatedMinutes ? left : right;
+    const shorter = longer === left ? right : left;
+    tradeoffs.push(`${longer.label}预计比${shorter.label}多用 ${Math.abs(left.estimatedMinutes - right.estimatedMinutes)} 分钟。`);
+  }
+  appendCountTradeoff(tradeoffs, left, right, left.nodeIds.length, right.nodeIds.length, '个学习节点');
+  appendCountTradeoff(tradeoffs, left, right, left.checkpointNodeIds.length, right.checkpointNodeIds.length, '个检查点');
+  appendCountTradeoff(tradeoffs, left, right, left.lockedNodeIds.length, right.lockedNodeIds.length, '个锁定节点');
+  appendCountTradeoff(
+    tradeoffs,
+    left,
+    right,
+    left.terminalValidationNodeIds.length,
+    right.terminalValidationNodeIds.length,
+    '个终点验证节点',
+  );
+  const resourceTypes = [...new Set([...Object.keys(left.resourceMix), ...Object.keys(right.resourceMix)])].sort();
+  for (const resourceType of resourceTypes) {
+    const leftCount = left.resourceMix[resourceType] ?? 0;
+    const rightCount = right.resourceMix[resourceType] ?? 0;
+    if (leftCount === rightCount) continue;
+    tradeoffs.push(`${left.label}包含 ${leftCount} 个 ${resourceType} 资源，${right.label}包含 ${rightCount} 个。`);
+  }
+  return tradeoffs;
+}
+
+function appendCountTradeoff(
+  tradeoffs: string[],
+  left: AdaptivePathStoredOption,
+  right: AdaptivePathStoredOption,
+  leftCount: number,
+  rightCount: number,
+  unit: string,
+) {
+  if (leftCount === rightCount) return;
+  const larger = leftCount > rightCount ? left : right;
+  const smaller = larger === left ? right : left;
+  tradeoffs.push(`${larger.label}比${smaller.label}多 ${Math.abs(leftCount - rightCount)} ${unit}。`);
+}
+
+function buildAdaptivePathDifferenceRationale(comparison: AdaptivePathDifferenceExplanation): string[] {
+  const [left, right] = comparison.options;
+  if (!left || !right) return ['当前路径缺少两条可比较的候选方案。'];
+  const heading = `正在比较：${left.label} ↔ ${right.label}。`;
+  if (comparison.status === 'insufficient-data') {
+    return [heading, '当前路径缺少完整节点信息，暂时无法生成可靠的差异解释。'];
+  }
+  if (comparison.status === 'no-material-difference') {
+    return [heading, '两条路径目前没有实质差异。'];
+  }
+  return [
+    heading,
+    `两条路径共有 ${comparison.commonNodes.length} 个节点，各自独有 ${comparison.optionOnlyNodes[0]?.nodes.length ?? 0} 个和 ${comparison.optionOnlyNodes[1]?.nodes.length ?? 0} 个节点。`,
+    ...comparison.tradeoffs,
+  ];
 }
 
 function buildStoredAdaptivePathOptionRationale(option: Record<string, unknown>): Record<string, unknown> {
@@ -4762,7 +5846,7 @@ function buildAdaptivePathToolScope(input: KonlingToolRuntimeInput, goalId: stri
 function summarizeStudentIntent(intent?: string | null) {
   const value = typeof intent === 'string' ? intent.trim() : '';
   if (!value) return null;
-  return 'student-provided-natural-language-path-intent';
+  return `sha256:${createHash('sha256').update(value).digest('hex')}`;
 }
 
 function isKonlingAdaptivePathTool(toolName: KonlingToolName) {
@@ -4830,6 +5914,8 @@ function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown)
   if (toolName === 'select_learning_path') {
     return redactSensitivePayload({
       ...base,
+      batchId: getString(record, 'batchId') || null,
+      candidateId: getString(record, 'candidateId') || null,
       selectedStyleId: getString(record, 'selectedStyleId') || null,
       helpful: typeof record.helpful === 'boolean' ? record.helpful : null,
     });
@@ -5191,6 +6277,7 @@ async function runKonlingRuntimeTool<T>(
   }
   if (toolRun.reused) {
     assertReusedAdaptivePathToolRunMatchesGoal(toolName, toolRun, adaptivePathGoalId);
+    assertReusedCandidateSelectionToolRunMatchesInput(toolName, toolRun, toolInput);
     if (toolRun.status === 'succeeded') {
       return assertToolResult(runtimeInput, toolName, toolRun.outputSummary ?? {
         toolRunReused: true,
@@ -5203,6 +6290,8 @@ async function runKonlingRuntimeTool<T>(
       if (toolName !== 'run_virtual_simulation') {
         throw new KonlingRuntimeScopeError(409, '幂等 Konling 工具请求此前已失败，不能重复执行。');
       }
+    } else if (toolName === 'select_learning_path' && toolRun.status === 'running') {
+      return assertToolResult(runtimeInput, toolName, await effect(toolRun));
     } else {
       return assertToolResult(runtimeInput, toolName, {
         toolRunReused: true,
@@ -5217,6 +6306,9 @@ async function runKonlingRuntimeTool<T>(
 
   try {
     const result = await effect(toolRun);
+    if (toolName === 'select_learning_path' && getString(readRecord(result), 'status') === 'pending_commit') {
+      return assertToolResult(runtimeInput, toolName, result);
+    }
     await completeKonlingToolRun(runtimeInput.db, {
       scope: runtimeInput.scope,
       toolRunId: toolRun.id,
@@ -5260,6 +6352,27 @@ function assertReusedAdaptivePathToolRunMatchesGoal(
   }
 }
 
+function assertReusedCandidateSelectionToolRunMatchesInput(
+  toolName: KonlingToolName,
+  toolRun: KonlingToolRunView,
+  toolInput: unknown,
+): void {
+  if (toolName !== 'select_learning_path') return;
+  const requested = readRecord(toolInput);
+  const persisted = readRecord(toolRun.inputSummary);
+  const requestedCandidateId = getString(requested, 'candidateId');
+  const requestedIntent = summarizeStudentIntent(getString(requested, 'naturalLanguageIntent'));
+  const persistedIntent = getString(persisted, 'naturalLanguageIntent')?.trim() || null;
+  if (
+    getString(persisted, 'batchId') !== getString(requested, 'batchId')
+    || (requestedCandidateId && getString(persisted, 'candidateId') !== requestedCandidateId)
+    || (requestedIntent !== null && requestedIntent !== persistedIntent)
+    || (getString(requested, 'pathId') && getString(persisted, 'pathId') !== getString(requested, 'pathId'))
+  ) {
+    throw new KonlingRuntimeScopeError(409, '幂等候选路径选择与已完成的工具请求不一致。');
+  }
+}
+
 async function validateKonlingToolPreflight(
   runtimeInput: KonlingToolRuntimeInput,
   toolName: KonlingToolName,
@@ -5280,10 +6393,7 @@ async function validateKonlingToolPreflight(
     return;
   }
   if (toolName === 'select_learning_path') {
-    const parsed = selectLearningPathParameters.parse(toolInput);
-    const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
-    assertAdaptivePathOptionIds(path, parsed.selectedStyleId, []);
+    selectLearningPathParameters.parse(toolInput);
     return;
   }
   if (toolName === 'reject_learning_path_option') {
@@ -6466,7 +7576,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       execute: (args) => runtime.reviseLearningPathOptions(args),
     }),
     select_learning_path: tool({
-      description: '记录学生选择某个学习路径方案的结果，选择记录不作为掌握度证据。',
+      description: '仅依据已持久化候选批次解析学生的路径选择；唯一匹配时返回稳定候选身份，存在歧义时返回澄清选项，不直接开始学习。',
       inputSchema: selectLearningPathParameters,
       execute: (args) => runtime.selectLearningPath(args),
     }),
@@ -6496,6 +7606,11 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
         studentState: z.any(),
       }),
       execute: (args) => runtime.analyzeAttempt(args as { studentState: StudentState }),
+    }),
+    calculate: tool({
+      description: '使用 SymPy 符号计算引擎求解数学表达式，返回 LaTeX 结果与中间步骤；支持化简、展开、因式分解、部分分式展开、求导、积分、拉普拉斯变换与逆变换。推导关键代数步骤时应调用本工具确认真实结果。',
+      inputSchema: calculateToolParameters,
+      execute: (args) => runtime.calculate(args),
     }),
   };
   if (!('permittedTools' in runtime)) {
@@ -6614,6 +7729,8 @@ export async function createGovernedKonlingIntervention(
   input: KonlingInterventionInput,
 ): Promise<KonlingInterventionRecord> {
   const now = input.now ?? new Date();
+  const interventionSessionId = buildKonlingInterventionSessionId(input.scope, input.arenaContext);
+  const evidence = buildInterventionEvidence(input.studentState, input.arenaContext);
   const teacherPolicy = resolveServerTeacherPolicy(input.scope);
   if (teacherPolicy === 'blocked') {
     return {
@@ -6635,7 +7752,7 @@ export async function createGovernedKonlingIntervention(
   const recent = await db.aIIntervention?.findFirst?.({
     where: {
       userId: input.scope.targetUserId,
-      sessionId: `konling:${input.scope.courseId}:${input.scope.pageId}`,
+      sessionId: interventionSessionId,
       classId: input.scope.classId ?? null,
       resourceId: input.scope.resourceId ?? null,
       pathNodeId: input.scope.pathNodeId ?? null,
@@ -6661,8 +7778,8 @@ export async function createGovernedKonlingIntervention(
     };
   }
 
-  const decision = shouldIntervene(input.studentState);
-  const payload = generateIntervention(decision, input.studentState);
+  const decision = shouldIntervene(input.studentState, {}, input.arenaContext);
+  const payload = generateIntervention(decision, input.studentState, input.arenaContext);
   if (!decision.shouldIntervene) {
     return {
       id: '',
@@ -6671,7 +7788,7 @@ export async function createGovernedKonlingIntervention(
       interventionType: 'none',
       content: payload.content,
       whyNow: buildWhyNow(decision, input.studentState),
-      evidence: buildInterventionEvidence(input.studentState),
+      evidence,
       alternatives: payload.suggestedNextSteps,
       relatedConcepts: payload.relatedConcepts,
       highlightParams: payload.highlightParams,
@@ -6681,13 +7798,12 @@ export async function createGovernedKonlingIntervention(
   }
   const cooldownUntil = new Date(now.getTime() + 20 * 60_000);
   const whyNow = buildWhyNow(decision, input.studentState);
-  const evidence = buildInterventionEvidence(input.studentState);
   const alternatives = payload.suggestedNextSteps.slice(0, 3);
 
   const record = await db.aIIntervention?.create?.({
     data: {
       userId: input.scope.targetUserId,
-      sessionId: `konling:${input.scope.courseId}:${input.scope.pageId}`,
+      sessionId: interventionSessionId,
       classId: input.scope.classId ?? null,
       resourceId: input.scope.resourceId ?? null,
       pathNodeId: input.scope.pathNodeId ?? null,
@@ -6706,7 +7822,7 @@ export async function createGovernedKonlingIntervention(
   const interventionId = getString(record, 'id') || `intv-${now.getTime()}`;
   await createKonlingMemory(db, {
     userId: input.scope.targetUserId,
-    sessionId: `konling:${input.scope.courseId}:${input.scope.pageId}`,
+    sessionId: interventionSessionId,
     classId: input.scope.classId ?? null,
     courseId: input.scope.courseId,
     pageId: input.scope.pageId,
@@ -6715,7 +7831,10 @@ export async function createGovernedKonlingIntervention(
     memoryType: 'intervention-outcome',
     privacyScope: 'teacher-scoped',
     summary: `${whyNow} 干预类型：${payload.feedbackType}`,
-    evidenceRefs: [{ kind: 'ai-intervention', ref: interventionId }],
+    evidenceRefs: [
+      ...evidence,
+      { kind: 'ai-intervention', ref: interventionId },
+    ],
   });
 
   return {
@@ -7185,9 +8304,6 @@ async function readPlanContext(db: KonlingRuntimeDb, scope: KonlingRuntimeScope)
 
 function readPathOptionContext(pathPayload: Record<string, unknown>): KonlingPathOptionContext[] {
   const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
-  if (getString(policyBundle, 'status') && getString(policyBundle, 'status') !== 'ready') {
-    return [];
-  }
   const pathOptions = arrayOfRecords(getValue(policyBundle, 'paths')).length > 0
     ? arrayOfRecords(getValue(policyBundle, 'paths'))
     : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
@@ -8660,12 +9776,32 @@ function resolveServerTeacherPolicy(_scope: KonlingRuntimeScope): 'allowed' | 'b
   return 'allowed';
 }
 
-function buildInterventionEvidence(state: StudentState): unknown[] {
-  return state.attemptHistory.slice(-3).map((attempt) => ({
+function buildKonlingInterventionSessionId(
+  scope: KonlingRuntimeScope,
+  arenaContext?: ArenaCompanionContext,
+) {
+  const base = `konling:${scope.courseId}:${scope.pageId}`;
+  if (!arenaContext) return base;
+  return `${base}:arena:${arenaContext.taskId}:${arenaContext.method}`;
+}
+
+function buildInterventionEvidence(
+  state: StudentState,
+  arenaContext?: ArenaCompanionContext,
+): unknown[] {
+  const attempts = state.attemptHistory.slice(-3).map((attempt) => ({
     attemptNumber: attempt.attemptNumber,
     isSuccessful: attempt.isSuccessful,
     result: redactSensitivePayload(attempt.result),
   }));
+  if (!arenaContext) return attempts;
+  return [
+    {
+      kind: 'arena-companion-context',
+      ref: `${arenaContext.taskId}:${arenaContext.method}`,
+    },
+    ...attempts,
+  ];
 }
 
 function formatSimulationStatus(state: Partial<SimulationStateStore>) {
@@ -8856,7 +9992,7 @@ function toIsoOrNull(value: unknown): string | null {
 
 export class KonlingRuntimeScopeError extends Error {
   constructor(
-    readonly status: 400 | 403 | 404 | 409,
+    readonly status: 400 | 403 | 404 | 409 | 429,
     message: string,
   ) {
     super(message);

@@ -1,3 +1,10 @@
+import {
+  buildAdaptivePathUnlockChain,
+  type AdaptivePathUnlockChain,
+  type AdaptivePathUnlockChainNodeInput,
+} from '@/lib/adaptive-path-unlock-chain';
+import type { AdaptiveLearningPathRecommendationProvenance } from './adaptive-learning-path-planner';
+
 export type AdaptivePathResourceKind =
   | 'interactive_lesson'
   | 'knowledge_card'
@@ -33,6 +40,7 @@ export interface AdaptivePathOptionWriteOption {
     state: string;
     message: string;
   }>;
+  readinessDetails?: AdaptivePathUnlockChainNodeInput[];
   targetDeficits: Array<Record<string, unknown>>;
   evidenceBasis: string[];
   resourceMix: Record<string, number>;
@@ -46,6 +54,7 @@ export interface AdaptivePathOptionWriteOption {
   };
   expectedTargetLift?: number;
   limitations: string[];
+  recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
 }
 
 export interface AdaptivePathOptionPreviewNode {
@@ -56,6 +65,7 @@ export interface AdaptivePathOptionPreviewNode {
   estimatedTime: string;
   statusLabel: string;
   unlockMessage?: string;
+  unlockChain?: AdaptivePathUnlockChain;
   comparisonLabel?: '所有方案均包含' | '本方案特有';
 }
 
@@ -73,6 +83,7 @@ export interface AdaptivePathOptionDisplay {
   outcome: string;
   expectedAbilityImprovement?: string;
   riskNote: string;
+  recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
   diversityLimited?: boolean;
   writeOption?: AdaptivePathOptionWriteOption;
 }
@@ -176,6 +187,7 @@ export function buildAdaptivePathOptionDisplays(
       : '完成后更新后续路径推荐。',
     expectedAbilityImprovement: formatExpectedAbilityImprovement(option.expectedTargetLift),
     riskNote: option.limitations[0] ?? '当前没有明显风险提示。',
+    recommendationProvenance: option.recommendationProvenance,
     diversityLimited: context.diversityLimited,
     writeOption: option,
   }));
@@ -198,7 +210,8 @@ function buildOrderedNodes(
 ): AdaptivePathOptionPreviewNode[] | undefined {
   const nodeIds = option.nodeIds ?? [];
   if (nodeIds.length === 0 || !option.nodeSummaries?.length) return undefined;
-  const summaries = new Map(option.nodeSummaries.map((summary) => [summary.nodeId, summary]));
+  const nodeSummaries = option.nodeSummaries;
+  const summaries = new Map(nodeSummaries.map((summary) => [summary.nodeId, summary]));
   const readiness = new Map(option.readinessSummary.map((item) => [item.nodeId, item]));
   const nodes = nodeIds.map<AdaptivePathOptionPreviewNode | null>((nodeId) => {
     const summary = summaries.get(nodeId);
@@ -208,6 +221,7 @@ function buildOrderedNodes(
     const isLocked = option.lockedNodeIds.includes(nodeId)
       || summary.status === 'locked'
       || readinessItem?.state === 'locked';
+    const readinessDetail = option.readinessDetails?.find((item) => item.nodeId === nodeId);
     return {
       nodeId,
       title,
@@ -215,6 +229,17 @@ function buildOrderedNodes(
       estimatedTime: formatNodeEstimatedTime(summary.estimatedTimeMinutes),
       statusLabel: formatNodeStatus(summary.status, readinessItem?.state, isLocked),
       unlockMessage: isLocked || readinessItem?.state !== 'ready' ? readinessItem?.message || undefined : undefined,
+      unlockChain: isLocked && readinessDetail
+        ? buildAdaptivePathUnlockChain(
+            readinessDetail,
+            option.readinessDetails?.map((item) => ({
+              nodeId: item.nodeId,
+              title: item.title,
+              type: item.type ?? nodeSummaries.find((summary) => summary.nodeId === item.nodeId)?.pathNodeType,
+              status: item.status ?? nodeSummaries.find((summary) => summary.nodeId === item.nodeId)?.status,
+            })) ?? nodeSummaries.map((item) => ({ nodeId: item.nodeId, title: item.title })),
+          )
+        : undefined,
       comparisonLabel: formatComparisonLabel(nodeOccurrences.get(nodeId) ?? 0, optionCount),
     };
   });

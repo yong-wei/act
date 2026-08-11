@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-58cea2373f68416e096759a9",
+  "safe_id": "ctkg_v3e-object-58cea2373f68416e096759a9",
+  "node": {
+    "name": "Dominant roots",
+    "name_en": "Dominant roots",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Dominant roots：The usefulness of the frequency response specifications and their relation to the actual transient performance depend u…",
+  "intuition": null,
+  "explanation": "The usefulness of the frequency response specifications and their relation to the actual transient performance depend upon the approximation of the system by a second-order pair of complex poles, called the dominant roots.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Dominant ro…",
+    "Dominant roo"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-58cea2373f68416e096759a9.md",
+  "provider_policy": "grok-image_gen"
+}

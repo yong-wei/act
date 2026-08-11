@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+  "safe_id": "ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+  "node": {
+    "name": "PI控制器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "PI控制器。",
+  "intuition": null,
+  "explanation": "PI控制器",
+  "relation_head": "后续 → 比例-积分控制规律",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "比例-积分控制规律",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "PI控制器",
+    "关联·比例-积分控…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-68d64f3444ac7af6336f1f81.md",
+  "provider_policy": "grok-image_gen"
+}

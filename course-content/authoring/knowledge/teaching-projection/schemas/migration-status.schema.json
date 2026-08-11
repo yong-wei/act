@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-active-course-migration-status/v1",
+  "title": "ACT Active Course Migration Status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "authoringRevision", "inventoryDigest", "records", "summary", "reportDigest"],
+  "properties": {
+    "contract": { "const": "act-active-course-migration-status/v1" },
+    "authoringRevision": { "type": "string", "minLength": 1 },
+    "inventoryDigest": { "type": "string", "minLength": 1 },
+    "records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/record" }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["boundCount", "explicitNoneCount", "reviewRequiredCount", "packageCount"],
+      "properties": {
+        "boundCount": { "type": "integer", "minimum": 0 },
+        "explicitNoneCount": { "type": "integer", "minimum": 0 },
+        "reviewRequiredCount": { "type": "integer", "minimum": 0 },
+        "packageCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "reportDigest": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "status": {
+      "type": "string",
+      "enum": ["BOUND", "EXPLICIT_NONE", "REVIEW_REQUIRED"]
+    },
+    "mappingMethod": {
+      "type": ["string", "null"],
+      "enum": [
+        "CROSSWALK",
+        "CARD",
+        "MANIFEST",
+        "EXACT_LABEL",
+        "AUTHOR_DECISION",
+        "EXPLICIT_NONE",
+        "NONE",
+        null
+      ]
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resourceId",
+        "scopeId",
+        "packageId",
+        "resourceType",
+        "projectionMode",
+        "status",
+        "mappingMethod",
+        "bindings",
+        "candidates",
+        "sourcePath",
+        "sourceDigest",
+        "evidence",
+        "rationale",
+        "authorDecisionId"
+      ],
+      "properties": {
+        "resourceId": { "type": "string", "minLength": 1 },
+        "scopeId": { "type": "string", "minLength": 1 },
+        "packageId": { "type": "string", "minLength": 1 },
+        "resourceType": { "type": "string" },
+        "projectionMode": {
+          "type": "string",
+          "enum": ["REQUIRED", "OPTIONAL", "NONE"]
+        },
+        "status": { "$ref": "#/$defs/status" },
+        "mappingMethod": { "$ref": "#/$defs/mappingMethod" },
+        "bindings": { "type": "array" },
+        "candidates": { "type": "array" },
+        "sourcePath": { "type": "string" },
+        "sourceDigest": { "type": "string" },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "rationale": { "type": "string" },
+        "authorDecisionId": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+  "safe_id": "ctkg_v3e-object-9b91b4b29c27f8d8916d9626",
+  "node": {
+    "name": "Full-state observer",
+    "name_en": "Full-state observer",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Full-state observer：A dynamic system that estimates the state vector x(t) of a plant using the system model and output measurements, such t…",
+  "intuition": "在图谱邻接中可把握：前置 → Kalman filter、Ackermann's formula for observer gain、Reduced-order observer。",
+  "explanation": "A dynamic system that estimates the state vector x(t) of a plant using the system model and output measurements, such that the estimate converges to the true state.",
+  "relation_head": "前置 → Kalman filter、Ackermann's formula for observer gain、Reduced-order observer",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Kalman filter",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "Ackermann's formula for observer gain",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Reduced-order observer",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Full-state …",
+    "Full-state o",
+    "一种·Kalman",
+    "用于分析·Acke…",
+    "关联·Reduce…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-9b91b4b29c27f8d8916d9626.md",
+  "provider_policy": "grok-image_gen"
+}

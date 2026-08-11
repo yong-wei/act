@@ -1,0 +1,48 @@
+# ACT teaching prerequisite edge authoring (#1270).
+# status CANDIDATE rows are proposals; PUBLISHED requires authorDecisionId + evidence.
+contract: act-teaching-prerequisite-edges/v1
+scopeId: act-control-theory-core
+edges:
+  - sourceNodeId: ctkg:v3e-object-8c4354096b719a1d5e090da4
+    targetNodeId: ctc:modeling-865eb1c8824e157c2f05a903
+    strength: REQUIRED
+    scopeId: act-control-theory-core
+    evidenceRefs:
+      - course-content/authoring/lessons/1-2/design/1-2-boppps.md
+    curatorId: act.cutover.blueprint
+    curatorRationale: 当前建模蓝图先以拉普拉斯变换建立传递函数，再进入统一分析对象。
+    status: PUBLISHED
+    authorDecisionId: prereq-decision-actkg-laplace-transfer
+
+  - sourceNodeId: ctc:modeling-865eb1c8824e157c2f05a903
+    targetNodeId: ctc:modeling-2088bbde171b2e9ef66070d5
+    strength: REQUIRED
+    scopeId: act-control-theory-core
+    evidenceRefs:
+      - course-content/authoring/lessons/2-1/design/2-1-boppps.md
+    curatorId: act.cutover.blueprint
+    curatorRationale: 当前互动课程以传递函数之间的方框图化简推进闭环分析。
+    status: PUBLISHED
+    authorDecisionId: prereq-decision-actkg-transfer-block
+
+  - sourceNodeId: ctc:modeling-2088bbde171b2e9ef66070d5
+    targetNodeId: ctc:modeling-e442dacbfef4a0d7ea3c4c15
+    strength: REQUIRED
+    scopeId: act-control-theory-core
+    evidenceRefs:
+      - course-content/authoring/lessons/2-1/design/2-1-boppps.md
+    curatorId: act.cutover.blueprint
+    curatorRationale: 方框图化简使学生能够建立并分析反馈连接。
+    status: PUBLISHED
+    authorDecisionId: prereq-decision-actkg-block-feedback
+
+  - sourceNodeId: ctc:modeling-865eb1c8824e157c2f05a903
+    targetNodeId: ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b
+    strength: RECOMMENDED
+    scopeId: act-control-theory-core
+    evidenceRefs:
+      - course-content/authoring/lessons/3-1/design/3-1-boppps.md
+    curatorId: act.cutover.blueprint
+    curatorRationale: 稳定性分析以传递函数和极点语言为先行理解基础。
+    status: PUBLISHED
+    authorDecisionId: prereq-decision-actkg-transfer-stability

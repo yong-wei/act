@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-726a2bc09a6a129dc57128b2",
+  "safe_id": "ctkg_v3e-object-726a2bc09a6a129dc57128b2",
+  "node": {
+    "name": "double precision",
+    "name_en": "double precision",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "double precision：double precision",
+  "intuition": null,
+  "explanation": "double precision",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "double prec…",
+    "double preci"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-726a2bc09a6a129dc57128b2.md",
+  "provider_policy": "grok-image_gen"
+}

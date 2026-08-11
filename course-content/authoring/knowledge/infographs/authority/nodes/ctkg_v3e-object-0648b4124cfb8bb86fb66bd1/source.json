@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-0648b4124cfb8bb86fb66bd1",
+  "safe_id": "ctkg_v3e-object-0648b4124cfb8bb86fb66bd1",
+  "node": {
+    "name": "Sample period",
+    "name_en": "Sample period",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Sample period：Sample period",
+  "intuition": null,
+  "explanation": "Sample period",
+  "relation_head": "前置 → Zero-order hold (ZOH)、Discrete equivalent、Sampled-data system · 后续 → Digital-to-analog (D/A) converter",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Zero-order hold (ZOH)",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Discrete equivalent",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Sampled-data system",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Discrete signal",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "Digital-to-analog (D/A) converter",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Free running",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Sample peri…",
+    "Sample perio",
+    "包含组件·Zero…",
+    "包含组件·Disc…",
+    "包含组件·Samp…",
+    "应用于·Digit…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-0648b4124cfb8bb86fb66bd1.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "db0c70336e831eda0052423c",
+    "manifestBatchIndex": 3,
+    "sequence": 1,
+    "semanticGroupKey": "ctr:release:classical-control-design-engineering-v0.1::entityType:KnowledgeStatement",
+    "memberCount": 11,
+    "memberDigest": "619a093c3c0bfdfbf0097d8ec2ef420c3032619d3efe15caa06e417c16724f33",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "CHALLENGER",
+  "reviewer": {
+    "identity": "grok-challenger-issue-1193",
+    "provider": "grok-4.5-build",
+    "sessionId": "522db4c9-ee9b-4b48-81a4-a66f371d4aa1",
+    "promptVersion": "course-coverage-challenger/1"
+  },
+  "reviewInputDigest": "b4e9052e949fef10ef0dadc47bf4a78001eb2a9d39c464a4ecc43b607642fc39",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-fa608bff0600eccf5efed50f",
+      "canonicalRevision": "a1526bd29a02b4bf102c607054d8072526b9ee574d4476939ae2678df9f3c5c7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-19e8d2ff96b676420ba149a3",
+        "evidence:ctkg:v3e-evidence-1c72b159bd782aa58e0af8da",
+        "evidence:ctkg:v3e-evidence-3202eea15d8dfaedfcff741b",
+        "evidence:ctkg:v3e-evidence-406552f03730ecb46f2bab49",
+        "evidence:ctkg:v3e-evidence-88335781a162ca5c1502250e",
+        "evidence:ctkg:v3e-evidence-bffdd73fde6b801e97e35833",
+        "evidence:ctkg:v3e-evidence-f79501943ff8ea04d06b9a49",
+        "canonicalId:ctkg:v3e-object-fa608bff0600eccf5efed50f"
+      ],
+      "rationale": "Challenger independent review of ordinal 0 (ctkg:v3e-object-fa608bff0600eccf5efed50f) at revision a1526bd29a02…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot '控制系统如图6-24所示，要求校正后系统静态速度误差系数等于30 s^{-1}，相角裕度不低于40°，幅值裕度不小于10 dB，截止频率不小于2.3 ra...'. All 8 evidenceRefs are aggregate-projection provenance only (7 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "428b26840a263b2e26d530909475aa2d92de7b53f889f4556daf302a28a3952d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fb525449805d77c1ca9375f2",
+      "canonicalRevision": "8846ed01968843897d3bf328952c13e6ecdd5ec1772bf130397e988185f77923",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-efcc6fcf2c74a131a2c4417e",
+        "canonicalId:ctkg:v3e-object-fb525449805d77c1ca9375f2"
+      ],
+      "rationale": "Challenger independent review of ordinal 1 (ctkg:v3e-object-fb525449805d77c1ca9375f2) at revision 8846ed019688…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot '性能指标的提出应符合实际系统的需要与可能，不应比完成给定任务所需要的指标更高，且受组成元部件的固有误差、非线性特性、能源功率及机械强度等实际物理条件的制约。'. All 2 evidenceRefs are aggregate-projection provenance only (1 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "af7042879c3218e36f98a2a1e5b6d15b3aac3ac04cbacc8ac2cbe007f9bba331"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fb8230675873bf85596e1d76",
+      "canonicalRevision": "4d66d72d593a8ad8127a610cc40ab9880e018219af44326eee75ec4dde232e6b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ecba63a3fb2cc0c20288835f",
+        "canonicalId:ctkg:v3e-object-fb8230675873bf85596e1d76"
+      ],
+      "rationale": "Challenger independent review of ordinal 2 (ctkg:v3e-object-fb8230675873bf85596e1d76) at revision 4d66d72d593a…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot 'When |z| < |p| and the pole is negligible (|p| >> |z|) and the zero occurs at...'. All 2 evidenceRefs are aggregate-projection provenance only (1 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "3ab080e992c1fe194c15ce4144f9a14d1b7ba88ca7240d0037897c18f4b2f673"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc00742a9c63e1f15d3d765b",
+      "canonicalRevision": "b3d193fde9e61267c0941fae40f45dd004c09c67a4e3adb3e2676cae8f6358ba",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7b27d99e2b78df82572731c0",
+        "canonicalId:ctkg:v3e-object-fc00742a9c63e1f15d3d765b"
+      ],
+      "rationale": "Challenger independent review of ordinal 3 (ctkg:v3e-object-fc00742a9c63e1f15d3d765b) at revision b3d193fde9e6…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot '临界比例度法经验数据表'. All 2 evidenceRefs are aggregate-projection provenance only (1 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "584fa1434723f267c5ddbf0b8427ce7157069e81a9333b70fcfb6dc24e155291"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc41b6f2605524d8dfad1dd7",
+      "canonicalRevision": "214df75527ed64297d0bb438798462b889f034d85f673555937744be5f9ee4a6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ebf20f30a7c95c4358fd5bed",
+        "canonicalId:ctkg:v3e-object-fc41b6f2605524d8dfad1dd7"
+      ],
+      "rationale": "Challenger independent review of ordinal 4 (ctkg:v3e-object-fc41b6f2605524d8dfad1dd7) at revision 214df75527ed…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot 'Characteristic equation for Example 10.3'. All 2 evidenceRefs are aggregate-projection provenance only (1 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "6e315d5f2b409da32b4ca69113a29bd9ed0ce1ffdd6a98ae82ca16f3db3ce241"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc8afce726e9b1a4faeb7752",
+      "canonicalRevision": "062ff20b02f5a6ae670dc6375e933aa5b3fbae7eeae83c0cb3cf3a9137b4e834",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-36fa1e5c0f98b862864fca0d",
+        "evidence:ctkg:v3e-evidence-47c297546c3638df16a44fc2",
+        "evidence:ctkg:v3e-evidence-490e238c9f653e67967686bd",
+        "evidence:ctkg:v3e-evidence-62348e0d7253183dc6de21a9",
+        "evidence:ctkg:v3e-evidence-a86ec2c6b838e58e104df01f",
+        "evidence:ctkg:v3e-evidence-ac11f593e418b1fd02e79697",
+        "evidence:ctkg:v3e-evidence-bca4f647f47c39c72a62218f",
+        "evidence:ctkg:v3e-evidence-c25842a2e4a8fbf824936ad1",
+        "evidence:ctkg:v3e-evidence-d3770076e9a63493265c2d96",
+        "canonicalId:ctkg:v3e-object-fc8afce726e9b1a4faeb7752"
+      ],
+      "rationale": "Challenger independent review of ordinal 5 (ctkg:v3e-object-fc8afce726e9b1a4faeb7752) at revision 062ff20b02f5…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot '待校正系统开环传递函数为G0(s)=Kv/[s(1/6 s+1)(1/2 s+1)]，要求：最大指令速度180°/s时位置滞后误差不超过1°，相角裕度45...'. All 10 evidenceRefs are aggregate-projection provenance only (9 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "1f08ee2e4a210ddd01ec9b4fca44dc81b8c3db1abe27a511d96704da757a5554"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fcb9165bfdf5d4a88a1931de",
+      "canonicalRevision": "8b5a191b6a7b6ccff34e75e13fa5c0a73c2ad1b526611d7dbbbd79da36f199c6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e6d53bd213763d60a1e894b4",
+        "canonicalId:ctkg:v3e-object-fcb9165bfdf5d4a88a1931de"
+      ],
+      "rationale": "Challenger independent review of ordinal 6 (ctkg:v3e-object-fcb9165bfdf5d4a88a1931de) at revision 8b5a191b6a7b…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot 'Prefilter transfer function (first example)'. All 2 evidenceRefs are aggregate-projection provenance only (1 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "db4553369dbd5990fc15bf778961d1ba719735cfaaa3ac62852387d2668fa6c2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fd4966d27d4c4edcb0911d50",
+      "canonicalRevision": "a844489ce7b4411ed7e18fa6d2b22d95619d3d316ffa2a40967c7093f5f00986",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a52c6f3c61c7d13548e6088e",
+        "canonicalId:ctkg:v3e-object-fd4966d27d4c4edcb0911d50"
+      ],
+      "rationale": "Challenger independent review of ordinal 7 (ctkg:v3e-object-fd4966d27d4c4edcb0911d50) at revision a844489ce7b4…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot 'No iteration is required in this case.'. All 2 evidenceRefs are aggregate-projection provenance only (1 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "e5fce8b0e46d635e481a7b24216d0fc1334932b742ad67e6d7057bb4b08ef809"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fe1b1a974e4e81971a526d63",
+      "canonicalRevision": "cb86be3cf3be62d745ad392f57facbcba8ae0e9fe391d9337703a0fc1154ae43",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5321ad23bda1d7da06980f8a",
+        "canonicalId:ctkg:v3e-object-fe1b1a974e4e81971a526d63"
+      ],
+      "rationale": "Challenger independent review of ordinal 8 (ctkg:v3e-object-fe1b1a974e4e81971a526d63) at revision cb86be3cf3be…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot 'Angle condition at desired root'. All 2 evidenceRefs are aggregate-projection provenance only (1 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "211b48507e60f38f1bfc0eee6f1c3133449c197b58425a5f46c269dd4394df6a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ff2e6e2a650b23fc1008979f",
+      "canonicalRevision": "0ffe3bef29f7f4244bd472177f3f2f4c36e0998dc227d7267ecd3d4379e90717",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-804d738407b07e0fd4368ce1",
+        "canonicalId:ctkg:v3e-object-ff2e6e2a650b23fc1008979f"
+      ],
+      "rationale": "Challenger independent review of ordinal 9 (ctkg:v3e-object-ff2e6e2a650b23fc1008979f) at revision 0ffe3bef29f7…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot 'The step response shows no steady-state error (Type 1 system), but the slow r...'. All 2 evidenceRefs are aggregate-projection provenance only (1 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "89338517f1bb2c9abdb8990a83c2b523ed11a10dd5b918ce065a4fd3f35347d5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ff42260ed1aee73673ffe963",
+      "canonicalRevision": "1ea26d71a4580e79a77b6301b9acb8d62e2d3690f77768bfc1d7766d5ede1cc1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0d6a511d3143b06e6bbe47c5",
+        "canonicalId:ctkg:v3e-object-ff42260ed1aee73673ffe963"
+      ],
+      "rationale": "Challenger independent review of ordinal 10 (ctkg:v3e-object-ff42260ed1aee73673ffe963) at revision 1ea26d71a458…: frozen worklist marks profileOnly=true with highRisk, priorDecisionRefs empty, and preferredLabel snapshot 'For a system with L(s)=K/(s(s+10)^2), requiring Kv>=20 and damping ratio 0.70...'. All 2 evidenceRefs are aggregate-projection provenance only (1 aggregate-evidence boundary=aggregate; 1 canonical-profile boundary=profile). No evidenceRef has boundary independent-course (lesson authoring or syllabus blueprint/main). Shared current-course-coverage-review policy requires INCLUDE/EXCLUDE to rest on sufficient independent current-course evidence and a CourseCoverage role; profile/aggregate metadata alone cannot support a role decision. Therefore role-free DEFER (review-stage terminal, CourseCoverage authority remains unresolved).",
+      "decisionDigest": "32dd5a1d80ca576f45a2421123096b29969d34fcfaa58ffc063d3b914e02317a"
+    }
+  ],
+  "documentDigest": "e07d3b486862d89c9babf4870cd5c3dbe722e1a7a48318eb7b87e365118b1337"
+}

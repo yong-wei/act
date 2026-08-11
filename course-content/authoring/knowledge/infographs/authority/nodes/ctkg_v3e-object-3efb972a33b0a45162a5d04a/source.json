@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-3efb972a33b0a45162a5d04a",
+  "safe_id": "ctkg_v3e-object-3efb972a33b0a45162a5d04a",
+  "node": {
+    "name": "根轨迹",
+    "name_en": "Root locus",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "根轨迹：Root locus。",
+  "intuition": null,
+  "explanation": "Root locus",
+  "relation_head": "前置 → 根轨迹法、Compensator · 后续 → Integration compensator、Phase-lead compensator",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Integration compensator",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Phase-lead compensator",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "根轨迹法",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "根轨迹法",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "Compensator",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "根轨迹",
+    "Root locus",
+    "用于分析·Inte…",
+    "用于分析·Phas…",
+    "应用于·根轨迹法",
+    "关联·根轨迹法",
+    "关联·Compen…"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3efb972a33b0a45162a5d04a.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0131",
+  "offset": 655,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-cde581a02e8cf843a69b8a69",
+      "batch": "B",
+      "name": "input",
+      "definition": "input：v3T accepted candidate for input.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "input",
+        "关联·系统的输入-…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: input\nSOURCE DEFINITION (fail-closed, do not invent beyond this): input：v3T accepted candidate for input.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「input」、「关联·系统的输入-…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2e2707d377000d69ac75b508",
+      "batch": "B",
+      "name": "幅相频率特性曲线",
+      "definition": "以横轴为实轴、纵轴为虚轴构成的复数平面上，以频率ω为参变量绘制的频率特性曲线。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "幅相频率特性曲线",
+        "关联·幅相频率特性…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 幅相频率特性曲线\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 以横轴为实轴、纵轴为虚轴构成的复数平面上，以频率ω为参变量绘制的频率特性曲线。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「幅相频率特性曲线」、「关联·幅相频率特性…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-548b056b7b4bc0e10290af72",
+      "batch": "B",
+      "name": "平衡状态",
+      "definition": "按照平衡状态的定义，在无外作用且系统输出的各阶导数等于零时，系统处于平衡状态。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "平衡状态",
+        "用于分析·平衡点附…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 平衡状态\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 按照平衡状态的定义，在无外作用且系统输出的各阶导数等于零时，系统处于平衡状态。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「平衡状态」、「用于分析·平衡点附…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-dc100c0a7e752839af01bbea",
+      "batch": "B",
+      "name": "离散系统",
+      "definition": "将输入序列 r(n) 变换为输出序列 c(n) 的一种变换关系，称为离散系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散系统",
+        "是一种·线性离散系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 离散系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 将输入序列 r(n) 变换为输出序列 c(n) 的一种变换关系，称为离散系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「离散系统」、「是一种·线性离散系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-66dd287a007d9b2b74781de5",
+      "batch": "B",
+      "name": "采样控制系统",
+      "definition": "把系统中的离散信号是脉冲序列形式的离散系统，称为采样控制系统或脉冲控制系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样控制系统",
+        "是一种·误差采样控制",
+        "是一种·离散时间系统",
+        "是一种·开环采样系统",
+        "是一种·线性采样系统",
+        "是一种·闭环采样系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样控制系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 把系统中的离散信号是脉冲序列形式的离散系统，称为采样控制系统或脉冲控制系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样控制系统」、「是一种·误差采样控制」、「是一种·离散时间系统」、「是一种·开环采样系统」、「是一种·线性采样系统」、「是一种·闭环采样系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

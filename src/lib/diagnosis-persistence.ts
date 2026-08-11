@@ -12,15 +12,29 @@ const diagnosisEvidenceRefSchema = z.string()
     'diagnosis evidence reference uses an unsupported source',
   );
 
+const optionalKnowledgeNodeIdSchema = z.preprocess(
+  (value) => (
+    typeof value === 'string' && value.trim().length === 0
+      ? undefined
+      : value
+  ),
+  z.string().trim().min(1).max(200).optional(),
+);
+
 const diagnosisFindingSchema = z.object({
   title: z.string().trim().min(1).max(500),
   summary: z.string().trim().min(1).max(2_000).optional(),
-  knowledgeNodeId: z.string().trim().min(1).max(200).optional(),
+  knowledgeNodeId: optionalKnowledgeNodeIdSchema,
   riskType: z.enum(['stagnation', 'constraint', 'cross_domain']).optional(),
   severity: z.enum(['low', 'medium', 'high']).optional(),
   evidenceRefs: z.array(diagnosisEvidenceRefSchema).max(100).default([]),
   confidence: z.enum(['high', 'medium', 'low', 'unavailable']).optional(),
 }).strict();
+
+export type DiagnosisReportFindingInput = z.output<typeof diagnosisFindingSchema>;
+export type DiagnosisReportFinding = DiagnosisReportFindingInput & {
+  prepLink?: string;
+};
 
 const diagnosisSourceCoverageSchema = z.object({
   classMembers: z.number().int().nonnegative().optional(),
@@ -41,6 +55,37 @@ export const diagnosisReportBodySchema = z.object({
   confidence: z.enum(['high', 'medium', 'low', 'unavailable']),
   limitations: z.array(z.string().trim().min(1).max(500)).default([]),
 }).strict();
+
+export type DiagnosisReportBody = Omit<z.output<typeof diagnosisReportBodySchema>, 'findings'> & {
+  findings: DiagnosisReportFinding[];
+};
+
+export interface DiagnosisRiskSummary {
+  total: number;
+  byType: {
+    stagnation: number;
+    constraint: number;
+    cross_domain: number;
+  };
+  bySeverity: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+}
+
+export interface DiagnosisReportReadModel {
+  id: string;
+  scopeType: 'class' | 'student';
+  scopeId: string;
+  classId: string;
+  targetUserId: string | null;
+  reportBody: DiagnosisReportBody;
+  riskSummary: DiagnosisRiskSummary;
+  evidenceCutoff: Date;
+  generatorVersion: string;
+  generatedAt: Date;
+}
 
 export const diagnosisReportWriteSchema = z.object({
   targetStudentId: z.string().trim().min(1).max(200).nullable().optional(),
@@ -85,7 +130,7 @@ export interface DiagnosisPersistenceDb {
   };
   diagnosisReport: {
     create(args: Record<string, unknown>): Promise<unknown>;
-    findMany(args: Record<string, unknown>): Promise<unknown[]>;
+    findMany(args: Record<string, unknown>): Promise<DiagnosisReportReadModel[]>;
   };
 }
 
@@ -99,7 +144,7 @@ export class DiagnosisReportScopeError extends Error {
   }
 }
 
-async function assertTeacherClassScope(
+export async function assertTeacherClassScope(
   db: DiagnosisPersistenceDb,
   input: {
     teacherId: string;
@@ -283,6 +328,7 @@ export async function persistDiagnosisReport(
     classId: string;
     targetStudentId?: string | null;
     reportBody: z.input<typeof diagnosisReportBodySchema>;
+    generationJobId?: string | null;
   },
   db: DiagnosisPersistenceDb = prisma as unknown as DiagnosisPersistenceDb,
 ) {
@@ -305,13 +351,14 @@ export async function persistDiagnosisReport(
   });
   const reportBody = {
     ...parsedReportBody,
-    findings: parsedReportBody.findings.map((finding) => {
-      const knowledgeNodeId = typeof finding.knowledgeNodeId === 'string'
-        ? finding.knowledgeNodeId.trim()
+    findings: parsedReportBody.findings.map(({ knowledgeNodeId: rawKnowledgeNodeId, ...finding }) => {
+      const knowledgeNodeId = typeof rawKnowledgeNodeId === 'string'
+        ? rawKnowledgeNodeId.trim()
         : '';
       return knowledgeNodeId
         ? {
             ...finding,
+            knowledgeNodeId,
             prepLink: buildDiagnosisPrepLink(knowledgeNodeId, params.classId),
           }
         : finding;
@@ -332,6 +379,7 @@ export async function persistDiagnosisReport(
       riskSummary,
       evidenceCutoff,
       generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
+      generationJobId: params.generationJobId ?? null,
     },
   });
 }

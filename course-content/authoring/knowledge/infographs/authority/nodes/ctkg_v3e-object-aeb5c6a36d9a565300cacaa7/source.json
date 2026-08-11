@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-aeb5c6a36d9a565300cacaa7",
+  "safe_id": "ctkg_v3e-object-aeb5c6a36d9a565300cacaa7",
+  "node": {
+    "name": "分析法（试探法）",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "用分析法设计校正装置比较直观，在物理上易于实现，但要求设计者有一定的工程设计经验，设计过程带有试探性。",
+  "intuition": "在图谱邻接中可把握：前置 → 频率响应法校正设计。",
+  "explanation": "用分析法设计校正装置比较直观，在物理上易于实现，但要求设计者有一定的工程设计经验，设计过程带有试探性。",
+  "relation_head": "前置 → 频率响应法校正设计",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "频率响应法校正设计",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "分析法（试探法）",
+    "包含组件·频率响应…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-aeb5c6a36d9a565300cacaa7.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-86d5f30d2f3bbb90aaccb759",
+  "safe_id": "ctkg_v3e-object-86d5f30d2f3bbb90aaccb759",
+  "node": {
+    "name": "等ζ线映射",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "s平面上的等ζ线（β为常数）映射到z平面上单位圆内一簇收敛的对数螺旋线，起点为正实轴的1处，终点为原点。",
+  "intuition": null,
+  "explanation": "s平面上的等ζ线（β为常数）映射到z平面上单位圆内一簇收敛的对数螺旋线，起点为正实轴的1处，终点为原点。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "等ζ线映射"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-86d5f30d2f3bbb90aaccb759.md",
+  "provider_policy": "grok-image_gen"
+}

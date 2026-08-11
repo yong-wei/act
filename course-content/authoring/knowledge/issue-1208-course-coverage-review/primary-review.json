@@ -1,0 +1,2539 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v2",
+  "batchBinding": {
+    "batchId": "ab975de2df4837f43038c81d",
+    "manifestBatchIndex": 18,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 149,
+    "memberDigest": "6f4d39856a11b3fa82cd5117ba5ad941c54e2f7a792cd60c5d474cd97df76cd5",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-independent-primary",
+    "provider": "grok-4.5-build",
+    "sessionId": "885cb479-a3f1-4043-8494-c757471fa1dd",
+    "promptVersion": "issue-1208-primary-v1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1208-course-coverage-review/primary-independent-stage-source.json",
+    "artifactSha256": "80ff45ec175ffe8754c87248cb3d90854fead27f66c476548d6fef8dc813044a",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "PRIMARY",
+    "writerSessionId": "885cb479-a3f1-4043-8494-c757471fa1dd"
+  },
+  "reviewInputDigest": "913892a6846145b47cc6a0335040de2f5a681215ce272d3081d915e0226d7f29",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-02f9f0ab62cde123ae7dcc9a",
+      "canonicalRevision": "ddb249046bbf4207e6a2706d0bec16e7f29f9e406fb7bc3f603c4a2c0570bd22",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c9a6c7a901d34e3cbffb9789",
+        "canonicalId:ctkg:v3e-object-02f9f0ab62cde123ae7dcc9a"
+      ],
+      "evidenceIds": [
+        "31b2c03213a8e5afd5279418dac757ea",
+        "79adbef4ac89a3b15983f8146e65f9f9"
+      ],
+      "rationale": "Left Companion Matrix：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "66ffc68e29d0dbe5a2ea98e46a87a644393b9b12ca219dbc185f09fbe77cc851"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "canonicalRevision": "0b1ee5e671e7f3c39ce4c2fc15f522bb7495eb1b100edfcc01c274b895a5814c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0cfdd67bc438a8e5130729f2",
+        "canonicalId:ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c"
+      ],
+      "evidenceIds": [
+        "1478212989b50629c802a522620d2262",
+        "359a641ff3a4c019303344c6a8176f16"
+      ],
+      "rationale": "Eigenvalue：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "33671f2c80f48dc4242155dd06283c39b5475bc28508ce4efec6ca9dbea87f74"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0bb7941e989275e607a110d0",
+      "canonicalRevision": "c5fff48bfb822b34be7e712822a98accfc63eb523f1bce1d4f5e6e68792d9680",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2c1d9da0d404d6774fbfa964",
+        "canonicalId:ctkg:v3e-object-0bb7941e989275e607a110d0"
+      ],
+      "evidenceIds": [
+        "fac4e59ab5a2e833a731b111a39c3df5",
+        "5c0ab0a7e53da08193770cab9aa7572a"
+      ],
+      "rationale": "Using ss2tf to compute transfer function from state-space model：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "cadb35ff88032292c1363b8363e2bc025936e5f89f4ecd652f2bd039e6ea46f9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0fb119433b4fd68aebe1b4f8",
+      "canonicalRevision": "5ce3e35b97def8a2a78ada021dd30a1dd768c73d4501b0f610a1cca975aabe44",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f34ff6da7aa06ee19e363cdd",
+        "canonicalId:ctkg:v3e-object-0fb119433b4fd68aebe1b4f8"
+      ],
+      "evidenceIds": [
+        "11d5583f56ce9759ade7c086922c3d62",
+        "7392ed18300a5a327e60fef0408ad5cf"
+      ],
+      "rationale": "离散系统的可控性矩阵 (discrete-time controllability matrix S1)：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "2d52393625147bc7b6750b16f8464f13ef234250919d1675fa162cde07eca5e6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0ffd784a046b2ff6fc583d23",
+      "canonicalRevision": "af88f2d7893003e5ae9be631dadf1be5c5cf981f67c6d9d21c46d7bdd8bc1d33",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c124db3afc3098fd14c2a1bb",
+        "canonicalId:ctkg:v3e-object-0ffd784a046b2ff6fc583d23"
+      ],
+      "evidenceIds": [
+        "21ae03d825c3119b808e82fef704cc99",
+        "48cdcfce75f9823311597fb4913c47af"
+      ],
+      "rationale": "Duality-Based Estimator Design：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "97b08771abc058076f1548483d58094d9618548e7440ee66d92dccfce24799d5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-11feec6295c98da3e56a7832",
+      "canonicalRevision": "b25a92a7e69fb966cc1125f3e14fe52fea6b962dd982ec32f38608d78fcaa87f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9d1d1605d9f98339775ec356",
+        "canonicalId:ctkg:v3e-object-11feec6295c98da3e56a7832"
+      ],
+      "evidenceIds": [
+        "73f27199220f8f7753ef76096803cb4b",
+        "f0965145abebb36674d7cd4f68aec7dc"
+      ],
+      "rationale": "Estimator Gain Selection via Coefficient Comparison：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "636a92ac927bbf17301a1ea1d5ac423132602ee1fb28e892f07eca5c60b43ff1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "canonicalRevision": "59e1355c6bd4cf9af524f3e7cbfbb8884044e318d0a9f85566ed3b100b3da537",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3319a9116ab87e6841c69063",
+        "canonicalId:ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f"
+      ],
+      "evidenceIds": [
+        "75b7c98b6339b5af85c4305d125e4012",
+        "b5defb7e0f1b8e1e4fae0ce2654a5420"
+      ],
+      "rationale": "Reference input：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "71db8d2e2a9b4021b4918b3577602557d619a60701de3ec341c5e38b1419c9a5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "canonicalRevision": "692e53de604007ed18dc85bed5d5fc1d648e6d5ec4dad44adb6d9a694543be93",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c2e0bffe95339087638b9e26",
+        "evidence:ctr:m1l-v1s-release-evidence-ac0a1bed66a894da0bb16c90",
+        "canonicalId:ctkg:v3e-object-133c90435f61b9a83b7d4aaf"
+      ],
+      "evidenceIds": [
+        "eff028b515b445fa9d6dfcaa26519383",
+        "7052489fddcda6ff5dbf3f8178c2edbb",
+        "62ca36ac3c75dc07f34d79a6aabffed7"
+      ],
+      "rationale": "Controllability：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "0338ddf20263627717bd132bef795b34954981e87467a4ee285f4166bbb6d1e5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1405f7f72c012a10e7cf60bc",
+      "canonicalRevision": "39a9613d19cdc491781776fe3b323a0952481354d3b2bd5feb3eaa85b109c685",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7ddde6090f6e08871808995a",
+        "evidence:ctr:m1l-v1s-release-evidence-22fd33d8890456e6d908d7c7",
+        "canonicalId:ctkg:v3e-object-1405f7f72c012a10e7cf60bc"
+      ],
+      "evidenceIds": [
+        "3fc07e38e97ac1aa38bc836e81ccfa19",
+        "49b8f72fc0c664d03966e6aebecea35c",
+        "fcf17d8d35e11d953bbeb5e090edfff9"
+      ],
+      "rationale": "Nonminimum-Phase Compensator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "cc8bbc37ec10f81cba31dadf593fa50756f5df902f66e7184a0fc7620a484519"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+      "canonicalRevision": "e25dbeecf402365906e3ab7ee6562ed5aea63f6f3c00ab4b0f043952ad690fcb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b94ec2ba7500e771d48ad48b",
+        "evidence:ctkg:v3e-evidence-bbdd327825d6cb05207ce087",
+        "canonicalId:ctkg:v3e-object-1724fe5a62311ceb13ab05bd"
+      ],
+      "evidenceIds": [
+        "da98192eb0bde7f6ab3b8b982d0e1e91",
+        "fe9c5dbdca82c6e15e6ee0c925de5d6c",
+        "3e0ccf181aa948fffafa7452f00131c9"
+      ],
+      "rationale": "格拉姆矩阵判据：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "b8ad2c23b5289063eac2113a8178fa3e666d71dd1fd615f3f0c0399b505568e6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1946643d6912e8d8aeb2decb",
+      "canonicalRevision": "5650aa93c17251d700db4ae1170fd4d2cc190803ba5e77776d3c69556a7f63ca",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-567fcb9942ef2800dc6d6d68",
+        "canonicalId:ctkg:v3e-object-1946643d6912e8d8aeb2decb"
+      ],
+      "evidenceIds": [
+        "6370369ee47e0ae36581fb5033afeb0c",
+        "2fa3f8e09d5c8b7a8752eb39a4247b01"
+      ],
+      "rationale": "Internal Model Principle：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "38369d75dd0288ffb9b14d437a5026b52ea54cb128f458f960bc71d05711d0d5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1e13d3d21a22463755b103b2",
+      "canonicalRevision": "07321aa1894ce56e9120949d0579f466ccf26676e1cf56a713f77207d715c508",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-20d2f2881105eb8d05ca7eaa",
+        "evidence:ctkg:v3e-evidence-51eceaf578980780d0100448",
+        "canonicalId:ctkg:v3e-object-1e13d3d21a22463755b103b2"
+      ],
+      "evidenceIds": [
+        "47b97c124060e465d3d35ae4e0600d64",
+        "935b2f68ee223986f9325d0149a1c6d0",
+        "61b20de352c3981f81826bd43b8a2b3d"
+      ],
+      "rationale": "Ackermann's Formula for Estimator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "14bbde2534e38b28d15f4a1572aeceb5da6c8b4eaf5628bcce4477b13720635c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1ef3d6dbbf9b4f1ecd79f80b",
+      "canonicalRevision": "43f0b9f4bcb1de7ac9c501f457b94ca6ebb5dae9986c0d469c88071acce346e7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8aa1b7f396dfa8e2441bdfea",
+        "canonicalId:ctkg:v3e-object-1ef3d6dbbf9b4f1ecd79f80b"
+      ],
+      "evidenceIds": [
+        "582100abf8c4bd214cc0f3823e594a6c",
+        "6b1aa439d871c9e149f629f9eedb20a8"
+      ],
+      "rationale": "系统不完全可控：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ef04e8748cb4b538fe706a3cd345b25aa22831d3c1326a5baad1468b64d7258d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
+      "canonicalRevision": "c99560e3fc09e11b80206972570d6cb7a7ad99919110e001e68a76c0174e3273",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b3cab9f367f580892a616b7a",
+        "canonicalId:ctkg:v3e-object-1f331a007aa3ca6c2c95d297"
+      ],
+      "evidenceIds": [
+        "7070a507f9ca6bfdb059b0794e12a430",
+        "40f09d0564a016fc2d8ed159e75997c6"
+      ],
+      "rationale": "Estimation error：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "53d13f8c1c7cd52c186b6d0de9de124797835fe0c468314a78723135c82006b2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1f9eb1e90b66894a079a56de",
+      "canonicalRevision": "64194ef1565e927d729fcde0ad11ee7e5f9eeb15a02e21bffb52bcad6e2c0d19",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1ebda6d2bdd938afe782d86e",
+        "evidence:ctkg:v3e-evidence-62e68c5d416d8b4118d7d432",
+        "canonicalId:ctkg:v3e-object-1f9eb1e90b66894a079a56de"
+      ],
+      "evidenceIds": [
+        "066cfd1ecc5cee7e54e5699c89077002",
+        "d427432c84aaa2e857bfdfecd042729a",
+        "d438a6f3df5b5eb3d2e03fd378efffac"
+      ],
+      "rationale": "Dominant Second-Order Poles Method：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "880b751d48f4632e177b30ace49670626573154da23f31c2e522e3fc98e77ac1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2025acc5e7afefa0ece210e2",
+      "canonicalRevision": "00379d3c12a1bb0ca0a1e767bb7535253b01cf6b301217d7789fac53e4efe56d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-441e2d6d547f0f23f042c869",
+        "evidence:ctkg:v3e-evidence-85fa18fb5a7d8241b335bc9c",
+        "canonicalId:ctkg:v3e-object-2025acc5e7afefa0ece210e2"
+      ],
+      "evidenceIds": [
+        "367cf4598c5001c72945fcec51466823",
+        "f315107a6fda2d219abfe5c45bdc8d60",
+        "6a898caa92846fd90d4971e61b5e4565"
+      ],
+      "rationale": "Estimator Error：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a78205d3c685a957f97be1ece663e51f6a1aad37c1a2d84450fda0302df1f6a2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+      "canonicalRevision": "81aaadba776f00ba5505602b0fe01af9c30b62d577660fc3fbcd213e4154bd98",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cdf212dc3e26966eca4a9061",
+        "evidence:ctkg:v3e-evidence-e24e8c60f13a0eaffcd9ce9c",
+        "canonicalId:ctkg:v3e-object-224a99f37dc359e50c070e54"
+      ],
+      "evidenceIds": [
+        "a8ea4b740023949c2cbaefdc562c79da",
+        "e51af4430e5104f2b70fbee63f66202d",
+        "356e6da7c70a52b33074c204e12db36a"
+      ],
+      "rationale": "Tracking error：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f6e2521fd9f6aeb485afaf2bfbf1ed211e4edf2ae9890d587b7a700ac85c0eb8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-22d70476ed16c55e186daa40",
+      "canonicalRevision": "b0aac663aeadb5d4afc39d767655493f6353e1cbc996eedc48a5616ee56b5b91",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d11488c7c1939bad267183b1",
+        "canonicalId:ctkg:v3e-object-22d70476ed16c55e186daa40"
+      ],
+      "evidenceIds": [
+        "552b491c6f5936e3c0f27d5503ee9c43",
+        "bdfec170fab69ea73fe043a28d6ab5a4"
+      ],
+      "rationale": "Using roots to compute poles from denominator polynomial：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "0d8d5b25e0be2792552a0155bd87fd1b537ecacde5c06da2ef2694df018894a6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+      "canonicalRevision": "b6163953e4d8521577594ea85b55dfcc0cbce0a690efeff1abb90a18a6178e77",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-040c8b94ea76c8641567bb1d",
+        "canonicalId:ctkg:v3e-object-239fecfdb347e1a48fb9d7cc"
+      ],
+      "evidenceIds": [
+        "9ae9c3c17050ed0ac9ea70238feb219e",
+        "c13cda2e806906bef7e7f00a28f6210d"
+      ],
+      "rationale": "完全可达：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6d38ce6030dbac60dd199c459166ed78c1a2ae3b86d02945f6e431dddcfdda87"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+      "canonicalRevision": "39c948f2281ef233498e43a89bdb03967ba21f76e2b0934d8367d5f6f5a47957",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-02454c2fc49491818c253102",
+        "canonicalId:ctkg:v3e-object-23a1c9229387ded552fbdbb3"
+      ],
+      "evidenceIds": [
+        "fdad56494d8068267d8321ffc9d53316",
+        "cd6a249757204a6b034dfea94756bd72"
+      ],
+      "rationale": "PBH秩判据：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e8f727096d736c8e211699c0913a30d25c4edeb80f21a60fa094ca35a0d17beb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "canonicalRevision": "0ff7baee2c1ff1972b4c1f1fe74c96629060f276e362f304f9a18a7238534f38",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-54efd861c69672346dac4ab3",
+        "canonicalId:ctkg:v3e-object-23ce934816d236fcc2836d27"
+      ],
+      "evidenceIds": [
+        "494b5b6c1fafacb7ba7091fe0cfb28d2",
+        "53cc4038caa19ac53007a2e8b5b3c752"
+      ],
+      "rationale": "Dominant poles：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "9a137c3d3b52341897916b3e590460ad0d934ec5170700e04ec08508a4916f11"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2496ae999e2b3f64959076f2",
+      "canonicalRevision": "a1472e146814a3faff4330c4d41fe7a69bdfbfa519298f5e1a6217b3d83545ca",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e5d92ca2e1110457fd36e2b6",
+        "canonicalId:ctkg:v3e-object-2496ae999e2b3f64959076f2"
+      ],
+      "evidenceIds": [
+        "1df3cfaadd37de57c2d2c7a57884753a",
+        "97a0f9690154ee81716aacc2d7f0f89f"
+      ],
+      "rationale": "Graph determinant in signal-flow graph：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "4f5cef563a856e741f583e118f22c6340c028384bb3cf46256f7cd4fec69c388"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-24abf351ed0af6684efdb4b7",
+      "canonicalRevision": "f5996241ba3d305f32c253571ec31da5688097b3c44cab29427296ad648f0940",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-046fd3f4216c70518aa40883",
+        "canonicalId:ctkg:v3e-object-24abf351ed0af6684efdb4b7"
+      ],
+      "evidenceIds": [
+        "6fa4115101a6b929038992f1bd8f8559",
+        "bae8026cd0e98d6f392f109937bc21d3"
+      ],
+      "rationale": "非齐次状态方程：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e2d484c198fc7884849043f3651b72fadb4abc39dac9642e715a0d22844389c7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+      "canonicalRevision": "bf8df297ee49f675ee2e8f815c757aecceaf31060bb6a957862e4aa9d86ea441",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-62a3d1772672912f9341ea04",
+        "canonicalId:ctkg:v3e-object-2be71df1c8c0152ac5f69c1b"
+      ],
+      "evidenceIds": [
+        "dc4baee81412421094011e3f63a73879",
+        "30f85e4918ced2196638a76894764840"
+      ],
+      "rationale": "Steady-state tracking error：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f4154d45d3e61d09d299be43c12b1c0654f7ced842a87d2a3c007ec740b3d7c7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-302e66995736fab70bde0338",
+      "canonicalRevision": "fc872fb5e02af72b2ea9f2e3067cce594f096b792439e9f1a2479977e14479b8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-295a5dc672bc976034421762",
+        "canonicalId:ctkg:v3e-object-302e66995736fab70bde0338"
+      ],
+      "evidenceIds": [
+        "30306c0488d68a11d9039ca2b1b16f91",
+        "c04d48beeb70e0df459aeb56dbf0e4ef"
+      ],
+      "rationale": "Observability rank test method：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "abf659cc5e20c34d300da24568cf7b457113854cafd2d09867e87ffb9a359369"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-31596a5fab1911f024a4b8db",
+      "canonicalRevision": "065b59b7d16c3aaf3ccc4a2446bcde0e80399f6b756894c3cdf627754fcbb849",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6ab2cee03b570575fe6de631",
+        "evidence:ctr:m1l-v1s-release-evidence-ad9140e9494123555249065d",
+        "canonicalId:ctkg:v3e-object-31596a5fab1911f024a4b8db"
+      ],
+      "evidenceIds": [
+        "b5b459af8eb58bcb2b6d241b9e39f9b5",
+        "afb9840117a5d66caa7c39227a53b789",
+        "66b4ec94e4a86469c59dbb248fa43fe5"
+      ],
+      "rationale": "Symmetric Root Locus (SRL)：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "58c3f7b8f13e62eaa9ea9df4837f8b487273409cdb170b133f3a09a4d8001146"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-331ee4b283af66a85a6bfa1c",
+      "canonicalRevision": "014cb0c7cc0a18520dda54c113f043b49c33d404cbc0446f5de76cbfc37ee7c6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fee9c786301a6338defafccb",
+        "canonicalId:ctkg:v3e-object-331ee4b283af66a85a6bfa1c"
+      ],
+      "evidenceIds": [
+        "33e8e0ecf8200c78f4fd8a2a33764aed",
+        "da1b02ea2d158964fe1c21e895932c71"
+      ],
+      "rationale": "Open-Loop Estimator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "288fcb9c5cbd76a8c8a8828bcb5287e7aa48936a1cac86270391e2cd11975a32"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-35264ec175b811e30fa55aab",
+      "canonicalRevision": "545d38d9a426edb7fafc5fb7c6be2c82a5091011eeaea83414240ee510020bdb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1df2db6f04fdf0765dab1235",
+        "evidence:ctkg:v3e-evidence-45518ebefcddcd5635bf307d",
+        "canonicalId:ctkg:v3e-object-35264ec175b811e30fa55aab"
+      ],
+      "evidenceIds": [
+        "5ea78c43bc6516d6fc89227be8e44412",
+        "ef2f93c09405b5875d51f1d729ccfdd8",
+        "22e3d0e5c06abc74d47b5f17c3852281"
+      ],
+      "rationale": "Method 2: Using tracking error as compensator input：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "2536caacfe02f70b3a90584657b0bac7f1c28fe08fa2b4b3b4aaf861dc6ef961"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-368b8560c68e643a92671358",
+      "canonicalRevision": "a4a3bcec962268c946e279079bf5fb8e69f6fc76ccd0ab4067805d472f4129e3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1cae4f5df4688035294c37f4",
+        "canonicalId:ctkg:v3e-object-368b8560c68e643a92671358"
+      ],
+      "evidenceIds": [
+        "14b9cbb15f5c5feb5dce446a3216a85b",
+        "ac25004bfecdfa57c504d92f5844235a"
+      ],
+      "rationale": "Matrix Exponential Method for Solving State Equations：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "95a31e6b94079db87a66ab55f4479b76f0610908a60b05107a76a1852b0b7463"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3784992e294bb2f120cdc0df",
+      "canonicalRevision": "30ee9dd72613aa5f4c90646a9a8feb258613a93f7bb16b7c537e5b629359a7b2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1734f1e226094335994864ee",
+        "evidence:ctr:m1l-v1s-release-evidence-311896242176e12a6be2c81f",
+        "evidence:ctr:m1l-v1s-release-evidence-4b61d105b47614cb33e40344",
+        "canonicalId:ctkg:v3e-object-3784992e294bb2f120cdc0df"
+      ],
+      "evidenceIds": [
+        "8302ab53ecca480cb6cb910f1964abea",
+        "b4ef7607cd35d08f44d87933e14c6ca5",
+        "218eb1e58c13258a95176bbd66bcb0e3",
+        "35da80648fd4b87b66603129383cd9bf"
+      ],
+      "rationale": "Controllability matrix：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "efdc672f0a065aef1289d9c6c0908263c51855d6ff8d66be3d0f294e1493c6e8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-385e97c5f142fee4c5791b7f",
+      "canonicalRevision": "4c8dc0b2cb94926283f5ff8c5cb6736ff930e7229dc8322375c932a47982b538",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a00474a3bd79ff0732948b79",
+        "canonicalId:ctkg:v3e-object-385e97c5f142fee4c5791b7f"
+      ],
+      "evidenceIds": [
+        "bc94640a8040a74dacd7f05fce2bfb18",
+        "0705561d7cf80308193467698879b4ef"
+      ],
+      "rationale": "幂级数法求解齐次状态方程：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "290358a7d454a0338d6a5890c6383ca07ce67e2d0d2e3c940460b0856ec0d71a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3973827146163f9a2a059307",
+      "canonicalRevision": "5fd9580fdbade004c98ef971df06f2361ae2d50b945d4d463eb935d41e112035",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-08f8e6ac5394c0d9287fafbe",
+        "canonicalId:ctkg:v3e-object-3973827146163f9a2a059307"
+      ],
+      "evidenceIds": [
+        "9ec209333e6e977259ae9e24b84b409f",
+        "4566dd9d7aa45e9efa3df772ea4ef5a1"
+      ],
+      "rationale": "Desired closed-loop poles location：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ca8e7f62b6bb30190ccff0badc0b0f880ab6e711e0d5ef2ebcabfc0326459cbf"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3dcfcc93901edd979be43f5c",
+      "canonicalRevision": "3f44f2a3e12b74b810b2820c16311d6dba34986790c336430658b815c5b2ed71",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5217f176e3ea691ef7ab0445",
+        "canonicalId:ctkg:v3e-object-3dcfcc93901edd979be43f5c"
+      ],
+      "evidenceIds": [
+        "5d105e2aa5ca335dfb58629ccb6041ec",
+        "4743939bf3b4733c95005b0a80c00481"
+      ],
+      "rationale": "Diagonal canonical form controllability criterion：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "d37c7558bdfed46e68fd3dbba28afcf971f2105fbc77db153ced38ee744ea46d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-401d4e9068e3907ca0e6ccc5",
+      "canonicalRevision": "8acca87fdcf3ae835b496fab35572335d2f8514efad2c641732466374d5f5203",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0bff422e2e9ad1ccbe8a70a1",
+        "canonicalId:ctkg:v3e-object-401d4e9068e3907ca0e6ccc5"
+      ],
+      "evidenceIds": [
+        "8cd6d9a29778ee20d38c00f5aa0b01e6",
+        "7fb6ba2ffb6782e6ad7094de984c767a"
+      ],
+      "rationale": "Using tzero to compute transmission zeros：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "468932213c1cc575ca21974b3298a69a2e167ed43be33af0cc37e21a37f0bdae"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-42be29933b0ae43fc424465b",
+      "canonicalRevision": "0d01434a99235babf15eacfdc27b80ea70145d12bdfad430ebdea59d824f0020",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-08a4ba61a52568a351ceebf3",
+        "evidence:ctkg:v3e-evidence-a850a75d0bd5138cfcfce654",
+        "canonicalId:ctkg:v3e-object-42be29933b0ae43fc424465b"
+      ],
+      "evidenceIds": [
+        "92fdfa6ca863d506f1db5f1573be45d0",
+        "19e8b22a54b2d007abb073b870909f07",
+        "7fece973fbfea5422b143d6902382d8b"
+      ],
+      "rationale": "Estimator Error Poles：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "b92f04fee162177884dad40ce8d857ba2bdb7a1901cb9ab7bba0e37affa55b09"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4442a6f7404caafa6d0ab8e7",
+      "canonicalRevision": "0c8ca0e7396727789c04e7aba5c0426ac88ad4d25c9c92ab2b122b073c0cb129",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d64f7cbcd8de2205fef6f5a0",
+        "canonicalId:ctkg:v3e-object-4442a6f7404caafa6d0ab8e7"
+      ],
+      "evidenceIds": [
+        "3b0f20578cfab001409d5f81d911d835",
+        "8f7072f9cb505dc9932746a4e8918165"
+      ],
+      "rationale": "Transmission zero：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6901d92796d1b0341881c16f8b4261c436258ae193173ce443a7fe5364d4e2f1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-49224bdecd0196394fb8008a",
+      "canonicalRevision": "663491dbee7f4867159b456bd6fb536527ed542d9e1b835374cd86e6d62e7394",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b68ef3c49d5f210003ef18b5",
+        "canonicalId:ctkg:v3e-object-49224bdecd0196394fb8008a"
+      ],
+      "evidenceIds": [
+        "dfd079bfb17918989fc4559968e3259c",
+        "da2187ae42574a8623a758d908df5ac4"
+      ],
+      "rationale": "Controllability Gramian matrix criterion method：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "b78b0d84e2d69c4aac0896923019e29d472eb569cec9b05c0fe12354b385a91c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4b7254aa73329cdcc5057159",
+      "canonicalRevision": "2dbba99e00c4546cfc2e20cf4ac516f68d314bd71ed9868b484d4ebd71643300",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-45bbc5882d5b32ee69d79b9a",
+        "evidence:ctr:m1l-v1s-release-evidence-68ab7b635ef0f9834ab5dff2",
+        "canonicalId:ctkg:v3e-object-4b7254aa73329cdcc5057159"
+      ],
+      "evidenceIds": [
+        "0101099bbe3455d6820ee77ac1912153",
+        "1b7fb9c99821dd8aa2ae8562f1159bf1",
+        "d4f236ae77a0bcf51fc99eaa204f05c4"
+      ],
+      "rationale": "Separation principle：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "94ad84fc04d47655d3401731cf6f9f82555ba42fef08f6a90d65783f39e8c13d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4c3c3615b8526799e61d3615",
+      "canonicalRevision": "fe9c4cf23eb5f1c66a22c4bf15cb7b42c195dcdff0e2e0d8868669a0672a6c27",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-88f65115a29a097923032a2e",
+        "evidence:ctkg:v3e-evidence-b9f6f347052e6e70832e45ad",
+        "canonicalId:ctkg:v3e-object-4c3c3615b8526799e61d3615"
+      ],
+      "evidenceIds": [
+        "faf820d86e17b4fdf79f4682fa9ae347",
+        "52ae3bcf46d8553fc1ee727ba8e4d48b",
+        "e028a41465a9e47717aae076e06ecf59"
+      ],
+      "rationale": "Closed-Loop Estimator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "5093774966364362be6569c9a0c0aa91f74bcad19a842f3230593e8cc151d7ff"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4d4f55b60c7a23596a921468",
+      "canonicalRevision": "68f9c84619bff942d649430b129377f5bd1e73833a4c854d78b84a60b0fb51a5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-76e1c44077575c8e228018c9",
+        "canonicalId:ctkg:v3e-object-4d4f55b60c7a23596a921468"
+      ],
+      "evidenceIds": [
+        "fc3cb78aa04c31ceef896414d7a77bcf",
+        "7800789dea0ab9008fa675b089799ca1"
+      ],
+      "rationale": "Zerodegree root locus：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "b8544ec2825f2623e445c27a4b70e9a5635363246d13072056976824cc9cc8a1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4f050a1dd9ee29fe0988036d",
+      "canonicalRevision": "8d08106408ed193645275650fc1e2e729825102392d6ffa9bcbecb67410f6f24",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8fbbb711d05b63cb8b665a5c",
+        "evidence:ctkg:v3e-evidence-e37402ac9930ecadde9ea8df",
+        "canonicalId:ctkg:v3e-object-4f050a1dd9ee29fe0988036d"
+      ],
+      "evidenceIds": [
+        "82cc3453a5b839719b55d15010e1a430",
+        "036562842d080a739d8331ebf750321a",
+        "d68e90a356d0b2f9cda3a6b2b97ed0a8"
+      ],
+      "rationale": "增广系统可控性：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "2a2fe5bb170a7e4c2c4b76c6af879b1899fd26de357a4d39b2fed5fb6af90610"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-51398ddba323aa3beeb5d89a",
+      "canonicalRevision": "52d2d8a748c1e70416b9f0655f66a69a53dd29660376005c653bbe010800e09b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-dd8800e9e440eabda3d675f5",
+        "canonicalId:ctkg:v3e-object-51398ddba323aa3beeb5d89a"
+      ],
+      "evidenceIds": [
+        "79457c4f1348c9cb32c403fccabc90fe",
+        "11b1826d3524cb06941ed7587be4e4c2"
+      ],
+      "rationale": "Zero-assignment estimator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "fa064f0ab99e693b1fd4d58869f517f99884972f7c8389b4e9863f08220860af"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-542c371afb4374a5f7b7be5f",
+      "canonicalRevision": "775ec98d697966d9e0cf529d00d461d3888f0d5eff66d117797d856f35a1e1b8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e9bee48ae8063b3584c99860",
+        "canonicalId:ctkg:v3e-object-542c371afb4374a5f7b7be5f"
+      ],
+      "evidenceIds": [
+        "82c255e9b744038abee645186c4715a4",
+        "764e1ae742b5207d324d4e3f706df8f5"
+      ],
+      "rationale": "矩阵指数函数：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "91c11410ddcddde965a014bd6f37929183cf0ef9939da8aeae3c166ccedd143a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "canonicalRevision": "b96efe510d715f74bb9dac0d44230ac71b00ed7e4d2d89b457ceaad75c292369",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ca4a9c58815fa5d69e10fe01",
+        "evidence:ctr:m1l-v1s-release-evidence-adcdee0f9b31390595029d45",
+        "canonicalId:ctkg:v3e-object-5592624b3ec200b86f7b744d"
+      ],
+      "evidenceIds": [
+        "566c6a52fe1457d596475e4345ef56f5",
+        "5f6763f66279c40ec651c419300f547a",
+        "b3b6dad6d6bdf044b7542fd6c74f2ac6"
+      ],
+      "rationale": "Observability：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "89ec10ea0ce617d1b250149fae0e989e171bdc17b3cb14843d351134db06bb67"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-567eb255d7d82d8b4e029f6d",
+      "canonicalRevision": "fb37dfdeaa7573e9e6d643ccd81c5f2843edea2339a04b67804faaa75fefbab8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ff2c146ce224bcb2ac8b609b",
+        "canonicalId:ctkg:v3e-object-567eb255d7d82d8b4e029f6d"
+      ],
+      "evidenceIds": [
+        "20ce67a50047508e635eeb73160c8dcc",
+        "c23bd5009fc02be963c01993a2e0d5e4"
+      ],
+      "rationale": "状态可达：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "87e715a9dcac6f0b4f3d1ccf3d4b5528e9a8a31dfe66a5ab99117c8c14eee809"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-58432d31be025457910862bc",
+      "canonicalRevision": "69f883f763248e60f46f25c9b9a80f532244e38dc1bfce37f93df907c364b257",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-acd0949a621aa53b1c7cf694",
+        "evidence:ctkg:v3e-evidence-b8a4398088fabb00140e1363",
+        "canonicalId:ctkg:v3e-object-58432d31be025457910862bc"
+      ],
+      "evidenceIds": [
+        "529e2805320d85db50ad42aebcc773c2",
+        "d43c002c793689b64ce89684525d9586",
+        "579fc17b9267bc69af43cee44c9467b1"
+      ],
+      "rationale": "离散系统的可控性与可达性：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "72a740e7d69a8f8e169e6b9f038fea618723c8613c9ba56c3792364c2d45fe3d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-59f5159cc11cb67f131e14a1",
+      "canonicalRevision": "db10a2d92226fbb7c7ae949d9b3da7a30e280904160bffb2c30255344a212b5a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ad6734f56965e0d2f12cad5a",
+        "evidence:ctkg:v3e-evidence-ec4061ed396b0f7fdd0a90a8",
+        "canonicalId:ctkg:v3e-object-59f5159cc11cb67f131e14a1"
+      ],
+      "evidenceIds": [
+        "5c8017b9a4d70dd7f04c2cc7c065a9cb",
+        "971a2c979012e5c38246e0f661b074ed",
+        "5c1531e8599f2930261476282eea91f1"
+      ],
+      "rationale": "Transformation to modal form using eigenvectors：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6ca97332a87511864b3645a9237c2dd552b47fdb076e9334e6a2548c51b43368"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5aa119c1211318de57450e5b",
+      "canonicalRevision": "2fc1bfea6ebe297e2600684ee42bedd0951e2a0f0d1973c1164ad26983503f83",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2f7ee18f5c68853065598309",
+        "canonicalId:ctkg:v3e-object-5aa119c1211318de57450e5b"
+      ],
+      "evidenceIds": [
+        "bbad4e93f04122ffede0531aaba981dc",
+        "8b81325f9a5d68015289384507a1f4d3"
+      ],
+      "rationale": "Eigenvector：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e8b8e82571ffa874c9a1af2acbb74e8db7b218dd8be05bb0c00b609b2e183183"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5d994cbb7a93157b1cb02932",
+      "canonicalRevision": "c81aa976503dba360b884e636e7c22ebcbe574632fa5427c9141a898a40f0be7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aaee8a7c71c1b95f960abde0",
+        "canonicalId:ctkg:v3e-object-5d994cbb7a93157b1cb02932"
+      ],
+      "evidenceIds": [
+        "ff98a024c4627d45bacdb0b27ac526bf",
+        "e460348d550fb26ecb3cb8fc5759b8a9"
+      ],
+      "rationale": "Path cofactor in signal-flow graph：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f76247b12918c4de59a1bebdf1a9775f682a4cb57a237618b268e73eee8ffa6e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+      "canonicalRevision": "933bee7a5ad6074b1cd31692955d76b097a2b7798843e1f0b7ae2bf97465f13f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d4f32a198c164d0c4e485c78",
+        "canonicalId:ctkg:v3e-object-5e3ecb030d6a454633f0a09a"
+      ],
+      "evidenceIds": [
+        "e8656b28b0d1b6a937a2bdc35123813d",
+        "9da0ca598ae1ef258e43f244b80a593d"
+      ],
+      "rationale": "内模控制器：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "3a8d0f2b6ce7d9402ef3383cf08af9a9d9f0855dc284b57e1975516ea45afd1e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e75417369e6729db63a90a6",
+      "canonicalRevision": "2fdd77531e286154c93e2efa0161e730e0ccce698771f2e13a9728cb7ba6b385",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9e944aeaec5f0c50aac3fe02",
+        "canonicalId:ctkg:v3e-object-5e75417369e6729db63a90a6"
+      ],
+      "evidenceIds": [
+        "f0713e17ea0347920496cf55f382c348",
+        "97bff62bb72d8c7e19330530a1f08b38"
+      ],
+      "rationale": "Modal form：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "bd75ab80e8d73ab6c3de4827f1c6afaeef00e3a6c42514b9e4b30a9a965b67b8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-63e0a0d95493513e939f9acd",
+      "canonicalRevision": "45e83c28c9bd0f96711bcfe5ea579148d59d212766c5bb4895cfff52c9d03792",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d2d9bce0d03af0dedc7b29d7",
+        "canonicalId:ctkg:v3e-object-63e0a0d95493513e939f9acd"
+      ],
+      "evidenceIds": [
+        "d1749290afcf3f1aa3d27e4077b3be5a",
+        "5240be5508095f5da35fd8ccdfb8f1f7"
+      ],
+      "rationale": "State transition matrix in Laplace domain：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "bc6f9ab6f621988ef21b15568b95cf4b819255fc64c9a2b066233a13a2bd6a78"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+      "canonicalRevision": "f68b5f97e4053c7d58e2ebf6bdb11b4d47d7ae842ada3a2c5491f419e2a86332",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-84367106c22ca5ddaada0109",
+        "evidence:ctkg:v3e-evidence-d80434e8da892ee033c7b4ad",
+        "canonicalId:ctkg:v3e-object-64dfc92ef15f84903e6cdd8a"
+      ],
+      "evidenceIds": [
+        "c279c14c935a4ecab02412d1b3e0bf45",
+        "08fdcc3ece5920ca8807eeb1929e4b7f",
+        "ac2e6bc986b55ab936a016f196e93b95"
+      ],
+      "rationale": "Compensator Design via Pole Placement：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "0dd67917f31530d34f74846abd9e7a478f5e239e2609761200a9b1f332299ae4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-65968c0bbb3a54d4c9247dd0",
+      "canonicalRevision": "5b2bae9b668ba7498ae9deb5b89736c08b66c66343580b92720f1f51141ffa60",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f879e819743eb9bc0aaf46b4",
+        "evidence:ctr:m1l-v1s-release-evidence-2f62b865ed5ab1c5834a4b19",
+        "evidence:ctr:m1l-v1s-release-evidence-8ce609cb7f3c3db585f40e95",
+        "canonicalId:ctkg:v3e-object-65968c0bbb3a54d4c9247dd0"
+      ],
+      "evidenceIds": [
+        "f3b40a1c932890d64de7ddaf82b7ee43",
+        "b0fa9d75b324e887415a0a8fb6bf1a70",
+        "c0b1dcd13eb7b57f71973f7dee6ee8b9",
+        "e129ceeae02307801da60931d59ef04a"
+      ],
+      "rationale": "Internal model design：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "aa948b8196d824a25cbec775968dd1e0173f80dd651ffc11addfd495d080e387"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-670bb910ee2a73c3ebcc0c39",
+      "canonicalRevision": "0ae37bfb0974f4c720dabbb5e82b9f5d9d2b3e1df52e4dd5ab61fa50872f74f9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8c42352862e1496ac778a3dc",
+        "evidence:ctkg:v3e-evidence-8c472a2d5794304457b669a5",
+        "canonicalId:ctkg:v3e-object-670bb910ee2a73c3ebcc0c39"
+      ],
+      "evidenceIds": [
+        "1f965211a89c238dfc2c904f5cb1336d",
+        "4f15b657b489a842e34ed97e57e17b8d",
+        "7f56cb52214b25c01cf9532924a96637"
+      ],
+      "rationale": "Weak controllability：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "b6a90621ca7579fae4adcfbcf0f51353cbd3ce2d2d4869eb3a2cb47e24b54261"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-673ca3fc1e1f241021746105",
+      "canonicalRevision": "cc12451d6cf7ea5ac127972ffb6efd1af2a2546046736a5516238a98105424c2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4c11195a8704a649199729c4",
+        "evidence:ctkg:v3e-evidence-b3f0ce08ab51cd17f421ffaf",
+        "canonicalId:ctkg:v3e-object-673ca3fc1e1f241021746105"
+      ],
+      "evidenceIds": [
+        "3603808d241a35013731f4c68f5fc4cd",
+        "2d72f43f0724c279a1b78e624cf2a132",
+        "072249c87f5b6e25c0560772d802cc52"
+      ],
+      "rationale": "Observer Canonical Form：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "40db6e9e3cd552e6a789c4718565a8943ed5fcf9266d1deacde2a1a0a200faa6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-68b0b2f3295bb357fcb48d7d",
+      "canonicalRevision": "75e98440fd59b81bbf480a35e4a47bc7bb04154fbc977fda7a893ea4e5ef3a20",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a68cf44a72e272262dd96cab",
+        "canonicalId:ctkg:v3e-object-68b0b2f3295bb357fcb48d7d"
+      ],
+      "evidenceIds": [
+        "b396f62a50ea0e6a8e67bb5a768990df",
+        "11386ed8efdf86d34a9f4eb9727b2422"
+      ],
+      "rationale": "Reduced-order observer：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "d884cb5dc502cdee23250d8c41271a0b30be6dda06851ffb06c94871dae947d8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-68df257f762f259aef82b607",
+      "canonicalRevision": "0d02c0b0d9b35597f62829c3729ea9bf99e24d3b0c347a17748d7fac9b8f7639",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8b6c7b058d7af710f8de4b53",
+        "evidence:ctkg:v3e-evidence-c781f2395faa7aa7e2b9f3de",
+        "canonicalId:ctkg:v3e-object-68df257f762f259aef82b607"
+      ],
+      "evidenceIds": [
+        "4252c1d482b8287855d25618b99403c2",
+        "a66ec745936f9809e84cf234dd8142d2",
+        "c8acc1823803ebca9a3923bd9d06e193"
+      ],
+      "rationale": "Full-Order Estimator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6f285cea7980daf69a48acda3cef03cb2c9f383df96589ee744cd73a825d597f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-695b9c7d4ee82924a8d65b12",
+      "canonicalRevision": "5c52043597447258f531f767a39047587caf390ccf8b2583ab03be84596648ae",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-21af36057a6de6227c95182a",
+        "evidence:ctkg:v3e-evidence-8d51305423b538b830baf51f",
+        "canonicalId:ctkg:v3e-object-695b9c7d4ee82924a8d65b12"
+      ],
+      "evidenceIds": [
+        "6bd7ecb6501928613f0f5bf07f9f15bc",
+        "888a3e51828615d1a69f0d8a8cf9504e",
+        "483c6ac5646de79826b04ed9ba9e0063"
+      ],
+      "rationale": "Pole placement by coefficient matching in control canonical form：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "40c0f61498932a0c3d9827ce616c286222df4398ef639e7567bd93eea41c0dca"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6a408c0b64c072f7bea3db47",
+      "canonicalRevision": "588c47e5c2f547db0d3831254c237215824d32daa790aa0002e1f72179f69f7e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-32146a67ef9e69b1ecd2f525",
+        "canonicalId:ctkg:v3e-object-6a408c0b64c072f7bea3db47"
+      ],
+      "evidenceIds": [
+        "f3d52575cc13be60e439444291c1cbe8",
+        "3fd5fec21f40c7b6c72655a7be434528"
+      ],
+      "rationale": "Dominant second-order pole locations：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6ed5cc96666431bda66f513718c83672807ca148c4929d22a9c262ebd25d8f35"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6e5d7c7223f605f9c16bda61",
+      "canonicalRevision": "75437eeec1b667289f332928757208fe3a0ce336ec39240579689063d4aefe90",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-03feacb366980577dc1d0f02",
+        "canonicalId:ctkg:v3e-object-6e5d7c7223f605f9c16bda61"
+      ],
+      "evidenceIds": [
+        "3ae6bd3528e79ab9bbc5257289a64875",
+        "4cfac260bbbe2f19bfb9817bd5f0751b"
+      ],
+      "rationale": "Regulator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "c7168c26c745070fa8b7a95ac7d3f3ac0af9e6a6baad33684f2d412e9ac319a2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6f45ed4aa09cbebb25093412",
+      "canonicalRevision": "38dabf69ff9ee5aec27be7b4c4d733ff2c568bb38cb6df2538127c38d8d3eaa5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-62c9c6a3d443f367c7f35e59",
+        "canonicalId:ctkg:v3e-object-6f45ed4aa09cbebb25093412"
+      ],
+      "evidenceIds": [
+        "2d7b394fea1ed8cba1a4eedfe2b54b95",
+        "01f85e561768f5b95ccda5647ded327e"
+      ],
+      "rationale": "Using roots to compute zeros from numerator polynomial：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "447c2c58e06b4a6a0b28519fa45952b34388c2ab479cf3c394d80c29ab249bd1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-701047b791dcb064a8224082",
+      "canonicalRevision": "a8c93f9ac9ec2a2e9639b6435afc5c23ee1db378bf4905d12424da839753b083",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1c9be09886e358a6c5b52aec",
+        "canonicalId:ctkg:v3e-object-701047b791dcb064a8224082"
+      ],
+      "evidenceIds": [
+        "b5b679a70f6c29b5c2a90643e274f55f",
+        "ae41f37dcbad835f17f8665ba7b3f675"
+      ],
+      "rationale": "Bryson's Rule：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "0968525dc94a1082cc6233ca5464fa9f8172d179d58e3c0c3e928d7bae77f3a1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-70598dd5728797c1595207c9",
+      "canonicalRevision": "990c1eb571f94df224ef6655d30aa502aeec7a88f89b421e61ddda7b3fe0384d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-29e47cf0d4f356ce1cd6228a",
+        "canonicalId:ctkg:v3e-object-70598dd5728797c1595207c9"
+      ],
+      "evidenceIds": [
+        "104b4ee7d6e284ebad74e6e612f28358",
+        "56fedf97a976b926d1b3e167ac0aa098"
+      ],
+      "rationale": "Kalman filter：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "3e371c43cbc213359abf16455824e64fb9515603bfab7b6b67d276a48f3b7032"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+      "canonicalRevision": "545132e53f0f6ff193a1a0185643519c4dbb0744263d48ad21f0def3f65016cd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-40bc328a7224d40cecf8d765",
+        "evidence:ctkg:v3e-evidence-b4007f200bb944a1f46b68d4",
+        "canonicalId:ctkg:v3e-object-710cc7b05bccac04bdf10d66"
+      ],
+      "evidenceIds": [
+        "419d2d880808f52c4909b50f63367e71",
+        "f00e32cbe3ce06a96480250f62c29192",
+        "3b5649dd535e56ed43582b3d024a76e0"
+      ],
+      "rationale": "Asymptotic tracking：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "802d60f5d9c47714011de182d0b0a850eaa9bb26a97aafe0cd66ed4afcaf6f75"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7555b4760da0d42ee2e4c36a",
+      "canonicalRevision": "1a3b6d45a8c3148833738eed67682061efa929ec640444a57011939a18ae095c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6876700f0259f230304d3140",
+        "canonicalId:ctkg:v3e-object-7555b4760da0d42ee2e4c36a"
+      ],
+      "evidenceIds": [
+        "f100b9eab95776a893c9c7c2b20ea8ac",
+        "470a029446d26026b44cc0b3c7a3bbfc"
+      ],
+      "rationale": "积分法求解非齐次状态方程：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a39312a3365f919871eb089e9349a2f002de7fc9134b0eb8feed47955db4d7c8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-757a3f48777c318642e275e3",
+      "canonicalRevision": "f8858346d93f9e91cc49c78c065fc42b096a7176f7a856bdee3ea560361c2428",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b2b6f88412111ad937aa82dc",
+        "evidence:ctkg:v3e-evidence-ed4a5fcafb4edc20e7a21684",
+        "canonicalId:ctkg:v3e-object-757a3f48777c318642e275e3"
+      ],
+      "evidenceIds": [
+        "ea5cd5caf69dc2205d62ee8b9a86573e",
+        "aac3b2781eba6dbea7f0ed5ba0669c94",
+        "d376736c4d1827cbbbe96bafc60b30c5"
+      ],
+      "rationale": "Estimator Gain Selection via Pole Placement：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "cdcb12d2c4616e24ae16afda590fe981a1facc97c9e5f4aaf94addfef5392274"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7669cc1cb18986463cbcfdf6",
+      "canonicalRevision": "4e8575ce5dc3c61d349d74bf35f0b060c6f21ec2568e56132fdca8156a34f732",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a0bf591325eb252176f998e0",
+        "canonicalId:ctkg:v3e-object-7669cc1cb18986463cbcfdf6"
+      ],
+      "evidenceIds": [
+        "1a94681c0a33fd7e98b0b7db9eb26196",
+        "7c472b09c8564f29846f074317b0c4cf"
+      ],
+      "rationale": "可观测性规范分解：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f77c386e0490259f94fefb39d0637661d380f90c12e62f21b7d665f7a65c7025"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-79a7b9064a607526e69fb64b",
+      "canonicalRevision": "20da58f18775368e1927c93ba9e9d4e00415e8c9a969121bdb27832d104c0c5f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a017c82b4908f82d4d4b26dc",
+        "evidence:ctkg:v3e-evidence-a7e7af8ace3d27ae2e43ae34",
+        "evidence:ctkg:v3e-evidence-c4662c0ed58087bf7400c9c2",
+        "evidence:ctkg:v3e-evidence-d4cf43ab12030a3d445d0b64",
+        "canonicalId:ctkg:v3e-object-79a7b9064a607526e69fb64b"
+      ],
+      "evidenceIds": [
+        "c1ab90c094fa84822a856a6058f1c52e",
+        "4cff3b7c4716f8339d8c54458fb200f4",
+        "c134d0bf08511b22e444c40e65ab15d2",
+        "4ada42091e26d6a17c2f16c27c536d00",
+        "2febd6b2308ca8c1526820d8dc323185"
+      ],
+      "rationale": "内模控制器设计方法：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "b8aa2ebbf96217d786bd63b7ab41b989b0da5b85f54cdf4568caa5eacae31edd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-79d38366402d1a9806e1ed46",
+      "canonicalRevision": "dc0a6077d74a0b9e75c884221aac86b0f9708eaa4473e4545e258a9e8372a0a6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-57bdb466d58f0655620ef2c2",
+        "canonicalId:ctkg:v3e-object-79d38366402d1a9806e1ed46"
+      ],
+      "evidenceIds": [
+        "88535fe7926885a4c0d4b18b9e88ef46",
+        "2a84618710f29a3aaecfb4fd60aef316"
+      ],
+      "rationale": "输出可控性矩阵 (output controllability matrix)：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a861c4bd56ea41b4304770b41ce2396595be094821c6c785c8f24c6974aad08c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "canonicalRevision": "fd7a5eb5355259106c564f17bd107e537eabef6a7d84fd1504521e63ede3b7d9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a67fa9fdd5814bcb33e86ce8",
+        "evidence:ctkg:v3e-evidence-af77b014f27d066c2609b02f",
+        "evidence:ctr:m1l-v1s-release-evidence-56e48d79fda3165946ec6401",
+        "canonicalId:ctkg:v3e-object-7aeaea4f1aef78c48c3e8340"
+      ],
+      "evidenceIds": [
+        "1cd1f75592820773ae123fb0371c13d0",
+        "1345e2f4e50674eecd2db257fc292b40",
+        "f33baa183be4b63baff64762d38adf2b",
+        "25caf82dc4fdb771986c8328e33f4215"
+      ],
+      "rationale": "Ackermann's formula：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e959bb1a605abbf588beebc3e14adc0331890a50d1ef20709ceb2a423af2be44"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d0f4558ea9feb4c470dd47b",
+      "canonicalRevision": "17b47ef6c0e555d83ba7ed682e456a7e0147613b33706abff6e45a92ae2b8fc5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1e0083e152bdc1fb3a6d7b95",
+        "canonicalId:ctkg:v3e-object-7d0f4558ea9feb4c470dd47b"
+      ],
+      "evidenceIds": [
+        "5498ab2971e2e28d2ca6587d32ebc200",
+        "8b06d14c4ec86d16974e034a192a2da0"
+      ],
+      "rationale": "系统完全可观测：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ba2f31d21b97c86d4319d694a339598db2e4e065ecea886dfbb913f7ded24d79"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7e0291af0b752655e0d98328",
+      "canonicalRevision": "13aaf2d33ff4014b01a2d981c593936ba56390e39981dea37d2eab79b3443078",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-78efb6e15e65931b86ed7b9c",
+        "canonicalId:ctkg:v3e-object-7e0291af0b752655e0d98328"
+      ],
+      "evidenceIds": [
+        "e1bf89aabfed32fe431133978bcfd0f0",
+        "dbedfdee6c15d6375b1a32784fde7b93"
+      ],
+      "rationale": "一致可达：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "527eb4ba20a54fbcc7076bec73e469235c79daa2360b383f402a01a08e1e3394"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7e19f05879897a5e2d7c3e97",
+      "canonicalRevision": "88243588c172c379144b8cf79c8e21b0f9dd3dc07b8b1d08ccea7705d92de208",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-52226c15ccf70a4b1779b04c",
+        "evidence:ctkg:v3e-evidence-6cb45ac734110916ad975a21",
+        "evidence:ctkg:v3e-evidence-b63fe8561926eccdd94077ed",
+        "evidence:ctkg:v3e-evidence-b90c84144fc3f8c91265c20e",
+        "canonicalId:ctkg:v3e-object-7e19f05879897a5e2d7c3e97"
+      ],
+      "evidenceIds": [
+        "7fd6b601ab4c62cb0182586ab7b17e39",
+        "a0ee66879c4b0e48aeb0751e3d784356",
+        "47b4c088f8bfccee697050e095de072f",
+        "791921ea90618e47c708092ac3e4818f",
+        "c5b970dd26cfb3d2c3378cb58cd7c6f3"
+      ],
+      "rationale": "Ackermann's formula for state feedback gain：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ddb27b0baef11e38eff8270950586803c898347adeb4d397cbb1cfb6bedef83b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7ec200eb09dcb2beb627f1eb",
+      "canonicalRevision": "3dca40eaa1e4f5b94c3830434bb8ef53b3611d645a368310f01e59a8778e9c75",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-033ff672864ad086e7c24103",
+        "evidence:ctkg:v3e-evidence-864bdb90a384220f4a23848a",
+        "canonicalId:ctkg:v3e-object-7ec200eb09dcb2beb627f1eb"
+      ],
+      "evidenceIds": [
+        "6fb043a08fc800a01005b1798bc0438f",
+        "f50f14e5c3cf9c9e4b8a2d66e778a0ff",
+        "ee9a49bae93c3391710db1b87da4a15d"
+      ],
+      "rationale": "Duality-Based Estimator Design Using acker/place：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e2fc833bfaa448e1fe73c8adefc1319d4f4a0dad8ba6746a6488bcac1ea19302"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7f0c681f4f5c2b69597b6f4c",
+      "canonicalRevision": "b40850b957e369fc754329f0f908064ca1684c14893567a707e5964c0c9394fc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cbda47c1e569401bee5d373f",
+        "canonicalId:ctkg:v3e-object-7f0c681f4f5c2b69597b6f4c"
+      ],
+      "evidenceIds": [
+        "5ca6eac6d072a0c7c4d5f81d2ee59290",
+        "b113c6070a420d4160043842a8e93f3b"
+      ],
+      "rationale": "系统不完全可观测：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "535d531d3750961a6dc34864d92247985b7b82f5a7b5aca755d762dc560e8fab"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-801c2bf7fd001c355296f342",
+      "canonicalRevision": "a113ce7c549c272793d372e30f81cf0ec6444b992d5213bac1f88d5c161efc4b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e423d0b06a9e452c489bfee0",
+        "canonicalId:ctkg:v3e-object-801c2bf7fd001c355296f342"
+      ],
+      "evidenceIds": [
+        "deef746eda8027dd862b11a65acd94f4",
+        "13687de47db103601cff704eb128a1f2"
+      ],
+      "rationale": "Transformation to Observer Canonical Form：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "499127e356d62c3cfce701d7662793c485de9388015d66787b7265cbe7a72e58"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-820fb2c5830d5ebc1878a753",
+      "canonicalRevision": "20551f0e35a97a8fa97e43edd6c4134624f560843d17731cf1a34d6050916ba4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-64fbb611288b38636b112ab8",
+        "evidence:ctkg:v3e-evidence-6d1bad2c6b7d659bd069490f",
+        "evidence:ctkg:v3e-evidence-f9c4cd32fafc2621fd1b136b",
+        "canonicalId:ctkg:v3e-object-820fb2c5830d5ebc1878a753"
+      ],
+      "evidenceIds": [
+        "af056a563cb06113179e44ae48504248",
+        "5c1cc4d96cba126b9ed51526fae541ea",
+        "3446aab009cc2da1f291d81594ca3c5f",
+        "df186e5cd53e8ff9603de6ef5455dc4e"
+      ],
+      "rationale": "Reduced-order estimator design method：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e047c97fa9ddfaf9e849c6edd182a59f0b92e7cb3c55263d51df5e38dd0b6527"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-82a3bb18a814af1836288fe0",
+      "canonicalRevision": "dfee5977913d0be20551ea1118685e64364f1b88012eef8fb54ea5aba55b6c05",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2f3315a31abd075690fcf552",
+        "canonicalId:ctkg:v3e-object-82a3bb18a814af1836288fe0"
+      ],
+      "evidenceIds": [
+        "4a864d1c70095b2784f8453f476656c4",
+        "9c27fb535878c78ddb2ef286c7c97d07"
+      ],
+      "rationale": "Extraneous roots：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "959a0537462a556f74eb60a49d67dd0741e20cb949546d83d10961bbba7dd6b6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8c3a7904cf80848febaed676",
+      "canonicalRevision": "4209b494737912013fdb7b126528e0b720b3088e7a56b4026f9426adf9ddab21",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b0907a58bc12b015f65a56e0",
+        "canonicalId:ctkg:v3e-object-8c3a7904cf80848febaed676"
+      ],
+      "evidenceIds": [
+        "e2ea3f0570e354d0b01a0fc8ba4bc962",
+        "3c92f768671a34495f28fe318d4b0afd"
+      ],
+      "rationale": "Open-loop system poles location：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "38cea980804c7cb5abf6392a92a92517efdf34ef5e521920207286f6932698dc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8d8c5b1f62747c3d046a53cb",
+      "canonicalRevision": "beddf6bc83b0277aceb4f459d7558ec746d9e338733151021d79952133d3861d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-dc7c172cb84f796442599419",
+        "canonicalId:ctkg:v3e-object-8d8c5b1f62747c3d046a53cb"
+      ],
+      "evidenceIds": [
+        "b0a43834112ad1f843548e06b0c0e45f",
+        "42810f779821b6c8d52fc3707c32b05f"
+      ],
+      "rationale": "系统不可观测：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "df9fefc80c8d7134a66676c12066e0b5a6efbbc9920645faeba95875f0e3d50f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+      "canonicalRevision": "bc251001d5aacdec72f347566b4e471f2ac876084fa632512e518b5184086cac",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-658a56b9b71d330e68f5295c",
+        "evidence:ctkg:v3e-evidence-c88ce039290c18ff8fee0a44",
+        "canonicalId:ctkg:v3e-object-8ecd4d6352467b3444880809"
+      ],
+      "evidenceIds": [
+        "5e6d40512fc122ec325bd3506570ba55",
+        "32c73b7816048530bb41919742620c81",
+        "a909bbf9b33bcb2353baf0dfef4c5d62"
+      ],
+      "rationale": "Reduced-Order Estimator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e0cae7d526ebf705847ba61e1cf10352e602808d22a1f582c73eced743455258"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8eef39678d2ca15d781ee16d",
+      "canonicalRevision": "351284c74915b9115e8a181a64eafe1ab0c1f6293486ca84a0f73414f657fa88",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d7d2a69567aa030bc88d40ee",
+        "canonicalId:ctkg:v3e-object-8eef39678d2ca15d781ee16d"
+      ],
+      "evidenceIds": [
+        "cb8fe8e4fa8e45f90026e852e58a8f13",
+        "815546e5ec48c5c799cdcc6497e539c7"
+      ],
+      "rationale": "Observer poles：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "858869acb420d00a0be3f43fdea596d1ea56d9d69b74f4f0cddef0299ff66c04"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-902a7486fad0f7f8ea7accb9",
+      "canonicalRevision": "2752efcd445cac0305fa87b7810d4c37e1d7bf4137c7fe1192782b0f4bbc38ab",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-27328b7a2a0e401e75e7f483",
+        "canonicalId:ctkg:v3e-object-902a7486fad0f7f8ea7accb9"
+      ],
+      "evidenceIds": [
+        "210fefbd513d51adf0196bc2d4980269",
+        "89dbb1cdf8409ebb070e7995dbabbe29"
+      ],
+      "rationale": "状态完全可达：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "d90a75c8f424ea0f0bbd5ad0ad8336388fd98a5b75b4b7a22c2030c088e9ecfd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-90a70b314d799971df539598",
+      "canonicalRevision": "a8fdc0a6c62f991c277ab383c96680d0e77db8095534173d313fc7d1da4750f3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6e064035329864c77c4d8fa3",
+        "evidence:ctkg:v3e-evidence-dd132f514a27df3190615f2b",
+        "canonicalId:ctkg:v3e-object-90a70b314d799971df539598"
+      ],
+      "evidenceIds": [
+        "b60ccd27199a860100e5adaac3cba979",
+        "3661602be49801b16f80440d70660c7f",
+        "1d8ed57455922f5c7b4dddac5b6ee40a"
+      ],
+      "rationale": "Output controllability rank test：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6500d4cfc79d931c166001170d0b0430c8c0ed0bf912c0a1ee611e442a3a97eb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-90b61fb22c14c7c7328d0283",
+      "canonicalRevision": "1f54f4d0fc91672eb407f6bfc606f66633c8af9ed878c400a86d76025912411e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-745086fbeb35e584acc2cce2",
+        "evidence:ctkg:v3e-evidence-d2e78c41513ab9a71a13fa87",
+        "canonicalId:ctkg:v3e-object-90b61fb22c14c7c7328d0283"
+      ],
+      "evidenceIds": [
+        "e4815771286a6d8de89cd60012118f74",
+        "89e7db7ec4e270d652f278d6620a63fd",
+        "4124cfe492cbf75aec16c6c75efb2cd5"
+      ],
+      "rationale": "Evaluation of state transition matrix via signal-flow graph：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "44df4f4e38e8740af30dc236ae22e92d3a6450e9b0cc94190cc4aa3a6cbfa96b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-92036a27c9d71cee9eb07bf5",
+      "canonicalRevision": "e838662096569fecae5b68f6fe26885c0c65265d0d309681138eaf3f354c5521",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d0f0eeec90d90624dbe18df1",
+        "canonicalId:ctkg:v3e-object-92036a27c9d71cee9eb07bf5"
+      ],
+      "evidenceIds": [
+        "d55c61cd7ecd4e59a910c6f475b998a2",
+        "2b3c7265702e9bd5a0479e7a2690cc72"
+      ],
+      "rationale": "格拉姆矩阵判据 (Gramian matrix criterion for observability)：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "0e19cc9e06834bd623e6418359925df207d26db2e7dfa8f63a9da52f7d9c06f9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-938404536c1bcf749b8cda6d",
+      "canonicalRevision": "83d2ae45ba1b89087fe7ffeadd1122fabddc391a12bb08148648e946cb6c8107",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fb7a617a5afdf696768ffd24",
+        "canonicalId:ctkg:v3e-object-938404536c1bcf749b8cda6d"
+      ],
+      "evidenceIds": [
+        "575a57aa3b7ae8f5ceb3750b8a210abb",
+        "d02f4a08e401749c9ffc5e81ce55a5a3"
+      ],
+      "rationale": "格拉姆矩阵判据 (Gramian matrix criterion for controllability)：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "eaa80789b8c2b96e48091a9226c0b7782c92e99f668db34d7e882d8ecebcdbfc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-97fe46ae03d1bbad4abbc906",
+      "canonicalRevision": "2d71de96fa3cec96b78430f917bf5af4d120d71250e8885d5e95d8794541d0eb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a313d063e070aa7cf7a55016",
+        "canonicalId:ctkg:v3e-object-97fe46ae03d1bbad4abbc906"
+      ],
+      "evidenceIds": [
+        "5efcf5ecbb770aeaa81417d170f1429d",
+        "c7e9d0ee65713084c3cb47ba63893e47"
+      ],
+      "rationale": "系统可控：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "999335ebc48eaa5c4b31d7358a6443e8190e19ecbc55735f3b57930b3335f81a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-98863d255f5bdc0c59c9b50b",
+      "canonicalRevision": "33058c4c291c8a3d6ad699e295c69771bd35e1a1e97ca74b25179b8ef63ee4f8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a8faddf533cb55b5884bc437",
+        "canonicalId:ctkg:v3e-object-98863d255f5bdc0c59c9b50b"
+      ],
+      "evidenceIds": [
+        "5eaa6e49c836e9a9c4b87b6faf41302f",
+        "9a21ce6c69157735dc5d80eedae35336"
+      ],
+      "rationale": "PBH rank test method for observability：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e7f2fe720dc5daa685effcfe2eb44e1918f519488a55c250fba0cba030cac341"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9a0b2bbcc18b62af283ab92d",
+      "canonicalRevision": "0a1c10f99693d76c0a48e687d7fdd30428632c621b131143eab52ef7dc67549e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0faff0d32c7330fec40aec99",
+        "canonicalId:ctkg:v3e-object-9a0b2bbcc18b62af283ab92d"
+      ],
+      "evidenceIds": [
+        "704eba971da7cfcfe4f9250ea239ddcc",
+        "21b976a97b2ea0325a259ad24e35dfbe"
+      ],
+      "rationale": "Computing zeros via determinant condition：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "681e5cbfe86acb90e989fd3a64a5517f8b9e13ebc606b06f3aab6799c96b5b1b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+      "canonicalRevision": "838a266e6b2518480304f359f2c581aa0198e3909ac3949f791aef4d59a07978",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7b8a252e879c8714cd4c0c54",
+        "canonicalId:ctkg:v3e-object-9a4c8dc9963685a6c39a5653"
+      ],
+      "evidenceIds": [
+        "4496c13ae54398135913d39893dcabed",
+        "e4046cece78999a157e54539f9529eb8"
+      ],
+      "rationale": "容许控制：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "1b20e9e88a63b0126179dd564cb29f42393498fb60af4faed5b093085c1d10a5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+      "canonicalRevision": "bdf4c2537d351e6749096441c29488cbc90832edc2928a379dc8ba2bf35961f9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-657035a89cb32df954e0162d",
+        "evidence:ctkg:v3e-evidence-87662d023b5c23f2e674ea3d",
+        "canonicalId:ctkg:v3e-object-9b795692bacd0f13270cc086"
+      ],
+      "evidenceIds": [
+        "adcd994a3470a7b1f263492bb4b8348f",
+        "9522ee7eb6c93ee196fb6b3ad690f2dd",
+        "01ad00fad74d7b1cc99f49f5899882fc"
+      ],
+      "rationale": "秩判据：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "164fe4ef38eff6d4b6890d5318db100dce0555a9288080c925994b377d284e6c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+      "canonicalRevision": "d015c82eb16afb678e97a56b60bc9e87a583152f3706a6479f3b9fe7c5c1b605",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-13473f1dcc96a34233b33d70",
+        "evidence:ctkg:v3e-evidence-2f5a5bf96c17f4eeda6ddfe0",
+        "evidence:ctkg:v3e-evidence-ccb8294b2c1ea094a367f201",
+        "canonicalId:ctkg:v3e-object-9b91b4b29c27f8d8916d9626"
+      ],
+      "evidenceIds": [
+        "bdc65d29e117e4c0c5e3e2dc85c3ec39",
+        "9cce05bbed42045b953c782b8d47823f",
+        "8432bdaeb970d5cebd32385b5ac346bd",
+        "5675b471551925de4c21868c29866401"
+      ],
+      "rationale": "Full-state observer：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a26f2b404505d2aeee72b2683ee00f0b2f314711e9aba505abb9d6073dc0a0fd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9dd164e548b83a92f3777044",
+      "canonicalRevision": "44057ba6b06559f7a0ebddacadf5ec74e43d0aa2b4ea3951bcb54cb33f99da50",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fc542d275d1e99c655aecc8f",
+        "canonicalId:ctkg:v3e-object-9dd164e548b83a92f3777044"
+      ],
+      "evidenceIds": [
+        "d2be9cfeed674643e6aeba911cadb735",
+        "88bf5a1a91ebb66e5c1fa35e8a053fb8"
+      ],
+      "rationale": "Diagonal canonical form observability criterion：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "51cc1310ab9b58c1d646b1a22976bf6f6797f3323c3fb66bd0b1c02d216eca19"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9e88045efd51f4067f98fe34",
+      "canonicalRevision": "4f55a4180d3d778b37cd9db50732eb737355b2bafda5f43ed7e16f45080d1cf4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c51cd775541cbb519ef2e5e2",
+        "canonicalId:ctkg:v3e-object-9e88045efd51f4067f98fe34"
+      ],
+      "evidenceIds": [
+        "67a250c473b0ccecfb3b5eedfcbe7393",
+        "53eb780780e0f4d307210761fcd00dea"
+      ],
+      "rationale": "tf2ss: transfer function to state-space conversion：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "deda7d916c6eb1138dcc7b2b0b16e919de775a864db4cd252924d7f6204564ab"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a1d3ebe12a90c2bf346948ab",
+      "canonicalRevision": "3a6decc2df26100d30a5b258460dedc111366f8a34ea4358d7508b6277a913e9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9614e213d17ca07dba51c469",
+        "canonicalId:ctkg:v3e-object-a1d3ebe12a90c2bf346948ab"
+      ],
+      "evidenceIds": [
+        "dbb804028d711adc37f03241f6a9b3fc",
+        "64a4235d7a65629abf62864ae65d6e9d"
+      ],
+      "rationale": "Matrix Exponential：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e4083ddfbcf20f70fd0c1fa9f3aff3299c1b68b33fe8a93490bf5e085cf8a4a6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a6fbcdc8f28199ec0f54ceeb",
+      "canonicalRevision": "6f078261719bd7ae117dd6b5d8086880bc7eafd3438f50459a546f4ea23e7918",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b0547704e2a245c53ce16e46",
+        "evidence:ctkg:v3e-evidence-c123f2e56033c308b113984b",
+        "canonicalId:ctkg:v3e-object-a6fbcdc8f28199ec0f54ceeb"
+      ],
+      "evidenceIds": [
+        "8105df2e2c131afcbef2989397b06f05",
+        "67a6b6b5439faf967a3c64c1fcbf1f26",
+        "5819d755afd2efec698736a45c59d558"
+      ],
+      "rationale": "Method 1: Decoupling estimation error from reference input：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "70fa0c0cb7d2f686665098d31b7f6760ea9b1440d8382ec2f6501a7685748293"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a98f424dd074fcab4c1d1f23",
+      "canonicalRevision": "9a2ea6349b82ea8fd77dd9c80df03cdd93d878779caa4bedc1acf43f826be09f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6964a1aed1a057d491f255ea",
+        "evidence:ctkg:v3e-evidence-b5be0b1981c55d6a75e778b7",
+        "evidence:ctkg:v3e-evidence-f4c45cf20af520d829cba21d",
+        "canonicalId:ctkg:v3e-object-a98f424dd074fcab4c1d1f23"
+      ],
+      "evidenceIds": [
+        "02698b944640c94829f61a62c53038b6",
+        "8660fa3f8be6742904e945741ba338cf",
+        "a41778a4105b7dd0f6c541fd9ef63f2f",
+        "025dfbc863cd05fc9f489467c6a1413f"
+      ],
+      "rationale": "Symmetric Root Locus (SRL) Method：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a6e1c3b027b3e652bd5ffbc0e4477973576bcef3e18328cf76b2b744fa1a9192"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+      "canonicalRevision": "64a43e4d3c53d01183031702f7c555afd5471aa561a4291182df83ef14353352",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8122744435773bef65f2e6e3",
+        "evidence:ctkg:v3e-evidence-902ccfa1bf40ff87a229cc8d",
+        "canonicalId:ctkg:v3e-object-ab4dc18aac53ac6636d05ca5"
+      ],
+      "evidenceIds": [
+        "7207858a1a6138638b8cf65fc7de65ba",
+        "990d5623d9789d590312bd99875aab1f",
+        "0cb5c8bf61cb9104d99b15b79a936b4d"
+      ],
+      "rationale": "Full-state feedback design procedure：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "c87230d9709ca887ab1309905cc1a8f1d3950d88e47839f0999a6585a1acaf0e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ac356855cd7f28c6cbacea72",
+      "canonicalRevision": "c170c6abf4c5a5ee66d09ee5577c4d990c789bae62865b1bfa65a2cff0c55b9a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-59ddac059ab0fda9e6ae50b5",
+        "evidence:ctkg:v3e-evidence-8f6af99847c979326e86ec42",
+        "canonicalId:ctkg:v3e-object-ac356855cd7f28c6cbacea72"
+      ],
+      "evidenceIds": [
+        "927c678c0c856b0c85f6ee02db710846",
+        "05a1f886ee0348773d8048eb0ef9bbba",
+        "79e4a8182186b796f4ee4c408970c4cb"
+      ],
+      "rationale": "Signal-flow graph state model：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "0c19b246c139b629ab7d99e7272f99d273d26b174f8912b7da73d1e56c823432"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-adb78e525721874d42e70f67",
+      "canonicalRevision": "975f7b7f363eca30ac6f698e06d4606f1862b32336a6acbfb2cb46793ac15490",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ed47bf479a28446bf091c2e4",
+        "canonicalId:ctkg:v3e-object-adb78e525721874d42e70f67"
+      ],
+      "evidenceIds": [
+        "b818ab059ce99b4877a942a871cb5ec7",
+        "650cf4f2cca8a1e10c14bfad680a8f1a"
+      ],
+      "rationale": "SRL estimator design method：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "23ca3a327ea769c417700397042bee5abb5b08451f629fe68e235df0655df28a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ade57f97833b42fe6394301d",
+      "canonicalRevision": "5ddf2a89583a003337e2873cf19a4e10765567a6e75c6e1ea5fcf99115d7aa29",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2210bdd26c90910ac867d07f",
+        "canonicalId:ctkg:v3e-object-ade57f97833b42fe6394301d"
+      ],
+      "evidenceIds": [
+        "0ceb635e88594d50d0e53a9c1587b258",
+        "88b4e74d8df05435a299d203d47b826f"
+      ],
+      "rationale": "PBH rank test method for controllability：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "313b86165e261508f37f4cefe664f94123dd0595022feb8a57228c761879a15a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae46ad7afbc5b4cd102501c7",
+      "canonicalRevision": "4e5122c58a80701be6647845872f1684f283a5e2d7a38f17f5ea7238a40dd5b7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-96744b537abca21d8c975996",
+        "evidence:ctkg:v3e-evidence-9819eedabc5a043a1c42511d",
+        "canonicalId:ctkg:v3e-object-ae46ad7afbc5b4cd102501c7"
+      ],
+      "evidenceIds": [
+        "1de70960f039f578a8e3e0efc7764e08",
+        "a9ec1992fbad81d89974f3ce4103c11e",
+        "6fcf3cdb5679d52c3471efd240cd2aa6"
+      ],
+      "rationale": "可观测性规范分解方法：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "496e2325704e012e0edaa861e017209233973a4aa1cdeda242124c4881bbaa48"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aee09af112d5234757265089",
+      "canonicalRevision": "153bf08928bdd0d695910596470e98a0fbdde366859629b40319a7ce6eaf0e54",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2960af1c808cf7a4d9b96fd0",
+        "canonicalId:ctkg:v3e-object-aee09af112d5234757265089"
+      ],
+      "evidenceIds": [
+        "50a332d46eb732038e5d00c788d0c746",
+        "1754d14c88ae3c5fdc8b9614726da03a"
+      ],
+      "rationale": "Duality：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "50d51607fb7ebde12c089de49b66a1d4f27e2af6c4f1f2046a3e096118428009"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+      "canonicalRevision": "4406ac664f21aa95efb59bee38f670d05eb2a2192e4ed089a3bff0f32fdb1f89",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9d80a4f6ed4505b5342a7a0e",
+        "evidence:ctkg:v3e-evidence-ce40c72b1d2f6ec9831a8344",
+        "canonicalId:ctkg:v3e-object-b1568607de5e6fd3cba5663f"
+      ],
+      "evidenceIds": [
+        "96cc9b3454054cc742d60382e397a0ae",
+        "ec82ce6326e2ef0bc026438a23652786",
+        "2fb40ee288b7a80ea9e9694efb29e866"
+      ],
+      "rationale": "State transition matrix：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e5a1cbf31aa30dfbc91745faa9be51f533fba800b784694986cd08efac76edbf"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b193b69b94a9f4a6cc656cff",
+      "canonicalRevision": "34ffc1cfb43eee6ff9b5877586a1219fe08a277b580f8df337e0af17f275c50a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4cd9ffefb9f5398ab3b3e1f7",
+        "evidence:ctkg:v3e-evidence-720102baad3746cda76c9e96",
+        "canonicalId:ctkg:v3e-object-b193b69b94a9f4a6cc656cff"
+      ],
+      "evidenceIds": [
+        "649759f0f363704424f04810adabaa76",
+        "54fbae5be2af009fd32852631c5c2cb8",
+        "2e835adb915eea1c17f1514deb4de9d1"
+      ],
+      "rationale": "Zero steady-state error：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6359253651e99b09a21f22f5f4f74c930b84304120e8aadb680f119c83c4c3c1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b202af6c06c27c558d00e9f4",
+      "canonicalRevision": "ec04278d2f0cf1607a95ee3ffa3b38377aeaf024ad0221735d4ce74a0ae27870",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c1af6d4a2fc5c380f38ca8cb",
+        "canonicalId:ctkg:v3e-object-b202af6c06c27c558d00e9f4"
+      ],
+      "evidenceIds": [
+        "4dce3e52fafcf3a28da0681bb488e39d",
+        "b0ce10ee5bffa8583734230619800565"
+      ],
+      "rationale": "拉普拉斯变换法求解非齐次状态方程：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f9c0299df12e1540e7179f12da68e3ef9b8d52f447e33c763c66062107aed914"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b3598aaee3272eb677b2c47e",
+      "canonicalRevision": "5820de899aef32a54491657f98268db7be411a8d197fcbbcca307e1e19f1421c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-25a12e918bc5a11a2e34ac98",
+        "canonicalId:ctkg:v3e-object-b3598aaee3272eb677b2c47e"
+      ],
+      "evidenceIds": [
+        "6a234d835e81d53da6b012eb9856a683",
+        "9c9732176729d538e948f62877ba2729"
+      ],
+      "rationale": "离散系统的可控性矩阵 (discrete-time controllability matrix S1')：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f2ecd4c612acb772e57c3dd3a48c15159828cf70edb09a0945da82fe9b4a0135"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b43972ad376b62e88a817ba1",
+      "canonicalRevision": "c93a71273353548afe3aeeff02ed3567dc0a01b0ce5721655ea5dd48764f0663",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ca703050fb1a81ffb30d8249",
+        "canonicalId:ctkg:v3e-object-b43972ad376b62e88a817ba1"
+      ],
+      "evidenceIds": [
+        "b160ad8dbd4c49292f1b21a81bd265ed",
+        "c986bec21bda6c1ef682d556831fe8fe"
+      ],
+      "rationale": "Desired closed-loop poles：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "9304f0d649cd4b117cacc77327b0b2f8f52d6bc8681b2c2b3d9cecff832044af"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b667b9f8df2202d92a43a966",
+      "canonicalRevision": "53ee712c707d2d54f706f71f6ab3ee307fcb15f2236ee0f991da008811aca249",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-442a64f15cc3a6325e47caa1",
+        "canonicalId:ctkg:v3e-object-b667b9f8df2202d92a43a966"
+      ],
+      "evidenceIds": [
+        "0fca649d7de81d089c9cb3dec4ec2fb6",
+        "678634e841f491a88a2be6c7cd2fb0c0"
+      ],
+      "rationale": "可观测性阵 (observability matrix)：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "24ae4d6b41ee30c9830332b8382036d30566e42f78adf87e7f44914f414169f2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+      "canonicalRevision": "7dfed8ee82777c83d95a69f5931507e3da51d96ca5df0d4d8372fb8261d186bf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-45f72208e6b08b36482b2c98",
+        "canonicalId:ctkg:v3e-object-b84a9a5a29d23a93ad44adc8"
+      ],
+      "evidenceIds": [
+        "8c93abe4447709c2fa7f0ea80ab61893",
+        "cdb21d6cfa30cd8c1ff4c85266789597"
+      ],
+      "rationale": "Integral Control：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "2542a1ede2df531c58e465f1fe6e3a212b7f4393d0b01656ab7f616fbd5549b9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b8d0052e096e5047cdccb00e",
+      "canonicalRevision": "44debc718a7202f4f64212fcea45dcd1ac571276a5535fad0e86707aeda0227c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5be68c38d2353a4ef3b183ee",
+        "evidence:ctkg:v3e-evidence-e416b7bc2d1778ee79b4e54a",
+        "canonicalId:ctkg:v3e-object-b8d0052e096e5047cdccb00e"
+      ],
+      "evidenceIds": [
+        "92b2705f62d4dc86aee051e7d501f2b7",
+        "4630aef5784fdf7de2201c5bd5b1b02c",
+        "7d78a2ca85a7d7269a361a7044db5ced"
+      ],
+      "rationale": "Linear Quadratic Regulator (LQR)：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "daf86ec30b7431fb165849853ce38984252c11aa1f7900d69313ac39d051159d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b95f9fc61d2a3ef440ed8fff",
+      "canonicalRevision": "3022842ef62cfe91736d0c060e07cfc94f0116ce3ecbf7c157ba55f665d9ee11",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-697adaf90e22e3f5937bfbc7",
+        "evidence:ctkg:v3e-evidence-cf0f23f34502604626ba9559",
+        "canonicalId:ctkg:v3e-object-b95f9fc61d2a3ef440ed8fff"
+      ],
+      "evidenceIds": [
+        "6c1b6dbaa80b70b5983d97bf47833608",
+        "28ee5cd19e1ff6a7ef1bf3a60f6c6b6c",
+        "808c6af1d0684e09fbd910fa93c31317"
+      ],
+      "rationale": "Truncating numerator polynomial to remove extraneous roots：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "adbb228aaa4fdc5861d7f21c7fc1ef085e903e31d571cfcfeb3896c68875ba7b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba2eb78058c4284d923a28eb",
+      "canonicalRevision": "0eb49d3a0fb2f77c3b83b4550d76d838e58a2c53a13cb7baaad96461226b34ec",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-83239efc338994f761330d2a",
+        "evidence:ctkg:v3e-evidence-84a14ff0e1e9c61ca7371978",
+        "canonicalId:ctkg:v3e-object-ba2eb78058c4284d923a28eb"
+      ],
+      "evidenceIds": [
+        "fbf264cb041322258d34e8fec8785856",
+        "f279f8cacfe05703400a0a756162b004",
+        "63d7c2a9a0784d2dcdef16ef39aca422"
+      ],
+      "rationale": "Ackermann's formula for observer gain：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "c28df2de5799183d8b8e079d40a40a1d7e9a878e6e12aa96b604a5aa5d5369b2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bb17295c711f6c4ef4ffd134",
+      "canonicalRevision": "193de8bd8ab453f6eebef623e35ba3735d75633bbbafe0e0f10f7fd8ee408fd6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c0858b0673b1a5f3db016e7f",
+        "canonicalId:ctkg:v3e-object-bb17295c711f6c4ef4ffd134"
+      ],
+      "evidenceIds": [
+        "b2ff065b5cd132a5eb74b4ce39f16ae5",
+        "ab5f3d3d136472a60d935a32badb8130"
+      ],
+      "rationale": "Pole placement using place() function：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "7db217c299b7459ee696a2e4047107e85cfed0d4225eb5b3ee364c8198cb17ed"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bb3ac0bfaa166046c6c19f8f",
+      "canonicalRevision": "00dca671c105e105c872ed57610eaba0575feeceeed234c7d6d21cf10e9a8fed",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-229de452c1cc38cbd46f431d",
+        "canonicalId:ctkg:v3e-object-bb3ac0bfaa166046c6c19f8f"
+      ],
+      "evidenceIds": [
+        "62a1df4b9f63b9b4f28d4924852926e1",
+        "5e4489667a707a81d76984fb781edb3c"
+      ],
+      "rationale": "Regulator problem：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "bbc7dc517cbc9e363e349cd9f0f05ccf35cb828b4680ebf02143523e11b4cb1e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bbde87998fe5c58705383e29",
+      "canonicalRevision": "75bbf9ec71dd284638928ca4a9ad7bf6a276f0041943f7a5da904ad6a6b9a177",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6e5c686098a5ac3d533eb0d0",
+        "canonicalId:ctkg:v3e-object-bbde87998fe5c58705383e29"
+      ],
+      "evidenceIds": [
+        "c49961bab9e3f842996f3e0a1068092c",
+        "ef9a01657035da766ef606a42d44486f"
+      ],
+      "rationale": "可控性判别阵：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6a31156477e27018e7f17ef67c31fa48dcd0a65a91f636973616a2a2e3ba602c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bf30e8212ba68b5629f44826",
+      "canonicalRevision": "42cc94fbbc65abcca64fc1c100c1914ca31895ea14ac415928f82796ac9c5f16",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5a14d0765349e4a1fdd2e34e",
+        "canonicalId:ctkg:v3e-object-bf30e8212ba68b5629f44826"
+      ],
+      "evidenceIds": [
+        "237aa2bd2720bdcc877612bb62e10e9c",
+        "c8f902d41b90a5b687148ad8bdc43f52"
+      ],
+      "rationale": "状态可控：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6e2ee77a9295d93e9dd7d72b961e5c6da16e70cbfcc8ed5ef1ccbfacbaa3555f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c37dc9f35581438ab89f7f7c",
+      "canonicalRevision": "e67602ee95b842c050d46ea15f9fe6c62d84533771f8b66ce8850dceee5d9120",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5f2024fb1bb968143ced99fa",
+        "canonicalId:ctkg:v3e-object-c37dc9f35581438ab89f7f7c"
+      ],
+      "evidenceIds": [
+        "9a26af6eb253a6a6375bfe83b2b422dd",
+        "72e873bed3c2ed0b0353944df0a1a222"
+      ],
+      "rationale": "Observability Gramian matrix criterion method：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "062215338569eed2fb1ffcf398720eecec6711778e6cf1d821563ae29dcabfd1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c48bcd580d97376ade8dda83",
+      "canonicalRevision": "9760431f7965cb0a00ffe23913a41df8f9a8d080a0dfca9e87f471e83b3bc5f6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2b6bced817482133beea0f7e",
+        "canonicalId:ctkg:v3e-object-c48bcd580d97376ade8dda83"
+      ],
+      "evidenceIds": [
+        "354f4c087c170113d3d5cd5b1a6a0a20",
+        "065d170b043a3c0ba97e46c0074dc61b"
+      ],
+      "rationale": "状态反馈镇定：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f51cc90a47be47ee5fd491439e9eb308ecb09334c9aea40af704953ed6f69efc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c7bd7c6faa85c19988a82491",
+      "canonicalRevision": "6fd12b217d5963eec108023079e1c6ce4794f759d782523a9d5bb82d609528e6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1ed6c01373cad8f799f769c2",
+        "canonicalId:ctkg:v3e-object-c7bd7c6faa85c19988a82491"
+      ],
+      "evidenceIds": [
+        "23e8d67e24a964cd55ebfd6b8d9436c2",
+        "363772571f9736d70399b10686c04267"
+      ],
+      "rationale": "内模：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "4a5e0a5780278aa8864a7755d77ef2179e7682ef043d04b59cb00697853c23ef"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cb18c47f552c6b128f9b52c8",
+      "canonicalRevision": "56152cd2055a29ebe1b87c2612442bde0b40cb3ebfc36e8ee5df55e4630f7c98",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b1a3352d6a34fea179f0b240",
+        "canonicalId:ctkg:v3e-object-cb18c47f552c6b128f9b52c8"
+      ],
+      "evidenceIds": [
+        "06a17df909d06e9fffd015259619db3a",
+        "3b69fe6f2bec799a58a6aada77bec6db"
+      ],
+      "rationale": "Detectability：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "d3446245551670a0427b00bd743e806d14b3418946b2709b88b495f612c1a53c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd815451e75b895951dd747e",
+      "canonicalRevision": "07dcfa718a43f102e6d44ec6fb25e9626c43830db51445199b04311923428669",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0817909af4f6525574d9833b",
+        "evidence:ctkg:v3e-evidence-fe76941cf6a3587db2056d0c",
+        "canonicalId:ctkg:v3e-object-cd815451e75b895951dd747e"
+      ],
+      "evidenceIds": [
+        "789666081c33fa7596db8b4eb45e4143",
+        "e8807bf1b96d4df6bd61ebfcd40a0d09",
+        "5ef05e09f77441cdc48d56b44a9af025"
+      ],
+      "rationale": "Evaluation of state transition matrix via matrix inversion：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6a607ef78227dc5655e7878c6cabb6103cce90a58a8875b7d2633dc59f16b17e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd935c229d64107e30b8c1a7",
+      "canonicalRevision": "506271944cbea2ba134dae7f9eb74565c6688bbbe77d83eeb1157fe38121d392",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9e60f1ef318f74318b3b17da",
+        "evidence:ctkg:v3e-evidence-a04d874cecdea1a2ff7fc65f",
+        "canonicalId:ctkg:v3e-object-cd935c229d64107e30b8c1a7"
+      ],
+      "evidenceIds": [
+        "3a093225633f6baaa44ca036386653a7",
+        "937457e32c59e15a5c917b156a97c0eb",
+        "72e200c3c6c7a52d4d95cd1453996f45"
+      ],
+      "rationale": "增广系统：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a324a71ea76cee04d08a6aca2e063c1f01f19d489f08ad6197851ef14dbcc024"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d1834c74e0aa9ac9d84af39e",
+      "canonicalRevision": "313ae64bad4f710f19af10db4b7e4365a0fe5ca465bce5ea74cc26e1b338d29a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7702d20f9b60616572fce6aa",
+        "canonicalId:ctkg:v3e-object-d1834c74e0aa9ac9d84af39e"
+      ],
+      "evidenceIds": [
+        "bc414aea05f9bc8c5765f622f8c37ce2",
+        "1d0b2133704c9a5f608ce61fd38d9043"
+      ],
+      "rationale": "Autonomous estimator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e70931262ba36345186ffe9cb239794a377a7ce8e48b7efd7c6d662efe9ba872"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d36def50dedc036b5c5db035",
+      "canonicalRevision": "fc64d9122f26a109fd5fdce0bcbd3b9184cb4e2232a23d0ee59cee745e1edf26",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-669de57177d67259fe129170",
+        "canonicalId:ctkg:v3e-object-d36def50dedc036b5c5db035"
+      ],
+      "evidenceIds": [
+        "3e1280fea8fbf79cf11afa922c1f3a47",
+        "95b5faa18faf772d4af2ec9d2931fc60"
+      ],
+      "rationale": "Pole placement：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "8970a88d903bac2e530c0873e3d2ebcc67852e559a0d0d6b2842c13e21e6e2fb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d564eeb57b51d635721c5e78",
+      "canonicalRevision": "8d80ab7672e0c265fc3bba534c120b156a139402d1a3347f4c5db2e2d11e977f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-19363e3166fe5aa0b114abc2",
+        "canonicalId:ctkg:v3e-object-d564eeb57b51d635721c5e78"
+      ],
+      "evidenceIds": [
+        "ed33d1b6424d74edba32a983db3b9fbb",
+        "b5dd42dfffde3bc5c2959ec4846561f5"
+      ],
+      "rationale": "Tracking-error estimator：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "445e89fb7d803ee14bb16a093e9734d464edcddcc74eaab9a3eca4516e1c042e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d9716ac7221be94d7e69f7d3",
+      "canonicalRevision": "e013c99279f29f7506012353e588074b48173b13ef4339a4253d381eefa3f19f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7bcb8a283a679b758311ac79",
+        "evidence:ctkg:v3e-evidence-85d7817debec39fe5e683dea",
+        "canonicalId:ctkg:v3e-object-d9716ac7221be94d7e69f7d3"
+      ],
+      "evidenceIds": [
+        "6e27e13784308c8c5de14215cd27d10a",
+        "6d64e589741fec309a5550846186a1cf",
+        "d7b3e516545916b1e25704ef64dbc86d"
+      ],
+      "rationale": "Kalman state-space decomposition：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "42f46e5475b849d2438945679c494dfb938b938227200658cb573e4aaa81efd7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-da8cedbf0ebbeecfe0b184b6",
+      "canonicalRevision": "7af03dce19958ba9984139be2da7d5da3f712193bd015dbe0bf15d24190e6176",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d2121470bf130b28c64deb4a",
+        "canonicalId:ctkg:v3e-object-da8cedbf0ebbeecfe0b184b6"
+      ],
+      "evidenceIds": [
+        "f5b1896c1c7c71e6316323ed5db0050e",
+        "4de11f7f330f286698ff48524ab10efb"
+      ],
+      "rationale": "拉普拉斯变换法求解齐次状态方程：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f4920f3e18c890f7b5e0fe884368a0cca06259899fee53632497fddb12d886a0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dc824b634d98afec12f44ff1",
+      "canonicalRevision": "6470b83b3a98141f60f4273a5fc3802cd5010e031c17d361c7cd559f3e907d35",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-26b6b6bcab0547f2a548a1d4",
+        "evidence:ctkg:v3e-evidence-412a1598a495061a56c17342",
+        "evidence:ctkg:v3e-evidence-eea21eb58c6ed610448a0bcf",
+        "canonicalId:ctkg:v3e-object-dc824b634d98afec12f44ff1"
+      ],
+      "evidenceIds": [
+        "ee2dea98e779c55dec8f59be34aa2e5e",
+        "7ed51cda51b626ac2c3a572f2b420787",
+        "fa4763910705741e61fed0822c3d31f0",
+        "64a0172700f02d210210ec4c2c690e03"
+      ],
+      "rationale": "Control canonical form：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "3c36ba4190c77dde061dd77f5c41cd7e2f12723f95e51d3ce981667e9ea4f99a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-de1fcfcdabd2e7cb8d74e01a",
+      "canonicalRevision": "8dc14344a6f2bf5c8cb7cf9c5196c6e12e4b92bed9538acc5ef7cb8fa628e003",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cfb64886aae6dd38ec1c8e4c",
+        "canonicalId:ctkg:v3e-object-de1fcfcdabd2e7cb8d74e01a"
+      ],
+      "evidenceIds": [
+        "835330094b7e866f6634a863a6bee98e",
+        "44ac09da702cb09a6376ab6727f698b9"
+      ],
+      "rationale": "齐次状态方程：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ff3c3d0e41f9ccddd9fa44c455415bb0836d147970bdc30d5f5de5e9f8d33dcd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-df836fc47a815d82f963b7a8",
+      "canonicalRevision": "3fc3f42eb9e4b9bd75304ad21aee3dc93f0ab491fd8bd1adb8ef782b1b5aad12",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-68f0d8bf5ebffea189089c3d",
+        "canonicalId:ctkg:v3e-object-df836fc47a815d82f963b7a8"
+      ],
+      "evidenceIds": [
+        "5de2ecde0a844f0c1b7bd96cc44a8f5e",
+        "e5015c00bedeca548a0a57b659a584f9"
+      ],
+      "rationale": "Zero assignment using Truxal's formula for lag compensation：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "0b240335830a02a5d7230b98b8442eea50564c54181e3c239a0887e12fedbc34"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+      "canonicalRevision": "3091d2830e2ad6f5b8d84013f39ec247209c644ebb4cc4671af5f61778c20d3b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cee4f6212057170561cf7432",
+        "canonicalId:ctkg:v3e-object-e28c6b3ef5b1335c8a086f34"
+      ],
+      "evidenceIds": [
+        "1cd80b1cb08eeec2f2652b7105e8a8b4",
+        "8ec224d94ca8763dd2775f154bdf9dbc"
+      ],
+      "rationale": "Full-state feedback：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f10820dca236b8953d23a8975764fc26bcef00673b8a9737ce8004730eaf3b4f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e43a521f65d1388d6cf5a06e",
+      "canonicalRevision": "4d364062108fae05e793acb0726293824d6c8f7986545c2f026b99cfe8f3a369",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-95bc2b0c8a0190c192268b14",
+        "canonicalId:ctkg:v3e-object-e43a521f65d1388d6cf5a06e"
+      ],
+      "evidenceIds": [
+        "40294490d2ca04d4b34f7a3a3c0e292f",
+        "2ccb8c5c5c83418c3393619f490429d7"
+      ],
+      "rationale": "Open-loop system poles：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "75c11be7989299ced6964d2728c2a2e3b24543de13910d12f1c3a98ab815bf56"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e70e153907f2fa8a69ad2c62",
+      "canonicalRevision": "bb839954715572156319affca2c0e41c590352d741d506f4759b12c75d90a050",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c893f8242ad3b54f47bba2d5",
+        "canonicalId:ctkg:v3e-object-e70e153907f2fa8a69ad2c62"
+      ],
+      "evidenceIds": [
+        "7f46e8fb85193ca3645251a05faf17ea",
+        "f509cd5a3c8db68b80d8cb1c0d84b62b"
+      ],
+      "rationale": "Observer poles location：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e32b2f762770e682f8e7b69d7c337b7b6a727d796f7a6aed893df9ce22296abb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eb888786c5eb738a65d705f7",
+      "canonicalRevision": "56737f0be30e21baf7e3ce79dda1bd43f7c1cc9985b6b52a738ec0f0920fc757",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-48618049f5f12807d5439bc1",
+        "canonicalId:ctkg:v3e-object-eb888786c5eb738a65d705f7"
+      ],
+      "evidenceIds": [
+        "679262e409a4171176e06b00660bf98a",
+        "9f54f2eb5c7624e52a4dfbbb487e5b85"
+      ],
+      "rationale": "Stabilizability：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a8b6b85518b7b724cfca5efc15dcc4fe620569603fccade76b21a7c753b1b7e4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ee34b938a6fb68864ccf4aa7",
+      "canonicalRevision": "ff114e3a3c21f42f19789b2298300303b77566ff6462603953a132f2484a7018",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ee0507a8bbed504ebb40c4e5",
+        "canonicalId:ctkg:v3e-object-ee34b938a6fb68864ccf4aa7"
+      ],
+      "evidenceIds": [
+        "34dd2310ea374090dc5d68a707a6429a",
+        "5f1cc8153d91d0ac824f125f759fe874"
+      ],
+      "rationale": "Command following：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ec7ae0c8eb0b2b656fec5e8d07203cc9465763e356b45ff8deb8bdb545021234"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ef115a405fa43a15296f00ed",
+      "canonicalRevision": "012524e29c34e321a0e6a07a3e895a20dcdb0149daf5235f38869bb838e19a8d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8bd605e7b18865cc00a9f46e",
+        "canonicalId:ctkg:v3e-object-ef115a405fa43a15296f00ed"
+      ],
+      "evidenceIds": [
+        "eb6c81f401b5dc650c206d6acfd1111f",
+        "df10b36a246ef85def0349b0c4ade155"
+      ],
+      "rationale": "Composite gain Nbar：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ef575a90566200062f8bc6c86bb8057b27437a26675c7aead2a5eea0bb42acaf"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ef5734bee71ec75e999c13bf",
+      "canonicalRevision": "7bfdb3cf7ee750636a93e0f03f4f0fca5145e97b7106f085437cf1bcf9edfaa2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-68f2267149b5d9c602a189a2",
+        "canonicalId:ctkg:v3e-object-ef5734bee71ec75e999c13bf"
+      ],
+      "evidenceIds": [
+        "a2df0555178faed1537667211541810e",
+        "ca01b072c9b67d3ff6f87f4a9369b72b"
+      ],
+      "rationale": "Computing poles via characteristic equation：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "d5099f0089e7cc5b2ce7f48544f81d1ce8ea6bab2fd15fc8a3da636b1aca553e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1582fd7cc28d16eb111854d",
+      "canonicalRevision": "21a4c34c9c018b49b0557ef79a178c27e1725536ba00ef839929ed9c34aa50cf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-74b91a0becb978c087ba9063",
+        "canonicalId:ctkg:v3e-object-f1582fd7cc28d16eb111854d"
+      ],
+      "evidenceIds": [
+        "ea0b6e757378c481c39be53e9e53432d",
+        "c624952f00a5d0dcc5c2e0a4da5cfeef"
+      ],
+      "rationale": "可控性：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "08c879b4b9e93ad22b3dfe215ab9686b415b70a76059d2d5cccb0b30f443bad7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1c8cab76dae17e688eaa668",
+      "canonicalRevision": "df5620a6d857c7f8b788eafd3fb72694ea32938da51fcdc873a3cd160bb7fb43",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e34dcfc10eef0f8ddcafc6a0",
+        "canonicalId:ctkg:v3e-object-f1c8cab76dae17e688eaa668"
+      ],
+      "evidenceIds": [
+        "148bccb234203d4be6bdee727363c71f",
+        "e693600c04da47c8677f92f24ee56d23"
+      ],
+      "rationale": "Discrete-time controllability rank test：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "d132f421f7d8c19f9f726ba80f2d775a99bb31b827300d894ddef21c97bcb1a0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "canonicalRevision": "168220f6f9d11ea3df8bea664a7a7f9ea9116922780a80aaf5bbaba07b6ce94a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-541b077d4f74b1408022eecb",
+        "canonicalId:ctkg:v3e-object-f1ec085ab5a77428affa50eb"
+      ],
+      "evidenceIds": [
+        "4d6797a238a501f03f7db11bacb779b7",
+        "ab81f110f9205afa1a0da215f20b5bd4"
+      ],
+      "rationale": "极点配置：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "4c4c1608d5bf79c5c9cd2ccd2ae4a17058759deee318bfb35ce53b1803bb640a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+      "canonicalRevision": "34f28ad099d7d8aeef1ee31b16c989a2afa33cefe6074fd93ff106ad32051a16",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e517a3cfc80168d350f565b7",
+        "canonicalId:ctkg:v3e-object-f2f59dc7fc5571446872d432"
+      ],
+      "evidenceIds": [
+        "e2425b82485750a219dc68d6d33464cd",
+        "c9554f8796189a24e3d0768876c466b3"
+      ],
+      "rationale": "系统完全可控：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "8887e3bf99d8c7057cd59e616555437fbe64c131b103fb62f19398d1dde9f2e1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "canonicalRevision": "3b08fa042e90420ea3e7a79304e7905368cf9ad0f84b571555a5b9f9a5d745a9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3f819a362545464526c2a6eb",
+        "canonicalId:ctkg:v3e-object-f5e744188b4f574f567a1a8e"
+      ],
+      "evidenceIds": [
+        "b7d314e3c463b711fa61e5e2693b1927",
+        "edacd7fa0db88bc6ac195c70c2b3ef33"
+      ],
+      "rationale": "状态转移矩阵：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "545f5ae9ae0728536fcca9b51c0d49c746c16f1f3d0f35784f6da1d21b5fef6f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+      "canonicalRevision": "38e04b90b123d07ea7e3159c5423670cad7803d2a021d1a600a5f3fc42939e81",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1bf8f5ad5576b59f4b6a368b",
+        "evidence:ctkg:v3e-evidence-c280844cf274cc7c8df01d7e",
+        "canonicalId:ctkg:v3e-object-fac170446815fe168f9a5469"
+      ],
+      "evidenceIds": [
+        "b9874dd20295dc84a70dbd1c56f76c46",
+        "425acb137e8f668c83f6d4082258ead5",
+        "2a74f12d9c16c254413489d92bf437d3"
+      ],
+      "rationale": "对角线规范型判据：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "582ca4eb03d6eaf131162ef0f116cdd7cc5bc73af6f5ccd8d6369be5de9775a6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fac828826746b38462ac91ba",
+      "canonicalRevision": "9af90c9b37b519a4db174712ce6228239d276f5b8a996ea526e390934493d29e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-04205fbdaeaa74f7fabf5dd9",
+        "canonicalId:ctkg:v3e-object-fac828826746b38462ac91ba"
+      ],
+      "evidenceIds": [
+        "855f255cd2425dc571e48d6afb7d03f5",
+        "aa1b3ff602ed154922f4ed53053eed16"
+      ],
+      "rationale": "系统不可控：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f86463ec237c2023f709c8f37defb73f2ae00e542bb4d8484cb871b57f117fe8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc04597b173e68c152f0c971",
+      "canonicalRevision": "0c1c3e6d941607340c923e42bf05b0b2bb9789f8e3e9cf4d0df2baecfa26dd73",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2aa0ce110b20b814abff1fe0",
+        "canonicalId:ctkg:v3e-object-fc04597b173e68c152f0c971"
+      ],
+      "evidenceIds": [
+        "fdb600ae0fe84f8bafd89f79a21821fa",
+        "83d9163576540be74a0946a8a62ed4ce"
+      ],
+      "rationale": "可观测性：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "b02b5ed67c40f57a99d205e2283d68b82aa8faa46eb3debd34c0d3603e9757cc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+      "canonicalRevision": "59f8b1951e72ab77ebdaf7ab6fee3c5de9d7f3322e2215f67481d9e56c4fc96e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3e50a4abf404c938fbbfd7a3",
+        "canonicalId:ctkg:v3e-object-ff560d5d53d578d0bc57baeb"
+      ],
+      "evidenceIds": [
+        "1c12294d7a1faa4741849dbaa7d0ca73",
+        "e86b12a711b79276d00e894b24e3290f"
+      ],
+      "rationale": "输出可控性：冻结 evidenceRefs 仅含 aggregate,profile，无 boundary=independent-course 可引用证据；按规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "e37265e048e778e14c34b08446826104f6748e431b93108eb9cd09d3d4da04ac"
+    }
+  ],
+  "documentDigest": "2d0553364b8bb58a3022ed441585fa9390959cec5b4ffa35f7d2abbb63f6e0ac"
+}

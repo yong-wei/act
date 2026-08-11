@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+  "safe_id": "ctkg_v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+  "node": {
+    "name": "过阻尼",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "ζ > 1，特征方程有两个不相等的负实根，单位阶跃响应非周期地趋于稳态输出，但响应速度比临界阻尼情况缓慢。",
+  "intuition": null,
+  "explanation": "ζ > 1，特征方程有两个不相等的负实根，单位阶跃响应非周期地趋于稳态输出，但响应速度比临界阻尼情况缓慢。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "过阻尼"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-b9fa7b3ae0d8d7044619ac55.md",
+  "provider_policy": "grok-image_gen"
+}

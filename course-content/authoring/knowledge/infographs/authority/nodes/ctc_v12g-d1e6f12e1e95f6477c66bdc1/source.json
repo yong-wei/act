@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+  "safe_id": "ctc_v12g-d1e6f12e1e95f6477c66bdc1",
+  "node": {
+    "name": "break in point",
+    "name_en": "break_in_point",
+    "concept_kind": "phenomenon",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "break in point：A point on the root locus where two or more roots come into the real axis.",
+  "intuition": null,
+  "explanation": "A point on the root locus where two or more roots come into the real axis.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "break in po…",
+    "break in poi"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v12g-d1e6f12e1e95f6477c66bdc1.md",
+  "provider_policy": "grok-image_gen"
+}

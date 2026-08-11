@@ -1,15 +1,75 @@
-# Knowledge Workspace Product QA Visual Review
+# 知识工作区产品 QA 独立视觉复核
 
-Final result: passed
+最终结果：通过（`finalResult=passed`，无阻断 finding）。
 
-Reviewer: use-grok / grok-4.5
+## 审核范围
 
-Capture revision: 538d91afeabb038c93ea16d0f2fdbf9dce8b1999 / d3e1ec6f5ea42ad053992781aac288a9e5ebcc1a
+本次审核由独立 Grok 视觉审核逐张核查 capture 产出的 29 张截图。审核对象是 `stateMatrix` 中的全部状态，覆盖桌面、平板、移动端、深色/浅色主题、局部工具、语义图谱、检查器、Konling Dock、交互稳定性和高负荷组合状态。
 
-Independent review verified all 29 governed browser states and 17 source hashes against the clean captured revision. The scope covered desktop dark/light, local tools, selected inspector, Konling selected/no-selection/degraded states, adaptive page tools, 1024/1100/1279 tablet breakpoints, 320 mobile states, expanded-shell stress composition, pointer-drag persistence, focus management, and canvas geometry. No blocking visual, responsive, navigation, interaction-stability, or governed-surface overlap regression was found.
+Capture 绑定如下：
 
-Blocking findings: none.
+- commit：`8aa1dfa0fe67f1a1f2c8c3660f655a924f0ccfc1`
+- tree：`80a1d5233687cff831bb30697f14715d902f410d`
+- source SHA：与 `browser-evidence.json` 的 `currentSourceSha256` 精确匹配（17/17）；`reviewedSourceSha256` 已记录同一组值。
+- state SHA：与 `browser-evidence.json` 的 `stateMatrix` 截图 SHA 精确匹配（29/29）；`reviewedStateSha256` 已记录完整映射。
 
-All 14 review dimensions passed: handoff alignment, concept adoption/rejection, AppShell continuity, local tools, semantic map, inspector hierarchy, Konling dock, interaction stability, keyboard focus, theme parity, mobile behavior, tablet breakpoint, stress non-overlap, and canvas geometry.
+29 个状态范围：
 
-Residual non-blocking risk: at 320 px with the Konling dock fully expanded, the AppShell user avatar approaches the input safe area. The governed inspector and local tools are correctly suspended and the state remains usable; follow-up spacing work is optional.
+- `desktop-default-collapsed-dark`
+- `desktop-expanded-persisted-dark`
+- `desktop-local-tools-directory-dark`
+- `desktop-local-tools-filter-dark`
+- `desktop-local-tools-view-dark`
+- `desktop-selected-focus-dark`
+- `desktop-all-relation-families-dark`
+- `desktop-selected-inspector-light`
+- `desktop-hover-click-drag-dark`
+- `desktop-selected-page-tools-menu-dark`
+- `desktop-explicit-relayout-dark`
+- `desktop-3d-fit-relayout-dark`
+- `desktop-konling-selected-expanded-dark`
+- `desktop-konling-no-selection-dark`
+- `desktop-konling-degraded-dark`
+- `desktop-stress-expanded-tool-inspector-konling-dark`
+- `desktop-wide-default-dark`
+- `desktop-wide-inspector-tools-dark`
+- `tablet-1100-default-dark`
+- `tablet-1100-local-tools-filter-dark`
+- `tablet-1100-selected-inspector-dark`
+- `tablet-1024-inspector-tools-konling-dark`
+- `tablet-1100-inspector-tools-konling-dark`
+- `tablet-1279-inspector-tools-konling-dark`
+- `mobile-320-local-tools-dark`
+- `mobile-320-selected-inspector-dark`
+- `mobile-320-konling-expanded-dark`
+- `mobile-320-inspector-konling-stress-dark`
+- `light-theme-default`
+
+## 审核维度
+
+以下 14 个维度均为 `PASS`：
+
+1. `handoffAlignment`
+2. `conceptAdoptionRejection`
+3. `appShellContinuity`
+4. `localTools`
+5. `semanticMap`
+6. `inspectorHierarchy`
+7. `konlingDock`
+8. `interactionStability`
+9. `keyboardFocus`
+10. `themeParity`
+11. `mobileBehavior`
+12. `tabletBreakpoint`
+13. `stressNonOverlap`
+14. `canvasGeometry`
+
+未发现 P0/P1 问题。
+
+## 非阻断观察
+
+- focus-state 邻近边缘及文字对比略弱。
+- 3D 多词标签略紧。
+- 320px 状态存在次级文字截断。
+- 移动端 N 头像靠近助手输入框。
+- 静态截图不能证明 focus ring。

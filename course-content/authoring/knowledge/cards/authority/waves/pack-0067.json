@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0067",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-1ca4635beaad42eaac5ec29e",
+      "name": "Nonlinear Element with Sinusoidal Input",
+      "definition": "Nonlinear Element with Sinusoidal Input：Nonlinear Element with Sinusoidal Input"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-21637e32df41e433f01db54b",
+      "name": "等倾线法",
+      "definition": "等倾线法是求取相轨迹的一种作图方法，不需求解微分方程。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-24abf351ed0af6684efdb4b7",
+      "name": "非齐次状态方程",
+      "definition": "形如 \\dot{x}(t) = A x(t) + B u(t) 的状态方程，包含输入项。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2c60af6bdfb932de8cc33ca5",
+      "name": "Sampler",
+      "definition": "Sampler：A switch that closes every T seconds for one instant of time."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2d3e13db4965d78a3919bba8",
+      "name": "MATLAB绘制相轨迹",
+      "definition": "应用MATLAB软件，调用命令ode45及plot，可解出系统微分方程高阶数值，并在线性坐标平面上方便地绘出相应的相轨迹。"
+    }
+  ],
+  "created_at": "2026-08-05T16:01:08.050287+00:00"
+}

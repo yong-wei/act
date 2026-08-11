@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+  "safe_id": "ctc_v11g-bd59ac156c37a1e319ab71c8",
+  "node": {
+    "name": "poles of l s",
+    "name_en": "poles_of_l_s",
+    "concept_kind": "mathematical_object",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "poles of l s：The roots of a(s)=0, labeled p_i.",
+  "intuition": null,
+  "explanation": "The roots of a(s)=0, labeled p_i.",
+  "relation_head": "后续 → root of the denominator",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "root of the denominator",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "poles of l s",
+    "一种·root"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-bd59ac156c37a1e319ab71c8.md",
+  "provider_policy": "grok-image_gen"
+}

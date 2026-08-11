@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-80b836e636775916830b5a21",
+  "safe_id": "ctkg_v3e-object-80b836e636775916830b5a21",
+  "node": {
+    "name": "相轨迹",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "相变量从初始时刻 t₀ 对应的状态点 (x₀, ẋ₀) 起，随着时间 t 的推移，在相平面上运动形成的曲线称为相轨迹。",
+  "intuition": "在图谱邻接中可把握：前置 → 奇线、相平面图、MATLAB绘制相轨迹 · 后续 → 相平面图、相平面、相变量。",
+  "explanation": "相变量从初始时刻 t₀ 对应的状态点 (x₀, ẋ₀) 起，随着时间 t 的推移，在相平面上运动形成的曲线称为相轨迹。",
+  "relation_head": "前置 → 奇线、相平面图、MATLAB绘制相轨迹 · 后续 → 相平面图、相平面、相变量",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "奇线",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "相平面图",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "相平面",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "相平面图",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "MATLAB绘制相轨迹",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "直接积分法求相轨迹",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "相轨迹",
+    "是一种·奇线",
+    "属于·相平面图",
+    "属于·相平面",
+    "包含组件·相平面图",
+    "用于分析·MATL…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-80b836e636775916830b5a21.md",
+  "provider_policy": "grok-image_gen"
+}

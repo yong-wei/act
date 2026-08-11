@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-6cac20a7c9621cb54a42d57d",
+  "safe_id": "ctkg_v3e-object-6cac20a7c9621cb54a42d57d",
+  "node": {
+    "name": "采样开关",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "采样开关。",
+  "intuition": null,
+  "explanation": "采样开关",
+  "relation_head": "前置 → 采样控制系统、线性采样系统",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "采样控制系统",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "线性采样系统",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "采样开关",
+    "包含组件·采样控制…",
+    "包含组件·线性采样…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-6cac20a7c9621cb54a42d57d.md",
+  "provider_policy": "grok-image_gen"
+}

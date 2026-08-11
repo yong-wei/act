@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+  "safe_id": "ctkg_v3e-object-2c2f917a06c974fda55b52fd",
+  "node": {
+    "name": "Amplitude quantization error",
+    "name_en": "Amplitude quantization error",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Amplitude quantization error：The error introduced when the converted signal m(kT) is stored in digital logic with a finite number of binary digits.",
+  "intuition": "在图谱邻接中可把握：后续 → Quantization error、Analog-to-digital converter。",
+  "explanation": "The error introduced when the converted signal m(kT) is stored in digital logic with a finite number of binary digits.",
+  "relation_head": "后续 → Quantization error、Analog-to-digital converter",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Quantization error",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "Analog-to-digital converter",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Amplitude q…",
+    "一种·Quanti…",
+    "关联·Analog…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-2c2f917a06c974fda55b52fd.md",
+  "provider_policy": "grok-image_gen"
+}

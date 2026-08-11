@@ -1,0 +1,269 @@
+{
+  "schemaVersion": "current-course-coverage-batch-receipt/v1",
+  "protocol": "current-course-coverage-batch-review/1",
+  "status": "DEFERRED_EVIDENCE_BLOCKED",
+  "batchBinding": {
+    "batchId": "bbd99e29d4339410c06d0528",
+    "manifestBatchIndex": 16,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 1,
+    "memberDigest": "bbf983851280ba71a7ae3ffd4dd5e3923bb68a2b5fad50031ffad0bc54662417",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "orderedMembers": [
+    {
+      "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+      "canonicalRevision": "007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe"
+    }
+  ],
+  "stageDocuments": {
+    "primaryDigest": "52ce5874bbbf021150302d83de854c2d804dfa56840049e1802ea9d2062f0895",
+    "challengerDigest": "030a21cad1bb1cd719a9c6d1fadfa3d0fb1a16a3f052b6db556df6865f0efb9d",
+    "thirdDigest": null
+  },
+  "stageRecords": {
+    "primary": {
+      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "batchBinding": {
+        "batchId": "bbd99e29d4339410c06d0528",
+        "manifestBatchIndex": 16,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel",
+        "memberCount": 1,
+        "memberDigest": "bbf983851280ba71a7ae3ffd4dd5e3923bb68a2b5fad50031ffad0bc54662417",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "PRIMARY",
+      "reviewer": {
+        "identity": "grok-independent-primary",
+        "provider": "grok-4.5-build",
+        "sessionId": "991b94cc-94d8-435e-b99a-4eceec7280c2",
+        "promptVersion": "issue-1206-primary-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1206-course-coverage-review/primary-independent-stage-source.json",
+        "artifactSha256": "827600f0ca5484dbc4d0416f9e784b2d6429933c30636b2b29c07c587b471649",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "PRIMARY",
+        "writerSessionId": "991b94cc-94d8-435e-b99a-4eceec7280c2"
+      },
+      "reviewInputDigest": "020be38798f60cb28cac45444964457680157c1cf79f9ff3a83a0f2c51731af6",
+      "decisions": [
+        {
+          "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+          "canonicalRevision": "007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-e7e840270dcfa4baab7a1b68",
+            "canonicalId:ctkg:v3e-object-8febbacce7243f4fa8086290"
+          ],
+          "rationale": "PRIMARY independent review of SystemModel ctkg:v3e-object-8febbacce7243f4fa8086290 (preferredLabel='A block diagram of a welding head positioning system is shown in Figure 6.5. The welding head is moved to different positions on the auto body, and a rapid, accurate response is required.') at canonicalRevision=007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe. Frozen batch bbd99e29d4339410c06d0528 / batches[16] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1']; profileOnly=true and riskFlags.highRisk=true (reasons=['high-risk','profile-only']); sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs is empty. The two frozen evidenceRefs are aggregate-projection only: aggregate-evidence selector evidence:ctkg:v3e-evidence-e7e840270dcfa4baab7a1b68 and canonical-profile selector canonicalId:ctkg:v3e-object-8febbacce7243f4fa8086290; no frozen ref has boundary=independent-course. Primary diagnostic inspection found nearby block-diagram/stability material in the 1-2 handout, legacy 1-2 handout, 3-2 handout, and syllabus-refactor module2 block-diagram section, but these are explicitly non-authoritative diagnosticCandidates and were not promoted into evidenceRefs. With no admitted independent-course evidence, INCLUDE/EXCLUDE and any CourseCoverage role are unsupported. Therefore stageConclusion=DEFER, role=null, evidenceSufficiency=INSUFFICIENT; Issue #1180 must bind/classify the candidates, re-freeze the batch, and rerun before any upgrade.",
+          "decisionDigest": "dc62f4370456edb317fdfdf957c6a7083f312ac027f1c797e3c5c9b827a3b6bb"
+        }
+      ],
+      "reFreezeRequired": true,
+      "reFreezeReason": "Issue #1180 must bind and classify any diagnostic course candidates into independent-course evidence, re-freeze the ordered batch, and then rerun this review; candidates cannot upgrade the current DEFER.",
+      "diagnosticCandidates": [
+        {
+          "path": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
+          "kind": "authoring-handout",
+          "authority": "diagnostic-only",
+          "observation": "1-2 handout is a nearby block-diagram source but is not a frozen evidenceRef for this member."
+        },
+        {
+          "path": "course-content/authoring/lessons/legacy/1-2/design/1-2-handout.md",
+          "kind": "legacy-handout",
+          "authority": "diagnostic-only",
+          "observation": "Legacy 1-2 handout is a nearby block-diagram source but is not a frozen evidenceRef for this member."
+        },
+        {
+          "path": "course-content/authoring/lessons/3-2/design/3-2-handout.md",
+          "kind": "authoring-handout",
+          "authority": "diagnostic-only",
+          "observation": "3-2 handout is a neighboring stability source but is not a frozen evidenceRef for this member."
+        },
+        {
+          "path": "course-content/syllabus-refactor/unit-design-details/module2.md",
+          "kind": "syllabus-blueprint",
+          "authority": "diagnostic-only",
+          "observation": "Module 2 block-diagram section is a neighboring syllabus source but is not a frozen evidenceRef for this member."
+        }
+      ],
+      "documentDigest": "52ce5874bbbf021150302d83de854c2d804dfa56840049e1802ea9d2062f0895"
+    },
+    "challenger": {
+      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "batchBinding": {
+        "batchId": "bbd99e29d4339410c06d0528",
+        "manifestBatchIndex": 16,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel",
+        "memberCount": 1,
+        "memberDigest": "bbf983851280ba71a7ae3ffd4dd5e3923bb68a2b5fad50031ffad0bc54662417",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "CHALLENGER",
+      "reviewer": {
+        "identity": "grok-independent-challenger",
+        "provider": "grok-4.5-build",
+        "sessionId": "7aa9a3b2-4780-435f-817f-cdc585543b53",
+        "promptVersion": "issue-1206-challenger-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1206-course-coverage-review/challenger-independent-stage-source.json",
+        "artifactSha256": "0bb14ae0f508f1a93a36d4e4d24b05c0bd6fb0307a5240a624bf6a94634d5b7d",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "CHALLENGER",
+        "writerSessionId": "7aa9a3b2-4780-435f-817f-cdc585543b53"
+      },
+      "reviewInputDigest": "743a4ed24761e4d79fc43b03b2e741cb92dbc04f27182f87f38b39b12c6eff03",
+      "decisions": [
+        {
+          "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+          "canonicalRevision": "007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-e7e840270dcfa4baab7a1b68",
+            "canonicalId:ctkg:v3e-object-8febbacce7243f4fa8086290"
+          ],
+          "rationale": "CHALLENGER independent CourseCoverage review for SystemModel ctkg:v3e-object-8febbacce7243f4fa8086290 (preferredLabel='A block diagram of a welding head positioning system is shown in Figure 6.5. The welding head is moved to different positions on the auto body, and a rapid, accurate response is required.') at canonicalRevision=007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe. Frozen binding: batchId=bbd99e29d4339410c06d0528 batches[16] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1']; profileOnly=true, riskFlags.new=false, changed=false, highRisk=true, reasons=['high-risk','profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs_count=0. Both frozen evidenceRefs are aggregate-projection only: aggregate-evidence selector evidence:ctkg:v3e-evidence-e7e840270dcfa4baab7a1b68 and canonical-profile selector canonicalId:ctkg:v3e-object-8febbacce7243f4fa8086290; no admitted independent-course boundary exists. Challenger diagnostic inspection checked the 3-1 manifest, 3-2 manifest, syllabus-refactor module3, and 1-2 manifest as nearby candidates, and found no welding-head text in the lesson search scope; these observations remain non-authoritative diagnosticCandidates and are not frozen selectors. Aggregate/profile evidence, module membership, or a failed text search cannot establish an independent CourseCoverage role. Therefore stageConclusion=DEFER, role=null, evidenceSufficiency=INSUFFICIENT; Issue #1180 must bind/classify candidates, re-freeze, and rerun before any INCLUDE/EXCLUDE consideration.",
+          "decisionDigest": "3feeaeb59ba6fcc6c06f8bcc1410b091632c9492e32a3c7155e36e40e9775223"
+        }
+      ],
+      "reFreezeRequired": true,
+      "reFreezeReason": "Issue #1180 must bind and classify any diagnostic course candidates into independent-course evidence, re-freeze the ordered batch, and then rerun this review; absence or presence of nearby text cannot upgrade the current DEFER.",
+      "diagnosticCandidates": [
+        {
+          "path": "course-content/authoring/lessons/3-1/manifest.json",
+          "kind": "lesson-manifest",
+          "authority": "diagnostic-only",
+          "observation": "3-1 manifest is a nearby lesson index but does not carry a frozen independent-course evidenceRef for this member."
+        },
+        {
+          "path": "course-content/authoring/lessons/3-2/manifest.json",
+          "kind": "lesson-manifest",
+          "authority": "diagnostic-only",
+          "observation": "3-2 manifest is a nearby stability lesson index but does not carry a frozen independent-course evidenceRef for this member."
+        },
+        {
+          "path": "course-content/syllabus-refactor/unit-design-details/module3.md",
+          "kind": "syllabus-blueprint",
+          "authority": "diagnostic-only",
+          "observation": "Module 3 syllabus material is a neighboring stability source but is not a frozen evidenceRef for this member."
+        },
+        {
+          "path": "course-content/authoring/lessons/1-2/manifest.json",
+          "kind": "lesson-manifest",
+          "authority": "diagnostic-only",
+          "observation": "1-2 manifest is a nearby modeling lesson index but is not a frozen evidenceRef for this member."
+        }
+      ],
+      "diagnosticSearch": {
+        "scope": "course-content/authoring/lessons/**",
+        "term": "welding-head",
+        "result": "not-found",
+        "authority": "diagnostic-only"
+      },
+      "documentDigest": "030a21cad1bb1cd719a9c6d1fadfa3d0fb1a16a3f052b6db556df6865f0efb9d"
+    },
+    "third": null
+  },
+  "terminalMembers": [
+    {
+      "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+      "canonicalRevision": "007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "dc62f4370456edb317fdfdf957c6a7083f312ac027f1c797e3c5c9b827a3b6bb",
+        "3feeaeb59ba6fcc6c06f8bcc1410b091632c9492e32a3c7155e36e40e9775223"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    }
+  ],
+  "counts": {
+    "members": 1,
+    "included": 0,
+    "excluded": 0,
+    "deferredEvidenceBlocked": 1,
+    "conflicts": 0,
+    "thirdReviewed": 0
+  },
+  "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+  "productionBoundaries": {
+    "currentCoverageDecisionWritten": false,
+    "productionSelectorChanged": false,
+    "graphRagSelectorChanged": false,
+    "writerFenceChanged": false
+  },
+  "productionBoundaryProof": {
+    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
+    "receiptPath": "course-content/authoring/knowledge/issue-1206-course-coverage-review/batch-receipt.json",
+    "attestationPath": "course-content/authoring/knowledge/issue-1206-course-coverage-review/batch-boundary-attestation.json",
+    "headBefore": "0111151a20b6771f0004961261d7c8593f77200e",
+    "protectedPaths": [
+      "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+      "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+      "src/lib/canonical-rag/authority.ts",
+      "src/lib/canonical-learning-fact-identity/authority.ts",
+      "src/lib/canonical-learning-fact-identity/capability.ts",
+      "src/lib/canonical-learning-fact-identity/writer.ts"
+    ],
+    "protectedPathSnapshots": [
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+        "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+        "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+      },
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+        "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+        "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+      },
+      {
+        "relativePath": "src/lib/canonical-rag/authority.ts",
+        "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+        "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+        "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+        "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+        "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+        "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+        "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+        "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+      }
+    ],
+    "statusBefore": [],
+    "authoritySnapshotBeforeDigest": "2f72fc5b7c71e7870c994034a20af6592398853e1bb2fee9541888c2067830a4",
+    "gitDiffCheck": "PASS",
+    "mutationFlags": {
+      "currentCoverageDecisionWritten": false,
+      "productionSelectorChanged": false,
+      "graphRagSelectorChanged": false,
+      "writerFenceChanged": false
+    }
+  },
+  "receiptDigest": "1c85a7bd9673b6bc8e006c6da76dbdfed5f67c2a34092e04fc5b5b6a93a35dee"
+}

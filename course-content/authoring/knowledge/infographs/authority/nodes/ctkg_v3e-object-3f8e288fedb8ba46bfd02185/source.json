@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-3f8e288fedb8ba46bfd02185",
+  "safe_id": "ctkg_v3e-object-3f8e288fedb8ba46bfd02185",
+  "node": {
+    "name": "频率响应法校正设计",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "在线性控制系统中，常用的校正装置设计方法有分析法和综合法两种。",
+  "intuition": "分析法又称试探法，综合法又称期望特性法。",
+  "explanation": "在线性控制系统中，常用的校正装置设计方法有分析法和综合法两种。分析法又称试探法，综合法又称期望特性法。",
+  "relation_head": "前置 → 串联超前校正 · 后续 → 综合法（期望特性法）、分析法（试探法）",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "串联超前校正",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "综合法（期望特性法）",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "分析法（试探法）",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "频率响应法校正设计",
+    "属于·串联超前校正",
+    "包含组件·综合法（…",
+    "包含组件·分析法（…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3f8e288fedb8ba46bfd02185.md",
+  "provider_policy": "grok-image_gen"
+}

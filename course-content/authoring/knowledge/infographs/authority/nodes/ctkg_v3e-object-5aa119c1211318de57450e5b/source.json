@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5aa119c1211318de57450e5b",
+  "safe_id": "ctkg_v3e-object-5aa119c1211318de57450e5b",
+  "node": {
+    "name": "Eigenvector",
+    "name_en": "Eigenvector",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Eigenvector：A vector t_i such that A t_i = p_i t_i, where p_i is the corresponding eigenvalue.",
+  "intuition": "在图谱邻接中可把握：前置 → Eigenvalue、Transformation t。",
+  "explanation": "A vector t_i such that A t_i = p_i t_i, where p_i is the corresponding eigenvalue.",
+  "relation_head": "前置 → Eigenvalue、Transformation t",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Eigenvalue",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "Transformation t",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Eigenvector",
+    "关联·Eigenv…",
+    "关联·Transf…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5aa119c1211318de57450e5b.md",
+  "provider_policy": "grok-image_gen"
+}

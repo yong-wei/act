@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0150",
+  "offset": 750,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-b23d7969cb791dfac72b6319",
+      "batch": "B",
+      "name": "闭环采样系统",
+      "definition": "如果采样器位于系统闭合回路之内，则称为闭环采样系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "闭环采样系统",
+        "是一种·采样控制系统",
+        "关联·采样控制系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 闭环采样系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 如果采样器位于系统闭合回路之内，则称为闭环采样系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「闭环采样系统」、「是一种·采样控制系统」、「关联·采样控制系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f61357354fd32305fac8755b",
+      "batch": "B",
+      "name": "利用开环频域指标估算时域性能方法",
+      "definition": "通过相角裕度γ和截止频率ω_c估算系统时域性能指标。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "利用开环频域指标估算时…",
+        "用于分析·相角裕度",
+        "用于分析·截止频率",
+        "关联·相角裕度",
+        "关联·截止频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 利用开环频域指标估算时域性能方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 通过相角裕度γ和截止频率ω_c估算系统时域性能指标。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「利用开环频域指标估算」、「用于分析·相角裕度」、「用于分析·截止频率」、「关联·相角裕度」、「关联·截止频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-b39d2fc34a2e7f4d7a214652",
+      "batch": "B",
+      "name": "测速发电机输出斜率Kt",
+      "definition": "测速发电机输出斜率Kt，表示单位角速度的输出电压。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "测速发电机输出斜率Kt"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 测速发电机输出斜率Kt\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 测速发电机输出斜率Kt，表示单位角速度的输出电压。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「测速发电机输出斜率K」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-ea4a7ab91e2d3f6b2fb02260",
+      "batch": "B",
+      "name": "两相伺服电动机传递系数Km=C…",
+      "definition": "两相伺服电动机传递系数Km=Cm/(fm+Cω)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "两相伺服电动机传递系数…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 两相伺服电动机传递系数Km=C…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 两相伺服电动机传递系数Km=Cm/(fm+Cω)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「两相伺服电动机传递系」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-11f09aa0d0d4b13271f48dc5",
+      "batch": "B",
+      "name": "主调节器",
+      "definition": "串级控制系统中的主调节器，传递函数为Gc1(s)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "主调节器",
+        "属于·主回路",
+        "包含组件·主回路"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 主调节器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 串级控制系统中的主调节器，传递函数为Gc1(s)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「主调节器」、「属于·主回路」、「包含组件·主回路」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

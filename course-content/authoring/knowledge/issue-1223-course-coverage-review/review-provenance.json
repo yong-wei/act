@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "84aa72597e8fe1d9ee6f0602",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "5b2678f1-d651-4046-a1d1-6691280ac762",
+    "permission": "workspace",
+    "reviewSessionId": "5b2678f1-d651-4046-a1d1-6691280ac762",
+    "reviewSessionScope": "act:issue-1223:primary-review",
+    "sourceWriterSessionId": "5b2678f1-d651-4046-a1d1-6691280ac762",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1223:primary-review",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "068447628380c57b5bd38d2397c1ac58ceb584f67caa2a8309ffe10b1e0fd342",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "48b8e434628b78ff268dec6b4802f1888c7343bb013e75ea9aae8a76af1c11bc",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 1
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored PRIMARY conclusions without producing semantic conclusions.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "068447628380c57b5bd38d2397c1ac58ceb584f67caa2a8309ffe10b1e0fd342",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "5b2678f1-d651-4046-a1d1-6691280ac762"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238",
+    "permission": "workspace",
+    "reviewSessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238",
+    "reviewSessionScope": "act:issue-1223:challenger-review",
+    "sourceWriterSessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1223:challenger-review",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "f37589b26a5cdb4e4935600e58e406f19904906340b72a7d5f1b0f119553d24c",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "e01af4ed1c33106865d78559fafac460cc0ea6dd000e2eabb8ccbf6d6b70dd5a",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 1
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored CHALLENGER conclusions without producing semantic conclusions.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1223-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "f37589b26a5cdb4e4935600e58e406f19904906340b72a7d5f1b0f119553d24c",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "853d6d16-a2e9-4161-b3a0-1f09c5421238"
+    },
+    "didNotReadPrimaryArtifact": true,
+    "sessionAuditPrimaryPathMentions": 0
+  }
+}

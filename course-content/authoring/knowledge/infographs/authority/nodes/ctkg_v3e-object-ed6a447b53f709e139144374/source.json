@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-ed6a447b53f709e139144374",
+  "safe_id": "ctkg_v3e-object-ed6a447b53f709e139144374",
+  "node": {
+    "name": "采样频谱主分量",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "采样频谱中 n=0 的频谱，与连续频谱形状一致，幅值变化为 1/T。",
+  "intuition": null,
+  "explanation": "采样频谱中 n=0 的频谱，与连续频谱形状一致，幅值变化为 1/T。",
+  "relation_head": "后续 → 采样频谱补分量",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "采样频谱补分量",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "采样频谱主分量",
+    "关联·采样频谱补分量"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ed6a447b53f709e139144374.md",
+  "provider_policy": "grok-image_gen"
+}

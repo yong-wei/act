@@ -199,6 +199,40 @@ try {
   );
   assert.match(quotedRenameResult.output, /legacy-competency-vector/);
   assert.match(quotedRenameResult.output, /src\/中文 portrait consumer\.ts/);
+
+  runGit(['commit', '-q', '-m', 'commit rename baseline'], globalHookGitEnv);
+  const mergeBaseCommit = runGit(['rev-parse', 'HEAD'], globalHookGitEnv).trim();
+  runGit(['checkout', '-b', 'portrait-merge-integration'], globalHookGitEnv);
+  const integrationLegacyPath = 'src/portrait-v2-integration-legacy.ts';
+  writeFixture(integrationLegacyPath, 'const integrationValue: CompetencyVector = legacyVector;\n');
+  runGit(['add', integrationLegacyPath], globalHookGitEnv);
+  runGit(['commit', '-q', '-m', 'integration legacy usage'], globalHookGitEnv);
+  runGit(['update-ref', 'refs/remotes/origin/integration', 'portrait-merge-integration'], globalHookGitEnv);
+
+  runGit(['checkout', '-b', 'portrait-merge-feature', mergeBaseCommit], globalHookGitEnv);
+  const featureSafePath = 'src/portrait-v2-merge-safe.ts';
+  writeFixture(featureSafePath, 'export const safeFeatureChange = true;\n');
+  runGit(['add', featureSafePath], globalHookGitEnv);
+  runGit(['commit', '-q', '-m', 'feature safe change'], globalHookGitEnv);
+  runGit(['merge', '--no-commit', '--no-ff', 'portrait-merge-integration'], globalHookGitEnv);
+  const mergeAwareResult = runGate(['--staged']);
+  assert.equal(
+    mergeAwareResult.status,
+    0,
+    'staged merge mode must scan the feature delta instead of legacy usage already present on integration',
+  );
+  assert.match(mergeAwareResult.output, /1 changed file\(s\) scanned/);
+
+  const featureLegacyPath = 'src/portrait-v2-merge-feature-legacy.ts';
+  writeFixture(featureLegacyPath, 'const featureValue: CompetencyVector = legacyVector;\n');
+  runGit(['add', featureLegacyPath], globalHookGitEnv);
+  const featureLegacyMergeResult = runGate(['--staged']);
+  assert.notEqual(
+    featureLegacyMergeResult.status,
+    0,
+    'staged merge mode must still reject legacy usage newly added by the feature',
+  );
+  assert.match(featureLegacyMergeResult.output, /legacy-competency-vector/);
 } finally {
   rmSync(tempRoot, { recursive: true, force: true });
 }

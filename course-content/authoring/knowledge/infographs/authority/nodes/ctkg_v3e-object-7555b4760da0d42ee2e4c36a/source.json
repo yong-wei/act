@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7555b4760da0d42ee2e4c36a",
+  "safe_id": "ctkg_v3e-object-7555b4760da0d42ee2e4c36a",
+  "node": {
+    "name": "积分法求解非齐次状态方程",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "积分法求解非齐次状态方程。",
+  "intuition": null,
+  "explanation": "积分法求解非齐次状态方程",
+  "relation_head": "后续 → 非齐次状态方程",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "非齐次状态方程",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "积分法求解非齐次状态方程",
+    "用于分析·非齐次状…"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7555b4760da0d42ee2e4c36a.md",
+  "provider_policy": "grok-image_gen"
+}

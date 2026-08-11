@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0097",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-8eef39678d2ca15d781ee16d",
+      "name": "Observer poles",
+      "definition": "Observer poles：Poles of the observer, located furthest to the left for faster convergence."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8f93b6b3842cc39fa81d8bc1",
+      "name": "主要带与次要带",
+      "definition": "s平面上从-ωs/2到ωs/2的周期带称为主要带，其余周期带称为次要带，均映射到z平面上的单位圆及单位圆内的负实轴。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-90a70b314d799971df539598",
+      "name": "否成立",
+      "definition": "构造输出可控性矩阵S0=[CB CAB ... CA^{n-1}B D]，检验rank S0=q是否成立。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-97fe46ae03d1bbad4abbc906",
+      "name": "系统可控",
+      "definition": "对于式（9－76）所示线性时变系统，如果状态空间中的所有非零状态都是在 t0(t0∈Tt) 时刻可控的，则称系统在时刻 t0 是完全可控或一致可控的，简称系统在时刻 t0可控。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-983964fdaa7a8bf62f5dc787",
+      "name": "幅相频率特性曲线绘制方法",
+      "definition": "以横轴为实轴、纵轴为虚轴构成复数平面，对于任一给定频率ω，频率特性值为复数，实部为实轴坐标值，虚部为虚轴坐标值，或表示为复平面上的向量，向量长度为幅值，向量与实轴正方向的夹角等于相位。"
+    }
+  ],
+  "created_at": "2026-08-05T16:41:56.682163+00:00"
+}

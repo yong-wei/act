@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "babc4b83475400c53b2f46d7",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "stageArtifactsExistedDuringReviews": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "50b93f16-c3e7-4a45-b9d2-d9b9d65df0f2",
+    "permission": "workspace",
+    "reviewSessionId": "50b93f16-c3e7-4a45-b9d2-d9b9d65df0f2",
+    "reviewSessionScope": "act:issue-1196:primary-source-writer",
+    "sourceWriterSessionId": "50b93f16-c3e7-4a45-b9d2-d9b9d65df0f2",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1196:primary-source-writer",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1196-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "747ead048ce1a15766998a32d0e2df12e505024781ba1806f7c85b3547a4d3bd",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1196-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "7f2330f33f094365044bc82aa763033bdcb24bb2026c1234682eec4dab9039fb",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 118
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The primary orchestrator preserved the independent reviewer conclusions and rationales, normalized frozen evidence selectors, and added only runtime-required binding and canonical digests.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1196-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "747ead048ce1a15766998a32d0e2df12e505024781ba1806f7c85b3547a4d3bd",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "50b93f16-c3e7-4a45-b9d2-d9b9d65df0f2"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "221b9aa4-9a64-4698-9dd9-38b09e6f4332",
+    "permission": "workspace",
+    "reviewSessionId": "221b9aa4-9a64-4698-9dd9-38b09e6f4332",
+    "reviewSessionScope": "act:issue-1196:challenger-source-writer",
+    "sourceWriterSessionId": "221b9aa4-9a64-4698-9dd9-38b09e6f4332",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1196:challenger-source-writer",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1196-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "54dcf869ab42baf53fb3dd3885a1fff2b71d4ab70b3cec9358d1193509eb077f",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1196-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "653225de89884d0c1035edf33dea7b17c5d6b518c74e6cb6652ad90d782a976a",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 118
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The primary orchestrator preserved the independent reviewer conclusions and rationales, normalized frozen evidence selectors, and added only runtime-required binding and canonical digests.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1196-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "54dcf869ab42baf53fb3dd3885a1fff2b71d4ab70b3cec9358d1193509eb077f",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "221b9aa4-9a64-4698-9dd9-38b09e6f4332"
+    }
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+    "challengerDidNotReadPrimary": true
+  }
+}

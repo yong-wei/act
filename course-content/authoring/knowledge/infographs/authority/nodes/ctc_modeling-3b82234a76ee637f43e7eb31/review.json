@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:53:15+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-3b82234a76ee637f43e7eb31",
+  "safe_id": "ctc_modeling-3b82234a76ee637f43e7eb31",
+  "node_name": "1) 确定输入量和输出量",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch7 A accept"
+}

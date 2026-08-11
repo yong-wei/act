@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-db7aabf07d906f63b237e10d",
+  "safe_id": "ctc_modeling-db7aabf07d906f63b237e10d",
+  "node": {
+    "name": "λ₁,",
+    "name_en": "modeling_db7aabf07d906f63b237e10d",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "如果n阶微分方程的特征根是λ₁, λ₂, ..., λₙ且无重根，则把函数e^(λ₁t), e^(λ₂t), ..., e^(λₙt)称为该微分方程所描述运动的模态，也称为振型。",
+  "intuition": "每一种模态代表一种类型的运动形态，齐次微分方程的通解则是它们的线性组合。",
+  "explanation": "如果n阶微分方程的特征根是λ₁, λ₂, ..., λₙ且无重根，则把函数e^(λ₁t), e^(λ₂t), ..., e^(λₙt)称为该微分方程所描述运动的模态，也称为振型。每一种模态代表一种类型的运动形态，齐次微分方程的通解则是它们的线性组合。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "λ₁"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-db7aabf07d906f63b237e10d.md",
+  "provider_policy": "grok-image_gen"
+}

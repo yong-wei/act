@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:08:09+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+  "safe_id": "ctkg_v3e-object-9a4c8dc9963685a6c39a5653",
+  "node_name": "容许控制",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-C vision-mapped accept (状态完全可达/前馈/正阻尼/容许控制/z变换法)"
+}

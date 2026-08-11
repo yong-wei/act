@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-ee34b938a6fb68864ccf4aa7",
+  "safe_id": "ctkg_v3e-object-ee34b938a6fb68864ccf4aa7",
+  "node": {
+    "name": "Command following",
+    "name_en": "Command following",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Command following：An important aspect of feedback design involving the tracking of a reference input.",
+  "intuition": "在图谱邻接中可把握：前置 → Reference input。",
+  "explanation": "An important aspect of feedback design involving the tracking of a reference input.",
+  "relation_head": "前置 → Reference input",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Reference input",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Command fol…",
+    "Command foll",
+    "关联·Refere…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ee34b938a6fb68864ccf4aa7.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T12:02:38+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:v11g-c3abeee0067f823ed190d79e",
+  "safe_id": "ctc_v11g-c3abeee0067f823ed190d79e",
+  "node_name": "开环传递函数中时间常数形式表示…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch17 A accept"
+}

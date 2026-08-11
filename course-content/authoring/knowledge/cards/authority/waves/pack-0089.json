@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0089",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-401d4e9068e3907ca0e6ccc5",
+      "name": "Using tzero to c",
+      "definition": "Using tzero to c：Using tzero to compute transmission zeros"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "name": "系统带宽",
+      "definition": "性能指标中的带宽频率 ω_b 的要求，是一项重要的技术指标。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-43b963b5d880cd12d43fd450",
+      "name": "Using vector margin to assess stability",
+      "definition": "Using vector margin to assess stability：Using vector margin to assess stability"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4442a6f7404caafa6d0ab8e7",
+      "name": "Transmission zero",
+      "definition": "Transmission zero：A value of s such that the system can have a nonzero input and state yet produce zero output."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-476e6f531eebde6502af36f6",
+      "name": "w域中的劳斯稳定判据",
+      "definition": "通过w变换将z平面上的特征方程转换为w平面上的特征方程，然后应用劳斯表判断离散系统的稳定性。"
+    }
+  ],
+  "created_at": "2026-08-05T16:30:09.994472+00:00"
+}

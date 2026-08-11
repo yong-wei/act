@@ -24,6 +24,7 @@ function runNode(script, options = {}) {
 function main() {
   const dockerfile = read('Dockerfile');
   const dockerignore = read('.dockerignore');
+  const mathCalcRequirements = read('scripts/math-calc/requirements.txt');
   const wasmBuildScript = read('scripts/wasm/build-control-engine.mjs');
   const appPrismaClientFactory = read('src/lib/prisma-client.ts');
   const scriptPrismaClientFactory = read('scripts/lib/prisma-client.mjs');
@@ -62,6 +63,30 @@ function main() {
       `Docker runner 必须包含权威知识部署输入: ${requiredCopy}`,
     );
   }
+  const runnerStage = dockerfile.slice(dockerfile.indexOf('FROM base AS runner'));
+  assert.match(
+    runnerStage,
+    /COPY --from=builder \/app\/course-content\/authoring\/knowledge\/authority[\s\S]*RUN rm -f[\s\S]*course-content\/authoring\/knowledge\/authority\/current\.json[\s\S]*course-content\/runtime\/knowledge\/projection\/current\.json/,
+    'Docker runner 必须在复制候选 authority/projection 工件后删除 production current pointer',
+  );
+  assert.ok(
+    runnerStage.indexOf('course-content/authoring/knowledge/releases') >= 0,
+    'Docker runner 必须保留 authority candidate release assets',
+  );
+  assert.ok(
+    runnerStage.indexOf('RUN rm -f') >
+      runnerStage.indexOf('COPY --from=builder /app/course-content/runtime/knowledge/projection'),
+    'Docker runner 的 current pointer 删除必须发生在 projection COPY 之后',
+  );
+  assert.match(
+    remoteDeployScript,
+    /REMOTE_AUTHORITY_CURRENT_POINTER="\$\{REMOTE_AUTHORITY_CURRENT_POINTER:-\$\{REMOTE_PROJECT_DIR\}\/course-content\/authoring\/knowledge\/authority\/current\.json\}"/,
+    'remote deploy 必须固定检查远端 host authoring Authority current pointer',
+  );
+  assert.ok(
+    (remoteDeployScript.match(/check_remote_authority_current_pointer_absence/g) ?? []).length >= 3,
+    'remote deploy 必须在部署前与部署后检查 host Authority current pointer 不存在',
+  );
   assert.match(
     dockerfile,
     /ARG APP_REVISION[\s\S]*printf '%s\\n' "\$\{APP_REVISION\}" > \/app\/\.app-revision/,
@@ -119,6 +144,32 @@ function main() {
     dockerfile,
     /COPY --from=builder \/app\/scripts\/workers \.\/scripts\/workers/,
     'Dockerfile 必须把 worker 所需脚本复制到运行镜像'
+  );
+
+  assert.match(
+    dockerfile,
+    /COPY --from=builder \/app\/scripts\/math-calc \.\/scripts\/math-calc/,
+    'Dockerfile 必须把 math-calc 计算脚本从 builder 复制到运行镜像',
+  );
+  assert.match(
+    dockerfile,
+    /RUN python3 -c '[\s\S]*scripts\/math-calc\/calc\.py[\s\S]*payload\["status"\] == "ok"[\s\S]*payload\["steps"\]\[0\]\["operation"\] == "identify"[\s\S]*'/,
+    'Dockerfile 必须在 runner 阶段执行 calc.py 的真实 SymPy/LaTeX 烟测',
+  );
+  assert.match(
+    dockerfile,
+    /COPY scripts\/math-calc\/requirements\.txt \/tmp\/math-calc-requirements\.txt[\s\S]*pip install[\s\S]*-r \/tmp\/math-calc-requirements\.txt/,
+    'Dockerfile 必须从 math-calc requirements 安装固定依赖',
+  );
+  assert.match(
+    mathCalcRequirements,
+    /^sympy==1\.13\.3$/m,
+    'math-calc requirements 必须固定 SymPy 1.13.3',
+  );
+  assert.match(
+    mathCalcRequirements,
+    /^antlr4-python3-runtime==4\.11\.1$/m,
+    'math-calc requirements 必须固定 antlr4-python3-runtime 4.11.1',
   );
 
   assert.match(
@@ -254,6 +305,16 @@ function main() {
     dockerignore,
     /!scripts\/lib\//,
     '.dockerignore 必须保留 scripts/lib Prisma 工厂进入镜像构建上下文'
+  );
+  assert.match(
+    dockerignore,
+    /!scripts\/math-calc\//,
+    '.dockerignore 必须保留 scripts/math-calc 目录进入镜像构建上下文',
+  );
+  assert.match(
+    dockerignore,
+    /!scripts\/math-calc\/\*\*/,
+    '.dockerignore 必须保留 scripts/math-calc 下的计算脚本与依赖清单进入镜像构建上下文',
   );
   for (const requiredPath of [
     '!scripts/actkg-release/**',

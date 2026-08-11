@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0145",
+  "offset": 725,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-d5867ef3a2e3dc60bcbeeec5",
+      "batch": "B",
+      "name": "相变量",
+      "definition": "系统运动的相变量（状态变量），即 x(t) 和 ẋ(t)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "相变量",
+        "属于·相平面",
+        "包含组件·相平面",
+        "派生自·相轨迹"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 相变量\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统运动的相变量（状态变量），即 x(t) 和 ẋ(t)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「相变量」、「属于·相平面」、「包含组件·相平面」、「派生自·相轨迹」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d812fa08ed1f541982be0df4",
+      "batch": "B",
+      "name": "D/A转换器",
+      "definition": "D/A 转换器是把离散的数字信号转换为连续模拟信号的装置。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "D/A转换器",
+        "属于·复现过程",
+        "属于·解码过程",
+        "关联·模拟信号",
+        "关联·数字信号"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: D/A转换器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): D/A 转换器是把离散的数字信号转换为连续模拟信号的装置。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「D/A转换器」、「属于·复现过程」、「属于·解码过程」、「关联·模拟信号」、「关联·数字信号」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "batch": "B",
+      "name": "开环增益",
+      "definition": "在位置控制系统中，K = K_1 / F，称为开环增益。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "开环增益"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 开环增益\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在位置控制系统中，K = K_1 / F，称为开环增益。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「开环增益」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "batch": "B",
+      "name": "调节时间",
+      "definition": "响应曲线达到并保持在稳态值允许误差范围内所需的最短时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "调节时间",
+        "包含组件·动态性能…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 调节时间\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 响应曲线达到并保持在稳态值允许误差范围内所需的最短时间。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「调节时间」、「包含组件·动态性能…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "batch": "B",
+      "name": "临界阻尼响应",
+      "definition": "临界阻尼情况下的二阶系统的单位阶跃响应称为临界阻尼响应。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "临界阻尼响应"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 临界阻尼响应\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 临界阻尼情况下的二阶系统的单位阶跃响应称为临界阻尼响应。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「临界阻尼响应」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

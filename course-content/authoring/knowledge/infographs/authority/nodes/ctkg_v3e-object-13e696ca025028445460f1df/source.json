@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-13e696ca025028445460f1df",
+  "safe_id": "ctkg_v3e-object-13e696ca025028445460f1df",
+  "node": {
+    "name": "Bandwidth frequency",
+    "name_en": "Bandwidth frequency",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Bandwidth frequency：The frequency at which the frequency response has declined 3 dB from its low-frequency value.",
+  "intuition": "在图谱邻接中可把握：前置 → Resonant frequency。",
+  "explanation": "The frequency at which the frequency response has declined 3 dB from its low-frequency value.",
+  "relation_head": "前置 → Resonant frequency",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Resonant frequency",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Bandwidth f…",
+    "Bandwidth fr",
+    "关联·Resona…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-13e696ca025028445460f1df.md",
+  "provider_policy": "grok-image_gen"
+}

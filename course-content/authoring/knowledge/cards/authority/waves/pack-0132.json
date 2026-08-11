@@ -1,0 +1,72 @@
+{
+  "pack_id": "P0132",
+  "offset": 660,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-9a0b2bbcc18b62af283ab92d",
+      "batch": "B",
+      "name": "Computing zeros ",
+      "definition": "Computing zeros ：Solve det([zI - A, -B",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Computing z…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Computing zeros \nSOURCE DEFINITION (fail-closed, do not invent beyond this): Computing zeros ：Solve det([zI - A, -B\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Computing 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ae46ad7afbc5b4cd102501c7",
+      "batch": "B",
+      "name": "可观测性规范分解方法",
+      "definition": "通过构造非奇异变换矩阵，将系统状态空间表达式变换为可观测规范分解形式的方法。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "可观测性规范分解方法",
+        "一种·可观测性规范…",
+        "应用于·可观测性规…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 可观测性规范分解方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 通过构造非奇异变换矩阵，将系统状态空间表达式变换为可观测规范分解形式的方法。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「可观测性规范分解方法」、「一种·可观测性规范…」、「应用于·可观测性规…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fa4f7e4a46c0790f96077531",
+      "batch": "B",
+      "name": "衰减曲线法",
+      "definition": "使系统阶跃响应产生衰减振荡，再根据衰减振荡曲线的参数来确定PID参数的方法。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "衰减曲线法",
+        "包含组件·比例系数",
+        "包含组件·衰减比",
+        "包含组件·微分时间…",
+        "关联·衰减比"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 衰减曲线法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 使系统阶跃响应产生衰减振荡，再根据衰减振荡曲线的参数来确定PID参数的方法。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「衰减曲线法」、「包含组件·比例系数」、「包含组件·衰减比」、「包含组件·微分时间…」、「关联·衰减比」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-v2r-5585bf06f0e579bc1c362ac2",
+      "batch": "B",
+      "name": "loop",
+      "definition": "loop：v3T accepted candidate for loop.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "loop",
+        "属于·signal…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: loop\nSOURCE DEFINITION (fail-closed, do not invent beyond this): loop：v3T accepted candidate for loop.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「loop」、「属于·signal…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-137c2c4e6fd2c142416cd412",
+      "batch": "B",
+      "name": "动态性能指标",
+      "definition": "描述稳定的系统在单位阶跃函数作用下，动态过程随时间 t 的变化状况的指标。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "动态性能指标",
+        "包含组件·峰值时间",
+        "包含组件·调节时间",
+        "包含组件·上升时间",
+        "包含组件·超调量"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 动态性能指标\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 描述稳定的系统在单位阶跃函数作用下，动态过程随时间 t 的变化状况的指标。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「动态性能指标」、「包含组件·峰值时间」、「包含组件·调节时间」、「包含组件·上升时间」、「包含组件·超调量」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

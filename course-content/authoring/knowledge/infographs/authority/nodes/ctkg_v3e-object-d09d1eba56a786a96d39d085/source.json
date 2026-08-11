@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+  "safe_id": "ctkg_v3e-object-d09d1eba56a786a96d39d085",
+  "node": {
+    "name": "稳定性",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+  "intuition": null,
+  "explanation": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+  "relation_head": "前置 → 平衡状态稳定性、大范围稳定系统、Neutral Stability",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "平衡状态稳定性",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "大范围稳定系统",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "Neutral Stability",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "Marginal stability",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "BIBO stability",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "Absolute Stability",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "稳定性",
+    "一种·平衡状态稳定性",
+    "一种·大范围稳定系统",
+    "一种·Neutra…",
+    "一种·Margin…",
+    "一种·BIBO"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-d09d1eba56a786a96d39d085.md",
+  "provider_policy": "grok-image_gen"
+}

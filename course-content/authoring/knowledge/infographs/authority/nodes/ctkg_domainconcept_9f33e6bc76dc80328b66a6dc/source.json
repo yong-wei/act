@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+  "safe_id": "ctkg_domainconcept_9f33e6bc76dc80328b66a6dc",
+  "node": {
+    "name": "Lyapunov Direct Method",
+    "name_en": "Lyapunov Direct Method",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Lyapunov Direct Method是自动控制原理权威图谱中的领域概念。",
+  "intuition": null,
+  "explanation": "权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。",
+  "relation_head": "后续 → Positive Definite Function、state space model、Lyapunov Stability",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Positive Definite Function",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "state space model",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Lyapunov Stability",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Equilibrium Point",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Lyapunov Di…",
+    "Lyapunov Dir",
+    "一种·Positi…",
+    "用于分析·stat…",
+    "用于分析·Lyap…",
+    "应用于·Equil…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_9f33e6bc76dc80328b66a6dc.md",
+  "provider_policy": "grok-image_gen"
+}

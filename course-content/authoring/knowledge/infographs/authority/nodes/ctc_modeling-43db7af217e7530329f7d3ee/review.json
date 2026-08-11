@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:53:15+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-43db7af217e7530329f7d3ee",
+  "safe_id": "ctc_modeling-43db7af217e7530329f7d3ee",
+  "node_name": "将传递函数分解为严格有理真分式…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch7 A accept"
+}
