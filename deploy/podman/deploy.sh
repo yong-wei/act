@@ -19,6 +19,22 @@ case "$MODE" in
     ;;
 esac
 
+# Capture true caller environment before any file sources so explicit
+# APP_IMAGE / ACT_KNOWLEDGE_DEPLOYMENT_MODE from the invoking process win over
+# .env.server and runtime env files. Unset caller values keep file/default behavior.
+operator_app_image_was_set=0
+operator_app_image=""
+if [ "${APP_IMAGE+x}" = "x" ]; then
+  operator_app_image_was_set=1
+  operator_app_image="$APP_IMAGE"
+fi
+operator_knowledge_mode_was_set=0
+operator_knowledge_mode=""
+if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
+  operator_knowledge_mode_was_set=1
+  operator_knowledge_mode="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
+fi
+
 for env_file in "$PROJECT_DIR/.env.server" "$SCRIPT_DIR/.env.server" "$PROJECT_DIR/.env" "$SCRIPT_DIR/.env"; do
   if [ -f "$env_file" ]; then
     set -a
@@ -34,11 +50,19 @@ if [ "${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED+x}" = "x" ]; then
   operator_adaptive_learner_state_service_enabled_was_set=1
   operator_adaptive_learner_state_service_enabled="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 fi
-operator_app_image_was_set=0
-operator_app_image=""
+# Preserve dotenv-layer image/mode over the runtime env file when the caller
+# did not pin them; caller pins still win after all sources.
+file_app_image_was_set=0
+file_app_image=""
 if [ "${APP_IMAGE+x}" = "x" ]; then
-  operator_app_image_was_set=1
-  operator_app_image="$APP_IMAGE"
+  file_app_image_was_set=1
+  file_app_image="$APP_IMAGE"
+fi
+file_knowledge_mode_was_set=0
+file_knowledge_mode=""
+if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
+  file_knowledge_mode_was_set=1
+  file_knowledge_mode="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
 fi
 
 if [ -f "$RUNTIME_ENV_FILE" ]; then
@@ -55,8 +79,17 @@ else
 fi
 if [ "$operator_app_image_was_set" = "1" ]; then
   APP_IMAGE="$operator_app_image"
+elif [ "$file_app_image_was_set" = "1" ]; then
+  APP_IMAGE="$file_app_image"
 else
   unset APP_IMAGE
+fi
+if [ "$operator_knowledge_mode_was_set" = "1" ]; then
+  ACT_KNOWLEDGE_DEPLOYMENT_MODE="$operator_knowledge_mode"
+elif [ "$file_knowledge_mode_was_set" = "1" ]; then
+  ACT_KNOWLEDGE_DEPLOYMENT_MODE="$file_knowledge_mode"
+else
+  unset ACT_KNOWLEDGE_DEPLOYMENT_MODE
 fi
 
 derive_db_password() {

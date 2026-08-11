@@ -101,6 +101,7 @@ interface ProductionCutoverPlan {
     captureRevision: string;
     toolSha256: string;
     deploymentScriptSha256: string;
+    cleanupEngineSha256: string;
   };
   authority: {
     snapshotId: string;
@@ -240,6 +241,7 @@ function assertPlan(plan: ProductionCutoverPlan): void {
   assert(SHA256.test(plan.source.imageTarSha256), 'plan image tar hash is invalid');
   assert(SHA256.test(plan.source.toolSha256), 'plan tool hash is invalid');
   assert(SHA256.test(plan.source.deploymentScriptSha256), 'plan deployment script hash is invalid');
+  assert(SHA256.test(plan.source.cleanupEngineSha256), 'plan cleanup engine hash is invalid');
   assert(SHA256.test(plan.localFirstActivationReportSha256), 'plan first-activation report hash is invalid');
   assert(SHA256.test(plan.planHash), 'plan hash is invalid');
   assert(sha256(canonicalJson(planBody(plan))) === plan.planHash, 'plan hash mismatch');
@@ -281,6 +283,7 @@ function buildPlan(): ProductionCutoverPlan {
   const imageConfigDigest = option('--image-config-digest');
   const imageTarSha256 = option('--image-tar-sha256');
   const deploymentScript = path.resolve(option('--deployment-script'));
+  const cleanupEngine = path.resolve(option('--cleanup-engine'));
   if (!COMMIT.test(imageRevision)) fail('image revision must be one lowercase Git commit');
   if (!OCI_DIGEST.test(imageConfigDigest)) fail('image config digest must be one sha256 OCI digest');
   if (!SHA256.test(imageTarSha256)) fail('image tar hash must be one sha256 digest');
@@ -349,6 +352,7 @@ function buildPlan(): ProductionCutoverPlan {
       captureRevision,
       toolSha256: hashFile(path.resolve(process.argv[1]!)),
       deploymentScriptSha256: hashFile(deploymentScript),
+      cleanupEngineSha256: hashFile(cleanupEngine),
     },
     authority: {
       snapshotId: authorityManifest.snapshotId!,

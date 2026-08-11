@@ -92,15 +92,16 @@ run_preflight() {
 }
 
 run_stage() {
-  [ "$#" -eq 5 ] || die 'stage requires stage plan_sha tool_sha archive_sha deploy_sha'
+  [ "$#" -eq 6 ] || die 'stage requires stage plan_sha tool_sha archive_sha deploy_sha cleanup_engine_sha'
   local stage="$1"
   local plan_sha="$2"
   local tool_sha="$3"
   local archive_sha="$4"
   local deploy_sha="$5"
+  local cleanup_engine_sha="$6"
   local pair file expected
 
-  for pair in "plan.json.tmp:$plan_sha" "production-cutover.ts.tmp:$tool_sha" "authority.tar.gz.tmp:$archive_sha" "4-deploy.sh.tmp:$deploy_sha"; do
+  for pair in "plan.json.tmp:$plan_sha" "production-cutover.ts.tmp:$tool_sha" "authority.tar.gz.tmp:$archive_sha" "4-deploy.sh.tmp:$deploy_sha" "cleanup-failed-authority-identity.cjs.tmp:$cleanup_engine_sha"; do
     file="${pair%%:*}"
     expected="${pair#*:}"
     [ "$(hash_file "${stage}/${file}")" = "$expected" ] || {
@@ -112,15 +113,185 @@ run_stage() {
 const fs = require("node:fs");
 const plan = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
 if (plan.source?.deploymentScriptSha256 !== process.argv[2]) process.exit(1);
-' "${stage}/plan.json.tmp" "$deploy_sha" || {
-    echo 'ERROR: sealed plan deployment script hash mismatch' >&2
+if (plan.source?.cleanupEngineSha256 !== process.argv[3]) process.exit(1);
+' "${stage}/plan.json.tmp" "$deploy_sha" "$cleanup_engine_sha" || {
+    echo 'ERROR: sealed plan deployment script or cleanup engine hash mismatch' >&2
     exit 1
   }
   mv "${stage}/plan.json.tmp" "${stage}/plan.json"
   mv "${stage}/production-cutover.ts.tmp" "${stage}/production-cutover.ts"
   mv "${stage}/authority.tar.gz.tmp" "${stage}/authority.tar.gz"
   mv "${stage}/4-deploy.sh.tmp" "${stage}/4-deploy.sh"
-  chmod 600 "${stage}/plan.json" "${stage}/production-cutover.ts" "${stage}/authority.tar.gz" "${stage}/4-deploy.sh"
+  mv "${stage}/cleanup-failed-authority-identity.cjs.tmp" "${stage}/cleanup-failed-authority-identity.cjs"
+  chmod 600 "${stage}/plan.json" "${stage}/production-cutover.ts" "${stage}/authority.tar.gz" "${stage}/4-deploy.sh" "${stage}/cleanup-failed-authority-identity.cjs"
+}
+
+run_stage_cleanup_engine() {
+  [ "$#" -eq 4 ] || die 'stage-cleanup-engine requires project_dir stage transaction_id cleanup_engine_sha'
+  local project_dir="$1"
+  local stage="$2"
+  local transaction_id="$3"
+  local cleanup_engine_sha="$4"
+  local expected_stage="${project_dir}/data/runtime/knowledge-cutover/staging/${transaction_id}"
+  local engine_path="${stage}/cleanup-failed-authority-identity.cjs"
+  local engine_tmp="${engine_path}.tmp"
+
+  [[ "$transaction_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
+    || die "invalid cleanup engine transaction id: $transaction_id"
+  [[ "$cleanup_engine_sha" =~ ^[a-f0-9]{64}$ ]] \
+    || die 'invalid cleanup engine hash'
+  [ "$stage" = "$expected_stage" ] \
+    || die "cleanup engine requires canonical stage path: $expected_stage"
+  [ -f "${stage}/plan.json" ] && [ -f "${stage}/authority.tar.gz" ] \
+    || die 'cleanup engine requires an existing sealed failed transaction stage'
+
+  if [ -e "$engine_path" ] || [ -L "$engine_path" ]; then
+    [ -f "$engine_path" ] && [ ! -L "$engine_path" ] \
+      || die 'existing cleanup engine is not a regular file'
+    [ "$(hash_file "$engine_path")" = "$cleanup_engine_sha" ] \
+      || die 'existing cleanup engine hash mismatch'
+    [ ! -e "$engine_tmp" ] && [ ! -L "$engine_tmp" ] \
+      || die 'staged cleanup engine temporary residue already exists'
+  else
+    [ -f "$engine_tmp" ] && [ ! -L "$engine_tmp" ] \
+      || die 'staged cleanup engine is missing or invalid'
+    [ "$(hash_file "$engine_tmp")" = "$cleanup_engine_sha" ] \
+      || die 'staged cleanup engine hash mismatch'
+    mv "$engine_tmp" "$engine_path"
+    chmod 600 "$engine_path"
+  fi
+  printf '{"contract":"act-production-knowledge-cutover-cleanup-engine/v1","transactionId":"%s","cleanupEngineSha256":"%s"}\n' \
+    "$transaction_id" "$cleanup_engine_sha" > "${stage}/cleanup-engine.json"
+  chmod 600 "${stage}/cleanup-engine.json"
+}
+
+OPERATOR_LOCK_BASENAME='.production-cutover-operator.lock'
+
+production_operator_lock_dir() {
+  local project_dir="$1"
+  printf '%s\n' "${project_dir}/course-content/runtime/knowledge/${OPERATOR_LOCK_BASENAME}"
+}
+
+# Exclusive operator lock shared by cleanup and activate mutation windows.
+# Uses mkdir atomic create; never steals or rewrites a preexisting lock.
+acquire_production_operator_lock() {
+  local project_dir="$1"
+  local knowledge_root="${project_dir}/course-content/runtime/knowledge"
+  local lock_dir
+  lock_dir="$(production_operator_lock_dir "$project_dir")"
+  mkdir -p "$knowledge_root" || die "无法创建 knowledge runtime 目录: $knowledge_root"
+  if ! mkdir "$lock_dir" 2>/dev/null; then
+    die "production cutover operator exclusive lock unavailable: $lock_dir"
+  fi
+  # Best-effort ownership marker only; absence must not break lock release.
+  printf '%s\n' "$$" >"${lock_dir}/owner.pid" 2>/dev/null || true
+  printf '%s\n' "$lock_dir"
+}
+
+release_production_operator_lock() {
+  local lock_dir="${1:-}"
+  [ -n "$lock_dir" ] || return 0
+  [ -d "$lock_dir" ] || return 0
+  rm -f "${lock_dir}/owner.pid" 2>/dev/null || true
+  rmdir "$lock_dir" 2>/dev/null || true
+}
+
+validate_authority_archive_listing() {
+  local archive="$1"
+  [ -f "$archive" ] || die "Authority archive missing: $archive"
+  if ! COPYFILE_DISABLE=1 tar -tzf "$archive" | awk '
+    /(^|\/)current\.json$/ || /(^|\/)\._/ || /(^|\/)\.DS_Store$/ || /^\// || /(^|\/)\.\.\// { invalid = 1 }
+    END { exit invalid }
+  '; then
+    die 'Authority archive 包含 selector、macOS metadata 或不安全路径'
+  fi
+}
+
+# Exact recursive identity validation + per-file unlink / reverse rmdir.
+# Never uses recursive directory removal.
+cleanup_failed_authority_identity_delete() {
+  [ "$#" -eq 5 ] || die 'cleanup identity delete requires plan archive transaction_id authority_root engine_path'
+  local plan_path="$1"
+  local archive_path="$2"
+  local transaction_id="$3"
+  local authority_root="$4"
+  local engine_path="$5"
+
+  [ -f "$engine_path" ] || die "cleanup identity engine is missing: $engine_path"
+  node "$engine_path" "$plan_path" "$archive_path" "$transaction_id" "$authority_root"
+}
+run_cleanup_failed_authority() {
+  [ "$#" -eq 4 ] || die 'cleanup-failed-authority requires project_dir stage transaction_id cleanup_engine_sha'
+  local project_dir="$1"
+  local stage="$2"
+  local transaction_id="$3"
+  local cleanup_engine_sha="$4"
+  local runtime_root="${project_dir}/course-content/runtime"
+  local authority_root="${project_dir}/course-content/authoring/knowledge/authority"
+  local marker="${runtime_root}/knowledge/production-cutover-transactions/current.json"
+  local transaction_dir="${runtime_root}/knowledge/production-cutover-transactions"
+  local journal_dir="${runtime_root}/knowledge/consumer-activation/first-activation-transactions"
+  local expected_stage="${project_dir}/data/runtime/knowledge-cutover/staging/${transaction_id}"
+  local cleanup_engine_path="${stage}/cleanup-failed-authority-identity.cjs"
+  local pointer leftover lock_dir=""
+
+  [[ "$transaction_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
+    || die "invalid cleanup transaction id: $transaction_id"
+  [[ "$cleanup_engine_sha" =~ ^[a-f0-9]{64}$ ]] \
+    || die 'invalid cleanup engine hash'
+  [ "$stage" = "$expected_stage" ] \
+    || die "failed Authority cleanup requires canonical stage path: $expected_stage"
+  [ -d "$stage" ] || die "failed transaction stage is missing: $stage"
+  [ -f "${stage}/plan.json" ] || die 'failed Authority cleanup requires sealed plan.json in stage'
+  [ -f "${stage}/authority.tar.gz" ] || die 'failed Authority cleanup requires authority.tar.gz in stage'
+  [ -f "$cleanup_engine_path" ] && [ ! -L "$cleanup_engine_path" ] \
+    || die 'failed Authority cleanup requires a regular staged cleanup engine'
+  [ "$(hash_file "$cleanup_engine_path")" = "$cleanup_engine_sha" ] \
+    || die 'failed Authority cleanup engine hash mismatch'
+  [ -d "$authority_root" ] || die "Authority host store 不存在: $authority_root"
+
+  lock_dir="$(acquire_production_operator_lock "$project_dir")"
+  trap "release_production_operator_lock $(printf '%q' "$lock_dir")" EXIT
+
+  for pointer in \
+    "${authority_root}/current.json" \
+    "${runtime_root}/knowledge/projection/current.json" \
+    "${runtime_root}/knowledge/prerequisites/current.json" \
+    "${runtime_root}/knowledge/consumer-activation/current.json" \
+    "$marker"; do
+    if [ -e "$pointer" ] || [ -L "$pointer" ]; then
+      die "failed Authority cleanup requires no committed transaction state: $pointer"
+    fi
+  done
+
+  if [ -d "$transaction_dir" ]; then
+    leftover="$(find "$transaction_dir" -mindepth 1 \( -type f -o -type l \) -print -quit)"
+    if [ -n "$leftover" ]; then
+      die "failed Authority cleanup refuses existing production receipt/marker residue: $leftover"
+    fi
+  fi
+  if [ -d "$journal_dir" ]; then
+    leftover="$(find "$journal_dir" -mindepth 1 \( -type f -o -type l \) -print -quit)"
+    if [ -n "$leftover" ]; then
+      die "failed Authority cleanup refuses existing first-activation journal residue: $leftover"
+    fi
+  fi
+
+  cleanup_failed_authority_identity_delete \
+    "${stage}/plan.json" \
+    "${stage}/authority.tar.gz" \
+    "$transaction_id" \
+    "$authority_root" \
+    "$cleanup_engine_path" \
+    || die 'failed Authority cleanup exact identity validation or per-file delete failed'
+
+  printf '{"contract":"act-production-knowledge-cutover-failed-authority-cleanup/v1","transactionId":"%s","status":"CLEARED","clearedAt":"%s"}\n' \
+    "$transaction_id" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "${stage}/failed-authority-cleanup.json"
+  chmod 600 "${stage}/failed-authority-cleanup.json"
+  release_production_operator_lock "$lock_dir"
+  trap - EXIT
+  lock_dir=""
+  printf 'failed_authority_cleanup=cleared transaction=%s\n' "$transaction_id"
 }
 
 run_activate() {
@@ -161,6 +332,8 @@ run_activate() {
 
   stop_consumers() {
     local container
+    # Return non-zero (never hard-exit) so the activate ERR trap can run
+    # identity-bound recovery after a partial stop.
     for container in act-obe-app act-obe-worker act-obe-submission-gc act-obe-submission-scanner; do
       if podman container exists "$container"; then
         podman stop -t 30 "$container" >/dev/null || return 1
@@ -168,7 +341,8 @@ run_activate() {
     done
     for container in act-obe-app act-obe-worker act-obe-submission-gc act-obe-submission-scanner; do
       if podman ps --format '{{.Names}}' | grep -Fx "$container" >/dev/null; then
-        die "图谱消费者仍在运行: $container"
+        printf 'ERROR: 图谱消费者仍在运行: %s\n' "$container" >&2
+        return 1
       fi
     done
   }
@@ -190,36 +364,43 @@ run_activate() {
       --plan /activation-plan.json
   }
 
+  # Intent flag: set immediately before the first stop attempt. Partial stop
+  # failures must still enter recovery; pure pre-stop validation must not.
+  local consumer_stop_started=0
+  local operator_lock_dir=""
   restore_legacy_after_failure() {
     local status="$1"
     local recovery_ok=0
     trap - ERR INT TERM
     set +e
-    printf '切换失败，停止消费者并执行身份约束恢复。\n' >&2
-    stop_consumers
-    if [ -e "$marker" ] || [ -L "$marker" ]; then
-      run_driver rollback rw
-      recovery_ok=$?
-    elif ! all_pointers_absent; then
-      if [ -f "$journal" ]; then
-        run_driver recover rw
+    if [ "$consumer_stop_started" -eq 1 ]; then
+      printf '切换失败，停止消费者并执行身份约束恢复。\n' >&2
+      # Finish any incomplete consumer stop, then identity-bound recovery.
+      stop_consumers
+      if [ -e "$marker" ] || [ -L "$marker" ]; then
+        run_driver rollback rw
         recovery_ok=$?
-      else
-        printf 'ERROR: 指针非空但 journal 缺失，拒绝猜测回滚。\n' >&2
-        recovery_ok=1
+      elif ! all_pointers_absent; then
+        if [ -f "$journal" ]; then
+          run_driver recover rw
+          recovery_ok=$?
+        else
+          printf 'ERROR: 指针非空但 journal 缺失，拒绝猜测回滚。\n' >&2
+          recovery_ok=1
+        fi
       fi
-    fi
-    if [ "$recovery_ok" -eq 0 ]; then
-      APP_IMAGE="$image_tag" ACT_KNOWLEDGE_DEPLOYMENT_MODE=legacy "$deploy_script" --app-only
+      if [ "$recovery_ok" -eq 0 ]; then
+        APP_IMAGE="$image_tag" ACT_KNOWLEDGE_DEPLOYMENT_MODE=legacy "$deploy_script" --app-only
+      else
+        printf 'ERROR: 自动恢复未完成；消费者保持停止，保留 stage/journal 供显式恢复。\n' >&2
+      fi
     else
-      printf 'ERROR: 自动恢复未完成；消费者保持停止，保留 stage/journal 供显式恢复。\n' >&2
+      printf '切换在停止消费者前失败，未中断运行中的图谱消费者。\n' >&2
     fi
+    release_production_operator_lock "$operator_lock_dir"
+    operator_lock_dir=""
     exit "$status"
   }
-
-  trap 'restore_legacy_after_failure $?' ERR
-  trap 'restore_legacy_after_failure 130' INT
-  trap 'restore_legacy_after_failure 143' TERM
 
   [ -x "$deploy_script" ] || die "缺少远端部署脚本: $deploy_script"
   all_pointers_absent || die 'transaction 开始时不再是 all-ABSENT'
@@ -246,12 +427,31 @@ run_activate() {
   [ "$expected_image_config_digest" = "$image_config_digest" ] \
     || die 'sealed plan 与固定镜像 OCI config digest 不一致'
 
+  # Content/security/metadata validation must fail closed before any consumer stop.
+  validate_authority_archive_listing "${stage}/authority.tar.gz"
+
+  # Mutation window lock: shared with failed-authority cleanup, independent of the
+  # TypeScript first-activation lock under consumer-activation/.
+  operator_lock_dir="$(acquire_production_operator_lock "$project_dir")"
+
+  if ! all_pointers_absent; then
+    release_production_operator_lock "$operator_lock_dir"
+    operator_lock_dir=""
+    die 'transaction 在取得独占锁后不再是 all-ABSENT'
+  fi
+  authority_entry="$(find "$authority_root" -mindepth 1 -maxdepth 1 -print -quit)"
+  if [ -n "$authority_entry" ]; then
+    release_production_operator_lock "$operator_lock_dir"
+    operator_lock_dir=""
+    die 'Authority host store 在取得独占锁后不为空'
+  fi
+
+  trap 'restore_legacy_after_failure $?' ERR
+  trap 'restore_legacy_after_failure 130' INT
+  trap 'restore_legacy_after_failure 143' TERM
+
+  consumer_stop_started=1
   stop_consumers
-  tar -tzf "${stage}/authority.tar.gz" | while IFS= read -r entry; do
-    if [[ "$entry" == /* || "$entry" == ../* || "$entry" == *"/../"* ]]; then
-      die "Authority archive 含不安全路径: $entry"
-    fi
-  done
   tar -xzf "${stage}/authority.tar.gz" -C "$authority_root"
   all_pointers_absent || die 'Authority staging 不得写入 current pointer'
 
@@ -293,12 +493,16 @@ run_activate() {
   curl -fsS "${public_url%/}/api/readyz" >/dev/null \
     || die '公网 readyz 未在切换后恢复'
 
+  release_production_operator_lock "$operator_lock_dir"
+  operator_lock_dir=""
   printf 'production knowledge cutover committed: transaction=%s image=%s\n' "$transaction_id" "$image_tag"
 }
 
 case "$action" in
   preflight) run_preflight "$@" ;;
   stage) run_stage "$@" ;;
+  stage-cleanup-engine) run_stage_cleanup_engine "$@" ;;
+  cleanup-failed-authority) run_cleanup_failed_authority "$@" ;;
   activate) run_activate "$@" ;;
-  *) die 'expected one of: preflight, stage, activate' ;;
+  *) die 'expected one of: preflight, stage, stage-cleanup-engine, cleanup-failed-authority, activate' ;;
 esac

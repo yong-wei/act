@@ -15,20 +15,26 @@ LOCAL_PROVENANCE_FILE="${LOCAL_PROVENANCE_FILE:-${LOCAL_IMAGE_TAR}.provenance.js
 PROVENANCE_HELPER="${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs"
 CUTOVER_TOOL="${ROOT_DIR}/scripts/knowledge-cutover/production-cutover.ts"
 REMOTE_OPERATOR_SCRIPT="${ROOT_DIR}/scripts/knowledge-cutover/remote-production-cutover.sh"
+CLEANUP_ENGINE="${ROOT_DIR}/scripts/knowledge-cutover/cleanup-failed-authority-identity.cjs"
 LOCAL_APP_DEPLOY_SCRIPT="${ROOT_DIR}/deploy/podman/deploy.sh"
 AUTHORITY_ROOT="${ROOT_DIR}/course-content/authoring/knowledge/authority"
 MIN_REMOTE_FREE_BYTES=$((1024 * 1024 * 1024))
 TRANSACTION_ID=""
+CLEANUP_FAILED_AUTHORITY_TRANSACTION_ID=""
 
 usage() {
   cat <<'EOF'
 用法: scripts/remote-activate-knowledge-cutover.sh [--transaction-id <id>]
+       scripts/remote-activate-knowledge-cutover.sh --cleanup-failed-authority <transaction-id>
 
 仅执行已冻结 v0.4.0 / 58f70df 的生产数据面图谱切换：
   - 不构建、不上传或重标记应用镜像；
   - 在远端以同一不可变镜像运行既有 first-activation 协调器；
   - 切换失败时只按本 transaction 的身份回滚，并恢复 Legacy 服务；
   - 在远端保留 plan、Authority staging archive、journal、receipt 和命令日志。
+
+`--cleanup-failed-authority` 仅对一个尚未提交、且由同一 transaction 留下的
+Authority 解包残留执行身份约束清理；它不会写入任何 current 指针或重建容器。
 EOF
 }
 
@@ -98,13 +104,21 @@ while [[ $# -gt 0 ]]; do
       TRANSACTION_ID="$2"
       shift 2
       ;;
+    --cleanup-failed-authority)
+      [[ $# -ge 2 ]] || fail '--cleanup-failed-authority 缺少 transaction id'
+      CLEANUP_FAILED_AUTHORITY_TRANSACTION_ID="$2"
+      shift 2
+      ;;
     *)
       fail "未知参数: $1"
       ;;
   esac
 done
 
-if [[ -z "$TRANSACTION_ID" ]]; then
+if [[ -n "$CLEANUP_FAILED_AUTHORITY_TRANSACTION_ID" ]]; then
+  [[ -z "$TRANSACTION_ID" ]] || fail '--cleanup-failed-authority 不能与 --transaction-id 同时使用'
+  TRANSACTION_ID="$CLEANUP_FAILED_AUTHORITY_TRANSACTION_ID"
+elif [[ -z "$TRANSACTION_ID" ]]; then
   TRANSACTION_ID="production-v040-58f70df-$(date -u +%Y%m%dT%H%M%SZ)"
 fi
 [[ "$TRANSACTION_ID" =~ ^production-v040-58f70df-[0-9]{8}T[0-9]{6}Z$ ]] \
@@ -117,9 +131,28 @@ for value in "$SSH_TARGET" "$REMOTE_PROJECT_DIR" "$PUBLIC_URL" "$IMAGE_TAG" "$IM
   safe_remote_value "$value"
 done
 
+[[ -f "$REMOTE_OPERATOR_SCRIPT" ]] || fail "缺少远端切换操作器: $REMOTE_OPERATOR_SCRIPT"
+[[ -f "$CLEANUP_ENGINE" ]] || fail "缺少 failed Authority cleanup 引擎: $CLEANUP_ENGINE"
+
+if [[ -n "$CLEANUP_FAILED_AUTHORITY_TRANSACTION_ID" ]]; then
+  cleanup_engine_sha="$(sha256_file "$CLEANUP_ENGINE")"
+  remote_stage="${REMOTE_PROJECT_DIR}/data/runtime/knowledge-cutover/staging/${TRANSACTION_ID}"
+  safe_remote_value "$remote_stage"
+  log '[cleanup] 上传哈希校验的 failed Authority cleanup 引擎'
+  scp -q "$CLEANUP_ENGINE" "$SSH_TARGET:${remote_stage}/cleanup-failed-authority-identity.cjs.tmp"
+  ssh -o BatchMode=yes "$SSH_TARGET" \
+    "bash -s -- stage-cleanup-engine '$REMOTE_PROJECT_DIR' '$remote_stage' '$TRANSACTION_ID' '$cleanup_engine_sha'" \
+    < "$REMOTE_OPERATOR_SCRIPT"
+  log '[cleanup] 对已验证的 failed Authority 残留执行精确清理'
+  ssh -o BatchMode=yes "$SSH_TARGET" \
+    "bash -s -- cleanup-failed-authority '$REMOTE_PROJECT_DIR' '$remote_stage' '$TRANSACTION_ID' '$cleanup_engine_sha'" \
+    < "$REMOTE_OPERATOR_SCRIPT"
+  log "failed Authority 残留已清理：${TRANSACTION_ID}"
+  exit 0
+fi
+
 [[ -x "${ROOT_DIR}/node_modules/.bin/tsx" ]] || fail '缺少 node_modules/.bin/tsx'
 [[ -f "$CUTOVER_TOOL" ]] || fail "缺少生产切换工具: $CUTOVER_TOOL"
-[[ -f "$REMOTE_OPERATOR_SCRIPT" ]] || fail "缺少远端切换操作器: $REMOTE_OPERATOR_SCRIPT"
 [[ -f "$LOCAL_APP_DEPLOY_SCRIPT" ]] || fail "缺少本轮部署脚本: $LOCAL_APP_DEPLOY_SCRIPT"
 [[ -d "$AUTHORITY_ROOT" ]] || fail "缺少 Authority 工件目录: $AUTHORITY_ROOT"
 [[ -s "$LOCAL_IMAGE_TAR" ]] || fail "缺少冻结镜像包: $LOCAL_IMAGE_TAR"
@@ -189,11 +222,21 @@ log '[plan] 生成 hash-sealed production transaction plan'
   --image-tag "$IMAGE_TAG" \
   --image-config-digest "$image_config_digest" \
   --image-tar-sha256 "$image_tar_sha256" \
-  --deployment-script "$LOCAL_APP_DEPLOY_SCRIPT"
+  --deployment-script "$LOCAL_APP_DEPLOY_SCRIPT" \
+  --cleanup-engine "$CLEANUP_ENGINE"
 
-tar --exclude='./current.json' -C "$AUTHORITY_ROOT" -czf "$authority_archive" .
-if tar -tzf "$authority_archive" | grep -E '(^|/)current\.json$' >/dev/null; then
-  fail 'Authority staging archive 不得包含 current.json'
+COPYFILE_DISABLE=1 tar \
+  --exclude='./current.json' \
+  --exclude='./._*' \
+  --exclude='._*' \
+  --exclude='./.DS_Store' \
+  -C "$AUTHORITY_ROOT" \
+  -czf "$authority_archive" .
+if ! COPYFILE_DISABLE=1 tar -tzf "$authority_archive" | awk '
+  /(^|\/)current\.json$/ || /(^|\/)\._/ || /(^|\/)\.DS_Store$/ || /^\// || /(^|\/)\.\.\// { invalid = 1 }
+  END { exit invalid }
+'; then
+  fail 'Authority staging archive 包含 selector、macOS metadata 或不安全路径'
 fi
 
 remote_stage="${REMOTE_PROJECT_DIR}/data/runtime/knowledge-cutover/staging/${TRANSACTION_ID}"
@@ -202,6 +245,7 @@ plan_sha="$(sha256_file "$plan_path")"
 tool_sha="$(sha256_file "$CUTOVER_TOOL")"
 archive_sha="$(sha256_file "$authority_archive")"
 deploy_sha="$(sha256_file "$LOCAL_APP_DEPLOY_SCRIPT")"
+cleanup_engine_sha="$(sha256_file "$CLEANUP_ENGINE")"
 
 log '[stage] 上传 sealed plan、operator tool 与 Authority archive'
 ssh -o BatchMode=yes "$SSH_TARGET" "mkdir -p '$remote_stage' && chmod 700 '$remote_stage'"
@@ -209,8 +253,9 @@ scp -q "$plan_path" "$SSH_TARGET:${remote_stage}/plan.json.tmp"
 scp -q "$CUTOVER_TOOL" "$SSH_TARGET:${remote_stage}/production-cutover.ts.tmp"
 scp -q "$authority_archive" "$SSH_TARGET:${remote_stage}/authority.tar.gz.tmp"
 scp -q "$LOCAL_APP_DEPLOY_SCRIPT" "$SSH_TARGET:${remote_stage}/4-deploy.sh.tmp"
+scp -q "$CLEANUP_ENGINE" "$SSH_TARGET:${remote_stage}/cleanup-failed-authority-identity.cjs.tmp"
 ssh -o BatchMode=yes "$SSH_TARGET" \
-  "bash -s -- stage '$remote_stage' '$plan_sha' '$tool_sha' '$archive_sha' '$deploy_sha'" \
+  "bash -s -- stage '$remote_stage' '$plan_sha' '$tool_sha' '$archive_sha' '$deploy_sha' '$cleanup_engine_sha'" \
   < "$REMOTE_OPERATOR_SCRIPT"
 
 log '[activate] 在远端固定镜像中执行 first-activation；失败将自动恢复 Legacy 服务'
