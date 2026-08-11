@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "capturedAt": "2026-08-11T02:16:54.085Z",
+  "sourceRevision": "5d23fffb00b2ac022b764a268ecf94a28be51125",
+  "generator": {
+    "file": "tests/client-server-build-boundaries-commercial-ui.spec.ts",
+    "sha256": "cb2a1b8caeebde74532ab29ecd567edc0436fc772ed7c7a1e6f9be0d2add87fb"
+  },
+  "productionSourceSha256": {
+    "src/features/assignments/student-assignment-workspace.tsx": "c4404bd0b5851c6e04d33da91bf7c579751e10f520ff819b5a024e87418f32c8",
+    "src/features/graph-center/graph-center-client.tsx": "bcf2f38e984daeb24a78a61cd536f4dc0f67bca0ea05bbf2ab165b90f2a3bd37",
+    "src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx": "e1e809eb64ecb147f6df7e8804d99cdecde1c70dad542b5dbf715c9686ebd20c",
+    "src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx": "687ca704380985600b4e6332983278c9da4ce2dc6f2942306855decb711ea0a8",
+    "src/lib/assignments/assignment-domain.ts": "5d3c42f101a5f68ef3a6648aafe9029287593b970f67a896d566b184ca7cfa2c",
+    "src/lib/assignments/submission-domain.ts": "7e83622b876d63bc88c93ebda088874bfd759752dc5307dda574fa210c52ccfa",
+    "src/lib/layered-graph/bindings.ts": "bb80163f3cfa4fd349b3003bfe278fee52768a9106635681373f59f238452ab9",
+    "src/lib/layered-graph/course-page-drawer.ts": "544b301365426e61e5312f4cb13e27edc3c5c0fc27d8c05604b5ea0762e6ce2a",
+    "src/lib/layered-graph/scope.ts": "3990546b8f36e70ea1e54d38b4d5a40f19bd51e51a7cd42cb7495a6b4a5e0184"
+  },
+  "routes": [
+    "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+    "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo",
+    "/graph-center",
+    "/missions/assignments/assignment-1338?revisionId=revision-1338"
+  ],
+  "assertions": [
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+      "viewport": "1440x1000",
+      "passed": true,
+      "focusReachable": true,
+      "noHorizontalOverflow": true,
+      "checks": [
+        "primary workspace visible",
+        "navigation and primary control reachable",
+        "keyboard focus reaches control",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo",
+      "viewport": "1440x1000",
+      "passed": true,
+      "focusReachable": true,
+      "noHorizontalOverflow": true,
+      "checks": [
+        "primary workspace visible",
+        "navigation and primary control reachable",
+        "keyboard focus reaches control",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "route": "/graph-center",
+      "viewport": "1440x1000",
+      "passed": true,
+      "focusReachable": true,
+      "noHorizontalOverflow": true,
+      "checks": [
+        "primary workspace visible",
+        "navigation and primary control reachable",
+        "keyboard focus reaches control",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "route": "/missions/assignments/assignment-1338?revisionId=revision-1338",
+      "viewport": "1440x1000",
+      "passed": true,
+      "focusReachable": true,
+      "noHorizontalOverflow": true,
+      "checks": [
+        "primary workspace visible",
+        "navigation and primary control reachable",
+        "keyboard focus reaches control",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+      "viewport": "320x900",
+      "passed": true,
+      "focusReachable": true,
+      "noHorizontalOverflow": true,
+      "checks": [
+        "primary workspace visible",
+        "navigation and primary control reachable",
+        "keyboard focus reaches control",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo",
+      "viewport": "320x900",
+      "passed": true,
+      "focusReachable": true,
+      "noHorizontalOverflow": true,
+      "checks": [
+        "primary workspace visible",
+        "navigation and primary control reachable",
+        "keyboard focus reaches control",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "route": "/graph-center",
+      "viewport": "320x900",
+      "passed": true,
+      "focusReachable": true,
+      "noHorizontalOverflow": true,
+      "checks": [
+        "primary workspace visible",
+        "navigation and primary control reachable",
+        "keyboard focus reaches control",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "route": "/missions/assignments/assignment-1338?revisionId=revision-1338",
+      "viewport": "320x900",
+      "passed": true,
+      "focusReachable": true,
+      "noHorizontalOverflow": true,
+      "checks": [
+        "primary workspace visible",
+        "navigation and primary control reachable",
+        "keyboard focus reaches control",
+        "no horizontal overflow"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui/interactive-student-desktop-1440.png",
+      "sha256": "b982f8b984a44f3dc20ddfc1b2b805cabf49eb29a4cb656a7d75dcd5ce6c1ad4",
+      "noHorizontalOverflow": true
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui/interactive-teacher-desktop-1440.png",
+      "sha256": "59fe2b1c18ab6ec42cc802030372fdd088a22f03bc03fd14a9627bc227ed43d0",
+      "noHorizontalOverflow": true
+    },
+    {
+      "route": "/graph-center",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui/graph-center-desktop-1440.png",
+      "sha256": "18c5b8efee2bf6861447ff0236cc865b7bec4613051d40b874b1df5224479d7c",
+      "noHorizontalOverflow": true
+    },
+    {
+      "route": "/missions/assignments/assignment-1338?revisionId=revision-1338",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "file": "openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui/student-assignment-desktop-1440.png",
+      "sha256": "814556d39fdfbd506a51f4d72ebee8429cc83da344b779e661a97787597abfad",
+      "noHorizontalOverflow": true
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui/interactive-student-mobile-320.png",
+      "sha256": "5ea20f6bc43aea0c53fa00ee0671769c7f13039e501d7008c707515643ed08bc",
+      "noHorizontalOverflow": true
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui/interactive-teacher-mobile-320.png",
+      "sha256": "db44efb84cd9bbab7d1233485d03d6a82b661309a954d24e54ada53668a535c4",
+      "noHorizontalOverflow": true
+    },
+    {
+      "route": "/graph-center",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui/graph-center-mobile-320.png",
+      "sha256": "0887c17425618f27062f6e13c729b9364a31bb49a62eb3bf96b9fda1695161d0",
+      "noHorizontalOverflow": true
+    },
+    {
+      "route": "/missions/assignments/assignment-1338?revisionId=revision-1338",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "file": "openspec/changes/fix-client-server-build-boundaries/evidence/commercial-ui/student-assignment-mobile-320.png",
+      "sha256": "a96cb06943cb8b957c380d7d15a8fdb77c98ce5beef362faccd6318c1e3fdd6b",
+      "noHorizontalOverflow": true
+    }
+  ]
+}
