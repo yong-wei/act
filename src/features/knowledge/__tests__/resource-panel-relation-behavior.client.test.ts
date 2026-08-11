@@ -416,6 +416,58 @@ describe('ResourcePanel relation detail behavior', () => {
     returnTarget.remove();
   });
 
+  it('synchronously focuses the mobile inspector from a node control and closes on Escape from the panel', async () => {
+    let matchMediaCalls = 0;
+    vi.stubGlobal('matchMedia', () => ({
+      matches: matchMediaCalls++ === 0,
+      addEventListener() {},
+      removeEventListener() {},
+    }));
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0);
+      return 0;
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 404 })));
+    const detail = {
+      id: 'pointer-node', name: '指针节点', nodeType: 'THEORY' as const, description: '详情',
+      positionX: 0, positionY: 0, positionZ: 0,
+      metadata: {}, relatedNodes: [], resources: [],
+    };
+    function Harness() {
+      const [open, setOpen] = useState(false);
+      return createElement('div', null,
+        createElement('button', {
+          type: 'button',
+          onClick: () => setOpen(true),
+          'data-knowledge-node-control': detail.id,
+        }, detail.name),
+        createElement(ResourcePanel, {
+          isOpen: open,
+          selectedNode: detail,
+          onClose: () => setOpen(false),
+        }),
+      );
+    }
+
+    await act(async () => root.render(createElement(Harness)));
+    const trigger = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="pointer-node"]')!;
+    trigger.focus();
+    const user = userEvent.setup();
+    await user.click(trigger);
+
+    const inspector = document.querySelector<HTMLElement>('[data-knowledge-inspector]')!;
+    const close = document.querySelector<HTMLButtonElement>('[aria-label="关闭知识节点检查器"]')!;
+    expect(matchMediaCalls).toBeGreaterThanOrEqual(2);
+    expect(document.activeElement).toBe(close);
+
+    const panelButton = Array.from(inspector.querySelectorAll<HTMLButtonElement>('button'))
+      .find((button) => button !== close)!;
+    panelButton.focus();
+    await act(async () => fireEvent.keyDown(panelButton, { key: 'Escape' }));
+    expect(document.querySelector('[data-knowledge-inspector]')).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+  });
+
   it('preserves focused close control across exact mobile breakpoint changes and removes the listener', async () => {
     const listeners = new Set<() => void>();
     const media = {

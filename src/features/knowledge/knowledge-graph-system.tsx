@@ -117,6 +117,14 @@ const FOCUSABLE_SELECTOR = [
   'textarea:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
+
+function restoreKnowledgeInspectorFocus(nodeId: string | null) {
+  const nodeControl = nodeId
+    ? Array.from(document.querySelectorAll<HTMLElement>('[data-knowledge-node-control]'))
+      .find((element) => element.dataset.knowledgeNodeControl === nodeId)
+    : null;
+  (nodeControl ?? document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]'))?.focus();
+}
 // 知识节点接口 (Aligned with Prisma Model)
 export interface KnowledgeNodeData {
   id: string;
@@ -683,8 +691,10 @@ export function KnowledgeGraphSystem({
 
   // 关闭资源面板
   const handleClosePanel = useCallback(() => {
+    const closedNodeId = selectedNode?.id ?? null;
     dispatchInspection({ type: 'close-inspector' });
-  }, []);
+    window.requestAnimationFrame(() => restoreKnowledgeInspectorFocus(closedNodeId));
+  }, [selectedNode]);
 
   const chapterOptions = useMemo(() => {
     const chapterSet = new Set<string>();

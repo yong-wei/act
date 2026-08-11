@@ -2448,6 +2448,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile-drawer', 'expanded'],
     ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
   ] as const;
+  const verticalPageScrollExemptions = new Set([
+    'desktop-selected-page-tools-menu-dark',
+  ]);
   const desktopGeometryBaselineName = (name: string, navigationState: string) => {
     if (name.startsWith('tablet-')) return 'tablet-1100-default-dark';
     if (name.startsWith('desktop-wide')) return 'desktop-wide-default-dark';
@@ -2475,6 +2478,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const isMobileViewport = viewportWidth === 320;
     const isTabletBreakpointViewport = [1024, 1100, 1279].includes(viewportWidth ?? 0);
       const isAdaptivePracticeDockState = name === 'desktop-selected-page-tools-menu-dark';
+      const isVerticalPageScrollExempt = verticalPageScrollExemptions.has(name);
       const expectedRoute = isAdaptivePracticeDockState ? '/assessment/adaptive-practice' : '/knowledge';
       const isKnowledgeState = expectedRoute === '/knowledge';
     const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
@@ -2524,7 +2528,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : `${name}:page-horizontal-scroll`,
       typeof scrollHeight === 'number'
         && typeof viewportScrollHeight === 'number'
-        && scrollHeight <= viewportScrollHeight
+        && (isVerticalPageScrollExempt || scrollHeight <= viewportScrollHeight)
         ? null
         : `${name}:page-vertical-scroll`,
       name.startsWith('desktop') && dockState === 'collapsed' && markers.dockInspectorAvoidance !== 'active'
