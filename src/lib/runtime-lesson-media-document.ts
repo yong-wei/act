@@ -47,12 +47,30 @@ function normalizeRuntimeMediaId(filename: string) {
   return filename.replace(/\.[^.]+$/, '');
 }
 
+function isRuntimeMediaFilename(filename: string) {
+  return [
+    '.mp4',
+    '.webm',
+    '.m4a',
+    '.mp3',
+    '.wav',
+    '.pdf',
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.svg',
+    '.gif',
+    '.webp',
+  ].includes(filenameExtension(filename));
+}
+
 export function parseRuntimeLessonMediaIndex(markdown: string): RuntimeLessonMediaResource[] {
   return parseRuntimeLessonMediaDocument(markdown).mediaResources;
 }
 
 export function parseRuntimeLessonMediaDocument(markdown: string): RuntimeLessonMediaDocument {
   const resources: RuntimeLessonMediaResource[] = [];
+  const seenFilenames = new Set<string>();
   const lines = markdown.split(/\r?\n/);
   let currentFilename: string | null = null;
   let currentTitle: string | null = null;
@@ -63,12 +81,13 @@ export function parseRuntimeLessonMediaDocument(markdown: string): RuntimeLesson
   const flushCurrent = () => {
     if (!currentFilename) return;
     const kind = inferRuntimeMediaKind(currentFilename);
-    if (isLessonHandoutMarkdownFilename(currentFilename)) {
+    if (isLessonHandoutMarkdownFilename(currentFilename) || seenFilenames.has(currentFilename)) {
       currentFilename = null;
       currentTitle = null;
       currentUrl = null;
       return;
     }
+    seenFilenames.add(currentFilename);
     resources.push({
       id: normalizeRuntimeMediaId(currentFilename),
       title: currentTitle ?? currentFilename,
@@ -84,9 +103,18 @@ export function parseRuntimeLessonMediaDocument(markdown: string): RuntimeLesson
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
-    if (line.startsWith('# ')) {
+    const heading = line.match(/^#{1,6}\s+(.+)$/);
+    if (heading) {
       flushCurrent();
-      currentFilename = line.slice(2).trim();
+      const filename = heading[1].trim();
+      if (!isRuntimeMediaFilename(filename) && !isLessonHandoutMarkdownFilename(filename)) {
+        currentFilename = null;
+        currentTitle = null;
+        currentUrl = null;
+        inHandoutSection = false;
+        continue;
+      }
+      currentFilename = filename;
       currentTitle = null;
       currentUrl = null;
       inHandoutSection = isLessonHandoutMarkdownFilename(currentFilename);

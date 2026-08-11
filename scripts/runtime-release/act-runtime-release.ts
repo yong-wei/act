@@ -8,6 +8,7 @@ import {
   verifyPublishedRuntimeRelease,
 } from '@/lib/runtime-release-store';
 import { publishRuntimeReleaseViaSsh } from '@/lib/runtime-release-streaming-publisher';
+import { buildRuntimeReleaseMediaClosure, serializeRuntimeReleaseMediaClosure } from '@/lib/runtime-release-media-closure';
 
 function argument(name: string) {
   const index = process.argv.indexOf(name);
@@ -24,6 +25,7 @@ function usage() {
   return [
     'Usage:',
     '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha>',
+    '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--output <closure.json>]',
     '  act-runtime-release publish-streaming --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --bucket <bucket> --region <region> --role-name <ecs-role> [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --bucket <bucket> --region <region> --role-name <ecs-role> [--output <manifest.json>]',
@@ -49,7 +51,7 @@ async function main() {
     process.stdout.write(`${usage()}\n`);
     return;
   }
-  if (!['plan', 'publish-streaming', 'verify', 'inspect'].includes(command)) throw new Error(usage());
+  if (!['plan', 'verify-media-closure', 'publish-streaming', 'verify', 'inspect'].includes(command)) throw new Error(usage());
   if (command === 'plan') {
     const manifest = await buildRuntimeReleaseManifest(required('--runtime-root'), {
       releaseId: 'runtime-plan',
@@ -60,6 +62,20 @@ async function main() {
       sourceRevision: manifest.sourceRevision,
       treeSha256: manifest.treeSha256,
     });
+    return;
+  }
+  if (command === 'verify-media-closure') {
+    const manifest = await buildRuntimeReleaseManifest(required('--runtime-root'), {
+      releaseId: required('--release-id'),
+      sourceRevision: required('--source-revision'),
+    });
+    if (manifest.releaseId !== deriveRuntimeReleaseId(manifest.sourceRevision, manifest.treeSha256)) {
+      throw new Error('Release id does not bind this runtime source identity. Run plan and use the returned release id.');
+    }
+    await writeOutput(argument('--output'), JSON.parse(serializeRuntimeReleaseMediaClosure(await buildRuntimeReleaseMediaClosure({
+      runtimeRoot: required('--runtime-root'),
+      manifest,
+    }))));
     return;
   }
   const releaseId = required('--release-id');

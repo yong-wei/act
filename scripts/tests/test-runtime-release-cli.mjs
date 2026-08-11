@@ -9,7 +9,7 @@ const source = fs.readFileSync(script, 'utf8');
 const bridge = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-release-oss-publisher-bridge.py'), 'utf8');
 const resolverRoute = fs.readFileSync(path.join(root, 'src/app/api/course-runtime/assets/[...assetPath]/route.ts'), 'utf8');
 
-assert.match(source, /\['plan', 'publish-streaming', 'verify', 'inspect'\]/, 'CLI must expose only the streaming write command');
+assert.match(source, /\['plan', 'verify-media-closure', 'publish-streaming', 'verify', 'inspect'\]/, 'CLI must expose only the streaming write command');
 assert.doesNotMatch(source, /command === ['"]publish['"]|\bpublish --runtime-root/, 'CLI must not expose a direct mutating publish command');
 assert.match(source, /roleName: required\('--role-name'\)/, 'CLI must require an ECS RAM role name');
 assert.doesNotMatch(source, /ACCESS_KEY|accessKeySecret|--secret|--access-key/i, 'CLI must not accept static AccessKey or Secret input');
@@ -19,6 +19,7 @@ assert.match(source, /verifyPublishedRuntimeRelease/, 'verify must revalidate th
 assert.match(source, /inspectPublishedRuntimeRelease/, 'inspect must read the published manifest');
 assert.match(source, /deriveRuntimeReleaseId/, 'plan and publish must derive the content-addressed release identity');
 assert.match(source, /publishRuntimeReleaseViaSsh/, 'streaming publish must use the SSH source-authoritative transport');
+assert.match(source, /buildRuntimeReleaseMediaClosure/, 'media closure verification must bind published resources to the release manifest');
 assert.match(source, /--known-hosts-file/, 'streaming publish must require an explicit known-hosts file');
 assert.match(bridge, /api", "put-object"/, 'ECS bridge must use the ossutil v2 PutObject API');
 assert.match(bridge, /--forbid-overwrite/, 'ECS bridge must use conditional no-overwrite semantics');
