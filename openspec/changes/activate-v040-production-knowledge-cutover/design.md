@@ -59,7 +59,7 @@ After a committed production receipt exists, `scripts/remote-deploy.sh` must fai
 1. Verify tag-to-package identity, local provenance/tar hash, local OCI config digest, remote all-ABSENT prestate, Authority-store emptiness, runtime artifact hashes, matching remote image config digest, and free space.
 2. Create and transfer a hash-sealed transaction plan plus Authority staging bundle. Stop app and worker under an exclusive production lock.
 3. Validate staged files and current runtime releases, atomically install the plan-sealed deployment script, then invoke the first-activation coordinator through the exact `v0.4.0` image.
-4. Persist the committed receipt and durable cutover marker, set the deployment mode and fixed image for the app replacement, and recreate app and worker from the same image.
+4. Persist the committed receipt and durable cutover marker, pass the fixed image and `cutover` mode directly to the app replacement, and recreate app and worker from the same image without overwriting the existing secret-bearing `.env.server`.
 5. Verify containers, the four selectors, all six READY consumers, release identity, an actual read-only graph query, public health, and no mixed mode.
 6. On any transaction failure before consumer commit, invoke the coordinator's identity-constrained recovery and keep consumers stopped. On an explicit rollback, stop consumers, restore Legacy service state, then remove only pointers that still match this transaction's identities.
 

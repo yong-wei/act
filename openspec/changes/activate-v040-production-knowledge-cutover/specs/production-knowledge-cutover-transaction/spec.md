@@ -38,6 +38,11 @@ The app, worker, and other graph consumers MUST remain stopped while artifacts a
 - **THEN** the normal remote deployment command SHALL stop before it stops consumers, syncs runtime, or deletes selectors
 - **AND** it SHALL direct the operator to a cutover-aware update or an explicit rollback transaction
 
+#### Scenario: Existing production secrets are retained
+- **WHEN** the remote host already has a secret-bearing `.env.server`
+- **THEN** the transaction SHALL preserve that file without overwriting or deleting it
+- **AND** it SHALL pass the fixed image and explicit `cutover` mode directly to the replacement deployment command
+
 ### Requirement: Unrelated selector domains remain independently governed
 The production transaction MUST NOT alter Legacy retirement, database candidate-state, Canonical resource-binding readiness, or KAQ selectors. Their state MUST be reported separately and MUST NOT be treated as a failure of a ready versioned graph consumer package.
 

@@ -12,6 +12,7 @@ const revision = '58f70df257f493f7dc13b2dabfb0383b972ee017';
 const imageTag = 'localhost/act-obe-platform:v0.4.0-58f70df';
 const imageTar = path.join(root, 'deploy', 'images', 'act-obe-v0.4.0-58f70df.tar');
 const remoteActivator = path.join(root, 'scripts', 'remote-activate-knowledge-cutover.sh');
+const remoteOperator = path.join(root, 'scripts', 'knowledge-cutover', 'remote-production-cutover.sh');
 
 function imageConfigDigest(archive) {
   const read = (entry) => execFileSync('tar', ['-xOf', archive, entry]);
@@ -88,6 +89,7 @@ function main() {
   assert.ok(fs.existsSync(tsx), 'tsx runtime must be available for production cutover tests');
   assert.ok(fs.existsSync(imageTar), 'frozen v0.4.0 OCI image tar must be available');
   const remoteActivatorSource = fs.readFileSync(remoteActivator, 'utf8');
+  const remoteOperatorSource = fs.readFileSync(remoteOperator, 'utf8');
   assert.match(
     remoteActivatorSource,
     /oci_image_config_digest\(\)[\s\S]*--image-config-digest "\$image_config_digest"/u,
@@ -95,14 +97,43 @@ function main() {
   );
   assert.match(
     remoteActivatorSource,
+    /REMOTE_OPERATOR_SCRIPT=.*remote-production-cutover\.sh/u,
+    'remote activation must use the versioned remote operator transport',
+  );
+  assert.equal(
+    (remoteActivatorSource.match(/< "\$REMOTE_OPERATOR_SCRIPT"/gu) ?? []).length,
+    3,
+    'every remote preflight, staging, and activation step must stream the versioned operator file',
+  );
+  assert.doesNotMatch(
+    remoteActivatorSource,
+    /<<'REMOTE_(?:PREFLIGHT|STAGE|TRANSACTION)'/u,
+    'RTK 包装下的 remote operation transport must not use SSH heredocs',
+  );
+  assert.match(
+    remoteOperatorSource,
     /podman image inspect "\$image_tag" --format '\{\{\.Id\}\}'[\s\S]*image_config_digest/u,
     'remote activation must compare the loaded image ID with the sealed OCI config digest',
   );
   assert.match(
-    remoteActivatorSource,
+    remoteOperatorSource,
     /podman inspect "\$container" --format '\{\{\.Image\}\}'[\s\S]*OCI config digest/u,
     'post-cutover containers must be checked against the sealed OCI config digest',
   );
+  assert.match(
+    remoteOperatorSource,
+    /APP_IMAGE="\$image_tag" ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover "\$deploy_script" --app-only/u,
+    'cutover deployment must pass its mode directly to the deployment command',
+  );
+  assert.doesNotMatch(
+    remoteOperatorSource,
+    /printf 'APP_IMAGE=%s\\nACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover\\n'/u,
+    'cutover must not overwrite the existing secret-bearing .env.server file',
+  );
+  for (const scriptPath of [remoteActivator, remoteOperator]) {
+    const syntax = spawnSync('bash', ['-n', scriptPath], { cwd: root, encoding: 'utf8' });
+    assert.equal(syntax.status, 0, syntax.stderr);
+  }
   const ociDigestHelper = remoteActivatorSource.slice(
     remoteActivatorSource.indexOf('oci_image_config_digest()'),
     remoteActivatorSource.indexOf('safe_remote_value()'),

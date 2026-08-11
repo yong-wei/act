@@ -109,7 +109,7 @@ rtk ssh root@121.40.124.135 "curl -k -s https://act.adapt-learn.online/api/ready
 - 若为了验证脚本多次连续执行 `remote-deploy.sh --skip-build` 后触发 Podman/runc 级别异常，例如 `unable to freeze` 或 worker 停在 `Created`，优先做最小恢复：
   - 先确认 `readyz` 是否仍为 `app=true, db=true, redis=true`
   - 若仅 `worker` 未运行，优先 `podman start act-obe-worker`，不要直接再次全量重部署
-- 在 RTK 包装环境中，部署脚本内通过 command substitution 执行的 Node 解析不得使用 heredoc（例如 `node - <<'NODE'`）；其 heredoc 写入可能阻塞而尚未执行远端步骤。小型本地 OCI 元数据解析改用 `node -e '<program>' -- <arg>`，并以静态回归测试禁止该 helper 恢复 heredoc。
+- 在 RTK 包装环境中，部署脚本内的 Node command substitution 或 SSH 远端脚本传输不得使用 heredoc（例如 `node - <<'NODE'`、`ssh ... <<'REMOTE'`）；其 heredoc 写入可能阻塞而尚未执行远端步骤。小型本地 OCI 元数据解析改用 `node -e '<program>' -- <arg>`；远端多行操作器以版本化本地脚本通过标准输入传输，并以静态回归测试禁止恢复 heredoc。
 
 6. 本地收尾并释放 Docker Desktop 内存
 
