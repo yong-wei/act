@@ -1012,6 +1012,12 @@ describe('production Authority/Projection packaging (#1274 P1)', () => {
     expect(deploy).toContain('ACT_AUTHORITY_STORE_ROOT');
     expect(deploy).toContain('ACT_TEACHING_PROJECTION_STORE_ROOT');
     expect(deploy).toContain('ACT_KNOWLEDGE_DEPLOYMENT_MODE="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"');
+    // BusyBox awk treats `index` as a built-in function; the env merge must
+    // use a portable loop variable while preserving the managed-key filter.
+    expect(deploy).not.toContain('for (index in keys)');
+    expect(deploy).toContain(
+      'for (key_index in keys) managed[keys[key_index]] = 1;',
+    );
     expect(deploy).toContain('require_actkg_activation_store_pointers');
     expect(deploy).toContain(
       'ACT_KNOWLEDGE_DEPLOYMENT_MODE="${ACT_KNOWLEDGE_DEPLOYMENT_MODE:-legacy}"',
