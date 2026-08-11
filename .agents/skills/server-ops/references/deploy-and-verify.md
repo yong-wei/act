@@ -130,3 +130,5 @@ rtk proxy osascript -e 'quit app "Docker"'
 - 原子发布目录必须规范化目录遍历权限；文件可读但父目录为 `0700` 时，非 root 容器用户仍会得到 `Permission denied`
 - 远端数据库迁移、Canonical Shadow import 和权威知识 verify-only 都要在最终镜像启动后再次执行；本地测试只证明候选可部署，不证明生产路径成立
 - 删除远端旧镜像或 tar 前确认本地仍保留可校验归档；清理动作与回滚能力必须同时报告
+- 容量预检必须发生在停止 runtime 消费者之前：把本地 tar 实际大小、`docker image inspect .Size`、远端可用空间和数据库备份余量同表核对。经验下限为 `tar + image + 1 GiB`；不足时先清理已核验且本地仍有归档的历史 runtime 备份或传输工件。`podman system df` 的 reclaimable 值异常、或残留 `working-container` 时，不得把它视为可用空间；以 `df -B1 /` 为准，并额外核对 `podman ps --external`。
+- 若 `podman load` 因空间耗尽已停止 app/worker，先以仍存在的直接前驱镜像显式执行 `APP_IMAGE=<previous> /home/projects/act/scripts/4-deploy.sh --app-only` 恢复服务，并通过 `readyz` 后再清理和重试；旧服务未恢复前不得重复全量部署。
