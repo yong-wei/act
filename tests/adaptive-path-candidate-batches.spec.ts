@@ -18,15 +18,17 @@ const screenshots: Array<Record<string, unknown>> = [];
 type CaptureProvenanceSnapshot = {
   commitSha: string;
   sourceSha256: Record<string, string>;
-  checkedOutSourceSha256: Record<string, string>;
+  workingTreeSourceSha256: Record<string, string>;
+  sourceGitBlobIds: Record<string, string>;
 };
 
 type CaptureInputState = {
   commitSha: string;
   trackedChanges: string[];
   workingTreeSourceSha256: Record<string, string>;
-  checkedOutSourceSha256: Record<string, string>;
   committedSourceSha256: Record<string, string>;
+  workingTreeGitBlobIds: Record<string, string>;
+  committedGitBlobIds: Record<string, string>;
 };
 
 function sha256(value: Buffer): string {
@@ -37,8 +39,12 @@ function sourceHashAtCommit(commitSha: string, file: string): string {
   return sha256(execFileSync('git', ['show', `${commitSha}:${file}`]));
 }
 
-function checkedOutSourceHashAtCommit(commitSha: string, file: string): string {
-  return sha256(execFileSync('git', ['cat-file', '--filters', `--path=${file}`, `${commitSha}:${file}`]));
+function workingTreeGitBlobId(file: string): string {
+  return execFileSync('git', ['hash-object', `--path=${file}`, file], { encoding: 'utf8' }).trim();
+}
+
+function sourceGitBlobIdAtCommit(commitSha: string, file: string): string {
+  return execFileSync('git', ['rev-parse', `${commitSha}:${file}`], { encoding: 'utf8' }).trim();
 }
 
 function currentHead(): string {
@@ -63,11 +69,14 @@ function readCaptureInputState(): CaptureInputState {
     workingTreeSourceSha256: Object.fromEntries(
       sourceFiles.map((file) => [file, sha256(readFileSync(path.resolve(process.cwd(), file)))]),
     ),
-    checkedOutSourceSha256: Object.fromEntries(
-      sourceFiles.map((file) => [file, checkedOutSourceHashAtCommit(commitSha, file)]),
-    ),
     committedSourceSha256: Object.fromEntries(
       sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)]),
+    ),
+    workingTreeGitBlobIds: Object.fromEntries(
+      sourceFiles.map((file) => [file, workingTreeGitBlobId(file)]),
+    ),
+    committedGitBlobIds: Object.fromEntries(
+      sourceFiles.map((file) => [file, sourceGitBlobIdAtCommit(commitSha, file)]),
     ),
   };
 }
@@ -83,15 +92,16 @@ function assertCaptureInputsStable(
     expect(
       current.workingTreeSourceSha256[file],
       `${phase}: working-tree bytes drifted for ${file}`,
-    ).toBe(snapshot.checkedOutSourceSha256[file]);
-    expect(
-      current.checkedOutSourceSha256[file],
-      `${phase}: checkout-filtered committed bytes drifted for ${file}`,
-    ).toBe(snapshot.checkedOutSourceSha256[file]);
+    ).toBe(snapshot.workingTreeSourceSha256[file]);
     expect(
       current.committedSourceSha256[file],
       `${phase}: committed bytes drifted for ${file}`,
     ).toBe(snapshot.sourceSha256[file]);
+    expect(
+      current.workingTreeGitBlobIds[file],
+      `${phase}: working-tree content differs from the committed Git blob for ${file}`,
+    ).toBe(snapshot.sourceGitBlobIds[file]);
+    expect(current.committedGitBlobIds[file]).toBe(snapshot.sourceGitBlobIds[file]);
   }
 }
 
@@ -100,7 +110,8 @@ function createCaptureProvenanceSnapshot(): CaptureProvenanceSnapshot {
   const snapshot = {
     commitSha: current.commitSha,
     sourceSha256: current.committedSourceSha256,
-    checkedOutSourceSha256: current.checkedOutSourceSha256,
+    workingTreeSourceSha256: current.workingTreeSourceSha256,
+    sourceGitBlobIds: current.committedGitBlobIds,
   };
   assertCaptureInputsStable(snapshot, current, 'capture start');
   return snapshot;
@@ -391,7 +402,8 @@ test('candidate batch evidence remains bound to committed sources', () => {
     generator: string;
     generatorSha256: string;
     sourceSha256: Record<string, string>;
-    checkedOutSourceSha256: Record<string, string>;
+    captureWorkingTreeSourceSha256: Record<string, string>;
+    sourceGitBlobIds: Record<string, string>;
     screenshots: Array<{ file: string; sha256: string; scenario: string; width: number }>;
   };
   expect(() => execFileSync('git', ['diff', '--quiet', 'HEAD', '--', ...sourceFiles], { stdio: 'ignore' })).not.toThrow();
@@ -402,8 +414,9 @@ test('candidate batch evidence remains bound to committed sources', () => {
   for (const file of sourceFiles) {
     expect(sourceHashAtCommit('HEAD', file)).toBe(manifest.sourceSha256[file]);
     expect(sourceHashAtCommit(manifest.commitSha, file)).toBe(manifest.sourceSha256[file]);
-    expect(sha256(readFileSync(path.resolve(process.cwd(), file)))).toBe(manifest.checkedOutSourceSha256[file]);
-    expect(checkedOutSourceHashAtCommit(manifest.commitSha, file)).toBe(manifest.checkedOutSourceSha256[file]);
+    expect(manifest.captureWorkingTreeSourceSha256[file]).toMatch(/^[a-f0-9]{64}$/);
+    expect(workingTreeGitBlobId(file)).toBe(manifest.sourceGitBlobIds[file]);
+    expect(sourceGitBlobIdAtCommit(manifest.commitSha, file)).toBe(manifest.sourceGitBlobIds[file]);
   }
   expect(new Set(manifest.screenshots.map((screenshot) => `${screenshot.scenario}:${screenshot.width}`))).toEqual(new Set([
     'no-batch:1440', 'loaded:1440', 'missing:1440', 'failed:1440',
@@ -417,13 +430,20 @@ test('candidate batch evidence remains bound to committed sources', () => {
 test('candidate batch capture provenance fails closed on runtime input drift', () => {
   test.skip(updateEvidence, 'capture run exercises the live provenance guard');
   const sourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, 'stable-hash']));
-  const snapshot = { commitSha: 'stable-head', sourceSha256, checkedOutSourceSha256: sourceSha256 };
+  const sourceGitBlobIds = Object.fromEntries(sourceFiles.map((file) => [file, 'stable-blob']));
+  const snapshot = {
+    commitSha: 'stable-head',
+    sourceSha256,
+    workingTreeSourceSha256: sourceSha256,
+    sourceGitBlobIds,
+  };
   const stableState: CaptureInputState = {
     commitSha: snapshot.commitSha,
     trackedChanges: [],
     workingTreeSourceSha256: sourceSha256,
-    checkedOutSourceSha256: sourceSha256,
     committedSourceSha256: sourceSha256,
+    workingTreeGitBlobIds: sourceGitBlobIds,
+    committedGitBlobIds: sourceGitBlobIds,
   };
 
   expect(() => assertCaptureInputsStable(snapshot, {
@@ -559,7 +579,8 @@ test.afterAll(() => {
     generatorSha256: captureProvenance!.sourceSha256['tests/adaptive-path-candidate-batches.spec.ts'],
     representativeRoute: `/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=${batchId}`,
     sourceSha256: captureProvenance!.sourceSha256,
-    checkedOutSourceSha256: captureProvenance!.checkedOutSourceSha256,
+    captureWorkingTreeSourceSha256: captureProvenance!.workingTreeSourceSha256,
+    sourceGitBlobIds: captureProvenance!.sourceGitBlobIds,
     screenshots,
   }, null, 2)}\n`;
 
