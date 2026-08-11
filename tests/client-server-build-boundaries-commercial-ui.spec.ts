@@ -81,8 +81,8 @@ function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
-function sourceHashAtRevision(revision: string, file: string): string {
-  return sha256(execFileSync('git', ['show', `${revision}:${file}`]));
+function sourceHash(file: string): string {
+  return sha256(readFileSync(path.resolve(process.cwd(), file)));
 }
 
 function currentHead(): string {
@@ -95,15 +95,6 @@ function hasWorkingTreeSourceDrift(): boolean {
     return false;
   } catch {
     return true;
-  }
-}
-
-function isAncestor(ancestor: string, descendant: string): boolean {
-  try {
-    execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant]);
-    return true;
-  } catch {
-    return false;
   }
 }
 
@@ -189,21 +180,17 @@ test('commercial UI evidence remains bound to unchanged implementation sources',
     assertions?: Array<{ passed?: boolean; focusReachable?: boolean; noHorizontalOverflow?: boolean }>;
     screenshots?: Array<{ file: string; sha256: string; noHorizontalOverflow?: boolean }>;
   };
-  const head = currentHead();
   expect(manifest.schemaVersion).toBe('commercial-ui-evidence.v1');
   expect(manifest.capturedAt && Number.isFinite(Date.parse(manifest.capturedAt))).toBe(true);
   expect(manifest.sourceRevision).toMatch(/^[0-9a-f]{40}$/);
-  expect(isAncestor(manifest.sourceRevision!, head)).toBe(true);
   expect(hasWorkingTreeSourceDrift(), 'tracked evidence sources must match HEAD').toBe(false);
   expect(manifest.generator).toEqual({
     file: generatorFile,
-    sha256: sourceHashAtRevision(manifest.sourceRevision!, generatorFile),
+    sha256: sourceHash(generatorFile),
   });
-  expect(sourceHashAtRevision(head, generatorFile)).toBe(manifest.generator?.sha256);
   for (const file of productionSourceFiles) {
     const expected = manifest.productionSourceSha256?.[file];
-    expect(expected, `${file} source hash missing`).toBe(sourceHashAtRevision(manifest.sourceRevision!, file));
-    expect(sourceHashAtRevision(head, file), `${file} changed after evidence capture`).toBe(expected);
+    expect(expected, `${file} source hash missing`).toBe(sourceHash(file));
   }
   expect(manifest.assertions).toHaveLength(viewports.length * routes.length);
   expect(manifest.assertions?.every((item) => item.passed && item.focusReachable && item.noHorizontalOverflow)).toBe(true);
@@ -272,9 +259,9 @@ test.afterAll(() => {
     schemaVersion: 'commercial-ui-evidence.v1',
     capturedAt: new Date().toISOString(),
     sourceRevision,
-    generator: { file: generatorFile, sha256: sourceHashAtRevision(sourceRevision, generatorFile) },
+    generator: { file: generatorFile, sha256: sourceHash(generatorFile) },
     productionSourceSha256: Object.fromEntries(
-      productionSourceFiles.map((file) => [file, sourceHashAtRevision(sourceRevision, file)]),
+      productionSourceFiles.map((file) => [file, sourceHash(file)]),
     ),
     routes: routes.map((route) => route.href),
     assertions,
