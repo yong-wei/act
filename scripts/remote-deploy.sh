@@ -14,6 +14,12 @@ REMOTE_IMAGE_TAR="${REMOTE_IMAGE_TAR:-${REMOTE_IMAGES_DIR}/act-obe.tar}"
 REMOTE_PROVENANCE_FILE="${REMOTE_PROVENANCE_FILE:-${REMOTE_IMAGE_TAR}.provenance.json}"
 LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
 REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
+REMOTE_OSSFS_MOUNT_ROOT="${REMOTE_OSSFS_MOUNT_ROOT:-${REMOTE_PROJECT_DIR}/data/runtime/ossfs/releases}"
+RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-legacy-rsync}"
+RUNTIME_RELEASE_ID="${RUNTIME_RELEASE_ID:-}"
+RUNTIME_EXPECTED_ACTIVE_RELEASE="${RUNTIME_EXPECTED_ACTIVE_RELEASE:-}"
+RUNTIME_VERIFICATION_RECEIPT="${RUNTIME_VERIFICATION_RECEIPT:-}"
+RUNTIME_OSS_RAM_ROLE="${RUNTIME_OSS_RAM_ROLE:-}"
 REMOTE_RUNTIME_PARENT_DIR="$(dirname "${REMOTE_RUNTIME_DIR}")"
 REMOTE_AUTHORITY_CURRENT_POINTER="${REMOTE_AUTHORITY_CURRENT_POINTER:-${REMOTE_PROJECT_DIR}/course-content/authoring/knowledge/authority/current.json}"
 REMOTE_PRODUCTION_CUTOVER_MARKER="${REMOTE_PRODUCTION_CUTOVER_MARKER:-${REMOTE_RUNTIME_DIR}/knowledge/production-cutover-transactions/current.json}"
@@ -37,6 +43,13 @@ REMOTE_EXPORT_DB_SCRIPT="${REMOTE_EXPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/script
 REMOTE_LOAD_IMAGES_SCRIPT="${REMOTE_LOAD_IMAGES_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/2-load-images.sh}"
 REMOTE_IMPORT_DB_SCRIPT="${REMOTE_IMPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/3-import-db.sh}"
 REMOTE_NGINX_SCRIPT="${REMOTE_NGINX_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/6-configure-nginx.sh}"
+LOCAL_RUNTIME_RELEASE_DIR="${LOCAL_RUNTIME_RELEASE_DIR:-${ROOT_DIR}/scripts/runtime-release}"
+REMOTE_RUNTIME_RELEASE_DIR="${REMOTE_RUNTIME_RELEASE_DIR:-${REMOTE_PROJECT_DIR}/scripts/runtime-release}"
+REMOTE_RUNTIME_HOST_STATE_SCRIPT="${REMOTE_RUNTIME_HOST_STATE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/runtime-release-host-state.py}"
+REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT="${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/configure-runtime-ossfs-release.sh}"
+REMOTE_RUNTIME_ACTIVATE_SCRIPT="${REMOTE_RUNTIME_ACTIVATE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/activate-runtime-release.sh}"
+REMOTE_RUNTIME_OSSFS_SERVICE="${REMOTE_RUNTIME_OSSFS_SERVICE:-/etc/systemd/system/act-runtime-ossfs@.service}"
+REMOTE_RUNTIME_VERIFICATION_RECEIPT="${REMOTE_RUNTIME_VERIFICATION_RECEIPT:-${REMOTE_PROJECT_DIR}/data/runtime/act-runtime-release-verification.json}"
 PUBLIC_URL="${PUBLIC_URL:-https://act.adapt-learn.online/}"
 APP_NAME_HINT="${APP_NAME_HINT:-act-obe-app}"
 DB_NAME_HINT="${DB_NAME_HINT:-act-obe-postgres}"
@@ -175,6 +188,33 @@ if [ -e \"\${pointer}\" ] || [ -L \"\${pointer}\" ]; then
   exit 1
 fi
 '"
+}
+
+require_oss_runtime_release_inputs() {
+  [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-release" ]] || return 0
+  [[ "${RUNTIME_RELEASE_ID}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || fail "ossfs-release 缺少有效 RUNTIME_RELEASE_ID"
+  [[ "${RUNTIME_EXPECTED_ACTIVE_RELEASE}" == "none" || "${RUNTIME_EXPECTED_ACTIVE_RELEASE}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || fail "ossfs-release 缺少有效 RUNTIME_EXPECTED_ACTIVE_RELEASE（首次切换使用 none）"
+  [[ -f "${RUNTIME_VERIFICATION_RECEIPT}" ]] || fail "ossfs-release 缺少本地 verification receipt"
+  [[ "${RUNTIME_OSS_RAM_ROLE}" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || fail "ossfs-release 缺少有效 ECS RAM Role 名称"
+  for file in runtime-release-host-state.py configure-runtime-ossfs-release.sh activate-runtime-release.sh rollback-runtime-release.sh act-runtime-ossfs@.service; do
+    [[ -f "${LOCAL_RUNTIME_RELEASE_DIR}/${file}" ]] || fail "ossfs-release 本地工具缺失: ${LOCAL_RUNTIME_RELEASE_DIR}/${file}"
+  done
+}
+
+sync_oss_runtime_release_host_tools() {
+  remote "mkdir -p '${REMOTE_RUNTIME_RELEASE_DIR}' '$(dirname "${REMOTE_RUNTIME_HOST_STATE_SCRIPT}")' '$(dirname "${REMOTE_RUNTIME_VERIFICATION_RECEIPT}")' '$(dirname "${REMOTE_RUNTIME_OSSFS_SERVICE}")'"
+  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/runtime-release-host-state.py" "${SSH_TARGET}:${REMOTE_RUNTIME_HOST_STATE_SCRIPT}.tmp"
+  remote "chmod 0755 '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}.tmp' && mv '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}.tmp' '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}'"
+  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/configure-runtime-ossfs-release.sh" "${SSH_TARGET}:${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT}.tmp"
+  remote "chmod 0755 '${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT}.tmp' && mv '${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT}.tmp' '${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT}'"
+  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/activate-runtime-release.sh" "${SSH_TARGET}:${REMOTE_RUNTIME_ACTIVATE_SCRIPT}.tmp"
+  remote "chmod 0755 '${REMOTE_RUNTIME_ACTIVATE_SCRIPT}.tmp' && mv '${REMOTE_RUNTIME_ACTIVATE_SCRIPT}.tmp' '${REMOTE_RUNTIME_ACTIVATE_SCRIPT}'"
+  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh" "${SSH_TARGET}:${REMOTE_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh.tmp"
+  remote "chmod 0755 '${REMOTE_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh.tmp' && mv '${REMOTE_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh.tmp' '${REMOTE_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh'"
+  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/act-runtime-ossfs@.service" "${SSH_TARGET}:${REMOTE_RUNTIME_OSSFS_SERVICE}.tmp"
+  remote "chmod 0644 '${REMOTE_RUNTIME_OSSFS_SERVICE}.tmp' && mv '${REMOTE_RUNTIME_OSSFS_SERVICE}.tmp' '${REMOTE_RUNTIME_OSSFS_SERVICE}' && systemctl daemon-reload"
+  scp -q "${RUNTIME_VERIFICATION_RECEIPT}" "${SSH_TARGET}:${REMOTE_RUNTIME_VERIFICATION_RECEIPT}.tmp"
+  remote "chmod 0600 '${REMOTE_RUNTIME_VERIFICATION_RECEIPT}.tmp' && mv '${REMOTE_RUNTIME_VERIFICATION_RECEIPT}.tmp' '${REMOTE_RUNTIME_VERIFICATION_RECEIPT}'"
 }
 
 guard_no_committed_production_cutover() {
@@ -396,9 +436,20 @@ require_cmd bash
 require_cmd ssh
 require_cmd scp
 require_cmd curl
-require_cmd rsync
 require_cmd python3
 require_cmd node
+
+case "${RUNTIME_DELIVERY_MODE}" in
+  legacy-rsync)
+    require_cmd rsync
+    ;;
+  ossfs-release)
+    require_oss_runtime_release_inputs
+    ;;
+  *)
+    fail "RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release"
+    ;;
+esac
 
 log "[1/5] 本地构建"
 if [[ "${SKIP_BUILD}" == "1" ]]; then
@@ -415,10 +466,12 @@ fi
 node "${LOCAL_PROVENANCE_HELPER}" verify-image \
   --image-tar "${LOCAL_IMAGE_TAR}" \
   --sidecar "${LOCAL_PROVENANCE_FILE}"
-node "${LOCAL_PROVENANCE_HELPER}" verify-runtime \
-  --runtime-root "${LOCAL_TEXTBOOK_V2_RUNTIME_DIR}" \
-  --index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
-  --sidecar "${LOCAL_PROVENANCE_FILE}"
+if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
+  node "${LOCAL_PROVENANCE_HELPER}" verify-runtime \
+    --runtime-root "${LOCAL_TEXTBOOK_V2_RUNTIME_DIR}" \
+    --index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
+    --sidecar "${LOCAL_PROVENANCE_FILE}"
+fi
 PROVENANCE_APP_REVISION="$(
   node "${LOCAL_PROVENANCE_HELPER}" print-field \
     --sidecar "${LOCAL_PROVENANCE_FILE}" \
@@ -445,11 +498,13 @@ PROVENANCE_INDEX_DIGEST="$(
     --field indexDigest
 )"
 
-log "- 校验七套外置教材 v2 runtime"
-node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
-  --runtime-root "${LOCAL_TEXTBOOK_V2_RUNTIME_DIR}" \
-  --index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
-  --expected-source-revision "${PROVENANCE_RUNTIME_REVISION}"
+if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
+  log "- 校验七套外置教材 v2 runtime"
+  node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
+    --runtime-root "${LOCAL_TEXTBOOK_V2_RUNTIME_DIR}" \
+    --index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
+    --expected-source-revision "${PROVENANCE_RUNTIME_REVISION}"
+fi
 
 LOCAL_SHA="$(local_sha256 "${LOCAL_IMAGE_TAR}")"
 log "本地镜像: ${LOCAL_IMAGE_TAR}"
@@ -462,8 +517,10 @@ guard_no_committed_production_cutover
 
 log
 log "[2/5] 同步运行时资源与部署脚本"
-[[ -d "${LOCAL_RUNTIME_DIR}" ]] || fail "本地 runtime 目录不存在: ${LOCAL_RUNTIME_DIR}"
-[[ -f "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}/manifest.json" ]] || fail "本地教材检索索引缺少 manifest"
+if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
+  [[ -d "${LOCAL_RUNTIME_DIR}" ]] || fail "本地 runtime 目录不存在: ${LOCAL_RUNTIME_DIR}"
+  [[ -f "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}/manifest.json" ]] || fail "本地教材检索索引缺少 manifest"
+fi
 [[ -f "${LOCAL_APP_DEPLOY_SCRIPT}" ]] || fail "本地应用部署脚本不存在: ${LOCAL_APP_DEPLOY_SCRIPT}"
 [[ -f "${LOCAL_SERVICE_SCRIPT}" ]] || fail "本地 systemd 配置脚本不存在: ${LOCAL_SERVICE_SCRIPT}"
 [[ -f "${LOCAL_START_WRAPPER_SCRIPT}" ]] || fail "本地容器启动包装脚本不存在: ${LOCAL_START_WRAPPER_SCRIPT}"
@@ -476,32 +533,34 @@ remote "mv '${REMOTE_TMP_PROVENANCE_FILE}' '${REMOTE_PROVENANCE_FILE}'"
 scp -q "${LOCAL_PROVENANCE_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_HELPER}"
 remote "mv '${REMOTE_TMP_PROVENANCE_HELPER}' '${REMOTE_PROVENANCE_HELPER}'"
 
-log "- 停止所有教材 runtime 消费者"
-CUTOVER_STARTED=1
-stop_remote_runtime_consumers
+case "${RUNTIME_DELIVERY_MODE}" in
+  legacy-rsync)
+    log "- 停止所有教材 runtime 消费者"
+    CUTOVER_STARTED=1
+    stop_remote_runtime_consumers
 
-remote "rm -rf '${REMOTE_RUNTIME_STAGING_DIR}' && mkdir -p '${REMOTE_RUNTIME_STAGING_DIR}'"
-runtime_rsync_args=(
-  -az
-  --delete
-  --delete-excluded
-  --exclude=knowledge/consumer-activation/current.json
-  --exclude=knowledge/projection/current.json
-  --exclude=knowledge/prerequisites/current.json
-  -e "ssh -o BatchMode=yes"
-)
-if remote "test -d '${REMOTE_RUNTIME_DIR}'"; then
-  runtime_rsync_args+=(--link-dest="${REMOTE_RUNTIME_DIR}")
-fi
-rsync "${runtime_rsync_args[@]}" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_STAGING_DIR}/"
-check_remote_textbook_v2_files "${REMOTE_RUNTIME_STAGING_DIR}"
-check_remote_runtime_pointer_absence "${REMOTE_RUNTIME_STAGING_DIR}"
-remote "command -v node >/dev/null"
-remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
-  --runtime-root '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbooks-v2' \
-  --index-dir '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbook-retrieval' \
-  --sidecar '${REMOTE_PROVENANCE_FILE}'"
-remote "bash -lc '
+    remote "rm -rf '${REMOTE_RUNTIME_STAGING_DIR}' && mkdir -p '${REMOTE_RUNTIME_STAGING_DIR}'"
+    runtime_rsync_args=(
+      -az
+      --delete
+      --delete-excluded
+      --exclude=knowledge/consumer-activation/current.json
+      --exclude=knowledge/projection/current.json
+      --exclude=knowledge/prerequisites/current.json
+      -e "ssh -o BatchMode=yes"
+    )
+    if remote "test -d '${REMOTE_RUNTIME_DIR}'"; then
+      runtime_rsync_args+=(--link-dest="${REMOTE_RUNTIME_DIR}")
+    fi
+    rsync "${runtime_rsync_args[@]}" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_STAGING_DIR}/"
+    check_remote_textbook_v2_files "${REMOTE_RUNTIME_STAGING_DIR}"
+    check_remote_runtime_pointer_absence "${REMOTE_RUNTIME_STAGING_DIR}"
+    remote "command -v node >/dev/null"
+    remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
+      --runtime-root '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbooks-v2' \
+      --index-dir '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbook-retrieval' \
+      --sidecar '${REMOTE_PROVENANCE_FILE}'"
+    remote "bash -lc '
 set -euo pipefail
 previous=\"${REMOTE_RUNTIME_DIR}.previous\"
 rm -rf \"\${previous}\"
@@ -514,12 +573,24 @@ if ! mv \"${REMOTE_RUNTIME_STAGING_DIR}\" \"${REMOTE_RUNTIME_DIR}\"; then
 fi
 rm -rf \"\${previous}\"
 '"
-check_remote_textbook_v2_files
-check_remote_runtime_pointer_absence
-remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
-  --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
-  --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
-  --sidecar '${REMOTE_PROVENANCE_FILE}'"
+    check_remote_textbook_v2_files
+    check_remote_runtime_pointer_absence
+    remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
+      --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
+      --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
+      --sidecar '${REMOTE_PROVENANCE_FILE}'"
+    ;;
+  ossfs-release)
+    log "- 同步 OSS runtime release 主机工具与已验证 receipt（不复制 runtime 内容）"
+    sync_oss_runtime_release_host_tools
+    REMOTE_RUNTIME_DIR="${REMOTE_OSSFS_MOUNT_ROOT}/${RUNTIME_RELEASE_ID}"
+    REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
+    REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-retrieval"
+    ;;
+  *)
+    fail "RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release"
+    ;;
+esac
 
 scp -q "${LOCAL_APP_DEPLOY_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_APP_DEPLOY_SCRIPT}"
 remote "chmod +x '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' && mv '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' '${REMOTE_APP_DEPLOY_SCRIPT}'"
@@ -586,7 +657,21 @@ remote "bash -lc 'set -euo pipefail
   echo \"[remote-deploy] Step 4/7: 导入最新数据库\"
   \"${REMOTE_IMPORT_DB_SCRIPT}\"
   echo \"[remote-deploy] Step 5/8: 启动应用容器\"
-  APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
+  if [ \"${RUNTIME_DELIVERY_MODE}\" = \"ossfs-release\" ]; then
+    RUNTIME_DELIVERY_MODE=ossfs-release \\
+      ACT_RUNTIME_OSS_RAM_ROLE=\"${RUNTIME_OSS_RAM_ROLE}\" \\
+      ACT_RUNTIME_OSS_BUCKET=act-course-assets \\
+      ACT_RUNTIME_OSS_REGION=oss-cn-hangzhou \\
+      APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \\
+      ACT_RUNTIME_DEPLOY_SCRIPT=\"${REMOTE_APP_DEPLOY_SCRIPT}\" \\
+      \"${REMOTE_RUNTIME_ACTIVATE_SCRIPT}\" \\
+        --release-id \"${RUNTIME_RELEASE_ID}\" \\
+        --expected-active-release \"${RUNTIME_EXPECTED_ACTIVE_RELEASE}\" \\
+        --verification-receipt \"${REMOTE_RUNTIME_VERIFICATION_RECEIPT}\" \\
+        --ram-role \"${RUNTIME_OSS_RAM_ROLE}\"
+  else
+    APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
+  fi
   echo \"[remote-deploy] Step 6/8: 同步 runtime 知识图谱到数据库\"
   podman exec \"${APP_NAME_HINT}\" npm run seed:knowledge
   echo \"[remote-deploy] Step 7/8: 配置 Nginx 域名反向代理\"
@@ -603,7 +688,7 @@ remote "test -s '${REMOTE_IMAGE_TAR}'"
 remote "test -f '${REMOTE_PROVENANCE_FILE}'"
 
 log "- 校验远端 runtime 目录"
-remote "test -d '${REMOTE_PROJECT_DIR}/course-content/runtime'"
+remote "test -d '${REMOTE_RUNTIME_DIR}'"
 check_remote_textbook_v2_files
 check_remote_runtime_pointer_absence
 check_remote_authority_current_pointer_absence
@@ -611,6 +696,11 @@ remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
   --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
   --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
   --sidecar '${REMOTE_PROVENANCE_FILE}'"
+if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-release" ]]; then
+  remote "findmnt -rn -T '${REMOTE_RUNTIME_DIR}' -o FSTYPE | grep -Eq '^fuse(\\.|\$)'"
+  remote "findmnt -rn -T '${REMOTE_RUNTIME_DIR}' -o OPTIONS | grep -Eq '(^|,)ro(,|\$)'"
+  remote "python3 '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}' active --state-dir '${REMOTE_PROJECT_DIR}/data/runtime' | grep -q '\"activeReleaseId\":\"${RUNTIME_RELEASE_ID}\"'"
+fi
 
 log "- 校验远端应用部署脚本已更新 runtime 挂载"
 remote "grep -q '/app/course-content/runtime:ro' '${REMOTE_APP_DEPLOY_SCRIPT}'"

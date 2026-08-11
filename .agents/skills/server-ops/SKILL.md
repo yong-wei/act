@@ -52,6 +52,7 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 远端调查与故障排查: `references/remote-investigation.md`
 - 课堂同步错误与 `Failed to fetch` 根因分流: `references/classroom-sync-errors.md`
 - 部署与验收: `references/deploy-and-verify.md`
+- OSS 不可变运行时发布与 ossfs 兼容挂载: `references/oss-runtime-releases.md`
 - 数据库导出/下载/本地恢复: `references/database-sync.md`
 - 测试账号核对与修复: `references/test-accounts.md`
 
@@ -65,5 +66,6 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 涉及数据库覆盖导入时，先做本地备份
 - 涉及远端服务重启时，保留前后状态与关键日志
 - 验收至少覆盖容器状态、核心接口、关键环境变量和日志摘要
+- 涉及 OSS 运行时迁移时，先读 `references/oss-runtime-releases.md`；只有完成 RAM Role、不可变 Release、远端复核、只读挂载和回滚证据后，才能变更运行时选择记录
 - 当且仅当任务已经满足 Trigger Gate 且服务器部署包含图谱或权威数据变化时，必须先在本地验证迁移、导入与 revision/provenance 闭合；Candidate、Shadow 与 Legacy 可以并存，除非用户明确授权且 cutover gate 通过，不得把服务器部署等同于 authority cutover
 - 已提交的 production cutover marker 存在时，普通 Legacy `remote-deploy.sh` 必须保持禁用；后续更新只能使用 cutover-aware 事务或显式 rollback，不得用常规部署重试覆盖 selector 状态

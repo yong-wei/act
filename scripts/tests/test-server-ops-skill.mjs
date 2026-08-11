@@ -11,6 +11,11 @@ const databaseSyncSource = fs.readFileSync(
   path.join(root, '.agents/skills/server-ops/references/database-sync.md'),
   'utf8',
 );
+const ossRuntimeSource = fs.readFileSync(
+  path.join(root, '.agents/skills/server-ops/references/oss-runtime-releases.md'),
+  'utf8',
+);
+
 const deployReferenceSource = fs.readFileSync(
   path.join(root, '.agents/skills/server-ops/references/deploy-and-verify.md'),
   'utf8',
@@ -56,6 +61,29 @@ assert.match(
   /语义存在歧义时默认不启用/,
   'server-ops 在触发语义不明确时必须默认不启用',
 );
+
+assert.match(
+  skillSource,
+  /oss-runtime-releases\.md/,
+  'server-ops 必须链接 OSS 运行时发布参考文件',
+);
+
+for (const invariant of [
+  'ECS RAM Role',
+  '不可变的 `runtime/releases/<release-id>/` 前缀',
+  '不得将现有 `.staging`、`current`、`previous` 的 rsync/rename 发布算法直接运行在 ossfs 挂载点',
+  'OSS `PutObject` 不具备条件写入语义，不能把对象存储中的可变 `current.json` 当作并发安全的生产指针。',
+  '`serverExternalPackages`',
+  '`ali-oss` 与 `@alicloud/credentials`',
+  '`--ro=true`、`--allow_other=true`、目标 uid/gid、`--file_mode=0644` 与 `--dir_mode=0755`',
+  '`findmnt -T <mount-root>/<release-id>`',
+  '等待人工确认后删除',
+]) {
+  assert.ok(
+    ossRuntimeSource.includes(invariant),
+    `OSS 运行时参考必须包含迁移不变量: ${invariant}`,
+  );
+}
 
 assert.match(
   databaseSyncSource,

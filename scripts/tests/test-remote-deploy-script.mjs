@@ -317,7 +317,7 @@ function main() {
     'Legacy 部署必须在远端 runtime 同步和停止消费者之前拒绝已提交切换',
   );
   assert.ok(
-    (script.match(/check_remote_runtime_pointer_absence\n(?:check_remote_authority_current_pointer_absence\n)?remote "node /g) ?? []).length >= 2,
+    (script.match(/check_remote_runtime_pointer_absence\n\s*(?:check_remote_authority_current_pointer_absence\n\s*)?remote "node /g) ?? []).length >= 2,
     'runtime 切换后及最终 remote runtime 验证都必须断言三个 production pointer 均不存在',
   );
 

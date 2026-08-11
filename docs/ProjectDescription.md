@@ -255,7 +255,7 @@ rtk bash scripts/build.sh
 rtk bash scripts/remote-deploy.sh
 ```
 
-生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。运行时课程资源通常以 `course-content/runtime/` 只读挂载方式供容器读取。
+生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。运行时课程资源通常以 `course-content/runtime/` 只读挂载方式供容器读取。部署脚本保留 `legacy-rsync` 兼容模式，并支持显式 `ossfs-release` 模式：不可变 OSS Release 经全量摘要复核后挂载到固定前缀，再以只读 bind mount 提供给应用；真实生产启用需要 RAM Role、候选挂载、性能与回退证据。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)。
 
 ## 维护入口
 
