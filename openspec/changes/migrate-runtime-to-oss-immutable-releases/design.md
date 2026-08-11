@@ -4,7 +4,7 @@
 
 主工作树的 runtime 是本次内容真源，且整体被本地 exclude；发布器必须对实际目录生成内容快照，而不能只用 Git tracked files。当前源盘点得到 7,282 个媒体文件、5.36 GB；31 份课程媒体索引声明 121 项资源，其中 96 项存在 runtime 本地文件、101 项存在 authoring `processed` 文件、90 项带 legacy 外链、19 项没有 runtime/processed/外链来源。这个分类是迁移输入审计，不把历史外链自动认定为可下载。
 
-生产 ECS 的 RAM role metadata 枚举当前返回 404，且未安装 ossfs/ossutil。因此本变更可以完成本地实现与验证，但不能发布到 Bucket、安装挂载、切换指针或删除 ECS runtime，直到角色实际绑定并验证。Bucket 保持私有、SSE-OSS、阻止公共访问。
+生产 ECS 已验证受限 RAM Role、ossfs 2.0.8、ossutil 1.7.19 与独立固定的 ossutil 2.3.0；这只解除首个不可变 Release 的受控发布前提。Bucket 仍保持私有、SSE-OSS、阻止公共访问；挂载、选择器切换与 ECS legacy runtime 删除仍需独立证据和明确授权。
 
 ## Goals / Non-Goals
 
@@ -32,13 +32,13 @@
 
 发布顺序是生成 manifest → 上传独占 release prefix → 基于 OSS 对象完整重验 → 允许候选挂载。OSS ETag 不承担内容哈希身份，multipart 与服务端加密都不能替代 SHA-256。
 
-2026-08-11 的真实 preflight 表明，ECS 现有 legacy runtime 虽标注同一 source revision，但其 tree SHA-256 与主工作树内容真源不同，且主机无空间保留另一份完整 staging。首发因此固定使用受限的主工作树→SSH 流→ECS publisher transport：本机只读取已冻结 manifest 所列文件；ECS 只持有临时 RAM 凭据并把每个流直接交给 `ossutil cp -`；完整对象不得落盘到 ECS。该 transport 不得读取、覆盖或替换正在服务的 legacy runtime，也不具有选择、挂载或重启能力。
+2026-08-11 的真实 preflight 表明，ECS 现有 legacy runtime 虽标注同一 source revision，但其 tree SHA-256 与主工作树内容真源不同，且主机无空间保留另一份完整 staging。首发固定使用受限的主工作树→SSH→ECS publisher transport：本机只读取已冻结 manifest 所列文件；ECS 在 release 锁内至多为一个对象建立受限临时文件，再以服务端条件写入 OSS，随后立即精确删除该文件。临时文件上限为 256 MiB，发布前验证 manifest 全部对象低于该上限，并在每次落盘前预留至少 1 GiB 空间；它不是 runtime staging。该 transport 不得读取、覆盖或替换正在服务的 legacy runtime，也不具有选择、挂载或重启能力。
 
-传输只接受经过 manifest 验证的路径和对象键，SSH 不是命令解释边界。每个对象传完均比较本地读取的 size/SHA-256；ECS 随后从 OSS 完整读取并独立计算 size/SHA-256。manifest 必须最后写入。若传输中断，未带 manifest 的前缀永久不可激活；同一 content-addressed release 仅可在已存在对象逐项精确等于 manifest、没有多余对象且尚无 manifest 时恢复补传，禁止覆盖任何对象。任一不匹配或多余对象都会失败关闭，且不得用删除或覆盖修复。
+传输只接受经过 manifest 验证的路径和对象键，SSH 不是命令解释边界。每个对象流入临时文件时比较本地读取的 size/SHA-256；只有精确匹配才调用 OSS 服务端条件写，随后由独立读取路径完整重验 size/SHA-256。manifest 必须最后写入。若传输中断，未带 manifest 的前缀永久不可激活；同一 content-addressed release 仅可在已存在对象逐项精确等于 manifest、没有多余对象且尚无 manifest 时恢复补传，禁止覆盖任何对象。任一不匹配或多余对象都会失败关闭，且不得用删除或覆盖修复。
 
 独立 Sol medium 的整改裁决确认：第一阶段仅允许 bridge 取得发布写能力。原有 direct `publish` CLI 必须停用，避免无条件 `PutObject` 绕过单写者边界。bridge 对每个 release identity 在 ECS 本地持有独占 `flock`，覆盖 prefix 检查、partial 精确恢复、上传、逐对象复验和最终 manifest 复验的完整事务；有效 manifest 是终态，后续相同或不同请求均不得 PUT。`manifestSha256` 继续表示不含该字段的 canonical body 摘要；传输另计算最终序列化 manifest 文件的 `wireSha256`，两者不得混用。该锁只承诺单 ECS 的唯一受控写入口，不作为多发布者或存储层不可变性声明。
 
-2026-08-11 的生产工具验证确认 writer 固定使用 `/usr/local/bin/ossutil` 1.7.19，并由 bridge 以绝对路径调用、显式提供 `EcsRamRole`、经 IMDS 验证的 `act-runtime-oss-publisher` 和杭州内网 endpoint。v1 仅以 `ls <prefix> -s` 返回完整 object URL；bridge 不经过 `rtk` 或 shell 管道，严格解析 object URL、摘要行和重复项，遇到未知输出即失败。`rtk` 的显示层会截断长行，不能作为远端响应证据。官方 ossutil 2.3.0 固定安装在 `/opt/act-ops/ossutil-2.3.0/ossutil`，其 ZIP 经官方 SHA-256 校验；它只在发布完成后用于独立的只读集合交叉检查，不能成为 writer 回退路径。
+2026-08-11 的生产工具验证确认 ossutil 1.7.19 不能可靠消费 stdin，且 ossutil 2.3.0 的普通 `cp -` 不提供禁止覆盖保证。writer 因而固定为已校验的 `/opt/act-ops/ossutil-2.3.0/ossutil`，通过 `api put-object --body file://… --forbid-overwrite true` 写入；bridge 在每次调用前经 IMDS 验证唯一的 `act-runtime-oss-publisher`，并显式提供 `EcsRamRole`、杭州内网 endpoint 与 `cn-hangzhou` region。v2 JSON API 是主集合验证来源；`/usr/local/bin/ossutil` 1.7.19 仅以 `ls <prefix> -s` 进行独立只读 key-set 交叉检查。`rtk` 的显示层会截断长行，不能作为远端响应证据。
 
 ### 2. 选择器在 ECS 本地 durable storage，而不是 OSS current object
 
@@ -66,7 +66,8 @@ release manifest 为每个 runtime 文件提供 object key、SHA-256 和 size。
 
 - [ECS 无 RAM role 或 ossfs] → 本地实现可以完成，生产写入与激活保持阻断；人工绑定 role 后先运行无凭据 probe 和最小 mount 验证。
 - [OSS 不支持 PutObject CAS] → 第一阶段使用同一 ECS 的 `flock` 本地选择器；多主机部署前不得假定它是分布式协调。
-- [ossutil v1 的无结构化列表] → writer 只解析 bridge 子进程的完整 `-s` 输出，并以 expected key set 与逐对象 SHA-256/size 再次闭合；`rtk` 展示输出与 v2 诊断结果均不作为 writer 输入。
+- [ECS 单对象 spool] → 单 release 锁内只允许一个 0600 临时文件，256 MiB 上限与 1 GiB 剩余空间门槛阻止其退化为完整 staging；可捕获失败精确删除，强杀残留下一次明确报告并失败关闭。
+- [ossutil writer 覆盖语义] → 普通 `cp -` 不作为 writer；仅 v2 `api put-object --forbid-overwrite true` 可以写入，v2 JSON 主集合与 v1 `-s` 独立 key-set 均须闭合。
 - [ECS legacy runtime 与内容真源漂移] → 以主工作树 frozen manifest 为唯一发布输入，通过流式 transport 发送；禁止因 source revision 相同而把 ECS 目录当成等价源。
 - [FUSE 大量小文件或热索引退化] → 保持 release prefix mount 并以基准证据决定 bounded digest-pinned hot cache。
 - [签名 URL 泄露或过期] → 使用短 TTL、只签 manifest allowlist 对象、不写日志；客户端将 403/过期视为重新解析而不是 fallback 到永久 URL。
