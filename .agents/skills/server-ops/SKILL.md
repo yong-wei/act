@@ -66,3 +66,4 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 涉及远端服务重启时，保留前后状态与关键日志
 - 验收至少覆盖容器状态、核心接口、关键环境变量和日志摘要
 - 当且仅当任务已经满足 Trigger Gate 且服务器部署包含图谱或权威数据变化时，必须先在本地验证迁移、导入与 revision/provenance 闭合；Candidate、Shadow 与 Legacy 可以并存，除非用户明确授权且 cutover gate 通过，不得把服务器部署等同于 authority cutover
+- 已提交的 production cutover marker 存在时，普通 Legacy `remote-deploy.sh` 必须保持禁用；后续更新只能使用 cutover-aware 事务或显式 rollback，不得用常规部署重试覆盖 selector 状态

@@ -76,6 +76,13 @@ rtk bash scripts/remote-deploy.sh --skip-build
 - 大型 Canonical inventory 的首次持久化可能超过 Prisma 默认 5 秒 interactive transaction timeout；使用仓库当前限定于该事务的 30 秒超时，不要扩大为全局事务默认值
 - 远端 shell 程序若由单引号包裹，不得再嵌套单引号 grep pattern；部署前运行静态脚本测试，避免 quoting 错误在切换期间才出现
 
+### 已明确授权的生产图谱切换
+
+- 图谱切换是独立的数据面事务，不是普通 `remote-deploy.sh` 的副作用。仅在用户明确授权、冻结镜像与 runtime/provenance 闭合、四类 selector 和生产 marker 都满足事务前置状态时，使用 `scripts/remote-activate-knowledge-cutover.sh`。
+- 若一次 Authority 解包在 selector 写入前失败，清理只能绑定 canonical stage 的当前 transactionId、sealed plan 和 archive 精确身份。不同 transactionId 的历史 journal/receipt 是 Legacy 部署保留的 release 审计证据，必须保留，不得回滚、改写或作为清理阻断；当前 transactionId 的 journal、receipt、recovery 凭据或任何 active marker 则必须 fail closed。
+- cleanup engine 重试时，只有已提升 engine 与 `.tmp` 都是普通文件且 SHA-256 等于 sealed hash，才可删除该精确的重复 `.tmp`；symlink、非普通文件或 hash 不同的临时文件一律保留并失败。
+- 命令流中断、RTK 输出截断或容器启动出现一次性 runc 异常时，不得从局部输出推断成功或失败。以远端 committed receipt、current marker、四个 selector、app/worker 镜像 OCI digest 与 `ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover`、六个 READY consumers、local/public `readyz` 重新判定最终状态。
+
 5. 远端验收
 ```bash
 rtk ssh root@121.40.124.135 "podman ps -a --format 'table {{.Names}}\t{{.Status}}' | grep act-obe"
