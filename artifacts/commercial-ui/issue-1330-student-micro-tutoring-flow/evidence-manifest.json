@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-08-11T05:24:07.809Z",
-  "commitSha": "571d2e0c1a81d8e886cbfaf2483054f6389f2ff0",
+  "capturedAt": "2026-08-11T06:32:14.729Z",
+  "commitSha": "c44abdf99eee369324f61b7cc27cd5f338606d61",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
   "captureMethod": "Playwright with Google Chrome channel against local Next.js Webpack dev server",
   "fixtureAuthority": "Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are scoped Playwright fixtures so available, unavailable, and retry states are deterministic; route and component tests cover the server contract.",
@@ -10,7 +10,7 @@
     "src/app/assessment/adaptive-practice/page.tsx": "a43da1b946162d8c844c8b643c39bc31ad992ddea4e586393b7e536e4cef2790",
     "src/features/assessment/micro-intervention-outcomes.ts": "820edf3c036ce054afd049cd064db6507551bf901bd59437cbf18f42e8908e9d",
     "src/features/assessment/student-micro-tutoring-panel.tsx": "eb514c58e31f43e314615ad2d3832f184eef1f6b1902db902cf4f633302953b9",
-    "tests/student-micro-tutoring-evidence.spec.ts": "3f151a727732a21c83faffefbf234b1fda10437baef93b4d72310eb28126f4da"
+    "tests/student-micro-tutoring-evidence.spec.ts": "6d985d2c4f7db0bdd507714a9c87be3fe5695c2370c8abe5e1cd7750be22ee3a"
   },
   "outcomes": {
     "availableFullLoop": "The persisted wrong-answer entry creates, starts, completes, answers validation, and renders the validated recommendation.",
@@ -21,7 +21,7 @@
   "screenshots": [
     {
       "file": "playwright/available-full-loop-1440.png",
-      "sha256": "dea816f4ebc138287143eb23821e3058157ba48d61fa681372e428f96571b551",
+      "sha256": "c26f1b1a2bb6e3a997b69ec323e4f975310dfc8934bd08d5e12810188075463e",
       "viewport": "1440x1000",
       "state": "validated"
     },
@@ -33,7 +33,7 @@
     },
     {
       "file": "playwright/recoverable-retry-1440.png",
-      "sha256": "c19df14d2ec550d96026c5d7c611c2e68667326bf4d99c965a4f0a1e05aa3425",
+      "sha256": "69647457fab4d13669b6592f6a9de718de2fbaa8c067d6e670d750f4ada86e3d",
       "viewport": "1440x1000",
       "state": "recovered"
     },
