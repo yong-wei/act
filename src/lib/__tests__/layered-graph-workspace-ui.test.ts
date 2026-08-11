@@ -104,6 +104,27 @@ describe('layered graph workspace UI contracts (#1273)', () => {
     expect(teacherRoute).toContain('resolveCoursePageLayeredGraphContext');
   });
 
+  it('keeps interactive course clients on the client-safe layered graph boundary', () => {
+    const client = readRepoFile('src/lib/layered-graph/client.ts');
+    const clientConsumers = [
+      readRepoFile('src/features/interactive/shared/step-knowledge-drawer.tsx'),
+      readRepoFile('src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx'),
+      readRepoFile('src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx'),
+    ];
+
+    for (const source of clientConsumers) {
+      expect(source).toContain("from '@/lib/layered-graph/client'");
+      expect(source).not.toContain("from '@/lib/layered-graph';");
+      expect(source).not.toContain("from '@/features/knowledge/layered-graph-workspace-contracts'");
+    }
+
+    expect(client).not.toContain("from './resolver'");
+    expect(client).not.toContain("from './payload'");
+    expect(client).not.toContain("from './consumers'");
+    expect(client).not.toContain('node:fs');
+    expect(client).not.toContain('node:path');
+  });
+
   it('does not change engineering predicate rendering contracts', () => {
     const relationContract = readRepoFile(
       'src/features/knowledge/graph/relation-contract.ts',

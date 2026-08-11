@@ -13,7 +13,7 @@ import {
   teachingResourceTypeLabel,
   teachingRoleLabel,
   type StepDrawerResolution,
-} from '@/features/knowledge/layered-graph-workspace-contracts';
+} from '@/lib/layered-graph/client';
 import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-runtime';
 
 function buildStepNodeMap(

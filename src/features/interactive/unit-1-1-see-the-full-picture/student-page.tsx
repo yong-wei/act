@@ -22,7 +22,7 @@ import {
   buildCoursePackageLayeredScope,
   resolveCoursePageLayeredDrawerEntries,
   type LayeredGraphPayload,
-} from '@/lib/layered-graph';
+} from '@/lib/layered-graph/client';
 import {
   isUNIT_1_1InteractivePageType,
   UNIT_1_1_COURSE_SUBTITLE,
@@ -57,7 +57,7 @@ export function UNIT_1_1StudentPage({
   lessonRuntime: RuntimeLessonEntryBundle;
   demoStepId?: string;
   /** Server-resolved Teaching Projection layered payload (active/candidate/pin). */
-  layeredGraphPayload?: LayeredGraphPayload | null;
+  layeredGraphPayload: LayeredGraphPayload;
   layeredResourceLaunchTargets?: Record<string, string | null>;
   layeredResourceRegistryIds?: Record<string, string>;
 }) {
