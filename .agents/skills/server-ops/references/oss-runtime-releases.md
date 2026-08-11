@@ -37,4 +37,5 @@
 - RAM Role metadata 不可用、OSS endpoint 不可达、manifest/对象校验失败、挂载非只读、容器 smoke 失败或 active receipt 未写入时，停止切换并保持当前运行时。
 - 只有一台 ECS 时，首次发布可短时把该实例切换为受限 publisher RAM Role，但只可在 ossfs 尚未提供生产 runtime 的阶段进行；发布、对象重验与记录完成后必须立即恢复 read-only runtime role。不得在 ossfs 已承载流量期间复用此方式。
 - 将 `ali-oss` 发布器打包为独立 Node 运维命令时，`urllib` 的可选 `proxy-agent` 依赖会使 esbuild 静态解析失败。可将该可选模块 externalize，但必须先确认 ECS 无 HTTP(S)/ALL proxy 环境，并在目标 Node 版本上运行一次只读 plan/inspect 验证；不得用该策略绕开真实代理依赖。
+- 部署 ECS-side 运维脚本前先读取目标 `python3 --version` 并在该最低版本语法范围内编写。当前 ECS 为 Python 3.6.8：不得使用 `from __future__ import annotations`、内置泛型（如 `list[str]`）、`X | None` 或 `subprocess.run(text=True)`；使用 `typing.List`/`Optional` 与 `universal_newlines=True`。部署后先在 ECS 执行 `python3 -m py_compile`，通过前不得启动发布协议。
 - 不在远端源码构建，不通过 ECS 代理大型视频，不开启 public-read，也不为排障降低 Bucket 私有访问策略。

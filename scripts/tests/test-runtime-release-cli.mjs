@@ -28,6 +28,8 @@ assert.match(bridge, /ACT_RUNTIME_RELEASE_LOCK_DIR", "\/var\/lib\/act\/runtime-r
 assert.match(bridge, /choices=\("list", "get", "publish"\)/, 'ECS bridge must expose the transaction publish protocol only');
 assert.match(bridge, /put_bytes\(bucket, manifest_key, wire, len\(wire\), wire_sha/, 'ECS bridge must upload the completion manifest after object frames');
 assert.match(bridge, /wire digest does not match the serialized bytes/, 'ECS bridge must validate manifest wireSha256');
+assert.doesNotMatch(bridge, /from __future__ import annotations|\b(?:list|dict|tuple|set)\[|\b\w+\s*\|\s*\w+/, 'ECS bridge must remain Python 3.6 syntax-compatible');
+assert.match(bridge, /universal_newlines=True/, 'ECS bridge must use the Python 3.6 subprocess text compatibility spelling');
 assert.doesNotMatch(bridge, /current\.json|selector|container|rsync/, 'ECS bridge must not touch runtime selection or staging state');
 
 const result = spawnSync('npx', ['tsx', script, '--help'], {

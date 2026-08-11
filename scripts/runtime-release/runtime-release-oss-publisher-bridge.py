@@ -8,8 +8,6 @@ object before returning a receipt.  Object bytes are passed directly from the
 SSH stream to ``ossutil cp -``; no runtime staging directory is created.
 """
 
-from __future__ import annotations
-
 import argparse
 import base64
 import fcntl
@@ -19,7 +17,7 @@ import os
 import re
 import subprocess
 import sys
-from typing import Any, NoReturn
+from typing import Any, Dict, List, NoReturn, Optional, Tuple
 
 
 KEY_PREFIX = "runtime/releases/"
@@ -85,7 +83,7 @@ def canonical_json(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
-def remote_digest(bucket: str, key: str) -> dict[str, Any]:
+def remote_digest(bucket: str, key: str) -> Dict[str, Any]:
     process = subprocess.Popen(
         [ossutil_command(), "cat", destination(bucket, key)],
         stdout=subprocess.PIPE,
@@ -104,7 +102,7 @@ def remote_digest(bucket: str, key: str) -> dict[str, Any]:
     return {"sizeBytes": size, "sha256": digest.hexdigest()}
 
 
-def flatten_list(value: Any, result: list[dict[str, Any]]) -> None:
+def flatten_list(value: Any, result: List[Dict[str, Any]]) -> None:
     if isinstance(value, list):
         for item in value:
             flatten_list(item, result)
@@ -122,17 +120,17 @@ def flatten_list(value: Any, result: list[dict[str, Any]]) -> None:
             flatten_list(nested, result)
 
 
-def list_objects(bucket: str, prefix: str) -> list[dict[str, Any]]:
+def list_objects(bucket: str, prefix: str) -> List[Dict[str, Any]]:
     process = subprocess.run(
         [ossutil_command(), "ls", prefix_destination(bucket, prefix), "--recursive", "--output-format", "json"],
         check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True,
+        universal_newlines=True,
     )
     if process.returncode != 0:
         fail(f"ossutil ls failed: {process.stderr.strip()}")
-    entries: list[dict[str, Any]] = []
+    entries: List[Dict[str, Any]] = []
     try:
         flatten_list(json.loads(process.stdout), entries)
     except json.JSONDecodeError:
@@ -142,7 +140,7 @@ def list_objects(bucket: str, prefix: str) -> list[dict[str, Any]]:
             flatten_list(json.loads(line), entries)
         except json.JSONDecodeError:
             continue
-    normalized: list[dict[str, Any]] = []
+    normalized: List[Dict[str, Any]] = []
     for entry in entries:
         key = str(entry["key"])
         object_prefix = f"oss://{bucket}/"
@@ -168,11 +166,11 @@ def lock_path(prefix: str) -> str:
     return os.path.join(lock_dir, f"act-runtime-release-{token}.lock")
 
 
-def expected_manifest_files(manifest: dict[str, Any], release_id: str) -> list[dict[str, Any]]:
+def expected_manifest_files(manifest: Dict[str, Any], release_id: str) -> List[Dict[str, Any]]:
     files = manifest.get("files")
     if not isinstance(files, list) or not files:
         fail("manifest.files is invalid")
-    expected: list[dict[str, Any]] = []
+    expected: List[Dict[str, Any]] = []
     for item in files:
         if not isinstance(item, dict):
             fail("manifest file entry is invalid")
@@ -189,7 +187,7 @@ def expected_manifest_files(manifest: dict[str, Any], release_id: str) -> list[d
     return expected
 
 
-def validate_publish_header(header: dict[str, Any], bucket: str) -> tuple[str, dict[str, Any], bytes, str, list[dict[str, Any]]]:
+def validate_publish_header(header: Dict[str, Any], bucket: str) -> Tuple[str, Dict[str, Any], bytes, str, List[Dict[str, Any]]]:
     if header.get("protocol") != "act-runtime-release-stream.v1":
         fail("unsupported publish protocol")
     release_id = header.get("releaseId")
@@ -230,7 +228,7 @@ def validate_publish_header(header: dict[str, Any], bucket: str) -> tuple[str, d
     return prefix, manifest, wire, wire_sha, expected
 
 
-def assert_object_set(objects: list[dict[str, Any]], expected: dict[str, int], allow_manifest: bool) -> None:
+def assert_object_set(objects: List[Dict[str, Any]], expected: Dict[str, int], allow_manifest: bool) -> None:
     actual = {str(entry["key"]): int(entry["sizeBytes"]) for entry in objects}
     if len(actual) != len(objects):
         fail("remote release prefix contains duplicate objects")
@@ -243,7 +241,7 @@ def assert_object_set(objects: list[dict[str, Any]], expected: dict[str, int], a
         fail("remote release is missing an expected object")
 
 
-def put_bytes(bucket: str, key: str, payload: bytes, expected_size: int, expected_sha: str, wire_sha: str | None = None) -> dict[str, Any]:
+def put_bytes(bucket: str, key: str, payload: bytes, expected_size: int, expected_sha: str, wire_sha: Optional[str] = None) -> Dict[str, Any]:
     if len(payload) != expected_size or hashlib.sha256(payload).hexdigest() != expected_sha:
         fail(f"source bytes differ from manifest for {key}")
     process = subprocess.Popen(
@@ -271,7 +269,7 @@ def put_bytes(bucket: str, key: str, payload: bytes, expected_size: int, expecte
     return remote
 
 
-def put_frame(bucket: str, key: str, expected_size: int, expected_sha: str) -> dict[str, Any]:
+def put_frame(bucket: str, key: str, expected_size: int, expected_sha: str) -> Dict[str, Any]:
     process = subprocess.Popen(
         [ossutil_command(), "cp", "-", destination(bucket, key), "--force=false"],
         stdin=subprocess.PIPE,
