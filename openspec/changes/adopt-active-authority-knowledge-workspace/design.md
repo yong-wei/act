@@ -46,6 +46,14 @@ active 页首显示可读的 Authority Snapshot/Release、activation 和 project
 
 若 preflight 失败，工具在停止消费者前退出；若容器替换后验证失败，恢复明确记录的前驱 image 和同一 cutover mode，再报告失败。成功或恢复后均须复读并比较 preflight marker、receipt、journal 与 selector 摘要，且复验普通 `remote-deploy.sh` 仍会受 marker 阻断。这样解决发布运输缺口而不把应用更新伪装成 selector transaction。
 
+### 已提交 cutover 的运行模式持久化
+
+本变更选择把 `ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover` 原子地规范化并持久写入现有 runtime env 文件，作为已经提交 production cutover 的确认动作。runtime env 是 app、worker、人工 `--app-only` 与 systemd 等价启动共同读取的唯一模式来源；refresh 进程的环境变量只能显式确认 cutover，不得把已提交状态降为 legacy。该写入位于与容器替换相同的部署锁内，保留其他 env 内容、所有权和权限，且日志与 receipt 均不得包含 env 原文或秘密。
+
+不采用只在 refresh 进程注入 mode 的方案，因为主机重启或 systemd 再次启动会回落到脚本默认 legacy；也不把 mode 写入 systemd unit，以免 runtime env、unit 与脚本形成多重权威面。preflight、env 规范化、受保护控制面摘要、app/worker 替换、失败恢复、postflight 和 receipt 落盘必须由同一把锁覆盖。任何失败恢复均恢复两类容器的前驱 image digest 并继续使用 cutover，绝不回写 legacy。
+
+refresh receipt 必须与首次 cutover receipt/journal 分离，唯一且不可覆盖地写入 `data/runtime/knowledge-cutover/app-refresh/<refreshId>.json`。它记录 schema、refreshId、前驱/目标/final image digest、app/worker 实际 digest、mode 前后值、runtime env 前后 hash 与白名单键状态、受保护 marker/receipt/journal/four-selector 摘要、结果和失败阶段；不得记录 env 内容、秘密、绝对宿主机路径或 selector 原文。首次 cutover 的 marker、receipt、journal 与四枚 selector 在 refresh 全程保持不变。
+
 ## Risks / Trade-offs
 
 - [active identity 缺失、engineering-graph 非 READY 或 Authority 身份不一致] → resolver/API fail closed，UI 显示 unavailable，不自动降级到 Legacy；工程 graph 不错误依赖 Teaching Projection。
