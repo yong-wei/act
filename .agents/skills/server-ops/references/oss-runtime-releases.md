@@ -12,6 +12,7 @@
 ## Release 与选择不变量
 
 - 每次发布写入唯一且不可变的 `runtime/releases/<release-id>/` 前缀。release id 必须由 canonical `{sourceRevision, treeSha256}` 的 SHA-256 派生，避免不同 source identity 并发写入同一前缀；同一 identity 的重试仍必须以远端 receipt 精确核对 manifest/tree digest。Release manifest 必须记录 schema、source revision、文件数量、总字节数、逐文件相对路径/大小/SHA-256、tree digest 和 manifest digest。
+- 发布前必须先在声明的内容真源目录计算完整 manifest；仅有相同 Git revision 不足以证明 ECS 既有 runtime 与该真源字节相同。若准备直接以 ECS 本地 runtime 为上传源，必须独立重算其 file count、total bytes 与 tree SHA-256，并与真源 manifest 完全一致；不一致时不得上传 ECS 旧树、不得覆盖正在服务的 legacy runtime，也不得在接近满盘的主机上复制完整 staging 目录。此时应使用经审计的流式本地→ECS publisher transport，或另行准备有容量的发布执行环境。
 - 完整上传后必须从 OSS 重新读取并校验 manifest 与所有对象的大小和哈希；任一缺失或不匹配均不得选择该 Release。不得复用、覆盖或原地修复已经发布的 Release。
 - OSS `PutObject` 不具备条件写入语义，不能把对象存储中的可变 `current.json` 当作并发安全的生产指针。单 ECS 的运行时选择使用宿主机 ext4 上受权限保护的 state directory：固定 `flock` 锁、期望 active release、单调 generation、临时文件 `fsync`、原子 rename、目录 `fsync`。desired selection 与 health 后写入的 active receipt 分开保存。
 - 回滚仅选择一个已完整复核的旧 Release；先写 desired，再重新挂载并重启容器，健康检查成功后才更新 active receipt。失败的候选不得覆盖此前 active receipt。
@@ -34,4 +35,6 @@
 ## 失败处理
 
 - RAM Role metadata 不可用、OSS endpoint 不可达、manifest/对象校验失败、挂载非只读、容器 smoke 失败或 active receipt 未写入时，停止切换并保持当前运行时。
+- 只有一台 ECS 时，首次发布可短时把该实例切换为受限 publisher RAM Role，但只可在 ossfs 尚未提供生产 runtime 的阶段进行；发布、对象重验与记录完成后必须立即恢复 read-only runtime role。不得在 ossfs 已承载流量期间复用此方式。
+- 将 `ali-oss` 发布器打包为独立 Node 运维命令时，`urllib` 的可选 `proxy-agent` 依赖会使 esbuild 静态解析失败。可将该可选模块 externalize，但必须先确认 ECS 无 HTTP(S)/ALL proxy 环境，并在目标 Node 版本上运行一次只读 plan/inspect 验证；不得用该策略绕开真实代理依赖。
 - 不在远端源码构建，不通过 ECS 代理大型视频，不开启 public-read，也不为排障降低 Bucket 私有访问策略。

@@ -12,7 +12,7 @@ The system SHALL produce an `act-runtime-release.v1` manifest from an explicitly
 - **THEN** manifest generation SHALL fail before it emits a publishable release manifest.
 
 ### Requirement: Runtime releases are immutable after complete publication
-The system SHALL publish a release only below `runtime/releases/<release-id>/` and SHALL reject a release id whose prefix already contains a manifest or runtime object. It SHALL not publish a mutable `current` tree or use an OSS directory rename as a release operation.
+The system SHALL publish a release only below `runtime/releases/<release-id>/`. It SHALL never overwrite an existing object or publish a mutable `current` tree, and it SHALL not use an OSS directory rename as a release operation. A prefix containing a canonical manifest is complete only after full remote verification. A prefix without a manifest MAY resume only when every existing object is an exact manifest member whose remote size and SHA-256 equal the manifest; missing expected objects may then be added. An unexpected or mismatched object SHALL fail closed.
 
 #### Scenario: A new release is uploaded
 - **WHEN** every manifest object and the manifest itself are uploaded to the target release prefix
@@ -21,6 +21,17 @@ The system SHALL publish a release only below `runtime/releases/<release-id>/` a
 #### Scenario: Upload is incomplete or modified
 - **WHEN** a manifest object is absent, an unexpected object is present, or a remote size or SHA-256 differs from the manifest
 - **THEN** verification SHALL fail closed and the release SHALL not be eligible for host selection.
+
+### Requirement: Source-authoritative release transport does not stage a second runtime tree
+When the content-authoritative runtime directory is not the ECS legacy runtime directory, the system SHALL permit a publisher transport that reads only the frozen source manifest members and streams them through the ECS publisher identity without writing a complete runtime staging copy on ECS. It SHALL pass only validated path and object-key arguments to the remote process, write the canonical manifest last, and leave the runtime selector, mount, container, and legacy runtime unchanged.
+
+#### Scenario: ECS legacy runtime differs from the content authority
+- **WHEN** the ECS local runtime tree digest differs from the declared source manifest tree digest
+- **THEN** the system SHALL reject ECS local runtime as an upload source and SHALL not overwrite or rsync the live legacy runtime to make it match.
+
+#### Scenario: Stream is interrupted
+- **WHEN** source reading, SSH transport, or the ECS object upload terminates before all manifest members complete
+- **THEN** the release prefix SHALL remain without a canonical manifest, SHALL not be selectable, and subsequent publication MAY add only missing manifest members after exact remote verification of every pre-existing member.
 
 ### Requirement: Release inspection and rollback are evidence bound
 The system SHALL expose inspection of a release manifest and verification result without revealing credentials. Rollback SHALL select a previously verified immutable release and SHALL not overwrite or delete either release.

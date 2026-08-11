@@ -3,11 +3,11 @@ import path from 'node:path';
 
 import { buildRuntimeReleaseManifest, deriveRuntimeReleaseId, serializeRuntimeReleaseManifest } from '@/lib/runtime-release';
 import {
-  createEcsRamRoleOssRuntimeReleaseStore,
+  createEcsRamRoleOssRuntimeReleaseReader,
   inspectPublishedRuntimeRelease,
-  publishRuntimeRelease,
   verifyPublishedRuntimeRelease,
 } from '@/lib/runtime-release-store';
+import { publishRuntimeReleaseViaSsh } from '@/lib/runtime-release-streaming-publisher';
 
 function argument(name: string) {
   const index = process.argv.indexOf(name);
@@ -24,11 +24,11 @@ function usage() {
   return [
     'Usage:',
     '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha>',
-    '  act-runtime-release publish --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> --bucket <bucket> --region <region> --role-name <ecs-role> [--output <receipt.json>]',
+    '  act-runtime-release publish-streaming --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --bucket <bucket> --region <region> --role-name <ecs-role> [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --bucket <bucket> --region <region> --role-name <ecs-role> [--output <manifest.json>]',
     '',
-    'The command only obtains temporary credentials from the named ECS RAM Role. It accepts no AccessKey or Secret arguments.',
+    'Streaming publish delegates credentials to the restricted ECS bridge. No AccessKey or Secret arguments are accepted.',
   ].join('\n');
 }
 
@@ -49,7 +49,7 @@ async function main() {
     process.stdout.write(`${usage()}\n`);
     return;
   }
-  if (!['plan', 'publish', 'verify', 'inspect'].includes(command)) throw new Error(usage());
+  if (!['plan', 'publish-streaming', 'verify', 'inspect'].includes(command)) throw new Error(usage());
   if (command === 'plan') {
     const manifest = await buildRuntimeReleaseManifest(required('--runtime-root'), {
       releaseId: 'runtime-plan',
@@ -63,25 +63,35 @@ async function main() {
     return;
   }
   const releaseId = required('--release-id');
-  const store = createEcsRamRoleOssRuntimeReleaseStore({
+  if (command === 'publish-streaming') {
+    const runtimeRoot = required('--runtime-root');
+    const sourceRevision = required('--source-revision');
+    const manifest = await buildRuntimeReleaseManifest(runtimeRoot, { releaseId, sourceRevision });
+    const expectedReleaseId = deriveRuntimeReleaseId(manifest.sourceRevision, manifest.treeSha256);
+    if (releaseId !== expectedReleaseId) {
+      throw new Error(`Release id does not bind this runtime source identity. Run plan and use: ${expectedReleaseId}`);
+    }
+    const receipt = await publishRuntimeReleaseViaSsh({
+      runtimeRoot,
+      manifest,
+      ssh: {
+        target: required('--ssh-target'),
+        bucket: required('--bucket'),
+        remoteBridgePath: required('--remote-bridge-path'),
+        knownHostsFile: required('--known-hosts-file'),
+        identityFile: argument('--identity-file'),
+        port: argument('--port') ? Number(required('--port')) : undefined,
+      },
+    });
+    await writeOutput(argument('--output'), receipt);
+    return;
+  }
+  const store = createEcsRamRoleOssRuntimeReleaseReader({
     bucket: required('--bucket'),
     region: required('--region'),
     roleName: required('--role-name'),
   });
   const output = argument('--output');
-  if (command === 'publish') {
-    const manifest = await buildRuntimeReleaseManifest(required('--runtime-root'), {
-      releaseId,
-      sourceRevision: required('--source-revision'),
-    });
-    const expectedReleaseId = deriveRuntimeReleaseId(manifest.sourceRevision, manifest.treeSha256);
-    if (releaseId !== expectedReleaseId) {
-      throw new Error(`Release id does not bind this runtime source identity. Run plan and use: ${expectedReleaseId}`);
-    }
-    const receipt = await publishRuntimeRelease({ store, runtimeRoot: required('--runtime-root'), manifest });
-    await writeOutput(output, receipt);
-    return;
-  }
   if (command === 'verify') {
     await writeOutput(output, await verifyPublishedRuntimeRelease(store, releaseId));
     return;

@@ -32,6 +32,12 @@
 
 发布顺序是生成 manifest → 上传独占 release prefix → 基于 OSS 对象完整重验 → 允许候选挂载。OSS ETag 不承担内容哈希身份，multipart 与服务端加密都不能替代 SHA-256。
 
+2026-08-11 的真实 preflight 表明，ECS 现有 legacy runtime 虽标注同一 source revision，但其 tree SHA-256 与主工作树内容真源不同，且主机无空间保留另一份完整 staging。首发因此固定使用受限的主工作树→SSH 流→ECS publisher transport：本机只读取已冻结 manifest 所列文件；ECS 只持有临时 RAM 凭据并把每个流直接交给 `ossutil cp -`；完整对象不得落盘到 ECS。该 transport 不得读取、覆盖或替换正在服务的 legacy runtime，也不具有选择、挂载或重启能力。
+
+传输只接受经过 manifest 验证的路径和对象键，SSH 不是命令解释边界。每个对象传完均比较本地读取的 size/SHA-256；ECS 随后从 OSS 完整读取并独立计算 size/SHA-256。manifest 必须最后写入。若传输中断，未带 manifest 的前缀永久不可激活；同一 content-addressed release 仅可在已存在对象逐项精确等于 manifest、没有多余对象且尚无 manifest 时恢复补传，禁止覆盖任何对象。任一不匹配或多余对象都会失败关闭，且不得用删除或覆盖修复。
+
+独立 Sol medium 的整改裁决确认：第一阶段仅允许 bridge 取得发布写能力。原有 direct `publish` CLI 必须停用，避免无条件 `PutObject` 绕过单写者边界。bridge 对每个 release identity 在 ECS 本地持有独占 `flock`，覆盖 prefix 检查、partial 精确恢复、上传、逐对象复验和最终 manifest 复验的完整事务；有效 manifest 是终态，后续相同或不同请求均不得 PUT。`manifestSha256` 继续表示不含该字段的 canonical body 摘要；传输另计算最终序列化 manifest 文件的 `wireSha256`，两者不得混用。该锁只承诺单 ECS 的唯一受控写入口，不作为多发布者或存储层不可变性声明。
+
 ### 2. 选择器在 ECS 本地 durable storage，而不是 OSS current object
 
 独立 Sol medium 决策顾问最初建议 `runtime/current.json` 作为期望选择器，但新证据表明 OSS `PutObject` 不支持 `If-Match`、`If-None-Match` 或其他条件写，不能用它实现可靠 CAS。第一阶段改用 ECS ext4 上的 `data/runtime/act-runtime-selection.json`；该文件由固定运维脚本在 `flock` 下原子写入，记录 release id、manifest digest、单调 generation 和 operator intent。`data/runtime/act-runtime-active-receipt.json` 单独记录真正健康运行的版本。
@@ -58,6 +64,7 @@ release manifest 为每个 runtime 文件提供 object key、SHA-256 和 size。
 
 - [ECS 无 RAM role 或 ossfs] → 本地实现可以完成，生产写入与激活保持阻断；人工绑定 role 后先运行无凭据 probe 和最小 mount 验证。
 - [OSS 不支持 PutObject CAS] → 第一阶段使用同一 ECS 的 `flock` 本地选择器；多主机部署前不得假定它是分布式协调。
+- [ECS legacy runtime 与内容真源漂移] → 以主工作树 frozen manifest 为唯一发布输入，通过流式 transport 发送；禁止因 source revision 相同而把 ECS 目录当成等价源。
 - [FUSE 大量小文件或热索引退化] → 保持 release prefix mount 并以基准证据决定 bounded digest-pinned hot cache。
 - [签名 URL 泄露或过期] → 使用短 TTL、只签 manifest allowlist 对象、不写日志；客户端将 403/过期视为重新解析而不是 fallback 到永久 URL。
 - [对象前缀缺少 Bucket WORM] → immutable 是发布协议约束；若未来需要存储层不可改写，另行启用并验证版本化/WORM。

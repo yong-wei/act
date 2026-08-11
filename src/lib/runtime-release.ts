@@ -49,8 +49,17 @@ function compareCodePoints(left: string, right: string) {
 }
 
 function normalizedRelativePath(value: string) {
-  const normalized = value.replace(/\\/g, '/');
-  if (!normalized || normalized.startsWith('/') || normalized.split('/').some((part) => !part || part === '.' || part === '..')) {
+  if (value.includes('\\')) {
+    throw new RuntimeReleaseValidationError('runtime-release-path-invalid', `Invalid runtime release path: ${value}`);
+  }
+  const normalized = value;
+  if (
+    !normalized
+    || normalized.startsWith('/')
+    || /^[A-Za-z]:\//.test(normalized)
+    || /[\u0000-\u001f\u007f]/u.test(normalized)
+    || normalized.split('/').some((part) => !part || part === '.' || part === '..')
+  ) {
     throw new RuntimeReleaseValidationError('runtime-release-path-invalid', `Invalid runtime release path: ${value}`);
   }
   return normalized;
@@ -144,6 +153,19 @@ function treeDigest(files: readonly Pick<ActRuntimeReleaseFile, 'path' | 'sizeBy
 export function serializeRuntimeReleaseManifest(manifest: ActRuntimeReleaseManifest) {
   return `${stableStringify(manifest)}\n`;
 }
+
+/**
+ * Digest of the bytes that are put on the wire for the completion manifest.
+ *
+ * `manifestSha256` deliberately describes the canonical manifest body without
+ * its own digest field.  The wire digest is a separate transport invariant and
+ * therefore must be calculated only after the final newline has been added.
+ */
+export function runtimeReleaseManifestWireSha256(manifest: ActRuntimeReleaseManifest) {
+  return sha256(Buffer.from(serializeRuntimeReleaseManifest(manifest), 'utf8'));
+}
+
+export const computeRuntimeReleaseManifestWireSha256 = runtimeReleaseManifestWireSha256;
 
 export async function buildRuntimeReleaseManifest(root: string, options: BuildRuntimeReleaseManifestOptions): Promise<ActRuntimeReleaseManifest> {
   assertRuntimeReleaseId(options.releaseId);

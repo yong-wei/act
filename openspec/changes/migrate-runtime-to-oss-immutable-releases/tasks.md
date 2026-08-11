@@ -9,6 +9,7 @@
 - [x] 2.1 Add publish, verify and inspect CLI commands around a testable OSS transport, with exclusive release prefixes and full remote revalidation.
 - [x] 2.2 Add publish failure, existing-release, missing/unexpected object and no-selector-on-incomplete tests.
 - [x] 2.3 Add a credential-free operator contract for the separate publisher identity and its minimum OSS permissions.
+- [x] 2.4 Add a source-authoritative, no-staging streaming publisher transport as the only production write entrypoint, with per-release ECS `flock`, resumable exact-object checks, wire-digest separation and failure-path regression tests.
 
 ## 3. ECS read-only deployment bridge
 

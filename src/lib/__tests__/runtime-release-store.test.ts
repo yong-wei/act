@@ -5,7 +5,7 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildRuntimeReleaseManifest, deriveRuntimeReleaseId } from '../runtime-release';
+import { buildRuntimeReleaseManifest, computeRuntimeReleaseManifestWireSha256, deriveRuntimeReleaseId, runtimeReleaseManifestObjectKey } from '../runtime-release';
 import {
   type RuntimeReleaseObjectStore,
   publishRuntimeRelease,
@@ -18,6 +18,8 @@ const revision = 'c'.repeat(40);
 
 class MemoryStore implements RuntimeReleaseObjectStore {
   readonly objects = new Map<string, Buffer>();
+  readonly putCalls: string[] = [];
+  readonly putExpectations = new Map<string, { sizeBytes: number; sha256: string; wireSha256?: string }>();
   failAtKey: string | null = null;
 
   async listObjects(prefix: string) {
@@ -26,7 +28,9 @@ class MemoryStore implements RuntimeReleaseObjectStore {
       .map(([key, bytes]) => ({ key, sizeBytes: bytes.byteLength }));
   }
 
-  async putObject(key: string, content: Readable) {
+  async putObject(key: string, content: Readable, expectation?: { sizeBytes: number; sha256: string; wireSha256?: string }) {
+    this.putCalls.push(key);
+    if (expectation) this.putExpectations.set(key, expectation);
     if (this.failAtKey === key) throw new Error('simulated upload failure');
     const chunks: Buffer[] = [];
     for await (const chunk of content) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -69,12 +73,19 @@ describe('immutable runtime release publishing', () => {
     await expect(publishRuntimeRelease({ store, runtimeRoot: root, manifest })).resolves.toMatchObject({
       releaseId: manifest.releaseId,
       manifestSha256: manifest.manifestSha256,
+      wireSha256: computeRuntimeReleaseManifestWireSha256(manifest),
       totalBytes: manifest.totalBytes,
     });
+    expect(store.putExpectations.get(runtimeReleaseManifestObjectKey(manifest.releaseId))).toEqual({
+      sizeBytes: expect.any(Number),
+      sha256: computeRuntimeReleaseManifestWireSha256(manifest),
+      wireSha256: computeRuntimeReleaseManifestWireSha256(manifest),
+    });
+    expect(computeRuntimeReleaseManifestWireSha256(manifest)).not.toBe(manifest.manifestSha256);
     await expect(verifyPublishedRuntimeRelease(store, manifest.releaseId)).resolves.toMatchObject({ treeSha256: manifest.treeSha256 });
   });
 
-  it('never yields a verifiable release after an incomplete upload and never overwrites a prefix', async () => {
+  it('never yields a verifiable release after an incomplete upload and rejects unexpected partial objects', async () => {
     const root = await fixture();
     const manifest = await contentAddressedManifest(root);
     const store = new MemoryStore();
@@ -88,7 +99,68 @@ describe('immutable runtime release publishing', () => {
     store.failAtKey = null;
     store.objects.set(`runtime/releases/${manifest.releaseId}/unexpected.txt`, Buffer.from('stale'));
     await expect(publishRuntimeRelease({ store, runtimeRoot: root, manifest }))
-      .rejects.toMatchObject({ code: 'runtime-release-already-exists' } satisfies Partial<RuntimeReleaseStoreError>);
+      .rejects.toMatchObject({ code: 'runtime-release-remote-object-set-invalid' } satisfies Partial<RuntimeReleaseStoreError>);
+  });
+
+  it('resumes an uncompleted prefix only for exact existing manifest members', async () => {
+    const root = await fixture();
+    const manifest = await contentAddressedManifest(root);
+    const store = new MemoryStore();
+    const firstFile = manifest.files[0];
+    store.objects.set(firstFile.objectKey, Buffer.from('{"id":"1-1"}\n'));
+
+    await expect(publishRuntimeRelease({ store, runtimeRoot: root, manifest })).resolves.toMatchObject({ releaseId: manifest.releaseId });
+    expect(store.putCalls).toEqual([
+      ...manifest.files.slice(1).map((file) => file.objectKey),
+      `runtime/releases/${manifest.releaseId}/.act-runtime-release.v1.json`,
+    ]);
+    expect(store.objects.get(firstFile.objectKey)).toEqual(Buffer.from('{"id":"1-1"}\n'));
+  });
+
+  it('rejects a mismatched partial object before writing any missing member', async () => {
+    const root = await fixture();
+    const manifest = await contentAddressedManifest(root);
+    const store = new MemoryStore();
+    const firstFile = manifest.files[0];
+    const mismatched = Buffer.alloc(firstFile.sizeBytes, 0);
+    store.objects.set(firstFile.objectKey, mismatched);
+
+    await expect(publishRuntimeRelease({ store, runtimeRoot: root, manifest }))
+      .rejects.toMatchObject({ code: 'runtime-release-remote-object-invalid' } satisfies Partial<RuntimeReleaseStoreError>);
+    expect(store.putCalls).toEqual([]);
+    expect(store.objects.has(`runtime/releases/${manifest.releaseId}/.act-runtime-release.v1.json`)).toBe(false);
+  });
+
+  it('treats an existing verified manifest as verification-only and performs no writes', async () => {
+    const root = await fixture();
+    const manifest = await contentAddressedManifest(root);
+    const store = new MemoryStore();
+    await publishRuntimeRelease({ store, runtimeRoot: root, manifest });
+    store.putCalls.length = 0;
+
+    await expect(publishRuntimeRelease({ store, runtimeRoot: root, manifest })).resolves.toMatchObject({
+      releaseId: manifest.releaseId,
+      manifestSha256: manifest.manifestSha256,
+    });
+    expect(store.putCalls).toEqual([]);
+  });
+
+  it('recovers exactly after a crash while the manifest is still absent', async () => {
+    const root = await fixture();
+    const manifest = await contentAddressedManifest(root);
+    const store = new MemoryStore();
+    const manifestKey = runtimeReleaseManifestObjectKey(manifest.releaseId);
+    store.failAtKey = manifestKey;
+
+    await expect(publishRuntimeRelease({ store, runtimeRoot: root, manifest }))
+      .rejects.toMatchObject({ code: 'runtime-release-publish-incomplete' } satisfies Partial<RuntimeReleaseStoreError>);
+    expect(store.objects.has(manifestKey)).toBe(false);
+    expect(store.putCalls).toEqual([...manifest.files.map((file) => file.objectKey), manifestKey]);
+
+    store.failAtKey = null;
+    store.putCalls.length = 0;
+    await expect(publishRuntimeRelease({ store, runtimeRoot: root, manifest })).resolves.toMatchObject({ releaseId: manifest.releaseId });
+    expect(store.putCalls).toEqual([manifestKey]);
   });
 
   it('fails closed for unexpected or hash-mismatched remote objects', async () => {

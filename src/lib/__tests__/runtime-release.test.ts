@@ -60,6 +60,13 @@ describe('act runtime release manifest', () => {
       .rejects.toMatchObject({ code: 'runtime-release-symlink-forbidden' } satisfies Partial<RuntimeReleaseValidationError>);
   });
 
+  it('rejects control characters in normalized source paths', async () => {
+    const root = await fixture();
+    await writeFile(path.join(root, 'lessons', '1-1', 'bad\nname.json'), 'unsafe');
+    await expect(buildRuntimeReleaseManifest(root, { releaseId: 'valid-release', sourceRevision: revision }))
+      .rejects.toMatchObject({ code: 'runtime-release-path-invalid' } satisfies Partial<RuntimeReleaseValidationError>);
+  });
+
   it('rejects an empty runtime source and an empty manifest', async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-release-empty-'));
     roots.push(root);
@@ -79,6 +86,8 @@ describe('act runtime release manifest', () => {
     await writeFile(path.join(root, 'lessons', '1-1', 'media', 'intro.mp4'), Buffer.from([4, 5, 6]));
     await expect(verifyRuntimeReleaseDirectory(root, manifest)).rejects.toMatchObject({ code: 'runtime-release-directory-mismatch' } satisfies Partial<RuntimeReleaseValidationError>);
     expect(() => parseRuntimeReleaseManifest({ ...manifest, files: [{ ...manifest.files[0], path: '../escape' }] }))
+      .toThrow(/Invalid runtime release path/);
+    expect(() => parseRuntimeReleaseManifest({ ...manifest, files: [{ ...manifest.files[0], path: 'nested\\escape' }] }))
       .toThrow(/Invalid runtime release path/);
   });
 });

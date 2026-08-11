@@ -1,12 +1,13 @@
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { lstat, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 
 import {
   ACT_RUNTIME_RELEASE_MANIFEST_FILENAME,
   assertContentAddressedRuntimeReleaseId,
+  computeRuntimeReleaseManifestWireSha256,
   type ActRuntimeReleaseManifest,
   parseRuntimeReleaseManifest,
   runtimeReleaseManifestObjectKey,
@@ -20,16 +21,27 @@ export interface RuntimeReleaseStoredObject {
   sizeBytes: number;
 }
 
-export interface RuntimeReleaseObjectStore {
+export interface RuntimeReleaseObjectExpectation {
+  sizeBytes: number;
+  sha256: string;
+  /** The expected digest of the serialized completion manifest on the wire. */
+  wireSha256?: string;
+}
+
+export interface RuntimeReleaseObjectReader {
   listObjects(prefix: string): Promise<RuntimeReleaseStoredObject[]>;
-  putObject(key: string, content: Readable): Promise<void>;
   getObject(key: string): Promise<Readable>;
+}
+
+export interface RuntimeReleaseObjectStore extends RuntimeReleaseObjectReader {
+  putObject(key: string, content: Readable, expectation?: RuntimeReleaseObjectExpectation): Promise<void>;
 }
 
 export interface RuntimeReleaseVerificationReceipt {
   schemaVersion: 'runtime-release-verification.v1';
   releaseId: string;
   manifestSha256: string;
+  wireSha256: string;
   treeSha256: string;
   fileCount: number;
   totalBytes: number;
@@ -42,7 +54,7 @@ export class RuntimeReleaseStoreError extends Error {
   }
 }
 
-function releasePrefix(releaseId: string) {
+export function runtimeReleasePrefix(releaseId: string) {
   return `runtime/releases/${releaseId}/`;
 }
 
@@ -52,7 +64,7 @@ async function readStream(stream: Readable) {
   return Buffer.concat(chunks);
 }
 
-async function hashRemoteObject(store: RuntimeReleaseObjectStore, key: string) {
+async function hashRemoteObject(store: RuntimeReleaseObjectReader, key: string) {
   let content: Readable;
   try {
     content = await store.getObject(key);
@@ -67,6 +79,19 @@ async function hashRemoteObject(store: RuntimeReleaseObjectStore, key: string) {
     sizeBytes += bytes.byteLength;
   }
   return { sizeBytes, sha256: hash.digest('hex') };
+}
+
+async function openVerifiedRuntimeSourceFile(root: string, relativePath: string) {
+  const rootAbsolute = path.resolve(root);
+  const absolutePath = path.resolve(rootAbsolute, ...relativePath.split('/'));
+  if (absolutePath !== rootAbsolute && !absolutePath.startsWith(`${rootAbsolute}${path.sep}`)) {
+    throw new RuntimeReleaseStoreError('runtime-release-source-path-invalid', `Runtime source path escapes the selected root: ${relativePath}`);
+  }
+  const sourceStat = await lstat(absolutePath);
+  if (!sourceStat.isFile() || sourceStat.isSymbolicLink()) {
+    throw new RuntimeReleaseStoreError('runtime-release-source-path-invalid', `Runtime source path is not a regular file: ${relativePath}`);
+  }
+  return createReadStream(absolutePath);
 }
 
 function assertExactObjectSet(objects: readonly RuntimeReleaseStoredObject[], manifest: ActRuntimeReleaseManifest) {
@@ -86,7 +111,27 @@ function assertExactObjectSet(objects: readonly RuntimeReleaseStoredObject[], ma
   }
 }
 
-export async function inspectPublishedRuntimeRelease(store: RuntimeReleaseObjectStore, releaseId: string) {
+function assertPartialObjectSet(objects: readonly RuntimeReleaseStoredObject[], manifest: ActRuntimeReleaseManifest) {
+  const expectedEntries: Array<[string, number]> = [
+    [runtimeReleaseManifestObjectKey(manifest.releaseId), Buffer.byteLength(serializeRuntimeReleaseManifest(manifest))],
+    ...manifest.files.map((file): [string, number] => [file.objectKey, file.sizeBytes]),
+  ];
+  const expected = new Map(expectedEntries);
+  const actual = new Map(objects.map((object) => [object.key, object.sizeBytes]));
+  if (actual.size !== objects.length) {
+    throw new RuntimeReleaseStoreError('runtime-release-remote-object-set-invalid', 'Remote runtime release contains duplicate object entries.');
+  }
+  for (const [key, sizeBytes] of actual) {
+    if (!expected.has(key)) {
+      throw new RuntimeReleaseStoreError('runtime-release-remote-object-set-invalid', `Remote runtime release contains an unexpected object: ${key}`);
+    }
+    if (sizeBytes !== expected.get(key)) {
+      throw new RuntimeReleaseStoreError('runtime-release-remote-object-invalid', `Remote runtime release object size differs from the manifest: ${key}`);
+    }
+  }
+}
+
+export async function inspectPublishedRuntimeRelease(store: RuntimeReleaseObjectReader, releaseId: string) {
   const manifestKey = runtimeReleaseManifestObjectKey(releaseId);
   let raw: Buffer;
   try {
@@ -111,9 +156,9 @@ export async function inspectPublishedRuntimeRelease(store: RuntimeReleaseObject
   return manifest;
 }
 
-export async function verifyPublishedRuntimeRelease(store: RuntimeReleaseObjectStore, releaseId: string): Promise<RuntimeReleaseVerificationReceipt> {
+export async function verifyPublishedRuntimeRelease(store: RuntimeReleaseObjectReader, releaseId: string): Promise<RuntimeReleaseVerificationReceipt> {
   const manifest = await inspectPublishedRuntimeRelease(store, releaseId);
-  const objects = await store.listObjects(releasePrefix(releaseId));
+  const objects = await store.listObjects(runtimeReleasePrefix(releaseId));
   assertExactObjectSet(objects, manifest);
   for (const file of manifest.files) {
     const remote = await hashRemoteObject(store, file.objectKey);
@@ -125,12 +170,20 @@ export async function verifyPublishedRuntimeRelease(store: RuntimeReleaseObjectS
     schemaVersion: 'runtime-release-verification.v1',
     releaseId: manifest.releaseId,
     manifestSha256: manifest.manifestSha256,
+    wireSha256: computeRuntimeReleaseManifestWireSha256(manifest),
     treeSha256: manifest.treeSha256,
     fileCount: manifest.fileCount,
     totalBytes: manifest.totalBytes,
   };
 }
 
+/**
+ * @internal
+ *
+ * This in-memory/test-oriented store contract is retained for verification of
+ * fail-closed resume semantics. Production writes must use the streaming ECS
+ * bridge (`publishRuntimeReleaseViaSsh`), which owns the per-release lock.
+ */
 export async function publishRuntimeRelease(input: {
   store: RuntimeReleaseObjectStore;
   runtimeRoot: string;
@@ -143,19 +196,50 @@ export async function publishRuntimeRelease(input: {
     throw new RuntimeReleaseStoreError('runtime-release-id-not-content-addressed', 'Runtime release id must bind source revision and tree identity before publishing.', { cause: error });
   }
   await verifyRuntimeReleaseDirectory(input.runtimeRoot, manifest);
-  const prefix = releasePrefix(manifest.releaseId);
-  if ((await input.store.listObjects(prefix)).length > 0) {
-    throw new RuntimeReleaseStoreError('runtime-release-already-exists', `Remote runtime release prefix is already occupied: ${prefix}`);
+  const prefix = runtimeReleasePrefix(manifest.releaseId);
+  const existingObjects = await input.store.listObjects(prefix);
+  const manifestKey = runtimeReleaseManifestObjectKey(manifest.releaseId);
+
+  // A manifest is the completion marker. Once it exists, this operation is
+  // verification-only and must never attempt a write, even for an identical
+  // retry. A malformed or incomplete completed prefix fails closed.
+  if (existingObjects.some((object) => object.key === manifestKey)) {
+    const receipt = await verifyPublishedRuntimeRelease(input.store, manifest.releaseId);
+    if (receipt.manifestSha256 !== manifest.manifestSha256 || receipt.treeSha256 !== manifest.treeSha256) {
+      throw new RuntimeReleaseStoreError('runtime-release-remote-identity-mismatch', 'Remote release verification does not match the manifest submitted by this publisher.');
+    }
+    return receipt;
+  }
+
+  // A prefix without a manifest may be a recoverable interrupted upload. It
+  // must contain only exact manifest members; hash every existing member
+  // before sending any missing bytes so a stale or poisoned object cannot be
+  // hidden by a later retry.
+  assertPartialObjectSet(existingObjects, manifest);
+  const existingKeys = new Set(existingObjects.map((object) => object.key));
+  for (const object of existingObjects) {
+    const expected = manifest.files.find((file) => file.objectKey === object.key);
+    if (!expected) {
+      throw new RuntimeReleaseStoreError('runtime-release-remote-object-set-invalid', `Remote runtime release contains an unexpected object: ${object.key}`);
+    }
+    const remote = await hashRemoteObject(input.store, object.key);
+    if (remote.sizeBytes !== expected.sizeBytes || remote.sha256 !== expected.sha256) {
+      throw new RuntimeReleaseStoreError('runtime-release-remote-object-invalid', `Remote runtime object does not match manifest: ${expected.path}`);
+    }
   }
   try {
     for (const file of manifest.files) {
-      const absolutePath = path.join(input.runtimeRoot, ...file.path.split('/'));
-      await input.store.putObject(file.objectKey, createReadStream(absolutePath));
+      if (existingKeys.has(file.objectKey)) continue;
+      await input.store.putObject(file.objectKey, await openVerifiedRuntimeSourceFile(input.runtimeRoot, file.path), {
+        sizeBytes: file.sizeBytes,
+        sha256: file.sha256,
+      });
     }
-    await input.store.putObject(
-      runtimeReleaseManifestObjectKey(manifest.releaseId),
-      Readable.from(Buffer.from(serializeRuntimeReleaseManifest(manifest))),
-    );
+    await input.store.putObject(manifestKey, Readable.from(Buffer.from(serializeRuntimeReleaseManifest(manifest))), {
+      sizeBytes: Buffer.byteLength(serializeRuntimeReleaseManifest(manifest)),
+      sha256: computeRuntimeReleaseManifestWireSha256(manifest),
+      wireSha256: computeRuntimeReleaseManifestWireSha256(manifest),
+    });
   } catch (error) {
     throw new RuntimeReleaseStoreError('runtime-release-publish-incomplete', 'Runtime release upload did not complete; no selector may reference this release.', { cause: error });
   }
@@ -168,7 +252,6 @@ export async function publishRuntimeRelease(input: {
 
 export type EcsRamRoleOssClient = {
   list(input: { prefix: string; marker?: string }): Promise<{ objects?: Array<{ name?: string; size?: number | string }>; nextMarker?: string }>;
-  putStream(key: string, content: Readable): Promise<unknown>;
   getStream(key: string): Promise<{ stream: Readable }>;
   asyncSignatureUrl(key: string, options: { expires: number; method: 'GET' }): Promise<string>;
 };
@@ -227,17 +310,16 @@ export function createEcsRamRoleOssClient(input: {
   };
   return {
     list: async (input) => (await client()).list(input),
-    putStream: async (key, content) => (await client()).putStream(key, content),
     getStream: async (key) => (await client()).getStream(key),
     asyncSignatureUrl: async (key, options) => (await client()).asyncSignatureUrl(key, options),
   };
 }
 
-export function createEcsRamRoleOssRuntimeReleaseStore(input: {
+export function createEcsRamRoleOssRuntimeReleaseReader(input: {
   bucket: string;
   region: string;
   roleName: string;
-}): RuntimeReleaseObjectStore {
+}): RuntimeReleaseObjectReader {
   const client = createEcsRamRoleOssClient(input);
   return {
     async listObjects(prefix) {
@@ -252,9 +334,6 @@ export function createEcsRamRoleOssRuntimeReleaseStore(input: {
         marker = page.nextMarker || undefined;
       } while (marker);
       return objects;
-    },
-    async putObject(key, content) {
-      await client.putStream(key, content);
     },
     async getObject(key) {
       return (await client.getStream(key)).stream;
