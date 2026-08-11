@@ -6,7 +6,7 @@
 
 - 生产主机根分区为 ext4，容量 52,447,014,912 bytes，已用 45,127,794,688 bytes（91%），可用 4,957,241,344 bytes。
 - 本地 runtime 的已分配空间为 5,949,075,456 bytes，10,222 个文件；`lessons`、`knowledge`、`resources` 分别约 3.33 GB、1.40 GB、0.99 GB。Podman images 报告为 15.37GB，其中 2.379GB 可回收，故 runtime 迁移不能被表述为唯一磁盘根因。
-- Phase 0 采集时，ECS RAM Role metadata endpoint 返回 404，且尚未安装 `ossfs2`、`ossfs`、`ossutil`。截至 2026-08-11，ECS 已安装 `ossutil` 1.7.19 与 ossfs 2.0.8，并已恢复受限的 `act-runtime-oss-read` 角色；这不授权发布、挂载、切换或删除。
+- Phase 0 采集时，ECS RAM Role metadata endpoint 返回 404，且尚未安装 `ossfs2`、`ossfs`、`ossutil`。截至 2026-08-11，ECS 已安装 `ossutil` 1.7.19 与 ossfs 2.0.8，并已恢复受限的 `act-runtime-oss-read` 角色；该身份只用于发布完成后的读取、候选挂载与运行态服务。
 - 机器可读的只读采集结果见 [Phase 0 disk report](../../artifacts/runtime-release/phase-0-production-disk-report-20260811.json)。主工作树 source revision `6ffb506f0334014df5a8304fbbd7ff54c1054e4f` 的媒体盘点见 [media inventory](../../artifacts/runtime-release/phase-0-main-runtime-media-inventory-6ffb506f.json)：121 项声明资源中，96 项 runtime 本地存在、101 项 authoring processed 存在、90 项有 legacy URL、19 项 unresolved。
 
 首次本地 retrieval 基准只代表主工作树源盘，不代表 ossfs：`vectors.f32`、`bodies.utf8`、`lexical-postings.bin` 的结果见 [baseline](../../artifacts/runtime-release/phase-0-main-textbook-retrieval-baseline-6ffb506f.json)。候选 ossfs 挂载必须使用同一工具重新测量后才能决定是否启用热缓存。
@@ -53,6 +53,17 @@ npx tsx scripts/runtime-release/act-runtime-release.ts inspect \
 
 将 bridge 脚本以固定、root-owned 路径部署到 ECS 后，`publish-streaming` 以单个 SSH 流发送 frozen manifest 和缺失对象；ECS 不产生完整 runtime staging 副本。bridge 对每个 Release 前缀持有排他锁，只续传与 manifest 完全一致的既有对象，并在逐对象远端 SHA-256/size 校验后最后写入 manifest。任一中断、额外对象或不匹配都会失败，且不得生成 selection。Release prefix 从不覆盖、从不原地修复。发布结束后立即将 ECS 恢复到 read-only runtime role；`verify` 与 `inspect` 使用该角色重新读取 OSS。
 
+## 2026-08-11 实际候选证据
+
+首个完整 Release 为 `runtime-b2f0b07c428faba4317bf2f5b7ad51f0858165dee8651fcea52eb6a`，绑定 source revision `3097ebc204d65b2722cfdc1423e0d1646e37d55d`、10,222 个文件、5,924,691,879 bytes、tree SHA-256 `2fd9eec21142994ea97bf971225b1ad24a85ee6346ec17d8ff96d2da93708133`、semantic manifest SHA-256 `75912510df1f3e9b89801702dea9747ce15e0af117317886dabc9965b760f326` 与 wire SHA-256 `fc6ead8721b950731a866d652a01020ea5626b741c06af98f4264891d13ed88f`。
+
+- `act-runtime-oss-read` 经 ECS IMDS 确认后，重新读取 OSS manifest 并精确匹配 wire SHA-256。
+- Release 挂载在独立候选路径 `/home/projects/act/data/runtime/ossfs/releases/<release-id>`；`findmnt` 证明为 FUSE 且 `ro`，未创建 `act-runtime-selection.json` 或 `act-runtime-active-receipt.json`。
+- `verify-mounted` 对候选目录完成逐文件文件集、size 与 SHA-256 复核，结果为 10,222 个文件和 5,924,691,879 bytes。
+- 无网络临时 Node 容器以 `/app/course-content/runtime:ro` bind mount 读取 `vectors.f32`，并确认写入返回 `EROFS`。
+- 三次完整读取并 SHA-256 校验的候选基准：`vectors.f32`（54,444,032 bytes）190.441 / 194.310 / 198.389 ms；`bodies.utf8`（46,759,868 bytes）163.649 / 177.434 / 165.487 ms；`lexical-postings.bin`（8,747,083 bytes）35.434 / 29.876 / 32.942 ms。没有可重复的明显退化证据，因此未启用本地 hot cache。
+- 候选回退演练停止并重新启动该候选 ossfs unit；现有应用继续从 legacy runtime 只读 bind mount 运行且 `/api/readyz` 正常，selector 与 active receipt 均保持缺席。
+
 ## 候选挂载与切换清单
 
 1. 确认 ECS 绑定 runtime RAM Role，并安装 ossfs 2.0。配置使用 `oss-cn-hangzhou-internal.aliyuncs.com`、`oss_bucket_prefix=runtime/releases/<release-id>/`、`--ro=true` 与显式 uid/gid/file/dir mode。
@@ -89,4 +100,4 @@ scripts/runtime-release/rollback-runtime-release.sh \
 
 删除旧 ECS runtime 不属于本变更的自动操作。生产 smoke、回退演练和 active receipt 完成后，必须重新采集根分区、Podman、runtime 与可回退 Release 的占用，确认旧 Release 仍可挂载，取得单独人工授权后才可删除。预期可释放的上限是当前 runtime 已分配空间约 5.95GB；实际释放量受文件系统块、仍保留的热缓存和旧目录状态影响。
 
-未解决风险：首个完整 Release 尚未写入并由 read-only runtime role 重新验证、ossfs 候选挂载未验证、ossfs retrieval 性能未知、19 项媒体输入 unresolved。它们不允许生产切换，但不会改变本地 Release 工具和 legacy filesystem fallback 的可用性。
+未解决风险：生产容器尚未以该候选 Release 启动，因而 application-level 课程路由与媒体短时 redirect 仍须在实际切换事务中验证；19 项媒体输入仍 unresolved。旧 ECS runtime 的删除继续等待生产 smoke、可回退 Release 与人工确认。
