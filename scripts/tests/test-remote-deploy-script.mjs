@@ -638,9 +638,7 @@ function main() {
     '远端部署脚本必须验证 BullMQ 队列 key'
   );
 
-  if (process.platform !== 'win32') {
-    verifyCutoverFailureGate();
-  }
+  verifyCutoverFailureGate();
 
   console.log('remote deploy script test passed');
 }
