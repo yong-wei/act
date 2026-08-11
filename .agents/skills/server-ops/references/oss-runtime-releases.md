@@ -38,4 +38,6 @@
 - 只有一台 ECS 时，首次发布可短时把该实例切换为受限 publisher RAM Role，但只可在 ossfs 尚未提供生产 runtime 的阶段进行；发布、对象重验与记录完成后必须立即恢复 read-only runtime role。不得在 ossfs 已承载流量期间复用此方式。
 - 将 `ali-oss` 发布器打包为独立 Node 运维命令时，`urllib` 的可选 `proxy-agent` 依赖会使 esbuild 静态解析失败。可将该可选模块 externalize，但必须先确认 ECS 无 HTTP(S)/ALL proxy 环境，并在目标 Node 版本上运行一次只读 plan/inspect 验证；不得用该策略绕开真实代理依赖。
 - 部署 ECS-side 运维脚本前先读取目标 `python3 --version` 并在该最低版本语法范围内编写。当前 ECS 为 Python 3.6.8：不得使用 `from __future__ import annotations`、内置泛型（如 `list[str]`）、`X | None` 或 `subprocess.run(text=True)`；使用 `typing.List`/`Optional` 与 `universal_newlines=True`。部署后先在 ECS 执行 `python3 -m py_compile`，通过前不得启动发布协议。
+- `rtk` 会为节约输出截断长文本行，不能用于判断 OSS object key 是否完整。需要核对协议输出、路径或摘要时，使用不经输出压缩的 `rtk proxy` 或在 bridge 子进程内直接解析；不得把工具展示层的省略号当作远端返回值。
+- 当前 ECS 的 `/usr/local/bin/ossutil` 1.7.19 可作为发布 bridge 的固定写入工具：所有调用都必须使用绝对路径，并显式传入 `--mode EcsRamRole --ecs-role-name <经 IMDS 校验的当前角色> --endpoint oss-cn-hangzhou-internal.aliyuncs.com`；v1 不支持 JSON/recursive 列举，使用 `ls <prefix> -s` 的完整 object URL 文本并严格解析。已将官方 ossutil 2.3.0 安装到 `/opt/act-ops/ossutil-2.3.0/ossutil`，通过官方下载 ZIP SHA-256 校验；它只用于只读交叉诊断，不作为 writer 回退路径。
 - 不在远端源码构建，不通过 ECS 代理大型视频，不开启 public-read，也不为排障降低 Bucket 私有访问策略。

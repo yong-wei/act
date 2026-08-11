@@ -18,12 +18,23 @@ import re
 import subprocess
 import sys
 from typing import Any, Dict, List, NoReturn, Optional, Tuple
+from urllib.error import URLError
+from urllib.request import ProxyHandler, Request, build_opener
 
 
 KEY_PREFIX = "runtime/releases/"
 MANIFEST_NAME = ".act-runtime-release.v1.json"
 BUCKET_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$")
 SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
+ROLE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+EXPECTED_ECS_ROLE_NAME = "act-runtime-oss-publisher"
+OSS_ENDPOINT = "oss-cn-hangzhou-internal.aliyuncs.com"
+DEFAULT_OSSUTIL_PATH = "/usr/local/bin/ossutil"
+DEFAULT_IMDS_ROLE_URL = "http://100.100.100.200/latest/meta-data/ram/security-credentials/"
+OBJECT_NUMBER_SUMMARY = re.compile(r"^Object Number is:? [0-9]+$")
+TOTAL_SIZE_SUMMARY = re.compile(r"^Total Size is:? [0-9]+$")
+_CURRENT_ROLE_NAME: Optional[str] = None
+_IMDS_OPENER = build_opener(ProxyHandler({}))
 
 
 def fail(message: str) -> NoReturn:
@@ -73,10 +84,45 @@ def prefix_destination(bucket: str, prefix: str) -> str:
 
 
 def ossutil_command() -> str:
-    command = os.environ.get("ACT_RUNTIME_RELEASE_OSSUTIL", "ossutil")
-    if not command or any(ord(char) < 0x20 or ord(char) == 0x7F for char in command):
-        fail("ossutil command is invalid")
-    return command
+    override = os.environ.get("ACT_RUNTIME_RELEASE_OSSUTIL")
+    if override is None:
+        return DEFAULT_OSSUTIL_PATH
+    if os.environ.get("ACT_RUNTIME_RELEASE_TEST_MODE") != "1":
+        fail("ossutil path override is restricted to the explicit test mode")
+    if not override.startswith("/") or any(ord(char) < 0x20 or ord(char) == 0x7F for char in override):
+        fail("ossutil test override must be an absolute path without control characters")
+    return override
+
+
+def current_ecs_role_name() -> str:
+    global _CURRENT_ROLE_NAME
+    if _CURRENT_ROLE_NAME is not None:
+        return _CURRENT_ROLE_NAME
+    metadata_override = os.environ.get("ACT_RUNTIME_RELEASE_IMDS_ROLE_URL")
+    if metadata_override is not None and os.environ.get("ACT_RUNTIME_RELEASE_TEST_MODE") != "1":
+        fail("ECS RAM role metadata URL override is restricted to the explicit test mode")
+    metadata_url = metadata_override or DEFAULT_IMDS_ROLE_URL
+    if not metadata_url.startswith("http://") or any(ord(char) < 0x20 or ord(char) == 0x7F for char in metadata_url):
+        fail("ECS RAM role metadata URL is invalid")
+    try:
+        response = _IMDS_OPENER.open(Request(metadata_url, headers={"User-Agent": "act-runtime-release-bridge"}), timeout=2)
+        payload = response.read(4096).decode("ascii")
+        response.close()
+    except (OSError, UnicodeDecodeError, URLError, ValueError) as error:
+        fail(f"unable to read ECS RAM role metadata: {error}")
+    role_names = [line.strip() for line in payload.splitlines() if line.strip()]
+    if len(role_names) != 1 or not ROLE_NAME_PATTERN.fullmatch(role_names[0]) or role_names[0] != EXPECTED_ECS_ROLE_NAME:
+        fail("ECS RAM role metadata does not match the restricted publisher role")
+    _CURRENT_ROLE_NAME = role_names[0]
+    return _CURRENT_ROLE_NAME
+
+
+def ossutil_argv(arguments: List[str]) -> List[str]:
+    return [ossutil_command()] + arguments + [
+        "--mode", "EcsRamRole",
+        "--ecs-role-name", current_ecs_role_name(),
+        "--endpoint", OSS_ENDPOINT,
+    ]
 
 
 def canonical_json(value: Any) -> bytes:
@@ -85,7 +131,7 @@ def canonical_json(value: Any) -> bytes:
 
 def remote_digest(bucket: str, key: str) -> Dict[str, Any]:
     process = subprocess.Popen(
-        [ossutil_command(), "cat", destination(bucket, key)],
+        ossutil_argv(["cat", destination(bucket, key)]),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -102,54 +148,47 @@ def remote_digest(bucket: str, key: str) -> Dict[str, Any]:
     return {"sizeBytes": size, "sha256": digest.hexdigest()}
 
 
-def flatten_list(value: Any, result: List[Dict[str, Any]]) -> None:
-    if isinstance(value, list):
-        for item in value:
-            flatten_list(item, result)
-        return
-    if not isinstance(value, dict):
-        return
-    key = value.get("key") or value.get("name") or value.get("Key")
-    size = value.get("sizeBytes") if "sizeBytes" in value else value.get("size")
-    if isinstance(size, str) and size.isdecimal():
-        size = int(size)
-    if isinstance(key, str) and isinstance(size, (int, float)) and int(size) == size:
-        result.append({"key": key, "sizeBytes": int(size)})
-    for nested in value.values():
-        if isinstance(nested, (dict, list)):
-            flatten_list(nested, result)
-
-
 def list_objects(bucket: str, prefix: str) -> List[Dict[str, Any]]:
     process = subprocess.run(
-        [ossutil_command(), "ls", prefix_destination(bucket, prefix), "--recursive", "--output-format", "json"],
+        ossutil_argv(["ls", prefix_destination(bucket, prefix), "-s"]),
         check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         universal_newlines=True,
+        encoding="utf-8",
+        errors="strict",
     )
     if process.returncode != 0:
         fail(f"ossutil ls failed: {process.stderr.strip()}")
-    entries: List[Dict[str, Any]] = []
-    try:
-        flatten_list(json.loads(process.stdout), entries)
-    except json.JSONDecodeError:
-        pass
-    for line in process.stdout.splitlines() if not entries else []:
-        try:
-            flatten_list(json.loads(line), entries)
-        except json.JSONDecodeError:
-            continue
+    if process.stderr.strip():
+        fail(f"ossutil ls emitted unexpected stderr: {process.stderr.strip()}")
+    object_prefix = f"oss://{bucket}/"
     normalized: List[Dict[str, Any]] = []
-    for entry in entries:
-        key = str(entry["key"])
-        object_prefix = f"oss://{bucket}/"
-        if key.startswith(object_prefix):
-            key = key[len(object_prefix):]
-        if key.startswith(prefix):
-            normalized.append({"key": key, "sizeBytes": entry["sizeBytes"]})
-    unique = {entry["key"]: entry for entry in normalized}
-    return sorted(unique.values(), key=lambda entry: entry["key"])
+    seen = set()
+    # Split only on LF.  ``str.splitlines`` also treats other control bytes
+    # (for example form-feed and record-separator) as line boundaries, which
+    # would let malformed writer output evade the control-character check.
+    for raw_line in process.stdout.split("\n"):
+        line = raw_line.rstrip("\r\n")
+        if not line:
+            continue
+        if OBJECT_NUMBER_SUMMARY.fullmatch(line) or TOTAL_SIZE_SUMMARY.fullmatch(line):
+            continue
+        if any(ord(char) < 0x20 or ord(char) == 0x7F for char in line):
+            fail("ossutil ls output contains a control character")
+        if not line.startswith(object_prefix):
+            fail(f"ossutil ls output contains an unknown line: {line}")
+        key = line[len(object_prefix):]
+        if not key or not key.startswith(prefix):
+            fail(f"ossutil ls output contains an object outside the requested prefix: {line}")
+        validate_key(key)
+        if key in seen:
+            fail(f"remote release list contains duplicate object: {key}")
+        seen.add(key)
+        # ossutil v1 -s output is an object URL listing; size is deliberately
+        # unknown and every object is re-read before it can be accepted.
+        normalized.append({"key": key, "sizeBytes": -1})
+    return sorted(normalized, key=lambda entry: entry["key"])
 
 
 def write_json(value: Any) -> None:
@@ -235,7 +274,7 @@ def assert_object_set(objects: List[Dict[str, Any]], expected: Dict[str, int], a
     for key, size in actual.items():
         if key not in expected:
             fail(f"remote release contains an unexpected object: {key}")
-        if size != expected[key]:
+        if size >= 0 and size != expected[key]:
             fail(f"remote release object size differs from the manifest: {key}")
     if allow_manifest and set(actual) != set(expected):
         fail("remote release is missing an expected object")
@@ -245,7 +284,7 @@ def put_bytes(bucket: str, key: str, payload: bytes, expected_size: int, expecte
     if len(payload) != expected_size or hashlib.sha256(payload).hexdigest() != expected_sha:
         fail(f"source bytes differ from manifest for {key}")
     process = subprocess.Popen(
-        [ossutil_command(), "cp", "-", destination(bucket, key), "--force=false"],
+        ossutil_argv(["cp", "-", destination(bucket, key), "--force=false"]),
         stdin=subprocess.PIPE,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
@@ -271,7 +310,7 @@ def put_bytes(bucket: str, key: str, payload: bytes, expected_size: int, expecte
 
 def put_frame(bucket: str, key: str, expected_size: int, expected_sha: str) -> Dict[str, Any]:
     process = subprocess.Popen(
-        [ossutil_command(), "cp", "-", destination(bucket, key), "--force=false"],
+        ossutil_argv(["cp", "-", destination(bucket, key), "--force=false"]),
         stdin=subprocess.PIPE,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
@@ -401,7 +440,7 @@ def main() -> None:
     if not arguments.key_b64:
         fail("get requires --key-b64")
     key = decode_value(arguments.key_b64, "key")
-    os.execvp(ossutil_command(), [ossutil_command(), "cat", destination(bucket, key)])
+    os.execvp(ossutil_command(), ossutil_argv(["cat", destination(bucket, key)]))
 
 
 if __name__ == "__main__":

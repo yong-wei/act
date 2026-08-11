@@ -20,7 +20,15 @@ assert.match(source, /inspectPublishedRuntimeRelease/, 'inspect must read the pu
 assert.match(source, /deriveRuntimeReleaseId/, 'plan and publish must derive the content-addressed release identity');
 assert.match(source, /publishRuntimeReleaseViaSsh/, 'streaming publish must use the SSH source-authoritative transport');
 assert.match(source, /--known-hosts-file/, 'streaming publish must require an explicit known-hosts file');
-assert.match(bridge, /ossutil_command\(\), "cp", "-"/, 'ECS bridge must stream stdin directly to ossutil cp -');
+assert.match(bridge, /ossutil_argv\(\["cp", "-",/, 'ECS bridge must stream stdin directly to ossutil cp -');
+assert.match(bridge, /ossutil_argv\(\["ls", prefix_destination\(bucket, prefix\), "-s"\]/, 'ECS bridge must use the ossutil v1 summary listing command');
+assert.match(bridge, /DEFAULT_OSSUTIL_PATH\s*=\s*["']\/usr\/local\/bin\/ossutil["']/, 'ECS bridge must use the fixed v1 ossutil writer path by default');
+assert.doesNotMatch(bridge, /os\.environ\.get\(['"]ACT_RUNTIME_RELEASE_OSSUTIL['"],\s*['"]ossutil['"]\)/, 'ECS bridge must not resolve the writer through PATH');
+assert.match(bridge, /OBJECT_NUMBER_SUMMARY|TOTAL_SIZE_SUMMARY/, 'ECS bridge must recognize only explicit v1 summary lines');
+assert.match(bridge, /remote release list contains duplicate object/, 'ECS bridge must reject duplicate v1 object URLs');
+assert.match(bridge, /--ecs-role-name|EXPECTED_ECS_ROLE_NAME/, 'ECS bridge must bind ossutil to the expected ECS RAM role');
+assert.match(bridge, /DEFAULT_IMDS_ROLE_URL|current_ecs_role_name/, 'ECS bridge must validate the current ECS RAM role through IMDS');
+assert.match(bridge, /oss-cn-hangzhou-internal\.aliyuncs\.com/, 'ECS bridge must use the internal OSS endpoint');
 assert.match(bridge, /"--force=false"/, 'ECS bridge must refuse overwrite semantics at the ossutil boundary');
 assert.match(bridge, /remote_digest\(bucket, key\)/, 'ECS bridge must re-read and hash every uploaded object');
 assert.match(bridge, /fcntl\.flock\(lock_file\.fileno\(\), fcntl\.LOCK_EX\)/, 'ECS bridge must hold an exclusive per-release lock');

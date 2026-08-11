@@ -38,6 +38,8 @@
 
 独立 Sol medium 的整改裁决确认：第一阶段仅允许 bridge 取得发布写能力。原有 direct `publish` CLI 必须停用，避免无条件 `PutObject` 绕过单写者边界。bridge 对每个 release identity 在 ECS 本地持有独占 `flock`，覆盖 prefix 检查、partial 精确恢复、上传、逐对象复验和最终 manifest 复验的完整事务；有效 manifest 是终态，后续相同或不同请求均不得 PUT。`manifestSha256` 继续表示不含该字段的 canonical body 摘要；传输另计算最终序列化 manifest 文件的 `wireSha256`，两者不得混用。该锁只承诺单 ECS 的唯一受控写入口，不作为多发布者或存储层不可变性声明。
 
+2026-08-11 的生产工具验证确认 writer 固定使用 `/usr/local/bin/ossutil` 1.7.19，并由 bridge 以绝对路径调用、显式提供 `EcsRamRole`、经 IMDS 验证的 `act-runtime-oss-publisher` 和杭州内网 endpoint。v1 仅以 `ls <prefix> -s` 返回完整 object URL；bridge 不经过 `rtk` 或 shell 管道，严格解析 object URL、摘要行和重复项，遇到未知输出即失败。`rtk` 的显示层会截断长行，不能作为远端响应证据。官方 ossutil 2.3.0 固定安装在 `/opt/act-ops/ossutil-2.3.0/ossutil`，其 ZIP 经官方 SHA-256 校验；它只在发布完成后用于独立的只读集合交叉检查，不能成为 writer 回退路径。
+
 ### 2. 选择器在 ECS 本地 durable storage，而不是 OSS current object
 
 独立 Sol medium 决策顾问最初建议 `runtime/current.json` 作为期望选择器，但新证据表明 OSS `PutObject` 不支持 `If-Match`、`If-None-Match` 或其他条件写，不能用它实现可靠 CAS。第一阶段改用 ECS ext4 上的 `data/runtime/act-runtime-selection.json`；该文件由固定运维脚本在 `flock` 下原子写入，记录 release id、manifest digest、单调 generation 和 operator intent。`data/runtime/act-runtime-active-receipt.json` 单独记录真正健康运行的版本。
@@ -64,6 +66,7 @@ release manifest 为每个 runtime 文件提供 object key、SHA-256 和 size。
 
 - [ECS 无 RAM role 或 ossfs] → 本地实现可以完成，生产写入与激活保持阻断；人工绑定 role 后先运行无凭据 probe 和最小 mount 验证。
 - [OSS 不支持 PutObject CAS] → 第一阶段使用同一 ECS 的 `flock` 本地选择器；多主机部署前不得假定它是分布式协调。
+- [ossutil v1 的无结构化列表] → writer 只解析 bridge 子进程的完整 `-s` 输出，并以 expected key set 与逐对象 SHA-256/size 再次闭合；`rtk` 展示输出与 v2 诊断结果均不作为 writer 输入。
 - [ECS legacy runtime 与内容真源漂移] → 以主工作树 frozen manifest 为唯一发布输入，通过流式 transport 发送；禁止因 source revision 相同而把 ECS 目录当成等价源。
 - [FUSE 大量小文件或热索引退化] → 保持 release prefix mount 并以基准证据决定 bounded digest-pinned hot cache。
 - [签名 URL 泄露或过期] → 使用短 TTL、只签 manifest allowlist 对象、不写日志；客户端将 403/过期视为重新解析而不是 fallback 到永久 URL。
