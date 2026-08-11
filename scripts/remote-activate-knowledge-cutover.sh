@@ -54,33 +54,32 @@ sha256_file() {
 
 oci_image_config_digest() {
   local image_tar="$1"
-  node - "$image_tar" <<'NODE'
-const { createHash } = require('node:crypto');
-const { execFileSync } = require('node:child_process');
-
-const archive = process.argv[2];
-const read = (entry) => execFileSync('tar', ['-xOf', archive, entry]);
+  node -e '
+const { createHash } = require("node:crypto");
+const { execFileSync } = require("node:child_process");
+const archive = process.argv[1];
+const read = (entry) => execFileSync("tar", ["-xOf", archive, entry]);
 const digestPattern = /^sha256:[a-f0-9]{64}$/u;
-const index = JSON.parse(read('index.json').toString('utf8'));
+const index = JSON.parse(read("index.json").toString("utf8"));
 if (!Array.isArray(index.manifests) || index.manifests.length !== 1) {
-  throw new Error('expected exactly one OCI image manifest');
+  throw new Error("expected exactly one OCI image manifest");
 }
 const manifestDigest = index.manifests[0]?.digest;
-if (typeof manifestDigest !== 'string' || !digestPattern.test(manifestDigest)) {
-  throw new Error('OCI image manifest digest is invalid');
+if (typeof manifestDigest !== "string" || !digestPattern.test(manifestDigest)) {
+  throw new Error("OCI image manifest digest is invalid");
 }
-const manifest = JSON.parse(read(`blobs/sha256/${manifestDigest.slice('sha256:'.length)}`).toString('utf8'));
+const manifest = JSON.parse(read(`blobs/sha256/${manifestDigest.slice("sha256:".length)}`).toString("utf8"));
 const configDigest = manifest?.config?.digest;
-if (typeof configDigest !== 'string' || !digestPattern.test(configDigest)) {
-  throw new Error('OCI image config digest is invalid');
+if (typeof configDigest !== "string" || !digestPattern.test(configDigest)) {
+  throw new Error("OCI image config digest is invalid");
 }
-const config = read(`blobs/sha256/${configDigest.slice('sha256:'.length)}`);
-const actualDigest = `sha256:${createHash('sha256').update(config).digest('hex')}`;
+const config = read(`blobs/sha256/${configDigest.slice("sha256:".length)}`);
+const actualDigest = `sha256:${createHash("sha256").update(config).digest("hex")}`;
 if (actualDigest !== configDigest) {
   throw new Error(`OCI image config digest mismatch: ${configDigest}`);
 }
 process.stdout.write(configDigest);
-NODE
+' -- "$image_tar"
 }
 
 safe_remote_value() {

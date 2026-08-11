@@ -103,7 +103,23 @@ function main() {
     /podman inspect "\$container" --format '\{\{\.Image\}\}'[\s\S]*OCI config digest/u,
     'post-cutover containers must be checked against the sealed OCI config digest',
   );
+  const ociDigestHelper = remoteActivatorSource.slice(
+    remoteActivatorSource.indexOf('oci_image_config_digest()'),
+    remoteActivatorSource.indexOf('safe_remote_value()'),
+  );
+  assert.doesNotMatch(
+    ociDigestHelper,
+    /<<['"]?NODE/u,
+    'RTK 包装的部署脚本不得在 OCI digest command substitution 中写 Node heredoc',
+  );
   const configDigest = imageConfigDigest(imageTar);
+  const helperResult = spawnSync(
+    'bash',
+    ['-c', `${ociDigestHelper}\noci_image_config_digest "$1"`, 'bash', imageTar],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(helperResult.status, 0, helperResult.stderr);
+  assert.equal(helperResult.stdout, configDigest, 'OCI helper must resolve the frozen image config digest');
   const tarSha256 = sha256File(imageTar);
   const workRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'production-cutover-plan-'));
   try {
