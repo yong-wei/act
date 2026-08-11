@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "issue": 1327,
+  "capturedAt": "2026-08-11T08:25:47.151Z",
+  "commitSha": "f4d402bf479fbbf92cf4fa13428941b0e6c556c5",
+  "generator": "tests/adaptive-path-candidate-batches.spec.ts",
+  "generatorSha256": "7ad1d1196f19560e3fe75d223be8460d8f9b06236e20153044145fd39a5b2aba",
+  "representativeRoute": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327",
+  "sourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "c32021542ba8a33a3bda49c3e20c4a1241dbe330c476fdc3beb9f24ea2335b4c",
+    "src/lib/adaptive-path-candidate-batches.ts": "d4dc4fc6a030337ebaad1d747894950bb73c86d01dc22572a5abe16c655510b5",
+    "tests/adaptive-path-candidate-batches.spec.ts": "7ad1d1196f19560e3fe75d223be8460d8f9b06236e20153044145fd39a5b2aba"
+  },
+  "screenshots": [
+    {
+      "file": "artifacts/commercial-ui/issue-1327/no-batch-desktop-1440.png",
+      "sha256": "d69a9297175995e2344d9fb247aab551c38318859ddeec9d2fcccaf744f2e2a3",
+      "scenario": "no-batch",
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
+      "width": 1440,
+      "height": 1000,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": null,
+      "assertions": [
+        "active path remains reachable",
+        "generation settings remain editable",
+        "candidate comparison stays hidden without an explicit batch"
+      ],
+      "focusedControl": null,
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1327/loaded-desktop-1440.png",
+      "sha256": "29733ba2664eed57d7e4d837df66c51aaf177c7a861fbcd389665b122efde79f",
+      "scenario": "loaded",
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327",
+      "width": 1440,
+      "height": 1000,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": "path-candidate-batch_issue1327",
+      "assertions": [
+        "loading state precedes candidate rendering",
+        "at least two generated candidates are visible",
+        "active path remains reachable before selection",
+        "primary candidate actions are visible and keyboard focusable"
+      ],
+      "focusedControl": "选择Foundation candidate",
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1327/missing-desktop-1440.png",
+      "sha256": "4b1aa7dfbdf1e5cc26cc133b7c91be0bb787aab61e817efda250f824719c31fa",
+      "scenario": "missing",
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327-missing&pathId=missing-path",
+      "width": 1440,
+      "height": 1000,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": "path-candidate-batch_issue1327-missing",
+      "assertions": [
+        "missing batch fails closed into an explicit recovery state",
+        "regeneration action remains available"
+      ],
+      "focusedControl": null,
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1327/failed-desktop-1440.png",
+      "sha256": "3751dff4c763fe2d7b819f562bc5e6dfab35869ba30ac5e4cb94fd6f78d8901d",
+      "scenario": "failed",
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327-failed&pathId=missing-path",
+      "width": 1440,
+      "height": 1000,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": "path-candidate-batch_issue1327-failed",
+      "assertions": [
+        "failed batch fails closed into an explicit recovery state",
+        "regeneration action remains available"
+      ],
+      "focusedControl": null,
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1327/no-batch-mobile-320.png",
+      "sha256": "18974b9e85d8e280b1eec552d5496e3bb50f8fef9ed367f82b24b6f2fea187b8",
+      "scenario": "no-batch",
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
+      "width": 320,
+      "height": 900,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": null,
+      "assertions": [
+        "active path remains reachable",
+        "generation settings remain editable",
+        "candidate comparison stays hidden without an explicit batch"
+      ],
+      "focusedControl": null,
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1327/loaded-mobile-320.png",
+      "sha256": "7a04609e473c601844785632e46d01e1f8116999fdb1453b25ccb4b49be0901d",
+      "scenario": "loaded",
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327",
+      "width": 320,
+      "height": 900,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": "path-candidate-batch_issue1327",
+      "assertions": [
+        "loading state precedes candidate rendering",
+        "at least two generated candidates are visible",
+        "active path remains reachable before selection",
+        "primary candidate actions are visible and keyboard focusable"
+      ],
+      "focusedControl": "选择Foundation candidate",
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1327/missing-mobile-320.png",
+      "sha256": "11eac6daaf95c2dd810e939c6ba516e93594778ef9116fb447917884804e6d28",
+      "scenario": "missing",
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327-missing&pathId=missing-path",
+      "width": 320,
+      "height": 900,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": "path-candidate-batch_issue1327-missing",
+      "assertions": [
+        "missing batch fails closed into an explicit recovery state",
+        "regeneration action remains available"
+      ],
+      "focusedControl": null,
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1327/failed-mobile-320.png",
+      "sha256": "1d44d02e6691f7e3b3c984e53225ab6d39f3adbb2804438390f627c38c552fb4",
+      "scenario": "failed",
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327-failed&pathId=missing-path",
+      "width": 320,
+      "height": 900,
+      "activePathId": "active-path-before-generation",
+      "candidateSourcePathId": "candidate-source-path",
+      "batchId": "path-candidate-batch_issue1327-failed",
+      "assertions": [
+        "failed batch fails closed into an explicit recovery state",
+        "regeneration action remains available"
+      ],
+      "focusedControl": null,
+      "noHorizontalOverflow": true
+    }
+  ]
+}
