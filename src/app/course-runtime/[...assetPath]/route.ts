@@ -31,6 +31,8 @@ function isPrivateRuntimeGovernancePath(relativePath: string) {
     || normalizedPath.startsWith('resource-governance/')
     || normalizedPath === 'resources/textbooks-v2'
     || normalizedPath.startsWith('resources/textbooks-v2/')
+    || normalizedPath === 'resources/textbook-retrieval'
+    || normalizedPath.startsWith('resources/textbook-retrieval/')
     || normalizedPath === 'resources/textbook-hybrid-retrieval'
     || normalizedPath.startsWith('resources/textbook-hybrid-retrieval/')
     || (
