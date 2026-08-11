@@ -1,12 +1,12 @@
 {
-  "capturedAt": "2026-08-10T06:45:48.324Z",
-  "gitRevision": "35c0bf0030370235252034b396eae0c4f11c2d1a",
+  "capturedAt": "2026-08-11T05:24:07.809Z",
+  "gitRevision": "571d2e0c1a81d8e886cbfaf2483054f6389f2ff0",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
   "fixtureAuthority": "Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are Playwright route fixtures so each commercial state is deterministic; route and component tests cover their server contracts.",
   "evidence": [
     {
       "file": "available-full-loop-1440.png",
-      "screenshotSha256": "51b3d2b1dfc4b88f4361634b503c723a2d12dc3e89ec84e03f3eb4ea788e387a",
+      "screenshotSha256": "dea816f4ebc138287143eb23821e3058157ba48d61fa681372e428f96571b551",
       "width": 1440,
       "state": "validated",
       "noHorizontalOverflow": true,
@@ -17,7 +17,7 @@
     },
     {
       "file": "unavailable-fail-closed-1440.png",
-      "screenshotSha256": "19c5460731570c7a40d86d58a67d85c56d7c5004ddfb3ce18762f0ce3929f734",
+      "screenshotSha256": "3f5ff644ab47e30d1526d3f0859c42ba70ba8213dca01b57062c93853ea48190",
       "width": 1440,
       "state": "unavailable",
       "noHorizontalOverflow": true,
@@ -28,7 +28,7 @@
     },
     {
       "file": "recoverable-retry-1440.png",
-      "screenshotSha256": "82e36b6846e66f2a52a3742ab7317eb12832e7f18c96170161cc7e0ca8658976",
+      "screenshotSha256": "c19df14d2ec550d96026c5d7c611c2e68667326bf4d99c965a4f0a1e05aa3425",
       "width": 1440,
       "state": "recovered",
       "noHorizontalOverflow": true,
@@ -39,7 +39,7 @@
     },
     {
       "file": "available-full-loop-320.png",
-      "screenshotSha256": "a1297eefe4b0013589b559afa8a7b407a6964541bbcc6501ed88c4f65f0bb666",
+      "screenshotSha256": "381b42a2a76e89969ce3296d847ec5c89dcbe03452aba65c279dab074e5057f7",
       "width": 320,
       "state": "validated",
       "noHorizontalOverflow": true,
@@ -50,7 +50,7 @@
     },
     {
       "file": "unavailable-fail-closed-320.png",
-      "screenshotSha256": "058ed3870f18e19f32a1ddb8ca04bc3f72cb4935fe44e8f5a435433d3f24a2d4",
+      "screenshotSha256": "f3c2d06ce227954c52aa5583242a6beef5f88e3bd830399354f9823c961dcd16",
       "width": 320,
       "state": "unavailable",
       "noHorizontalOverflow": true,
@@ -61,7 +61,7 @@
     },
     {
       "file": "recoverable-retry-320.png",
-      "screenshotSha256": "25d84ce3f666104ec19a69e4b64304cdce9016b37dec190563a5be94a1222953",
+      "screenshotSha256": "f44f910390b55e45355698ef1686cae6aedde514dfbf452dffce02d8e8c76d10",
       "width": 320,
       "state": "recovered",
       "noHorizontalOverflow": true,
