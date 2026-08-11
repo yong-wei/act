@@ -137,6 +137,15 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('clearLocalConversation');
     expect(copilot).toContain('buildPortfolioReflectionDraft(source, {');
     expect(copilot).toContain('intent: taskIntent');
+    expect(copilot).toContain('auditTaskContext: portfolioReflectionTaskContext');
+    expect(copilot).toContain("taskType: 'portfolio-reflection'");
+    expect(copilot).toContain('source: reflectionDraft.source');
+    expect(copilot).toContain('intent: reflectionDraft.intent');
+    expect(copilot).toContain("if (assignment) params.set('assignment', assignment)");
+    expect(copilot).toContain("if (taskIntent) params.set('taskIntent', taskIntent)");
+    expect(copilot).toContain('href={portfolioReflectionHref}');
+    expect(copilot).toContain('reflectionDraft.assignment ?? \'portfolio-reflection\'');
+    expect(copilot).toContain('reflectionDraft.intent');
     expect(copilot).toContain("if (assignment) params.set('assignment', assignment)");
     expect(copilot).toContain("if (taskIntent) params.set('taskIntent', taskIntent)");
     expect(copilot).toContain('href={portfolioReflectionHref}');
@@ -164,6 +173,7 @@ describe('ai task boundary UI source contracts', () => {
     expect(portfolio).toContain("setDraftDisposition('discarded')");
     expect(portfolio).toContain('data-primary-task-input="portfolio-reflection-draft"');
     expect(portfolio).toContain("任务：{draft.assignment ?? 'portfolio-reflection'}");
+    expect(portfolio).toContain('晋升策略：');
     expect(portfolio).toContain('· 晋升策略：');
     expect(portfolio).toContain('{draft.promotionPolicy}');
     expect(portfolio).not.toContain('>保存草稿<');

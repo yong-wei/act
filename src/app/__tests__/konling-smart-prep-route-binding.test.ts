@@ -328,6 +328,63 @@ describe('Konling smart-prep production routes', () => {
     expectStructuredProposalSteps(mocks.streamText.mock.calls[0]?.[0]);
   });
 
+  it('accepts a portfolio reflection descriptor as a server-owned draft contract and logs only redacted task fields', async () => {
+    const consoleInfo = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    try {
+      const response = await chatPOST(new Request('http://localhost/api/ai/chat', {
+        method: 'POST',
+        headers: { 'x-request-id': 'reflection-request-1' },
+        body: JSON.stringify({
+          messages: [{ id: 'm1', role: 'user', content: 'help' }],
+          auditTaskContext: {
+            taskType: 'portfolio-reflection',
+            source: 'arena:pid-turn',
+            assignment: 'pid-turn-reflection',
+            intent: 'review-control-evidence',
+          },
+        }),
+      }));
+
+      expect(response.status).toBe(200);
+      expect(mocks.streamText).toHaveBeenCalledWith(expect.objectContaining({
+        system: expect.stringContaining('Output target: portfolio-draft'),
+      }));
+      expect(consoleInfo).toHaveBeenCalledOnce();
+      expect(consoleInfo).toHaveBeenCalledWith('[ai.task-context]', JSON.stringify({
+        event: 'ai.task-context.accepted',
+        requestId: 'reflection-request-1',
+        taskType: 'portfolio-reflection',
+        source: 'arena:pid-turn',
+        assignment: 'pid-turn-reflection',
+        intent: 'review-control-evidence',
+        outputTarget: 'portfolio-draft',
+        writebackBehavior: 'draft',
+        promotionPolicy: 'explicit-save-or-submit',
+      }));
+    } finally {
+      consoleInfo.mockRestore();
+    }
+  });
+
+  it('rejects a portfolio reflection descriptor that attempts to widen the writeback boundary', async () => {
+    const response = await chatPOST(new Request('http://localhost/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages: [{ id: 'm1', role: 'user', content: 'help' }],
+        auditTaskContext: {
+          taskType: 'portfolio-reflection',
+          source: 'arena:pid-turn',
+          intent: 'review-control-evidence',
+          outputTarget: 'answer',
+        },
+      }),
+    }));
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: 'INVALID_AI_TASK_CONTEXT' });
+    expect(mocks.streamText).not.toHaveBeenCalled();
+  });
+
   it('persists a fragmented pure-tool proposal and emits its public action metadata immediately', async () => {
     const executeProposal = vi.fn(async () => ({
       suggestionId: 'internal-tool-run',
