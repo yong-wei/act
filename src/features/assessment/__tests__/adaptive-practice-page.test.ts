@@ -106,7 +106,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
     expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain("const showPresetGoalCards = isPresetGoalLanding && pathLandingState === 'cold-start';");
-    expect(source).toContain("shouldShowCandidateComparison && !showPathContextRecovery ? (");
+    expect(source).toContain("canRenderCandidateComparison && !showPathContextRecovery ? (");
     expect(source).toContain("!showPathContextRecovery && (showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
     expect(source).toContain("!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)");
     expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (");
@@ -349,15 +349,18 @@ describe('adaptive practice page entry states', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
     expect(source).toContain("const shouldShowCandidateComparison = (showGenerationWorkspace || showSelectionWorkspace) && Boolean(requestedBatchId)");
+    expect(source).toContain("const showCandidateBatchRecovery = shouldShowCandidateComparison &&");
+    expect(source).toContain("const canRenderCandidateComparison = shouldShowCandidateComparison && !showCandidateBatchRecovery");
     expect(source).toContain("workspaceIntent !== 'generation' && workspaceIntent !== 'selection'");
     expect(source).toContain("requestedBatchId ?? 'batch:none'");
     expect(source).toContain("const hasCandidateBatchContext = shouldShowCandidateComparison");
+    expect(source).toContain('data-adaptive-path-candidate-recovery-state={candidateBatchLoadState}');
     expect(source).toContain("candidateBatchLoadState !== 'missing'");
     expect(source).toContain("candidateBatchLoadState !== 'failed'");
     expect(source).toContain('hasLoadedPathContextForRecovery');
     expect(source).toContain('data-adaptive-path-candidate-state="loading"');
     expect(source).toContain('正在加载候选学习路径');
-    expect(source).toContain('shouldShowCandidateComparison && !showPathContextRecovery');
+    expect(source).toContain('canRenderCandidateComparison && !showPathContextRecovery');
     expect(source).toContain('data-learning-path-options-layout="route-modules"');
   });
 

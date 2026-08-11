@@ -152,6 +152,17 @@ const learnerState = {
   missingEvidence: [],
 };
 
+const learnerStateWithoutActivePath = {
+  ...learnerState,
+  pathContext: {
+    ...learnerState.pathContext,
+    activePathCount: 0,
+    recentPathIds: [],
+    activeControlCorrectionPath: { state: 'none' },
+    statusMarkers: ['missing'],
+  },
+};
+
 async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<void>) {
   await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerState }));
   await page.route('**/api/learning-paths/latest?**', (route) => route.fulfill({ json: activePath }));
@@ -393,17 +404,18 @@ for (const viewport of [
       'primary candidate actions are visible and keyboard focusable',
     ], '选择Foundation candidate');
 
+    await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerStateWithoutActivePath }));
     await openGeneration(page, missingBatchId, undefined, 'missing-path');
-    await expect(page.locator('[data-adaptive-path-recovery-state]')).toBeVisible();
-    await expect(page.getByRole('link', { name: '生成学习路径' })).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-candidate-recovery-state="missing"]')).toBeVisible();
+    await expect(page.getByRole('link', { name: '重新生成路径' })).toBeVisible();
     await captureEvidence(page, viewport, 'missing', [
       'missing batch fails closed into an explicit recovery state',
       'regeneration action remains available',
     ]);
 
     await openGeneration(page, failedBatchId, undefined, 'missing-path');
-    await expect(page.locator('[data-adaptive-path-recovery-state]')).toBeVisible();
-    await expect(page.getByRole('link', { name: '生成学习路径' })).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-candidate-recovery-state="failed"]')).toBeVisible();
+    await expect(page.getByRole('link', { name: '重新生成路径' })).toBeVisible();
     await captureEvidence(page, viewport, 'failed', [
       'failed batch fails closed into an explicit recovery state',
       'regeneration action remains available',

@@ -2861,6 +2861,9 @@ export default function AdaptivePracticePage() {
   const hasCandidateBatchContext = shouldShowCandidateComparison &&
     candidateBatchLoadState !== 'missing' &&
     candidateBatchLoadState !== 'failed';
+  const showCandidateBatchRecovery = shouldShowCandidateComparison &&
+    (candidateBatchLoadState === 'missing' || candidateBatchLoadState === 'failed');
+  const canRenderCandidateComparison = shouldShowCandidateComparison && !showCandidateBatchRecovery;
   const hasLoadedPathContextForRecovery = hasLoadedCurrentPathContext || hasCandidateBatchContext;
   const pathContextRecoveryState = useMemo(() => resolveAdaptivePathContextRecoveryState({
     workspaceIntent,
@@ -2972,7 +2975,7 @@ export default function AdaptivePracticePage() {
     if (!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace) && pathExecutionNodes.length > 0) {
       return 'current-path';
     }
-    if (!showPathContextRecovery && shouldShowCandidateComparison && visiblePathOptions.length > 0) {
+    if (!showPathContextRecovery && canRenderCandidateComparison && visiblePathOptions.length > 0) {
       return 'path-selection';
     }
     if (!showPathContextRecovery && showPracticeWorkspace) {
@@ -2994,7 +2997,7 @@ export default function AdaptivePracticePage() {
     showPracticeWorkspace,
     showPresetGoalCards,
     showRecoveredExecutionWorkspace,
-    shouldShowCandidateComparison,
+    canRenderCandidateComparison,
     visiblePathOptions.length,
   ]);
   const pathWorkspaceAutoOpenKey = useMemo(() => {
@@ -5097,7 +5100,48 @@ export default function AdaptivePracticePage() {
             </p>
           ) : null}
 
-          {shouldShowCandidateComparison && !showPathContextRecovery ? (
+          {showCandidateBatchRecovery && !showPathContextRecovery ? (
+            <section
+              className="surface-card p-5"
+              role="status"
+              aria-live="polite"
+              data-adaptive-path-candidate-recovery-state={candidateBatchLoadState}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium text-primary">候选路径恢复</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">
+                    {candidateBatchLoadState === 'missing' ? '没有找到这批候选路径' : '候选路径暂时无法读取'}
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-subtle">
+                    {candidateBatchLoadState === 'missing'
+                      ? '当前链接中的候选批次已经失效或不属于这个目标。请重新生成路径，或回到学习记录核对来源。'
+                      : '系统暂时无法读取这批候选路径。当前不会继续展示示例比较，以免误判为可直接选择的正式方案。'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href={activePathGenerationHref}
+                    data-adaptive-path-candidate-recovery-action="regenerate"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                  >
+                    <Sparkles className="size-4" aria-hidden="true" />
+                    重新生成路径
+                  </Link>
+                  <Link
+                    href={pathContextRecoveryEvidenceHref}
+                    data-adaptive-path-candidate-recovery-action="view-evidence"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                  >
+                    <History className="size-4" aria-hidden="true" />
+                    查看学习记录
+                  </Link>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {canRenderCandidateComparison && !showPathContextRecovery ? (
             <PathWorkspaceModule
               moduleId="path-selection"
               openModuleId={openPathModuleId}
