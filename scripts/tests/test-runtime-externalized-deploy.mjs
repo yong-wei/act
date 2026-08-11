@@ -532,6 +532,30 @@ try {
   );
   assert.equal(sidecarPayload.runtimeInputDigest, 'a'.repeat(64), 'sidecar 必须绑定 runtime 输入摘要');
 
+  const verifyRuntimeArgs = [
+    path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+    'verify-runtime',
+    '--runtime-root',
+    runtimeRoot,
+    '--index-dir',
+    indexRoot,
+    '--assets-root',
+    assetsRoot,
+    '--sidecar',
+    sidecar,
+  ];
+  const initialVerifyRuntimeResult = spawnSync(
+    process.execPath,
+    verifyRuntimeArgs,
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(
+    initialVerifyRuntimeResult.status,
+    0,
+    initialVerifyRuntimeResult.stderr,
+    'verify-runtime 必须接受 appRevision 与冻结外置教材 sourceRevision 独立的 provenance',
+  );
+
   fs.writeFileSync(mediaPath, 'fixture-v2-tampered');
   const tamperedInspect = spawnSync(process.execPath, preflightArgs, {
     cwd: root,
@@ -545,18 +569,7 @@ try {
   );
   const verifyTamperedResult = spawnSync(
     process.execPath,
-    [
-      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
-      'verify-runtime',
-      '--runtime-root',
-      runtimeRoot,
-      '--index-dir',
-      indexRoot,
-      '--assets-root',
-      assetsRoot,
-      '--sidecar',
-      sidecar,
-    ],
+    verifyRuntimeArgs,
     { cwd: root, encoding: 'utf8' },
   );
   assert.notEqual(
