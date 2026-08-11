@@ -15,6 +15,7 @@ const revision = '58f70df257f493f7dc13b2dabfb0383b972ee017';
 const transactionId = 'first-cutover-7f4cdd1084af419a3e837876';
 const previousDigest = `sha256:${'a'.repeat(64)}`;
 const targetDigest = `sha256:${'b'.repeat(64)}`;
+const targetDigestHex = targetDigest.slice('sha256:'.length);
 const targetImage = 'localhost/act-obe-platform:test-refresh';
 
 function sha256File(filePath) {
@@ -166,7 +167,15 @@ if [ "\${1:-}" = inspect ]; then
 fi
 if [ "\${1:-}" = image ] && [ "\${2:-}" = inspect ]; then
   format="\${5:-}"
-  if [[ "$format" == *Labels* ]]; then echo "${revision}"; else echo "${targetDigest}"; fi
+  if [[ "$format" == *Labels* ]]; then
+    echo "${revision}"
+  elif [ "\${IMAGE_ID_BAD:-0}" = 1 ]; then
+    echo "sha256:${'c'.repeat(64)}"
+  elif [ "\${IMAGE_ID_NO_PREFIX:-0}" = 1 ]; then
+    echo "${targetDigestHex}"
+  else
+    echo "${targetDigest}"
+  fi
   exit 0
 fi
 if [ "\${1:-}" = load ]; then exit 0; fi
@@ -266,6 +275,7 @@ function testSuccessfulRefresh() {
     const result = runOperator(fixture, {
       STATE_FILE: fixture.stateFile,
       FAIL_TARGET: '0',
+      IMAGE_ID_NO_PREFIX: '1',
     });
     assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
     assert.equal(fs.readFileSync(fixture.stateFile, 'utf8').trim(), 'target');
@@ -409,6 +419,19 @@ function testPreflightAndRecoveryGuards() {
     assert.equal(fs.readFileSync(mixedDigest.stateFile, 'utf8').trim(), 'previous');
   } finally {
     fs.rmSync(mixedDigest.root, { recursive: true, force: true });
+  }
+
+  const wrongImageId = createFixture('wrong-image-id');
+  try {
+    const result = runOperator(wrongImageId, {
+      STATE_FILE: wrongImageId.stateFile,
+      IMAGE_ID_BAD: '1',
+    });
+    assert.notEqual(result.status, 0, 'an incorrect loaded image Id must be rejected');
+    assert.equal(fs.readFileSync(wrongImageId.stateFile, 'utf8').trim(), 'previous');
+    assert.equal(JSON.parse(fs.readFileSync(wrongImageId.receipt, 'utf8')).result, 'FAILED');
+  } finally {
+    fs.rmSync(wrongImageId.root, { recursive: true, force: true });
   }
 
   const failed = createFixture('replace-failure');

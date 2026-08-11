@@ -356,7 +356,7 @@ run_refresh() {
   # Load and verify the image while the old containers are still serving.
   failure_phase='image-load'
   podman load -i "$image_tar" >/dev/null
-  [ "$(podman image inspect "$image_tag" --format '{{.Id}}')" = "$target_digest" ] || die 'loaded image config digest mismatch'
+  [ "$(normalize_digest "$(podman image inspect "$image_tag" --format '{{.Id}}')")" = "$target_digest" ] || die 'loaded image config digest mismatch'
   [ "$(podman image inspect "$image_tag" --format '{{ index .Labels "org.opencontainers.image.revision" }}')" = "$image_revision" ] || die 'loaded image revision mismatch'
 
   failure_phase='env-normalize'
