@@ -59,6 +59,7 @@ const nextConfig = {
     ],
   },
   output: 'standalone',
+  serverExternalPackages: ['@alicloud/credentials', 'ali-oss'],
   ...(buildFilesystemRoot ? { outputFileTracingRoot: buildFilesystemRoot } : {}),
   outputFileTracingIncludes: {
     '/*': [

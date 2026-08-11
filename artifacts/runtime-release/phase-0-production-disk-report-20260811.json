@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "runtime-production-disk-report.v1",
+  "capturedAt": "2026-08-11T16:06:53+08:00",
+  "captureMode": "read-only",
+  "host": "iZbp16qx1l1dwv3crr31u5Z",
+  "filesystem": {
+    "mount": "/",
+    "filesystemType": "ext4",
+    "totalBytes": 52447014912,
+    "usedBytes": 45127794688,
+    "availableBytes": 4957241344,
+    "usedPercent": 91
+  },
+  "podman": {
+    "images": "15.37GB",
+    "imagesReclaimable": "2.379GB (15%)",
+    "containers": "14.04MB",
+    "volumes": "890.6MB",
+    "volumesReclaimable": "70.87MB (8%)"
+  },
+  "actHostStorage": {
+    "courseContentBytes": 5968908288,
+    "dataBytes": 377704448,
+    "runtimeAllocationBytes": 5949075456,
+    "runtimeFiles": 10222,
+    "runtimeLevel1AllocationBytes": {
+      "lessons": 3328684032,
+      "knowledge": 1403121664,
+      "resources": 987123712,
+      "resourceGovernance": 230133760
+    },
+    "runtimeLargestLevel2AllocationBytes": {
+      "knowledgeInfographs": 1383792640,
+      "resourcesTextbooks": 728096768,
+      "lessons1_2": 164777984,
+      "resourcesTextbookRetrieval": 138391552,
+      "resourcesTextbooksV2": 120631296
+    },
+    "largestRuntimeFile": {
+      "logicalPath": "lessons/5-5/media/5-5-course.mp4",
+      "sizeBytes": 69507509
+    }
+  },
+  "runtimeMount": {
+    "filesystemType": "ext4",
+    "readOnly": false,
+    "ossfs2Available": false,
+    "ossutilAvailable": false
+  },
+  "ramRole": {
+    "metadataEndpointStatus": 404,
+    "accessible": false
+  },
+  "conclusion": "runtime 约占根文件系统 11.3%，迁移可缓解空间，但 Podman 镜像与卷也占用明显空间；未发现 RAM Role，未执行 OSS 写入、挂载、容器切换或删除。"
+}

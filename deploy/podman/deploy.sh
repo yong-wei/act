@@ -40,6 +40,36 @@ if [ "${APP_IMAGE+x}" = "x" ]; then
   operator_app_image_was_set=1
   operator_app_image="$APP_IMAGE"
 fi
+operator_runtime_content_dir_was_set=0
+operator_runtime_content_dir=""
+if [ "${RUNTIME_CONTENT_DIR+x}" = "x" ]; then
+  operator_runtime_content_dir_was_set=1
+  operator_runtime_content_dir="$RUNTIME_CONTENT_DIR"
+fi
+operator_runtime_delivery_mode_was_set=0
+operator_runtime_delivery_mode=""
+if [ "${RUNTIME_DELIVERY_MODE+x}" = "x" ]; then
+  operator_runtime_delivery_mode_was_set=1
+  operator_runtime_delivery_mode="$RUNTIME_DELIVERY_MODE"
+fi
+operator_runtime_oss_ram_role_was_set=0
+operator_runtime_oss_ram_role=""
+if [ "${ACT_RUNTIME_OSS_RAM_ROLE+x}" = "x" ]; then
+  operator_runtime_oss_ram_role_was_set=1
+  operator_runtime_oss_ram_role="$ACT_RUNTIME_OSS_RAM_ROLE"
+fi
+operator_runtime_oss_bucket_was_set=0
+operator_runtime_oss_bucket=""
+if [ "${ACT_RUNTIME_OSS_BUCKET+x}" = "x" ]; then
+  operator_runtime_oss_bucket_was_set=1
+  operator_runtime_oss_bucket="$ACT_RUNTIME_OSS_BUCKET"
+fi
+operator_runtime_oss_region_was_set=0
+operator_runtime_oss_region=""
+if [ "${ACT_RUNTIME_OSS_REGION+x}" = "x" ]; then
+  operator_runtime_oss_region_was_set=1
+  operator_runtime_oss_region="$ACT_RUNTIME_OSS_REGION"
+fi
 
 if [ -f "$RUNTIME_ENV_FILE" ]; then
   set -a
@@ -57,6 +87,21 @@ if [ "$operator_app_image_was_set" = "1" ]; then
   APP_IMAGE="$operator_app_image"
 else
   unset APP_IMAGE
+fi
+if [ "$operator_runtime_content_dir_was_set" = "1" ]; then
+  RUNTIME_CONTENT_DIR="$operator_runtime_content_dir"
+fi
+if [ "$operator_runtime_delivery_mode_was_set" = "1" ]; then
+  RUNTIME_DELIVERY_MODE="$operator_runtime_delivery_mode"
+fi
+if [ "$operator_runtime_oss_ram_role_was_set" = "1" ]; then
+  ACT_RUNTIME_OSS_RAM_ROLE="$operator_runtime_oss_ram_role"
+fi
+if [ "$operator_runtime_oss_bucket_was_set" = "1" ]; then
+  ACT_RUNTIME_OSS_BUCKET="$operator_runtime_oss_bucket"
+fi
+if [ "$operator_runtime_oss_region_was_set" = "1" ]; then
+  ACT_RUNTIME_OSS_REGION="$operator_runtime_oss_region"
 fi
 
 derive_db_password() {
@@ -177,6 +222,10 @@ if [ -z "$RUN_MIGRATIONS_ON_START" ]; then
   RUN_MIGRATIONS_ON_START="1"
 fi
 RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/course-content/runtime}"
+RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-legacy-rsync}"
+ACT_RUNTIME_OSS_RAM_ROLE="${ACT_RUNTIME_OSS_RAM_ROLE:-}"
+ACT_RUNTIME_OSS_BUCKET="${ACT_RUNTIME_OSS_BUCKET:-act-course-assets}"
+ACT_RUNTIME_OSS_REGION="${ACT_RUNTIME_OSS_REGION:-oss-cn-hangzhou}"
 # Activation-gate Authority / Teaching Projection stores (#1274).
 # Projection lives under the host runtime mount so the whole-runtime volume
 # overlay does not hide image-packaged empty scaffolds.
@@ -218,6 +267,40 @@ require_konling_mode_context_secret() {
 
 ensure_actkg_activation_store_dirs() {
   mkdir -p "$AUTHORITY_STORE_DIR" "$TEACHING_PROJECTION_STORE_DIR"
+}
+
+require_runtime_delivery_mount() {
+  case "$RUNTIME_DELIVERY_MODE" in
+    legacy-rsync)
+      mkdir -p "$RUNTIME_CONTENT_DIR"
+      ;;
+    ossfs-release)
+      if [ "$MODE" = "--db-only" ]; then
+        return 0
+      fi
+      if [ -z "$ACT_RUNTIME_OSS_RAM_ROLE" ]; then
+        echo "ERROR: ossfs-release 模式缺少 ACT_RUNTIME_OSS_RAM_ROLE。" >&2
+        exit 1
+      fi
+      require_cmd findmnt
+      if [ ! -f "$RUNTIME_CONTENT_DIR/.act-runtime-release.v1.json" ]; then
+        echo "ERROR: ossfs-release 挂载缺少不可变 runtime manifest: $RUNTIME_CONTENT_DIR" >&2
+        exit 1
+      fi
+      if ! findmnt -rn -T "$RUNTIME_CONTENT_DIR" -o FSTYPE | grep -Eq '^fuse(\.|$)'; then
+        echo "ERROR: ossfs-release runtime 目录不是 FUSE 挂载: $RUNTIME_CONTENT_DIR" >&2
+        exit 1
+      fi
+      if ! findmnt -rn -T "$RUNTIME_CONTENT_DIR" -o OPTIONS | grep -Eq '(^|,)ro(,|$)'; then
+        echo "ERROR: ossfs-release runtime 挂载必须只读: $RUNTIME_CONTENT_DIR" >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "ERROR: RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release，实际为: $RUNTIME_DELIVERY_MODE" >&2
+      exit 1
+      ;;
+  esac
 }
 
 require_actkg_activation_store_pointers() {
@@ -623,6 +706,10 @@ DB_NAME=$DB_NAME
 DB_USER=$DB_USER
 DB_HOST=$DB_HOST_ALIAS
 RUNTIME_CONTENT_DIR=$RUNTIME_CONTENT_DIR
+RUNTIME_DELIVERY_MODE=$RUNTIME_DELIVERY_MODE
+ACT_RUNTIME_OSS_RAM_ROLE=$ACT_RUNTIME_OSS_RAM_ROLE
+ACT_RUNTIME_OSS_BUCKET=$ACT_RUNTIME_OSS_BUCKET
+ACT_RUNTIME_OSS_REGION=$ACT_RUNTIME_OSS_REGION
 AUTHORITY_STORE_DIR=$AUTHORITY_STORE_DIR
 TEACHING_PROJECTION_STORE_DIR=$TEACHING_PROJECTION_STORE_DIR
 ACT_AUTHORITY_STORE_ROOT=$ACT_AUTHORITY_STORE_ROOT
@@ -726,7 +813,7 @@ echo "- 数据库镜像: $DB_IMAGE"
 echo "- Redis 镜像: $REDIS_IMAGE"
 
 ensure_network_and_volume
-mkdir -p "$RUNTIME_CONTENT_DIR"
+require_runtime_delivery_mount
 ensure_actkg_activation_store_dirs
 
 if [ ! -f "$START_WRAPPER_PATH" ]; then
@@ -900,6 +987,9 @@ APP_ENV_ARGS=(
   "${APP_STORAGE_ENV_ARGS[@]}"
   -e ACT_AUTHORITY_STORE_ROOT="$ACT_AUTHORITY_STORE_ROOT"
   -e ACT_TEACHING_PROJECTION_STORE_ROOT="$ACT_TEACHING_PROJECTION_STORE_ROOT"
+  -e ACT_RUNTIME_OSS_RAM_ROLE="$ACT_RUNTIME_OSS_RAM_ROLE"
+  -e ACT_RUNTIME_OSS_BUCKET="$ACT_RUNTIME_OSS_BUCKET"
+  -e ACT_RUNTIME_OSS_REGION="$ACT_RUNTIME_OSS_REGION"
   -e SMART_COURSEWARE_ORDERING_SECRET="$SMART_COURSEWARE_ORDERING_SECRET"
   -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
   -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
@@ -1063,6 +1153,7 @@ echo "[4-deploy] 部署完成。"
 echo "- 公网访问: http://121.40.124.135:${APP_PORT}"
 echo "- 目标域名: http://${APP_DOMAIN} (需在 Nginx 配置反向代理到 127.0.0.1:${APP_PORT})"
 echo "- 运行时资源目录: ${RUNTIME_CONTENT_DIR} -> /app/course-content/runtime"
+echo "- Runtime delivery mode: ${RUNTIME_DELIVERY_MODE}"
 echo "- Authority store: ${AUTHORITY_STORE_DIR} -> ${ACT_AUTHORITY_STORE_ROOT}"
 echo "- Teaching Projection store: ${TEACHING_PROJECTION_STORE_DIR} -> ${ACT_TEACHING_PROJECTION_STORE_ROOT}"
 echo

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "runtime-textbook-retrieval-benchmark.v1",
+  "sourceRevision": "6ffb506f0334014df5a8304fbbd7ff54c1054e4f",
+  "runtimeRootKind": "ecs-source-mirror",
+  "repetitions": 3,
+  "files": [
+    {
+      "relativePath": "resources/textbook-retrieval/vectors.f32",
+      "sizeBytes": 54444032,
+      "sha256": "04d696541232dd3a8c4c11f9efb7d86d7e81c80a22e48cf54fd14ad0aa85dbeb",
+      "readMilliseconds": [
+        8.069,
+        9.18,
+        6.793
+      ]
+    },
+    {
+      "relativePath": "resources/textbook-retrieval/bodies.utf8",
+      "sizeBytes": 46759868,
+      "sha256": "1e02c46753020dd53dcd117be8a49d6384a1d3d922f285ff03aa30d8310941a9",
+      "readMilliseconds": [
+        6.924,
+        3.55,
+        4.957
+      ]
+    },
+    {
+      "relativePath": "resources/textbook-retrieval/lexical-postings.bin",
+      "sizeBytes": 8747083,
+      "sha256": "4ddd5289dc63417cc35cb80fcc2ae2110aa14cad376bf9dfbfce4576be6367bd",
+      "readMilliseconds": [
+        1.368,
+        0.996,
+        1.137
+      ]
+    }
+  ]
+}
