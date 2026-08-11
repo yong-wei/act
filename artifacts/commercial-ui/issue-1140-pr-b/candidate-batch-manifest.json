@@ -1,11 +1,11 @@
 {
-  "capturedAt": "2026-08-10T18:24:46.221Z",
-  "commitSha": "9299d61cdc664303d16239abb69aaf1bdf953b66",
+  "capturedAt": "2026-08-04T08:06:04.667Z",
+  "commitSha": "4fa380463e35b5807505497bb22b4b77e0cf4b1a",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=path-candidate-batch_issue1140",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "f92260df3f5de0686e7bde77560f1bb4cf771f7cab6add5fa0423fc2ee2e3468",
-    "src/lib/adaptive-path-candidate-batches.ts": "d4dc4fc6a030337ebaad1d747894950bb73c86d01dc22572a5abe16c655510b5",
-    "tests/adaptive-path-candidate-batches.spec.ts": "b0379a6ffbae14aac2e61e035cc7f88c4af4b45ed04135ef97efecd16efe7675"
+    "src/app/assessment/adaptive-practice/page.tsx": "54a91d59553ddb90bfa246ce299bd579e7287b3763bc488eac138086a06886ba",
+    "src/lib/adaptive-path-candidate-batches.ts": "13a96ebb7dfb6f5b2f61b464e7404c5277a8a67b305cc4a15e66a2ee6918a795",
+    "tests/adaptive-path-candidate-batches.spec.ts": "a5a823c67f6f61ae4b0e666df6f080bc6ee96ccb0122b206a6c9a0dd0cda1ec3"
   },
   "screenshots": [
     {

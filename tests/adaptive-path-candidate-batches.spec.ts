@@ -5,7 +5,7 @@ import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
-const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1140-pr-b');
+const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1327');
 const manifestPath = path.join(evidenceDir, 'candidate-batch-manifest.json');
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
@@ -25,7 +25,9 @@ function sourceHashAtCommit(commitSha: string, file: string): string {
 
 const activePathId = 'active-path-before-generation';
 const candidatePathId = 'candidate-source-path';
-const batchId = 'path-candidate-batch_issue1140';
+const batchId = 'path-candidate-batch_issue1327';
+const missingBatchId = 'path-candidate-batch_issue1327-missing';
+const failedBatchId = 'path-candidate-batch_issue1327-failed';
 const candidateIds = ['path-candidate_foundation', 'path-candidate_sprint'];
 
 const planNode = {
@@ -77,8 +79,8 @@ const candidateBatch = {
   id: batchId,
   userId: 'demo-student',
   goalId: 'control-correction',
-  classId: 'class-1140',
-  generationRequestId: 'generation-request-1140-b',
+  classId: 'class-1327',
+  generationRequestId: 'generation-request-1327',
   sourcePathId: candidatePathId,
   plannerVersion: 'candidate-batch-e2e',
   status: 'succeeded',
@@ -164,6 +166,15 @@ async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<v
     }
     await route.fulfill({ json: { batch: candidateBatch } });
   });
+  await page.route(`**/api/learning-paths/candidate-batches/${missingBatchId}**`, (route) => (
+    route.fulfill({ status: 404, json: { error: 'Candidate batch not found' } })
+  ));
+  await page.route(`**/api/learning-paths/candidate-batches/${failedBatchId}**`, (route) => (
+    route.fulfill({ status: 500, json: { error: 'Candidate batch unavailable' } })
+  ));
+  await page.route('**/api/learning-paths/missing-path', (route) => (
+    route.fulfill({ status: 404, json: { error: 'Learning path not found' } })
+  ));
 }
 
 async function login(context: BrowserContext) {
@@ -194,7 +205,7 @@ test('keeps the comparison surface visible while a candidate batch is loading', 
   const query = new URLSearchParams({
     demo: '1',
     goal: 'control-correction',
-    intent: 'path-selection',
+    intent: 'contextual-recommendation',
     batch: batchId,
   });
   await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
@@ -208,11 +219,12 @@ test('keeps the comparison surface visible while a candidate batch is loading', 
 
 test('hides candidate comparison when continuing without a new candidate batch', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
+  await installRoutes(page);
 
   const query = new URLSearchParams({
     demo: '1',
     goal: 'control-correction',
-    intent: 'path-selection',
+    intent: 'contextual-recommendation',
   });
   await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
 
@@ -256,18 +268,16 @@ test('shows candidate comparison after generation adds a candidate batch', async
   await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
 });
 
-async function openSelection(page: Page, candidateId?: string) {
+async function openGeneration(page: Page, requestedBatchId?: string, candidateId?: string, pathId?: string) {
   const query = new URLSearchParams({
-    demo: '1',
     goal: 'control-correction',
-    intent: 'path-selection',
-    batch: batchId,
+    intent: 'contextual-recommendation',
   });
+  if (requestedBatchId) query.set('batch', requestedBatchId);
   if (candidateId) query.set('candidate', candidateId);
+  if (pathId) query.set('pathId', pathId);
   await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
-  const comparison = page.locator('[data-learning-path-options-layout="route-modules"]');
-  await expect(comparison).toBeVisible();
-  return comparison;
+  return page.locator('[data-learning-path-options-layout="route-modules"]');
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -276,76 +286,145 @@ test('candidate batch evidence remains bound to committed sources', () => {
   test.skip(updateEvidence, 'capture run regenerates the manifest');
   expect(existsSync(manifestPath)).toBe(true);
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+    capturedAt: string;
     commitSha: string;
+    generator: string;
+    generatorSha256: string;
     sourceSha256: Record<string, string>;
-    screenshots: Array<{ file: string; sha256: string }>;
+    screenshots: Array<{ file: string; sha256: string; scenario: string; width: number }>;
   };
   expect(() => execFileSync('git', ['diff', '--quiet', 'HEAD', '--', ...sourceFiles], { stdio: 'ignore' })).not.toThrow();
+  expect(() => execFileSync('git', ['merge-base', '--is-ancestor', manifest.commitSha, 'HEAD'])).not.toThrow();
+  expect(Number.isNaN(Date.parse(manifest.capturedAt))).toBe(false);
+  expect(manifest.generator).toBe('tests/adaptive-path-candidate-batches.spec.ts');
+  expect(manifest.generatorSha256).toBe(manifest.sourceSha256[manifest.generator]);
   for (const file of sourceFiles) {
     expect(sourceHashAtCommit('HEAD', file)).toBe(manifest.sourceSha256[file]);
     expect(sourceHashAtCommit(manifest.commitSha, file)).toBe(manifest.sourceSha256[file]);
   }
+  expect(new Set(manifest.screenshots.map((screenshot) => `${screenshot.scenario}:${screenshot.width}`))).toEqual(new Set([
+    'no-batch:1440', 'loaded:1440', 'missing:1440', 'failed:1440',
+    'no-batch:320', 'loaded:320', 'missing:320', 'failed:320',
+  ]));
   for (const screenshot of manifest.screenshots) {
     expect(sha256(readFileSync(path.resolve(process.cwd(), screenshot.file)))).toBe(screenshot.sha256);
   }
 });
 
+async function assertNoHorizontalOverflow(page: Page) {
+  const geometry = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(geometry.scrollWidth).toBe(geometry.clientWidth);
+}
+
+async function captureEvidence(
+  page: Page,
+  viewport: { name: string; width: number; height: number },
+  scenario: 'no-batch' | 'loaded' | 'missing' | 'failed',
+  assertions: string[],
+  focusedControl?: string,
+) {
+  await assertNoHorizontalOverflow(page);
+  if (!updateEvidence) return;
+  mkdirSync(evidenceDir, { recursive: true });
+  const file = path.join(evidenceDir, `${scenario}-${viewport.name}.png`);
+  const image = await page.screenshot({ path: file, fullPage: true });
+  screenshots.push({
+    file: path.relative(process.cwd(), file).replaceAll('\\', '/'),
+    sha256: sha256(image),
+    scenario,
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    width: viewport.width,
+    height: viewport.height,
+    activePathId,
+    candidateSourcePathId: candidatePathId,
+    batchId: scenario === 'loaded' ? batchId : scenario === 'missing' ? missingBatchId : scenario === 'failed' ? failedBatchId : null,
+    assertions,
+    focusedControl: focusedControl ?? null,
+    noHorizontalOverflow: true,
+  });
+}
+
 for (const viewport of [
   { name: 'desktop-1440', width: 1440, height: 1000 },
   { name: 'mobile-320', width: 320, height: 900 },
 ] as const) {
-  test(`${viewport.name} preserves the active path while browsing one candidate batch`, async ({ page }) => {
+  test(`${viewport.name} captures the generation-to-comparison recovery contract`, async ({ context, page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await installRoutes(page);
+    await login(context);
+    let releaseCandidateBatch: (() => void) | undefined;
+    const candidateBatchGate = new Promise<void>((resolve) => {
+      releaseCandidateBatch = resolve;
+    });
+    await installRoutes(page, () => candidateBatchGate);
 
-    let comparison = await openSelection(page);
+    let comparison = await openGeneration(page);
+    await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-generation-panel="editable"]')).toBeVisible();
+    await expect(comparison).toHaveCount(0);
+    await captureEvidence(page, viewport, 'no-batch', [
+      'active path remains reachable',
+      'generation settings remain editable',
+      'candidate comparison stays hidden without an explicit batch',
+    ]);
+
+    comparison = await openGeneration(page, batchId);
+    await expect(page.locator('[data-adaptive-path-candidate-state="loading"]')).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
+    releaseCandidateBatch?.();
+    await expect(comparison).toBeVisible();
     await expect(comparison.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
     await expect(comparison.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
     await expect(comparison.getByText('Existing active option', { exact: true })).toHaveCount(0);
+    const selectAction = page.getByRole('button', { name: '选择Foundation candidate' }).filter({ visible: true }).first();
+    await expect(selectAction).toBeVisible();
+    await expect(page.getByRole('button', { name: '请控灵调整Foundation candidate' }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: '解释Foundation candidate差异' }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: '暂不采用Foundation candidate' }).filter({ visible: true }).first()).toBeVisible();
+    await selectAction.focus();
+    await expect(selectAction).toBeFocused();
+    await captureEvidence(page, viewport, 'loaded', [
+      'loading state precedes candidate rendering',
+      'at least two generated candidates are visible',
+      'active path remains reachable before selection',
+      'primary candidate actions are visible and keyboard focusable',
+    ], '选择Foundation candidate');
 
-    comparison = await openSelection(page, candidateIds[1]);
-    await expect(comparison.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
-    await expect(comparison.getByText('Foundation candidate', { exact: true })).toHaveCount(0);
-    const compareAll = page.locator('[data-learning-path-compare-all]');
-    await expect(compareAll).toBeVisible();
-    await compareAll.click();
-    await expect(page).not.toHaveURL(/candidate=/);
-    await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
-    await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await openGeneration(page, missingBatchId, undefined, 'missing-path');
+    await expect(page.locator('[data-adaptive-path-recovery-state]')).toBeVisible();
+    await expect(page.getByRole('link', { name: '生成学习路径' })).toBeVisible();
+    await captureEvidence(page, viewport, 'missing', [
+      'missing batch fails closed into an explicit recovery state',
+      'regeneration action remains available',
+    ]);
 
-    const geometry = await page.evaluate(() => ({
-      clientWidth: document.documentElement.clientWidth,
-      scrollWidth: document.documentElement.scrollWidth,
-    }));
-    expect(geometry.scrollWidth).toBe(geometry.clientWidth);
-
-    if (updateEvidence) {
-      mkdirSync(evidenceDir, { recursive: true });
-      const file = path.join(evidenceDir, `candidate-batch-${viewport.name}.png`);
-      const image = await page.screenshot({ path: file, fullPage: true });
-      screenshots.push({
-        file: path.relative(process.cwd(), file).replaceAll('\\', '/'),
-        sha256: sha256(image),
-        width: viewport.width,
-        height: viewport.height,
-        activePathId,
-        candidateSourcePathId: candidatePathId,
-        batchId,
-        noHorizontalOverflow: true,
-      });
-    }
+    await openGeneration(page, failedBatchId, undefined, 'missing-path');
+    await expect(page.locator('[data-adaptive-path-recovery-state]')).toBeVisible();
+    await expect(page.getByRole('link', { name: '生成学习路径' })).toBeVisible();
+    await captureEvidence(page, viewport, 'failed', [
+      'failed batch fails closed into an explicit recovery state',
+      'regeneration action remains available',
+    ]);
   });
 }
 
 test.afterAll(() => {
   if (!updateEvidence) return;
-  expect(screenshots).toHaveLength(2);
+  expect(screenshots).toHaveLength(8);
   const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const sourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)]));
   writeFileSync(manifestPath, `${JSON.stringify({
+    schemaVersion: 1,
+    issue: 1327,
     capturedAt: new Date().toISOString(),
     commitSha,
-    route: `/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=${batchId}`,
-    sourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)])),
+    generator: 'tests/adaptive-path-candidate-batches.spec.ts',
+    generatorSha256: sourceSha256['tests/adaptive-path-candidate-batches.spec.ts'],
+    representativeRoute: `/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=${batchId}`,
+    sourceSha256,
     screenshots,
   }, null, 2)}\n`, 'utf8');
 });
