@@ -31,7 +31,15 @@ const viewports = [
   { name: 'desktop-1440', width: 1440, height: 1000 },
   { name: 'mobile-320', width: 320, height: 900 },
 ] as const;
-const routes = [
+type EvidenceRoute = {
+  name: string;
+  href: string;
+  ready: string;
+  focus: string;
+  role?: 'STUDENT' | 'TEACHER';
+};
+
+const routes: readonly EvidenceRoute[] = [
   {
     name: 'interactive-student',
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo',
@@ -41,7 +49,7 @@ const routes = [
   {
     name: 'interactive-teacher',
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo',
-    ready: '教师课堂台',
+    ready: '教师投影',
     focus: '下一页',
     role: 'TEACHER',
   },
