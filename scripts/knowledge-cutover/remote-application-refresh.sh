@@ -288,7 +288,8 @@ run_refresh() {
   local result='FAILED'
   local failure_phase='preflight'
   local mutation_started=0
-  local recovery_status=1
+  local recovery_status=0
+  local recovery_attempted=0
   local exit_status=1
   local lock_dir=''
 
@@ -406,7 +407,6 @@ recover_previous() {
   # preceding tag cannot erase the only reference to the prior digest.
   APP_IMAGE="$previous_digest" ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover RUNTIME_ENV_FILE="$env_file" "$deploy_script" --app-only
   recovery_exit=$?
-  set -e
   if [ "$recovery_exit" -ne 0 ]; then
     return "$recovery_exit"
   fi
@@ -422,6 +422,7 @@ on_exit() {
   trap - EXIT
   set +e
   if [ "$status" -ne 0 ] && [ "$mutation_started" -eq 1 ] && [ -n "$previous_image" ]; then
+    recovery_attempted=1
     recovery_status=1
     recover_previous
     recovery_status=$?
@@ -447,7 +448,7 @@ on_exit() {
   if [ "$result" = 'FAILED' ] && [ -z "$failure_phase" ]; then
     failure_phase='preflight'
   fi
-  if [ "$mutation_started" -eq 1 ] && [ "$recovery_status" -ne 0 ] && [ "$failure_phase" != 'recovery' ]; then
+  if [ "$recovery_attempted" -eq 1 ] && [ "$recovery_status" -ne 0 ] && [ "$failure_phase" != 'recovery' ]; then
     failure_phase="${failure_phase}:recovery"
   fi
   if [ -z "$post_state" ] && regular_file "$marker"; then

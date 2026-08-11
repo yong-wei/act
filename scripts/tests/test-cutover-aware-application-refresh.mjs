@@ -140,6 +140,7 @@ function createFixture(name, { marker = true, mode = 'duplicate', failTarget = f
 set -eu
 printf '%s\n' "\${APP_IMAGE:-}" >> "\${DEPLOY_LOG:-/tmp/refresh-deploy.log}"
 if [ "\${FAIL_TARGET:-0}" = 1 ] && [ "\${APP_IMAGE:-}" = "${targetImage}" ]; then exit 42; fi
+if [ "\${FAIL_RECOVERY:-0}" = 1 ] && [ "\${APP_IMAGE:-}" != "${targetImage}" ]; then exit 43; fi
   if [ "\${APP_IMAGE:-}" = "${targetImage}" ]; then printf '%s\n' target > "\${STATE_FILE}"; else printf '%s\n' previous > "\${STATE_FILE}"; fi
 `);
   fs.mkdirSync(path.join(project, 'scripts'), { recursive: true });
@@ -286,6 +287,7 @@ function testSuccessfulRefresh() {
     assert.match(env, /^ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover$/mu);
     const receipt = JSON.parse(fs.readFileSync(fixture.receipt, 'utf8'));
     assert.equal(receipt.result, 'SUCCEEDED');
+    assert.equal(receipt.failurePhase, null);
     assert.equal(receipt.mode.before, 'duplicate');
     assert.equal(receipt.mode.after, 'cutover');
     assert.equal(receipt.finalAppImageDigest, targetDigest);
@@ -441,12 +443,28 @@ function testPreflightAndRecoveryGuards() {
     assert.equal(fs.readFileSync(failed.stateFile, 'utf8').trim(), 'previous', 'replace failure must recover the preceding digest');
     const receipt = JSON.parse(fs.readFileSync(failed.receipt, 'utf8'));
     assert.equal(receipt.result, 'FAILED');
+    assert.equal(receipt.failurePhase, 'replace');
     assert.equal(receipt.mode.after, 'cutover');
     assert.equal(receipt.previousAppWorkerImageDigest, previousDigest);
     assert.equal(receipt.finalAppImageDigest, previousDigest);
     assert.equal(receipt.finalWorkerImageDigest, previousDigest);
   } finally {
     fs.rmSync(failed.root, { recursive: true, force: true });
+  }
+
+  const recoveryFailed = createFixture('recovery-failure');
+  try {
+    const result = runOperator(recoveryFailed, {
+      STATE_FILE: recoveryFailed.stateFile,
+      FAIL_TARGET: '1',
+      FAIL_RECOVERY: '1',
+    });
+    assert.notEqual(result.status, 0);
+    const receipt = JSON.parse(fs.readFileSync(recoveryFailed.receipt, 'utf8'));
+    assert.equal(receipt.result, 'FAILED');
+    assert.equal(receipt.failurePhase, 'replace:recovery');
+  } finally {
+    fs.rmSync(recoveryFailed.root, { recursive: true, force: true });
   }
 }
 
