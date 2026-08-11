@@ -29,9 +29,10 @@ export function resolveCandidateGraphAccess(
   if (role !== 'STUDENT' && role !== 'TEACHER' && role !== 'ADMIN') {
     return { allowed: false, role: null, controlledVerification: false };
   }
-  if (publiclyActivated) {
-    return { allowed: true, role, controlledVerification: false };
-  }
+  // Candidate materializations are diagnostics, never the ordinary current
+  // graph. Only administrators may enter this route/workspace in the
+  // active-authority migration, regardless of the public activation flag.
+  void publiclyActivated;
   return {
     allowed: role === 'ADMIN',
     role,

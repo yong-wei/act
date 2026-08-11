@@ -104,13 +104,16 @@ describe('candidate authoritative V2 routes', () => {
     );
   });
 
-  it('allows each known authenticated role after activation and rejects unknown roles', async () => {
+  it('keeps the fixed candidate diagnostic administrator-only after activation', async () => {
     activateCandidateRelease();
-    for (const role of ['STUDENT', 'TEACHER', 'ADMIN']) {
+    for (const role of ['STUDENT', 'TEACHER']) {
       mocks.getServerSession.mockResolvedValue(session(role));
       const response = await getCanvas(new Request('http://localhost/api/knowledge/graph/v2'));
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(403);
     }
+    mocks.getServerSession.mockResolvedValue(session('ADMIN'));
+    const admin = await getCanvas(new Request('http://localhost/api/knowledge/graph/v2'));
+    expect(admin.status).toBe(200);
     mocks.getServerSession.mockResolvedValue(session('SUPERUSER'));
     const forbidden = await getCanvas(new Request('http://localhost/api/knowledge/graph/v2'));
     expect(forbidden.status).toBe(403);
@@ -146,7 +149,7 @@ describe('candidate authoritative V2 routes', () => {
 
   it('returns 404 for an absent node and passes the authenticated role to detail projection', async () => {
     activateCandidateRelease();
-    mocks.getServerSession.mockResolvedValue(session('STUDENT'));
+    mocks.getServerSession.mockResolvedValue(session('ADMIN'));
     mocks.nodeDetail.mockResolvedValueOnce({
       status: 'unavailable',
       reason: 'node-not-found',
@@ -159,19 +162,19 @@ describe('candidate authoritative V2 routes', () => {
     );
     expect(missing.status).toBe(404);
 
-    mocks.nodeDetail.mockResolvedValueOnce(availableProjection('STUDENT'));
+    mocks.nodeDetail.mockResolvedValueOnce(availableProjection('ADMIN'));
     const available = await getNode(
       new Request('http://localhost/api/knowledge/nodes/v2/node-1'),
       { params: Promise.resolve({ id: 'node-1' }) },
     );
     expect(available.status).toBe(200);
-    await expect(available.json()).resolves.toMatchObject({ role: 'STUDENT' });
+    await expect(available.json()).resolves.toMatchObject({ role: 'ADMIN' });
     expect(mocks.nodeDetail).toHaveBeenLastCalledWith(
       expect.objectContaining({
         releaseSetId: 'actkg-authoritative-candidate-v2',
         releaseId: 'control-theory-engineering-v0.2',
       }),
-      'STUDENT',
+      'ADMIN',
       'node-1',
       expect.any(Object),
     );

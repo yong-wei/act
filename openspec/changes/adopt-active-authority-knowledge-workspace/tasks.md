@@ -1,14 +1,14 @@
 ## 1. Active Authority contract
 
-- [ ] 1.1 Map the `engineering-graph` READY/use-combination Authority resolver to a browser-safe active graph response; require matching Authority identity and null engineering projection without gating on Teaching Projection.
-- [ ] 1.2 Add active graph canvas and node-detail API routes that resolve only the committed `engineering-graph` selection and fail closed on absent/non-READY selection, global-pointer fallthrough or mismatched identities.
-- [ ] 1.3 Add unit and route tests for `engineering-graph` identity correlation, null-projection availability, role projection, query-parameter non-selection, unavailable states and no Legacy fallback.
+- [x] 1.1 Map the `engineering-graph` READY/use-combination Authority resolver to a browser-safe active graph response; require matching Authority identity and null engineering projection without gating on Teaching Projection.
+- [x] 1.2 Add active graph canvas and node-detail API routes that resolve only the committed `engineering-graph` selection and fail closed on absent/non-READY selection, global-pointer fallthrough or mismatched identities.
+- [x] 1.3 Add unit and route tests for `engineering-graph` identity correlation, null-projection availability, role projection, query-parameter non-selection, unavailable states and no Legacy fallback.
 
 ## 2. Knowledge workspace modes
 
-- [ ] 2.1 Replace the ordinary fixed-candidate default with active Authority, historical Legacy and administrator-only candidate diagnostic modes.
-- [ ] 2.2 Render durable mode and provenance labels, reset incompatible local selection on a mode change, and preserve the independent Legacy component path.
-- [ ] 2.3 Add client-boundary and component tests that forbid server-only activation imports and verify no selector or learning-state write occurs from mode switching.
+- [x] 2.1 Replace the ordinary fixed-candidate default with active Authority, historical Legacy and administrator-only candidate diagnostic modes.
+- [x] 2.2 Render durable mode and provenance labels, reset incompatible local selection on a mode change, and preserve the independent Legacy component path.
+- [x] 2.3 Add client-boundary and component tests that forbid server-only activation imports and verify no selector or learning-state write occurs from mode switching.
 
 ## 3. Cutover-aware application refresh
 
