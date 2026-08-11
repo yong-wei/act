@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
@@ -15,6 +15,18 @@ const sourceFiles = [
 const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
 const screenshots: Array<Record<string, unknown>> = [];
 
+type CaptureProvenanceSnapshot = {
+  commitSha: string;
+  sourceSha256: Record<string, string>;
+};
+
+type CaptureInputState = {
+  commitSha: string;
+  trackedChanges: string[];
+  workingTreeSourceSha256: Record<string, string>;
+  committedSourceSha256: Record<string, string>;
+};
+
 function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex');
 }
@@ -22,6 +34,69 @@ function sha256(value: Buffer): string {
 function sourceHashAtCommit(commitSha: string, file: string): string {
   return sha256(execFileSync('git', ['show', `${commitSha}:${file}`]));
 }
+
+function currentHead(): string {
+  return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+}
+
+function trackedChangesOutsideEvidence(): string[] {
+  const evidencePrefix = `${path.relative(process.cwd(), evidenceDir).replaceAll('\\', '/')}/`;
+  return execFileSync('git', ['diff', '--name-only', '-z', 'HEAD', '--'])
+    .toString('utf8')
+    .split('\0')
+    .filter(Boolean)
+    .map((file) => file.replaceAll('\\', '/'))
+    .filter((file) => !file.startsWith(evidencePrefix));
+}
+
+function readCaptureInputState(): CaptureInputState {
+  const commitSha = currentHead();
+  return {
+    commitSha,
+    trackedChanges: trackedChangesOutsideEvidence(),
+    workingTreeSourceSha256: Object.fromEntries(
+      sourceFiles.map((file) => [file, sha256(readFileSync(path.resolve(process.cwd(), file)))]),
+    ),
+    committedSourceSha256: Object.fromEntries(
+      sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)]),
+    ),
+  };
+}
+
+function assertCaptureInputsStable(
+  snapshot: CaptureProvenanceSnapshot,
+  current: CaptureInputState,
+  phase: string,
+) {
+  expect(current.commitSha, `${phase}: HEAD changed during evidence capture`).toBe(snapshot.commitSha);
+  expect(current.trackedChanges, `${phase}: tracked runtime inputs drifted`).toEqual([]);
+  for (const file of sourceFiles) {
+    expect(
+      current.workingTreeSourceSha256[file],
+      `${phase}: working-tree bytes drifted for ${file}`,
+    ).toBe(snapshot.sourceSha256[file]);
+    expect(
+      current.committedSourceSha256[file],
+      `${phase}: committed bytes drifted for ${file}`,
+    ).toBe(snapshot.sourceSha256[file]);
+  }
+}
+
+function createCaptureProvenanceSnapshot(): CaptureProvenanceSnapshot {
+  const current = readCaptureInputState();
+  const snapshot = {
+    commitSha: current.commitSha,
+    sourceSha256: current.committedSourceSha256,
+  };
+  assertCaptureInputsStable(snapshot, current, 'capture start');
+  return snapshot;
+}
+
+function verifyCaptureProvenance(snapshot: CaptureProvenanceSnapshot, phase: string) {
+  assertCaptureInputsStable(snapshot, readCaptureInputState(), phase);
+}
+
+const captureProvenance = updateEvidence ? createCaptureProvenanceSnapshot() : null;
 
 const activePathId = 'active-path-before-generation';
 const candidatePathId = 'candidate-source-path';
@@ -322,6 +397,31 @@ test('candidate batch evidence remains bound to committed sources', () => {
   }
 });
 
+test('candidate batch capture provenance fails closed on runtime input drift', () => {
+  test.skip(updateEvidence, 'capture run exercises the live provenance guard');
+  const sourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, 'stable-hash']));
+  const snapshot = { commitSha: 'stable-head', sourceSha256 };
+  const stableState: CaptureInputState = {
+    commitSha: snapshot.commitSha,
+    trackedChanges: [],
+    workingTreeSourceSha256: sourceSha256,
+    committedSourceSha256: sourceSha256,
+  };
+
+  expect(() => assertCaptureInputsStable(snapshot, {
+    ...stableState,
+    commitSha: 'changed-head',
+  }, 'test')).toThrow(/HEAD changed during evidence capture/);
+  expect(() => assertCaptureInputsStable(snapshot, {
+    ...stableState,
+    trackedChanges: ['src/app/layout.tsx'],
+  }, 'test')).toThrow(/tracked runtime inputs drifted/);
+  expect(() => assertCaptureInputsStable(snapshot, {
+    ...stableState,
+    workingTreeSourceSha256: { ...sourceSha256, [sourceFiles[0]]: 'changed-bytes' },
+  }, 'test')).toThrow(/working-tree bytes drifted/);
+});
+
 async function assertNoHorizontalOverflow(page: Page) {
   const geometry = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
@@ -339,9 +439,12 @@ async function captureEvidence(
 ) {
   await assertNoHorizontalOverflow(page);
   if (!updateEvidence) return;
+  expect(captureProvenance).not.toBeNull();
+  verifyCaptureProvenance(captureProvenance!, `before ${scenario}-${viewport.name} screenshot`);
   mkdirSync(evidenceDir, { recursive: true });
   const file = path.join(evidenceDir, `${scenario}-${viewport.name}.png`);
   const image = await page.screenshot({ path: file, fullPage: true });
+  verifyCaptureProvenance(captureProvenance!, `after ${scenario}-${viewport.name} screenshot`);
   screenshots.push({
     file: path.relative(process.cwd(), file).replaceAll('\\', '/'),
     sha256: sha256(image),
@@ -425,18 +528,29 @@ for (const viewport of [
 
 test.afterAll(() => {
   if (!updateEvidence) return;
+  expect(captureProvenance).not.toBeNull();
   expect(screenshots).toHaveLength(8);
-  const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  const sourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)]));
-  writeFileSync(manifestPath, `${JSON.stringify({
+  verifyCaptureProvenance(captureProvenance!, 'after all screenshots');
+  const temporaryManifestPath = `${manifestPath}.${process.pid}.tmp`;
+  const manifest = `${JSON.stringify({
     schemaVersion: 1,
     issue: 1327,
     capturedAt: new Date().toISOString(),
-    commitSha,
+    commitSha: captureProvenance!.commitSha,
     generator: 'tests/adaptive-path-candidate-batches.spec.ts',
-    generatorSha256: sourceSha256['tests/adaptive-path-candidate-batches.spec.ts'],
+    generatorSha256: captureProvenance!.sourceSha256['tests/adaptive-path-candidate-batches.spec.ts'],
     representativeRoute: `/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=${batchId}`,
-    sourceSha256,
+    sourceSha256: captureProvenance!.sourceSha256,
     screenshots,
-  }, null, 2)}\n`, 'utf8');
+  }, null, 2)}\n`;
+
+  verifyCaptureProvenance(captureProvenance!, 'before temporary manifest write');
+  writeFileSync(temporaryManifestPath, manifest, 'utf8');
+  try {
+    verifyCaptureProvenance(captureProvenance!, 'before manifest replacement');
+    renameSync(temporaryManifestPath, manifestPath);
+    verifyCaptureProvenance(captureProvenance!, 'after manifest replacement');
+  } finally {
+    rmSync(temporaryManifestPath, { force: true });
+  }
 });
