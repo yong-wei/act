@@ -33,6 +33,7 @@ DEFAULT_OSSUTIL_PATH = "/usr/local/bin/ossutil"
 DEFAULT_IMDS_ROLE_URL = "http://100.100.100.200/latest/meta-data/ram/security-credentials/"
 OBJECT_NUMBER_SUMMARY = re.compile(r"^Object Number is:? [0-9]+$")
 TOTAL_SIZE_SUMMARY = re.compile(r"^Total Size is:? [0-9]+$")
+ELAPSED_SUMMARY = re.compile(r"^[0-9]+(?:\.[0-9]+)?\(s\) elapsed$")
 _CURRENT_ROLE_NAME: Optional[str] = None
 _IMDS_OPENER = build_opener(ProxyHandler({}))
 
@@ -172,7 +173,7 @@ def list_objects(bucket: str, prefix: str) -> List[Dict[str, Any]]:
         line = raw_line.rstrip("\r\n")
         if not line:
             continue
-        if OBJECT_NUMBER_SUMMARY.fullmatch(line) or TOTAL_SIZE_SUMMARY.fullmatch(line):
+        if OBJECT_NUMBER_SUMMARY.fullmatch(line) or TOTAL_SIZE_SUMMARY.fullmatch(line) or ELAPSED_SUMMARY.fullmatch(line):
             continue
         if any(ord(char) < 0x20 or ord(char) == 0x7F for char in line):
             fail("ossutil ls output contains a control character")

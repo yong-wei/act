@@ -24,7 +24,7 @@ assert.match(bridge, /ossutil_argv\(\["cp", "-",/, 'ECS bridge must stream stdin
 assert.match(bridge, /ossutil_argv\(\["ls", prefix_destination\(bucket, prefix\), "-s"\]/, 'ECS bridge must use the ossutil v1 summary listing command');
 assert.match(bridge, /DEFAULT_OSSUTIL_PATH\s*=\s*["']\/usr\/local\/bin\/ossutil["']/, 'ECS bridge must use the fixed v1 ossutil writer path by default');
 assert.doesNotMatch(bridge, /os\.environ\.get\(['"]ACT_RUNTIME_RELEASE_OSSUTIL['"],\s*['"]ossutil['"]\)/, 'ECS bridge must not resolve the writer through PATH');
-assert.match(bridge, /OBJECT_NUMBER_SUMMARY|TOTAL_SIZE_SUMMARY/, 'ECS bridge must recognize only explicit v1 summary lines');
+assert.match(bridge, /OBJECT_NUMBER_SUMMARY|TOTAL_SIZE_SUMMARY|ELAPSED_SUMMARY/, 'ECS bridge must recognize only explicit v1 summary lines');
 assert.match(bridge, /remote release list contains duplicate object/, 'ECS bridge must reject duplicate v1 object URLs');
 assert.match(bridge, /--ecs-role-name|EXPECTED_ECS_ROLE_NAME/, 'ECS bridge must bind ossutil to the expected ECS RAM role');
 assert.match(bridge, /DEFAULT_IMDS_ROLE_URL|current_ecs_role_name/, 'ECS bridge must validate the current ECS RAM role through IMDS');

@@ -58,6 +58,7 @@ if (operation === 'ls') {
   if (process.env.FAKE_LS_MODE === 'duplicate' && entries.length) lines.push(entries[0]);
   if (process.env.FAKE_LS_MODE === 'outside') lines.push('oss://' + bucket + '/runtime/releases/other-release/outside.txt');
   if (process.env.FAKE_LS_MODE === 'control') lines.push(entries[0] + String.fromCharCode(11) + 'diagnostic');
+  lines.push('0.012345(s) elapsed');
   process.stdout.write(lines.join('\\n') + '\\n');
 } else if (operation === 'cat') {
   process.stdout.write(await readFile(objectPath(args[1])));
