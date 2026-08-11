@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
-import { parsePortfolioReflectionDraftInput } from '@/lib/ai-task-boundary-contracts';
+import { parsePortfolioReflectionDraftContentInput } from '@/lib/ai-task-boundary-contracts';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -29,7 +29,7 @@ export async function PUT(request: Request, context: RouteContext) {
     const session = await requireStudentSession();
     if (session instanceof NextResponse) return session;
 
-    const input = parsePortfolioReflectionDraftInput(await request.json().catch(() => null));
+    const input = parsePortfolioReflectionDraftContentInput(await request.json().catch(() => null));
     if (input.status === 'invalid') {
       return NextResponse.json({ error: '草稿内容无效' }, { status: 400 });
     }
@@ -42,10 +42,6 @@ export async function PUT(request: Request, context: RouteContext) {
         status: 'DRAFT',
       },
       data: {
-        source: input.input.source,
-        assignment: input.input.assignment,
-        intent: input.input.intent,
-        title: input.input.title,
         content: input.input.content,
       },
     });

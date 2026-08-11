@@ -60,6 +60,14 @@ export type PortfolioReflectionDraftInputResolution =
   | { status: 'valid'; input: PortfolioReflectionDraftInput }
   | { status: 'invalid'; input: null };
 
+export interface PortfolioReflectionDraftContentInput {
+  content: string;
+}
+
+export type PortfolioReflectionDraftContentInputResolution =
+  | { status: 'valid'; input: PortfolioReflectionDraftContentInput }
+  | { status: 'invalid'; input: null };
+
 const portfolioReflectionTaskContextSchema = z.object({
   taskType: z.literal('portfolio-reflection'),
   source: boundedDescriptorString(),
@@ -77,6 +85,10 @@ const portfolioReflectionDraftInputSchema = z.object({
   title: boundedDescriptorString(),
   content: boundedDraftContent(),
   idempotencyKey: z.string().uuid(),
+}).strict();
+
+const portfolioReflectionDraftContentInputSchema = z.object({
+  content: boundedDraftContent(),
 }).strict();
 
 function boundedDescriptorString() {
@@ -114,6 +126,17 @@ export function parsePortfolioReflectionDraftInput(value: unknown): PortfolioRef
       assignment: parsed.data.assignment ?? null,
     },
   };
+}
+
+export function parsePortfolioReflectionDraftContentInput(
+  value: unknown,
+): PortfolioReflectionDraftContentInputResolution {
+  const parsed = portfolioReflectionDraftContentInputSchema.safeParse(value);
+  if (!parsed.success) {
+    return { status: 'invalid', input: null };
+  }
+
+  return { status: 'valid', input: parsed.data };
 }
 
 export function resolveAiAuditTaskContext(value: unknown): AiAuditTaskContextResolution {

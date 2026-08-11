@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
 
@@ -93,6 +96,14 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(metrics.documentScrollWidth).toBeLessThanOrEqual(metrics.innerWidth);
 }
 
+async function captureEvidenceScreenshot(page: Page, filename: string) {
+  const outputDirectory = process.env.PORTFOLIO_REFLECTION_DRAFT_EVIDENCE_DIR;
+  if (!outputDirectory) return;
+
+  await mkdir(outputDirectory, { recursive: true });
+  await page.screenshot({ path: join(outputDirectory, filename), fullPage: true });
+}
+
 test('Issue 1321 persists, reopens, edits, and discards a portfolio reflection draft across desktop and mobile layouts', async ({
   context,
   page,
@@ -116,6 +127,7 @@ test('Issue 1321 persists, reopens, edits, and discards a portfolio reflection d
   await page.getByRole('button', { name: '保存修改', exact: true }).click();
   await expect(savedEditor).toHaveValue('我先核对了调节时间。\n下一步会比较超调量。');
   await expectNoHorizontalOverflow(page);
+  await captureEvidenceScreenshot(page, 'portfolio-reflection-draft-1440.png');
 
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto('/profile/portfolio?category=reflection&intent=create&source=portfolio&taskIntent=create-portfolio-reflection');
@@ -126,6 +138,8 @@ test('Issue 1321 persists, reopens, edits, and discards a portfolio reflection d
   await expectNoHorizontalOverflow(page);
 
   await page.goto('/profile/portfolio?category=reflection&draftId=portfolio-draft-browser-1321');
+  await expect(page.locator('[data-portfolio-reflection-draft-editor]')).toBeVisible();
+  await captureEvidenceScreenshot(page, 'portfolio-reflection-draft-320.png');
   await page.getByRole('button', { name: '丢弃草稿', exact: true }).click();
   await expect(page.getByText('暂无AI协作反思', { exact: true })).toBeVisible();
 });

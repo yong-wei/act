@@ -764,12 +764,7 @@ function SavedReflectionDraft({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          source: draft.source,
-          assignment: draft.assignment,
-          intent: draft.intent,
-          title: draft.title,
           content,
-          idempotencyKey: draft.idempotencyKey,
         }),
       });
       const payload = (await response.json()) as { draft?: { id: string }; error?: string };

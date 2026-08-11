@@ -3,9 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   prisma: {
+    $transaction: vi.fn(),
     portfolioReflectionDraft: {
       findMany: vi.fn(),
-      upsert: vi.fn(),
+      findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
+      create: vi.fn(),
       updateMany: vi.fn(),
       findFirstOrThrow: vi.fn(),
     },
@@ -29,10 +32,10 @@ const createdAt = new Date('2026-08-11T01:00:00.000Z');
 const updatedAt = new Date('2026-08-11T02:00:00.000Z');
 const requestBody = {
   source: 'portfolio',
-  assignment: 'PID 参数整定',
+  assignment: 'PID parameter tuning',
   intent: 'create-portfolio-reflection',
-  title: 'AI 协作反思草稿',
-  content: '我先核对了调节时间。\n下一步会比较超调量。',
+  title: 'AI collaboration reflection',
+  content: 'Check settling time first.\nCompare overshoot next.',
   idempotencyKey: '5eeed496-47c3-4c9e-8cb2-47fbcd347e12',
 };
 const databaseDraft = {
@@ -48,9 +51,9 @@ function studentSession() {
   return { user: { id: 'student-1', role: 'STUDENT' } };
 }
 
-function request(body = requestBody) {
+function request(body = requestBody, method = 'POST') {
   return new Request('http://localhost/api/profile/portfolio-reflection-drafts', {
-    method: 'POST',
+    method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
@@ -60,8 +63,11 @@ describe('portfolio reflection drafts routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getServerAuthSession.mockResolvedValue(studentSession());
+    mocks.prisma.$transaction.mockImplementation(async (callback) => callback(mocks.prisma));
     mocks.prisma.portfolioReflectionDraft.findMany.mockResolvedValue([]);
-    mocks.prisma.portfolioReflectionDraft.upsert.mockResolvedValue(databaseDraft);
+    mocks.prisma.portfolioReflectionDraft.findUnique.mockResolvedValue(null);
+    mocks.prisma.portfolioReflectionDraft.findUniqueOrThrow.mockResolvedValue(databaseDraft);
+    mocks.prisma.portfolioReflectionDraft.create.mockResolvedValue(databaseDraft);
     mocks.prisma.portfolioReflectionDraft.updateMany.mockResolvedValue({ count: 1 });
     mocks.prisma.portfolioReflectionDraft.findFirstOrThrow.mockResolvedValue(databaseDraft);
   });
@@ -83,31 +89,36 @@ describe('portfolio reflection drafts routes', () => {
       where: { userId: 'student-1', status: 'DRAFT' },
       orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
     }));
-    expect(Object.keys(mocks.prisma)).toEqual(['portfolioReflectionDraft']);
+    expect(Object.keys(mocks.prisma)).toEqual(['$transaction', 'portfolioReflectionDraft']);
   });
 
-  it('uses the authenticated user and idempotency key to upsert one active draft', async () => {
+  it('creates once and leaves a repeated idempotent save unchanged', async () => {
+    mocks.prisma.portfolioReflectionDraft.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: databaseDraft.id, status: 'DRAFT' });
+
     await POST(request());
     await POST(request());
 
-    expect(mocks.prisma.portfolioReflectionDraft.upsert).toHaveBeenCalledTimes(2);
-    expect(mocks.prisma.portfolioReflectionDraft.upsert).toHaveBeenLastCalledWith(expect.objectContaining({
-      where: {
-        userId_idempotencyKey: {
-          userId: 'student-1',
-          idempotencyKey: requestBody.idempotencyKey,
-        },
-      },
-      create: expect.objectContaining({
+    expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(2);
+    expect(mocks.prisma.portfolioReflectionDraft.create).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.portfolioReflectionDraft.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
         userId: 'student-1',
         status: 'DRAFT',
         content: requestBody.content,
       }),
-      update: expect.objectContaining({
-        status: 'DRAFT',
-        content: requestBody.content,
-      }),
     }));
+    expect(mocks.prisma.portfolioReflectionDraft.findUniqueOrThrow).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reactivate a discarded draft when an old idempotent save is replayed', async () => {
+    mocks.prisma.portfolioReflectionDraft.findUnique.mockResolvedValue({ id: databaseDraft.id, status: 'DISCARDED' });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(409);
+    expect(mocks.prisma.portfolioReflectionDraft.create).not.toHaveBeenCalled();
   });
 
   it('rejects malformed payloads before any persistence operation', async () => {
@@ -117,7 +128,7 @@ describe('portfolio reflection drafts routes', () => {
     }));
 
     expect(response.status).toBe(400);
-    expect(mocks.prisma.portfolioReflectionDraft.upsert).not.toHaveBeenCalled();
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
   });
 
   it('rejects unauthenticated draft reads and writes before persistence', async () => {
@@ -126,21 +137,27 @@ describe('portfolio reflection drafts routes', () => {
     expect((await GET()).status).toBe(401);
     expect((await POST(request())).status).toBe(401);
     expect(mocks.prisma.portfolioReflectionDraft.findMany).not.toHaveBeenCalled();
-    expect(mocks.prisma.portfolioReflectionDraft.upsert).not.toHaveBeenCalled();
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
   });
 
-  it('updates only the current student active draft and returns not found for another owner', async () => {
+  it('updates only content and only for the current student active draft', async () => {
     const context = { params: Promise.resolve({ draftId: 'draft-1' }) };
-    const response = await PUT(request(), context);
+    const response = await PUT(request({ content: 'Edited reflection content.' }, 'PUT'), context);
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.portfolioReflectionDraft.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.prisma.portfolioReflectionDraft.updateMany).toHaveBeenCalledWith({
       where: { id: 'draft-1', userId: 'student-1', status: 'DRAFT' },
-      data: expect.objectContaining({ content: requestBody.content }),
-    }));
+      data: { content: 'Edited reflection content.' },
+    });
+
+    const hostile = await PUT(request({ ...requestBody, source: 'tampered-source' }, 'PUT'), context);
+    expect(hostile.status).toBe(400);
+    expect(mocks.prisma.portfolioReflectionDraft.updateMany).toHaveBeenCalledTimes(1);
 
     mocks.prisma.portfolioReflectionDraft.updateMany.mockResolvedValueOnce({ count: 0 });
-    const missing = await PUT(request(), { params: Promise.resolve({ draftId: 'draft-owned-by-someone-else' }) });
+    const missing = await PUT(request({ content: 'Edited reflection content.' }, 'PUT'), {
+      params: Promise.resolve({ draftId: 'draft-owned-by-someone-else' }),
+    });
     expect(missing.status).toBe(404);
     expect(mocks.prisma.portfolioReflectionDraft.findFirstOrThrow).toHaveBeenCalledTimes(1);
   });
@@ -157,6 +174,6 @@ describe('portfolio reflection drafts routes', () => {
       where: { id: 'draft-1', userId: 'student-1', status: 'DRAFT' },
       data: { status: 'DISCARDED' },
     });
-    expect(Object.keys(mocks.prisma)).toEqual(['portfolioReflectionDraft']);
+    expect(Object.keys(mocks.prisma)).toEqual(['$transaction', 'portfolioReflectionDraft']);
   });
 });

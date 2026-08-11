@@ -20,33 +20,21 @@ async function main() {
       },
     });
 
-    const first = await prisma.portfolioReflectionDraft.upsert({
-      where: { userId_idempotencyKey: { userId, idempotencyKey } },
-      create: {
+    const first = await prisma.portfolioReflectionDraft.create({
+      data: {
         userId,
         source: 'portfolio',
-        assignment: 'PID 参数整定',
+        assignment: 'PID parameter tuning',
         intent: 'create-portfolio-reflection',
-        title: 'AI 协作反思草稿',
-        content: '先核对调节时间。',
+        title: 'AI collaboration reflection',
+        content: 'Check the settling time first.',
         status: 'DRAFT',
         idempotencyKey,
       },
-      update: {},
     });
 
-    const repeated = await prisma.portfolioReflectionDraft.upsert({
+    const repeated = await prisma.portfolioReflectionDraft.findUniqueOrThrow({
       where: { userId_idempotencyKey: { userId, idempotencyKey } },
-      create: {
-        userId,
-        source: 'portfolio',
-        intent: 'create-portfolio-reflection',
-        title: '不应创建的重复草稿',
-        content: '不应创建。',
-        status: 'DRAFT',
-        idempotencyKey,
-      },
-      update: { content: '比较超调量并记录下一步验证。' },
     });
     assert.equal(repeated.id, first.id);
 
@@ -54,7 +42,8 @@ async function main() {
       where: { userId, status: 'DRAFT' },
     });
     assert.equal(active.length, 1);
-    assert.equal(active[0]?.content, '比较超调量并记录下一步验证。');
+    assert.equal(active[0]?.content, first.content);
+    assert.equal(active[0]?.source, first.source);
     assert.equal(await prisma.learningFact.count({ where: { userId } }), 0);
 
     await prisma.portfolioReflectionDraft.updateMany({
@@ -63,6 +52,11 @@ async function main() {
     });
     assert.equal(await prisma.portfolioReflectionDraft.count({ where: { userId, status: 'DRAFT' } }), 0);
     assert.equal(await prisma.learningFact.count({ where: { userId } }), 0);
+
+    const replayed = await prisma.portfolioReflectionDraft.findUniqueOrThrow({
+      where: { userId_idempotencyKey: { userId, idempotencyKey } },
+    });
+    assert.equal(replayed.status, 'DISCARDED');
 
     console.log('portfolio reflection draft PostgreSQL verification passed');
   } finally {
