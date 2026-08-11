@@ -40,6 +40,8 @@
 
 2026-08-11 的生产工具验证确认 ossutil 1.7.19 不能可靠消费 stdin，且 ossutil 2.3.0 的普通 `cp -` 不提供禁止覆盖保证。writer 因而固定为已校验的 `/opt/act-ops/ossutil-2.3.0/ossutil`，通过 `api put-object --body file://… --forbid-overwrite true` 写入；bridge 在每次调用前经 IMDS 验证唯一的 `act-runtime-oss-publisher`，并显式提供 `EcsRamRole`、杭州内网 endpoint 与 `cn-hangzhou` region。v2 JSON API 是主集合验证来源；`/usr/local/bin/ossutil` 1.7.19 仅以 `ls <prefix> -s` 进行独立只读 key-set 交叉检查。`rtk` 的显示层会截断长行，不能作为远端响应证据。
 
+首个完整 Release 已在 source revision `3097ebc204d65b2722cfdc1423e0d1646e37d55d` 发布为 `runtime-b2f0b07c428faba4317bf2f5b7ad51f0858165dee8651fcea52eb6a`。bridge receipt 绑定 10,222 个文件、5,924,691,879 bytes、tree digest `2fd9eec21142994ea97bf971225b1ad24a85ee6346ec17d8ff96d2da93708133`、semantic manifest digest `75912510df1f3e9b89801702dea9747ce15e0af117317886dabc9965b760f326` 和 wire digest `fc6ead8721b950731a866d652a01020ea5626b741c06af98f4264891d13ed88f`。该回执不选择 runtime，发布后仍须恢复 read-only role，并完成 ossfs candidate、性能、container smoke 与 rollback 证据。
+
 ### 2. 选择器在 ECS 本地 durable storage，而不是 OSS current object
 
 独立 Sol medium 决策顾问最初建议 `runtime/current.json` 作为期望选择器，但新证据表明 OSS `PutObject` 不支持 `If-Match`、`If-None-Match` 或其他条件写，不能用它实现可靠 CAS。第一阶段改用 ECS ext4 上的 `data/runtime/act-runtime-selection.json`；该文件由固定运维脚本在 `flock` 下原子写入，记录 release id、manifest digest、单调 generation 和 operator intent。`data/runtime/act-runtime-active-receipt.json` 单独记录真正健康运行的版本。

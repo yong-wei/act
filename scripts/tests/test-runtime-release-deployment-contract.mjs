@@ -7,6 +7,7 @@ const config = fs.readFileSync(path.join(root, 'scripts/runtime-release/configur
 const service = fs.readFileSync(path.join(root, 'scripts/runtime-release/act-runtime-ossfs@.service'), 'utf8');
 const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-release.sh'), 'utf8');
 const rollback = fs.readFileSync(path.join(root, 'scripts/runtime-release/rollback-runtime-release.sh'), 'utf8');
+const hostState = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-release-host-state.py'), 'utf8');
 const nextConfig = fs.readFileSync(path.join(root, 'next.config.js'), 'utf8');
 
 for (const invariant of [
@@ -42,5 +43,7 @@ for (const invariant of [
 }
 assert.match(rollback, /--expected-active-release/, 'rollback must fence the actually active release before switching');
 assert.match(rollback, /--verification-receipt/, 'rollback must require a revalidated immutable release receipt');
+assert.doesNotMatch(hostState, /from __future__ import annotations|\b(?:list|dict|tuple|set)\[/, 'host state utility must remain Python 3.6 syntax-compatible with ECS');
+assert.doesNotMatch(hostState, /add_subparsers\([^\n]*required=/, 'host state utility must not rely on Python 3.7 argparse subparser requirements');
 
 console.log('runtime release deployment contract passed');
