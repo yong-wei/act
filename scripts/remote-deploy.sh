@@ -14,6 +14,7 @@ REMOTE_IMAGE_TAR="${REMOTE_IMAGE_TAR:-${REMOTE_IMAGES_DIR}/act-obe.tar}"
 REMOTE_PROVENANCE_FILE="${REMOTE_PROVENANCE_FILE:-${REMOTE_IMAGE_TAR}.provenance.json}"
 LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
 REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
+REMOTE_RUNTIME_PARENT_DIR="$(dirname "${REMOTE_RUNTIME_DIR}")"
 LOCAL_TEXTBOOK_V2_RUNTIME_DIR="${LOCAL_RUNTIME_DIR}/resources/textbooks-v2"
 REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
 LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-retrieval"
@@ -419,7 +420,7 @@ log "[2/5] 同步运行时资源与部署脚本"
 [[ -f "${LOCAL_SERVICE_SCRIPT}" ]] || fail "本地 systemd 配置脚本不存在: ${LOCAL_SERVICE_SCRIPT}"
 [[ -f "${LOCAL_START_WRAPPER_SCRIPT}" ]] || fail "本地容器启动包装脚本不存在: ${LOCAL_START_WRAPPER_SCRIPT}"
 
-remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")'"
+remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_PARENT_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")'"
 
 scp -q "${LOCAL_PROVENANCE_FILE}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_FILE}"
 remote "mv '${REMOTE_TMP_PROVENANCE_FILE}' '${REMOTE_PROVENANCE_FILE}'"
@@ -431,7 +432,15 @@ CUTOVER_STARTED=1
 stop_remote_runtime_consumers
 
 remote "rm -rf '${REMOTE_RUNTIME_STAGING_DIR}' && mkdir -p '${REMOTE_RUNTIME_STAGING_DIR}'"
-rsync -az --delete -e "ssh -o BatchMode=yes" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_STAGING_DIR}/"
+runtime_rsync_args=(
+  -az
+  --delete
+  -e "ssh -o BatchMode=yes"
+)
+if remote "test -d '${REMOTE_RUNTIME_DIR}'"; then
+  runtime_rsync_args+=(--link-dest="${REMOTE_RUNTIME_DIR}")
+fi
+rsync "${runtime_rsync_args[@]}" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_STAGING_DIR}/"
 check_remote_textbook_v2_files "${REMOTE_RUNTIME_STAGING_DIR}"
 remote "command -v node >/dev/null"
 remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
