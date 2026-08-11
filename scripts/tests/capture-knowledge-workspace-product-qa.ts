@@ -770,12 +770,15 @@ async function openMobileTool(page: Page, tool: string) {
     'view-layout': '视图',
   };
   const label = labelByTool[tool] ?? tool;
-  const mobileButton = page.locator('[data-knowledge-mobile-command-surface] button').filter({ hasText: label }).first();
-  if (await mobileButton.count()) {
-    await mobileButton.click({ timeout: 5000 });
-    await page.waitForTimeout(250);
+  const mobileButton = page
+    .locator('[data-knowledge-mobile-command-surface] > [data-knowledge-mobile-command-toolbar="true"]')
+    .getByRole('button', { name: label, exact: true });
+  if (await mobileButton.count() !== 1) {
+    throw new Error(`mobile ${tool} trigger unavailable or ambiguous`);
   }
-  await page.waitForSelector(`[data-knowledge-mobile-tool-panel="${tool}"]`, { timeout: 8000 }).catch(() => undefined);
+  await mobileButton.click({ timeout: 5000 });
+  await page.waitForTimeout(250);
+  await page.waitForSelector(`[data-knowledge-mobile-tool-panel="${tool}"]`, { timeout: 8000 });
 }
 
 async function expandDock(page: Page) {
