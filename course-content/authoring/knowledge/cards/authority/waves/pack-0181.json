@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0181",
+  "offset": 905,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_364221ded81ca2a0139d013a",
+      "batch": "C",
+      "name": "最少拍系统设计方法",
+      "definition": "最少拍系统设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "最少拍系统设计方法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 最少拍系统设计方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 最少拍系统设计方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「最少拍系统设计方法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_36950d29dd27bdca0a483237",
+      "batch": "C",
+      "name": "最少拍系统设计方法",
+      "definition": "最少拍系统设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "最少拍系统设计方法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 最少拍系统设计方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 最少拍系统设计方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「最少拍系统设计方法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_471808457837d110fa167faf",
+      "batch": "C",
+      "name": "负定性（标量函数）",
+      "definition": "负定性（标量函数）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "负定性（标量函数）"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 负定性（标量函数）\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 负定性（标量函数）是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「负定性（标量函数）」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_5e637ae64f351feabf64218f",
+      "batch": "C",
+      "name": "李雅普诺夫函数候选",
+      "definition": "李雅普诺夫函数候选是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "李雅普诺夫函数候选",
+        "一种·能量函数（李…",
+        "用于分析·stat…",
+        "应用于·Equil…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 李雅普诺夫函数候选\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 李雅普诺夫函数候选是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「李雅普诺夫函数候选」、「一种·能量函数（李…」、「用于分析·stat…」、「应用于·Equil…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d1afe8495e77510fc5846c95",
+      "batch": "C",
+      "name": "PID 数字控制器",
+      "definition": "PID 数字控制器是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PID 数字控制器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: PID 数字控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): PID 数字控制器是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「PID 数字控制器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

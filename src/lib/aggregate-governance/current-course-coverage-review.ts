@@ -865,8 +865,8 @@ function countsFor(
     const item = byId.get(member.canonicalId)!;
     const entityType = item.entityType ?? 'unknown';
     entityTypes[entityType] = (entityTypes[entityType] ?? 0) + 1;
-    for (const module of item.moduleMembership.length > 0 ? item.moduleMembership : ['module:unassigned']) {
-      modules[module] = (modules[module] ?? 0) + 1;
+    for (const moduleName of item.moduleMembership.length > 0 ? item.moduleMembership : ['module:unassigned']) {
+      modules[moduleName] = (modules[moduleName] ?? 0) + 1;
     }
     evidenceRefs += item.evidenceRefs.length;
     sourceCoverage += item.sourceCoverage.count;

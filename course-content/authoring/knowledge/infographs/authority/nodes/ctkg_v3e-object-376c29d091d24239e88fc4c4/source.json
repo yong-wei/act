@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+  "safe_id": "ctkg_v3e-object-376c29d091d24239e88fc4c4",
+  "node": {
+    "name": "极限环",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "非线性系统中出现的一条孤立的封闭曲线，曲线附近的相轨迹都渐近地趋向这条封闭的曲线，或者从这条封闭的曲线离开。",
+  "intuition": "极限环把相平面划分为内部平面和外部平面两部分，是相平面上的分隔线。",
+  "explanation": "非线性系统中出现的一条孤立的封闭曲线，曲线附近的相轨迹都渐近地趋向这条封闭的曲线，或者从这条封闭的曲线离开。极限环把相平面划分为内部平面和外部平面两部分，是相平面上的分隔线。",
+  "relation_head": "前置 → 半稳定极限环、稳定极限环、不稳定极限环 · 后续 → 分隔线、奇线、相平面",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "半稳定极限环",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "稳定极限环",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "分隔线",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "奇线",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "不稳定极限环",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "相平面",
+      "relation": "属于"
+    }
+  ],
+  "labels": [
+    "极限环",
+    "是一种·半稳定极限环",
+    "是一种·稳定极限环",
+    "是一种·分隔线",
+    "是一种·奇线",
+    "是一种·不稳定极限环"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-376c29d091d24239e88fc4c4.md",
+  "provider_policy": "grok-image_gen"
+}

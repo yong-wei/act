@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0129",
+  "offset": 645,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-c7bd7c6faa85c19988a82491",
+      "batch": "B",
+      "name": "内模",
+      "definition": "在校正控制器中引入参考输入的内模，即参考输入信号的生成模型，以实现零稳态误差跟踪。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "内模",
+        "包含组件·内模控制器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 内模\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在校正控制器中引入参考输入的内模，即参考输入信号的生成模型，以实现零稳态误差跟踪。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「内模」、「包含组件·内模控制器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-09a1d7c35806072ff403281d",
+      "batch": "B",
+      "name": "主回路",
+      "definition": "串级控制系统中，由主调节器、副回路等效环节、被控对象和测量变送器构成的外部回路。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "主回路",
+        "属于·主调节器",
+        "包含组件·主调节器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 主回路\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 串级控制系统中，由主调节器、副回路等效环节、被控对象和测量变送器构成的外部回路。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「主回路」、「属于·主调节器」、「包含组件·主调节器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-128a0f144821b8292a40f391",
+      "batch": "B",
+      "name": "前馈控制",
+      "definition": "在复合控制系统中，前馈控制与反馈控制相结合，用于抑制可量测扰动，包括低频强扰动。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "前馈控制",
+        "包含组件·前馈通路"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 前馈控制\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在复合控制系统中，前馈控制与反馈控制相结合，用于抑制可量测扰动，包括低频强扰动。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「前馈控制」、「包含组件·前馈通路」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6db84c73a9b0e833400e64fc",
+      "batch": "B",
+      "name": "比例-微分控制",
+      "definition": "一种早期控制，可在出现位置误差前，提前产生修正作用，从而达到改善系统性能的目的。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-微分控制"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 比例-微分控制\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一种早期控制，可在出现位置误差前，提前产生修正作用，从而达到改善系统性能的目的。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「比例-微分控制」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "batch": "B",
+      "name": "欠阻尼",
+      "definition": "0 < ζ < 1，特征方程有一对具有负实部的共轭复根，阶跃响应为衰减振荡过程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "欠阻尼"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 欠阻尼\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 0 < ζ < 1，特征方程有一对具有负实部的共轭复根，阶跃响应为衰减振荡过程。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「欠阻尼」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

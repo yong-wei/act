@@ -1,0 +1,62 @@
+{
+  "pack_id": "P0032",
+  "offset": 160,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-a6fbcdc8f28199ec0f54ceeb",
+      "batch": "B",
+      "name": "Method 1: Decoup",
+      "definition": "Method 1: Decoup：Select M = B N so that the estimation error e(t) is independent of the reference input r(t). Then determine N to achiev…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Method 1"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Method 1: Decoup\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Method 1: Decoup：Select M = B N so that the estimation error e(t) is independent of the reference input r(t). Then determine N to achiev…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Method 1」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c2ca694b46d8bbfd36e1d92d",
+      "batch": "B",
+      "name": "Design by Discre",
+      "definition": "Design by Discre：A design approach that proceeds through stages: 1) design continuous compensation, 2) find discrete equivalent approxim…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Design by D…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Design by Discre\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Design by Discre：A design approach that proceeds through stages: 1) design continuous compensation, 2) find discrete equivalent approxim…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Design by 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "batch": "B",
+      "name": "mathematical model of system",
+      "definition": "mathematical model of system：A mathematical model of system elements that provides the analyst and designer with a useful representation",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "mathematica…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: mathematical model of system\nSOURCE DEFINITION (fail-closed, do not invent beyond this): mathematical model of system：A mathematical model of system elements that provides the analyst and designer with a useful representation\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「mathematic」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-d76278bb06547fd1acb9718d",
+      "batch": "B",
+      "name": "The roots of the",
+      "definition": "The roots of the：The roots of the numerator polynomial p(s) are called the zeros of the system. At the zeros, the function becomes zero.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The roots o…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: The roots of the\nSOURCE DEFINITION (fail-closed, do not invent beyond this): The roots of the：The roots of the numerator polynomial p(s) are called the zeros of the system. At the zeros, the function becomes zero.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「The roots 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-843da2b954f4e9b0d550f09a",
+      "batch": "B",
+      "name": "root_locus_contr",
+      "definition": "root_locus_contr：A method to select controller parameters by sketching the root locus as a function of a parameter and determining root…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "root locus …",
+        "用于分析·阻尼比"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: root_locus_contr\nSOURCE DEFINITION (fail-closed, do not invent beyond this): root_locus_contr：A method to select controller parameters by sketching the root locus as a function of a parameter and determining root…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「root locus」、「用于分析·阻尼比」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

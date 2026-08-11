@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-d20816e0005b7c325c7f4477",
+  "safe_id": "ctc_v11g-d20816e0005b7c325c7f4477",
+  "node": {
+    "name": "等效开环传递函数",
+    "name_en": "equivalent_open_loop_transfer_function",
+    "concept_kind": "representation_kind",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "根据闭环特征方程等效变换得到的开环传递函数，用于绘制参数根轨迹。",
+  "intuition": null,
+  "explanation": "根据闭环特征方程等效变换得到的开环传递函数，用于绘制参数根轨迹。",
+  "relation_head": "前置 → 在绘制参数根轨迹之前引入的概念、参数根轨迹 · 后续 → The transfer function from",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "The transfer function from",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "在绘制参数根轨迹之前引入的概念",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "参数根轨迹",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "等效开环传递函数",
+    "一种·The",
+    "关联·在绘制参数根…",
+    "关联·参数根轨迹"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-d20816e0005b7c325c7f4477.md",
+  "provider_policy": "grok-image_gen"
+}

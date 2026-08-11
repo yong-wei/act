@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T16:54:33+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+  "safe_id": "ctkg_v3e-object-e281edb0bf991d873b515ce3",
+  "node_name": "虚奇点",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (复合校正/Decibel/串联校正/虚奇点/Open-loop poles)"
+}

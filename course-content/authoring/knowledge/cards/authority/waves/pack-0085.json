@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0085",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-015051ab889bc2e6b3fd1b54",
+      "name": "稳定焦点",
+      "definition": "当特征根为一对具有负实部的共轭复根时，奇点为稳定焦点。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "name": "Experimental fre",
+      "definition": "Experimental fre：Excite the system with a sinusoid varying in frequency"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0e2fd1303478a746919816fc",
+      "name": "级数求和法",
+      "definition": "直接根据z变换的定义，将式（7－23）写成展开形式，从而得到z变换的级数展开式。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-10392ceace3daf30af90f6e7",
+      "name": "迭代法",
+      "definition": "若已知差分方程，并且给定输出序列的初值，则可以利用递推关系，在计算机上一步一步地算出输出序列。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-13e696ca025028445460f1df",
+      "name": "Bandwidth frequency",
+      "definition": "Bandwidth frequency：The frequency at which the frequency response has declined 3 dB from its low-frequency value."
+    }
+  ],
+  "created_at": "2026-08-05T16:24:33.815301+00:00"
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+  "safe_id": "ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+  "node": {
+    "name": "一阶系统",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "凡以一阶微分方程作为运动方程的控制系统，称为一阶系统。",
+  "intuition": null,
+  "explanation": "凡以一阶微分方程作为运动方程的控制系统，称为一阶系统。",
+  "relation_head": "前置 → 一阶系统的单位脉冲响应",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "一阶系统的单位脉冲响应",
+      "relation": "派生自"
+    }
+  ],
+  "labels": [
+    "一阶系统",
+    "派生自·一阶系统的…"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c.md",
+  "provider_policy": "grok-image_gen"
+}

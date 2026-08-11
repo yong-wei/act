@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+  "safe_id": "ctkg_v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+  "node": {
+    "name": "Left half-plane (LHP)",
+    "name_en": "Left half-plane (LHP)",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Left half-plane (LHP)：Left half-plane (LHP)",
+  "intuition": null,
+  "explanation": "Left half-plane (LHP)",
+  "relation_head": "后续 → Right half-plane (RHP)",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Right half-plane (RHP)",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Left half-p…",
+    "Left half-pl",
+    "关联·Right …"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3.md",
+  "provider_policy": "grok-image_gen"
+}

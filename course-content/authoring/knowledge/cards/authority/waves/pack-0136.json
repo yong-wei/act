@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0136",
+  "offset": 680,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-fc2e0621725b902101011b9d",
+      "batch": "B",
+      "name": "开关线",
+      "definition": "非线性特性曲线的折线的各转折点，构成了相平面区域的分界线，称为开关线。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "开关线",
+        "属于·相平面法分析…",
+        "属于·相平面",
+        "关联·死区特性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 开关线\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 非线性特性曲线的折线的各转折点，构成了相平面区域的分界线，称为开关线。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「开关线」、「属于·相平面法分析…」、「属于·相平面」、「关联·死区特性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-9ed0a45a858cba840a8775a3",
+      "batch": "B",
+      "name": "在控制系统中广泛用作执行机构",
+      "definition": "在控制系统中广泛用作执行机构，用来对被控对象的机械运动实现快速控制。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "在控制系统中广泛用作执…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 在控制系统中广泛用作执行机构\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在控制系统中广泛用作执行机构，用来对被控对象的机械运动实现快速控制。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「在控制系统中广泛用作」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-3311578f3f7796d3b9ff0830",
+      "batch": "B",
+      "name": "时间常数",
+      "definition": "一阶系统运动微分方程中T=RC，反映系统惯性，度量系统输出量的数值。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "时间常数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 时间常数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一阶系统运动微分方程中T=RC，反映系统惯性，度量系统输出量的数值。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「时间常数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-423faabaff2ff11b70399228",
+      "batch": "B",
+      "name": "临界阻尼系数",
+      "definition": "F_c = 2 sqrt(J K_1)，为阻尼比ζ=1时的阻尼系数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "临界阻尼系数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 临界阻尼系数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): F_c = 2 sqrt(J K_1)，为阻尼比ζ=1时的阻尼系数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「临界阻尼系数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-c036bd461db04fbed7e079fd",
+      "batch": "B",
+      "name": "实验测定一阶系统时间常数的方法",
+      "definition": "可用实验方法测定一阶系统的时间常数，或判定所测系统是否属于一阶系统。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "实验测定一阶系统时间常…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 实验测定一阶系统时间常数的方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 可用实验方法测定一阶系统的时间常数，或判定所测系统是否属于一阶系统。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「实验测定一阶系统时间」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

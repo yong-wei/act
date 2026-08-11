@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0008",
+  "offset": 40,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-0ffd784a046b2ff6fc583d23",
+      "batch": "B",
+      "name": "Duality-Based Estimator Design",
+      "definition": "Duality-Based Estimator Design：Use control design tools (acker, place) with substitutions A→A^T, B→C^T, C→B^T to compute L^T, then transpose to get L.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Duality-Bas…",
+        "一种·Dualit…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Duality-Based Estimator Design\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Duality-Based Estimator Design：Use control design tools (acker, place) with substitutions A→A^T, B→C^T, C→B^T to compute L^T, then transpose to get L.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Duality-Ba」、「一种·Dualit…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5ed6282c976442e9747881b4",
+      "batch": "B",
+      "name": "Bode plot construction method",
+      "definition": "Bode plot construction method：A procedure to construct Bode magnitude and phase plots by converting the transfer function to Bode form, plotting low-…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Bode plot c…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Bode plot construction method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Bode plot construction method：A procedure to construct Bode magnitude and phase plots by converting the transfer function to Bode form, plotting low-…\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Bode plot 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-ea5098dadda2a392d132f06c",
+      "batch": "B",
+      "name": "graphical model that relates",
+      "definition": "graphical model that relates：A graphical model that relates the state variable concept to the transfer function representation, representable via si…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "graphical m…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: graphical model that relates\nSOURCE DEFINITION (fail-closed, do not invent beyond this): graphical model that relates：A graphical model that relates the state variable concept to the transfer function representation, representable via si…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「graphical 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-54095598351974e2167111f2",
+      "batch": "B",
+      "name": "Zero-Order Hold (ZOH) Method",
+      "definition": "Zero-Order Hold (ZOH) Method：A digitization method that assumes the input to the controller remains constant throughout the sample period. The discr…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Zero-Order …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Zero-Order Hold (ZOH) Method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Zero-Order Hold (ZOH) Method：A digitization method that assumes the input to the controller remains constant throughout the sample period. The discr…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Zero-Order」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ac356855cd7f28c6cbacea72",
+      "batch": "B",
+      "name": "Signal-flow graph state model",
+      "definition": "Signal-flow graph state model：A graphical representation of the state model that includes initial conditions of each state variable at the output of…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Signal-flow…",
+        "用于分析·Stat…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Signal-flow graph state model\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Signal-flow graph state model：A graphical representation of the state model that includes initial conditions of each state variable at the output of…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Signal-flo」、「用于分析·Stat…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

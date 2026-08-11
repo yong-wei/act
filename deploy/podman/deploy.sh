@@ -145,6 +145,7 @@ APP_IMAGE="${APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"
 DB_IMAGE="${DB_IMAGE:-${POSTGRES_IMAGE:-postgres:15-alpine-amd64}}"
 REDIS_IMAGE="${REDIS_IMAGE:-docker.io/redis:7-alpine}"
 NODE_ENV="${NODE_ENV:-production}"
+ACT_KNOWLEDGE_DEPLOYMENT_MODE="${ACT_KNOWLEDGE_DEPLOYMENT_MODE:-legacy}"
 NEXT_TELEMETRY_DISABLED="${NEXT_TELEMETRY_DISABLED:-1}"
 WORKER_CONCURRENCY="${WORKER_CONCURRENCY:-2}"
 MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"
@@ -220,24 +221,62 @@ ensure_actkg_activation_store_dirs() {
 }
 
 require_actkg_activation_store_pointers() {
-  # Production Konling teaching projection requires activation-gate current.json
-  # pointers on the host mounts that containers actually see (#1274).
+  # Production defaults to the legacy reader.  A cutover must be explicit and
+  # then provide every host-mounted activation pointer before app containers
+  # are replaced (#1274/#1276).
   if [ "$NODE_ENV" != "production" ]; then
     return 0
   fi
-  local missing=0
-  if [ ! -f "${AUTHORITY_STORE_DIR}/current.json" ]; then
-    echo "ERROR: production 缺少 Authority activation 指针: ${AUTHORITY_STORE_DIR}/current.json" >&2
-    missing=1
-  fi
-  if [ ! -f "${TEACHING_PROJECTION_STORE_DIR}/current.json" ]; then
-    echo "ERROR: production 缺少 Teaching Projection activation 指针: ${TEACHING_PROJECTION_STORE_DIR}/current.json" >&2
-    missing=1
-  fi
-  if [ "$missing" -ne 0 ]; then
-    echo "请先运行 activation gate 将 Authority/Projection 工件同步到部署主机，再重新部署。" >&2
-    exit 1
-  fi
+  case "$ACT_KNOWLEDGE_DEPLOYMENT_MODE" in
+    legacy)
+      local present=0
+      local pointer
+      local legacy_pointers=(
+        "${AUTHORITY_STORE_DIR}/current.json"
+        "${TEACHING_PROJECTION_STORE_DIR}/current.json"
+        "${RUNTIME_CONTENT_DIR}/knowledge/consumer-activation/current.json"
+        "${RUNTIME_CONTENT_DIR}/knowledge/prerequisites/current.json"
+      )
+      for pointer in "${legacy_pointers[@]}"; do
+        # -L also catches a dangling symlink: a stale/corrupt pointer must not
+        # be treated as absent merely because its target was removed.
+        if [ -e "$pointer" ] || [ -L "$pointer" ]; then
+          echo "ERROR: production legacy 模式禁止存在 knowledge current 指针: $pointer" >&2
+          present=1
+        fi
+      done
+      if [ "$present" -ne 0 ]; then
+        echo "请移除生产 host 上的 activation current 指针，或显式设置 ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover。" >&2
+        exit 1
+      fi
+      echo "- Knowledge deployment mode: legacy (all activation current pointers absent)"
+      ;;
+    cutover)
+      local missing=0
+      local pointer
+      local cutover_pointers=(
+        "${AUTHORITY_STORE_DIR}/current.json"
+        "${TEACHING_PROJECTION_STORE_DIR}/current.json"
+        "${RUNTIME_CONTENT_DIR}/knowledge/consumer-activation/current.json"
+        "${RUNTIME_CONTENT_DIR}/knowledge/prerequisites/current.json"
+      )
+      for pointer in "${cutover_pointers[@]}"; do
+        if [ ! -f "$pointer" ]; then
+          echo "ERROR: production cutover 缺少 activation 指针: $pointer" >&2
+          missing=1
+        fi
+      done
+      if [ "$missing" -ne 0 ]; then
+        echo "请先运行 activation gate 将 Authority/Projection/consumer/prerequisites 工件同步到部署主机，再重新部署。" >&2
+        exit 1
+      fi
+      echo "- Knowledge deployment mode: cutover (all activation current pointers present)"
+      ;;
+    *)
+      echo "ERROR: ACT_KNOWLEDGE_DEPLOYMENT_MODE 必须为 legacy 或 cutover，实际为: $ACT_KNOWLEDGE_DEPLOYMENT_MODE" >&2
+      exit 1
+      ;;
+  esac
   echo "- Authority store: ${AUTHORITY_STORE_DIR} -> ${ACT_AUTHORITY_STORE_ROOT}"
   echo "- Teaching Projection store: ${TEACHING_PROJECTION_STORE_DIR} -> ${ACT_TEACHING_PROJECTION_STORE_ROOT}"
 }

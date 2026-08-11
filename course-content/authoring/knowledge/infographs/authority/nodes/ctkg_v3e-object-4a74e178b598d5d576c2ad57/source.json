@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-4a74e178b598d5d576c2ad57",
+  "safe_id": "ctkg_v3e-object-4a74e178b598d5d576c2ad57",
+  "node": {
+    "name": "开环幅相特性曲线起点",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "开环幅相特性曲线在ω=0+处的点，取决于比例环节K和系统积分或微分环节的个数v（系统型别）。",
+  "intuition": null,
+  "explanation": "开环幅相特性曲线在ω=0+处的点，取决于比例环节K和系统积分或微分环节的个数v（系统型别）。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "开环幅相特性曲线起点"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-4a74e178b598d5d576c2ad57.md",
+  "provider_policy": "grok-image_gen"
+}

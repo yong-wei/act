@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:01:18+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-8d3c115cdb81c364733e1e43",
+  "safe_id": "ctc_modeling-8d3c115cdb81c364733e1e43",
+  "node_name": "The frequency of undamped",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (系统整体/负反馈/MIMO/wn/串联分解)"
+}

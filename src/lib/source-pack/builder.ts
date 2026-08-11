@@ -1,5 +1,5 @@
 import { validateSourcePack } from './schema';
-import { sha256 } from '@/lib/sha256';
+import { sha256Text } from './sha256';
 import {
   SOURCE_PACK_SCHEMA_VERSION,
   type SourcePack,
@@ -108,7 +108,7 @@ function stableId(prefix: string, parts: unknown[]): string {
 }
 
 function stableHash(parts: unknown[]): string {
-  return sha256(JSON.stringify(parts));
+  return sha256Text(JSON.stringify(parts));
 }
 
 function unique(values: string[]): string[] {

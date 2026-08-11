@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+  "safe_id": "ctkg_v3e-object-23665070dce851fbb0ebda8b",
+  "node": {
+    "name": "Auxiliary polynomial",
+    "name_en": "Auxiliary polynomial",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Auxiliary polynomial：The polynomial which immediately precedes the zero entry in the Routh array. The order of the auxiliary polynomial is a…",
+  "intuition": "在图谱邻接中可把握：后续 → Routh array、Symmetrical root pairs。",
+  "explanation": "The polynomial which immediately precedes the zero entry in the Routh array. The order of the auxiliary polynomial is always even and indicates the number of symmetrical root pairs.",
+  "relation_head": "后续 → Routh array、Symmetrical root pairs",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Routh array",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Symmetrical root pairs",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "Symmetrical root pairs",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Auxiliary p…",
+    "Auxiliary po",
+    "属于·Routh …",
+    "包含组件·Symm…",
+    "关联·Symmet…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-23665070dce851fbb0ebda8b.md",
+  "provider_policy": "grok-image_gen"
+}

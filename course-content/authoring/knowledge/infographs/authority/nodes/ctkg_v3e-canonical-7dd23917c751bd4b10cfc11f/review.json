@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:21:29+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-canonical-7dd23917c751bd4b10cfc11f",
+  "safe_id": "ctkg_v3e-canonical-7dd23917c751bd4b10cfc11f",
+  "node_name": "非零初始条件响应分量",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (PD/无零点二阶/初始斜率/c2/ωn)"
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-c2650bdf6df39c39c8ac378c",
+  "safe_id": "ctc_modeling-c2650bdf6df39c39c8ac378c",
+  "node": {
+    "name": "variable that is measured",
+    "name_en": "modeling_c2650bdf6df39c39c8ac378c",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "variable that is measured：A variable that is measured at a single point in a system element, such as torque, force, current, or heat flow rate, a…",
+  "intuition": "在图谱邻接中可把握：前置 → variable that is measured。",
+  "explanation": "A variable that is measured at a single point in a system element, such as torque, force, current, or heat flow rate, and is transmitted through the element.",
+  "relation_head": "前置 → variable that is measured",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "variable that is measured",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "variable th…",
+    "关联·variab…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-c2650bdf6df39c39c8ac378c.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0081",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-4ce9b77cff23117a65f42588",
+      "name": "有零点的二阶系统",
+      "definition": "由于 PD 控制相当于给系统增加了一个闭环零点，-z=-1/T_d，故比例-微分控制的二阶系统称为有零点的二阶系统。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "name": "Left half-plane (LHP)",
+      "definition": "Left half-plane (LHP)：Left half-plane (LHP)"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-5182a714c3b04737e54be937",
+      "name": "复合控制系统",
+      "definition": "复合控制系统是在系统的反馈控制回路中加入前馈通路，组成一个前馈控制与反馈控制相结合的系统。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7147bc2427dae1863e06ef77",
+      "name": "闭环主导极点",
+      "definition": "在稳定的高阶系统中，距虚轴最近的极点周围没有闭环零点，而其他闭环极点又远离虚轴，该极点对应的响应分量衰减缓慢，在系统的时间响应过程中起主导作用，称为闭环主导极点。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "name": "二阶系统",
+      "definition": "凡以二阶微分方程描述运动方程的控制系统，称为二阶系统。"
+    }
+  ],
+  "created_at": "2026-08-05T16:19:31.889530+00:00"
+}

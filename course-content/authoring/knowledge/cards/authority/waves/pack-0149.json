@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0149",
+  "offset": 745,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-8821eda7812d88a26a449d71",
+      "batch": "B",
+      "name": "利用MATLAB进行高阶系统建…",
+      "definition": "利用MATLAB进行高阶系统建模和单位阶跃响应计算。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "利用MATLAB进行高…",
+        "包含组件·可求出单…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 利用MATLAB进行高阶系统建…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 利用MATLAB进行高阶系统建模和单位阶跃响应计算。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「利用MATLAB进行」、「包含组件·可求出单…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "batch": "B",
+      "name": "傅里叶系数",
+      "definition": "复数c_k，表示周期信号第k次谐波的幅值和相位信息。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "傅里叶系数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 傅里叶系数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 复数c_k，表示周期信号第k次谐波的幅值和相位信息。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「傅里叶系数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6592690fdccf416b0340917b",
+      "batch": "B",
+      "name": "带宽频率",
+      "definition": "系统闭环幅频特性下降到某一阈值时的频率，记为ω_b。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "带宽频率",
+        "用于分析·得到闭环…",
+        "关联·谐振峰值",
+        "关联·得到闭环对数…",
+        "关联·截止频率",
+        "关联·谐振频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 带宽频率\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统闭环幅频特性下降到某一阈值时的频率，记为ω_b。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「带宽频率」、「用于分析·得到闭环…」、「关联·谐振峰值」、「关联·得到闭环对数…」、「关联·截止频率」、「关联·谐振频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-762239378940cb45b78991b3",
+      "batch": "B",
+      "name": "采样器",
+      "definition": "在连续信号和脉冲序列之间要用采样器，实现信号的转换。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样器",
+        "是一种·理想采样器",
+        "包含组件·采样控制…",
+        "关联·采样过程"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在连续信号和脉冲序列之间要用采样器，实现信号的转换。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样器」、「是一种·理想采样器」、「包含组件·采样控制…」、「关联·采样过程」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a4a5ad4fbaf4f8f87fa5f49c",
+      "batch": "B",
+      "name": "最大超前角频率",
+      "definition": "超前网络相角达到最大值的频率，ωm=1/(T√a)。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "最大超前角频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 最大超前角频率\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 超前网络相角达到最大值的频率，ωm=1/(T√a)。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「最大超前角频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

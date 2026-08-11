@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0069",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-36e31a50f047919209d08c48",
+      "name": "Output Compensation",
+      "definition": "Output Compensation：A compensation scheme where the compensator is placed at the output or load."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3784992e294bb2f120cdc0df",
+      "name": "Controllability matrix",
+      "definition": "Controllability matrix：A matrix used to determine whether a system is completely controllable"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3bf89181c7be53ac268d5785",
+      "name": "带宽",
+      "definition": "带宽：The bandwidth, ω_B, is a measure of a ability of the system to faithfully reproduce an input signal.。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3d61744c1f15d0d0bbf20902",
+      "name": "Precision",
+      "definition": "Precision：The degree of exactness or discrimination with which a quantity is stated."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3eecf8e1bd7a80cd6b11646d",
+      "name": "阻尼自然频率",
+      "definition": "系统阶跃动态响应中的振荡频率，记为ω_d。"
+    }
+  ],
+  "created_at": "2026-08-05T16:03:50.962890+00:00"
+}

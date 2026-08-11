@@ -32,14 +32,17 @@ import {
   resolveEngineeringRagAuthority,
   rollbackAuthorityPointer,
   authorityStoreFs,
+  DEFAULT_AUTHORITY_ROOT_RELATIVE,
   shouldStageAuthorityAfterDelta,
   stageAuthorityAfterValidatedBundleImport,
   stageAuthoritySnapshot,
+  stageAuthoritySnapshotArtifacts,
   stagedSnapshotNormalizedBytes,
   type AuthoritativeKnowledgeSnapshot,
   type AuthorityStorePaths,
   type TeachingSelectorFingerprint,
 } from '../authoritative-knowledge';
+import { DEFAULT_CONSUMER_ACTIVATION_ROOT_RELATIVE } from '../versioned-knowledge-activation';
 
 const hash = 'a'.repeat(64);
 const commit = 'b'.repeat(40);
@@ -338,6 +341,25 @@ describe('Authority Snapshot materialization (#1266)', () => {
     // No teaching review item created — only stage receipt.
     expect(a.stageReceipt.teachingSelectorsAdvanced).toBe(false);
   });
+
+  it('stages a separately validated materialization without reconstructing its source snapshot', () => {
+    const sourcePaths = tempAuthorityRoot();
+    const materialized = stageAuthoritySnapshot(sourcePaths, {
+      snapshot: baseSnapshot(),
+      deltaReceiptIds: ['delta-receipt:artifact-stage'],
+    });
+    const targetPaths = tempAuthorityRoot();
+
+    const staged = stageAuthoritySnapshotArtifacts(targetPaths, {
+      manifest: materialized.manifest,
+      engineering: materialized.engineering,
+    });
+
+    expect(staged.snapshotId).toBe(materialized.snapshotId);
+    expect(staged.snapshotHash).toBe(materialized.snapshotHash);
+    expect(staged.stageReceipt.reasons).toContain('staged-from-validated-artifacts');
+    expect(readCurrentAuthorityPointer(targetPaths)).toBeNull();
+  });
 });
 
 describe('Authority activation and rollback (#1266)', () => {
@@ -562,8 +584,41 @@ describe('Engineering consumers and Repository active resolution (#1266)', () =>
     expect(activation.receipt.teachingSelectorsAdvanced).toBe(false);
     expect(activation.receipt.teachingSelectorFingerprintAfter).toEqual(teaching);
 
-    expect(resolveEngineeringGraphAuthority(paths).status).toBe('ready');
-    expect(resolveEngineeringRagAuthority(paths).status).toBe('ready');
+    expect(resolveEngineeringGraphAuthority(paths)).toMatchObject({
+      status: 'ready',
+      activationMode: 'absent',
+    });
+    expect(resolveEngineeringRagAuthority(paths)).toMatchObject({
+      status: 'ready',
+      activationMode: 'absent',
+    });
+  });
+
+  it('default Authority root uses the active consumer pointer', () => {
+    const previousAuthorityRoot = process.env.ACT_AUTHORITY_STORE_ROOT;
+    const previousConsumerRoot = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+    const authorityRoot = path.resolve(process.cwd(), DEFAULT_AUTHORITY_ROOT_RELATIVE);
+    const consumerRoot = path.resolve(
+      process.cwd(),
+      DEFAULT_CONSUMER_ACTIVATION_ROOT_RELATIVE,
+    );
+    process.env.ACT_AUTHORITY_STORE_ROOT = authorityRoot;
+    process.env.ACT_CONSUMER_ACTIVATION_ROOT = consumerRoot;
+    try {
+      expect(resolveEngineeringGraphAuthority(resolveAuthorityStorePaths(authorityRoot))).toMatchObject({
+        status: 'ready',
+        activationMode: 'use-combination',
+      });
+      expect(resolveEngineeringRagAuthority(resolveAuthorityStorePaths(authorityRoot))).toMatchObject({
+        status: 'ready',
+        activationMode: 'use-combination',
+      });
+    } finally {
+      if (previousAuthorityRoot === undefined) delete process.env.ACT_AUTHORITY_STORE_ROOT;
+      else process.env.ACT_AUTHORITY_STORE_ROOT = previousAuthorityRoot;
+      if (previousConsumerRoot === undefined) delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+      else process.env.ACT_CONSUMER_ACTIVATION_ROOT = previousConsumerRoot;
+    }
   });
 
   it('capture-drift and schema drift fail closed before activation', () => {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { assertSubmissionObjectIntegrity, SubmissionError } from '@/lib/assignments/submission-domain';
+import { SubmissionError } from '@/lib/assignments/submission-domain';
+import { assertSubmissionObjectIntegrity } from '@/lib/assignments/submission-integrity';
 import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import { consumeSubmissionAssetRead, signSubmissionAssetRead } from '@/lib/assignments/submission-service';
 import { requireStudentActor, submissionErrorResponse } from '@/lib/assignments/submission-route-guards';

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-2897ba298baf9901ef5633e3",
+  "safe_id": "ctc_modeling-2897ba298baf9901ef5633e3",
+  "node": {
+    "name": "takeoff point",
+    "name_en": "takeoff_point",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "takeoff point：v3T accepted candidate for takeoff point.",
+  "intuition": null,
+  "explanation": "v3T accepted candidate for takeoff point.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "takeoff poi…",
+    "takeoff poin"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-2897ba298baf9901ef5633e3.md",
+  "provider_policy": "grok-image_gen"
+}

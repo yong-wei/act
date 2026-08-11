@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-801c2bf7fd001c355296f342",
+  "safe_id": "ctkg_v3e-object-801c2bf7fd001c355296f342",
+  "node": {
+    "name": "Transformation t",
+    "name_en": "Transformation to Observer Canonical Form",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Transformation t：Find a transformation to take a given system to observer canonical form if and only if the system is observable (observ…",
+  "intuition": null,
+  "explanation": "Find a transformation to take a given system to observer canonical form if and only if the system is observable (observability matrix is nonsingular).",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Transformat…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-801c2bf7fd001c355296f342.md",
+  "provider_policy": "grok-image_gen"
+}

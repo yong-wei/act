@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+  "safe_id": "ctkg_v3e-object-2a6df9c2e027152138c44554",
+  "node": {
+    "name": "离散时间系统",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "如果控制系统中有一处或几处信号是一串脉冲或数码，换句话说，这些信号仅定义在离散时间上，则这样的系统称为离散时间系统，简称离散系统。",
+  "intuition": "在图谱邻接中可把握：前置 → 采样控制系统、数字控制系统 · 后续 → 脉冲序列、连续时间系统。",
+  "explanation": "如果控制系统中有一处或几处信号是一串脉冲或数码，换句话说，这些信号仅定义在离散时间上，则这样的系统称为离散时间系统，简称离散系统。",
+  "relation_head": "前置 → 采样控制系统、数字控制系统 · 后续 → 脉冲序列、连续时间系统",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "采样控制系统",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "数字控制系统",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "脉冲序列",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "连续时间系统",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "离散时间系统",
+    "是一种·采样控制系统",
+    "是一种·数字控制系统",
+    "包含组件·脉冲序列",
+    "关联·连续时间系统"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-2a6df9c2e027152138c44554.md",
+  "provider_policy": "grok-image_gen"
+}

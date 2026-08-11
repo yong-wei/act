@@ -1,0 +1,62 @@
+{
+  "pack_id": "P0188",
+  "offset": 940,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_8a31109fa1ad3612b30e7a9a",
+      "batch": "C",
+      "name": "欧几里得范数",
+      "definition": "欧几里得范数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "欧几里得范数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 欧几里得范数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 欧几里得范数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「欧几里得范数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b7b9b4cd76509c25cf2b5b28",
+      "batch": "C",
+      "name": "z 特征方程",
+      "definition": "z 特征方程是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "z 特征方程"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: z 特征方程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): z 特征方程是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「z 特征方程」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d39faa7168016a381956c62d",
+      "batch": "C",
+      "name": "相角裕度 γ",
+      "definition": "相角裕度 γ是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "相角裕度 γ"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 相角裕度 γ\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 相角裕度 γ是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「相角裕度 γ」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_e125c73a1fa9700b183695ce",
+      "batch": "C",
+      "name": "闭环特征方程",
+      "definition": "闭环特征方程是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "闭环特征方程"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 闭环特征方程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 闭环特征方程是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「闭环特征方程」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_f4808ef41d5a4821c75f5a83",
+      "batch": "C",
+      "name": "PID控制器",
+      "definition": "PID控制器是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PID控制器",
+        "PID controll"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: PID控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): PID控制器是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「PID控制器」、「PID contro」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

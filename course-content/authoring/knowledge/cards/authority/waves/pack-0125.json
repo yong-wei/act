@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0125",
+  "offset": 625,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-7d3704ae133f6be94bf5991b",
+      "batch": "B",
+      "name": "脉冲传递函数",
+      "definition": "线性定常离散系统的脉冲传递函数定义为系统输出采样信号的z变换与输入采样信号的z变换之比。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "脉冲传递函数",
+        "关联·线性定常离散…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 脉冲传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 线性定常离散系统的脉冲传递函数定义为系统输出采样信号的z变换与输入采样信号的z变换之比。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「脉冲传递函数」、「关联·线性定常离散…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9dd164e548b83a92f3777044",
+      "batch": "B",
+      "name": "否包含元素全…",
+      "definition": "当A的特征值两两相异时，通过线性变换化为对角线规范型，检查C矩阵是否包含元素全为零的列。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "否包含元素全…",
+        "一种·对角线规范型…",
+        "应用于·系统不可观测"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 否包含元素全…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当A的特征值两两相异时，通过线性变换化为对角线规范型，检查C矩阵是否包含元素全为零的列。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「否包含元素全…」、「一种·对角线规范型…」、「应用于·系统不可观测」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d5145d73b0cb5535eac9e81b",
+      "batch": "B",
+      "name": "实奇点",
+      "definition": "当非线性方程在某个区域可以表示为线性微分方程时，若对应的奇点位于本区域内，则称为实奇点。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "实奇点",
+        "是一种·奇点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 实奇点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当非线性方程在某个区域可以表示为线性微分方程时，若对应的奇点位于本区域内，则称为实奇点。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「实奇点」、「是一种·奇点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d930507f1d5291f37ede5af7",
+      "batch": "B",
+      "name": "反演积分法",
+      "definition": "采用反演积分法求取z反变换，适用于E(z)为超越函数的情况，通过柯西留数定理计算积分值。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "反演积分法",
+        "关联·部分分式法",
+        "关联·幂级数法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 反演积分法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 采用反演积分法求取z反变换，适用于E(z)为超越函数的情况，通过柯西留数定理计算积分值。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「反演积分法」、「关联·部分分式法」、「关联·幂级数法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e281edb0bf991d873b515ce3",
+      "batch": "B",
+      "name": "虚奇点",
+      "definition": "当非线性方程在某个区域可以表示为线性微分方程时，若对应的奇点位于其他区域，则称为虚奇点。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "虚奇点",
+        "是一种·奇点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 虚奇点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当非线性方程在某个区域可以表示为线性微分方程时，若对应的奇点位于其他区域，则称为虚奇点。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「虚奇点」、「是一种·奇点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

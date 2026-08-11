@@ -1,0 +1,41 @@
+{
+  "pack_id": "P0047",
+  "items": [
+    {
+      "safe_id": "ctc_modeling-6e03c54be64721caf66c75c5",
+      "batch": "B",
+      "name": "state space model",
+      "definition": "state space model：v3T accepted candidate for state space model.",
+      "visual_archetype": "科普百科图鉴"
+    },
+    {
+      "safe_id": "ctc_modeling-8010502b57930c3dcb915af9",
+      "batch": "B",
+      "name": "零点",
+      "definition": "零点：v3T accepted candidate for zero.。",
+      "visual_archetype": "s 平面机理板"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0b94edb93771b955eedd5d9f",
+      "batch": "B",
+      "name": "得到闭环对数幅频和相频曲线",
+      "definition": "在已知系统开环传递函数条件下，直接调用命令 feedback 和 bode，可立即得到闭环对数幅频和相频曲线，然后可判读出系统谐振频率 ω_r、谐振峰值 M_r(dB) 及带宽频率 ω_b。",
+      "visual_archetype": "频域仪表盘"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1b7b0dc48c95ff419467dd86",
+      "batch": "B",
+      "name": "模拟信号",
+      "definition": "测量元件、执行元件和被控对象是模拟元件，其输入和输出是连续信号，即时间上和幅值上都连续的信号，称为模拟信号。",
+      "visual_archetype": "科普百科图鉴"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-22c09bec3824e6b6d0e4d83b",
+      "batch": "B",
+      "name": "Phase-lead compensator",
+      "definition": "Phase-lead compensator：Phase-lead compensator",
+      "visual_archetype": "科普百科图鉴"
+    }
+  ],
+  "created_at": "2026-08-05T15:34:19.106727+00:00"
+}

@@ -20,6 +20,8 @@ export default defineConfig([
   },
   globalIgnores([
     'evaluate/**',
+    '.skillopt-sleep/**',
+    '.worktrees/**',
     '.next/**',
     'out/**',
     'build/**',

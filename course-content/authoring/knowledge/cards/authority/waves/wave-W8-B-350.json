@@ -1,0 +1,753 @@
+{
+  "wave_id": "W8",
+  "batch": "B",
+  "title": "Batch B slice 8",
+  "offset": 350,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-07c345d26a1c74830e0a5c94",
+      "entity_id": "ctkg:v3e-object-07c345d26a1c74830e0a5c94",
+      "name": "Arc at infinity in Nyquist plot",
+      "name_en": "Arc at infinity in Nyquist plot",
+      "definition": "Arc at infinity in Nyquist plot：An arc at infinity in the Nyquist plot occurs when there is a pole on the imaginary axis, such as at ω=0.",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Arc at infi…",
+        "应用于·C1 co…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "entity_id": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "name": "Eigenvalue",
+      "name_en": "Eigenvalue",
+      "definition": "Eigenvalue：A scalar p_i such that A t_i = p_i t_i",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Eigenvalue",
+        "用于分析·Comp…",
+        "关联·Eigenv…",
+        "关联·特征方程",
+        "关联·Comput…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-09160b112423a1c2afe77578",
+      "entity_id": "ctkg:v3e-object-09160b112423a1c2afe77578",
+      "name": "Maximum phase lead frequency ω m",
+      "name_en": "Maximum phase lead frequency ω_m",
+      "definition": "Maximum phase lead frequency ω m：The frequency at which maximum additional phase lead is obtained, located at ω_m = √(z p), halfway between the pole and…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Maximum pha…",
+        "应用于·Phase…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0946a016c136cdf4a417ed62",
+      "entity_id": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+      "name": "Break point",
+      "name_en": "Break point",
+      "definition": "Break point：The frequency at which the asymptotes of a first-order or second-order term cross",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Break point"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "entity_id": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "name": "Compensator",
+      "name_en": "Compensator",
+      "definition": "Compensator：An additional component that is inserted into a control system to compensate for a deficient performance.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Compensator",
+        "一种·Integr…",
+        "一种·Cascad…",
+        "一种·Phase-…",
+        "应用于·根轨迹法",
+        "应用于·Frequ…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0b64035d71e363318c3d8d2d",
+      "entity_id": "ctkg:v3e-object-0b64035d71e363318c3d8d2d",
+      "name": "频率法校正",
+      "name_en": null,
+      "definition": "如果性能指标以系统的相角裕度、幅值裕度、谐振峰值、闭环带宽、静态误差系数等频域特征量给出时，一般采用频率法校正。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "频率法校正"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0b94edb93771b955eedd5d9f",
+      "entity_id": "ctkg:v3e-object-0b94edb93771b955eedd5d9f",
+      "name": "得到闭环对数幅频和相频曲线",
+      "name_en": null,
+      "definition": "在已知系统开环传递函数条件下，直接调用命令 feedback 和 bode，可立即得到闭环对数幅频和相频曲线，然后可判读出系统谐振频率 ω_r、谐振峰值 M_r(dB) 及带宽频率 ω_b。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "得到闭环对数幅频和相频…",
+        "用于分析·谐振峰值",
+        "用于分析·谐振频率",
+        "用于分析·带宽频率",
+        "关联·谐振峰值",
+        "关联·谐振频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0bb7941e989275e607a110d0",
+      "entity_id": "ctkg:v3e-object-0bb7941e989275e607a110d0",
+      "name": "Using ss2tf to c",
+      "name_en": "Using ss2tf to compute transfer function from state-space model",
+      "definition": "Using ss2tf to c：Using ss2tf to compute transfer function from state-space model",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Using ss2tf…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "entity_id": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "name": "Hysteresis Nonlinearity",
+      "name_en": "Hysteresis Nonlinearity",
+      "definition": "Hysteresis Nonlinearity：Hysteresis Nonlinearity",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Hysteresis …",
+        "Hysteresis N",
+        "一种·Schmit…",
+        "关联·Schmit…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0bfd48327659b66aa7d95f32",
+      "entity_id": "ctkg:v3e-object-0bfd48327659b66aa7d95f32",
+      "name": "Determining GM from root locus",
+      "name_en": "Determining GM from root locus",
+      "definition": "Determining GM from root locus：Determining GM from root locus",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Determining…",
+        "派生自·Gain …",
+        "关联·Gain M…",
+        "关联·Determ…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0c84769e1c4d260e0fdedff6",
+      "entity_id": "ctkg:v3e-object-0c84769e1c4d260e0fdedff6",
+      "name": "Attenuation factor 1/α in compensator",
+      "name_en": "Attenuation factor 1/α in compensator",
+      "definition": "Attenuation factor 1/α in compensator：The gain K of the compensator is raised to account for the attenuation (1/α).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Attenuation…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "entity_id": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "name": "Experimental fre",
+      "name_en": "Experimental frequency response determination",
+      "definition": "Experimental fre：Excite the system with a sinusoid varying in frequency",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Experimenta…",
+        "用于分析·Freq…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0cf99c642f502f5984fc4317",
+      "entity_id": "ctkg:v3e-object-0cf99c642f502f5984fc4317",
+      "name": "Time-domain performance measures",
+      "name_en": "Time-domain performance measures",
+      "definition": "Time-domain performance measures：Performance measures used to describe control system behavior in the time domain, including peak time, maximum percent…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Time-domain…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0e2fd1303478a746919816fc",
+      "entity_id": "ctkg:v3e-object-0e2fd1303478a746919816fc",
+      "name": "级数求和法",
+      "name_en": null,
+      "definition": "直接根据z变换的定义，将式（7－23）写成展开形式，从而得到z变换的级数展开式。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "级数求和法",
+        "包含组件·z变换"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0e5df270abeaa062e3a81d33",
+      "entity_id": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "name": "采样过程",
+      "name_en": null,
+      "definition": "在采样控制系统中，把连续信号转变为脉冲序列的过程称为采样过程，简称采样。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样过程",
+        "属于·采样控制系统",
+        "包含组件·采样控制…",
+        "关联·模拟信号",
+        "关联·保持器",
+        "关联·采样器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0eadd6f972de0e7b503343cf",
+      "entity_id": "ctkg:v3e-object-0eadd6f972de0e7b503343cf",
+      "name": "PID controller d",
+      "name_en": "PID controller design procedure for spacecraft attitude control",
+      "definition": "PID controller d：The design procedure involves: 1) Adjusting T_D to achieve the desired phase margin (PM) at a reasonably high frequency…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PID control…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0ede09d12722cabc48d82ce4",
+      "entity_id": "ctkg:v3e-object-0ede09d12722cabc48d82ce4",
+      "name": "Phase-Lead Design Using the Bode Plot",
+      "name_en": "Phase-Lead Design Using the Bode Plot",
+      "definition": "Phase-Lead Design Using the Bode Plot：A method to design a phase-lead compensator by adding the frequency response of the cascade compensator to the frequenc…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Phase-Lead …",
+        "用于分析·Phas…",
+        "应用于·Phase…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0f28cd2360a6b3aef63500c3",
+      "entity_id": "ctkg:v3e-object-0f28cd2360a6b3aef63500c3",
+      "name": "Uncompensated system",
+      "name_en": "Uncompensated system",
+      "definition": "Uncompensated system：The system with loop transfer function L(s)=K G(s) when the controller is a constant gain controller G_c(s)=K.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Uncompensat…",
+        "Uncompensate"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0fb119433b4fd68aebe1b4f8",
+      "entity_id": "ctkg:v3e-object-0fb119433b4fd68aebe1b4f8",
+      "name": "离散系统的可控性矩阵 (dis…",
+      "name_en": null,
+      "definition": "离散系统的可控性矩阵 (discrete-time controllability matrix S1)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散系统的可控性矩阵 …"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0ffd784a046b2ff6fc583d23",
+      "entity_id": "ctkg:v3e-object-0ffd784a046b2ff6fc583d23",
+      "name": "Duality-Based Estimator Design",
+      "name_en": "Duality-Based Estimator Design",
+      "definition": "Duality-Based Estimator Design：Use control design tools (acker, place) with substitutions A→A^T, B→C^T, C→B^T to compute L^T, then transpose to get L.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Duality-Bas…",
+        "一种·Dualit…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1010934a92a0dacb1caec1e2",
+      "entity_id": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+      "name": "穿越频率",
+      "name_en": null,
+      "definition": "当 Im[G(jω_x)H(jω_x)]=0 或 φ(ω_x)=∠[G(jω_x)H(jω_x)]=kπ 时，称 ω_x 为穿越频率。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "穿越频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-10392ceace3daf30af90f6e7",
+      "entity_id": "ctkg:v3e-object-10392ceace3daf30af90f6e7",
+      "name": "迭代法",
+      "name_en": null,
+      "definition": "若已知差分方程，并且给定输出序列的初值，则可以利用递推关系，在计算机上一步一步地算出输出序列。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "迭代法",
+        "用于分析·线性定常…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1046498f1c5d17864ddaeb71",
+      "entity_id": "ctkg:v3e-object-1046498f1c5d17864ddaeb71",
+      "name": "等ω线映射",
+      "name_en": null,
+      "definition": "s平面上的等ω水平线映射到z平面上的轨迹是一簇从原点出发的射线，其相角∠z=ωT从正实轴计量。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "等ω线映射"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "entity_id": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+      "name": "性能指标",
+      "name_en": null,
+      "definition": "进行控制系统的校正设计，除了应已知系统不可变部分的特性与参数外，还需要已知对系统提出的全部性能指标。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "性能指标",
+        "是一种·系统带宽",
+        "应用于·校正问题"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1107a657eb90b8264d4dac38",
+      "entity_id": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+      "name": "非线性系统",
+      "name_en": null,
+      "definition": "当系统中含有一个或多个具有非线性特性的元件时，该系统称为非线性系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非线性系统",
+        "用于分析·小偏差线…",
+        "用于分析·相平面法…",
+        "用于分析·描述函数法",
+        "用于分析·相平面法",
+        "用于分析·平衡点附…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-110c156932e90fe902935cb1",
+      "entity_id": "ctkg:v3e-object-110c156932e90fe902935cb1",
+      "name": "Phase stabilization",
+      "name_en": "Phase stabilization",
+      "definition": "Phase stabilization：A stabilization method that uses specially tailored compensation (e.g., a notch filter) to change the phase at a specif…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase stabi…",
+        "Phase stabil",
+        "包含组件·Phas…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1170a798229324f8a6276262",
+      "entity_id": "ctkg:v3e-object-1170a798229324f8a6276262",
+      "name": "不可变部分",
+      "name_en": null,
+      "definition": "由被控对象、执行元件、测量变送元件、前置放大器与功率放大器等初步选定的元件构成，是系统中参数和特性固定不变的部分。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "不可变部分"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-11feec6295c98da3e56a7832",
+      "entity_id": "ctkg:v3e-object-11feec6295c98da3e56a7832",
+      "name": "Estimator Gain S",
+      "name_en": "Estimator Gain Selection via Coefficient Comparison",
+      "definition": "Estimator Gain S：Solve for L by comparing coefficients of the estimator error characteristic equation (det[sI-(A-LC)]=0) with the desire…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Estimator G…",
+        "包含组件·Esti…",
+        "用于分析·Esti…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "entity_id": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "name": "Reference input",
+      "name_en": "Reference input",
+      "definition": "Reference input：A signal r(t) that represents the desired output or command to be followed by the system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Reference i…",
+        "Reference in",
+        "应用于·Track…",
+        "应用于·Asymp…",
+        "关联·Comman…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-133c90435f61b9a83b7d4aaf",
+      "entity_id": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "name": "Controllability",
+      "name_en": "Controllability",
+      "definition": "Controllability：A system is completely controllable if there exists an unconstrained control u(t) that can transfer any initial state x…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Controllabi…",
+        "Controllabil",
+        "用于分析·Cont…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-13e696ca025028445460f1df",
+      "entity_id": "ctkg:v3e-object-13e696ca025028445460f1df",
+      "name": "Bandwidth frequency",
+      "name_en": "Bandwidth frequency",
+      "definition": "Bandwidth frequency：The frequency at which the frequency response has declined 3 dB from its low-frequency value.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Bandwidth f…",
+        "Bandwidth fr",
+        "关联·Resona…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1405f7f72c012a10e7cf60bc",
+      "entity_id": "ctkg:v3e-object-1405f7f72c012a10e7cf60bc",
+      "name": "Nonminimum-Phase Compensator",
+      "name_en": "Nonminimum-Phase Compensator",
+      "definition": "Nonminimum-Phase Compensator：Nonminimum-Phase Compensator",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Nonminimum-…",
+        "关联·Zerode…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1423d2e4d994f098d268dc5e",
+      "entity_id": "ctkg:v3e-object-1423d2e4d994f098d268dc5e",
+      "name": "校正问题",
+      "name_en": null,
+      "definition": "当调整放大器增益后仍不能满足性能指标时，在系统中增加参数及特性可按需要改变的校正装置，使系统性能全面满足设计要求的设计问题。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "校正问题",
+        "应用于·性能指标"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-14b61e56571539bbfb630ae7",
+      "entity_id": "ctkg:v3e-object-14b61e56571539bbfb630ae7",
+      "name": "小偏差线性化法",
+      "name_en": null,
+      "definition": "当系统方程解析且工作在某一数值附近的较小范围内时，可运用小偏差法将非线性模型线性化。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "小偏差线性化法",
+        "用于分析·非线性系统",
+        "应用于·非线性系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-14c49cc217ebff19a8763b5b",
+      "entity_id": "ctkg:v3e-object-14c49cc217ebff19a8763b5b",
+      "name": "z变换算子",
+      "name_en": null,
+      "definition": "z是在复数平面上定义的一个复变量，通常称为z变换算子。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "z变换算子",
+        "是一种·z变换",
+        "关联·z变换"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-166cf6d8d911865faa1f8f30",
+      "entity_id": "ctkg:v3e-object-166cf6d8d911865faa1f8f30",
+      "name": "Digital-to-analog (D/A) converter",
+      "name_en": "Digital-to-analog (D/A) converter",
+      "definition": "Digital-to-analog (D/A) converter：Digital-to-analog (D/A) converter",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital-to-…",
+        "包含组件·Zero…",
+        "应用于·Sampl…",
+        "关联·Discre…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-16f7c2fa5fc07204ca43c086",
+      "entity_id": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+      "name": "PID控制器",
+      "name_en": null,
+      "definition": "由比例单元、微分单元和积分单元组合而成的有源串联校正装置，可以实现各种要求的控制规律，在工业自动化设备中经常采用。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "PID控制器",
+        "是一种·校正装置",
+        "包含组件·比例系数",
+        "包含组件·微分时间…",
+        "包含组件·积分时间…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1724fe5a62311ceb13ab05bd",
+      "entity_id": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+      "name": "格拉姆矩阵判据",
+      "name_en": null,
+      "definition": "线性定常连续系统完全可控的充分必要条件是，存在时刻 t1>0，使格拉姆矩阵 W(0, t1) 为非奇异。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "格拉姆矩阵判据",
+        "应用于·系统完全可控"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "entity_id": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+      "name": "Integration compensator",
+      "name_en": "Integration compensator",
+      "definition": "Integration compensator：Integration compensator",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Integration…",
+        "Integration ",
+        "一种·Compen…",
+        "一种·Propor…",
+        "用于分析·根轨迹"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-17f97568592a217c1d332948",
+      "entity_id": "ctkg:v3e-object-17f97568592a217c1d332948",
+      "name": "Compensated system",
+      "name_en": "Compensated system",
+      "definition": "Compensated system：The system after adding the phase-lag compensator.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Compensated…",
+        "Compensated ",
+        "用于分析·Freq…",
+        "用于分析·Nich…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+      "entity_id": "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+      "name": "谐振频率",
+      "name_en": null,
+      "definition": "振荡环节幅频特性出现峰值时所对应的频率，ω_r = ω_n √(1-2ζ²)，0<ζ≤√2/2。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "谐振频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-18c55a9b153179a638ff5dc2",
+      "entity_id": "ctkg:v3e-object-18c55a9b153179a638ff5dc2",
+      "name": "Evaluating effec",
+      "name_en": "Evaluating effects of gain changes using frequency-response data",
+      "definition": "Evaluating effec：Indicate on the figure where |KG(jω)|=1 for selected trial values of K without redrawing magnitude or phase information.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Evaluating …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-18dc6cccc99e95f3ae794561",
+      "entity_id": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+      "name": "aliasing",
+      "name_en": "aliasing",
+      "definition": "aliasing：The phenomenon where high-frequency noise is modulated to a lower frequency by the sampling process, occurring when the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "aliasing",
+        "用于分析·anti…",
+        "应用于·Nyqui…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-191274d4aa5307678e583641",
+      "entity_id": "ctkg:v3e-object-191274d4aa5307678e583641",
+      "name": "Bode plots (logarithmic plots)",
+      "name_en": "Bode plots (logarithmic plots)",
+      "definition": "Bode plots (logarithmic plots)：Bode plots (logarithmic plots)",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Bode plots …",
+        "关联·Bode d…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1946643d6912e8d8aeb2decb",
+      "entity_id": "ctkg:v3e-object-1946643d6912e8d8aeb2decb",
+      "name": "Internal Model Principle",
+      "name_en": "Internal Model Principle",
+      "definition": "Internal Model Principle：The principle stating that if the product of the process transfer function G(s) and the cascade controller transfer fun…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Internal Mo…",
+        "Internal Mod"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-195ec8a545b19a1f37188170",
+      "entity_id": "ctkg:v3e-object-195ec8a545b19a1f37188170",
+      "name": "Disturbance Rejection Bandwidth (ω DRB)",
+      "name_en": "Disturbance Rejection Bandwidth (ω_DRB)",
+      "definition": "Disturbance Rejection Bandwidth (ω DRB)：The maximum frequency at which the sensitivity function S is below a certain threshold (e.g., -3 dB), indicating the sy…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Disturbance…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "entity_id": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "name": "穿越频率",
+      "name_en": null,
+      "definition": "开环相频特性为-180°时的频率，记为ω_x。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "穿越频率",
+        "关联·阻尼自然频率",
+        "关联·幅值裕度"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1b720d82e3de003a38fa57f6",
+      "entity_id": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+      "name": "Cascade Compensator",
+      "name_en": "Cascade Compensator",
+      "definition": "Cascade Compensator：A compensator placed in the feedforward path of a simple, single-loop feedback control system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Cascade Com…",
+        "Cascade Comp",
+        "一种·Compen…",
+        "一种·Phase-…",
+        "应用于·Casca…",
+        "关联·Cascad…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1b7b0dc48c95ff419467dd86",
+      "entity_id": "ctkg:v3e-object-1b7b0dc48c95ff419467dd86",
+      "name": "模拟信号",
+      "name_en": null,
+      "definition": "测量元件、执行元件和被控对象是模拟元件，其输入和输出是连续信号，即时间上和幅值上都连续的信号，称为模拟信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "模拟信号",
+        "是一种·阶梯信号",
+        "包含组件·采样控制…",
+        "包含组件·数字控制…",
+        "关联·采样过程",
+        "关联·A/D转换器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "entity_id": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "name": "相角裕度",
+      "name_en": null,
+      "definition": "开环频率特性在截止频率处的相角与-180°的差值，记为γ。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "相角裕度",
+        "用于分析·相频特性",
+        "用于分析·利用开环…",
+        "关联·截止频率",
+        "关联·利用开环频域…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

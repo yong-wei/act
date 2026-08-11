@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+  "safe_id": "ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+  "node": {
+    "name": "幅值裕度",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "开环频率特性在相角为-180°时的幅值倒数，记为h(dB)。",
+  "intuition": null,
+  "explanation": "开环频率特性在相角为-180°时的幅值倒数，记为h(dB)",
+  "relation_head": "前置 → 穿越频率",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "穿越频率",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "幅值裕度",
+    "关联·穿越频率"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c2881833cb4d8b1e415dc742.md",
+  "provider_policy": "grok-image_gen"
+}

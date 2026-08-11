@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+  "safe_id": "ctkg_v3e-object-ba8cd00d72479d23476d2061",
+  "node": {
+    "name": "奇点",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "若在某点处 f(x, ẋ) 和 ẋ 同时为零，即有 dẋ/dx = 0/0 的不定形式，则称该点为相平面的奇点。",
+  "intuition": "在图谱邻接中可把握：前置 → 稳定焦点、不稳定节点、稳定节点 · 后续 → 相平面。",
+  "explanation": "若在某点处 f(x, ẋ) 和 ẋ 同时为零，即有 dẋ/dx = 0/0 的不定形式，则称该点为相平面的奇点。",
+  "relation_head": "前置 → 稳定焦点、不稳定节点、稳定节点 · 后续 → 相平面",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "稳定焦点",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "不稳定节点",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "稳定节点",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "不稳定焦点",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "实奇点",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "虚奇点",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "奇点",
+    "是一种·稳定焦点",
+    "是一种·不稳定节点",
+    "是一种·稳定节点",
+    "是一种·不稳定焦点",
+    "是一种·实奇点"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ba8cd00d72479d23476d2061.md",
+  "provider_policy": "grok-image_gen"
+}

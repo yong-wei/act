@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-d80da04d9d355b4af6fec9f9",
+  "safe_id": "ctkg_v3e-object-d80da04d9d355b4af6fec9f9",
+  "node": {
+    "name": "Phase-lead compensator",
+    "name_en": "Phase-lead compensator",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Phase-lead compensator：A compensator that adds a phase-lead angle to provide an adequate phase margin, used to alter the performance of a cont…",
+  "intuition": "在图谱邻接中可把握：前置 → Phase-lead design using the root locus。",
+  "explanation": "A compensator that adds a phase-lead angle to provide an adequate phase margin, used to alter the performance of a control system.",
+  "relation_head": "前置 → Phase-lead design using the root locus",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Phase-lead design using the root locus",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Phase-lead …",
+    "Phase-lead c",
+    "应用于·Phase…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-d80da04d9d355b4af6fec9f9.md",
+  "provider_policy": "grok-image_gen"
+}

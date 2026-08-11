@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0177",
+  "offset": 885,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_a3186afbaab04b331226cdc9",
+      "batch": "C",
+      "name": "Instability",
+      "definition": "Instability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Instability"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Instability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Instability是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Instabilit」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a45eae6f2246a7b9b35bf444",
+      "batch": "C",
+      "name": "连续到离散等效设计方法",
+      "definition": "连续到离散等效设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "连续到离散等效设计方法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 连续到离散等效设计方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 连续到离散等效设计方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「连续到离散等效设计方」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bca773190d368f3faaaab995",
+      "batch": "C",
+      "name": "数字控制器脉冲传递函数",
+      "definition": "数字控制器脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字控制器脉冲传递函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 数字控制器脉冲传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 数字控制器脉冲传递函数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「数字控制器脉冲传递函」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_e037175898e502a748c0341d",
+      "batch": "C",
+      "name": "有纹波最少拍系统结构图",
+      "definition": "有纹波最少拍系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "有纹波最少拍系统结构图"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 有纹波最少拍系统结构图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 有纹波最少拍系统结构图是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「有纹波最少拍系统结构」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_fa0849954056406029bd497f",
+      "batch": "C",
+      "name": "脉冲传递函数 G(z)",
+      "definition": "脉冲传递函数 G(z)是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "脉冲传递函数 G(z)"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 脉冲传递函数 G(z)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 脉冲传递函数 G(z)是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「脉冲传递函数 G(z」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

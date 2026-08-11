@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0070",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-44abb05a48944f9fee9a9d01",
+      "name": "相平面法分析非线性系统",
+      "definition": "根据非线性的分段特点，将相平面分成若干区域进行研究，可使非线性微分方程在各个区域表现为线性微分方程，再应用线性系统的相平面分析方法。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-55036b61ed3fe680ef13f904",
+      "name": "Input Compensation",
+      "definition": "Input Compensation：A compensation scheme where the compensator is placed at the input."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5aa119c1211318de57450e5b",
+      "name": "Eigenvector",
+      "definition": "Eigenvector：A vector t_i such that A t_i = p_i t_i, where p_i is the corresponding eigenvalue."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5e3ecb030d6a454633f0a09a",
+      "name": "内模控制器",
+      "definition": "一类校正控制器，通过在控制器中引入参考输入信号的内模，能以零稳态误差渐近跟踪各类参考输入信号。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-62fdc01d171ed1ecf803d7d9",
+      "name": "比例-微分控制规律",
+      "definition": "具有比例-微分控制规律的控制器，称为PD控制器，其输出u(t)与输入e(t)的关系为u(t)=Kp e(t) ± Kp Td de(t)/dt。"
+    }
+  ],
+  "created_at": "2026-08-05T16:05:01.134401+00:00"
+}

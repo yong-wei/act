@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0198",
+  "offset": 990,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-2624e6b30f6178715ae3b198",
+      "batch": "C",
+      "name": "比例-积分控制器",
+      "definition": "包含比例和积分控制作用的控制器。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-积分控制器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 比例-积分控制器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 包含比例和积分控制作用的控制器。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「比例-积分控制器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-da8cedbf0ebbeecfe0b184b6",
+      "batch": "C",
+      "name": "拉普拉斯变换法求解齐次状态方程",
+      "definition": "拉普拉斯变换法求解齐次状态方程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "拉普拉斯变换法求解齐次…",
+        "用于分析·齐次状态…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 拉普拉斯变换法求解齐次状态方程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 拉普拉斯变换法求解齐次状态方程。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「拉普拉斯变换法求解齐」、「用于分析·齐次状态…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-0c0b4e9e214ae42d511dda74",
+      "batch": "C",
+      "name": "s-plane",
+      "definition": "s-plane：s-plane",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "s-plane"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: s-plane\nSOURCE DEFINITION (fail-closed, do not invent beyond this): s-plane：s-plane\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「s-plane」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "batch": "C",
+      "name": "DC gain",
+      "definition": "DC gain：DC gain",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "DC gain"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: DC gain\nSOURCE DEFINITION (fail-closed, do not invent beyond this): DC gain：DC gain\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「DC gain」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3efb972a33b0a45162a5d04a",
+      "batch": "C",
+      "name": "根轨迹",
+      "definition": "根轨迹：Root locus。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "根轨迹",
+        "Root locus",
+        "用于分析·Inte…",
+        "用于分析·Phas…",
+        "应用于·根轨迹法",
+        "关联·根轨迹法",
+        "关联·Compen…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 根轨迹\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 根轨迹：Root locus。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「根轨迹」、「Root locus」、「用于分析·Inte…」、「用于分析·Phas…」、「应用于·根轨迹法」、「关联·根轨迹法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

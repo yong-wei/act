@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0114",
+  "offset": 570,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "batch": "B",
+      "name": "Eigenvalue",
+      "definition": "Eigenvalue：A scalar p_i such that A t_i = p_i t_i",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Eigenvalue",
+        "用于分析·Comp…",
+        "关联·Eigenv…",
+        "关联·特征方程",
+        "关联·Comput…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Eigenvalue\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Eigenvalue：A scalar p_i such that A t_i = p_i t_i\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Eigenvalue」、「用于分析·Comp…」、「关联·Eigenv…」、「关联·特征方程」、「关联·Comput…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-393198bac91c71d371b1c217",
+      "batch": "B",
+      "name": "朱利阵列",
+      "definition": "由离散系统闭环特征方程D(z)=0的系数构造的(2n-3)行、(n+1)列阵列，用于朱利稳定判据。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "朱利阵列",
+        "包含组件·朱利稳定…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 朱利阵列\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由离散系统闭环特征方程D(z)=0的系数构造的(2n-3)行、(n+1)列阵列，用于朱利稳定判据。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「朱利阵列」、「包含组件·朱利稳定…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-26666fcfa05a85fef00fa4dd",
+      "batch": "B",
+      "name": "过阻尼二阶系统动态性能指标工程…",
+      "definition": "利用数值解法求出不同 ζ 值下的无因次时间制成曲线以供查用，或者利用曲线拟合法给出近似计算公式。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "过阻尼二阶系统动态性能…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 过阻尼二阶系统动态性能指标工程…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 利用数值解法求出不同 ζ 值下的无因次时间制成曲线以供查用，或者利用曲线拟合法给出近似计算公式。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「过阻尼二阶系统动态性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-39f6714b8cafaaf18e43b898",
+      "batch": "B",
+      "name": "串级控制方法",
+      "definition": "串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "串级控制方法",
+        "包含组件·副回路"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 串级控制方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「串级控制方法」、「包含组件·副回路」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-d2d3366e7f924f0ab8b19205",
+      "batch": "B",
+      "name": "串级控制系统",
+      "definition": "串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "串级控制系统",
+        "包含组件·副回路"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 串级控制系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「串级控制系统」、「包含组件·副回路」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

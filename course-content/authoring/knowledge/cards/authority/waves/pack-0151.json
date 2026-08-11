@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0151",
+  "offset": 755,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-4c11f89842e11d4bc17a5b71",
+      "batch": "B",
+      "name": "副调节器",
+      "definition": "串级控制系统中的副调节器，传递函数为Gc2(s)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "副调节器",
+        "属于·副回路",
+        "包含组件·副回路"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 副调节器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 串级控制系统中的副调节器，传递函数为Gc2(s)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「副调节器」、「属于·副回路」、「包含组件·副回路」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-5f0178db5e9334312de23135",
+      "batch": "B",
+      "name": "求解离散动态方程的一种方法",
+      "definition": "求解离散动态方程的一种方法，此处仅提及但未展开。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "求解离散动态方程的一种…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 求解离散动态方程的一种方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 求解离散动态方程的一种方法，此处仅提及但未展开。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「求解离散动态方程的一」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3af39a858b2949296df5387f",
+      "batch": "B",
+      "name": "幅值谱",
+      "definition": "复系数c_k的幅值集合，用于表示周期信号的频谱。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "幅值谱",
+        "关联·周期信号的频谱"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 幅值谱\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 复系数c_k的幅值集合，用于表示周期信号的频谱。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「幅值谱」、「关联·周期信号的频谱」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9c2c202d7940f9cd4af8fae8",
+      "batch": "B",
+      "name": "采样周期",
+      "definition": "每隔 T 秒与电位器接触一次，T 称为采样周期。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样周期",
+        "包含组件·采样控制…",
+        "关联·采样持续时间"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样周期\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 每隔 T 秒与电位器接触一次，T 称为采样周期。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样周期」、「包含组件·采样控制…」、「关联·采样持续时间」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a0e00fe181b9ba65bda1824c",
+      "batch": "B",
+      "name": "相平面法",
+      "definition": "相平面法是推广应用时域分析法的一种图解分析方法。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "相平面法",
+        "包含组件·相平面",
+        "用于分析·非线性系统",
+        "应用于·非线性系统",
+        "关联·MATLAB…",
+        "有表示·相轨迹"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 相平面法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 相平面法是推广应用时域分析法的一种图解分析方法。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「相平面法」、「包含组件·相平面」、「用于分析·非线性系统」、「应用于·非线性系统」、「关联·MATLAB…」、「有表示·相轨迹」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

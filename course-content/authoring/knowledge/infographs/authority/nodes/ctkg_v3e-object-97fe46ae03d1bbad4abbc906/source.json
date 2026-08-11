@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-97fe46ae03d1bbad4abbc906",
+  "safe_id": "ctkg_v3e-object-97fe46ae03d1bbad4abbc906",
+  "node": {
+    "name": "系统可控",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "对于式（9－76）所示线性时变系统，如果状态空间中的所有非零状态都是在 t0(t0∈Tt) 时刻可控的，则称系统在时刻 t0 是完全可控或一致可控的，简称系统在时刻 t0可控。",
+  "intuition": "在图谱邻接中可把握：前置 → 状态可控。",
+  "explanation": "对于式（9－76）所示线性时变系统，如果状态空间中的所有非零状态都是在 t0(t0∈Tt) 时刻可控的，则称系统在时刻 t0 是完全可控或一致可控的，简称系统在时刻 t0可控。",
+  "relation_head": "前置 → 状态可控",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "状态可控",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "系统可控",
+    "是一种·状态可控"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-97fe46ae03d1bbad4abbc906.md",
+  "provider_policy": "grok-image_gen"
+}

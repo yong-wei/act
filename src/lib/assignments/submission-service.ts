@@ -6,11 +6,10 @@ import {
   deriveAggregate,
   isAllowedAssignmentAsset,
   mayReadSubmission,
-  opaqueObjectKey,
   SUBMISSION_LIMITS,
   SubmissionError,
-  submissionHash,
 } from './submission-domain';
+import { opaqueObjectKey, submissionHash } from './submission-integrity';
 import type { SubmissionObjectStore } from './submission-object-store';
 import { deriveStudentAssignmentPresentation, safePromptText, type StudentAssignmentDto } from './submission-dto';
 import {

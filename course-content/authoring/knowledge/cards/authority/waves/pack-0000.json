@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0000",
+  "offset": 0,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "batch": "B",
+      "name": "One-sided (unilateral) Laplace transform",
+      "definition": "One-sided (unilateral) Laplace transform：In this book it is useful to define a one-sided (or unilateral) Laplace transform, which uses 0- (that is, a value just…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "One-sided (…",
+        "一种·ℒ"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: One-sided (unilateral) Laplace transform\nSOURCE DEFINITION (fail-closed, do not invent beyond this): One-sided (unilateral) Laplace transform：In this book it is useful to define a one-sided (or unilateral) Laplace transform, which uses 0- (that is, a value just…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「One-sided 」、「一种·ℒ」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "batch": "B",
+      "name": "Routh-Hurwitz stability criterion method",
+      "definition": "Routh-Hurwitz stability criterion method：The Routh-Hurwitz criterion is a necessary and sufficient criterion for the stability of linear systems. The method was…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Routh-Hurwi…",
+        "用于分析·特征方程",
+        "用于分析·稳定性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Routh-Hurwitz stability criterion method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Routh-Hurwitz stability criterion method：The Routh-Hurwitz criterion is a necessary and sufficient criterion for the stability of linear systems. The method was…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Routh-Hurw」、「用于分析·特征方程」、「用于分析·稳定性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-195ec8a545b19a1f37188170",
+      "batch": "B",
+      "name": "Disturbance Rejection Bandwidth (ω DRB)",
+      "definition": "Disturbance Rejection Bandwidth (ω DRB)：The maximum frequency at which the sensitivity function S is below a certain threshold (e.g., -3 dB), indicating the sy…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Disturbance…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Disturbance Rejection Bandwidth (ω DRB)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Disturbance Rejection Bandwidth (ω DRB)：The maximum frequency at which the sensitivity function S is below a certain threshold (e.g., -3 dB), indicating the sy…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Disturbanc」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "batch": "B",
+      "name": "Axis Shift Method for Relative Stability",
+      "definition": "Axis Shift Method for Relative Stability：A method that extends the Routh-Hurwitz criterion to ascertain relative stability by shifting the s-plane axis using a…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Axis Shift …",
+        "用于分析·Rela…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Axis Shift Method for Relative Stability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Axis Shift Method for Relative Stability：A method that extends the Routh-Hurwitz criterion to ascertain relative stability by shifting the s-plane axis using a…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Axis Shift」、「用于分析·Rela…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bd932075b5f988acebafc1b5",
+      "batch": "B",
+      "name": "Tustin's Method (Bilinear Approximation)",
+      "definition": "Tustin's Method (Bilinear Approximation)：A digitization technique that approaches the problem as one of numerical integration using trapezoidal integration. It…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Tustin's Me…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Tustin's Method (Bilinear Approximation)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Tustin's Method (Bilinear Approximation)：A digitization technique that approaches the problem as one of numerical integration using trapezoidal integration. It…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Tustin's M」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0155",
+  "offset": 775,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-7eda83cdbc9e753480c9189c",
+      "batch": "B",
+      "name": "以n个状态变量作为基底所组成的…",
+      "definition": "以n个状态变量作为基底所组成的n维空间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "以n个状态变量作为基底…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 以n个状态变量作为基底所组成的…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 以n个状态变量作为基底所组成的n维空间。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「以n个状态变量作为基」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-9988510f6127d3086f4aa265",
+      "batch": "B",
+      "name": "峰值时间",
+      "definition": "响应超过其终值到达第一个峰值所需的时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "峰值时间",
+        "包含组件·动态性能…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 峰值时间\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 响应超过其终值到达第一个峰值所需的时间。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「峰值时间」、「包含组件·动态性能…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cbfe80d3da0902843e4ec358",
+      "batch": "B",
+      "name": "稳定节点",
+      "definition": "当特征根为两个负实根时，奇点为稳定节点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "稳定节点",
+        "是一种·奇点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 稳定节点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当特征根为两个负实根时，奇点为稳定节点。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「稳定节点」、「是一种·奇点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7dd23917c751bd4b10cfc11f",
+      "batch": "B",
+      "name": "非零初始条件响应分量",
+      "definition": "c_2(t) 为非零初始条件响应分量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非零初始条件响应分量"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 非零初始条件响应分量\nSOURCE DEFINITION (fail-closed, do not invent beyond this): c_2(t) 为非零初始条件响应分量。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「非零初始条件响应分量」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_729526b31fd86a3f058b87ad",
+      "batch": "C",
+      "name": "Constant damping ratio curves in z-plane",
+      "definition": "Constant damping ratio curves in z-plane是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Constant da…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Constant damping ratio curves in z-plane\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Constant damping ratio curves in z-plane是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Constant d」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

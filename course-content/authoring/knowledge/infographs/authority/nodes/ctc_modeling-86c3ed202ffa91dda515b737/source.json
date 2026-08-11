@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-86c3ed202ffa91dda515b737",
+  "safe_id": "ctc_modeling-86c3ed202ffa91dda515b737",
+  "node": {
+    "name": "用拉普拉斯变换法求解线性定常微…",
+    "name_en": "modeling_86c3ed202ffa91dda515b737",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "用拉普拉斯变换法求解线性定常微分方程，并分析解的组成，为引出传递函数概念奠定基础。",
+  "intuition": null,
+  "explanation": "用拉普拉斯变换法求解线性定常微分方程，并分析解的组成，为引出传递函数概念奠定基础。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "用拉普拉斯变换法求解线…"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-86c3ed202ffa91dda515b737.md",
+  "provider_policy": "grok-image_gen"
+}

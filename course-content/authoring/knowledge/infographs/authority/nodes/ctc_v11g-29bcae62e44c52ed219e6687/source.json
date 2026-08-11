@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-29bcae62e44c52ed219e6687",
+  "safe_id": "ctc_v11g-29bcae62e44c52ed219e6687",
+  "node": {
+    "name": "logarithmic sensitivity",
+    "name_en": "logarithmic_sensitivity",
+    "concept_kind": "performance_metric",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "logarithmic sensitivity：A measure of the sensitivity of the system performance to specific parameter changes, given by S_K^T(s) = (∂T(s)/T(s))…",
+  "intuition": null,
+  "explanation": "A measure of the sensitivity of the system performance to specific parameter changes, given by S_K^T(s) = (∂T(s)/T(s)) / (∂K/K), where T(s) is the system transfer function and K is the parameter of interest.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "logarithmic…",
+    "logarithmic "
+  ],
+  "visual_archetype": "工程评审板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-29bcae62e44c52ed219e6687.md",
+  "provider_policy": "grok-image_gen"
+}

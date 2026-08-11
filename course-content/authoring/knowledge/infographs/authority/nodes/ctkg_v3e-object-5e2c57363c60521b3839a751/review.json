@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T16:36:19+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-5e2c57363c60521b3839a751",
+  "safe_id": "ctkg_v3e-object-5e2c57363c60521b3839a751",
+  "node_name": "综合法（期望特性法）",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0092 vision-mapped accept"
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+  "safe_id": "ctkg_v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+  "node": {
+    "name": "谐振频率",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "振荡环节幅频特性出现峰值时所对应的频率，ω_r = ω_n √(1-2ζ²)，0<ζ≤√2/2。",
+  "intuition": null,
+  "explanation": "振荡环节幅频特性出现峰值时所对应的频率，ω_r = ω_n √(1-2ζ²)，0<ζ≤√2/2。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "谐振频率"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-1814aa5f9d6ef8ed0ef75dfa.md",
+  "provider_policy": "grok-image_gen"
+}

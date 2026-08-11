@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+  "safe_id": "ctkg_v3e-object-f1ec085ab5a77428affa50eb",
+  "node": {
+    "name": "极点配置",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "极点配置。",
+  "intuition": null,
+  "explanation": "极点配置",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "极点配置"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f1ec085ab5a77428affa50eb.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+  "safe_id": "ctkg_v3e-object-e1caec9f68da5c573be699d5",
+  "node": {
+    "name": "串联校正",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "串联校正装置一般接在系统误差测量点之后，串接于系统前向通道之中。",
+  "intuition": null,
+  "explanation": "串联校正装置一般接在系统误差测量点之后，串接于系统前向通道之中。",
+  "relation_head": "后续 → 校正装置",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "校正装置",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "串联校正",
+    "是一种·校正装置"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e1caec9f68da5c573be699d5.md",
+  "provider_policy": "grok-image_gen"
+}

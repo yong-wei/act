@@ -1,0 +1,67 @@
+{
+  "pack_id": "P0140",
+  "offset": 700,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-d0323a65e86911f11fa1e579",
+      "batch": "B",
+      "name": "副回路",
+      "definition": "串级控制系统中，由副调节器、被控对象和测量变送器构成的内部回路。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "副回路",
+        "属于·副调节器",
+        "包含组件·串级控制…",
+        "包含组件·副调节器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 副回路\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 串级控制系统中，由副调节器、被控对象和测量变送器构成的内部回路。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「副回路」、「属于·副调节器」、「包含组件·串级控制…」、「包含组件·副调节器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-98863d255f5bdc0c59c9b50b",
+      "batch": "B",
+      "name": "否成立",
+      "definition": "对矩阵A的所有特征值检验rank[C; λI-A]=n是否成立。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "否成立"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 否成立\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 对矩阵A的所有特征值检验rank[C; λI-A]=n是否成立。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「否成立」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cd935c229d64107e30b8c1a7",
+      "batch": "B",
+      "name": "增广系统",
+      "definition": "由跟踪误差和中间变量构成的扩展状态空间系统，用于内模控制器设计。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "增广系统",
+        "应用于·增广系统可…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 增广系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由跟踪误差和中间变量构成的扩展状态空间系统，用于内模控制器设计。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「增广系统」、「应用于·增广系统可…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "batch": "B",
+      "name": "串联校正",
+      "definition": "串联校正装置一般接在系统误差测量点之后，串接于系统前向通道之中。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "串联校正",
+        "是一种·校正装置"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 串联校正\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 串联校正装置一般接在系统误差测量点之后，串接于系统前向通道之中。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「串联校正」、「是一种·校正装置」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f16be3d3c310b5ceeae86b3f",
+      "batch": "B",
+      "name": "采样频谱补分量",
+      "definition": "采样频谱中 n=±1, ±2, ... 的高频频谱，由采样引起。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样频谱补分量",
+        "关联·采样频谱主分量"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样频谱补分量\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 采样频谱中 n=±1, ±2, ... 的高频频谱，由采样引起。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样频谱补分量」、「关联·采样频谱主分量」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:54:34+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-54c8aa23c2b86182e3cd9bd8",
+  "safe_id": "ctc_modeling-54c8aa23c2b86182e3cd9bd8",
+  "node_name": "在经典控制理论中",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch8 A accept"
+}

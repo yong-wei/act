@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0043",
+  "offset": 215,
+  "items": [
+    {
+      "safe_id": "ctc_v11g-485febfa90a27cfcedd997ff",
+      "batch": "B",
+      "name": "ultimate period",
+      "definition": "ultimate period：The period of the sustained oscillations, denoted by P_U, used in the closed-loop Ziegler-Nichols tuning method.",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "ultimate pe…",
+        "ultimate per"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: ultimate period\nSOURCE DEFINITION (fail-closed, do not invent beyond this): ultimate period：The period of the sustained oscillations, denoted by P_U, used in the closed-loop Ziegler-Nichols tuning method.\nvisual_archetype: 工程评审板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「ultimate p」、「ultimate p」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-f3a9655898917afa28e9c600",
+      "batch": "B",
+      "name": "manual pid tuning methods",
+      "definition": "manual pid tuning methods：The process of determining the PID controller gains by trial-and-error with minimal analytic analysis.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "manual pid …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: manual pid tuning methods\nSOURCE DEFINITION (fail-closed, do not invent beyond this): manual pid tuning methods：The process of determining the PID controller gains by trial-and-error with minimal analytic analysis.\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「manual pid」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-86a182d9c2c23936967de7ef",
+      "batch": "B",
+      "name": "Safety margin in phase-lead design",
+      "definition": "Safety margin in phase-lead design：A small amount of safety is allowed when determining the necessary additional phase lead φ_m.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Safety marg…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Safety margin in phase-lead design\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Safety margin in phase-lead design：A small amount of safety is allowed when determining the necessary additional phase lead φ_m.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Safety mar」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-eac6404c25ea4a8f89cc3f5b",
+      "batch": "B",
+      "name": "method to expand rational",
+      "definition": "method to expand rational：A method to expand a rational Laplace transform as a sum of simpler terms for inverse transformation.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method to e…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: method to expand rational\nSOURCE DEFINITION (fail-closed, do not invent beyond this): method to expand rational：A method to expand a rational Laplace transform as a sum of simpler terms for inverse transformation.\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「method to 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-69118dc66489d66b1732901b",
+      "batch": "B",
+      "name": "闭环传递函数",
+      "definition": "闭环传递函数：The transfer function describing the dynamic performance of a closed-loop control system, given by T(s)=Y(s)/R(s)=p(s)/…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "闭环传递函数",
+        "关联·合同明确要求…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 闭环传递函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 闭环传递函数：The transfer function describing the dynamic performance of a closed-loop control system, given by T(s)=Y(s)/R(s)=p(s)/…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「闭环传递函数」、「关联·合同明确要求…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

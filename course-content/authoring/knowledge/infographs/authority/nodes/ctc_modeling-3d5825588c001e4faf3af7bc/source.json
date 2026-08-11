@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-3d5825588c001e4faf3af7bc",
+  "safe_id": "ctc_modeling-3d5825588c001e4faf3af7bc",
+  "node": {
+    "name": "表征系统内部变量及输入变量和输…",
+    "name_en": "modeling_3d5825588c001e4faf3af7bc",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "表征系统内部变量及输入变量和输出变量间转换关系的数学表达式，具有代数方程的形式。",
+  "intuition": null,
+  "explanation": "表征系统内部变量及输入变量和输出变量间转换关系的数学表达式，具有代数方程的形式。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "表征系统内部变量及输入…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-3d5825588c001e4faf3af7bc.md",
+  "provider_policy": "grok-image_gen"
+}

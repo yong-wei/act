@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-79d38366402d1a9806e1ed46",
+  "safe_id": "ctkg_v3e-object-79d38366402d1a9806e1ed46",
+  "node": {
+    "name": "输出可控性矩阵 (output…",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "输出可控性矩阵 (output controllability matrix)。",
+  "intuition": null,
+  "explanation": "输出可控性矩阵 (output controllability matrix)",
+  "relation_head": "前置 → 否成立",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "否成立",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "输出可控性矩阵 (ou…",
+    "包含组件·否成立"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-79d38366402d1a9806e1ed46.md",
+  "provider_policy": "grok-image_gen"
+}

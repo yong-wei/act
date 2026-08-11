@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T16:19:31+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:v11g-daefb900250d1b7d86e36bdd",
+  "safe_id": "ctc_v11g-daefb900250d1b7d86e36bdd",
+  "node_name": "ultimate gain",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0080 vision-mapped accept"
+}

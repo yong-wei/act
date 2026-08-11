@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0160",
+  "offset": 800,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_bf027d00f4e69d3198aefe23",
+      "batch": "C",
+      "name": "Exact Discrete Equivalent",
+      "definition": "Exact Discrete Equivalent是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Exact Discr…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Exact Discrete Equivalent\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Exact Discrete Equivalent是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Exact Disc」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d526b90368de52c39e27ffe6",
+      "batch": "C",
+      "name": "Digital lead compensation",
+      "definition": "Digital lead compensation是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital lea…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Digital lead compensation\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Digital lead compensation是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Digital le」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1e4a6b47555798ad4ccae81d",
+      "batch": "C",
+      "name": "Positive Definite Matrix",
+      "definition": "Positive Definite Matrix是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Positive De…",
+        "Positive Def"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Positive Definite Matrix\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Positive Definite Matrix是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Positive D」、「Positive D」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_42b62edf88d848137713e690",
+      "batch": "C",
+      "name": "Digital lag compensation",
+      "definition": "Digital lag compensation是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital lag…",
+        "Digital lag "
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Digital lag compensation\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Digital lag compensation是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Digital la」、「Digital la」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_599dd42ca76813165e301c5b",
+      "batch": "C",
+      "name": "positive definite matrix",
+      "definition": "positive definite matrix是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "positive de…",
+        "positive def"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: positive definite matrix\nSOURCE DEFINITION (fail-closed, do not invent beyond this): positive definite matrix是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「positive d」、「positive d」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

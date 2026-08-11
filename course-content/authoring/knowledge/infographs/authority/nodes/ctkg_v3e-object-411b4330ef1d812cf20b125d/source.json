@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-411b4330ef1d812cf20b125d",
+  "safe_id": "ctkg_v3e-object-411b4330ef1d812cf20b125d",
+  "node": {
+    "name": "Root-Locus Techn",
+    "name_en": "Root-Locus Technique for Nonlinear Systems",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Root-Locus Techn：A heuristic method that combines the root-locus technique with the observation that many nonlinear elements can be view…",
+  "intuition": "在图谱邻接中可把握：前置 → Equivalent gain 、equivalent gain · 后续 → memoryless nonlinearity、Nonlinear System、Zero-Memory Nonlinear Element。",
+  "explanation": "A heuristic method that combines the root-locus technique with the observation that many nonlinear elements can be viewed as a gain that changes as signal level changes.",
+  "relation_head": "前置 → Equivalent gain 、equivalent gain · 后续 → memoryless nonlinearity、Nonlinear System、Zero-Memory Nonlinear Element",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "memoryless nonlinearity",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Nonlinear System",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Zero-Memory Nonlinear Element",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "根轨迹法",
+      "relation": "派生自"
+    },
+    {
+      "direction": "前置",
+      "peer": "Equivalent gain ",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "equivalent gain",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Root-Locus …",
+    "用于分析·memo…",
+    "用于分析·Nonl…",
+    "应用于·Zero-…",
+    "派生自·根轨迹法",
+    "关联·Equiva…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-411b4330ef1d812cf20b125d.md",
+  "provider_policy": "grok-image_gen"
+}

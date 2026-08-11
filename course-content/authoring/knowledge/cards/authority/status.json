@@ -1,0 +1,283 @@
+{
+  "schema": "authority-card-status.v1",
+  "generated_at": "2026-08-10T07:06:56+00:00",
+  "release_id": "control-theory-engineering-v0.12",
+  "total_domain_concepts": 1236,
+  "cards": {
+    "ok": 952,
+    "blocked": 284
+  },
+  "infographs": {
+    "accepted": 1236
+  },
+  "batch_cards": {
+    "A:ok": 123,
+    "B:ok": 829,
+    "C:blocked": 284
+  },
+  "batch_images": {
+    "A:accepted": 123,
+    "B:accepted": 829,
+    "C:accepted": 284
+  },
+  "identity_check": {
+    "cards_ok_plus_blocked_plus_missing_plus_invalid": 1236,
+    "equals_total": true
+  },
+  "blocked_sample": [
+    {
+      "safe_id": "ctkg_v3e-object-a36f17ddac0ec65e08118916",
+      "entity_id": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0648b4124cfb8bb86fb66bd1",
+      "entity_id": "ctkg:v3e-object-0648b4124cfb8bb86fb66bd1",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-27eb45a250307fcc571ac92c",
+      "entity_id": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3efb972a33b0a45162a5d04a",
+      "entity_id": "ctkg:v3e-object-3efb972a33b0a45162a5d04a",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9f33e6bc76dc80328b66a6dc",
+      "entity_id": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-150dc51f4f7d4306dab82a18",
+      "entity_id": "ctkg:v3e-object-150dc51f4f7d4306dab82a18",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_5e637ae64f351feabf64218f",
+      "entity_id": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9a8a7e75e47dc5117ebb7adc",
+      "entity_id": "ctkg:domainconcept:9a8a7e75e47dc5117ebb7adc",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1ee77aa2b862870735a63c50",
+      "entity_id": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-508501381207b32fdb98c6c2",
+      "entity_id": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9457cf16dcef3b40a9253837",
+      "entity_id": "ctkg:v3e-object-9457cf16dcef3b40a9253837",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a2b0a7b010b1060501e788c2",
+      "entity_id": "ctkg:v3e-object-a2b0a7b010b1060501e788c2",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b0896b071da350e2cc6ca186",
+      "entity_id": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bda94d95d799211be70fabf9",
+      "entity_id": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d881210ed83df13e00d2e095",
+      "entity_id": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f2f59dc7fc5571446872d432",
+      "entity_id": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_0d613f0b723fa4a95a006064",
+      "entity_id": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_28bfca2df331c329cea26464",
+      "entity_id": "ctkg:domainconcept:28bfca2df331c329cea26464",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_3ffc77366f538e92e13a0296",
+      "entity_id": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_4dd405f4b14b1c56c98340c1",
+      "entity_id": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a09e623edf21b6aaa676b0a5",
+      "entity_id": "ctkg:domainconcept:a09e623edf21b6aaa676b0a5",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bcb4481c7a310fb698ee71fb",
+      "entity_id": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_fe96c44d0bc1b877a573201e",
+      "entity_id": "ctkg:domainconcept:fe96c44d0bc1b877a573201e",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "entity_id": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-47a2e3c44742b45c55ac902d",
+      "entity_id": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "entity_id": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "entity_id": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-01762eade052b1f22b1318c1",
+      "entity_id": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-098bda907dad6f5e7b697506",
+      "entity_id": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-15bb04de4783aac94efc5a01",
+      "entity_id": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-271dc725adcf9cbd115e003f",
+      "entity_id": "ctkg:v3e-object-271dc725adcf9cbd115e003f",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2805a69722f0a741c2479d22",
+      "entity_id": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "entity_id": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5ed5fc7d05f77452e100406b",
+      "entity_id": "ctkg:v3e-object-5ed5fc7d05f77452e100406b",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-60dc281db22fe43eefe4ae57",
+      "entity_id": "ctkg:v3e-object-60dc281db22fe43eefe4ae57",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-60e97b106df3b47840a4b6fd",
+      "entity_id": "ctkg:v3e-object-60e97b106df3b47840a4b6fd",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-69aaaef625010f7755f253e8",
+      "entity_id": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6cac20a7c9621cb54a42d57d",
+      "entity_id": "ctkg:v3e-object-6cac20a7c9621cb54a42d57d",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8064c799039f6d83a3cf4f29",
+      "entity_id": "ctkg:v3e-object-8064c799039f6d83a3cf4f29",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-828de2183a73570e15acd937",
+      "entity_id": "ctkg:v3e-object-828de2183a73570e15acd937",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-89f58618b8927a2026f2799b",
+      "entity_id": "ctkg:v3e-object-89f58618b8927a2026f2799b",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9e5c7acbf973dd58acd749ef",
+      "entity_id": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a9730b9a039605d79315e24f",
+      "entity_id": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b2913d437161b8d1e3eecfdf",
+      "entity_id": "ctkg:v3e-object-b2913d437161b8d1e3eecfdf",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bc0986d0d67b0409733e3b95",
+      "entity_id": "ctkg:v3e-object-bc0986d0d67b0409733e3b95",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-edc0d1a17b9cbb23167788e0",
+      "entity_id": "ctkg:v3e-object-edc0d1a17b9cbb23167788e0",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f3ae1a478d0e8faba241ebbb",
+      "entity_id": "ctkg:v3e-object-f3ae1a478d0e8faba241ebbb",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_48a62baa3d95389c7fdea7f6",
+      "entity_id": "ctkg:domainconcept:48a62baa3d95389c7fdea7f6",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_64d1931785ee06183744e4e4",
+      "entity_id": "ctkg:domainconcept:64d1931785ee06183744e4e4",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_69b64bbfce9e45828d270eb4",
+      "entity_id": "ctkg:domainconcept:69b64bbfce9e45828d270eb4",
+      "reason": "description_too_short"
+    }
+  ],
+  "missing_cards_count": 0,
+  "missing_images_count": 0,
+  "missing_cards_sample": [],
+  "missing_images_sample": []
+}

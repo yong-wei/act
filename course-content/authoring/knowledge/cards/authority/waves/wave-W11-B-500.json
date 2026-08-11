@@ -1,0 +1,745 @@
+{
+  "wave_id": "W11",
+  "batch": "B",
+  "title": "Batch B slice 11",
+  "offset": 500,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-531c51135a4903c618a0fc8b",
+      "entity_id": "ctkg:v3e-object-531c51135a4903c618a0fc8b",
+      "name": "谐振频率",
+      "name_en": null,
+      "definition": "闭环幅频特性达到极大值时的频率，记为ω_r。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "谐振频率",
+        "用于分析·得到闭环…",
+        "关联·谐振峰值",
+        "关联·得到闭环对数…",
+        "关联·带宽频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5353a18bed51a9273ba59709",
+      "entity_id": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+      "name": "Describing Function Method",
+      "name_en": "Describing Function Method",
+      "definition": "Describing Function Method：A frequency-response-based method where a describing function is defined for nonlinear elements, including those with m…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Describing …",
+        "属于·Descri…",
+        "包含组件·Freq…",
+        "用于分析·Limi…",
+        "用于分析·Nonl…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-53d71370dc7c98dc11b24a37",
+      "entity_id": "ctkg:v3e-object-53d71370dc7c98dc11b24a37",
+      "name": "Notch Compensation",
+      "name_en": "Notch Compensation",
+      "definition": "Notch Compensation：Dynamic compensation with special characteristics for dealing with resonances.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Notch Compe…",
+        "Notch Compen"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-54095598351974e2167111f2",
+      "entity_id": "ctkg:v3e-object-54095598351974e2167111f2",
+      "name": "Zero-Order Hold (ZOH) Method",
+      "name_en": "Zero-Order Hold (ZOH) Method",
+      "definition": "Zero-Order Hold (ZOH) Method：A digitization method that assumes the input to the controller remains constant throughout the sample period. The discr…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Zero-Order …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-542c371afb4374a5f7b7be5f",
+      "entity_id": "ctkg:v3e-object-542c371afb4374a5f7b7be5f",
+      "name": "矩阵指数函数",
+      "name_en": null,
+      "definition": "由幂级数 \\sum_{k=0}^{\\infty} \\frac{1}{k。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "矩阵指数函数",
+        "是一种·状态转移矩阵"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-548b056b7b4bc0e10290af72",
+      "entity_id": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+      "name": "平衡状态",
+      "name_en": null,
+      "definition": "按照平衡状态的定义，在无外作用且系统输出的各阶导数等于零时，系统处于平衡状态。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "平衡状态",
+        "用于分析·平衡点附…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-54aa39858b6bf59ab61d64b6",
+      "entity_id": "ctkg:v3e-object-54aa39858b6bf59ab61d64b6",
+      "name": "部分分式法",
+      "name_en": null,
+      "definition": "先求出已知连续时间函数e(t)的拉氏变换E(s)，然后将有理分式函数E(s)展成部分分式之和的形式，使每一部分分式对应简单的时间函数，因其相应的z变换是已知的，于是可方便地求出E(s)对应的z变换E(z)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "部分分式法",
+        "关联·反演积分法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-55036b61ed3fe680ef13f904",
+      "entity_id": "ctkg:v3e-object-55036b61ed3fe680ef13f904",
+      "name": "Input Compensation",
+      "name_en": "Input Compensation",
+      "definition": "Input Compensation：A compensation scheme where the compensator is placed at the input.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Input Compe…",
+        "Input Compen",
+        "一种·Input",
+        "一种·Compen…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-551346c07dd0adc110d95089",
+      "entity_id": "ctkg:v3e-object-551346c07dd0adc110d95089",
+      "name": "不稳定节点",
+      "name_en": null,
+      "definition": "当特征根为两个正实根时，奇点为不稳定节点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "不稳定节点",
+        "是一种·奇点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-552526e2ba53ccbf629d1cd8",
+      "entity_id": "ctkg:v3e-object-552526e2ba53ccbf629d1cd8",
+      "name": "Type-one system",
+      "name_en": "Type-one system",
+      "definition": "Type-one system：A system with one pole at the origin in the loop transfer function.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Type-one sy…",
+        "Type-one sys"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5592624b3ec200b86f7b744d",
+      "entity_id": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "name": "Observability",
+      "name_en": "Observability",
+      "definition": "Observability：A system is completely observable if and only if there exists a finite time T such that the initial state x(0) can be d…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Observabili…",
+        "Observabilit",
+        "用于分析·Pole…",
+        "用于分析·Kalm…",
+        "关联·Observ…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-567eb255d7d82d8b4e029f6d",
+      "entity_id": "ctkg:v3e-object-567eb255d7d82d8b4e029f6d",
+      "name": "状态可达",
+      "name_en": null,
+      "definition": "对于式（9－76）所示线性时变系统，若存在能将状态 x(t0)=0 转移到 x(tf)=xf 的控制作用，则称状态 xf 是 t0 时刻可达的。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "状态可达"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-56e0945e8704fa9f3c1dc356",
+      "entity_id": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "name": "低频段",
+      "name_en": null,
+      "definition": "记 ω_min 为最小交接频率，称 ω<ω_min 的频率范围为低频段。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "低频段",
+        "应用于·对数幅频渐…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-570b74ec5294ac993add9b5f",
+      "entity_id": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+      "name": "Marginally Stable System",
+      "name_en": "Marginally Stable System",
+      "definition": "Marginally Stable System：A system where the characteristic equation has simple roots on the imaginary axis (jω-axis) with all other roots in the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Marginally …",
+        "Marginally S",
+        "一种·Stable"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-57afdf17705015f8527052c5",
+      "entity_id": "ctkg:v3e-object-57afdf17705015f8527052c5",
+      "name": "Neutral Stability",
+      "name_en": "Neutral Stability",
+      "definition": "Neutral Stability：A condition where a closed-loop root falls on the imaginary axis, i.e., s = jω, and the system is on the boundary betwe…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Neutral Sta…",
+        "Neutral Stab"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-581ad59cfd51bb25e50aa652",
+      "entity_id": "ctkg:v3e-object-581ad59cfd51bb25e50aa652",
+      "name": "Effect of Anti-Alias Prefilter",
+      "name_en": "Effect of Anti-Alias Prefilter",
+      "definition": "Effect of Anti-Alias Prefilter：Digital control systems with analog sensors typically include an analog anti-alias prefilter between the sensor and the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Effect of A…",
+        "属于·Sample…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-58432d31be025457910862bc",
+      "entity_id": "ctkg:v3e-object-58432d31be025457910862bc",
+      "name": "离散系统的可控性与可达性",
+      "name_en": null,
+      "definition": "对于离散时间系统，可控性指从任意非零状态转移至零状态，可达性指从零状态转移至任意非零状态，两者在G非奇异时等价。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散系统的可控性与可达性",
+        "包含组件·可控性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5856b2f2fd4c962c52631609",
+      "entity_id": "ctkg:v3e-object-5856b2f2fd4c962c52631609",
+      "name": "阻尼比",
+      "name_en": "Damping ratio",
+      "definition": "阻尼比：The overshoot to a step input can be related to M_pω through the damping ratio ζ.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阻尼比",
+        "Damping rati",
+        "关联·Resona…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-58cea2373f68416e096759a9",
+      "entity_id": "ctkg:v3e-object-58cea2373f68416e096759a9",
+      "name": "Dominant roots",
+      "name_en": "Dominant roots",
+      "definition": "Dominant roots：The usefulness of the frequency response specifications and their relation to the actual transient performance depend u…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Dominant ro…",
+        "Dominant roo"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "entity_id": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+      "name": "傅里叶系数",
+      "name_en": null,
+      "definition": "复数c_k，表示周期信号第k次谐波的幅值和相位信息。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "傅里叶系数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-58de4bcc9bc42be0ce31abb7",
+      "entity_id": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+      "name": "Bounded Input Bo",
+      "name_en": "Bounded Input Bounded Output (BIBO) Stability",
+      "definition": "Bounded Input Bo：A system is stable if, for any bounded input, the output remains bounded.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Bounded Inp…",
+        "一种·Stable"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-591e649bbeef70e3da154910",
+      "entity_id": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "name": "半稳定极限环",
+      "name_en": null,
+      "definition": "当 t → ∞ 时，起始于极限环内（外）部的相轨迹卷向极限环，而起始于极限环外（内）部的相轨迹卷离极限环，则这种极限环称为半稳定的极限环。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "半稳定极限环",
+        "是一种·极限环"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-592ae79b5fc586a27e9dd7f2",
+      "entity_id": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+      "name": "Unstable System",
+      "name_en": "Unstable System",
+      "definition": "Unstable System：A system where the characteristic equation has at least one root in the right half of the s-plane or repeated jω roots",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Unstable Sy…",
+        "Unstable Sys"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-59f5159cc11cb67f131e14a1",
+      "entity_id": "ctkg:v3e-object-59f5159cc11cb67f131e14a1",
+      "name": "Transformation t",
+      "name_en": "Transformation to modal form using eigenvectors",
+      "definition": "Transformation t：The transformation matrix T is composed of the eigenvectors of A. The transformed system matrices are A_m = T^{-1} A T,…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Transformat…",
+        "关联·Eigenv…",
+        "关联·Modal …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5a7582dcb72b1d33d09ca641",
+      "entity_id": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "name": "非最小相位环节",
+      "name_en": null,
+      "definition": "开环零极点位于s右半平面的典型环节，包括比例环节(K<0)、不稳定惯性环节、不稳定一阶微分环节、不稳定振荡环节、不稳定二阶微分环节五种。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "非最小相位环节"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5a821f717b644300ab32cf21",
+      "entity_id": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "name": "对数幅频渐近特性曲线",
+      "name_en": null,
+      "definition": "在控制工程中，为简化惯性环节、一阶微分环节、振荡环节和二阶微分环节的对数幅频曲线的作图，常用低频和高频渐近线近似表示对数幅频曲线，称之为对数幅频渐近特性曲线。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "对数幅频渐近特性曲线",
+        "属于·交接频率",
+        "用于分析·截止频率",
+        "应用于·低频段"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5aa119c1211318de57450e5b",
+      "entity_id": "ctkg:v3e-object-5aa119c1211318de57450e5b",
+      "name": "Eigenvector",
+      "name_en": "Eigenvector",
+      "definition": "Eigenvector：A vector t_i such that A t_i = p_i t_i, where p_i is the corresponding eigenvalue.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Eigenvector",
+        "关联·Eigenv…",
+        "关联·Transf…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "entity_id": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "name": "串联超前校正",
+      "name_en": null,
+      "definition": "利用超前网络或PD控制器进行串联校正的基本原理，是利用超前网络或PD控制器的相角超前特性。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "串联超前校正",
+        "属于·频率响应法校…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5baddb9163a6af3f17f2522d",
+      "entity_id": "ctkg:v3e-object-5baddb9163a6af3f17f2522d",
+      "name": "Small-signal analysis",
+      "name_en": "Small-signal analysis",
+      "definition": "Small-signal analysis：For a system with smooth nonlinearities and a continuous derivative, one can compute a linear model that is valid for s…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Small-signa…",
+        "Small-signal",
+        "用于分析·Equi…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5c2ad2da07903ca99b2b1f08",
+      "entity_id": "ctkg:v3e-object-5c2ad2da07903ca99b2b1f08",
+      "name": "Frequency-domain performance measures",
+      "name_en": "Frequency-domain performance measures",
+      "definition": "Frequency-domain performance measures：Performance measures used to describe control system behavior in the frequency domain, including peak of closed-loop fr…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Frequency-d…",
+        "应用于·Frequ…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5d994cbb7a93157b1cb02932",
+      "entity_id": "ctkg:v3e-object-5d994cbb7a93157b1cb02932",
+      "name": "Path cofactor in signal-flow graph",
+      "name_en": "Path cofactor in signal-flow graph",
+      "definition": "Path cofactor in signal-flow graph：The path cofactor Δ₁(s) is the determinant of the part of the graph not touching the forward path.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Path cofact…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5e2c57363c60521b3839a751",
+      "entity_id": "ctkg:v3e-object-5e2c57363c60521b3839a751",
+      "name": "综合法（期望特性法）",
+      "name_en": null,
+      "definition": "根据规定的性能指标要求确定系统期望的开环特性形状，然后与系统原有开环特性相比较，从而确定校正方式、校正装置的形式和参数。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "综合法（期望特性法）",
+        "包含组件·频率响应…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5e3ecb030d6a454633f0a09a",
+      "entity_id": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+      "name": "内模控制器",
+      "name_en": null,
+      "definition": "一类校正控制器，通过在控制器中引入参考输入信号的内模，能以零稳态误差渐近跟踪各类参考输入信号。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "内模控制器",
+        "包含组件·内模",
+        "应用于·内模控制器…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5e75417369e6729db63a90a6",
+      "entity_id": "ctkg:v3e-object-5e75417369e6729db63a90a6",
+      "name": "Modal form",
+      "name_en": "Modal form",
+      "definition": "Modal form：A state-space realization where the A matrix is diagonal (or block diagonal for complex poles).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Modal form",
+        "关联·Transf…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5e8744158554d1c79e590de4",
+      "entity_id": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "name": "Phase Margin (PM)",
+      "name_en": "Phase Margin (PM)",
+      "definition": "Phase Margin (PM)：The amount by which the phase of G(jω) exceeds -180° when |KG(jω)|=1.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase Margi…",
+        "Phase Margin"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5eb50007d0dc046e1646374d",
+      "entity_id": "ctkg:v3e-object-5eb50007d0dc046e1646374d",
+      "name": "D/A converter",
+      "name_en": "D/A converter",
+      "definition": "D/A converter：A device to convert the digital word from the computer to an analog voltage.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "D/A convert…",
+        "D/A converte",
+        "一种·sample",
+        "关联·A/D co…",
+        "有表示·sampl…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5ed6282c976442e9747881b4",
+      "entity_id": "ctkg:v3e-object-5ed6282c976442e9747881b4",
+      "name": "Bode plot construction method",
+      "name_en": "Bode plot construction method",
+      "definition": "Bode plot construction method：A procedure to construct Bode magnitude and phase plots by converting the transfer function to Bode form, plotting low-…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Bode plot c…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-60799f4e66c540f93f3c0085",
+      "entity_id": "ctkg:v3e-object-60799f4e66c540f93f3c0085",
+      "name": "加权序列",
+      "name_en": null,
+      "definition": "线性定常离散系统中，单位脉冲响应序列K(nT)的专有名称，表示对连续信号采样时每一时刻的脉冲值等于该时刻的函数值。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "加权序列",
+        "关联·线性定常离散…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-623dcdfc6bbae9f9b1a40d27",
+      "entity_id": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+      "name": "大范围稳定系统",
+      "name_en": null,
+      "definition": "系统受到有界扰动作用偏离了原平衡状态，不论扰动引起的初始偏差有多大，当扰动取消后，系统都能以足够的准确度恢复到初始平衡状态。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "大范围稳定系统",
+        "是一种·稳定性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-62bfe5336223892d2ee2592a",
+      "entity_id": "ctkg:v3e-object-62bfe5336223892d2ee2592a",
+      "name": "Determining GM from Bode plot",
+      "name_en": "Determining GM from Bode plot",
+      "definition": "Determining GM from Bode plot：Measure vertical distance between |KG(jω)| curve and magnitude=1 line at frequency where ∠G(jω)=-180°.",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Determining…",
+        "派生自·Gain …",
+        "关联·Determ…",
+        "关联·Gain M…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-62fdc01d171ed1ecf803d7d9",
+      "entity_id": "ctkg:v3e-object-62fdc01d171ed1ecf803d7d9",
+      "name": "比例-微分控制规律",
+      "name_en": null,
+      "definition": "具有比例-微分控制规律的控制器，称为PD控制器，其输出u(t)与输入e(t)的关系为u(t)=Kp e(t) ± Kp Td de(t)/dt。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-微分控制规律",
+        "包含组件·PD控制器",
+        "关联·PD控制器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-63919e7aa7d3d49925074a68",
+      "entity_id": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+      "name": "Saturation Nonlinearity",
+      "name_en": "Saturation Nonlinearity",
+      "definition": "Saturation Nonlinearity：Saturation Nonlinearity",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Saturation …",
+        "Saturation N",
+        "一种·memory…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-63e0a0d95493513e939f9acd",
+      "entity_id": "ctkg:v3e-object-63e0a0d95493513e939f9acd",
+      "name": "State transition",
+      "name_en": "State transition matrix in Laplace domain",
+      "definition": "State transition：Φ(s) = [sI - A]^{-1} is the Laplace transform of the state transition matrix.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "State trans…",
+        "用于分析·Sign…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-64830154d494eaf7d38d905c",
+      "entity_id": "ctkg:v3e-object-64830154d494eaf7d38d905c",
+      "name": "高阶系统时域指标估算经验公式法",
+      "name_en": null,
+      "definition": "利用式(5-107)和(5-108)估算高阶系统超调量和调节时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "高阶系统时域指标估算经…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "entity_id": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+      "name": "Compensator Design via Pole Placement",
+      "name_en": "Compensator Design via Pole Placement",
+      "definition": "Compensator Design via Pole Placement：Compensator Design via Pole Placement",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Compensator…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-64e8b62fbd0bb7ae801304db",
+      "entity_id": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "name": "特征方程",
+      "name_en": "Characteristic equation",
+      "definition": "特征方程：Characteristic equation。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "特征方程",
+        "Characterist",
+        "用于分析·Rout…",
+        "关联·Eigenv…",
+        "关联·Routh-…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-655c25a7c9e926bc0004b983",
+      "entity_id": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+      "name": "Nonlinear System",
+      "name_en": "Nonlinear System",
+      "definition": "Nonlinear System：A physical system that is nonlinear at some level of signal strength or at any and all signal levels.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Nonlinear S…",
+        "Nonlinear Sy",
+        "用于分析·Root…",
+        "用于分析·Desc…",
+        "用于分析·Lyap…",
+        "用于分析·Circ…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6592690fdccf416b0340917b",
+      "entity_id": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "name": "带宽频率",
+      "name_en": null,
+      "definition": "系统闭环幅频特性下降到某一阈值时的频率，记为ω_b。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "带宽频率",
+        "用于分析·得到闭环…",
+        "关联·谐振峰值",
+        "关联·得到闭环对数…",
+        "关联·截止频率",
+        "关联·谐振频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-65968c0bbb3a54d4c9247dd0",
+      "entity_id": "ctkg:v3e-object-65968c0bbb3a54d4c9247dd0",
+      "name": "Internal model design",
+      "name_en": "Internal model design",
+      "definition": "Internal model design：A technique for tracking reference inputs with guaranteed steady-state tracking errors.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Internal mo…",
+        "Internal mod",
+        "用于分析·Stea…",
+        "关联·Asympt…",
+        "关联·Zero s…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-66dd287a007d9b2b74781de5",
+      "entity_id": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "name": "采样控制系统",
+      "name_en": null,
+      "definition": "把系统中的离散信号是脉冲序列形式的离散系统，称为采样控制系统或脉冲控制系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样控制系统",
+        "是一种·误差采样控制",
+        "是一种·离散时间系统",
+        "是一种·开环采样系统",
+        "是一种·线性采样系统",
+        "是一种·闭环采样系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

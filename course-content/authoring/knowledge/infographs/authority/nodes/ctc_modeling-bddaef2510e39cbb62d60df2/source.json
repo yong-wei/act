@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-bddaef2510e39cbb62d60df2",
+  "safe_id": "ctc_modeling-bddaef2510e39cbb62d60df2",
+  "node": {
+    "name": "表示对信号进行的数学变换",
+    "name_en": "modeling_bddaef2510e39cbb62d60df2",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "表示对信号进行的数学变换，方框中写入元部件或系统的传递函数，输出变量等于输入变量与传递函数的乘积。",
+  "intuition": null,
+  "explanation": "表示对信号进行的数学变换，方框中写入元部件或系统的传递函数，输出变量等于输入变量与传递函数的乘积。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "表示对信号进行的数学变换"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-bddaef2510e39cbb62d60df2.md",
+  "provider_policy": "grok-image_gen"
+}

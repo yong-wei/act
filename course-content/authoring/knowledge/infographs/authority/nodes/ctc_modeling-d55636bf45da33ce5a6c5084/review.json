@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:10:18+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-d55636bf45da33ce5a6c5084",
+  "safe_id": "ctc_modeling-d55636bf45da33ce5a6c5084",
+  "node_name": "The column vector that",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (液阻/反馈消除/K1/增益k/状态向量)"
+}

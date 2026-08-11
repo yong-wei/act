@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-a71a5210c13aa5d476ee8044",
+  "safe_id": "ctkg_v3e-object-a71a5210c13aa5d476ee8044",
+  "node": {
+    "name": "采样器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "采样器是离散系统中的一种元件，它对连续信号进行采样，将连续时间信号转换为离散时间信号。",
+  "intuition": "采样器不影响开环脉冲传递函数的极点，但影响零点，从而影响闭环离散系统的动态性能。",
+  "explanation": "采样器是离散系统中的一种元件，它对连续信号进行采样，将连续时间信号转换为离散时间信号。采样器不影响开环脉冲传递函数的极点，但影响零点，从而影响闭环离散系统的动态性能。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "采样器"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-a71a5210c13aa5d476ee8044.md",
+  "provider_policy": "grok-image_gen"
+}

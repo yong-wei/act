@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T16:01:07+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-14c49cc217ebff19a8763b5b",
+  "safe_id": "ctkg_v3e-object-14c49cc217ebff19a8763b5b",
+  "node_name": "z变换算子",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0066 vision-mapped accept"
+}

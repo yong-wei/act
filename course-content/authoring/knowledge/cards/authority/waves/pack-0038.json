@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0038",
+  "offset": 190,
+  "items": [
+    {
+      "safe_id": "ctc_v11g-d71c2fc537d5d1aa270768ec",
+      "batch": "B",
+      "name": "three way catalyst",
+      "definition": "three way catalyst：A catalyst used for controlling HC, CO, and NOx emissions in conjunction with a closed-loop engine-control system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "three way c…",
+        "three way ca",
+        "关联·exhaus…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: three way catalyst\nSOURCE DEFINITION (fail-closed, do not invent beyond this): three way catalyst：A catalyst used for controlling HC, CO, and NOx emissions in conjunction with a closed-loop engine-control system.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「three way 」、「three way 」、「关联·exhaus…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5d994cbb7a93157b1cb02932",
+      "batch": "B",
+      "name": "Path cofactor in signal-flow graph",
+      "definition": "Path cofactor in signal-flow graph：The path cofactor Δ₁(s) is the determinant of the part of the graph not touching the forward path.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Path cofact…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Path cofactor in signal-flow graph\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Path cofactor in signal-flow graph：The path cofactor Δ₁(s) is the determinant of the part of the graph not touching the forward path.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Path cofac」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fb97ed4cffee0e2317af990e",
+      "batch": "B",
+      "name": "Bode diagram",
+      "definition": "Bode diagram：A set of logarithmic plots (magnitude in dB and phase) versus frequency used to portray the frequency response of a sys…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Bode diagram",
+        "关联·Bode p…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Bode diagram\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Bode diagram：A set of logarithmic plots (magnitude in dB and phase) versus frequency used to portray the frequency response of a sys…\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Bode diagr」、「关联·Bode p…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "batch": "B",
+      "name": "Convolution",
+      "definition": "Convolution：The response of an LTI system can be expressed as the convolution of the input with the unit impulse response of the sy…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Convolution",
+        "包含组件·Comp…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Convolution\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Convolution：The response of an LTI system can be expressed as the convolution of the input with the unit impulse response of the sy…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Convolutio」、「包含组件·Comp…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "batch": "B",
+      "name": "Damped Natural Frequency",
+      "definition": "Damped Natural Frequency：The frequency of oscillation of a second-order system's transient response, given by ω_d = ω_n sqrt(1-ζ^2).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Damped Natu…",
+        "Damped Natur"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Damped Natural Frequency\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Damped Natural Frequency：The frequency of oscillation of a second-order system's transient response, given by ω_d = ω_n sqrt(1-ζ^2).\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Damped Nat」、「Damped Nat」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

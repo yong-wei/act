@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-c3abeee0067f823ed190d79e",
+  "safe_id": "ctc_v11g-c3abeee0067f823ed190d79e",
+  "node": {
+    "name": "开环传递函数中时间常数形式表示…",
+    "name_en": "open_loop_gain",
+    "concept_kind": "mathematical_object",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "开环传递函数中时间常数形式表示的增益，与根轨迹增益仅相差一个比例常数。",
+  "intuition": null,
+  "explanation": "开环传递函数中时间常数形式表示的增益，与根轨迹增益仅相差一个比例常数。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "开环传递函数中时间常数…",
+    "open loop ga"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-c3abeee0067f823ed190d79e.md",
+  "provider_policy": "grok-image_gen"
+}

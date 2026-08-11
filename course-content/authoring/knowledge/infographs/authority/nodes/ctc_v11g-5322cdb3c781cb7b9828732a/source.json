@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-5322cdb3c781cb7b9828732a",
+  "safe_id": "ctc_v11g-5322cdb3c781cb7b9828732a",
+  "node": {
+    "name": "nonminimum phase system",
+    "name_en": "nonminimum_phase_system",
+    "concept_kind": "system_kind",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "nonminimum phase system：A system whose transfer function has a zero in the right half-plane (RHP).",
+  "intuition": "在图谱邻接中可把握：后续 → 零点、negative gain root locus。",
+  "explanation": "A system whose transfer function has a zero in the right half-plane (RHP).",
+  "relation_head": "后续 → 零点、negative gain root locus",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "零点",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "negative gain root locus",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "nonminimum …",
+    "nonminimum p",
+    "关联·零点",
+    "关联·negati…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-5322cdb3c781cb7b9828732a.md",
+  "provider_policy": "grok-image_gen"
+}

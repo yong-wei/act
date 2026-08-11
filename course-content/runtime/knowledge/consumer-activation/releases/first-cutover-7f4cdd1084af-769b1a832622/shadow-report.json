@@ -1,0 +1,209 @@
+{
+  "contract": "act-versioned-knowledge-consumer-activation-shadow-report/v1",
+  "activationId": "first-cutover-7f4cdd1084af-769b1a832622",
+  "comparedAt": "2026-08-10T15:32:51.447Z",
+  "previousActivationId": null,
+  "samples": {
+    "previous": [],
+    "next": [
+      {
+        "kind": "course-runtime",
+        "consumerId": "course-runtime",
+        "identity": {
+          "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+          "authoritySnapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "authoritySnapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionHash": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "scopeId": null,
+          "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+          "citationIdentity": null,
+          "pathReadiness": null,
+          "cardIdentity": null,
+          "textbookIdentity": null,
+          "prerequisiteIdentity": null,
+          "fallbackHit": null
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "engineering-graph",
+        "consumerId": "engineering-graph",
+        "identity": {
+          "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+          "authoritySnapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "authoritySnapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "projectionId": null,
+          "projectionHash": null,
+          "scopeId": null,
+          "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+          "citationIdentity": null,
+          "pathReadiness": null,
+          "cardIdentity": null,
+          "textbookIdentity": null,
+          "prerequisiteIdentity": null,
+          "fallbackHit": null
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "engineering-rag",
+        "consumerId": "engineering-rag",
+        "identity": {
+          "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+          "authoritySnapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "authoritySnapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "projectionId": null,
+          "projectionHash": null,
+          "scopeId": null,
+          "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+          "citationIdentity": null,
+          "pathReadiness": null,
+          "cardIdentity": null,
+          "textbookIdentity": null,
+          "prerequisiteIdentity": null,
+          "fallbackHit": null
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "konling",
+        "consumerId": "konling",
+        "identity": {
+          "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+          "authoritySnapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "authoritySnapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionHash": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "scopeId": null,
+          "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+          "citationIdentity": null,
+          "pathReadiness": null,
+          "cardIdentity": null,
+          "textbookIdentity": null,
+          "prerequisiteIdentity": null,
+          "fallbackHit": null
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "learning-path",
+        "consumerId": "learning-path",
+        "identity": {
+          "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+          "authoritySnapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "authoritySnapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionHash": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "scopeId": null,
+          "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+          "citationIdentity": null,
+          "pathReadiness": null,
+          "cardIdentity": null,
+          "textbookIdentity": null,
+          "prerequisiteIdentity": null,
+          "fallbackHit": null
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "teaching-resource-rag",
+        "consumerId": "teaching-resource-rag",
+        "identity": {
+          "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+          "authoritySnapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "authoritySnapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionHash": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "scopeId": null,
+          "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+          "citationIdentity": null,
+          "pathReadiness": null,
+          "cardIdentity": null,
+          "textbookIdentity": null,
+          "prerequisiteIdentity": null,
+          "fallbackHit": null
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "card",
+        "consumerId": "course-runtime",
+        "identity": {
+          "cardIdentity": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d"
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "textbook",
+        "consumerId": "course-runtime",
+        "identity": {
+          "textbookIdentity": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d"
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "card",
+        "consumerId": "konling",
+        "identity": {
+          "cardIdentity": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d"
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "textbook",
+        "consumerId": "konling",
+        "identity": {
+          "textbookIdentity": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d"
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "prerequisite",
+        "consumerId": "konling",
+        "identity": {
+          "prerequisiteIdentity": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d"
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "prerequisite",
+        "consumerId": "learning-path",
+        "identity": {
+          "prerequisiteIdentity": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d"
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "card",
+        "consumerId": "teaching-resource-rag",
+        "identity": {
+          "cardIdentity": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d"
+        },
+        "readiness": "READY"
+      },
+      {
+        "kind": "textbook",
+        "consumerId": "teaching-resource-rag",
+        "identity": {
+          "textbookIdentity": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+          "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d"
+        },
+        "readiness": "READY"
+      }
+    ]
+  },
+  "discrepancies": [],
+  "writesLearningFact": false,
+  "writesTeachingDecision": false,
+  "writesUpstreamRelation": false,
+  "mutatesSelectorOutsideActivationPointer": false,
+  "reportHash": "1a2b98f192e05cff90cf749cdf5b862ee02363812bf1a7e63334a5b495102131"
+}

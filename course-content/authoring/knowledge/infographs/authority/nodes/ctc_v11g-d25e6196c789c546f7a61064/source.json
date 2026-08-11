@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-d25e6196c789c546f7a61064",
+  "safe_id": "ctc_v11g-d25e6196c789c546f7a61064",
+  "node": {
+    "name": "正反馈内回路",
+    "name_en": "positive_feedback_inner_loop",
+    "concept_kind": "system_component",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "在复杂控制系统设计中，由于某种性能指标要求而必须包含的正反馈内回路。",
+  "intuition": null,
+  "explanation": "在复杂控制系统设计中，由于某种性能指标要求而必须包含的正反馈内回路。",
+  "relation_head": "后续 → negative gain root locus",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "negative gain root locus",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "正反馈内回路",
+    "关联·negati…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-d25e6196c789c546f7a61064.md",
+  "provider_policy": "grok-image_gen"
+}

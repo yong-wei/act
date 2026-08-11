@@ -1,6 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
 
 import {
+  DiagnosisGenerationOutputValidationError,
+} from '@/lib/diagnosis-generation';
+import {
   diagnosisReportBodySchema,
   type DiagnosisReportBody,
 } from '@/lib/diagnosis-persistence';
@@ -107,6 +110,7 @@ export async function generateGovernedDiagnosisReport(
     system: [
       '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
       '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
+      '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
       `evidenceCutoff 必须严格等于 ${input.evidenceCutoff.toISOString()}。`,
     ].join('\n'),
     prompt: JSON.stringify({
@@ -118,9 +122,14 @@ export async function generateGovernedDiagnosisReport(
     }),
     idempotencyKey: input.attemptId,
     maxOutputTokens: 8_000,
+    deferValidation: true,
     timeoutMs: 120_000,
   });
-  const reportBody = diagnosisReportBodySchema.parse(generated.output) as DiagnosisReportBody;
+  const parsedReportBody = diagnosisReportBodySchema.safeParse(generated.output);
+  if (!parsedReportBody.success) {
+    throw new DiagnosisGenerationOutputValidationError(parsedReportBody.error);
+  }
+  const reportBody = parsedReportBody.data as DiagnosisReportBody;
   if (reportBody.evidenceCutoff !== input.evidenceCutoff.toISOString()) {
     throw new DiagnosisGenerationValidationError('diagnosis-evidence-cutoff-mismatch');
   }

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+  "safe_id": "ctkg_v3e-object-5592624b3ec200b86f7b744d",
+  "node": {
+    "name": "Observability",
+    "name_en": "Observability",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Observability：A system is completely observable if and only if there exists a finite time T such that the initial state x(0) can be d…",
+  "intuition": "在图谱邻接中可把握：前置 → Pole placement、Kalman state-space decomposition · 后续 → Observer Canonical Form。",
+  "explanation": "A system is completely observable if and only if there exists a finite time T such that the initial state x(0) can be determined from the observation history given y(t) the control u(t), 0 ≤ t ≤ T.",
+  "relation_head": "前置 → Pole placement、Kalman state-space decomposition · 后续 → Observer Canonical Form",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Pole placement",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Kalman state-space decomposition",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Observer Canonical Form",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Observabili…",
+    "Observabilit",
+    "用于分析·Pole…",
+    "用于分析·Kalm…",
+    "关联·Observ…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5592624b3ec200b86f7b744d.md",
+  "provider_policy": "grok-image_gen"
+}

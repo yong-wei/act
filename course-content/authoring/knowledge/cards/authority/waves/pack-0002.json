@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0002",
+  "offset": 10,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-5c2ad2da07903ca99b2b1f08",
+      "batch": "B",
+      "name": "Frequency-domain performance measures",
+      "definition": "Frequency-domain performance measures：Performance measures used to describe control system behavior in the frequency domain, including peak of closed-loop fr…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Frequency-d…",
+        "应用于·Frequ…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Frequency-domain performance measures\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Frequency-domain performance measures：Performance measures used to describe control system behavior in the frequency domain, including peak of closed-loop fr…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Frequency-」、「应用于·Frequ…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-820fb2c5830d5ebc1878a753",
+      "batch": "B",
+      "name": "Reduced-order estimator design method",
+      "definition": "Reduced-order estimator design method：A method to design an estimator of reduced order by partitioning the state into measured and unmeasured parts, establis…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Reduced-ord…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Reduced-order estimator design method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Reduced-order estimator design method：A method to design an estimator of reduced order by partitioning the state into measured and unmeasured parts, establis…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Reduced-or」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-160c78d3827065aca5585f55",
+      "batch": "B",
+      "name": "evans root locus construction method",
+      "definition": "evans root locus construction method：A set of rules to construct the root-locus graph, used for selecting parameter values and designing dynamic compensatio…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "evans root …",
+        "应用于·传递函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: evans root locus construction method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): evans root locus construction method：A set of rules to construct the root-locus graph, used for selecting parameter values and designing dynamic compensatio…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「evans root」、「应用于·传递函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "batch": "B",
+      "name": "Full-state feedback design procedure",
+      "definition": "Full-state feedback design procedure：The first step in the state variable design process requires us to assume that all the states are available for feedbac…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Full-state …",
+        "应用于·Full-…",
+        "关联·Separa…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Full-state feedback design procedure\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Full-state feedback design procedure：The first step in the state variable design process requires us to assume that all the states are available for feedbac…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Full-state」、「应用于·Full-…」、「关联·Separa…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fb1bfa608ae42d3fc3c40d8c",
+      "batch": "B",
+      "name": "Cascade compensation design approach",
+      "definition": "Cascade compensation design approach：The compensator G_c(s) can be chosen to alter either the shape of the root locus or the frequency response. The compens…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Cascade com…",
+        "应用于·Casca…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Cascade compensation design approach\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Cascade compensation design approach：The compensator G_c(s) can be chosen to alter either the shape of the root locus or the frequency response. The compens…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Cascade co」、「应用于·Casca…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

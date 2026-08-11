@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-241503a6440d96140036a51f",
+  "safe_id": "ctkg_v3e-object-241503a6440d96140036a51f",
+  "node": {
+    "name": "anti-alias prefilter",
+    "name_en": "anti-alias prefilter",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "anti-alias prefilter：An analog device designed to reduce the effects of aliasing, placed between the analog sensor and the A/D converter.",
+  "intuition": "在图谱邻接中可把握：后续 → aliasing、A/D converter。",
+  "explanation": "An analog device designed to reduce the effects of aliasing, placed between the analog sensor and the A/D converter.",
+  "relation_head": "后续 → aliasing、A/D converter",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "aliasing",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "A/D converter",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "anti-alias …",
+    "anti-alias p",
+    "用于分析·alia…",
+    "关联·A/D co…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-241503a6440d96140036a51f.md",
+  "provider_policy": "grok-image_gen"
+}

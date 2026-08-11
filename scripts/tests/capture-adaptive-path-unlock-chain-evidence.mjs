@@ -81,12 +81,12 @@ async function openFullRouteDisclosure(page) {
 }
 
 async function openPathModule(page, moduleId) {
-  const module = page.locator(`[data-adaptive-path-module="${moduleId}"]`).first();
-  if (!(await module.count())) return;
+  const moduleLocator = page.locator(`[data-adaptive-path-module="${moduleId}"]`).first();
+  if (!(await moduleLocator.count())) return;
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    const state = await module.getAttribute('data-adaptive-path-module-state');
+    const state = await moduleLocator.getAttribute('data-adaptive-path-module-state');
     if (state === 'expanded') break;
-    await module.locator('[data-adaptive-path-module-header="responsive"]').first().click();
+    await moduleLocator.locator('[data-adaptive-path-module-header="responsive"]').first().click();
     await page.waitForTimeout(400);
   }
   await page.waitForSelector(

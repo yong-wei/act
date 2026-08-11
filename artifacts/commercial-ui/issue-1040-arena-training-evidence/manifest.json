@@ -1,25 +1,25 @@
 {
   "status": "passed",
-  "capturedAt": "2026-08-01T15:00:34.208Z",
+  "capturedAt": "2026-08-10T16:52:19.507Z",
   "generatorPath": "tests/arena-training-profile-1040.spec.ts",
-  "generatorSha256": "6ed878a5e291ae5087ef84532cfd46468b05e519968afdd5e631cf44c8a18dc8",
-  "sourceRevision": "24833b4574f50105ce7f47c2fe53431fa1d51cb0",
+  "generatorSha256": "4ff4a0935a450612467ad7bdf875c20cf807bd409267cba951d2f816e112036c",
+  "sourceRevision": "904887652a161d4d07fa9322956721524d696633",
   "sourceFiles": {
     "src/app/(main)/profile/page.tsx": "a7fc605f87ff83a419083432e6e2ee5747328a549f919e865841576e0cde88fb",
-    "src/app/api/user/profile/route.ts": "1f4399ffd221d2562a0f961ee63ff980ed146e4e9ffca4178f14699a8e880cbb",
-    "src/features/arena/profile.ts": "9485c5df0ebea944215fdbee6f3f4363a08fc6376cf109fb8add66796656d37d",
+    "src/app/api/user/profile/route.ts": "efa94aa562e7d6971049b27a6819b431a474bdd4b1b72a27143c51dbeb2b2f00",
+    "src/features/arena/profile.ts": "43422c9d936465549d64ea138fc2b858c53d31d53d5817412d9c09f3b00a982b",
     "src/features/arena/blackbox/controller-preview.ts": "723385e9df02ad3b27ccf696d126b842289df9421293346b9d720d1df460c15b",
     "src/lib/data-governance/simulation-agent-evidence-materialization.ts": "6d8ce875d459b8788ac70822e8fde00b8628a7ab008338b537766fc8aa87eeb5"
   },
   "fixtureAuthority": "deterministic profile API projection; backend behavior separately verified by profile-route.test.ts",
   "route": "/profile",
   "role": "STUDENT",
-  "captureBeforeHead": "24833b4574f50105ce7f47c2fe53431fa1d51cb0",
-  "captureAfterHead": "24833b4574f50105ce7f47c2fe53431fa1d51cb0",
+  "captureBeforeHead": "904887652a161d4d07fa9322956721524d696633",
+  "captureAfterHead": "904887652a161d4d07fa9322956721524d696633",
   "screenshots": [
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-complete-1440x1000.png",
-      "sha256": "d64abcf284d354991778b5188b99c162c1ca11a1e41837fceb8be74327e59feb",
+      "sha256": "e5ff766d7cd182663eee65ecbdc5e43e5b6054b6e847285f6704d3320aa4cf8f",
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -32,7 +32,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-complete-320x900.png",
-      "sha256": "9b6bb2753815c464d0b11c0c9fdbb7fe3ebefe8a550b6bd7a9ad136bd872b0ed",
+      "sha256": "45223ffa8a753473fa00510c39087f07f13c59ab3714d37104bf863edb14b250",
       "viewport": {
         "width": 320,
         "height": 900
@@ -45,7 +45,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-damaged-320x900.png",
-      "sha256": "dc0f43c5a99f93ca7887fec0053d4b00e4eca2315eca333cd581bd48455c5a28",
+      "sha256": "1f88d7bff51124019bb1b1fbe283c15686cef365d3094996a814dfa3fbfbc8d0",
       "viewport": {
         "width": 320,
         "height": 900
@@ -113,10 +113,9 @@
       "profileVisible:320x900": true,
       "officialSubmissionEmpty:320x900": true,
       "officialEvidenceEmpty:320x900": true,
-      "trainingCard:320x900": true,
-      "previewAndUnofficial:320x900": true,
-      "lowConfidence:320x900": true,
-      "unavailableQualitySummary:320x900": true,
+      "noTrainingSummary:320x900": true,
+      "zeroTrainingCount:320x900": true,
+      "damagedTrainingNotDisplayed:320x900": true,
       "noRawQualityMetricLabels:320x900": true,
       "noUndefined:320x900": true,
       "noHorizontalOverflow:320x900": true

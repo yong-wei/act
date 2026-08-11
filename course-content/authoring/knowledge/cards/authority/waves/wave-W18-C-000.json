@@ -1,0 +1,672 @@
+{
+  "wave_id": "W18",
+  "batch": "C",
+  "title": "Batch C slice 1",
+  "offset": 0,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-20f3dc8367288f2a5908a82b",
+      "entity_id": "ctc:modeling-20f3dc8367288f2a5908a82b",
+      "name": "系数矩阵元素随时间变化的线性系统",
+      "name_en": "modeling_20f3dc8367288f2a5908a82b",
+      "definition": "系数矩阵元素随时间变化的线性系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系数矩阵元素随时间变化…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-423b845366304dc755fefcea",
+      "entity_id": "ctc:modeling-423b845366304dc755fefcea",
+      "name": "领域概念",
+      "name_en": "modeling_423b845366304dc755fefcea",
+      "definition": "领域概念是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-42c9620057d98bfd31df8233",
+      "entity_id": "ctc:modeling-42c9620057d98bfd31df8233",
+      "name": "输出方程中D不为零的系统",
+      "name_en": "modeling_42c9620057d98bfd31df8233",
+      "definition": "输出方程中D不为零的系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "输出方程中D不为零的系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-4650485d80a606436bc37cc2",
+      "entity_id": "ctc:modeling-4650485d80a606436bc37cc2",
+      "name": "系统的输入和输出变量",
+      "name_en": "modeling_4650485d80a606436bc37cc2",
+      "definition": "系统的输入和输出变量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统的输入和输出变量"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-6280f0cd5c8f281d399cb327",
+      "entity_id": "ctc:modeling-6280f0cd5c8f281d399cb327",
+      "name": "系统在时间域中的行为或运动信息…",
+      "name_en": "modeling_6280f0cd5c8f281d399cb327",
+      "definition": "系统在时间域中的行为或运动信息的集合。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统在时间域中的行为或…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-71f0e8d834291c2c7d5e25b9",
+      "entity_id": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+      "name": "输出方程中D≡0的系统",
+      "name_en": "modeling_71f0e8d834291c2c7d5e25b9",
+      "definition": "输出方程中D≡0的系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "输出方程中D≡0的系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-c26fddc50074ec84707d5950",
+      "entity_id": "ctc:modeling-c26fddc50074ec84707d5950",
+      "name": "系数矩阵各元素都是常数的线性系统",
+      "name_en": "modeling_c26fddc50074ec84707d5950",
+      "definition": "系数矩阵各元素都是常数的线性系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "常数的线性系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-ce9bffbe8ce00d29cf2c0738",
+      "entity_id": "ctc:modeling-ce9bffbe8ce00d29cf2c0738",
+      "name": "既有输入支路又有输出支路的节点",
+      "name_en": "modeling_ce9bffbe8ce00d29cf2c0738",
+      "definition": "既有输入支路又有输出支路的节点。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "既有输入支路又有输出支…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-f6940765c7e8e5b74be204e0",
+      "entity_id": "ctc:modeling-f6940765c7e8e5b74be204e0",
+      "name": "领域概念",
+      "name_en": "modeling_f6940765c7e8e5b74be204e0",
+      "definition": "领域概念是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_00c33c72030aa254c651c5ad",
+      "entity_id": "ctkg:domainconcept:00c33c72030aa254c651c5ad",
+      "name": "正定性（标量函数）",
+      "name_en": null,
+      "definition": "正定性（标量函数）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "正定性（标量函数）"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_01352d9fa7bd87ffcb11e7c8",
+      "entity_id": "ctkg:domainconcept:01352d9fa7bd87ffcb11e7c8",
+      "name": "题7-22系统结构图",
+      "name_en": null,
+      "definition": "题7-22系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-22系统结构图"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_05c3bce244e51f0c3dae9747",
+      "entity_id": "ctkg:domainconcept:05c3bce244e51f0c3dae9747",
+      "name": "误差脉冲传递函数",
+      "name_en": null,
+      "definition": "误差脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "误差脉冲传递函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_09da4c7fe48a9407a1d68ec5",
+      "entity_id": "ctkg:domainconcept:09da4c7fe48a9407a1d68ec5",
+      "name": "Discrete Analysis Procedure",
+      "name_en": "Discrete Analysis Procedure",
+      "definition": "Discrete Analysis Procedure是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete An…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_0d613f0b723fa4a95a006064",
+      "entity_id": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+      "name": "Lyapunov Stability",
+      "name_en": "Lyapunov Stability",
+      "definition": "Lyapunov Stability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov St…",
+        "Lyapunov Sta",
+        "用于分析·Lyap…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_0dfe26d4bf0c2174a0a4b176",
+      "entity_id": "ctkg:domainconcept:0dfe26d4bf0c2174a0a4b176",
+      "name": "负半定性（标量函数）",
+      "name_en": null,
+      "definition": "负半定性（标量函数）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "负半定性（标量函数）"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_0e906643242ab739e7ea2c35",
+      "entity_id": "ctkg:domainconcept:0e906643242ab739e7ea2c35",
+      "name": "二阶采样系统结构图",
+      "name_en": null,
+      "definition": "二阶采样系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "二阶采样系统结构图"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1126ce54b22f0fafb3f6e916",
+      "entity_id": "ctkg:domainconcept:1126ce54b22f0fafb3f6e916",
+      "name": "无纹波最少拍系统设计方法",
+      "name_en": null,
+      "definition": "无纹波最少拍系统设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "无纹波最少拍系统设计方法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1574c7db84468964721bb443",
+      "entity_id": "ctkg:domainconcept:1574c7db84468964721bb443",
+      "name": "主导极点",
+      "name_en": null,
+      "definition": "主导极点是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "主导极点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1a8ef03e3724854770d0995b",
+      "entity_id": "ctkg:domainconcept:1a8ef03e3724854770d0995b",
+      "name": "离散化设计方法",
+      "name_en": null,
+      "definition": "离散化设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "离散化设计方法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1b04b9a147b0c7ffb5908e4e",
+      "entity_id": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+      "name": "最少拍系统",
+      "name_en": null,
+      "definition": "最少拍系统是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "最少拍系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1d3fbc0debb0aa898ddc8773",
+      "entity_id": "ctkg:domainconcept:1d3fbc0debb0aa898ddc8773",
+      "name": "题7-19闭环离散系统模型",
+      "name_en": null,
+      "definition": "题7-19闭环离散系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-19闭环离散系统…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1de40a30b1c09d8f5bdd595a",
+      "entity_id": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+      "name": "超调量 σ%",
+      "name_en": null,
+      "definition": "超调量 σ%是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "超调量 σ%"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1e4a6b47555798ad4ccae81d",
+      "entity_id": "ctkg:domainconcept:1e4a6b47555798ad4ccae81d",
+      "name": "Positive Definite Matrix",
+      "name_en": "Positive Definite Matrix",
+      "definition": "Positive Definite Matrix是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Positive De…",
+        "Positive Def"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1fe958ff9947220990074dbc",
+      "entity_id": "ctkg:domainconcept:1fe958ff9947220990074dbc",
+      "name": "正半定性（标量函数）",
+      "name_en": null,
+      "definition": "正半定性（标量函数）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "正半定性（标量函数）"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_2207a84d0bef6d71a51fe50b",
+      "entity_id": "ctkg:domainconcept:2207a84d0bef6d71a51fe50b",
+      "name": "题7-25系统结构图",
+      "name_en": null,
+      "definition": "题7-25系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-25系统结构图"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_236ec108cc45299398bac0b8",
+      "entity_id": "ctkg:domainconcept:236ec108cc45299398bac0b8",
+      "name": "Digital compensator",
+      "name_en": "Digital compensator",
+      "definition": "Digital compensator是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital com…",
+        "Digital comp"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_275296ae58e9a926faac7ae3",
+      "entity_id": "ctkg:domainconcept:275296ae58e9a926faac7ae3",
+      "name": "速度误差系数",
+      "name_en": null,
+      "definition": "速度误差系数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "速度误差系数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_289e3beca59c9ef373836b12",
+      "entity_id": "ctkg:domainconcept:289e3beca59c9ef373836b12",
+      "name": "零阶保持器",
+      "name_en": null,
+      "definition": "零阶保持器是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "零阶保持器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_28bfca2df331c329cea26464",
+      "entity_id": "ctkg:domainconcept:28bfca2df331c329cea26464",
+      "name": "朱利稳定判据",
+      "name_en": null,
+      "definition": "朱利稳定判据是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "朱利稳定判据",
+        "一种·Routh-…",
+        "用于分析·朱利稳定…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_28c066f4f9ccd20a720fc299",
+      "entity_id": "ctkg:domainconcept:28c066f4f9ccd20a720fc299",
+      "name": "单位阶跃响应曲线",
+      "name_en": null,
+      "definition": "单位阶跃响应曲线是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位阶跃响应曲线"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_28c7b2fa3807573e2160fad0",
+      "entity_id": "ctkg:domainconcept:28c7b2fa3807573e2160fad0",
+      "name": "稳态误差 e(∞)",
+      "name_en": null,
+      "definition": "稳态误差 e(∞)是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳态误差 e(∞)"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_34a8b4f81f0f5b8cf9f04107",
+      "entity_id": "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107",
+      "name": "Equilibrium State",
+      "name_en": "Equilibrium State",
+      "definition": "Equilibrium State是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Equilibrium…",
+        "Equilibrium "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_357a51cbd9882d80503815d3",
+      "entity_id": "ctkg:domainconcept:357a51cbd9882d80503815d3",
+      "name": "误差脉冲传递函数",
+      "name_en": null,
+      "definition": "误差脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "误差脉冲传递函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_364221ded81ca2a0139d013a",
+      "entity_id": "ctkg:domainconcept:364221ded81ca2a0139d013a",
+      "name": "最少拍系统设计方法",
+      "name_en": null,
+      "definition": "最少拍系统设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "最少拍系统设计方法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_36950d29dd27bdca0a483237",
+      "entity_id": "ctkg:domainconcept:36950d29dd27bdca0a483237",
+      "name": "最少拍系统设计方法",
+      "name_en": null,
+      "definition": "最少拍系统设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "最少拍系统设计方法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_3741d57a147fed5d8c495e34",
+      "entity_id": "ctkg:domainconcept:3741d57a147fed5d8c495e34",
+      "name": "Pole-zero cancel",
+      "name_en": "Pole-zero cancellation in digital control design",
+      "definition": "Pole-zero cancel是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pole-zero c…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_38cc333389960ef01572e768",
+      "entity_id": "ctkg:domainconcept:38cc333389960ef01572e768",
+      "name": "Pure Discrete Equivalent System",
+      "name_en": "Pure Discrete Equivalent System",
+      "definition": "Pure Discrete Equivalent System是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pure Discre…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_39456197a7214a933f3d5e83",
+      "entity_id": "ctkg:domainconcept:39456197a7214a933f3d5e83",
+      "name": "有纹波最少拍系统结构图（图7-…",
+      "name_en": null,
+      "definition": "有纹波最少拍系统结构图（图7-…是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "有纹波最少拍系统结构图…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_3bdef317703581e0a2e1b82f",
+      "entity_id": "ctkg:domainconcept:3bdef317703581e0a2e1b82f",
+      "name": "题7-20闭环离散系统模型",
+      "name_en": null,
+      "definition": "题7-20闭环离散系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-20闭环离散系统…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_3f2b9364d6712170bfd6fb24",
+      "entity_id": "ctkg:domainconcept:3f2b9364d6712170bfd6fb24",
+      "name": "stability matrix",
+      "name_en": "stability matrix",
+      "definition": "stability matrix是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "stability m…",
+        "stability ma"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_3ffc77366f538e92e13a0296",
+      "entity_id": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+      "name": "能量函数（李雅普诺夫）",
+      "name_en": null,
+      "definition": "能量函数（李雅普诺夫）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "能量函数（李雅普诺夫）",
+        "一种·李雅普诺夫函…",
+        "一种·李雅普诺夫函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_402f9f89ded980774ffb02c4",
+      "entity_id": "ctkg:domainconcept:402f9f89ded980774ffb02c4",
+      "name": "forward rectangular integration",
+      "name_en": "forward rectangular integration",
+      "definition": "forward rectangular integration是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "forward rec…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_42b62edf88d848137713e690",
+      "entity_id": "ctkg:domainconcept:42b62edf88d848137713e690",
+      "name": "Digital lag compensation",
+      "name_en": "Digital lag compensation",
+      "definition": "Digital lag compensation是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital lag…",
+        "Digital lag "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_4440d7aea649c55d0359385c",
+      "entity_id": "ctkg:domainconcept:4440d7aea649c55d0359385c",
+      "name": "Eigenvalue",
+      "name_en": "Eigenvalue",
+      "definition": "Eigenvalue是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Eigenvalue"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_471808457837d110fa167faf",
+      "entity_id": "ctkg:domainconcept:471808457837d110fa167faf",
+      "name": "负定性（标量函数）",
+      "name_en": null,
+      "definition": "负定性（标量函数）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "负定性（标量函数）"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_4763f84157de71b678a091e7",
+      "entity_id": "ctkg:domainconcept:4763f84157de71b678a091e7",
+      "name": "题7-23数字控制系统模型",
+      "name_en": null,
+      "definition": "题7-23数字控制系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-23数字控制系统…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_48988e52fe44c4738e0647cf",
+      "entity_id": "ctkg:domainconcept:48988e52fe44c4738e0647cf",
+      "name": "闭环脉冲传递函数 Φ(z)",
+      "name_en": null,
+      "definition": "闭环脉冲传递函数 Φ(z)是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "闭环脉冲传递函数 Φ(…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_48a62baa3d95389c7fdea7f6",
+      "entity_id": "ctkg:domainconcept:48a62baa3d95389c7fdea7f6",
+      "name": "Phase-lead compensator",
+      "name_en": "Phase-lead compensator",
+      "definition": "Phase-lead compensator是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase-lead …",
+        "Phase-lead c",
+        "一种·Phase-…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_492c3f3c5e6d3c57cc074391",
+      "entity_id": "ctkg:domainconcept:492c3f3c5e6d3c57cc074391",
+      "name": "最少拍系统",
+      "name_en": null,
+      "definition": "最少拍系统是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "最少拍系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_4b8188f6e3ad1985a3208055",
+      "entity_id": "ctkg:domainconcept:4b8188f6e3ad1985a3208055",
+      "name": "数字校正装置",
+      "name_en": null,
+      "definition": "数字校正装置是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "数字校正装置"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

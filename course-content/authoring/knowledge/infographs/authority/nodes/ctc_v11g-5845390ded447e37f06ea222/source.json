@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-5845390ded447e37f06ea222",
+  "safe_id": "ctc_v11g-5845390ded447e37f06ea222",
+  "node": {
+    "name": "根轨迹",
+    "name_en": "root_locus",
+    "concept_kind": "representation_kind",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "根轨迹：The locus of roots of the characteristic equation in the s-plane as a parameter is varied.。",
+  "intuition": "在图谱邻接中可把握：前置 → 根轨迹法、特征方程 · 后续 → 闭环极点。",
+  "explanation": "The locus of roots of the characteristic equation in the s-plane as a parameter is varied.",
+  "relation_head": "前置 → 根轨迹法、特征方程 · 后续 → 闭环极点",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "根轨迹法",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "特征方程",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "闭环极点",
+      "relation": "有表示"
+    }
+  ],
+  "labels": [
+    "根轨迹",
+    "root locus",
+    "应用于·根轨迹法",
+    "关联·特征方程",
+    "有表示·闭环极点"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-5845390ded447e37f06ea222.md",
+  "provider_policy": "grok-image_gen"
+}

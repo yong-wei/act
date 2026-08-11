@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:36:42+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-68df257f762f259aef82b607",
+  "safe_id": "ctkg_v3e-object-68df257f762f259aef82b607",
+  "node_name": "Full-Order Estimator",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (PM/高阶估算/极点配置/内部稳定/全维估计器)"
+}

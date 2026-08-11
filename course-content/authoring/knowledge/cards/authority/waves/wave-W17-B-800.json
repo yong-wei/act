@@ -1,0 +1,435 @@
+{
+  "wave_id": "W17",
+  "batch": "B",
+  "title": "Batch B slice 17",
+  "offset": 800,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-ef6fc9931fcf63871a394970",
+      "entity_id": "ctkg:v3e-object-ef6fc9931fcf63871a394970",
+      "name": "Closed-loop System with Nonlinearity",
+      "name_en": "Closed-loop System with Nonlinearity",
+      "definition": "Closed-loop System with Nonlinearity：A negative feedback control system where a nonlinear element f precedes a linear dynamic system G(s), with input R and…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Closed-loop…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f04f82217525c5c412d0d180",
+      "entity_id": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "name": "非最小相位系统",
+      "name_en": null,
+      "definition": "开环传递函数含有非最小相位环节的系统称为非最小相位系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非最小相位系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f0c0278d57559730f124c4e3",
+      "entity_id": "ctkg:v3e-object-f0c0278d57559730f124c4e3",
+      "name": "解码过程",
+      "name_en": null,
+      "definition": "D/A 转换的第一个过程：把离散数字信号转换为离散的模拟信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "解码过程",
+        "属于·D/A转换器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f1582fd7cc28d16eb111854d",
+      "entity_id": "ctkg:v3e-object-f1582fd7cc28d16eb111854d",
+      "name": "可控性",
+      "name_en": null,
+      "definition": "如果系统所有状态变量的运动都可以由输人来影响和控制而由任意的初态达到原点，则称系统是完全可控的，或者更确切地说是状态完全可控的，简称为系统可控；否则，就称系统是不完全可控的，或简称为系统不可控。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "可控性",
+        "是一种·系统完全可控",
+        "包含组件·离散系统…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f16be3d3c310b5ceeae86b3f",
+      "entity_id": "ctkg:v3e-object-f16be3d3c310b5ceeae86b3f",
+      "name": "采样频谱补分量",
+      "name_en": null,
+      "definition": "采样频谱中 n=±1, ±2, ... 的高频频谱，由采样引起。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样频谱补分量",
+        "关联·采样频谱主分量"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f1c8cab76dae17e688eaa668",
+      "entity_id": "ctkg:v3e-object-f1c8cab76dae17e688eaa668",
+      "name": "否成立",
+      "name_en": "Discrete-time controllability rank test",
+      "definition": "构造可控性矩阵S1=[h Gh ... G^{n-1}h]，检验rank S1=n是否成立。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "否成立"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "entity_id": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "name": "校正装置",
+      "name_en": null,
+      "definition": "如果通过调整放大器增益后仍然不能全面满足设计要求的性能指标，就需要在系统中增加一些参数及特性可按需要改变的校正装置，使系统性能全面满足设计要求。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "校正装置",
+        "是一种·PID控制器",
+        "是一种·前馈校正",
+        "是一种·反馈校正",
+        "是一种·复合校正",
+        "是一种·串联校正"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f20650600a6b6301d29c6025",
+      "entity_id": "ctkg:v3e-object-f20650600a6b6301d29c6025",
+      "name": "最大超前角",
+      "name_en": null,
+      "definition": "超前网络在最大超前角频率处达到的最大相角，φm=arcsin((a-1)/(a+1))。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "最大超前角"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f46e9da31098d70fca946f63",
+      "entity_id": "ctkg:v3e-object-f46e9da31098d70fca946f63",
+      "name": "programmable read-only memory (EPROM)",
+      "name_en": "programmable read-only memory (EPROM)",
+      "definition": "programmable read-only memory (EPROM)：programmable read-only memory (EPROM)",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "programmabl…",
+        "一种·read-o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f5e744188b4f574f567a1a8e",
+      "entity_id": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "name": "状态转移矩阵",
+      "name_en": null,
+      "definition": "矩阵指数函数 e^{A t}，记为 \\Phi(t)，用于描述线性定常系统状态从初始时刻到任意时刻的转移。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "状态转移矩阵",
+        "是一种·矩阵指数函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f610316f690e0731396e26ab",
+      "entity_id": "ctkg:v3e-object-f610316f690e0731396e26ab",
+      "name": "Airplane control system",
+      "name_en": "Airplane control system",
+      "definition": "Airplane control system：Airplane control system",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Airplane co…",
+        "Airplane con"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f61357354fd32305fac8755b",
+      "entity_id": "ctkg:v3e-object-f61357354fd32305fac8755b",
+      "name": "利用开环频域指标估算时域性能方法",
+      "name_en": null,
+      "definition": "通过相角裕度γ和截止频率ω_c估算系统时域性能指标。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "利用开环频域指标估算时…",
+        "用于分析·相角裕度",
+        "用于分析·截止频率",
+        "关联·相角裕度",
+        "关联·截止频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f8337fda41fd8e3fe22e87f7",
+      "entity_id": "ctkg:v3e-object-f8337fda41fd8e3fe22e87f7",
+      "name": "multiplexer",
+      "name_en": "multiplexer",
+      "definition": "multiplexer：A device used to sequentially connect a single A/D converter into multiple channels being sampled, rather than using mu…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "multiplexer",
+        "关联·A/D co…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f86059edf7249257b142b471",
+      "entity_id": "ctkg:v3e-object-f86059edf7249257b142b471",
+      "name": "C1 contour",
+      "name_en": "C1 contour",
+      "definition": "C1 contour：A closed contour in the s-plane that encloses the right half-plane, used in the Nyquist stability criterion.",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "C1 contour",
+        "应用于·Arc a…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f8d3e5fdd92e5393820683bb",
+      "entity_id": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "name": "Modified Matched Pole-Zero (MMPZ) Method",
+      "name_en": "Modified Matched Pole-Zero (MMPZ) Method",
+      "definition": "Modified Matched Pole-Zero (MMPZ) Method：A modification of the matched pole-zero procedure where the numerator of D_d(z) is of lower order than the denominator…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Modified Ma…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f91e625707410c1dc36188cb",
+      "entity_id": "ctkg:v3e-object-f91e625707410c1dc36188cb",
+      "name": "Velocity constant",
+      "name_en": "Velocity constant",
+      "definition": "Velocity constant：The steady-state error for a ramp input is specified in terms of K_v, the velocity constant.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Velocity co…",
+        "Velocity con"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "entity_id": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "name": "串联滞后校正",
+      "name_en": null,
+      "definition": "利用滞后网络或PI控制器进行串联校正的基本原理，是利用滞后网络或PI控制器的高频幅值衰减特性，使已校正系统截止频率下降，从而使系统获得足够的相角裕度。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "串联滞后校正"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fa27f7e0f03c7c18dd56786d",
+      "entity_id": "ctkg:v3e-object-fa27f7e0f03c7c18dd56786d",
+      "name": "conformal mapping",
+      "name_en": "conformal mapping",
+      "definition": "conformal mapping：The relationship z = e^{sT} defines a conformal mapping from the s-plane to the z-plane.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "conformal m…",
+        "conformal ma",
+        "关联·z-tran…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fa4f7e4a46c0790f96077531",
+      "entity_id": "ctkg:v3e-object-fa4f7e4a46c0790f96077531",
+      "name": "衰减曲线法",
+      "name_en": null,
+      "definition": "使系统阶跃响应产生衰减振荡，再根据衰减振荡曲线的参数来确定PID参数的方法。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "衰减曲线法",
+        "包含组件·比例系数",
+        "包含组件·衰减比",
+        "包含组件·微分时间…",
+        "关联·衰减比"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fac170446815fe168f9a5469",
+      "entity_id": "ctkg:v3e-object-fac170446815fe168f9a5469",
+      "name": "对角线规范型判据",
+      "name_en": null,
+      "definition": "当矩阵A的特征值两两相异时，通过线性变换化为对角线规范型，根据B或C矩阵的行或列是否全为零来判断可控性或可观测性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "对角线规范型判据",
+        "一种·否包含元素全…",
+        "应用于·系统不可观测"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fb1bfa608ae42d3fc3c40d8c",
+      "entity_id": "ctkg:v3e-object-fb1bfa608ae42d3fc3c40d8c",
+      "name": "Cascade compensation design approach",
+      "name_en": "Cascade compensation design approach",
+      "definition": "Cascade compensation design approach：The compensator G_c(s) can be chosen to alter either the shape of the root locus or the frequency response. The compens…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Cascade com…",
+        "应用于·Casca…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fb437f813c7792e130b8a3df",
+      "entity_id": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+      "name": "给定稳定度检验方法",
+      "name_en": null,
+      "definition": "为了使稳定的系统具有良好的动态响应，我们常常希望在 s 左半平面上系统特征根的位置与虚轴之间有一定的距离。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "给定稳定度检验方法",
+        "包含组件·通过变量…",
+        "用于分析·稳定性",
+        "应用于·特征方程"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fb46cb0e4c4a87cac57dc14f",
+      "entity_id": "ctkg:v3e-object-fb46cb0e4c4a87cac57dc14f",
+      "name": "A/D converter",
+      "name_en": "A/D converter",
+      "definition": "A/D converter：A device to sample the continuous signal voltage from the sensor and to convert that signal to a digital word.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "A/D convert…",
+        "A/D converte",
+        "关联·anti-a…",
+        "关联·D/A co…",
+        "关联·counti…",
+        "关联·succes…",
+        "关联·multip…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fb97ed4cffee0e2317af990e",
+      "entity_id": "ctkg:v3e-object-fb97ed4cffee0e2317af990e",
+      "name": "Bode diagram",
+      "name_en": "Bode diagram",
+      "definition": "Bode diagram：A set of logarithmic plots (magnitude in dB and phase) versus frequency used to portray the frequency response of a sys…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Bode diagram",
+        "关联·Bode p…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fbebd7b09546031f82f974ed",
+      "entity_id": "ctkg:v3e-object-fbebd7b09546031f82f974ed",
+      "name": "前置滤波器",
+      "name_en": null,
+      "definition": "前馈校正装置的一种形式，接在系统给定值之后及主反馈作用点之前的前向通道上，相当于对给定值信号进行整形或滤波。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "前置滤波器",
+        "是一种·前馈校正",
+        "关联·前馈校正"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fc04597b173e68c152f0c971",
+      "entity_id": "ctkg:v3e-object-fc04597b173e68c152f0c971",
+      "name": "可观测性",
+      "name_en": null,
+      "definition": "如果系统所有状态变量的任意形式的运动均可由输出完全反映，则称系统是状态完全可观测的，简称为系统可观测；反之，则称系统是不完全可观测的，或简称为系统不可观测。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "可观测性",
+        "一种·系统完全可观测",
+        "属于·系统完全可观测",
+        "属于·系统不可观测"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fc2e0621725b902101011b9d",
+      "entity_id": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "name": "开关线",
+      "name_en": null,
+      "definition": "非线性特性曲线的折线的各转折点，构成了相平面区域的分界线，称为开关线。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "开关线",
+        "属于·相平面法分析…",
+        "属于·相平面",
+        "关联·死区特性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fe85b0f6dfed46e36c9f87a0",
+      "entity_id": "ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0",
+      "name": "Bel",
+      "name_en": "Bel",
+      "definition": "Bel：A unit of power gain named after Alexander Graham Bell, later subdivided into decibels for practical use.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Bel",
+        "属于·Decibe…",
+        "派生自·Decib…",
+        "关联·Decibe…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ff560d5d53d578d0bc57baeb",
+      "entity_id": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+      "name": "输出可控性",
+      "name_en": null,
+      "definition": "若在有限时间间隔内，存在无约束分段连续控制函数，能使任意初始输出转移到任意最终输出，则称此系统输出完全可控。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "输出可控性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

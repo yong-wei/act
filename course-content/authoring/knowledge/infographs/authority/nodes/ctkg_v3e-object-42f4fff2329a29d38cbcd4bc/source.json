@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+  "safe_id": "ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+  "node": {
+    "name": "系统带宽",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "性能指标中的带宽频率 ω_b 的要求，是一项重要的技术指标。",
+  "intuition": "无论采用哪种校正方式，都要求校正后的系统既能以所需精度跟踪输入信号，又能抑制噪声扰动信号。",
+  "explanation": "性能指标中的带宽频率 ω_b 的要求，是一项重要的技术指标。无论采用哪种校正方式，都要求校正后的系统既能以所需精度跟踪输入信号，又能抑制噪声扰动信号。",
+  "relation_head": "后续 → 性能指标",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "性能指标",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "系统带宽",
+    "是一种·性能指标"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-42f4fff2329a29d38cbcd4bc.md",
+  "provider_policy": "grok-image_gen"
+}

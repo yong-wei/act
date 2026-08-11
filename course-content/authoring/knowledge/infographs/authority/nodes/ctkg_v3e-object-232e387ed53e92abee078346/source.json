@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-232e387ed53e92abee078346",
+  "safe_id": "ctkg_v3e-object-232e387ed53e92abee078346",
+  "node": {
+    "name": "截止频率",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "开环幅频特性A(ω)=1时的频率，记为ω_c。",
+  "intuition": null,
+  "explanation": "开环幅频特性A(ω)=1时的频率，记为ω_c",
+  "relation_head": "前置 → 对数幅频渐近特性曲线、利用开环频域指标估算时域性能方法、相角裕度 · 后续 → 带宽频率、利用开环频域指标估算时域性能方法",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "对数幅频渐近特性曲线",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "利用开环频域指标估算时域性能方法",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "相角裕度",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "阻尼自然频率",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "带宽频率",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "利用开环频域指标估算时域性能方法",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "截止频率",
+    "用于分析·对数幅频…",
+    "用于分析·利用开环…",
+    "关联·相角裕度",
+    "关联·阻尼自然频率",
+    "关联·带宽频率"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-232e387ed53e92abee078346.md",
+  "provider_policy": "grok-image_gen"
+}

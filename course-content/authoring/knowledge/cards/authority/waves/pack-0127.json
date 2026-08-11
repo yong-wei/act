@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0127",
+  "offset": 635,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-a71a5210c13aa5d476ee8044",
+      "batch": "B",
+      "name": "采样器",
+      "definition": "采样器是离散系统中的一种元件，它对连续信号进行采样，将连续时间信号转换为离散时间信号。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "采样器"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 采样器是离散系统中的一种元件，它对连续信号进行采样，将连续时间信号转换为离散时间信号。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样器」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ac5da367d445afc46b4baca3",
+      "batch": "B",
+      "name": "谐振峰值",
+      "definition": "振荡环节在谐振频率处的幅值，M_r = 1/(2ζ√(1-ζ²))，0<ζ≤√2/2。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "谐振峰值"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 谐振峰值\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 振荡环节在谐振频率处的幅值，M_r = 1/(2ζ√(1-ζ²))，0<ζ≤√2/2。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「谐振峰值」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-14b61e56571539bbfb630ae7",
+      "batch": "B",
+      "name": "小偏差线性化法",
+      "definition": "当系统方程解析且工作在某一数值附近的较小范围内时，可运用小偏差法将非线性模型线性化。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "小偏差线性化法",
+        "用于分析·非线性系统",
+        "应用于·非线性系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 小偏差线性化法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当系统方程解析且工作在某一数值附近的较小范围内时，可运用小偏差法将非线性模型线性化。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「小偏差线性化法」、「用于分析·非线性系统」、「应用于·非线性系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-78558546607d8234fb2ce368",
+      "batch": "B",
+      "name": "周期信号的频谱",
+      "definition": "复系数 c_k 的集合称为周期信号的频谱，表示周期信号各次谐波分量的幅值和相位分布。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "周期信号的频谱",
+        "关联·幅值谱"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 周期信号的频谱\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 复系数 c_k 的集合称为周期信号的频谱，表示周期信号各次谐波分量的幅值和相位分布。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「周期信号的频谱」、「关联·幅值谱」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a95a8e278a89a433477bc1e0",
+      "batch": "B",
+      "name": "纵坐标为L(ω)单位为分贝",
+      "definition": "纵坐标为L(ω)单位为分贝，横坐标为φ(ω)单位为度，均为线性分度，频率ω为参变量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "纵坐标为L(ω)单位为…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 纵坐标为L(ω)单位为分贝\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 纵坐标为L(ω)单位为分贝，横坐标为φ(ω)单位为度，均为线性分度，频率ω为参变量。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「纵坐标为L(ω)单位」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

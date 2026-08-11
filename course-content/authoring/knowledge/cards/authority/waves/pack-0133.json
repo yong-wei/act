@@ -1,0 +1,73 @@
+{
+  "pack_id": "P0133",
+  "offset": 665,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-e5eec53e01f5ac974d074ac4",
+      "batch": "B",
+      "name": "误差响应",
+      "definition": "对于图3-8所示的单位反馈系统，误差响应为 e(t)=r(t)-c(t)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "误差响应",
+        "关联·稳态误差"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 误差响应\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 对于图3-8所示的单位反馈系统，误差响应为 e(t)=r(t)-c(t)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「误差响应」、「关联·稳态误差」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "batch": "B",
+      "name": "相频特性",
+      "definition": "谐波输入下，输出响应中与输入同频率的谐波分量与谐波输入的相位之差φ(ω)。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "相频特性",
+        "用于分析·相角裕度",
+        "关联·频率特性",
+        "关联·幅频特性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 相频特性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 谐波输入下，输出响应中与输入同频率的谐波分量与谐波输入的相位之差φ(ω)。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「相频特性」、「用于分析·相角裕度」、「关联·频率特性」、「关联·幅频特性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-de873c97a924107857f79242",
+      "batch": "B",
+      "name": "幅频特性",
+      "definition": "谐波输入下，输出响应中与输入同频率的谐波分量与谐波输入的幅值之比A(ω)。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "幅频特性",
+        "关联·频率特性",
+        "关联·相频特性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 幅频特性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 谐波输入下，输出响应中与输入同频率的谐波分量与谐波输入的幅值之比A(ω)。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「幅频特性」、「关联·频率特性」、「关联·相频特性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-8010502b57930c3dcb915af9",
+      "batch": "B",
+      "name": "零点",
+      "definition": "零点：v3T accepted candidate for zero.。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "零点",
+        "zero",
+        "是一种·开环零点",
+        "一种·zeros",
+        "派生自·传递函数",
+        "关联·nonmin…",
+        "关联·angle …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 零点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 零点：v3T accepted candidate for zero.。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「零点」、「zero」、「是一种·开环零点」、「一种·zeros」、「派生自·传递函数」、「关联·nonmin…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-a802f59edc4ae0f920912630",
+      "batch": "B",
+      "name": "带有箭头的直线",
+      "definition": "带有箭头的直线，箭头表示信号的流向，在直线旁标记信号的时间函数或象函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "带有箭头的直线"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 带有箭头的直线\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 带有箭头的直线，箭头表示信号的流向，在直线旁标记信号的时间函数或象函数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「带有箭头的直线」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

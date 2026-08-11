@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-924174fe69be3e335cca76d8",
+  "safe_id": "ctkg_v3e-object-924174fe69be3e335cca76d8",
+  "node": {
+    "name": "有源校正装置",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "包含运算放大器等有源元件的校正装置，用于实现复杂的控制规律。",
+  "intuition": null,
+  "explanation": "包含运算放大器等有源元件的校正装置，用于实现复杂的控制规律",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "有源校正装置"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-924174fe69be3e335cca76d8.md",
+  "provider_policy": "grok-image_gen"
+}

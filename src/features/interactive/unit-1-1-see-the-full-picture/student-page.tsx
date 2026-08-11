@@ -18,11 +18,9 @@ import {
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
-import {
-  buildCoursePackageLayeredScope,
-  resolveCoursePageLayeredDrawerEntries,
-  type LayeredGraphPayload,
-} from '@/lib/layered-graph';
+import { resolveCoursePageLayeredDrawerEntries } from '@/lib/layered-graph/course-page-drawer';
+import type { LayeredGraphPayload } from '@/lib/layered-graph/contracts';
+import { buildCoursePackageLayeredScope } from '@/lib/layered-graph/scope';
 import {
   isUNIT_1_1InteractivePageType,
   UNIT_1_1_COURSE_SUBTITLE,

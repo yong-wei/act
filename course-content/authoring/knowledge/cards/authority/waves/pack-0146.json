@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0146",
+  "offset": 730,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-c97db3319c6da0c0371648d5",
+      "batch": "B",
+      "name": "无阻尼振荡频率",
+      "definition": "当ζ=0时，系统的振荡频率为ω_n，称为无阻尼振荡频率。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "无阻尼振荡频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 无阻尼振荡频率\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当ζ=0时，系统的振荡频率为ω_n，称为无阻尼振荡频率。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「无阻尼振荡频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "batch": "B",
+      "name": "过阻尼响应",
+      "definition": "过阻尼二阶系统的单位阶跃响应是非振荡的，称为过阻尼响应。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "过阻尼响应"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 过阻尼响应\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 过阻尼二阶系统的单位阶跃响应是非振荡的，称为过阻尼响应。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「过阻尼响应」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-26855d3b2dc6161c8705b439",
+      "batch": "B",
+      "name": "无源校正网络",
+      "definition": "由电阻、电容等无源元件组成的校正网络，用于控制系统校正。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "无源校正网络"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 无源校正网络\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 由电阻、电容等无源元件组成的校正网络，用于控制系统校正。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「无源校正网络」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2ca939471631d90bd6098990",
+      "batch": "B",
+      "name": "保持器",
+      "definition": "在脉冲序列和连续信号之间要用保持器，实现两种信号的转换。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "保持器",
+        "是一种·零阶保持器",
+        "是一种·一阶保持器",
+        "一种·信号复现滤波器",
+        "属于·采样控制系统",
+        "包含组件·采样控制…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 保持器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在脉冲序列和连续信号之间要用保持器，实现两种信号的转换。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「保持器」、「是一种·零阶保持器」、「是一种·一阶保持器」、「一种·信号复现滤波器」、「属于·采样控制系统」、「包含组件·采样控制…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ceba589bd42774a013eabc27",
+      "batch": "B",
+      "name": "最大滞后角频率",
+      "definition": "滞后网络相角达到最大滞后值的频率，ωm=1/(T√b)。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "最大滞后角频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 最大滞后角频率\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 滞后网络相角达到最大滞后值的频率，ωm=1/(T√b)。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「最大滞后角频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

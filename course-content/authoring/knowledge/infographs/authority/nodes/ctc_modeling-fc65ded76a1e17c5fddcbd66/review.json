@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T12:02:14+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+  "safe_id": "ctc_modeling-fc65ded76a1e17c5fddcbd66",
+  "node_name": "求解齐次状态方程的一种方法",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch16 A accept"
+}

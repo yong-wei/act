@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0186",
+  "offset": 930,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-61714a8a2f0cfb4c33ab4552",
+      "batch": "C",
+      "name": "Nyquist rate",
+      "definition": "Nyquist rate：Nyquist rate",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Nyquist rate",
+        "包含组件·Nyqu…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Nyquist rate\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Nyquist rate：Nyquist rate\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Nyquist ra」、「包含组件·Nyqu…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-875c91c5ad48c74f08a863e3",
+      "batch": "C",
+      "name": "Free running",
+      "definition": "Free running：Free running",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Free running",
+        "应用于·Sampl…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Free running\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Free running：Free running\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Free runni」、「应用于·Sampl…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d7425132087d7b73ba04acb6",
+      "batch": "C",
+      "name": "flash memory",
+      "definition": "flash memory：flash memory",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "flash memory",
+        "一种·read-o…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: flash memory\nSOURCE DEFINITION (fail-closed, do not invent beyond this): flash memory：flash memory\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「flash memo」、「一种·read-o…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-eacdf5b7407bac89d24540ed",
+      "batch": "C",
+      "name": "quantization",
+      "definition": "quantization：quantization",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "quantization",
+        "一种·memory…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: quantization\nSOURCE DEFINITION (fail-closed, do not invent beyond this): quantization：quantization\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「quantizati」、「一种·memory…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_1de40a30b1c09d8f5bdd595a",
+      "batch": "C",
+      "name": "超调量 σ%",
+      "definition": "超调量 σ%是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "超调量 σ%"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 超调量 σ%\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 超调量 σ%是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「超调量 σ%」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

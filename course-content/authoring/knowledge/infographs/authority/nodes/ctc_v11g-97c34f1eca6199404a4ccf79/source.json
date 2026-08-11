@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-97c34f1eca6199404a4ccf79",
+  "safe_id": "ctc_v11g-97c34f1eca6199404a4ccf79",
+  "node": {
+    "name": "反应曲线",
+    "name_en": "reaction_curve",
+    "concept_kind": "representation_kind",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "explicit_extension"
+  },
+  "definition": "反应曲线：The measured output from an open-loop step input, assumed to have the general shape of a first-order system with a tran…",
+  "intuition": "在图谱邻接中可把握：前置 → 反应速率 · 后续 → 反应曲线参数、传输延迟。",
+  "explanation": "The measured output from an open-loop step input, assumed to have the general shape of a first-order system with a transport delay, characterized by transport delay ΔT and reaction rate R.",
+  "relation_head": "前置 → 反应速率 · 后续 → 反应曲线参数、传输延迟",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "反应速率",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "反应曲线参数",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "传输延迟",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "反应曲线",
+    "reaction cur",
+    "关联·反应速率",
+    "关联·反应曲线参数",
+    "关联·传输延迟"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-97c34f1eca6199404a4ccf79.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -17,11 +17,9 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
-import {
-  buildCoursePackageLayeredScope,
-  resolveCoursePageLayeredDrawerEntries,
-  type LayeredGraphPayload,
-} from '@/lib/layered-graph';
+import { resolveCoursePageLayeredDrawerEntries } from '@/lib/layered-graph/course-page-drawer';
+import type { LayeredGraphPayload } from '@/lib/layered-graph/contracts';
+import { buildCoursePackageLayeredScope } from '@/lib/layered-graph/scope';
 import {
   UNIT_1_1_LESSON_STEPS,
   UNIT_1_1_COURSE_SUBTITLE,

@@ -1,0 +1,9 @@
+{
+  "contract": "actkg-engineering-authority-current/v1",
+  "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+  "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+  "releaseId": "ctr:release:control-theory-engineering-v0.9",
+  "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+  "activationReceiptId": "first-cutover-7f4cdd1084af419a3e837876-authority",
+  "activatedAt": "2026-08-10T15:32:51.447Z"
+}

@@ -136,6 +136,11 @@ COPY --from=builder /app/course-content/runtime/resource-governance/runtime-reso
 # packaging of current.json + releases make Konling teaching context reachable.
 COPY --from=builder /app/course-content/authoring/knowledge/authority ./course-content/authoring/knowledge/authority
 COPY --from=builder /app/course-content/runtime/knowledge/projection ./course-content/runtime/knowledge/projection
+# Production keeps candidate releases/receipts but never packages an authority
+# or teaching-projection current pointer without an explicit production cutover.
+RUN rm -f \
+  course-content/authoring/knowledge/authority/current.json \
+  course-content/runtime/knowledge/projection/current.json
 COPY --from=builder /app/.app-revision ./.app-revision
 
 # 验证生产镜像内的 SymPy 与 LaTeX parser 依赖，并运行真实计算烟测。

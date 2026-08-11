@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5baddb9163a6af3f17f2522d",
+  "safe_id": "ctkg_v3e-object-5baddb9163a6af3f17f2522d",
+  "node": {
+    "name": "Small-signal analysis",
+    "name_en": "Small-signal analysis",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Small-signal analysis：For a system with smooth nonlinearities and a continuous derivative, one can compute a linear model that is valid for s…",
+  "intuition": "在图谱邻接中可把握：后续 → Equilibrium Point。",
+  "explanation": "For a system with smooth nonlinearities and a continuous derivative, one can compute a linear model that is valid for small signals.",
+  "relation_head": "后续 → Equilibrium Point",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Equilibrium Point",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Small-signa…",
+    "Small-signal",
+    "用于分析·Equi…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5baddb9163a6af3f17f2522d.md",
+  "provider_policy": "grok-image_gen"
+}

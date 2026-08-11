@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-b7d2b341a154e6866de96630",
+  "safe_id": "ctc_modeling-b7d2b341a154e6866de96630",
+  "node": {
+    "name": "领域概念",
+    "name_en": "modeling_b7d2b341a154e6866de96630",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "领域概念：The current through a capacitor is proportional to the rate of change of voltage across it, i = C dv/dt.。",
+  "intuition": null,
+  "explanation": "The current through a capacitor is proportional to the rate of change of voltage across it, i = C dv/dt.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "领域概念"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-b7d2b341a154e6866de96630.md",
+  "provider_policy": "grok-image_gen"
+}

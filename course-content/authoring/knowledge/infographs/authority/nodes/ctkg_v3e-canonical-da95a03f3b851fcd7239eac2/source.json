@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+  "safe_id": "ctkg_v3e-canonical-da95a03f3b851fcd7239eac2",
+  "node": {
+    "name": "Design Synthesis",
+    "name_en": "Design Synthesis Using Time-Domain Specifications",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Design Synthesis：A method to specify t_r, M_p, and t_s and determine where poles need to be so that actual responses are less than or eq…",
+  "intuition": null,
+  "explanation": "A method to specify t_r, M_p, and t_s and determine where poles need to be so that actual responses are less than or equal to these specifications, using Eqs. (3.74)-(3.76).",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Design Synt…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-da95a03f3b851fcd7239eac2.md",
+  "provider_policy": "grok-image_gen"
+}

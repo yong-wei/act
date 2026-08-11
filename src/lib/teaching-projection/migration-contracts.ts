@@ -125,6 +125,13 @@ export interface ActiveCourseInventoryResource {
   title: string | null;
   sourcePath: string;
   sourceDigest: string;
+  /**
+   * ACT-owned teaching blueprint that governs an author decision for this
+   * resource.  It is optional for legacy inventories, but current inventory
+   * builds populate it so a BOPPPS change invalidates prior decisions.
+   */
+  blueprintPath?: string | null;
+  blueprintDigest?: string | null;
   /** Local legacy graph node ids associated with this resource. */
   legacyIds: string[];
   /** Human labels/names for exact alias matching. */
@@ -241,6 +248,12 @@ export interface MappingContext {
   /** Canonical IDs known and usable in the pinned Authority release. */
   authorityCanonicalIds: ReadonlySet<string>;
   authorDecisions: readonly AuthorSemanticDecision[];
+  /**
+   * Digest of the authored decision policy.  Include it in decision inputs so
+   * editing a package-level blueprint binding cannot silently reuse a prior
+   * decision.
+   */
+  authorDecisionContextDigest?: string | null;
   /** Default role when a method resolves an ID without role. */
   defaultRole?: TeachingProjectionRole;
 }

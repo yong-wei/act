@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d",
+  "safe_id": "ctkg_v3e-object-3eecf8e1bd7a80cd6b11646d",
+  "node": {
+    "name": "阻尼自然频率",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "系统阶跃动态响应中的振荡频率，记为ω_d。",
+  "intuition": null,
+  "explanation": "系统阶跃动态响应中的振荡频率，记为ω_d",
+  "relation_head": "后续 → 穿越频率、截止频率",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "穿越频率",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "截止频率",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "阻尼自然频率",
+    "关联·穿越频率",
+    "关联·截止频率"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3eecf8e1bd7a80cd6b11646d.md",
+  "provider_policy": "grok-image_gen"
+}

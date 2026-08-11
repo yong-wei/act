@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-381b2e1644e5dcb97bdc790b",
+  "safe_id": "ctkg_v3e-object-381b2e1644e5dcb97bdc790b",
+  "node": {
+    "name": "Zero-order hold (ZOH)",
+    "name_en": "Zero-order hold (ZOH)",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Zero-order hold (ZOH)：A device that maintains the same voltage throughout the sample period after D/A conversion.",
+  "intuition": "在图谱邻接中可把握：前置 → Digital-to-analog (D/A) converter、Sample period · 后续 → Sample period、Discrete equivalent。",
+  "explanation": "A device that maintains the same voltage throughout the sample period after D/A conversion.",
+  "relation_head": "前置 → Digital-to-analog (D/A) converter、Sample period · 后续 → Sample period、Discrete equivalent",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Sample period",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Digital-to-analog (D/A) converter",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Sample period",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Discrete equivalent",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Zero-order …",
+    "Zero-order h",
+    "包含组件·Samp…",
+    "包含组件·Digi…",
+    "关联·Sample…",
+    "关联·Discre…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-381b2e1644e5dcb97bdc790b.md",
+  "provider_policy": "grok-image_gen"
+}

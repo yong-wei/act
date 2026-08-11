@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0037",
+  "offset": 185,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-503d2c6683ea029b37af79d3",
+      "batch": "B",
+      "name": "Causal system",
+      "definition": "Causal system：A system is said to be causal if the output is not dependent on future inputs, that is, 'the system does not laugh befo…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Causal syst…",
+        "Causal syste"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Causal system\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Causal system：A system is said to be causal if the output is not dependent on future inputs, that is, 'the system does not laugh befo…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Causal sys」、「Causal sys」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5592624b3ec200b86f7b744d",
+      "batch": "B",
+      "name": "Observability",
+      "definition": "Observability：A system is completely observable if and only if there exists a finite time T such that the initial state x(0) can be d…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Observabili…",
+        "Observabilit",
+        "用于分析·Pole…",
+        "用于分析·Kalm…",
+        "关联·Observ…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Observability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Observability：A system is completely observable if and only if there exists a finite time T such that the initial state x(0) can be d…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Observabil」、「Observabil」、「用于分析·Pole…」、「用于分析·Kalm…」、「关联·Observ…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-592ae79b5fc586a27e9dd7f2",
+      "batch": "B",
+      "name": "Unstable System",
+      "definition": "Unstable System：A system where the characteristic equation has at least one root in the right half of the s-plane or repeated jω roots",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Unstable Sy…",
+        "Unstable Sys"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Unstable System\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Unstable System：A system where the characteristic equation has at least one root in the right half of the s-plane or repeated jω roots\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Unstable S」、「Unstable S」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-701047b791dcb064a8224082",
+      "batch": "B",
+      "name": "Bryson's Rule",
+      "definition": "Bryson's Rule：A method to start the LQR design iteration by initially choosing diagonal matrices Q and R such that Q_ii = 1 / maximum…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Bryson's Ru…",
+        "Bryson's Rul"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Bryson's Rule\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Bryson's Rule：A method to start the LQR design iteration by initially choosing diagonal matrices Q and R such that Q_ii = 1 / maximum…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Bryson's R」、「Bryson's R」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-70598dd5728797c1595207c9",
+      "batch": "B",
+      "name": "Kalman filter",
+      "definition": "Kalman filter：A time-varying optimal observer that solves the observer problem in the presence of measurement noise and process noise.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Kalman filt…",
+        "Kalman filte",
+        "一种·Full-s…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Kalman filter\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Kalman filter：A time-varying optimal observer that solves the observer problem in the presence of measurement noise and process noise.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Kalman fil」、「Kalman fil」、「一种·Full-s…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

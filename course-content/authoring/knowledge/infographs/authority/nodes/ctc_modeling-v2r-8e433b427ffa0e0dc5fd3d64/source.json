@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-v2r-8e433b427ffa0e0dc5fd3d64",
+  "safe_id": "ctc_modeling-v2r-8e433b427ffa0e0dc5fd3d64",
+  "node": {
+    "name": "branch gain",
+    "name_en": "branch_gain",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "branch gain：v3T accepted candidate for branch gain.",
+  "intuition": null,
+  "explanation": "v3T accepted candidate for branch gain.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "branch gain"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-v2r-8e433b427ffa0e0dc5fd3d64.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+  "safe_id": "ctkg_v3e-canonical-b03bdd7d909a44a2830459ca",
+  "node": {
+    "name": "典型输入信号",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "根据系统常遇到的输入信号形式，在数学描述上加以理想化的一些基本输入函数。",
+  "intuition": null,
+  "explanation": "根据系统常遇到的输入信号形式，在数学描述上加以理想化的一些基本输入函数。",
+  "relation_head": "后续 → 正弦函数、单位阶跃函数、单位斜坡函数",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "正弦函数",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "单位阶跃函数",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "单位斜坡函数",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "单位加速度函数",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "单位脉冲函数",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "典型输入信号",
+    "包含组件·正弦函数",
+    "包含组件·单位阶跃…",
+    "包含组件·单位斜坡…",
+    "包含组件·单位加速…",
+    "包含组件·单位脉冲…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-b03bdd7d909a44a2830459ca.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+  "safe_id": "ctkg_v3e-object-27e0a7e37803fbebc1b6f65a",
+  "node": {
+    "name": "对数幅相曲线",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "纵坐标为L(ω)（dB），横坐标为φ(ω)（度），均为线性分度，频率ω为参变量的频率特性曲线。",
+  "intuition": null,
+  "explanation": "纵坐标为L(ω)（dB），横坐标为φ(ω)（度），均为线性分度，频率ω为参变量的频率特性曲线。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "对数幅相曲线"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-27e0a7e37803fbebc1b6f65a.md",
+  "provider_policy": "grok-image_gen"
+}

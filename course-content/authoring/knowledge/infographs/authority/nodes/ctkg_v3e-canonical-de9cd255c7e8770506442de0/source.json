@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+  "safe_id": "ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+  "node": {
+    "name": "Superposition principle",
+    "name_en": "Superposition principle",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Superposition principle：The principle of superposition states that if the system has an input that can be expressed as a sum of signals, then t…",
+  "intuition": null,
+  "explanation": "The principle of superposition states that if the system has an input that can be expressed as a sum of signals, then the response of the system can be expressed as the sum of the individual responses to the respective signals.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Superpositi…",
+    "Superpositio"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-de9cd255c7e8770506442de0.md",
+  "provider_policy": "grok-image_gen"
+}

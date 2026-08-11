@@ -1,0 +1,678 @@
+{
+  "wave_id": "W1",
+  "batch": "B",
+  "title": "Batch B slice 1",
+  "offset": 0,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-00d2998755974a1329049aac",
+      "entity_id": "ctc:modeling-00d2998755974a1329049aac",
+      "name": "增益",
+      "name_en": "gain",
+      "definition": "增益：v3T accepted candidate for gain.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "增益",
+        "gain",
+        "一种·ultima…",
+        "是一种·K G*",
+        "是一种·根轨迹增益",
+        "应用于·graph…",
+        "应用于·gain …"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-023f560241f0e47081f0f59e",
+      "entity_id": "ctc:modeling-023f560241f0e47081f0f59e",
+      "name": "state variable",
+      "name_en": "state_variable",
+      "definition": "state variable：v3T accepted candidate for state variable.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "state varia…",
+        "state variab"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-029518e82a518c01bc626b66",
+      "entity_id": "ctc:modeling-029518e82a518c01bc626b66",
+      "name": "领域概念",
+      "name_en": "modeling_029518e82a518c01bc626b66",
+      "definition": "领域概念：A mechanical system consisting of a mass suspended from a pivot by a rod or string, used to analyze dynamics under grav…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-05fbe60f54c183c4e3ded892",
+      "entity_id": "ctc:modeling-05fbe60f54c183c4e3ded892",
+      "name": "The operation of converting",
+      "name_en": "modeling_05fbe60f54c183c4e3ded892",
+      "definition": "The operation of converting：The operation of converting a Laplace-domain function Y(s) back into a time-domain function y(t).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The operati…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-0f6572562d2ba1a5b005f2c5",
+      "entity_id": "ctc:modeling-0f6572562d2ba1a5b005f2c5",
+      "name": "pole zero gain form",
+      "name_en": "pole_zero_gain_form",
+      "definition": "pole zero gain form：v3T accepted candidate for pole zero gain form.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "pole zero g…",
+        "pole zero ga"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-16649db0eecaaa63f87f2a4a",
+      "entity_id": "ctc:modeling-16649db0eecaaa63f87f2a4a",
+      "name": "state vector",
+      "name_en": "state_vector",
+      "definition": "state vector：v3T accepted candidate for state vector.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "state vector"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-1740c61b0819b8d938fbd13c",
+      "entity_id": "ctc:modeling-1740c61b0819b8d938fbd13c",
+      "name": "The matrix sI",
+      "name_en": "modeling_1740c61b0819b8d938fbd13c",
+      "definition": "The matrix sI：The matrix Φ(s) = (sI - A)^{-1}.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The matrix …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-1897336a3fe60360d9fea3aa",
+      "entity_id": "ctc:modeling-1897336a3fe60360d9fea3aa",
+      "name": "领域概念",
+      "name_en": "modeling_1897336a3fe60360d9fea3aa",
+      "definition": "领域概念：A step-by-step procedure for developing a mathematical model of a dynamic system, including defining the system, formul…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念",
+        "关联·领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-18ec3e9de306f59f8feb27a1",
+      "entity_id": "ctc:modeling-18ec3e9de306f59f8feb27a1",
+      "name": "领域概念",
+      "name_en": "modeling_18ec3e9de306f59f8feb27a1",
+      "definition": "领域概念：A technique for determining transfer functions of complicated interconnected systems, alternative to block-diagram redu…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-194b73effe783f6d40153135",
+      "entity_id": "ctc:modeling-194b73effe783f6d40153135",
+      "name": "The product of the",
+      "name_en": "modeling_194b73effe783f6d40153135",
+      "definition": "The product of the：The product of the gains of the branches of a path, traversed in the direction of the arrows with no node encountered m…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The product…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-1a01abb71d037ed52c2bc394",
+      "entity_id": "ctc:modeling-1a01abb71d037ed52c2bc394",
+      "name": "反映系统变量间因果关系和变换关…",
+      "name_en": "modeling_1a01abb71d037ed52c2bc394",
+      "definition": "反映系统变量间因果关系和变换关系的一种数学模型。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "反映系统变量间因果关系…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-1ca93c10f7b87df4cc16b696",
+      "entity_id": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+      "name": "Control design methods based",
+      "name_en": "modeling_1ca93c10f7b87df4cc16b696",
+      "definition": "Control design methods based：Control design methods based on transfer functions, such as root locus and frequency response.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Control des…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-1f9d48d8fc305d13a1ad4763",
+      "entity_id": "ctc:modeling-1f9d48d8fc305d13a1ad4763",
+      "name": "阻尼系数",
+      "name_en": "modeling_1f9d48d8fc305d13a1ad4763",
+      "definition": "两相伺服电动机机械特性线性化直线斜率Cω=dMm/dωm，即阻尼系数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阻尼系数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-2088bbde171b2e9ef66070d5",
+      "entity_id": "ctc:modeling-2088bbde171b2e9ef66070d5",
+      "name": "block diagram reduction",
+      "name_en": "block_diagram_reduction",
+      "definition": "block diagram reduction：v3T accepted candidate for block-diagram reduction.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "block diagr…",
+        "block diagra",
+        "应用于·block…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-227e674315b4da2f1a20ee31",
+      "entity_id": "ctc:modeling-227e674315b4da2f1a20ee31",
+      "name": "dynamic system",
+      "name_en": "dynamic_system",
+      "definition": "dynamic system：v3T accepted candidate for dynamic system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "dynamic sys…",
+        "dynamic syst",
+        "有表示·在时间域描…",
+        "有表示·state…",
+        "有表示·传递函数"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-239e401e0fcc8485f3a0533d",
+      "entity_id": "ctc:modeling-239e401e0fcc8485f3a0533d",
+      "name": "set of manipulations to",
+      "name_en": "modeling_239e401e0fcc8485f3a0533d",
+      "definition": "set of manipulations to：A set of manipulations to simplify the topology of a block diagram while maintaining exactly the same relationships amo…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "set of mani…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-257734be226a35d7124a77c8",
+      "entity_id": "ctc:modeling-257734be226a35d7124a77c8",
+      "name": "diagram used to determine",
+      "name_en": "modeling_257734be226a35d7124a77c8",
+      "definition": "diagram used to determine：A diagram used to determine the forces on a body by showing all forces acting on the body and the acceleration.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "diagram use…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-279d8e08fb8dbe4bdfd80b95",
+      "entity_id": "ctc:modeling-279d8e08fb8dbe4bdfd80b95",
+      "name": "row matrix in the",
+      "name_en": "modeling_279d8e08fb8dbe4bdfd80b95",
+      "definition": "row matrix in the：A 1 x n row matrix in the state-variable form.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "row matrix …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-2897ba298baf9901ef5633e3",
+      "entity_id": "ctc:modeling-2897ba298baf9901ef5633e3",
+      "name": "takeoff point",
+      "name_en": "takeoff_point",
+      "definition": "takeoff point：v3T accepted candidate for takeoff point.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "takeoff poi…",
+        "takeoff poin"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-28fa6deb965991972437f316",
+      "entity_id": "ctc:modeling-28fa6deb965991972437f316",
+      "name": "method of using computer",
+      "name_en": "modeling_28fa6deb965991972437f316",
+      "definition": "method of using computer：A method of using computer simulations of both linear and nonlinear mathematical models to obtain a more complete repre…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method of u…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-290a601cb41e32841fe66084",
+      "entity_id": "ctc:modeling-290a601cb41e32841fe66084",
+      "name": "summing junction",
+      "name_en": "summing_junction",
+      "definition": "summing junction：v3T accepted candidate for summing junction.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "summing jun…",
+        "summing junc"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-29d527b6e9effbb6adcabc45",
+      "entity_id": "ctc:modeling-29d527b6e9effbb6adcabc45",
+      "name": "领域概念",
+      "name_en": "modeling_29d527b6e9effbb6adcabc45",
+      "definition": "领域概念：A feedback arrangement where the feedback signal is added instead of subtracted.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-31d6c35bb311ba59057d5952",
+      "entity_id": "ctc:modeling-31d6c35bb311ba59057d5952",
+      "name": "领域概念",
+      "name_en": "modeling_31d6c35bb311ba59057d5952",
+      "definition": "领域概念：A Laplace transform expressed as the ratio of two polynomials in s.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-3296b051e82a7e96fa31dcd9",
+      "entity_id": "ctc:modeling-3296b051e82a7e96fa31dcd9",
+      "name": "求解离散动态方程的一种常用方法",
+      "name_en": "modeling_3296b051e82a7e96fa31dcd9",
+      "definition": "求解离散动态方程的一种常用方法，通过令 k=0,1,...,k-1 递推得到各时刻的状态。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "求解离散动态方程的一种…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-34d3b4c651b0047e6e180fe2",
+      "entity_id": "ctc:modeling-34d3b4c651b0047e6e180fe2",
+      "name": "method for modeling fluid",
+      "name_en": "modeling_34d3b4c651b0047e6e180fe2",
+      "definition": "method for modeling fluid：A method for modeling a fluid flow reservoir: establish the system configuration, then obtain appropriate mathematical…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method for …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-34de45f2470f6c09c7d96698",
+      "entity_id": "ctc:modeling-34de45f2470f6c09c7d96698",
+      "name": "linearization",
+      "name_en": "linearization",
+      "definition": "linearization：v3T accepted candidate for linearization.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "linearizati…",
+        "linearizatio"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-35ceac27e10f3aedb135cbab",
+      "entity_id": "ctc:modeling-35ceac27e10f3aedb135cbab",
+      "name": "An matrix in the",
+      "name_en": "modeling_35ceac27e10f3aedb135cbab",
+      "definition": "An matrix in the：An n x 1 matrix in the state-variable form.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "An matrix i…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-385c515b4d8dbb550b664072",
+      "entity_id": "ctc:modeling-385c515b4d8dbb550b664072",
+      "name": "Input and output points",
+      "name_en": "modeling_385c515b4d8dbb550b664072",
+      "definition": "Input and output points：Input and output points or junctions in a signal-flow graph.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Input and o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-39a4d08c5d9a2a86dcb90e73",
+      "entity_id": "ctc:modeling-39a4d08c5d9a2a86dcb90e73",
+      "name": "The roots of the",
+      "name_en": "modeling_39a4d08c5d9a2a86dcb90e73",
+      "definition": "The roots of the：The roots of the numerator of a transfer function that affect the system's response.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The roots o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-3d5825588c001e4faf3af7bc",
+      "entity_id": "ctc:modeling-3d5825588c001e4faf3af7bc",
+      "name": "表征系统内部变量及输入变量和输…",
+      "name_en": "modeling_3d5825588c001e4faf3af7bc",
+      "definition": "表征系统内部变量及输入变量和输出变量间转换关系的数学表达式，具有代数方程的形式。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "表征系统内部变量及输入…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-3d919906545f3c2891c3f444",
+      "entity_id": "ctc:modeling-3d919906545f3c2891c3f444",
+      "name": "tau RC the time",
+      "name_en": "modeling_3d919906545f3c2891c3f444",
+      "definition": "tau RC the time：tau = RC, the time constant of the network.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "tau RC the …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-42946f0d5ec8b73ea7158b0d",
+      "entity_id": "ctc:modeling-42946f0d5ec8b73ea7158b0d",
+      "name": "用于测量角速度并将它转换成电压…",
+      "name_en": "modeling_42946f0d5ec8b73ea7158b0d",
+      "definition": "用于测量角速度并将它转换成电压量的装置，在控制系统中常用的有直流和交流测速发电机。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "用于测量角速度并将它转…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-42e60317a7f829d9743436fb",
+      "entity_id": "ctc:modeling-42e60317a7f829d9743436fb",
+      "name": "The roots of the",
+      "name_en": "modeling_42e60317a7f829d9743436fb",
+      "definition": "The roots of the：The roots of the characteristic equation are called the poles of the system. At the poles, the function Y(s) becomes in…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The roots o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-44e603669ad0e6bf331b1511",
+      "entity_id": "ctc:modeling-44e603669ad0e6bf331b1511",
+      "name": "feedback loop in signal-flow",
+      "name_en": "modeling_44e603669ad0e6bf331b1511",
+      "definition": "feedback loop in signal-flow：A feedback loop in a signal-flow graph that starts and ends at the same node.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "feedback lo…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-47e8eb68c1aa5cd068c72e54",
+      "entity_id": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+      "name": "feedback loop where the",
+      "name_en": "modeling_47e8eb68c1aa5cd068c72e54",
+      "definition": "feedback loop where the：A feedback loop where the feedback signal is subtracted, resulting in a minus sign in the denominator expression.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "feedback lo…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-49366083a7c2d25157dff636",
+      "entity_id": "ctc:modeling-49366083a7c2d25157dff636",
+      "name": "用于简化离散化输入矩阵 G(T…",
+      "name_en": "modeling_49366083a7c2d25157dff636",
+      "definition": "用于简化离散化输入矩阵 G(T) 计算的方法，令 (k+1)T - τ = τ' 进行变量置换。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "用于简化离散化输入矩阵…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-4deaeff05024e26119625b3f",
+      "entity_id": "ctc:modeling-4deaeff05024e26119625b3f",
+      "name": "Constant that relates motor",
+      "name_en": "modeling_4deaeff05024e26119625b3f",
+      "definition": "Constant that relates motor：Constant K_m that relates motor torque to the input current (field current or armature current) in a linearized DC moto…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Constant th…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-4df124031c5a8ee564df38c9",
+      "entity_id": "ctc:modeling-4df124031c5a8ee564df38c9",
+      "name": "只有信号输出支路而没有信号输入…",
+      "name_en": "modeling_4df124031c5a8ee564df38c9",
+      "definition": "只有信号输出支路而没有信号输入支路的节点，一般代表系统的输入变量。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "只有信号输出支路而没有…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-4f409ac5d92008a186021024",
+      "entity_id": "ctc:modeling-4f409ac5d92008a186021024",
+      "name": "控制系统中广泛应用的一种小功率…",
+      "name_en": "modeling_4f409ac5d92008a186021024",
+      "definition": "具有重量轻、惯性小、加速特性好的优点，是控制系统中广泛应用的一种小功率交流执行机构，由互相垂直配置的两相定子线圈和一个高电阻值的转子组成。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "控制系统中广泛应用的一…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-4f6741e807ce91bcc0c55edc",
+      "entity_id": "ctc:modeling-4f6741e807ce91bcc0c55edc",
+      "name": "描述系统内部每个时刻所处状况的…",
+      "name_en": "modeling_4f6741e807ce91bcc0c55edc",
+      "definition": "描述系统内部每个时刻所处状况的变量，以向量x表示。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "描述系统内部每个时刻所…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "entity_id": "ctc:modeling-4fe8840f2c796861bf5d2dae",
+      "name": "在一个很小的范…",
+      "name_en": "modeling_4fe8840f2c796861bf5d2dae",
+      "definition": "一种线性化方法，特别适合于具有连续变化的非线性特性函数，其实质是在一个很小的范围内，将非线性特性用一段直线来代替。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "在一个很小的范…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-50096472169ff29f3d25b2d1",
+      "entity_id": "ctc:modeling-50096472169ff29f3d25b2d1",
+      "name": "The plane of position",
+      "name_en": "modeling_50096472169ff29f3d25b2d1",
+      "definition": "The plane of position：The plane of position versus velocity of a particle or rigid body.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The plane o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-50485fae7510cd7e2e73f19c",
+      "entity_id": "ctc:modeling-50485fae7510cd7e2e73f19c",
+      "name": "表示对两个以上的信号进行加减运算",
+      "name_en": "modeling_50485fae7510cd7e2e73f19c",
+      "definition": "表示对两个以上的信号进行加减运算，'＋'号表示相加，'－'号表示相减。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "表示对两个以上的信号进…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-509a4d362899c7dae1f7fd55",
+      "entity_id": "ctc:modeling-509a4d362899c7dae1f7fd55",
+      "name": "method for simplifying block",
+      "name_en": "modeling_509a4d362899c7dae1f7fd55",
+      "definition": "method for simplifying block：A method for simplifying a block diagram by reducing inner feedback loops and combining resulting systems in series.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method for …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-50ed406e4478b481d868adfb",
+      "entity_id": "ctc:modeling-50ed406e4478b481d868adfb",
+      "name": "The determinant of the",
+      "name_en": "modeling_50ed406e4478b481d868adfb",
+      "definition": "The determinant of the：The determinant of the signal flow graph with the loops touching the k-th forward path removed.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The determi…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-552949e161c8ec77272f5d01",
+      "entity_id": "ctc:modeling-552949e161c8ec77272f5d01",
+      "name": "system where the output",
+      "name_en": "modeling_552949e161c8ec77272f5d01",
+      "definition": "system where the output：A system where the output results from integrating the sum of input torques twice, with transfer function 1/(I s^2).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "system wher…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-55e31330cbbe990cf7ad21f4",
+      "entity_id": "ctc:modeling-55e31330cbbe990cf7ad21f4",
+      "name": "The time response of",
+      "name_en": "modeling_55e31330cbbe990cf7ad21f4",
+      "definition": "The time response of：The time response of a system to an initial condition or suddenly applied signal, as opposed to steady-state response.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The time re…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-56a9fb0159828d74278483da",
+      "entity_id": "ctc:modeling-56a9fb0159828d74278483da",
+      "name": "阀门流量系数Ku",
+      "name_en": "modeling_56a9fb0159828d74278483da",
+      "definition": "阀门流量系数Ku，表示调节阀开度变化Δu与流入量增量ΔQi的关系：ΔQi=Ku Δu。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阀门流量系数Ku"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-57c56ef58df2315f765a32dc",
+      "entity_id": "ctc:modeling-57c56ef58df2315f765a32dc",
+      "name": "formula for evaluating the",
+      "name_en": "modeling_57c56ef58df2315f765a32dc",
+      "definition": "formula for evaluating the：A formula for evaluating the transfer function of a system from its signal-flow graph by considering forward paths, loo…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "formula for…",
+        "应用于·signa…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-57fe9fb7d5fdd731b82b9408",
+      "entity_id": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+      "name": "对于具有连续变化的非线性特性函数",
+      "name_en": "modeling_57fe9fb7d5fdd731b82b9408",
+      "definition": "对于具有连续变化的非线性特性函数，在一个很小的范围内，将非线性特性用一段直线来代替。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "对于具有连续变化的非线…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

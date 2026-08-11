@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0054",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-710cc7b05bccac04bdf10d66",
+      "name": "Asymptotic tracking",
+      "definition": "Asymptotic tracking：The property of a control system where the tracking error approaches zero as time goes to infinity."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-84350edf4a87ec7d0552e03e",
+      "name": "Phase-Lead Compensator",
+      "definition": "Phase-Lead Compensator：A first-order compensator where |z|<|p|, providing a phase-lead characteristic."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "name": "z-transform",
+      "definition": "z-transform：A transform defined as Z{r(t)} = Z{r*(t)} = sum_{k=0}^{∞} r(kT) z^{-k}, where z = e^{sT}."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-92d2247647a43c16c2a637b8",
+      "name": "Sampled-data system",
+      "definition": "Sampled-data system：A system where part of the system acts on sampled data."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ae1017494c7f2d20cd53efad",
+      "name": "自激振荡",
+      "definition": "所谓自激振荡是指没有外界信号的作用时，系统内产生的具有固定振幅和频率的稳定周期运动，简称自振。"
+    }
+  ],
+  "created_at": "2026-08-05T15:43:42.965973+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T12:01:16+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-e4ceb6ad3afccdbda0ae3d91",
+  "safe_id": "ctc_modeling-e4ceb6ad3afccdbda0ae3d91",
+  "node_name": "初始条件为零时",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch14 A accept"
+}

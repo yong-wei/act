@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0082",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-8821eda7812d88a26a449d71",
+      "name": "利用MATLAB进行高阶系统建…",
+      "definition": "利用MATLAB进行高阶系统建模和单位阶跃响应计算。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8d146e4add26f71181e7c891",
+      "name": "Right half-plane (RHP)",
+      "definition": "Right half-plane (RHP)：Right half-plane (RHP)"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "name": "稳态误差",
+      "definition": "当时间 t 趋于无穷时，误差响应 e(t) 的稳态值称为稳态误差，以 e_ss(∞) 标志。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "name": "一阶系统",
+      "definition": "凡以一阶微分方程作为运动方程的控制系统，称为一阶系统。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-9988510f6127d3086f4aa265",
+      "name": "峰值时间",
+      "definition": "响应超过其终值到达第一个峰值所需的时间。"
+    }
+  ],
+  "created_at": "2026-08-05T16:20:45.017004+00:00"
+}

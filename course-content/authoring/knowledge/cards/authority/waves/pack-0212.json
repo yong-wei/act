@@ -1,0 +1,46 @@
+{
+  "pack_id": "P0212",
+  "offset": 1060,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-9e5c7acbf973dd58acd749ef",
+      "batch": "C",
+      "name": "分隔线",
+      "definition": "分隔线。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "分隔线",
+        "是一种·极限环",
+        "包含组件·相平面图"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 分隔线\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 分隔线。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「分隔线」、「是一种·极限环」、「包含组件·相平面图」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bda94d95d799211be70fabf9",
+      "batch": "C",
+      "name": "自振荡",
+      "definition": "自振荡。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "自振荡",
+        "关联·极限环",
+        "关联·稳定极限环",
+        "关联·间隙特性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 自振荡\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 自振荡。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「自振荡」、「关联·极限环」、「关联·稳定极限环」、「关联·间隙特性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-69aaaef625010f7755f253e8",
+      "batch": "C",
+      "name": "死区",
+      "definition": "死区。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "死区",
+        "关联·间隙特性",
+        "关联·死区特性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 死区\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 死区。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「死区」、「关联·间隙特性」、「关联·死区特性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}
