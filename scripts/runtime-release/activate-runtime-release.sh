@@ -66,9 +66,14 @@ old_active="$(python3 "$HOST_STATE_SCRIPT" active --state-dir "$STATE_DIR" | pyt
 capture_rollback_image() {
   local app_image
   local worker_image
-  app_image="$(podman inspect --format '{{.Image}}' "$APP_CONTAINER")"
-  worker_image="$(podman inspect --format '{{.Image}}' "$WORKER_CONTAINER")"
-  [[ "$app_image" =~ ^sha256:[a-f0-9]{64}$ ]] || { echo "ERROR: existing app image digest is invalid" >&2; exit 1; }
+  local app_image_id
+  local worker_image_id
+  app_image_id="$(podman inspect --format '{{.Image}}' "$APP_CONTAINER")"
+  worker_image_id="$(podman inspect --format '{{.Image}}' "$WORKER_CONTAINER")"
+  [[ "$app_image_id" =~ ^(sha256:)?([a-f0-9]{64})$ ]] || { echo "ERROR: existing app image digest is invalid" >&2; exit 1; }
+  app_image="sha256:${BASH_REMATCH[2]}"
+  [[ "$worker_image_id" =~ ^(sha256:)?([a-f0-9]{64})$ ]] || { echo "ERROR: existing worker image digest is invalid" >&2; exit 1; }
+  worker_image="sha256:${BASH_REMATCH[2]}"
   [[ "$worker_image" == "$app_image" ]] || { echo "ERROR: app and worker must use the same image before runtime cutover" >&2; exit 1; }
   rollback_app_image="$app_image"
 }

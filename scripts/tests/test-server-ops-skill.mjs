@@ -78,6 +78,7 @@ for (const invariant of [
   '`ali-oss` 与 `@alicloud/credentials`',
   '`--ro=true`、`--allow_other=true`、目标 uid/gid、`--file_mode=0644` 与 `--dir_mode=0755`',
   '`findmnt -T <mount-root>/<release-id>`',
+  '远端 `GraphRoot` 可用空间必须不少于 layer 总量加 1 GiB',
   '等待人工确认后删除',
 ]) {
   assert.ok(
