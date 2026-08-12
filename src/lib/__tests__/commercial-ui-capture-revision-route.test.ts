@@ -8,7 +8,7 @@ vi.mock('@/lib/commercial-ui-capture-revision', () => ({
   computeCaptureRevisionProof: mocks.computeCaptureRevisionProof,
 }));
 
-import { GET } from '../../app/api/internal/local-qa/revision/route';
+import { GET, resetRuntimeRevisionProofForTests } from '../../app/api/internal/local-qa/revision/route';
 
 const proof = {
   commitSha: 'a'.repeat(40),
@@ -31,6 +31,7 @@ function restoreEnvironment() {
 describe('development-only commercial UI capture revision probe', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetRuntimeRevisionProofForTests();
     mutableEnvironment.NODE_ENV = 'development';
     delete mutableEnvironment.ACT_LOCAL_QA_BRIDGE;
     mocks.computeCaptureRevisionProof.mockReturnValue(proof);
@@ -81,5 +82,21 @@ describe('development-only commercial UI capture revision probe', () => {
     const errorResponse = await GET();
     expect(errorResponse.status).toBe(503);
     expect(await errorResponse.text()).toBe('');
+  });
+
+  it('keeps the first runtime proof stable for the lifetime of the route module', async () => {
+    mutableEnvironment.ACT_LOCAL_QA_BRIDGE = '1';
+    const firstResponse = await GET();
+    expect(firstResponse.status).toBe(200);
+    const firstProof = await firstResponse.json();
+
+    mocks.computeCaptureRevisionProof.mockReturnValue({
+      ...proof,
+      commitSha: 'd'.repeat(40),
+      treeSha: 'e'.repeat(40),
+    });
+    const secondResponse = await GET();
+    expect(secondResponse.status).toBe(200);
+    expect(await secondResponse.json()).toEqual(firstProof);
   });
 });
