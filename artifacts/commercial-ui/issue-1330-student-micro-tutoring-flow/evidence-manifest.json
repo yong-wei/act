@@ -1,57 +1,61 @@
 {
-  "capturedAt": "2026-08-11T06:32:14.729Z",
-  "commitSha": "c44abdf99eee369324f61b7cc27cd5f338606d61",
+  "capturedAt": "2026-08-12T05:46:53.958Z",
+  "commitSha": "b665ff8bdd144015b9cc3a689af826dd8d2ac6a4",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
   "captureMethod": "Playwright with Google Chrome channel against local Next.js Webpack dev server",
   "fixtureAuthority": "Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are scoped Playwright fixtures so available, unavailable, and retry states are deterministic; route and component tests cover the server contract.",
   "sourceSha256": {
     "src/app/api/assessment/remediation/interventions/validation/route.ts": "ac71fa9098194163a8dd2d7486bf0f0bd02a59e66dddbfbd5854d1aa0d442b83",
     "src/app/api/assessment/remediation/route.ts": "0e6f851bb0b0c79fea2fdaed99e7b0eb23dc35010bf98df771decd4636ffcd5f",
-    "src/app/assessment/adaptive-practice/page.tsx": "a43da1b946162d8c844c8b643c39bc31ad992ddea4e586393b7e536e4cef2790",
-    "src/features/assessment/micro-intervention-outcomes.ts": "820edf3c036ce054afd049cd064db6507551bf901bd59437cbf18f42e8908e9d",
-    "src/features/assessment/student-micro-tutoring-panel.tsx": "eb514c58e31f43e314615ad2d3832f184eef1f6b1902db902cf4f633302953b9",
-    "tests/student-micro-tutoring-evidence.spec.ts": "6d985d2c4f7db0bdd507714a9c87be3fe5695c2370c8abe5e1cd7750be22ee3a"
+    "src/app/assessment/adaptive-practice/page.tsx": "3f17431a8be3bfb353d02255b61c8e957a11b1eb198d3fb074c2992c01253b83",
+    "src/features/assessment/adaptive-engine.ts": "6a04f82220186ab354d1d6ecbbe7294acf8a2593f8ad4bd3add8a3b13215c269",
+    "src/features/assessment/micro-intervention-outcomes.ts": "f42749d3d4fb07ef956dc35fa8845a6c8afb592753ce545d9b263b9eb9f2f5c8",
+    "src/features/assessment/remediation-orchestration.ts": "ffd6556d92c707a33939a8e3cc3eb116c20020f4921691a73e2678a286433bad",
+    "src/features/assessment/student-micro-tutoring-panel.tsx": "93cd3a1e4578bd7923d200e824c281d38d06c03af21c65d2995ae0e6e54583f4",
+    "src/features/assessment/wrong-answer-attribution.ts": "fdb5123b31fd4b51c50c2e5e6d30505620bc2f2f20758f1f8344d68dc423d31d",
+    "tests/student-micro-tutoring-evidence.spec.ts": "a8f6f1786293e71627588ce17e159bb75b01da3530b1115cb6bf965aee877508"
   },
   "outcomes": {
     "availableFullLoop": "The persisted wrong-answer entry creates, starts, completes, answers validation, and renders the validated recommendation.",
-    "unavailable": "ATTRIBUTION_UNCERTAIN remains fail-closed and exposes no retry action.",
-    "recoverableFailure": "A 503 create failure offers retry and succeeds on the second request.",
+    "governedEntry": "Only a reviewed catalog-backed wrong answer exposes the student micro-tutoring entry.",
+    "referenceDrift": "A REFERENCE_DRIFT response hides stale task details and offers an explicit fresh orchestration retry.",
+    "referenceDriftRecovery": "The explicit retry creates a current task and restores the start action.",
     "accessibility": "The changed primary entry owns an explicit focus-visible ring before activation; both viewports have no horizontal overflow."
   },
   "screenshots": [
     {
       "file": "playwright/available-full-loop-1440.png",
-      "sha256": "c26f1b1a2bb6e3a997b69ec323e4f975310dfc8934bd08d5e12810188075463e",
+      "sha256": "93e21dc41af94ceddfb6644f7f9d2aa8b67c890135204a7cdda16d807ca1f952",
       "viewport": "1440x1000",
       "state": "validated"
     },
     {
-      "file": "playwright/unavailable-fail-closed-1440.png",
-      "sha256": "3f5ff644ab47e30d1526d3f0859c42ba70ba8213dca01b57062c93853ea48190",
+      "file": "playwright/reference-drift-unavailable-1440.png",
+      "sha256": "fa33eed9697bec188ad3d9bac1e728505ebc3069d0da301b05cb49ce5c519f01",
       "viewport": "1440x1000",
-      "state": "unavailable"
+      "state": "reference-drift"
     },
     {
-      "file": "playwright/recoverable-retry-1440.png",
-      "sha256": "69647457fab4d13669b6592f6a9de718de2fbaa8c067d6e670d750f4ada86e3d",
+      "file": "playwright/reference-drift-recovered-1440.png",
+      "sha256": "95981a06fc1deef164571a5787c09f021b622049936f1dc56a5838426885626f",
       "viewport": "1440x1000",
       "state": "recovered"
     },
     {
       "file": "playwright/available-full-loop-320.png",
-      "sha256": "381b42a2a76e89969ce3296d847ec5c89dcbe03452aba65c279dab074e5057f7",
+      "sha256": "5fbd9118537d5d0d29586a7c5c5ebc526ed2d439263bd7190a6f862086b2488a",
       "viewport": "320x900",
       "state": "validated"
     },
     {
-      "file": "playwright/unavailable-fail-closed-320.png",
-      "sha256": "f3c2d06ce227954c52aa5583242a6beef5f88e3bd830399354f9823c961dcd16",
+      "file": "playwright/reference-drift-unavailable-320.png",
+      "sha256": "023fbbb3324eb1c0f36e9f059289df79e1fd908988948fb1b76a2e5965b2c7a8",
       "viewport": "320x900",
-      "state": "unavailable"
+      "state": "reference-drift"
     },
     {
-      "file": "playwright/recoverable-retry-320.png",
-      "sha256": "f44f910390b55e45355698ef1686cae6aedde514dfbf452dffce02d8e8c76d10",
+      "file": "playwright/reference-drift-recovered-320.png",
+      "sha256": "0cac77ecdfcfc8d99687e20ca7a60c551d62a88acdf402fc35143ecedfeb2d21",
       "viewport": "320x900",
       "state": "recovered"
     }

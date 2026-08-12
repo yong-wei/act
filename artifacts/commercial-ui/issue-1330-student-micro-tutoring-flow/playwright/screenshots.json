@@ -1,12 +1,12 @@
 {
-  "capturedAt": "2026-08-11T06:32:14.729Z",
-  "gitRevision": "c44abdf99eee369324f61b7cc27cd5f338606d61",
+  "capturedAt": "2026-08-12T05:46:53.958Z",
+  "gitRevision": "b665ff8bdd144015b9cc3a689af826dd8d2ac6a4",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
   "fixtureAuthority": "Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are Playwright route fixtures so each commercial state is deterministic; route and component tests cover their server contracts.",
   "evidence": [
     {
       "file": "available-full-loop-1440.png",
-      "screenshotSha256": "c26f1b1a2bb6e3a997b69ec323e4f975310dfc8934bd08d5e12810188075463e",
+      "screenshotSha256": "93e21dc41af94ceddfb6644f7f9d2aa8b67c890135204a7cdda16d807ca1f952",
       "width": 1440,
       "state": "validated",
       "noHorizontalOverflow": true,
@@ -16,30 +16,32 @@
       }
     },
     {
-      "file": "unavailable-fail-closed-1440.png",
-      "screenshotSha256": "3f5ff644ab47e30d1526d3f0859c42ba70ba8213dca01b57062c93853ea48190",
+      "file": "reference-drift-unavailable-1440.png",
+      "screenshotSha256": "fa33eed9697bec188ad3d9bac1e728505ebc3069d0da301b05cb49ce5c519f01",
       "width": 1440,
-      "state": "unavailable",
+      "state": "reference-drift",
       "noHorizontalOverflow": true,
       "assertions": {
-        "retryAvailable": false,
-        "unavailableReason": "ATTRIBUTION_UNCERTAIN"
+        "retryAvailable": true,
+        "staleTaskHidden": true,
+        "unavailableReason": "REFERENCE_DRIFT"
       }
     },
     {
-      "file": "recoverable-retry-1440.png",
-      "screenshotSha256": "69647457fab4d13669b6592f6a9de718de2fbaa8c067d6e670d750f4ada86e3d",
+      "file": "reference-drift-recovered-1440.png",
+      "screenshotSha256": "95981a06fc1deef164571a5787c09f021b622049936f1dc56a5838426885626f",
       "width": 1440,
       "state": "recovered",
       "noHorizontalOverflow": true,
       "assertions": {
         "createAttempts": 2,
-        "retryAvailable": true
+        "retryAvailable": true,
+        "startActionRestored": true
       }
     },
     {
       "file": "available-full-loop-320.png",
-      "screenshotSha256": "381b42a2a76e89969ce3296d847ec5c89dcbe03452aba65c279dab074e5057f7",
+      "screenshotSha256": "5fbd9118537d5d0d29586a7c5c5ebc526ed2d439263bd7190a6f862086b2488a",
       "width": 320,
       "state": "validated",
       "noHorizontalOverflow": true,
@@ -49,25 +51,27 @@
       }
     },
     {
-      "file": "unavailable-fail-closed-320.png",
-      "screenshotSha256": "f3c2d06ce227954c52aa5583242a6beef5f88e3bd830399354f9823c961dcd16",
+      "file": "reference-drift-unavailable-320.png",
+      "screenshotSha256": "023fbbb3324eb1c0f36e9f059289df79e1fd908988948fb1b76a2e5965b2c7a8",
       "width": 320,
-      "state": "unavailable",
+      "state": "reference-drift",
       "noHorizontalOverflow": true,
       "assertions": {
-        "retryAvailable": false,
-        "unavailableReason": "ATTRIBUTION_UNCERTAIN"
+        "retryAvailable": true,
+        "staleTaskHidden": true,
+        "unavailableReason": "REFERENCE_DRIFT"
       }
     },
     {
-      "file": "recoverable-retry-320.png",
-      "screenshotSha256": "f44f910390b55e45355698ef1686cae6aedde514dfbf452dffce02d8e8c76d10",
+      "file": "reference-drift-recovered-320.png",
+      "screenshotSha256": "0cac77ecdfcfc8d99687e20ca7a60c551d62a88acdf402fc35143ecedfeb2d21",
       "width": 320,
       "state": "recovered",
       "noHorizontalOverflow": true,
       "assertions": {
         "createAttempts": 2,
-        "retryAvailable": true
+        "retryAvailable": true,
+        "startActionRestored": true
       }
     }
   ]
