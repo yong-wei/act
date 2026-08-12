@@ -42,6 +42,8 @@ for (const invariant of [
   'invalid runtime deploy mode',
   'capture_rollback_image()',
   'existing app image digest is invalid',
+  'existing worker image digest is invalid',
+  'app_image="sha256:${BASH_REMATCH[2]}"',
   'app and worker must use the same image before runtime cutover',
   'APP_IMAGE="$rollback_app_image"',
   'ACT_RUNTIME_APP_REVISION',

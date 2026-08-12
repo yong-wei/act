@@ -45,7 +45,11 @@ print(json.dumps({'activeReleaseId': None} if sys.argv[1] == 'active' else {}))
   executable('podman', `
 if [[ "$1" == 'inspect' && "$2" == '--format' ]]; then
   case "$4" in
-    act-obe-app|act-obe-worker) printf '%s\\n' 'sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' ;;
+    act-obe-app|act-obe-worker)
+      image='sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+      if [[ "\${ACT_TEST_BARE_IMAGE_ID:-0}" == 1 ]]; then image="\${image#sha256:}"; fi
+      printf '%s\\n' "$image"
+      ;;
     *) exit 1 ;;
   esac
   exit 0
@@ -87,6 +91,7 @@ fi
       ACT_RUNTIME_LEGACY_ROOT: legacyRoot,
       ACT_RUNTIME_APP_SERVICE_DROPIN_PATH: path.join(temporary, 'act-obe-stack.service.d', '20-runtime-ossfs.conf'),
       ACT_TEST_EVENT_LOG: log,
+      ACT_TEST_BARE_IMAGE_ID: '1',
     },
   });
 
