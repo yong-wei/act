@@ -136,8 +136,8 @@ function verifyCutoverFailureGate() {
     ).length;
     assert.equal(
       stopCalls,
-      2,
-      'cutover 开始后的 ERR 必须执行初始 stop，并在失败处理时再次确认消费者停止',
+      0,
+      'Legacy staging 在未持有 runtime 锁前失败时不得停止消费者',
     );
 
     fs.writeFileSync(sshLog, '');
@@ -171,8 +171,8 @@ function verifyCutoverFailureGate() {
     ).length;
     assert.equal(
       explicitExitStopCalls,
-      2,
-      'cutover 开始后的显式非零 EXIT 必须执行初始 stop，并在退出处理时再次确认消费者停止',
+      0,
+      '镜像上传阶段失败时不得停止消费者',
     );
 
     fs.writeFileSync(sshLog, '');
@@ -256,14 +256,15 @@ function main() {
   );
 
   assert.equal(
-    script.includes('stop_remote_runtime_consumers') &&
-      script.indexOf('stop_remote_runtime_consumers', script.indexOf('[2/5]')) <
-        script.indexOf('rsync "${runtime_rsync_args[@]}"') &&
+    script.includes('flock -x 9') &&
+      script.includes('REMOTE_RUNTIME_SELECTION_LOCK') &&
+      script.indexOf('rsync "${runtime_rsync_args[@]}"') <
+        script.indexOf('Step 0/8: 在 runtime 锁内替换 Legacy runtime') &&
       script.includes('REMOTE_RUNTIME_STAGING_DIR') &&
       script.includes('保持教材 runtime 消费者停止') &&
       script.includes('trap on_exit EXIT'),
     true,
-    '远端部署必须在 runtime 同步前停止消费者，并让 ERR 或显式非零退出都保持消费者停止',
+    'Legacy 部署必须先隔离 staging，再在同一 runtime 锁内停止消费者、替换 runtime 与重建容器',
   );
 
   assert.equal(

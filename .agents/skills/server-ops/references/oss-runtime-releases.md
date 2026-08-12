@@ -16,6 +16,7 @@
 - 完整上传后必须从 OSS 重新读取并校验 manifest 与所有对象的大小和哈希；任一缺失或不匹配均不得选择该 Release。不得复用、覆盖或原地修复已经发布的 Release。
 - 完整内容校验由 publisher bridge 的 upload/readback receipt 承担一次。恢复 ECS read role 后，验证必须通过 ECS 上的 read-only bridge，而不是在本机伪造 IMDS 身份；它只需严格读取 manifest、精确比对对象 key 集合、检查全部元数据并读取有上限的代表性对象。不要在每次切换前重复读取整个 Release；全量 read-role 哈希审计属于独立周期性诊断。
 - OSS `PutObject` 不具备条件写入语义，不能把对象存储中的可变 `current.json` 当作并发安全的生产指针。单 ECS 的运行时选择使用宿主机 ext4 上受权限保护的 state directory：固定 `flock` 锁、期望 active release、单调 generation、临时文件 `fsync`、原子 rename、目录 `fsync`。desired selection 与 health 后写入的 active receipt 分开保存。
+- 任何仍会替换 Legacy runtime 目录或重建其消费者的部署路径，也必须在远端实际变更脚本内持有同一 `.act-runtime-selection.lock`，覆盖停止消费者、目录提升、容器重建、readiness 与失败恢复；本地调用器或多次 SSH 连接不能构成锁。OSS active receipt 已存在时，Legacy 路径必须失败关闭。
 - 回滚仅选择一个已完整复核的旧 Release；先写 desired，再重新挂载并重启容器，健康检查成功后才更新 active receipt。失败的候选不得覆盖此前 active receipt。
 
 ## ossfs 与 Podman
