@@ -181,16 +181,20 @@ const ACTIVE_MOBILE_NODE_LIMIT = 6;
 const ACTIVE_MOBILE_VIEWBOX = '0 0 320 520';
 const ACTIVE_DESKTOP_VIEWBOX = '0 0 960 520';
 
-function layoutNodes(
-  nodes: readonly ActiveNodePresentation[],
+export function layoutActiveAuthorityNodes(
+  nodes: readonly Pick<ActiveNodePresentation, 'key'>[],
   compact = false,
 ): ReadonlyMap<string, Point> {
   const columns = compact
     ? Math.max(1, Math.min(2, nodes.length))
-    : Math.max(1, Math.min(4, Math.ceil(Math.sqrt(nodes.length))));
-  const columnGap = compact ? 164 : 220;
+    : Math.max(1, Math.min(6, Math.max(Math.ceil(Math.sqrt(nodes.length)), Math.ceil(nodes.length / 4))));
+  const columnGap = compact
+    ? 164
+    : columns === 6 ? 160 : columns === 5 ? 180 : 220;
   const rowGap = compact ? 112 : 120;
-  const startX = compact ? (columns === 1 ? 160 : 78) : 130;
+  const startX = compact
+    ? (columns === 1 ? 160 : 78)
+    : columns === 6 ? 80 : columns === 5 ? 120 : 130;
   const startY = compact ? 72 : 84;
   return new Map(nodes.map((node, index) => [node.key, {
     x: startX + (index % columns) * columnGap,
@@ -501,7 +505,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     return visibleActiveGraph(model, filteredKeys);
   }, [model, typeFilter, visibleKeys]);
   const layout = useMemo(
-    () => layoutNodes(scopedGraph?.nodes ?? [], isCompactViewport),
+    () => layoutActiveAuthorityNodes(scopedGraph?.nodes ?? [], isCompactViewport),
     [isCompactViewport, scopedGraph],
   );
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;

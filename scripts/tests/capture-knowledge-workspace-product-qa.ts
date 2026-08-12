@@ -1653,6 +1653,16 @@ async function captureMarkers(page: Page, stateName: string) {
        .split(/\\s+/u)
        .map((value) => Number(value));
      const activeSvgRect = activeSvg?.getBoundingClientRect() ?? null;
+     const activeSvgGeometryRectValid = Boolean(
+       activeSvgRect
+       && activeSvgRect.width > 0
+       && activeSvgRect.height > 0,
+     );
+     const rectWithinActiveSvg = (rect) => activeSvgGeometryRectValid
+       && rect.left >= activeSvgRect.left - 0.5
+       && rect.right <= activeSvgRect.right + 0.5
+       && rect.top >= activeSvgRect.top - 0.5
+       && rect.bottom <= activeSvgRect.bottom + 0.5;
      const activeNodeLabelElements = Array.from(activeGraph?.querySelectorAll('[data-active-authority-node-label]') ?? []);
      const activeNodeLabelFontSizes = activeNodeLabelElements
        .map((element) => Number.parseFloat(element.getAttribute('font-size') ?? window.getComputedStyle(element).fontSize))
@@ -1690,11 +1700,7 @@ async function captureMarkers(page: Page, stateName: string) {
        .map((element) => element.getAttribute('data-active-authority-node'))
        .filter((value) => Boolean(value)));
      const activeRelations = Array.from(document.querySelectorAll('[data-active-authority-relation]'));
-     const resolvedEdgeEndpointCount = activeRelations.filter((edge) => (
-       activeNodeKeys.has(edge.getAttribute('data-active-authority-relation-source') ?? '')
-       && activeNodeKeys.has(edge.getAttribute('data-active-authority-relation-target') ?? '')
-     )).length;
-     const visibleSvgGeometryCount = activeRelations.filter((edge) => {
+     const relationGeometryVisible = (edge) => {
        const shape = edge.querySelector('line, path, polyline');
        if (!shape) return false;
        const style = window.getComputedStyle(shape);
@@ -1706,7 +1712,23 @@ async function captureMarkers(page: Page, stateName: string) {
        } catch {
          return rect.width > 0 || rect.height > 0;
        }
-     }).length;
+     };
+     const resolvedEdgeEndpointCount = activeRelations.filter((edge) => (
+       activeNodeKeys.has(edge.getAttribute('data-active-authority-relation-source') ?? '')
+       && activeNodeKeys.has(edge.getAttribute('data-active-authority-relation-target') ?? '')
+     )).length;
+     const visibleSvgGeometryCount = activeRelations.filter(relationGeometryVisible).length;
+     const nodeGeometryWithinSvgCount = activeSvgGeometryRectValid
+       ? activeNodes.filter((node) => rectWithinActiveSvg(node.getBoundingClientRect())).length
+       : 0;
+     const relationGeometryWithinSvgCount = activeSvgGeometryRectValid
+       ? activeRelations.filter((edge) => {
+         const shape = edge.querySelector('line, path, polyline');
+         return relationGeometryVisible(edge)
+           && Boolean(shape)
+           && rectWithinActiveSvg(shape.getBoundingClientRect());
+       }).length
+       : 0;
     return {
       htmlClass: document.documentElement.className,
       workspace: legacyWorkspaceRoot?.getAttribute('data-knowledge-workspace') ?? null,
@@ -1717,6 +1739,9 @@ async function captureMarkers(page: Page, stateName: string) {
         relationCount: activeRelations.length,
         resolvedEdgeEndpointCount,
         visibleSvgGeometryCount,
+        nodeGeometryWithinSvgCount,
+        relationGeometryWithinSvgCount,
+        activeSvgGeometryRectValid,
         viewport: activeSvg?.getAttribute('data-active-authority-viewport') ?? null,
         nodeLimit: Number(activeSvg?.getAttribute('data-active-authority-node-limit') ?? Number.NaN),
         viewBox: activeSvg?.getAttribute('viewBox') ?? null,
@@ -2147,6 +2172,9 @@ async function captureActiveAuthorityVisualMatrix(
         || activeMarkers.relationCount <= 0
         || activeMarkers.resolvedEdgeEndpointCount !== activeMarkers.relationCount
         || activeMarkers.visibleSvgGeometryCount !== activeMarkers.relationCount
+        || activeMarkers.activeSvgGeometryRectValid !== true
+        || activeMarkers.nodeGeometryWithinSvgCount !== activeMarkers.visibleNodeCount
+        || activeMarkers.relationGeometryWithinSvgCount !== activeMarkers.relationCount
         || activeMarkers.stage !== 'authority'
         || (state.name === 'active-mobile' && (
           activeMarkers.viewport !== 'compact'

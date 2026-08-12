@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
+import { layoutActiveAuthorityNodes } from '../active-authority-graph';
 import {
   parseSafeApiEvidenceV1,
   safeApiHasResponsiveNoActiveNode,
@@ -252,6 +253,31 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(typeLabels.every((label) => Number(label.getAttribute('font-size')) >= 11)).toBe(true);
   });
 
+  it('keeps the desktop layout deterministic and inside the 960x520 viewBox for one to 24 nodes', () => {
+    for (let nodeCount = 1; nodeCount <= 24; nodeCount += 1) {
+      const nodes = Array.from({ length: nodeCount }, (_, index) => ({ key: `node-${index}` }));
+      const layout = layoutActiveAuthorityNodes(nodes);
+      const repeatLayout = layoutActiveAuthorityNodes(nodes);
+      const points = [...layout.values()];
+      const repeatPoints = [...repeatLayout.values()];
+      const columns = new Set(points.map((point) => point.x)).size;
+      const rows = new Set(points.map((point) => point.y)).size;
+      const expectedColumns = Math.min(6, Math.max(Math.ceil(Math.sqrt(nodeCount)), Math.ceil(nodeCount / 4)));
+      expect(columns).toBe(expectedColumns);
+      expect(rows).toBe(Math.ceil(nodeCount / expectedColumns));
+      expect(rows).toBeLessThanOrEqual(4);
+      expect(points).toEqual(repeatPoints);
+      expect(points.every((point) => point.x - 44 >= 0 && point.x + 44 <= 960)).toBe(true);
+      expect(points.every((point) => point.y - 30 >= 0 && point.y + 30 <= 520)).toBe(true);
+      if (nodeCount === 24) {
+        expect(points).toHaveLength(24);
+        expect(columns).toBe(6);
+        expect(rows).toBe(4);
+        expect(Math.max(...points.map((point) => point.x))).toBe(880);
+      }
+    }
+  });
+
   it('keeps a semantic node click selectable after pointerdown on the node', async () => {
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
@@ -345,6 +371,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('nodeLabelReadability');
     expect(captureSource).toContain('minPixelSize');
     expect(captureSource).toContain('activeNodeLabelGeometryValid');
+    expect(captureSource).toContain('nodeGeometryWithinSvgCount');
+    expect(captureSource).toContain('relationGeometryWithinSvgCount');
+    expect(captureSource).toContain('activeSvgGeometryRectValid');
+    expect(captureSource).toContain('rectWithinActiveSvg');
     expect(captureSource).toContain("state.name === 'active-mobile'");
     const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);

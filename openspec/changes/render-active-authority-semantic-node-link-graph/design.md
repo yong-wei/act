@@ -89,6 +89,12 @@ The artifact serializer and active product surface scanner MUST use one determin
 
 `safe-api-evidence/v1` requires both `activeNodeRequestObserved` and `activeNodeIdentityVerified`. The only valid states are false/false (no active-node request), true/false (a request was observed but its status, endpoint/selected-node match or provenance failed), and true/true (a 200 active-node response matched the requested node and provenance). False/true is invalid, as are missing or optional fields. Authenticated role detail evidence and the desktop-dark detail state require true/true with an active-node sequence entry at status 200 and positive request count. Responsive states without detail interaction explicitly record false/false and cannot inherit verification from another state. All capture failures remain fail-closed; tasks 4.2 and 4.3 remain unchecked.
 
+### Accepted decision — deterministic four-row Authority layout
+
+The desktop and tablet Authority canvas keeps its fixed `960 × 520` coordinate space. For each visible scope of up to 24 nodes, the layout derives a stable column count from both the near-square arrangement and a four-row ceiling: `min(6, max(ceil(sqrt(n)), ceil(n / 4)))`. Five- and six-column scopes use compact horizontal spacing; the resulting node bounds remain inside the canvas at the default zoom and pan. The compact mobile canvas remains a separate two-column, six-node presentation.
+
+Capture validates the real SVG rectangle and requires every rendered node and relation geometry to be contained within it for desktop, tablet and mobile states. Search materialization, one-hop expansion, return-to-overview and view reset must preserve the same deterministic containment invariant. This is a presentation-only correction: it does not change Authority topology, create edges, hide expected scope members or alter API/selector behavior.
+
 ## Risks / Trade-offs
 
 - [共享 renderer 隐含 Legacy 假设] → 只复用 source-neutral 图形 contract；通过静态边界测试禁止 active importer 进入 Legacy request/cache/system facade。
