@@ -267,13 +267,16 @@ describe('active Authority knowledge workspace client boundary', () => {
       expect(rows).toBe(Math.ceil(nodeCount / expectedColumns));
       expect(rows).toBeLessThanOrEqual(4);
       expect(points).toEqual(repeatPoints);
-      expect(points.every((point) => point.x - 44 >= 0 && point.x + 44 <= 960)).toBe(true);
+      const maxVisibleLabelHalfWidth = (14 * 12) / 2;
+      expect(points.every((point) => point.x - maxVisibleLabelHalfWidth >= 0
+        && point.x + maxVisibleLabelHalfWidth <= 960)).toBe(true);
       expect(points.every((point) => point.y - 30 >= 0 && point.y + 30 <= 520)).toBe(true);
       if (nodeCount === 24) {
         expect(points).toHaveLength(24);
         expect(columns).toBe(6);
         expect(rows).toBe(4);
-        expect(Math.max(...points.map((point) => point.x))).toBe(880);
+        expect(Math.min(...points.map((point) => point.x))).toBe(88);
+        expect(Math.max(...points.map((point) => point.x))).toBe(868);
       }
     }
   });

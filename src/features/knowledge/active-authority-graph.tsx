@@ -190,11 +190,11 @@ export function layoutActiveAuthorityNodes(
     : Math.max(1, Math.min(6, Math.max(Math.ceil(Math.sqrt(nodes.length)), Math.ceil(nodes.length / 4))));
   const columnGap = compact
     ? 164
-    : columns === 6 ? 160 : columns === 5 ? 180 : 220;
+    : columns === 6 ? 156 : columns === 5 ? 180 : 220;
   const rowGap = compact ? 112 : 120;
   const startX = compact
     ? (columns === 1 ? 160 : 78)
-    : columns === 6 ? 80 : columns === 5 ? 120 : 130;
+    : columns === 6 ? 88 : columns === 5 ? 120 : 130;
   const startY = compact ? 72 : 84;
   return new Map(nodes.map((node, index) => [node.key, {
     x: startX + (index % columns) * columnGap,
