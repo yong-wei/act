@@ -19,7 +19,8 @@ const releaseId = `runtime-${createHash('sha256').update(JSON.stringify({ source
 const imageTar = Buffer.from('streamed production image bytes');
 const imageTarSha256 = createHash('sha256').update(imageTar).digest('hex');
 const bareImageId = 'f'.repeat(64);
-const realPython = spawnSync('sh', ['-c', 'command -v python3'], { encoding: 'utf8' }).stdout.trim();
+const pythonResolution = spawnSync('python3', ['-c', 'import sys; print(sys.executable)'], { encoding: 'utf8' });
+const realPython = pythonResolution.stdout.trim();
 
 function executable(name, body) {
   const target = path.join(bin, name);
@@ -28,6 +29,7 @@ function executable(name, body) {
 }
 
 try {
+  assert.equal(pythonResolution.status, 0, pythonResolution.stderr || 'a real python3 executable is required for the cutover metadata proof');
   assert.notEqual(realPython, '', 'a real python3 executable is required for the cutover metadata proof');
   fs.mkdirSync(bin, { recursive: true });
   fs.mkdirSync(stage, { recursive: true });
