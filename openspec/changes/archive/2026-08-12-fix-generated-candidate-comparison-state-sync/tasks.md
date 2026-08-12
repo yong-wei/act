@@ -12,4 +12,4 @@
 ## 3. Verification And Delivery
 
 - [x] 3.1 Run focused unit and browser tests, ESLint, typecheck, strict OpenSpec validation, and git diff checks.
-- [x] 3.2 Capture the integrated generation-to-comparison behavior in the PR description and deliver the archived OpenSpec change with the implementation.
+- [x] 3.2 Capture the integrated generation-to-comparison behavior in the PR description and bind the desktop/mobile evidence manifest to the delivered source revision.
