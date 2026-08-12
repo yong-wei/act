@@ -9,6 +9,7 @@ import {
   type Browser,
   type BrowserContextOptions,
   type Page,
+  type Response,
 } from 'playwright';
 
 const repoRoot = process.cwd();
@@ -72,7 +73,7 @@ interface CaptureState {
   interactionState: string;
   knowledgeMode?: KnowledgeMode;
   query?: string;
-  beforeShot?: (page: Page) => Promise<Record<string, unknown> | void>;
+  beforeShot?: (page: Page, probe: KnowledgeApiProbe) => Promise<Record<string, unknown> | void>;
 }
 
 type KnowledgeApiSummary = {
@@ -98,6 +99,13 @@ type KnowledgeApiSummary = {
   responseNodeKey: string | null;
   activeNodeIdentityMatches: boolean;
   capturedAt: number;
+};
+
+type KnowledgeApiProbe = {
+  waitForPath(pathName: string, timeoutMs?: number): Promise<void>;
+  readLog(): Promise<KnowledgeApiSummary[]>;
+  readSensitiveTokens(): Promise<string[]>;
+  dispose(): void;
 };
 
 type SafeApiEndpointClass = 'active-canvas' | 'active-node' | 'legacy' | 'candidate';
@@ -314,19 +322,9 @@ async function establishRoleSession(role: KnowledgeRole): Promise<RoleSession> {
 
 async function addKnowledgeApiProbe(context: Awaited<ReturnType<Browser['newContext']>>) {
   await context.addInitScript(() => {
-    const key = '__ACT_KNOWLEDGE_PRODUCT_QA_API__';
-    const target = window as Window & { [key]?: KnowledgeApiSummary[] };
-    target[key] = [];
-    const tokenKey = '__ACT_KNOWLEDGE_PRODUCT_QA_ACTIVE_IDENTITY_TOKENS__';
-    const tokenTarget = window as Window & { [tokenKey]?: string[] };
-    tokenTarget[tokenKey] = [];
     const copyKey = '__ACT_KNOWLEDGE_PRODUCT_QA_COPY_PAYLOADS__';
     const copyTarget = window as Window & { [copyKey]?: string[] };
     copyTarget[copyKey] = [];
-    const rememberToken = (value: unknown) => {
-      if (typeof value !== 'string' || !value.trim()) return;
-      if (!tokenTarget[tokenKey]?.includes(value)) tokenTarget[tokenKey]?.push(value);
-    };
     const rememberCopyPayload = (value: unknown) => {
       if (typeof value !== 'string') return;
       copyTarget[copyKey]?.push(value);
@@ -353,185 +351,218 @@ async function addKnowledgeApiProbe(context: Awaited<ReturnType<Browser['newCont
     } catch {
       // Clipboard may be unavailable in headless or non-secure contexts.
     }
-    const originalFetch = window.fetch.bind(window);
-    window.fetch = async (...args) => {
-      const response = await originalFetch(...args);
-      const requestUrl = typeof args[0] === 'string'
-        ? args[0]
-        : args[0] instanceof URL
-          ? args[0].toString()
-          : args[0].url;
-      const url = new URL(requestUrl, window.location.origin);
-      if (url.pathname.startsWith('/api/knowledge/')) {
-        const safePath = url.pathname.startsWith('/api/knowledge/nodes/active/')
-          ? '/api/knowledge/nodes/active/:node'
-          : url.pathname;
-        response.clone().json().then((body: unknown) => {
-          const record = body && typeof body === 'object' && !Array.isArray(body)
-            ? body as Record<string, unknown>
-            : {};
-          const source = record.source && typeof record.source === 'object' && !Array.isArray(record.source)
-            ? record.source as Record<string, unknown>
-            : {};
-          const coverage = record.coverage && typeof record.coverage === 'object' && !Array.isArray(record.coverage)
-            ? record.coverage as Record<string, unknown>
-            : {};
-          const provenance = record.provenance && typeof record.provenance === 'object' && !Array.isArray(record.provenance)
-            ? record.provenance as Record<string, unknown>
-            : {};
-          const authority = provenance.authority && typeof provenance.authority === 'object' && !Array.isArray(provenance.authority)
-            ? provenance.authority
-            : null;
-          const activation = provenance.activation && typeof provenance.activation === 'object' && !Array.isArray(provenance.activation)
-            ? provenance.activation as Record<string, unknown>
-            : {};
-          const projection = provenance.projection && typeof provenance.projection === 'object' && !Array.isArray(provenance.projection)
-            ? provenance.projection as Record<string, unknown>
-            : {};
-          const isActiveResponse = url.pathname === '/api/knowledge/graph/active'
-            || url.pathname.startsWith('/api/knowledge/nodes/active/');
-          const isActiveNodeResponse = url.pathname.startsWith('/api/knowledge/nodes/active/');
-          let requestedNodeKey: string | null = null;
-          if (isActiveNodeResponse) {
-            try {
-              requestedNodeKey = decodeURIComponent(url.pathname.slice('/api/knowledge/nodes/active/'.length));
-            } catch {
-              requestedNodeKey = null;
-            }
-          }
-          const responseNode = record.node && typeof record.node === 'object' && !Array.isArray(record.node)
-            ? record.node as Record<string, unknown>
-            : {};
-          const responseNodeKey = typeof responseNode.id === 'string' ? responseNode.id : null;
-          const activeNodeIdentityMatches = !isActiveNodeResponse
-            || Boolean(requestedNodeKey && responseNodeKey && requestedNodeKey === responseNodeKey);
-          const sensitiveKeyPattern = /(?:id|hash|digest|canonicaltype|predicate|direction|status|mode|tier|family|evidence|traversal|locator|edition|section|consumer|release|snapshot|activation|projection|version)/iu;
-          const collectSensitiveValues = (value: unknown, field = '') => {
-            if (typeof value === 'string') {
-              if (sensitiveKeyPattern.test(field)) rememberToken(value);
-              return;
-            }
-            if (Array.isArray(value)) {
-              value.forEach((item) => collectSensitiveValues(item, field));
-              return;
-            }
-            if (!value || typeof value !== 'object') return;
-            Object.entries(value as Record<string, unknown>).forEach(([childField, childValue]) => {
-              collectSensitiveValues(childValue, childField);
-            });
-          };
-          if (isActiveResponse || url.pathname.startsWith('/api/knowledge/')) {
-            if (isActiveResponse) collectSensitiveValues(record);
-            collectSensitiveValues(source, 'source');
-            collectSensitiveValues(provenance, 'provenance');
-            collectSensitiveValues(record.nodes, 'nodes');
-            collectSensitiveValues(record.relations, 'relations');
-            collectSensitiveValues(record.node, 'node');
-            collectSensitiveValues(record.release, 'release');
-            collectSensitiveValues(record.projectionVersion, 'projectionVersion');
-          }
-          const authorityRecord = authority && typeof authority === 'object'
-            ? authority as Record<string, unknown>
-            : {};
-          const identityFields = ['authorityState', 'releaseSetId', 'releaseId', 'projectionDigest', 'sourceDatasetHash'];
-          const identityFieldCount = identityFields.filter((field) => Object.prototype.hasOwnProperty.call(source, field)).length;
-          const hasSourceIdentityFields = identityFieldCount === identityFields.length;
-          const authorityRequiredFields = ['consumerId', 'snapshotId', 'snapshotHash', 'releaseId', 'releaseSetId'];
-          const activationRequiredFields = ['mode', 'status', 'activationId', 'activationHash'];
-          const authorityComplete = authorityRequiredFields.every((field) => typeof authorityRecord[field] === 'string' && authorityRecord[field]);
-          const activationComplete = activationRequiredFields.every((field) => typeof activation[field] === 'string' && activation[field]);
-          const authorityIdentityMatches = source.authorityState === 'active'
-            && hasSourceIdentityFields
-            && authorityComplete
-            && authorityRecord.consumerId === 'engineering-graph'
-            && source.releaseSetId === authorityRecord.releaseSetId
-            && source.releaseId === authorityRecord.releaseId;
-          const activationIdentityMatches = activation.mode === 'use-combination'
-            && activation.status === 'READY'
-            && activationComplete;
-          const projectionBoundaryValid = Object.prototype.hasOwnProperty.call(projection, 'projectionId')
-            && projection.projectionId === null
-            && Object.prototype.hasOwnProperty.call(projection, 'projectionHash')
-            && projection.projectionHash === null
-            && projection.status === 'not-applicable';
-          const provenanceFieldCount = authorityRequiredFields.filter((field) => typeof authorityRecord[field] === 'string' && authorityRecord[field])
-            .length
-            + activationRequiredFields.filter((field) => typeof activation[field] === 'string' && activation[field]).length
-            + (projectionBoundaryValid ? 3 : 0);
-          target[key]?.push({
-            path: safePath,
-            status: response.status,
-            nodeCount: Array.isArray(record.nodes) ? record.nodes.length : null,
-            relationCount: Array.isArray(record.relations) ? record.relations.length : null,
-            authorityActive: source.authorityState === 'active',
-            candidateAuthority: source.authorityState === 'candidate',
-            hasAuthorityProvenance: Boolean(authority),
-            authorityIdentityMatches,
-            activationIdentityMatches,
-            identityFieldCount,
-            projectionVersionValid: typeof record.projectionVersion === 'string'
-              && (url.pathname === '/api/knowledge/graph/active'
-                ? record.projectionVersion === 'act.canvas.v2'
-                : url.pathname.startsWith('/api/knowledge/nodes/active/')
-                  ? record.projectionVersion === 'act.node-detail.v2'
-                  : record.projectionVersion.length > 0),
-            provenanceIntegrityMatches: authorityIdentityMatches && activationIdentityMatches && projectionBoundaryValid,
-            provenanceFieldCount,
-            coverageObjectCount: typeof coverage.objectCount === 'number' ? coverage.objectCount : null,
-            coverageRelationCount: typeof coverage.relationCount === 'number' ? coverage.relationCount : null,
-            hasSourceIdentityFields,
-            hasCoverageFields: ['objectCount', 'relationCount']
-              .every((field) => Object.prototype.hasOwnProperty.call(coverage, field)),
-            projectionBoundaryValid,
-            requestedNodeKey,
-            responseNodeKey,
-            activeNodeIdentityMatches,
-            capturedAt: Date.now(),
-          });
-        }).catch(() => {
-          target[key]?.push({
-            path: safePath,
-            status: response.status,
-            nodeCount: null,
-            relationCount: null,
-            authorityActive: false,
-            candidateAuthority: false,
-            hasAuthorityProvenance: false,
-            authorityIdentityMatches: false,
-            activationIdentityMatches: false,
-            identityFieldCount: 0,
-            projectionVersionValid: false,
-            provenanceIntegrityMatches: false,
-            provenanceFieldCount: 0,
-            coverageObjectCount: null,
-            coverageRelationCount: null,
-            hasSourceIdentityFields: false,
-            hasCoverageFields: false,
-            projectionBoundaryValid: false,
-            requestedNodeKey: null,
-            responseNodeKey: null,
-            activeNodeIdentityMatches: false,
-            capturedAt: Date.now(),
-          });
-        });
-      }
-      return response;
-    };
   });
 }
 
-async function readKnowledgeApiLog(page: Page): Promise<KnowledgeApiSummary[]> {
-  return page.evaluate(() => (
-    (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA_API__?: KnowledgeApiSummary[] })
-      .__ACT_KNOWLEDGE_PRODUCT_QA_API__ ?? []
-  ));
+function canonicalKnowledgeApiPath(pathName: string) {
+  if (pathName === '/api/knowledge/graph/active') return '/api/knowledge/graph/active';
+  if (pathName.startsWith('/api/knowledge/nodes/active/')) return '/api/knowledge/nodes/active/:node';
+  if (pathName === '/api/knowledge/graph') return '/api/knowledge/graph';
+  if (pathName === '/api/knowledge/graph/v2') return '/api/knowledge/graph/v2';
+  return null;
 }
 
-async function readActiveIdentityTokens(page: Page): Promise<string[]> {
-  return page.evaluate(() => (
-    (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA_ACTIVE_IDENTITY_TOKENS__?: string[] })
-      .__ACT_KNOWLEDGE_PRODUCT_QA_ACTIVE_IDENTITY_TOKENS__ ?? []
-  ));
+const knowledgeApiSensitiveKeyPattern = /(?:id|hash|digest|canonicaltype|predicate|direction|status|mode|tier|family|evidence|traversal|locator|edition|section|consumer|release|snapshot|activation|projection|version)/iu;
+
+function collectKnowledgeApiSensitiveValues(
+  value: unknown,
+  rememberToken: (value: string) => void,
+  field = '',
+) {
+  if (typeof value === 'string') {
+    if (knowledgeApiSensitiveKeyPattern.test(field)) rememberToken(value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectKnowledgeApiSensitiveValues(item, rememberToken, field));
+    return;
+  }
+  if (!value || typeof value !== 'object') return;
+  Object.entries(value as Record<string, unknown>).forEach(([childField, childValue]) => {
+    collectKnowledgeApiSensitiveValues(childValue, rememberToken, childField);
+  });
+}
+
+function summarizeKnowledgeApiResponse(
+  pathName: string,
+  status: number,
+  body: unknown,
+  requestedNodeKey: string | null,
+  rememberToken: (value: string) => void,
+): KnowledgeApiSummary {
+  const record = objectRecord(body);
+  const source = objectRecord(record.source);
+  const coverage = objectRecord(record.coverage);
+  const provenance = objectRecord(record.provenance);
+  const authority = record.provenance && typeof record.provenance === 'object' && !Array.isArray(record.provenance)
+    && record.provenance.authority && typeof record.provenance.authority === 'object' && !Array.isArray(record.provenance.authority)
+    ? record.provenance.authority
+    : null;
+  const activation = objectRecord(provenance.activation);
+  const projection = objectRecord(provenance.projection);
+  const isActiveResponse = pathName === '/api/knowledge/graph/active'
+    || pathName === '/api/knowledge/nodes/active/:node';
+  const isActiveNodeResponse = pathName === '/api/knowledge/nodes/active/:node';
+  const responseNode = objectRecord(record.node);
+  const responseNodeKey = typeof responseNode.id === 'string' ? responseNode.id : null;
+  const authorityRecord = objectRecord(authority);
+  const identityFields = ['authorityState', 'releaseSetId', 'releaseId', 'projectionDigest', 'sourceDatasetHash'];
+  const identityFieldCount = identityFields.filter((field) => Object.prototype.hasOwnProperty.call(source, field)).length;
+  const hasSourceIdentityFields = identityFieldCount === identityFields.length;
+  const authorityRequiredFields = ['consumerId', 'snapshotId', 'snapshotHash', 'releaseId', 'releaseSetId'];
+  const activationRequiredFields = ['mode', 'status', 'activationId', 'activationHash'];
+  const authorityComplete = authorityRequiredFields.every((field) => typeof authorityRecord[field] === 'string' && authorityRecord[field]);
+  const activationComplete = activationRequiredFields.every((field) => typeof activation[field] === 'string' && activation[field]);
+  const authorityIdentityMatches = source.authorityState === 'active'
+    && hasSourceIdentityFields
+    && authorityComplete
+    && authorityRecord.consumerId === 'engineering-graph'
+    && source.releaseSetId === authorityRecord.releaseSetId
+    && source.releaseId === authorityRecord.releaseId;
+  const activationIdentityMatches = activation.mode === 'use-combination'
+    && activation.status === 'READY'
+    && activationComplete;
+  const projectionBoundaryValid = Object.prototype.hasOwnProperty.call(projection, 'projectionId')
+    && projection.projectionId === null
+    && Object.prototype.hasOwnProperty.call(projection, 'projectionHash')
+    && projection.projectionHash === null
+    && projection.status === 'not-applicable';
+  const provenanceFieldCount = authorityRequiredFields.filter((field) => typeof authorityRecord[field] === 'string' && authorityRecord[field])
+    .length
+    + activationRequiredFields.filter((field) => typeof activation[field] === 'string' && activation[field]).length
+    + (projectionBoundaryValid ? 3 : 0);
+  if (isActiveResponse) collectKnowledgeApiSensitiveValues(record, rememberToken);
+  collectKnowledgeApiSensitiveValues(source, rememberToken, 'source');
+  collectKnowledgeApiSensitiveValues(provenance, rememberToken, 'provenance');
+  collectKnowledgeApiSensitiveValues(record.nodes, rememberToken, 'nodes');
+  collectKnowledgeApiSensitiveValues(record.relations, rememberToken, 'relations');
+  collectKnowledgeApiSensitiveValues(record.node, rememberToken, 'node');
+  collectKnowledgeApiSensitiveValues(record.release, rememberToken, 'release');
+  collectKnowledgeApiSensitiveValues(record.projectionVersion, rememberToken, 'projectionVersion');
+  const activeNodeIdentityMatches = !isActiveNodeResponse
+    || Boolean(requestedNodeKey && responseNodeKey && requestedNodeKey === responseNodeKey);
+  return {
+    path: pathName,
+    status,
+    nodeCount: Array.isArray(record.nodes) ? record.nodes.length : null,
+    relationCount: Array.isArray(record.relations) ? record.relations.length : null,
+    authorityActive: source.authorityState === 'active',
+    candidateAuthority: source.authorityState === 'candidate',
+    hasAuthorityProvenance: Boolean(authority),
+    authorityIdentityMatches,
+    activationIdentityMatches,
+    identityFieldCount,
+    projectionVersionValid: typeof record.projectionVersion === 'string'
+      && (pathName === '/api/knowledge/graph/active'
+        ? record.projectionVersion === 'act.canvas.v2'
+        : pathName === '/api/knowledge/nodes/active/:node'
+          ? record.projectionVersion === 'act.node-detail.v2'
+          : record.projectionVersion.length > 0),
+    provenanceIntegrityMatches: authorityIdentityMatches && activationIdentityMatches && projectionBoundaryValid,
+    provenanceFieldCount,
+    coverageObjectCount: typeof coverage.objectCount === 'number' ? coverage.objectCount : null,
+    coverageRelationCount: typeof coverage.relationCount === 'number' ? coverage.relationCount : null,
+    hasSourceIdentityFields,
+    hasCoverageFields: ['objectCount', 'relationCount']
+      .every((field) => Object.prototype.hasOwnProperty.call(coverage, field)),
+    projectionBoundaryValid,
+    requestedNodeKey,
+    responseNodeKey,
+    activeNodeIdentityMatches,
+    capturedAt: Date.now(),
+  };
+}
+
+function createKnowledgeApiProbe(page: Page): KnowledgeApiProbe {
+  const log: KnowledgeApiSummary[] = [];
+  const sensitiveTokens = new Set<string>();
+  const pendingResponses: Array<Promise<void>> = [];
+  let unknownEndpointObserved = false;
+  let disposed = false;
+  const rememberToken = (value: string) => {
+    if (value.trim()) sensitiveTokens.add(value);
+  };
+  const onResponse = (response: Response) => {
+    if (disposed) return;
+    let responseUrl: URL;
+    try {
+      responseUrl = new URL(response.url());
+    } catch {
+      unknownEndpointObserved = true;
+      return;
+    }
+    if (!responseUrl.pathname.startsWith('/api/knowledge/')) return;
+    const safePath = canonicalKnowledgeApiPath(responseUrl.pathname);
+    if (!safePath) {
+      unknownEndpointObserved = true;
+      return;
+    }
+    let requestedNodeKey: string | null = null;
+    if (safePath === '/api/knowledge/nodes/active/:node') {
+      try {
+        requestedNodeKey = decodeURIComponent(responseUrl.pathname.slice('/api/knowledge/nodes/active/'.length));
+      } catch {
+        requestedNodeKey = null;
+      }
+      if (requestedNodeKey) rememberToken(requestedNodeKey);
+    }
+    const task = (async () => {
+      let body: unknown = {};
+      try {
+        body = await response.json();
+      } catch {
+        // A non-JSON response is represented by a failed closed summary.
+      }
+      const summary = summarizeKnowledgeApiResponse(
+        safePath,
+        response.status(),
+        body,
+        requestedNodeKey,
+        rememberToken,
+      );
+      if (summary.responseNodeKey) rememberToken(summary.responseNodeKey);
+      log.push(summary);
+    })().catch(() => {
+      log.push(summarizeKnowledgeApiResponse(
+        safePath,
+        response.status(),
+        {},
+        requestedNodeKey,
+        rememberToken,
+      ));
+    });
+    pendingResponses.push(task);
+  };
+  page.on('response', onResponse);
+  return {
+    async waitForPath(pathName, timeoutMs = 30000) {
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        await this.readLog();
+        if (log.some((entry) => entry.path === pathName)) return;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      throw new Error('expected Knowledge API response was not observed');
+    },
+    async readLog() {
+      while (pendingResponses.length > 0) {
+        await Promise.all(pendingResponses.splice(0));
+      }
+      if (unknownEndpointObserved) {
+        throw new Error('unknown Knowledge API endpoint observed');
+      }
+      return [...log];
+    },
+    async readSensitiveTokens() {
+      await this.readLog();
+      return [...sensitiveTokens];
+    },
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      page.off('response', onResponse);
+    },
+  };
 }
 
 async function readExpectedActiveNodeKey(page: Page): Promise<string | null> {
@@ -594,8 +625,8 @@ export function createSensitiveValueMatcher(tokens: readonly string[]): Sensitiv
   };
 }
 
-async function readActiveSurfaceIdentityTokens(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
+async function readActiveSurfaceIdentityTokens(page: Page, probe: KnowledgeApiProbe): Promise<string[]> {
+  const domTokens = await page.evaluate(() => {
     const graph = document.querySelector<HTMLElement>('[data-active-authority-graph="true"]');
     const nodeKeys = [...(graph?.querySelectorAll('[data-active-authority-node]') ?? [])]
       .map((element) => element.getAttribute('data-active-authority-node') ?? '')
@@ -603,15 +634,9 @@ async function readActiveSurfaceIdentityTokens(page: Page): Promise<string[]> {
     const relationKeys = [...(graph?.querySelectorAll('[data-active-authority-relation]') ?? [])]
       .map((element) => element.getAttribute('data-active-authority-relation') ?? '')
       .filter(Boolean);
-    const qaWindow = window as Window & {
-      __ACT_KNOWLEDGE_PRODUCT_QA_ACTIVE_IDENTITY_TOKENS__?: string[];
-    };
-    return [...new Set([
-      ...nodeKeys,
-      ...relationKeys,
-      ...(qaWindow.__ACT_KNOWLEDGE_PRODUCT_QA_ACTIVE_IDENTITY_TOKENS__ ?? []),
-    ])];
+    return [...new Set([...nodeKeys, ...relationKeys])];
   });
+  return [...new Set([...domTokens, ...(await probe.readSensitiveTokens())])];
 }
 
 function assertSafeApiEvidenceV1(
@@ -777,7 +802,7 @@ function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: st
   }
 }
 
-async function waitForActiveReady(page: Page, context: string) {
+async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context: string) {
   await page.waitForSelector('[data-knowledge-graph-mode="active"]', { timeout: 30000 });
   await page.waitForFunction(() => {
     const graph = document.querySelector('[data-active-authority-graph="true"]');
@@ -787,13 +812,9 @@ async function waitForActiveReady(page: Page, context: string) {
     const nodeCount = document.querySelectorAll('[data-active-authority-node]').length;
     return Boolean(graph && stage && !loading && !failure && nodeCount > 0);
   }, undefined, { timeout: 30000 });
-  await page.waitForFunction(() => {
-    const log = (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA_API__?: KnowledgeApiSummary[] })
-      .__ACT_KNOWLEDGE_PRODUCT_QA_API__ ?? [];
-    return log.some((entry) => entry.path === '/api/knowledge/graph/active');
-  }, undefined, { timeout: 30000 });
+  await probe.waitForPath('/api/knowledge/graph/active');
   await page.waitForTimeout(100);
-  const log = await readKnowledgeApiLog(page);
+  const log = await probe.readLog();
   const active = latestApiSummary(log, '/api/knowledge/graph/active');
   assertActiveApiSummary(active, context);
   if (log.some((entry) => entry.path === '/api/knowledge/graph' || entry.path === '/api/knowledge/graph/v2')) {
@@ -802,8 +823,8 @@ async function waitForActiveReady(page: Page, context: string) {
   return active;
 }
 
-async function captureActiveSurfaceScan(page: Page) {
-  const sensitiveMatcher = createSensitiveValueMatcher(await readActiveSurfaceIdentityTokens(page));
+async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
+  const sensitiveMatcher = createSensitiveValueMatcher(await readActiveSurfaceIdentityTokens(page, probe));
   const rawScan = await page.evaluate(() => {
     const graph = document.querySelector<HTMLElement>('[data-active-authority-graph="true"]');
     if (!graph) {
@@ -885,7 +906,7 @@ async function captureActiveSurfaceScan(page: Page) {
   };
 }
 
-async function captureActiveInteractionEvidence(page: Page) {
+async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiProbe) {
   const node = page.locator('[data-active-authority-node]').first();
   const originKey = await node.getAttribute('data-active-authority-node');
   if (!originKey) throw new Error('active semantic node key missing for detail interaction');
@@ -904,7 +925,7 @@ async function captureActiveInteractionEvidence(page: Page) {
     adjacencyInteraction: document.querySelectorAll('[data-active-authority-relation]').length > 0,
     renderedEdgeCount: document.querySelectorAll('[data-active-authority-relation]').length,
   }));
-  const detailSurfaceScan = await captureActiveSurfaceScan(page);
+  const detailSurfaceScan = await captureActiveSurfaceScan(page, probe);
   await page.keyboard.press('Escape');
   await page.waitForTimeout(150);
   const focusReturnedToOriginNode = originKey
@@ -914,7 +935,7 @@ async function captureActiveInteractionEvidence(page: Page) {
     ).catch(() => false)
     : false;
   const focusReturnedToSemanticCanvas = await page.evaluate(() => document.activeElement?.matches('[data-active-graph-stage]') ?? false);
-  const overviewSurfaceScan = await captureActiveSurfaceScan(page);
+  const overviewSurfaceScan = await captureActiveSurfaceScan(page, probe);
   return {
     semanticNodeFocusedBeforeClick,
     ...detailEvidence,
@@ -965,6 +986,8 @@ async function openStatePage(browser: Browser, state: CaptureState, storageState
     document.documentElement.style.colorScheme = theme;
   }, { theme: state.theme, navigationPreference: state.navigationPreference });
   const page = await context.newPage();
+  const probe = createKnowledgeApiProbe(page);
+  context.once('close', () => probe.dispose());
   const route = state.route ?? '/knowledge';
   const query = state.query ? `${state.query}&qa=knowledge-product` : '?qa=knowledge-product';
   const url = `${baseUrl}${route}${query}`;
@@ -974,14 +997,14 @@ async function openStatePage(browser: Browser, state: CaptureState, storageState
     : '[data-commercial-workspace="adaptive-path-center"]';
   await page.waitForSelector(readySelector, { timeout: 30000 });
   if (route === '/knowledge') {
-    await waitForActiveReady(page, `${state.name}:active-default`);
+    await waitForActiveReady(page, probe, `${state.name}:active-default`);
     const requestedKnowledgeMode = state.knowledgeMode ?? 'active';
     if (requestedKnowledgeMode !== 'active') {
       await switchKnowledgeMode(page, requestedKnowledgeMode, state.name);
     }
   }
   else await page.waitForTimeout(800);
-  return { context, page, url };
+  return { context, page, url, probe };
 }
 
 async function waitForKnowledgeReady(page: Page) {
@@ -1699,15 +1722,15 @@ async function captureMarkers(page: Page, stateName: string) {
 }
 
 async function captureState(browser: Browser, state: CaptureState, storageState: RoleSession['storageState']) {
-  const { context, page, url } = await openStatePage(browser, state, storageState);
+  const { context, page, url, probe } = await openStatePage(browser, state, storageState);
   try {
     let interactionEvidence: Record<string, unknown> | undefined;
     if (state.beforeShot) {
-      interactionEvidence = await state.beforeShot(page) ?? undefined;
+      interactionEvidence = await state.beforeShot(page, probe) ?? undefined;
       await page.waitForTimeout(500);
     }
     if ((state.route ?? '/knowledge') === '/knowledge') {
-      if ((state.knowledgeMode ?? 'active') === 'active') await waitForActiveReady(page, `${state.name}:active-capture`);
+      if ((state.knowledgeMode ?? 'active') === 'active') await waitForActiveReady(page, probe, `${state.name}:active-capture`);
       else await waitForKnowledgeReady(page);
     }
     const screenshotName = `${state.name}.png`;
@@ -1715,7 +1738,7 @@ async function captureState(browser: Browser, state: CaptureState, storageState:
     await page.screenshot({ path: screenshotPath, fullPage: false });
     const screenshotRelativePath = path.relative(repoRoot, screenshotPath);
     const markers = await captureMarkers(page, state.name);
-    const apiLog = await readKnowledgeApiLog(page);
+    const apiLog = await probe.readLog();
     const isKnowledgeRoute = (state.route ?? '/knowledge') === '/knowledge';
     const knowledgeMode = state.knowledgeMode ?? 'active';
     const api = projectSafeApiEvidence(
@@ -1727,7 +1750,7 @@ async function captureState(browser: Browser, state: CaptureState, storageState:
         requireActiveCanvas: isKnowledgeRoute && knowledgeMode === 'active',
         expectedActiveNodeKey: await readExpectedActiveNodeKey(page),
       },
-      await readActiveIdentityTokens(page),
+      await probe.readSensitiveTokens(),
     );
     return {
       name: state.name,
@@ -1749,6 +1772,7 @@ async function captureState(browser: Browser, state: CaptureState, storageState:
       interactionEvidence,
     };
   } finally {
+    probe.dispose();
     await context.close();
   }
 }
@@ -1768,21 +1792,23 @@ async function captureAuthenticatedRoleEvidence(
     });
     await addKnowledgeApiProbe(context);
     const page = await context.newPage();
+    const probe = createKnowledgeApiProbe(page);
+    context.once('close', () => probe.dispose());
     try {
       await page.goto(`${baseUrl}/knowledge?qa=knowledge-product`, { waitUntil: 'domcontentloaded' });
-      await waitForActiveReady(page, `role:${role}:default`);
-      const activeSurfaceScan = await captureActiveSurfaceScan(page);
+      await waitForActiveReady(page, probe, `role:${role}:default`);
+      const activeSurfaceScan = await captureActiveSurfaceScan(page, probe);
       if (activeSurfaceScan.passed !== true) {
         throw new Error(`active product surface scan failed in role:${role}`);
       }
-      const activeInteractionEvidence = await captureActiveInteractionEvidence(page);
+      const activeInteractionEvidence = await captureActiveInteractionEvidence(page, probe);
       if (
         objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
         || objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed !== true
       ) {
         throw new Error(`active detail surface scan failed in role:${role}`);
       }
-      const initialLog = await readKnowledgeApiLog(page);
+      const initialLog = await probe.readLog();
       const activeApiEvidence = projectSafeApiEvidence(
         role,
         initialLog,
@@ -1795,7 +1821,7 @@ async function captureAuthenticatedRoleEvidence(
             && objectRecord(activeInteractionEvidence.detailSurfaceScan).passed === true
             && objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed === true,
         },
-        await readActiveIdentityTokens(page),
+        await probe.readSensitiveTokens(),
       );
       if (!activeApiEvidence.checks.activeNodeRequestObserved
         || !activeApiEvidence.checks.activeNodeIdentityVerified) {
@@ -1808,7 +1834,7 @@ async function captureAuthenticatedRoleEvidence(
 
       const legacyBeforeSwitch = initialLog.some((entry) => entry.path === '/api/knowledge/graph');
       await switchKnowledgeMode(page, 'legacy', `role:${role}:legacy`);
-      const legacyLog = await readKnowledgeApiLog(page);
+      const legacyLog = await probe.readLog();
       const legacySummary = latestApiSummary(legacyLog, '/api/knowledge/graph');
       if (!legacySummary || legacySummary.status !== 200) {
         throw new Error(`Legacy API failed in role:${role}`);
@@ -1821,7 +1847,7 @@ async function captureAuthenticatedRoleEvidence(
           allowCandidate: false,
           requireActiveCanvas: true,
         },
-        await readActiveIdentityTokens(page),
+        await probe.readSensitiveTokens(),
       );
       const legacyCanvas = await page.evaluate(() => {
         const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
@@ -1845,7 +1871,7 @@ async function captureAuthenticatedRoleEvidence(
       if (role === 'admin') {
         await switchKnowledgeMode(page, 'active', `role:${role}:active-before-candidate`);
         await switchKnowledgeMode(page, 'candidate', `role:${role}:candidate`);
-        const candidateLog = await readKnowledgeApiLog(page);
+        const candidateLog = await probe.readLog();
         const candidateSummary = latestApiSummary(candidateLog, '/api/knowledge/graph/v2');
         if (!candidateSummary || candidateSummary.status !== 200) {
           throw new Error(`candidate API failed in role:${role}`);
@@ -1858,7 +1884,7 @@ async function captureAuthenticatedRoleEvidence(
             allowCandidate: true,
             requireActiveCanvas: true,
           },
-          await readActiveIdentityTokens(page),
+          await probe.readSensitiveTokens(),
         );
         candidateScreenshot = path.join(outputDir, `role-${role}-candidate.png`);
         await page.screenshot({ path: candidateScreenshot, fullPage: false });
@@ -1910,6 +1936,7 @@ async function captureAuthenticatedRoleEvidence(
         candidate,
       });
     } finally {
+      probe.dispose();
       await context.close();
     }
   }
@@ -1977,20 +2004,20 @@ async function captureActiveAuthorityVisualMatrix(
   ];
   const matrix: Array<Record<string, unknown>> = [];
   for (const state of states) {
-    const { context, page, url } = await openStatePage(browser, state, storageState);
+    const { context, page, url, probe } = await openStatePage(browser, state, storageState);
     try {
-      const apiLog = await readKnowledgeApiLog(page);
+      const apiLog = await probe.readLog();
       const activeSummary = latestApiSummary(apiLog, '/api/knowledge/graph/active');
       assertActiveApiSummary(activeSummary, `${state.name}:visual-matrix`);
       if (apiLog.some((entry) => entry.path === '/api/knowledge/graph' || entry.path === '/api/knowledge/graph/v2')) {
         throw new Error(`active visual matrix requested a non-active graph API in ${state.name}`);
       }
       const interactionEvidence = state.beforeShot
-        ? await state.beforeShot(page) ?? undefined
+        ? await state.beforeShot(page, probe) ?? undefined
         : undefined;
-      const surfaceScan = await captureActiveSurfaceScan(page);
+      const surfaceScan = await captureActiveSurfaceScan(page, probe);
       const markers = await captureMarkers(page, state.name);
-      const completedApiLog = await readKnowledgeApiLog(page);
+      const completedApiLog = await probe.readLog();
       if (
         markers.knowledgeGraphMode !== 'active'
         || objectRecord(markers.activeAuthority).visibleNodeCount <= 0
@@ -2017,7 +2044,7 @@ async function captureActiveAuthorityVisualMatrix(
             && (objectRecord(interactionEvidence?.detailSurfaceScan).passed !== false)
             && (objectRecord(interactionEvidence?.overviewSurfaceScan).passed !== false),
         },
-        await readActiveIdentityTokens(page),
+        await probe.readSensitiveTokens(),
       );
       const activeNodeSequence = activeApiEvidence.sequence.find((entry) => entry.endpointClass === 'active-node');
       const detailState = state.name === 'active-desktop-dark';
@@ -2051,6 +2078,7 @@ async function captureActiveAuthorityVisualMatrix(
         screenshotSha256: sha256(screenshotRelativePath),
       });
     } finally {
+      probe.dispose();
       await context.close();
     }
   }
