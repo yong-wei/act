@@ -213,6 +213,46 @@ function verifyCutoverFailureGate() {
   }
 }
 
+function verifyLegacyRemoteTransactionQuoting(script) {
+  const start = script.indexOf(`remote "bash -lc 'set -euo pipefail`);
+  const end = script.indexOf('\n\nlog\nif [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]', start);
+  assert.ok(start >= 0 && end > start, 'Legacy deployment must retain a single remote Step 4 transaction');
+  const transaction = script.slice(start, end);
+  const result = spawnSync('bash', ['-c', `
+set -euo pipefail
+remote() { printf 'argc=%s\\n' "$#"; printf '%s\\n' "$1" | bash -n; }
+RUNTIME_DELIVERY_MODE=legacy-rsync
+REMOTE_PROJECT_DIR=/tmp/act
+REMOTE_RUNTIME_SELECTION_LOCK=/tmp/act/data/runtime/.act-runtime-selection.lock
+APP_NAME_HINT=app
+WORKER_NAME_HINT=worker
+GC_NAME_HINT=gc
+REMOTE_RUNTIME_DIR=/tmp/act/course-content/runtime
+REMOTE_RUNTIME_STAGING_DIR=/tmp/act/course-content/runtime.staging.sha
+REMOTE_PROVENANCE_HELPER=/tmp/act/provenance.mjs
+REMOTE_TEXTBOOK_V2_RUNTIME_DIR=/tmp/act/course-content/runtime/resources/textbooks-v2
+REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR=/tmp/act/course-content/runtime/resources/textbook-retrieval
+REMOTE_PROVENANCE_FILE=/tmp/act/provenance.json
+REMOTE_EXPORT_DB_SCRIPT=/tmp/act/export-db.sh
+REMOTE_LOAD_IMAGES_SCRIPT=/tmp/act/load-images.sh
+REMOTE_APP_IMAGE=localhost/test:latest
+PROVENANCE_APP_REVISION=${'a'.repeat(40)}
+REMOTE_APP_DEPLOY_SCRIPT=/tmp/act/deploy.sh
+REMOTE_IMPORT_DB_SCRIPT=/tmp/act/import-db.sh
+REMOTE_RUNTIME_ACTIVATE_SCRIPT=/tmp/act/activate.sh
+RUNTIME_OSS_RAM_ROLE=act-runtime-oss-read
+RUNTIME_RELEASE_ID=runtime-test
+RUNTIME_EXPECTED_ACTIVE_RELEASE=none
+REMOTE_RUNTIME_VERIFICATION_RECEIPT=/tmp/act/receipt.json
+REMOTE_NGINX_SCRIPT=/tmp/act/nginx.sh
+REMOTE_SERVICE_SCRIPT=/tmp/act/service.sh
+REMOTE_LOG_FILE=/tmp/act/deploy.log
+${transaction}
+`], { cwd: root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /^argc=1$/m, 'Step 4 must send one syntactically valid remote command rather than split local shell words');
+}
+
 function main() {
   const script = read('scripts/remote-deploy.sh');
   const buildScript = read('scripts/build.sh');
@@ -230,6 +270,17 @@ function main() {
     false,
     'bash -lc 单引号脚本内的 runtime grep 不得再嵌套单引号，否则远端 shell 会提前截断',
   );
+  assert.match(
+    script,
+    /if \[ -e '\$\{REMOTE_RUNTIME_STAGING_DIR\}' \] && \[ ! -d '\$\{REMOTE_RUNTIME_STAGING_DIR\}' \]/,
+    'an interrupted same-SHA staging directory must be reusable when it remains a directory',
+  );
+  assert.doesNotMatch(
+    script,
+    /test ! -e '\$\{REMOTE_RUNTIME_STAGING_DIR\}'/,
+    'same-SHA retries must not be permanently blocked by a stale staging directory',
+  );
+  verifyLegacyRemoteTransactionQuoting(script);
 
   assert.equal(
     buildScript.includes('IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:20260301-amd64}"'),

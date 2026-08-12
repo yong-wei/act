@@ -542,7 +542,7 @@ remote "mv '${REMOTE_TMP_PROVENANCE_HELPER}' '${REMOTE_PROVENANCE_HELPER}'"
 
 case "${RUNTIME_DELIVERY_MODE}" in
   legacy-rsync)
-    remote "test ! -e '${REMOTE_RUNTIME_STAGING_DIR}' && install -d -m 0700 '${REMOTE_RUNTIME_STAGING_DIR}'"
+    remote "if [ -e '${REMOTE_RUNTIME_STAGING_DIR}' ] && [ ! -d '${REMOTE_RUNTIME_STAGING_DIR}' ]; then echo 'ERROR: Legacy runtime staging path is not a directory' >&2; exit 1; fi; install -d -m 0700 '${REMOTE_RUNTIME_STAGING_DIR}'"
     runtime_rsync_args=(
       -az
       --delete
@@ -630,38 +630,38 @@ if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
 fi
 remote "bash -lc 'set -euo pipefail
 {
-  if [ "${RUNTIME_DELIVERY_MODE}" = "legacy-rsync" ]; then
-    mkdir -p "${REMOTE_PROJECT_DIR}/data/runtime"
-    exec 9>"${REMOTE_RUNTIME_SELECTION_LOCK}"
+  if [ \"${RUNTIME_DELIVERY_MODE}\" = \"legacy-rsync\" ]; then
+    mkdir -p \"${REMOTE_PROJECT_DIR}/data/runtime\"
+    exec 9>\"${REMOTE_RUNTIME_SELECTION_LOCK}\"
     flock -x 9
-    if [ -e "${REMOTE_PROJECT_DIR}/data/runtime/act-runtime-active-receipt.json" ] || [ -L "${REMOTE_PROJECT_DIR}/data/runtime/act-runtime-active-receipt.json" ]; then
-      echo "ERROR: active OSS runtime receipt is present; Legacy deployment is forbidden" >&2
+    if [ -e \"${REMOTE_PROJECT_DIR}/data/runtime/act-runtime-active-receipt.json\" ] || [ -L \"${REMOTE_PROJECT_DIR}/data/runtime/act-runtime-active-receipt.json\" ]; then
+      echo \"ERROR: active OSS runtime receipt is present; Legacy deployment is forbidden\" >&2
       exit 1
     fi
-    echo "[remote-deploy] Step 0/8: 在 runtime 锁内替换 Legacy runtime"
+    echo \"[remote-deploy] Step 0/8: 在 runtime 锁内替换 Legacy runtime\"
     for container in \
-      "${APP_NAME_HINT}" \
-      "${WORKER_NAME_HINT}" \
-      "${GC_NAME_HINT}" \
+      \"${APP_NAME_HINT}\" \
+      \"${WORKER_NAME_HINT}\" \
+      \"${GC_NAME_HINT}\" \
       act-obe-submission-scanner; do
-      if podman container exists "\${container}"; then
-        podman stop -t 30 "\${container}" >/dev/null
+      if podman container exists \"\${container}\"; then
+        podman stop -t 30 \"\${container}\" >/dev/null
       fi
     done
-    previous="${REMOTE_RUNTIME_DIR}.previous"
-    rm -rf "\${previous}"
-    if [ -d "${REMOTE_RUNTIME_DIR}" ]; then
-      mv "${REMOTE_RUNTIME_DIR}" "\${previous}"
+    previous=\"${REMOTE_RUNTIME_DIR}.previous\"
+    rm -rf \"\${previous}\"
+    if [ -d \"${REMOTE_RUNTIME_DIR}\" ]; then
+      mv \"${REMOTE_RUNTIME_DIR}\" \"\${previous}\"
     fi
-    if ! mv "${REMOTE_RUNTIME_STAGING_DIR}" "${REMOTE_RUNTIME_DIR}"; then
-      [ ! -d "${REMOTE_RUNTIME_DIR}" ] && [ -d "\${previous}" ] && mv "\${previous}" "${REMOTE_RUNTIME_DIR}"
+    if ! mv \"${REMOTE_RUNTIME_STAGING_DIR}\" \"${REMOTE_RUNTIME_DIR}\"; then
+      [ ! -d \"${REMOTE_RUNTIME_DIR}\" ] && [ -d \"\${previous}\" ] && mv \"\${previous}\" \"${REMOTE_RUNTIME_DIR}\"
       exit 1
     fi
-    rm -rf "\${previous}"
-    node "${REMOTE_PROVENANCE_HELPER}" verify-runtime \
-      --runtime-root "${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}" \
-      --index-dir "${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
-      --sidecar "${REMOTE_PROVENANCE_FILE}"
+    rm -rf \"\${previous}\"
+    node \"${REMOTE_PROVENANCE_HELPER}\" verify-runtime \
+      --runtime-root \"${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}\" \
+      --index-dir \"${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}\" \
+      --sidecar \"${REMOTE_PROVENANCE_FILE}\"
   fi
   echo \"[remote-deploy] Step 1/7: 导出现有数据库\"
   \"${REMOTE_EXPORT_DB_SCRIPT}\"
