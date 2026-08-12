@@ -322,6 +322,19 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
   });
 
+  it('uses endpoint-specific source identity requirements for active API evidence', () => {
+    const captureSource = readFileSync(path.join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'), 'utf8');
+    expect(captureSource).toContain('const ACTIVE_CANVAS_SOURCE_IDENTITY_FIELDS');
+    expect(captureSource).toContain('const ACTIVE_NODE_SOURCE_IDENTITY_FIELDS');
+    expect(captureSource).toContain("const isActiveNode = pathName === '/api/knowledge/nodes/active/:node';");
+    expect(captureSource).toContain('const sourceDatasetHashValid = !sourceDatasetHashPresent');
+    expect(captureSource).toContain('&& (isActiveNode || sourceDatasetHashPresent)');
+    expect(captureSource).toContain("if (field === 'sourceDatasetHash') return sourceDatasetHashValid;");
+    expect(captureSource).toContain('source.projectionDigest === null');
+    expect(captureSource).toContain('SHA256_HEX.test(source.sourceDatasetHash)');
+    expect(captureSource).toContain("collectKnowledgeApiSensitiveValues(source, rememberToken, 'source');");
+  });
+
   it('accepts only the exact safe API evidence schema and rejects opaque leakage', () => {
     const safeEvidence = {
       schemaVersion: 'safe-api-evidence/v1',

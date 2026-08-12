@@ -108,6 +108,59 @@ type KnowledgeApiProbe = {
   dispose(): void;
 };
 
+type ActiveSourceIdentityField =
+  | 'authorityState'
+  | 'releaseSetId'
+  | 'releaseId'
+  | 'projectionDigest'
+  | 'sourceDatasetHash';
+
+const ACTIVE_CANVAS_SOURCE_IDENTITY_FIELDS: readonly ActiveSourceIdentityField[] = [
+  'authorityState',
+  'releaseSetId',
+  'releaseId',
+  'projectionDigest',
+  'sourceDatasetHash',
+];
+const ACTIVE_NODE_SOURCE_IDENTITY_FIELDS: readonly ActiveSourceIdentityField[] = [
+  'authorityState',
+  'releaseSetId',
+  'releaseId',
+  'projectionDigest',
+];
+
+const SHA256_HEX = /^[a-f0-9]{64}$/u;
+
+export function validateActiveSourceIdentity(
+  pathName: string,
+  source: Record<string, unknown>,
+) {
+  const isActiveNode = pathName === '/api/knowledge/nodes/active/:node';
+  const requiredFields = isActiveNode
+    ? ACTIVE_NODE_SOURCE_IDENTITY_FIELDS
+    : ACTIVE_CANVAS_SOURCE_IDENTITY_FIELDS;
+  const sourceDatasetHashPresent = Object.prototype.hasOwnProperty.call(source, 'sourceDatasetHash');
+  const sourceDatasetHashValid = !sourceDatasetHashPresent
+    || source.sourceDatasetHash === null
+    || (typeof source.sourceDatasetHash === 'string' && SHA256_HEX.test(source.sourceDatasetHash));
+  const requiredFieldsValid = requiredFields.every((field) => {
+    if (!Object.prototype.hasOwnProperty.call(source, field)) return false;
+    if (field === 'authorityState') return source[field] === 'active';
+    if (field === 'projectionDigest') return source[field] === null;
+    if (field === 'sourceDatasetHash') return sourceDatasetHashValid;
+    return typeof source[field] === 'string' && Boolean(source[field]);
+  });
+  return {
+    identityFieldCount: ACTIVE_CANVAS_SOURCE_IDENTITY_FIELDS.filter((field) => (
+      Object.prototype.hasOwnProperty.call(source, field)
+    )).length,
+    hasSourceIdentityFields: requiredFieldsValid
+      && sourceDatasetHashValid
+      && (isActiveNode || sourceDatasetHashPresent),
+    sourceDatasetHashValid,
+  };
+}
+
 type SafeApiEndpointClass = 'active-canvas' | 'active-node' | 'legacy' | 'candidate';
 type SafeApiRoleClass = KnowledgeRole;
 type SafeApiSequenceEntry = {
@@ -430,15 +483,15 @@ function summarizeKnowledgeApiResponse(
   const responseNode = objectRecord(record.node);
   const responseNodeKey = typeof responseNode.id === 'string' ? responseNode.id : null;
   const authorityRecord = objectRecord(authority);
-  const identityFields = ['authorityState', 'releaseSetId', 'releaseId', 'projectionDigest', 'sourceDatasetHash'];
-  const identityFieldCount = identityFields.filter((field) => Object.prototype.hasOwnProperty.call(source, field)).length;
-  const hasSourceIdentityFields = identityFieldCount === identityFields.length;
+  const sourceIdentity = validateActiveSourceIdentity(pathName, source);
+  const { identityFieldCount, hasSourceIdentityFields } = sourceIdentity;
   const authorityRequiredFields = ['consumerId', 'snapshotId', 'snapshotHash', 'releaseId', 'releaseSetId'];
   const activationRequiredFields = ['mode', 'status', 'activationId', 'activationHash'];
   const authorityComplete = authorityRequiredFields.every((field) => typeof authorityRecord[field] === 'string' && authorityRecord[field]);
   const activationComplete = activationRequiredFields.every((field) => typeof activation[field] === 'string' && activation[field]);
   const authorityIdentityMatches = source.authorityState === 'active'
     && hasSourceIdentityFields
+    && source.projectionDigest === null
     && authorityComplete
     && authorityRecord.consumerId === 'engineering-graph'
     && source.releaseSetId === authorityRecord.releaseSetId

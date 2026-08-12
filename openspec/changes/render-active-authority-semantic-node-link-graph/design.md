@@ -75,6 +75,10 @@ The capture retains real Knowledge API requests and responses only in process me
 
 The governance gate independently parses this exact schema, rejects extra fields and duplicate endpoint classes, and validates active isolation from endpoint classes, status and request counts in addition to the booleans. Legacy and candidate evidence remain fixed endpoint classifications and retain their existing product-state markers without persisting raw API payloads. This decision supersedes any path- or enum-shaped API evidence; tasks 4.2 and 4.3 remain unchecked until the strict projector and gate pass on a clean committed revision with real credentials.
 
+### Accepted decision — endpoint-specific active source identity
+
+Active API capture uses an explicit source identity policy per endpoint. The canvas requires all five source identity fields (`authorityState`, `releaseSetId`, `releaseId`, `projectionDigest` and `sourceDatasetHash`); node detail requires the first four and may omit the contract's optional `sourceDatasetHash`. When node detail includes that field, it must be `null` or a lowercase 64-character SHA-256 and it remains in the existing in-memory sensitive-value scan; no raw source value is written to SafeApiEvidenceV1. Missing or malformed required fields, or any authority consumer, release, activation or projection mismatch, fails closed. SafeApiEvidenceV1's public shape is unchanged.
+
 ### Accepted decision — legacy selected-node API normalization
 
 Real legacy selected-node capture issues `GET /api/knowledge/nodes/:id` in addition to the legacy graph request. The probe accepts only that exact single-segment GET route, canonicalizes it only in capture memory and aggregates it into the existing `legacy` endpoint class and request count. The raw or decoded ID, URL, query and response body remain outside all persisted evidence and error output. Missing identifiers, additional path segments, non-GET methods and every other Knowledge API route continue to fail closed. This preserves the V1 evidence format and active Authority isolation while allowing the existing legacy matrix to be captured truthfully.
