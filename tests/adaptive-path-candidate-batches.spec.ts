@@ -35,6 +35,10 @@ function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
+function normalizedSourceBytes(file: string): Buffer {
+  return Buffer.from(readFileSync(path.resolve(process.cwd(), file)).toString('utf8').replaceAll('\r\n', '\n').replaceAll('\r', '\n'));
+}
+
 function sourceHashAtCommit(commitSha: string, file: string): string {
   return sha256(execFileSync('git', ['show', `${commitSha}:${file}`]));
 }
@@ -67,7 +71,7 @@ function readCaptureInputState(): CaptureInputState {
     commitSha,
     trackedChanges: trackedChangesOutsideEvidence(),
     workingTreeSourceSha256: Object.fromEntries(
-      sourceFiles.map((file) => [file, sha256(readFileSync(path.resolve(process.cwd(), file)))]),
+      sourceFiles.map((file) => [file, sha256(normalizedSourceBytes(file))]),
     ),
     committedSourceSha256: Object.fromEntries(
       sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)]),
