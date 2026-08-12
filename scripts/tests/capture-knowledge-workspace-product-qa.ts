@@ -408,6 +408,7 @@ async function addKnowledgeApiProbe(context: Awaited<ReturnType<Browser['newCont
 }
 
 function canonicalKnowledgeNodePath(pathName: string, prefix: string, canonicalPath: string) {
+  if (!pathName.startsWith(prefix)) return null;
   const encodedNodeKey = pathName.slice(prefix.length);
   if (!encodedNodeKey || encodedNodeKey.includes('/')) return null;
   try {
@@ -421,15 +422,16 @@ function canonicalKnowledgeNodePath(pathName: string, prefix: string, canonicalP
 function canonicalKnowledgeApiPath(pathName: string, method: string) {
   if (method !== 'GET') return null;
   if (pathName === '/api/knowledge/graph/active') return '/api/knowledge/graph/active';
-  const activeNodePath = canonicalKnowledgeNodePath(
-    pathName,
-    '/api/knowledge/nodes/active/',
-    '/api/knowledge/nodes/active/:node',
-  );
-  if (activeNodePath) return activeNodePath;
+  if (pathName.startsWith('/api/knowledge/nodes/active')) {
+    return canonicalKnowledgeNodePath(
+      pathName,
+      '/api/knowledge/nodes/active/',
+      '/api/knowledge/nodes/active/:node',
+    );
+  }
   if (pathName === '/api/knowledge/graph') return '/api/knowledge/graph';
   if (pathName === '/api/knowledge/graph/v2') return '/api/knowledge/graph/v2';
-  if (pathName === '/api/knowledge/nodes/active' || pathName === '/api/knowledge/nodes/v2') return null;
+  if (pathName.startsWith('/api/knowledge/nodes/v2')) return null;
   const legacyNodePath = canonicalKnowledgeNodePath(
     pathName,
     '/api/knowledge/nodes/',

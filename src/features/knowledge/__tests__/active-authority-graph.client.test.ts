@@ -7,7 +7,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
-import { layoutActiveAuthorityNodes } from '../active-authority-graph';
+import {
+  activeAuthorityEdgeEndpoints,
+  activeAuthorityNodeBoundaryPoint,
+  layoutActiveAuthorityNodes,
+} from '../active-authority-graph';
 import {
   parseSafeApiEvidenceV1,
   safeApiHasResponsiveNoActiveNode,
@@ -266,6 +270,96 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector<HTMLSelectElement>('#active-authority-type-filter')?.value).toBe('');
   });
 
+  it('clips edges to the target shape and only directed relations render an arrow', async () => {
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    const directedLine = container.querySelector<SVGLineElement>('[data-active-authority-relation="relation-applies"] line');
+    const unorderedLine = container.querySelector<SVGLineElement>('[data-active-authority-relation="relation-association"] line');
+    const targetPolygon = container.querySelector<SVGGElement>('[data-active-authority-node="node-model"] polygon');
+    expect(directedLine).not.toBeNull();
+    expect(unorderedLine).not.toBeNull();
+    expect(targetPolygon).not.toBeNull();
+    expect(directedLine?.getAttribute('marker-end')).toBe('url(#active-authority-arrow)');
+    expect(unorderedLine?.getAttribute('marker-end')).toBeNull();
+
+    const targetVertices = targetPolygon?.getAttribute('points')?.split(' ').map((vertex) => vertex.split(',').map(Number)) ?? [];
+    const targetCenter = {
+      x: targetVertices.reduce((sum, [x]) => sum + x, 0) / targetVertices.length,
+      y: targetVertices.reduce((sum, [, y]) => sum + y, 0) / targetVertices.length,
+    };
+    const targetEndpoint = {
+      x: Number(directedLine?.getAttribute('x2')),
+      y: Number(directedLine?.getAttribute('y2')),
+    };
+    expect(Math.hypot(targetEndpoint.x - targetCenter.x, targetEndpoint.y - targetCenter.y)).toBeGreaterThan(20);
+    expect(targetEndpoint.y).not.toBeCloseTo(targetCenter.y, 5);
+
+    const horizontalEndpoints = activeAuthorityEdgeEndpoints(
+      'circle',
+      'hexagon',
+      { x: 100, y: 100 },
+      { x: 300, y: 100 },
+    );
+    expect(horizontalEndpoints.source.x).toBeCloseTo(130, 5);
+    expect(horizontalEndpoints.target.x).toBeCloseTo(258, 5);
+    expect(activeAuthorityNodeBoundaryPoint('diamond', { x: 200, y: 100 }, { x: 300, y: 100 }).x).toBeCloseTo(242, 5);
+  });
+
+  it('does not describe an unordered association with outgoing or incoming traversal', async () => {
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => Promise.resolve());
+    const detail = container.querySelector('[data-active-node-detail="node-concept"]');
+    expect(detail?.textContent).toContain('关联关系');
+    expect(detail?.textContent).not.toContain('出向');
+    expect(detail?.textContent).not.toContain('入向');
+  });
+
+  it('emphasizes only real incident edges for the selected node', async () => {
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-formula"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => Promise.resolve());
+
+    const incident = container.querySelector<SVGGElement>('[data-active-authority-relation="relation-association"]');
+    const nonIncident = container.querySelector<SVGGElement>('[data-active-authority-relation="relation-applies"]');
+    expect(incident?.getAttribute('data-active-authority-relation-selected')).toBe('true');
+    expect(nonIncident?.getAttribute('data-active-authority-relation-selected')).toBe('false');
+    expect(incident?.querySelector('line')?.getAttribute('stroke-width')).toBe('3');
+    expect(nonIncident?.querySelector('line')?.getAttribute('stroke-width')).toBe('2');
+  });
+
+  it('moves detail focus when selecting a second node without closing the inspector', async () => {
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    const firstNode = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(firstNode).not.toBeNull();
+    await act(async () => firstNode!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => Promise.resolve());
+    expect(document.activeElement).toBe(container.querySelector('[data-active-node-detail="node-concept"]'));
+
+    const secondNode = container.querySelector<SVGGElement>('[data-active-authority-node="node-formula"]');
+    expect(secondNode).not.toBeNull();
+    await act(async () => secondNode!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => new Promise((resolve) => window.setTimeout(resolve, 0)));
+    expect(container.querySelector('[data-active-node-detail="node-formula"]')).not.toBeNull();
+    expect(document.activeElement).toBe(container.querySelector('[data-active-node-detail="node-formula"]'));
+  });
+
   it('allows the thirteenth readable same-type search result to be selected', async () => {
     const nodes = Array.from({ length: 13 }, (_, index) => ({
       id: `search-node-${index + 1}`,
@@ -454,6 +548,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(governanceSource).toContain('safeApiHasHealthyActiveIsolation');
     expect(governanceSource).toContain('safeActiveSurfaceScanPassed');
     expect(captureSource).toContain('semanticNodeFocusedBeforeClick');
+    expect(captureSource).toContain('if (!pathName.startsWith(prefix)) return null;');
     expect(captureSource).toContain('detailPanelFocusedAfterOpen');
     expect(captureSource).toContain('nodeLabelReadability');
     expect(captureSource).toContain('minPixelSize');
@@ -465,6 +560,18 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain("state.name === 'active-mobile'");
     const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
+  });
+
+  it('fails closed before slicing unrelated Knowledge API paths', () => {
+    const captureSource = readFileSync(path.join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'), 'utf8');
+    const helperStart = captureSource.indexOf('function canonicalKnowledgeNodePath');
+    const guardOffset = captureSource.indexOf('if (!pathName.startsWith(prefix)) return null;', helperStart);
+    const sliceOffset = captureSource.indexOf('const encodedNodeKey = pathName.slice(prefix.length);', helperStart);
+    expect(helperStart).toBeGreaterThanOrEqual(0);
+    expect(guardOffset).toBeGreaterThan(helperStart);
+    expect(sliceOffset).toBeGreaterThan(guardOffset);
+    expect(captureSource).toContain("if (pathName.startsWith('/api/knowledge/nodes/active'))");
+    expect(captureSource).toContain("if (pathName.startsWith('/api/knowledge/nodes/v2')) return null;");
   });
 
   it('uses endpoint-specific source identity requirements for active API evidence', () => {

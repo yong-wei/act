@@ -177,6 +177,174 @@ interface Point {
   y: number;
 }
 
+type ActiveNodeShape = ActiveNodePresentation['type']['shape'];
+
+const ACTIVE_NODE_CIRCLE_RADIUS = 30;
+const ACTIVE_NODE_RECT_HALF_WIDTH = 44;
+const ACTIVE_NODE_RECT_HALF_HEIGHT = 27;
+const ACTIVE_NODE_DIAMOND_HALF_WIDTH = 42;
+const ACTIVE_NODE_DIAMOND_HALF_HEIGHT = 28;
+const ACTIVE_NODE_HEXAGON_HALF_WIDTH = 42;
+const ACTIVE_NODE_HEXAGON_SLOPE_X = 21;
+const ACTIVE_NODE_HEXAGON_SLOPE_Y = 20;
+const ACTIVE_NODE_HEXAGON_HALF_HEIGHT = 30;
+const ACTIVE_NODE_ROUNDED_RADIUS = 18;
+const ACTIVE_NODE_SQUARE_RADIUS = 7;
+
+function polygonBoundaryPoint(center: Point, direction: Point, vertices: readonly Point[]): Point {
+  const epsilon = 1e-9;
+  let closestScale = Number.POSITIVE_INFINITY;
+  let closest: Point | null = null;
+  for (let index = 0; index < vertices.length; index += 1) {
+    const start = vertices[index];
+    const end = vertices[(index + 1) % vertices.length];
+    const edge = { x: end.x - start.x, y: end.y - start.y };
+    const offset = { x: start.x - center.x, y: start.y - center.y };
+    const denominator = direction.x * edge.y - direction.y * edge.x;
+    if (Math.abs(denominator) <= epsilon) continue;
+    const scale = (offset.x * edge.y - offset.y * edge.x) / denominator;
+    const edgePosition = (offset.x * direction.y - offset.y * direction.x) / denominator;
+    if (scale <= epsilon || edgePosition < -epsilon || edgePosition > 1 + epsilon || scale >= closestScale) continue;
+    closestScale = scale;
+    closest = {
+      x: center.x + direction.x * scale,
+      y: center.y + direction.y * scale,
+    };
+  }
+  return closest ?? center;
+}
+
+function roundedRectBoundaryPoint(
+  center: Point,
+  direction: Point,
+  halfWidth: number,
+  halfHeight: number,
+  radius: number,
+): Point {
+  const dx = direction.x;
+  const dy = direction.y;
+  const absoluteX = Math.abs(dx);
+  const absoluteY = Math.abs(dy);
+  if (absoluteX === 0 && absoluteY === 0) return center;
+  if (radius <= 0) {
+    const scale = Math.min(
+      absoluteX === 0 ? Number.POSITIVE_INFINITY : halfWidth / absoluteX,
+      absoluteY === 0 ? Number.POSITIVE_INFINITY : halfHeight / absoluteY,
+    );
+    return { x: center.x + dx * scale, y: center.y + dy * scale };
+  }
+
+  const horizontalCornerCenter = halfWidth - radius;
+  const verticalCornerCenter = halfHeight - radius;
+  const candidates: number[] = [];
+  if (absoluteX > 0) {
+    const scale = halfWidth / absoluteX;
+    if (absoluteY * scale <= verticalCornerCenter + 1e-9) candidates.push(scale);
+  }
+  if (absoluteY > 0) {
+    const scale = halfHeight / absoluteY;
+    if (absoluteX * scale <= horizontalCornerCenter + 1e-9) candidates.push(scale);
+  }
+
+  const signX = dx < 0 ? -1 : 1;
+  const signY = dy < 0 ? -1 : 1;
+  const cornerCenter = {
+    x: signX * horizontalCornerCenter,
+    y: signY * verticalCornerCenter,
+  };
+  const radiusSquared = radius * radius;
+  const quadraticA = (dx * dx + dy * dy) / radiusSquared;
+  const quadraticB = -2 * (dx * cornerCenter.x + dy * cornerCenter.y) / radiusSquared;
+  const quadraticC = (cornerCenter.x * cornerCenter.x + cornerCenter.y * cornerCenter.y) / radiusSquared - 1;
+  const discriminant = quadraticB * quadraticB - 4 * quadraticA * quadraticC;
+  if (discriminant >= 0) {
+    const root = Math.sqrt(discriminant);
+    for (const scale of [
+      (-quadraticB - root) / (2 * quadraticA),
+      (-quadraticB + root) / (2 * quadraticA),
+    ]) {
+      const x = dx * scale;
+      const y = dy * scale;
+      if (scale > 0 && signX * x >= horizontalCornerCenter - 1e-9 && signY * y >= verticalCornerCenter - 1e-9) {
+        candidates.push(scale);
+      }
+    }
+  }
+
+  const scale = Math.min(...candidates.filter((candidate) => candidate > 0));
+  if (!Number.isFinite(scale)) {
+    const fallback = Math.min(
+      absoluteX === 0 ? Number.POSITIVE_INFINITY : halfWidth / absoluteX,
+      absoluteY === 0 ? Number.POSITIVE_INFINITY : halfHeight / absoluteY,
+    );
+    return { x: center.x + dx * fallback, y: center.y + dy * fallback };
+  }
+  return { x: center.x + dx * scale, y: center.y + dy * scale };
+}
+
+/** Return the boundary point reached from a node center toward another point. */
+export function activeAuthorityNodeBoundaryPoint(
+  shape: ActiveNodeShape,
+  center: Point,
+  toward: Point,
+): Point {
+  const direction = { x: toward.x - center.x, y: toward.y - center.y };
+  if (shape === 'circle') {
+    const length = Math.hypot(direction.x, direction.y);
+    if (length === 0) return center;
+    const scale = ACTIVE_NODE_CIRCLE_RADIUS / length;
+    return { x: center.x + direction.x * scale, y: center.y + direction.y * scale };
+  }
+  if (shape === 'diamond') {
+    return polygonBoundaryPoint(center, direction, [
+      { x: center.x, y: center.y - ACTIVE_NODE_DIAMOND_HALF_HEIGHT },
+      { x: center.x + ACTIVE_NODE_DIAMOND_HALF_WIDTH, y: center.y },
+      { x: center.x, y: center.y + ACTIVE_NODE_DIAMOND_HALF_HEIGHT },
+      { x: center.x - ACTIVE_NODE_DIAMOND_HALF_WIDTH, y: center.y },
+    ]);
+  }
+  if (shape === 'hexagon') {
+    return polygonBoundaryPoint(center, direction, [
+      { x: center.x - ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y - ACTIVE_NODE_HEXAGON_SLOPE_Y },
+      { x: center.x - ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
+      { x: center.x + ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
+      { x: center.x + ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y - ACTIVE_NODE_HEXAGON_SLOPE_Y },
+      { x: center.x + ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y + ACTIVE_NODE_HEXAGON_SLOPE_Y },
+      { x: center.x + ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
+      { x: center.x - ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
+      { x: center.x - ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y + ACTIVE_NODE_HEXAGON_SLOPE_Y },
+    ]);
+  }
+  return roundedRectBoundaryPoint(
+    center,
+    direction,
+    ACTIVE_NODE_RECT_HALF_WIDTH,
+    ACTIVE_NODE_RECT_HALF_HEIGHT,
+    shape === 'rounded' ? ACTIVE_NODE_ROUNDED_RADIUS : ACTIVE_NODE_SQUARE_RADIUS,
+  );
+}
+
+export function activeAuthorityEdgeEndpoints(
+  sourceShape: ActiveNodeShape,
+  targetShape: ActiveNodeShape,
+  source: Point,
+  target: Point,
+): { source: Point; target: Point } {
+  const samePoint = source.x === target.x && source.y === target.y;
+  return {
+    source: activeAuthorityNodeBoundaryPoint(
+      sourceShape,
+      source,
+      samePoint ? { x: source.x, y: source.y - 1 } : target,
+    ),
+    target: activeAuthorityNodeBoundaryPoint(
+      targetShape,
+      target,
+      samePoint ? { x: target.x + 1, y: target.y + 1 } : source,
+    ),
+  };
+}
+
 const ACTIVE_MOBILE_NODE_LIMIT = 6;
 const ACTIVE_MOBILE_VIEWBOX = '0 0 320 520';
 const ACTIVE_DESKTOP_VIEWBOX = '0 0 960 520';
@@ -203,8 +371,8 @@ export function layoutActiveAuthorityNodes(
 }
 
 function nodePolygon(shape: ActiveNodePresentation['type']['shape'], x: number, y: number): string | null {
-  if (shape === 'diamond') return `${x},${y - 28} ${x + 42},${y} ${x},${y + 28} ${x - 42},${y}`;
-  if (shape === 'hexagon') return `${x - 42},${y - 20} ${x - 21},${y - 30} ${x + 21},${y - 30} ${x + 42},${y - 20} ${x + 42},${y + 20} ${x + 21},${y + 30} ${x - 21},${y + 30} ${x - 42},${y + 20}`;
+  if (shape === 'diamond') return `${x},${y - ACTIVE_NODE_DIAMOND_HALF_HEIGHT} ${x + ACTIVE_NODE_DIAMOND_HALF_WIDTH},${y} ${x},${y + ACTIVE_NODE_DIAMOND_HALF_HEIGHT} ${x - ACTIVE_NODE_DIAMOND_HALF_WIDTH},${y}`;
+  if (shape === 'hexagon') return `${x - ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y - ACTIVE_NODE_HEXAGON_SLOPE_Y} ${x - ACTIVE_NODE_HEXAGON_SLOPE_X},${y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x + ACTIVE_NODE_HEXAGON_SLOPE_X},${y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x + ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y - ACTIVE_NODE_HEXAGON_SLOPE_Y} ${x + ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y + ACTIVE_NODE_HEXAGON_SLOPE_Y} ${x + ACTIVE_NODE_HEXAGON_SLOPE_X},${y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x - ACTIVE_NODE_HEXAGON_SLOPE_X},${y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x - ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y + ACTIVE_NODE_HEXAGON_SLOPE_Y}`;
   return null;
 }
 
@@ -244,9 +412,9 @@ function GraphNode({
       {polygon ? (
         <polygon points={polygon} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
       ) : node.type.shape === 'circle' ? (
-        <circle cx={point.x} cy={point.y} r={30} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
+        <circle cx={point.x} cy={point.y} r={ACTIVE_NODE_CIRCLE_RADIUS} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
       ) : (
-        <rect x={point.x - 44} y={point.y - 27} width={88} height={54} rx={node.type.shape === 'rounded' ? 18 : 7} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
+        <rect x={point.x - ACTIVE_NODE_RECT_HALF_WIDTH} y={point.y - ACTIVE_NODE_RECT_HALF_HEIGHT} width={ACTIVE_NODE_RECT_HALF_WIDTH * 2} height={ACTIVE_NODE_RECT_HALF_HEIGHT * 2} rx={node.type.shape === 'rounded' ? ACTIVE_NODE_ROUNDED_RADIUS : ACTIVE_NODE_SQUARE_RADIUS} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
       )}
       <text data-active-authority-node-label="true" x={point.x} y={point.y - 3} textAnchor="middle" fill="#f8fafc" fontSize={compact ? 13 : 12} fontWeight="600">
         {node.label.slice(0, 14)}
@@ -262,42 +430,53 @@ function GraphEdge({
   relation,
   source,
   target,
+  sourceShape,
+  targetShape,
   sourceLabel,
   targetLabel,
   compact,
+  selected,
 }: {
   relation: ActiveAuthorityGraphModel['relations'][number];
   source: Point;
   target: Point;
+  sourceShape: ActiveNodeShape;
+  targetShape: ActiveNodeShape;
   sourceLabel: string;
   targetLabel: string;
   compact: boolean;
+  selected: boolean;
 }) {
   const label = `${sourceLabel}，${relation.semantic.label}，${targetLabel}，${relation.semantic.directionLabel}`;
+  const endpoints = activeAuthorityEdgeEndpoints(sourceShape, targetShape, source, target);
+  const edgeStroke = selected ? '#e2e8f0' : '#64748b';
   return (
     <g
       data-active-authority-relation={relation.key}
       data-active-authority-relation-source={relation.sourceKey}
       data-active-authority-relation-target={relation.targetKey}
+      data-active-authority-relation-selected={selected ? 'true' : 'false'}
       aria-label={label}
     >
       <title>{label}</title>
       {source.x === target.x && source.y === target.y ? (
         <path
-          d={`M ${source.x} ${source.y - 24} C ${source.x + 50} ${source.y - 72}, ${source.x + 72} ${source.y + 24}, ${source.x + 24} ${source.y + 24}`}
+          d={`M ${endpoints.source.x} ${endpoints.source.y} C ${source.x + 50} ${source.y - 72}, ${source.x + 72} ${source.y + 24}, ${endpoints.target.x} ${endpoints.target.y}`}
           fill="none"
-          stroke="#64748b"
-          strokeWidth="2"
+          stroke={edgeStroke}
+          strokeWidth={selected ? 3 : 2}
+          strokeLinecap="round"
           markerEnd={relation.semantic.kind === 'directed' ? 'url(#active-authority-arrow)' : undefined}
         />
       ) : (
         <line
-          x1={source.x}
-          y1={source.y}
-          x2={target.x}
-          y2={target.y}
-          stroke="#64748b"
-          strokeWidth="2"
+          x1={endpoints.source.x}
+          y1={endpoints.source.y}
+          x2={endpoints.target.x}
+          y2={endpoints.target.y}
+          stroke={edgeStroke}
+          strokeWidth={selected ? 3 : 2}
+          strokeLinecap="round"
           markerEnd={relation.semantic.kind === 'directed' ? 'url(#active-authority-arrow)' : undefined}
         />
       )}
@@ -330,7 +509,7 @@ function ActiveNodeDetail({
   const panelRef = useRef<HTMLElement>(null);
   useEffect(() => {
     panelRef.current?.focus();
-  }, []);
+  }, [nodeKey]);
   const node = detail?.node;
   const type = presentActiveNodeType(node?.canonicalType ?? fallbackNode?.type.canonicalType ?? '');
   const summaries = node ? activeNodeRelationSummaries(node, model) : [];
@@ -388,7 +567,9 @@ function ActiveNodeDetail({
                 <div key={relation.key} className="rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-xs">
                   <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
                   <span className="ml-2 text-platform-fg-muted">
-                    {relation.traversal === 'outgoing' ? '出向' : '入向'} · {relation.directionLabel} · {relation.neighborLabel}
+                    {relation.directionLabel === '关联关系'
+                      ? `${relation.directionLabel} · ${relation.neighborLabel}`
+                      : `${relation.traversal === 'outgoing' ? '出向' : '入向'} · ${relation.directionLabel} · ${relation.neighborLabel}`}
                   </span>
                 </div>
               ))}
@@ -673,7 +854,18 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                     const sourceNode = model.nodeByKey.get(relation.sourceKey);
                     const targetNode = model.nodeByKey.get(relation.targetKey);
                     return source && target && sourceNode && targetNode
-                      ? <GraphEdge key={relation.key} relation={relation} source={source} target={target} sourceLabel={sourceNode.label} targetLabel={targetNode.label} compact={isCompactViewport} />
+                      ? <GraphEdge
+                        key={relation.key}
+                        relation={relation}
+                        source={source}
+                        target={target}
+                        sourceShape={sourceNode.type.shape}
+                        targetShape={targetNode.type.shape}
+                        sourceLabel={sourceNode.label}
+                        targetLabel={targetNode.label}
+                        compact={isCompactViewport}
+                        selected={Boolean(selectedNodeKey && (selectedNodeKey === relation.sourceKey || selectedNodeKey === relation.targetKey))}
+                      />
                       : null;
                   })}
                   {scopedGraph.nodes.map((node) => {
