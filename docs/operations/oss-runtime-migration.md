@@ -58,7 +58,7 @@ npx tsx scripts/runtime-release/act-runtime-release.ts inspect \
   --identity-file </absolute/ssh-private-key>
 ```
 
-将 bridge 脚本以固定、root-owned 路径部署到 ECS 后，`publish-streaming` 以单个 SSH 流发送 frozen manifest 和缺失对象；ECS 不产生完整 runtime staging 副本。bridge 对每个 Release 前缀持有排他锁，只续传与 manifest 完全一致的既有对象，并在逐对象远端 SHA-256/size 校验后最后写入 manifest。任一中断、额外对象或不匹配都会失败，且不得生成 selection。Release prefix 从不覆盖、从不原地修复。发布结束后立即将 ECS 恢复到 read-only runtime role；`verify` 与 `inspect` 均通过该角色在 ECS 上执行，不在本机伪造 RAM Role。
+将 bridge 脚本以固定、root-owned 路径部署到 ECS 后，`publish-streaming` 以单个 SSH 流发送 frozen manifest 和缺失对象；ECS 不产生完整 runtime staging 副本。bridge 对每个 Release 前缀持有排他锁，只续传与 manifest 完全一致的既有对象，并在逐对象远端 SHA-256/size 校验后最后写入 manifest。任一中断、额外对象或不匹配都会失败，且不得生成 selection。Release prefix 从不覆盖、从不原地修复。发布结束后立即将 ECS 恢复到 read-only runtime role；`verify` 与 `inspect` 均通过该角色在 ECS 上执行，不在本机伪造 RAM Role。read-role 的 `verify` 核验 manifest、完整 key/size 集合和三个有上限的代表对象；完整 body hash 只保留在 publisher upload/readback 收据中。
 
 ## 2026-08-11 实际候选证据
 

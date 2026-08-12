@@ -43,6 +43,7 @@ DEFAULT_SPOOL_DIR = "/var/lib/act/runtime-release-spool"
 DEFAULT_LOCK_DIR = "/var/lib/act/runtime-release-locks"
 EXPECTED_OSSUTIL_SHA256 = "1a0b6d3f955d464a6dec9d7c3f81c036781619f012311d20a4c69a4c626ed356"
 MAX_FRAME_BYTES = 256 * 1024 * 1024
+READINESS_SAMPLE_MAX_BYTES = 4 * 1024 * 1024
 MIN_FREE_BYTES = 1024 * 1024 * 1024
 MAX_SAFE_INTEGER = 9007199254740991
 OBJECT_NUMBER_SUMMARY = re.compile(r"^Object Number is:? [0-9]+$")
@@ -725,10 +726,15 @@ def verify_operation(bucket: str, prefix_b64: str) -> None:
     assert_object_set(objects, expected_sizes, allow_manifest=True)
     cross_check_v1_keys(bucket, prefix, objects)
     if remote_digest(bucket, manifest_key) != {"sizeBytes": len(wire), "sha256": wire_sha}:
-        fail("remote completion manifest failed read-role verification")
-    for entry in files:
+        fail("remote completion manifest failed read-role readiness")
+    candidates = [entry for entry in files if entry["sizeBytes"] <= READINESS_SAMPLE_MAX_BYTES]
+    if not candidates:
+        fail("remote runtime release has no bounded representative object for read-role readiness")
+    selected_indexes = sorted({0, len(candidates) // 2, len(candidates) - 1})
+    for index in selected_indexes:
+        entry = candidates[index]
         if remote_digest(bucket, entry["key"]) != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]}:
-            fail(f"remote object failed read-role verification for {entry['key']}")
+            fail(f"remote representative object failed read-role readiness for {entry['key']}")
     write_json({
         "schemaVersion": "runtime-release-verification.v1",
         "releaseId": manifest["releaseId"],

@@ -54,6 +54,9 @@ assert.match(bridge, /PUBLISHER_ECS_ROLE_NAME\s*=\s*["']act-runtime-oss-publishe
 assert.match(bridge, /READER_ECS_ROLE_NAME\s*=\s*["']act-runtime-oss-read["']/, 'read-only operations must bind the reader role');
 assert.match(bridge, /arguments\.operation == "publish" else READER_ECS_ROLE_NAME/, 'read-only bridge operations must reject the publisher role');
 assert.match(bridge, /def verify_operation\(/, 'read-role verification must execute entirely on ECS');
+assert.match(bridge, /READINESS_SAMPLE_MAX_BYTES\s*=\s*4 \* 1024 \* 1024/, 'read-role verification must bound representative content reads');
+assert.match(bridge, /selected_indexes = sorted\(\{0, len\(candidates\) \/\/ 2, len\(candidates\) - 1\}\)/, 'read-role verification must sample deterministic representatives');
+assert.doesNotMatch(bridge, /for entry in files:\n        if remote_digest\(bucket, entry\["key"\]\)/, 'read-role verification must not rehash every published object');
 assert.match(bridge, /MANIFEST_SCHEMA_VERSION\s*=\s*["']act-runtime-release\.v1["']/, 'read-role verification must pin the manifest schema version');
 assert.match(bridge, /manifest tree digest does not match its files/, 'read-role verification must recompute the manifest tree digest');
 assert.match(bridge, /manifest\.files must be strictly code-point sorted/, 'read-role verification must enforce deterministic manifest ordering');
