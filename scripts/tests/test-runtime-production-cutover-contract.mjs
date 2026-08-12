@@ -9,7 +9,10 @@ const remote = fs.readFileSync(path.join(root, 'scripts/runtime-release/perform-
 assert.match(local, /git fetch origin integration/, 'cutover must resolve the live integration revision');
 assert.match(local, /local checkout must exactly match origin\/integration/, 'cutover must reject a merely descendant topic branch');
 assert.match(local, /head_revision.*integration_revision/, 'cutover must use the exact integration revision for every staged script');
-assert.match(local, /release locator must be tracked by integration/, 'cutover must only stage a locator committed to integration');
+assert.match(local, /require_integration_artifact "\$release_locator" 'release locator'/, 'cutover must only stage a locator committed to integration');
+assert.match(local, /require_integration_artifact "\$verification_receipt" 'verification receipt'/, 'cutover must only stage a verification receipt committed to integration');
+assert.match(local, /require_integration_artifact "\$media_closure" 'published-media closure'/, 'cutover must only stage a media closure committed to integration');
+assert.match(local, /require_integration_artifact/, 'all production release evidence must share the integration checkout boundary');
 assert.match(local, /git merge-base --is-ancestor "\$release_source_revision" "\$integration_revision"/, 'runtime release source must be an integration ancestor, not necessarily the image revision');
 assert.match(local, /release locator source revision and tree digest do not bind --release-id/, 'cutover must derive the immutable release identity from the locator');
 assert.match(local, /closure\.get\('sourceRevision'\) != source_revision/, 'media closure must bind the release source revision');

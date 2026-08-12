@@ -64,8 +64,28 @@ except ValueError:
     raise SystemExit('release locator must be inside the integration checkout')
 PY
 )"
-git ls-files --error-unmatch -- "$release_locator_relative" >/dev/null 2>&1 || { echo 'ERROR: release locator must be tracked by integration' >&2; exit 1; }
-git diff --quiet HEAD -- "$release_locator_relative" || { echo 'ERROR: release locator differs from the integration checkout' >&2; exit 1; }
+require_integration_artifact() {
+  local artifact_path="$1"
+  local label="$2"
+  local relative
+  relative="$(python3 - "$ROOT_DIR" "$artifact_path" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]).resolve()
+candidate = Path(sys.argv[2]).resolve()
+try:
+    print(candidate.relative_to(root).as_posix())
+except ValueError:
+    raise SystemExit('artifact must be inside the integration checkout')
+PY
+)"
+  git ls-files --error-unmatch -- "$relative" >/dev/null 2>&1 || { echo "ERROR: ${label} must be tracked by integration" >&2; exit 1; }
+  git diff --quiet HEAD -- "$relative" || { echo "ERROR: ${label} differs from the integration checkout" >&2; exit 1; }
+}
+require_integration_artifact "$release_locator" 'release locator'
+require_integration_artifact "$verification_receipt" 'verification receipt'
+require_integration_artifact "$media_closure" 'published-media closure'
 provenance="${image_tar}.provenance.json"
 node scripts/release/textbook-runtime-v2-provenance.mjs verify-image --sidecar "$provenance" --image-tar "$image_tar" >/dev/null
 release_source_revision="$(python3 - "$release_id" "$verification_receipt" "$release_locator" "$media_closure" <<'PY'
