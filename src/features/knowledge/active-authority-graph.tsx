@@ -424,7 +424,7 @@ function SearchResults({
   if (results.length === 0) return null;
   return (
     <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results>
-      {results.slice(0, 12).map((node) => (
+      {results.map((node) => (
         <button
           key={node.key}
           type="button"
@@ -525,6 +525,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     setVisibleKeys(materializeActiveNodeScope(model, key, visibleNodeLimit));
     setSelectedNodeKey(key);
     setQuery('');
+    setTypeFilter('');
   }
 
   function resetOverview() {

@@ -233,6 +233,90 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).toContain('公式');
   });
 
+  it('keeps a selected node and its real cross-type one-hop graph after filtered search', async () => {
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    const filter = container.querySelector<HTMLSelectElement>('#active-authority-type-filter')!;
+    await act(async () => {
+      filter.value = 'DomainConcept';
+      filter.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    const search = container.querySelector<HTMLInputElement>('#active-authority-search')!;
+    await act(async () => {
+      search.value = '稳定性';
+      search.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const result = container.querySelector<HTMLButtonElement>('[data-active-authority-search-result="node-concept"]');
+    expect(result).not.toBeNull();
+
+    await act(async () => result!.click());
+    await act(async () => Promise.resolve());
+
+    const detail = container.querySelector('[data-active-node-detail="node-concept"]');
+    expect(detail).not.toBeNull();
+    expect(document.activeElement).toBe(detail);
+    expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-model"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-relation="relation-association"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-relation="relation-applies"]')).not.toBeNull();
+    expect(container.querySelector<HTMLSelectElement>('#active-authority-type-filter')?.value).toBe('');
+  });
+
+  it('allows the thirteenth readable same-type search result to be selected', async () => {
+    const nodes = Array.from({ length: 13 }, (_, index) => ({
+      id: `search-node-${index + 1}`,
+      canonicalType: 'Formula',
+      label: `可读公式 ${String(index + 1).padStart(2, '0')}`,
+      description: null,
+      governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+      semanticSupport: { supported: true, readOnly: true as const },
+    }));
+    const searchableCanvas = {
+      ...canvas,
+      coverage: { ...canvas.coverage, objectCount: nodes.length, relationCount: 0, goldRelationCount: 0, silverRelationCount: 0 },
+      nodes,
+      relations: [],
+    };
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      const nodeId = url.split('/').pop() ?? 'search-node-1';
+      return {
+        ok: true,
+        status: 200,
+        json: async () => url.includes('/nodes/active/') ? nodeDetail(nodeId) : searchableCanvas,
+      };
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    const filter = container.querySelector<HTMLSelectElement>('#active-authority-type-filter')!;
+    await act(async () => {
+      filter.value = 'Formula';
+      filter.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    const search = container.querySelector<HTMLInputElement>('#active-authority-search')!;
+    await act(async () => {
+      search.value = '可读公式';
+      search.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(container.querySelectorAll('[data-active-authority-search-result]').length).toBe(13);
+    const thirteenth = container.querySelector<HTMLButtonElement>('[data-active-authority-search-result="search-node-13"]');
+    expect(thirteenth).not.toBeNull();
+
+    await act(async () => thirteenth!.click());
+    await act(async () => Promise.resolve());
+
+    expect(container.querySelector('[data-active-authority-node="search-node-13"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-node-detail="search-node-13"]')).not.toBeNull();
+  });
+
   it('uses a compact mobile graph coordinate space and keeps node labels readable', async () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
