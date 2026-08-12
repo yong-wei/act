@@ -194,7 +194,7 @@ describe('adaptive path journey control', () => {
     expect(html).not.toContain('查看纠偏方案');
   });
 
-  it('uses the learning path landing workspace for the fallback return action', () => {
+  it('uses the current path overview for the fallback return action', () => {
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
       launchContext: launchContext(),
       status: 'error',
@@ -203,7 +203,7 @@ describe('adaptive path journey control', () => {
       onRefresh: () => undefined,
     }));
 
-    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction"');
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;intent=path-execution&amp;pathId=path-1"');
     expect(html).not.toContain('nodeId=node-1');
   });
 
@@ -261,7 +261,7 @@ describe('adaptive path journey control', () => {
     });
     currentJourney.return = {
       label: '返回学习路径',
-      href: '/assessment/adaptive-practice?goal=control-correction',
+      href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1',
     };
 
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
@@ -273,7 +273,7 @@ describe('adaptive path journey control', () => {
     }));
 
     expect(html.match(/返回学习路径/g)).toHaveLength(1);
-    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction"');
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;intent=path-execution&amp;pathId=path-1"');
     expect(html).not.toContain('data-adaptive-path-next-action="ready"');
   });
 
@@ -331,7 +331,7 @@ describe('adaptive path journey control', () => {
     });
     blockedJourney.return = {
       label: '返回学习路径',
-      href: '/assessment/adaptive-practice?goal=control-correction',
+      href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1',
     };
 
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {

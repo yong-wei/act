@@ -18,11 +18,12 @@ try {
     const returnLink = page.getByRole('link', { name: '返回学习路径', exact: true });
     const count = await returnLink.count();
     const href = await returnLink.getAttribute('href');
-    if (count !== 1 || href !== '/assessment/adaptive-practice?goal=control-correction') {
+    const expectedHref = '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction';
+    if (count !== 1 || href !== expectedHref) {
       throw new Error(`unexpected return action at ${width}px: count=${count}, href=${href}`);
     }
     await returnLink.click();
-    await page.waitForURL(`${baseUrl}/assessment/adaptive-practice?goal=control-correction`, { timeout: 10000 });
+    await page.waitForURL(`${baseUrl}${expectedHref}`, { timeout: 10000 });
     await page.waitForTimeout(1000);
     const landingIntent = await page.locator('[data-adaptive-path-workspace-intent]').getAttribute('data-adaptive-path-workspace-intent');
     const scroll = await page.evaluate(() => ({
@@ -30,8 +31,8 @@ try {
       documentScrollWidth: document.documentElement.scrollWidth,
       horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     }));
-    if (landingIntent !== 'landing' || scroll.horizontalOverflow) throw new Error(`landing assertion failed at ${width}px`);
-    const screenshot = `landing-${width}.png`;
+    if (landingIntent !== 'execution' || scroll.horizontalOverflow) throw new Error(`overview assertion failed at ${width}px`);
+    const screenshot = `path-overview-${width}.png`;
     const bytes = await page.screenshot({ path: `${outputDir}/${screenshot}`, fullPage: true });
     results.push({ width, route, returnActionCount: count, returnHref: href, landingUrl: page.url(), landingIntent, screenshot, screenshotSha256: createHash('sha256').update(bytes).digest('hex'), scroll });
     await page.close();
@@ -49,6 +50,6 @@ await writeFile(`${outputDir}/evidence-manifest.json`, `${JSON.stringify({
   baseUrl,
   route,
   provenance: 'local-only Playwright projection and routing evidence; no remote or production mutation',
-  assertions: { oneReturnAction: true, returnToLandingWorkspace: true, nodeIdRemovedAfterClick: true, responsiveNoHorizontalOverflow: true },
+  assertions: { oneReturnAction: true, returnToCurrentPathOverview: true, nodeIdRemovedAfterClick: true, pathContextPreserved: true, responsiveNoHorizontalOverflow: true },
   results,
 }, null, 2)}\n`);
