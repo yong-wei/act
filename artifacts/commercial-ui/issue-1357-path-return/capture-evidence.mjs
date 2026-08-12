@@ -55,28 +55,35 @@ function assertSameSourceSnapshot(start, end, phase) {
   }
 }
 
-function sourceFingerprint(files) {
+function sourceFingerprint(filePaths) {
   const hash = createHash('sha256');
-  for (const file of [...files].sort((a, b) => a.file.localeCompare(b.file))) {
-    hash.update(file.file);
+  for (const file of [...filePaths].sort()) {
+    hash.update(file);
     hash.update('\0');
-    hash.update(readFileSync(`${repositoryRoot}/${file.file}`));
+    hash.update(readFileSync(`${repositoryRoot}/${file}`));
     hash.update('\0');
   }
   return hash.digest('hex');
 }
 
 function localRevisionProof(snapshot) {
-  const revisionFiles = revisionSourceFiles.map((file) => ({
-    file,
-    sha256: createHash('sha256').update(readFileSync(`${repositoryRoot}/${file}`)).digest('hex'),
-  }));
   return {
     commitSha: snapshot.sourceRevision,
     treeSha: git('rev-parse', 'HEAD^{tree}'),
-    sourceFingerprint: sourceFingerprint(revisionFiles),
+    sourceFingerprint: sourceFingerprint(revisionSourceFiles),
     clean: git('status', '--porcelain', '--untracked-files=all', '--', ...sourceFiles) === '',
   };
+}
+
+function sourceFingerprintAtRevision(revision) {
+  const hash = createHash('sha256');
+  for (const file of [...revisionSourceFiles].sort()) {
+    hash.update(file);
+    hash.update('\0');
+    hash.update(execFileSync('git', ['show', `${revision}:${file}`], { cwd: repositoryRoot }));
+    hash.update('\0');
+  }
+  return hash.digest('hex');
 }
 
 function assertRevisionProofMatches(expected, actual, phase) {
@@ -102,6 +109,9 @@ async function fetchRevisionProof() {
 
 const sourceSnapshot = await captureSourceSnapshot('capture start');
 const localProof = localRevisionProof(sourceSnapshot);
+if (localProof.sourceFingerprint !== sourceFingerprintAtRevision(sourceSnapshot.sourceRevision)) {
+  throw new Error('capture start: local runtime source fingerprint differs from committed revision');
+}
 const initialServiceProof = await fetchRevisionProof();
 assertRevisionProofMatches(localProof, initialServiceProof, 'capture start');
 
