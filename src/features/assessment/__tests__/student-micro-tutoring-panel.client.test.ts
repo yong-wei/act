@@ -110,7 +110,9 @@ describe('StudentMicroTutoringPanel', () => {
   });
 
   it('shows a controlled unavailable state instead of offering a stale task', async () => {
-    fetchMock.mockResolvedValueOnce(json({ status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT' }, 409));
+    fetchMock
+      .mockResolvedValueOnce(json({ status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT' }, 409))
+      .mockResolvedValueOnce(json(AVAILABLE));
 
     await act(async () => root.render(createElement(StudentMicroTutoringPanel, { answerId: 'answer-1', onRequestHint })));
     fireEvent.click(getByRole(container, 'button', { name: '开始微辅导' }));
@@ -118,6 +120,26 @@ describe('StudentMicroTutoringPanel', () => {
 
     expect(getByText(container, '任务内容已更新，请返回练习后重新开始。')).toBeTruthy();
     expect(container.querySelector('[name="micro-tutoring-validation"]')).toBeNull();
+
+    fireEvent.click(getByRole(container, 'button', { name: '重新尝试微辅导' }));
+    await flush();
+
+    expect(getByText(container, '目标：辨析相位裕度不足')).toBeTruthy();
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual(expect.objectContaining({
+      answerId: 'answer-1',
+      refreshKey: expect.any(String),
+    }));
+  });
+
+  it('does not offer a fresh orchestration retry for a non-drift unavailable result', async () => {
+    fetchMock.mockResolvedValueOnce(json({ status: 'UNAVAILABLE', unavailableReason: 'ACCESS_REVOKED' }, 409));
+
+    await act(async () => root.render(createElement(StudentMicroTutoringPanel, { answerId: 'answer-1', onRequestHint })));
+    fireEvent.click(getByRole(container, 'button', { name: '开始微辅导' }));
+    await flush();
+
+    expect(getByText(container, '当前任务的访问条件已变化，无法继续本次微辅导。')).toBeTruthy();
+    expect(queryByRole(container, 'button', { name: '重新尝试微辅导' })).toBeNull();
   });
 
   it.each([401, 403])('does not offer a same-request retry after a %i authorization failure', async (status) => {

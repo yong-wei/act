@@ -6,7 +6,10 @@ import {
   type QuestionType,
 } from '@/features/assessment/adaptive-question-bank';
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
-import { selectCatalogBackedAssessmentItem } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import {
+  findAdaptiveAssessmentCatalogSnapshot,
+  selectCatalogBackedAssessmentItem,
+} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import {
   checkpointAuthoredQuestionRuntimeId,
   getCheckpointAuthoredQuestionRecordByRuntimeId,
@@ -412,7 +415,16 @@ export function selectNextQuestionFromAnswers(
   }
 
   const candidates = filterQuestionsByGoal(allQuestions(params), targetGoalId, questionScope);
-  const unaskedCandidates = candidates.filter((question) => !askedQuestionIds.has(question.id));
+  const governedPracticeCandidates = questionScope === 'practice' && !targetGoalId
+    ? candidates.filter((question) => {
+        const snapshot = findAdaptiveAssessmentCatalogSnapshot(question.id);
+        return snapshot?.reviewDecision.outcome === 'approved' && snapshot.allowedStages.includes('low-stakes-practice');
+      })
+    : [];
+  const selectableCandidates = governedPracticeCandidates.length > 0
+    ? governedPracticeCandidates
+    : candidates;
+  const unaskedCandidates = selectableCandidates.filter((question) => !askedQuestionIds.has(question.id));
   if (targetGoalId && (questionScope === 'readiness' || questionScope === 'checkpoint') && unaskedCandidates.length === 0) {
     const selectedUnansweredCandidate = candidates.find((question) => (
       askedQuestionIds.has(question.id) && !answeredQuestionIds.has(question.id)
@@ -425,7 +437,7 @@ export function selectNextQuestionFromAnswers(
       };
     }
   }
-  const selectionPool = unaskedCandidates.length > 0 ? unaskedCandidates : candidates;
+  const selectionPool = unaskedCandidates.length > 0 ? unaskedCandidates : selectableCandidates;
   const scored = selectionPool.map((question) => {
     const closeness = 1 - Math.abs(question.difficulty - targetDifficulty);
     const weakBoost = question.knowledgeTags.reduce((sum, tag) => sum + (weakAreas.has(tag) ? 0.15 : 0), 0);

@@ -184,6 +184,10 @@ interface SubmitAnswerResponse {
   adaptiveAssessmentRef?: Record<string, unknown>;
 }
 
+function isMicroTutoringEligible(ref: Record<string, unknown> | undefined): boolean {
+  return typeof ref?.catalogItemId === 'string' && ref.reviewState === 'reviewed';
+}
+
 interface PathAdvisorContextResponse {
   goalId: AdaptivePracticeGoalId;
   classId: string;
@@ -6117,7 +6121,8 @@ export default function AdaptivePracticePage() {
                               ) : null}
                             </div>
                           ) : null}
-                          {!feedback.isCorrect && feedback.durableAnswerId ? (
+                          {!feedback.isCorrect && feedback.durableAnswerId &&
+                          isMicroTutoringEligible(feedback.adaptiveAssessmentRef) ? (
                             <StudentMicroTutoringPanel
                               answerId={feedback.durableAnswerId}
                               onRequestHint={requestAttemptDiagnosis}

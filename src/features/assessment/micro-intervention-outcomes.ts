@@ -293,7 +293,7 @@ function sameSource(
     storedTask.validationQuestion.questionId === currentTask.validationQuestion.questionId &&
     storedTask.validationQuestion.contentHash === currentTask.validationQuestion.contentHash &&
     storedTask.validationQuestion.version === currentTask.validationQuestion.version &&
-    JSON.stringify(storedTask.resources) === JSON.stringify(currentTask.resources);
+    JSON.stringify(canonicalize(storedTask.resources)) === JSON.stringify(canonicalize(currentTask.resources));
 }
 
 function unavailable(

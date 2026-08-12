@@ -20,6 +20,9 @@ assert.match(remoteDeploy, /sync_oss_runtime_release_host_tools/, 'OSS deploymen
 assert.ok(remoteDeploy.includes('--expected-active-release \\"${RUNTIME_EXPECTED_ACTIVE_RELEASE}\\"'), 'OSS activation must fence the expected active release');
 assert.ok(remoteDeploy.includes('ACT_RUNTIME_OSS_RAM_ROLE=\\"${RUNTIME_OSS_RAM_ROLE}\\"'), 'app delivery must use the role name rather than static keys');
 assert.match(remoteDeploy, /findmnt -rn -T '\$\{REMOTE_RUNTIME_DIR\}' -o OPTIONS \| grep -Eq '\(\^\|,\)ro/, 'post-deploy validation must keep the mounted runtime read-only');
+assert.match(remoteDeploy, /REMOTE_RUNTIME_SELECTION_LOCK="\$\{REMOTE_RUNTIME_SELECTION_LOCK:-\$\{REMOTE_PROJECT_DIR\}\/data\/runtime\/\.act-runtime-selection\.lock\}"/, 'Legacy deployment must share the activation and retirement selection lock');
+assert.match(remoteDeploy, /Step 0\/8: 在 runtime 锁内替换 Legacy runtime/, 'Legacy runtime replacement must happen inside the remote lock-held deployment transaction');
+assert.match(remoteDeploy, /active OSS runtime receipt is present; Legacy deployment is forbidden/, 'a Legacy deployment must fail closed once OSS activation is recorded');
 
 assert.match(podmanDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-legacy-rsync\}"/, 'Podman deploy must recognize the OSS runtime mode');
 assert.match(podmanDeploy, /ossfs-release\)/, 'Podman deploy must have an OSS mount guard');

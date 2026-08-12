@@ -39,6 +39,7 @@ describe('adaptive practice page entry states', () => {
 
     expect(source).toContain("import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';");
     expect(source).toContain('!feedback.isCorrect && feedback.durableAnswerId');
+    expect(source).toContain('isMicroTutoringEligible(feedback.adaptiveAssessmentRef)');
     expect(source).toContain('<StudentMicroTutoringPanel');
     expect(source).toContain('onRequestHint={requestAttemptDiagnosis}');
   });
