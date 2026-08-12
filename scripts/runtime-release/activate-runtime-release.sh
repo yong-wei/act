@@ -118,47 +118,51 @@ restore_startup_order() {
 }
 
 wait_for_readyz() {
-  local deadline
-  local now
-  local remaining
-  local sleep_seconds
+  local deadline_ms
+  local now_ms
+  local remaining_ms
+  local sleep_ms
+  local curl_timeout
+  local sleep_timeout
   local readyz_url="http://127.0.0.1:${APP_PORT}/api/readyz"
 
-  deadline="$(python3 - "$READYZ_TIMEOUT_SECONDS" <<'PY'
+  deadline_ms="$(python3 - "$READYZ_TIMEOUT_SECONDS" <<'PY'
 import sys
 import time
 
-print(int(time.monotonic()) + int(sys.argv[1]))
+print(int(time.monotonic() * 1000) + (int(sys.argv[1]) * 1000))
 PY
 )"
 
   while true; do
-    now="$(python3 - <<'PY'
+    now_ms="$(python3 - <<'PY'
 import time
 
-print(int(time.monotonic()))
+print(int(time.monotonic() * 1000))
 PY
 )"
-    remaining=$((deadline - now))
-    if [[ "$remaining" -le 0 ]]; then
+    remaining_ms=$((deadline_ms - now_ms))
+    if [[ "$remaining_ms" -le 0 ]]; then
       break
     fi
-    if curl --connect-timeout 2 --max-time "$remaining" --fail --silent --show-error "$readyz_url" >/dev/null; then
+    printf -v curl_timeout '%d.%03d' "$((remaining_ms / 1000))" "$((remaining_ms % 1000))"
+    if curl --connect-timeout 2 --max-time "$curl_timeout" --fail --silent --show-error "$readyz_url" >/dev/null; then
       return 0
     fi
-    now="$(python3 - <<'PY'
+    now_ms="$(python3 - <<'PY'
 import time
 
-print(int(time.monotonic()))
+print(int(time.monotonic() * 1000))
 PY
 )"
-    remaining=$((deadline - now))
-    if [[ "$remaining" -gt 0 ]]; then
-      sleep_seconds=3
-      if [[ "$remaining" -lt "$sleep_seconds" ]]; then
-        sleep_seconds="$remaining"
+    remaining_ms=$((deadline_ms - now_ms))
+    if [[ "$remaining_ms" -gt 0 ]]; then
+      sleep_ms=3000
+      if [[ "$remaining_ms" -lt "$sleep_ms" ]]; then
+        sleep_ms="$remaining_ms"
       fi
-      sleep "$sleep_seconds"
+      printf -v sleep_timeout '%d.%03d' "$((sleep_ms / 1000))" "$((sleep_ms % 1000))"
+      sleep "$sleep_timeout"
     fi
   done
 

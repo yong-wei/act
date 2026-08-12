@@ -80,7 +80,8 @@ while [[ $# -gt 0 ]]; do
   fi
   shift
 done
-[[ "$max_time" =~ ^[1-9][0-9]*$ ]] || exit 64
+[[ "$max_time" =~ ^[0-9]+(\.[0-9]{1,3})?$ ]] || exit 64
+awk -v value="$max_time" 'BEGIN { exit(value > 0 ? 0 : 1) }' || exit 64
 calls=0
 if [[ -f "$ACT_TEST_CURL_CALLS" ]]; then calls="$(wc -l < "$ACT_TEST_CURL_CALLS")"; fi
 calls=$((calls + 1))
@@ -139,11 +140,10 @@ exit 22
     ACT_TEST_REAL_SLEEP: '1',
   });
   assert.equal(delayedReadyResult.status, 0, `delayed readiness must not roll back: ${delayedReadyResult.stderr}`);
-  assert.deepEqual(
-    fs.readFileSync(curlCalls, 'utf8').trim().split('\n'),
-    ['1:6', '2:3'],
-    'each readiness request must receive the remaining bounded deadline',
-  );
+  const delayedTimeouts = fs.readFileSync(curlCalls, 'utf8').trim().split('\n').map((entry) => Number(entry.split(':')[1]));
+  assert.equal(delayedTimeouts.length, 2, 'activation must retry readiness until the app listens');
+  assert.ok(delayedTimeouts[0] > 5 && delayedTimeouts[0] <= 6, 'first readiness request must receive the initial deadline');
+  assert.ok(delayedTimeouts[1] > 0 && delayedTimeouts[1] < delayedTimeouts[0], 'second readiness request must receive only the remaining deadline');
   const delayedEvents = fs.readFileSync(log, 'utf8').trim().split('\n');
   assert.ok(delayedEvents.includes(candidate), 'candidate deployment must precede delayed readiness');
   assert.ok(!delayedEvents.includes(legacy), 'a later successful readiness response must not restore legacy runtime');
@@ -158,7 +158,10 @@ exit 22
   const timeoutElapsedMs = Date.now() - timeoutStart;
   assert.notEqual(wallClockTimeout.status, 0, 'a hung readiness call must fail activation');
   assert.ok(timeoutElapsedMs < 4_000, `readiness timeout must use a real deadline, received ${timeoutElapsedMs}ms`);
-  assert.deepEqual(fs.readFileSync(curlCalls, 'utf8').trim().split('\n'), ['1:1'], 'a delayed failed request must not receive a second budget window');
+  const timeoutCalls = fs.readFileSync(curlCalls, 'utf8').trim().split('\n');
+  assert.equal(timeoutCalls.length, 1, 'a delayed failed request must not receive a second budget window');
+  const timeoutBudget = Number(timeoutCalls[0].split(':')[1]);
+  assert.ok(timeoutBudget > 0 && timeoutBudget <= 1, 'the final request must receive the remaining sub-second deadline');
   const timeoutEvents = fs.readFileSync(log, 'utf8').trim().split('\n');
   assert.ok(timeoutEvents.includes(legacy), 'wall-clock readiness timeout must restore legacy runtime');
 } finally {
