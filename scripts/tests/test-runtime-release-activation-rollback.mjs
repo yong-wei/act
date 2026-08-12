@@ -58,6 +58,10 @@ fi
 exit 1
 `);
   const deploy = executable('deploy-app', `
+if ( : >&9 ) 2>/dev/null; then
+  printf 'deploy-inherited-selection-lock\\n' >> "$ACT_TEST_EVENT_LOG"
+  exit 86
+fi
 printf 'deploy:%s:%s:%s\\n' "\${RUNTIME_DELIVERY_MODE:-}" "\${RUNTIME_CONTENT_DIR:-}" "\${APP_IMAGE:-}" >> "$ACT_TEST_EVENT_LOG"
 `);
   executable('systemctl', `
@@ -126,6 +130,7 @@ exit 22
   assert.notEqual(result.status, 0, 'failed candidate readiness must fail activation');
   assert.ok(fs.existsSync(log), `activation did not reach its controlled candidate attempt: ${result.stderr}`);
   const events = fs.readFileSync(log, 'utf8').trim().split('\n');
+  assert.ok(!events.includes('deploy-inherited-selection-lock'), 'deployment children must not inherit the selection lock');
   const candidate = `deploy:ossfs-release:${mountRoot}/runtime-candidate:`;
   const legacy = `deploy:legacy-rsync:${legacyRoot}:sha256:${'c'.repeat(64)}`;
   assert.ok(events.includes(candidate), 'candidate deployment must be attempted before readiness');
@@ -145,6 +150,7 @@ exit 22
   assert.ok(delayedTimeouts[0] > 5 && delayedTimeouts[0] <= 6, 'first readiness request must receive the initial deadline');
   assert.ok(delayedTimeouts[1] > 0 && delayedTimeouts[1] < delayedTimeouts[0], 'second readiness request must receive only the remaining deadline');
   const delayedEvents = fs.readFileSync(log, 'utf8').trim().split('\n');
+  assert.ok(!delayedEvents.includes('deploy-inherited-selection-lock'), 'successful deployment children must not inherit the selection lock');
   assert.ok(delayedEvents.includes(candidate), 'candidate deployment must precede delayed readiness');
   assert.ok(!delayedEvents.includes(legacy), 'a later successful readiness response must not restore legacy runtime');
 

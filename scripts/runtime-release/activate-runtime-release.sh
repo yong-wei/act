@@ -80,6 +80,13 @@ capture_rollback_image() {
   rollback_app_image="$app_image"
 }
 
+run_without_selection_lock() {
+  (
+    exec 9>&-
+    "$@"
+  )
+}
+
 configure_startup_order() {
   local dropin_dir
   local temporary
@@ -180,12 +187,12 @@ rollback() {
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
         RUNTIME_CONTENT_DIR="$MOUNT_ROOT/$old_active" \
         APP_IMAGE="$rollback_app_image" \
-        "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
+        run_without_selection_lock "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
     else
       RUNTIME_DELIVERY_MODE=legacy-rsync \
         RUNTIME_CONTENT_DIR="$LEGACY_RUNTIME_ROOT" \
         APP_IMAGE="$rollback_app_image" \
-        "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
+        run_without_selection_lock "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
     fi
   fi
   restore_startup_order
@@ -219,7 +226,7 @@ candidate_deploy_attempted=1
 RUNTIME_DELIVERY_MODE=ossfs-release \
   ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
   RUNTIME_CONTENT_DIR="$MOUNT_ROOT/$release_id" \
-  "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
+  run_without_selection_lock "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
 source "$ENV_FILE"
 wait_for_readyz
 configure_startup_order
