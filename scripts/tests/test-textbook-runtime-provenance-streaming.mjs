@@ -4,7 +4,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
+import { loadTextbookResourceSet, textbookBookIds } from '../release/textbook-resource-set.mjs';
+
 const root = process.cwd();
+const resourceSetId = loadTextbookResourceSet().resourceSetId;
 const helperPath = path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs');
 const helperSource = fs.readFileSync(helperPath, 'utf8');
 const revision = 'a'.repeat(40);
@@ -15,15 +18,7 @@ const indexRoot = path.join(fixtureRoot, 'index');
 const imageTar = path.join(fixtureRoot, 'image.tar');
 const sidecar = `${imageTar}.provenance.json`;
 
-const runtimeBooks = [
-  'control-encyclopedia',
-  'dorf-modern-control-systems',
-  'feedback-control-of-dynamic-systems',
-  'hu-shousong-auto-control-7th',
-  'hu-shousong-auto-control-8th',
-  'hu-shousong-exercise-analysis-3rd',
-  'liu-sheng-auto-control-2015',
-];
+const runtimeBooks = textbookBookIds();
 const runtimeFiles = [
   'manifest.json',
   'navigation.json',
@@ -103,6 +98,7 @@ try {
           recordType: 'index-manifest',
           formatVersion: 'textbook-hybrid-retrieval.v1',
           sourceRevision: revision,
+          resourceSetId,
         })}\n`
         : '',
     );

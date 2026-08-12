@@ -37,6 +37,14 @@ function verifyCutoverFailureGate() {
     }
     writeExecutable(fakeBin, 'node', [
       '#!/usr/bin/env bash',
+      'if [[ "$2" == "ids" ]]; then',
+      '  printf "%s\\n" "control-encyclopedia hu-shousong-exercise-analysis-3rd"',
+      '  exit 0',
+      'fi',
+      'if [[ "$2" == "count" ]]; then',
+      '  printf "2\\n"',
+      '  exit 0',
+      'fi',
       'field=""',
       'while [[ "$#" -gt 0 ]]; do',
       '  if [[ "$1" == "--field" ]]; then field="$2"; break; fi',

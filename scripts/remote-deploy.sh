@@ -29,7 +29,9 @@ LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-retr
 REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-retrieval"
 REMOTE_RUNTIME_STAGING_DIR="${REMOTE_RUNTIME_DIR}.staging"
 REMOTE_RUNTIME_SELECTION_LOCK="${REMOTE_RUNTIME_SELECTION_LOCK:-${REMOTE_PROJECT_DIR}/data/runtime/.act-runtime-selection.lock}"
-TEXTBOOK_V2_BOOK_IDS="control-encyclopedia dorf-modern-control-systems feedback-control-of-dynamic-systems hu-shousong-auto-control-7th hu-shousong-auto-control-8th hu-shousong-exercise-analysis-3rd liu-sheng-auto-control-2015"
+LOCAL_RESOURCE_SET_HELPER="${ROOT_DIR}/scripts/release/textbook-resource-set.mjs"
+TEXTBOOK_V2_BOOK_IDS="$(node "${LOCAL_RESOURCE_SET_HELPER}" ids)"
+TEXTBOOK_V2_BOOK_COUNT="$(node "${LOCAL_RESOURCE_SET_HELPER}" count)"
 TEXTBOOK_V2_REQUIRED_FILES="manifest.json navigation.json units.jsonl anchors.jsonl windows.jsonl anomalies.jsonl samples.jsonl"
 TEXTBOOK_RETRIEVAL_REQUIRED_FILES="manifest.json windows.jsonl bodies.utf8 vectors.f32 lexical-terms.jsonl lexical-postings.bin build-report.json"
 LOCAL_APP_DEPLOY_SCRIPT="${LOCAL_APP_DEPLOY_SCRIPT:-${ROOT_DIR}/deploy/podman/deploy.sh}"
@@ -141,13 +143,13 @@ found=0
 for candidate in \"\${runtime_root}\"/*; do
   [ -d \"\${candidate}\" ] || continue
   book_id=\$(basename \"\${candidate}\")
-  case \"\${book_id}\" in
-    control-encyclopedia|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-auto-control-7th|hu-shousong-auto-control-8th|hu-shousong-exercise-analysis-3rd|liu-sheng-auto-control-2015) ;;
+  case \" ${TEXTBOOK_V2_BOOK_IDS} \" in
+    *\" \${book_id} \"*) ;;
     *) echo \"ERROR: unexpected textbook v2 runtime directory: \${book_id}\" >&2; exit 1 ;;
   esac
   found=\$((found + 1))
 done
-[ \"\${found}\" -eq 7 ]
+[ \"\${found}\" -eq \"${TEXTBOOK_V2_BOOK_COUNT}\" ]
 for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
   for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
     test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
@@ -240,13 +242,13 @@ found=0
 for candidate in \"\${runtime_root}\"/*; do
   [ -d \"\${candidate}\" ] || continue
   book_id=\$(basename \"\${candidate}\")
-  case \"\${book_id}\" in
-    control-encyclopedia|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-auto-control-7th|hu-shousong-auto-control-8th|hu-shousong-exercise-analysis-3rd|liu-sheng-auto-control-2015) ;;
+  case \" ${TEXTBOOK_V2_BOOK_IDS} \" in
+    *\" \${book_id} \"*) ;;
     *) echo \"ERROR: unexpected mounted textbook v2 runtime directory: \${book_id}\" >&2; exit 1 ;;
   esac
   found=\$((found + 1))
 done
-[ \"\${found}\" -eq 7 ]
+[ \"\${found}\" -eq \"${TEXTBOOK_V2_BOOK_COUNT}\" ]
 for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
   for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
     test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
@@ -503,7 +505,7 @@ PROVENANCE_INDEX_DIGEST="$(
 )"
 
 if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
-  log "- 校验七套外置教材 v2 runtime"
+  log "- 校验 resourceSet 外置教材 v2 runtime"
   node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
     --runtime-root "${LOCAL_TEXTBOOK_V2_RUNTIME_DIR}" \
     --index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
@@ -766,7 +768,7 @@ remote "podman ps --format '{{.Names}}' | grep -qx '${REDIS_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}' | grep -qx '${WORKER_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}\t{{.Status}}' | grep -E '^${DB_NAME_HINT}[[:space:]].*healthy'"
 
-log "- 校验应用容器只读挂载中的七套教材 v2 runtime"
+log "- 校验应用容器只读挂载中的 resourceSet 教材 v2 runtime"
 check_container_textbook_v2_files
 
 log "- 校验数据库连通性"

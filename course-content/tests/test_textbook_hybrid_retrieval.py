@@ -50,6 +50,19 @@ def write_jsonl(path: Path, values: list[dict]) -> None:
     )
 
 
+@pytest.fixture(autouse=True)
+def fixture_resource_set(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    resource_set_path = tmp_path / 'fixture-resource-set.json'
+    write_json(resource_set_path, {
+        'resourceSetId': 'fixture-resource-set-v1',
+        'sourceRoot': 'course-content/authoring/resources',
+        'configRoot': 'course-content/config/textbook-structure-v2',
+        'books': ['fixture-book'],
+    })
+    monkeypatch.setattr(hybrid, 'DEFAULT_RESOURCE_SET_PATH', resource_set_path)
+    return resource_set_path
+
+
 def runtime_fixture(tmp_path: Path, revision: str = 'revision-1') -> Path:
     runtime_root = tmp_path / 'textbooks-v2'
     book_dir = runtime_root / 'fixture-book'
@@ -560,6 +573,34 @@ def test_verify_closes_offsets_vectors_and_runtime_revision(tmp_path: Path) -> N
             output_dir,
             runtime_root=runtime_root,
             expected_book_count=1,
+        )
+
+
+def test_index_records_resource_set_id(tmp_path: Path) -> None:
+    _, output_dir, _, _, manifest = build_fixture(tmp_path)
+    assert manifest['resourceSetId'] == 'fixture-resource-set-v1'
+    report = json.loads(
+        (output_dir / 'build-report.json').read_text(encoding='utf-8')
+    )
+    assert report['resourceSetId'] == 'fixture-resource-set-v1'
+
+
+def test_verify_accepts_explicit_resource_set_and_rejects_stale_count(
+    tmp_path: Path,
+) -> None:
+    runtime_root, output_dir, _, _, _ = build_fixture(tmp_path)
+    resource_set_path = tmp_path / 'fixture-resource-set.json'
+    result = hybrid.verify_index(
+        output_dir,
+        runtime_root=runtime_root,
+        resource_set=resource_set_path,
+    )
+    assert result['resourceSetId'] == 'fixture-resource-set-v1'
+    with pytest.raises(hybrid.RetrievalContractError, match='disagree'):
+        hybrid.verify_index(
+            output_dir,
+            runtime_root=runtime_root,
+            expected_book_count=2,
         )
 
 

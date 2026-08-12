@@ -8,9 +8,24 @@ import {
   captureTextbookInputSnapshot,
   replaceRuntimeDirectories,
 } from '../release/export-textbook-runtime-v2.mjs';
+import { loadTextbookResourceSet, textbookBookIds } from '../release/textbook-resource-set.mjs';
 
 const root = process.cwd();
+const resourceSetId = loadTextbookResourceSet().resourceSetId;
 const authoringInputRoot = path.join(root, 'course-content/authoring/resources');
+
+function removePath(target) {
+  if (!fs.existsSync(target)) return;
+  const stat = fs.lstatSync(target);
+  if (stat.isDirectory() && !stat.isSymbolicLink()) {
+    for (const entry of fs.readdirSync(target)) {
+      removePath(path.join(target, entry));
+    }
+    fs.rmdirSync(target);
+  } else {
+    fs.unlinkSync(target);
+  }
+}
 
 {
   const calls = [];
@@ -100,8 +115,10 @@ assert.throws(
       'scripts/release/export-textbook-runtime-v2.mjs',
       'scripts/release/validate-textbook-runtime-v2.mjs',
       'scripts/release/textbook-runtime-v2-provenance.mjs',
+      'scripts/release/textbook-resource-set.mjs',
       'course-content/scripts/export_structured_textbook_runtime_v2.py',
       'course-content/scripts/structured_textbook_runtime.py',
+      'course-content/scripts/textbook_resource_set.py',
       'course-content/scripts/validate_structured_textbook_runtime_v2.mjs',
       'course-content/scripts/validate_written_textbook_runtime_v2.py',
       'course-content/scripts/textbook_hybrid_retrieval.py',
@@ -110,6 +127,7 @@ assert.throws(
       'course-content/contracts/structured-textbook-runtime-v2.schema.json',
       'course-content/contracts/textbook-hybrid-retrieval-v1.schema.json',
       'course-content/config/textbook-hybrid-retrieval.json',
+      'course-content/config/textbook-resource-set.json',
     ]) {
       const filePath = path.join(repositoryRoot, relativeInput);
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -145,7 +163,7 @@ assert.throws(
     );
     assert.equal(after.fileCount, before.fileCount);
   } finally {
-    fs.rmSync(snapshotRoot, { recursive: true, force: true });
+    removePath(snapshotRoot);
   }
 }
 
@@ -155,7 +173,7 @@ function read(file) {
 
 const dockerignore = read('.dockerignore');
 const dockerfile = read('Dockerfile');
-const buildScript = read('scripts/build.sh');
+const buildScript = read('scripts/build.sh').replace(/\r\n/gu, '\n');
 const textbookV2Preflight = read('scripts/release/validate-textbook-runtime-v2.mjs');
 const textbookV2ProvenanceHelper = read(
   'scripts/release/textbook-runtime-v2-provenance.mjs',
@@ -196,15 +214,7 @@ assert.equal(
   '构建脚本应显式校验 course-content/runtime 已被 .dockerignore 排除',
 );
 
-const textbookV2BookIds = [
-  'control-encyclopedia',
-  'dorf-modern-control-systems',
-  'feedback-control-of-dynamic-systems',
-  'hu-shousong-auto-control-7th',
-  'hu-shousong-auto-control-8th',
-  'hu-shousong-exercise-analysis-3rd',
-  'liu-sheng-auto-control-2015',
-];
+const textbookV2BookIds = textbookBookIds();
 const textbookV2RequiredFiles = [
   'manifest.json',
   'navigation.json',
@@ -234,6 +244,7 @@ function createIndexFixture(indexRoot, revision) {
           recordType: 'index-manifest',
           formatVersion: 'textbook-hybrid-retrieval.v1',
           sourceRevision: revision,
+          resourceSetId,
         })}\n`
         : '',
     );
@@ -287,7 +298,7 @@ for (const failAtInstall of [2, 3]) {
       );
     }
   } finally {
-    fs.rmSync(transactionRoot, { recursive: true, force: true });
+    removePath(transactionRoot);
   }
 }
 
@@ -315,33 +326,40 @@ for (const failAtInstall of [2, 3]) {
 
     replaceRuntimeDirectories(replacements);
 
-    for (const replacement of replacements) {
-      for (const directory of [
-        replacement.target,
-        path.join(replacement.target, 'nested'),
-        path.join(replacement.target, 'nested', 'deeper'),
-      ]) {
-        const mode = fs.statSync(directory).mode & 0o777;
-        assert.equal(mode & 0o055, 0o055, `${directory} 必须允许 group/other 读取和遍历`);
+    if (process.platform !== 'win32') {
+      for (const replacement of replacements) {
+        for (const directory of [
+          replacement.target,
+          path.join(replacement.target, 'nested'),
+          path.join(replacement.target, 'nested', 'deeper'),
+        ]) {
+          const mode = fs.statSync(directory).mode & 0o777;
+          assert.equal(mode & 0o055, 0o055, `${directory} 必须允许 group/other 读取和遍历`);
+        }
       }
+    }
+    for (const replacement of replacements) {
       assert.equal(
         fs.readFileSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`), 'utf8'),
         `content-${path.basename(replacement.target)}`,
         '目录权限规范化不得改变文件内容',
       );
-      assert.equal(
-        fs.statSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`)).mode & 0o777,
-        0o600,
-        '目录权限规范化不得改变文件权限',
-      );
+      if (process.platform !== 'win32') {
+        assert.equal(
+          fs.statSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`)).mode & 0o777,
+          0o600,
+          '目录权限规范化不得改变文件权限',
+        );
+      }
     }
   } finally {
-    fs.rmSync(permissionRoot, { recursive: true, force: true });
+    removePath(permissionRoot);
   }
 }
 
 assert.equal(
-  textbookV2BookIds.every((bookId) => textbookV2ProvenanceHelper.includes(`'${bookId}'`)) &&
+  textbookV2ProvenanceHelper.includes('textbookBookIds') &&
+    textbookV2ProvenanceHelper.includes('textbookBookCount') &&
     textbookV2RequiredFiles.every((fileName) => textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&
     textbookV2Preflight.includes('validate_structured_textbook_runtime_v2.mjs') &&
     textbookV2Preflight.includes('validate_written_textbook_runtime_v2.py') &&
@@ -391,7 +409,7 @@ try {
   assert.notEqual(
     mismatchResult.status,
     0,
-    '七书 sourceRevision 不一致时 release preflight 必须 fail closed',
+    'resourceSet sourceRevision 不一致时 release preflight 必须 fail closed',
   );
   assert.match(
     mismatchResult.stderr,
@@ -399,7 +417,7 @@ try {
     'release preflight 应明确报告 sourceRevision 不一致',
   );
 } finally {
-  fs.rmSync(mismatchedRuntimeRoot, { recursive: true, force: true });
+  removePath(mismatchedRuntimeRoot);
 }
 
 const mediaFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-media-'));
@@ -480,7 +498,7 @@ try {
   assert.equal(initialInspect.status, 0, initialInspect.stderr);
   const initialSummary = JSON.parse(initialInspect.stdout);
   assert.equal(initialSummary.mediaFileCount, 1, 'preflight 应报告去重后的引用媒体文件数');
-  fs.rmSync(inputProvenancePath);
+  removePath(inputProvenancePath);
   const missingInputProvenanceResult = spawnSync(process.execPath, preflightArgs, {
     cwd: root,
     encoding: 'utf8',
@@ -583,28 +601,30 @@ try {
     'verify-runtime 应明确报告媒体篡改造成的 digest 不一致',
   );
 
-  const chapterRoot = path.dirname(mediaPath);
-  const externalChapterRoot = path.join(mediaFixtureRoot, 'external-chapter');
-  fs.rmSync(chapterRoot, { recursive: true, force: true });
-  fs.mkdirSync(externalChapterRoot, { recursive: true });
-  fs.writeFileSync(path.join(externalChapterRoot, 'fixture.png'), 'outside assets root');
-  fs.symlinkSync(externalChapterRoot, chapterRoot, 'dir');
-  const ancestorSymlinkResult = spawnSync(process.execPath, preflightArgs, {
-    cwd: root,
-    encoding: 'utf8',
-  });
-  assert.notEqual(
-    ancestorSymlinkResult.status,
-    0,
-    '媒体祖先目录 symlink 指向 assets root 外时必须 fail closed',
-  );
-  assert.match(
-    ancestorSymlinkResult.stderr,
-    /textbook-v2-media-file-escape:control-encyclopedia\/assets\/chapter-01\/fixture\.png/u,
-    'preflight 应明确报告祖先 symlink 造成的媒体路径逃逸',
-  );
+  if (process.platform !== 'win32') {
+    const chapterRoot = path.dirname(mediaPath);
+    const externalChapterRoot = path.join(mediaFixtureRoot, 'external-chapter');
+    removePath(chapterRoot);
+    fs.mkdirSync(externalChapterRoot, { recursive: true });
+    fs.writeFileSync(path.join(externalChapterRoot, 'fixture.png'), 'outside assets root');
+    fs.symlinkSync(externalChapterRoot, chapterRoot, 'dir');
+    const ancestorSymlinkResult = spawnSync(process.execPath, preflightArgs, {
+      cwd: root,
+      encoding: 'utf8',
+    });
+    assert.notEqual(
+      ancestorSymlinkResult.status,
+      0,
+      '媒体祖先目录 symlink 指向 assets root 外时必须 fail closed',
+    );
+    assert.match(
+      ancestorSymlinkResult.stderr,
+      /textbook-v2-media-file-escape:control-encyclopedia\/assets\/chapter-01\/fixture\.png/u,
+      'preflight 应明确报告祖先 symlink 造成的媒体路径逃逸',
+    );
+  }
 } finally {
-  fs.rmSync(mediaFixtureRoot, { recursive: true, force: true });
+  removePath(mediaFixtureRoot);
 }
 
 const tarMismatchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-tar-mismatch-'));
@@ -616,6 +636,7 @@ try {
     schemaVersion: 'act.textbook-runtime-release-provenance.v2',
     appRevision: '1111111111111111111111111111111111111111',
     imageTarSha256: '0'.repeat(64),
+    resourceSetId,
     runtimeSourceRevision: '1111111111111111111111111111111111111111',
     runtimeDigest: '1'.repeat(64),
     runtimeInputDigest: '3'.repeat(64),
@@ -648,6 +669,7 @@ try {
     schemaVersion: 'act.textbook-runtime-release-provenance.v2',
     appRevision: '3333333333333333333333333333333333333333',
     imageTarSha256: '0'.repeat(64),
+    resourceSetId,
     runtimeSourceRevision: '2222222222222222222222222222222222222222',
     runtimeDigest: '1'.repeat(64),
     runtimeInputDigest: '3'.repeat(64),
@@ -677,14 +699,14 @@ try {
     'sidecar 校验应明确报告 runtime 与 retrieval index 修订不一致',
   );
 } finally {
-  fs.rmSync(tarMismatchRoot, { recursive: true, force: true });
+  removePath(tarMismatchRoot);
 }
 
 assert.equal(
   buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
     buildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n'),
   true,
-  'release build 必须在应用构建前执行七书教材 v2 preflight',
+  'release build 必须在应用构建前执行 resourceSet 教材 v2 preflight',
 );
 
 assert.equal(
@@ -810,14 +832,15 @@ assert.equal(
 );
 
 assert.equal(
-  textbookV2BookIds.every((bookId) => remoteDeployScript.includes(bookId)) &&
+  remoteDeployScript.includes('scripts/release/textbook-resource-set.mjs') &&
+    remoteDeployScript.includes('TEXTBOOK_V2_BOOK_COUNT') &&
     textbookV2RequiredFiles.every((fileName) => remoteDeployScript.includes(fileName)) &&
     remoteDeployScript.includes('check_container_textbook_v2_files') &&
     remoteDeployScript.includes('/app/course-content/runtime/resources/textbooks-v2') &&
     remoteDeployScript.includes('/app/course-content/runtime/resources/textbook-retrieval') &&
-    (remoteDeployScript.match(/-eq 7/g)?.length ?? 0) >= 2,
+    (remoteDeployScript.match(/-eq \\"\$\{TEXTBOOK_V2_BOOK_COUNT\}\\"/g)?.length ?? 0) >= 2,
   true,
-  '远端宿主与已启动 app 容器必须校验七书 v2 与固定检索索引',
+  '远端宿主与已启动 app 容器必须校验 resourceSet v2 与固定检索索引',
 );
 
 assert.equal(
