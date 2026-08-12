@@ -37,6 +37,8 @@ The system SHALL present an available micro-tutoring task in the adaptive-practi
 - **WHEN** an available task becomes unavailable with `REFERENCE_DRIFT`
 - **THEN** the system SHALL hide stale task details and offer an explicit fresh orchestration action
 - **AND** a successful fresh orchestration SHALL restore the current task's start action
+- **AND** the server SHALL derive ownership from the durable answer and use a stable refresh identity to create or return the same refreshed orchestration
+- **AND** it SHALL create a refreshed orchestration only when the initial owned result currently projects as `REFERENCE_DRIFT`
 - **AND** the browser SHALL NOT automatically retry the stale request
 
 ### Requirement: Student receives a safe validation question and recommendation

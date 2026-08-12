@@ -7,6 +7,7 @@ import type { AdaptiveAssessmentCatalogReviewState } from '@/features/adaptive-a
 import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   orchestrateRemediation,
+  refreshRemediationOrchestration,
   readRemediationOrchestration,
   type RemediationOrchestrationDb,
 } from '../remediation-orchestration';
@@ -353,6 +354,64 @@ describe('remediation orchestration', () => {
 
     expect(result?.status).toBe('AVAILABLE');
     expect(mocks.remediationOrchestrationResult.upsert).not.toHaveBeenCalled();
+  });
+
+  it('creates an idempotent fresh result only after an owned initial result has reference drifted', async () => {
+    const { db, mocks } = createDb();
+    const staleTask = {
+      version: 'remediation-task-snapshot.v1',
+      goal: 'Governed goal',
+      estimatedMinutes: 5,
+      sourceQuestionId: 'question-original',
+      knowledgeNodeId: 'node-1',
+      misconceptionTag: 'misconception-1',
+      resources: [{
+        id: 'exact', title: 'Resource exact', version: 'resource.v0', estimatedMinutes: 3,
+        actionPath: '/interactive-learning/resources/exact',
+      }],
+      validationQuestion: {
+        itemRefId: 'validation-1', questionId: 'question-variant', contentHash: HASH_A,
+        version: 'validation.v1', estimatedMinutes: 2, actionPath: '/assessment/items/validation-1',
+      },
+    };
+    const stale = persisted({
+      wrongAnswerAttributionId: 'attribution-1',
+      orchestratorVersion: 'remediation-orchestrator.v1',
+      userId: 'learner-1', status: 'AVAILABLE', taskSnapshot: staleTask,
+    });
+    let refreshed: ReturnType<typeof persisted> | null = null;
+    mocks.remediationOrchestrationResult.findFirst.mockImplementation(async (input: any) => (
+      input.where.orchestratorVersion === 'remediation-orchestrator.v1' ? stale : refreshed
+    ));
+    mocks.remediationOrchestrationResult.upsert.mockImplementation(async (input: any) => {
+      refreshed = persisted(input.create, 'fresh-result');
+      return refreshed;
+    });
+
+    const first = await refreshRemediationOrchestration({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+      refreshKey: 'refresh-1',
+    });
+    const retry = await refreshRemediationOrchestration({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+      refreshKey: 'refresh-1',
+    });
+
+    expect(first).toMatchObject({ id: 'fresh-result', status: 'AVAILABLE' });
+    expect(retry).toMatchObject({ id: 'fresh-result', status: 'AVAILABLE' });
+    expect(mocks.remediationOrchestrationResult.upsert).toHaveBeenCalledTimes(1);
+    expect(mocks.remediationOrchestrationResult.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        wrongAnswerAttributionId_orchestratorVersion: {
+          wrongAnswerAttributionId: 'attribution-1',
+          orchestratorVersion: 'remediation-orchestrator.v1:refresh:refresh-1',
+        },
+      },
+    }));
   });
 
   it('discovers a production catalog item without remediationValidation metadata', async () => {

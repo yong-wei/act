@@ -394,18 +394,19 @@ async function persistUnavailable(input: {
   db: RemediationOrchestrationDb;
   attribution: AttributionRow;
   reason: RemediationUnavailableReason;
+  orchestratorVersion: string;
 }): Promise<PersistedResultRow> {
   return input.db.remediationOrchestrationResult.upsert({
     where: {
       wrongAnswerAttributionId_orchestratorVersion: {
         wrongAnswerAttributionId: input.attribution.id,
-        orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+        orchestratorVersion: input.orchestratorVersion,
       },
     },
     update: {},
     create: {
       wrongAnswerAttributionId: input.attribution.id,
-      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      orchestratorVersion: input.orchestratorVersion,
       userId: input.attribution.userId,
       status: 'UNAVAILABLE',
       unavailableReason: input.reason,
@@ -607,6 +608,42 @@ export async function orchestrateRemediation(input: {
   authenticatedUserId: string;
   attributionId: string;
 }): Promise<RemediationOrchestrationProjection | null> {
+  return orchestrateRemediationVersion({
+    ...input,
+    orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+  });
+}
+
+export async function refreshRemediationOrchestration(input: {
+  db: RemediationOrchestrationDb;
+  authenticatedUserId: string;
+  attributionId: string;
+  refreshKey: string;
+}): Promise<RemediationOrchestrationProjection | null> {
+  const existing = await input.db.remediationOrchestrationResult.findFirst({
+    where: {
+      wrongAnswerAttributionId: input.attributionId,
+      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      userId: input.authenticatedUserId,
+    },
+  });
+  if (!existing) return null;
+  const projection = await projectResult(input.db, existing);
+  if (projection.status !== 'UNAVAILABLE' || projection.unavailableReason !== 'REFERENCE_DRIFT') {
+    return projection;
+  }
+  return orchestrateRemediationVersion({
+    ...input,
+    orchestratorVersion: `${REMEDIATION_ORCHESTRATOR_VERSION}:refresh:${input.refreshKey}`,
+  });
+}
+
+async function orchestrateRemediationVersion(input: {
+  db: RemediationOrchestrationDb;
+  authenticatedUserId: string;
+  attributionId: string;
+  orchestratorVersion: string;
+}): Promise<RemediationOrchestrationProjection | null> {
   const attribution = await input.db.wrongAnswerAttribution.findFirst({
     where: { id: input.attributionId, userId: input.authenticatedUserId },
     select: {
@@ -623,7 +660,7 @@ export async function orchestrateRemediation(input: {
   const existing = await input.db.remediationOrchestrationResult.findFirst({
     where: {
       wrongAnswerAttributionId: attribution.id,
-      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      orchestratorVersion: input.orchestratorVersion,
       userId: input.authenticatedUserId,
     },
   });
@@ -638,6 +675,7 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'ATTRIBUTION_UNCERTAIN',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -658,6 +696,7 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -685,6 +724,7 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -706,6 +746,7 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'VALIDATION_QUESTION_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -722,6 +763,7 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'TIME_BUDGET_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -747,13 +789,13 @@ export async function orchestrateRemediation(input: {
     where: {
       wrongAnswerAttributionId_orchestratorVersion: {
         wrongAnswerAttributionId: attribution.id,
-        orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+        orchestratorVersion: input.orchestratorVersion,
       },
     },
     update: {},
     create: {
       wrongAnswerAttributionId: attribution.id,
-      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      orchestratorVersion: input.orchestratorVersion,
       userId: attribution.userId,
       status: 'AVAILABLE',
       taskSnapshot,

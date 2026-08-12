@@ -293,6 +293,7 @@ async function installAssessmentFixtureRoutes(page: Page, fixture: PersistedAnsw
 
 async function installRemediationRoutes(page: Page, mode: 'available' | 'reference-drift') {
   let createAttempts = 0;
+  const freshOrchestrationKeys: string[] = [];
   await page.route('**/api/assessment/remediation**', async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
@@ -320,6 +321,8 @@ async function installRemediationRoutes(page: Page, mode: 'available' | 'referen
     }
     if (pathname.endsWith('/remediation') && method === 'POST') {
       createAttempts += 1;
+      const body = await request.postDataJSON() as { refreshKey?: unknown };
+      if (typeof body.refreshKey === 'string') freshOrchestrationKeys.push(body.refreshKey);
       if (mode === 'reference-drift' && createAttempts === 1) {
         return route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT' }) });
       }
@@ -327,7 +330,7 @@ async function installRemediationRoutes(page: Page, mode: 'available' | 'referen
     }
     return route.continue();
   });
-  return { createAttempts: () => createAttempts };
+  return { createAttempts: () => createAttempts, freshOrchestrationKeys: () => [...freshOrchestrationKeys] };
 }
 
 async function openIncorrectAnswer(page: Page, fixture: PersistedAnswerFixture, width: number): Promise<Locator> {
@@ -414,6 +417,7 @@ for (const width of [1440, 320]) {
     await expect(panel.getByRole('button', { name: '开始本次辅导' })).toBeVisible();
     await capture(page, `reference-drift-recovered-${width}`, 'recovered', {
       createAttempts: retry.createAttempts(),
+      freshOrchestrationRequest: retry.freshOrchestrationKeys().length === 1,
       retryAvailable: true,
       startActionRestored: true,
     });
