@@ -1,22 +1,40 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import {
   AlertTriangle,
-  ArrowLeftRight,
-  ArrowRight,
+  ChevronDown,
   CircleHelp,
+  Crosshair,
   Loader2,
+  Minus,
   Network,
+  Plus,
   RotateCcw,
+  Search,
   X,
 } from 'lucide-react';
 
 import type {
   ActiveCanvasResponse,
   ActiveNodeDetailResponse,
-  ActiveCanvasNode,
 } from './active-authority-graph-contracts';
+import {
+  activeNodeRelationSummaries,
+  activeNodeSearch,
+  createActiveAuthorityGraphModel,
+  expandActiveAuthorityOneHop,
+  materializeActiveNodeScope,
+  presentActiveNodeType,
+  presentActiveHumanText,
+  presentGovernanceLabel,
+  presentSourceCitation,
+  selectInitialScope,
+  visibleActiveGraph,
+  ACTIVE_GRAPH_NODE_LIMIT,
+  type ActiveAuthorityGraphModel,
+  type ActiveNodePresentation,
+} from './active-authority-presentation';
 
 interface ActiveAuthorityGraphProps {
   viewerRole: 'student' | 'teacher' | 'admin' | 'audit';
@@ -35,6 +53,17 @@ function errorMessage(status: number): string {
   return '当前 Authority 图谱暂时无法加载。';
 }
 
+function isActiveCanvasResponse(value: unknown): value is ActiveCanvasResponse {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<ActiveCanvasResponse>;
+  return candidate.projectionVersion === 'act.canvas.v2'
+    && candidate.source?.authorityState === 'active'
+    && Array.isArray(candidate.nodes)
+    && Array.isArray(candidate.relations)
+    && candidate.provenance?.projection?.projectionId === null
+    && candidate.provenance?.projection?.projectionHash === null;
+}
+
 function useActiveCanvas(retry: number): CanvasState {
   const [state, setState] = useState<CanvasState>({ status: 'loading' });
 
@@ -47,13 +76,8 @@ function useActiveCanvas(retry: number): CanvasState {
     })
       .then(async (response) => {
         if (!response.ok) throw new Error(errorMessage(response.status));
-        const projection = await response.json() as ActiveCanvasResponse;
-        if (
-          projection.source?.authorityState !== 'active'
-          || !projection.provenance?.authority
-          || projection.provenance.projection?.projectionId !== null
-          || projection.provenance.projection?.projectionHash !== null
-        ) {
+        const projection: unknown = await response.json();
+        if (!isActiveCanvasResponse(projection)) {
           throw new Error('当前 Authority 响应身份校验失败，已停止显示。');
         }
         return projection;
@@ -102,7 +126,11 @@ function useActiveNodeDetail(nodeId: string | null): {
     })
       .then(async (response) => {
         if (!response.ok) throw new Error(errorMessage(response.status));
-        return response.json() as Promise<ActiveNodeDetailResponse>;
+        const candidate: unknown = await response.json();
+        if (!candidate || typeof candidate !== 'object' || !('node' in candidate)) {
+          throw new Error('节点详情暂时无法加载。');
+        }
+        return candidate as ActiveNodeDetailResponse;
       })
       .then(setDetail)
       .catch((error: unknown) => {
@@ -119,71 +147,389 @@ function useActiveNodeDetail(nodeId: string | null): {
   return { detail, failure, loading };
 }
 
-function typeLabel(canonicalType: string): string {
+function nodeFill(node: ActiveNodePresentation, selected: boolean): string {
+  const colors: Record<string, string> = {
+    cyan: selected ? '#155e75' : '#083344',
+    violet: selected ? '#6d28d9' : '#312e81',
+    amber: selected ? '#92400e' : '#451a03',
+    emerald: selected ? '#047857' : '#064e3b',
+    blue: selected ? '#1d4ed8' : '#172554',
+    muted: '#334155',
+  };
+  return colors[node.type.tone] ?? colors.muted;
+}
+
+function nodeStroke(node: ActiveNodePresentation, selected: boolean): string {
+  if (selected) return '#f8fafc';
+  const colors: Record<string, string> = {
+    cyan: '#22d3ee',
+    violet: '#a78bfa',
+    amber: '#fbbf24',
+    emerald: '#34d399',
+    blue: '#60a5fa',
+    muted: '#94a3b8',
+  };
+  return colors[node.type.tone] ?? colors.muted;
+}
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+type ActiveNodeShape = ActiveNodePresentation['type']['shape'];
+
+const ACTIVE_NODE_CIRCLE_RADIUS = 30;
+const ACTIVE_NODE_RECT_HALF_WIDTH = 44;
+const ACTIVE_NODE_RECT_HALF_HEIGHT = 27;
+const ACTIVE_NODE_DIAMOND_HALF_WIDTH = 42;
+const ACTIVE_NODE_DIAMOND_HALF_HEIGHT = 28;
+const ACTIVE_NODE_HEXAGON_HALF_WIDTH = 42;
+const ACTIVE_NODE_HEXAGON_SLOPE_X = 21;
+const ACTIVE_NODE_HEXAGON_SLOPE_Y = 20;
+const ACTIVE_NODE_HEXAGON_HALF_HEIGHT = 30;
+const ACTIVE_NODE_ROUNDED_RADIUS = 18;
+const ACTIVE_NODE_SQUARE_RADIUS = 7;
+
+function polygonBoundaryPoint(center: Point, direction: Point, vertices: readonly Point[]): Point {
+  const epsilon = 1e-9;
+  let closestScale = Number.POSITIVE_INFINITY;
+  let closest: Point | null = null;
+  for (let index = 0; index < vertices.length; index += 1) {
+    const start = vertices[index];
+    const end = vertices[(index + 1) % vertices.length];
+    const edge = { x: end.x - start.x, y: end.y - start.y };
+    const offset = { x: start.x - center.x, y: start.y - center.y };
+    const denominator = direction.x * edge.y - direction.y * edge.x;
+    if (Math.abs(denominator) <= epsilon) continue;
+    const scale = (offset.x * edge.y - offset.y * edge.x) / denominator;
+    const edgePosition = (offset.x * direction.y - offset.y * direction.x) / denominator;
+    if (scale <= epsilon || edgePosition < -epsilon || edgePosition > 1 + epsilon || scale >= closestScale) continue;
+    closestScale = scale;
+    closest = {
+      x: center.x + direction.x * scale,
+      y: center.y + direction.y * scale,
+    };
+  }
+  return closest ?? center;
+}
+
+function roundedRectBoundaryPoint(
+  center: Point,
+  direction: Point,
+  halfWidth: number,
+  halfHeight: number,
+  radius: number,
+): Point {
+  const dx = direction.x;
+  const dy = direction.y;
+  const absoluteX = Math.abs(dx);
+  const absoluteY = Math.abs(dy);
+  if (absoluteX === 0 && absoluteY === 0) return center;
+  if (radius <= 0) {
+    const scale = Math.min(
+      absoluteX === 0 ? Number.POSITIVE_INFINITY : halfWidth / absoluteX,
+      absoluteY === 0 ? Number.POSITIVE_INFINITY : halfHeight / absoluteY,
+    );
+    return { x: center.x + dx * scale, y: center.y + dy * scale };
+  }
+
+  const horizontalCornerCenter = halfWidth - radius;
+  const verticalCornerCenter = halfHeight - radius;
+  const candidates: number[] = [];
+  if (absoluteX > 0) {
+    const scale = halfWidth / absoluteX;
+    if (absoluteY * scale <= verticalCornerCenter + 1e-9) candidates.push(scale);
+  }
+  if (absoluteY > 0) {
+    const scale = halfHeight / absoluteY;
+    if (absoluteX * scale <= horizontalCornerCenter + 1e-9) candidates.push(scale);
+  }
+
+  const signX = dx < 0 ? -1 : 1;
+  const signY = dy < 0 ? -1 : 1;
+  const cornerCenter = {
+    x: signX * horizontalCornerCenter,
+    y: signY * verticalCornerCenter,
+  };
+  const radiusSquared = radius * radius;
+  const quadraticA = (dx * dx + dy * dy) / radiusSquared;
+  const quadraticB = -2 * (dx * cornerCenter.x + dy * cornerCenter.y) / radiusSquared;
+  const quadraticC = (cornerCenter.x * cornerCenter.x + cornerCenter.y * cornerCenter.y) / radiusSquared - 1;
+  const discriminant = quadraticB * quadraticB - 4 * quadraticA * quadraticC;
+  if (discriminant >= 0) {
+    const root = Math.sqrt(discriminant);
+    for (const scale of [
+      (-quadraticB - root) / (2 * quadraticA),
+      (-quadraticB + root) / (2 * quadraticA),
+    ]) {
+      const x = dx * scale;
+      const y = dy * scale;
+      if (scale > 0 && signX * x >= horizontalCornerCenter - 1e-9 && signY * y >= verticalCornerCenter - 1e-9) {
+        candidates.push(scale);
+      }
+    }
+  }
+
+  const scale = Math.min(...candidates.filter((candidate) => candidate > 0));
+  if (!Number.isFinite(scale)) {
+    const fallback = Math.min(
+      absoluteX === 0 ? Number.POSITIVE_INFINITY : halfWidth / absoluteX,
+      absoluteY === 0 ? Number.POSITIVE_INFINITY : halfHeight / absoluteY,
+    );
+    return { x: center.x + dx * fallback, y: center.y + dy * fallback };
+  }
+  return { x: center.x + dx * scale, y: center.y + dy * scale };
+}
+
+/** Return the boundary point reached from a node center toward another point. */
+export function activeAuthorityNodeBoundaryPoint(
+  shape: ActiveNodeShape,
+  center: Point,
+  toward: Point,
+): Point {
+  const direction = { x: toward.x - center.x, y: toward.y - center.y };
+  if (shape === 'circle') {
+    const length = Math.hypot(direction.x, direction.y);
+    if (length === 0) return center;
+    const scale = ACTIVE_NODE_CIRCLE_RADIUS / length;
+    return { x: center.x + direction.x * scale, y: center.y + direction.y * scale };
+  }
+  if (shape === 'diamond') {
+    return polygonBoundaryPoint(center, direction, [
+      { x: center.x, y: center.y - ACTIVE_NODE_DIAMOND_HALF_HEIGHT },
+      { x: center.x + ACTIVE_NODE_DIAMOND_HALF_WIDTH, y: center.y },
+      { x: center.x, y: center.y + ACTIVE_NODE_DIAMOND_HALF_HEIGHT },
+      { x: center.x - ACTIVE_NODE_DIAMOND_HALF_WIDTH, y: center.y },
+    ]);
+  }
+  if (shape === 'hexagon') {
+    return polygonBoundaryPoint(center, direction, [
+      { x: center.x - ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y - ACTIVE_NODE_HEXAGON_SLOPE_Y },
+      { x: center.x - ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
+      { x: center.x + ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
+      { x: center.x + ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y - ACTIVE_NODE_HEXAGON_SLOPE_Y },
+      { x: center.x + ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y + ACTIVE_NODE_HEXAGON_SLOPE_Y },
+      { x: center.x + ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
+      { x: center.x - ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
+      { x: center.x - ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y + ACTIVE_NODE_HEXAGON_SLOPE_Y },
+    ]);
+  }
+  return roundedRectBoundaryPoint(
+    center,
+    direction,
+    ACTIVE_NODE_RECT_HALF_WIDTH,
+    ACTIVE_NODE_RECT_HALF_HEIGHT,
+    shape === 'rounded' ? ACTIVE_NODE_ROUNDED_RADIUS : ACTIVE_NODE_SQUARE_RADIUS,
+  );
+}
+
+export function activeAuthorityEdgeEndpoints(
+  sourceShape: ActiveNodeShape,
+  targetShape: ActiveNodeShape,
+  source: Point,
+  target: Point,
+): { source: Point; target: Point } {
+  const samePoint = source.x === target.x && source.y === target.y;
   return {
-    DomainConcept: '领域概念',
-    Formula: '公式',
-    KnowledgeStatement: '知识陈述',
-    SystemModel: '系统模型',
-    ModelRepresentation: '模型表示',
-  }[canonicalType] ?? canonicalType;
+    source: activeAuthorityNodeBoundaryPoint(
+      sourceShape,
+      source,
+      samePoint ? { x: source.x, y: source.y - 1 } : target,
+    ),
+    target: activeAuthorityNodeBoundaryPoint(
+      targetShape,
+      target,
+      samePoint ? { x: target.x + 1, y: target.y + 1 } : source,
+    ),
+  };
 }
 
-function relationLabel(predicate: string): string {
-  return {
-    association: '关联',
-    applies_to: '适用于',
-    derived_from: '推导自',
-    has_component: '包含组成部分',
-    has_formula: '具有公式',
-    has_representation: '具有表示',
-    is_a: '属于',
-    part_of: '组成部分',
-    used_to_analyze: '用于分析',
-  }[predicate] ?? predicate;
+const ACTIVE_MOBILE_NODE_LIMIT = 6;
+const SEARCH_RESULT_PAGE_SIZE = 12;
+const ACTIVE_MOBILE_VIEWBOX = '0 0 320 520';
+const ACTIVE_DESKTOP_VIEWBOX = '0 0 960 520';
+
+export function layoutActiveAuthorityNodes(
+  nodes: readonly Pick<ActiveNodePresentation, 'key'>[],
+  compact = false,
+): ReadonlyMap<string, Point> {
+  const columns = compact
+    ? Math.max(1, Math.min(2, nodes.length))
+    : Math.max(1, Math.min(6, Math.max(Math.ceil(Math.sqrt(nodes.length)), Math.ceil(nodes.length / 4))));
+  const columnGap = compact
+    ? 164
+    : columns === 6 ? 156 : columns === 5 ? 180 : 220;
+  const rowGap = compact ? 112 : 120;
+  const startX = compact
+    ? (columns === 1 ? 160 : 78)
+    : columns === 6 ? 88 : columns === 5 ? 120 : 130;
+  const startY = compact ? 72 : 84;
+  return new Map(nodes.map((node, index) => [node.key, {
+    x: startX + (index % columns) * columnGap,
+    y: startY + Math.floor(index / columns) * rowGap,
+  }]));
 }
 
-function directionLabel(direction: string | null): {
-  label: string;
-  kind: 'undirected' | 'directed' | 'unknown';
-} {
-  if (direction === 'unordered' || direction === 'undirected') {
-    return { label: '无向/双向', kind: 'undirected' };
-  }
-  if (direction === 'source_to_target' || direction === 'source-to-target' || direction === 'directed') {
-    return { label: '来源→目标', kind: 'directed' };
-  }
-  return { label: direction ? `原始方向：${direction}` : '原始方向未声明', kind: 'unknown' };
+function nodePolygon(shape: ActiveNodePresentation['type']['shape'], x: number, y: number): string | null {
+  if (shape === 'diamond') return `${x},${y - ACTIVE_NODE_DIAMOND_HALF_HEIGHT} ${x + ACTIVE_NODE_DIAMOND_HALF_WIDTH},${y} ${x},${y + ACTIVE_NODE_DIAMOND_HALF_HEIGHT} ${x - ACTIVE_NODE_DIAMOND_HALF_WIDTH},${y}`;
+  if (shape === 'hexagon') return `${x - ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y - ACTIVE_NODE_HEXAGON_SLOPE_Y} ${x - ACTIVE_NODE_HEXAGON_SLOPE_X},${y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x + ACTIVE_NODE_HEXAGON_SLOPE_X},${y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x + ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y - ACTIVE_NODE_HEXAGON_SLOPE_Y} ${x + ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y + ACTIVE_NODE_HEXAGON_SLOPE_Y} ${x + ACTIVE_NODE_HEXAGON_SLOPE_X},${y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x - ACTIVE_NODE_HEXAGON_SLOPE_X},${y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x - ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y + ACTIVE_NODE_HEXAGON_SLOPE_Y}`;
+  return null;
 }
 
-function nodeTone(node: ActiveCanvasNode): string {
-  switch (node.canonicalType) {
-    case 'Formula': return 'border-violet-400/45 bg-violet-400/10 text-violet-100';
-    case 'KnowledgeStatement': return 'border-amber-400/45 bg-amber-400/10 text-amber-100';
-    case 'SystemModel':
-    case 'ModelRepresentation': return 'border-emerald-400/45 bg-emerald-400/10 text-emerald-100';
-    default: return 'border-cyan-400/45 bg-cyan-400/10 text-cyan-100';
-  }
+function GraphNode({
+  node,
+  point,
+  selected,
+  onSelect,
+  compact,
+}: {
+  node: ActiveNodePresentation;
+  point: Point;
+  selected: boolean;
+  onSelect: (key: string, target: SVGGElement) => void;
+  compact: boolean;
+}) {
+  const polygon = nodePolygon(node.type.shape, point.x, point.y);
+  const label = `${node.label}，${node.type.label}`;
+  return (
+    <g
+      role="button"
+      tabIndex={0}
+      aria-label={label}
+      aria-pressed={selected}
+      data-active-authority-node={node.key}
+      data-active-authority-node-shape={node.type.shape}
+      onClick={(event) => onSelect(node.key, event.currentTarget)}
+      onKeyDown={(event: KeyboardEvent<SVGGElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelect(node.key, event.currentTarget);
+        }
+      }}
+      className="cursor-pointer outline-none focus-visible:ring-2"
+    >
+      <title>{label}</title>
+      {polygon ? (
+        <polygon points={polygon} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
+      ) : node.type.shape === 'circle' ? (
+        <circle cx={point.x} cy={point.y} r={ACTIVE_NODE_CIRCLE_RADIUS} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
+      ) : (
+        <rect x={point.x - ACTIVE_NODE_RECT_HALF_WIDTH} y={point.y - ACTIVE_NODE_RECT_HALF_HEIGHT} width={ACTIVE_NODE_RECT_HALF_WIDTH * 2} height={ACTIVE_NODE_RECT_HALF_HEIGHT * 2} rx={node.type.shape === 'rounded' ? ACTIVE_NODE_ROUNDED_RADIUS : ACTIVE_NODE_SQUARE_RADIUS} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
+      )}
+      <text data-active-authority-node-label="true" x={point.x} y={point.y - 3} textAnchor="middle" fill="#f8fafc" fontSize={compact ? 13 : 12} fontWeight="600">
+        {node.label.slice(0, 14)}
+      </text>
+      <text data-active-authority-node-type-label="true" x={point.x} y={point.y + 15} textAnchor="middle" fill="#cbd5e1" fontSize={compact ? 11 : 10}>
+        {node.type.label}
+      </text>
+    </g>
+  );
+}
+
+function GraphEdge({
+  relation,
+  source,
+  target,
+  sourceShape,
+  targetShape,
+  sourceLabel,
+  targetLabel,
+  compact,
+  selected,
+}: {
+  relation: ActiveAuthorityGraphModel['relations'][number];
+  source: Point;
+  target: Point;
+  sourceShape: ActiveNodeShape;
+  targetShape: ActiveNodeShape;
+  sourceLabel: string;
+  targetLabel: string;
+  compact: boolean;
+  selected: boolean;
+}) {
+  const label = `${sourceLabel}，${relation.semantic.label}，${targetLabel}，${relation.semantic.directionLabel}`;
+  const endpoints = activeAuthorityEdgeEndpoints(sourceShape, targetShape, source, target);
+  const edgeStroke = selected ? '#e2e8f0' : '#64748b';
+  return (
+    <g
+      data-active-authority-relation={relation.key}
+      data-active-authority-relation-source={relation.sourceKey}
+      data-active-authority-relation-target={relation.targetKey}
+      data-active-authority-relation-selected={selected ? 'true' : 'false'}
+      aria-label={label}
+    >
+      <title>{label}</title>
+      {source.x === target.x && source.y === target.y ? (
+        <path
+          d={`M ${endpoints.source.x} ${endpoints.source.y} C ${source.x + 50} ${source.y - 72}, ${source.x + 72} ${source.y + 24}, ${endpoints.target.x} ${endpoints.target.y}`}
+          fill="none"
+          stroke={edgeStroke}
+          strokeWidth={selected ? 3 : 2}
+          strokeLinecap="round"
+          markerEnd={relation.semantic.kind === 'directed' ? 'url(#active-authority-arrow)' : undefined}
+        />
+      ) : (
+        <line
+          x1={endpoints.source.x}
+          y1={endpoints.source.y}
+          x2={endpoints.target.x}
+          y2={endpoints.target.y}
+          stroke={edgeStroke}
+          strokeWidth={selected ? 3 : 2}
+          strokeLinecap="round"
+          markerEnd={relation.semantic.kind === 'directed' ? 'url(#active-authority-arrow)' : undefined}
+        />
+      )}
+      <text
+        data-active-authority-relation-label="true"
+        x={(source.x + target.x) / 2}
+        y={(source.y + target.y) / 2 - 6}
+        textAnchor="middle"
+        fill="#94a3b8"
+        fontSize={compact ? 11 : 10}
+      >
+        {relation.semantic.label}
+      </text>
+    </g>
+  );
 }
 
 function ActiveNodeDetail({
-  nodeId,
+  nodeKey,
+  fallbackNode,
+  model,
   onClose,
 }: {
-  nodeId: string;
+  nodeKey: string;
+  fallbackNode: ActiveNodePresentation | undefined;
+  model: ActiveAuthorityGraphModel;
   onClose: () => void;
 }) {
-  const { detail, failure, loading } = useActiveNodeDetail(nodeId);
+  const { detail, failure, loading } = useActiveNodeDetail(nodeKey);
+  const panelRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    panelRef.current?.focus();
+  }, [nodeKey]);
+  const node = detail?.node;
+  const type = presentActiveNodeType(node?.canonicalType ?? fallbackNode?.type.canonicalType ?? '');
+  const summaries = node ? activeNodeRelationSummaries(node, model) : [];
+  const detailLabel = presentActiveHumanText(
+    node && node.label !== nodeKey ? node.label : fallbackNode?.label,
+    '名称暂不可用',
+  );
   return (
     <aside
-      className="min-h-0 overflow-y-auto border-l border-platform-border bg-platform-surface/95 p-4 max-lg:border-l-0 max-lg:border-t"
+      ref={panelRef}
+      tabIndex={-1}
+      className="min-h-0 overflow-y-auto border-l border-platform-border bg-platform-surface/95 p-4 outline-none max-lg:border-l-0 max-lg:border-t"
       aria-label="当前 Authority 节点详情"
-      data-active-node-detail={nodeId}
+      data-active-node-detail={nodeKey}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-xs font-medium text-platform-fg-muted">当前 Authority 节点详情</div>
-          <div className="mt-1 break-all text-sm text-platform-fg-secondary">{nodeId}</div>
+          <div className="mt-1 text-sm text-platform-fg-secondary">语义对象信息</div>
         </div>
         <button
           type="button"
@@ -207,45 +553,40 @@ function ActiveNodeDetail({
       ) : detail ? (
         <div className="mt-5 space-y-5">
           <div>
-            <div className="text-lg font-semibold text-platform-fg-primary">{detail.node.label}</div>
-            <div className="mt-1 text-xs text-platform-fg-muted">{typeLabel(detail.node.canonicalType)}</div>
+            <div className="text-lg font-semibold text-platform-fg-primary">{detailLabel}</div>
+            <div className="mt-1 text-xs text-platform-fg-muted">{type.label}</div>
             <p className="mt-3 text-sm leading-6 text-platform-fg-secondary">
-              {detail.node.description ?? '该对象暂无公开说明。'}
+              {presentActiveHumanText(node?.description ?? fallbackNode?.description, '该对象暂无公开说明。')}
             </p>
           </div>
           <section aria-labelledby="active-detail-relations">
             <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">一跳关系</h3>
             <div className="mt-2 space-y-2">
-              {detail.node.adjacency.length === 0 ? (
-                <p className="text-sm text-platform-fg-muted">当前对象暂无一跳关系。</p>
-              ) : detail.node.adjacency.slice(0, 20).map((relation) => {
-                const direction = directionLabel(relation.direction);
-                return (
-                  <div key={relation.relationId} className="rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-xs">
-                    <span className="font-medium text-platform-fg-primary">{relationLabel(relation.predicate)}</span>
-                    <span className="ml-2 text-platform-fg-muted">
-                      {relation.traversal === 'outgoing' ? '出向' : '入向'} · {direction.label} · {relation.neighborId}
-                    </span>
-                  </div>
-                );
-              })}
+              {summaries.length === 0 ? (
+                <p className="text-sm text-platform-fg-muted">{node?.adjacency.length ? '部分关系暂不可解释，已隐藏。' : '暂无已发布关系。'}</p>
+              ) : summaries.slice(0, 20).map((relation) => (
+                <div key={relation.key} className="rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-xs">
+                  <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
+                  <span className="ml-2 text-platform-fg-muted">
+                    {relation.directionLabel === '关联关系'
+                      ? `${relation.directionLabel} · ${relation.neighborLabel}`
+                      : `${relation.traversal === 'outgoing' ? '出向' : '入向'} · ${relation.directionLabel} · ${relation.neighborLabel}`}
+                  </span>
+                </div>
+              ))}
+              {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">部分关系暂不可解释，已隐藏。</p> : null}
             </div>
           </section>
           <section aria-labelledby="active-detail-sources">
-            <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">可访问来源</h3>
-            <div className="mt-2 space-y-1 text-xs text-platform-fg-secondary">
-              {detail.node.sources.length === 0
-                ? <p>当前对象未附公开来源定位。</p>
-                : detail.node.sources.map((source) => <p key={`${source.sourceEditionId}:${source.sectionId}`}>{source.sourceEditionId} · {source.sectionId}</p>)}
-            </div>
+            <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">参考来源</h3>
+            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources)}</p>
           </section>
-          {detail.role !== 'STUDENT' && detail.node.governance ? (
+          {node?.governance ? (
             <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
-              <h3 className="font-semibold text-platform-fg-primary">治理信息</h3>
+              <h3 className="font-semibold text-platform-fg-primary">内容状态</h3>
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-                <dt>审核</dt><dd>{detail.node.governance.reviewStatus ?? '未知'}</dd>
-                <dt>发布</dt><dd>{detail.node.governance.publicationStatus ?? '未知'}</dd>
-                <dt>层级</dt><dd>{detail.node.governanceTier ?? '未分类'}</dd>
+                <dt>审核</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus)}</dd>
+                <dt>发布</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus)}</dd>
               </dl>
             </section>
           ) : null}
@@ -255,19 +596,190 @@ function ActiveNodeDetail({
   );
 }
 
+function SearchResults({
+  results,
+  onSelect,
+}: {
+  results: readonly ActiveNodePresentation[];
+  onSelect: (key: string) => void;
+}) {
+  const [visibleCount, setVisibleCount] = useState(SEARCH_RESULT_PAGE_SIZE);
+  if (results.length === 0) return null;
+  const visibleResults = results.slice(0, Math.min(visibleCount, results.length));
+  const remainingCount = results.length - visibleResults.length;
+  return (
+    <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results data-active-search-result-total={results.length}>
+      <div className="border-b border-platform-border px-3 py-2 text-[11px] text-platform-fg-muted" role="status" aria-live="polite">
+        已显示 {visibleResults.length} / {results.length} 个匹配对象
+      </div>
+      {visibleResults.map((node) => (
+        <button
+          key={node.key}
+          type="button"
+          onClick={() => onSelect(node.key)}
+          aria-label={`定位${node.label}`}
+          data-active-authority-search-result={node.key}
+          className="flex w-full items-center justify-between gap-2 border-b border-platform-border px-3 py-2 text-left text-xs last:border-b-0 hover:bg-platform-action-subtle"
+        >
+          <span className="truncate text-platform-fg-primary">{node.label}</span>
+          <span className="shrink-0 text-platform-fg-muted">{node.type.label}</span>
+        </button>
+      ))}
+      {remainingCount > 0 ? (
+        <button
+          type="button"
+          onClick={() => setVisibleCount((current) => Math.min(results.length, current + SEARCH_RESULT_PAGE_SIZE))}
+          aria-label={`加载更多搜索结果，还剩${remainingCount}项`}
+          data-active-authority-search-load-more
+          className="w-full border-t border-platform-border px-3 py-2 text-left text-xs text-platform-action-primary hover:bg-platform-action-subtle"
+        >
+          加载更多搜索结果（还剩 {remainingCount} 项）
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorityGraphProps) {
   const [retry, setRetry] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState<number | null>(null);
   const state = useActiveCanvas(retry);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
+  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const triggerRef = useRef<SVGGElement | null>(null);
+  const draggingRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const isCompactViewport = viewportWidth !== null && viewportWidth < 640;
+  const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
+
+  useEffect(() => {
+    const updateViewportWidth = () => setViewportWidth(window.innerWidth);
+    updateViewportWidth();
+    window.addEventListener('resize', updateViewportWidth);
+    return () => window.removeEventListener('resize', updateViewportWidth);
+  }, []);
+
+  const model = useMemo(
+    () => state.status === 'ready' || state.status === 'empty'
+      ? createActiveAuthorityGraphModel(state.projection)
+      : null,
+    [state],
+  );
   const projection = state.status === 'ready' || state.status === 'empty' ? state.projection : null;
-  const nodeById = useMemo(() => new Map(projection?.nodes.map((node) => [node.id, node]) ?? []), [projection]);
+
+  useEffect(() => {
+    if (!model) return;
+    setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
+    setSelectedNodeKey(null);
+    setQuery('');
+    setTypeFilter('');
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }, [model, visibleNodeLimit]);
+
+  useEffect(() => {
+    if (!selectedNodeKey) return;
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      const key = selectedNodeKey;
+      setSelectedNodeKey(null);
+      window.setTimeout(() => restoreFocus(key), 0);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [selectedNodeKey]);
+
+  const searchResults = useMemo(
+    () => model ? activeNodeSearch(model, query, typeFilter || undefined) : [],
+    [model, query, typeFilter],
+  );
+  const scopedGraph = useMemo(() => {
+    if (!model) return null;
+    const scoped = visibleActiveGraph(model, visibleKeys);
+    if (!typeFilter) return scoped;
+    const filteredKeys = new Set(scoped.nodes.filter((node) => node.type.canonicalType === typeFilter).map((node) => node.key));
+    return visibleActiveGraph(model, filteredKeys);
+  }, [model, typeFilter, visibleKeys]);
+  const layout = useMemo(
+    () => layoutActiveAuthorityNodes(scopedGraph?.nodes ?? [], isCompactViewport),
+    [isCompactViewport, scopedGraph],
+  );
+  const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
+
+  function selectNode(key: string, target?: SVGGElement) {
+    if (!model) return;
+    triggerRef.current = target ?? null;
+    setVisibleKeys((current) => expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit));
+    setSelectedNodeKey(key);
+  }
+
+  function focusSearchResult(key: string) {
+    if (!model) return;
+    // The result button is removed when the query is cleared; restore focus
+    // to the newly materialized semantic node or the canvas instead.
+    triggerRef.current = null;
+    setVisibleKeys(materializeActiveNodeScope(model, key, visibleNodeLimit));
+    setSelectedNodeKey(key);
+    setQuery('');
+    setTypeFilter('');
+  }
+
+  function resetOverview() {
+    if (!model) return;
+    setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
+    setSelectedNodeKey(null);
+    setQuery('');
+    setTypeFilter('');
+    triggerRef.current = null;
+    window.setTimeout(() => document.querySelector<SVGElement>('[data-active-graph-stage]')?.focus(), 0);
+  }
+
+  function closeDetail() {
+    const key = selectedNodeKey;
+    setSelectedNodeKey(null);
+    window.setTimeout(() => restoreFocus(key), 0);
+  }
+
+  function restoreFocus(nodeKey: string | null) {
+    if (triggerRef.current?.isConnected) {
+      triggerRef.current.focus();
+      return;
+    }
+    if (nodeKey) {
+      for (const node of document.querySelectorAll<SVGGElement>('[data-active-authority-node]')) {
+        if (node.dataset.activeAuthorityNode === nodeKey) {
+          node.focus();
+          return;
+        }
+      }
+    }
+    document.querySelector<HTMLElement>('[data-active-graph-stage]')?.focus();
+  }
+
+  function onStagePointerDown(event: PointerEvent<SVGSVGElement>) {
+    if (event.target instanceof Element && event.target.closest('[data-active-authority-node]')) {
+      draggingRef.current = null;
+      return;
+    }
+    draggingRef.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function onStagePointerMove(event: PointerEvent<SVGSVGElement>) {
+    const drag = draggingRef.current;
+    if (!drag) return;
+    setPan({ x: drag.panX + (event.clientX - drag.x), y: drag.panY + (event.clientY - drag.y) });
+  }
+
+  function onStagePointerUp() {
+    draggingRef.current = null;
+  }
 
   return (
-    <div
-      className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary"
-      data-active-authority-graph="true"
-      data-active-authority-consumer="engineering-graph"
-    >
+    <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph">
       <header className="border-b border-platform-border bg-platform-surface/95 px-4 py-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -275,23 +787,12 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
               <h2 className="text-base font-semibold">当前 Engineering Authority</h2>
               <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100">当前 Authority</span>
             </div>
-            {projection ? (
-              <>
-                <p className="mt-1 text-xs text-platform-fg-secondary">
-                  {projection.provenance.authority.releaseSetId} · {projection.provenance.authority.releaseId}
-                </p>
-                <p className="mt-1 break-all text-[11px] text-platform-fg-muted">
-                  Snapshot {projection.provenance.authority.snapshotId} · Activation {projection.provenance.activation.activationId}
-                </p>
-              </>
-            ) : (
-              <p className="mt-1 text-xs text-platform-fg-secondary">由服务端 committed engineering-graph selection 解析。</p>
-            )}
+            <p className="mt-1 text-xs text-platform-fg-secondary">以语义对象和已发布工程关系呈现，可搜索并逐步探索。</p>
           </div>
           {projection ? (
             <div className="text-right text-xs text-platform-fg-secondary">
-              <div>覆盖：{projection.coverage.objectCount} 对象 · {projection.coverage.relationCount} 关系</div>
-              <div className="mt-1 text-emerald-200">Projection：不适用（null）</div>
+              <div>覆盖：{projection.coverage.objectCount} 个对象 · {projection.coverage.relationCount} 条关系</div>
+              <div className="mt-1 text-emerald-200">教学关系尚未发布</div>
             </div>
           ) : null}
         </div>
@@ -299,10 +800,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
 
       {state.status === 'loading' ? (
         <div className="flex flex-1 items-center justify-center" role="status">
-          <div className="text-center text-sm text-platform-fg-secondary">
-            <Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin text-platform-action-primary" aria-hidden="true" />
-            正在加载当前 Authority 图谱…
-          </div>
+          <div className="text-center text-sm text-platform-fg-secondary"><Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin text-platform-action-primary" aria-hidden="true" />正在加载当前 Authority 图谱…</div>
         </div>
       ) : state.status === 'error' ? (
         <div className="flex flex-1 items-center justify-center p-6">
@@ -310,77 +808,98 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
             <AlertTriangle className="mx-auto h-6 w-6 text-red-200" aria-hidden="true" />
             <p className="mt-3 text-sm text-red-50">{state.message}</p>
             <p className="mt-2 text-xs text-red-100/75">当前 Authority 不可用；未请求 Legacy API，也未自动补齐。</p>
-            <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10">
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              重试当前 Authority
-            </button>
+            <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />重试当前 Authority</button>
           </div>
         </div>
-      ) : state.status === 'empty' ? (
+      ) : state.status === 'empty' || !model || !scopedGraph ? (
         <div className="flex flex-1 items-center justify-center p-6 text-center">
-          <div>
-            <Network className="mx-auto h-7 w-7 text-platform-fg-muted" aria-hidden="true" />
-            <p className="mt-3 text-sm text-platform-fg-secondary">当前 Authority 暂无可显示对象。</p>
-            <p className="mt-1 text-xs text-platform-fg-muted">未请求 Legacy API。</p>
-          </div>
+          <div><Network className="mx-auto h-7 w-7 text-platform-fg-muted" aria-hidden="true" /><p className="mt-3 text-sm text-platform-fg-secondary">当前 Authority 暂无可显示对象。</p><p className="mt-1 text-xs text-platform-fg-muted">未请求 Legacy API。</p></div>
         </div>
-      ) : projection ? (
-        <div className={`grid min-h-0 flex-1 ${selectedNodeId ? 'grid-cols-[minmax(0,1fr)_minmax(19rem,27rem)] max-lg:grid-cols-1' : 'grid-cols-1'}`}>
+      ) : (
+        <div className={`grid min-h-0 flex-1 ${selectedNodeKey ? 'grid-cols-[minmax(0,1fr)_minmax(19rem,27rem)] max-lg:grid-cols-1' : 'grid-cols-1'}`}>
           <main className="min-h-0 overflow-y-auto p-4" aria-label="当前 Authority 知识图谱">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted">
-              <span>{projection.nodes.length} 对象 · {projection.relations.length} 关系</span>
-              <span>{projection.teachingSemantics.message} · Projection 不适用</span>
-            </div>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-3" data-active-graph-stage="authority">
-              {projection.nodes.map((node) => {
-                const relations = projection.relations.filter((relation) => relation.sourceId === node.id || relation.targetId === node.id);
-                return (
-                  <button
-                    key={node.id}
-                    type="button"
-                    onClick={() => setSelectedNodeId(node.id)}
-                    aria-pressed={selectedNodeId === node.id}
-                    className={`min-h-32 rounded-xl border p-3 text-left shadow-sm transition focus:outline-none focus:ring-2 focus:ring-platform-action-primary ${nodeTone(node)} ${selectedNodeId === node.id ? 'ring-2 ring-platform-action-primary' : ''}`}
-                    data-active-authority-node={node.id}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[11px] font-medium">{typeLabel(node.canonicalType)}</span>
-                      <span className="text-[10px] opacity-75">{relations.length} 关系</span>
-                    </div>
-                    <div className="mt-3 line-clamp-2 text-sm font-semibold">{node.label}</div>
-                    <div className="mt-2 line-clamp-2 text-xs opacity-75">{node.description ?? node.id}</div>
-                  </button>
-                );
-              })}
-            </div>
-            <section className="mt-5 rounded-xl border border-platform-border bg-platform-surface/80 p-4" aria-labelledby="active-relation-map">
-              <div className="flex items-center justify-between gap-3">
-                <h3 id="active-relation-map" className="text-sm font-semibold">关系路径</h3>
-                <span className="text-xs text-platform-fg-muted">当前 Authority · 只读</span>
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+              <div className="min-w-[15rem] flex-1">
+                <label className="sr-only" htmlFor="active-authority-search">搜索当前 Authority 对象</label>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
+                  <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder="搜索对象名称或类型" className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
+                </div>
+                {query || typeFilter ? <SearchResults key={`${typeFilter}\u0000${query}`} results={searchResults} onSelect={focusSearchResult} /> : null}
               </div>
-              <div className="mt-3 grid gap-2 lg:grid-cols-2">
-                {projection.relations.map((relation) => {
-                  const source = nodeById.get(relation.sourceId);
-                  const target = nodeById.get(relation.targetId);
-                  const direction = directionLabel(relation.direction);
-                  return (
-                    <div key={relation.id} className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs" data-active-authority-relation={relation.id}>
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span className="min-w-0 flex-1 truncate text-platform-fg-primary">{source?.label ?? relation.sourceId}</span>
-                        <span className="w-10 shrink-0 border-t border-platform-action-primary" aria-hidden="true" />
-                        {direction.kind === 'undirected' ? <ArrowLeftRight className="h-3.5 w-3.5 shrink-0" aria-label="无向或双向关系" /> : direction.kind === 'directed' ? <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-label="来源指向目标" /> : <CircleHelp className="h-3.5 w-3.5 shrink-0" aria-label="原始方向未解释" />}
-                        <span className="min-w-0 flex-1 truncate text-platform-fg-primary">{target?.label ?? relation.targetId}</span>
-                      </div>
-                      <div className="mt-2 text-platform-fg-secondary">{relationLabel(relation.predicate)} · {direction.label}</div>
-                    </div>
-                  );
-                })}
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="sr-only" htmlFor="active-authority-type-filter">按对象类型筛选</label>
+                <div className="relative">
+                  <select id="active-authority-type-filter" aria-label="按对象类型筛选" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} className="appearance-none rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-3 pr-8 text-xs text-platform-fg-secondary">
+                    <option value="">全部类型</option>
+                    {model.nodes.reduce<string[]>((types, node) => types.includes(node.type.canonicalType) ? types : [...types, node.type.canonicalType], []).sort().map((canonicalType) => <option key={canonicalType} value={canonicalType}>{presentActiveNodeType(canonicalType).label}</option>)}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-platform-fg-muted" aria-hidden="true" />
+                </div>
+                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />返回总览</button>
               </div>
-            </section>
+            </div>
+
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted">
+              <span>{scopedGraph.nodes.length} 个对象 · {scopedGraph.relations.length} 条关系 · 可见范围</span>
+              <span>总覆盖 {model.totalNodeCount} 个对象 · {model.totalRelationCount} 条关系</span>
+            </div>
+            <div className="relative overflow-hidden rounded-xl border border-platform-border bg-[#07111f]" data-active-graph-stage="authority" tabIndex={-1}>
+              <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-md border border-platform-border bg-platform-surface/90 p-1">
+                <button type="button" aria-label="缩小图谱" onClick={() => setZoom((value) => Math.max(0.65, Number((value - 0.15).toFixed(2))))} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><Minus className="h-3.5 w-3.5" aria-hidden="true" /></button>
+                <span className="min-w-10 text-center text-[10px] text-platform-fg-muted">{Math.round(zoom * 100)}%</span>
+                <button type="button" aria-label="放大图谱" onClick={() => setZoom((value) => Math.min(1.75, Number((value + 0.15).toFixed(2))))} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><Plus className="h-3.5 w-3.5" aria-hidden="true" /></button>
+                <button type="button" aria-label="重置图谱视图" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /></button>
+              </div>
+              <svg
+                data-active-authority-svg="true"
+                data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'}
+                data-active-authority-node-limit={visibleNodeLimit}
+                viewBox={isCompactViewport ? ACTIVE_MOBILE_VIEWBOX : ACTIVE_DESKTOP_VIEWBOX}
+                className="h-[min(60vh,520px)] min-h-[23rem] w-full touch-none"
+                role="application"
+                aria-label="当前 Authority 语义关系画布"
+                onPointerDown={onStagePointerDown}
+                onPointerMove={onStagePointerMove}
+                onPointerUp={onStagePointerUp}
+                onPointerCancel={onStagePointerUp}
+              >
+                <defs><marker id="active-authority-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#94a3b8" /></marker></defs>
+                <g transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}>
+                  {scopedGraph.relations.map((relation) => {
+                    const source = layout.get(relation.sourceKey);
+                    const target = layout.get(relation.targetKey);
+                    const sourceNode = model.nodeByKey.get(relation.sourceKey);
+                    const targetNode = model.nodeByKey.get(relation.targetKey);
+                    return source && target && sourceNode && targetNode
+                      ? <GraphEdge
+                        key={relation.key}
+                        relation={relation}
+                        source={source}
+                        target={target}
+                        sourceShape={sourceNode.type.shape}
+                        targetShape={targetNode.type.shape}
+                        sourceLabel={sourceNode.label}
+                        targetLabel={targetNode.label}
+                        compact={isCompactViewport}
+                        selected={Boolean(selectedNodeKey && (selectedNodeKey === relation.sourceKey || selectedNodeKey === relation.targetKey))}
+                      />
+                      : null;
+                  })}
+                  {scopedGraph.nodes.map((node) => {
+                    const point = layout.get(node.key);
+                    return point ? <GraphNode key={node.key} node={node} point={point} selected={selectedNodeKey === node.key} onSelect={selectNode} compact={isCompactViewport} /> : null;
+                  })}
+                </g>
+              </svg>
+              {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs text-platform-fg-muted">该对象暂无已发布关系</div> : null}
+            </div>
+            {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">部分内容暂不可解释，已隐藏以保持语义安全。</p> : null}
+            {searchResults.length === 0 && (query || typeFilter) ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />没有匹配的语义对象。</p> : null}
           </main>
-          {selectedNodeId ? <ActiveNodeDetail nodeId={selectedNodeId} onClose={() => setSelectedNodeId(null)} /> : null}
+          {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} onClose={closeDetail} /> : null}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

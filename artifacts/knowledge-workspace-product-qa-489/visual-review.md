@@ -6,37 +6,42 @@
 
 Grok 4.5 在只读范围完成独立视觉复核，未修改项目文件、暂存区或 Git 历史。
 
-- commit：`94b785a7ec7879543fabb9233f37521346dfe71f`
-- tree：`67c388b67de01651b971d3814a670710b1b02bda`
-- 截图：29 项 `stateMatrix` 与 4 项 `activeAuthorityVisualMatrix` 的 SHA-256 均与当前磁盘一致；7 项角色截图及 486、487 的对应证据也一致。
-- 源码：`browser-evidence.json` 中 20 项 `currentSourceSha256` 与复核时的源码逐项一致。
-
-审查覆盖 29 个显式 Legacy 浏览状态、4 个当前 Authority 响应式状态、7 项焦点证据，以及 student、teacher、admin 的角色边界。当前 Authority 在四个响应式状态中均为 4,891 nodes / 2,409 relations、`use-combination` / `READY`、null projection；student 与 teacher 没有 candidate 入口，admin candidate 仅在显式动作后作为受控验证出现，且不是 current Authority。
+- commit：`2bae1c52acf9b1bb5c833b7d895707ff99785518`
+- tree：`23e9c6b3490c30b297f338f033f298cb152766c7`
+- 复核对象：29 项状态矩阵、4 项活跃权威响应式矩阵，以及三种已认证角色的交互与焦点证据。
+- 绑定：全部 33 项截图和 21 项受管源码哈希与当前产品 QA 浏览器证据逐项相同。
 
 ## 视觉结论
 
 | 维度 | 结果 | 依据 |
 | --- | --- | --- |
-| handoffAlignment | PASS | 共享应用壳、局部工具和 Konling Dock 与 handoff 一致。 |
-| conceptAdoptionRejection | PASS | 未出现第二套全局导航、重复助手区或概念稿角色切换器。 |
-| appShellContinuity | PASS | 折叠、展开、应力和 adaptive-practice 状态保持同一应用壳。 |
-| localTools | PASS | 目录、筛选、视图面板在相应状态中紧凑且可见。 |
-| semanticMap | PASS | 默认、选中邻域和全关系状态的节点、边与关系族控件一致。 |
-| inspectorHierarchy | PASS | 桌面右浮层、移动底部 sheet 与检查器层级可读。 |
-| konlingDock | PASS | 选中、无选择、降级与应力状态保持共享 Dock，没有第二助手。 |
-| interactionStability | PASS | 拖拽持久化、3D 首次 fit 与重复 relayout 证据通过。 |
-| keyboardFocus | PASS | 7 项 focusEvidence 覆盖打开、Escape 与返回焦点。 |
-| themeParity | PASS | 明暗主题结构、控件位置和检查器可读性一致。 |
-| mobileBehavior | PASS | 320px 工具 sheet、检查器 sheet 与 Konling 覆盖策略符合矩阵。 |
-| tabletBreakpoint | PASS | 1024、1100、1279 宽度下检查器、工具和 Konling 没有矩阵重叠。 |
-| stressNonOverlap | PASS | 全部 29 个状态的 `markers.overlaps` 均为 false。 |
-| canvasGeometry | PASS | 节点、标签与 3D 投影均在画布内，知识路由没有横向溢出。 |
+| handoffAlignment | PASS | 共享应用壳、局部工具与 Konling Dock 保持既定交接结构。 |
+| conceptAdoptionRejection | PASS | 未出现独立全局导航、重复助手区域或模拟角色切换器。 |
+| appShellContinuity | PASS | 折叠、展开、应力与相关页面状态保持同一应用壳。 |
+| localTools | PASS | 目录、筛选与视图工具在矩阵状态中可见且不重叠。 |
+| semanticMap | PASS | 默认、选中邻域和全部关系族状态呈现真实节点、边与关系控制；有向箭头止于目标形状边界，无向关联不表达出入方向，选中节点相邻边得到强调。 |
+| inspectorHierarchy | PASS | 桌面详情与移动检查器层级清楚。 |
+| konlingDock | PASS | 选中、无选择、降级与应力状态保持同一 Dock。 |
+| interactionStability | PASS | 拖拽、重排和选择交互保持稳定。 |
+| keyboardFocus | PASS | 角色详情交互覆盖打开、Escape 与返回原语义节点或画布。 |
+| themeParity | PASS | 明暗主题中的结构、控件位置与可读性一致。 |
+| mobileBehavior | PASS | 320px 双列六节点画布、标签与检查器在移动状态下可读。 |
+| tabletBreakpoint | PASS | 1024、1100、1279 宽度下工具、检查器与 Konling 无重叠。 |
+| stressNonOverlap | PASS | 状态矩阵与活跃权威矩阵均未出现有害重叠。 |
+| canvasGeometry | PASS | 活跃画布中的节点、边端点与标签均处于 SVG 几何边界内。 |
+
+## 活跃权威画布证据
+
+- desktop-dark：8 个节点、12 条关系；节点、边端点与标签均可见。
+- desktop-light、tablet：24 个节点、37 条关系；四行上限布局无裁切。
+- mobile：6 个节点、10 条关系；最小有效标签像素为 10.32。
+- 所有活跃状态均记录有效 SVG 几何；详情态与三种角色的受控语义详情、邻接关系和焦点返回均通过。
+- 搜索结果不再截断；类型筛选后选择对象会回到完整的一跳真实拓扑，跨类型邻居与关系保持可见。
+- 搜索结果首次只渲染 12 项并显示总数；用户可通过明确的“加载更多”控件继续访问后续结果，避免大图搜索一次性创建无界 DOM。
+- 详情在切换对象后聚焦新详情面板；Escape 返回原语义节点或语义画布。
 
 ## 非阻断观察
 
-- 平板检查器/Konling 组合的工具状态标记为 open，但工具矩形为空；未出现有害重叠。
-- 3D 多字标签折行偏紧，320px 次级文案有截断；均不影响当前验收。
-- 静态截图不能证明 focus ring，焦点正确性由 `focusEvidence` 承担。
-- adaptive-practice 的自然纵向滚动属于已声明的窄例外，不构成知识图谱布局问题。
+- 320px 静态 PNG 的抗锯齿使第三行节点不如前两行醒目；同一捕获中的 DOM、SVG 几何、节点标签与关系计数均记录为 6 个节点、10 条关系，且全部在画布内。独立审查未将其判定为 P0/P1，后续真实浏览器回放可继续关注第三行的主观可辨识度。
 
 本轮增量审查未发现新的 P0/P1 重大问题。

@@ -321,6 +321,7 @@ function changedFiles() {
 function sourceFilesForTokenGate(files: string[]) {
   const knowledgeAuthoritySemanticPaletteSources = new Set([
     'src/features/knowledge/active-authority-graph.tsx',
+    'src/features/knowledge/active-authority-presentation.ts',
   ]);
   return files.filter((file) => (
     /^(src\/app|src\/components|src\/features)\//.test(file)
@@ -1637,6 +1638,144 @@ function objectRecord(value: unknown): JsonRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as JsonRecord : {};
 }
 
+type SafeApiEndpointClass = 'active-canvas' | 'active-node' | 'legacy' | 'candidate';
+type SafeApiEvidenceV1 = {
+  schemaVersion: 'safe-api-evidence/v1';
+  roleClass: 'student' | 'teacher' | 'admin';
+  sequence: Array<{
+    endpointClass: SafeApiEndpointClass;
+    status: number;
+    requestCount: number;
+  }>;
+  checks: {
+    activeNodeRequestObserved: boolean;
+    activeCanvasIdentityVerified: boolean;
+    activeNodeIdentityVerified: boolean;
+    provenanceIdentityVerified: boolean;
+    roleRequestIsolationVerified: boolean;
+    forbiddenDataAbsent: boolean;
+  };
+};
+
+function exactKeys(record: JsonRecord, expected: readonly string[]) {
+  const actual = Object.keys(record).sort();
+  const wanted = [...expected].sort();
+  return actual.length === wanted.length && actual.every((key, index) => key === wanted[index]);
+}
+
+export function parseSafeApiEvidenceV1(value: unknown): SafeApiEvidenceV1 | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const record = value as JsonRecord;
+  if (!exactKeys(record, ['schemaVersion', 'roleClass', 'sequence', 'checks'])) return undefined;
+  if (record.schemaVersion !== 'safe-api-evidence/v1') return undefined;
+  if (record.roleClass !== 'student' && record.roleClass !== 'teacher' && record.roleClass !== 'admin') return undefined;
+  if (!Array.isArray(record.sequence) || !record.sequence.every((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return false;
+    const sequenceEntry = entry as JsonRecord;
+    return exactKeys(sequenceEntry, ['endpointClass', 'status', 'requestCount'])
+      && typeof sequenceEntry.endpointClass === 'string'
+      && ['active-canvas', 'active-node', 'legacy', 'candidate'].includes(sequenceEntry.endpointClass)
+      && typeof sequenceEntry.status === 'number'
+      && Number.isInteger(sequenceEntry.status)
+      && sequenceEntry.status >= 100
+      && sequenceEntry.status <= 599
+      && typeof sequenceEntry.requestCount === 'number'
+      && Number.isInteger(sequenceEntry.requestCount)
+      && sequenceEntry.requestCount > 0;
+  })) return undefined;
+  const sequence = record.sequence.map((entry) => entry as JsonRecord);
+  if (new Set(sequence.map((entry) => entry.endpointClass)).size !== sequence.length) return undefined;
+  if (!sequence.every((entry) => typeof entry.endpointClass === 'string')) return undefined;
+  if (!record.checks || typeof record.checks !== 'object' || Array.isArray(record.checks)) return undefined;
+  const checks = record.checks as JsonRecord;
+  if (!exactKeys(checks, [
+    'activeNodeRequestObserved',
+    'activeCanvasIdentityVerified',
+    'activeNodeIdentityVerified',
+    'provenanceIdentityVerified',
+    'roleRequestIsolationVerified',
+    'forbiddenDataAbsent',
+  ])) return undefined;
+  if (!Object.values(checks).every((entry) => typeof entry === 'boolean')) return undefined;
+  if (checks.activeNodeRequestObserved === false && checks.activeNodeIdentityVerified === true) return undefined;
+  const activeNodeSequenceObserved = sequence.some((entry) => entry.endpointClass === 'active-node');
+  if (checks.activeNodeRequestObserved !== activeNodeSequenceObserved) return undefined;
+  return {
+    schemaVersion: 'safe-api-evidence/v1',
+    roleClass: record.roleClass,
+    sequence: sequence.map((entry) => ({
+      endpointClass: entry.endpointClass as SafeApiEndpointClass,
+      status: entry.status as number,
+      requestCount: entry.requestCount as number,
+    })),
+    checks: {
+      activeNodeRequestObserved: checks.activeNodeRequestObserved as boolean,
+      activeCanvasIdentityVerified: checks.activeCanvasIdentityVerified as boolean,
+      activeNodeIdentityVerified: checks.activeNodeIdentityVerified as boolean,
+      provenanceIdentityVerified: checks.provenanceIdentityVerified as boolean,
+      roleRequestIsolationVerified: checks.roleRequestIsolationVerified as boolean,
+      forbiddenDataAbsent: checks.forbiddenDataAbsent as boolean,
+    },
+  };
+}
+
+function safeApiSequenceEntry(
+  evidence: SafeApiEvidenceV1 | undefined,
+  endpointClass: SafeApiEndpointClass,
+) {
+  return evidence?.sequence.find((entry) => entry.endpointClass === endpointClass);
+}
+
+function safeApiHasHealthyActiveIsolation(
+  evidence: SafeApiEvidenceV1 | undefined,
+  requireActiveNode: boolean,
+) {
+  const activeCanvas = safeApiSequenceEntry(evidence, 'active-canvas');
+  const activeNode = safeApiSequenceEntry(evidence, 'active-node');
+  const activeNodeObserved = evidence?.checks.activeNodeRequestObserved === true;
+  const activeNodeIdentityVerified = evidence?.checks.activeNodeIdentityVerified === true;
+  const activeNodeCheckSatisfied = requireActiveNode
+    ? activeNodeObserved && activeNodeIdentityVerified
+    : (!activeNodeObserved && !activeNodeIdentityVerified) || (activeNodeObserved && activeNodeIdentityVerified);
+  return Boolean(
+    evidence
+      && activeCanvas
+      && activeCanvas.status === 200
+      && activeCanvas.requestCount > 0
+      && activeNodeCheckSatisfied
+      && (requireActiveNode
+        ? activeNode?.status === 200 && activeNode.requestCount > 0
+        : !activeNodeObserved || (activeNode?.status === 200 && activeNode.requestCount > 0))
+      && evidence.checks.activeCanvasIdentityVerified
+      && evidence.checks.provenanceIdentityVerified
+      && evidence.checks.roleRequestIsolationVerified
+      && evidence.checks.forbiddenDataAbsent,
+  );
+}
+
+export function safeApiHasResponsiveNoActiveNode(evidence: SafeApiEvidenceV1 | undefined) {
+  return Boolean(
+    evidence
+      && evidence.checks.activeNodeRequestObserved === false
+      && evidence.checks.activeNodeIdentityVerified === false
+      && !safeApiSequenceEntry(evidence, 'active-node'),
+  );
+}
+
+function safeActiveSurfaceScanPassed(value: unknown) {
+  const scan = objectRecord(value);
+  const zeroCountFields = [
+    'forbiddenTokenCount',
+    'forbiddenEnumCount',
+    'forbiddenLocatorCount',
+    'internalIdentityLeakCount',
+    'copyEntryCount',
+  ];
+  return scan.passed === true
+    && scan.copyEntryPresent === false
+    && zeroCountFields.every((field) => numberFromEvidence(scan[field]) === 0);
+}
+
 function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
 }
@@ -2179,6 +2318,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
   const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
   const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
+  const activeAuthorityPresentationSourcePath = 'src/features/knowledge/active-authority-presentation.ts';
   const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
   const knowledgePageSourcePath = 'src/app/knowledge/page.tsx';
   const adaptivePracticePageSourcePath = 'src/app/assessment/adaptive-practice/page.tsx';
@@ -2199,6 +2339,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     graphSourcePath,
     knowledgeWorkspaceSourcePath,
     activeAuthorityGraphSourcePath,
+    activeAuthorityPresentationSourcePath,
     activeAuthorityGraphContractsSourcePath,
     knowledgePageSourcePath,
     adaptivePracticePageSourcePath,
@@ -2224,6 +2365,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     : '';
   const activeAuthorityGraphSource = existsSync(path.join(repoRoot, activeAuthorityGraphSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityGraphSourcePath), 'utf8')
+    : '';
+  const activeAuthorityPresentationSource = existsSync(path.join(repoRoot, activeAuthorityPresentationSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityPresentationSourcePath), 'utf8')
     : '';
   const activeAuthorityGraphContractsSource = existsSync(path.join(repoRoot, activeAuthorityGraphContractsSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityGraphContractsSourcePath), 'utf8')
@@ -2299,13 +2443,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const viewport = objectRecord(state?.viewport);
     const markers = objectRecord(state?.markers);
     const activeMarkers = objectRecord(markers.activeAuthority);
-    const api = objectRecord(state?.api);
-    const apiSequence = Array.isArray(state?.apiSequence)
-      ? state.apiSequence.map((entry) => objectRecord(entry))
-      : [];
+    const api = parseSafeApiEvidenceV1(state?.api);
+    const apiSequence = api?.sequence ?? [];
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
     const forbiddenAutomaticRequests = apiSequence.some((entry) => (
-      entry.path === '/api/knowledge/graph' || entry.path === '/api/knowledge/graph/v2'
+      entry.endpointClass === 'legacy' || entry.endpointClass === 'candidate'
     ));
     return [
       state ? null : `${name}:missing-state`,
@@ -2317,18 +2459,41 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       numberFromEvidence(viewport.width) === width ? null : `${name}:viewport-width`,
       artifact ? null : `${name}:missing-screenshot`,
       artifact?.sha256 === state?.screenshotSha256 ? null : `${name}:screenshot-sha-mismatch`,
-      api.status === 200 ? null : `${name}:active-api-status`,
-      numberFromEvidence(api.nodeCount)! > 0 ? null : `${name}:active-api-empty`,
-      api.authorityState === 'active' ? null : `${name}:authority-state`,
-      api.hasAuthorityProvenance === true ? null : `${name}:provenance-missing`,
-      api.activationMode === 'use-combination' ? null : `${name}:activation-mode`,
-      api.activationStatus === 'READY' ? null : `${name}:activation-status`,
-      api.projectionId === null ? null : `${name}:projection-id-not-null`,
-      api.projectionHash === null ? null : `${name}:projection-hash-not-null`,
-      numberFromEvidence(activeMarkers.visibleNodeCount)! > 0 ? null : `${name}:dom-empty`,
-      activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
-      activeMarkers.identitySurface === true ? null : `${name}:dom-identity-surface`,
+      api ? null : `${name}:safe-api-schema`,
+      api?.roleClass === 'student' ? null : `${name}:safe-api-role-class`,
+      safeApiSequenceEntry(api, 'active-canvas')?.status === 200
+        ? null
+        : `${name}:active-api-status`,
+      safeApiSequenceEntry(api, 'active-canvas')?.requestCount! > 0
+        ? null
+        : `${name}:active-api-request-count`,
+      safeApiHasHealthyActiveIsolation(api, name === 'active-desktop-dark') ? null : `${name}:safe-api-checks`,
+      name === 'active-desktop-dark' || safeApiHasResponsiveNoActiveNode(api)
+        ? null
+        : `${name}:responsive-active-node-must-be-unobserved`,
       forbiddenAutomaticRequests ? `${name}:automatic-legacy-or-candidate-request` : null,
+      numberFromEvidence(activeMarkers.visibleNodeCount)! > 0 ? null : `${name}:dom-empty`,
+      numberFromEvidence(activeMarkers.relationCount)! > 0 ? null : `${name}:dom-no-real-edges`,
+      numberFromEvidence(activeMarkers.resolvedEdgeEndpointCount) === numberFromEvidence(activeMarkers.relationCount)
+        ? null
+        : `${name}:dom-edge-endpoint-mismatch`,
+      numberFromEvidence(activeMarkers.visibleSvgGeometryCount) === numberFromEvidence(activeMarkers.relationCount)
+        ? null
+        : `${name}:dom-edge-geometry-missing`,
+      activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
+      safeActiveSurfaceScanPassed(state?.surfaceScan) ? null : `${name}:surface-scan-failed`,
+      name === 'active-desktop-dark'
+        ? (objectRecord(state?.interactionEvidence).semanticNodeFocusedBeforeClick === true
+          && objectRecord(state?.interactionEvidence).detailPanelFocusedAfterOpen === true
+          && objectRecord(state?.interactionEvidence).semanticDetailVisible === true
+          && objectRecord(state?.interactionEvidence).adjacencyInteraction === true
+          && (objectRecord(state?.interactionEvidence).focusReturnedToOriginNode === true
+            || objectRecord(state?.interactionEvidence).focusReturnedToSemanticCanvas === true)
+          && safeActiveSurfaceScanPassed(objectRecord(state?.interactionEvidence).detailSurfaceScan)
+          && safeActiveSurfaceScanPassed(objectRecord(state?.interactionEvidence).overviewSurfaceScan)
+            ? null
+            : `${name}:detail-focus-adjacency-evidence-missing`)
+        : null,
     ].filter((entry): entry is string => Boolean(entry));
   });
   const authenticatedRoleEvidence = Array.isArray(evidence.authenticatedRoleEvidence)
@@ -2342,40 +2507,73 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const authenticatedRoleProblems = (['student', 'teacher', 'admin'] as const).flatMap((role) => {
     const evidenceForRole = roleEvidenceByName.get(role);
     const defaultEvidence = objectRecord(evidenceForRole?.default);
-    const defaultApi = objectRecord(defaultEvidence.api);
+    const defaultApi = parseSafeApiEvidenceV1(defaultEvidence.api);
     const legacyEvidence = objectRecord(evidenceForRole?.legacy);
-    const legacyApi = objectRecord(legacyEvidence.api);
+    const legacyApi = parseSafeApiEvidenceV1(legacyEvidence.api);
     const candidateEvidence = evidenceForRole?.candidate === null
       ? null
       : objectRecord(evidenceForRole?.candidate);
-    const candidateApi = objectRecord(candidateEvidence?.api);
-    const apiSequence = Array.isArray(evidenceForRole?.apiSequence)
-      ? evidenceForRole.apiSequence.map((entry) => objectRecord(entry))
-      : [];
-    const defaultSequence = Array.isArray(defaultEvidence.apiSequenceBeforeLegacy)
-      ? defaultEvidence.apiSequenceBeforeLegacy.map((entry) => objectRecord(entry))
-      : [];
+    const candidateApi = parseSafeApiEvidenceV1(candidateEvidence?.api);
+    const defaultSequence = defaultApi?.sequence ?? [];
+    const finalApi = candidateApi ?? legacyApi;
+    const finalSequence = finalApi?.sequence ?? [];
     const problems = [
       evidenceForRole ? null : `${role}:missing-role-evidence`,
       defaultEvidence.mode === 'active' ? null : `${role}:default-not-active`,
-      defaultApi.status === 200 ? null : `${role}:default-api-status`,
-      numberFromEvidence(defaultApi.nodeCount)! > 0 ? null : `${role}:default-api-empty`,
-      defaultApi.authorityState === 'active' ? null : `${role}:default-authority-state`,
-      defaultApi.hasAuthorityProvenance === true ? null : `${role}:default-provenance-missing`,
-      defaultApi.activationMode === 'use-combination' ? null : `${role}:default-activation-mode`,
-      defaultApi.activationStatus === 'READY' ? null : `${role}:default-activation-status`,
-      defaultApi.projectionId === null ? null : `${role}:default-projection-id-not-null`,
-      defaultApi.projectionHash === null ? null : `${role}:default-projection-hash-not-null`,
+      defaultApi ? null : `${role}:default-safe-api-schema`,
+      defaultApi?.roleClass === role ? null : `${role}:default-role-class`,
+      safeApiSequenceEntry(defaultApi, 'active-canvas')?.status === 200
+        ? null
+        : `${role}:default-api-status`,
+      safeApiSequenceEntry(defaultApi, 'active-canvas')?.requestCount! > 0
+        ? null
+        : `${role}:default-api-request-count`,
+      safeApiHasHealthyActiveIsolation(defaultApi, true) ? null : `${role}:default-safe-api-checks`,
+      safeActiveSurfaceScanPassed(defaultEvidence.activeSurfaceScan) ? null : `${role}:active-surface-scan-failed`,
+      objectRecord(defaultEvidence.activeInteractionEvidence).semanticNodeFocusedBeforeClick === true
+        ? null
+        : `${role}:active-node-focus-missing`,
+      objectRecord(defaultEvidence.activeInteractionEvidence).detailPanelFocusedAfterOpen === true
+        ? null
+        : `${role}:active-detail-focus-missing`,
+      objectRecord(defaultEvidence.activeInteractionEvidence).semanticDetailVisible === true
+        ? null
+        : `${role}:active-detail-evidence-missing`,
+      objectRecord(defaultEvidence.activeInteractionEvidence).adjacencyInteraction === true
+        ? null
+        : `${role}:active-adjacency-evidence-missing`,
+      safeActiveSurfaceScanPassed(objectRecord(defaultEvidence.activeInteractionEvidence).detailSurfaceScan)
+        ? null
+        : `${role}:active-detail-surface-scan-failed`,
+      safeActiveSurfaceScanPassed(objectRecord(defaultEvidence.activeInteractionEvidence).overviewSurfaceScan)
+        ? null
+        : `${role}:active-overview-surface-scan-failed`,
+      (objectRecord(defaultEvidence.activeInteractionEvidence).focusReturnedToOriginNode === true
+        || objectRecord(defaultEvidence.activeInteractionEvidence).focusReturnedToSemanticCanvas === true)
+        ? null
+        : `${role}:active-focus-return-missing`,
       defaultEvidence.legacyApiRequestedBeforeExplicitSwitch === false
         ? null
         : `${role}:legacy-request-before-explicit-switch`,
-      defaultSequence.some((entry) => entry.path === '/api/knowledge/graph/v2')
+      defaultSequence.some((entry) => entry.endpointClass === 'candidate')
         ? `${role}:candidate-request-before-explicit-switch`
         : null,
       legacyEvidence.explicitSwitch === true ? null : `${role}:legacy-not-explicit`,
-      legacyApi.status === 200 ? null : `${role}:legacy-api-status`,
+      legacyApi ? null : `${role}:legacy-safe-api-schema`,
+      legacyApi?.roleClass === role ? null : `${role}:legacy-role-class`,
+      safeApiSequenceEntry(legacyApi, 'legacy')?.status === 200
+        ? null
+        : `${role}:legacy-api-status`,
+      safeApiSequenceEntry(legacyApi, 'legacy')?.requestCount! > 0
+        ? null
+        : `${role}:legacy-api-request-count`,
       numberFromEvidence(legacyEvidence.visibleNodeCount)! > 0 ? null : `${role}:legacy-api-empty`,
-      apiSequence.some((entry) => entry.path === '/api/knowledge/graph/active' && entry.status !== 200)
+      finalApi ? null : `${role}:final-safe-api-schema`,
+      safeApiHasHealthyActiveIsolation(finalApi, false) ? null : `${role}:final-safe-api-checks`,
+      safeApiSequenceEntry(finalApi, 'active-canvas')?.status === 200
+        ? null
+        : `${role}:final-active-api-status`,
+      finalSequence.some((entry) => entry.endpointClass === 'active-canvas' && entry.status !== 200)
         ? `${role}:active-api-failure-in-sequence`
         : null,
     ];
@@ -2390,29 +2588,23 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         candidateEvidence?.candidateApiRequestedBeforeExplicitSwitch === false
           ? null
           : `${role}:candidate-request-before-explicit-switch`,
-        candidateApi.status === 200 ? null : `${role}:candidate-api-status`,
-        candidateApi.authorityState === 'candidate' ? null : `${role}:candidate-authority-state`,
-        typeof candidateApi.releaseSetId === 'string' && candidateApi.releaseSetId.length > 0
+        candidateApi ? null : `${role}:candidate-safe-api-schema`,
+        candidateApi?.roleClass === role ? null : `${role}:candidate-role-class`,
+        safeApiSequenceEntry(candidateApi, 'candidate')?.status === 200
           ? null
-          : `${role}:candidate-release-set-missing`,
-        typeof candidateApi.releaseId === 'string' && candidateApi.releaseId.length > 0
+          : `${role}:candidate-api-status`,
+        safeApiSequenceEntry(candidateApi, 'candidate')?.requestCount! > 0
           ? null
-          : `${role}:candidate-release-missing`,
-        candidateApi.hasSourceIdentityFields === true
+          : `${role}:candidate-api-request-count`,
+        candidateApi?.checks.roleRequestIsolationVerified === true
           ? null
-          : `${role}:candidate-source-identity-fields-missing`,
-        typeof candidateApi.projectionVersion === 'string' && candidateApi.projectionVersion.length > 0
-          ? null
-          : `${role}:candidate-projection-version-missing`,
-        candidateApi.hasCoverageFields === true
-          ? null
-          : `${role}:candidate-coverage-fields-missing`,
+          : `${role}:candidate-request-isolation-invalid`,
       );
     } else {
       problems.push(
         defaultEvidence.candidateButtonVisible === false ? null : `${role}:candidate-button-visible`,
         candidateEvidence === null ? null : `${role}:candidate-evidence-present`,
-        apiSequence.some((entry) => entry.path === '/api/knowledge/graph/v2')
+        finalSequence.some((entry) => entry.endpointClass === 'candidate')
           ? `${role}:candidate-api-requested`
           : null,
       );
@@ -2771,6 +2963,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       && activeAuthorityGraphSource.includes('data-active-graph-stage="authority"')
       ? null
       : 'active-graph:stable-dom-contract-missing',
+    activeAuthorityPresentationSource.includes('createActiveAuthorityGraphModel')
+      && activeAuthorityPresentationSource.includes('materializeActiveNodeScope')
+      && activeAuthorityPresentationSource.includes('expandActiveAuthorityOneHop')
+      ? null
+      : 'active-presentation:adapter-contract-missing',
     activeAuthorityGraphContractsSource.includes('projectionHash')
       && activeAuthorityGraphContractsSource.includes('provenance')
       ? null
