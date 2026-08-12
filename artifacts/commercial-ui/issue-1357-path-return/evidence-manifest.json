@@ -1,9 +1,47 @@
 {
   "schemaVersion": "commercial-ui-evidence.v1",
   "status": "passed",
-  "capturedAt": "2026-08-12T13:21:10.574Z",
-  "sourceRevision": "ac103fc9de90e9d34abd6a963bb5eb083a92c236",
+  "capturedAt": "2026-08-12T16:16:40.094Z",
+  "sourceRevision": "5e645dda749535be3829d8f5b50cdd603e9564c4",
+  "treeSha": "fc459b514cd3c515aa2aab10a0f17f64b0ca3028",
+  "sourceFingerprint": "2812bac3acf3a0450b35780052e04c0063764585e187ff8b355cc21423c52721",
+  "serviceRevisionProof": {
+    "commitSha": "5e645dda749535be3829d8f5b50cdd603e9564c4",
+    "treeSha": "fc459b514cd3c515aa2aab10a0f17f64b0ca3028",
+    "sourceFingerprint": "2812bac3acf3a0450b35780052e04c0063764585e187ff8b355cc21423c52721",
+    "clean": true
+  },
   "sourceFiles": [
+    {
+      "file": "src/app/assessment/adaptive-practice/page.tsx",
+      "gitBlobId": "b97bd563fdfd5e5e0c1226a90808802f4460defb",
+      "sha256": "ec6d95a3237ab405d4770f8dcb98cb10632ff679a92ee77a5e668ec4dfb8b641"
+    },
+    {
+      "file": "src/components/platform/app-shell.tsx",
+      "gitBlobId": "391615ce2772f853e35e4aa4e544050588799b31",
+      "sha256": "90bdc8a63bd678c8e3f5137dac536d0ede88c92b2f9263d82f7ce97acdbf5036"
+    },
+    {
+      "file": "src/components/shared/page-floating-controls.tsx",
+      "gitBlobId": "25e437dd6bd4233aa99d152443d5ad8f72c2acf5",
+      "sha256": "23acc61acf79f5dd7ee9ad85b1905b1ef90377d6a755d4419c20c44964176ada"
+    },
+    {
+      "file": "scripts/tests/capture-adaptive-path-product-qa.ts",
+      "gitBlobId": "0f2191784aa13af94ed65d9011b17c7087e16ac9",
+      "sha256": "ff01df8ebee5f08d703bfc7976a65f6a1f35c22933272b9f4a644b30a9488ee1"
+    },
+    {
+      "file": "src/lib/commercial-ui-capture-revision.ts",
+      "gitBlobId": "02ab2249bee43e12aad45bf09edd8d2f5bd8e2d6",
+      "sha256": "87f357cd2ea4ff0e88cb97dbaa238c3bc897e272339edb51a0a8d9fa9854a3ab"
+    },
+    {
+      "file": "src/app/api/internal/local-qa/revision/route.ts",
+      "gitBlobId": "f27ec3cfc96f8a6c46171fcc444bcfd550d655d6",
+      "sha256": "838f30ee4e3555a61b0a0b8bc35ce4a1b2ed822369c7e578a82b2b47d6a2e431"
+    },
     {
       "file": "src/features/adaptive/adaptive-path-journey-contracts.ts",
       "gitBlobId": "1cf597ad55f7a78ef8fe9daff379729496f508aa",
@@ -26,11 +64,11 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1357-path-return/capture-evidence.mjs",
-      "gitBlobId": "c4b4d5bda862bf8515452f53d0dc1e9d621e0db9",
-      "sha256": "409146686bd3ea17dafd7e4befcc494696308dce857615b0458f53a73aeab00a"
+      "gitBlobId": "860253fa9a768d8bfc5944528956024fb54ed725",
+      "sha256": "81b13eeb47b176464338647bfcf92c7654f81433f5dce66ade67bf1395aff4e7"
     }
   ],
-  "baseUrl": "http://localhost:3003",
+  "baseUrl": "http://localhost:3303",
   "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction&nodeId=registry%3Alesson13-cruise-bridge",
   "provenance": "local-only Playwright projection and routing evidence; no remote or production mutation; capture fails closed when HEAD or tracked evidence sources change",
   "assertions": {
@@ -46,7 +84,7 @@
       "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction&nodeId=registry%3Alesson13-cruise-bridge",
       "returnActionCount": 1,
       "returnHref": "/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction",
-      "landingUrl": "http://localhost:3003/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction",
+      "landingUrl": "http://localhost:3303/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction",
       "landingIntent": "execution",
       "screenshot": "path-overview-1440.png",
       "screenshotSha256": "7e0e936f180e2a5a651861e5ccbde21276aa0d5679e33a0ba79f389adbc5ce00",
@@ -61,7 +99,7 @@
       "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction&nodeId=registry%3Alesson13-cruise-bridge",
       "returnActionCount": 1,
       "returnHref": "/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction",
-      "landingUrl": "http://localhost:3003/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction",
+      "landingUrl": "http://localhost:3303/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction",
       "landingIntent": "execution",
       "screenshot": "path-overview-320.png",
       "screenshotSha256": "01a390f3849a88f1e0e3204b4e79c550bd42d298475299f726edbbb4de8fed2b",
