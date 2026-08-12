@@ -30,7 +30,7 @@ try {
   executable('configure-ossfs', 'exit 0');
   executable('systemctl', 'exit 0');
   executable('findmnt', 'if [[ "$*" == *FSTYPE* ]]; then printf "fuse.ossfs\\n"; else printf "ro\\n"; fi');
-  executable('podman', 'printf "%s\\t/app/course-content/runtime\\t[ro rbind]\\n" "$ACT_TEST_MOUNT"');
+  executable('podman', 'if [[ "$*" == *"act-obe-app" ]]; then printf "%s\\t/app/course-content/runtime\\t[ro rbind]\\n%s/knowledge/projection\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT" "$ACT_TEST_MOUNT"; fi');
   executable('curl', 'exit 0');
   executable('df', 'printf "Filesystem 1B-blocks Used Available Use%% Mounted on\\n/dev/test 1000 100 900 10%% /\\n"');
   executable('du', 'printf "16\\t%s\\n" "${@: -1}"');
@@ -61,12 +61,90 @@ try {
   assert.equal(retirement.releaseId, 'runtime-new');
   assert.equal(retirement.rollbackReleaseId, 'runtime-old');
   assert.equal(retirement.activeReceiptVerified, true);
-  assert.equal(retirement.appAndWorkerUseOssfs, true);
+  assert.equal(retirement.appUsesOssfsWorkerHasNoRuntimeMounts, true);
   assert.equal(retirement.rollbackMountVerified, true);
   assert.equal(retirement.legacyRuntimeBytesBefore, 16);
   assert.equal(retirement.legacyRuntimeFilesBefore, 1);
 } finally {
   fs.rmSync(temporary, { recursive: true, force: true });
+}
+
+{
+  const blocked = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-legacy-retirement-blocked-'));
+  try {
+    const blockedBin = path.join(blocked, 'bin');
+    const blockedLegacy = path.join(blocked, 'legacy');
+    const blockedMountRoot = path.join(blocked, 'mounts');
+    const blockedState = path.join(blocked, 'state');
+    const blockedReport = path.join(blocked, 'report.json');
+    fs.mkdirSync(blockedBin, { recursive: true });
+    fs.mkdirSync(blockedLegacy, { recursive: true });
+    fs.mkdirSync(path.join(blockedMountRoot, 'runtime-new'), { recursive: true });
+    fs.writeFileSync(path.join(blockedLegacy, 'runtime.json'), '{"legacy":true}\n');
+    const blockedHostState = path.join(blockedBin, 'host-state.py');
+    fs.writeFileSync(blockedHostState, '#!/usr/bin/env python3\nimport json\nprint(json.dumps({"activeReleaseId": "runtime-new"}))\n');
+    fs.chmodSync(blockedHostState, 0o755);
+    const makeBlocked = (name, body) => {
+      const target = path.join(blockedBin, name);
+      fs.writeFileSync(target, `#!/usr/bin/env bash\nset -euo pipefail\n${body}\n`);
+      fs.chmodSync(target, 0o755);
+    };
+    makeBlocked('configure-ossfs', 'exit 0');
+    makeBlocked('systemctl', 'exit 0');
+    makeBlocked('findmnt', 'if [[ "$*" == *FSTYPE* ]]; then printf "fuse.ossfs\\n"; else printf "ro\\n"; fi');
+    makeBlocked('podman', 'if [[ "$*" == *"act-obe-app" ]]; then printf "%s\\t/app/course-content/runtime\\t[ro rbind]\\n%s/knowledge/projection\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT" "$ACT_TEST_MOUNT"; if [[ "${ACT_TEST_APP_NESTED:-}" == 1 ]]; then printf "%s\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT"; fi; elif [[ "${ACT_TEST_WORKER_NESTED:-}" == 1 ]]; then printf "%s\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT"; elif [[ "${ACT_TEST_WORKER_LEGACY:-}" == 1 ]]; then printf "%s/knowledge/projection\\t/app/other\\t[ro rbind]\\n" "$ACT_TEST_LEGACY"; fi');
+    makeBlocked('curl', 'exit 0');
+    makeBlocked('df', 'printf "Filesystem 1B-blocks Used Available Use%% Mounted on\\n/dev/test 1000 100 900 10%% /\\n"');
+    makeBlocked('du', 'printf "16\\t%s\\n" "${@: -1}"');
+    makeBlocked('sync', 'exit 0');
+    const receipt = path.join(blocked, 'rollback.json');
+    fs.writeFileSync(receipt, '{}\n');
+    const result = spawnSync('bash', [script,
+      '--release-id', 'runtime-new', '--rollback-release-id', 'runtime-old',
+      '--rollback-verification-receipt', receipt, '--ram-role', 'act-runtime-oss-read',
+      '--legacy-runtime-root', blockedLegacy, '--mount-root', blockedMountRoot,
+      '--state-dir', blockedState, '--host-state-script', blockedHostState,
+      '--ossfs-config-script', path.join(blockedBin, 'configure-ossfs'), '--app-port', '8084',
+      '--report', blockedReport,
+    ], {
+      cwd: root,
+      encoding: 'utf8',
+      env: { ...process.env, PATH: `${blockedBin}:${process.env.PATH}`, ACT_TEST_MOUNT: path.join(blockedMountRoot, 'runtime-new'), ACT_TEST_WORKER_NESTED: '1' },
+    });
+    assert.notEqual(result.status, 0, 'worker runtime/projection mounts must block legacy retirement');
+    assert.match(result.stderr, /forbidden runtime or knowledge bind/);
+    assert.equal(fs.existsSync(blockedLegacy), true, 'blocked retirement must preserve the legacy runtime');
+    const nestedApp = spawnSync('bash', [script,
+      '--release-id', 'runtime-new', '--rollback-release-id', 'runtime-old',
+      '--rollback-verification-receipt', receipt, '--ram-role', 'act-runtime-oss-read',
+      '--legacy-runtime-root', blockedLegacy, '--mount-root', blockedMountRoot,
+      '--state-dir', blockedState, '--host-state-script', blockedHostState,
+      '--ossfs-config-script', path.join(blockedBin, 'configure-ossfs'), '--app-port', '8084',
+      '--report', blockedReport,
+    ], {
+      cwd: root,
+      encoding: 'utf8',
+      env: { ...process.env, PATH: `${blockedBin}:${process.env.PATH}`, ACT_TEST_MOUNT: path.join(blockedMountRoot, 'runtime-new'), ACT_TEST_APP_NESTED: '1' },
+    });
+    assert.notEqual(nestedApp.status, 0, 'nested app runtime mounts must block legacy retirement');
+    assert.match(nestedApp.stderr, /unexpected nested runtime mount/);
+    const legacyWorker = spawnSync('bash', [script,
+      '--release-id', 'runtime-new', '--rollback-release-id', 'runtime-old',
+      '--rollback-verification-receipt', receipt, '--ram-role', 'act-runtime-oss-read',
+      '--legacy-runtime-root', blockedLegacy, '--mount-root', blockedMountRoot,
+      '--state-dir', blockedState, '--host-state-script', blockedHostState,
+      '--ossfs-config-script', path.join(blockedBin, 'configure-ossfs'), '--app-port', '8084',
+      '--report', blockedReport,
+    ], {
+      cwd: root,
+      encoding: 'utf8',
+      env: { ...process.env, PATH: `${blockedBin}:${process.env.PATH}`, ACT_TEST_MOUNT: path.join(blockedMountRoot, 'runtime-new'), ACT_TEST_LEGACY: blockedLegacy, ACT_TEST_WORKER_LEGACY: '1' },
+    });
+    assert.notEqual(legacyWorker.status, 0, 'legacy runtime descendants must block legacy retirement');
+    assert.match(legacyWorker.stderr, /still references the legacy runtime/);
+  } finally {
+    fs.rmSync(blocked, { recursive: true, force: true });
+  }
 }
 
 const executor = fs.readFileSync(path.join(root, 'scripts/runtime-release/execute-production-runtime-cutover.sh'), 'utf8');
