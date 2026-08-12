@@ -62,6 +62,7 @@ import {
 } from '@/lib/adaptive-path-unlock-chain';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 import {
+  buildAdaptivePathOptionComparisonFacts,
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionDisplay,
   type AdaptivePathOptionWriteOption,
@@ -1009,76 +1010,84 @@ const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = 
   konling: MessageSquare,
 };
 
-function recommendationConfidenceLabel(confidence: 'low' | 'medium' | 'high'): string {
-  if (confidence === 'high') return '高置信度';
-  if (confidence === 'medium') return '中等置信度';
-  return '低置信度';
+function formatPathComparisonTitles(titles: string[]): string {
+  if (titles.length === 0) return '无';
+  if (titles.length <= 4) return titles.join('、');
+  return `${titles.slice(0, 4).join('、')} 等 ${titles.length} 项`;
 }
 
-function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDisplay }) {
-  const provenance = option.recommendationProvenance;
-  if (!option.isGenerated || !provenance) return null;
+function PathOptionRealDifferenceFacts({
+  option,
+  options,
+}: {
+  option: AdaptivePathOptionDisplay;
+  options: AdaptivePathOptionDisplay[];
+}) {
+  const facts = buildAdaptivePathOptionComparisonFacts(option, options);
+  if (!facts || !facts.nodeDataAvailable) return null;
+
+  const commonTitles = formatPathComparisonTitles(facts.commonNodeTitles);
+  const uniqueTitles = formatPathComparisonTitles(facts.optionOnlyNodeTitles);
+  const addedResources = facts.addedResources
+    .map((resource) => `${resource.label} ×${resource.count}`)
+    .join('、');
+  const baselineOnlyResources = facts.removedResources
+    .map((resource) => `${resource.label} ×${resource.count}`)
+    .join('、');
+  const timeDifference = facts.estimatedTimeDifferenceMinutes === null
+    ? null
+    : facts.estimatedTimeDifferenceMinutes === 0
+      ? '与另一条路径基本一致'
+      : facts.estimatedTimeDifferenceMinutes > 0
+        ? `比 ${facts.baselineTitle} 多约 ${formatLearningMinutes(facts.estimatedTimeDifferenceMinutes)}`
+        : `比 ${facts.baselineTitle} 少约 ${formatLearningMinutes(Math.abs(facts.estimatedTimeDifferenceMinutes))}`;
+  const noMaterialDifference = facts.optionOnlyNodeCount === 0
+    && facts.addedResources.length === 0
+    && facts.removedResources.length === 0
+    && (facts.estimatedTimeDifferenceMinutes === null || facts.estimatedTimeDifferenceMinutes === 0);
 
   return (
     <section
-      className="mt-3 min-w-0 rounded-lg border border-primary/25 bg-primary/5 p-3"
-      data-learning-path-recommendation-provenance={option.id}
+      className="mt-3 min-w-0 rounded-lg border border-border bg-background/60 p-3 text-xs leading-5 text-subtle"
+      data-learning-path-real-difference={option.id}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-semibold text-foreground">推荐依据</p>
-        <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
-          {recommendationConfidenceLabel(provenance.confidence)}
+        <p className="font-semibold text-foreground">这条路径与另一条路径的实际差异</p>
+        <span className="rounded-md border border-border bg-muted/35 px-2 py-1 text-subtle">
+          相对 {facts.baselineTitle}
         </span>
       </div>
-      <p className="mt-2 break-words text-sm leading-6 text-foreground">{provenance.summary}</p>
-      <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-recommendation-disclosure={option.id}>
-        <summary className="cursor-pointer font-medium text-foreground">查看推荐依据</summary>
-        <div className="mt-3 grid min-w-0 gap-3">
-          {provenance.entries.map((entry, index) => (
-            <article
-              key={`${option.id}:${entry.targetLabel}:${index}`}
-              className="min-w-0 rounded-lg border border-border bg-background/65 p-3"
-              data-learning-path-recommendation-entry={entry.targetKind}
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h4 className="break-words text-sm font-semibold text-foreground">{entry.targetLabel}</h4>
-                <span className="text-xs text-subtle">{recommendationConfidenceLabel(entry.confidence)}</span>
-              </div>
-              <dl className="mt-3 grid min-w-0 gap-2 text-xs leading-5">
-                <div>
-                  <dt className="font-medium text-foreground">学习证据</dt>
-                  <dd className="mt-1 break-words text-subtle">{entry.evidenceSummary}</dd>
-                </div>
-                <div>
-                  <dt className="font-medium text-foreground">能力判断与路径影响</dt>
-                  <dd className="mt-1 break-words text-subtle">{entry.judgment}</dd>
-                </div>
-                {entry.affectedResourceTitles.length > 0 ? (
-                  <div>
-                    <dt className="font-medium text-foreground">受影响的推荐资源</dt>
-                    <dd className="mt-1 break-words text-subtle">{entry.affectedResourceTitles.join('、')}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            </article>
-          ))}
-          {provenance.limitations.length > 0 ? (
-            <div className="rounded-lg border border-border bg-muted/35 p-3 text-xs leading-5 text-subtle">
-              {provenance.limitations.map((limitation) => <p key={limitation}>{limitation}</p>)}
-            </div>
-          ) : null}
-          {provenance.nextAction ? (
-            <p className="break-words text-xs leading-5 text-foreground">下一步：{provenance.nextAction}</p>
-          ) : null}
-          <Link
-            href={provenance.evidenceReviewHref}
-            className="inline-flex w-fit max-w-full items-center gap-1 break-words text-xs font-medium text-primary hover:underline"
-          >
-            查看学习记录并复核证据
-            <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
-          </Link>
+      <dl className="mt-2 grid min-w-0 gap-2 sm:grid-cols-2">
+        <div className="rounded-lg border border-border bg-background/65 p-2">
+          <dt className="font-medium text-foreground">公共节点</dt>
+          <dd className="mt-1 break-words">
+            {facts.commonNodeCount} 个：{commonTitles}
+          </dd>
         </div>
-      </details>
+        <div className="rounded-lg border border-border bg-background/65 p-2">
+          <dt className="font-medium text-foreground">本路径独有</dt>
+          <dd className="mt-1 break-words">
+            {facts.optionOnlyNodeCount > 0 ? `${facts.optionOnlyNodeCount} 个：${uniqueTitles}` : '无独有节点'}
+          </dd>
+        </div>
+        <div className="rounded-lg border border-border bg-background/65 p-2">
+          <dt className="font-medium text-foreground">新增资源</dt>
+          <dd className="mt-1 break-words">{addedResources || '无新增资源'}</dd>
+        </div>
+        <div className="rounded-lg border border-border bg-background/65 p-2">
+          <dt className="font-medium text-foreground">预计额外时间</dt>
+          <dd className="mt-1 break-words">{timeDifference ?? '无可靠时长数据'}</dd>
+        </div>
+      </dl>
+      {baselineOnlyResources ? (
+        <p className="mt-2 break-words">另一条路径额外包含：{baselineOnlyResources}</p>
+      ) : null}
+      {facts.orderDifferenceCount > 0 ? (
+        <p className="mt-2 break-words">共同节点中有 {facts.orderDifferenceCount} 个顺序不同。</p>
+      ) : null}
+      {noMaterialDifference ? (
+        <p className="mt-2 break-words">当前数据下，两条路径的节点、资源和预计时长基本相同。</p>
+      ) : null}
     </section>
   );
 }
@@ -4657,14 +4666,13 @@ export default function AdaptivePracticePage() {
                     ) : null}
                   </div>
                   <PathOptionRoutePreview option={option} />
-                  <PathRecommendationProvenance option={option} />
+                  <PathOptionRealDifferenceFacts option={option} options={visiblePathOptions} />
                   <div className="mt-3 grid gap-2 text-sm">
                     {[
                       ['预计时长', option.estimatedTime],
                       ['已匹配资源', option.resources.map((resource) => resource.label).join('、')],
                       ['准备度', option.readiness],
                       ['检查节点', option.checkpoints],
-                      ['当前建议理由', option.reason],
                       ...(option.expectedAbilityImprovement ? [['预期能力改善', option.expectedAbilityImprovement]] : []),
                       ['预期结果', option.outcome],
                       ['风险提示', option.riskNote],
@@ -4827,9 +4835,8 @@ export default function AdaptivePracticePage() {
                     </span>
                   </div>
                   <PathOptionRoutePreview option={option} />
-                  <PathRecommendationProvenance option={option} />
+                  <PathOptionRealDifferenceFacts option={option} options={visiblePathOptions} />
                   <div className="mt-3 space-y-2 rounded-lg border border-border bg-background/60 p-3 text-sm">
-                    <p className="leading-6 text-foreground">{option.reason}</p>
                     <div className="flex flex-wrap gap-1.5 text-xs text-subtle">
                       <span className="rounded-md border border-border bg-muted/40 px-2 py-1">{option.checkpoints}</span>
                       <span className="rounded-md border border-border bg-muted/40 px-2 py-1">{option.readiness}</span>

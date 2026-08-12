@@ -33,6 +33,7 @@ import {
 import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
 import {
+  buildAdaptivePathOptionComparisonFacts,
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionWriteOption,
 } from '@/lib/adaptive-path-option-display';
@@ -529,9 +530,12 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-adaptive-path-status-region={showSelectionWorkspace ?');
     expect(source).toContain('data-learning-path-option-feedback={option.writeOption.optionId}');
     expect(source).toContain('data-learning-path-route-preview');
-    expect(source).toContain('data-learning-path-recommendation-provenance');
-    expect(source).toContain('data-learning-path-recommendation-disclosure');
-    expect(source).toContain('查看学习记录并复核证据');
+    expect(source).toContain('data-learning-path-real-difference={option.id}');
+    expect(source).toContain('buildAdaptivePathOptionComparisonFacts(option, options)');
+    expect(source).toContain('这条路径与另一条路径的实际差异');
+    expect(source).not.toContain('data-learning-path-recommendation-provenance');
+    expect(source).not.toContain('data-learning-path-recommendation-disclosure');
+    expect(source).not.toContain('查看学习记录并复核证据');
     expect(source).toContain('min-w-0');
     expect(source).toContain('break-words');
     expect(source).toContain('data-learning-path-diversity-notice="limited"');
@@ -712,6 +716,43 @@ describe('adaptive learning center UI contracts', () => {
     expect(foundationNodes?.[2]).toMatchObject({ comparisonLabel: '本方案特有', resourceLabel: '虚拟仿真' });
     expect(foundationNodes?.[5]).toMatchObject({ kind: 'external_resource', resourceLabel: '教材节' });
     expect(displays[1].orderedNodes?.[2]).toMatchObject({ kind: 'external_resource', resourceLabel: '课件' });
+    const foundationFacts = buildAdaptivePathOptionComparisonFacts(displays[0], displays);
+    expect(foundationFacts).toMatchObject({
+      baselineTitle: '实践路径',
+      nodeDataAvailable: true,
+      commonNodeCount: 1,
+      optionOnlyNodeCount: 5,
+      estimatedTimeDifferenceMinutes: 41,
+    });
+    expect(foundationFacts?.commonNodeTitles).toEqual(['相位裕度知识卡']);
+    expect(foundationFacts?.optionOnlyNodeTitles).toEqual([
+      '相位裕度练习',
+      '校正仿真',
+      '阶段检查',
+      'Arena 验证',
+      '相位裕度教材节',
+    ]);
+    expect(foundationFacts?.addedResources.map((resource) => [resource.label, resource.count])).toEqual([
+      ['自适应练习', 1],
+      ['虚拟仿真', 1],
+      ['检查点', 1],
+      ['Arena', 1],
+      ['教材节', 1],
+    ]);
+
+    const practiceFacts = buildAdaptivePathOptionComparisonFacts(displays[1], displays);
+    expect(practiceFacts).toMatchObject({
+      baselineTitle: '基础路径',
+      commonNodeCount: 1,
+      optionOnlyNodeCount: 2,
+      estimatedTimeDifferenceMinutes: -41,
+    });
+    expect(practiceFacts?.optionOnlyNodeTitles).toEqual(['控制工作台', '频域课件']);
+    expect(practiceFacts?.addedResources.map((resource) => [resource.label, resource.count])).toEqual([
+      ['控制工作台', 1],
+      ['课件', 1],
+    ]);
+
 
     const examples = buildAdaptivePathOptionDisplays([]);
     expect(examples.every((option) => !option.isGenerated && option.orderedNodes === undefined)).toBe(true);

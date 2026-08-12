@@ -88,8 +88,23 @@ export interface AdaptivePathOptionDisplay {
   writeOption?: AdaptivePathOptionWriteOption;
 }
 
+export interface AdaptivePathOptionComparisonFacts {
+  baselineOptionId: string;
+  baselineTitle: string;
+  nodeDataAvailable: boolean;
+  commonNodeCount: number;
+  commonNodeTitles: string[];
+  optionOnlyNodeCount: number;
+  optionOnlyNodeTitles: string[];
+  addedResources: Array<{ kind: AdaptivePathResourceKind; label: string; count: number }>;
+  removedResources: Array<{ kind: AdaptivePathResourceKind; label: string; count: number }>;
+  estimatedTimeDifferenceMinutes: number | null;
+  orderDifferenceCount: number;
+}
+
 const resourceLabels: Record<string, { kind: AdaptivePathResourceKind; label: string }> = {
   interactive_lesson: { kind: 'interactive_lesson', label: '互动课程' },
+  lesson_step: { kind: 'interactive_lesson', label: '互动课节' },
   knowledge_card: { kind: 'knowledge_card', label: '知识卡' },
   textbook_section: { kind: 'external_resource', label: '教材节' },
   slides: { kind: 'external_resource', label: '课件' },
@@ -191,6 +206,109 @@ export function buildAdaptivePathOptionDisplays(
     diversityLimited: context.diversityLimited,
     writeOption: option,
   }));
+}
+
+export function buildAdaptivePathOptionComparisonFacts(
+  option: AdaptivePathOptionDisplay,
+  options: AdaptivePathOptionDisplay[],
+): AdaptivePathOptionComparisonFacts | null {
+  if (!option.isGenerated || options.length < 2) return null;
+  const referenceCandidates = options.filter(
+    (candidate) => candidate.isGenerated && candidate.id !== option.id,
+  );
+  if (referenceCandidates.length === 0) return null;
+  const baseline = [...referenceCandidates].sort(
+    (left, right) => pathOptionNodeCount(left) - pathOptionNodeCount(right),
+  )[0];
+
+  const currentNodeIds = pathOptionNodeIds(option);
+  const baselineNodeIds = new Set(pathOptionNodeIds(baseline));
+  const commonNodeIds = currentNodeIds.filter((nodeId) => baselineNodeIds.has(nodeId));
+  const optionOnlyNodeIds = currentNodeIds.filter((nodeId) => !baselineNodeIds.has(nodeId));
+  const currentSummaries = buildNodeSummaryMap(option);
+  const baselineSummaries = buildNodeSummaryMap(baseline);
+
+  const orderDifferenceCount = commonNodeIds.filter((nodeId) => {
+    const currentIndex = currentNodeIds.indexOf(nodeId);
+    const baselineIndex = pathOptionNodeIds(baseline).indexOf(nodeId);
+    return currentIndex >= 0 && baselineIndex >= 0 && currentIndex !== baselineIndex;
+  }).length;
+
+  return {
+    baselineOptionId: baseline.id,
+    baselineTitle: baseline.title,
+    nodeDataAvailable: currentNodeIds.length > 0 && optionOnlyNodeIds.length >= 0,
+    commonNodeCount: commonNodeIds.length,
+    commonNodeTitles: commonNodeIds.map((nodeId) => currentSummaries.get(nodeId) ?? baselineSummaries.get(nodeId) ?? nodeId),
+    optionOnlyNodeCount: optionOnlyNodeIds.length,
+    optionOnlyNodeTitles: optionOnlyNodeIds.map((nodeId) => currentSummaries.get(nodeId) ?? nodeId),
+    addedResources: diffResourceMix(option.writeOption?.resourceMix, baseline.writeOption?.resourceMix),
+    removedResources: diffResourceMix(baseline.writeOption?.resourceMix, option.writeOption?.resourceMix),
+    estimatedTimeDifferenceMinutes: pathOptionEstimatedMinutes(option, baseline),
+    orderDifferenceCount,
+  };
+}
+
+function pathOptionNodeIds(option: AdaptivePathOptionDisplay): string[] {
+  return option.writeOption?.nodeIds ?? option.orderedNodes?.map((node) => node.nodeId) ?? [];
+}
+
+function pathOptionNodeCount(option: AdaptivePathOptionDisplay): number {
+  return pathOptionNodeIds(option).length;
+}
+
+function buildNodeSummaryMap(option: AdaptivePathOptionDisplay): Map<string, string> {
+  const summaries = option.writeOption?.nodeSummaries ?? [];
+  const fromSummaries = new Map(
+    summaries
+      .map((summary) => [summary.nodeId, summary.title || summary.displayName])
+      .filter((entry): entry is [string, string] => Boolean(entry[0] && entry[1])),
+  );
+  const fromPreview = new Map(
+    (option.orderedNodes ?? []).map((node) => [node.nodeId, node.title] as const),
+  );
+  return new Map([...fromSummaries, ...fromPreview]);
+}
+
+function diffResourceMix(
+  left: Record<string, number> | undefined,
+  right: Record<string, number> | undefined,
+): Array<{ kind: AdaptivePathResourceKind; label: string; count: number }> {
+  const leftMix = left ?? {};
+  const rightMix = right ?? {};
+  return Object.entries(leftMix)
+    .filter(([key, count]) => count > (rightMix[key] ?? 0))
+    .map(([key, count]) => {
+      const resource = resourceLabels[key] ?? { kind: 'checkpoint' as const, label: key.replaceAll('_', ' ') };
+      return {
+        kind: resource.kind,
+        label: resource.label,
+        count: count - (rightMix[key] ?? 0),
+      };
+    });
+}
+
+function pathOptionEstimatedMinutes(
+  option: AdaptivePathOptionDisplay,
+  baseline: AdaptivePathOptionDisplay,
+): number | null {
+  const current = resolveOptionEstimatedMinutes(option);
+  const reference = resolveOptionEstimatedMinutes(baseline);
+  if (current === null || reference === null) return null;
+  return current - reference;
+}
+
+function resolveOptionEstimatedMinutes(option: AdaptivePathOptionDisplay): number | null {
+  const explicit = option.writeOption?.effort.estimatedMinutes;
+  if (typeof explicit === 'number' && explicit > 0) return explicit;
+  const nodeIds = pathOptionNodeIds(option);
+  const summaries = option.writeOption?.nodeSummaries ?? [];
+  const summaryByNodeId = new Map(summaries.map((summary) => [summary.nodeId, summary]));
+  const nodeTotal = nodeIds.reduce((total, nodeId) => {
+    const estimated = summaryByNodeId.get(nodeId)?.estimatedTimeMinutes;
+    return total + (typeof estimated === 'number' && estimated > 0 ? estimated : 0);
+  }, 0);
+  return nodeTotal > 0 ? nodeTotal : null;
 }
 
 function buildNodeOccurrences(pathOptions: AdaptivePathOptionWriteOption[]): Map<string, number> {
