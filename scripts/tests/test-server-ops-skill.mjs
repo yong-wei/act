@@ -73,6 +73,7 @@ for (const invariant of [
   '不可变的 `runtime/releases/<release-id>/` 前缀',
   '不得将现有 `.staging`、`current`、`previous` 的 rsync/rename 发布算法直接运行在 ossfs 挂载点',
   'OSS `PutObject` 不具备条件写入语义，不能把对象存储中的可变 `current.json` 当作并发安全的生产指针。',
+  '任何仍会替换 Legacy runtime 目录或重建其消费者的部署路径，也必须在远端实际变更脚本内持有同一 `.act-runtime-selection.lock`',
   '`serverExternalPackages`',
   '`ali-oss` 与 `@alicloud/credentials`',
   '`--ro=true`、`--allow_other=true`、目标 uid/gid、`--file_mode=0644` 与 `--dir_mode=0755`',

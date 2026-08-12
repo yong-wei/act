@@ -28,6 +28,7 @@ REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
 LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-retrieval"
 REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-retrieval"
 REMOTE_RUNTIME_STAGING_DIR="${REMOTE_RUNTIME_DIR}.staging"
+REMOTE_RUNTIME_SELECTION_LOCK="${REMOTE_RUNTIME_SELECTION_LOCK:-${REMOTE_PROJECT_DIR}/data/runtime/.act-runtime-selection.lock}"
 TEXTBOOK_V2_BOOK_IDS="control-encyclopedia dorf-modern-control-systems feedback-control-of-dynamic-systems hu-shousong-auto-control-7th hu-shousong-auto-control-8th hu-shousong-exercise-analysis-3rd liu-sheng-auto-control-2015"
 TEXTBOOK_V2_REQUIRED_FILES="manifest.json navigation.json units.jsonl anchors.jsonl windows.jsonl anomalies.jsonl samples.jsonl"
 TEXTBOOK_RETRIEVAL_REQUIRED_FILES="manifest.json windows.jsonl bodies.utf8 vectors.f32 lexical-terms.jsonl lexical-postings.bin build-report.json"
@@ -264,6 +265,9 @@ grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION}\" \"\${index_root}/manifest
 stop_remote_runtime_consumers() {
   remote "bash -lc '
 set -euo pipefail
+mkdir -p "${REMOTE_PROJECT_DIR}/data/runtime"
+exec 9>"${REMOTE_RUNTIME_SELECTION_LOCK}"
+flock -x 9
 for container in \
   \"${APP_NAME_HINT}\" \
   \"${WORKER_NAME_HINT}\" \
@@ -507,6 +511,9 @@ if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
 fi
 
 LOCAL_SHA="$(local_sha256 "${LOCAL_IMAGE_TAR}")"
+if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
+  REMOTE_RUNTIME_STAGING_DIR="${REMOTE_RUNTIME_DIR}.staging.${LOCAL_SHA}"
+fi
 log "本地镜像: ${LOCAL_IMAGE_TAR}"
 log "本地 SHA256: ${LOCAL_SHA}"
 
@@ -535,11 +542,7 @@ remote "mv '${REMOTE_TMP_PROVENANCE_HELPER}' '${REMOTE_PROVENANCE_HELPER}'"
 
 case "${RUNTIME_DELIVERY_MODE}" in
   legacy-rsync)
-    log "- 停止所有教材 runtime 消费者"
-    CUTOVER_STARTED=1
-    stop_remote_runtime_consumers
-
-    remote "rm -rf '${REMOTE_RUNTIME_STAGING_DIR}' && mkdir -p '${REMOTE_RUNTIME_STAGING_DIR}'"
+    remote "if [ -e '${REMOTE_RUNTIME_STAGING_DIR}' ] && [ ! -d '${REMOTE_RUNTIME_STAGING_DIR}' ]; then echo 'ERROR: Legacy runtime staging path is not a directory' >&2; exit 1; fi; install -d -m 0700 '${REMOTE_RUNTIME_STAGING_DIR}'"
     runtime_rsync_args=(
       -az
       --delete
@@ -559,25 +562,6 @@ case "${RUNTIME_DELIVERY_MODE}" in
     remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
       --runtime-root '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbooks-v2' \
       --index-dir '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbook-retrieval' \
-      --sidecar '${REMOTE_PROVENANCE_FILE}'"
-    remote "bash -lc '
-set -euo pipefail
-previous=\"${REMOTE_RUNTIME_DIR}.previous\"
-rm -rf \"\${previous}\"
-if [ -d \"${REMOTE_RUNTIME_DIR}\" ]; then
-  mv \"${REMOTE_RUNTIME_DIR}\" \"\${previous}\"
-fi
-if ! mv \"${REMOTE_RUNTIME_STAGING_DIR}\" \"${REMOTE_RUNTIME_DIR}\"; then
-  [ ! -d \"${REMOTE_RUNTIME_DIR}\" ] && [ -d \"\${previous}\" ] && mv \"\${previous}\" \"${REMOTE_RUNTIME_DIR}\"
-  exit 1
-fi
-rm -rf \"\${previous}\"
-'"
-    check_remote_textbook_v2_files
-    check_remote_runtime_pointer_absence
-    remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
-      --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
-      --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
       --sidecar '${REMOTE_PROVENANCE_FILE}'"
     ;;
   ossfs-release)
@@ -641,8 +625,44 @@ remote "node '${REMOTE_PROVENANCE_HELPER}' verify-image \
 
 log
 log "[4/5] 远端部署"
+if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
+  CUTOVER_STARTED=1
+fi
 remote "bash -lc 'set -euo pipefail
 {
+  if [ \"${RUNTIME_DELIVERY_MODE}\" = \"legacy-rsync\" ]; then
+    mkdir -p \"${REMOTE_PROJECT_DIR}/data/runtime\"
+    exec 9>\"${REMOTE_RUNTIME_SELECTION_LOCK}\"
+    flock -x 9
+    if [ -e \"${REMOTE_PROJECT_DIR}/data/runtime/act-runtime-active-receipt.json\" ] || [ -L \"${REMOTE_PROJECT_DIR}/data/runtime/act-runtime-active-receipt.json\" ]; then
+      echo \"ERROR: active OSS runtime receipt is present; Legacy deployment is forbidden\" >&2
+      exit 1
+    fi
+    echo \"[remote-deploy] Step 0/8: 在 runtime 锁内替换 Legacy runtime\"
+    for container in \
+      \"${APP_NAME_HINT}\" \
+      \"${WORKER_NAME_HINT}\" \
+      \"${GC_NAME_HINT}\" \
+      act-obe-submission-scanner; do
+      if podman container exists \"\${container}\"; then
+        podman stop -t 30 \"\${container}\" >/dev/null
+      fi
+    done
+    previous=\"${REMOTE_RUNTIME_DIR}.previous\"
+    rm -rf \"\${previous}\"
+    if [ -d \"${REMOTE_RUNTIME_DIR}\" ]; then
+      mv \"${REMOTE_RUNTIME_DIR}\" \"\${previous}\"
+    fi
+    if ! mv \"${REMOTE_RUNTIME_STAGING_DIR}\" \"${REMOTE_RUNTIME_DIR}\"; then
+      [ ! -d \"${REMOTE_RUNTIME_DIR}\" ] && [ -d \"\${previous}\" ] && mv \"\${previous}\" \"${REMOTE_RUNTIME_DIR}\"
+      exit 1
+    fi
+    rm -rf \"\${previous}\"
+    node \"${REMOTE_PROVENANCE_HELPER}\" verify-runtime \
+      --runtime-root \"${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}\" \
+      --index-dir \"${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}\" \
+      --sidecar \"${REMOTE_PROVENANCE_FILE}\"
+  fi
   echo \"[remote-deploy] Step 1/7: 导出现有数据库\"
   \"${REMOTE_EXPORT_DB_SCRIPT}\"
   echo \"[remote-deploy] Step 2/7: 装载镜像\"
@@ -678,9 +698,31 @@ remote "bash -lc 'set -euo pipefail
   \"${REMOTE_NGINX_SCRIPT}\"
   echo \"[remote-deploy] Step 8/8: 配置 systemd 开机自启\"
   \"${REMOTE_SERVICE_SCRIPT}\"
+  if [ \"${RUNTIME_DELIVERY_MODE}\" = \"legacy-rsync\" ]; then
+    app_port=\$(grep \"^APP_PORT=\" \"${REMOTE_PROJECT_DIR}/data/runtime/act-obe.env\" | tail -n 1 | cut -d= -f2-)
+    [[ \"\${app_port}\" =~ ^[0-9]{2,5}$ ]] || { echo \"ERROR: runtime readiness port is invalid\" >&2; exit 1; }
+    ready=0
+    for attempt in \$(seq 1 60); do
+      if curl -fsS \"http://127.0.0.1:\${app_port}/api/readyz\" >/dev/null; then
+        ready=1
+        break
+      fi
+      sleep 3
+    done
+    [[ \"\${ready}\" == '1' ]] || { echo \"ERROR: Legacy runtime deployment did not become ready while holding runtime lock\" >&2; exit 1; }
+  fi
 } 2>&1 | tee \"${REMOTE_LOG_FILE}\"'"
 
 log
+if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
+  check_remote_runtime_pointer_absence
+  check_remote_authority_current_pointer_absence
+  remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
+    --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
+    --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
+    --sidecar '${REMOTE_PROVENANCE_FILE}'"
+fi
+
 log "[5/5] 部署验证"
 
 log "- 校验远端镜像文件"

@@ -105,7 +105,7 @@ scripts/runtime-release/rollback-runtime-release.sh \
 
 ## 删除前的人工确认点
 
-删除旧 ECS runtime 必须显式传入 `execute-production-runtime-cutover.sh --delete-legacy-runtime`，并同时指定已验证的 OSS rollback Release 与其 receipt。该受限操作仅在 active receipt 已选择新 Release、app/worker 都将同一只读 ossfs 路径 bind 到 `/app/course-content/runtime`、`readyz` 正常、rollback Release 能重新挂载并通过 manifest/文件集合/代表性内容验证之后执行。它只删除精确 legacy runtime 目录，保留 OSS 中的新旧 Release、selector、active receipt 和退休收据。
+删除旧 ECS runtime 必须显式传入 `execute-production-runtime-cutover.sh --delete-legacy-runtime`，并同时指定已验证的 OSS rollback Release 与其 receipt。该受限操作仅在 active receipt 已选择新 Release、app 将该 Release 的只读 ossfs 路径唯一 bind 到 `/app/course-content/runtime`，且最多只有同一 Release 的 `knowledge/projection` 只读子路径 bind、app/worker 都不再持有 legacy runtime 或其子路径的 bind、worker 不持有 runtime、Authority 或 Teaching Projection 的文件系统 bind、`readyz` 正常、rollback Release 能重新挂载并通过 manifest/文件集合/代表性内容验证之后执行。它只删除精确 legacy runtime 目录，保留 OSS 中的新旧 Release、selector、active receipt 和退休收据。
 
 预期可释放的上限是当前 runtime 已分配空间约 5.95GB；实际释放量受文件系统块、仍保留的热缓存和旧目录状态影响。
 
