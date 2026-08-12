@@ -995,6 +995,7 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   const semanticNodeFocusedBeforeClick = await node.evaluate((candidate) => candidate === document.activeElement);
   await node.click();
   await page.waitForSelector('[data-active-node-detail]', { timeout: 10000 });
+  await probe.waitForPath('/api/knowledge/nodes/active/:node');
   await page.waitForTimeout(50);
   const detailEvidence = await page.evaluate(() => ({
     detailPanelFocusedAfterOpen: document.activeElement?.matches('[data-active-node-detail]') ?? false,

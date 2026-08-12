@@ -303,6 +303,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('activeNodeRequestObserved');
     expect(captureSource).toContain('expectedActiveNodeKey');
     expect(captureSource).toContain('activeNodeIdentityMatches');
+    expect(captureSource).toContain("await probe.waitForPath('/api/knowledge/nodes/active/:node');");
     expect(captureSource).toContain('provenanceIntegrityMatches');
     const maliciousOpaqueId = 'node/opaque-id?raw=1';
     expect(encodeURIComponent(maliciousOpaqueId)).toContain('%2F');
