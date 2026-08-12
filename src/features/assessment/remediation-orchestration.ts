@@ -6,6 +6,7 @@ import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-asses
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import type { ResourceNode } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
+import { AUTOCONTROL_KAQ_GRAPH_CATALOG } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
 
 export const REMEDIATION_ORCHESTRATOR_VERSION = 'remediation-orchestrator.v1';
 export const REMEDIATION_MANUAL_PRACTICE_PATH = '/student/practice';
@@ -268,12 +269,11 @@ function parseValidationItem(
   row: ValidationItemRow,
   sourceQuestionId: string,
   knowledgeNodeId: string,
-  misconceptionTag: string,
+  _misconceptionTag: string,
 ): GovernedValidationItem | null {
   const metadata = record(row.metadata);
   const catalogSnapshotValue = record(metadata?.adaptiveAssessmentItemRef);
   const validation = record(metadata?.remediationValidation);
-  const relationship = record(validation?.relationship);
   const currentCatalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(row.questionId);
   const version = nonEmptyString(
     currentCatalogSnapshot?.versionRefs.adaptiveAssessmentSnapshotVersion ??
@@ -285,12 +285,6 @@ function parseValidationItem(
   const actionPath = governedActionPath(REMEDIATION_VALIDATION_ACTION_PATH);
   const graphNodeIds = currentCatalogSnapshot?.semanticRefs.graphNodeIds;
   const misconceptionTags = currentCatalogSnapshot?.semanticRefs.misconceptionTags;
-  const sourceQuestionIds = stringArray(relationship?.sourceQuestionIds);
-  const relationshipKind = nonEmptyString(relationship?.kind);
-  const relationshipMatches = (
-    relationshipKind === 'isomorphic' || relationshipKind === 'variant'
-  ) && (sourceQuestionIds?.includes(sourceQuestionId) ?? false);
-  const misconceptionMatches = misconceptionTags?.includes(misconceptionTag) ?? false;
   const authority = evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority(
     catalogSnapshotValue as unknown as AssessmentEvidenceCatalogSnapshot,
     currentCatalogSnapshot,
@@ -309,7 +303,6 @@ function parseValidationItem(
     !actionPath ||
     !graphNodeIds?.includes(knowledgeNodeId) ||
     !misconceptionTags ||
-    (!relationshipMatches && !misconceptionMatches) ||
     !/^[a-f0-9]{64}$/.test(row.contentHash)
   ) {
     return null;
@@ -650,10 +643,16 @@ export async function orchestrateRemediation(input: {
 
   const knowledgeNodeId = attribution.knowledgeNodeIds[0];
   const misconceptionTag = attribution.misconceptionTags[0];
-  const knowledgeNode = await input.db.knowledgeNode.findFirst({
+  const persistedKnowledgeNode = await input.db.knowledgeNode.findFirst({
     where: { id: knowledgeNodeId, isActive: true },
     select: { id: true, name: true, isActive: true },
   });
+  const canonicalGraphNode = AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.find((node) => (
+    node.id === knowledgeNodeId && node.status === 'active'
+  ));
+  const knowledgeNode = persistedKnowledgeNode ?? (canonicalGraphNode
+    ? { id: canonicalGraphNode.id, name: canonicalGraphNode.title, isActive: true }
+    : null);
   if (!knowledgeNode) {
     return unavailableProjection(await persistUnavailable({
       db: input.db,

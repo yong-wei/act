@@ -208,6 +208,30 @@ describe('micro intervention outcomes', () => {
     }));
   });
 
+  it('accepts an unchanged resource snapshot after JSON storage reorders object keys', async () => {
+    const { db, interventions } = createDb();
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+
+    const currentSource = structuredClone(SOURCE);
+    const stored = interventions[0].sourceSnapshot;
+    const resource = stored.task.resources[0];
+    stored.task.resources[0] = {
+      id: resource.id,
+      title: resource.title,
+      version: resource.version,
+      actionPath: resource.actionPath,
+      estimatedMinutes: resource.estimatedMinutes,
+    };
+    mocks.readAvailableRemediationInterventionSource.mockResolvedValue(currentSource);
+
+    await expect(readMicroIntervention({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+    })).resolves.toMatchObject({ id: started.id, status: 'STARTED' });
+  });
+
   it('preserves the first event payload for an idempotency key', async () => {
     const { db, events, mocks: dbMocks } = createDb();
     const started = await start(db);

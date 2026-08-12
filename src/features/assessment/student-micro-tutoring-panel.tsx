@@ -195,6 +195,7 @@ export function StudentMicroTutoringPanel({
       setUnavailable(result);
       return;
     }
+    setIntervention(null);
     setOrchestration(result);
   }, [answerId, setUnavailable]);
 
@@ -362,6 +363,14 @@ export function StudentMicroTutoringPanel({
           {unavailable.manualPracticePath ? (
             <a className="ml-2 font-semibold text-primary hover:underline" href={unavailable.manualPracticePath}>进入常规练习</a>
           ) : null}
+          <button
+            type="button"
+            onClick={() => void execute('create', createOrchestration)}
+            disabled={pending !== null}
+            className={`ml-2 font-semibold text-primary underline disabled:opacity-60 ${focusRingClass}`}
+          >
+            重新尝试微辅导
+          </button>
         </div>
       ) : null}
 

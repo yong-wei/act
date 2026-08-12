@@ -94,6 +94,7 @@ function validation(input: {
   catalogContentHash?: string;
   version?: string;
   learnerVisible?: boolean;
+  knowledgeNodeId?: string;
   misconceptionTags?: string[];
   sourceQuestionIds?: string[];
   reviewState?: AdaptiveAssessmentCatalogReviewState;
@@ -106,6 +107,7 @@ function validation(input: {
   const contentHash = input.contentHash ?? HASH_A;
   const catalogContentHash = input.catalogContentHash ?? HASH_A;
   const stage = input.stage ?? 'remediation';
+  const knowledgeNodeId = input.knowledgeNodeId ?? 'node-1';
   const decisionWithoutHash = {
     catalogItemId: `catalog-${id}`,
     decisionKind: 'human-review' as const,
@@ -116,7 +118,7 @@ function validation(input: {
     sourceContentHash: catalogContentHash,
     selectedLearningGoalIds: ['learning-goal-1'],
     selectedKaqObjectiveIds: ['kaq-1'],
-    selectedGraphNodeIds: ['node-1'],
+    selectedGraphNodeIds: [knowledgeNodeId],
     selectedStagePurpose: stage,
     difficulty: 0.5,
     cognitiveLevel: 'apply',
@@ -156,7 +158,7 @@ function validation(input: {
     semanticRefs: {
       learningGoalIds: ['learning-goal-1'],
       kaqObjectiveIds: ['kaq-1'],
-      graphNodeIds: ['node-1'],
+      graphNodeIds: [knowledgeNodeId],
       knowledgeTags: ['frequency-response'],
       misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
       remediationResourceNodeIds: ['teaching-resource:exact'],
@@ -193,7 +195,7 @@ function validation(input: {
         estimatedMinutes: input.minutes ?? 2,
         actionPath: `/assessment/items/${id}`,
         learnerVisible: input.learnerVisible ?? true,
-        graphNodeIds: ['node-1'],
+        graphNodeIds: [knowledgeNodeId],
         misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
         relationship: {
           kind: 'variant',
@@ -385,6 +387,64 @@ describe('remediation orchestration', () => {
         },
       }),
     }));
+  });
+
+  it('uses a reviewed remediation item on the attributed node as transfer validation', async () => {
+    const { db, validations } = createDb();
+    validations[0] = validation({
+      misconceptionTags: ['transfer-misconception'],
+      omitRemediationValidation: true,
+    });
+
+    const result = await orchestrateRemediation({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+    });
+
+    expect(result).toMatchObject({
+      status: 'AVAILABLE',
+      task: {
+        validationQuestion: {
+          itemRefId: 'validation-1',
+          questionId: 'question-variant',
+        },
+      },
+    });
+  });
+
+  it('resolves a canonical KAQ graph node without requiring a legacy KnowledgeNode row', async () => {
+    const canonicalNodeId = 'qual:autocontrol:safety-responsibility';
+    const { db, mocks, resources, validations } = createDb();
+    mocks.wrongAnswerAttribution.findFirst.mockResolvedValue({
+      id: 'attribution-1',
+      userId: 'learner-1',
+      questionId: 'question-original',
+      state: 'ATTRIBUTED',
+      knowledgeNodeIds: [canonicalNodeId],
+      misconceptionTags: ['misconception-1'],
+    });
+    mocks.knowledgeNode.findFirst.mockResolvedValue(null);
+    resources[0] = resource({
+      id: 'safety-review',
+      minutes: 3,
+      knowledgeNodeIds: ['legacy-safety-node'],
+      prerequisiteKnowledgeNodeIds: [canonicalNodeId],
+    });
+    validations[0] = validation({ knowledgeNodeId: canonicalNodeId });
+
+    const result = await orchestrateRemediation({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+    });
+
+    expect(result).toMatchObject({
+      status: 'AVAILABLE',
+      task: {
+        goal: '巩固“安全责任意识”的关键概念',
+      },
+    });
   });
 
   it('fails closed for an uncertain attribution without storing candidate references', async () => {
