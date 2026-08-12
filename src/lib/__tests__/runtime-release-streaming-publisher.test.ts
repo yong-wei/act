@@ -10,6 +10,7 @@ import {
   buildRuntimeReleaseSshArgv,
   createSshRuntimeReleaseObjectStore,
   publishRuntimeReleaseViaSsh,
+  verifyPublishedRuntimeReleaseViaSsh,
 } from '../runtime-release-streaming-publisher';
 import { buildRuntimeReleaseManifest, computeRuntimeReleaseManifestWireSha256, deriveRuntimeReleaseId } from '../runtime-release';
 
@@ -97,7 +98,19 @@ function fakeSpawnFactory(mode: 'success' | 'child-failure' | 'get-failure') {
     const operation = args[args.indexOf('--operation') + 1];
     const expectedSize = args[args.indexOf('--expected-size') + 1];
     const expectedSha = args[args.indexOf('--expected-sha256') + 1];
-    const script = operation === 'get'
+    const prefix = Buffer.from(args[args.indexOf('--prefix-b64') + 1] ?? '', 'base64url').toString('utf8');
+    const releaseId = prefix.split('/').filter(Boolean).at(-1);
+    const script = operation === 'verify'
+      ? `process.stdout.write(${JSON.stringify(JSON.stringify({
+        schemaVersion: 'runtime-release-verification.v1',
+        releaseId,
+        manifestSha256: 'a'.repeat(64),
+        wireSha256: 'b'.repeat(64),
+        treeSha256: 'c'.repeat(64),
+        fileCount: 1,
+        totalBytes: 42,
+      }))});`
+      : operation === 'get'
       ? mode === 'get-failure'
         ? "process.stdout.write('partial'); process.exit(7);"
         : "process.stdout.write('remote-bytes');"
@@ -144,6 +157,17 @@ describe('source-authoritative SSH runtime release transport', () => {
     const putCall = fake.calls.find((call) => call.args[call.args.indexOf('--operation') + 1] === 'put');
     expect(putCall?.args).toContain('--operation');
     expect(putCall?.args).toContain('put');
+  });
+
+  it('uses one SSH read-role verification operation and rejects malformed receipts', async () => {
+    const fake = fakeSpawnFactory('success');
+    await expect(verifyPublishedRuntimeReleaseViaSsh({
+      releaseId: 'runtime-test',
+      ssh: config,
+      dependencies: { spawn: fake.spawnFake },
+    })).resolves.toMatchObject({ releaseId: 'runtime-test', fileCount: 1, totalBytes: 42 });
+    expect(fake.calls).toHaveLength(1);
+    expect(fake.calls[0].args).toContain('verify');
   });
 
   it('propagates a child upload failure instead of reporting a successful stream', async () => {

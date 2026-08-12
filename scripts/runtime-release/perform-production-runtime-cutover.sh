@@ -66,8 +66,15 @@ if prov.get('appRevision') != revision or prov.get('imageTarSha256') != digest(i
     raise SystemExit('image provenance does not bind the staged integration image')
 if verified.get('releaseId') != release_id or not sha256.fullmatch(str(verified.get('manifestSha256'))) or not sha256.fullmatch(str(verified.get('treeSha256'))):
     raise SystemExit('runtime verification receipt is invalid')
-if release.get('releaseId') != release_id or release.get('sourceRevision') != revision:
-    raise SystemExit('release locator does not bind the staged integration revision')
+source_revision = release.get('sourceRevision')
+tree_sha256 = release.get('treeSha256')
+if not isinstance(source_revision, str) or not re.fullmatch(r'[a-f0-9]{40}', source_revision):
+    raise SystemExit('release locator source revision is invalid')
+if not isinstance(tree_sha256, str) or not sha256.fullmatch(tree_sha256):
+    raise SystemExit('release locator tree digest is invalid')
+expected_release_id = 'runtime-' + hashlib.sha256(json.dumps({'sourceRevision': source_revision, 'treeSha256': tree_sha256}, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()[:55]
+if release.get('releaseId') != release_id or expected_release_id != release_id:
+    raise SystemExit('release locator does not bind the immutable runtime release')
 if release.get('manifestSha256') != verified.get('manifestSha256') or release.get('treeSha256') != verified.get('treeSha256'):
     raise SystemExit('release locator differs from runtime verification receipt')
 print(json.dumps({'releaseId': release_id, 'appRevision': revision, 'imageTarSha256': prov['imageTarSha256']}, separators=(',', ':')))
