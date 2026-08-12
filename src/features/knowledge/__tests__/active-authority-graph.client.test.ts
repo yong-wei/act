@@ -400,6 +400,13 @@ describe('active Authority knowledge workspace client boundary', () => {
       search.value = '可读公式';
       search.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    const resultList = container.querySelector<HTMLElement>('[data-active-search-results]');
+    expect(resultList?.getAttribute('data-active-search-result-total')).toBe('13');
+    expect(container.querySelectorAll('[data-active-authority-search-result]').length).toBe(12);
+    expect(container.textContent).toContain('已显示 12 / 13 个匹配对象');
+    const loadMore = container.querySelector<HTMLButtonElement>('[data-active-authority-search-load-more]');
+    expect(loadMore).not.toBeNull();
+    await act(async () => loadMore!.click());
     expect(container.querySelectorAll('[data-active-authority-search-result]').length).toBe(13);
     const thirteenth = container.querySelector<HTMLButtonElement>('[data-active-authority-search-result="search-node-13"]');
     expect(thirteenth).not.toBeNull();
@@ -409,6 +416,49 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     expect(container.querySelector('[data-active-authority-node="search-node-13"]')).not.toBeNull();
     expect(container.querySelector('[data-active-node-detail="search-node-13"]')).not.toBeNull();
+  });
+
+  it('keeps thousand-result search DOM bounded while exposing an explicit next page', async () => {
+    const nodes = Array.from({ length: 1000 }, (_, index) => ({
+      id: `thousand-node-${index + 1}`,
+      canonicalType: 'Formula',
+      label: `千级对象 ${String(index + 1).padStart(4, '0')}`,
+      description: null,
+      governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+      semanticSupport: { supported: true, readOnly: true as const },
+    }));
+    const searchableCanvas = {
+      ...canvas,
+      coverage: { ...canvas.coverage, objectCount: nodes.length, relationCount: 0, goldRelationCount: 0, silverRelationCount: 0 },
+      nodes,
+      relations: [],
+    };
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => ({
+      ok: true,
+      status: 200,
+      json: async () => String(input).includes('/nodes/active/') ? nodeDetail(String(input).split('/').pop() ?? 'thousand-node-1') : searchableCanvas,
+    }));
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    const search = container.querySelector<HTMLInputElement>('#active-authority-search')!;
+    await act(async () => {
+      search.value = '千级对象';
+      search.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const resultList = container.querySelector<HTMLElement>('[data-active-search-results]');
+    expect(resultList?.getAttribute('data-active-search-result-total')).toBe('1000');
+    expect(container.querySelectorAll('[data-active-authority-search-result]').length).toBe(12);
+    expect(container.querySelector('[data-active-authority-search-result="thousand-node-13"]')).toBeNull();
+    const loadMore = container.querySelector<HTMLButtonElement>('[data-active-authority-search-load-more]');
+    expect(loadMore?.getAttribute('aria-label')).toContain('还剩988项');
+
+    await act(async () => loadMore!.click());
+    expect(container.querySelectorAll('[data-active-authority-search-result]').length).toBe(24);
+    expect(container.querySelector('[data-active-authority-search-result="thousand-node-13"]')).not.toBeNull();
   });
 
   it('uses a compact mobile graph coordinate space and keeps node labels readable', async () => {

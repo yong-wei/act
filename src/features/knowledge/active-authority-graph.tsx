@@ -346,6 +346,7 @@ export function activeAuthorityEdgeEndpoints(
 }
 
 const ACTIVE_MOBILE_NODE_LIMIT = 6;
+const SEARCH_RESULT_PAGE_SIZE = 12;
 const ACTIVE_MOBILE_VIEWBOX = '0 0 320 520';
 const ACTIVE_DESKTOP_VIEWBOX = '0 0 960 520';
 
@@ -602,10 +603,16 @@ function SearchResults({
   results: readonly ActiveNodePresentation[];
   onSelect: (key: string) => void;
 }) {
+  const [visibleCount, setVisibleCount] = useState(SEARCH_RESULT_PAGE_SIZE);
   if (results.length === 0) return null;
+  const visibleResults = results.slice(0, Math.min(visibleCount, results.length));
+  const remainingCount = results.length - visibleResults.length;
   return (
-    <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results>
-      {results.map((node) => (
+    <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results data-active-search-result-total={results.length}>
+      <div className="border-b border-platform-border px-3 py-2 text-[11px] text-platform-fg-muted" role="status" aria-live="polite">
+        已显示 {visibleResults.length} / {results.length} 个匹配对象
+      </div>
+      {visibleResults.map((node) => (
         <button
           key={node.key}
           type="button"
@@ -618,6 +625,17 @@ function SearchResults({
           <span className="shrink-0 text-platform-fg-muted">{node.type.label}</span>
         </button>
       ))}
+      {remainingCount > 0 ? (
+        <button
+          type="button"
+          onClick={() => setVisibleCount((current) => Math.min(results.length, current + SEARCH_RESULT_PAGE_SIZE))}
+          aria-label={`加载更多搜索结果，还剩${remainingCount}项`}
+          data-active-authority-search-load-more
+          className="w-full border-t border-platform-border px-3 py-2 text-left text-xs text-platform-action-primary hover:bg-platform-action-subtle"
+        >
+          加载更多搜索结果（还剩 {remainingCount} 项）
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -807,7 +825,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                   <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
                   <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder="搜索对象名称或类型" className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
                 </div>
-                {query || typeFilter ? <SearchResults results={searchResults} onSelect={focusSearchResult} /> : null}
+                {query || typeFilter ? <SearchResults key={`${typeFilter}\u0000${query}`} results={searchResults} onSelect={focusSearchResult} /> : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <label className="sr-only" htmlFor="active-authority-type-filter">按对象类型筛选</label>
