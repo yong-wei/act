@@ -103,7 +103,7 @@ function assertConfig(config: RuntimeReleaseSshPublisherConfig) {
   if (config.connectTimeoutSeconds !== undefined && (!Number.isInteger(config.connectTimeoutSeconds) || config.connectTimeoutSeconds < 1 || config.connectTimeoutSeconds > 300)) invalid('SSH connect timeout must be between 1 and 300 seconds.');
 }
 
-type SshOperation = 'list' | 'get' | 'put' | 'publish';
+type SshOperation = 'list' | 'get' | 'put' | 'publish' | 'verify';
 
 export function buildRuntimeReleaseSshArgv(
   config: RuntimeReleaseSshPublisherConfig,
@@ -121,8 +121,8 @@ export function buildRuntimeReleaseSshArgv(
   if (config.connectTimeoutSeconds !== undefined) args.push('-o', `ConnectTimeout=${config.connectTimeoutSeconds}`);
   if (config.identityFile !== undefined) args.push('-i', config.identityFile);
   args.push('--', config.target, config.remoteBridgePath, '--bucket', config.bucket, '--operation', operation);
-  if (operation === 'list') {
-    if (!input.prefix) invalid('List operation requires a release prefix.');
+  if (operation === 'list' || operation === 'verify') {
+    if (!input.prefix) invalid(`${operation === 'verify' ? 'Verify' : 'List'} operation requires a release prefix.`);
     assertPrefix(input.prefix);
     args.push('--prefix-b64', encodeArgument(input.prefix));
   } else if (operation === 'publish') {
@@ -325,6 +325,51 @@ export class SshRuntimeReleaseObjectStore implements RuntimeReleaseObjectStore {
 
 export function createSshRuntimeReleaseObjectStore(config: RuntimeReleaseSshPublisherConfig, dependencies?: RuntimeReleaseSshPublisherDependencies) {
   return new SshRuntimeReleaseObjectStore(config, dependencies);
+}
+
+function parseVerificationReceipt(bytes: Buffer, releaseId: string): RuntimeReleaseVerificationReceipt {
+  let value: unknown;
+  try {
+    value = JSON.parse(bytes.toString('utf8').trim());
+  } catch (error) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Read-role verification bridge returned invalid JSON.', { cause: error });
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Read-role verification bridge returned an invalid receipt.');
+  }
+  const receipt = value as Partial<RuntimeReleaseVerificationReceipt>;
+  const { manifestSha256, wireSha256, treeSha256, fileCount, totalBytes } = receipt;
+  if (
+    receipt.schemaVersion !== 'runtime-release-verification.v1'
+    || receipt.releaseId !== releaseId
+    || typeof manifestSha256 !== 'string' || !SHA256_PATTERN.test(manifestSha256)
+    || typeof wireSha256 !== 'string' || !SHA256_PATTERN.test(wireSha256)
+    || typeof treeSha256 !== 'string' || !SHA256_PATTERN.test(treeSha256)
+    || typeof fileCount !== 'number' || !Number.isSafeInteger(fileCount) || fileCount < 1
+    || typeof totalBytes !== 'number' || !Number.isSafeInteger(totalBytes) || totalBytes < 0
+  ) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Read-role verification bridge receipt is incomplete or identity-mismatched.');
+  }
+  return {
+    schemaVersion: 'runtime-release-verification.v1',
+    releaseId,
+    manifestSha256,
+    wireSha256,
+    treeSha256,
+    fileCount,
+    totalBytes,
+  };
+}
+
+export async function verifyPublishedRuntimeReleaseViaSsh(input: {
+  releaseId: string;
+  ssh: RuntimeReleaseSshPublisherConfig;
+  dependencies?: RuntimeReleaseSshPublisherDependencies;
+}) {
+  const prefix = runtimeReleasePrefix(input.releaseId);
+  assertPrefix(prefix);
+  const child = spawnChild(input.dependencies?.spawn, input.ssh.sshBinary ?? 'ssh', buildRuntimeReleaseSshArgv(input.ssh, 'verify', { prefix }));
+  return parseVerificationReceipt(await runBuffered(child, 'verify'), input.releaseId);
 }
 
 type PublishControlMessage = {

@@ -2,12 +2,12 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { buildRuntimeReleaseManifest, deriveRuntimeReleaseId, serializeRuntimeReleaseManifest } from '@/lib/runtime-release';
+import { inspectPublishedRuntimeRelease } from '@/lib/runtime-release-store';
 import {
-  createEcsRamRoleOssRuntimeReleaseReader,
-  inspectPublishedRuntimeRelease,
-  verifyPublishedRuntimeRelease,
-} from '@/lib/runtime-release-store';
-import { publishRuntimeReleaseViaSsh } from '@/lib/runtime-release-streaming-publisher';
+  createSshRuntimeReleaseObjectStore,
+  publishRuntimeReleaseViaSsh,
+  verifyPublishedRuntimeReleaseViaSsh,
+} from '@/lib/runtime-release-streaming-publisher';
 import { buildRuntimeReleaseMediaClosure, serializeRuntimeReleaseMediaClosure } from '@/lib/runtime-release-media-closure';
 
 function argument(name: string) {
@@ -27,8 +27,8 @@ function usage() {
     '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha>',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--output <closure.json>]',
     '  act-runtime-release publish-streaming --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
-    '  act-runtime-release verify --release-id <id> --bucket <bucket> --region <region> --role-name <ecs-role> [--output <receipt.json>]',
-    '  act-runtime-release inspect --release-id <id> --bucket <bucket> --region <region> --role-name <ecs-role> [--output <manifest.json>]',
+    '  act-runtime-release verify --release-id <id> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
+    '  act-runtime-release inspect --release-id <id> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <manifest.json>]',
     '',
     'Streaming publish delegates credentials to the restricted ECS bridge. No AccessKey or Secret arguments are accepted.',
   ].join('\n');
@@ -43,6 +43,17 @@ async function writeOutput(output: string | undefined, value: unknown) {
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, serialized, 'utf8');
   process.stdout.write(`${JSON.stringify({ output })}\n`);
+}
+
+function sshBridgeOptions() {
+  return {
+    target: required('--ssh-target'),
+    bucket: required('--bucket'),
+    remoteBridgePath: required('--remote-bridge-path'),
+    knownHostsFile: required('--known-hosts-file'),
+    identityFile: argument('--identity-file'),
+    port: argument('--port') ? Number(required('--port')) : undefined,
+  };
 }
 
 async function main() {
@@ -90,28 +101,17 @@ async function main() {
     const receipt = await publishRuntimeReleaseViaSsh({
       runtimeRoot,
       manifest,
-      ssh: {
-        target: required('--ssh-target'),
-        bucket: required('--bucket'),
-        remoteBridgePath: required('--remote-bridge-path'),
-        knownHostsFile: required('--known-hosts-file'),
-        identityFile: argument('--identity-file'),
-        port: argument('--port') ? Number(required('--port')) : undefined,
-      },
+      ssh: sshBridgeOptions(),
     });
     await writeOutput(argument('--output'), receipt);
     return;
   }
-  const store = createEcsRamRoleOssRuntimeReleaseReader({
-    bucket: required('--bucket'),
-    region: required('--region'),
-    roleName: required('--role-name'),
-  });
   const output = argument('--output');
   if (command === 'verify') {
-    await writeOutput(output, await verifyPublishedRuntimeRelease(store, releaseId));
+    await writeOutput(output, await verifyPublishedRuntimeReleaseViaSsh({ releaseId, ssh: sshBridgeOptions() }));
     return;
   }
+  const store = createSshRuntimeReleaseObjectStore(sshBridgeOptions());
   const manifest = await inspectPublishedRuntimeRelease(store, releaseId);
   await writeOutput(output, JSON.parse(serializeRuntimeReleaseManifest(manifest)));
 }
