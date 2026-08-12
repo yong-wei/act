@@ -37,6 +37,7 @@ done
 for value in "$release_id" "$rollback_release_id"; do
   [[ "$value" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || { echo 'ERROR: invalid release id' >&2; exit 1; }
 done
+[[ "$rollback_release_id" != "$release_id" ]] || { echo 'ERROR: rollback release must differ from the active release' >&2; exit 1; }
 [[ "$legacy_runtime_root" == /* && "$legacy_runtime_root" != / && "$legacy_runtime_root" != *$'\n'* && "$legacy_runtime_root" != *'..'* ]] || { echo 'ERROR: invalid legacy runtime root' >&2; exit 1; }
 [[ "$mount_root" == /* && "$mount_root" != / && "$mount_root" != *$'\n'* && "$mount_root" != *'..'* ]] || { echo 'ERROR: invalid mount root' >&2; exit 1; }
 [[ "$state_dir" == /* && "$state_dir" != / && "$state_dir" != *$'\n'* && "$state_dir" != *'..'* ]] || { echo 'ERROR: invalid state directory' >&2; exit 1; }
@@ -49,15 +50,14 @@ done
 [[ -d "$legacy_runtime_root" && ! -L "$legacy_runtime_root" ]] || { echo 'ERROR: legacy runtime root must be a non-symlink directory' >&2; exit 1; }
 [[ "$report" == /* && ! -L "$report" ]] || { echo 'ERROR: report path must be absolute and non-symlinked' >&2; exit 1; }
 
-for command in curl du find findmnt podman python3 stat; do
+for command in curl du find findmnt flock podman python3 stat; do
   command -v "$command" >/dev/null 2>&1 || { echo "ERROR: required command unavailable: $command" >&2; exit 1; }
 done
 
-active_release="$(python3 "$host_state_script" active --state-dir "$state_dir" | python3 -c 'import json,sys; print(json.load(sys.stdin)["activeReleaseId"] or "")')"
-[[ "$active_release" == "$release_id" ]] || { echo 'ERROR: active receipt does not select the requested OSS release' >&2; exit 1; }
 candidate_root="${mount_root}/${release_id}"
-findmnt -rn -T "$candidate_root" -o FSTYPE | grep -Eq '^fuse(\.|$)' || { echo 'ERROR: active runtime is not an ossfs FUSE mount' >&2; exit 1; }
-findmnt -rn -T "$candidate_root" -o OPTIONS | grep -Eq '(^|,)ro(,|$)' || { echo 'ERROR: active runtime mount is not read-only' >&2; exit 1; }
+mkdir -p "$state_dir"
+exec 9>"$state_dir/.act-runtime-selection.lock"
+flock -x 9
 
 read_container_mounts() {
   podman inspect --format '{{range .Mounts}}{{printf "%s\t%s\t%v\n" .Source .Destination .Options}}{{end}}' "$1"
@@ -87,15 +87,26 @@ assert_no_runtime_or_knowledge_mounts() {
   fi
 }
 
-app_mounts="$(read_container_mounts "$app_container")"
-worker_mounts="$(read_container_mounts "$worker_container")"
-assert_app_runtime_mounts "$app_mounts"
-if printf '%s\n' "$app_mounts" | awk -F '\t' -v legacy="$legacy_runtime_root" '$1 == legacy || index($1, legacy "/") == 1 { found=1 } END { exit(found ? 0 : 1) }'; then
-  echo "ERROR: ${app_container} still references the legacy runtime" >&2
-  exit 1
-fi
-assert_no_runtime_or_knowledge_mounts "$worker_container" "$worker_mounts"
-curl --fail --silent --show-error "http://127.0.0.1:${app_port}/api/readyz" >/dev/null
+assert_current_runtime_state() {
+  local active_release
+  local app_mounts
+  local worker_mounts
+  active_release="$(python3 "$host_state_script" active --state-dir "$state_dir" | python3 -c 'import json,sys; print(json.load(sys.stdin)["activeReleaseId"] or "")')"
+  [[ "$active_release" == "$release_id" ]] || { echo 'ERROR: active receipt does not select the requested OSS release' >&2; exit 1; }
+  findmnt -rn -T "$candidate_root" -o FSTYPE | grep -Eq '^fuse(\.|$)' || { echo 'ERROR: active runtime is not an ossfs FUSE mount' >&2; exit 1; }
+  findmnt -rn -T "$candidate_root" -o OPTIONS | grep -Eq '(^|,)ro(,|$)' || { echo 'ERROR: active runtime mount is not read-only' >&2; exit 1; }
+  app_mounts="$(read_container_mounts "$app_container")"
+  worker_mounts="$(read_container_mounts "$worker_container")"
+  assert_app_runtime_mounts "$app_mounts"
+  if printf '%s\n' "$app_mounts" | awk -F '\t' -v legacy="$legacy_runtime_root" '$1 == legacy || index($1, legacy "/") == 1 { found=1 } END { exit(found ? 0 : 1) }'; then
+    echo "ERROR: ${app_container} still references the legacy runtime" >&2
+    exit 1
+  fi
+  assert_no_runtime_or_knowledge_mounts "$worker_container" "$worker_mounts"
+  curl --fail --silent --show-error "http://127.0.0.1:${app_port}/api/readyz" >/dev/null
+}
+
+assert_current_runtime_state
 
 rollback_mounted=0
 cleanup_rollback_mount() {
@@ -113,6 +124,8 @@ findmnt -rn -T "$rollback_root" -o OPTIONS | grep -Eq '(^|,)ro(,|$)' || { echo '
 python3 "$host_state_script" verify-mounted --runtime-root "$rollback_root" --release-id "$rollback_release_id" --verification-receipt "$rollback_verification_receipt" >/dev/null
 systemctl stop "act-runtime-ossfs@${rollback_release_id}.service"
 rollback_mounted=0
+
+assert_current_runtime_state
 
 root_before="$(df -B1 "$legacy_runtime_root" | awk 'NR == 2 { print $4 }')"
 legacy_bytes_before="$(du -sb "$legacy_runtime_root" | awk '{print $1}')"

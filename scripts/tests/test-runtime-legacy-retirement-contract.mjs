@@ -25,9 +25,10 @@ try {
   fs.mkdirSync(path.join(mountRoot, 'runtime-new'), { recursive: true });
   fs.writeFileSync(path.join(legacy, 'runtime.json'), '{"legacy":true}\n');
   const hostState = path.join(bin, 'host-state.py');
-  fs.writeFileSync(hostState, '#!/usr/bin/env python3\nimport json\nimport sys\nprint(json.dumps({"activeReleaseId": "runtime-new"} if sys.argv[1] == "active" else {}))\n');
+  fs.writeFileSync(hostState, '#!/usr/bin/env python3\nimport json\nimport os\nfrom pathlib import Path\nimport sys\ncounter = os.getenv("ACT_TEST_ACTIVE_COUNTER")\nif sys.argv[1] == "active":\n    previous = 0\n    if counter:\n        path = Path(counter)\n        previous = int(path.read_text()) if path.exists() else 0\n        path.write_text(str(previous + 1))\n    active = os.getenv("ACT_TEST_ACTIVE_AFTER_FIRST", "runtime-new") if previous else "runtime-new"\n    print(json.dumps({"activeReleaseId": active}))\nelse:\n    print(json.dumps({}))\n');
   fs.chmodSync(hostState, 0o755);
   executable('configure-ossfs', 'exit 0');
+  executable('flock', 'exit 0');
   executable('systemctl', 'exit 0');
   executable('findmnt', 'if [[ "$*" == *FSTYPE* ]]; then printf "fuse.ossfs\\n"; else printf "ro\\n"; fi');
   executable('podman', 'if [[ "$*" == *"act-obe-app" ]]; then printf "%s\\t/app/course-content/runtime\\t[ro rbind]\\n%s/knowledge/projection\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT" "$ACT_TEST_MOUNT"; fi');
@@ -65,8 +66,42 @@ try {
   assert.equal(retirement.rollbackMountVerified, true);
   assert.equal(retirement.legacyRuntimeBytesBefore, 16);
   assert.equal(retirement.legacyRuntimeFilesBefore, 1);
+  const driftLegacy = path.join(temporary, 'legacy-drift');
+  const driftReport = path.join(temporary, 'drift-report.json');
+  const activeCounter = path.join(temporary, 'active-count');
+  fs.mkdirSync(driftLegacy, { recursive: true });
+  fs.writeFileSync(path.join(driftLegacy, 'runtime.json'), '{"legacy":true}\n');
+  const drift = spawnSync('bash', [script,
+    '--release-id', 'runtime-new',
+    '--rollback-release-id', 'runtime-old',
+    '--rollback-verification-receipt', rollbackReceipt,
+    '--ram-role', 'act-runtime-oss-read',
+    '--legacy-runtime-root', driftLegacy,
+    '--mount-root', mountRoot,
+    '--state-dir', state,
+    '--host-state-script', hostState,
+    '--ossfs-config-script', path.join(bin, 'configure-ossfs'),
+    '--app-port', '8084',
+    '--report', driftReport,
+  ], {
+    cwd: root,
+    encoding: 'utf8',
+    env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, ACT_TEST_MOUNT: path.join(mountRoot, 'runtime-new'), ACT_TEST_ACTIVE_COUNTER: activeCounter, ACT_TEST_ACTIVE_AFTER_FIRST: 'runtime-other' },
+  });
+  assert.notEqual(drift.status, 0, 'a changed active receipt after rollback verification must block legacy retirement');
+  assert.match(drift.stderr, /active receipt does not select the requested OSS release/);
+  assert.equal(fs.existsSync(driftLegacy), true, 'a changed active receipt must preserve the legacy runtime');
 } finally {
   fs.rmSync(temporary, { recursive: true, force: true });
+}
+
+{
+  const result = spawnSync('bash', [script,
+    '--release-id', 'runtime-new',
+    '--rollback-release-id', 'runtime-new',
+  ], { cwd: root, encoding: 'utf8' });
+  assert.notEqual(result.status, 0, 'the active release must not be accepted as its own rollback target');
+  assert.match(result.stderr, /rollback release must differ from the active release/);
 }
 
 {
@@ -90,6 +125,7 @@ try {
       fs.chmodSync(target, 0o755);
     };
     makeBlocked('configure-ossfs', 'exit 0');
+    makeBlocked('flock', 'exit 0');
     makeBlocked('systemctl', 'exit 0');
     makeBlocked('findmnt', 'if [[ "$*" == *FSTYPE* ]]; then printf "fuse.ossfs\\n"; else printf "ro\\n"; fi');
     makeBlocked('podman', 'if [[ "$*" == *"act-obe-app" ]]; then printf "%s\\t/app/course-content/runtime\\t[ro rbind]\\n%s/knowledge/projection\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT" "$ACT_TEST_MOUNT"; if [[ "${ACT_TEST_APP_NESTED:-}" == 1 ]]; then printf "%s\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT"; fi; elif [[ "${ACT_TEST_WORKER_NESTED:-}" == 1 ]]; then printf "%s\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT"; elif [[ "${ACT_TEST_WORKER_LEGACY:-}" == 1 ]]; then printf "%s/knowledge/projection\\t/app/other\\t[ro rbind]\\n" "$ACT_TEST_LEGACY"; fi');
@@ -152,4 +188,7 @@ assert.match(executor, /--delete-legacy-runtime/, 'legacy retirement must requir
 assert.match(executor, /retire-legacy-runtime-after-oss-cutover\.sh/, 'executor must run the guarded retirement script only after cutover');
 assert.match(executor, /--rollback-release-id/, 'legacy retirement must retain an explicit rollback release identity');
 assert.match(executor, /--rollback-verification-receipt/, 'legacy retirement must verify a retained rollback release before deletion');
+const retirement = fs.readFileSync(script, 'utf8');
+assert.match(retirement, /flock -x 9/, 'retirement must use the same host selection lock as activation');
+assert.match(retirement, /assert_current_runtime_state/, 'retirement must recheck active state after rollback verification and before deletion');
 console.log('runtime legacy retirement contract passed');
