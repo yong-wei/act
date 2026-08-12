@@ -63,6 +63,24 @@ active API 仍返回完整、身份校验通过的对象和关系集合。客户
 
 详情面板沿用现有移动端焦点进入、Escape/关闭和焦点返回合同。卡片或分组面板只用于详情阅读，不作为画布节点或全量关系列表。
 
+### Accepted decision — commercial UI evidence truth
+
+Commercial UI capture and governance are part of this change's product contract. API and provenance checks continue to validate the active identity boundary, but active API evidence stores only identity-match booleans and field counts; release, snapshot, hash, activation and projection values are never persisted in capture output. The active visual gate requires a real SVG canvas with non-empty semantic nodes, real edges, resolvable edge endpoints and visible edge geometry. It also requires one captured semantic-node detail/adjacency interaction with safe focus return.
+
+Student, teacher and administrator active views receive the same forbidden-surface scan over text, accessible names/descriptions, titles/tooltips and copy entry points. The scan uses the current active API response's internal token set plus a fixed category vocabulary, while recording counts and pass/fail status only. Interaction evidence records three independent focus checkpoints: the semantic node before click, the detail panel after open, and the original semantic node or semantic canvas after close/Escape. `active-authority-presentation.ts`, the capture script and the governance gate are all revision-bound source inputs, so evidence from an earlier revision is invalid after any of these files changes. Tasks 4.2 and 4.3 remain open until these gates pass on a clean committed revision with real credentials.
+
+### Accepted decision — SafeApiEvidenceV1 as the sole API evidence write boundary
+
+The capture retains real Knowledge API requests and responses only in process memory. Every API evidence value written to browser evidence MUST be produced by one strict allowlist projector as `safe-api-evidence/v1`; the projector constructs the object explicitly and never copies request, response, URL, path, query, route parameter, header, cookie, source locator, raw enum, API identity, node/relation count or object fingerprint. Its exact shape is `schemaVersion`, fixed `roleClass`, a sequence of fixed `endpointClass` (`active-canvas`, `active-node`, `legacy`, `candidate`) with `status` and `requestCount`, and five boolean checks: active canvas identity, active node identity, provenance identity, role-request isolation and forbidden-data absence. Unknown Knowledge API endpoints fail closed. Before serialization the projector scans string leaves and UTF-8 JSON bytes for dynamic tokens and URI-encoded/decoded variants, and rejects unknown fields and path-like forms.
+
+The governance gate independently parses this exact schema, rejects extra fields and duplicate endpoint classes, and validates active isolation from endpoint classes, status and request counts in addition to the booleans. Legacy and candidate evidence remain fixed endpoint classifications and retain their existing product-state markers without persisting raw API payloads. This decision supersedes any path- or enum-shaped API evidence; tasks 4.2 and 4.3 remain unchecked until the strict projector and gate pass on a clean committed revision with real credentials.
+
+### Accepted decision — shared sensitive-value matching and observed node proof
+
+The artifact serializer and active product surface scanner MUST use one deterministic `SensitiveValueMatcher`. It expands each in-memory sensitive value to the raw, URI-encoded and once-decoded equivalent variants, then scans both final JSON bytes/string leaves and DOM text, ARIA names/descriptions, titles, tooltips and copy payloads. The matcher returns only counts/booleans; no matched value or error may be persisted.
+
+`safe-api-evidence/v1` requires both `activeNodeRequestObserved` and `activeNodeIdentityVerified`. The only valid states are false/false (no active-node request), true/false (a request was observed but its status, endpoint/selected-node match or provenance failed), and true/true (a 200 active-node response matched the requested node and provenance). False/true is invalid, as are missing or optional fields. Authenticated role detail evidence and the desktop-dark detail state require true/true with an active-node sequence entry at status 200 and positive request count. Responsive states without detail interaction explicitly record false/false and cannot inherit verification from another state. All capture failures remain fail-closed; tasks 4.2 and 4.3 remain unchecked.
+
 ## Risks / Trade-offs
 
 - [共享 renderer 隐含 Legacy 假设] → 只复用 source-neutral 图形 contract；通过静态边界测试禁止 active importer 进入 Legacy request/cache/system facade。
