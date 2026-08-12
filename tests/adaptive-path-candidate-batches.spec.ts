@@ -283,14 +283,16 @@ async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<v
     },
   }));
   await page.route('**/api/adaptive/path-advisor-tool', (route) => route.fulfill({
-    json: {
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
       agentSessionId: 'agent-session-issue-1349',
       generationRequest: { id: 'generation-request-issue-1349', status: 'succeeded' },
       result: {
         generationStatus: 'succeeded',
         candidateBatch: { id: batchId },
       },
-    },
+    }),
   }));
   await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerState }));
   await page.route('**/api/learning-paths/latest?**', (route) => route.fulfill({ json: activePath }));
