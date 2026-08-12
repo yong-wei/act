@@ -111,7 +111,7 @@ describe('ai task boundary UI source contracts', () => {
     expect(doConsistencyBlock).toContain('sessionId: DEMO_SESSION_ID');
   });
 
-  it('maps AI workshop and portfolio reflection intents to candidate-only states without false persistence', () => {
+  it('maps AI workshop and portfolio reflection intents to candidate-only states with explicit durable draft saves', () => {
     const aiPage = readSource('src/app/ai/page.tsx');
     const copilot = readSource('src/app/ai/copilot/page.tsx');
     const learningCenter = readSource('src/features/ai/personal-learning-center.tsx');
@@ -160,23 +160,26 @@ describe('ai task boundary UI source contracts', () => {
     expect(portfolio).toContain('const localFeedbackContext = shouldRenderPortfolioFeedbackTask(feedbackQuery)');
     expect(portfolio).toContain('const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams)');
     expect(readSource('src/lib/student-feedback-task-contract.ts')).toContain('Boolean(buildFeedbackTaskContext(query)?.supported)');
-    expect(portfolio).toContain('const hasLocalPortfolioTask = Boolean(reflectionDraft || feedbackPortfolioDraft)');
+    expect(portfolio).toContain('const hasLocalPortfolioTask = Boolean(reflectionDraft || feedbackPortfolioDraft || selectedReflectionId)');
     expect(portfolio).toContain("hasLocalPortfolioTask ? 'reflections' : 'works'");
     expect(portfolio).toContain("if (status === 'loading' || (loading && !hasLocalPortfolioTask))");
     expect(portfolio).toContain("const reflectionTaskIntent = searchParams.get('taskIntent') ?? searchParams.get('intent') ?? undefined");
     expect(portfolio).toContain('intent: reflectionTaskIntent');
-    expect(portfolio).toContain('草稿候选已创建');
-    expect(portfolio).toContain('本页尚未保存到学习档案');
+    expect(portfolio).toContain("fetch('/api/profile/portfolio-reflection-drafts')");
+    expect(portfolio).toContain('mockData.reflections = reflectionData.drafts');
+    expect(portfolio).toContain("method: 'POST'");
+    expect(portfolio).toContain("method: 'PUT'");
+    expect(portfolio).toContain("method: 'DELETE'");
+    expect(portfolio).toContain('data-portfolio-reflection-draft-editor');
+    expect(portfolio).toContain('保存草稿');
+    expect(portfolio).toContain('已保存草稿');
     expect(portfolio).toContain("href: '/evaluation/prompt-assessment'");
-    expect(portfolio).toContain("draftDisposition, setDraftDisposition");
-    expect(portfolio).toContain("setDraftDisposition('saved-draft')");
-    expect(portfolio).toContain("setDraftDisposition('discarded')");
     expect(portfolio).toContain('data-primary-task-input="portfolio-reflection-draft"');
     expect(portfolio).toContain("任务：{draft.assignment ?? 'portfolio-reflection'}");
     expect(portfolio).toContain('晋升策略：');
     expect(portfolio).toContain('· 晋升策略：');
     expect(portfolio).toContain('{draft.promotionPolicy}');
-    expect(portfolio).not.toContain('>保存草稿<');
-    expect(portfolio).not.toContain('确认草稿内容后保存到学习档案');
+    expect(portfolio).not.toContain("setDraftDisposition('saved-draft')");
+    expect(portfolio).not.toContain("setDraftDisposition('discarded')");
   });
 });

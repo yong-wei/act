@@ -47,6 +47,27 @@ export type AiAuditTaskContextResolution =
   | { status: 'invalid'; context: null; reason: 'invalid-shape' | 'unsupported-contract' }
   | { status: 'valid'; context: AiServerTaskContext };
 
+export interface PortfolioReflectionDraftInput {
+  source: string;
+  assignment: string | null;
+  intent: string;
+  title: string;
+  content: string;
+  idempotencyKey: string;
+}
+
+export type PortfolioReflectionDraftInputResolution =
+  | { status: 'valid'; input: PortfolioReflectionDraftInput }
+  | { status: 'invalid'; input: null };
+
+export interface PortfolioReflectionDraftContentInput {
+  content: string;
+}
+
+export type PortfolioReflectionDraftContentInputResolution =
+  | { status: 'valid'; input: PortfolioReflectionDraftContentInput }
+  | { status: 'invalid'; input: null };
+
 const portfolioReflectionTaskContextSchema = z.object({
   taskType: z.literal('portfolio-reflection'),
   source: boundedDescriptorString(),
@@ -55,6 +76,19 @@ const portfolioReflectionTaskContextSchema = z.object({
   outputTarget: z.literal('portfolio-draft').optional(),
   writebackBehavior: z.literal('draft').optional(),
   promotionPolicy: z.literal('explicit-save-or-submit').optional(),
+}).strict();
+
+const portfolioReflectionDraftInputSchema = z.object({
+  source: boundedDescriptorString(),
+  assignment: boundedDescriptorString().optional(),
+  intent: boundedDescriptorString(),
+  title: boundedDescriptorString(),
+  content: boundedDraftContent(),
+  idempotencyKey: z.string().uuid(),
+}).strict();
+
+const portfolioReflectionDraftContentInputSchema = z.object({
+  content: boundedDraftContent(),
 }).strict();
 
 function boundedDescriptorString() {
@@ -66,6 +100,43 @@ function boundedDescriptorString() {
     })
     .transform((value) => value.trim())
     .pipe(z.string().min(1).max(160));
+}
+
+function boundedDraftContent() {
+  return z.string()
+    .min(1)
+    .max(4000)
+    .refine((value) => !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u2028\u2029]/.test(value), {
+      message: 'draft content cannot contain disallowed control characters',
+    })
+    .transform((value) => value.trim())
+    .pipe(z.string().min(1).max(4000));
+}
+
+export function parsePortfolioReflectionDraftInput(value: unknown): PortfolioReflectionDraftInputResolution {
+  const parsed = portfolioReflectionDraftInputSchema.safeParse(value);
+  if (!parsed.success) {
+    return { status: 'invalid', input: null };
+  }
+
+  return {
+    status: 'valid',
+    input: {
+      ...parsed.data,
+      assignment: parsed.data.assignment ?? null,
+    },
+  };
+}
+
+export function parsePortfolioReflectionDraftContentInput(
+  value: unknown,
+): PortfolioReflectionDraftContentInputResolution {
+  const parsed = portfolioReflectionDraftContentInputSchema.safeParse(value);
+  if (!parsed.success) {
+    return { status: 'invalid', input: null };
+  }
+
+  return { status: 'valid', input: parsed.data };
 }
 
 export function resolveAiAuditTaskContext(value: unknown): AiAuditTaskContextResolution {
