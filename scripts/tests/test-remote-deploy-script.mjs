@@ -16,12 +16,34 @@ function writeExecutable(directory, name, content) {
   return filePath;
 }
 
+function bashPathFor(dir) {
+  if (process.platform !== 'win32') return dir;
+  const result = spawnSync('bash', ['--noprofile', '--norc', '-lc', `cygpath -u '${dir}'`], {
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, `cygpath failed for ${dir}`);
+  return result.stdout.trim();
+}
+
+function runRemoteDeploy(fakeBin, env) {
+  const script = path.join(root, 'scripts/remote-deploy.sh');
+  const command = `export PATH="${bashPathFor(fakeBin)}:$PATH"; source '${script}' --skip-build`;
+  return spawnSync('bash', ['--noprofile', '--norc', '-c', command], {
+    cwd: root,
+    encoding: 'utf8',
+    env,
+  });
+}
+
 function verifyCutoverFailureGate() {
   const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'remote-deploy-cutover-gate-'));
   try {
     const fakeBin = path.join(fixtureRoot, 'bin');
     const sshLog = path.join(fixtureRoot, 'ssh.log');
     const rsyncLog = path.join(fixtureRoot, 'rsync.log');
+    const bashDir = process.platform === 'win32'
+      ? path.dirname(spawnSync('where', ['bash'], { encoding: 'utf8' }).stdout.split(/\r?\n/).find(Boolean))
+      : null;
     fs.mkdirSync(fakeBin);
     writeExecutable(fakeBin, 'ssh', [
       '#!/usr/bin/env bash',
@@ -63,25 +85,17 @@ function verifyCutoverFailureGate() {
     ].join('\n'));
     const baseEnv = {
       ...process.env,
-      PATH: `${fakeBin}:${process.env.PATH}`,
+      PATH: [fakeBin, bashDir, process.env.PATH].filter(Boolean).join(path.delimiter),
       SKIP_BUILD: '1',
       SSH_TARGET: 'fixture.invalid',
       REMOTE_PROJECT_DIR: '/tmp/act-remote-deploy-fixture',
     };
     const missingImage = path.join(fixtureRoot, 'missing-image.tar');
-    const preCutover = spawnSync(
-      'bash',
-      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
-      {
-        cwd: root,
-        encoding: 'utf8',
-        env: {
-          ...baseEnv,
-          LOCAL_IMAGE_TAR: missingImage,
-          LOCAL_PROVENANCE_FILE: `${missingImage}.provenance.json`,
-        },
-      },
-    );
+    const preCutover = runRemoteDeploy(fakeBin, {
+      ...baseEnv,
+      LOCAL_IMAGE_TAR: missingImage,
+      LOCAL_PROVENANCE_FILE: `${missingImage}.provenance.json`,
+    });
     assert.notEqual(preCutover.status, 0, '缺少本地镜像的 pre-cutover 应失败');
     assert.equal(
       fs.existsSync(sshLog) ? fs.readFileSync(sshLog, 'utf8') : '',
@@ -107,20 +121,12 @@ function verifyCutoverFailureGate() {
       'exit 73',
       '',
     ].join('\n'));
-    const postCutover = spawnSync(
-      'bash',
-      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
-      {
-        cwd: root,
-        encoding: 'utf8',
-        env: {
-          ...baseEnv,
-          LOCAL_IMAGE_TAR: imageTar,
-          LOCAL_PROVENANCE_FILE: provenance,
-          LOCAL_RUNTIME_DIR: runtimeRoot,
-        },
-      },
-    );
+    const postCutover = runRemoteDeploy(fakeBin, {
+      ...baseEnv,
+      LOCAL_IMAGE_TAR: imageTar,
+      LOCAL_PROVENANCE_FILE: provenance,
+      LOCAL_RUNTIME_DIR: runtimeRoot,
+    });
     assert.notEqual(postCutover.status, 0, 'runtime rsync 失败应终止 cutover');
     const rsyncArgs = fs.readFileSync(rsyncLog, 'utf8');
     for (const pointer of [
@@ -150,20 +156,12 @@ function verifyCutoverFailureGate() {
 
     fs.writeFileSync(sshLog, '');
     writeExecutable(fakeBin, 'rsync', '#!/usr/bin/env bash\nexit 0\n');
-    const postCutoverExplicitExit = spawnSync(
-      'bash',
-      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
-      {
-        cwd: root,
-        encoding: 'utf8',
-        env: {
-          ...baseEnv,
-          LOCAL_IMAGE_TAR: imageTar,
-          LOCAL_PROVENANCE_FILE: provenance,
-          LOCAL_RUNTIME_DIR: runtimeRoot,
-        },
-      },
-    );
+    const postCutoverExplicitExit = runRemoteDeploy(fakeBin, {
+      ...baseEnv,
+      LOCAL_IMAGE_TAR: imageTar,
+      LOCAL_PROVENANCE_FILE: provenance,
+      LOCAL_RUNTIME_DIR: runtimeRoot,
+    });
     assert.notEqual(
       postCutoverExplicitExit.status,
       0,
@@ -262,7 +260,7 @@ ${transaction}
 }
 
 function main() {
-  const script = read('scripts/remote-deploy.sh');
+  const script = read('scripts/remote-deploy.sh').replace(/\r\n/g, '\n');
   const buildScript = read('scripts/build.sh');
   const remoteRuntimeCheck = script.slice(
     script.indexOf('check_remote_textbook_v2_files()'),
