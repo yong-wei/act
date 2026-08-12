@@ -1,8 +1,8 @@
 {
   "schemaVersion": "commercial-ui-evidence.v1",
   "status": "passed",
-  "capturedAt": "2026-08-12T11:35:05.134Z",
-  "sourceRevision": "7a630ad561e0400c960c963bea6856e167d535bf",
+  "capturedAt": "2026-08-12T13:21:10.574Z",
+  "sourceRevision": "ac103fc9de90e9d34abd6a963bb5eb083a92c236",
   "sourceFiles": [
     {
       "file": "src/features/adaptive/adaptive-path-journey-contracts.ts",
@@ -10,14 +10,24 @@
       "sha256": "79a977412a904397163a78fdf865f1adb60f30ea7468e8ce18ce075684156982"
     },
     {
+      "file": "src/features/adaptive/adaptive-path-journey-control.tsx",
+      "gitBlobId": "61c2e030c366167537cd62c6a9467565228251e2",
+      "sha256": "3d32540bedaa204a9e217da2b8eaec2f3128c91fb0bdd4184693683649ea5a4e"
+    },
+    {
       "file": "src/lib/__tests__/adaptive-path-journey-contracts.test.ts",
       "gitBlobId": "327a8fb79aefa62183d6c1bc65cda477aa82c9f2",
       "sha256": "71d3414c77814e7fd316c7010c3bd21ae9b3cc6527d38b38aa2f68854bc70ea6"
     },
     {
+      "file": "src/lib/__tests__/adaptive-path-journey-control.test.ts",
+      "gitBlobId": "2976d0fa1b74c3c48c92b9dc91f3efa4c7c81885",
+      "sha256": "4239858e10d170a3627a1ed24228ed9589b761548bc79a3d2f5effa1d9cafbb6"
+    },
+    {
       "file": "artifacts/commercial-ui/issue-1357-path-return/capture-evidence.mjs",
-      "gitBlobId": "4e580e59a8e8857c7d3d943c1fab00da8d73416d",
-      "sha256": "b925bcbbf2fa888453c4634c9bb2c1363ce8b802bc758fcaf1fa9c17068489a5"
+      "gitBlobId": "c4b4d5bda862bf8515452f53d0dc1e9d621e0db9",
+      "sha256": "409146686bd3ea17dafd7e4befcc494696308dce857615b0458f53a73aeab00a"
     }
   ],
   "baseUrl": "http://localhost:3003",
