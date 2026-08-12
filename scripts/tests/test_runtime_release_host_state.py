@@ -79,7 +79,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             self.assertIn("deployment proof is incomplete", incomplete.stderr)
 
-    def test_verifies_mounted_file_set_and_hashes_against_receipt(self):
+    def test_verifies_mounted_file_set_and_representative_content_against_receipt(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             runtime = root / "runtime"
@@ -111,6 +111,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             receipt.write_text(json.dumps(receipt_value), encoding="utf-8")
             verified = self.call("verify-mounted", "--runtime-root", str(runtime), "--release-id", "runtime-a", "--verification-receipt", str(receipt))
             self.assertEqual(verified["fileCount"], 1)
+            self.assertEqual(verified["representativeSampleCount"], 1)
             (runtime / "unexpected.txt").write_text("unexpected", encoding="utf-8")
             rejected = self.call("verify-mounted", "--runtime-root", str(runtime), "--release-id", "runtime-a", "--verification-receipt", str(receipt), expect_ok=False)
             self.assertIn("file set differs", rejected.stderr)

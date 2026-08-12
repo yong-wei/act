@@ -38,6 +38,11 @@ assert.ok(
     < podmanDeploy.indexOf('RUNTIME_DELIVERY_MODE="$operator_runtime_delivery_mode"'),
   'runtime delivery mode override must be restored after the persisted runtime env is read',
 );
+assert.match(
+  podmanDeploy,
+  /if \[ "\$RUNTIME_DELIVERY_MODE" = "ossfs-release" \]; then\n  TEACHING_PROJECTION_STORE_DIR="\$\{RUNTIME_CONTENT_DIR\}\/knowledge\/projection"/,
+  'OSS runtime cutover must not retain a nested projection bind from the legacy runtime tree',
+);
 
 assert.match(activation, /verify-mounted/, 'activation must verify the mounted release before replacing application containers');
 assert.match(activation, /ACT_RUNTIME_OSS_RAM_ROLE="\$ram_role"/, 'activation must pass only a RAM role name to the application');

@@ -51,7 +51,7 @@ function studentSession() {
   return { user: { id: 'student-1', role: 'STUDENT' } };
 }
 
-function request(body: typeof requestBody | { content: string } = requestBody, method = 'POST') {
+function request(body: unknown = requestBody, method = 'POST') {
   return new Request('http://localhost/api/profile/portfolio-reflection-drafts', {
     method,
     headers: { 'Content-Type': 'application/json' },

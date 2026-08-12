@@ -11,11 +11,12 @@ const resolverRoute = fs.readFileSync(path.join(root, 'src/app/api/course-runtim
 
 assert.match(source, /\['plan', 'verify-media-closure', 'publish-streaming', 'verify', 'inspect'\]/, 'CLI must expose only the streaming write command');
 assert.doesNotMatch(source, /command === ['"]publish['"]|\bpublish --runtime-root/, 'CLI must not expose a direct mutating publish command');
-assert.match(source, /roleName: required\('--role-name'\)/, 'CLI must require an ECS RAM role name');
+assert.match(source, /verifyPublishedRuntimeReleaseViaSsh/, 'verify must run through the ECS read-role bridge instead of local IMDS');
+assert.match(source, /sshBridgeOptions\(\)/, 'verify and inspect must require the pinned SSH bridge options');
+assert.doesNotMatch(source, /createEcsRamRoleOssRuntimeReleaseReader|--role-name|--region/, 'local CLI must not pretend to hold ECS RAM role credentials');
 assert.doesNotMatch(source, /ACCESS_KEY|accessKeySecret|--secret|--access-key/i, 'CLI must not accept static AccessKey or Secret input');
 assert.doesNotMatch(source, /createEcsRamRoleOssRuntimeReleaseStore|publishRuntimeRelease\(/, 'production CLI must not import a direct mutating store helper');
 assert.doesNotMatch(resolverRoute, /createEcsRamRoleOssRuntimeReleaseStore|publishRuntimeRelease\(|putStream/, 'runtime asset resolver must remain read/sign-only');
-assert.match(source, /verifyPublishedRuntimeRelease/, 'verify must revalidate the published release');
 assert.match(source, /inspectPublishedRuntimeRelease/, 'inspect must read the published manifest');
 assert.match(source, /deriveRuntimeReleaseId/, 'plan and publish must derive the content-addressed release identity');
 assert.match(source, /publishRuntimeReleaseViaSsh/, 'streaming publish must use the SSH source-authoritative transport');
@@ -48,7 +49,17 @@ assert.match(bridge, /MAX_FRAME_BYTES\s*=\s*256 \* 1024 \* 1024/, 'ECS bridge mu
 assert.match(bridge, /MIN_FREE_BYTES\s*=\s*1024 \* 1024 \* 1024/, 'ECS bridge must preserve a 1 GiB spool reserve');
 assert.match(bridge, /tempfile\.mkstemp/, 'ECS bridge must exclusively create unpredictable spool files');
 assert.match(bridge, /runtime release spool contains residual files/, 'ECS bridge must reject residual spool files instead of broad cleanup');
-assert.match(bridge, /choices=\("list", "get", "publish"\)/, 'ECS bridge must expose the transaction publish protocol only');
+assert.match(bridge, /choices=\("list", "get", "publish", "verify"\)/, 'ECS bridge must expose the read-role verification protocol alongside publishing');
+assert.match(bridge, /PUBLISHER_ECS_ROLE_NAME\s*=\s*["']act-runtime-oss-publisher["']/, 'publish must bind the publisher role');
+assert.match(bridge, /READER_ECS_ROLE_NAME\s*=\s*["']act-runtime-oss-read["']/, 'read-only operations must bind the reader role');
+assert.match(bridge, /arguments\.operation == "publish" else READER_ECS_ROLE_NAME/, 'read-only bridge operations must reject the publisher role');
+assert.match(bridge, /def verify_operation\(/, 'read-role verification must execute entirely on ECS');
+assert.match(bridge, /READINESS_SAMPLE_MAX_BYTES\s*=\s*4 \* 1024 \* 1024/, 'read-role verification must bound representative content reads');
+assert.match(bridge, /selected_indexes = sorted\(\{0, len\(candidates\) \/\/ 2, len\(candidates\) - 1\}\)/, 'read-role verification must sample deterministic representatives');
+assert.doesNotMatch(bridge, /for entry in files:\n        if remote_digest\(bucket, entry\["key"\]\)/, 'read-role verification must not rehash every published object');
+assert.match(bridge, /MANIFEST_SCHEMA_VERSION\s*=\s*["']act-runtime-release\.v1["']/, 'read-role verification must pin the manifest schema version');
+assert.match(bridge, /manifest tree digest does not match its files/, 'read-role verification must recompute the manifest tree digest');
+assert.match(bridge, /manifest\.files must be strictly code-point sorted/, 'read-role verification must enforce deterministic manifest ordering');
 assert.match(bridge, /put_payload\(bucket, manifest_key, wire, wire_sha/, 'ECS bridge must upload the completion manifest after object frames');
 assert.match(bridge, /wire digest does not match the serialized bytes/, 'ECS bridge must validate manifest wireSha256');
 assert.doesNotMatch(bridge, /ossutil_argv\("v1", \["cp"/, 'ECS bridge must never write through ossutil v1');
