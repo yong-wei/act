@@ -13,6 +13,7 @@ APP_CONTAINER="${ACT_RUNTIME_APP_CONTAINER:-act-obe-app}"
 WORKER_CONTAINER="${ACT_RUNTIME_WORKER_CONTAINER:-act-obe-worker}"
 APP_SERVICE_NAME="${ACT_RUNTIME_APP_SERVICE_NAME:-act-obe-stack.service}"
 APP_SERVICE_DROPIN_PATH="${ACT_RUNTIME_APP_SERVICE_DROPIN_PATH:-/etc/systemd/system/${APP_SERVICE_NAME}.d/20-runtime-ossfs.conf}"
+READYZ_TIMEOUT_SECONDS="${ACT_RUNTIME_READYZ_TIMEOUT_SECONDS:-180}"
 
 release_id=""
 expected_active_release=""
@@ -42,6 +43,7 @@ done
 [[ "$ram_role" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role name" >&2; exit 1; }
 [[ "$DEPLOY_MODE" == "--app-only" || "$DEPLOY_MODE" == "--runtime-cutover-app-only" ]] || { echo "ERROR: invalid runtime deploy mode" >&2; exit 1; }
 [[ "$APP_SERVICE_NAME" =~ ^[A-Za-z0-9_.@-]+\.service$ ]] || { echo "ERROR: invalid application service name" >&2; exit 1; }
+[[ "$READYZ_TIMEOUT_SECONDS" =~ ^[1-9][0-9]{0,2}$ && "$READYZ_TIMEOUT_SECONDS" -le 600 ]] || { echo "ERROR: runtime readiness timeout is invalid" >&2; exit 1; }
 [[ -x "$(command -v flock)" ]] || { echo "ERROR: flock is required" >&2; exit 1; }
 [[ -x "$(command -v podman)" ]] || { echo "ERROR: podman is required" >&2; exit 1; }
 [[ -x "$(command -v python3)" ]] || { echo "ERROR: python3 is required" >&2; exit 1; }
@@ -115,6 +117,55 @@ restore_startup_order() {
   systemctl disable "act-runtime-ossfs@${release_id}.service" >/dev/null 2>&1 || true
 }
 
+wait_for_readyz() {
+  local deadline
+  local now
+  local remaining
+  local sleep_seconds
+  local readyz_url="http://127.0.0.1:${APP_PORT}/api/readyz"
+
+  deadline="$(python3 - "$READYZ_TIMEOUT_SECONDS" <<'PY'
+import sys
+import time
+
+print(int(time.monotonic()) + int(sys.argv[1]))
+PY
+)"
+
+  while true; do
+    now="$(python3 - <<'PY'
+import time
+
+print(int(time.monotonic()))
+PY
+)"
+    remaining=$((deadline - now))
+    if [[ "$remaining" -le 0 ]]; then
+      break
+    fi
+    if curl --connect-timeout 2 --max-time "$remaining" --fail --silent --show-error "$readyz_url" >/dev/null; then
+      return 0
+    fi
+    now="$(python3 - <<'PY'
+import time
+
+print(int(time.monotonic()))
+PY
+)"
+    remaining=$((deadline - now))
+    if [[ "$remaining" -gt 0 ]]; then
+      sleep_seconds=3
+      if [[ "$remaining" -lt "$sleep_seconds" ]]; then
+        sleep_seconds="$remaining"
+      fi
+      sleep "$sleep_seconds"
+    fi
+  done
+
+  echo "ERROR: application readiness did not succeed within ${READYZ_TIMEOUT_SECONDS}s" >&2
+  return 1
+}
+
 rollback() {
   local failed_status=$?
   set +e
@@ -166,7 +217,7 @@ RUNTIME_DELIVERY_MODE=ossfs-release \
   RUNTIME_CONTENT_DIR="$MOUNT_ROOT/$release_id" \
   "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
 source "$ENV_FILE"
-curl --fail --silent --show-error "http://127.0.0.1:${APP_PORT}/api/readyz" >/dev/null
+wait_for_readyz
 configure_startup_order
 python3 "$HOST_STATE_SCRIPT" mark-active --state-dir "$STATE_DIR" --release-id "$release_id" "${activation_proof_args[@]}" >/dev/null
 trap - ERR
