@@ -248,7 +248,7 @@ describe('adaptive path journey control', () => {
     });
     currentJourney.return = {
       label: '返回学习路径',
-      href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1',
+      href: '/assessment/adaptive-practice?goal=control-correction',
     };
 
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
@@ -260,7 +260,7 @@ describe('adaptive path journey control', () => {
     }));
 
     expect(html.match(/返回学习路径/g)).toHaveLength(1);
-    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;intent=path-execution&amp;pathId=path-1"');
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction"');
     expect(html).not.toContain('data-adaptive-path-next-action="ready"');
   });
 
@@ -318,7 +318,7 @@ describe('adaptive path journey control', () => {
     });
     blockedJourney.return = {
       label: '返回学习路径',
-      href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1',
+      href: '/assessment/adaptive-practice?goal=control-correction',
     };
 
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {

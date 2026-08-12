@@ -174,6 +174,7 @@ export function buildAuthorizedAdaptivePathJourney(
   const currentNodeId = readNonEmptyString(path.currentNodeId);
   const persistedCurrentNode = currentNodeId ? nodeById.get(currentNodeId) ?? null : null;
   const requestedNodeId = readNonEmptyString(input.requestedNodeId);
+  const landingHref = buildPathLandingHref(goalId);
   const summaryHref = buildPathCenterHref({ pathId, goalId, nodeId: null });
   const persistedPathStatus = readNonEmptyString(path.pathStatus) ?? 'active';
   const structureComplete = hasCompleteJourneyStructure(
@@ -244,7 +245,7 @@ export function buildAuthorizedAdaptivePathJourney(
       completed: mainPathNodeIds.filter((nodeId) => completedNodeIds.has(nodeId)).length,
       total: mainPathNodeIds.length,
     },
-    return: { label: '返回学习路径', href: summaryHref },
+    return: { label: '返回学习路径', href: landingHref },
     pathStatus: normalizedPathStatus,
     correction: projectedCorrection,
   };
@@ -943,6 +944,10 @@ function buildPathCenterHref(input: { pathId: string; goalId: string; nodeId: st
   });
   if (input.nodeId) params.set('nodeId', input.nodeId);
   return `/assessment/adaptive-practice?${params.toString()}`;
+}
+
+function buildPathLandingHref(goalId: string): string {
+  return `/assessment/adaptive-practice?${new URLSearchParams({ goal: goalId }).toString()}`;
 }
 
 function readRecord(value: unknown): Record<string, unknown> {
