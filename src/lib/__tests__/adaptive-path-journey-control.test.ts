@@ -194,6 +194,19 @@ describe('adaptive path journey control', () => {
     expect(html).not.toContain('查看纠偏方案');
   });
 
+  it('uses the learning path landing workspace for the fallback return action', () => {
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'error',
+      journey: null,
+      error: 'journey-read-rejected',
+      onRefresh: () => undefined,
+    }));
+
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction"');
+    expect(html).not.toContain('nodeId=node-1');
+  });
+
   it('renders only one return action when the ready next action resolves to the path return', () => {
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
       launchContext: launchContext(),

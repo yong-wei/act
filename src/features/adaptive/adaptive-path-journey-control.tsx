@@ -180,7 +180,10 @@ export function AdaptivePathJourneyControl({
   className,
 }: AdaptivePathJourneyControlProps) {
   const state = journey?.nextAction.state ?? (status === 'error' ? 'blocked' : 'pending-result');
-  const returnAction = journey?.return ?? { label: '返回学习路径', href: launchContext.returnHref };
+  const returnAction = journey?.return ?? {
+    label: '返回学习路径',
+    href: buildAdaptivePathLandingHref(launchContext.goalId),
+  };
   const nextAction = journey?.nextAction ?? null;
   const correction = journey?.correction ?? null;
   const correctionHistory = correction?.history ?? [];
@@ -525,6 +528,10 @@ function normalizeJourneyActionTarget(href: string): string | null {
 
   parsed.searchParams.sort();
   return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+}
+
+function buildAdaptivePathLandingHref(goalId: string): string {
+  return `/assessment/adaptive-practice?${new URLSearchParams({ goal: goalId }).toString()}`;
 }
 
 export function AdaptivePathOwnedResourceAction({

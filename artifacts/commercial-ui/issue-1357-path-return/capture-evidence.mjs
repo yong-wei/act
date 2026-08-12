@@ -1,0 +1,54 @@
+import { createHash } from 'node:crypto';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { chromium } from 'playwright';
+
+const outputDir = fileURLToPath(new URL('.', import.meta.url));
+const baseUrl = process.env.ADAPTIVE_PATH_EVIDENCE_BASE_URL ?? 'http://127.0.0.1:3003';
+const route = '/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction&nodeId=registry%3Alesson13-cruise-bridge';
+const sourceRevision = 'bb7edb07c3214fd29010fed6fb6035501b6a8d1b';
+
+const browser = await chromium.launch({ headless: true });
+const results = [];
+try {
+  for (const width of [1440, 320]) {
+    const page = await browser.newPage({ viewport: { width, height: 1000 } });
+    await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2500);
+    const returnLink = page.getByRole('link', { name: '返回学习路径', exact: true });
+    const count = await returnLink.count();
+    const href = await returnLink.getAttribute('href');
+    if (count !== 1 || href !== '/assessment/adaptive-practice?goal=control-correction') {
+      throw new Error(`unexpected return action at ${width}px: count=${count}, href=${href}`);
+    }
+    await returnLink.click();
+    await page.waitForURL(`${baseUrl}/assessment/adaptive-practice?goal=control-correction`, { timeout: 10000 });
+    await page.waitForTimeout(1000);
+    const landingIntent = await page.locator('[data-adaptive-path-workspace-intent]').getAttribute('data-adaptive-path-workspace-intent');
+    const scroll = await page.evaluate(() => ({
+      viewportWidth: window.innerWidth,
+      documentScrollWidth: document.documentElement.scrollWidth,
+      horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    }));
+    if (landingIntent !== 'landing' || scroll.horizontalOverflow) throw new Error(`landing assertion failed at ${width}px`);
+    const screenshot = `landing-${width}.png`;
+    const bytes = await page.screenshot({ path: `${outputDir}/${screenshot}`, fullPage: true });
+    results.push({ width, route, returnActionCount: count, returnHref: href, landingUrl: page.url(), landingIntent, screenshot, screenshotSha256: createHash('sha256').update(bytes).digest('hex'), scroll });
+    await page.close();
+  }
+} finally {
+  await browser.close();
+}
+
+await mkdir(outputDir, { recursive: true });
+await writeFile(`${outputDir}/evidence-manifest.json`, `${JSON.stringify({
+  schemaVersion: 'commercial-ui-evidence.v1',
+  status: 'passed',
+  capturedAt: new Date().toISOString(),
+  sourceRevision,
+  baseUrl,
+  route,
+  provenance: 'local-only Playwright projection and routing evidence; no remote or production mutation',
+  assertions: { oneReturnAction: true, returnToLandingWorkspace: true, nodeIdRemovedAfterClick: true, responsiveNoHorizontalOverflow: true },
+  results,
+}, null, 2)}\n`);
