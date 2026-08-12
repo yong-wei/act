@@ -31,6 +31,7 @@ import {
   presentSourceCitation,
   selectInitialScope,
   visibleActiveGraph,
+  ACTIVE_GRAPH_NODE_LIMIT,
   type ActiveAuthorityGraphModel,
   type ActiveNodePresentation,
 } from './active-authority-presentation';
@@ -176,12 +177,21 @@ interface Point {
   y: number;
 }
 
-function layoutNodes(nodes: readonly ActiveNodePresentation[]): ReadonlyMap<string, Point> {
-  const columns = Math.max(1, Math.min(4, Math.ceil(Math.sqrt(nodes.length))));
-  const columnGap = 220;
-  const rowGap = 120;
-  const startX = 130;
-  const startY = 84;
+const ACTIVE_MOBILE_NODE_LIMIT = 6;
+const ACTIVE_MOBILE_VIEWBOX = '0 0 320 520';
+const ACTIVE_DESKTOP_VIEWBOX = '0 0 960 520';
+
+function layoutNodes(
+  nodes: readonly ActiveNodePresentation[],
+  compact = false,
+): ReadonlyMap<string, Point> {
+  const columns = compact
+    ? Math.max(1, Math.min(2, nodes.length))
+    : Math.max(1, Math.min(4, Math.ceil(Math.sqrt(nodes.length))));
+  const columnGap = compact ? 164 : 220;
+  const rowGap = compact ? 112 : 120;
+  const startX = compact ? (columns === 1 ? 160 : 78) : 130;
+  const startY = compact ? 72 : 84;
   return new Map(nodes.map((node, index) => [node.key, {
     x: startX + (index % columns) * columnGap,
     y: startY + Math.floor(index / columns) * rowGap,
@@ -232,10 +242,10 @@ function GraphNode({
       ) : (
         <rect x={point.x - 44} y={point.y - 27} width={88} height={54} rx={node.type.shape === 'rounded' ? 18 : 7} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
       )}
-      <text x={point.x} y={point.y - 3} textAnchor="middle" fill="#f8fafc" fontSize="12" fontWeight="600">
+      <text data-active-authority-node-label="true" x={point.x} y={point.y - 3} textAnchor="middle" fill="#f8fafc" fontSize="12" fontWeight="600">
         {node.label.slice(0, 14)}
       </text>
-      <text x={point.x} y={point.y + 15} textAnchor="middle" fill="#cbd5e1" fontSize="10">
+      <text data-active-authority-node-type-label="true" x={point.x} y={point.y + 15} textAnchor="middle" fill="#cbd5e1" fontSize="10">
         {node.type.label}
       </text>
     </g>
@@ -248,12 +258,14 @@ function GraphEdge({
   target,
   sourceLabel,
   targetLabel,
+  compact,
 }: {
   relation: ActiveAuthorityGraphModel['relations'][number];
   source: Point;
   target: Point;
   sourceLabel: string;
   targetLabel: string;
+  compact: boolean;
 }) {
   const label = `${sourceLabel}，${relation.semantic.label}，${targetLabel}，${relation.semantic.directionLabel}`;
   return (
@@ -284,11 +296,12 @@ function GraphEdge({
         />
       )}
       <text
+        data-active-authority-relation-label="true"
         x={(source.x + target.x) / 2}
         y={(source.y + target.y) / 2 - 6}
         textAnchor="middle"
         fill="#94a3b8"
-        fontSize="10"
+        fontSize={compact ? 11 : 10}
       >
         {relation.semantic.label}
       </text>
@@ -424,6 +437,7 @@ function SearchResults({
 
 export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorityGraphProps) {
   const [retry, setRetry] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState<number | null>(null);
   const state = useActiveCanvas(retry);
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
@@ -433,6 +447,16 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<SVGGElement | null>(null);
   const draggingRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const isCompactViewport = viewportWidth !== null && viewportWidth < 640;
+  const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
+
+  useEffect(() => {
+    const updateViewportWidth = () => setViewportWidth(window.innerWidth);
+    updateViewportWidth();
+    window.addEventListener('resize', updateViewportWidth);
+    return () => window.removeEventListener('resize', updateViewportWidth);
+  }, []);
+
   const model = useMemo(
     () => state.status === 'ready' || state.status === 'empty'
       ? createActiveAuthorityGraphModel(state.projection)
@@ -443,13 +467,13 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
 
   useEffect(() => {
     if (!model) return;
-    setVisibleKeys(selectInitialScope(model));
+    setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
     setSelectedNodeKey(null);
     setQuery('');
     setTypeFilter('');
     setZoom(1);
     setPan({ x: 0, y: 0 });
-  }, [model]);
+  }, [model, visibleNodeLimit]);
 
   useEffect(() => {
     if (!selectedNodeKey) return;
@@ -474,13 +498,16 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     const filteredKeys = new Set(scoped.nodes.filter((node) => node.type.canonicalType === typeFilter).map((node) => node.key));
     return visibleActiveGraph(model, filteredKeys);
   }, [model, typeFilter, visibleKeys]);
-  const layout = useMemo(() => layoutNodes(scopedGraph?.nodes ?? []), [scopedGraph]);
+  const layout = useMemo(
+    () => layoutNodes(scopedGraph?.nodes ?? [], isCompactViewport),
+    [isCompactViewport, scopedGraph],
+  );
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
 
   function selectNode(key: string, target?: SVGGElement) {
     if (!model) return;
     triggerRef.current = target ?? null;
-    setVisibleKeys((current) => expandActiveAuthorityOneHop(model, current, key));
+    setVisibleKeys((current) => expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit));
     setSelectedNodeKey(key);
   }
 
@@ -489,14 +516,14 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     // The result button is removed when the query is cleared; restore focus
     // to the newly materialized semantic node or the canvas instead.
     triggerRef.current = null;
-    setVisibleKeys(materializeActiveNodeScope(model, key));
+    setVisibleKeys(materializeActiveNodeScope(model, key, visibleNodeLimit));
     setSelectedNodeKey(key);
     setQuery('');
   }
 
   function resetOverview() {
     if (!model) return;
-    setVisibleKeys(selectInitialScope(model));
+    setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
     setSelectedNodeKey(null);
     setQuery('');
     setTypeFilter('');
@@ -618,7 +645,19 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                 <button type="button" aria-label="放大图谱" onClick={() => setZoom((value) => Math.min(1.75, Number((value + 0.15).toFixed(2))))} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><Plus className="h-3.5 w-3.5" aria-hidden="true" /></button>
                 <button type="button" aria-label="重置图谱视图" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /></button>
               </div>
-              <svg viewBox="0 0 960 520" className="h-[min(60vh,520px)] min-h-[23rem] w-full touch-none" role="application" aria-label="当前 Authority 语义关系画布" onPointerDown={onStagePointerDown} onPointerMove={onStagePointerMove} onPointerUp={onStagePointerUp} onPointerCancel={onStagePointerUp}>
+              <svg
+                data-active-authority-svg="true"
+                data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'}
+                data-active-authority-node-limit={visibleNodeLimit}
+                viewBox={isCompactViewport ? ACTIVE_MOBILE_VIEWBOX : ACTIVE_DESKTOP_VIEWBOX}
+                className="h-[min(60vh,520px)] min-h-[23rem] w-full touch-none"
+                role="application"
+                aria-label="当前 Authority 语义关系画布"
+                onPointerDown={onStagePointerDown}
+                onPointerMove={onStagePointerMove}
+                onPointerUp={onStagePointerUp}
+                onPointerCancel={onStagePointerUp}
+              >
                 <defs><marker id="active-authority-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#94a3b8" /></marker></defs>
                 <g transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}>
                   {scopedGraph.relations.map((relation) => {
@@ -627,7 +666,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                     const sourceNode = model.nodeByKey.get(relation.sourceKey);
                     const targetNode = model.nodeByKey.get(relation.targetKey);
                     return source && target && sourceNode && targetNode
-                      ? <GraphEdge key={relation.key} relation={relation} source={source} target={target} sourceLabel={sourceNode.label} targetLabel={targetNode.label} />
+                      ? <GraphEdge key={relation.key} relation={relation} source={source} target={target} sourceLabel={sourceNode.label} targetLabel={targetNode.label} compact={isCompactViewport} />
                       : null;
                   })}
                   {scopedGraph.nodes.map((node) => {

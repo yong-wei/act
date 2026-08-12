@@ -124,6 +124,7 @@ describe('active Authority knowledge workspace client boundary', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -231,6 +232,24 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).toContain('公式');
   });
 
+  it('uses a compact mobile graph coordinate space and keeps node labels readable', async () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
+
+    const svg = container.querySelector<SVGSVGElement>('[data-active-authority-svg="true"]');
+    expect(svg).not.toBeNull();
+    expect(svg?.getAttribute('data-active-authority-viewport')).toBe('compact');
+    expect(svg?.getAttribute('data-active-authority-node-limit')).toBe('6');
+    expect(svg?.getAttribute('viewBox')).toBe('0 0 320 520');
+    expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
+    const labels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-label]')];
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels.every((label) => Number(label.getAttribute('font-size')) >= 12)).toBe(true);
+  });
+
   it('keeps a semantic node click selectable after pointerdown on the node', async () => {
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
@@ -319,6 +338,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(governanceSource).toContain('safeActiveSurfaceScanPassed');
     expect(captureSource).toContain('semanticNodeFocusedBeforeClick');
     expect(captureSource).toContain('detailPanelFocusedAfterOpen');
+    expect(captureSource).toContain('nodeLabelReadability');
+    expect(captureSource).toContain('minPixelSize');
+    expect(captureSource).toContain('activeNodeLabelGeometryValid');
+    expect(captureSource).toContain("state.name === 'active-mobile'");
     const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
   });

@@ -1647,6 +1647,45 @@ async function captureMarkers(page: Page, stateName: string) {
      const konlingSidebarRect = rectFor(konlingSidebar);
      const expandedDockRect = rectFor(konlingSidebar ?? expandedDock);
      const activeNodes = Array.from(document.querySelectorAll('[data-active-authority-node]'));
+     const activeSvg = activeGraph?.querySelector('svg[data-active-authority-svg="true"]');
+     const activeSvgViewBox = (activeSvg?.getAttribute('viewBox') ?? '')
+       .trim()
+       .split(/\s+/u)
+       .map((value) => Number(value));
+     const activeSvgRect = activeSvg?.getBoundingClientRect() ?? null;
+     const activeNodeLabelElements = Array.from(activeGraph?.querySelectorAll('[data-active-authority-node-label]') ?? []);
+     const activeNodeLabelFontSizes = activeNodeLabelElements
+       .map((element) => Number.parseFloat(element.getAttribute('font-size') ?? window.getComputedStyle(element).fontSize))
+       .filter((value) => Number.isFinite(value) && value > 0);
+     const activeNodeLabelGeometryValid = activeNodeLabelElements.every((element) => {
+       const rect = element.getBoundingClientRect();
+       const style = window.getComputedStyle(element);
+       return style.display !== 'none'
+         && style.visibility !== 'hidden'
+         && rect.width > 0
+         && rect.height > 0;
+     });
+     const activeSvgScale = activeSvgRect
+       && activeSvgViewBox.length === 4
+       && activeSvgViewBox[2] > 0
+       && activeSvgViewBox[3] > 0
+       ? Math.min(activeSvgRect.width / activeSvgViewBox[2], activeSvgRect.height / activeSvgViewBox[3])
+       : 0;
+     const minNodeLabelFontSize = activeNodeLabelFontSizes.length > 0
+       ? Math.min(...activeNodeLabelFontSizes)
+       : 0;
+     const minNodeLabelPixelSize = minNodeLabelFontSize * activeSvgScale;
+     const nodeLabelReadability = {
+       nodeLabelCount: activeNodeLabelElements.length,
+       minFontSize: Number(minNodeLabelFontSize.toFixed(2)),
+       minPixelSize: Number(minNodeLabelPixelSize.toFixed(2)),
+       viewBoxWidth: activeSvgViewBox[2] ?? null,
+       viewBoxHeight: activeSvgViewBox[3] ?? null,
+       readable: activeNodes.length > 0
+         && activeNodeLabelElements.length === activeNodes.length
+         && activeNodeLabelGeometryValid
+         && minNodeLabelPixelSize >= 9,
+     };
      const activeNodeKeys = new Set(activeNodes
        .map((element) => element.getAttribute('data-active-authority-node'))
        .filter((value) => Boolean(value)));
@@ -1678,6 +1717,10 @@ async function captureMarkers(page: Page, stateName: string) {
         relationCount: activeRelations.length,
         resolvedEdgeEndpointCount,
         visibleSvgGeometryCount,
+        viewport: activeSvg?.getAttribute('data-active-authority-viewport') ?? null,
+        nodeLimit: Number(activeSvg?.getAttribute('data-active-authority-node-limit') ?? Number.NaN),
+        viewBox: activeSvg?.getAttribute('viewBox') ?? null,
+        nodeLabelReadability,
         stage: document.querySelector('[data-active-graph-stage="authority"]') ? 'authority' : null,
       } : null,
       candidateAuthority: candidateGraph ? {
@@ -2096,18 +2139,27 @@ async function captureActiveAuthorityVisualMatrix(
       const surfaceScan = await captureActiveSurfaceScan(page, probe);
       const markers = await captureMarkers(page, state.name);
       const completedApiLog = await probe.readLog();
+      const activeMarkers = objectRecord(markers.activeAuthority);
+      const activeNodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
       if (
         markers.knowledgeGraphMode !== 'active'
-        || objectRecord(markers.activeAuthority).visibleNodeCount <= 0
-        || objectRecord(markers.activeAuthority).relationCount <= 0
-        || objectRecord(markers.activeAuthority).resolvedEdgeEndpointCount
-          !== objectRecord(markers.activeAuthority).relationCount
-        || objectRecord(markers.activeAuthority).visibleSvgGeometryCount
-          !== objectRecord(markers.activeAuthority).relationCount
-        || objectRecord(markers.activeAuthority).stage !== 'authority'
+        || activeMarkers.visibleNodeCount <= 0
+        || activeMarkers.relationCount <= 0
+        || activeMarkers.resolvedEdgeEndpointCount !== activeMarkers.relationCount
+        || activeMarkers.visibleSvgGeometryCount !== activeMarkers.relationCount
+        || activeMarkers.stage !== 'authority'
+        || (state.name === 'active-mobile' && (
+          activeMarkers.viewport !== 'compact'
+          || activeMarkers.viewBox !== '0 0 320 520'
+          || activeNodeLabelReadability.readable !== true
+        ))
         || surfaceScan.passed !== true
       ) {
-        throw new Error(`active visual matrix DOM contract failed in ${state.name}`);
+        throw new Error(
+          state.name === 'active-mobile' && activeNodeLabelReadability.readable !== true
+            ? `active mobile semantic label readability contract failed in ${state.name}`
+            : `active visual matrix DOM contract failed in ${state.name}`,
+        );
       }
       const screenshotPath = path.join(outputDir, `${state.name}.png`);
       const activeApiEvidence = projectSafeApiEvidence(
