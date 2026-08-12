@@ -243,7 +243,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(svg).not.toBeNull();
     expect(svg?.getAttribute('data-active-authority-viewport')).toBe('compact');
     expect(svg?.getAttribute('data-active-authority-node-limit')).toBe('6');
-    expect(svg?.getAttribute('viewBox')).toBe('0 0 320 520');
+    expect(svg?.getAttribute('viewBox')).toBe('0 0 320 360');
     expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
     const labels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-label]')];
     expect(labels.length).toBeGreaterThan(0);

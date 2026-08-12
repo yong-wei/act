@@ -2150,14 +2150,21 @@ async function captureActiveAuthorityVisualMatrix(
         || activeMarkers.stage !== 'authority'
         || (state.name === 'active-mobile' && (
           activeMarkers.viewport !== 'compact'
-          || activeMarkers.viewBox !== '0 0 320 520'
+          || activeMarkers.viewBox !== '0 0 320 360'
           || activeNodeLabelReadability.readable !== true
         ))
         || surfaceScan.passed !== true
       ) {
         throw new Error(
           state.name === 'active-mobile' && activeNodeLabelReadability.readable !== true
-            ? `active mobile semantic label readability contract failed in ${state.name}`
+            ? `active mobile semantic label readability contract failed in ${state.name}: ${JSON.stringify({
+              labelCount: activeNodeLabelReadability.nodeLabelCount ?? null,
+              minFontSize: activeNodeLabelReadability.minFontSize ?? null,
+              minPixelSize: activeNodeLabelReadability.minPixelSize ?? null,
+              viewBoxWidth: activeNodeLabelReadability.viewBoxWidth ?? null,
+              viewBoxHeight: activeNodeLabelReadability.viewBoxHeight ?? null,
+              readable: activeNodeLabelReadability.readable === true,
+            })}`
             : `active visual matrix DOM contract failed in ${state.name}`,
         );
       }

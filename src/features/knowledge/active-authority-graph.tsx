@@ -178,7 +178,7 @@ interface Point {
 }
 
 const ACTIVE_MOBILE_NODE_LIMIT = 6;
-const ACTIVE_MOBILE_VIEWBOX = '0 0 320 520';
+const ACTIVE_MOBILE_VIEWBOX = '0 0 320 360';
 const ACTIVE_DESKTOP_VIEWBOX = '0 0 960 520';
 
 function layoutNodes(
