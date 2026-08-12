@@ -20,9 +20,10 @@ await mkdir(spoolRoot, { recursive: true });
 await mkdir(lockRoot, { recursive: true });
 await chmod(spoolRoot, 0o700);
 
+let imdsRoleName = 'act-runtime-oss-publisher';
 const imds = createServer((_request, response) => {
   response.writeHead(200, { 'content-type': 'text/plain' });
-  response.end('act-runtime-oss-publisher\n');
+  response.end(`${imdsRoleName}\n`);
 });
 await new Promise((resolve) => imds.listen(0, '127.0.0.1', resolve));
 const imdsRoleUrl = `http://127.0.0.1:${imds.address().port}/latest/meta-data/ram/security-credentials/`;
@@ -163,6 +164,27 @@ const buildManifest = (sizeOverride = bytes.byteLength) => {
 };
 
 const state = buildManifest();
+const forgeManifest = ({ schemaVersion = 'act-runtime-release.v1', treeSha256 = state.manifest.treeSha256 } = {}) => {
+  const sourceRevision = state.manifest.sourceRevision;
+  const releaseId = `runtime-${sha(stable({ sourceRevision, treeSha256 })).slice(0, 55)}`;
+  const file = {
+    ...state.file,
+    objectKey: `runtime/releases/${releaseId}/${state.file.path}`,
+  };
+  const body = {
+    schemaVersion,
+    releaseId,
+    sourceRevision,
+    fileCount: 1,
+    totalBytes: file.sizeBytes,
+    treeSha256,
+    files: [file],
+  };
+  const manifest = { ...body, manifestSha256: sha(stable(body)) };
+  const wire = Buffer.from(`${stable(manifest)}\n`);
+  const prefix = `runtime/releases/${releaseId}/`;
+  return { file, manifest, wire, prefix, manifestKey: `${prefix}.act-runtime-release.v1.json` };
+};
 const headerFor = ({ file, manifest, wire, prefix }) => JSON.stringify({
   protocol: 'act-runtime-release-stream.v1',
   releaseId: manifest.releaseId,
@@ -231,6 +253,39 @@ async function publish({ data = state, crashAfterFrame = false, frameBytes = byt
   return JSON.parse(final.value);
 }
 
+async function verify(data = state, { expectFailure = false } = {}) {
+  const child = spawn('python3', [bridge, '--bucket', 'test-bucket', '--operation', 'verify', '--prefix-b64', Buffer.from(data.prefix).toString('base64url')], {
+    env: {
+      ...process.env,
+      ACT_RUNTIME_RELEASE_TEST_MODE: '1',
+      ACT_RUNTIME_RELEASE_OSSUTIL: fakeOssutil,
+      ACT_RUNTIME_RELEASE_IMDS_ROLE_URL: imdsRoleUrl,
+      ACT_RUNTIME_RELEASE_LOCK_DIR: lockRoot,
+      ACT_RUNTIME_RELEASE_SPOOL_DIR: spoolRoot,
+      FAKE_OSS_ROOT: ossRoot,
+      FAKE_PAGE_SIZE: '1',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const stdout = [];
+  const stderr = [];
+  child.stdout.on('data', (chunk) => stdout.push(chunk));
+  child.stderr.on('data', (chunk) => stderr.push(chunk));
+  const result = await close(child);
+  if (expectFailure) {
+    assert.notEqual(result.code, 0, 'verification must reject the forged manifest');
+    return Buffer.concat(stderr).toString('utf8');
+  }
+  assert.equal(result.code, 0, Buffer.concat(stderr).toString());
+  return JSON.parse(Buffer.concat(stdout).toString('utf8'));
+}
+
+async function seedForgedRelease(data) {
+  await mkdir(path.dirname(path.join(ossRoot, data.file.objectKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, data.file.objectKey), bytes);
+  await writeFile(path.join(ossRoot, data.manifestKey), data.wire);
+}
+
 try {
   const first = publish();
   await new Promise((resolve) => setTimeout(resolve, 5));
@@ -283,6 +338,26 @@ try {
   assert.equal(logged.status, 'complete');
   const puts = (await readFile(log, 'utf8')).trim().split('\n');
   assert.equal(puts.at(-1), state.manifestKey, 'completion manifest must be the final put');
+
+  imdsRoleName = 'act-runtime-oss-read';
+  const readVerification = await verify();
+  assert.deepEqual(readVerification, {
+    schemaVersion: 'runtime-release-verification.v1',
+    releaseId: state.manifest.releaseId,
+    manifestSha256: state.manifest.manifestSha256,
+    wireSha256: sha(state.wire),
+    treeSha256: state.manifest.treeSha256,
+    fileCount: state.manifest.fileCount,
+    totalBytes: state.manifest.totalBytes,
+  }, 'read-role verification must re-list and re-read the immutable release');
+
+  const unsupportedSchema = forgeManifest({ schemaVersion: 'unsupported-runtime-release.v999' });
+  await seedForgedRelease(unsupportedSchema);
+  assert.match(await verify(unsupportedSchema, { expectFailure: true }), /manifest identity/);
+  const tamperedTree = forgeManifest({ treeSha256: 'd'.repeat(64) });
+  await seedForgedRelease(tamperedTree);
+  assert.match(await verify(tamperedTree, { expectFailure: true }), /tree digest/);
+  imdsRoleName = 'act-runtime-oss-publisher';
 
   await rm(path.join(ossRoot, state.prefix), { recursive: true, force: true });
   await assert.rejects(() => publish({ env: { FAKE_V1_MODE: 'outside' } }), /bridge publish failed/);

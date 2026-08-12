@@ -15,17 +15,20 @@ const evidenceSourceFiles = [
   'src/app/api/assessment/remediation/interventions/validation/route.ts',
   'src/app/api/assessment/remediation/route.ts',
   'src/app/assessment/adaptive-practice/page.tsx',
+  'src/features/assessment/adaptive-engine.ts',
   'src/features/assessment/micro-intervention-outcomes.ts',
+  'src/features/assessment/remediation-orchestration.ts',
   'src/features/assessment/student-micro-tutoring-panel.tsx',
+  'src/features/assessment/wrong-answer-attribution.ts',
   'tests/student-micro-tutoring-evidence.spec.ts',
 ];
 const expectedEvidenceFiles = [
   'available-full-loop-1440.png',
-  'unavailable-fail-closed-1440.png',
-  'recoverable-retry-1440.png',
+  'reference-drift-unavailable-1440.png',
+  'reference-drift-recovered-1440.png',
   'available-full-loop-320.png',
-  'unavailable-fail-closed-320.png',
-  'recoverable-retry-320.png',
+  'reference-drift-unavailable-320.png',
+  'reference-drift-recovered-320.png',
 ];
 
 type SourceSnapshot = {
@@ -46,8 +49,8 @@ const evidence: CapturedEvidence[] = [];
 
 interface PersistedAnswerFixture {
   question: { question: { id: string; options: Array<{ label: string }> } };
-  correct: { correctOption: string; durableAnswerId: string };
-  incorrect: { durableAnswerId: string };
+  correct: { correctOption: string; durableAnswerId: string; adaptiveAssessmentRef: Record<string, string> };
+  incorrect: { durableAnswerId: string; adaptiveAssessmentRef: Record<string, string> };
 }
 
 const AVAILABLE = {
@@ -186,8 +189,9 @@ test.afterAll(() => {
     sourceSha256: captureSource!.hashes,
     outcomes: {
       availableFullLoop: 'The persisted wrong-answer entry creates, starts, completes, answers validation, and renders the validated recommendation.',
-      unavailable: 'ATTRIBUTION_UNCERTAIN remains fail-closed and exposes no retry action.',
-      recoverableFailure: 'A 503 create failure offers retry and succeeds on the second request.',
+      governedEntry: 'Only a reviewed catalog-backed wrong answer exposes the student micro-tutoring entry.',
+      referenceDrift: 'A REFERENCE_DRIFT response hides stale task details and offers an explicit fresh orchestration retry.',
+      referenceDriftRecovery: 'The explicit retry creates a current task and restores the start action.',
       accessibility: 'The changed primary entry owns an explicit focus-visible ring before activation; both viewports have no horizontal overflow.',
     },
     screenshots: evidence.map(({ image: _image, file, screenshotSha256, width, state }) => ({
@@ -261,7 +265,15 @@ async function createPersistedAnswerFixture(context: BrowserContext): Promise<Pe
   expect(incorrectOption).toBeTruthy();
   const correct = first.isCorrect ? first : await submit(`micro-tutoring-correct-${fixtureKey}`, first.correctOption);
   const incorrect = first.isCorrect ? await submit(`micro-tutoring-incorrect-${fixtureKey}`, incorrectOption!) : first;
-  return { question, correct, incorrect };
+  const adaptiveAssessmentRef = {
+    catalogItemId: 'adaptive-assessment-item:fixture:governed-wrong-answer',
+    reviewState: 'reviewed',
+  };
+  return {
+    question,
+    correct: { ...correct, adaptiveAssessmentRef },
+    incorrect: { ...incorrect, adaptiveAssessmentRef },
+  };
 }
 
 async function installAssessmentFixtureRoutes(page: Page, fixture: PersistedAnswerFixture) {
@@ -279,8 +291,9 @@ async function installAssessmentFixtureRoutes(page: Page, fixture: PersistedAnsw
   });
 }
 
-async function installRemediationRoutes(page: Page, mode: 'available' | 'unavailable' | 'recoverable') {
+async function installRemediationRoutes(page: Page, mode: 'available' | 'reference-drift') {
   let createAttempts = 0;
+  const freshOrchestrationKeys: string[] = [];
   await page.route('**/api/assessment/remediation**', async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
@@ -308,17 +321,16 @@ async function installRemediationRoutes(page: Page, mode: 'available' | 'unavail
     }
     if (pathname.endsWith('/remediation') && method === 'POST') {
       createAttempts += 1;
-      if (mode === 'unavailable') {
-        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ status: 'UNAVAILABLE', unavailableReason: 'ATTRIBUTION_UNCERTAIN' }) });
-      }
-      if (mode === 'recoverable' && createAttempts === 1) {
-        return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'SERVICE_UNAVAILABLE' }) });
+      const body = await request.postDataJSON() as { refreshKey?: unknown };
+      if (typeof body.refreshKey === 'string') freshOrchestrationKeys.push(body.refreshKey);
+      if (mode === 'reference-drift' && createAttempts === 1) {
+        return route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT' }) });
       }
       return route.fulfill({ contentType: 'application/json', body: JSON.stringify(AVAILABLE) });
     }
     return route.continue();
   });
-  return { createAttempts: () => createAttempts };
+  return { createAttempts: () => createAttempts, freshOrchestrationKeys: () => [...freshOrchestrationKeys] };
 }
 
 async function openIncorrectAnswer(page: Page, fixture: PersistedAnswerFixture, width: number): Promise<Locator> {
@@ -386,24 +398,28 @@ for (const width of [1440, 320]) {
     await capture(page, `available-full-loop-${width}`, 'validated', { focusVisibleBeforeActivation: true, validationTerminal: 'passed' });
   });
 
-  test(`captures unavailable and recoverable server states at ${width}px`, async ({ context, page }) => {
+  test(`captures reference-drift retry and recovery at ${width}px`, async ({ context, page }) => {
     const fixture = await createPersistedAnswerFixture(context);
     await installAssessmentFixtureRoutes(page, fixture);
-    await installRemediationRoutes(page, 'unavailable');
-    const unavailablePanel = await openIncorrectAnswer(page, fixture, width);
-    await unavailablePanel.getByRole('button', { name: '开始微辅导' }).click();
-    await expect(unavailablePanel.getByRole('status')).toContainText('当前错因证据不足');
-    await expect(unavailablePanel.getByRole('button', { name: '重试' })).toHaveCount(0);
-    await capture(page, `unavailable-fail-closed-${width}`, 'unavailable', { retryAvailable: false, unavailableReason: 'ATTRIBUTION_UNCERTAIN' });
+    const retry = await installRemediationRoutes(page, 'reference-drift');
+    const panel = await openIncorrectAnswer(page, fixture, width);
+    await panel.getByRole('button', { name: '开始微辅导' }).click();
+    await expect(panel.getByRole('status')).toContainText('任务内容已更新，请返回练习后重新开始。');
+    await expect(panel.getByRole('button', { name: '重新尝试微辅导' })).toBeVisible();
+    await expect(panel.getByRole('button', { name: '开始本次辅导' })).toHaveCount(0);
+    await capture(page, `reference-drift-unavailable-${width}`, 'reference-drift', {
+      retryAvailable: true,
+      staleTaskHidden: true,
+      unavailableReason: 'REFERENCE_DRIFT',
+    });
 
-    await page.unrouteAll({ behavior: 'wait' });
-    await installAssessmentFixtureRoutes(page, fixture);
-    const recovery = await installRemediationRoutes(page, 'recoverable');
-    const recoveryPanel = await openIncorrectAnswer(page, fixture, width);
-    await recoveryPanel.getByRole('button', { name: '开始微辅导' }).click();
-    await expect(recoveryPanel.getByRole('alert')).toContainText('请求未完成，请重试。');
-    await recoveryPanel.getByRole('button', { name: '重试' }).click();
-    await expect(recoveryPanel.getByRole('button', { name: '开始本次辅导' })).toBeVisible();
-    await capture(page, `recoverable-retry-${width}`, 'recovered', { createAttempts: recovery.createAttempts(), retryAvailable: true });
+    await panel.getByRole('button', { name: '重新尝试微辅导' }).click();
+    await expect(panel.getByRole('button', { name: '开始本次辅导' })).toBeVisible();
+    await capture(page, `reference-drift-recovered-${width}`, 'recovered', {
+      createAttempts: retry.createAttempts(),
+      freshOrchestrationRequest: retry.freshOrchestrationKeys().length === 1,
+      retryAvailable: true,
+      startActionRestored: true,
+    });
   });
 }

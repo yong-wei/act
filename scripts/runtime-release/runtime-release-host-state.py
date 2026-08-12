@@ -17,6 +17,7 @@ GIT_REVISION = re.compile(r"^[a-f0-9]{40}$")
 IMAGE_DIGEST = re.compile(r"^sha256:[a-f0-9]{64}$")
 SELECTION_FILE = "act-runtime-selection.json"
 ACTIVE_RECEIPT_FILE = "act-runtime-active-receipt.json"
+REPRESENTATIVE_MAX_BYTES = 4 * 1024 * 1024
 
 
 def fail(message: str) -> None:
@@ -216,6 +217,17 @@ def verify_mounted(args: argparse.Namespace):
         if relative in expected:
             fail("mounted runtime manifest contains duplicate paths")
         expected[relative] = (size, digest)
+    if manifest.get("fileCount") != len(expected):
+        fail("mounted runtime manifest file count does not match its entries")
+    if manifest.get("totalBytes") != sum(size for size, _ in expected.values()):
+        fail("mounted runtime manifest total bytes do not match its entries")
+    tree_entries = [
+        {"path": relative, "sizeBytes": size, "sha256": digest}
+        for relative, (size, digest) in sorted(expected.items())
+    ]
+    tree_payload = json.dumps(tree_entries, separators=(",", ":"), sort_keys=True, ensure_ascii=False).encode("utf-8")
+    if hashlib.sha256(tree_payload).hexdigest() != manifest.get("treeSha256"):
+        fail("mounted runtime manifest tree digest does not match its entries")
     actual = set()
     for current, directories, filenames in os.walk(root, followlinks=False):
         current_path = Path(current)
@@ -236,13 +248,29 @@ def verify_mounted(args: argparse.Namespace):
         absolute = root / relative
         if absolute.stat().st_size != size:
             fail(f"mounted runtime size mismatch: {relative}")
+    candidates = [
+        (relative, size, digest)
+        for relative, (size, digest) in sorted(expected.items())
+        if size <= REPRESENTATIVE_MAX_BYTES
+    ]
+    if not candidates:
+        fail("mounted runtime has no bounded representative file for content smoke")
+    selected_indexes = sorted({0, len(candidates) // 2, len(candidates) - 1})
+    for index in selected_indexes:
+        relative, _, digest = candidates[index]
         hash_value = hashlib.sha256()
+        absolute = root / relative
         with absolute.open("rb") as handle:
             for chunk in iter(lambda: handle.read(1024 * 1024), b""):
                 hash_value.update(chunk)
         if hash_value.hexdigest() != digest:
-            fail(f"mounted runtime hash mismatch: {relative}")
-    return {"releaseId": verification["releaseId"], "fileCount": len(expected), "totalBytes": sum(size for size, _ in expected.values())}
+            fail(f"mounted runtime representative hash mismatch: {relative}")
+    return {
+        "releaseId": verification["releaseId"],
+        "fileCount": len(expected),
+        "totalBytes": sum(size for size, _ in expected.values()),
+        "representativeSampleCount": len(selected_indexes),
+    }
 
 
 def main() -> None:

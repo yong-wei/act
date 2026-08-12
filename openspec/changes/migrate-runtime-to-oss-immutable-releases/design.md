@@ -68,7 +68,11 @@ release manifest 为每个 runtime 文件提供 object key、SHA-256 和 size。
 
 2026-08-12 Sol medium 决策确认：`scripts/remote-deploy.sh` 的数据库导出、导入、迁移、seed 与 runtime 切换不是同一事务，禁止用于本次生产切换。专用编排仅允许本地构建并验证 `origin/integration` 的确定提交、传输并加载其 image tar、同步必要 runtime host tools、调用受限的 `--runtime-cutover-app-only` callback 与既有 activation script。callback 必须显式禁用迁移、seed、scheduler 初始化、数据库/Redis 容器重建和任意参数透传；它只替换使用同一 image digest 的 app、worker 与 submission 容器。
 
-切换的单主机原子边界是 `verified candidate mount → app-only replacement → readyz → active receipt`，而非数据库事务。全程持有 host `flock`；失败必须恢复旧容器配置、legacy runtime bind 或旧 active mount，并且不更新 active receipt。release locator 与 published-media closure 先作为凭据无关工件合入 integration；production image 只能由含该工件的 integration commit 构建。Legacy runtime 保留，直到独立删除授权。
+2026-08-12 Sol medium 决策确认：当 ECS 的可用空间不足以同时保存完整 image tar 与 Podman 解包层时，切换工具必须使用受控 SSH stdin 流式导入，而不是 staging image tar 或临时手工命令。流式路径先从已验证 tar 读取 image config digest、revision 与 layer 字节总量；ECS 以该总量加 1 GiB 安全余量作 Podman storage fail-closed 门禁。通过后，同一 stdin 字节流同时进入 SHA-256 和 `podman load`，二者完成且 digest、image ID、revision 均匹配才可进入 activation。任何失败都不激活、不删除镜像/卷/数据库或 legacy runtime；容量门禁不通过时需要先扩容。
+
+切换的单主机原子边界是 `verified candidate mount → app-only replacement → readyz → active receipt`，而非数据库事务。全程持有 host `flock`；失败必须恢复旧容器配置、legacy runtime bind 或旧 active mount，并且不更新 active receipt。release locator 与 published-media closure 先作为凭据无关工件合入 integration；production image 只能由含该工件的 integration commit 构建。Legacy runtime 保留，直到独立删除授权。发布器的逐对象远端重读与 SHA-256 收据是完整内容完整性证明；切回 read role 的切换前验证只验证挂载清单、精确文件集合、全部元数据和有上限的代表性文件，不重复读取整个 Release。完整 read-role 哈希审计保留为独立的周期性诊断，而不是每次切换的前置条件。
+
+runtime Release 的 `sourceRevision` 与生产镜像的 integration revision 是两个不同身份：前者描述冻结的内容输入，后者描述包含 locator 的应用代码。切换入口必须要求 locator 已由当前干净 integration checkout 跟踪，且其 `sourceRevision` 是该 integration revision 的祖先；本地和 ECS 两侧均以 `SHA-256(canonical({sourceRevision, treeSha256}))` 重算 release id，闭包也必须匹配相同 source revision、tree 与 manifest。这样不会因 locator 合入产生新的 application commit 而重发相同 runtime 内容，同时保持内容、locator、镜像和 active receipt 的可审计闭合。
 
 ## Risks / Trade-offs
 

@@ -27,10 +27,13 @@ from urllib.request import ProxyHandler, Request, build_opener
 
 KEY_PREFIX = "runtime/releases/"
 MANIFEST_NAME = ".act-runtime-release.v1.json"
+MANIFEST_SCHEMA_VERSION = "act-runtime-release.v1"
 BUCKET_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$")
 SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 ROLE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
-EXPECTED_ECS_ROLE_NAME = "act-runtime-oss-publisher"
+PUBLISHER_ECS_ROLE_NAME = "act-runtime-oss-publisher"
+READER_ECS_ROLE_NAME = "act-runtime-oss-read"
+EXPECTED_ECS_ROLE_NAME = PUBLISHER_ECS_ROLE_NAME
 OSS_ENDPOINT = "oss-cn-hangzhou-internal.aliyuncs.com"
 OSS_REGION = "cn-hangzhou"
 DEFAULT_OSSUTIL_PATH = "/opt/act-ops/ossutil-2.3.0/ossutil"
@@ -40,7 +43,9 @@ DEFAULT_SPOOL_DIR = "/var/lib/act/runtime-release-spool"
 DEFAULT_LOCK_DIR = "/var/lib/act/runtime-release-locks"
 EXPECTED_OSSUTIL_SHA256 = "1a0b6d3f955d464a6dec9d7c3f81c036781619f012311d20a4c69a4c626ed356"
 MAX_FRAME_BYTES = 256 * 1024 * 1024
+READINESS_SAMPLE_MAX_BYTES = 4 * 1024 * 1024
 MIN_FREE_BYTES = 1024 * 1024 * 1024
+MAX_SAFE_INTEGER = 9007199254740991
 OBJECT_NUMBER_SUMMARY = re.compile(r"^Object Number is:? [0-9]+$")
 TOTAL_SIZE_SUMMARY = re.compile(r"^Total Size is:? [0-9]+$")
 ELAPSED_SUMMARY = re.compile(r"^[0-9]+(?:\.[0-9]+)?\(s\) elapsed$")
@@ -184,13 +189,19 @@ def run_v2(arguments: List[str]) -> Tuple[bytes, bytes]:
 
 
 def parse_decimal(value: Any, label: str) -> int:
-    if isinstance(value, int) and value >= 0:
+    if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= MAX_SAFE_INTEGER:
         return value
     if isinstance(value, str) and re.fullmatch(r"[0-9]+", value):
         number = int(value)
         if number >= 0:
             return number
     fail(f"{label} is not a non-negative integer")
+
+
+def manifest_integer(value: Any, label: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0 or value > MAX_SAFE_INTEGER:
+        fail(f"{label} is not a non-negative safe integer")
+    return value
 
 
 def remote_digest(bucket: str, key: str) -> Dict[str, Any]:
@@ -210,6 +221,26 @@ def remote_digest(bucket: str, key: str) -> Dict[str, Any]:
     if return_code != 0:
         fail(f"ossutil v2 get-object failed for {key}: {stderr.strip()}")
     return {"sizeBytes": size, "sha256": digest.hexdigest()}
+
+
+def read_manifest_wire(bucket: str, key: str) -> bytes:
+    process = subprocess.Popen(
+        ossutil_argv("v2", ["api", "get-object", "--bucket", bucket, "--key", validate_key(key), "-q"]),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    chunks: List[bytes] = []
+    size = 0
+    assert process.stdout is not None
+    for chunk in iter(lambda: process.stdout.read(1024 * 1024), b""):
+        size += len(chunk)
+        if size > MAX_FRAME_BYTES:
+            fail("runtime release manifest exceeds the maximum accepted size")
+        chunks.append(chunk)
+    stderr = process.stderr.read().decode("utf-8", errors="replace") if process.stderr else ""
+    if process.wait() != 0:
+        fail(f"ossutil v2 get-object failed for {key}: {stderr.strip()}")
+    return b"".join(chunks)
 
 
 def list_objects_v2(bucket: str, prefix: str) -> List[Dict[str, Any]]:
@@ -398,32 +429,49 @@ def expected_manifest_files(manifest: Dict[str, Any], release_id: str) -> List[D
     files = manifest.get("files")
     if not isinstance(files, list) or not files:
         fail("manifest.files is invalid")
-    if manifest.get("fileCount") != len(files):
+    if manifest_integer(manifest.get("fileCount"), "manifest.fileCount") != len(files):
         fail("manifest.fileCount does not match manifest.files")
     expected: List[Dict[str, Any]] = []
     seen = set()
     total = 0
+    previous_path: Optional[str] = None
     for item in files:
-        if not isinstance(item, dict):
+        if not isinstance(item, dict) or set(item) != {"path", "objectKey", "sizeBytes", "sha256"}:
             fail("manifest file entry is invalid")
         path = item.get("path")
         key = item.get("objectKey")
         size = item.get("sizeBytes")
         digest = item.get("sha256")
-        if not isinstance(path, str) or not path or "\\" in path or any(part in {"", ".", ".."} for part in path.split("/")):
+        if (
+            not isinstance(path, str)
+            or not path
+            or path.startswith("/")
+            or re.match(r"^[A-Za-z]:/", path)
+            or "\\" in path
+            or any(ord(char) < 0x20 or ord(char) == 0x7F for char in path)
+            or any(part in {"", ".", ".."} for part in path.split("/"))
+        ):
             fail("manifest file path is invalid")
-        if not isinstance(key, str) or not isinstance(size, int) or size < 0 or size > MAX_FRAME_BYTES or not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
+        if not isinstance(key, str) or not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
             fail("manifest file expectation is invalid")
+        size = manifest_integer(size, f"manifest file size for {path}")
+        if size > MAX_FRAME_BYTES:
+            fail("manifest file exceeds the maximum runtime frame size")
         expected_key = f"{KEY_PREFIX}{release_id}/{path}"
         if key != expected_key:
             fail("manifest object key is not release-bound")
         validate_key(key)
+        if previous_path is not None and previous_path >= path:
+            fail("manifest.files must be strictly code-point sorted")
+        previous_path = path
         if key in seen:
             fail("manifest contains duplicate object keys")
         seen.add(key)
         total += size
-        expected.append({"key": key, "sizeBytes": size, "sha256": digest})
-    if manifest.get("totalBytes") != total:
+        if total > MAX_SAFE_INTEGER:
+            fail("manifest totalBytes exceeds the maximum safe integer")
+        expected.append({"path": path, "key": key, "sizeBytes": size, "sha256": digest})
+    if manifest_integer(manifest.get("totalBytes"), "manifest.totalBytes") != total:
         fail("manifest.totalBytes does not match manifest.files")
     return expected
 
@@ -450,23 +498,60 @@ def validate_publish_header(header: Dict[str, Any], bucket: str) -> Tuple[str, D
         fail(f"manifest wire bytes are invalid: {error}")
     if hashlib.sha256(wire).hexdigest() != wire_sha:
         fail("manifest wire digest does not match the serialized bytes")
-    if not isinstance(manifest, dict) or manifest.get("releaseId") != release_id or manifest.get("manifestSha256") != semantic_sha:
+    required_fields = {"schemaVersion", "releaseId", "sourceRevision", "fileCount", "totalBytes", "treeSha256", "manifestSha256", "files"}
+    if not isinstance(manifest, dict) or set(manifest) != required_fields or manifest.get("schemaVersion") != MANIFEST_SCHEMA_VERSION or manifest.get("releaseId") != release_id or manifest.get("manifestSha256") != semantic_sha:
         fail("manifest identity does not match publish header")
     source_revision = manifest.get("sourceRevision")
     tree_sha = manifest.get("treeSha256")
     if not isinstance(source_revision, str) or not re.fullmatch(r"[0-9a-f]{40}", source_revision) or not isinstance(tree_sha, str) or not SHA256_PATTERN.fullmatch(tree_sha):
         fail("manifest source identity is invalid")
+    expected = expected_manifest_files(manifest, release_id)
+    calculated_tree_sha = hashlib.sha256(canonical_json([{"path": entry["path"], "sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]} for entry in expected])).hexdigest()
+    if tree_sha != calculated_tree_sha:
+        fail("manifest tree digest does not match its files")
     expected_release_id = "runtime-" + hashlib.sha256(canonical_json({"sourceRevision": source_revision, "treeSha256": tree_sha})).hexdigest()[:55]
     if release_id != expected_release_id:
         fail("release id is not content-addressed")
     if canonical_json(manifest) + b"\n" != wire:
         fail("manifest wire bytes are not canonical")
-    without_digest = dict(manifest)
-    without_digest.pop("manifestSha256", None)
+    without_digest = {
+        "schemaVersion": MANIFEST_SCHEMA_VERSION,
+        "releaseId": release_id,
+        "sourceRevision": source_revision,
+        "fileCount": manifest["fileCount"],
+        "totalBytes": manifest["totalBytes"],
+        "treeSha256": tree_sha,
+        "files": [{"path": entry["path"], "objectKey": entry["key"], "sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]} for entry in expected],
+    }
     if hashlib.sha256(canonical_json(without_digest)).hexdigest() != semantic_sha:
         fail("manifest semantic digest does not match canonical content")
-    expected = expected_manifest_files(manifest, release_id)
     return prefix, manifest, wire, wire_sha, expected
+
+
+def read_validated_manifest(bucket: str, prefix: str) -> Tuple[Dict[str, Any], bytes, str, List[Dict[str, Any]]]:
+    prefix = validate_prefix(prefix)
+    release_id = prefix.rstrip("/").split("/")[-1]
+    wire = read_manifest_wire(bucket, f"{prefix}{MANIFEST_NAME}")
+    try:
+        decoded = json.loads(wire.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail(f"remote runtime release manifest is invalid: {error}")
+    if not isinstance(decoded, dict):
+        fail("remote runtime release manifest must be an object")
+    manifest_sha = decoded.get("manifestSha256")
+    if not isinstance(manifest_sha, str):
+        fail("remote runtime release manifest semantic digest is invalid")
+    verified_prefix, manifest, _, wire_sha, files = validate_publish_header({
+        "protocol": "act-runtime-release-stream.v1",
+        "releaseId": release_id,
+        "prefix": prefix,
+        "manifestSha256": manifest_sha,
+        "wireSha256": hashlib.sha256(wire).hexdigest(),
+        "manifestWireBase64": base64.urlsafe_b64encode(wire).decode("ascii").rstrip("="),
+    }, bucket)
+    if verified_prefix != prefix:
+        fail("remote runtime release manifest prefix is invalid")
+    return manifest, wire, wire_sha, files
 
 
 def assert_object_set(objects: List[Dict[str, Any]], expected: Dict[str, int], allow_manifest: bool) -> None:
@@ -631,6 +716,36 @@ def publish(bucket: str, requested_prefix: str) -> None:
         lock_file.close()
 
 
+def verify_operation(bucket: str, prefix_b64: str) -> None:
+    prefix = validate_prefix(decode_value(prefix_b64, "prefix"))
+    manifest, wire, wire_sha, files = read_validated_manifest(bucket, prefix)
+    manifest_key = f"{prefix}{MANIFEST_NAME}"
+    expected_sizes = {entry["key"]: entry["sizeBytes"] for entry in files}
+    expected_sizes[manifest_key] = len(wire)
+    objects = list_objects(bucket, prefix)
+    assert_object_set(objects, expected_sizes, allow_manifest=True)
+    cross_check_v1_keys(bucket, prefix, objects)
+    if remote_digest(bucket, manifest_key) != {"sizeBytes": len(wire), "sha256": wire_sha}:
+        fail("remote completion manifest failed read-role readiness")
+    candidates = [entry for entry in files if entry["sizeBytes"] <= READINESS_SAMPLE_MAX_BYTES]
+    if not candidates:
+        fail("remote runtime release has no bounded representative object for read-role readiness")
+    selected_indexes = sorted({0, len(candidates) // 2, len(candidates) - 1})
+    for index in selected_indexes:
+        entry = candidates[index]
+        if remote_digest(bucket, entry["key"]) != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]}:
+            fail(f"remote representative object failed read-role readiness for {entry['key']}")
+    write_json({
+        "schemaVersion": "runtime-release-verification.v1",
+        "releaseId": manifest["releaseId"],
+        "manifestSha256": manifest["manifestSha256"],
+        "wireSha256": wire_sha,
+        "treeSha256": manifest["treeSha256"],
+        "fileCount": manifest["fileCount"],
+        "totalBytes": manifest["totalBytes"],
+    })
+
+
 def list_operation(bucket: str, prefix_b64: str) -> None:
     write_json(list_objects(bucket, decode_value(prefix_b64, "prefix")))
 
@@ -638,11 +753,13 @@ def list_operation(bucket: str, prefix_b64: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--bucket", required=True)
-    parser.add_argument("--operation", choices=("list", "get", "publish"), required=True)
+    parser.add_argument("--operation", choices=("list", "get", "publish", "verify"), required=True)
     parser.add_argument("--prefix-b64")
     parser.add_argument("--key-b64")
     arguments = parser.parse_args()
     bucket = validate_bucket(arguments.bucket)
+    global EXPECTED_ECS_ROLE_NAME
+    EXPECTED_ECS_ROLE_NAME = PUBLISHER_ECS_ROLE_NAME if arguments.operation == "publish" else READER_ECS_ROLE_NAME
     if arguments.operation == "list":
         if not arguments.prefix_b64:
             fail("list requires --prefix-b64")
@@ -653,6 +770,11 @@ def main() -> None:
             fail("publish requires --prefix-b64")
         requested_prefix = validate_prefix(decode_value(arguments.prefix_b64, "prefix"))
         publish(bucket, requested_prefix)
+        return
+    if arguments.operation == "verify":
+        if not arguments.prefix_b64:
+            fail("verify requires --prefix-b64")
+        verify_operation(bucket, arguments.prefix_b64)
         return
     if not arguments.key_b64:
         fail("get requires --key-b64")

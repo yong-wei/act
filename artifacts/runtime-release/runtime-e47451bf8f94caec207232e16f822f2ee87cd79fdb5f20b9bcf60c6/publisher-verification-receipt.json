@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "runtime-release-verification.v1",
+  "releaseId": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6",
+  "manifestSha256": "f38d2a088944cff658650e1aab2b920fbcf5f857d0e1cf08f18bc2ee6cf88d24",
+  "wireSha256": "036d42bd880e5408b3254ecc352f21c2bc63592bf97d09bcc3112712d301fc73",
+  "treeSha256": "47facad67e6f232ef3734011700a0311d9b1cb6e1f3dd2fee777d4746346446b",
+  "fileCount": 10228,
+  "totalBytes": 6361518627,
+  "verificationMethod": "ecs-publisher-upload-readback"
+}

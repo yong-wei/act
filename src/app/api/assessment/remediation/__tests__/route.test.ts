@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   attributeWrongAnswerEvidence: vi.fn(),
   orchestrateRemediation: vi.fn(),
+  refreshRemediationOrchestration: vi.fn(),
   readRemediationOrchestration: vi.fn(),
 }));
 
@@ -11,6 +12,7 @@ vi.mock('@/lib/auth', () => ({ getServerAuthSession: mocks.getServerAuthSession 
 vi.mock('@/lib/prisma', () => ({ prisma: {} }));
 vi.mock('@/features/assessment/remediation-orchestration', () => ({
   orchestrateRemediation: mocks.orchestrateRemediation,
+  refreshRemediationOrchestration: mocks.refreshRemediationOrchestration,
   readRemediationOrchestration: mocks.readRemediationOrchestration,
 }));
 vi.mock('@/features/assessment/wrong-answer-attribution', () => ({
@@ -127,6 +129,35 @@ describe('assessment remediation route', () => {
     expect(response.status).toBe(200);
     expect(payload).toEqual(expect.objectContaining({ status: 'UNAVAILABLE' }));
     expect(JSON.stringify(payload)).not.toContain('secret');
+  });
+
+  it('refreshes only an attribution derived from the owned durable answer', async () => {
+    mocks.attributeWrongAnswerEvidence.mockResolvedValue({ id: 'attribution-owned' });
+    mocks.refreshRemediationOrchestration.mockResolvedValue({
+      id: 'fresh-result', status: 'AVAILABLE', orchestratorVersion: 'remediation-orchestrator.v1:refresh:refresh-1',
+      task: { version: 'remediation-task-snapshot.v1', goal: 'Fresh task', estimatedMinutes: 5, resources: [], validationQuestion: {} },
+      createdAt: '2026-08-12T00:00:00.000Z',
+    });
+
+    const response = await POST(new Request('http://localhost/api/assessment/remediation', {
+      method: 'POST', body: JSON.stringify({ answerId: 'answer-1', refreshKey: 'refresh-1' }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.refreshRemediationOrchestration).toHaveBeenCalledWith(expect.objectContaining({
+      authenticatedUserId: 'learner-1', attributionId: 'attribution-owned', refreshKey: 'refresh-1',
+    }));
+    expect(mocks.orchestrateRemediation).not.toHaveBeenCalled();
+  });
+
+  it('rejects a fresh retry that does not originate from a durable answer', async () => {
+    const response = await POST(new Request('http://localhost/api/assessment/remediation', {
+      method: 'POST', body: JSON.stringify({ attributionId: 'attribution-1', refreshKey: 'refresh-1' }),
+    }));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: 'ANSWER_ID_REQUIRED_FOR_REFRESH' });
+    expect(mocks.refreshRemediationOrchestration).not.toHaveBeenCalled();
   });
 
   it('reads only a result scoped to the authenticated learner', async () => {
