@@ -118,7 +118,20 @@ export function resolveAdaptivePathContextRecoveryState(input: {
     input.workspaceIntent === 'execution' ||
     input.workspaceIntent === 'evidence-review';
 
-  if (!requiresPathContext || !input.activeGoal || input.isDemoMode || input.hasLoadedPathContext) {
+  if (
+    !requiresPathContext ||
+    (!input.activeGoal && !input.requestedPathId) ||
+    input.hasLoadedPathContext
+  ) {
+    return {
+      shouldRecover: false,
+      reason: 'none',
+      title: '',
+      detail: '',
+    };
+  }
+
+  if (input.isDemoMode) {
     return {
       shouldRecover: false,
       reason: 'none',
@@ -154,7 +167,7 @@ export function resolveAdaptivePathContextRecoveryState(input: {
     };
   }
 
-  if (input.requestedPathId) {
+  if (input.requestedPathId && input.activeGoal) {
     return {
       shouldRecover: true,
       reason: 'path-not-found',

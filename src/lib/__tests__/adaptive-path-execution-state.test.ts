@@ -70,6 +70,33 @@ describe('resolveAdaptivePathContextRecoveryState', () => {
     });
   });
 
+  it('blocks starter examples when a path id exists but the route goal is missing', () => {
+    expect(resolveAdaptivePathContextRecoveryState({
+      workspaceIntent: 'selection',
+      activeGoal: false,
+      authStatus: 'authenticated',
+      isDemoMode: false,
+      requestedPathId: 'adaptive-path:student-1:control-correction',
+      hasLoadedPathContext: false,
+      loadState: 'missing',
+    })).toMatchObject({
+      shouldRecover: true,
+      reason: 'path-context-missing',
+    });
+  });
+
+  it('does not turn a goal-less selection URL without a path id into recovery', () => {
+    expect(resolveAdaptivePathContextRecoveryState({
+      workspaceIntent: 'selection',
+      activeGoal: false,
+      authStatus: 'authenticated',
+      isDemoMode: false,
+      requestedPathId: null,
+      hasLoadedPathContext: false,
+      loadState: 'missing',
+    }).shouldRecover).toBe(false);
+  });
+
   it('keeps explicit bad path ids out of execution and evidence surfaces', () => {
     for (const workspaceIntent of ['execution', 'evidence-review'] as const) {
       expect(resolveAdaptivePathContextRecoveryState({
