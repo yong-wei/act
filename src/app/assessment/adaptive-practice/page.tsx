@@ -14,9 +14,12 @@ import {
   Flag,
   GitBranch,
   History,
+  Layers,
   ListChecks,
+  LockKeyhole,
   MessageSquare,
   RefreshCw,
+  Scale,
   Settings,
   Sparkles,
   Target,
@@ -65,6 +68,7 @@ import {
   buildAdaptivePathOptionComparisonFacts,
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionDisplay,
+  type AdaptivePathOptionPreviewNode,
   type AdaptivePathOptionWriteOption,
   type AdaptivePathResourceKind,
 } from '@/lib/adaptive-path-option-display';
@@ -1010,6 +1014,411 @@ const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = 
   konling: MessageSquare,
 };
 
+const PATH_KNOWLEDGE_LABELS: Record<string, string> = {
+  'phase-margin': '相位裕度',
+  'frequency-response': '频率响应',
+  'root-locus': '根轨迹',
+  'root-locus-reasoning': '根轨迹推理',
+  'frequency-domain-margin-analysis': '频域裕度分析',
+  'time-domain-analysis': '时域分析',
+  'disturbance-rejection': '扰动抑制',
+  'controller-tuning': '控制器整定',
+  robustness: '鲁棒性',
+  'comfort-constraint': '舒适度约束',
+  'parameter-design': '参数设计',
+  parameterDesign: '参数设计',
+  'method-selection': '校正方法选择',
+  'constraint-tradeoff': '约束与权衡',
+  'simulation-validation': '仿真验证',
+  'arena-transfer': '综合迁移',
+  reflection: '学习复盘',
+  'ai-collaboration': '人机协作',
+};
+
+function resolvePathKnowledgeLabel(value: string): string {
+  const knownLabel = PATH_KNOWLEDGE_LABELS[value];
+  if (knownLabel) return knownLabel;
+  const readable = value.replace(/[-_]/g, ' ').trim();
+  return readable ? `${readable.slice(0, 1).toUpperCase()}${readable.slice(1)}` : value;
+}
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+type StudentPathRecommendation = {
+  mastered: string[];
+  needsWork: string[];
+  priorities: string[];
+  expectedHelp: string;
+};
+
+function buildStudentPathRecommendation(
+  option: AdaptivePathOptionDisplay,
+  diagnostic: DiagnosticResponse | null,
+  learnerState: AdaptiveLearnerState | null,
+): StudentPathRecommendation | null {
+  const tags = learnerState?.knowledgeMastery?.tags ?? {};
+  const masteryEntries = Object.entries(tags)
+    .filter(([, mastery]) => Number.isFinite(mastery.posteriorMastery))
+    .sort(([, left], [, right]) => right.posteriorMastery - left.posteriorMastery);
+  const mastered = uniqueStrings(
+    masteryEntries
+      .filter(([, mastery]) => mastery.posteriorMastery >= 0.7)
+      .slice(0, 3)
+      .map(([tag]) => resolvePathKnowledgeLabel(tag)),
+  );
+  const weakFromMastery = masteryEntries
+    .filter(([, mastery]) => mastery.posteriorMastery < 0.55)
+    .slice(0, 4)
+    .map(([tag]) => resolvePathKnowledgeLabel(tag));
+  const weakFromDiagnostic = (diagnostic?.weakAreas ?? []).map(resolvePathKnowledgeLabel);
+  const needsWork = uniqueStrings([...weakFromMastery, ...weakFromDiagnostic]).slice(0, 4);
+  const provenancePriorities = (option.recommendationProvenance?.entries ?? []).flatMap((entry) => {
+    const affectedResource = entry.affectedResourceTitles[0];
+    return affectedResource
+      ? [`优先完成${affectedResource}`]
+      : [`优先练习${entry.targetLabel}`];
+  });
+  const priorities = uniqueStrings([
+    ...(diagnostic?.recommendedFocus ?? []),
+    ...provenancePriorities,
+  ]).slice(0, 3);
+  if (mastered.length === 0 && needsWork.length === 0 && priorities.length === 0) return null;
+  const targetLabels = (option.recommendationProvenance?.entries ?? [])
+    .map((entry) => entry.targetLabel)
+    .slice(0, 2);
+  const expectedHelp = targetLabels.length > 0
+    ? `重点提升${targetLabels.join('、')}的理解与应用${option.expectedAbilityImprovement
+      ? `，预计能力改善${option.expectedAbilityImprovement}`
+      : ''}`
+    : option.expectedAbilityImprovement
+      ? `预计能力改善${option.expectedAbilityImprovement}`
+      : option.outcome;
+  return {
+    mastered,
+    needsWork,
+    priorities,
+    expectedHelp,
+  };
+}
+
+type PathSelectionGuidance = {
+  label: string;
+  detail: string;
+  tone: 'recommended' | 'fit' | 'neutral';
+};
+
+type PathPositioning = 'foundation' | 'reinforcement' | 'practice' | 'course' | 'balanced';
+
+function resolvePathPositioning(option: AdaptivePathOptionDisplay): PathPositioning {
+  const haystack = `${option.id} ${option.title} ${option.reason} ${option.scenario}`;
+  if (/基础|补救|重建|先修|夯实|补弱|概念/.test(haystack)) return 'foundation';
+  if (/实践|冲刺|仿真|工作台|挑战|Arena|验证/.test(haystack)) return 'practice';
+  if (/推荐|强化|提升|训练/.test(haystack)) return 'reinforcement';
+  if (/课程|课堂|同步|复盘/.test(haystack)) return 'course';
+  return 'balanced';
+}
+
+function buildPathPositioningLabel(option: AdaptivePathOptionDisplay): string {
+  switch (resolvePathPositioning(option)) {
+    case 'foundation':
+      return '基础重建';
+    case 'reinforcement':
+      return '能力强化';
+    case 'practice':
+      return '实践冲刺';
+    case 'course':
+      return '课堂同步';
+    default:
+      return '均衡推进';
+  }
+}
+
+function buildPathPositioningExplanation(
+  option: AdaptivePathOptionDisplay,
+  diagnostic: DiagnosticResponse | null,
+  learnerState: AdaptiveLearnerState | null,
+): string {
+  const guidance = buildStudentPathRecommendation(option, diagnostic, learnerState);
+  const mastered = guidance?.mastered ?? [];
+  const needsWork = guidance?.needsWork ?? [];
+  const masteredText = mastered.slice(0, 3).join('、');
+  const weakText = needsWork.slice(0, 4).join('、');
+  const positioning = resolvePathPositioning(option);
+
+  if (positioning === 'foundation') {
+    if (weakText) {
+      return `当前诊断显示${weakText}还需要加强。这条路线先补齐相关概念和前置规则，降低学习难度，再进入练习与验证，避免在直接强化时因基础不牢而卡住。`;
+    }
+    return '这条路线适合希望先补齐基础的学生：先补概念和前置规则，再进入练习，降低学习难度，为后续强化打牢基础。';
+  }
+
+  if (positioning === 'reinforcement') {
+    if (masteredText && weakText) {
+      return `你已经掌握${masteredText}，当前主要缺口是${weakText}。这条路线直接围绕这些薄弱能力安排强化训练，以练习、仿真和综合验证为主，减少重复概念铺垫，把已有基础快速转化为可执行的设计与校正能力。`;
+    }
+    if (weakText) {
+      return `当前诊断显示${weakText}还需要加强。你已有可执行的练习基础，这条路线会直接强化这些薄弱能力，以实践训练和快速验证为主，避免把时间浪费在已经掌握的内容上。`;
+    }
+    return '这条路线适合已有一定基础的学生：直接强化当前薄弱能力，以练习、仿真和综合验证为主，目标是快速缩短能力缺口。';
+  }
+
+  if (positioning === 'practice') {
+    return weakText
+      ? `当前需要加强${weakText}。这条路线以仿真、工作台和挑战为主，适合先通过实践暴露问题，再根据反馈补强具体能力。`
+      : '这条路线以实验和综合挑战为主，适合已有一定基础并希望快速验证能力的学生。';
+  }
+
+  if (positioning === 'course') {
+    return '这条路线把课堂内容、练习和复盘串联起来，适合希望跟随课堂节奏持续推进的学生。';
+  }
+
+  return '这条路线按概念、练习、综合验证的顺序推进，适合希望稳定补齐目标能力的学生。';
+}
+
+function buildPathPositioningHighlights(option: AdaptivePathOptionDisplay): string[] {
+  switch (resolvePathPositioning(option)) {
+    case 'foundation':
+      return ['基础不足', '先补概念', '降低学习难度', '增加基础学习环节'];
+    case 'reinforcement':
+      return ['已有基础', '快速提升', '直接强化薄弱能力', '更多实践训练'];
+    case 'practice':
+      return ['已有基础', '任务驱动', '快速验证', '综合挑战'];
+    case 'course':
+      return ['跟随课堂', '边学边练', '持续推进', '复盘巩固'];
+    default:
+      return ['按阶段推进', '概念与练习均衡', '持续验证', '降低卡点风险'];
+  }
+}
+
+function PathPositioningHighlights({ option }: { option: AdaptivePathOptionDisplay }) {
+  return (
+    <div
+      className="mt-3 rounded-lg border border-border bg-background/60 p-3"
+      data-learning-path-positioning={option.id}
+      data-learning-path-positioning-kind={resolvePathPositioning(option)}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-semibold text-foreground">路径定位</p>
+        <span className="rounded-md border border-border bg-muted/30 px-2 py-1 text-xs font-medium text-foreground">
+          {buildPathPositioningLabel(option)}
+        </span>
+      </div>
+      <ul className="mt-2 flex flex-wrap gap-1.5">
+        {buildPathPositioningHighlights(option).map((highlight) => (
+          <li
+            key={highlight}
+            className="rounded-md border border-border bg-muted/30 px-2 py-1 text-xs text-subtle"
+          >
+            {highlight}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function pathRecommendationStrength(option: AdaptivePathOptionDisplay): number {
+  const lift = option.writeOption?.expectedTargetLift ?? 0;
+  const confidence = option.recommendationProvenance?.confidence === 'high'
+    ? 2
+    : option.recommendationProvenance?.confidence === 'medium'
+      ? 1
+      : 0;
+  const entryStrength = (option.recommendationProvenance?.entries ?? []).reduce((total, entry) => {
+    if (entry.confidence === 'high') return total + 2;
+    if (entry.confidence === 'medium') return total + 1;
+    return total;
+  }, 0);
+  return lift * 100 + confidence * 10 + Math.min(entryStrength, 4);
+}
+
+function buildPathSelectionGuidance(
+  option: AdaptivePathOptionDisplay,
+  options: AdaptivePathOptionDisplay[],
+): PathSelectionGuidance | null {
+  if (!option.isGenerated || options.length < 2) return null;
+  const strengths = options.map(pathRecommendationStrength);
+  const maxStrength = Math.max(...strengths);
+  const strongestOptions = strengths.filter((strength) => strength === maxStrength);
+  if (maxStrength > 0 && strongestOptions.length === 1 && pathRecommendationStrength(option) === maxStrength) {
+    return {
+      label: '系统推荐',
+      detail: '系统判断这条路线对当前薄弱项的提升更集中，仍可自由选择其他方案。',
+      tone: 'recommended',
+    };
+  }
+  const positioning = resolvePathPositioning(option);
+  if (positioning === 'foundation') {
+    return {
+      label: '基础补救',
+      detail: '适合希望先补齐概念和前置规则的学生，先降低学习难度再进入练习。',
+      tone: 'fit',
+    };
+  }
+  if (positioning === 'reinforcement') {
+    return {
+      label: '能力强化',
+      detail: '适合已有一定基础并希望快速提升薄弱能力的学生。',
+      tone: 'recommended',
+    };
+  }
+  if (positioning === 'practice') {
+    return {
+      label: '适合实践验证',
+      detail: '适合已有一定基础并希望快速验证的学生。',
+      tone: 'fit',
+    };
+  }
+  if (positioning === 'course') {
+    return {
+      label: '适合课堂同步',
+      detail: '适合跟随课堂节奏持续推进的学生。',
+      tone: 'fit',
+    };
+  }
+  return {
+    label: '稳步推进',
+    detail: '按概念、练习、综合验证的顺序推进。',
+    tone: 'neutral',
+  };
+}
+
+function PathSelectionGuidanceBadge({
+  option,
+  options,
+}: {
+  option: AdaptivePathOptionDisplay;
+  options: AdaptivePathOptionDisplay[];
+}) {
+  const guidance = buildPathSelectionGuidance(option, options);
+  if (!guidance) return null;
+  return (
+    <span
+      className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${
+        guidance.tone === 'recommended'
+          ? 'border-primary/35 bg-primary/10 text-primary'
+          : guidance.tone === 'fit'
+            ? 'border-emerald-600/30 bg-emerald-600/10 text-emerald-700'
+            : 'border-border bg-muted/40 text-subtle'
+      }`}
+      data-learning-path-selection-guidance={option.id}
+      data-learning-path-selection-guidance-tone={guidance.tone}
+      title={guidance.detail}
+    >
+      {guidance.tone === 'recommended' ? (
+        <Sparkles className="size-3.5 shrink-0" aria-hidden="true" />
+      ) : (
+        <Target className="size-3.5 shrink-0" aria-hidden="true" />
+      )}
+      <span className="truncate">{guidance.label}</span>
+    </span>
+  );
+}
+
+function buildPathFitSummary(option: AdaptivePathOptionDisplay): string {
+  switch (resolvePathPositioning(option)) {
+    case 'foundation':
+      return '基础不足，或希望先补齐概念再进入练习的学生';
+    case 'reinforcement':
+      return '已有一定基础，希望快速提升薄弱能力的学生';
+    case 'practice':
+      return '已有基础并希望通过仿真、挑战快速验证的学生';
+    case 'course':
+      return '希望跟随课堂节奏持续推进的学生';
+    default:
+      return '希望按系统建议逐步补齐目标的学生';
+  }
+}
+
+function buildPathCoreStrategy(option: AdaptivePathOptionDisplay): string {
+  switch (resolvePathPositioning(option)) {
+    case 'foundation':
+      return '先修知识补齐与概念重建';
+    case 'reinforcement':
+      return '薄弱能力针对训练与快速验证';
+    case 'practice':
+      return '实验仿真与综合挑战验证';
+    case 'course':
+      return '课堂内容、练习与复盘串联';
+    default:
+      return '概念、练习与验证均衡推进';
+  }
+}
+
+function buildPathLearningStyle(option: AdaptivePathOptionDisplay): string {
+  switch (resolvePathPositioning(option)) {
+    case 'foundation':
+      return '概念先行，再进入练习';
+    case 'reinforcement':
+      return '实践驱动，练习、仿真与验证交替';
+    case 'practice':
+      return '任务驱动，快速进入实验与挑战';
+    case 'course':
+      return '边学边练，按课堂节奏推进';
+    default:
+      return '按阶段逐步推进';
+  }
+}
+
+function buildPathLearningFocus(option: AdaptivePathOptionDisplay): string {
+  const positioning = resolvePathPositioning(option);
+  if (positioning === 'foundation') return '概念补齐与基础知识重建为主';
+  if (positioning === 'reinforcement') return '实践训练与薄弱能力强化为主';
+  if (positioning === 'practice') return '实验训练与综合验证为主';
+  if (positioning === 'course') return '课堂知识串联与复盘为主';
+  const practiceKinds: AdaptivePathResourceKind[] = [
+    'adaptive_quiz',
+    'control_workbench',
+    'simulation',
+    'arena_task',
+    'checkpoint',
+    'konling',
+  ];
+  const conceptKinds: AdaptivePathResourceKind[] = [
+    'knowledge_card',
+    'interactive_lesson',
+    'external_resource',
+    'reflection',
+  ];
+  const practiceCount = option.resources.reduce(
+    (total, resource) => total + (practiceKinds.includes(resource.kind) ? 1 : 0),
+    0,
+  );
+  const conceptCount = option.resources.reduce(
+    (total, resource) => total + (conceptKinds.includes(resource.kind) ? 1 : 0),
+    0,
+  );
+  if (practiceCount > conceptCount) return '实验训练与练习验证为主';
+  if (conceptCount > practiceCount) return '知识补齐与概念巩固为主';
+  return '概念、练习与验证均衡推进';
+}
+
+function parseEstimatedMinutes(value: string): number | null {
+  const hours = /(\d+)\s*小时/.exec(value);
+  const minutes = /(\d+)\s*分钟/.exec(value);
+  const shortMinutes = /(\d+)\s*分/.exec(value);
+  const total = (hours ? Number(hours[1]) * 60 : 0)
+    + (minutes ? Number(minutes[1]) : shortMinutes ? Number(shortMinutes[1]) : 0);
+  return total > 0 ? total : null;
+}
+
+function buildPathLearningRhythm(option: AdaptivePathOptionDisplay): string {
+  if (option.writeOption?.effort.relative === 'short') return '快速集中';
+  if (option.writeOption?.effort.relative === 'medium') return '均衡推进';
+  if (option.writeOption?.effort.relative === 'long') return '稳步推进';
+  const positioning = resolvePathPositioning(option);
+  if (positioning === 'reinforcement' || positioning === 'practice') return '快速集中';
+  if (positioning === 'foundation') return '稳步推进';
+  if (positioning === 'course') return '课堂节奏';
+  const minutes = parseEstimatedMinutes(option.estimatedTime);
+  if (minutes === null) return '按阶段推进';
+  if (minutes <= 90) return '快速集中';
+  if (minutes <= 180) return '均衡推进';
+  return '稳步推进';
+}
+
 function formatPathComparisonTitles(titles: string[]): string {
   if (titles.length === 0) return '无';
   if (titles.length <= 4) return titles.join('、');
@@ -1092,6 +1501,100 @@ function PathOptionRealDifferenceFacts({
   );
 }
 
+type PathRouteStage = {
+  id: string;
+  label: string;
+  goal: string;
+  nodes: AdaptivePathOptionPreviewNode[];
+  lockedCount: number;
+};
+
+const pathRouteStageDefinitions: Array<{
+  id: string;
+  label: string;
+  goal: string;
+  kinds: AdaptivePathResourceKind[];
+}> = [
+  {
+    id: 'foundation',
+    label: '概念铺垫',
+    goal: '先建立解决目标所需的核心概念和规则',
+    kinds: ['knowledge_card', 'interactive_lesson', 'external_resource'],
+  },
+  {
+    id: 'practice',
+    label: '练习验证',
+    goal: '通过练习、仿真或辅导验证理解并暴露薄弱点',
+    kinds: ['adaptive_quiz', 'control_workbench', 'simulation', 'konling'],
+  },
+  {
+    id: 'challenge',
+    label: '挑战复盘',
+    goal: '完成综合检查、挑战和复盘',
+    kinds: ['arena_task', 'reflection', 'checkpoint'],
+  },
+];
+
+function isLockedPathNode(node: AdaptivePathOptionPreviewNode): boolean {
+  return Boolean(node.unlockChain || node.unlockMessage || node.statusLabel === '稍后解锁');
+}
+
+function buildPathRouteStages(nodes: AdaptivePathOptionPreviewNode[]): PathRouteStage[] {
+  const stages: PathRouteStage[] = [];
+  for (const node of nodes) {
+    const definition = pathRouteStageDefinitions.find((stage) => stage.kinds.includes(node.kind))
+      ?? pathRouteStageDefinitions[1];
+    const current = stages[stages.length - 1];
+    if (!current || current.id !== definition.id) {
+      stages.push({
+        id: definition.id,
+        label: definition.label,
+        goal: definition.goal,
+        nodes: [],
+        lockedCount: 0,
+      });
+    }
+    const stage = stages[stages.length - 1];
+    stage.nodes.push(node);
+    if (isLockedPathNode(node)) stage.lockedCount += 1;
+  }
+  return stages;
+}
+
+function summarizeRouteStageTime(stage: PathRouteStage): string | undefined {
+  let totalMinutes = 0;
+  let hasKnownTime = false;
+  for (const node of stage.nodes) {
+    const match = /(\d+)\s*分钟/.exec(node.estimatedTime);
+    if (match) {
+      totalMinutes += Number(match[1]);
+      hasKnownTime = true;
+    }
+  }
+  return hasKnownTime ? `${totalMinutes} 分钟` : undefined;
+}
+
+function resolveLockedTaskEstimatedMinutes(
+  node: AdaptivePathOptionPreviewNode,
+  option: AdaptivePathOptionDisplay,
+): number | null {
+  if (!node.unlockChain) return null;
+  const firstCondition = node.unlockChain.missingConditions.find((condition) =>
+    condition.id.startsWith('completed-node:') || condition.id.startsWith('prerequisite:'),
+  );
+  if (!firstCondition) return null;
+  const nodeId = firstCondition.id
+    .replace(/^completed-node:/, '')
+    .replace(/^prerequisite:/, '');
+  const title = firstCondition.title.replace(/^完成「/, '').replace(/」$/, '');
+  const summary = option.writeOption?.nodeSummaries?.find((item) =>
+    item.nodeId === nodeId || item.title === title || item.displayName === title,
+  );
+  return typeof summary?.estimatedTimeMinutes === 'number'
+    ? summary.estimatedTimeMinutes
+    : null;
+}
+
 function PathOptionRoutePreview({ option }: { option: AdaptivePathOptionDisplay }) {
   if (!option.isGenerated) return null;
   if (!option.orderedNodes) {
@@ -1105,9 +1608,10 @@ function PathOptionRoutePreview({ option }: { option: AdaptivePathOptionDisplay 
     );
   }
 
-  const visibleNodes = option.orderedNodes.slice(0, 4);
-  const remainingNodes = option.orderedNodes.slice(4);
-  const renderNode = (node: typeof option.orderedNodes[number], index: number) => {
+  const orderedNodes = option.orderedNodes;
+  const stages = buildPathRouteStages(orderedNodes);
+  const lockedCount = stages.reduce((total, stage) => total + stage.lockedCount, 0);
+  const renderNode = (node: typeof orderedNodes[number], index: number) => {
     const Icon = adaptivePathResourceIcons[node.kind];
     return (
       <li key={node.nodeId} className="relative flex gap-2.5 pb-3 last:pb-0">
@@ -1130,9 +1634,12 @@ function PathOptionRoutePreview({ option }: { option: AdaptivePathOptionDisplay 
             ) : null}
           </div>
           {node.unlockChain ? (
-            <AdaptivePathUnlockChainView chain={node.unlockChain} />
+            <AdaptivePathUnlockChainView
+              chain={node.unlockChain}
+              estimatedTimeMinutes={resolveLockedTaskEstimatedMinutes(node, option)}
+            />
           ) : node.unlockMessage ? (
-            <p className="mt-1 text-xs leading-5 text-subtle">解锁条件：{node.unlockMessage}</p>
+            <p className="mt-1 text-xs leading-5 text-subtle">暂不能进入该任务：{node.unlockMessage}</p>
           ) : null}
         </div>
       </li>
@@ -1144,20 +1651,160 @@ function PathOptionRoutePreview({ option }: { option: AdaptivePathOptionDisplay 
       className="mt-3 rounded-lg border border-border bg-background/60 p-3"
       data-learning-path-route-preview={option.id}
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-semibold text-foreground">学习步骤</p>
-        <span className="text-xs text-subtle">共 {option.orderedNodes.length} 步</span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground">
+          <Layers className="size-3.5 text-primary" aria-hidden="true" />
+          学习步骤
+        </p>
+        <span className="text-xs text-subtle">{orderedNodes.length} 步 · {stages.length} 个阶段</span>
       </div>
-      <ol className="mt-3">{visibleNodes.map(renderNode)}</ol>
-      {remainingNodes.length > 0 ? (
-        <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-route-disclosure="full">
-          <summary className="cursor-pointer font-medium text-foreground">展开完整路径（共 {option.orderedNodes.length} 步）</summary>
-          <p className="mt-2 text-xs leading-5 text-subtle">以下为前四步之后的学习安排。</p>
-          <ol className="mt-3" start={5}>
-            {remainingNodes.map((node, index) => renderNode(node, index + 4))}
-          </ol>
-        </details>
+      {lockedCount > 0 ? (
+        <div
+          className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs leading-5 text-foreground"
+          data-learning-path-locked-task-summary={option.id}
+        >
+          <LockKeyhole className="mt-0.5 size-3.5 shrink-0 text-amber-600" aria-hidden="true" />
+          <p>
+            当前路径包含 {lockedCount} 个锁定任务。选择后，系统会先引导你完成对应前置任务，再自动解锁这些任务。
+          </p>
+        </div>
       ) : null}
+      <div className="mt-3 space-y-3">
+        {stages.map((stage, stageIndex) => {
+          const stageStartIndex = orderedNodes.indexOf(stage.nodes[0]);
+          const stageTime = summarizeRouteStageTime(stage);
+          return (
+            <section
+              key={`${option.id}:${stage.id}:${stageIndex}`}
+              className="rounded-lg border border-border bg-background/45 p-3"
+              data-learning-path-route-stage={stage.id}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                  <span className="grid size-5 place-items-center rounded-md border border-primary/30 bg-primary/5 text-primary">
+                    <Layers className="size-3" aria-hidden="true" />
+                  </span>
+                  阶段 {stageIndex + 1}：{stage.label}
+                </p>
+                <div className="flex flex-wrap gap-1.5 text-xs text-subtle">
+                  <span className="rounded-md border border-border bg-muted/30 px-1.5 py-0.5">
+                    {stage.nodes.length} 步
+                  </span>
+                  {stageTime ? (
+                    <span className="rounded-md border border-border bg-muted/30 px-1.5 py-0.5">
+                      {stageTime}
+                    </span>
+                  ) : null}
+                  <span className={stage.lockedCount > 0
+                    ? 'rounded-md border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-amber-700'
+                    : 'rounded-md border border-border bg-muted/30 px-1.5 py-0.5'}
+                  >
+                    {stage.lockedCount > 0 ? `${stage.lockedCount} 个后续解锁` : '可继续'}
+                  </span>
+                </div>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-subtle">目标：{stage.goal}</p>
+              <ol className="mt-3">
+                {stage.nodes.map((node, nodeIndex) => renderNode(node, stageStartIndex + nodeIndex))}
+              </ol>
+            </section>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+type PathOptionComparisonField = {
+  key: string;
+  label: string;
+  getValue: (option: AdaptivePathOptionDisplay) => string;
+};
+
+function PathOptionComparisonMatrix({
+  options,
+  diagnostic,
+  learnerState,
+}: {
+  options: AdaptivePathOptionDisplay[];
+  diagnostic: DiagnosticResponse | null;
+  learnerState: AdaptiveLearnerState | null;
+}) {
+  if (options.length === 0) return null;
+  const comparisonFields: PathOptionComparisonField[] = [
+    { key: 'positioning', label: '路径定位', getValue: buildPathPositioningLabel },
+    { key: 'suitableFor', label: '适合情况', getValue: buildPathFitSummary },
+    { key: 'coreStrategy', label: '核心策略', getValue: buildPathCoreStrategy },
+    { key: 'learningStyle', label: '学习方式', getValue: buildPathLearningStyle },
+    { key: 'learningFocus', label: '学习重点', getValue: buildPathLearningFocus },
+    { key: 'learningRhythm', label: '学习节奏', getValue: buildPathLearningRhythm },
+    { key: 'estimatedTime', label: '预计时长', getValue: (option) => option.estimatedTime },
+    { key: 'readiness', label: '准备度', getValue: (option) => option.readiness },
+    { key: 'checkpoints', label: '检查节点', getValue: (option) => option.checkpoints },
+    {
+      key: 'expectedAbilityImprovement',
+      label: '预期能力改善',
+      getValue: (option) => option.expectedAbilityImprovement ?? '未提供',
+    },
+    { key: 'scenario', label: '路径侧重', getValue: (option) => option.scenario },
+    { key: 'outcome', label: '预期结果', getValue: (option) => option.outcome },
+    { key: 'riskNote', label: '风险提示', getValue: (option) => option.riskNote },
+  ];
+  return (
+    <section
+      className="mt-4 overflow-hidden rounded-lg border border-border bg-background/55"
+      data-learning-path-comparison-matrix="generated"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/25 px-3 py-2">
+        <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground">
+          <Scale className="size-3.5 text-primary" aria-hidden="true" />
+          路径比较
+        </p>
+        <span className="text-xs text-subtle">{options.length} 个候选方案</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] border-separate border-spacing-0 text-left text-xs">
+          <thead>
+            <tr>
+              <th
+                scope="col"
+                className="sticky left-0 border-b border-r border-border bg-muted/25 px-3 py-2 font-medium text-subtle"
+              >
+                对比项
+              </th>
+              {options.map((option) => (
+                <th
+                  scope="col"
+                  key={option.id}
+                  className="min-w-40 border-b border-l border-border bg-muted/25 px-3 py-2 font-semibold text-foreground"
+                >
+                  {option.title}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {comparisonFields.map((field) => (
+              <tr key={field.key}>
+                <th
+                  scope="row"
+                  className="sticky left-0 border-b border-r border-border bg-background/70 px-3 py-2 align-top font-medium text-foreground"
+                >
+                  {field.label}
+                </th>
+                {options.map((option) => (
+                  <td
+                    key={`${option.id}:${field.key}`}
+                    className="min-w-40 border-b border-l border-border px-3 py-2 align-top break-words leading-5 text-subtle"
+                  >
+                    {field.getValue(option)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }
@@ -4687,6 +5334,27 @@ export default function AdaptivePracticePage() {
                 当前可用资源有限，推荐方案差异较小。
               </p>
             ) : null}
+            {hasGeneratedPathOptions ? (
+              <section
+                className="mt-4 rounded-lg border border-border bg-background/55 p-3"
+                data-learning-path-decision-guide="visible"
+              >
+                <p className="text-xs font-semibold text-foreground">怎样选择</p>
+                <ol className="mt-2 list-decimal space-y-1 pl-4 text-sm leading-6 text-subtle">
+                  <li>先看“路径定位”和“适合情况”，确认哪条路线更贴近你的状态。</li>
+                  <li>再看“核心策略”和“学习方式”，理解两条路线为什么不同。</li>
+                  <li>最后比较预计时长、准备度和检查节点，判断当前是否适合立即开始。</li>
+                  <li>系统推荐只作为辅助，选择后仍可随时调整或生成新路径。</li>
+                </ol>
+              </section>
+            ) : null}
+            {hasGeneratedPathOptions ? (
+              <PathOptionComparisonMatrix
+                options={visiblePathOptions}
+                diagnostic={diagnostic}
+                learnerState={activeLearnerState}
+              />
+            ) : null}
             <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]" data-learning-path-desktop-modules="attached-actions">
               {visiblePathOptions.map((option) => (
                 <article
@@ -4696,8 +5364,11 @@ export default function AdaptivePracticePage() {
                   data-learning-path-option-module={option.isGenerated ? 'route' : undefined}
                   data-learning-path-example={option.isGenerated ? undefined : option.id}
                 >
-                  <div>
-                    <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <h3 className="min-w-0 break-words text-base font-semibold text-foreground">{option.title}</h3>
+                      <PathSelectionGuidanceBadge option={option} options={visiblePathOptions} />
+                    </div>
                     <p className="mt-1 text-sm leading-6 text-subtle">{option.scenario}</p>
                     {!option.isGenerated ? (
                       <p className="mt-2 text-xs leading-5 text-subtle" data-learning-path-starter-example={option.id}>
@@ -4705,6 +5376,7 @@ export default function AdaptivePracticePage() {
                       </p>
                     ) : null}
                   </div>
+                  {option.isGenerated ? <PathPositioningHighlights option={option} /> : null}
                   <PathOptionRoutePreview option={option} />
                   <PathOptionRealDifferenceFacts option={option} options={visiblePathOptions} />
                   <div className="mt-3 grid gap-2 text-sm">
@@ -4862,7 +5534,10 @@ export default function AdaptivePracticePage() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <h3 className="min-w-0 break-words text-base font-semibold text-foreground">{option.title}</h3>
+                        <PathSelectionGuidanceBadge option={option} options={visiblePathOptions} />
+                      </div>
                       <p className="mt-1 text-sm leading-6 text-subtle">{option.scenario}</p>
                       {!option.isGenerated ? (
                         <p className="mt-2 text-xs leading-5 text-subtle" data-learning-path-starter-example={`${option.id}:mobile`}>
@@ -4874,6 +5549,7 @@ export default function AdaptivePracticePage() {
                       {option.estimatedTime}
                     </span>
                   </div>
+                  {option.isGenerated ? <PathPositioningHighlights option={option} /> : null}
                   <PathOptionRoutePreview option={option} />
                   <PathOptionRealDifferenceFacts option={option} options={visiblePathOptions} />
                   <div className="mt-3 space-y-2 rounded-lg border border-border bg-background/60 p-3 text-sm">
