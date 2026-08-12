@@ -182,7 +182,11 @@ function verifyCutoverFailureGate() {
     );
 
     fs.writeFileSync(sshLog, '');
-    fs.rmSync(rsyncLog, { force: true });
+    try {
+      fs.unlinkSync(rsyncLog);
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
     const committedCutover = spawnSync(
       'bash',
       [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],

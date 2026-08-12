@@ -801,7 +801,7 @@ const remotePreflightIndex = remoteDeployScript.indexOf(
 );
 const runtimeRsyncIndex = remoteDeployScript.indexOf('rsync "${runtime_rsync_args[@]}"');
 const runtimeStopIndex = remoteDeployScript.indexOf(
-  'stop_remote_runtime_consumers',
+  'podman stop -t 30',
   remotePreflightIndex,
 );
 const remoteHostCheckIndex = remoteDeployScript.indexOf(
@@ -812,10 +812,10 @@ assert.equal(
   remotePreflightIndex >= 0 &&
     remotePreflightIndex < runtimeRsyncIndex &&
     runtimeStopIndex > remotePreflightIndex &&
-    runtimeStopIndex < runtimeRsyncIndex &&
+    runtimeStopIndex > runtimeRsyncIndex &&
     remoteHostCheckIndex > runtimeRsyncIndex,
   true,
-  '远端部署即使 skip-build 也必须在 rsync 前执行本地 preflight，并在 rsync 后检查远端宿主文件集',
+  '远端部署即使 skip-build 也必须在 rsync 前执行本地 preflight，并在 rsync 后检查远端宿主文件集；远端消费者必须在正式目录替换前停止',
 );
 
 assert.equal(
@@ -878,7 +878,7 @@ assert.equal(
 );
 
 assert.equal(
-  remoteDeployScript.includes("test -d '${REMOTE_PROJECT_DIR}/course-content/runtime'"),
+  remoteDeployScript.includes("test -d '${REMOTE_RUNTIME_DIR}'"),
   true,
   '远端部署脚本应校验远端 runtime 目录存在后再执行部署验证',
 );
