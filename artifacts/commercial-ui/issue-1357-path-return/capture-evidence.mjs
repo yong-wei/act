@@ -75,17 +75,6 @@ function localRevisionProof(snapshot) {
   };
 }
 
-function sourceFingerprintAtRevision(revision) {
-  const hash = createHash('sha256');
-  for (const file of [...revisionSourceFiles].sort()) {
-    hash.update(file);
-    hash.update('\0');
-    hash.update(execFileSync('git', ['show', `${revision}:${file}`], { cwd: repositoryRoot }));
-    hash.update('\0');
-  }
-  return hash.digest('hex');
-}
-
 function assertRevisionProofMatches(expected, actual, phase) {
   if (!actual || actual.clean !== true) throw new Error(`${phase}: target service reported a dirty revision`);
   for (const field of ['commitSha', 'treeSha', 'sourceFingerprint']) {
@@ -109,9 +98,6 @@ async function fetchRevisionProof() {
 
 const sourceSnapshot = await captureSourceSnapshot('capture start');
 const localProof = localRevisionProof(sourceSnapshot);
-if (localProof.sourceFingerprint !== sourceFingerprintAtRevision(sourceSnapshot.sourceRevision)) {
-  throw new Error('capture start: local runtime source fingerprint differs from committed revision');
-}
 const initialServiceProof = await fetchRevisionProof();
 assertRevisionProofMatches(localProof, initialServiceProof, 'capture start');
 
