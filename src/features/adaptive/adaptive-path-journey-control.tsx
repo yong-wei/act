@@ -192,11 +192,16 @@ export function AdaptivePathJourneyControl({
   const nextActionDuplicatesReturn = nextAction?.href
     ? areEquivalentJourneyActions(returnAction, { label: nextAction.title, href: nextAction.href })
     : false;
+  const nextActionIsCurrentNodeSelfLink = nextAction?.state === 'ready'
+    && Boolean(nextAction.href)
+    && normalizeJourneyActionTarget(nextAction.href ?? '') === normalizeJourneyActionTarget(launchContext.returnHref);
   const navigationActionDuplicatesReturn = nextActionDuplicatesReturn &&
     (nextAction?.state === 'ready' || nextAction?.state === 'path-complete');
   const recoveryDuplicatesReturn = nextAction?.recovery
     ? areEquivalentJourneyActions(returnAction, nextAction.recovery)
     : false;
+  const recoveryIsCurrentNodeSelfLink = Boolean(nextAction?.recovery)
+    && normalizeJourneyActionTarget(nextAction?.recovery?.href ?? '') === normalizeJourneyActionTarget(launchContext.returnHref);
   const refreshLabel = recoveryDuplicatesReturn
     ? '刷新路径状态'
     : nextAction?.recovery?.label ?? '刷新路径状态';
@@ -278,7 +283,10 @@ export function AdaptivePathJourneyControl({
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             {returnAction.label}
           </Link>
-          {nextAction?.state === 'ready' && nextAction.href && !nextActionDuplicatesReturn ? (
+          {nextAction?.state === 'ready'
+          && nextAction.href
+          && !nextActionDuplicatesReturn
+          && !nextActionIsCurrentNodeSelfLink ? (
             <Link
               href={nextAction.href}
               className="inline-flex h-9 items-center gap-1.5 rounded-md bg-platform-action-primary px-3 text-sm font-medium text-platform-action-primary-fg"
@@ -295,14 +303,18 @@ export function AdaptivePathJourneyControl({
               <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
               {nextAction.title}
             </Link>
-          ) : navigationActionDuplicatesReturn ? null : nextAction?.state === 'blocked' && nextAction.recovery && !recoveryDuplicatesReturn ? (
+          ) : navigationActionDuplicatesReturn ? null : nextAction?.state === 'blocked'
+          && nextAction.recovery
+          && !recoveryDuplicatesReturn
+          && !recoveryIsCurrentNodeSelfLink ? (
             <Link
               href={nextAction.recovery.href}
               className="inline-flex h-9 items-center gap-1.5 rounded-md border border-platform-border px-3 text-sm font-medium text-platform-fg-primary hover:border-platform-border-strong"
             >
               {nextAction.recovery.label}
             </Link>
-          ) : nextAction?.state === 'blocked' && recoveryDuplicatesReturn ? null : (
+          ) : nextAction?.state === 'blocked'
+          && (recoveryDuplicatesReturn || recoveryIsCurrentNodeSelfLink) ? null : (
             <button
               type="button"
               onClick={onRefresh}
