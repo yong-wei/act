@@ -243,7 +243,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(svg).not.toBeNull();
     expect(svg?.getAttribute('data-active-authority-viewport')).toBe('compact');
     expect(svg?.getAttribute('data-active-authority-node-limit')).toBe('6');
-    expect(svg?.getAttribute('viewBox')).toBe('0 0 320 360');
+    expect(svg?.getAttribute('viewBox')).toBe('0 0 320 520');
     expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
     const labels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-label]')];
     expect(labels.length).toBeGreaterThan(0);
@@ -310,6 +310,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('createSensitiveValueMatcher');
     expect(captureSource).toContain('createSensitiveValueMatcher(await readActiveSurfaceIdentityTokens(page, probe))');
     expect(captureSource).toContain('createSensitiveValueMatcher(sensitiveTokens)');
+    expect(captureSource).toContain('.split(/\\\\s+/u)');
+    expect(captureSource).not.toContain('.split(/\\s+/u)');
     expect(captureSource).not.toContain('const tokenVariants = (token: string) =>');
     expect(captureSource).toContain("throw new Error('unknown Knowledge API endpoint cannot be projected')");
     expect(captureSource).not.toContain('cannot be projected: ${pathName}');

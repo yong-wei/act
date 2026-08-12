@@ -1650,7 +1650,7 @@ async function captureMarkers(page: Page, stateName: string) {
      const activeSvg = activeGraph?.querySelector('svg[data-active-authority-svg="true"]');
      const activeSvgViewBox = (activeSvg?.getAttribute('viewBox') ?? '')
        .trim()
-       .split(/\s+/u)
+       .split(/\\s+/u)
        .map((value) => Number(value));
      const activeSvgRect = activeSvg?.getBoundingClientRect() ?? null;
      const activeNodeLabelElements = Array.from(activeGraph?.querySelectorAll('[data-active-authority-node-label]') ?? []);
@@ -2150,7 +2150,7 @@ async function captureActiveAuthorityVisualMatrix(
         || activeMarkers.stage !== 'authority'
         || (state.name === 'active-mobile' && (
           activeMarkers.viewport !== 'compact'
-          || activeMarkers.viewBox !== '0 0 320 360'
+          || activeMarkers.viewBox !== '0 0 320 520'
           || activeNodeLabelReadability.readable !== true
         ))
         || surfaceScan.passed !== true
