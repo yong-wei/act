@@ -1024,6 +1024,27 @@ describe('adaptive learning center UI contracts', () => {
       .toContain('selectedGraphNodeIds: normalizeAdaptivePathSelectedGraphNodeIds');
   });
 
+  it('switches successful generation into path selection only with persisted options', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain("import { useRouter, useSearchParams } from 'next/navigation';");
+    expect(source).toContain('function buildPathSelectionHref(');
+    expect(source).toContain('fallbackGoalId?: AdaptivePracticeGoalId | null');
+    expect(source).toContain("if (!isAdaptivePracticeGoalId(query.get('goal')) && fallbackGoalId) {");
+    expect(source).toContain("query.set('goal', fallbackGoalId)");
+    expect(source).toContain("query.set('intent', 'path-selection')");
+    expect(source).toContain("payload.result?.generationStatus === 'persisted'");
+    expect(source).toContain('Array.isArray(payload.result.pathOptions)');
+    expect(source).toContain('generatedOptions.length > 0');
+    expect(source).toContain('if (operation === \'generate\') {');
+    expect(source).toContain('router.replace(buildPathSelectionHref(');
+    expect(source).toContain('searchParamsKey,');
+    expect(source).toContain('generatedPathId,');
+    expect(source).toContain('withFeedbackTaskHref,');
+    expect(source).toContain('pathGenerationPanel.goalId,');
+    expect(source.match(/router\.replace\(/g)).toHaveLength(1);
+  });
+
   it('renders server-owned path difference facts and invalidates stale explanations', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
     const runtimeSource = readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8');

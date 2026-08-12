@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
   BookOpenCheck,
@@ -1218,6 +1218,25 @@ function resolveControlCorrectionIntent(intentParam: string | null): ControlCorr
   return 'practice';
 }
 
+function buildPathSelectionHref(
+  currentSearch: string,
+  pathId: string | null,
+  decorateHref: (href: string) => string,
+  fallbackGoalId?: AdaptivePracticeGoalId | null,
+): string {
+  const query = new URLSearchParams(currentSearch);
+  if (!isAdaptivePracticeGoalId(query.get('goal')) && fallbackGoalId) {
+    query.set('goal', fallbackGoalId);
+  }
+  query.set('intent', 'path-selection');
+  if (pathId) {
+    query.set('pathId', pathId);
+  } else {
+    query.delete('pathId');
+  }
+  return decorateHref(`/assessment/adaptive-practice?${query.toString()}`);
+}
+
 function resolveAdaptivePracticeGoalId(
   value: string | null | undefined,
   fallback: AdaptivePracticeGoalId = 'control-correction',
@@ -2280,6 +2299,7 @@ function buildChoiceBody(
 
 export default function AdaptivePracticePage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
   const isArenaJourneyDemo = isDemoMode && searchParams.get('arenaJourneyFixture') === '1';
@@ -3363,6 +3383,23 @@ export default function AdaptivePracticePage() {
           publishPathGenerationStatus('succeeded', generationRequestId, '学习路径已生成，请比较候选方案。');
         }
         setPathChoiceMessage('学习路径已生成，请比较候选方案。');
+        if (operation === 'generate') {
+          const generatedOptions = payload.result?.generationStatus === 'persisted' &&
+            Array.isArray(payload.result.pathOptions)
+            ? payload.result.pathOptions
+            : [];
+          if (generatedOptions.length > 0) {
+            const generatedPathId = typeof payload.result.pathId === 'string'
+              ? payload.result.pathId
+              : (activePathRound?.id ?? activePathPlan?.id ?? activePathId);
+            router.replace(buildPathSelectionHref(
+              searchParamsKey,
+              generatedPathId,
+              withFeedbackTaskHref,
+              pathGenerationPanel.goalId,
+            ));
+          }
+        }
         return;
       }
       const rationale = Array.isArray(payload.result?.studentSafeRationale)
@@ -3435,7 +3472,10 @@ export default function AdaptivePracticePage() {
     pathGenerationRequestStatus,
     pathOptions,
     refreshLatestLearningPathAfterKonling,
+    router,
     routeIntent,
+    searchParamsKey,
+    withFeedbackTaskHref,
   ]);
 
   const startPathGenerationFromAdvisor = useCallback(() => {
