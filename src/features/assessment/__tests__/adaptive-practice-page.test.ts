@@ -364,7 +364,11 @@ describe('adaptive practice page entry states', () => {
 
     expect(source).toContain("import { useRouter, useSearchParams } from 'next/navigation'");
     expect(source).toContain('const router = useRouter()');
-    expect(generationBlock).toContain("nextUrl.searchParams.set('batch', loadedBatch.batch.id)");
+    expect(generationBlock).toContain("setCandidateBatchLoadState('loading')");
+    expect(generationBlock).toContain("nextUrl.searchParams.set('batch', generatedBatchId)");
+    expect(generationBlock.indexOf("nextUrl.searchParams.set('batch', generatedBatchId)")).toBeLessThan(
+      generationBlock.indexOf('await fetchCandidateBatch(activeGoal, generatedBatchId)'),
+    );
     expect(generationBlock).toContain("nextUrl.searchParams.delete('candidate')");
     expect(generationBlock).toContain('router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false })');
     expect(generationBlock).not.toContain('window.history.replaceState');

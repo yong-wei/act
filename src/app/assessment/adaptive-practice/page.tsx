@@ -3745,14 +3745,18 @@ export default function AdaptivePracticePage() {
           ? payload.result.candidateBatch.id
           : null;
         if (generatedBatchId && activeGoal) {
+          setActiveCandidateBatch(null);
+          setCandidateBatchLoadState('loading');
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set('batch', generatedBatchId);
+          nextUrl.searchParams.delete('candidate');
+          router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false });
           const loadedBatch = await fetchCandidateBatch(activeGoal, generatedBatchId);
           if (loadedBatch.status === 'loaded') {
             setActiveCandidateBatch(loadedBatch.batch);
             setCandidateBatchLoadState('ready');
-            const nextUrl = new URL(window.location.href);
-            nextUrl.searchParams.set('batch', loadedBatch.batch.id);
-            nextUrl.searchParams.delete('candidate');
-            router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false });
+          } else {
+            setCandidateBatchLoadState(loadedBatch.status);
           }
         }
         await refreshLatestLearningPathAfterKonling();
