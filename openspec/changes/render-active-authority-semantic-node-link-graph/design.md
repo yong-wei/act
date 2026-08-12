@@ -75,6 +75,10 @@ The capture retains real Knowledge API requests and responses only in process me
 
 The governance gate independently parses this exact schema, rejects extra fields and duplicate endpoint classes, and validates active isolation from endpoint classes, status and request counts in addition to the booleans. Legacy and candidate evidence remain fixed endpoint classifications and retain their existing product-state markers without persisting raw API payloads. This decision supersedes any path- or enum-shaped API evidence; tasks 4.2 and 4.3 remain unchecked until the strict projector and gate pass on a clean committed revision with real credentials.
 
+### Accepted decision — legacy selected-node API normalization
+
+Real legacy selected-node capture issues `GET /api/knowledge/nodes/:id` in addition to the legacy graph request. The probe accepts only that exact single-segment GET route, canonicalizes it only in capture memory and aggregates it into the existing `legacy` endpoint class and request count. The raw or decoded ID, URL, query and response body remain outside all persisted evidence and error output. Missing identifiers, additional path segments, non-GET methods and every other Knowledge API route continue to fail closed. This preserves the V1 evidence format and active Authority isolation while allowing the existing legacy matrix to be captured truthfully.
+
 ### Accepted decision — shared sensitive-value matching and observed node proof
 
 The artifact serializer and active product surface scanner MUST use one deterministic `SensitiveValueMatcher`. It expands each in-memory sensitive value to the raw, URI-encoded and once-decoded equivalent variants, then scans both final JSON bytes/string leaves and DOM text, ARIA names/descriptions, titles, tooltips and copy payloads. The matcher returns only counts/booleans; no matched value or error may be persisted.

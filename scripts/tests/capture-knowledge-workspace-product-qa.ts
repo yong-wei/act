@@ -354,11 +354,35 @@ async function addKnowledgeApiProbe(context: Awaited<ReturnType<Browser['newCont
   });
 }
 
-function canonicalKnowledgeApiPath(pathName: string) {
+function canonicalKnowledgeNodePath(pathName: string, prefix: string, canonicalPath: string) {
+  const encodedNodeKey = pathName.slice(prefix.length);
+  if (!encodedNodeKey || encodedNodeKey.includes('/')) return null;
+  try {
+    const decodedNodeKey = decodeURIComponent(encodedNodeKey);
+    return decodedNodeKey && !decodedNodeKey.includes('/') ? canonicalPath : null;
+  } catch {
+    return null;
+  }
+}
+
+function canonicalKnowledgeApiPath(pathName: string, method: string) {
+  if (method !== 'GET') return null;
   if (pathName === '/api/knowledge/graph/active') return '/api/knowledge/graph/active';
-  if (pathName.startsWith('/api/knowledge/nodes/active/')) return '/api/knowledge/nodes/active/:node';
+  const activeNodePath = canonicalKnowledgeNodePath(
+    pathName,
+    '/api/knowledge/nodes/active/',
+    '/api/knowledge/nodes/active/:node',
+  );
+  if (activeNodePath) return activeNodePath;
   if (pathName === '/api/knowledge/graph') return '/api/knowledge/graph';
   if (pathName === '/api/knowledge/graph/v2') return '/api/knowledge/graph/v2';
+  if (pathName === '/api/knowledge/nodes/active' || pathName === '/api/knowledge/nodes/v2') return null;
+  const legacyNodePath = canonicalKnowledgeNodePath(
+    pathName,
+    '/api/knowledge/nodes/',
+    '/api/knowledge/nodes/:node',
+  );
+  if (legacyNodePath) return legacyNodePath;
   return null;
 }
 
@@ -492,7 +516,7 @@ function createKnowledgeApiProbe(page: Page): KnowledgeApiProbe {
       return;
     }
     if (!responseUrl.pathname.startsWith('/api/knowledge/')) return;
-    const safePath = canonicalKnowledgeApiPath(responseUrl.pathname);
+    const safePath = canonicalKnowledgeApiPath(responseUrl.pathname, response.request().method());
     if (!safePath) {
       unknownEndpointObserved = true;
       return;
@@ -575,7 +599,7 @@ async function readExpectedActiveNodeKey(page: Page): Promise<string | null> {
 function safeApiEndpointClass(pathName: string): SafeApiEndpointClass {
   if (pathName === '/api/knowledge/graph/active') return 'active-canvas';
   if (pathName === '/api/knowledge/nodes/active/:node') return 'active-node';
-  if (pathName === '/api/knowledge/graph') return 'legacy';
+  if (pathName === '/api/knowledge/graph' || pathName === '/api/knowledge/nodes/:node') return 'legacy';
   if (pathName === '/api/knowledge/graph/v2') return 'candidate';
   throw new Error('unknown Knowledge API endpoint cannot be projected');
 }

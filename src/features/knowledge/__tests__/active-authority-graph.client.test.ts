@@ -252,6 +252,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('source.releaseSetId === authorityRecord.releaseSetId');
     expect(captureSource).toContain('source.releaseId === authorityRecord.releaseId');
     expect(captureSource).toContain("'/api/knowledge/nodes/active/:node'");
+    expect(captureSource).toContain("'/api/knowledge/nodes/:node'");
+    expect(captureSource).toContain("if (method !== 'GET') return null;");
+    expect(captureSource).toContain("if (!encodedNodeKey || encodedNodeKey.includes('/')) return null;");
     expect(captureSource).toContain("page.on('response', onResponse)");
     expect(captureSource).toContain('createKnowledgeApiProbe');
     expect(captureSource).toContain("page.off('response', onResponse)");
