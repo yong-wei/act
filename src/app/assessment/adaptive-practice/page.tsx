@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
   BookOpenCheck,
@@ -2569,6 +2569,7 @@ function buildChoiceBody(
 }
 
 export default function AdaptivePracticePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
@@ -3747,7 +3748,7 @@ export default function AdaptivePracticePage() {
             const nextUrl = new URL(window.location.href);
             nextUrl.searchParams.set('batch', loadedBatch.batch.id);
             nextUrl.searchParams.delete('candidate');
-            window.history.replaceState(window.history.state, '', nextUrl);
+            router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false });
           }
         }
         await refreshLatestLearningPathAfterKonling();
@@ -3856,6 +3857,7 @@ export default function AdaptivePracticePage() {
     pathGenerationRequestStatus,
     pathOptions,
     refreshLatestLearningPathAfterKonling,
+    router,
     routeIntent,
   ]);
 

@@ -264,6 +264,33 @@ const learnerStateWithoutActivePath = {
 };
 
 async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<void>) {
+  await page.route('**/api/adaptive/path-advisor-context**', (route) => route.fulfill({
+    json: {
+      goalId: 'control-correction',
+      classId: 'class-issue-1349',
+      courseTitle: 'Control correction',
+      topic: 'Candidate path comparison',
+      learningObjectives: ['Compare generated learning paths'],
+      modeContextToken: 'issue-1349-mode-context-token',
+      readiness: {
+        status: 'ready',
+        reason: 'ready',
+        source: 'path-advisor',
+        studentAction: 'generate',
+        studentMessage: 'Ready',
+      },
+    },
+  }));
+  await page.route('**/api/adaptive/path-advisor-tool', (route) => route.fulfill({
+    json: {
+      agentSessionId: 'agent-session-issue-1349',
+      generationRequest: { id: 'generation-request-issue-1349', status: 'succeeded' },
+      result: {
+        generationStatus: 'succeeded',
+        candidateBatch: { id: batchId },
+      },
+    },
+  }));
   await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerState }));
   await page.route('**/api/learning-paths/latest?**', (route) => route.fulfill({ json: activePath }));
   await page.route(`**/api/learning-paths/${activePathId}`, (route) => route.fulfill({ json: activePath }));
@@ -360,7 +387,7 @@ test('keeps the active path available while configuring a new path', async ({ co
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
 
-test('shows candidate comparison after generation adds a candidate batch', async ({ context, page }) => {
+test('shows candidate comparison immediately after generation adds a candidate batch', async ({ context, page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await login(context);
   await installRoutes(page);
@@ -368,15 +395,27 @@ test('shows candidate comparison after generation adds a candidate batch', async
   const query = new URLSearchParams({
     goal: 'control-correction',
     intent: 'contextual-recommendation',
-    batch: batchId,
   });
   await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
   await expect(page.locator('[data-adaptive-path-generation-panel="editable"]')).toBeVisible();
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
+
+  const generateAction = page.locator('[data-adaptive-path-generation-action="submit-panel-request"]');
+  await expect(generateAction).toBeEnabled();
+  await generateAction.click();
+
+  await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
   await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
   await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-generation-panel="editable"]')).toBeVisible();
+
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
+  await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
 });
 
 async function openGeneration(page: Page, requestedBatchId?: string, candidateId?: string, pathId?: string) {
