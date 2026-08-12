@@ -33,6 +33,8 @@
 3. 获得明确的生产切换授权后，执行受锁的 release selection，重启容器并完成 smoke；保存 selection、active receipt 和 rollback 证据。
 4. 旧 ECS runtime 只能在成功 smoke 后再次报告空间占用和可用 rollback，并等待人工确认后删除。
 
+删除通过受限脚本执行时，脚本必须在删除前再次确认 active receipt、app 与 worker 的只读 ossfs bind、`readyz` 与独立 rollback Release 的可挂载性。删除目标必须是明确的 non-symlink legacy runtime 目录；使用不跨文件系统、也不跟随 symlink 的遍历删除，使嵌套挂载导致失败而不是被误删。删除后写入不含凭据的 retirement receipt，保留 OSS Release、selector 和 active receipt。
+
 ## 失败处理
 
 - RAM Role metadata 不可用、OSS endpoint 不可达、manifest/对象校验失败、挂载非只读、容器 smoke 失败或 active receipt 未写入时，停止切换并保持当前运行时。

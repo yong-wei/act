@@ -13,6 +13,9 @@ image_reference='localhost/act-obe-platform:20260301-amd64'
 ssh_target='root@121.40.124.135'
 known_hosts=''
 identity_file=''
+delete_legacy_runtime=0
+rollback_release_id=''
+rollback_verification_receipt=''
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -25,6 +28,9 @@ while [[ $# -gt 0 ]]; do
     --ssh-target) ssh_target="$2"; shift 2 ;;
     --known-hosts) known_hosts="$2"; shift 2 ;;
     --identity-file) identity_file="$2"; shift 2 ;;
+    --delete-legacy-runtime) delete_legacy_runtime=1; shift ;;
+    --rollback-release-id) rollback_release_id="$2"; shift 2 ;;
+    --rollback-verification-receipt) rollback_verification_receipt="$2"; shift 2 ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -32,6 +38,10 @@ done
 [[ "$release_id" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || { echo 'ERROR: invalid release id' >&2; exit 1; }
 [[ "$ssh_target" =~ ^[A-Za-z0-9._@:-]+$ ]] || { echo 'ERROR: invalid SSH target' >&2; exit 1; }
 [[ "$image_reference" =~ ^[A-Za-z0-9._/:@-]+$ ]] || { echo 'ERROR: invalid image reference' >&2; exit 1; }
+if [[ "$delete_legacy_runtime" == '1' ]]; then
+  [[ "$rollback_release_id" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || { echo 'ERROR: deleting legacy runtime requires --rollback-release-id' >&2; exit 1; }
+  [[ -n "$rollback_verification_receipt" && -f "$rollback_verification_receipt" && ! -L "$rollback_verification_receipt" ]] || { echo 'ERROR: deleting legacy runtime requires --rollback-verification-receipt' >&2; exit 1; }
+fi
 for path in "$known_hosts" "$identity_file" "$verification_receipt" "$release_locator" "$media_closure" "$image_tar"; do
   [[ -n "$path" && -f "$path" && ! -L "$path" ]] || { echo "ERROR: required local file is unavailable: $path" >&2; exit 1; }
 done
@@ -93,7 +103,7 @@ ssh_args=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$
 scp_args=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=${known_hosts}" -o IdentitiesOnly=yes -i "$identity_file")
 remote() { ssh "${ssh_args[@]}" -- "$ssh_target" "$@"; }
 remote "install -d -m 0700 '$stage_dir'"
-for file in perform-production-runtime-cutover.sh activate-runtime-release.sh runtime-release-host-state.py configure-runtime-ossfs-release.sh act-runtime-ossfs@.service; do
+for file in perform-production-runtime-cutover.sh activate-runtime-release.sh runtime-release-host-state.py configure-runtime-ossfs-release.sh retire-legacy-runtime-after-oss-cutover.sh act-runtime-ossfs@.service; do
   scp -q "${scp_args[@]}" "${ROOT_DIR}/scripts/runtime-release/${file}" "${ssh_target}:${stage_dir}/${file}.tmp"
   remote "chmod 0700 '$stage_dir/${file}.tmp' && mv '$stage_dir/${file}.tmp' '$stage_dir/${file}'"
 done
@@ -103,5 +113,12 @@ for local_file in "${ROOT_DIR}/deploy/podman/deploy.sh" "${ROOT_DIR}/deploy/podm
   scp -q "${scp_args[@]}" "$local_file" "${ssh_target}:${stage_dir}/${name}.tmp"
   remote "chmod 0600 '$stage_dir/${name}.tmp' && mv '$stage_dir/${name}.tmp' '$stage_dir/${name}'"
 done
-remote "chmod 0700 '$stage_dir/perform-production-runtime-cutover.sh' '$stage_dir/activate-runtime-release.sh' '$stage_dir/configure-runtime-ossfs-release.sh' '$stage_dir/deploy.sh' && chmod 0644 '$stage_dir/act-runtime-ossfs@.service' '$stage_dir/container-start-wrapper.sh' && install -m 0644 '$stage_dir/act-runtime-ossfs@.service' /etc/systemd/system/act-runtime-ossfs@.service && systemctl daemon-reload"
+if [[ "$delete_legacy_runtime" == '1' ]]; then
+  scp -q "${scp_args[@]}" "$rollback_verification_receipt" "${ssh_target}:${stage_dir}/rollback-verification-receipt.json.tmp"
+  remote "chmod 0600 '$stage_dir/rollback-verification-receipt.json.tmp' && mv '$stage_dir/rollback-verification-receipt.json.tmp' '$stage_dir/rollback-verification-receipt.json'"
+fi
+remote "chmod 0700 '$stage_dir/perform-production-runtime-cutover.sh' '$stage_dir/activate-runtime-release.sh' '$stage_dir/configure-runtime-ossfs-release.sh' '$stage_dir/retire-legacy-runtime-after-oss-cutover.sh' '$stage_dir/deploy.sh' && chmod 0644 '$stage_dir/act-runtime-ossfs@.service' '$stage_dir/container-start-wrapper.sh' && install -m 0644 '$stage_dir/act-runtime-ossfs@.service' /etc/systemd/system/act-runtime-ossfs@.service && systemctl daemon-reload"
 remote "'$stage_dir/perform-production-runtime-cutover.sh' --release-id '$release_id' --integration-revision '$integration_revision' --image-tar '$stage_dir/$(basename "$image_tar")' --image-reference '$image_reference' --provenance '$stage_dir/$(basename "$provenance")' --verification-receipt '$stage_dir/$(basename "$verification_receipt")' --release-locator '$stage_dir/$(basename "$release_locator")' --ram-role act-runtime-oss-read --stage-dir '$stage_dir'"
+if [[ "$delete_legacy_runtime" == '1' ]]; then
+  remote "app_port=\$(awk -F= '/^APP_PORT=/{print \$2}' /home/projects/act/data/runtime/act-obe.env); '$stage_dir/retire-legacy-runtime-after-oss-cutover.sh' --release-id '$release_id' --rollback-release-id '$rollback_release_id' --rollback-verification-receipt '$stage_dir/rollback-verification-receipt.json' --ram-role act-runtime-oss-read --host-state-script '$stage_dir/runtime-release-host-state.py' --ossfs-config-script '$stage_dir/configure-runtime-ossfs-release.sh' --app-port \"\$app_port\" --report /home/projects/act/data/runtime/legacy-runtime-retirement-${release_id}.json"
+fi
