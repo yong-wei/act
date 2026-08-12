@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 
-import { Prisma } from '@prisma/client';
 import { getServerAuthSession } from '@/lib/auth';
 import { parsePortfolioReflectionDraftInput } from '@/lib/ai-task-boundary-contracts';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { DiscardedDraftReplayError, savePortfolioReflectionDraft } from '@/lib/portfolio-reflection-drafts';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -53,42 +53,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '草稿内容无效' }, { status: 400 });
     }
 
-    const draft = await prisma.$transaction(async (tx) => {
-      const existing = await tx.portfolioReflectionDraft.findUnique({
-        where: {
-          userId_idempotencyKey: {
-            userId: session.user.id,
-            idempotencyKey: input.input.idempotencyKey,
-          },
-        },
-        select: { id: true, status: true },
-      });
-
-      if (existing?.status === 'DISCARDED') {
-        throw new DiscardedDraftReplayError();
-      }
-
-      if (existing) {
-        return tx.portfolioReflectionDraft.findUniqueOrThrow({
-          where: { id: existing.id },
-          select: draftSelect,
-        });
-      }
-
-      return tx.portfolioReflectionDraft.create({
-        data: {
-          userId: session.user.id,
-          source: input.input.source,
-          assignment: input.input.assignment,
-          intent: input.input.intent,
-          title: input.input.title,
-          content: input.input.content,
-          status: 'DRAFT',
-          idempotencyKey: input.input.idempotencyKey,
-        },
-        select: draftSelect,
-      });
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    const draft = await savePortfolioReflectionDraft(prisma, session.user.id, input.input);
 
     return NextResponse.json({ draft: serializeDraft(draft) });
   } catch (error) {
@@ -98,12 +63,6 @@ export async function POST(request: Request) {
     }
     console.error('[PortfolioReflectionDraftsAPI] save failed:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
-  }
-}
-
-class DiscardedDraftReplayError extends Error {
-  constructor() {
-    super('discarded portfolio reflection draft replay');
   }
 }
 

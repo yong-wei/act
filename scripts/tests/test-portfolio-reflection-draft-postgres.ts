@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 
 import { createPrismaClient } from '../../src/lib/prisma-client';
+import {
+  DiscardedDraftReplayError,
+  savePortfolioReflectionDraft,
+} from '../../src/lib/portfolio-reflection-drafts';
 
 const prisma = createPrismaClient();
 const suffix = randomUUID();
@@ -20,23 +24,19 @@ async function main() {
       },
     });
 
-    const first = await prisma.portfolioReflectionDraft.create({
-      data: {
-        userId,
-        source: 'portfolio',
-        assignment: 'PID parameter tuning',
-        intent: 'create-portfolio-reflection',
-        title: 'AI collaboration reflection',
-        content: 'Check the settling time first.',
-        status: 'DRAFT',
-        idempotencyKey,
-      },
-    });
-
-    const repeated = await prisma.portfolioReflectionDraft.findUniqueOrThrow({
-      where: { userId_idempotencyKey: { userId, idempotencyKey } },
-    });
-    assert.equal(repeated.id, first.id);
+    const input = {
+      source: 'portfolio',
+      assignment: 'PID parameter tuning',
+      intent: 'create-portfolio-reflection',
+      title: 'AI collaboration reflection',
+      content: 'Check the settling time first.',
+      idempotencyKey,
+    };
+    const [first, concurrent] = await Promise.all([
+      savePortfolioReflectionDraft(prisma, userId, input),
+      savePortfolioReflectionDraft(prisma, userId, input),
+    ]);
+    assert.equal(concurrent.id, first.id);
 
     const active = await prisma.portfolioReflectionDraft.findMany({
       where: { userId, status: 'DRAFT' },
@@ -53,10 +53,10 @@ async function main() {
     assert.equal(await prisma.portfolioReflectionDraft.count({ where: { userId, status: 'DRAFT' } }), 0);
     assert.equal(await prisma.learningFact.count({ where: { userId } }), 0);
 
-    const replayed = await prisma.portfolioReflectionDraft.findUniqueOrThrow({
-      where: { userId_idempotencyKey: { userId, idempotencyKey } },
-    });
-    assert.equal(replayed.status, 'DISCARDED');
+    await assert.rejects(
+      savePortfolioReflectionDraft(prisma, userId, input),
+      (error: unknown) => error instanceof DiscardedDraftReplayError,
+    );
 
     console.log('portfolio reflection draft PostgreSQL verification passed');
   } finally {

@@ -121,6 +121,45 @@ describe('portfolio reflection drafts routes', () => {
     expect(mocks.prisma.portfolioReflectionDraft.create).not.toHaveBeenCalled();
   });
 
+  it('resolves a concurrent unique conflict by returning the committed active draft', async () => {
+    let transactionAttempts = 0;
+    mocks.prisma.$transaction.mockImplementation(async (callback) => {
+      transactionAttempts += 1;
+      if (transactionAttempts === 1) {
+        throw Object.assign(new Error('unique identity race'), { code: 'P2002' });
+      }
+      return callback(mocks.prisma);
+    });
+    mocks.prisma.portfolioReflectionDraft.findUnique
+      .mockResolvedValueOnce({ id: databaseDraft.id, status: 'DRAFT' });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ draft: { id: databaseDraft.id, status: 'DRAFT' } });
+    expect(transactionAttempts).toBe(2);
+    expect(mocks.prisma.portfolioReflectionDraft.create).not.toHaveBeenCalled();
+  });
+
+  it('keeps a discarded identity rejected after retryable transaction conflicts', async () => {
+    let transactionAttempts = 0;
+    mocks.prisma.$transaction.mockImplementation(async (callback) => {
+      transactionAttempts += 1;
+      if (transactionAttempts < 3) {
+        throw Object.assign(new Error('serialization conflict'), { code: 'P2034' });
+      }
+      return callback(mocks.prisma);
+    });
+    mocks.prisma.portfolioReflectionDraft.findUnique
+      .mockResolvedValueOnce({ id: databaseDraft.id, status: 'DISCARDED' });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(409);
+    expect(transactionAttempts).toBe(3);
+    expect(mocks.prisma.portfolioReflectionDraft.create).not.toHaveBeenCalled();
+  });
+
   it('rejects malformed payloads before any persistence operation', async () => {
     const response = await POST(request({
       ...requestBody,

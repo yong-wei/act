@@ -31,4 +31,5 @@
 
 - [x] Restrict item updates to content and reject provenance mutation attempts.
 - [x] Keep repeated idempotent saves unchanged and reject replays for discarded drafts.
+- [x] Resolve concurrent idempotent saves with bounded serializable retry and identity re-read; preserve `409` for discarded replay.
 - [x] Capture stable 1440px and 320px browser evidence with revision, source hashes, screenshot hashes, and fail-closed drift checks.
