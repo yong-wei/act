@@ -52,6 +52,8 @@ elif [[ "$1" == load ]]; then
 elif [[ "$1" == image && "$2" == inspect && "$4" == *'.Id'* ]]; then
   printf '%s\\n' '${bareImageId}'
 elif [[ "$1" == image && "$2" == inspect ]]; then
+  [[ "$4" != *'\\'* ]] || { echo 'Go template must not contain a literal backslash' >&2; exit 97; }
+  [[ "$4" == *'org.opencontainers.image.revision'* ]] || { echo 'missing revision-label template' >&2; exit 98; }
   printf '%s\\n' '${integrationRevision}'
 elif [[ "$1" == inspect ]]; then
   printf '%s\\n' '${bareImageId}'
