@@ -288,6 +288,12 @@ AUTHORITY_STORE_DIR="${AUTHORITY_STORE_DIR:-${PROJECT_DIR}/course-content/author
 TEACHING_PROJECTION_STORE_DIR="${TEACHING_PROJECTION_STORE_DIR:-${RUNTIME_CONTENT_DIR}/knowledge/projection}"
 ACT_AUTHORITY_STORE_ROOT="${ACT_AUTHORITY_STORE_ROOT:-/app/course-content/authoring/knowledge/authority}"
 ACT_TEACHING_PROJECTION_STORE_ROOT="${ACT_TEACHING_PROJECTION_STORE_ROOT:-/app/course-content/runtime/knowledge/projection}"
+# An ossfs release is the complete runtime source.  A path persisted by the
+# legacy runtime environment would otherwise create a nested bind mount from
+# the retired local tree and mask this release's projection subtree.
+if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-release" ]; then
+  TEACHING_PROJECTION_STORE_DIR="${RUNTIME_CONTENT_DIR}/knowledge/projection"
+fi
 START_WRAPPER_PATH="${START_WRAPPER_PATH:-${PROJECT_DIR}/scripts/container-start-wrapper.sh}"
 if [ ! -f "$START_WRAPPER_PATH" ] && [ -f "${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh" ]; then
   START_WRAPPER_PATH="${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh"
