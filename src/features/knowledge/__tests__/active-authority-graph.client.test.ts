@@ -247,7 +247,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
     const labels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-label]')];
     expect(labels.length).toBeGreaterThan(0);
-    expect(labels.every((label) => Number(label.getAttribute('font-size')) >= 12)).toBe(true);
+    expect(labels.every((label) => Number(label.getAttribute('font-size')) >= 13)).toBe(true);
+    const typeLabels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-type-label]')];
+    expect(typeLabels.every((label) => Number(label.getAttribute('font-size')) >= 11)).toBe(true);
   });
 
   it('keeps a semantic node click selectable after pointerdown on the node', async () => {

@@ -209,11 +209,13 @@ function GraphNode({
   point,
   selected,
   onSelect,
+  compact,
 }: {
   node: ActiveNodePresentation;
   point: Point;
   selected: boolean;
   onSelect: (key: string, target: SVGGElement) => void;
+  compact: boolean;
 }) {
   const polygon = nodePolygon(node.type.shape, point.x, point.y);
   const label = `${node.label}，${node.type.label}`;
@@ -242,10 +244,10 @@ function GraphNode({
       ) : (
         <rect x={point.x - 44} y={point.y - 27} width={88} height={54} rx={node.type.shape === 'rounded' ? 18 : 7} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
       )}
-      <text data-active-authority-node-label="true" x={point.x} y={point.y - 3} textAnchor="middle" fill="#f8fafc" fontSize="12" fontWeight="600">
+      <text data-active-authority-node-label="true" x={point.x} y={point.y - 3} textAnchor="middle" fill="#f8fafc" fontSize={compact ? 13 : 12} fontWeight="600">
         {node.label.slice(0, 14)}
       </text>
-      <text data-active-authority-node-type-label="true" x={point.x} y={point.y + 15} textAnchor="middle" fill="#cbd5e1" fontSize="10">
+      <text data-active-authority-node-type-label="true" x={point.x} y={point.y + 15} textAnchor="middle" fill="#cbd5e1" fontSize={compact ? 11 : 10}>
         {node.type.label}
       </text>
     </g>
@@ -671,7 +673,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                   })}
                   {scopedGraph.nodes.map((node) => {
                     const point = layout.get(node.key);
-                    return point ? <GraphNode key={node.key} node={node} point={point} selected={selectedNodeKey === node.key} onSelect={selectNode} /> : null;
+                    return point ? <GraphNode key={node.key} node={node} point={point} selected={selectedNodeKey === node.key} onSelect={selectNode} compact={isCompactViewport} /> : null;
                   })}
                 </g>
               </svg>
