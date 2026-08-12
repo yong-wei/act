@@ -12,7 +12,7 @@
 
 ## 3. hybrid retrieval 参数化
 
-- [x] 3.1 `textbook_hybrid_retrieval.py` 的 build/verify 使用 resourceSet 或显式校验 `expected_book_count` 一致性。
+- [x] 3.1 `textbook_hybrid_retrieval.py` 的 build/verify 使用 resourceSet；除数量外显式校验实际 book id 集合与 `resourceSet.books` 一致，并补充同数量错集合回归。
 - [x] 3.2 `validate-textbook-runtime-v2.mjs` 使用 resourceSet 传递索引验证参数。
 - [x] 3.3 保持 windows、segments、manifestHash、sourceRevision 与 resourceSetId 一致性校验。
 
@@ -29,7 +29,7 @@
 
 ## 6. OpenSpec 与验证
 
-- [x] 6.1 完成 proposal、design、tasks 和 spec delta。
+- [x] 6.1 完成 proposal、design、tasks 和 spec delta，并将 canonical spec 中固定六本教材与 150 MiB 固定集合语义替换为 resourceSet 表述。
 - [x] 6.2 运行 OpenSpec 严格校验。
 - [x] 6.3 运行 helper CLI、相关 Node 测试与发布前检查。
 - [x] 6.4 在干净 HEAD 上执行导出和验证，按实际结果更新配置锁：`sourceRevision=bf2d85e98d8f336c24214079dbecec4026cbffd8`、`selectedIndexManifestHash=sha256:4d1199f319f59a39d0f4196c1ad391004b4faf5ddb0cc97dd9f11423a7023d5c`、`resourceSetId=current-authoring-bundle-v1`、`windows=5692`。

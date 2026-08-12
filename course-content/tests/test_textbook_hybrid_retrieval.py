@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import math
+import shutil
 import subprocess
 import sys
 import urllib.error
@@ -48,6 +49,37 @@ def write_jsonl(path: Path, values: list[dict]) -> None:
         '\n'.join(json.dumps(value, ensure_ascii=False) for value in values) + '\n',
         encoding='utf-8',
     )
+
+
+def add_second_runtime_book(runtime_root: Path, book_id: str) -> None:
+    source_book = runtime_root / 'fixture-book'
+    other_book = runtime_root / book_id
+    shutil.copytree(source_book, other_book)
+    for filename in ('units.jsonl', 'windows.jsonl'):
+        path = other_book / filename
+        rows = [
+            json.loads(line)
+            for line in path.read_text(encoding='utf-8').splitlines()
+        ]
+        for row in rows:
+            row['bookId'] = book_id
+            if 'id' in row:
+                row['id'] = row['id'].replace('fixture-book', book_id)
+            if 'primaryUnitId' in row:
+                row['primaryUnitId'] = row['primaryUnitId'].replace(
+                    'fixture-book',
+                    book_id,
+                )
+            for segment in row.get('segments', []):
+                segment['owningUnitId'] = segment['owningUnitId'].replace(
+                    'fixture-book',
+                    book_id,
+                )
+        write_jsonl(path, rows)
+    manifest_path = other_book / 'manifest.json'
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    manifest['bookId'] = book_id
+    write_json(manifest_path, manifest)
 
 
 @pytest.fixture(autouse=True)
@@ -601,6 +633,55 @@ def test_verify_accepts_explicit_resource_set_and_rejects_stale_count(
             output_dir,
             runtime_root=runtime_root,
             expected_book_count=2,
+        )
+
+
+def test_runtime_rejects_matching_count_with_wrong_book_set(
+    tmp_path: Path,
+) -> None:
+    runtime_root = runtime_fixture(tmp_path)
+    add_second_runtime_book(runtime_root, 'other-book')
+    source_revision, books, _ = hybrid._load_runtime(
+        runtime_root,
+        expected_book_count=2,
+        expected_book_ids=['fixture-book', 'other-book'],
+    )
+    assert source_revision == 'revision-1'
+    assert [book['bookId'] for book in books] == ['fixture-book', 'other-book']
+    with pytest.raises(hybrid.RetrievalContractError, match='textbook set'):
+        hybrid._load_runtime(
+            runtime_root,
+            expected_book_count=2,
+            expected_book_ids=['fixture-book', 'missing-book'],
+        )
+
+
+def test_build_and_verify_reject_same_count_wrong_book_set(
+    tmp_path: Path,
+) -> None:
+    runtime_root, output_dir, _, _, _ = build_fixture(tmp_path)
+    wrong_resource_set = tmp_path / 'wrong-resource-set.json'
+    write_json(wrong_resource_set, {
+        'resourceSetId': 'wrong-resource-set-v1',
+        'sourceRoot': 'course-content/authoring/resources',
+        'configRoot': 'course-content/config/textbook-structure-v2',
+        'books': ['missing-book'],
+    })
+    with pytest.raises(hybrid.RetrievalContractError, match='textbook set'):
+        hybrid.verify_index(
+            output_dir,
+            runtime_root=runtime_root,
+            resource_set=wrong_resource_set,
+        )
+    with pytest.raises(hybrid.RetrievalContractError, match='textbook set'):
+        hybrid.build_index(
+            runtime_root,
+            tmp_path / 'wrong-index',
+            model='fixture/model',
+            expected_dimension=2,
+            cache_root=tmp_path / 'wrong-cache',
+            resource_set=wrong_resource_set,
+            embed=FakeEmbedder(),
         )
 
 

@@ -575,6 +575,7 @@ def _derive_embedding_chunks(
 def _load_runtime(
     runtime_root: Path,
     expected_book_count: int,
+    expected_book_ids: Sequence[str] | None = None,
 ) -> tuple[str, list[dict[str, Any]], list[dict[str, Any]]]:
     book_dirs = sorted(
         path for path in runtime_root.iterdir()
@@ -584,6 +585,14 @@ def _load_runtime(
         raise RetrievalContractError(
             f'expected {expected_book_count} textbook manifests, found {len(book_dirs)}',
         )
+    actual_book_ids = sorted(path.name for path in book_dirs)
+    if expected_book_ids is not None:
+        declared_book_ids = sorted(set(expected_book_ids))
+        if actual_book_ids != declared_book_ids:
+            raise RetrievalContractError(
+                'runtime textbook set does not match the declared resource set:'
+                f'expected={declared_book_ids}:found={actual_book_ids}',
+            )
     books: list[dict[str, Any]] = []
     windows: list[dict[str, Any]] = []
     revisions: set[str] = set()
@@ -972,7 +981,11 @@ def build_index(
             'expected-book-count and resource-set disagree:'
             f'expected={expected_book_count}:resource-set={len(resource_set_config["books"])}',
         )
-    source_revision, books, windows = _load_runtime(runtime_root, expected_book_count)
+    source_revision, books, windows = _load_runtime(
+        runtime_root,
+        expected_book_count,
+        expected_book_ids=resource_set_config['books'],
+    )
     vectors, dimension, cache_stats = _resolve_vectors(
         windows,
         model=model,
@@ -1188,7 +1201,9 @@ def verify_index(
         if not path.is_file() or sha256_file(path) != expected_hash:
             raise RetrievalContractError(f'index file hash mismatch: {name}')
     source_revision, books, source_windows = _load_runtime(
-        runtime_root, expected_book_count,
+        runtime_root,
+        expected_book_count,
+        expected_book_ids=resource_set_config['books'],
     )
     if manifest.get('resourceSetId') != resource_set_config['resourceSetId']:
         raise RetrievalContractError('index resourceSetId is stale')
