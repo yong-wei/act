@@ -43,15 +43,22 @@ npx tsx scripts/runtime-release/act-runtime-release.ts publish-streaming \
   --output <verification-receipt.json>
 
 npx tsx scripts/runtime-release/act-runtime-release.ts verify \
-  --release-id <release-id> --bucket act-course-assets --region oss-cn-hangzhou \
-  --role-name <read-only-runtime-role> --output <verification-receipt.json>
+  --release-id <release-id> --bucket act-course-assets \
+  --ssh-target root@<ecs-host> \
+  --remote-bridge-path </absolute/runtime-release-oss-publisher-bridge.py> \
+  --known-hosts-file </absolute/known_hosts> \
+  --identity-file </absolute/ssh-private-key> \
+  --output <verification-receipt.json>
 
 npx tsx scripts/runtime-release/act-runtime-release.ts inspect \
-  --release-id <release-id> --bucket act-course-assets --region oss-cn-hangzhou \
-  --role-name <read-only-runtime-role>
+  --release-id <release-id> --bucket act-course-assets \
+  --ssh-target root@<ecs-host> \
+  --remote-bridge-path </absolute/runtime-release-oss-publisher-bridge.py> \
+  --known-hosts-file </absolute/known_hosts> \
+  --identity-file </absolute/ssh-private-key>
 ```
 
-将 bridge 脚本以固定、root-owned 路径部署到 ECS 后，`publish-streaming` 以单个 SSH 流发送 frozen manifest 和缺失对象；ECS 不产生完整 runtime staging 副本。bridge 对每个 Release 前缀持有排他锁，只续传与 manifest 完全一致的既有对象，并在逐对象远端 SHA-256/size 校验后最后写入 manifest。任一中断、额外对象或不匹配都会失败，且不得生成 selection。Release prefix 从不覆盖、从不原地修复。发布结束后立即将 ECS 恢复到 read-only runtime role；`verify` 与 `inspect` 使用该角色重新读取 OSS。
+将 bridge 脚本以固定、root-owned 路径部署到 ECS 后，`publish-streaming` 以单个 SSH 流发送 frozen manifest 和缺失对象；ECS 不产生完整 runtime staging 副本。bridge 对每个 Release 前缀持有排他锁，只续传与 manifest 完全一致的既有对象，并在逐对象远端 SHA-256/size 校验后最后写入 manifest。任一中断、额外对象或不匹配都会失败，且不得生成 selection。Release prefix 从不覆盖、从不原地修复。发布结束后立即将 ECS 恢复到 read-only runtime role；`verify` 与 `inspect` 均通过该角色在 ECS 上执行，不在本机伪造 RAM Role。
 
 ## 2026-08-11 实际候选证据
 
@@ -67,8 +74,8 @@ npx tsx scripts/runtime-release/act-runtime-release.ts inspect \
 ## 候选挂载与切换清单
 
 1. 确认 ECS 绑定 runtime RAM Role，并安装 ossfs 2.0。配置使用 `oss-cn-hangzhou-internal.aliyuncs.com`、`oss_bucket_prefix=runtime/releases/<release-id>/`、`--ro=true` 与显式 uid/gid/file/dir mode。
-2. 对 Release 重新执行 `verify`；将 receipt 和 host tools 同步到 ECS。禁止将 runtime 内容 rsync 到 `.staging`、`current` 或 `previous`。
-3. 在候选挂载上运行：manifest/逐文件复核、FUSE/read-only 检查、课程资源 smoke、媒体 `/api/course-runtime/assets/...` 短时重定向、`benchmark-textbook-retrieval.ts`。
+2. 发布器的逐对象 upload/readback receipt 是完整内容完整性证明。恢复 read role 后，读取并严格解析 manifest、精确比对 OSS object key 集合，并读取代表性发布媒体；不为每次切换再次读取整个 Release。将 receipt 和 host tools 同步到 ECS。禁止将 runtime 内容 rsync 到 `.staging`、`current` 或 `previous`。
+3. 在候选挂载上运行：manifest、精确文件集合、全部 size 元数据与有上限的代表性内容校验、FUSE/read-only 检查、课程资源 smoke、媒体 `/api/course-runtime/assets/...` 短时重定向、`benchmark-textbook-retrieval.ts`。
 4. 只有所有候选证据合格，才以显式模式调用部署：
 
 ```bash
