@@ -7,6 +7,7 @@ import type { AdaptiveAssessmentCatalogReviewState } from '@/features/adaptive-a
 import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   orchestrateRemediation,
+  refreshRemediationOrchestration,
   readRemediationOrchestration,
   type RemediationOrchestrationDb,
 } from '../remediation-orchestration';
@@ -94,6 +95,7 @@ function validation(input: {
   catalogContentHash?: string;
   version?: string;
   learnerVisible?: boolean;
+  knowledgeNodeId?: string;
   misconceptionTags?: string[];
   sourceQuestionIds?: string[];
   reviewState?: AdaptiveAssessmentCatalogReviewState;
@@ -106,6 +108,7 @@ function validation(input: {
   const contentHash = input.contentHash ?? HASH_A;
   const catalogContentHash = input.catalogContentHash ?? HASH_A;
   const stage = input.stage ?? 'remediation';
+  const knowledgeNodeId = input.knowledgeNodeId ?? 'node-1';
   const decisionWithoutHash = {
     catalogItemId: `catalog-${id}`,
     decisionKind: 'human-review' as const,
@@ -116,7 +119,7 @@ function validation(input: {
     sourceContentHash: catalogContentHash,
     selectedLearningGoalIds: ['learning-goal-1'],
     selectedKaqObjectiveIds: ['kaq-1'],
-    selectedGraphNodeIds: ['node-1'],
+    selectedGraphNodeIds: [knowledgeNodeId],
     selectedStagePurpose: stage,
     difficulty: 0.5,
     cognitiveLevel: 'apply',
@@ -156,7 +159,7 @@ function validation(input: {
     semanticRefs: {
       learningGoalIds: ['learning-goal-1'],
       kaqObjectiveIds: ['kaq-1'],
-      graphNodeIds: ['node-1'],
+      graphNodeIds: [knowledgeNodeId],
       knowledgeTags: ['frequency-response'],
       misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
       remediationResourceNodeIds: ['teaching-resource:exact'],
@@ -193,7 +196,7 @@ function validation(input: {
         estimatedMinutes: input.minutes ?? 2,
         actionPath: `/assessment/items/${id}`,
         learnerVisible: input.learnerVisible ?? true,
-        graphNodeIds: ['node-1'],
+        graphNodeIds: [knowledgeNodeId],
         misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
         relationship: {
           kind: 'variant',
@@ -353,6 +356,64 @@ describe('remediation orchestration', () => {
     expect(mocks.remediationOrchestrationResult.upsert).not.toHaveBeenCalled();
   });
 
+  it('creates an idempotent fresh result only after an owned initial result has reference drifted', async () => {
+    const { db, mocks } = createDb();
+    const staleTask = {
+      version: 'remediation-task-snapshot.v1',
+      goal: 'Governed goal',
+      estimatedMinutes: 5,
+      sourceQuestionId: 'question-original',
+      knowledgeNodeId: 'node-1',
+      misconceptionTag: 'misconception-1',
+      resources: [{
+        id: 'exact', title: 'Resource exact', version: 'resource.v0', estimatedMinutes: 3,
+        actionPath: '/interactive-learning/resources/exact',
+      }],
+      validationQuestion: {
+        itemRefId: 'validation-1', questionId: 'question-variant', contentHash: HASH_A,
+        version: 'validation.v1', estimatedMinutes: 2, actionPath: '/assessment/items/validation-1',
+      },
+    };
+    const stale = persisted({
+      wrongAnswerAttributionId: 'attribution-1',
+      orchestratorVersion: 'remediation-orchestrator.v1',
+      userId: 'learner-1', status: 'AVAILABLE', taskSnapshot: staleTask,
+    });
+    let refreshed: ReturnType<typeof persisted> | null = null;
+    mocks.remediationOrchestrationResult.findFirst.mockImplementation(async (input: any) => (
+      input.where.orchestratorVersion === 'remediation-orchestrator.v1' ? stale : refreshed
+    ));
+    mocks.remediationOrchestrationResult.upsert.mockImplementation(async (input: any) => {
+      refreshed = persisted(input.create, 'fresh-result');
+      return refreshed;
+    });
+
+    const first = await refreshRemediationOrchestration({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+      refreshKey: 'refresh-1',
+    });
+    const retry = await refreshRemediationOrchestration({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+      refreshKey: 'refresh-1',
+    });
+
+    expect(first).toMatchObject({ id: 'fresh-result', status: 'AVAILABLE' });
+    expect(retry).toMatchObject({ id: 'fresh-result', status: 'AVAILABLE' });
+    expect(mocks.remediationOrchestrationResult.upsert).toHaveBeenCalledTimes(1);
+    expect(mocks.remediationOrchestrationResult.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        wrongAnswerAttributionId_orchestratorVersion: {
+          wrongAnswerAttributionId: 'attribution-1',
+          orchestratorVersion: 'remediation-orchestrator.v1:refresh:refresh-1',
+        },
+      },
+    }));
+  });
+
   it('discovers a production catalog item without remediationValidation metadata', async () => {
     const { db, mocks, validations } = createDb();
     validations[0] = validation({
@@ -385,6 +446,64 @@ describe('remediation orchestration', () => {
         },
       }),
     }));
+  });
+
+  it('uses a reviewed remediation item on the attributed node as transfer validation', async () => {
+    const { db, validations } = createDb();
+    validations[0] = validation({
+      misconceptionTags: ['transfer-misconception'],
+      omitRemediationValidation: true,
+    });
+
+    const result = await orchestrateRemediation({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+    });
+
+    expect(result).toMatchObject({
+      status: 'AVAILABLE',
+      task: {
+        validationQuestion: {
+          itemRefId: 'validation-1',
+          questionId: 'question-variant',
+        },
+      },
+    });
+  });
+
+  it('resolves a canonical KAQ graph node without requiring a legacy KnowledgeNode row', async () => {
+    const canonicalNodeId = 'qual:autocontrol:safety-responsibility';
+    const { db, mocks, resources, validations } = createDb();
+    mocks.wrongAnswerAttribution.findFirst.mockResolvedValue({
+      id: 'attribution-1',
+      userId: 'learner-1',
+      questionId: 'question-original',
+      state: 'ATTRIBUTED',
+      knowledgeNodeIds: [canonicalNodeId],
+      misconceptionTags: ['misconception-1'],
+    });
+    mocks.knowledgeNode.findFirst.mockResolvedValue(null);
+    resources[0] = resource({
+      id: 'safety-review',
+      minutes: 3,
+      knowledgeNodeIds: ['legacy-safety-node'],
+      prerequisiteKnowledgeNodeIds: [canonicalNodeId],
+    });
+    validations[0] = validation({ knowledgeNodeId: canonicalNodeId });
+
+    const result = await orchestrateRemediation({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+    });
+
+    expect(result).toMatchObject({
+      status: 'AVAILABLE',
+      task: {
+        goal: '巩固“安全责任意识”的关键概念',
+      },
+    });
   });
 
   it('fails closed for an uncertain attribution without storing candidate references', async () => {

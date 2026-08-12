@@ -7,6 +7,10 @@ import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-co
 
 export const WRONG_ANSWER_ATTRIBUTION_VERSION = 'wrong-answer-attribution.v1';
 
+const PRIMARY_REMEDIATION_NODE_BY_LEARNING_GOAL: Readonly<Record<string, string>> = {
+  'stability-margin-frequency-analysis': 'kn:autocontrol:stability-margin',
+};
+
 export type WrongAnswerAttributionState = 'ATTRIBUTED' | 'UNCERTAIN';
 export type WrongAnswerAttributionNextAction = 'NONE' | 'MANUAL_REVIEW' | 'REPEAT_PRACTICE';
 
@@ -187,6 +191,8 @@ function parseGovernedEvidence(
   const snapshotCorrectOptionKey = nonEmptyString(questionSnapshot?.correctOptionKey);
   const snapshotMisconceptionTags = stringArray(questionSnapshot?.misconceptionTags);
   const graphNodeIds = stringArray(semanticRefs?.graphNodeIds);
+  const learningGoalIds = stringArray(semanticRefs?.learningGoalIds);
+  const kaqKnowledgeNodeIds = stringArray(kaqMetadata?.knowledgeNodeIds);
   const misconceptionTags = stringArray(semanticRefs?.misconceptionTags);
   const reviewDecision = record(itemSnapshot?.reviewDecision);
   const reviewedGraphNodeIds = stringArray(reviewDecision?.selectedGraphNodeIds);
@@ -259,7 +265,15 @@ function parseGovernedEvidence(
   return {
     answer,
     itemContentHash,
-    knowledgeNodeIds: uniqueSorted(graphNodeIds),
+    knowledgeNodeIds: (() => {
+      if (kaqKnowledgeNodeIds?.length === 1 && kaqKnowledgeNodeIds[0].startsWith('kn:')) {
+        return [...kaqKnowledgeNodeIds];
+      }
+      const primaryNodeId = learningGoalIds?.length === 1
+        ? PRIMARY_REMEDIATION_NODE_BY_LEARNING_GOAL[learningGoalIds[0]]
+        : undefined;
+      return primaryNodeId ? [primaryNodeId] : uniqueSorted(graphNodeIds);
+    })(),
     misconceptionTags: uniqueSorted(misconceptionTags),
   };
 }

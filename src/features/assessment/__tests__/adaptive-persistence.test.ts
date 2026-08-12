@@ -12,7 +12,11 @@ import {
 
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
 import * as resourceRegistryMetadata from '@/lib/resource-registry-metadata';
-import { generateQuestion, getAdaptiveQuestionById } from '../adaptive-engine';
+import {
+  generateQuestion,
+  getAdaptiveQuestionById,
+  selectNextQuestionFromAnswers,
+} from '../adaptive-engine';
 import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
@@ -45,6 +49,19 @@ interface CatalogItemFixture {
 }
 
 const APPROVED_READINESS_GOAL_ID = 'time-domain-response-analysis';
+
+describe('standalone adaptive practice governance', () => {
+  it('prefers a reviewed catalog question that can support wrong-answer remediation', () => {
+    const result = selectNextQuestionFromAnswers({
+      userId: 'micro-tutoring-user',
+      sessionId: 'micro-tutoring-session',
+      questionScope: 'practice',
+    }, []);
+
+    expect(adaptiveAssessmentCatalogSelector.findAdaptiveAssessmentCatalogSnapshot(result.question.id))
+      .toMatchObject({ reviewDecision: { outcome: 'approved' } });
+  });
+});
 
 function approvedReadinessQuestion() {
   const question = PRESET_QUESTIONS.find((candidate) => candidate.id === 'preset-q-05');

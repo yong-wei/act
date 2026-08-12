@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   orchestrateRemediation,
+  refreshRemediationOrchestration,
   readRemediationOrchestration,
   type RemediationOrchestrationDb,
 } from '@/features/assessment/remediation-orchestration';
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
     const record = body && typeof body === 'object' ? body as Record<string, unknown> : null;
     const answerId = identifier(record?.answerId);
     const attributionId = identifier(record?.attributionId);
+    const refreshKey = identifier(record?.refreshKey);
     if (!answerId && !attributionId) {
       return NextResponse.json({ error: 'ANSWER_OR_ATTRIBUTION_ID_REQUIRED' }, { status: 400 });
     }
@@ -63,11 +65,21 @@ export async function POST(request: Request) {
       }, { status: 409 });
     }
 
-    const result = await orchestrateRemediation({
-      db: orchestrationDb(),
-      authenticatedUserId: learner.userId,
-      attributionId: attribution?.id ?? attributionId!,
-    });
+    if (refreshKey && !answerId) {
+      return NextResponse.json({ error: 'ANSWER_ID_REQUIRED_FOR_REFRESH' }, { status: 400 });
+    }
+    const result = refreshKey
+      ? await refreshRemediationOrchestration({
+          db: orchestrationDb(),
+          authenticatedUserId: learner.userId,
+          attributionId: attribution!.id,
+          refreshKey,
+        })
+      : await orchestrateRemediation({
+          db: orchestrationDb(),
+          authenticatedUserId: learner.userId,
+          attributionId: attribution?.id ?? attributionId!,
+        });
     if (!result) {
       return NextResponse.json({ error: 'ATTRIBUTION_NOT_FOUND' }, { status: 404 });
     }

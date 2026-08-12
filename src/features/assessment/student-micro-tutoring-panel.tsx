@@ -195,7 +195,30 @@ export function StudentMicroTutoringPanel({
       setUnavailable(result);
       return;
     }
+    setIntervention(null);
     setOrchestration(result);
+  }, [answerId, setUnavailable]);
+
+  const refreshOrchestration = useCallback(async () => {
+    const key = eventKeys.current.get('refresh') ?? eventKey();
+    eventKeys.current.set('refresh', key);
+    try {
+      const result = await requestJson<OrchestrationResult>('/api/assessment/remediation', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ answerId, refreshKey: key }),
+      });
+      eventKeys.current.delete('refresh');
+      if (isUnavailable(result)) {
+        setUnavailable(result);
+        return;
+      }
+      setIntervention(null);
+      setOrchestration(result);
+    } catch (error) {
+      if (error instanceof RequestFailure && !error.retryable) eventKeys.current.delete('refresh');
+      throw error;
+    }
   }, [answerId, setUnavailable]);
 
   const startIntervention = useCallback(async () => {
@@ -361,6 +384,16 @@ export function StudentMicroTutoringPanel({
           {humanizeUnavailable(unavailable.unavailableReason)}
           {unavailable.manualPracticePath ? (
             <a className="ml-2 font-semibold text-primary hover:underline" href={unavailable.manualPracticePath}>进入常规练习</a>
+          ) : null}
+          {unavailable.unavailableReason === 'REFERENCE_DRIFT' ? (
+            <button
+              type="button"
+              onClick={() => void execute('refresh', refreshOrchestration)}
+              disabled={pending !== null}
+              className={`ml-2 font-semibold text-primary underline disabled:opacity-60 ${focusRingClass}`}
+            >
+              重新尝试微辅导
+            </button>
           ) : null}
         </div>
       ) : null}
