@@ -10,7 +10,9 @@ const baseUrl = process.env.ADAPTIVE_PATH_EVIDENCE_BASE_URL ?? 'http://127.0.0.1
 const route = '/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction&nodeId=registry%3Alesson13-cruise-bridge';
 const sourceFiles = [
   'src/features/adaptive/adaptive-path-journey-contracts.ts',
+  'src/features/adaptive/adaptive-path-journey-control.tsx',
   'src/lib/__tests__/adaptive-path-journey-contracts.test.ts',
+  'src/lib/__tests__/adaptive-path-journey-control.test.ts',
   'artifacts/commercial-ui/issue-1357-path-return/capture-evidence.mjs',
 ];
 
