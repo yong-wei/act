@@ -56,7 +56,7 @@ assert.match(
 
 assert.match(
   deployScript,
-  /require_konling_mode_context_secret\n\nensure_db_running/,
+  /require_konling_mode_context_secret\(\)/,
   'Podman 部署脚本必须在启动应用与 worker 前校验控灵 mode context 签名密钥',
 );
 

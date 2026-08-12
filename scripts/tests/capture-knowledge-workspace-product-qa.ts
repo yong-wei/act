@@ -3,7 +3,13 @@ import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { chromium, type Browser, type Page } from 'playwright';
+import {
+  chromium,
+  request,
+  type Browser,
+  type BrowserContextOptions,
+  type Page,
+} from 'playwright';
 
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'artifacts/knowledge-workspace-product-qa-489');
@@ -14,6 +20,9 @@ const threeDimensionalFitSafetyMargin = 8;
 
 const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
+  'src/features/knowledge/knowledge-graph-workspace.tsx',
+  'src/features/knowledge/active-authority-graph.tsx',
+  'src/features/knowledge/active-authority-graph-contracts.ts',
   'src/app/knowledge/page.tsx',
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/knowledge/graph/knowledge-graph-2d.tsx',
@@ -35,6 +44,8 @@ const sourceFiles = [
 type Theme = 'dark' | 'light';
 type NavigationState = 'collapsed' | 'expanded' | 'mobile';
 type DockState = 'collapsed' | 'expanded';
+type KnowledgeMode = 'active' | 'legacy' | 'candidate';
+type KnowledgeRole = 'student' | 'teacher' | 'admin';
 type EvidenceRect = { left: number; top: number; right: number; bottom: number; width: number; height: number };
 type IndependentVisualReviewEvidence = {
   path: string;
@@ -58,9 +69,40 @@ interface CaptureState {
   localToolState: string;
   selectedNode: string | null;
   interactionState: string;
+  knowledgeMode?: KnowledgeMode;
   query?: string;
   beforeShot?: (page: Page) => Promise<Record<string, unknown> | void>;
 }
+
+type KnowledgeApiSummary = {
+  path: string;
+  status: number;
+  code: string | null;
+  error: string | null;
+  nodeCount: number | null;
+  relationCount: number | null;
+  authorityState: string | null;
+  hasAuthorityProvenance: boolean;
+  activationMode: string | null;
+  activationStatus: string | null;
+  releaseSetId: string | null;
+  releaseId: string | null;
+  projectionVersion: string | null;
+  projectionDigest: string | null;
+  sourceDatasetHash: string | null;
+  coverageObjectCount: number | null;
+  coverageRelationCount: number | null;
+  hasSourceIdentityFields: boolean;
+  hasCoverageFields: boolean;
+  projectionId: string | null;
+  projectionHash: string | null;
+  capturedAt: number;
+};
+
+type RoleSession = {
+  role: KnowledgeRole;
+  storageState: NonNullable<BrowserContextOptions['storageState']>;
+};
 
 function sha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
@@ -113,6 +155,12 @@ function stringRecord(value: unknown): Record<string, string> | null {
   return entries.length === Object.keys(record).length ? Object.fromEntries(entries) : null;
 }
 
+function objectRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
 function stringRecordsMatch(left: Record<string, string> | null, right: Record<string, string>) {
   if (!left) return false;
   const leftKeys = Object.keys(left).sort();
@@ -134,6 +182,7 @@ function screenshotSha256ByStateName(stateMatrix: readonly unknown[]) {
 function readExistingIndependentVisualReview(
   stateMatrix: readonly unknown[],
   currentSourceSha256: Record<string, string>,
+  additionalStateMatrix: readonly unknown[] = [],
 ): IndependentVisualReviewEvidence | null {
   const evidencePath = path.join(outputDir, 'browser-evidence.json');
   if (!existsSync(evidencePath)) return null;
@@ -152,7 +201,7 @@ function readExistingIndependentVisualReview(
     const dimensions = record.dimensions && typeof record.dimensions === 'object' && !Array.isArray(record.dimensions)
       ? record.dimensions as Record<string, unknown>
       : {};
-    const currentStateSha256 = screenshotSha256ByStateName(stateMatrix);
+    const currentStateSha256 = screenshotSha256ByStateName([...stateMatrix, ...additionalStateMatrix]);
     const reviewedStateSha256 = stringRecord(record.reviewedStateSha256);
     const reviewedSourceSha256 = stringRecord(record.reviewedSourceSha256);
     if (!stringRecordsMatch(reviewedStateSha256, currentStateSha256)) return null;
@@ -172,11 +221,241 @@ function readExistingIndependentVisualReview(
   }
 }
 
-async function openStatePage(browser: Browser, state: CaptureState) {
+const roleEnvironment: Record<KnowledgeRole, { email: string; password: string; expectedRole: string }> = {
+  student: {
+    email: 'KNOWLEDGE_QA_STUDENT_EMAIL',
+    password: 'KNOWLEDGE_QA_STUDENT_PASSWORD',
+    expectedRole: 'STUDENT',
+  },
+  teacher: {
+    email: 'KNOWLEDGE_QA_TEACHER_EMAIL',
+    password: 'KNOWLEDGE_QA_TEACHER_PASSWORD',
+    expectedRole: 'TEACHER',
+  },
+  admin: {
+    email: 'KNOWLEDGE_QA_ADMIN_EMAIL',
+    password: 'KNOWLEDGE_QA_ADMIN_PASSWORD',
+    expectedRole: 'ADMIN',
+  },
+};
+
+async function establishRoleSession(role: KnowledgeRole): Promise<RoleSession> {
+  const environment = roleEnvironment[role];
+  const email = process.env[environment.email]?.trim();
+  const password = process.env[environment.password];
+  if (!email || !password) {
+    throw new Error(`missing credentials for ${role}; set ${environment.email} and ${environment.password}`);
+  }
+  const api = await request.newContext();
+  try {
+    const csrfResponse = await api.get(`${baseUrl}/api/auth/csrf`);
+    if (!csrfResponse.ok()) throw new Error(`CSRF request failed for ${role}: ${csrfResponse.status()}`);
+    const csrf = await csrfResponse.json() as { csrfToken?: unknown };
+    if (typeof csrf.csrfToken !== 'string' || !csrf.csrfToken) {
+      throw new Error(`CSRF response missing token for ${role}`);
+    }
+    const loginResponse = await api.post(`${baseUrl}/api/auth/callback/credentials?json=true`, {
+      form: {
+        csrfToken: csrf.csrfToken,
+        email,
+        password,
+        callbackUrl: baseUrl,
+        json: 'true',
+      },
+    });
+    if (!loginResponse.ok()) throw new Error(`credentials login failed for ${role}: ${loginResponse.status()}`);
+    const sessionResponse = await api.get(`${baseUrl}/api/auth/session`);
+    const session = await sessionResponse.json() as { user?: { id?: unknown; role?: unknown } };
+    if (session.user?.role !== environment.expectedRole || typeof session.user.id !== 'string') {
+      throw new Error(`authenticated role mismatch for ${role}`);
+    }
+    return { role, storageState: await api.storageState() };
+  } finally {
+    await api.dispose();
+  }
+}
+
+async function addKnowledgeApiProbe(context: Awaited<ReturnType<Browser['newContext']>>) {
+  await context.addInitScript(() => {
+    const key = '__ACT_KNOWLEDGE_PRODUCT_QA_API__';
+    const target = window as Window & { [key]?: KnowledgeApiSummary[] };
+    target[key] = [];
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      const requestUrl = typeof args[0] === 'string'
+        ? args[0]
+        : args[0] instanceof URL
+          ? args[0].toString()
+          : args[0].url;
+      const url = new URL(requestUrl, window.location.origin);
+      if (url.pathname.startsWith('/api/knowledge/')) {
+        response.clone().json().then((body: unknown) => {
+          const record = body && typeof body === 'object' && !Array.isArray(body)
+            ? body as Record<string, unknown>
+            : {};
+          const source = record.source && typeof record.source === 'object' && !Array.isArray(record.source)
+            ? record.source as Record<string, unknown>
+            : {};
+          const coverage = record.coverage && typeof record.coverage === 'object' && !Array.isArray(record.coverage)
+            ? record.coverage as Record<string, unknown>
+            : {};
+          const provenance = record.provenance && typeof record.provenance === 'object' && !Array.isArray(record.provenance)
+            ? record.provenance as Record<string, unknown>
+            : {};
+          const authority = provenance.authority && typeof provenance.authority === 'object' && !Array.isArray(provenance.authority)
+            ? provenance.authority
+            : null;
+          const activation = provenance.activation && typeof provenance.activation === 'object' && !Array.isArray(provenance.activation)
+            ? provenance.activation as Record<string, unknown>
+            : {};
+          const projection = provenance.projection && typeof provenance.projection === 'object' && !Array.isArray(provenance.projection)
+            ? provenance.projection as Record<string, unknown>
+            : {};
+          target[key]?.push({
+            path: url.pathname,
+            status: response.status,
+            code: typeof record.code === 'string' ? record.code : null,
+            error: typeof record.error === 'string' ? record.error : null,
+            nodeCount: Array.isArray(record.nodes) ? record.nodes.length : null,
+            relationCount: Array.isArray(record.relations) ? record.relations.length : null,
+            authorityState: typeof source.authorityState === 'string' ? source.authorityState : null,
+            hasAuthorityProvenance: Boolean(authority),
+            activationMode: typeof activation.mode === 'string' ? activation.mode : null,
+            activationStatus: typeof activation.status === 'string' ? activation.status : null,
+            releaseSetId: typeof source.releaseSetId === 'string' ? source.releaseSetId : null,
+            releaseId: typeof source.releaseId === 'string' ? source.releaseId : null,
+            projectionVersion: typeof record.projectionVersion === 'string' ? record.projectionVersion : null,
+            projectionDigest: typeof source.projectionDigest === 'string' ? source.projectionDigest : null,
+            sourceDatasetHash: typeof source.sourceDatasetHash === 'string' ? source.sourceDatasetHash : null,
+            coverageObjectCount: typeof coverage.objectCount === 'number' ? coverage.objectCount : null,
+            coverageRelationCount: typeof coverage.relationCount === 'number' ? coverage.relationCount : null,
+            hasSourceIdentityFields: ['authorityState', 'releaseSetId', 'releaseId', 'projectionDigest', 'sourceDatasetHash']
+              .every((field) => Object.prototype.hasOwnProperty.call(source, field)),
+            hasCoverageFields: ['objectCount', 'relationCount']
+              .every((field) => Object.prototype.hasOwnProperty.call(coverage, field)),
+            projectionId: projection.projectionId === null || typeof projection.projectionId === 'string'
+              ? projection.projectionId ?? null
+              : null,
+            projectionHash: projection.projectionHash === null || typeof projection.projectionHash === 'string'
+              ? projection.projectionHash ?? null
+              : null,
+            capturedAt: Date.now(),
+          });
+        }).catch(() => {
+          target[key]?.push({
+            path: url.pathname,
+            status: response.status,
+            code: null,
+            error: 'non-json-response',
+            nodeCount: null,
+            relationCount: null,
+            authorityState: null,
+            hasAuthorityProvenance: false,
+            activationMode: null,
+            activationStatus: null,
+            releaseSetId: null,
+            releaseId: null,
+            projectionVersion: null,
+            projectionDigest: null,
+            sourceDatasetHash: null,
+            coverageObjectCount: null,
+            coverageRelationCount: null,
+            hasSourceIdentityFields: false,
+            hasCoverageFields: false,
+            projectionId: null,
+            projectionHash: null,
+            capturedAt: Date.now(),
+          });
+        });
+      }
+      return response;
+    };
+  });
+}
+
+async function readKnowledgeApiLog(page: Page): Promise<KnowledgeApiSummary[]> {
+  return page.evaluate(() => (
+    (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA_API__?: KnowledgeApiSummary[] })
+      .__ACT_KNOWLEDGE_PRODUCT_QA_API__ ?? []
+  ));
+}
+
+function latestApiSummary(log: KnowledgeApiSummary[], pathName: string) {
+  return [...log].reverse().find((entry) => entry.path === pathName) ?? null;
+}
+
+function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: string) {
+  if (
+    !summary
+    || summary.status !== 200
+    || summary.nodeCount === null
+    || summary.nodeCount <= 0
+    || summary.authorityState !== 'active'
+    || !summary.hasAuthorityProvenance
+    || summary.activationMode !== 'use-combination'
+    || summary.activationStatus !== 'READY'
+    || summary.projectionId !== null
+    || summary.projectionHash !== null
+  ) {
+    throw new Error(`active Authority API failed in ${context}: ${JSON.stringify(summary)}`);
+  }
+}
+
+async function waitForActiveReady(page: Page, context: string) {
+  await page.waitForSelector('[data-knowledge-graph-mode="active"]', { timeout: 30000 });
+  await page.waitForFunction(() => {
+    const graph = document.querySelector('[data-active-authority-graph="true"]');
+    const stage = document.querySelector('[data-active-graph-stage="authority"]');
+    const loading = graph?.querySelector('[role="status"]');
+    const failure = graph?.querySelector('[role="alert"]');
+    const nodeCount = document.querySelectorAll('[data-active-authority-node]').length;
+    return Boolean(graph && stage && !loading && !failure && nodeCount > 0);
+  }, undefined, { timeout: 30000 });
+  await page.waitForFunction(() => {
+    const log = (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA_API__?: KnowledgeApiSummary[] })
+      .__ACT_KNOWLEDGE_PRODUCT_QA_API__ ?? [];
+    return log.some((entry) => entry.path === '/api/knowledge/graph/active');
+  }, undefined, { timeout: 30000 });
+  await page.waitForTimeout(100);
+  const log = await readKnowledgeApiLog(page);
+  const active = latestApiSummary(log, '/api/knowledge/graph/active');
+  assertActiveApiSummary(active, context);
+  if (log.some((entry) => entry.path === '/api/knowledge/graph' || entry.path === '/api/knowledge/graph/v2')) {
+    throw new Error(`active Authority unexpectedly requested Legacy or candidate API in ${context}`);
+  }
+  return active;
+}
+
+async function switchKnowledgeMode(page: Page, mode: KnowledgeMode, context: string) {
+  const button = page.locator(`[data-knowledge-mode="${mode}"]`);
+  if (!(await button.isVisible().catch(() => false))) {
+    throw new Error(`${mode} mode control unavailable in ${context}`);
+  }
+  await button.click();
+  await page.waitForSelector(`[data-knowledge-graph-mode="${mode}"]`, { timeout: 15000 });
+  if (mode === 'legacy') {
+    await page.waitForFunction(() => {
+      const view = document.querySelector('[data-knowledge-legacy-view="true"]');
+      const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+      return Boolean(view && canvas && Number(canvas.dataset.knowledgeVisibleNodeCount ?? '0') > 0);
+    }, undefined, { timeout: 30000 });
+  } else if (mode === 'candidate') {
+    await page.waitForFunction(() => {
+      const graph = document.querySelector('[data-candidate-authoritative-graph="true"]');
+      return Boolean(graph && !graph.querySelector('[role="status"]'));
+    }, undefined, { timeout: 30000 });
+  }
+  await page.waitForTimeout(300);
+}
+
+async function openStatePage(browser: Browser, state: CaptureState, storageState: RoleSession['storageState']) {
   const context = await browser.newContext({
     viewport: { width: state.width, height: state.height },
     deviceScaleFactor: 1,
+    storageState,
   });
+  await addKnowledgeApiProbe(context);
   await context.addInitScript(({ theme, navigationPreference }) => {
     (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__ = true;
     window.localStorage.setItem('ai-obe-theme', theme);
@@ -192,10 +471,16 @@ async function openStatePage(browser: Browser, state: CaptureState) {
   const url = `${baseUrl}${route}${query}`;
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   const readySelector = route === '/knowledge'
-    ? '[data-knowledge-workspace="canvas-first"]'
+    ? '[data-knowledge-graph-mode]'
     : '[data-commercial-workspace="adaptive-path-center"]';
   await page.waitForSelector(readySelector, { timeout: 30000 });
-  if (route === '/knowledge') await waitForKnowledgeReady(page);
+  if (route === '/knowledge') {
+    await waitForActiveReady(page, `${state.name}:active-default`);
+    const requestedKnowledgeMode = state.knowledgeMode ?? 'active';
+    if (requestedKnowledgeMode !== 'active') {
+      await switchKnowledgeMode(page, requestedKnowledgeMode, state.name);
+    }
+  }
   else await page.waitForTimeout(800);
   return { context, page, url };
 }
@@ -485,12 +770,15 @@ async function openMobileTool(page: Page, tool: string) {
     'view-layout': '视图',
   };
   const label = labelByTool[tool] ?? tool;
-  const mobileButton = page.locator('[data-knowledge-mobile-command-surface] button').filter({ hasText: label }).first();
-  if (await mobileButton.count()) {
-    await mobileButton.click({ timeout: 5000 });
-    await page.waitForTimeout(250);
+  const mobileButton = page
+    .locator('[data-knowledge-mobile-command-surface] > [data-knowledge-mobile-command-toolbar="true"]')
+    .getByRole('button', { name: label, exact: true });
+  if (await mobileButton.count() !== 1) {
+    throw new Error(`mobile ${tool} trigger unavailable or ambiguous`);
   }
-  await page.waitForSelector(`[data-knowledge-mobile-tool-panel="${tool}"]`, { timeout: 8000 }).catch(() => undefined);
+  await mobileButton.click({ timeout: 5000 });
+  await page.waitForTimeout(250);
+  await page.waitForSelector(`[data-knowledge-mobile-tool-panel="${tool}"]`, { timeout: 8000 });
 }
 
 async function expandDock(page: Page) {
@@ -546,16 +834,35 @@ async function focusableByTab(page: Page, selector: string) {
   return false;
 }
 
+type LegacyFocusState = Omit<CaptureState, 'knowledgeMode'> & { knowledgeMode: 'legacy' };
+
+function legacyFocusState(state: Omit<CaptureState, 'knowledgeMode'>): LegacyFocusState {
+  return { ...state, knowledgeMode: 'legacy' };
+}
+
+function assertLegacyFocusState(target: string, state: CaptureState) {
+  const legacyFocusTarget = target.startsWith('desktop-local-tool-')
+    || target === 'desktop-local-tools'
+    || target === 'mobile-local-sheet'
+    || target === 'mobile-inspector'
+    || target === 'konling-expanded';
+  if (legacyFocusTarget && state.knowledgeMode !== 'legacy') {
+    throw new Error(`${target} focus probe must start in explicit Legacy mode`);
+  }
+}
+
 async function probeFocusTarget(
   browser: Browser,
   target: string,
   state: CaptureState,
+  storageState: RoleSession['storageState'],
   open: (page: Page) => Promise<void>,
   panelSelector: string,
   close: (page: Page) => Promise<void>,
   returnSelector: string,
 ) {
-  const { context, page } = await openStatePage(browser, state);
+  assertLegacyFocusState(target, state);
+  const { context, page } = await openStatePage(browser, state, storageState);
   try {
     await open(page);
     await page.waitForSelector(panelSelector, { timeout: 8000 });
@@ -580,14 +887,14 @@ async function probeFocusTarget(
   }
 }
 
-async function captureFocusEvidence(browser: Browser) {
+async function captureFocusEvidence(browser: Browser, storageState: RoleSession['storageState']) {
   const desktopTools = ['chapter-directory', 'node-filters', 'view-layout'] as const;
   const desktopToolEvidence = [];
   for (const tool of desktopTools) {
     desktopToolEvidence.push(await probeFocusTarget(
       browser,
       `desktop-local-tool-${tool}`,
-      {
+      legacyFocusState({
         name: `focus-desktop-local-tool-${tool}`,
         theme: 'dark',
         width: 1440,
@@ -598,7 +905,8 @@ async function captureFocusEvidence(browser: Browser) {
         localToolState: tool,
         selectedNode: null,
         interactionState: `focus desktop local tool ${tool}`,
-      },
+      }),
+      storageState,
       (page) => openDesktopTool(page, tool),
       `[data-knowledge-desktop-tool-panel="${tool}"]`,
       (page) => page.keyboard.press('Escape'),
@@ -611,7 +919,7 @@ async function captureFocusEvidence(browser: Browser) {
     await probeFocusTarget(
       browser,
       'desktop-local-tools',
-      {
+      legacyFocusState({
         name: 'focus-desktop-local-tools',
         theme: 'dark',
         width: 1440,
@@ -622,7 +930,8 @@ async function captureFocusEvidence(browser: Browser) {
         localToolState: 'node-filters',
         selectedNode: null,
         interactionState: 'focus desktop local tools',
-      },
+      }),
+      storageState,
       (page) => openDesktopTool(page, 'node-filters'),
       '[data-knowledge-desktop-tool-panel="node-filters"]',
       (page) => page.keyboard.press('Escape'),
@@ -631,7 +940,7 @@ async function captureFocusEvidence(browser: Browser) {
     await probeFocusTarget(
       browser,
       'mobile-local-sheet',
-      {
+      legacyFocusState({
         name: 'focus-mobile-local-sheet',
         theme: 'dark',
         width: 320,
@@ -642,7 +951,8 @@ async function captureFocusEvidence(browser: Browser) {
         localToolState: 'view-layout',
         selectedNode: null,
         interactionState: 'focus mobile local tools',
-      },
+      }),
+      storageState,
       (page) => openMobileTool(page, 'view-layout'),
       '[data-knowledge-mobile-tool-panel="view-layout"]',
       (page) => clickIfPresent(page, '[data-knowledge-mobile-panel-toggle="true"]'),
@@ -651,7 +961,7 @@ async function captureFocusEvidence(browser: Browser) {
     await probeFocusTarget(
       browser,
       'mobile-inspector',
-      {
+      legacyFocusState({
         name: 'focus-mobile-inspector',
         theme: 'dark',
         width: 320,
@@ -663,7 +973,8 @@ async function captureFocusEvidence(browser: Browser) {
         selectedNode: selectedNodeId,
         interactionState: 'focus mobile inspector',
         query: `?node=${encodeURIComponent(selectedNodeId)}`,
-      },
+      }),
+      storageState,
       (page) => openSelectedNodeInspector(page),
       '[data-knowledge-inspector="floating-right-edge"]',
       (page) => page.keyboard.press('Escape'),
@@ -672,7 +983,7 @@ async function captureFocusEvidence(browser: Browser) {
     await probeFocusTarget(
       browser,
       'konling-expanded',
-      {
+      legacyFocusState({
         name: 'focus-konling-expanded',
         theme: 'dark',
         width: 1440,
@@ -684,7 +995,8 @@ async function captureFocusEvidence(browser: Browser) {
         selectedNode: selectedNodeId,
         interactionState: 'focus konling expanded',
         query: `?node=${encodeURIComponent(selectedNodeId)}`,
-      },
+      }),
+      storageState,
       expandDock,
       '[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]',
       (page) => page.keyboard.press('Escape'),
@@ -695,8 +1007,12 @@ async function captureFocusEvidence(browser: Browser) {
 
 async function captureMarkers(page: Page, stateName: string) {
   const markers = await page.evaluate(`(() => {
-    const root = document.querySelector('[data-knowledge-workspace]');
+    const root = document.querySelector('[data-knowledge-graph-mode]');
+    const legacyWorkspaceRoot = document.querySelector('[data-knowledge-workspace]');
     const canvas = document.querySelector('[data-knowledge-canvas-primary]');
+    const activeGraph = document.querySelector('[data-active-authority-graph="true"]');
+    const candidateGraph = document.querySelector('[data-candidate-authoritative-graph="true"]');
+    const legacyView = document.querySelector('[data-knowledge-legacy-view="true"]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
     const mobileTools = document.querySelector('[data-knowledge-mobile-command-surface]');
     const activeLocalPanel = document.querySelector('[data-knowledge-local-tool-panel]');
@@ -732,7 +1048,24 @@ async function captureMarkers(page: Page, stateName: string) {
      const expandedDockRect = rectFor(konlingSidebar ?? expandedDock);
     return {
       htmlClass: document.documentElement.className,
-      workspace: root?.dataset.knowledgeWorkspace ?? null,
+      workspace: legacyWorkspaceRoot?.getAttribute('data-knowledge-workspace') ?? null,
+      knowledgeGraphMode: root?.dataset.knowledgeGraphMode ?? null,
+      knowledgeGraphVersion: root?.dataset.knowledgeGraphVersion ?? null,
+      activeAuthority: activeGraph ? {
+        visibleNodeCount: document.querySelectorAll('[data-active-authority-node]').length,
+        relationCount: document.querySelectorAll('[data-active-authority-relation]').length,
+        stage: document.querySelector('[data-active-graph-stage="authority"]') ? 'authority' : null,
+        identitySurface: activeGraph.textContent?.includes('Projection：不适用（null）') ?? false,
+      } : null,
+      candidateAuthority: candidateGraph ? {
+        graphVisible: true,
+        visibleNodeCount: document.querySelectorAll('[data-candidate-graph-stage] [data-candidate-canonical-type]').length,
+        controlledVerification: candidateGraph.getAttribute('data-candidate-controlled-verification') === 'true',
+      } : null,
+      legacyView: legacyView ? {
+        visible: true,
+        visibleNodeCount: Number(canvas?.getAttribute('data-knowledge-visible-node-count') ?? '0'),
+      } : null,
       konlingContextStatus: root?.dataset.knowledgeKonlingContextStatus ?? null,
       appShellNavigationState: appShell?.dataset.appShellNavigationState ?? null,
       appShellPreference: appShell?.dataset.appShellNavigationPreference ?? null,
@@ -843,20 +1176,24 @@ async function captureMarkers(page: Page, stateName: string) {
   };
 }
 
-async function captureState(browser: Browser, state: CaptureState) {
-  const { context, page, url } = await openStatePage(browser, state);
+async function captureState(browser: Browser, state: CaptureState, storageState: RoleSession['storageState']) {
+  const { context, page, url } = await openStatePage(browser, state, storageState);
   try {
     let interactionEvidence: Record<string, unknown> | undefined;
     if (state.beforeShot) {
       interactionEvidence = await state.beforeShot(page) ?? undefined;
       await page.waitForTimeout(500);
     }
-    if ((state.route ?? '/knowledge') === '/knowledge') await waitForKnowledgeReady(page);
+    if ((state.route ?? '/knowledge') === '/knowledge') {
+      if ((state.knowledgeMode ?? 'active') === 'active') await waitForActiveReady(page, `${state.name}:active-capture`);
+      else await waitForKnowledgeReady(page);
+    }
     const screenshotName = `${state.name}.png`;
     const screenshotPath = path.join(outputDir, screenshotName);
     await page.screenshot({ path: screenshotPath, fullPage: false });
     const screenshotRelativePath = path.relative(repoRoot, screenshotPath);
     const markers = await captureMarkers(page, state.name);
+    const apiLog = await readKnowledgeApiLog(page);
     return {
       name: state.name,
       route: state.route ?? '/knowledge',
@@ -868,6 +1205,12 @@ async function captureState(browser: Browser, state: CaptureState) {
       localToolState: state.localToolState,
       selectedNode: state.selectedNode,
       interactionState: state.interactionState,
+      knowledgeMode: state.knowledgeMode ?? 'active',
+      api: {
+        active: latestApiSummary(apiLog, '/api/knowledge/graph/active'),
+        legacy: latestApiSummary(apiLog, '/api/knowledge/graph'),
+        candidate: latestApiSummary(apiLog, '/api/knowledge/graph/v2'),
+      },
       result: 'passed',
       screenshotPath: screenshotRelativePath,
       screenshotSha256: sha256(screenshotRelativePath),
@@ -877,6 +1220,232 @@ async function captureState(browser: Browser, state: CaptureState) {
   } finally {
     await context.close();
   }
+}
+
+async function captureAuthenticatedRoleEvidence(
+  browser: Browser,
+  sessions: ReadonlyMap<KnowledgeRole, RoleSession>,
+) {
+  const results: Array<Record<string, unknown>> = [];
+  for (const role of ['student', 'teacher', 'admin'] as const) {
+    const session = sessions.get(role);
+    if (!session) throw new Error(`missing authenticated session for ${role}`);
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 960 },
+      deviceScaleFactor: 1,
+      storageState: session.storageState,
+    });
+    await addKnowledgeApiProbe(context);
+    const page = await context.newPage();
+    try {
+      await page.goto(`${baseUrl}/knowledge?qa=knowledge-product`, { waitUntil: 'domcontentloaded' });
+      const active = await waitForActiveReady(page, `role:${role}:default`);
+      const initialLog = await readKnowledgeApiLog(page);
+      const candidateButtonVisible = await page.locator('[data-knowledge-mode="candidate"]').isVisible().catch(() => false);
+      const legacyButtonVisible = await page.locator('[data-knowledge-mode="legacy"]').isVisible().catch(() => false);
+      const defaultScreenshot = path.join(outputDir, `role-${role}-default.png`);
+      await page.screenshot({ path: defaultScreenshot, fullPage: false });
+
+      const legacyBeforeSwitch = initialLog.some((entry) => entry.path === '/api/knowledge/graph');
+      await switchKnowledgeMode(page, 'legacy', `role:${role}:legacy`);
+      const legacyLog = await readKnowledgeApiLog(page);
+      const legacy = latestApiSummary(legacyLog, '/api/knowledge/graph');
+      if (!legacy || legacy.status !== 200) {
+        throw new Error(`Legacy API failed in role:${role}: ${JSON.stringify(legacy)}`);
+      }
+      const legacyCanvas = await page.evaluate(() => {
+        const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+        return {
+          visibleNodeCount: Number(canvas?.dataset.knowledgeVisibleNodeCount ?? '0'),
+          legacyView: Boolean(document.querySelector('[data-knowledge-legacy-view="true"]')),
+        };
+      });
+      if (!legacyCanvas.legacyView || legacyCanvas.visibleNodeCount <= 0) {
+        throw new Error(`Legacy canvas was empty in role:${role}`);
+      }
+      const legacyScreenshot = path.join(outputDir, `role-${role}-legacy.png`);
+      await page.screenshot({ path: legacyScreenshot, fullPage: false });
+
+      let candidate: Record<string, unknown> | null = null;
+      let candidateScreenshot: string | null = null;
+      const candidateApiRequestedBeforeExplicitSwitch = initialLog.some(
+        (entry) => entry.path === '/api/knowledge/graph/v2',
+      );
+      if (role === 'admin') {
+        await switchKnowledgeMode(page, 'active', `role:${role}:active-before-candidate`);
+        await switchKnowledgeMode(page, 'candidate', `role:${role}:candidate`);
+        const candidateLog = await readKnowledgeApiLog(page);
+        const candidateApi = latestApiSummary(candidateLog, '/api/knowledge/graph/v2');
+        if (!candidateApi || candidateApi.status !== 200) {
+          throw new Error(`candidate API failed in role:${role}: ${JSON.stringify(candidateApi)}`);
+        }
+        candidateScreenshot = path.join(outputDir, `role-${role}-candidate.png`);
+        await page.screenshot({ path: candidateScreenshot, fullPage: false });
+        const candidateControlledVerification = await page.locator(
+          '[data-candidate-authoritative-graph="true"][data-candidate-controlled-verification="true"]',
+        ).count() > 0;
+        if (!candidateControlledVerification) {
+          throw new Error('admin candidate graph is missing controlledVerification marker');
+        }
+        candidate = {
+          mode: 'candidate',
+          controlledEntry: true,
+          controlledVerification: candidateControlledVerification,
+          currentAuthority: false,
+          explicitSwitch: true,
+          candidateApiRequestedBeforeExplicitSwitch,
+          api: candidateApi,
+          graphVisible: Boolean(await page.locator('[data-candidate-authoritative-graph="true"]').count()),
+          nodeCount: candidateApi.nodeCount,
+          identity: {
+            authorityState: candidateApi.authorityState,
+            releaseSetId: candidateApi.releaseSetId,
+            releaseId: candidateApi.releaseId,
+            projectionVersion: candidateApi.projectionVersion,
+            projectionDigest: candidateApi.projectionDigest,
+            sourceDatasetHash: candidateApi.sourceDatasetHash,
+          },
+          coverage: {
+            objectCount: candidateApi.coverageObjectCount,
+            relationCount: candidateApi.coverageRelationCount,
+          },
+          screenshotPath: path.relative(repoRoot, candidateScreenshot),
+          screenshotSha256: sha256(path.relative(repoRoot, candidateScreenshot)),
+        };
+      }
+
+      results.push({
+        role,
+        default: {
+          mode: 'active',
+          api: active,
+          graphVisible: true,
+          nonEmptyCanvas: true,
+          candidateButtonVisible,
+          legacyButtonVisible,
+          legacyApiRequestedBeforeExplicitSwitch: legacyBeforeSwitch,
+          apiSequenceBeforeLegacy: initialLog.map((entry) => ({ path: entry.path, status: entry.status })),
+          screenshotPath: path.relative(repoRoot, defaultScreenshot),
+          screenshotSha256: sha256(path.relative(repoRoot, defaultScreenshot)),
+        },
+        legacy: {
+          mode: 'legacy',
+          api: legacy,
+          legacyView: legacyCanvas.legacyView,
+          visibleNodeCount: legacyCanvas.visibleNodeCount,
+          explicitSwitch: true,
+          screenshotPath: path.relative(repoRoot, legacyScreenshot),
+          screenshotSha256: sha256(path.relative(repoRoot, legacyScreenshot)),
+        },
+        candidate,
+        apiSequence: (await readKnowledgeApiLog(page)).map((entry) => ({ path: entry.path, status: entry.status })),
+      });
+    } finally {
+      await context.close();
+    }
+  }
+  return results;
+}
+
+async function captureActiveAuthorityVisualMatrix(
+  browser: Browser,
+  storageState: RoleSession['storageState'],
+) {
+  const states: CaptureState[] = [
+    {
+      name: 'active-desktop-dark',
+      theme: 'dark',
+      width: 1440,
+      height: 960,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'closed',
+      selectedNode: null,
+      interactionState: 'active Authority responsive desktop dark',
+      knowledgeMode: 'active',
+    },
+    {
+      name: 'active-desktop-light',
+      theme: 'light',
+      width: 1440,
+      height: 960,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'closed',
+      selectedNode: null,
+      interactionState: 'active Authority responsive desktop light',
+      knowledgeMode: 'active',
+    },
+    {
+      name: 'active-tablet',
+      theme: 'dark',
+      width: 1024,
+      height: 900,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'closed',
+      selectedNode: null,
+      interactionState: 'active Authority responsive tablet',
+      knowledgeMode: 'active',
+    },
+    {
+      name: 'active-mobile',
+      theme: 'dark',
+      width: 320,
+      height: 800,
+      navigationPreference: 'collapsed',
+      navigationState: 'mobile',
+      dockState: 'collapsed',
+      localToolState: 'closed',
+      selectedNode: null,
+      interactionState: 'active Authority responsive mobile',
+      knowledgeMode: 'active',
+    },
+  ];
+  const matrix: Array<Record<string, unknown>> = [];
+  for (const state of states) {
+    const { context, page, url } = await openStatePage(browser, state, storageState);
+    try {
+      const apiLog = await readKnowledgeApiLog(page);
+      const active = latestApiSummary(apiLog, '/api/knowledge/graph/active');
+      assertActiveApiSummary(active, `${state.name}:visual-matrix`);
+      if (apiLog.some((entry) => entry.path === '/api/knowledge/graph' || entry.path === '/api/knowledge/graph/v2')) {
+        throw new Error(`active visual matrix requested a non-active graph API in ${state.name}`);
+      }
+      const markers = await captureMarkers(page, state.name);
+      if (
+        markers.knowledgeGraphMode !== 'active'
+        || objectRecord(markers.activeAuthority).visibleNodeCount <= 0
+        || objectRecord(markers.activeAuthority).stage !== 'authority'
+        || objectRecord(markers.activeAuthority).identitySurface !== true
+      ) {
+        throw new Error(`active visual matrix DOM contract failed in ${state.name}`);
+      }
+      const screenshotPath = path.join(outputDir, `${state.name}.png`);
+      await page.screenshot({ path: screenshotPath, fullPage: false });
+      const screenshotRelativePath = path.relative(repoRoot, screenshotPath);
+      matrix.push({
+        name: state.name,
+        route: '/knowledge',
+        url,
+        theme: state.theme,
+        viewport: { width: state.width, height: state.height },
+        knowledgeMode: 'active',
+        result: 'passed',
+        api: active,
+        apiSequence: apiLog.map((entry) => ({ path: entry.path, status: entry.status })),
+        markers,
+        screenshotPath: screenshotRelativePath,
+        screenshotSha256: sha256(screenshotRelativePath),
+      });
+    } finally {
+      await context.close();
+    }
+  }
+  return matrix;
 }
 
 function writeToolsInspectorCompatibilityEvidence(
@@ -1175,6 +1744,14 @@ function writeKnowledgeGraphGovernanceEvidence(stateMatrix: Array<Record<string,
 async function main() {
   const captureRevision = readCleanCaptureRevision();
   ensureOutputDir();
+  const sessions = new Map<KnowledgeRole, RoleSession>();
+  for (const role of ['student', 'teacher', 'admin'] as const) {
+    sessions.set(role, await establishRoleSession(role));
+  }
+  const adminSession = sessions.get('admin');
+  if (!adminSession) throw new Error('admin session is required for authenticated product capture');
+  const studentSession = sessions.get('student');
+  if (!studentSession) throw new Error('student session is required for the product visual matrices');
   const states: CaptureState[] = [
     {
       name: 'desktop-default-collapsed-dark',
@@ -1187,6 +1764,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: null,
       interactionState: 'default graph',
+      knowledgeMode: 'legacy',
     },
     {
       name: 'desktop-expanded-persisted-dark',
@@ -1199,6 +1777,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: null,
       interactionState: 'navigation preference persisted',
+      knowledgeMode: 'legacy',
     },
     {
       name: 'desktop-local-tools-directory-dark',
@@ -1211,6 +1790,7 @@ async function main() {
       localToolState: 'chapter-directory',
       selectedNode: null,
       interactionState: 'local chapter directory opened',
+      knowledgeMode: 'legacy',
       beforeShot: (page) => openDesktopTool(page, 'chapter-directory'),
     },
     {
@@ -1224,6 +1804,7 @@ async function main() {
       localToolState: 'node-filters',
       selectedNode: null,
       interactionState: 'local node filter opened',
+      knowledgeMode: 'legacy',
       beforeShot: (page) => openDesktopTool(page, 'node-filters'),
     },
     {
@@ -1237,6 +1818,7 @@ async function main() {
       localToolState: 'view-layout',
       selectedNode: null,
       interactionState: 'local view controls opened',
+      knowledgeMode: 'legacy',
       beforeShot: (page) => openDesktopTool(page, 'view-layout'),
     },
     {
@@ -1250,6 +1832,7 @@ async function main() {
       localToolState: 'view-layout',
       selectedNode: selectedNodeId,
       interactionState: 'selected node explicit focus with centralized edge emphasis',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
@@ -1268,6 +1851,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: null,
       interactionState: 'all learner-facing relation families enabled',
+      knowledgeMode: 'legacy',
       beforeShot: async (page) => {
         await clickIfPresent(page, '[data-knowledge-relation-family="all"]');
       },
@@ -1283,6 +1867,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: selectedNodeId,
       interactionState: 'selected inspector',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: (page) => openSelectedNodeInspector(page),
     },
@@ -1297,6 +1882,7 @@ async function main() {
       localToolState: 'view-layout',
       selectedNode: dragNodeId,
       interactionState: 'hover click drag persistence evidence',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(dragNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
@@ -1340,6 +1926,7 @@ async function main() {
       localToolState: 'view-layout',
       selectedNode: selectedNodeId,
       interactionState: 'explicit relayout control visible',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
@@ -1357,6 +1944,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: null,
       interactionState: '3D first fit and repeated deterministic relayout',
+      knowledgeMode: 'legacy',
       beforeShot: captureThreeDimensionalFitRelayoutEvidence,
     },
     {
@@ -1370,6 +1958,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: selectedNodeId,
       interactionState: 'konling selected context expanded',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await closeInspectorIfPresent(page);
@@ -1387,6 +1976,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: null,
       interactionState: 'konling no-selection context',
+      knowledgeMode: 'legacy',
       beforeShot: expandDock,
     },
     {
@@ -1400,6 +1990,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: 'missing-node',
       interactionState: 'konling degraded unresolved node context',
+      knowledgeMode: 'legacy',
       query: '?node=missing-node',
       beforeShot: expandDock,
     },
@@ -1414,6 +2005,7 @@ async function main() {
       localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'expanded shell local tool inspector konling stress state',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
@@ -1433,6 +2025,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: null,
       interactionState: 'wide desktop default graph',
+      knowledgeMode: 'legacy',
     },
     {
       name: 'desktop-wide-inspector-tools-dark',
@@ -1445,6 +2038,7 @@ async function main() {
       localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'wide desktop floating local tool and inspector',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
@@ -1462,6 +2056,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: null,
       interactionState: 'xl breakpoint lower bound workspace containment',
+      knowledgeMode: 'legacy',
     },
     {
       name: 'tablet-1100-local-tools-filter-dark',
@@ -1474,6 +2069,7 @@ async function main() {
       localToolState: 'node-filters',
       selectedNode: null,
       interactionState: 'xl breakpoint lower bound relation filter containment',
+      knowledgeMode: 'legacy',
       beforeShot: (page) => openDesktopTool(page, 'node-filters'),
     },
     {
@@ -1487,6 +2083,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: selectedNodeId,
       interactionState: 'tablet breakpoint selected inspector below mobile navigation',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: (page) => openSelectedNodeInspector(page),
     },
@@ -1501,6 +2098,7 @@ async function main() {
       localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'tablet lower boundary inspector konling local tool suspension',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
@@ -1520,6 +2118,7 @@ async function main() {
       localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'tablet breakpoint inspector konling local tool suspension',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
@@ -1539,6 +2138,7 @@ async function main() {
       localToolState: 'node-filters',
       selectedNode: selectedNodeId,
       interactionState: 'tablet upper boundary inspector konling local tool suspension',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
@@ -1558,6 +2158,7 @@ async function main() {
       localToolState: 'view-layout',
       selectedNode: null,
       interactionState: 'mobile local tools sheet',
+      knowledgeMode: 'legacy',
       beforeShot: (page) => openMobileTool(page, 'view-layout'),
     },
     {
@@ -1571,6 +2172,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: selectedNodeId,
       interactionState: 'mobile selected inspector sheet',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: (page) => openSelectedNodeInspector(page),
     },
@@ -1585,6 +2187,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: selectedNodeId,
       interactionState: 'mobile konling expanded',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await closeInspectorIfPresent(page);
@@ -1602,6 +2205,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: selectedNodeId,
       interactionState: 'mobile inspector suspended while konling is expanded',
+      knowledgeMode: 'legacy',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openSelectedNodeInspector(page);
@@ -1620,6 +2224,7 @@ async function main() {
       localToolState: 'closed',
       selectedNode: null,
       interactionState: 'light theme default graph',
+      knowledgeMode: 'legacy',
     },
   ];
 
@@ -1627,9 +2232,14 @@ async function main() {
   try {
     const stateMatrix = [];
     for (const state of states) {
-      stateMatrix.push(await captureState(browser, state));
+      stateMatrix.push(await captureState(browser, state, studentSession.storageState));
     }
-    const focusEvidence = await captureFocusEvidence(browser);
+    const focusEvidence = await captureFocusEvidence(browser, studentSession.storageState);
+    const activeAuthorityVisualMatrix = await captureActiveAuthorityVisualMatrix(
+      browser,
+      studentSession.storageState,
+    );
+    const authenticatedRoleEvidence = await captureAuthenticatedRoleEvidence(browser, sessions);
     const currentSourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, sha256(file)]));
     const evidence = {
       change: 'govern-knowledge-workspace-product-qa',
@@ -1668,6 +2278,8 @@ async function main() {
       currentSourceSha256,
       stateMatrix,
       focusEvidence,
+      activeAuthorityVisualMatrix,
+      authenticatedRoleEvidence,
       handoffMatrix: {
         path: 'artifacts/knowledge-workspace-product-qa-489/handoff-implementation-matrix.md',
         adopted: [
@@ -1686,7 +2298,11 @@ async function main() {
           'shared AppShell + local graph tools + right-bottom Konling dock',
         ],
       },
-      independentVisualReview: readExistingIndependentVisualReview(stateMatrix, currentSourceSha256)
+      independentVisualReview: readExistingIndependentVisualReview(
+        stateMatrix,
+        currentSourceSha256,
+        activeAuthorityVisualMatrix,
+      )
         ?? pendingIndependentVisualReview(),
       temporaryExceptions: [],
     };

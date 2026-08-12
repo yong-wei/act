@@ -1,0 +1,74 @@
+{
+  "capturedAt": "2026-08-11T06:32:14.729Z",
+  "gitRevision": "c44abdf99eee369324f61b7cc27cd5f338606d61",
+  "route": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
+  "fixtureAuthority": "Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are Playwright route fixtures so each commercial state is deterministic; route and component tests cover their server contracts.",
+  "evidence": [
+    {
+      "file": "available-full-loop-1440.png",
+      "screenshotSha256": "c26f1b1a2bb6e3a997b69ec323e4f975310dfc8934bd08d5e12810188075463e",
+      "width": 1440,
+      "state": "validated",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "focusVisibleBeforeActivation": true,
+        "validationTerminal": "passed"
+      }
+    },
+    {
+      "file": "unavailable-fail-closed-1440.png",
+      "screenshotSha256": "3f5ff644ab47e30d1526d3f0859c42ba70ba8213dca01b57062c93853ea48190",
+      "width": 1440,
+      "state": "unavailable",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "retryAvailable": false,
+        "unavailableReason": "ATTRIBUTION_UNCERTAIN"
+      }
+    },
+    {
+      "file": "recoverable-retry-1440.png",
+      "screenshotSha256": "69647457fab4d13669b6592f6a9de718de2fbaa8c067d6e670d750f4ada86e3d",
+      "width": 1440,
+      "state": "recovered",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "createAttempts": 2,
+        "retryAvailable": true
+      }
+    },
+    {
+      "file": "available-full-loop-320.png",
+      "screenshotSha256": "381b42a2a76e89969ce3296d847ec5c89dcbe03452aba65c279dab074e5057f7",
+      "width": 320,
+      "state": "validated",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "focusVisibleBeforeActivation": true,
+        "validationTerminal": "passed"
+      }
+    },
+    {
+      "file": "unavailable-fail-closed-320.png",
+      "screenshotSha256": "f3c2d06ce227954c52aa5583242a6beef5f88e3bd830399354f9823c961dcd16",
+      "width": 320,
+      "state": "unavailable",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "retryAvailable": false,
+        "unavailableReason": "ATTRIBUTION_UNCERTAIN"
+      }
+    },
+    {
+      "file": "recoverable-retry-320.png",
+      "screenshotSha256": "f44f910390b55e45355698ef1686cae6aedde514dfbf452dffce02d8e8c76d10",
+      "width": 320,
+      "state": "recovered",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "createAttempts": 2,
+        "retryAvailable": true
+      }
+    }
+  ]
+}

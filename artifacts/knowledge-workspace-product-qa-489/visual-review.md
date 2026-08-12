@@ -1,75 +1,42 @@
 # 知识工作区产品 QA 独立视觉复核
 
-最终结果：通过（`finalResult=passed`，无阻断 finding）。
+最终结论：PASS（`finalResult=passed`，无阻断 finding）。
 
-## 审核范围
+## 审核身份与绑定范围
 
-本次审核由独立 Grok 视觉审核逐张核查 capture 产出的 29 张截图。审核对象是 `stateMatrix` 中的全部状态，覆盖桌面、平板、移动端、深色/浅色主题、局部工具、语义图谱、检查器、Konling Dock、交互稳定性和高负荷组合状态。
+Grok 4.5 在只读范围完成独立视觉复核，未修改项目文件、暂存区或 Git 历史。
 
-Capture 绑定如下：
+- commit：`94b785a7ec7879543fabb9233f37521346dfe71f`
+- tree：`67c388b67de01651b971d3814a670710b1b02bda`
+- 截图：29 项 `stateMatrix` 与 4 项 `activeAuthorityVisualMatrix` 的 SHA-256 均与当前磁盘一致；7 项角色截图及 486、487 的对应证据也一致。
+- 源码：`browser-evidence.json` 中 20 项 `currentSourceSha256` 与复核时的源码逐项一致。
 
-- commit：`8aa1dfa0fe67f1a1f2c8c3660f655a924f0ccfc1`
-- tree：`80a1d5233687cff831bb30697f14715d902f410d`
-- source SHA：与 `browser-evidence.json` 的 `currentSourceSha256` 精确匹配（17/17）；`reviewedSourceSha256` 已记录同一组值。
-- state SHA：与 `browser-evidence.json` 的 `stateMatrix` 截图 SHA 精确匹配（29/29）；`reviewedStateSha256` 已记录完整映射。
+审查覆盖 29 个显式 Legacy 浏览状态、4 个当前 Authority 响应式状态、7 项焦点证据，以及 student、teacher、admin 的角色边界。当前 Authority 在四个响应式状态中均为 4,891 nodes / 2,409 relations、`use-combination` / `READY`、null projection；student 与 teacher 没有 candidate 入口，admin candidate 仅在显式动作后作为受控验证出现，且不是 current Authority。
 
-29 个状态范围：
+## 视觉结论
 
-- `desktop-default-collapsed-dark`
-- `desktop-expanded-persisted-dark`
-- `desktop-local-tools-directory-dark`
-- `desktop-local-tools-filter-dark`
-- `desktop-local-tools-view-dark`
-- `desktop-selected-focus-dark`
-- `desktop-all-relation-families-dark`
-- `desktop-selected-inspector-light`
-- `desktop-hover-click-drag-dark`
-- `desktop-selected-page-tools-menu-dark`
-- `desktop-explicit-relayout-dark`
-- `desktop-3d-fit-relayout-dark`
-- `desktop-konling-selected-expanded-dark`
-- `desktop-konling-no-selection-dark`
-- `desktop-konling-degraded-dark`
-- `desktop-stress-expanded-tool-inspector-konling-dark`
-- `desktop-wide-default-dark`
-- `desktop-wide-inspector-tools-dark`
-- `tablet-1100-default-dark`
-- `tablet-1100-local-tools-filter-dark`
-- `tablet-1100-selected-inspector-dark`
-- `tablet-1024-inspector-tools-konling-dark`
-- `tablet-1100-inspector-tools-konling-dark`
-- `tablet-1279-inspector-tools-konling-dark`
-- `mobile-320-local-tools-dark`
-- `mobile-320-selected-inspector-dark`
-- `mobile-320-konling-expanded-dark`
-- `mobile-320-inspector-konling-stress-dark`
-- `light-theme-default`
-
-## 审核维度
-
-以下 14 个维度均为 `PASS`：
-
-1. `handoffAlignment`
-2. `conceptAdoptionRejection`
-3. `appShellContinuity`
-4. `localTools`
-5. `semanticMap`
-6. `inspectorHierarchy`
-7. `konlingDock`
-8. `interactionStability`
-9. `keyboardFocus`
-10. `themeParity`
-11. `mobileBehavior`
-12. `tabletBreakpoint`
-13. `stressNonOverlap`
-14. `canvasGeometry`
-
-未发现 P0/P1 问题。
+| 维度 | 结果 | 依据 |
+| --- | --- | --- |
+| handoffAlignment | PASS | 共享应用壳、局部工具和 Konling Dock 与 handoff 一致。 |
+| conceptAdoptionRejection | PASS | 未出现第二套全局导航、重复助手区或概念稿角色切换器。 |
+| appShellContinuity | PASS | 折叠、展开、应力和 adaptive-practice 状态保持同一应用壳。 |
+| localTools | PASS | 目录、筛选、视图面板在相应状态中紧凑且可见。 |
+| semanticMap | PASS | 默认、选中邻域和全关系状态的节点、边与关系族控件一致。 |
+| inspectorHierarchy | PASS | 桌面右浮层、移动底部 sheet 与检查器层级可读。 |
+| konlingDock | PASS | 选中、无选择、降级与应力状态保持共享 Dock，没有第二助手。 |
+| interactionStability | PASS | 拖拽持久化、3D 首次 fit 与重复 relayout 证据通过。 |
+| keyboardFocus | PASS | 7 项 focusEvidence 覆盖打开、Escape 与返回焦点。 |
+| themeParity | PASS | 明暗主题结构、控件位置和检查器可读性一致。 |
+| mobileBehavior | PASS | 320px 工具 sheet、检查器 sheet 与 Konling 覆盖策略符合矩阵。 |
+| tabletBreakpoint | PASS | 1024、1100、1279 宽度下检查器、工具和 Konling 没有矩阵重叠。 |
+| stressNonOverlap | PASS | 全部 29 个状态的 `markers.overlaps` 均为 false。 |
+| canvasGeometry | PASS | 节点、标签与 3D 投影均在画布内，知识路由没有横向溢出。 |
 
 ## 非阻断观察
 
-- focus-state 邻近边缘及文字对比略弱。
-- 3D 多词标签略紧。
-- 320px 状态存在次级文字截断。
-- 移动端 N 头像靠近助手输入框。
-- 静态截图不能证明 focus ring。
+- 平板检查器/Konling 组合的工具状态标记为 open，但工具矩形为空；未出现有害重叠。
+- 3D 多字标签折行偏紧，320px 次级文案有截断；均不影响当前验收。
+- 静态截图不能证明 focus ring，焦点正确性由 `focusEvidence` 承担。
+- adaptive-practice 的自然纵向滚动属于已声明的窄例外，不构成知识图谱布局问题。
+
+本轮增量审查未发现新的 P0/P1 重大问题。

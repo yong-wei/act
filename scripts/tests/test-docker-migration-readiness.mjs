@@ -414,6 +414,120 @@ function main() {
   const deployScript = read('deploy/podman/deploy.sh');
   const localImageBuildScript = read('scripts/build.sh');
   const startWrapperScript = read('deploy/podman/container-start-wrapper.sh');
+
+  // Caller-pinned APP_IMAGE / ACT_KNOWLEDGE_DEPLOYMENT_MODE must win over .env.server.
+  {
+    const operatorCaptureIdx = deployScript.indexOf('operator_app_image_was_set=0');
+    const envFileLoopIdx = deployScript.indexOf(
+      'for env_file in "$PROJECT_DIR/.env.server" "$SCRIPT_DIR/.env.server"',
+    );
+    const modeCaptureIdx = deployScript.indexOf('operator_knowledge_mode_was_set=0');
+    assert.ok(operatorCaptureIdx >= 0, 'deploy.sh 必须捕获调用方 APP_IMAGE');
+    assert.ok(modeCaptureIdx >= 0, 'deploy.sh 必须捕获调用方 ACT_KNOWLEDGE_DEPLOYMENT_MODE');
+    assert.ok(
+      envFileLoopIdx > operatorCaptureIdx && envFileLoopIdx > modeCaptureIdx,
+      '调用方 APP_IMAGE/MODE 捕获必须发生在 source .env.server 之前',
+    );
+    assert.match(
+      deployScript,
+      /if \[ "\$operator_app_image_was_set" = "1" \]; then\s*\n\s*APP_IMAGE="\$operator_app_image"/,
+      'deploy.sh 必须在全部 env source 后恢复调用方 APP_IMAGE',
+    );
+    assert.match(
+      deployScript,
+      /if \[ "\$operator_knowledge_mode_was_set" = "1" \]; then\s*\n\s*ACT_KNOWLEDGE_DEPLOYMENT_MODE="\$operator_knowledge_mode"/,
+      'deploy.sh 必须在全部 env source 后恢复调用方 ACT_KNOWLEDGE_DEPLOYMENT_MODE',
+    );
+    assert.match(
+      deployScript,
+      /-e ACT_KNOWLEDGE_DEPLOYMENT_MODE="\$ACT_KNOWLEDGE_DEPLOYMENT_MODE"/,
+      'app/worker 共享环境必须传递同一 ACT_KNOWLEDGE_DEPLOYMENT_MODE',
+    );
+    const appImageUses = deployScript.match(/"\$APP_IMAGE"/g) ?? [];
+    assert.ok(
+      appImageUses.length >= 2,
+      'app 与 worker 必须使用同一 \$APP_IMAGE 变量启动',
+    );
+
+    const fixtureRoot = fs.mkdtempSync(path.join(root, '.tmp-deploy-env-priority-'));
+    try {
+      const deployDir = path.join(fixtureRoot, 'deploy', 'podman');
+      fs.mkdirSync(deployDir, { recursive: true });
+      fs.mkdirSync(path.join(fixtureRoot, 'data', 'runtime'), { recursive: true });
+      fs.writeFileSync(
+        path.join(fixtureRoot, '.env.server'),
+        [
+          'APP_IMAGE=from-env-server',
+          'ACT_KNOWLEDGE_DEPLOYMENT_MODE=legacy',
+          'SECRET_SHOULD_NOT_LEAK=super-secret-value',
+          '',
+        ].join('\n'),
+      );
+      fs.writeFileSync(
+        path.join(fixtureRoot, 'data', 'runtime', 'act-obe.env'),
+        [
+          'APP_IMAGE=from-runtime-env',
+          'ACT_KNOWLEDGE_DEPLOYMENT_MODE=legacy',
+          '',
+        ].join('\n'),
+      );
+      const marker = 'ACT_KNOWLEDGE_DEPLOYMENT_MODE="${ACT_KNOWLEDGE_DEPLOYMENT_MODE:-legacy}"';
+      assert.ok(deployScript.includes(marker), 'deploy.sh 必须保留 MODE 默认赋值点');
+      const instrumented = deployScript.replace(
+        marker,
+        `${marker}\nprintf 'RESOLVED_APP_IMAGE=%s\\nRESOLVED_MODE=%s\\n' "$APP_IMAGE" "$ACT_KNOWLEDGE_DEPLOYMENT_MODE"\nexit 0`,
+      );
+      const instrumentedPath = path.join(deployDir, 'deploy.sh');
+      fs.writeFileSync(instrumentedPath, instrumented);
+      fs.chmodSync(instrumentedPath, 0o700);
+
+      const callerPinned = execFileSync(
+        'bash',
+        [instrumentedPath, '--app-only'],
+        {
+          cwd: fixtureRoot,
+          encoding: 'utf8',
+          env: {
+            ...process.env,
+            APP_IMAGE: 'caller-fixed-image',
+            ACT_KNOWLEDGE_DEPLOYMENT_MODE: 'cutover',
+          },
+        },
+      );
+      assert.match(callerPinned, /RESOLVED_APP_IMAGE=caller-fixed-image/, '调用方 APP_IMAGE 必须覆盖 .env.server');
+      assert.match(callerPinned, /RESOLVED_MODE=cutover/, '调用方 MODE 必须覆盖 .env.server');
+      assert.doesNotMatch(
+        callerPinned,
+        /super-secret-value/,
+        'deploy env 解析输出不得泄露 .env.server 中的 secret',
+      );
+
+      const fileDefault = execFileSync(
+        'bash',
+        [instrumentedPath, '--app-only'],
+        {
+          cwd: fixtureRoot,
+          encoding: 'utf8',
+          env: Object.fromEntries(
+            Object.entries(process.env).filter(
+              ([key]) => key !== 'APP_IMAGE' && key !== 'ACT_KNOWLEDGE_DEPLOYMENT_MODE',
+            ),
+          ),
+        },
+      );
+      assert.match(fileDefault, /RESOLVED_APP_IMAGE=from-env-server/, '未指定调用方时必须保留 .env.server APP_IMAGE');
+      assert.match(fileDefault, /RESOLVED_MODE=legacy/, '未指定调用方时必须保留 .env.server MODE');
+      assert.doesNotMatch(fileDefault, /super-secret-value/, '默认路径也不得打印 secret');
+      assert.doesNotMatch(
+        fileDefault,
+        /RESOLVED_APP_IMAGE=from-runtime-env/,
+        'runtime env 不得覆盖 .env.server 中的 APP_IMAGE',
+      );
+    } finally {
+      fs.rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  }
+
   assert.match(
     deployScript,
     /RUN_MIGRATIONS_ON_START="1"/,
@@ -516,6 +630,23 @@ function main() {
   );
   assert.match(
     localImageBuildScript,
+    /SKIP_WASM_BUILD=1 npm run build/,
+    'release build 宿主 Next 校验必须复用已提交的控制分析 Wasm 包，不得重写 tracked Wasm 输出',
+  );
+  const localNpmBuildIndex = localImageBuildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n');
+  const postLocalNpmBuildCleanCheckIndex = localImageBuildScript.indexOf(
+    'assert_clean_release_worktree',
+    localNpmBuildIndex,
+  );
+  const dockerBuildIndex = localImageBuildScript.indexOf('docker buildx build');
+  assert.ok(
+    localNpmBuildIndex >= 0
+      && postLocalNpmBuildCleanCheckIndex > localNpmBuildIndex
+      && dockerBuildIndex > postLocalNpmBuildCleanCheckIndex,
+    'release build 必须在宿主 npm build 后再次 fail-closed 检查可见工作树',
+  );
+  assert.match(
+    localImageBuildScript,
     /--build-arg "APP_REVISION=\$\{APP_REVISION\}"/,
     'release build 必须向镜像传递已验证的 APP_REVISION',
   );
@@ -561,7 +692,8 @@ function main() {
   );
   assert.ok(
     dockerMemoryCheckIndex >= 0
-      && dockerMemoryCheckIndex < localImageBuildScript.indexOf('\nnpm run build\n')
+      && localNpmBuildIndex >= 0
+      && dockerMemoryCheckIndex < localNpmBuildIndex
       && dockerMemoryCheckIndex < localImageBuildScript.indexOf('docker buildx build'),
     'Docker VM 内存门禁必须早于本地 npm build 与 Docker build',
   );

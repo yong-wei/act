@@ -1,0 +1,59 @@
+{
+  "capturedAt": "2026-08-11T06:32:14.729Z",
+  "commitSha": "c44abdf99eee369324f61b7cc27cd5f338606d61",
+  "route": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
+  "captureMethod": "Playwright with Google Chrome channel against local Next.js Webpack dev server",
+  "fixtureAuthority": "Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are scoped Playwright fixtures so available, unavailable, and retry states are deterministic; route and component tests cover the server contract.",
+  "sourceSha256": {
+    "src/app/api/assessment/remediation/interventions/validation/route.ts": "ac71fa9098194163a8dd2d7486bf0f0bd02a59e66dddbfbd5854d1aa0d442b83",
+    "src/app/api/assessment/remediation/route.ts": "0e6f851bb0b0c79fea2fdaed99e7b0eb23dc35010bf98df771decd4636ffcd5f",
+    "src/app/assessment/adaptive-practice/page.tsx": "a43da1b946162d8c844c8b643c39bc31ad992ddea4e586393b7e536e4cef2790",
+    "src/features/assessment/micro-intervention-outcomes.ts": "820edf3c036ce054afd049cd064db6507551bf901bd59437cbf18f42e8908e9d",
+    "src/features/assessment/student-micro-tutoring-panel.tsx": "eb514c58e31f43e314615ad2d3832f184eef1f6b1902db902cf4f633302953b9",
+    "tests/student-micro-tutoring-evidence.spec.ts": "6d985d2c4f7db0bdd507714a9c87be3fe5695c2370c8abe5e1cd7750be22ee3a"
+  },
+  "outcomes": {
+    "availableFullLoop": "The persisted wrong-answer entry creates, starts, completes, answers validation, and renders the validated recommendation.",
+    "unavailable": "ATTRIBUTION_UNCERTAIN remains fail-closed and exposes no retry action.",
+    "recoverableFailure": "A 503 create failure offers retry and succeeds on the second request.",
+    "accessibility": "The changed primary entry owns an explicit focus-visible ring before activation; both viewports have no horizontal overflow."
+  },
+  "screenshots": [
+    {
+      "file": "playwright/available-full-loop-1440.png",
+      "sha256": "c26f1b1a2bb6e3a997b69ec323e4f975310dfc8934bd08d5e12810188075463e",
+      "viewport": "1440x1000",
+      "state": "validated"
+    },
+    {
+      "file": "playwright/unavailable-fail-closed-1440.png",
+      "sha256": "3f5ff644ab47e30d1526d3f0859c42ba70ba8213dca01b57062c93853ea48190",
+      "viewport": "1440x1000",
+      "state": "unavailable"
+    },
+    {
+      "file": "playwright/recoverable-retry-1440.png",
+      "sha256": "69647457fab4d13669b6592f6a9de718de2fbaa8c067d6e670d750f4ada86e3d",
+      "viewport": "1440x1000",
+      "state": "recovered"
+    },
+    {
+      "file": "playwright/available-full-loop-320.png",
+      "sha256": "381b42a2a76e89969ce3296d847ec5c89dcbe03452aba65c279dab074e5057f7",
+      "viewport": "320x900",
+      "state": "validated"
+    },
+    {
+      "file": "playwright/unavailable-fail-closed-320.png",
+      "sha256": "f3c2d06ce227954c52aa5583242a6beef5f88e3bd830399354f9823c961dcd16",
+      "viewport": "320x900",
+      "state": "unavailable"
+    },
+    {
+      "file": "playwright/recoverable-retry-320.png",
+      "sha256": "f44f910390b55e45355698ef1686cae6aedde514dfbf452dffce02d8e8c76d10",
+      "viewport": "320x900",
+      "state": "recovered"
+    }
+  ]
+}

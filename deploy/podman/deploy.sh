@@ -11,13 +11,29 @@ RUNTIME_ENV_FILE="${RUNTIME_ENV_FILE:-$PROJECT_DIR/data/runtime/act-obe.env}"
 
 MODE="${1:---all}"
 case "$MODE" in
-  --all|--db-only|--app-only)
+--all|--db-only|--app-only|--runtime-cutover-app-only)
     ;;
   *)
-    echo "用法: $0 [--all|--db-only|--app-only]" >&2
+echo "用法: $0 [--all|--db-only|--app-only|--runtime-cutover-app-only]" >&2
     exit 1
     ;;
 esac
+
+# Capture caller values before any file sources. APP_IMAGE remains an explicit
+# operator override; a persisted cutover mode is authoritative for the mode
+# and cannot be downgraded by an ambient legacy value.
+operator_app_image_was_set=0
+operator_app_image=""
+if [ "${APP_IMAGE+x}" = "x" ]; then
+  operator_app_image_was_set=1
+  operator_app_image="$APP_IMAGE"
+fi
+operator_knowledge_mode_was_set=0
+operator_knowledge_mode=""
+if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
+  operator_knowledge_mode_was_set=1
+  operator_knowledge_mode="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
+fi
 
 for env_file in "$PROJECT_DIR/.env.server" "$SCRIPT_DIR/.env.server" "$PROJECT_DIR/.env" "$SCRIPT_DIR/.env"; do
   if [ -f "$env_file" ]; then
@@ -34,18 +50,63 @@ if [ "${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED+x}" = "x" ]; then
   operator_adaptive_learner_state_service_enabled_was_set=1
   operator_adaptive_learner_state_service_enabled="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 fi
-operator_app_image_was_set=0
-operator_app_image=""
+# Preserve dotenv-layer image/mode over the runtime env file when the caller
+# did not pin them; caller pins still win after all sources.
+file_app_image_was_set=0
+file_app_image=""
 if [ "${APP_IMAGE+x}" = "x" ]; then
-  operator_app_image_was_set=1
-  operator_app_image="$APP_IMAGE"
+  file_app_image_was_set=1
+  file_app_image="$APP_IMAGE"
 fi
+operator_runtime_content_dir_was_set=0
+operator_runtime_content_dir=""
+if [ "${RUNTIME_CONTENT_DIR+x}" = "x" ]; then
+  operator_runtime_content_dir_was_set=1
+  operator_runtime_content_dir="$RUNTIME_CONTENT_DIR"
+fi
+operator_runtime_delivery_mode_was_set=0
+operator_runtime_delivery_mode=""
+if [ "${RUNTIME_DELIVERY_MODE+x}" = "x" ]; then
+  operator_runtime_delivery_mode_was_set=1
+  operator_runtime_delivery_mode="$RUNTIME_DELIVERY_MODE"
+fi
+operator_runtime_oss_ram_role_was_set=0
+operator_runtime_oss_ram_role=""
+if [ "${ACT_RUNTIME_OSS_RAM_ROLE+x}" = "x" ]; then
+  operator_runtime_oss_ram_role_was_set=1
+  operator_runtime_oss_ram_role="$ACT_RUNTIME_OSS_RAM_ROLE"
+fi
+operator_runtime_oss_bucket_was_set=0
+operator_runtime_oss_bucket=""
+if [ "${ACT_RUNTIME_OSS_BUCKET+x}" = "x" ]; then
+  operator_runtime_oss_bucket_was_set=1
+  operator_runtime_oss_bucket="$ACT_RUNTIME_OSS_BUCKET"
+fi
+operator_runtime_oss_region_was_set=0
+operator_runtime_oss_region=""
+if [ "${ACT_RUNTIME_OSS_REGION+x}" = "x" ]; then
+  operator_runtime_oss_region_was_set=1
+  operator_runtime_oss_region="$ACT_RUNTIME_OSS_REGION"
+fi
+file_knowledge_mode_was_set=0
+file_knowledge_mode=""
+if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
+  file_knowledge_mode_was_set=1
+  file_knowledge_mode="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
+fi
+
+runtime_knowledge_mode_was_set=0
+runtime_knowledge_mode=""
 
 if [ -f "$RUNTIME_ENV_FILE" ]; then
   set -a
   # shellcheck disable=SC1090
   . "$RUNTIME_ENV_FILE"
   set +a
+  if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
+    runtime_knowledge_mode_was_set=1
+    runtime_knowledge_mode="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
+  fi
 fi
 
 if [ "$operator_adaptive_learner_state_service_enabled_was_set" = "1" ]; then
@@ -55,8 +116,42 @@ else
 fi
 if [ "$operator_app_image_was_set" = "1" ]; then
   APP_IMAGE="$operator_app_image"
+elif [ "$file_app_image_was_set" = "1" ]; then
+  APP_IMAGE="$file_app_image"
 else
   unset APP_IMAGE
+fi
+if [ "$operator_runtime_content_dir_was_set" = "1" ]; then
+  RUNTIME_CONTENT_DIR="$operator_runtime_content_dir"
+fi
+if [ "$operator_runtime_delivery_mode_was_set" = "1" ]; then
+  RUNTIME_DELIVERY_MODE="$operator_runtime_delivery_mode"
+fi
+if [ "$operator_runtime_oss_ram_role_was_set" = "1" ]; then
+  ACT_RUNTIME_OSS_RAM_ROLE="$operator_runtime_oss_ram_role"
+fi
+if [ "$operator_runtime_oss_bucket_was_set" = "1" ]; then
+  ACT_RUNTIME_OSS_BUCKET="$operator_runtime_oss_bucket"
+fi
+if [ "$operator_runtime_oss_region_was_set" = "1" ]; then
+  ACT_RUNTIME_OSS_REGION="$operator_runtime_oss_region"
+fi
+if [ "$runtime_knowledge_mode_was_set" = "1" ]; then
+  if [ "$runtime_knowledge_mode" = "cutover" ]; then
+    ACT_KNOWLEDGE_DEPLOYMENT_MODE='cutover'
+  elif [ "$operator_knowledge_mode_was_set" = "1" ] && [ "$operator_knowledge_mode" = "cutover" ]; then
+    # An explicit cutover is allowed to promote a legacy/missing runtime env
+    # during the first activation; it can never demote a persisted cutover.
+    ACT_KNOWLEDGE_DEPLOYMENT_MODE='cutover'
+  else
+    ACT_KNOWLEDGE_DEPLOYMENT_MODE="$runtime_knowledge_mode"
+  fi
+elif [ "$operator_knowledge_mode_was_set" = "1" ]; then
+  ACT_KNOWLEDGE_DEPLOYMENT_MODE="$operator_knowledge_mode"
+elif [ "$file_knowledge_mode_was_set" = "1" ]; then
+  ACT_KNOWLEDGE_DEPLOYMENT_MODE="$file_knowledge_mode"
+else
+  unset ACT_KNOWLEDGE_DEPLOYMENT_MODE
 fi
 
 derive_db_password() {
@@ -174,9 +269,18 @@ POLICY_SEED_ENV_NAMES=(
 )
 RUN_MIGRATIONS_ON_START="${RUN_MIGRATIONS_ON_START:-}"
 if [ -z "$RUN_MIGRATIONS_ON_START" ]; then
-  RUN_MIGRATIONS_ON_START="1"
+RUN_MIGRATIONS_ON_START="1"
+fi
+RUNTIME_CUTOVER_APP_ONLY=0
+if [ "$MODE" = "--runtime-cutover-app-only" ]; then
+  RUNTIME_CUTOVER_APP_ONLY=1
+  RUN_MIGRATIONS_ON_START=0
 fi
 RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/course-content/runtime}"
+RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-legacy-rsync}"
+ACT_RUNTIME_OSS_RAM_ROLE="${ACT_RUNTIME_OSS_RAM_ROLE:-}"
+ACT_RUNTIME_OSS_BUCKET="${ACT_RUNTIME_OSS_BUCKET:-act-course-assets}"
+ACT_RUNTIME_OSS_REGION="${ACT_RUNTIME_OSS_REGION:-oss-cn-hangzhou}"
 # Activation-gate Authority / Teaching Projection stores (#1274).
 # Projection lives under the host runtime mount so the whole-runtime volume
 # overlay does not hide image-packaged empty scaffolds.
@@ -218,6 +322,40 @@ require_konling_mode_context_secret() {
 
 ensure_actkg_activation_store_dirs() {
   mkdir -p "$AUTHORITY_STORE_DIR" "$TEACHING_PROJECTION_STORE_DIR"
+}
+
+require_runtime_delivery_mount() {
+  case "$RUNTIME_DELIVERY_MODE" in
+    legacy-rsync)
+      mkdir -p "$RUNTIME_CONTENT_DIR"
+      ;;
+    ossfs-release)
+      if [ "$MODE" = "--db-only" ]; then
+        return 0
+      fi
+      if [ -z "$ACT_RUNTIME_OSS_RAM_ROLE" ]; then
+        echo "ERROR: ossfs-release 模式缺少 ACT_RUNTIME_OSS_RAM_ROLE。" >&2
+        exit 1
+      fi
+      require_cmd findmnt
+      if [ ! -f "$RUNTIME_CONTENT_DIR/.act-runtime-release.v1.json" ]; then
+        echo "ERROR: ossfs-release 挂载缺少不可变 runtime manifest: $RUNTIME_CONTENT_DIR" >&2
+        exit 1
+      fi
+      if ! findmnt -rn -T "$RUNTIME_CONTENT_DIR" -o FSTYPE | grep -Eq '^fuse(\.|$)'; then
+        echo "ERROR: ossfs-release runtime 目录不是 FUSE 挂载: $RUNTIME_CONTENT_DIR" >&2
+        exit 1
+      fi
+      if ! findmnt -rn -T "$RUNTIME_CONTENT_DIR" -o OPTIONS | grep -Eq '(^|,)ro(,|$)'; then
+        echo "ERROR: ossfs-release runtime 挂载必须只读: $RUNTIME_CONTENT_DIR" >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "ERROR: RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release，实际为: $RUNTIME_DELIVERY_MODE" >&2
+      exit 1
+      ;;
+  esac
 }
 
 require_actkg_activation_store_pointers() {
@@ -600,9 +738,34 @@ resolve_container_ip() {
 write_runtime_env() {
   local selected_app_port="$1"
   local redis_url_value="$2"
+  local runtime_env_temp="${RUNTIME_ENV_FILE}.tmp.$$"
+  local runtime_env_mode='600'
+  local runtime_env_owner=''
 
   mkdir -p "$(dirname "$RUNTIME_ENV_FILE")"
-  cat > "$RUNTIME_ENV_FILE" <<EOF
+  if [ -e "$RUNTIME_ENV_FILE" ] || [ -L "$RUNTIME_ENV_FILE" ]; then
+    if [ ! -f "$RUNTIME_ENV_FILE" ] || [ -L "$RUNTIME_ENV_FILE" ]; then
+      echo "ERROR: runtime env 必须是常规文件: $RUNTIME_ENV_FILE" >&2
+      exit 1
+    fi
+    if stat -c '%a' "$RUNTIME_ENV_FILE" >/dev/null 2>&1; then
+      runtime_env_mode="$(stat -c '%a' "$RUNTIME_ENV_FILE")"
+      runtime_env_owner="$(stat -c '%u:%g' "$RUNTIME_ENV_FILE")"
+    else
+      runtime_env_mode="$(stat -f '%Lp' "$RUNTIME_ENV_FILE")"
+      runtime_env_owner="$(stat -f '%u:%g' "$RUNTIME_ENV_FILE")"
+    fi
+    awk -F= '
+      BEGIN {
+        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
+        for (key_index in keys) managed[keys[key_index]] = 1;
+      }
+      !managed[$1] { print }
+    ' "$RUNTIME_ENV_FILE" > "$runtime_env_temp"
+  else
+    : > "$runtime_env_temp"
+  fi
+  cat >> "$runtime_env_temp" <<EOF
 APP_PORT=$selected_app_port
 APP_CONTAINER_PORT=$APP_CONTAINER_PORT
 APP_DOMAIN=$APP_DOMAIN
@@ -623,11 +786,21 @@ DB_NAME=$DB_NAME
 DB_USER=$DB_USER
 DB_HOST=$DB_HOST_ALIAS
 RUNTIME_CONTENT_DIR=$RUNTIME_CONTENT_DIR
+RUNTIME_DELIVERY_MODE=$RUNTIME_DELIVERY_MODE
+ACT_RUNTIME_OSS_RAM_ROLE=$ACT_RUNTIME_OSS_RAM_ROLE
+ACT_RUNTIME_OSS_BUCKET=$ACT_RUNTIME_OSS_BUCKET
+ACT_RUNTIME_OSS_REGION=$ACT_RUNTIME_OSS_REGION
 AUTHORITY_STORE_DIR=$AUTHORITY_STORE_DIR
 TEACHING_PROJECTION_STORE_DIR=$TEACHING_PROJECTION_STORE_DIR
 ACT_AUTHORITY_STORE_ROOT=$ACT_AUTHORITY_STORE_ROOT
 ACT_TEACHING_PROJECTION_STORE_ROOT=$ACT_TEACHING_PROJECTION_STORE_ROOT
+ACT_KNOWLEDGE_DEPLOYMENT_MODE=$ACT_KNOWLEDGE_DEPLOYMENT_MODE
 EOF
+  chmod "$runtime_env_mode" "$runtime_env_temp"
+  if [ -n "$runtime_env_owner" ]; then
+    chown "$runtime_env_owner" "$runtime_env_temp"
+  fi
+  mv -f "$runtime_env_temp" "$RUNTIME_ENV_FILE"
   echo "- 运行参数已写入: $RUNTIME_ENV_FILE"
 }
 
@@ -725,8 +898,14 @@ echo "- 应用镜像: $APP_IMAGE"
 echo "- 数据库镜像: $DB_IMAGE"
 echo "- Redis 镜像: $REDIS_IMAGE"
 
-ensure_network_and_volume
-mkdir -p "$RUNTIME_CONTENT_DIR"
+if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  podman network exists "$NETWORK_NAME" || { echo "ERROR: runtime cutover requires existing network: $NETWORK_NAME" >&2; exit 1; }
+  ensure_db_running
+  ensure_redis_running
+else
+  ensure_network_and_volume
+fi
+require_runtime_delivery_mount
 ensure_actkg_activation_store_dirs
 
 if [ ! -f "$START_WRAPPER_PATH" ]; then
@@ -775,6 +954,11 @@ if [ "$MODE" = "--all" ] || [ "$MODE" = "--db-only" ]; then
   remove_if_exists "$APP_CONTAINER"
   remove_if_exists "$REDIS_CONTAINER"
   remove_if_exists "$DB_CONTAINER"
+elif [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  remove_if_exists "$SUBMISSION_SCANNER_CONTAINER"
+  remove_if_exists "$SUBMISSION_GC_CONTAINER"
+  remove_if_exists "$WORKER_CONTAINER"
+  remove_if_exists "$APP_CONTAINER"
 else
   remove_if_exists "$SUBMISSION_SCANNER_CONTAINER"
   remove_if_exists "$SUBMISSION_GC_CONTAINER"
@@ -826,15 +1010,19 @@ DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@localhost:#@${DB_HOST_ALIA
 DATABASE_URL="$(ensure_database_url_param "$DATABASE_URL" "connection_limit" "10")"
 DATABASE_URL="$(ensure_database_url_param "$DATABASE_URL" "pool_timeout" "20")"
 
-echo "- 启动 Redis 容器: $REDIS_CONTAINER"
-podman run -d \
-  --name "$REDIS_CONTAINER" \
-  --restart unless-stopped \
-  --network "$NETWORK_NAME" \
-  --network-alias "$REDIS_CONTAINER" \
-  -v "$REDIS_VOLUME":/data:Z \
-  "$REDIS_IMAGE" \
-  redis-server --appendonly yes --maxmemory "$REDIS_MAXMEMORY" --maxmemory-policy "$REDIS_MAXMEMORY_POLICY" >/dev/null
+if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  echo "- 保留既有 Redis 容器: $REDIS_CONTAINER"
+else
+  echo "- 启动 Redis 容器: $REDIS_CONTAINER"
+  podman run -d \
+    --name "$REDIS_CONTAINER" \
+    --restart unless-stopped \
+    --network "$NETWORK_NAME" \
+    --network-alias "$REDIS_CONTAINER" \
+    -v "$REDIS_VOLUME":/data:Z \
+    "$REDIS_IMAGE" \
+    redis-server --appendonly yes --maxmemory "$REDIS_MAXMEMORY" --maxmemory-policy "$REDIS_MAXMEMORY_POLICY" >/dev/null
+fi
 
 ensure_redis_running
 
@@ -871,6 +1059,7 @@ SHARED_ENV_ARGS=(
   -e POSTGRES_PASSWORD="$DB_PASSWORD"
   -e APP_DOMAIN="$APP_DOMAIN"
   -e REDIS_URL="$REDIS_URL"
+  -e ACT_KNOWLEDGE_DEPLOYMENT_MODE="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
   -e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED"
   -e ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 )
@@ -900,6 +1089,9 @@ APP_ENV_ARGS=(
   "${APP_STORAGE_ENV_ARGS[@]}"
   -e ACT_AUTHORITY_STORE_ROOT="$ACT_AUTHORITY_STORE_ROOT"
   -e ACT_TEACHING_PROJECTION_STORE_ROOT="$ACT_TEACHING_PROJECTION_STORE_ROOT"
+  -e ACT_RUNTIME_OSS_RAM_ROLE="$ACT_RUNTIME_OSS_RAM_ROLE"
+  -e ACT_RUNTIME_OSS_BUCKET="$ACT_RUNTIME_OSS_BUCKET"
+  -e ACT_RUNTIME_OSS_REGION="$ACT_RUNTIME_OSS_REGION"
   -e SMART_COURSEWARE_ORDERING_SECRET="$SMART_COURSEWARE_ORDERING_SECRET"
   -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
   -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
@@ -975,7 +1167,9 @@ for env_name in "${POLICY_SEED_ENV_NAMES[@]}"; do
   fi
 done
 
-if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  echo "- runtime cutover 跳过 Prisma 迁移、策略物化和作业存储健康检查"
+elif [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
   echo "- 执行 Prisma 迁移并物化数学文档批改策略"
   podman run --rm \
     --network "$NETWORK_NAME" \
@@ -997,7 +1191,7 @@ else
     true
 fi
 
-if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+if [ "$RUNTIME_CUTOVER_APP_ONLY" != "1" ] && [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
   echo "- 验证学生作业对象存储与扫描服务健康"
   podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SHARED_ENV_ARGS[@]}" "${APP_STORAGE_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=app "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
   podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=scanner "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
@@ -1049,7 +1243,11 @@ run_detached_container "$WORKER_CONTAINER" podman run -d \
   "$APP_IMAGE" \
   /app-container-start-wrapper.sh worker
 
-run_scheduler_once
+if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  echo "- runtime cutover 跳过 scheduler 初始化"
+else
+  run_scheduler_once
+fi
 
 if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
   echo "- 启动学生作业扫描 worker 容器: $SUBMISSION_SCANNER_CONTAINER"
@@ -1063,6 +1261,7 @@ echo "[4-deploy] 部署完成。"
 echo "- 公网访问: http://121.40.124.135:${APP_PORT}"
 echo "- 目标域名: http://${APP_DOMAIN} (需在 Nginx 配置反向代理到 127.0.0.1:${APP_PORT})"
 echo "- 运行时资源目录: ${RUNTIME_CONTENT_DIR} -> /app/course-content/runtime"
+echo "- Runtime delivery mode: ${RUNTIME_DELIVERY_MODE}"
 echo "- Authority store: ${AUTHORITY_STORE_DIR} -> ${ACT_AUTHORITY_STORE_ROOT}"
 echo "- Teaching Projection store: ${TEACHING_PROJECTION_STORE_DIR} -> ${ACT_TEACHING_PROJECTION_STORE_ROOT}"
 echo

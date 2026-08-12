@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
+  attributeWrongAnswerEvidence: vi.fn(),
   orchestrateRemediation: vi.fn(),
   readRemediationOrchestration: vi.fn(),
 }));
@@ -11,6 +12,9 @@ vi.mock('@/lib/prisma', () => ({ prisma: {} }));
 vi.mock('@/features/assessment/remediation-orchestration', () => ({
   orchestrateRemediation: mocks.orchestrateRemediation,
   readRemediationOrchestration: mocks.readRemediationOrchestration,
+}));
+vi.mock('@/features/assessment/wrong-answer-attribution', () => ({
+  attributeWrongAnswerEvidence: mocks.attributeWrongAnswerEvidence,
 }));
 
 import { GET, POST } from '../route';
@@ -60,6 +64,48 @@ describe('assessment remediation route', () => {
       authenticatedUserId: 'learner-1',
       attributionId: 'foreign-attribution',
     }));
+  });
+
+  it('derives an owned attribution from the durable answer without accepting browser attribution state', async () => {
+    mocks.attributeWrongAnswerEvidence.mockResolvedValue({ id: 'attribution-owned' });
+    mocks.orchestrateRemediation.mockResolvedValue({
+      id: 'result-1',
+      status: 'UNAVAILABLE',
+      orchestratorVersion: 'remediation-orchestrator.v1',
+      unavailableReason: 'ATTRIBUTION_UNCERTAIN',
+      manualPracticePath: '/student/practice',
+      createdAt: '2026-08-10T00:00:00.000Z',
+    });
+
+    const response = await POST(new Request('http://localhost/api/assessment/remediation', {
+      method: 'POST',
+      body: JSON.stringify({ answerId: 'answer-1', attributionId: 'browser-substituted' }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.attributeWrongAnswerEvidence).toHaveBeenCalledWith(expect.objectContaining({
+      authenticatedUserId: 'learner-1', answerId: 'answer-1',
+    }));
+    expect(mocks.orchestrateRemediation).toHaveBeenCalledWith(expect.objectContaining({
+      authenticatedUserId: 'learner-1', attributionId: 'attribution-owned',
+    }));
+  });
+
+  it('returns a controlled unavailable result when answer attribution cannot be read safely', async () => {
+    mocks.attributeWrongAnswerEvidence.mockResolvedValue(null);
+
+    const response = await POST(new Request('http://localhost/api/assessment/remediation', {
+      method: 'POST',
+      body: JSON.stringify({ answerId: 'foreign-answer' }),
+    }));
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      status: 'UNAVAILABLE',
+      unavailableReason: 'ATTRIBUTION_UNAVAILABLE',
+      manualPracticePath: '/student/practice',
+    });
+    expect(mocks.orchestrateRemediation).not.toHaveBeenCalled();
   });
 
   it('returns only the sanitized orchestration projection', async () => {

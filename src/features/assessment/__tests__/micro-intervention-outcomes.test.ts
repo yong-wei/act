@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   readMicroIntervention,
+  readMicroInterventionValidationQuestion,
   recordMicroInterventionEvent,
   startMicroIntervention,
   submitMicroInterventionValidation,
@@ -372,6 +373,35 @@ describe('micro intervention outcomes', () => {
       durationSeconds: 45,
     })).rejects.toMatchObject({ code: 'VALIDATION_UNAVAILABLE' });
     expect(validations).toHaveLength(0);
+  });
+
+  it('reads a started validation question without disclosing its answer or source identifiers', async () => {
+    const { db } = createDb();
+    mocks.getAdaptiveQuestionById.mockReturnValue({
+      id: 'validation-question',
+      stem: '选择合适的校正器。',
+      options: [
+        { label: 'A', text: '错误选项', isCorrect: false, explanation: '不应泄露' },
+        { label: 'B', text: '正确选项', isCorrect: true, explanation: '不应泄露' },
+      ],
+    });
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+
+    const question = await readMicroInterventionValidationQuestion({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+    });
+
+    expect(question).toEqual({
+      id: 'validation-question',
+      prompt: '选择合适的校正器。',
+      options: [{ label: 'A', text: '错误选项' }, { label: 'B', text: '正确选项' }],
+    });
+    expect(JSON.stringify(question)).not.toContain('isCorrect');
+    expect(JSON.stringify(question)).not.toContain('不应泄露');
+    expect(JSON.stringify(question)).not.toContain('source-question-private');
   });
 
   it('recommends an existing governed transfer practice after a passing validation', async () => {

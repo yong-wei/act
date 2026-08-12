@@ -7,11 +7,19 @@ import {
   readRemediationOrchestration,
   type RemediationOrchestrationDb,
 } from '@/features/assessment/remediation-orchestration';
+import {
+  attributeWrongAnswerEvidence,
+  type WrongAnswerAttributionDb,
+} from '@/features/assessment/wrong-answer-attribution';
 
 export const dynamic = 'force-dynamic';
 
 function orchestrationDb(): RemediationOrchestrationDb {
   return prisma as unknown as RemediationOrchestrationDb;
+}
+
+function attributionDb(): WrongAnswerAttributionDb {
+  return prisma as unknown as WrongAnswerAttributionDb;
 }
 
 function identifier(value: unknown): string | null {
@@ -33,17 +41,32 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => null);
-    const attributionId = identifier(body && typeof body === 'object'
-      ? (body as Record<string, unknown>).attributionId
-      : null);
-    if (!attributionId) {
-      return NextResponse.json({ error: 'ATTRIBUTION_ID_REQUIRED' }, { status: 400 });
+    const record = body && typeof body === 'object' ? body as Record<string, unknown> : null;
+    const answerId = identifier(record?.answerId);
+    const attributionId = identifier(record?.attributionId);
+    if (!answerId && !attributionId) {
+      return NextResponse.json({ error: 'ANSWER_OR_ATTRIBUTION_ID_REQUIRED' }, { status: 400 });
+    }
+
+    const attribution = answerId
+      ? await attributeWrongAnswerEvidence({
+          db: attributionDb(),
+          authenticatedUserId: learner.userId,
+          answerId,
+        })
+      : null;
+    if (answerId && !attribution) {
+      return NextResponse.json({
+        status: 'UNAVAILABLE',
+        unavailableReason: 'ATTRIBUTION_UNAVAILABLE',
+        manualPracticePath: '/student/practice',
+      }, { status: 409 });
     }
 
     const result = await orchestrateRemediation({
       db: orchestrationDb(),
       authenticatedUserId: learner.userId,
-      attributionId,
+      attributionId: attribution?.id ?? attributionId!,
     });
     if (!result) {
       return NextResponse.json({ error: 'ATTRIBUTION_NOT_FOUND' }, { status: 404 });

@@ -11,6 +11,15 @@ const databaseSyncSource = fs.readFileSync(
   path.join(root, '.agents/skills/server-ops/references/database-sync.md'),
   'utf8',
 );
+const ossRuntimeSource = fs.readFileSync(
+  path.join(root, '.agents/skills/server-ops/references/oss-runtime-releases.md'),
+  'utf8',
+);
+
+const deployReferenceSource = fs.readFileSync(
+  path.join(root, '.agents/skills/server-ops/references/deploy-and-verify.md'),
+  'utf8',
+);
 
 assert.match(
   skillSource,
@@ -54,6 +63,29 @@ assert.match(
 );
 
 assert.match(
+  skillSource,
+  /oss-runtime-releases\.md/,
+  'server-ops 必须链接 OSS 运行时发布参考文件',
+);
+
+for (const invariant of [
+  'ECS RAM Role',
+  '不可变的 `runtime/releases/<release-id>/` 前缀',
+  '不得将现有 `.staging`、`current`、`previous` 的 rsync/rename 发布算法直接运行在 ossfs 挂载点',
+  'OSS `PutObject` 不具备条件写入语义，不能把对象存储中的可变 `current.json` 当作并发安全的生产指针。',
+  '`serverExternalPackages`',
+  '`ali-oss` 与 `@alicloud/credentials`',
+  '`--ro=true`、`--allow_other=true`、目标 uid/gid、`--file_mode=0644` 与 `--dir_mode=0755`',
+  '`findmnt -T <mount-root>/<release-id>`',
+  '等待人工确认后删除',
+]) {
+  assert.ok(
+    ossRuntimeSource.includes(invariant),
+    `OSS 运行时参考必须包含迁移不变量: ${invariant}`,
+  );
+}
+
+assert.match(
   databaseSyncSource,
   /bash scripts\/db\/sync-remote-db-to-local\.sh/,
   '数据库同步 reference 必须默认指向确定性的同步脚本',
@@ -64,5 +96,22 @@ assert.match(
   /脚本会先备份本地库，再导出远端并重建本地库/,
   '数据库同步 reference 必须明确脚本会先备份本地库，再导出远端并重建本地库',
 );
+
+assert.match(
+  skillSource,
+  /已提交的 production cutover marker 存在时，普通 Legacy `remote-deploy\.sh` 必须保持禁用/,
+  'server-ops 必须禁止已切换生产重新走 Legacy 部署路径',
+);
+
+for (const invariant of [
+  '不同 transactionId 的历史 journal/receipt 是 Legacy 部署保留的 release 审计证据',
+  '只有已提升 engine 与 `.tmp` 都是普通文件且 SHA-256 等于 sealed hash',
+  'committed receipt、current marker、四个 selector、app/worker 镜像 OCI digest',
+]) {
+  assert.ok(
+    deployReferenceSource.includes(invariant),
+    `server-ops 必须保留生产图谱切换恢复不变量: ${invariant}`,
+  );
+}
 
 console.log('server-ops skill contract passed');

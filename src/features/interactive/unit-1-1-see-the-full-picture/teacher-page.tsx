@@ -53,7 +53,7 @@ export function UNIT_1_1TeacherPage({
   sessionId: string;
   lessonRuntime: RuntimeLessonEntryBundle;
   /** Server-resolved Teaching Projection layered payload (active/candidate/pin). */
-  layeredGraphPayload?: LayeredGraphPayload | null;
+  layeredGraphPayload: LayeredGraphPayload;
   layeredResourceLaunchTargets?: Record<string, string | null>;
   layeredResourceRegistryIds?: Record<string, string>;
 }) {
