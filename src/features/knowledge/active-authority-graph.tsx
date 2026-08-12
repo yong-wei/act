@@ -527,6 +527,10 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   }
 
   function onStagePointerDown(event: PointerEvent<SVGSVGElement>) {
+    if (event.target instanceof Element && event.target.closest('[data-active-authority-node]')) {
+      draggingRef.current = null;
+      return;
+    }
     draggingRef.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }

@@ -231,6 +231,26 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).toContain('公式');
   });
 
+  it('keeps a semantic node click selectable after pointerdown on the node', async () => {
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-formula"]');
+    expect(node).not.toBeNull();
+    await act(async () => {
+      node!.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      node!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    await act(async () => Promise.resolve());
+
+    expect(container.querySelector('[data-active-node-detail="node-formula"]')).not.toBeNull();
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      '/api/knowledge/graph/active', '/api/knowledge/nodes/active/node-formula',
+    ]);
+  });
+
   it('shows candidate only as an explicit administrator diagnostic', async () => {
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
       viewerRole: 'admin', candidateAllowed: true, controlledVerification: true, legacy: null,
