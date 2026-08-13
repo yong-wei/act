@@ -1,10 +1,10 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-08-13T17:32:03.476Z",
+  "capturedAt": "2026-08-13T18:38:54.777Z",
   "captureRevision": {
-    "commitSha": "1f94f7b48ffd4560c9a74f4ab7e213415413bd4b",
-    "treeSha": "ca97334f89c6b253baa307ea6ed0380cfde25551"
+    "commitSha": "6f4045a49fb01249246b350b47717290fa1f80f9",
+    "treeSha": "3e1574a1b0c80ee89e7da7acf9ef33449fdcdcb2"
   },
   "baseUrl": "http://127.0.0.1:3001",
   "selectedNodeConfigured": true,
@@ -38,7 +38,7 @@
   "currentSourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
     "src/features/knowledge/knowledge-graph-workspace.tsx": "b31ee8d30629484c5ea4a7a4b0dbf3641bfc36b36a741d5f465743af7f2f6087",
-    "src/features/knowledge/active-authority-graph.tsx": "03a7345fb79a38e7de86260ad14fa23c64c049164ddb78c1db57d968227ce3fd",
+    "src/features/knowledge/active-authority-graph.tsx": "9c2d23ee455a59b99e08f99dcd865c047b9c3cd72910c0318750f49660966c8b",
     "src/features/knowledge/active-authority-shard-store.ts": "a7622d1beab73e1addf1abaaee71874075c40380dd46d641aab2d234f59c82ed",
     "src/features/knowledge/active-authority-presentation.ts": "350b576c5f1eb7f2492b1035e19332be325585e980d560940631a7e01c2bd465",
     "src/features/knowledge/active-authority-graph-contracts.ts": "2fa2981fbd42f48eea74a8571b708e54ba1afd2089f33d0abdb4f9560cdd5a95",
@@ -92,7 +92,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 6
+            "requestCount": 2
           },
           {
             "endpointClass": "legacy",
@@ -1381,7 +1381,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "7bfd54a8249fb524330db155c1c13e497fa9f67ef307ffdcfd401ada51a5bfec",
+      "screenshotSha256": "d4239db82dbbc2dc2e307b9bd49b4b3d9157b26c1626700d325843fc4831a230",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1606,7 +1606,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-page-tools-menu-dark.png",
-      "screenshotSha256": "3465e065692a0e35696195d0f23520c7ef3ff385ab0f093bd4725e6094bdf4b6",
+      "screenshotSha256": "c2a8d218135d11891217a28a65ab7e924dfaccbbc4b75a879e4fdf87e1ddfac0",
       "markers": {
         "htmlClass": "dark",
         "workspace": null,
@@ -4130,7 +4130,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "6bb0e00d73827d45f77de3414b953fa51cdf01d4f4824bddc3a56427b5d42a6d",
+      "screenshotSha256": "85f4ddc5d91618ff7f36e7a7213a9bb589b2fe7bf0811b1f033b7f686b759e78",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5109,7 +5109,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "0d47be69dab2704d0a7a317f22eaf9514a1d2b570c96d702cd104cc8d3f33afb",
+      "screenshotSha256": "deac725574f731ba62993c0a9f8b0eb51fce76c1b934eaf1ef44611be976f07c",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5270,7 +5270,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "c09fe71c4bad7b5761932eabeb1e31609fa71e46ade43a3a4b486f60f300e7d6",
+      "screenshotSha256": "d2789080c01f8f72a1bcca462e62462d97d2c3533adbd8c07a52b70771f04494",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5438,7 +5438,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "2e167022e2ce9dbbdedff25965c9cf3132aca11b7377d5e961ebbe1edfe66ac7",
+      "screenshotSha256": "d209965372dbcc4cc4db81a0204ca852a4d7a076d1588f1b58c0a51f29a51705",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6420,18 +6420,18 @@
         "knowledgeGraphMode": "active",
         "knowledgeGraphVersion": "active",
         "activeAuthority": {
-          "visibleNodeCount": 4,
-          "relationCount": 3,
-          "resolvedEdgeEndpointCount": 3,
-          "visibleSvgGeometryCount": 3,
-          "nodeGeometryWithinSvgCount": 4,
-          "relationGeometryWithinSvgCount": 3,
+          "visibleNodeCount": 5,
+          "relationCount": 4,
+          "resolvedEdgeEndpointCount": 4,
+          "visibleSvgGeometryCount": 4,
+          "nodeGeometryWithinSvgCount": 5,
+          "relationGeometryWithinSvgCount": 4,
           "activeSvgGeometryRectValid": true,
           "viewport": "default",
           "nodeLimit": 24,
           "viewBox": "0 0 960 520",
           "nodeLabelReadability": {
-            "nodeLabelCount": 4,
+            "nodeLabelCount": 5,
             "minFontSize": 12,
             "minPixelSize": 12,
             "viewBoxWidth": 960,
@@ -6512,7 +6512,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 66,
+        "scannedSurfaceCount": 59,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -6526,10 +6526,10 @@
         "detailPanelFocusedAfterOpen": true,
         "semanticDetailVisible": true,
         "adjacencyInteraction": true,
-        "renderedEdgeCount": 3,
+        "renderedEdgeCount": 4,
         "detailSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 81,
+          "scannedSurfaceCount": 73,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -6540,7 +6540,7 @@
         },
         "overviewSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 66,
+          "scannedSurfaceCount": 59,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -6554,7 +6554,7 @@
         "focusReturnedToSemanticSurface": true
       },
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-dark.png",
-      "screenshotSha256": "51b20d61483a21bd566c7e2beabda58ec350382c40dc49af6720551a7223483f"
+      "screenshotSha256": "8c3bb4277554b27ff3e2062e8368cbf832d775dd2292cb736044fd2d9d18d3fe"
     },
     {
       "name": "active-desktop-light",
@@ -6599,18 +6599,18 @@
         "knowledgeGraphMode": "active",
         "knowledgeGraphVersion": "active",
         "activeAuthority": {
-          "visibleNodeCount": 4,
-          "relationCount": 3,
-          "resolvedEdgeEndpointCount": 3,
-          "visibleSvgGeometryCount": 3,
-          "nodeGeometryWithinSvgCount": 4,
-          "relationGeometryWithinSvgCount": 3,
+          "visibleNodeCount": 5,
+          "relationCount": 4,
+          "resolvedEdgeEndpointCount": 4,
+          "visibleSvgGeometryCount": 4,
+          "nodeGeometryWithinSvgCount": 5,
+          "relationGeometryWithinSvgCount": 4,
           "activeSvgGeometryRectValid": true,
           "viewport": "default",
           "nodeLimit": 24,
           "viewBox": "0 0 960 520",
           "nodeLabelReadability": {
-            "nodeLabelCount": 4,
+            "nodeLabelCount": 5,
             "minFontSize": 12,
             "minPixelSize": 12,
             "viewBoxWidth": 960,
@@ -6691,7 +6691,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 66,
+        "scannedSurfaceCount": 59,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -6701,7 +6701,7 @@
         "passed": true
       },
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-light.png",
-      "screenshotSha256": "45e5a8a343805b0beda64bbff9863a7cd5394b5b94e9eaf2acc4aa4406b7a190"
+      "screenshotSha256": "c7bdc3044d85162d981021bc4ab2ddbad425f58d0d1b74431b43a34d4ab5a63d"
     },
     {
       "name": "active-tablet",
@@ -6746,18 +6746,18 @@
         "knowledgeGraphMode": "active",
         "knowledgeGraphVersion": "active",
         "activeAuthority": {
-          "visibleNodeCount": 4,
-          "relationCount": 3,
-          "resolvedEdgeEndpointCount": 3,
-          "visibleSvgGeometryCount": 3,
-          "nodeGeometryWithinSvgCount": 4,
-          "relationGeometryWithinSvgCount": 3,
+          "visibleNodeCount": 5,
+          "relationCount": 4,
+          "resolvedEdgeEndpointCount": 4,
+          "visibleSvgGeometryCount": 4,
+          "nodeGeometryWithinSvgCount": 5,
+          "relationGeometryWithinSvgCount": 4,
           "activeSvgGeometryRectValid": true,
           "viewport": "default",
           "nodeLimit": 24,
           "viewBox": "0 0 960 520",
           "nodeLabelReadability": {
-            "nodeLabelCount": 4,
+            "nodeLabelCount": 5,
             "minFontSize": 12,
             "minPixelSize": 11.77,
             "viewBoxWidth": 960,
@@ -6838,7 +6838,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 66,
+        "scannedSurfaceCount": 59,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -6848,7 +6848,7 @@
         "passed": true
       },
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-tablet.png",
-      "screenshotSha256": "e8e4f381506514572b72ee7d8cf2abc13d352fce3f5a404116774f00d16c1199"
+      "screenshotSha256": "43dfd7f8c833355ee2c44ec2f22e23ec323d0a20e81347c027e3e1d0177cedec"
     },
     {
       "name": "active-mobile",
@@ -6893,18 +6893,18 @@
         "knowledgeGraphMode": "active",
         "knowledgeGraphVersion": "active",
         "activeAuthority": {
-          "visibleNodeCount": 4,
-          "relationCount": 3,
-          "resolvedEdgeEndpointCount": 3,
-          "visibleSvgGeometryCount": 3,
-          "nodeGeometryWithinSvgCount": 4,
-          "relationGeometryWithinSvgCount": 3,
+          "visibleNodeCount": 5,
+          "relationCount": 4,
+          "resolvedEdgeEndpointCount": 4,
+          "visibleSvgGeometryCount": 4,
+          "nodeGeometryWithinSvgCount": 5,
+          "relationGeometryWithinSvgCount": 4,
           "activeSvgGeometryRectValid": true,
           "viewport": "compact",
           "nodeLimit": 6,
           "viewBox": "0 0 320 520",
           "nodeLabelReadability": {
-            "nodeLabelCount": 4,
+            "nodeLabelCount": 5,
             "minFontSize": 13,
             "minPixelSize": 10.32,
             "viewBoxWidth": 320,
@@ -6985,7 +6985,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 66,
+        "scannedSurfaceCount": 59,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -6995,7 +6995,7 @@
         "passed": true
       },
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-mobile.png",
-      "screenshotSha256": "2719b3989aca66406b9d7a0f57a0cf9c973af472d7190b1d6070f9e14d5a3eba"
+      "screenshotSha256": "1547f44e567e805a1f1c8576d0b0667604fb2235ae2a468156c0870ba3d38d19"
     }
   ],
   "authenticatedRoleEvidence": [
@@ -7029,7 +7029,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 66,
+          "scannedSurfaceCount": 59,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -7043,10 +7043,10 @@
           "detailPanelFocusedAfterOpen": true,
           "semanticDetailVisible": true,
           "adjacencyInteraction": true,
-          "renderedEdgeCount": 3,
+          "renderedEdgeCount": 4,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 81,
+            "scannedSurfaceCount": 73,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -7057,7 +7057,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 66,
+            "scannedSurfaceCount": 59,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -7088,7 +7088,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-default.png",
-        "screenshotSha256": "60470a513b46e7319b260930d28915f5f8867ab316c1a229a0860bd2fdef4bef"
+        "screenshotSha256": "a3f83063fc05a00524d8d9db527965643effcc6b443731d5ac47aac3dcd01d54"
       },
       "legacy": {
         "mode": "legacy",
@@ -7125,7 +7125,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-legacy.png",
-        "screenshotSha256": "7f7435a893aff397576ba3d0ec23958f2ecdec33302260bba36d76788723fedd"
+        "screenshotSha256": "85ab196baed7c016321dc24d5254a36ba31f2e26b0ea76c4090aaf00c759d12e"
       },
       "candidate": null
     },
@@ -7159,7 +7159,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 63,
+          "scannedSurfaceCount": 56,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -7173,10 +7173,10 @@
           "detailPanelFocusedAfterOpen": true,
           "semanticDetailVisible": true,
           "adjacencyInteraction": true,
-          "renderedEdgeCount": 3,
+          "renderedEdgeCount": 4,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 78,
+            "scannedSurfaceCount": 70,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -7187,7 +7187,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 63,
+            "scannedSurfaceCount": 56,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -7218,7 +7218,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-default.png",
-        "screenshotSha256": "588858f8c84d70ef261cb33b17e144c2273b07033f3b362a812d63c26af51cf8"
+        "screenshotSha256": "80b446557ef0d15af7c78c3908f3c37b9332c30d03a05c5efd4a9a341fa495c3"
       },
       "legacy": {
         "mode": "legacy",
@@ -7255,7 +7255,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-legacy.png",
-        "screenshotSha256": "674ca57aa1f8cf85163f96e1ba20f78d3e40d0d339cb76971d4b5b5b8f5986ea"
+        "screenshotSha256": "77772472f7e3d7aac268916e9fa7b305bfcc3e9e4170e45674dd5d82a1594389"
       },
       "candidate": null
     },
@@ -7289,7 +7289,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 63,
+          "scannedSurfaceCount": 56,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -7303,10 +7303,10 @@
           "detailPanelFocusedAfterOpen": true,
           "semanticDetailVisible": true,
           "adjacencyInteraction": true,
-          "renderedEdgeCount": 3,
+          "renderedEdgeCount": 4,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 78,
+            "scannedSurfaceCount": 70,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -7317,7 +7317,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 63,
+            "scannedSurfaceCount": 56,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -7348,7 +7348,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-default.png",
-        "screenshotSha256": "5af014bcf8ac084ea724c3c53304d2b682ee0dbedd8bbf7036d464e110770212"
+        "screenshotSha256": "e0cbc7282d8d64a6e230e5ccef089a91fc1c0c05b4a00a29e2c954d21a4fc5fe"
       },
       "legacy": {
         "mode": "legacy",
@@ -7385,7 +7385,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-legacy.png",
-        "screenshotSha256": "164e4f7e665f08b9d03ac0c203f4a5256a51611b22999b29d83b47c29d052583"
+        "screenshotSha256": "d537cbf347416e3c371090dafb5b5c41c88e9c879ed3cefd261138d62fd1d647"
       },
       "candidate": {
         "mode": "candidate",
@@ -7482,36 +7482,36 @@
       "desktop-selected-focus-dark": "c2cd4e53cd20becf864da4c345dc7384eb3ea49fe77affc9fc1ef753f1c1b5b2",
       "desktop-all-relation-families-dark": "2a4e2a6d81b528c8cb2fb72da42e6a2e88856d77264baa1b45e00bcdc19dedff",
       "desktop-selected-inspector-light": "4c2a999af3429acb250876229388950cceb6ebddd6995ef5015a466e68b6e4c5",
-      "desktop-hover-click-drag-dark": "7bfd54a8249fb524330db155c1c13e497fa9f67ef307ffdcfd401ada51a5bfec",
-      "desktop-selected-page-tools-menu-dark": "3465e065692a0e35696195d0f23520c7ef3ff385ab0f093bd4725e6094bdf4b6",
+      "desktop-hover-click-drag-dark": "d4239db82dbbc2dc2e307b9bd49b4b3d9157b26c1626700d325843fc4831a230",
+      "desktop-selected-page-tools-menu-dark": "c2a8d218135d11891217a28a65ab7e924dfaccbbc4b75a879e4fdf87e1ddfac0",
       "desktop-explicit-relayout-dark": "b1f2e942edaeb7e05e217c34e7ddc71f597eef857ac3f182e87cddf9b530695c",
       "desktop-3d-fit-relayout-dark": "4ad79e2fea63d8511e5decefbfa8273fe2231a9f33bba3cf1f35a68811f4ef79",
       "desktop-konling-selected-expanded-dark": "1126e68b16ff56bca9442ec3b45fbc13d1b644e6a9c8b018405d5075f904d51c",
       "desktop-konling-no-selection-dark": "67051a544540e615a59f66004492bfdda251ce1eb96c774b9ac1ec7a651ada4d",
       "desktop-konling-degraded-dark": "a432f28d6ef59a67f2945cded9013bd45ca1540760ce7731876070facf472720",
-      "desktop-stress-expanded-tool-inspector-konling-dark": "6bb0e00d73827d45f77de3414b953fa51cdf01d4f4824bddc3a56427b5d42a6d",
+      "desktop-stress-expanded-tool-inspector-konling-dark": "85f4ddc5d91618ff7f36e7a7213a9bb589b2fe7bf0811b1f033b7f686b759e78",
       "desktop-wide-default-dark": "c3698dd76ba010c8dda6c1d49592eb10ff968b071f6b65da7b896691a3fc6ef8",
       "desktop-wide-inspector-tools-dark": "f731347546102c12d0976d7d4efeb66dbfc483722e370500813e6aaf9e230f98",
       "tablet-1100-default-dark": "493c1c82e86c58b75d8655263a14904db531fd38ff1c66fb213c3a0d8e0d8914",
       "tablet-1100-local-tools-filter-dark": "63c457492bd94733d45a020745489fb1ffc15b69fb72ff499fcbb549e306afad",
       "tablet-1100-selected-inspector-dark": "1ca87ece9bb4294e2e2c2dc698cca06b49e4e65235249c9b0d82a0f1325751ba",
-      "tablet-1024-inspector-tools-konling-dark": "0d47be69dab2704d0a7a317f22eaf9514a1d2b570c96d702cd104cc8d3f33afb",
-      "tablet-1100-inspector-tools-konling-dark": "c09fe71c4bad7b5761932eabeb1e31609fa71e46ade43a3a4b486f60f300e7d6",
-      "tablet-1279-inspector-tools-konling-dark": "2e167022e2ce9dbbdedff25965c9cf3132aca11b7377d5e961ebbe1edfe66ac7",
+      "tablet-1024-inspector-tools-konling-dark": "deac725574f731ba62993c0a9f8b0eb51fce76c1b934eaf1ef44611be976f07c",
+      "tablet-1100-inspector-tools-konling-dark": "d2789080c01f8f72a1bcca462e62462d97d2c3533adbd8c07a52b70771f04494",
+      "tablet-1279-inspector-tools-konling-dark": "d209965372dbcc4cc4db81a0204ca852a4d7a076d1588f1b58c0a51f29a51705",
       "mobile-320-local-tools-dark": "7a117a67e8289d091b4039aca3c3b51b41175bc25f587e1bf28d618eec639125",
       "mobile-320-selected-inspector-dark": "90be14d406126709e2f7db379f8a2ff05cef5abf1252297f4ced724b6d12603d",
       "mobile-320-konling-expanded-dark": "b170b8eac8f3f3d57e759de1b2ed44fbe4818e8d4ecd1e7e4b4c6b8d9c55cbae",
       "mobile-320-inspector-konling-stress-dark": "b170b8eac8f3f3d57e759de1b2ed44fbe4818e8d4ecd1e7e4b4c6b8d9c55cbae",
       "light-theme-default": "52a2a79df6f9786f23e5cd2c5b6a8f2f81b86b48b4cbbec2c2c27f2b3d629aeb",
-      "active-desktop-dark": "51b20d61483a21bd566c7e2beabda58ec350382c40dc49af6720551a7223483f",
-      "active-desktop-light": "45e5a8a343805b0beda64bbff9863a7cd5394b5b94e9eaf2acc4aa4406b7a190",
-      "active-tablet": "e8e4f381506514572b72ee7d8cf2abc13d352fce3f5a404116774f00d16c1199",
-      "active-mobile": "2719b3989aca66406b9d7a0f57a0cf9c973af472d7190b1d6070f9e14d5a3eba"
+      "active-desktop-dark": "8c3bb4277554b27ff3e2062e8368cbf832d775dd2292cb736044fd2d9d18d3fe",
+      "active-desktop-light": "c7bdc3044d85162d981021bc4ab2ddbad425f58d0d1b74431b43a34d4ab5a63d",
+      "active-tablet": "43dfd7f8c833355ee2c44ec2f22e23ec323d0a20e81347c027e3e1d0177cedec",
+      "active-mobile": "1547f44e567e805a1f1c8576d0b0667604fb2235ae2a468156c0870ba3d38d19"
     },
     "reviewedSourceSha256": {
       "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
       "src/features/knowledge/knowledge-graph-workspace.tsx": "b31ee8d30629484c5ea4a7a4b0dbf3641bfc36b36a741d5f465743af7f2f6087",
-      "src/features/knowledge/active-authority-graph.tsx": "03a7345fb79a38e7de86260ad14fa23c64c049164ddb78c1db57d968227ce3fd",
+      "src/features/knowledge/active-authority-graph.tsx": "9c2d23ee455a59b99e08f99dcd865c047b9c3cd72910c0318750f49660966c8b",
       "src/features/knowledge/active-authority-shard-store.ts": "a7622d1beab73e1addf1abaaee71874075c40380dd46d641aab2d234f59c82ed",
       "src/features/knowledge/active-authority-presentation.ts": "350b576c5f1eb7f2492b1035e19332be325585e980d560940631a7e01c2bd465",
       "src/features/knowledge/active-authority-graph-contracts.ts": "2fa2981fbd42f48eea74a8571b708e54ba1afd2089f33d0abdb4f9560cdd5a95",
