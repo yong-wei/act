@@ -1,0 +1,102 @@
+{
+  "capturedAt": "2026-08-13T05:49:58.956Z",
+  "gitRevision": "a7395e0209400b736fbeaf07efd8a001cf1f418a",
+  "evidence": [
+    {
+      "file": "student-home-light-desktop-1440.png",
+      "route": "/profile",
+      "theme": "light",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "e41be52bfcca648a9659c0a696e62175a37211c408acf638ea37019ea42e4f44",
+      "noHorizontalOverflow": true,
+      "clientNavigation": false,
+      "noReactScriptTagConsoleError": true
+    },
+    {
+      "file": "adaptive-practice-light-desktop-1440.png",
+      "route": "/assessment/adaptive-practice?intent=practice",
+      "theme": "light",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "53fef3720299ebcae7ad7b0efdff50fc968dbaed44dfb112be96fc94b615b15f",
+      "noHorizontalOverflow": true,
+      "clientNavigation": true,
+      "noReactScriptTagConsoleError": true
+    },
+    {
+      "file": "student-home-dark-desktop-1440.png",
+      "route": "/profile",
+      "theme": "dark",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "fd2fc045d803d033cc02b1bafb85629a260987d9a29d69a95855e844a38c7dfd",
+      "noHorizontalOverflow": true,
+      "clientNavigation": false,
+      "noReactScriptTagConsoleError": true
+    },
+    {
+      "file": "adaptive-practice-dark-desktop-1440.png",
+      "route": "/assessment/adaptive-practice?intent=practice",
+      "theme": "dark",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "9bbb7fa76f79e5baffe152c7cbeb45212d555567a7741a1abb18a2f41ec6f6ac",
+      "noHorizontalOverflow": true,
+      "clientNavigation": true,
+      "noReactScriptTagConsoleError": true
+    },
+    {
+      "file": "student-home-light-mobile-320.png",
+      "route": "/profile",
+      "theme": "light",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "sha256": "a710f59b280133d08de4c63ff9d8df68a97d098f9c24027570e77ff059e1b675",
+      "noHorizontalOverflow": true,
+      "clientNavigation": false,
+      "noReactScriptTagConsoleError": true
+    },
+    {
+      "file": "adaptive-practice-light-mobile-320.png",
+      "route": "/assessment/adaptive-practice?intent=practice",
+      "theme": "light",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "sha256": "94a1f0eb27a854f685d1c65c65254fa1bdf1d912e1d468a0ee5766882da19057",
+      "noHorizontalOverflow": true,
+      "clientNavigation": true,
+      "noReactScriptTagConsoleError": true
+    },
+    {
+      "file": "student-home-dark-mobile-320.png",
+      "route": "/profile",
+      "theme": "dark",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "sha256": "f01f93430a867500600e5074811d250cb77829c7b42a304410d091f582286dde",
+      "noHorizontalOverflow": true,
+      "clientNavigation": false,
+      "noReactScriptTagConsoleError": true
+    },
+    {
+      "file": "adaptive-practice-dark-mobile-320.png",
+      "route": "/assessment/adaptive-practice?intent=practice",
+      "theme": "dark",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "sha256": "9cb995c3c65113119293938c67fa1461385722243e195ca737aaa1ca49746af7",
+      "noHorizontalOverflow": true,
+      "clientNavigation": true,
+      "noReactScriptTagConsoleError": true
+    }
+  ]
+}
