@@ -4,7 +4,7 @@
 
 ## 审查范围与绑定
 
-- 审查范围：提交 `715bdbdded5790451293aab2e78cb0f1c5427725`，树 `48c247e5b45cbf6329970a57399428da8fa70456`。
+- 审查范围：提交 `1125c651a60a9e4c59f10f3b1b76f6f0a95a6986`，树 `65350036d42287d161b044c127db75c1c9a618ef`。
 - 复核对象：29 项产品状态矩阵、4 项 active Authority 响应式矩阵、三种已认证角色的交互与焦点记录。
 - 绑定：33/33 截图 SHA-256、宽高与当前 `browser-evidence.json` 一致；32/32 受管源码 SHA-256 同时匹配捕获提交 blob 与当前工作树。精确 `reviewedStateSha256` 与 `reviewedSourceSha256` 由同文件的 `independentVisualReview` 字段承载。
 - 审查者：`independent-reviewer (gpt-5.6-sol medium)`，只读复核；未修改项目文件、暂存区或 Git 历史。

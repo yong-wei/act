@@ -1,12 +1,12 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-08-13T15:26:41.268Z",
+  "capturedAt": "2026-08-13T17:06:21.526Z",
   "captureRevision": {
-    "commitSha": "715bdbdded5790451293aab2e78cb0f1c5427725",
-    "treeSha": "48c247e5b45cbf6329970a57399428da8fa70456"
+    "commitSha": "1125c651a60a9e4c59f10f3b1b76f6f0a95a6986",
+    "treeSha": "65350036d42287d161b044c127db75c1c9a618ef"
   },
-  "baseUrl": "http://localhost:3001",
+  "baseUrl": "http://127.0.0.1:3001",
   "selectedNodeConfigured": true,
   "designSourceOfTruth": {
     "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
@@ -38,14 +38,14 @@
   "currentSourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
     "src/features/knowledge/knowledge-graph-workspace.tsx": "b31ee8d30629484c5ea4a7a4b0dbf3641bfc36b36a741d5f465743af7f2f6087",
-    "src/features/knowledge/active-authority-graph.tsx": "a56912fb6b0fbe4e0d08e82ff21794a5f54b6495b34d82962041652986e7b8da",
+    "src/features/knowledge/active-authority-graph.tsx": "03a7345fb79a38e7de86260ad14fa23c64c049164ddb78c1db57d968227ce3fd",
     "src/features/knowledge/active-authority-shard-store.ts": "a7622d1beab73e1addf1abaaee71874075c40380dd46d641aab2d234f59c82ed",
     "src/features/knowledge/active-authority-presentation.ts": "350b576c5f1eb7f2492b1035e19332be325585e980d560940631a7e01c2bd465",
     "src/features/knowledge/active-authority-graph-contracts.ts": "2fa2981fbd42f48eea74a8571b708e54ba1afd2089f33d0abdb4f9560cdd5a95",
     "src/lib/authority-domain-shards/contracts.ts": "6ed43c8a0c5114dce5a7fb2b564e2bb3f3aeea3f80751738dab76b1783a51c5a",
     "src/lib/authority-domain-shards/envelope.ts": "038b7c2408ac8272612b29b51897c039105d7a79785f3e7b655b9e5597cf0255",
     "src/lib/authority-domain-shards/loader.ts": "6098f6be0631d8f8810b01ec3938f9d73c496e27f16b1c57302ce05c51573693",
-    "src/lib/authority-domain-shards/materialize.ts": "5cd96c31012e90541402815137e5f05f368a62eb7eaac7bf9dcd3ae64bb576a1",
+    "src/lib/authority-domain-shards/materialize.ts": "2c9b990b248617013b87a3549971a39d20058e9dcb6d0a912054adecefa01f5b",
     "src/app/api/knowledge/_active-authority.ts": "a408356855350d759c0b9e4e4261a35fbe019a36b5ab4ae0fc4235898d20ddfc",
     "src/app/api/knowledge/shards/active/route.ts": "12b16e321786c942a201ee1febf179e01efb697ccb5e72c068ee92ceabe167e7",
     "src/app/api/knowledge/shards/active/domains/[domain]/route.ts": "1cc4a1e25fe78d0468194c09e0da5d9423ee349b311c0c758e65655adbc39bdc",
@@ -73,7 +73,7 @@
     {
       "name": "desktop-default-collapsed-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -92,7 +92,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 6
+            "requestCount": 2
           },
           {
             "endpointClass": "legacy",
@@ -222,7 +222,7 @@
     {
       "name": "desktop-expanded-persisted-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -371,7 +371,7 @@
     {
       "name": "desktop-local-tools-directory-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -527,7 +527,7 @@
     {
       "name": "desktop-local-tools-filter-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -683,7 +683,7 @@
     {
       "name": "desktop-local-tools-view-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -845,7 +845,7 @@
     {
       "name": "desktop-selected-focus-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1026,7 +1026,7 @@
     {
       "name": "desktop-all-relation-families-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1175,7 +1175,7 @@
     {
       "name": "desktop-selected-inspector-light",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -1343,7 +1343,7 @@
     {
       "name": "desktop-hover-click-drag-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1381,7 +1381,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "4aa3769393692a3d43b9e6dc0af86e463daa23b44ea6caf7ff811477854ed5be",
+      "screenshotSha256": "d9516574830389033df79e8fa8fcc8cc79e48d939c8794cd4eddc5840fcd8167",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1579,7 +1579,7 @@
     {
       "name": "desktop-selected-page-tools-menu-dark",
       "route": "/assessment/adaptive-practice",
-      "url": "http://localhost:3001/assessment/adaptive-practice?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/assessment/adaptive-practice?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1694,7 +1694,7 @@
     {
       "name": "desktop-explicit-relayout-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1875,7 +1875,7 @@
     {
       "name": "desktop-3d-fit-relayout-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -3624,7 +3624,7 @@
     {
       "name": "desktop-konling-selected-expanded-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -3780,7 +3780,7 @@
     {
       "name": "desktop-konling-no-selection-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -3936,7 +3936,7 @@
     {
       "name": "desktop-konling-degraded-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=missing-node&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=missing-node&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4092,7 +4092,7 @@
     {
       "name": "desktop-stress-expanded-tool-inspector-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4130,7 +4130,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "f94cdb45e409b4ecc54fd9777e49a04b972e53f5ba718929e889ff3bc9f0e37d",
+      "screenshotSha256": "c38b00333bb44a0109918b3213c4607e1531a7a924fbbde0330dc6926983c1a2",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4274,7 +4274,7 @@
     {
       "name": "desktop-wide-default-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1920,
@@ -4423,7 +4423,7 @@
     {
       "name": "desktop-wide-inspector-tools-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1920,
@@ -4598,7 +4598,7 @@
     {
       "name": "tablet-1100-default-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -4747,7 +4747,7 @@
     {
       "name": "tablet-1100-local-tools-filter-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -4903,7 +4903,7 @@
     {
       "name": "tablet-1100-selected-inspector-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5071,7 +5071,7 @@
     {
       "name": "tablet-1024-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1024,
@@ -5109,7 +5109,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "28b5f5a3e938fb0bf99edf5c07666f966224b43f41c4b14c196de9b2148c86d2",
+      "screenshotSha256": "9bd543f21e1e3d2c18ef327e2316f6d8a871032b375799de704d5cbe28ec43ba",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5232,7 +5232,7 @@
     {
       "name": "tablet-1100-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5270,7 +5270,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "29dcb7938b72c6a63c961f1417583f6d29fd2cb98d29a55aa92c5ada297c8479",
+      "screenshotSha256": "b47fe59aeeda6ad32f1173119a49be7ebee5a45221930eaab58e12831c06008f",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5400,7 +5400,7 @@
     {
       "name": "tablet-1279-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1279,
@@ -5438,7 +5438,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "92d664140a75f5b27695a79d2ae5344d99bc9791d12c47314b4702d6ec9755e6",
+      "screenshotSha256": "b2b659b933f00915135c07c726a93fe3825ca1e89938b0cf52126ca6b068c39d",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5568,7 +5568,7 @@
     {
       "name": "mobile-320-local-tools-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -5723,7 +5723,7 @@
     {
       "name": "mobile-320-selected-inspector-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -5891,7 +5891,7 @@
     {
       "name": "mobile-320-konling-expanded-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -6033,7 +6033,7 @@
     {
       "name": "mobile-320-inspector-konling-stress-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -6175,7 +6175,7 @@
     {
       "name": "light-theme-default",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -6370,7 +6370,7 @@
     {
       "name": "active-desktop-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -6559,7 +6559,7 @@
     {
       "name": "active-desktop-light",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -6706,7 +6706,7 @@
     {
       "name": "active-tablet",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1024,
@@ -6853,7 +6853,7 @@
     {
       "name": "active-mobile",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -7125,7 +7125,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-legacy.png",
-        "screenshotSha256": "805d83c2f5945db3b705face8a32630c36d6f709428add75d4752b6e63f70b88"
+        "screenshotSha256": "7542322bc1ca5749d8caf0bf37a9fdc535c0be0db944e2dde7f6be4022a7bd49"
       },
       "candidate": null
     },
@@ -7255,7 +7255,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-legacy.png",
-        "screenshotSha256": "df14feadb9fe11f43b227d1dba1b30ee1b247c25c17c517082d5a012d782b5cb"
+        "screenshotSha256": "73382fc77379aae93ba63ecece6467ff44d66365149ad0114c35275f99c980ea"
       },
       "candidate": null
     },
@@ -7385,7 +7385,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-legacy.png",
-        "screenshotSha256": "452ef5f707f447dd4b368ac6cc6412bf719551833a5764588a67360b75d6dc42"
+        "screenshotSha256": "6301eca896c925b7e0f8551c2f876cb014319907551617d2f70d297d333ee540"
       },
       "candidate": {
         "mode": "candidate",
@@ -7482,22 +7482,22 @@
       "desktop-selected-focus-dark": "c2cd4e53cd20becf864da4c345dc7384eb3ea49fe77affc9fc1ef753f1c1b5b2",
       "desktop-all-relation-families-dark": "2a4e2a6d81b528c8cb2fb72da42e6a2e88856d77264baa1b45e00bcdc19dedff",
       "desktop-selected-inspector-light": "4c2a999af3429acb250876229388950cceb6ebddd6995ef5015a466e68b6e4c5",
-      "desktop-hover-click-drag-dark": "4aa3769393692a3d43b9e6dc0af86e463daa23b44ea6caf7ff811477854ed5be",
+      "desktop-hover-click-drag-dark": "d9516574830389033df79e8fa8fcc8cc79e48d939c8794cd4eddc5840fcd8167",
       "desktop-selected-page-tools-menu-dark": "c2a8d218135d11891217a28a65ab7e924dfaccbbc4b75a879e4fdf87e1ddfac0",
       "desktop-explicit-relayout-dark": "b1f2e942edaeb7e05e217c34e7ddc71f597eef857ac3f182e87cddf9b530695c",
       "desktop-3d-fit-relayout-dark": "4ad79e2fea63d8511e5decefbfa8273fe2231a9f33bba3cf1f35a68811f4ef79",
       "desktop-konling-selected-expanded-dark": "1126e68b16ff56bca9442ec3b45fbc13d1b644e6a9c8b018405d5075f904d51c",
       "desktop-konling-no-selection-dark": "67051a544540e615a59f66004492bfdda251ce1eb96c774b9ac1ec7a651ada4d",
       "desktop-konling-degraded-dark": "a432f28d6ef59a67f2945cded9013bd45ca1540760ce7731876070facf472720",
-      "desktop-stress-expanded-tool-inspector-konling-dark": "f94cdb45e409b4ecc54fd9777e49a04b972e53f5ba718929e889ff3bc9f0e37d",
+      "desktop-stress-expanded-tool-inspector-konling-dark": "c38b00333bb44a0109918b3213c4607e1531a7a924fbbde0330dc6926983c1a2",
       "desktop-wide-default-dark": "c3698dd76ba010c8dda6c1d49592eb10ff968b071f6b65da7b896691a3fc6ef8",
       "desktop-wide-inspector-tools-dark": "f731347546102c12d0976d7d4efeb66dbfc483722e370500813e6aaf9e230f98",
       "tablet-1100-default-dark": "493c1c82e86c58b75d8655263a14904db531fd38ff1c66fb213c3a0d8e0d8914",
       "tablet-1100-local-tools-filter-dark": "63c457492bd94733d45a020745489fb1ffc15b69fb72ff499fcbb549e306afad",
       "tablet-1100-selected-inspector-dark": "1ca87ece9bb4294e2e2c2dc698cca06b49e4e65235249c9b0d82a0f1325751ba",
-      "tablet-1024-inspector-tools-konling-dark": "28b5f5a3e938fb0bf99edf5c07666f966224b43f41c4b14c196de9b2148c86d2",
-      "tablet-1100-inspector-tools-konling-dark": "29dcb7938b72c6a63c961f1417583f6d29fd2cb98d29a55aa92c5ada297c8479",
-      "tablet-1279-inspector-tools-konling-dark": "92d664140a75f5b27695a79d2ae5344d99bc9791d12c47314b4702d6ec9755e6",
+      "tablet-1024-inspector-tools-konling-dark": "9bd543f21e1e3d2c18ef327e2316f6d8a871032b375799de704d5cbe28ec43ba",
+      "tablet-1100-inspector-tools-konling-dark": "b47fe59aeeda6ad32f1173119a49be7ebee5a45221930eaab58e12831c06008f",
+      "tablet-1279-inspector-tools-konling-dark": "b2b659b933f00915135c07c726a93fe3825ca1e89938b0cf52126ca6b068c39d",
       "mobile-320-local-tools-dark": "7a117a67e8289d091b4039aca3c3b51b41175bc25f587e1bf28d618eec639125",
       "mobile-320-selected-inspector-dark": "90be14d406126709e2f7db379f8a2ff05cef5abf1252297f4ced724b6d12603d",
       "mobile-320-konling-expanded-dark": "b170b8eac8f3f3d57e759de1b2ed44fbe4818e8d4ecd1e7e4b4c6b8d9c55cbae",
@@ -7511,14 +7511,14 @@
     "reviewedSourceSha256": {
       "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
       "src/features/knowledge/knowledge-graph-workspace.tsx": "b31ee8d30629484c5ea4a7a4b0dbf3641bfc36b36a741d5f465743af7f2f6087",
-      "src/features/knowledge/active-authority-graph.tsx": "a56912fb6b0fbe4e0d08e82ff21794a5f54b6495b34d82962041652986e7b8da",
+      "src/features/knowledge/active-authority-graph.tsx": "03a7345fb79a38e7de86260ad14fa23c64c049164ddb78c1db57d968227ce3fd",
       "src/features/knowledge/active-authority-shard-store.ts": "a7622d1beab73e1addf1abaaee71874075c40380dd46d641aab2d234f59c82ed",
       "src/features/knowledge/active-authority-presentation.ts": "350b576c5f1eb7f2492b1035e19332be325585e980d560940631a7e01c2bd465",
       "src/features/knowledge/active-authority-graph-contracts.ts": "2fa2981fbd42f48eea74a8571b708e54ba1afd2089f33d0abdb4f9560cdd5a95",
       "src/lib/authority-domain-shards/contracts.ts": "6ed43c8a0c5114dce5a7fb2b564e2bb3f3aeea3f80751738dab76b1783a51c5a",
       "src/lib/authority-domain-shards/envelope.ts": "038b7c2408ac8272612b29b51897c039105d7a79785f3e7b655b9e5597cf0255",
       "src/lib/authority-domain-shards/loader.ts": "6098f6be0631d8f8810b01ec3938f9d73c496e27f16b1c57302ce05c51573693",
-      "src/lib/authority-domain-shards/materialize.ts": "5cd96c31012e90541402815137e5f05f368a62eb7eaac7bf9dcd3ae64bb576a1",
+      "src/lib/authority-domain-shards/materialize.ts": "2c9b990b248617013b87a3549971a39d20058e9dcb6d0a912054adecefa01f5b",
       "src/app/api/knowledge/_active-authority.ts": "a408356855350d759c0b9e4e4261a35fbe019a36b5ab4ae0fc4235898d20ddfc",
       "src/app/api/knowledge/shards/active/route.ts": "12b16e321786c942a201ee1febf179e01efb697ccb5e72c068ee92ceabe167e7",
       "src/app/api/knowledge/shards/active/domains/[domain]/route.ts": "1cc4a1e25fe78d0468194c09e0da5d9423ee349b311c0c758e65655adbc39bdc",
