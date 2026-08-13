@@ -15,7 +15,13 @@ const roots: string[] = [];
 async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-hot-cache-'));
   roots.push(root);
-  const index = path.join(root, 'runtime', 'resources', 'textbook-retrieval');
+  const index = path.join(
+    root,
+    'runtime',
+    'resources',
+    'textbook-hybrid-retrieval',
+    'bge-m3',
+  );
   await mkdir(index, { recursive: true });
   await Promise.all([
     writeFile(path.join(index, 'vectors.f32'), 'vectors'),
@@ -49,7 +55,16 @@ describe('digest-pinned textbook retrieval hot cache', () => {
 
   it('rejects a mounted index object that no longer matches its release manifest', async () => {
     const { manifest, runtimeRoot, cacheParent } = await fixture();
-    await writeFile(path.join(runtimeRoot, 'resources', 'textbook-retrieval', 'vectors.f32'), 'changed');
+    await writeFile(
+      path.join(
+        runtimeRoot,
+        'resources',
+        'textbook-hybrid-retrieval',
+        'bge-m3',
+        'vectors.f32',
+      ),
+      'changed',
+    );
 
     await expect(stageTextbookRetrievalHotCache({ runtimeRoot, cacheParent, manifest }))
       .rejects.toMatchObject({ code: 'runtime-hot-cache-source-mismatch' } satisfies Partial<RuntimeTextbookHotCacheError>);
