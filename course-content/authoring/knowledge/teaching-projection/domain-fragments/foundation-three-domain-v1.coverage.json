@@ -1,0 +1,95 @@
+{
+  "contract": "act-foundation-three-domain-coverage/v1",
+  "fragmentKey": "foundation-three-domain-v1",
+  "fragmentVersion": "1",
+  "fragmentId": "dtf-edcb43e618e8f0934b6b884044cda82db38acb19fa30d8ff72b60f2de5e4caf1",
+  "fragmentDigest": "edcb43e618e8f0934b6b884044cda82db38acb19fa30d8ff72b60f2de5e4caf1",
+  "sourceInventoryDigest": "ad454416452ae8a0fc663a3812158416355b081bd6049ecbd23ecd0ccf5a1677",
+  "denominatorNodeIds": [
+    "ctc:modeling-00d2998755974a1329049aac",
+    "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "ctc:v11g-1c9f955b68fd25e1f4ad86f6"
+  ],
+  "denominatorEvidence": {
+    "ctc:modeling-00d2998755974a1329049aac": [
+      "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+    ],
+    "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253": [
+      "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+    ],
+    "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b": [
+      "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+    ],
+    "ctc:v11g-1c9f955b68fd25e1f4ad86f6": [
+      "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+    ]
+  },
+  "blocking": false,
+  "coverage": [
+    {
+      "domainId": "classical-control-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "root-locus",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "stability-analysis",
+      "coverage": "partial",
+      "coreNodeCount": 2,
+      "relationCount": 1,
+      "uncoveredCoreNodeCount": 1,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "system-modeling",
+      "coverage": "empty",
+      "coreNodeCount": 1,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 1,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "coverage": "available",
+      "coreNodeCount": 2,
+      "relationCount": 1,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    }
+  ]
+}
