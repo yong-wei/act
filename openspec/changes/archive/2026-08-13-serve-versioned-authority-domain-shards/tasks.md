@@ -26,3 +26,4 @@
 - ACCEPT（最终整改 A）：所有分片类别共享 Authority/catalog/Teaching identity drift 处理；Authority/catalog drift 中止当前请求世代并清空 workspace，Teaching-only drift 仅清除教学关系、coverage、domain-default/detail cache 与 loaded keys，保留工程对象、关系和布局并在新世代重取 active domain。
 - ACCEPT（最终整改 B）：固定 OCI image `58f70df` 通过专用 full-src operator bundle 运行本 PR 的 `production-cutover.ts` 与静态依赖闭包；manifest、逐文件 digest、bundle/archive/manifest digest 与 capture revision 全部封存并绑定 sealed plan。远端在停止消费者前完成实际 bundle verifier，隔离 root 运行 activate/verify/rollback/recover。
 - ACCEPT（最终整改 C）：node-detail API 按认证角色投影，STUDENT 响应完全移除 `teachingFields`，TEACHER/ADMIN 保持已有允许字段边界。
+- ACCEPT（最终整改 D）：分片 API 对已知内部 store/identity 错误仅公开稳定 code、HTTP status 与固定安全文案，不得透传 I/O、解析器或本机路径原文。

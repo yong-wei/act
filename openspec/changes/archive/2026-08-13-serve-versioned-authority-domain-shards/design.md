@@ -50,3 +50,6 @@ Add endpoints beside the current active canvas endpoint, prove payload and reque
 3. Immutable node-detail sources may retain `teachingFields`, but the API
    projects the response by authenticated role: STUDENT JSON omits the field
    entirely, while TEACHER and ADMIN retain their existing allowed boundary.
+4. Known internal shard store and identity failures expose only their stable
+   response code, HTTP status and a fixed safe message. I/O, parser and local
+   path detail remains server-side and is never included in product JSON.

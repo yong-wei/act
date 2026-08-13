@@ -20,6 +20,10 @@ import {
   readActiveCanvas,
   readActiveNode,
 } from '@/app/api/knowledge/_active-authority';
+import {
+  AuthorityShardIdentityError,
+  AuthorityShardStoreError,
+} from '@/lib/authority-domain-shards';
 
 const resolved = {
   status: 'ready' as const,
@@ -154,6 +158,30 @@ describe('active Authority role-safe projections', () => {
     const body = await response.json();
     expect(Object.prototype.hasOwnProperty.call(body.node, 'teachingFields')).toBe(includesTeachingFields);
     if (!includesTeachingFields) expect(JSON.stringify(body)).not.toContain('concept_kind');
+  });
+
+  it.each([
+    [
+      new AuthorityShardStoreError('shard-tamper', 'private path /tmp/secret parser detail'),
+      'ACTIVE_SHARD_SHARD_TAMPER',
+      409,
+    ],
+    [
+      new AuthorityShardIdentityError('manifest-hash-invalid', 'private path /tmp/secret parser detail'),
+      'ACTIVE_SHARD_MANIFEST_HASH_INVALID',
+      503,
+    ],
+  ])('does not expose internal shard error messages (%s)', async (error, code, status) => {
+    const response = activeShardResponse(() => {
+      throw error;
+    });
+    const body = await response.json();
+    expect(response.status).toBe(status);
+    expect(body).toMatchObject({
+      code,
+      error: '当前 Authority 分片暂时无法加载。',
+    });
+    expect(JSON.stringify(body)).not.toContain('private path /tmp/secret parser detail');
   });
 
   it('projects active provenance with null engineering projection', () => {

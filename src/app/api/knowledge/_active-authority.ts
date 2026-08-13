@@ -473,7 +473,7 @@ function shardFailureCode(error: unknown): { code: string; message: string; stat
   if (error instanceof AuthorityShardStoreError || error instanceof AuthorityShardIdentityError) {
     return {
       code: `ACTIVE_SHARD_${error.code.toUpperCase().replace(/-/g, '_')}`,
-      message: error.message,
+      message: '当前 Authority 分片暂时无法加载。',
       status: shardFailureStatus(error.code),
     };
   }
