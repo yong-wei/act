@@ -352,6 +352,15 @@ describe('authority domain shard delivery', () => {
     expect(projected.label).not.toBe(MODELING);
   });
 
+  it('does not expose an internal semanticName slug when preferred labels are missing', () => {
+    const projected = projectAuthorityObject({
+      ...objectRow(MODELING, 'positive_feedback_inner_loop'),
+      payload: {},
+    }, catalogRuntime());
+    expect(projected.label).toBe('名称暂不可用');
+    expect(projected.label).not.toBe('positive_feedback_inner_loop');
+  });
+
   it('loads root and domain-default without opening engineering.json', () => {
     const { shardPaths, materialized, catalog, envelope: expected } = writeShards();
     const recording = createRecordingShardIo(defaultShardIo);

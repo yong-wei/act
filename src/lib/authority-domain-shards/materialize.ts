@@ -101,7 +101,7 @@ function stringOrNull(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
-function safeLabel(payload: JsonObject, fallback?: string): string {
+function safeLabel(payload: JsonObject): string {
   const preferredLabels = Array.isArray(payload.preferred_labels)
     ? payload.preferred_labels.map(asObject)
     : [];
@@ -109,7 +109,6 @@ function safeLabel(payload: JsonObject, fallback?: string): string {
     label.language === 'zh-CN' && typeof label.text === 'string'
   )) ?? preferredLabels.find((label) => typeof label.text === 'string');
   if (typeof preferred?.text === 'string' && preferred.text.trim()) return preferred.text.trim();
-  if (typeof fallback === 'string' && fallback.trim()) return fallback.trim();
   // Keep the object available for bounded graph traversal, but never expose
   // its canonical/internal identifier as a product label.
   return '名称暂不可用';
@@ -169,12 +168,7 @@ export function projectAuthorityObject(
   return {
     id: object.canonicalId,
     canonicalType: object.canonicalType,
-    label: safeLabel(
-      payload,
-      object.semanticName && object.semanticName !== object.canonicalId
-        ? object.semanticName
-        : undefined,
-    ),
+    label: safeLabel(payload),
     description: stringOrNull(payload.description),
     governance: {
       reviewStatus: object.reviewStatus,
@@ -442,12 +436,7 @@ export function buildAuthorityDomainShards(
       node: {
         id: center.canonicalId,
         canonicalType: center.canonicalType,
-        label: safeLabel(
-          payload,
-          center.semanticName && center.semanticName !== center.canonicalId
-            ? center.semanticName
-            : undefined,
-        ),
+        label: safeLabel(payload),
         description: stringOrNull(payload.description) ?? stringOrNull(nested.description),
         teachingFields: teachingFields(payload),
         governance: {
