@@ -46,6 +46,7 @@ import {
   type AuthorityLearnerShard,
   type AuthorityDomainDefaultShard,
   type AuthorityNodeDetailShard,
+  type PublicAuthorityNodeDetailShard,
   type AuthorityNodeNeighborhoodShard,
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
@@ -483,9 +484,29 @@ function shardFailureCode(error: unknown): { code: string; message: string; stat
   };
 }
 
-export function activeShardResponse<T extends AuthorityLearnerShard>(read: () => T): NextResponse {
+export function activeShardResponse<T extends AuthorityLearnerShard>(
+  read: () => T,
+  role?: KnowledgeRole,
+): NextResponse {
+  return activeShardResponseForRole(read, role);
+}
+
+/**
+ * Project the immutable shard source at the authenticated API boundary.
+ * Student node-detail responses must not carry the teaching-only field even
+ * though the sealed immutable artifact retains it for teacher/admin readers.
+ */
+export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
+  read: () => T,
+  role: KnowledgeRole | undefined,
+): NextResponse {
   try {
-    return NextResponse.json(projectAuthorityLearnerShard(read()));
+    const shard = projectAuthorityLearnerShard(read());
+    if (role === 'STUDENT' && shard.shardClass === 'node-detail') {
+      const { teachingFields: _teachingFields, ...node } = (shard as unknown as PublicAuthorityNodeDetailShard).node;
+      return NextResponse.json({ ...shard, node });
+    }
+    return NextResponse.json(shard);
   } catch (error) {
     const failure = shardFailureCode(error);
     return NextResponse.json(

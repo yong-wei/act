@@ -28,3 +28,25 @@ The active Authority adapter currently obtains the full canvas payload and only 
 ## Migration Plan
 
 Add endpoints beside the current active canvas endpoint, prove payload and request budgets, migrate the new workspace, then retain full-canvas access only for authorized diagnostics. Rollback returns the UI to the current endpoint without changing selectors.
+
+## Accepted final remediation decisions (2026-08-13)
+
+1. Any shard response whose Authority or catalog identity differs from the
+   current workspace aborts the current request generation, clears the
+   workspace, and enters controlled unavailable state. Recovery requires an
+   explicit new root retry. A Teaching-only identity change removes
+   `ACT_TEACHING` relations, coverage, domain-default/detail cache entries and
+   their loaded keys while retaining same-Authority engineering objects,
+   relations, layout, selection and inspector state. The rule applies equally
+   to relation-family, node-neighborhood and node-detail responses; the active
+   domain is fetched again under a new request generation.
+2. The fixed OCI image `58f70df` does not provide this change's shard and
+   first-activation source. Production therefore seals a dedicated full-src
+   operator bundle (manifest, per-file digests, logical/archive/manifest
+   digests and capture revision) into the transaction plan. The remote driver
+   validates and extracts that bundle before stopping consumers, then runs it
+   from an isolated `/operator-bundle` root with the fixed image's tsx and
+   node_modules; it never mounts or falls back to the image's `/app/src`.
+3. Immutable node-detail sources may retain `teachingFields`, but the API
+   projects the response by authenticated role: STUDENT JSON omits the field
+   entirely, while TEACHER and ADMIN retain their existing allowed boundary.

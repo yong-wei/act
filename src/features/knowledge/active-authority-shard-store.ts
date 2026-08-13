@@ -101,7 +101,26 @@ export function shardRequestKey(shard: IncomingAuthorityShard): string {
 }
 
 export function isTeachingBearingShard(shard: IncomingAuthorityShard): boolean {
-  return shard.shardClass === 'domain-default';
+  // Every shard carries the composite envelope.  A Teaching version can
+  // advance while an engineering family, neighborhood, or detail request is
+  // in flight, so those responses must participate in Teaching identity
+  // validation as well; limiting this to domain-default permits mixed
+  // generations to reach the cache.
+  return true;
+}
+
+export function shardIdentityDrift(
+  current: AuthorityShardWorkspaceState,
+  shard: IncomingAuthorityShard,
+): 'authority-catalog' | 'teaching' | null {
+  if (!current.envelope) return null;
+  if (!publicEnvelopesShareAuthorityAndCatalog(current.envelope, shard.envelope)) {
+    return 'authority-catalog';
+  }
+  if (isTeachingBearingShard(shard) && !publicTeachingIdentityMatches(current.envelope, shard.envelope)) {
+    return 'teaching';
+  }
+  return null;
 }
 
 export function validateIncomingShard(
@@ -323,7 +342,9 @@ export function invalidateTeachingBearingShards(
   if (publicTeachingIdentityMatches(current.envelope, nextEnvelope)) {
     return { ...current, envelope: nextEnvelope };
   }
-  const teachingKeys = current.loadedShardKeys.filter((key) => key.startsWith('domain-default:'));
+  const teachingKeys = current.loadedShardKeys.filter((key) => (
+    key.startsWith('domain-default:') || key.startsWith('node-detail:')
+  ));
   const relationsByLayerKey = Object.fromEntries(
     Object.entries(current.relationsByLayerKey).filter(([, relation]) => relation.layer !== 'ACT_TEACHING'),
   );
@@ -333,6 +354,8 @@ export function invalidateTeachingBearingShards(
     relationsByLayerKey,
     teachingCoverageByDomain: {},
     loadedShardKeys: current.loadedShardKeys.filter((key) => !teachingKeys.includes(key)),
+    rejectedShardKeys: [],
+    detailsByCanonicalId: {},
     selectedCanonicalId: current.selectedCanonicalId,
     inspectorOpen: current.inspectorOpen,
     positionsByCanonicalId: current.positionsByCanonicalId,

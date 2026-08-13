@@ -15,7 +15,11 @@ vi.mock('@/lib/authoritative-knowledge/projections', () => ({
   buildActiveAuthorityNodeDetailProjection: mocks.nodeDetail,
 }));
 
-import { readActiveCanvas, readActiveNode } from '@/app/api/knowledge/_active-authority';
+import {
+  activeShardResponse,
+  readActiveCanvas,
+  readActiveNode,
+} from '@/app/api/knowledge/_active-authority';
 
 const resolved = {
   status: 'ready' as const,
@@ -110,6 +114,48 @@ beforeEach(() => {
 });
 
 describe('active Authority role-safe projections', () => {
+  const nodeShard = {
+    shardClass: 'node-detail' as const,
+    envelope: {
+      contract: 'act-authority-shard-envelope/v1' as const,
+      authority: {
+        snapshotId: 'snap-1',
+        snapshotHash: 'a'.repeat(64),
+        releaseId: 'release-1',
+        releaseSetId: 'set-1',
+        activationId: 'activation-1',
+        activationHash: 'b'.repeat(64),
+        projectionId: null,
+        projectionHash: null,
+      },
+      catalog: { catalogId: 'catalog-1', catalogHash: 'c'.repeat(64), catalogVersion: 'v1' },
+      teaching: { status: 'available' as const, projectionId: 'teaching-1', projectionHash: 'd'.repeat(64), teachingCacheFamily: 'family-1' },
+      match: { authority: true as const, catalog: true as const, teaching: true as const },
+    },
+    node: {
+      id: 'node-1',
+      canonicalType: 'DomainConcept',
+      label: '节点',
+      description: null,
+      teachingFields: { concept_kind: 'engineering' },
+      governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+      sources: [],
+      media: { cardAvailable: false as const, infographAvailable: false as const },
+      semanticSupport: { supported: true, readOnly: true as const },
+    },
+  };
+
+  it.each([
+    ['STUDENT' as const, false],
+    ['TEACHER' as const, true],
+    ['ADMIN' as const, true],
+  ])('projects node-detail teachingFields by authenticated role (%s)', async (role, includesTeachingFields) => {
+    const response = activeShardResponse(() => nodeShard, role);
+    const body = await response.json();
+    expect(Object.prototype.hasOwnProperty.call(body.node, 'teachingFields')).toBe(includesTeachingFields);
+    if (!includesTeachingFields) expect(JSON.stringify(body)).not.toContain('concept_kind');
+  });
+
   it('projects active provenance with null engineering projection', () => {
     const result = readActiveCanvas();
     expect(result.status).toBe('available');

@@ -19,6 +19,7 @@ import {
   mergeAuthorityShard,
   rememberAuthorityShardPositions,
   resetAuthorityShardDomain,
+  shardIdentityDrift,
   selectAuthorityShardObject,
   visibleAuthorityShardRelations,
 } from '../active-authority-shard-store';
@@ -550,7 +551,152 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).not.toContain('旧教学覆盖');
   });
 
-  it('keeps the Teaching envelope stable across engineering-only family, neighborhood and detail shards', () => {
+  it('clears the workspace and stays unavailable on Authority/catalog drift from an engineering shard', async () => {
+    const driftEnvelope: AuthorityShardPublicEnvelope = {
+      ...shardEnvelope,
+      authorityCatalogVersion: 'acv-drifted',
+      match: { ...shardEnvelope.match, teaching: null },
+    };
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/') && url.includes('/families/association')) {
+        return mockResponse(familyShard('association', [canvas.relations[0]], driftEnvelope));
+      }
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const familyButton = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="association"]');
+    expect(familyButton).not.toBeNull();
+    await act(async () => familyButton!.click());
+    await act(async () => Promise.resolve());
+    expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+  });
+
+  it('fails closed when a relation-family response reports identity drift without an envelope', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/') && url.includes('/families/association')) {
+        return { ok: false, status: 409, json: async () => ({}) };
+      }
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const familyButton = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="association"]');
+    expect(familyButton).not.toBeNull();
+    await act(async () => familyButton!.click());
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+  });
+
+  it('fails closed when a neighborhood response reports identity drift without an envelope', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      if (url.includes('/neighborhoods/')) return { ok: false, status: 409, json: async () => ({}) };
+      if (url.includes('/shards/active/nodes/')) {
+        return mockResponse({
+          shardClass: 'node-detail', envelope: shardEnvelope,
+          node: { ...nodeDetail(nodeId).node, teachingFields: {}, media: { cardAvailable: false, infographAvailable: false } },
+        });
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+  });
+
+  it('routes a node-detail 200 Authority/catalog drift through the global reset', async () => {
+    const driftEnvelope: AuthorityShardPublicEnvelope = {
+      ...shardEnvelope,
+      authorityCatalogVersion: 'acv-node-detail-drift',
+      match: { ...shardEnvelope.match, teaching: null },
+    };
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      if (url.includes('/neighborhoods/')) return mockResponse(neighborhoodShard(nodeId));
+      if (url.includes('/shards/active/nodes/')) {
+        return mockResponse({
+          shardClass: 'node-detail', envelope: driftEnvelope,
+          node: { ...nodeDetail(nodeId).node, teachingFields: {}, media: { cardAvailable: false, infographAvailable: false } },
+        });
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); });
+    expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+  });
+
+  it('fails closed when a node-detail response reports identity drift without an envelope', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      if (url.includes('/neighborhoods/')) return mockResponse(neighborhoodShard(nodeId));
+      if (url.includes('/shards/active/nodes/')) return { ok: false, status: 409, json: async () => ({}) };
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+  });
+
+  it('invalidates Teaching caches when family, neighborhood, or detail observes a new identity', () => {
     const oldEnvelope = teachingEnvelope('teaching-v1');
     const engineeringEnvelope = teachingEnvelope('teaching-v2');
     let workspace = createEmptyAuthorityShardWorkspace();
@@ -571,13 +717,20 @@ describe('active Authority knowledge workspace client boundary', () => {
         media: { cardAvailable: false as const, infographAvailable: false as const },
       },
     };
+    workspace = rememberAuthorityShardPositions(workspace, { 'node-concept': { x: 90, y: 180 } });
+    workspace = selectAuthorityShardObject(workspace, 'node-concept');
+    workspace = invalidateTeachingBearingShards(workspace, engineeringFamily.envelope);
+    expect(shardIdentityDrift(workspace, engineeringFamily)).toBeNull();
     workspace = mergeAuthorityShard(workspace, engineeringFamily);
     workspace = mergeAuthorityShard(workspace, engineeringNeighborhood);
     workspace = mergeAuthorityShard(workspace, engineeringDetail);
 
-    expect(workspace.envelope).toEqual(oldEnvelope);
-    expect(workspace.relationsByLayerKey['ACT_TEACHING:teaching-old']).toBeDefined();
-    expect(workspace.teachingCoverageByDomain['system-modeling']?.note).toBe('旧教学覆盖');
+    expect(workspace.envelope).toEqual(engineeringEnvelope);
+    expect(workspace.relationsByLayerKey['ACT_TEACHING:teaching-old']).toBeUndefined();
+    expect(workspace.teachingCoverageByDomain).toEqual({});
+    expect(workspace.detailsByCanonicalId['node-concept']).toBeDefined();
+    expect(workspace.positionsByCanonicalId['node-concept']).toEqual({ x: 90, y: 180 });
+    expect(workspace.selectedCanonicalId).toBe('node-concept');
     expect(workspace.relationsByLayerKey['ENGINEERING:relation-association']).toBeDefined();
   });
 

@@ -21,14 +21,18 @@ import {
 import path from 'node:path';
 
 import {
+  emptyTeachingSelectorFingerprint,
+} from '../../src/lib/authoritative-knowledge/authority-snapshot';
+import {
   activateAuthoritySnapshot,
   atomicWriteFile as atomicWriteAuthorityFile,
-  emptyTeachingSelectorFingerprint,
   loadStagedAuthoritySnapshot,
-  resolveEngineeringGraphAuthority,
   resolveActiveAuthoritySnapshot,
   resolveAuthorityStorePaths,
-} from '../../src/lib/authoritative-knowledge';
+} from '../../src/lib/authoritative-knowledge/authority-store';
+import {
+  resolveEngineeringGraphAuthority,
+} from '../../src/lib/authoritative-knowledge/engineering-authority-consumers';
 import {
   loadAuthorityDomainCatalogRuntime,
   resolveAuthorityDomainCatalogPaths,
@@ -80,6 +84,7 @@ import {
 const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v1';
 const RECEIPT_CONTRACT = 'act-production-knowledge-cutover-receipt/v1';
 const MARKER_CONTRACT = 'act-production-knowledge-cutover-current/v1';
+const OPERATOR_BUNDLE_CONTRACT = 'act-knowledge-cutover-operator-bundle/v1';
 const SHA256 = /^[a-f0-9]{64}$/u;
 const OCI_DIGEST = /^sha256:[a-f0-9]{64}$/u;
 const COMMIT = /^[a-f0-9]{40}$/u;
@@ -108,6 +113,25 @@ interface FileDigest {
   group: 'authority' | 'runtime';
 }
 
+interface OperatorBundleFileDigest {
+  path: string;
+  sha256: string;
+  size: number;
+}
+
+interface OperatorBundleManifest {
+  contract: typeof OPERATOR_BUNDLE_CONTRACT;
+  builderVersion: string;
+  captureRevision: string;
+  files: readonly OperatorBundleFileDigest[];
+  bundleSha256: string;
+}
+
+interface OperatorBundleSeal extends OperatorBundleManifest {
+  manifestSha256: string;
+  archiveSha256: string;
+}
+
 interface PointerTarget {
   component: Component;
   path: string;
@@ -131,6 +155,7 @@ interface ProductionCutoverPlan {
     deploymentScriptSha256: string;
     cleanupEngineSha256: string;
   };
+  operatorBundle: OperatorBundleSeal;
   authority: {
     snapshotId: string;
     snapshotHash: string;
@@ -220,6 +245,88 @@ function hashFile(filePath: string): string {
   return sha256(readFileSync(filePath));
 }
 
+function operatorBundleDigestBody(bundle: Pick<OperatorBundleManifest, 'contract' | 'builderVersion' | 'captureRevision' | 'files'>) {
+  return {
+    contract: bundle.contract,
+    builderVersion: bundle.builderVersion,
+    captureRevision: bundle.captureRevision,
+    files: [...bundle.files],
+  };
+}
+
+function assertOperatorBundleManifest(bundle: OperatorBundleManifest): void {
+  assert(bundle.contract === OPERATOR_BUNDLE_CONTRACT, 'operator bundle contract mismatch');
+  assert(TOKEN.test(bundle.builderVersion), 'operator bundle builder version is invalid');
+  assert(COMMIT.test(bundle.captureRevision), 'operator bundle capture revision is invalid');
+  assert(SHA256.test(bundle.bundleSha256), 'operator bundle digest is invalid');
+  assert(bundle.files.length > 0, 'operator bundle contains no files');
+  assert(new Set(bundle.files.map((file) => file.path)).size === bundle.files.length, 'operator bundle file paths are not unique');
+  for (const file of bundle.files) {
+    relativePath(file.path);
+    assert(SHA256.test(file.sha256) && Number.isSafeInteger(file.size) && file.size >= 0, `invalid operator bundle file digest: ${file.path}`);
+  }
+  assert(
+    sha256(canonicalJson(operatorBundleDigestBody(bundle))) === bundle.bundleSha256,
+    'operator bundle digest mismatch',
+  );
+}
+
+function collectOperatorBundleFiles(root: string): OperatorBundleFileDigest[] {
+  const stat = lstatSync(root);
+  assert(stat.isDirectory() && !stat.isSymbolicLink(), 'operator bundle root must be a regular directory');
+  const files: OperatorBundleFileDigest[] = [];
+  const visit = (directory: string) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
+      const full = path.join(directory, entry.name);
+      const relative = path.relative(root, full).split(path.sep).join('/');
+      if (entry.isSymbolicLink()) fail(`operator bundle symlink is forbidden: ${relative}`);
+      if (entry.isDirectory()) visit(full);
+      else if (entry.isFile()) {
+        const stat = lstatSync(full);
+        files.push({ path: relative, sha256: sha256(readFileSync(full)), size: stat.size });
+      } else fail(`operator bundle contains unsupported entry: ${relative}`);
+    }
+  };
+  visit(root);
+  return files.sort((left, right) => left.path.localeCompare(right.path));
+}
+
+function assertOperatorBundle(
+  root: string,
+  plan: ProductionCutoverPlan,
+  bundleRoot: string,
+  manifestPath: string,
+): void {
+  const manifestStat = lstatSync(manifestPath);
+  assert(manifestStat.isFile() && !manifestStat.isSymbolicLink(), 'operator bundle manifest must be a regular file');
+  assert(hashFile(manifestPath) === plan.operatorBundle.manifestSha256, 'operator bundle manifest hash mismatch');
+  const manifest = readJson<OperatorBundleManifest>(manifestPath);
+  assertOperatorBundleManifest(manifest);
+  assert(manifest.captureRevision === plan.operatorBundle.captureRevision && manifest.captureRevision === plan.source.captureRevision, 'operator bundle capture revision mismatch');
+  assert(manifest.bundleSha256 === plan.operatorBundle.bundleSha256, 'operator bundle identity mismatch');
+  assert(manifest.files.length === plan.operatorBundle.files.length, 'operator bundle plan file count mismatch');
+  const planFiles = new Map(plan.operatorBundle.files.map((file) => [file.path, file]));
+  for (const file of manifest.files) {
+    const planned = planFiles.get(file.path);
+    assert(planned && planned.sha256 === file.sha256 && planned.size === file.size, `operator bundle plan digest mismatch: ${file.path}`);
+  }
+  const actualFiles = collectOperatorBundleFiles(bundleRoot);
+  assert(actualFiles.length === manifest.files.length, 'operator bundle file set differs from manifest');
+  for (const file of actualFiles) {
+    const expected = planFiles.get(file.path);
+    assert(expected && expected.sha256 === file.sha256 && expected.size === file.size, `operator bundle file digest mismatch: ${file.path}`);
+  }
+  assert(
+    actualFiles.some((file) => file.path === 'scripts/knowledge-cutover/production-cutover.ts' && file.sha256 === plan.source.toolSha256),
+    'operator bundle production-cutover.ts does not match the sealed tool digest',
+  );
+  // `root` is intentionally accepted as an explicit argument so callers can
+  // keep all bundle paths outside the activation data root.  Touching it here
+  // makes that separation visible to the type/runtime contract without
+  // reading any host source fallback.
+  assert(path.isAbsolute(root), 'operator bundle activation root must be absolute');
+}
+
 function collectFiles(root: string, relative: string, group: FileDigest['group']): FileDigest[] {
   const directory = under(root, relative);
   const results: FileDigest[] = [];
@@ -272,6 +379,10 @@ function assertPlan(plan: ProductionCutoverPlan): void {
   assert(SHA256.test(plan.source.deploymentScriptSha256), 'plan deployment script hash is invalid');
   assert(SHA256.test(plan.source.cleanupEngineSha256), 'plan cleanup engine hash is invalid');
   assert(SHA256.test(plan.localFirstActivationReportSha256), 'plan first-activation report hash is invalid');
+  assertOperatorBundleManifest(plan.operatorBundle);
+  assert(SHA256.test(plan.operatorBundle.manifestSha256), 'plan operator bundle manifest hash is invalid');
+  assert(SHA256.test(plan.operatorBundle.archiveSha256), 'plan operator bundle archive hash is invalid');
+  assert(plan.operatorBundle.captureRevision === plan.source.captureRevision, 'plan operator bundle capture revision mismatch');
   assert(SHA256.test(plan.planHash), 'plan hash is invalid');
   assert(sha256(canonicalJson(planBody(plan))) === plan.planHash, 'plan hash mismatch');
   assert(plan.pointers.length === 5, 'plan must define exactly five pointers');
@@ -542,6 +653,8 @@ function buildPlan(): ProductionCutoverPlan {
   const imageTarSha256 = option('--image-tar-sha256');
   const deploymentScript = path.resolve(option('--deployment-script'));
   const cleanupEngine = path.resolve(option('--cleanup-engine'));
+  const operatorBundleManifestPath = path.resolve(option('--operator-bundle-manifest'));
+  const operatorBundleArchivePath = path.resolve(option('--operator-bundle-archive'));
   if (!COMMIT.test(imageRevision)) fail('image revision must be one lowercase Git commit');
   if (!OCI_DIGEST.test(imageConfigDigest)) fail('image config digest must be one sha256 OCI digest');
   if (!SHA256.test(imageTarSha256)) fail('image tar hash must be one sha256 digest');
@@ -580,6 +693,9 @@ function buildPlan(): ProductionCutoverPlan {
   const captureRevisions = new Set(ready.map((row) => (row.combination as Record<string, unknown> | null)?.captureRevision).filter((value): value is string => typeof value === 'string'));
   assert(captureRevisions.size === 1, 'ready consumers do not share one capture revision');
   const captureRevision = [...captureRevisions][0]!;
+  const operatorBundleManifest = readJson<OperatorBundleManifest>(operatorBundleManifestPath);
+  assertOperatorBundleManifest(operatorBundleManifest);
+  assert(operatorBundleManifest.captureRevision === captureRevision, 'operator bundle capture revision does not match staged activation');
   assert(authorityPointer.snapshotId === authorityManifest.snapshotId && authorityPointer.snapshotHash === authorityManifest.snapshotHash, 'authority pointer does not match manifest');
   assert(projectionPointer.projectionId === projectionManifest.projectionId && projectionPointer.projectionHash === projectionManifest.projectionHash, 'projection pointer does not match manifest');
   assert(prerequisitePointer.publicationId === prerequisiteManifest.publicationId && prerequisitePointer.publicationHash === prerequisiteManifest.publicationHash, 'prerequisite pointer does not match manifest');
@@ -622,6 +738,11 @@ function buildPlan(): ProductionCutoverPlan {
       return [{ path: relative, sha256: hashFile(full), size: lstatSync(full).size, group: 'runtime' as const }];
     })(),
   ].flat().sort((left, right) => left.path.localeCompare(right.path));
+  const operatorBundle: OperatorBundleSeal = {
+    ...operatorBundleManifest,
+    manifestSha256: hashFile(operatorBundleManifestPath),
+    archiveSha256: hashFile(operatorBundleArchivePath),
+  };
   const reportPath = 'artifacts/actkg-cutover-preparation/1a56317aa44e46322be0b0d1ac73948c03c5c2c0/activation/first-activation-report.json';
   const body = {
     contract: PLAN_CONTRACT,
@@ -638,6 +759,7 @@ function buildPlan(): ProductionCutoverPlan {
       deploymentScriptSha256: hashFile(deploymentScript),
       cleanupEngineSha256: hashFile(cleanupEngine),
     },
+    operatorBundle,
     authority: {
       snapshotId: authorityManifest.snapshotId!,
       snapshotHash: authorityManifest.snapshotHash!,
@@ -674,6 +796,22 @@ function readPlan(): ProductionCutoverPlan {
   assert(actualToolHash === plan.source.toolSha256, 'operator tool hash does not match sealed plan');
   assert(process.env.APP_REVISION === plan.source.imageRevision, 'container image revision does not match sealed plan');
   return plan;
+}
+
+function optionalOption(name: string): string | null {
+  const index = process.argv.indexOf(name);
+  if (index < 0) return null;
+  const value = process.argv[index + 1];
+  if (!value || value.startsWith('--')) fail(`${name} is required when the bundle option is present`);
+  return value;
+}
+
+function verifyRuntimeOperatorBundle(plan: ProductionCutoverPlan): void {
+  const bundleRoot = optionalOption('--bundle-root');
+  const manifestPath = optionalOption('--bundle-manifest');
+  if (!bundleRoot && !manifestPath) return;
+  assert(bundleRoot && manifestPath, 'operator bundle root and manifest must be supplied together');
+  assertOperatorBundle(path.resolve(option('--root')), plan, path.resolve(bundleRoot), path.resolve(manifestPath));
 }
 
 function pathsFor(root: string) {
@@ -950,6 +1088,7 @@ function assertCommittedMarker(marker: Record<string, string>, plan: ProductionC
 function runActivate(): void {
   const root = path.resolve(option('--root'));
   const plan = readPlan();
+  verifyRuntimeOperatorBundle(plan);
   const paths = assertStagedArtifacts(root, plan, { allowAbsentShardSet: true });
   assertPointersAbsent(root, plan);
   mkdirSync(paths.transactionDir, { recursive: true });
@@ -1020,6 +1159,7 @@ function runActivate(): void {
 function runVerify(): void {
   const root = path.resolve(option('--root'));
   const plan = readPlan();
+  verifyRuntimeOperatorBundle(plan);
   assertStagedArtifacts(root, plan, { allowCommittedReceipts: true });
   const verification = assertActive(root, plan);
   const paths = pathsFor(root);
@@ -1033,6 +1173,7 @@ function runVerify(): void {
 function runRollback(): void {
   const root = path.resolve(option('--root'));
   const plan = readPlan();
+  verifyRuntimeOperatorBundle(plan);
   const paths = pathsFor(root);
   const receipt = readJson<Record<string, string>>(receiptPath(paths, plan.transactionId));
   assertCommittedReceipt(receipt, plan);
@@ -1057,6 +1198,7 @@ function runRollback(): void {
 function runRecover(): void {
   const root = path.resolve(option('--root'));
   const plan = readPlan();
+  verifyRuntimeOperatorBundle(plan);
   const paths = pathsFor(root);
   const journalPath = path.join(paths.consumer.root, 'first-activation-transactions', `${plan.transactionId}.json`);
   const lockPath = path.join(paths.consumer.root, '.production-first-activation.lock');
@@ -1082,11 +1224,17 @@ const command = process.argv[2];
 try {
   switch (command) {
     case 'plan': buildPlan(); break;
+    case 'verify-bundle': {
+      const plan = readPlan();
+      verifyRuntimeOperatorBundle(plan);
+      process.stdout.write(JSON.stringify({ status: 'BUNDLE_VERIFIED', bundleSha256: plan.operatorBundle.bundleSha256 }, null, 2) + '\n');
+      break;
+    }
     case 'activate': runActivate(); break;
     case 'verify': runVerify(); break;
     case 'rollback': runRollback(); break;
     case 'recover': runRecover(); break;
-    default: fail('expected one of: plan, activate, verify, rollback, recover');
+    default: fail('expected one of: plan, verify-bundle, activate, verify, rollback, recover');
   }
 } catch (error) {
   process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);

@@ -12,16 +12,20 @@ import { join } from 'node:path';
 import type { RegisteredPeerDomainId } from '@/lib/authority-domain-catalog/contracts';
 import {
   DOMAIN_TEACHING_CURRENT_CONTRACT,
-  teachingCacheFamilyFor,
-  verifyDomainTeachingComposedArtifacts,
-  composeDomainTeachingProjection,
   type DomainFragmentAuthorityBindingComplete,
   type DomainTeachingComposedArtifacts,
   type DomainTeachingComposedManifest,
   type DomainTeachingCurrentPointer,
   type DomainTeachingFragment,
   type TeachingCoverageState,
-} from '@/lib/teaching-projection/domain-fragments';
+} from '@/lib/teaching-projection/domain-fragments/contracts';
+import {
+  teachingCacheFamilyFor,
+} from '@/lib/teaching-projection/domain-fragments/activation';
+import {
+  verifyDomainTeachingComposedArtifacts,
+  composeDomainTeachingProjection,
+} from '@/lib/teaching-projection/domain-fragments/compose';
 
 import {
   TEACHING_LAYER,

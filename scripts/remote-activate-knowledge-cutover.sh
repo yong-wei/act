@@ -14,6 +14,7 @@ LOCAL_IMAGE_TAR="${LOCAL_IMAGE_TAR:-${ROOT_DIR}/deploy/images/act-obe-v0.4.0-58f
 LOCAL_PROVENANCE_FILE="${LOCAL_PROVENANCE_FILE:-${LOCAL_IMAGE_TAR}.provenance.json}"
 PROVENANCE_HELPER="${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs"
 CUTOVER_TOOL="${ROOT_DIR}/scripts/knowledge-cutover/production-cutover.ts"
+OPERATOR_BUNDLE_HELPER="${ROOT_DIR}/scripts/knowledge-cutover/create-operator-bundle.mjs"
 REMOTE_OPERATOR_SCRIPT="${ROOT_DIR}/scripts/knowledge-cutover/remote-production-cutover.sh"
 CLEANUP_ENGINE="${ROOT_DIR}/scripts/knowledge-cutover/cleanup-failed-authority-identity.cjs"
 LOCAL_APP_DEPLOY_SCRIPT="${ROOT_DIR}/deploy/podman/deploy.sh"
@@ -153,6 +154,7 @@ fi
 
 [[ -x "${ROOT_DIR}/node_modules/.bin/tsx" ]] || fail '缺少 node_modules/.bin/tsx'
 [[ -f "$CUTOVER_TOOL" ]] || fail "缺少生产切换工具: $CUTOVER_TOOL"
+[[ -f "$OPERATOR_BUNDLE_HELPER" ]] || fail "缺少 operator bundle 构建器: $OPERATOR_BUNDLE_HELPER"
 [[ -f "$LOCAL_APP_DEPLOY_SCRIPT" ]] || fail "缺少本轮部署脚本: $LOCAL_APP_DEPLOY_SCRIPT"
 [[ -d "$AUTHORITY_ROOT" ]] || fail "缺少 Authority 工件目录: $AUTHORITY_ROOT"
 [[ -s "$LOCAL_IMAGE_TAR" ]] || fail "缺少冻结镜像包: $LOCAL_IMAGE_TAR"
@@ -179,6 +181,17 @@ if ! git diff --quiet "$RELEASE_TAG" -- "${source_paths[@]}"; then
 fi
 if [[ -n "$(git status --porcelain --untracked-files=all -- "${source_paths[@]}")" ]]; then
   fail '图谱切换输入存在未提交或未跟踪内容，拒绝生成混合 transaction plan'
+fi
+bundle_source_paths=(
+  'src'
+  'scripts/knowledge-cutover/production-cutover.ts'
+  'tsconfig.json'
+)
+if ! git diff --quiet HEAD -- "${bundle_source_paths[@]}"; then
+  fail 'operator bundle 输入存在未提交修改，拒绝封存混合 source bundle'
+fi
+if [[ -n "$(git status --porcelain --untracked-files=all -- "${bundle_source_paths[@]}")" ]]; then
+  fail 'operator bundle 输入存在未提交或未跟踪内容，拒绝封存混合 source bundle'
 fi
 
 log '[preflight] 校验冻结镜像与 runtime provenance'
@@ -210,7 +223,30 @@ ssh -o BatchMode=yes "$SSH_TARGET" \
 work_dir="$(mktemp -d "${TMPDIR:-/tmp}/act-production-cutover.XXXXXX")"
 plan_path="${work_dir}/plan.json"
 authority_archive="${work_dir}/authority.tar.gz"
+operator_bundle_root="${work_dir}/operator-bundle"
+operator_bundle_manifest="${work_dir}/operator-bundle.manifest.json"
+operator_bundle_archive="${work_dir}/operator-bundle.tar.gz"
 trap 'rm -rf -- "$work_dir"' EXIT
+
+capture_revision="$(node -e '
+const fs = require("node:fs");
+const path = require("node:path");
+const root = process.argv[1];
+const pointer = JSON.parse(fs.readFileSync(path.join(root, "course-content/runtime/knowledge/consumer-activation/current.json"), "utf8"));
+const activation = JSON.parse(fs.readFileSync(path.join(root, "course-content/runtime/knowledge/consumer-activation/releases", pointer.activationId, "activation.json"), "utf8"));
+const revisions = new Set((activation.consumers ?? []).filter((row) => row.status === "READY").map((row) => row.combination?.captureRevision).filter((value) => typeof value === "string"));
+if (revisions.size !== 1) throw new Error("ready consumers do not share one capture revision");
+process.stdout.write([...revisions][0]);
+' "$ROOT_DIR")"
+[[ "$capture_revision" =~ ^[a-f0-9]{40}$ ]] || fail '无法解析 operator bundle capture revision'
+
+log '[bundle] 构建 full-src operator bundle 与逐文件 manifest'
+node "$OPERATOR_BUNDLE_HELPER" \
+  --repo-root "$ROOT_DIR" \
+  --output "$operator_bundle_root" \
+  --manifest "$operator_bundle_manifest" \
+  --capture-revision "$capture_revision"
+COPYFILE_DISABLE=1 tar -czf "$operator_bundle_archive" -C "$operator_bundle_root" .
 
 log '[plan] 生成 hash-sealed production transaction plan'
 "${ROOT_DIR}/node_modules/.bin/tsx" "$CUTOVER_TOOL" plan \
@@ -223,7 +259,9 @@ log '[plan] 生成 hash-sealed production transaction plan'
   --image-config-digest "$image_config_digest" \
   --image-tar-sha256 "$image_tar_sha256" \
   --deployment-script "$LOCAL_APP_DEPLOY_SCRIPT" \
-  --cleanup-engine "$CLEANUP_ENGINE"
+  --cleanup-engine "$CLEANUP_ENGINE" \
+  --operator-bundle-manifest "$operator_bundle_manifest" \
+  --operator-bundle-archive "$operator_bundle_archive"
 
 COPYFILE_DISABLE=1 tar \
   --exclude='./current.json' \
@@ -242,20 +280,22 @@ fi
 remote_stage="${REMOTE_PROJECT_DIR}/data/runtime/knowledge-cutover/staging/${TRANSACTION_ID}"
 safe_remote_value "$remote_stage"
 plan_sha="$(sha256_file "$plan_path")"
-tool_sha="$(sha256_file "$CUTOVER_TOOL")"
+bundle_archive_sha="$(sha256_file "$operator_bundle_archive")"
+bundle_manifest_sha="$(sha256_file "$operator_bundle_manifest")"
 archive_sha="$(sha256_file "$authority_archive")"
 deploy_sha="$(sha256_file "$LOCAL_APP_DEPLOY_SCRIPT")"
 cleanup_engine_sha="$(sha256_file "$CLEANUP_ENGINE")"
 
-log '[stage] 上传 sealed plan、operator tool 与 Authority archive'
+log '[stage] 上传 sealed plan、operator bundle 与 Authority archive'
 ssh -o BatchMode=yes "$SSH_TARGET" "mkdir -p '$remote_stage' && chmod 700 '$remote_stage'"
 scp -q "$plan_path" "$SSH_TARGET:${remote_stage}/plan.json.tmp"
-scp -q "$CUTOVER_TOOL" "$SSH_TARGET:${remote_stage}/production-cutover.ts.tmp"
+scp -q "$operator_bundle_archive" "$SSH_TARGET:${remote_stage}/operator-bundle.tar.gz.tmp"
+scp -q "$operator_bundle_manifest" "$SSH_TARGET:${remote_stage}/operator-bundle.manifest.json.tmp"
 scp -q "$authority_archive" "$SSH_TARGET:${remote_stage}/authority.tar.gz.tmp"
 scp -q "$LOCAL_APP_DEPLOY_SCRIPT" "$SSH_TARGET:${remote_stage}/4-deploy.sh.tmp"
 scp -q "$CLEANUP_ENGINE" "$SSH_TARGET:${remote_stage}/cleanup-failed-authority-identity.cjs.tmp"
 ssh -o BatchMode=yes "$SSH_TARGET" \
-  "bash -s -- stage '$remote_stage' '$plan_sha' '$tool_sha' '$archive_sha' '$deploy_sha' '$cleanup_engine_sha'" \
+  "bash -s -- stage '$remote_stage' '$plan_sha' '$bundle_archive_sha' '$bundle_manifest_sha' '$archive_sha' '$deploy_sha' '$cleanup_engine_sha'" \
   < "$REMOTE_OPERATOR_SCRIPT"
 
 log '[activate] 在远端固定镜像中执行 first-activation；失败将自动恢复 Legacy 服务'

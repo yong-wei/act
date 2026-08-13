@@ -93,16 +93,17 @@ run_preflight() {
 }
 
 run_stage() {
-  [ "$#" -eq 6 ] || die 'stage requires stage plan_sha tool_sha archive_sha deploy_sha cleanup_engine_sha'
+  [ "$#" -eq 7 ] || die 'stage requires stage plan_sha bundle_archive_sha bundle_manifest_sha archive_sha deploy_sha cleanup_engine_sha'
   local stage="$1"
   local plan_sha="$2"
-  local tool_sha="$3"
-  local archive_sha="$4"
-  local deploy_sha="$5"
-  local cleanup_engine_sha="$6"
+  local bundle_archive_sha="$3"
+  local bundle_manifest_sha="$4"
+  local archive_sha="$5"
+  local deploy_sha="$6"
+  local cleanup_engine_sha="$7"
   local pair file expected
 
-  for pair in "plan.json.tmp:$plan_sha" "production-cutover.ts.tmp:$tool_sha" "authority.tar.gz.tmp:$archive_sha" "4-deploy.sh.tmp:$deploy_sha" "cleanup-failed-authority-identity.cjs.tmp:$cleanup_engine_sha"; do
+  for pair in "plan.json.tmp:$plan_sha" "operator-bundle.tar.gz.tmp:$bundle_archive_sha" "operator-bundle.manifest.json.tmp:$bundle_manifest_sha" "authority.tar.gz.tmp:$archive_sha" "4-deploy.sh.tmp:$deploy_sha" "cleanup-failed-authority-identity.cjs.tmp:$cleanup_engine_sha"; do
     file="${pair%%:*}"
     expected="${pair#*:}"
     [ "$(hash_file "${stage}/${file}")" = "$expected" ] || {
@@ -115,16 +116,19 @@ const fs = require("node:fs");
 const plan = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
 if (plan.source?.deploymentScriptSha256 !== process.argv[2]) process.exit(1);
 if (plan.source?.cleanupEngineSha256 !== process.argv[3]) process.exit(1);
-' "${stage}/plan.json.tmp" "$deploy_sha" "$cleanup_engine_sha" || {
-    echo 'ERROR: sealed plan deployment script or cleanup engine hash mismatch' >&2
+if (plan.operatorBundle?.archiveSha256 !== process.argv[4]) process.exit(1);
+if (plan.operatorBundle?.manifestSha256 !== process.argv[5]) process.exit(1);
+' "${stage}/plan.json.tmp" "$deploy_sha" "$cleanup_engine_sha" "$bundle_archive_sha" "$bundle_manifest_sha" || {
+    echo 'ERROR: sealed plan deployment, cleanup engine, or operator bundle hash mismatch' >&2
     exit 1
   }
   mv "${stage}/plan.json.tmp" "${stage}/plan.json"
-  mv "${stage}/production-cutover.ts.tmp" "${stage}/production-cutover.ts"
+  mv "${stage}/operator-bundle.tar.gz.tmp" "${stage}/operator-bundle.tar.gz"
+  mv "${stage}/operator-bundle.manifest.json.tmp" "${stage}/operator-bundle.manifest.json"
   mv "${stage}/authority.tar.gz.tmp" "${stage}/authority.tar.gz"
   mv "${stage}/4-deploy.sh.tmp" "${stage}/4-deploy.sh"
   mv "${stage}/cleanup-failed-authority-identity.cjs.tmp" "${stage}/cleanup-failed-authority-identity.cjs"
-  chmod 600 "${stage}/plan.json" "${stage}/production-cutover.ts" "${stage}/authority.tar.gz" "${stage}/4-deploy.sh" "${stage}/cleanup-failed-authority-identity.cjs"
+  chmod 600 "${stage}/plan.json" "${stage}/operator-bundle.tar.gz" "${stage}/operator-bundle.manifest.json" "${stage}/authority.tar.gz" "${stage}/4-deploy.sh" "${stage}/cleanup-failed-authority-identity.cjs"
 }
 
 run_stage_cleanup_engine() {
@@ -212,6 +216,35 @@ validate_authority_archive_listing() {
     END { exit invalid }
   '; then
     die 'Authority archive 包含 selector、macOS metadata 或不安全路径'
+  fi
+}
+
+validate_operator_bundle_archive() {
+  local archive="$1"
+  [ -f "$archive" ] && [ ! -L "$archive" ] \
+    || die "operator bundle archive must be a regular staged file: $archive"
+  if ! COPYFILE_DISABLE=1 tar -tzf "$archive" | awk '
+    {
+      path = $0
+      sub(/^\.\//, "", path)
+      sub(/\/+$/, "", path)
+      if (path == "") next
+      if (path ~ /^\// || path ~ /(^|\/)\.\.?($|\/)/ || path ~ /(^|\/)\._/ || path ~ /(^|\/)\.DS_Store$/) invalid = 1
+    }
+    END { exit invalid }
+  '; then
+    die 'operator bundle archive contains an unsafe path'
+  fi
+  # The verbose listing is the archive type check. Only directories and
+  # regular files may enter the isolated bundle root; symlink/device/fifo/
+  # hard-link members are rejected before extraction.
+  if ! COPYFILE_DISABLE=1 tar -tvzf "$archive" | awk '
+    NF == 0 { next }
+    $1 ~ /^d/ || $1 ~ /^-/ { next }
+    { invalid = 1 }
+    END { exit invalid }
+  '; then
+    die 'operator bundle archive contains a symlink or non-regular entry'
   fi
 }
 
@@ -323,6 +356,9 @@ run_activate() {
   local marker="${runtime_root}/knowledge/production-cutover-transactions/current.json"
   local journal="${runtime_root}/knowledge/consumer-activation/first-activation-transactions/${transaction_id}.json"
   local command_log="${stage}/command.log"
+  local operator_bundle_archive="${stage}/operator-bundle.tar.gz"
+  local operator_bundle_manifest="${stage}/operator-bundle.manifest.json"
+  local operator_bundle_root="${stage}/operator-bundle"
   local pointer_paths=(
     "${authority_root}/current.json"
     "${runtime_root}/knowledge/projection/current.json"
@@ -368,13 +404,47 @@ run_activate() {
       -e ACT_AUTHORITY_STORE_ROOT='/activation-root/course-content/authoring/knowledge/authority' \
       -e ACT_CONSUMER_ACTIVATION_ROOT='/activation-root/course-content/runtime/knowledge/consumer-activation' \
       -v "${course_content}:/activation-root/course-content:${access},Z" \
-      -v "${stage}/production-cutover.ts:/app/scripts/knowledge-cutover/production-cutover.ts:ro,Z" \
+      -v "${operator_bundle_root}:/operator-bundle:ro,Z" \
+      -v "${operator_bundle_manifest}:/operator-bundle-manifest.json:ro,Z" \
       -v "${stage}/plan.json:/activation-plan.json:ro,Z" \
-      --entrypoint ./node_modules/.bin/tsx \
+      --workdir /operator-bundle \
+      --entrypoint /app/node_modules/.bin/tsx \
       "$image_tag" \
-      scripts/knowledge-cutover/production-cutover.ts "$driver_action" \
+      --tsconfig /operator-bundle/tsconfig.json \
+      /operator-bundle/scripts/knowledge-cutover/production-cutover.ts "$driver_action" \
       --root /activation-root \
-      --plan /activation-plan.json
+      --plan /activation-plan.json \
+      --bundle-root /operator-bundle \
+      --bundle-manifest /operator-bundle-manifest.json
+  }
+
+  prepare_operator_bundle() {
+    [ -f "$operator_bundle_archive" ] && [ ! -L "$operator_bundle_archive" ] \
+      || die 'operator bundle archive must be a regular staged file'
+    [ -f "$operator_bundle_manifest" ] && [ ! -L "$operator_bundle_manifest" ] \
+      || die 'operator bundle manifest must be a regular staged file'
+    local expected_archive_sha expected_manifest_sha
+    expected_archive_sha="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).operatorBundle?.archiveSha256 ?? "")' "${stage}/plan.json")"
+    expected_manifest_sha="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).operatorBundle?.manifestSha256 ?? "")' "${stage}/plan.json")"
+    [[ "$expected_archive_sha" =~ ^[a-f0-9]{64}$ ]] || die 'sealed plan operator bundle archive hash is invalid'
+    [[ "$expected_manifest_sha" =~ ^[a-f0-9]{64}$ ]] || die 'sealed plan operator bundle manifest hash is invalid'
+    [ "$(hash_file "$operator_bundle_archive")" = "$expected_archive_sha" ] \
+      || die 'operator bundle archive hash mismatch with sealed plan'
+    [ "$(hash_file "$operator_bundle_manifest")" = "$expected_manifest_sha" ] \
+      || die 'operator bundle manifest hash mismatch with sealed plan'
+    validate_operator_bundle_archive "$operator_bundle_archive"
+    if [ -e "$operator_bundle_root" ] || [ -L "$operator_bundle_root" ]; then
+      die 'operator bundle extraction root already exists'
+    fi
+    mkdir -p "$operator_bundle_root"
+    COPYFILE_DISABLE=1 tar --no-same-owner -xzf "$operator_bundle_archive" -C "$operator_bundle_root"
+    if find "$operator_bundle_root" \( -type l -o \( ! -type f -a ! -type d \) \) -print -quit | grep -q .; then
+      die 'operator bundle extraction contains a symlink or non-regular entry'
+    fi
+    # This executes the actual bundle verifier inside the fixed image before
+    # the first stop attempt. It validates every manifest file digest, the
+    # capture revision and the sealed production tool identity.
+    run_driver verify-bundle ro
   }
 
   # Intent flag: set immediately before the first stop attempt. Partial stop
@@ -429,7 +499,7 @@ run_activate() {
   [ "$(podman image inspect "$image_tag" --format '{{ index .Labels "org.opencontainers.image.revision" }}')" = "$image_revision" ] \
     || die '固定镜像 revision 在 transaction 前不一致'
   podman run --rm --network none --entrypoint /bin/sh "$image_tag" -lc \
-    'test -x ./node_modules/.bin/tsx && test -d ./src/lib/knowledge-cutover'
+    'test -x ./node_modules/.bin/tsx'
 
   local expected_deploy_sha
   expected_deploy_sha="$(node -e 'const fs=require("node:fs"); process.stdout.write(JSON.parse(fs.readFileSync(process.argv[1], "utf8")).source.deploymentScriptSha256)' "${stage}/plan.json")"
@@ -442,6 +512,7 @@ run_activate() {
 
   # Content/security/metadata validation must fail closed before any consumer stop.
   validate_authority_archive_listing "${stage}/authority.tar.gz"
+  prepare_operator_bundle
 
   # Mutation window lock: shared with failed-authority cleanup, independent of the
   # TypeScript first-activation lock under consumer-activation/.

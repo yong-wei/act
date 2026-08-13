@@ -26,7 +26,7 @@ export async function GET(
   try {
     const authorization = await authorizeActiveGraph();
     if (!authorization.ok) return authorization.response;
-    return activeShardResponse(() => readActiveDetailShard(id));
+    return activeShardResponse(() => readActiveDetailShard(id), authorization.role);
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Active Authority detail shard request failed:', error);

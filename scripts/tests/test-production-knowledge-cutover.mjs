@@ -12,8 +12,11 @@ const revision = '58f70df257f493f7dc13b2dabfb0383b972ee017';
 const imageTag = 'localhost/act-obe-platform:v0.4.0-58f70df';
 const imageTar = process.env.ACT_TEST_PRODUCTION_IMAGE_TAR
   ?? path.join(root, 'deploy', 'images', 'act-obe-v0.4.0-58f70df.tar');
+const containerRuntime = process.env.ACT_TEST_CONTAINER_RUNTIME ?? null;
+const containerImage = process.env.ACT_TEST_CONTAINER_IMAGE ?? imageTag;
 const remoteActivator = path.join(root, 'scripts', 'remote-activate-knowledge-cutover.sh');
 const remoteOperator = path.join(root, 'scripts', 'knowledge-cutover', 'remote-production-cutover.sh');
+const operatorBundleHelper = path.join(root, 'scripts', 'knowledge-cutover', 'create-operator-bundle.mjs');
 const cleanupEngine = path.join(root, 'scripts', 'knowledge-cutover', 'cleanup-failed-authority-identity.cjs');
 const AUTHORITY_PREFIX = 'course-content/authoring/knowledge/authority/';
 const SHARD_PREFIX = 'course-content/runtime/knowledge/authority-domain-shards/';
@@ -72,6 +75,32 @@ function run(args, env = {}) {
   });
 }
 
+function runBundledContainer(action, fixtureRoot, planPath, bundleRoot, bundleManifest) {
+  assert.ok(containerRuntime, 'container runtime must be configured for bundled driver verification');
+  return spawnSync(containerRuntime, [
+    'run', '--rm', '--network', 'none', '--user', '0',
+    '-e', `APP_REVISION=${revision}`,
+    '-e', 'ACT_AUTHORITY_STORE_ROOT=/activation-root/course-content/authoring/knowledge/authority',
+    '-e', 'ACT_CONSUMER_ACTIVATION_ROOT=/activation-root/course-content/runtime/knowledge/consumer-activation',
+    '-v', `${fixtureRoot}:/activation-root:rw`,
+    '-v', `${bundleRoot}:/operator-bundle:ro`,
+    '-v', `${bundleManifest}:/operator-bundle-manifest.json:ro`,
+    '-v', `${planPath}:/activation-plan.json:ro`,
+    '--workdir', '/operator-bundle',
+    '--entrypoint', '/app/node_modules/.bin/tsx',
+    containerImage,
+    '--tsconfig', '/operator-bundle/tsconfig.json',
+    '/operator-bundle/scripts/knowledge-cutover/production-cutover.ts', action,
+    '--root', '/activation-root',
+    '--plan', '/activation-plan.json',
+    '--bundle-root', '/operator-bundle',
+    '--bundle-manifest', '/operator-bundle-manifest.json',
+  ], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+}
+
 function copyFile(relativePath, fixtureRoot) {
   const target = path.join(fixtureRoot, relativePath);
   fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -104,6 +133,17 @@ function createFixture(plan, name, options = {}) {
       options.shardSetSource,
       path.join(fixtureRoot, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}`),
       { recursive: true },
+    );
+  }
+  if (options.operatorBundleSource) {
+    fs.cpSync(
+      options.operatorBundleSource,
+      path.join(fixtureRoot, 'operator-bundle'),
+      { recursive: true },
+    );
+    fs.copyFileSync(
+      options.operatorBundleManifest,
+      path.join(fixtureRoot, 'operator-bundle.manifest.json'),
     );
   }
   return fixtureRoot;
@@ -1125,6 +1165,117 @@ function testArchiveValidationOrder() {
   testConsumerStopRecoveryIntent();
 }
 
+function testOperatorBundleArchiveValidation() {
+  const source = fs.readFileSync(remoteOperator, 'utf8');
+  const validateStart = source.indexOf('validate_operator_bundle_archive()');
+  const validateEnd = source.indexOf('\n# Exact recursive identity', validateStart);
+  const prepareStart = source.indexOf('\n  prepare_operator_bundle()');
+  const prepareEnd = source.indexOf('\n  }\n\n  # Intent flag', prepareStart);
+  assert.ok(validateStart >= 0 && validateEnd > validateStart);
+  assert.ok(prepareStart >= 0 && prepareEnd > prepareStart);
+  const validateFunction = source.slice(validateStart, validateEnd).trim();
+  const prepareFunction = source
+    .slice(prepareStart + 1, prepareEnd + 4)
+    .replace(/^  /gmu, '')
+    .trim();
+  const harnessDir = fs.mkdtempSync(path.join(os.tmpdir(), 'operator-bundle-archive-harness-'));
+  try {
+    const harness = path.join(harnessDir, 'prepare.sh');
+    fs.writeFileSync(
+      harness,
+      `#!/usr/bin/env bash
+set -euo pipefail
+die() { printf 'ERROR: %s\\n' "$*" >&2; exit 1; }
+hash_file() { sha256sum "$1" | awk '{print $1}'; }
+stage="$1"
+operator_bundle_archive="\${stage}/operator-bundle.tar.gz"
+operator_bundle_manifest="\${stage}/operator-bundle.manifest.json"
+operator_bundle_root="\${stage}/operator-bundle"
+run_driver() { printf 'PRE_STOP_BUNDLE_VERIFIED action=%s access=%s\\n' "$1" "$2"; }
+${validateFunction}
+${prepareFunction}
+prepare_operator_bundle
+printf 'PRE_STOP_VALIDATION_COMPLETE\\n'
+`,
+    );
+    fs.chmodSync(harness, 0o755);
+
+    const makeArchive = (archivePath, entries) => {
+      const encodedEntries = Object.fromEntries(
+        entries.map((entry) => [entry.name, {
+          type: entry.type ?? 'file',
+          linkname: entry.linkname ?? '',
+          data: Buffer.from(entry.data ?? '').toString('base64'),
+        }]),
+      );
+      execFileSync('python3', [
+        '-c',
+        `import base64, io, json, tarfile, sys
+entries = json.loads(sys.argv[1])
+with tarfile.open(sys.argv[2], 'w:gz') as archive:
+    for name, entry in entries.items():
+        info = tarfile.TarInfo(name=name)
+        if entry['type'] == 'dir':
+            info.type = tarfile.DIRTYPE
+            info.mode = 0o755
+            archive.addfile(info)
+        elif entry['type'] == 'symlink':
+            info.type = tarfile.SYMTYPE
+            info.linkname = entry['linkname']
+            archive.addfile(info)
+        else:
+            raw = base64.b64decode(entry['data'].encode('ascii'))
+            info.size = len(raw)
+            archive.addfile(info, io.BytesIO(raw))
+`,
+        JSON.stringify(encodedEntries),
+        archivePath,
+      ], { cwd: root, encoding: 'utf8' });
+    };
+    const prepare = (name, entries) => {
+      const stage = path.join(harnessDir, name);
+      fs.mkdirSync(stage, { recursive: true });
+      const archive = path.join(stage, 'operator-bundle.tar.gz');
+      const manifest = path.join(stage, 'operator-bundle.manifest.json');
+      makeArchive(archive, entries);
+      fs.writeFileSync(manifest, '{"contract":"fixture"}\n');
+      fs.writeFileSync(
+        path.join(stage, 'plan.json'),
+        JSON.stringify({ operatorBundle: {
+          archiveSha256: sha256File(archive),
+          manifestSha256: sha256File(manifest),
+        } }),
+      );
+      return stage;
+    };
+
+    const validStage = prepare('valid', [
+      { name: './', type: 'dir' },
+      { name: './src/', type: 'dir' },
+      { name: './src/driver.ts', data: 'export {}\n' },
+    ]);
+    const valid = spawnSync('bash', [harness, validStage], { cwd: root, encoding: 'utf8' });
+    assert.equal(valid.status, 0, `${valid.stdout}\n${valid.stderr}`);
+    assert.match(valid.stdout, /PRE_STOP_BUNDLE_VERIFIED/u);
+    assert.match(valid.stdout, /PRE_STOP_VALIDATION_COMPLETE/u);
+    assert.equal(fs.readFileSync(path.join(validStage, 'operator-bundle/src/driver.ts'), 'utf8'), 'export {}\n');
+
+    for (const [name, entries, expected] of [
+      ['parent-path', [{ name: './' }, { name: '../escape.txt', data: 'escape' }], /unsafe path/u],
+      ['apple-double', [{ name: './' }, { name: './src/._metadata', data: 'metadata' }], /unsafe path/u],
+      ['ds-store', [{ name: './' }, { name: './src/.DS_Store', data: 'metadata' }], /unsafe path/u],
+      ['symlink', [{ name: './' }, { name: './src/', type: 'dir' }, { name: './src/link', type: 'symlink', linkname: '../escape' }], /symlink or non-regular/u],
+    ]) {
+      const stage = prepare(name, entries);
+      const result = spawnSync('bash', [harness, stage], { cwd: root, encoding: 'utf8' });
+      expectFailure(result, expected, `${name} operator bundle archive must fail before extraction`);
+      assert.equal(fs.existsSync(path.join(stage, 'operator-bundle')), false);
+    }
+  } finally {
+    fs.rmSync(harnessDir, { recursive: true, force: true });
+  }
+}
+
 function testConsumerStopRecoveryIntent() {
   const harnessDir = fs.mkdtempSync(path.join(os.tmpdir(), 'consumer-stop-intent-'));
   try {
@@ -1307,6 +1458,41 @@ function main() {
     /knowledge\/authority-domain-shards\/current\.json/u,
     'remote operator all-ABSENT checks must include the Authority domain shard pointer',
   );
+  assert.match(
+    remoteActivatorSource,
+    /create-operator-bundle\.mjs/u,
+    'remote activation must build the dedicated operator bundle',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /operator-bundle\.tar\.gz[\s\S]*operator-bundle\.manifest\.json/u,
+    'remote staging must carry the bundle archive and manifest',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /operator_bundle_root[\s\S]*run_driver verify-bundle ro/u,
+    'remote activation must verify the extracted bundle before stopping consumers',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /validate_operator_bundle_archive\(\)[\s\S]*tar -tvzf[\s\S]*operator_bundle_archive/u,
+    'remote activation must inspect archive entry types before extraction',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /validate_operator_bundle_archive "\$operator_bundle_archive"[\s\S]*tar --no-same-owner -xzf/u,
+    'remote activation must validate, extract, then run the bundle verifier before stop intent',
+  );
+  assert.doesNotMatch(
+    remoteOperatorSource,
+    /production-cutover\.ts:\/app\/scripts\/knowledge-cutover\/production-cutover\.ts/u,
+    'remote driver must not mount a host tool into the fixed image source path',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /--workdir \/operator-bundle[\s\S]*--tsconfig \/operator-bundle\/tsconfig\.json/u,
+    'remote driver must run with the bundle tsconfig in the isolated root',
+  );
   assert.doesNotMatch(
     remoteOperatorSource,
     /printf 'APP_IMAGE=%s\\nACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover\\n'/u,
@@ -1362,6 +1548,7 @@ function main() {
     assert.equal(syntax.status, 0, syntax.stderr);
   }
   testArchiveValidationOrder();
+  testOperatorBundleArchiveValidation();
   testCleanupFailedAuthorityGuards();
   const ociDigestHelper = remoteActivatorSource.slice(
     remoteActivatorSource.indexOf('oci_image_config_digest()'),
@@ -1385,6 +1572,22 @@ function main() {
   try {
     const sourceShardRuntimeBefore = fileTreeFingerprint(path.join(root, SHARD_PREFIX));
     const planPath = path.join(workRoot, 'plan.json');
+    const operatorBundleRoot = path.join(workRoot, 'operator-bundle');
+    const operatorBundleManifest = path.join(workRoot, 'operator-bundle.manifest.json');
+    const operatorBundleArchive = path.join(workRoot, 'operator-bundle.tar.gz');
+    const captureRevision = '1a56317aa44e46322be0b0d1ac73948c03c5c2c0';
+    execFileSync('node', [
+      operatorBundleHelper,
+      '--repo-root',
+      root,
+      '--output',
+      operatorBundleRoot,
+      '--manifest',
+      operatorBundleManifest,
+      '--capture-revision',
+      captureRevision,
+    ], { cwd: root, encoding: 'utf8' });
+    execFileSync('tar', ['-czf', operatorBundleArchive, '-C', operatorBundleRoot, '.'], { cwd: root });
     const transactionId = 'test-production-cutover';
     const planResult = run([
       'plan',
@@ -1408,6 +1611,10 @@ function main() {
       path.join(root, 'deploy', 'podman', 'deploy.sh'),
       '--cleanup-engine',
       cleanupEngine,
+      '--operator-bundle-manifest',
+      operatorBundleManifest,
+      '--operator-bundle-archive',
+      operatorBundleArchive,
     ]);
     assert.equal(planResult.status, 0, planResult.stderr);
     const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
@@ -1435,6 +1642,131 @@ function main() {
       sha256File(cleanupEngine),
       'plan must bind the standalone failed Authority cleanup engine',
     );
+    assert.equal(plan.operatorBundle.captureRevision, captureRevision, 'plan must bind the operator bundle capture revision');
+    assert.ok(plan.operatorBundle.bundleSha256, 'plan must bind the operator bundle logical digest');
+    assert.ok(plan.operatorBundle.manifestSha256, 'plan must bind the operator bundle manifest digest');
+    assert.ok(plan.operatorBundle.archiveSha256, 'plan must bind the operator bundle archive digest');
+    assert.ok(
+      plan.operatorBundle.files.some((file) => file.path === 'scripts/knowledge-cutover/production-cutover.ts'),
+      'operator bundle manifest must include the production driver',
+    );
+
+    const operatorBundleFixture = createFixture(plan, 'operator-bundle', {
+      operatorBundleSource: operatorBundleRoot,
+      operatorBundleManifest,
+    });
+    try {
+      const verifiedBundle = run([
+        'verify-bundle',
+        '--root',
+        operatorBundleFixture,
+        '--plan',
+        planPath,
+        '--bundle-root',
+        path.join(operatorBundleFixture, 'operator-bundle'),
+        '--bundle-manifest',
+        path.join(operatorBundleFixture, 'operator-bundle.manifest.json'),
+      ]);
+      assert.equal(verifiedBundle.status, 0, verifiedBundle.stderr);
+
+      const missingBundle = createFixture(plan, 'operator-bundle-missing', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        const missingPath = path.join(missingBundle, 'operator-bundle', plan.operatorBundle.files[0].path);
+        fs.rmSync(missingPath);
+        const result = run([
+          'verify-bundle', '--root', missingBundle, '--plan', planPath,
+          '--bundle-root', path.join(missingBundle, 'operator-bundle'),
+          '--bundle-manifest', path.join(missingBundle, 'operator-bundle.manifest.json'),
+        ]);
+        expectFailure(result, /operator bundle file set differs from manifest/u, 'missing operator bundle file must fail closed');
+      } finally {
+        fs.rmSync(missingBundle, { recursive: true, force: true });
+      }
+
+      const extraBundle = createFixture(plan, 'operator-bundle-extra', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        fs.writeFileSync(path.join(extraBundle, 'operator-bundle', 'unexpected.txt'), 'unexpected\n');
+        const result = run([
+          'verify-bundle', '--root', extraBundle, '--plan', planPath,
+          '--bundle-root', path.join(extraBundle, 'operator-bundle'),
+          '--bundle-manifest', path.join(extraBundle, 'operator-bundle.manifest.json'),
+        ]);
+        expectFailure(result, /operator bundle file set differs from manifest/u, 'extra operator bundle file must fail closed');
+      } finally {
+        fs.rmSync(extraBundle, { recursive: true, force: true });
+      }
+
+      const tamperedBundle = createFixture(plan, 'operator-bundle-tampered', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        const tamperedFile = path.join(tamperedBundle, 'operator-bundle', 'tsconfig.json');
+        fs.appendFileSync(tamperedFile, '\n');
+        const result = run([
+          'verify-bundle', '--root', tamperedBundle, '--plan', planPath,
+          '--bundle-root', path.join(tamperedBundle, 'operator-bundle'),
+          '--bundle-manifest', path.join(tamperedBundle, 'operator-bundle.manifest.json'),
+        ]);
+        expectFailure(result, /operator bundle file digest mismatch/u, 'tampered operator bundle file must fail closed');
+      } finally {
+        fs.rmSync(tamperedBundle, { recursive: true, force: true });
+      }
+    } finally {
+      fs.rmSync(operatorBundleFixture, { recursive: true, force: true });
+    }
+
+    if (containerRuntime) {
+      const imageAvailable = spawnSync(
+        containerRuntime,
+        ['image', 'inspect', containerImage],
+        { cwd: root, encoding: 'utf8' },
+      );
+      assert.equal(imageAvailable.status, 0, imageAvailable.stderr);
+      const containerFixture = createFixture(plan, 'operator-bundle-container', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        for (const action of ['activate', 'verify', 'rollback']) {
+          const result = runBundledContainer(
+            action,
+            containerFixture,
+            planPath,
+            operatorBundleRoot,
+            operatorBundleManifest,
+          );
+          assert.equal(result.status, 0, `${action} in fixed image failed: ${result.stderr}`);
+        }
+      } finally {
+        fs.rmSync(containerFixture, { recursive: true, force: true });
+      }
+
+      const recoveryFixture = createFixture(plan, 'operator-bundle-container-recover', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        writePreparedReceipt(recoveryFixture, plan);
+        writePreparedJournal(recoveryFixture, plan);
+        const recovered = runBundledContainer(
+          'recover',
+          recoveryFixture,
+          planPath,
+          operatorBundleRoot,
+          operatorBundleManifest,
+        );
+        assert.equal(recovered.status, 0, `recover in fixed image failed: ${recovered.stderr}`);
+      } finally {
+        fs.rmSync(recoveryFixture, { recursive: true, force: true });
+      }
+    }
 
     const shardSeedFixture = createFixture(plan, 'shard-seed');
     try {
