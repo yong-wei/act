@@ -1001,7 +1001,7 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
   if (
     rootDomainCount !== 8
     || await aggregateEntry.count() !== 1
-    || await page.locator('[data-active-authority-graph="true"]').count() !== 0
+    || await page.locator('[data-active-graph-stage="authority"]').count() !== 0
   ) {
     throw new Error(`active Authority root layering contract failed in ${context}`);
   }
