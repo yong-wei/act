@@ -22,7 +22,3 @@ export function resolveInitialTheme(
 
   return defaultTheme;
 }
-
-export function buildThemeInitScript(defaultTheme: ThemeMode = DEFAULT_THEME): string {
-  return `(function(){try{var key='${THEME_STORAGE_KEY}';var root=document.documentElement;var stored=localStorage.getItem(key);var prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;var fallback=prefersDark?'dark':'light';var theme=stored==='light'||stored==='dark'?stored:(fallback||'${defaultTheme}');root.classList.remove('light','dark');root.classList.add(theme);root.style.colorScheme=theme;}catch(_e){document.documentElement.classList.remove('light','dark');document.documentElement.classList.add('${defaultTheme}');document.documentElement.style.colorScheme='${defaultTheme}';}})();`;
-}

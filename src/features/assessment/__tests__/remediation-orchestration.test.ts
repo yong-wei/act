@@ -531,9 +531,36 @@ describe('remediation orchestration', () => {
     expect(mocks.remediationOrchestrationResult.upsert.mock.calls[0][0].create).toEqual(expect.objectContaining({
       status: 'UNAVAILABLE',
       unavailableReason: 'ATTRIBUTION_UNCERTAIN',
-      manualPracticePath: '/student/practice',
+      manualPracticePath: '/assessment/adaptive-practice',
     }));
     expect(mocks.remediationOrchestrationResult.upsert.mock.calls[0][0].create).not.toHaveProperty('taskSnapshot');
+  });
+
+  it('normalizes persisted retired manual practice paths to the live practice route', async () => {
+    const { db, mocks } = createDb();
+    mocks.wrongAnswerAttribution.findFirst.mockResolvedValue({
+      id: 'attribution-1',
+      userId: 'learner-1',
+      questionId: 'question-original',
+      state: 'UNCERTAIN',
+      knowledgeNodeIds: ['node-1'],
+      misconceptionTags: ['misconception-1'],
+    });
+    await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
+    const row = await mocks.remediationOrchestrationResult.upsert.mock.results[0].value;
+    row.manualPracticePath = '/student/practice';
+    mocks.remediationOrchestrationResult.findFirst.mockResolvedValue(row);
+
+    const result = await readRemediationOrchestration({
+      db,
+      authenticatedUserId: 'learner-1',
+      resultId: row.id,
+    });
+
+    expect(result).toMatchObject({
+      status: 'UNAVAILABLE',
+      manualPracticePath: '/assessment/adaptive-practice',
+    });
   });
 
   it.each([

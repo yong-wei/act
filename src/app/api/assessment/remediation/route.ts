@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         status: 'UNAVAILABLE',
         unavailableReason: 'ATTRIBUTION_UNAVAILABLE',
-        manualPracticePath: '/student/practice',
+        manualPracticePath: '/assessment/adaptive-practice',
       }, { status: 409 });
     }
 

@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('../remediation-orchestration', () => ({
+  REMEDIATION_MANUAL_PRACTICE_PATH: '/assessment/adaptive-practice',
   readAvailableRemediationInterventionSource: mocks.readAvailableRemediationInterventionSource,
 }));
 vi.mock('../adaptive-engine', () => ({ getAdaptiveQuestionById: mocks.getAdaptiveQuestionById }));
@@ -230,6 +231,42 @@ describe('micro intervention outcomes', () => {
       authenticatedUserId: 'learner-1',
       interventionId: started.id,
     })).resolves.toMatchObject({ id: started.id, status: 'STARTED' });
+  });
+
+  it('normalizes a persisted retired practice path in an adjustment recommendation', async () => {
+    const { db, validations } = createDb();
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+    validations.push({
+      id: 'validation-1',
+      interventionId: started.id,
+      eventKey: 'validation-1',
+      selectedOptionKey: 'A',
+      isCorrect: false,
+      durationSeconds: 45,
+      questionId: 'validation-question',
+      questionContentHash: 'a'.repeat(64),
+      questionVersion: 'validation.v1',
+      recommendationSnapshot: {
+        kind: 'ADJUST_TUTORING_STRATEGY',
+        basisSummary: 'test',
+        manualPracticePath: '/student/practice',
+      },
+      submittedAt: new Date(),
+      createdAt: new Date(),
+    });
+
+    await expect(readMicroIntervention({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+    })).resolves.toMatchObject({
+      status: 'VALIDATED',
+      recommendation: {
+        kind: 'ADJUST_TUTORING_STRATEGY',
+        manualPracticePath: '/assessment/adaptive-practice',
+      },
+    });
   });
 
   it('preserves the first event payload for an idempotency key', async () => {
@@ -583,7 +620,7 @@ describe('micro intervention outcomes', () => {
       questionId: 'validation-question',
       questionContentHash: 'a'.repeat(64),
       questionVersion: 'validation.v1',
-      recommendationSnapshot: { kind: 'ADJUST_TUTORING_STRATEGY', basisSummary: 'test', manualPracticePath: '/student/practice' },
+      recommendationSnapshot: { kind: 'ADJUST_TUTORING_STRATEGY', basisSummary: 'test', manualPracticePath: '/assessment/adaptive-practice' },
       submittedAt: new Date(),
       createdAt: new Date(),
     });
