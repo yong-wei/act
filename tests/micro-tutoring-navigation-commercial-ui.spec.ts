@@ -5,7 +5,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { expect, test, type BrowserContext, type Page } from '@playwright/test';
+import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
 
 const evidenceRoot = 'artifacts/commercial-ui/issue-1366-micro-tutoring-navigation';
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
@@ -36,6 +36,11 @@ const sourceFiles = [
 
 type Theme = typeof themes[number];
 type SourceSnapshot = { revision: string; hashes: Record<string, string> };
+type PersistedAnswerFixture = {
+  question: { question: { id: string; options: Array<{ label: string }> } };
+  correct: { correctOption: string; durableAnswerId: string; adaptiveAssessmentRef: Record<string, string> };
+  incorrect: { durableAnswerId: string; adaptiveAssessmentRef: Record<string, string> };
+};
 type CapturedEvidence = {
   file: string;
   route: string;
@@ -152,6 +157,81 @@ async function establishAuthenticatedSession(context: BrowserContext) {
     },
   });
   expect(loginResponse.ok(), `credentials login failed: ${loginResponse.status()}`).toBe(true);
+}
+
+async function createPersistedAnswerFixture(context: BrowserContext): Promise<PersistedAnswerFixture> {
+  const fixtureKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const questionResponse = await context.request.post(`${baseURL}/api/assessment/next-question`, {
+    data: { sessionId: `micro-tutoring-navigation-${fixtureKey}`, goalId: 'control-correction', routeIntent: 'practice' },
+  });
+  expect(questionResponse.ok(), await questionResponse.text()).toBe(true);
+  const question = await questionResponse.json() as PersistedAnswerFixture['question'];
+  const firstOption = question.question.options[0]?.label;
+  expect(firstOption).toBeTruthy();
+
+  const submit = async (sessionId: string, selectedOption: string) => {
+    const response = await context.request.post(`${baseURL}/api/assessment/submit-answer`, {
+      data: { sessionId, questionId: question.question.id, selectedOption, timeSpent: 1, goalId: 'control-correction', routeIntent: 'practice' },
+    });
+    expect(response.ok(), await response.text()).toBe(true);
+    return response.json() as Promise<{ isCorrect: boolean; correctOption: string; durableAnswerId: string }>;
+  };
+
+  const first = await submit(`micro-tutoring-probe-${fixtureKey}`, firstOption!);
+  const incorrectOption = question.question.options.find((option) => option.label !== first.correctOption)?.label;
+  expect(incorrectOption).toBeTruthy();
+  const correct = first.isCorrect ? first : await submit(`micro-tutoring-correct-${fixtureKey}`, first.correctOption);
+  const incorrect = first.isCorrect ? await submit(`micro-tutoring-incorrect-${fixtureKey}`, incorrectOption!) : first;
+  const adaptiveAssessmentRef = {
+    catalogItemId: 'adaptive-assessment-item:fixture:governed-wrong-answer',
+    reviewState: 'reviewed',
+  };
+  return {
+    question,
+    correct: { ...correct, adaptiveAssessmentRef },
+    incorrect: { ...incorrect, adaptiveAssessmentRef },
+  };
+}
+
+async function installAssessmentFixtureRoutes(page: Page, fixture: PersistedAnswerFixture) {
+  await page.route('**/api/assessment/diagnostic', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ knowledgeDimensions: { computational: 68 }, weakAreas: ['controller-tuning'], recommendedFocus: ['继续校正设计练习'] }),
+  }));
+  await page.route('**/api/assessment/next-question', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(fixture.question) }));
+  await page.route('**/api/assessment/submit-answer', async (route) => {
+    const body = await route.request().postDataJSON() as { selectedOption?: string };
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(body.selectedOption === fixture.correct.correctOption ? fixture.correct : fixture.incorrect),
+    });
+  });
+}
+
+async function openIncorrectAnswer(page: Page, fixture: PersistedAnswerFixture): Promise<Locator> {
+  const nextQuestionResponse = page.waitForResponse((response) => (
+    response.url().endsWith('/api/assessment/next-question') && response.ok()
+  ));
+  await page.goto('/assessment/adaptive-practice?goal=control-correction&intent=practice', { waitUntil: 'domcontentloaded' });
+  await nextQuestionResponse;
+  const resourceModule = page.locator('[data-adaptive-practice-resource="path-node"]');
+  await expect(resourceModule).toBeVisible();
+  const moduleHeader = resourceModule.locator('[data-adaptive-path-module-header="responsive"]');
+  await expect(async () => {
+    if (await moduleHeader.getAttribute('aria-expanded') !== 'true') await moduleHeader.click({ noWaitAfter: true });
+    await expect(moduleHeader).toHaveAttribute('aria-expanded', 'true', { timeout: 2_000 });
+  }).toPass({ timeout: 10_000 });
+  const expandQuestion = resourceModule.getByRole('button', { name: '展开练习题' }).first();
+  if (await expandQuestion.isVisible()) await expandQuestion.click({ noWaitAfter: true });
+  await expect(resourceModule.getByRole('radio').first()).toBeVisible();
+  const wrongOption = fixture.question.question.options.find((option) => option.label !== fixture.correct.correctOption)?.label;
+  expect(wrongOption).toBeTruthy();
+  await resourceModule.getByRole('radio', { name: new RegExp(`^${wrongOption}\\.`) }).check();
+  await resourceModule.getByRole('button', { name: '提交答案' }).click();
+  const panel = page.locator('[data-student-micro-tutoring="panel"]');
+  await expect(panel).toBeVisible();
+  await panel.scrollIntoViewIfNeeded();
+  return panel;
 }
 
 async function assertTheme(page: Page, theme: Theme) {
@@ -308,3 +388,34 @@ for (const viewport of viewports) {
     });
   }
 }
+
+test('opens the practice workspace from the micro-tutoring fallback link', async ({ context, page }) => {
+  const consoleErrors: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text());
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await establishAuthenticatedSession(context);
+  const fixture = await createPersistedAnswerFixture(context);
+  await installAssessmentFixtureRoutes(page, fixture);
+  await page.route('**/api/assessment/remediation', (route) => route.fulfill({
+    status: 409,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      status: 'UNAVAILABLE',
+      unavailableReason: 'ATTRIBUTION_UNAVAILABLE',
+      manualPracticePath: '/assessment/adaptive-practice?intent=practice',
+    }),
+  }));
+
+  const panel = await openIncorrectAnswer(page, fixture);
+  await panel.getByRole('button', { name: '开始微辅导' }).click();
+  const fallbackLink = panel.getByRole('link', { name: '进入常规练习' });
+  await expect(fallbackLink).toHaveAttribute('href', '/assessment/adaptive-practice?intent=practice');
+  await Promise.all([
+    page.waitForURL(/\/assessment\/adaptive-practice\?intent=practice$/),
+    fallbackLink.click(),
+  ]);
+  await expect(page.locator('[data-adaptive-practice-resource="path-node"]')).toBeVisible();
+  expect(consoleErrors.filter((message) => /Encountered a script tag while rendering React component/i.test(message))).toEqual([]);
+});

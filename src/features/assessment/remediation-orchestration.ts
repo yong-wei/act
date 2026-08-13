@@ -9,7 +9,7 @@ import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-re
 import { AUTOCONTROL_KAQ_GRAPH_CATALOG } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
 
 export const REMEDIATION_ORCHESTRATOR_VERSION = 'remediation-orchestrator.v1';
-export const REMEDIATION_MANUAL_PRACTICE_PATH = '/assessment/adaptive-practice';
+export const REMEDIATION_MANUAL_PRACTICE_PATH = '/assessment/adaptive-practice?intent=practice';
 const REMEDIATION_VALIDATION_ESTIMATED_MINUTES = 2;
 const REMEDIATION_VALIDATION_ACTION_PATH = '/assessment/adaptive-practice';
 

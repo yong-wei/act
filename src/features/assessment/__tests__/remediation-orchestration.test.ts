@@ -531,7 +531,7 @@ describe('remediation orchestration', () => {
     expect(mocks.remediationOrchestrationResult.upsert.mock.calls[0][0].create).toEqual(expect.objectContaining({
       status: 'UNAVAILABLE',
       unavailableReason: 'ATTRIBUTION_UNCERTAIN',
-      manualPracticePath: '/assessment/adaptive-practice',
+      manualPracticePath: '/assessment/adaptive-practice?intent=practice',
     }));
     expect(mocks.remediationOrchestrationResult.upsert.mock.calls[0][0].create).not.toHaveProperty('taskSnapshot');
   });
@@ -559,7 +559,7 @@ describe('remediation orchestration', () => {
 
     expect(result).toMatchObject({
       status: 'UNAVAILABLE',
-      manualPracticePath: '/assessment/adaptive-practice',
+      manualPracticePath: '/assessment/adaptive-practice?intent=practice',
     });
   });
 

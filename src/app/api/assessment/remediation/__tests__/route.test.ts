@@ -75,7 +75,7 @@ describe('assessment remediation route', () => {
       status: 'UNAVAILABLE',
       orchestratorVersion: 'remediation-orchestrator.v1',
       unavailableReason: 'ATTRIBUTION_UNCERTAIN',
-      manualPracticePath: '/assessment/adaptive-practice',
+      manualPracticePath: '/assessment/adaptive-practice?intent=practice',
       createdAt: '2026-08-10T00:00:00.000Z',
     });
 
@@ -105,7 +105,7 @@ describe('assessment remediation route', () => {
     expect(await response.json()).toEqual({
       status: 'UNAVAILABLE',
       unavailableReason: 'ATTRIBUTION_UNAVAILABLE',
-      manualPracticePath: '/assessment/adaptive-practice',
+      manualPracticePath: '/assessment/adaptive-practice?intent=practice',
     });
     expect(mocks.orchestrateRemediation).not.toHaveBeenCalled();
   });
@@ -116,7 +116,7 @@ describe('assessment remediation route', () => {
       status: 'UNAVAILABLE',
       orchestratorVersion: 'remediation-orchestrator.v1',
       unavailableReason: 'RESOURCE_UNAVAILABLE',
-      manualPracticePath: '/assessment/adaptive-practice',
+      manualPracticePath: '/assessment/adaptive-practice?intent=practice',
       createdAt: '2026-08-03T00:00:00.000Z',
     });
 
