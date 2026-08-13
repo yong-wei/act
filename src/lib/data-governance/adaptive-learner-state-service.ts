@@ -98,8 +98,6 @@ const CONTROL_CORRECTION_ARENA_TASK_ID_VALUES = [
 const CONTROL_CORRECTION_COURSE_IDS = new Set<string>(CONTROL_CORRECTION_COURSE_ID_VALUES);
 const CONTROL_CORRECTION_ARENA_TASK_IDS = new Set<string>(CONTROL_CORRECTION_ARENA_TASK_ID_VALUES);
 const CONTROL_CORRECTION_FACT_TAKE = 500;
-const CONTROL_CORRECTION_LEGACY_FACT_SCAN_MAX_PAGES = 10;
-const CONTROL_CORRECTION_EXPLICIT_FACT_SCAN_MAX_PAGES = 10;
 const LEARNER_STATE_FACT_TAKE = 100;
 export const CONTROL_CORRECTION_TARGET_LEVELS: ControlCorrectionTargetLevel[] = [
   'foundation',
@@ -1702,7 +1700,7 @@ async function readAdaptiveMasteryLearningFacts(
     return [];
   }
 
-  return db.learningFact.findMany({
+  const facts = await db.learningFact.findMany({
     where: {
       userId,
       sourceEventId: {
@@ -1711,6 +1709,7 @@ async function readAdaptiveMasteryLearningFacts(
     },
     orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
   });
+  return facts.filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson));
 }
 
 function latestMasteryAnswerIds(rows: Array<Record<string, unknown>>): string[] {
@@ -2515,7 +2514,6 @@ async function readControlCorrectionLearningFacts(
       findMany: db.learningFact.findMany,
       where: buildExplicitControlCorrectionLearningFactWhere(userId),
       filter: isControlCorrectionFact,
-      maxPages: CONTROL_CORRECTION_EXPLICIT_FACT_SCAN_MAX_PAGES,
     }),
     readLegacyControlCorrectionLearningFacts(db, userId),
   ]);
@@ -2536,7 +2534,6 @@ async function readLegacyControlCorrectionLearningFacts(
     findMany,
     where: buildLegacyControlCorrectionLearningFactWhere(userId),
     filter: (fact) => !hasExplicitAdaptiveGoal(fact) && isLegacyControlCorrectionFact(fact, getObject(fact.contextJson)),
-    maxPages: CONTROL_CORRECTION_LEGACY_FACT_SCAN_MAX_PAGES,
   });
 }
 
@@ -2544,11 +2541,10 @@ async function readPagedControlCorrectionLearningFacts(input: {
   findMany: (args: any) => Promise<Array<Record<string, unknown>>>;
   where: Record<string, unknown>;
   filter: (fact: Record<string, unknown>) => boolean;
-  maxPages: number;
 }): Promise<Array<Record<string, unknown>>> {
   const facts: Array<Record<string, unknown>> = [];
   let cursorId: string | null = null;
-  for (let page = 0; page < input.maxPages; page += 1) {
+  while (facts.length < CONTROL_CORRECTION_FACT_TAKE) {
     const rows = await input.findMany({
       where: input.where,
       orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
@@ -2562,7 +2558,7 @@ async function readPagedControlCorrectionLearningFacts(input: {
       break;
     }
     const lastId = readString(rows.at(-1)?.id);
-    if (!lastId) {
+    if (!lastId || lastId === cursorId) {
       break;
     }
     cursorId = lastId;

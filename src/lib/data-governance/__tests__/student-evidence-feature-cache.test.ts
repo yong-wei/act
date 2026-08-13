@@ -1467,6 +1467,40 @@ describe('student evidence feature cache service', () => {
     );
   });
 
+  it('persists eligible fact counts and timestamps instead of raw audit rows', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'context-only-audit-row',
+            startedAt: new Date('2026-05-19T10:00:00.000Z'),
+            contextJson: {
+              evidenceGovernance: {
+                evidenceQuality: 'context-only',
+                profileWeight: 0,
+                skipProfileContribution: true,
+                policyReason: 'audit-only-source',
+              },
+            },
+          }),
+        ]),
+      },
+      studentEvidenceFeatureCache: {
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+
+    const entry = await refreshStudentEvidenceFeatureCache(db, 'student-1', {
+      now: new Date('2026-05-20T00:00:00.000Z'),
+    });
+
+    expect(entry).toMatchObject({
+      sourceCounts: { LearningFact: 0 },
+      sourceFactCount: 0,
+      lastSourceFactAt: null,
+    });
+  });
+
   it('keeps path-only evidence fresh after rebuild', async () => {
     const db = {
       learningFact: {
@@ -1917,12 +1951,12 @@ describe('student evidence feature cache service', () => {
     });
   });
 
-  it('marks old payload versions without adaptive learner-state features as stale', async () => {
+  it('marks pre-governance v5 payloads as stale even when they are recent', async () => {
     const db = {
       studentEvidenceFeatureCache: {
         findUnique: vi.fn().mockResolvedValue({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v1',
+          payloadVersion: 'student-evidence-features.v5',
           refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
           statusMarkers: [],
           features: {
@@ -1940,7 +1974,7 @@ describe('student evidence feature cache service', () => {
       state: 'stale',
       cache: {
         userId: 'student-1',
-        payloadVersion: 'student-evidence-features.v1',
+        payloadVersion: 'student-evidence-features.v5',
       },
     });
   });

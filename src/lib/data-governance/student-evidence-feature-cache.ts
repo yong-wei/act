@@ -19,7 +19,7 @@ import {
   type PortraitV2PayloadShape,
 } from './portrait-v2-model';
 
-export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v5';
+export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v6';
 export const STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS = 30;
 
@@ -716,8 +716,8 @@ export async function refreshStudentEvidenceFeatureCache(
     staleAfterDays: options.staleAfterDays,
   });
   const refreshedAt = now;
-  const lastSourceFactAt = facts.length > 0 && facts[facts.length - 1].startedAt
-    ? new Date(facts[facts.length - 1].startedAt)
+  const lastSourceFactAt = payload.sourceWindows.activityAll.lastStartedAt
+    ? new Date(payload.sourceWindows.activityAll.lastStartedAt)
     : null;
   const create = {
     userId,
@@ -734,7 +734,7 @@ export async function refreshStudentEvidenceFeatureCache(
     },
     confidenceMarkers: payload.confidence,
     statusMarkers: payload.statusMarkers,
-    sourceFactCount: facts.length,
+    sourceFactCount: payload.sourceCounts.LearningFact,
     lastSourceFactAt,
     refreshedAt,
     rebuiltAt: refreshedAt,

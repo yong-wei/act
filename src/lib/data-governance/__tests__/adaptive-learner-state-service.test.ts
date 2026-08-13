@@ -1981,6 +1981,61 @@ describe('adaptive learner state service', () => {
     expect(explicitPage).toBe(2);
   });
 
+  it('scans beyond ten context-only pages for an eligible control-correction fact', async () => {
+    let explicitPage = 0;
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async (args: any) => {
+          if (args.take === 100) {
+            return [];
+          }
+          const goals = (args.where?.OR ?? [])
+            .map((condition: any) => condition.contextJson?.path?.join('.'))
+            .filter(Boolean);
+          if (!(goals.includes('goalId') && goals.includes('learningGoal') && args.where.OR.length === 4)) {
+            return [];
+          }
+          explicitPage += 1;
+          if (explicitPage <= 11) {
+            return Array.from({ length: 500 }, (_, index) => ({
+              id: `context-only-page-${explicitPage}-fact-${index}`,
+              factType: 'reflection',
+              startedAt: new Date('2026-05-19T00:00:00.000Z'),
+              score: 90,
+              contextJson: {
+                goalId: 'control-correction',
+                evidenceGovernance: {
+                  evidenceQuality: 'context-only',
+                  profileWeight: 0,
+                  skipProfileContribution: true,
+                  policyReason: 'audit-only-source',
+                },
+              },
+            }));
+          }
+          return [
+            controlCorrectionFact('reflection', '2026-04-01T00:00:00.000Z', 86, {
+              id: 'eligible-after-eleven-pages',
+              contextJson: { goalId: 'control-correction' },
+            }),
+          ];
+        },
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'reflection')).toMatchObject({
+      evidenceCount: 1,
+      sourceCoverage: expect.objectContaining({ reflection: 'available' }),
+    });
+    expect(explicitPage).toBe(12);
+  });
+
   it('counts Arena-context design facts as preview Arena evidence for control-correction', async () => {
     const state = await readAdaptiveLearnerState(createDb({
       learningFact: {
@@ -2372,6 +2427,23 @@ describe('adaptive learner state service', () => {
                 adaptiveAssessmentRef: { answerId: 'answer-unresolvable' },
               },
             },
+          }),
+          controlCorrectionFact('assessment', '2026-05-17T00:00:00.000Z', 70, {
+            id: 'context-only-answer-fact',
+            moduleId: 'adaptive-assessment',
+            sourceEventId: 'adaptive-assessment:answer-missing',
+            contextJson: {
+              goalId: 'control-correction',
+              adaptiveAssessment: {
+                adaptiveAssessmentRef: { answerId: 'answer-missing' },
+              },
+              evidenceGovernance: {
+                evidenceQuality: 'context-only',
+                profileWeight: 0,
+                skipProfileContribution: true,
+                policyReason: 'audit-only-source',
+              },
+            },
           })];
         },
       },
@@ -2435,6 +2507,9 @@ describe('adaptive learner state service', () => {
     )?.eventReferences).toEqual([]);
     expect(state.knowledgeMastery.tags['control-correction:simulation-validation']?.eventReferences).toEqual([]);
     expect(state.knowledgeMastery.tags['control-correction:time-domain-targets']?.eventReferences).toEqual([]);
+    expect(JSON.stringify(state.knowledgeMastery.tags['control-correction:time-domain-targets'])).not.toContain(
+      'context-only-answer-fact',
+    );
     expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
       deficit.targetId === 'control-correction:simulation-validation'
     )?.eventReferences).toEqual([]);
