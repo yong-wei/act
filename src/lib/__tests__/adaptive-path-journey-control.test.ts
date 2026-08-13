@@ -194,6 +194,19 @@ describe('adaptive path journey control', () => {
     expect(html).not.toContain('查看纠偏方案');
   });
 
+  it('uses the current path overview for the fallback return action', () => {
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'error',
+      journey: null,
+      error: 'journey-read-rejected',
+      onRefresh: () => undefined,
+    }));
+
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;intent=path-execution&amp;pathId=path-1"');
+    expect(html).not.toContain('nodeId=node-1');
+  });
+
   it('renders only one return action when the ready next action resolves to the path return', () => {
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
       launchContext: launchContext(),
@@ -233,6 +246,34 @@ describe('adaptive path journey control', () => {
     }));
 
     expect(html.match(/返回学习路径/g)).toHaveLength(1);
+    expect(html).not.toContain('data-adaptive-path-next-action="ready"');
+  });
+
+  it('suppresses a ready action that links the active launch node to itself after return moves to the path overview', () => {
+    const currentJourney = journey({
+      state: 'ready',
+      nodeId: 'node-2',
+      title: '返回学习路径',
+      type: 'adaptive_quiz',
+      href: launchContext().returnHref,
+      reason: null,
+      recovery: null,
+    });
+    currentJourney.return = {
+      label: '返回学习路径',
+      href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1',
+    };
+
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: currentJourney,
+      error: null,
+      onRefresh: () => undefined,
+    }));
+
+    expect(html.match(/返回学习路径/g)).toHaveLength(1);
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;intent=path-execution&amp;pathId=path-1"');
     expect(html).not.toContain('data-adaptive-path-next-action="ready"');
   });
 
@@ -276,6 +317,33 @@ describe('adaptive path journey control', () => {
     }));
 
     expect(html.match(/返回学习路径/g)).toHaveLength(1);
+  });
+
+  it('suppresses a blocked recovery that links back to the active launch node', () => {
+    const blockedJourney = journey({
+      state: 'blocked',
+      nodeId: 'node-1',
+      title: '当前节点暂不可继续',
+      type: 'knowledge_card',
+      href: null,
+      reason: '当前节点暂不可继续',
+      recovery: { label: '返回学习路径', href: launchContext().returnHref },
+    });
+    blockedJourney.return = {
+      label: '返回学习路径',
+      href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1',
+    };
+
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: blockedJourney,
+      error: null,
+      onRefresh: () => undefined,
+    }));
+
+    expect(html.match(/返回学习路径/g)).toHaveLength(1);
+    expect(html).not.toContain(`href="${launchContext().returnHref.replaceAll('&', '&amp;')}"`);
   });
 
   it.each([

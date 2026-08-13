@@ -26,6 +26,14 @@ import type {
   KnowledgeRole,
   ProjectionIdentity,
 } from '@/lib/authoritative-knowledge';
+import {
+  DomainCatalogLoadError,
+  loadAuthorityDomainCatalogRuntime,
+  loadAuthorityDomainRootPresentation,
+  resolveAuthorityDomainCatalogPaths,
+  type AuthorityDomainCatalogRuntime,
+  type AuthorityDomainRootPresentation,
+} from '@/lib/authority-domain-catalog';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -186,6 +194,101 @@ function provenance(
 
 function resolveActiveSnapshot(paths = activeAuthorityStorePaths()) {
   return resolveActiveEngineeringGraphAuthority(paths);
+}
+
+/**
+ * Read-only domain display catalog bound to the active Authority selection.
+ * Fail closed on absence, schema errors, or Authority identity drift.
+ * Does not mutate snapshot bytes, counts, or ActKG facts.
+ */
+export function readActiveDomainCatalog():
+  | { status: 'available'; catalog: AuthorityDomainCatalogRuntime }
+  | { status: 'unavailable'; reason: string; code: string } {
+  const resolved = resolveActiveSnapshot();
+  if (
+    resolved.status !== 'ready'
+    || !resolved.snapshotId
+    || !resolved.snapshotHash
+    || !resolved.releaseId
+  ) {
+    return {
+      status: 'unavailable',
+      reason: resolved.reason ?? 'active-authority-unavailable',
+      code: 'ACTIVE_DOMAIN_CATALOG_AUTHORITY_UNAVAILABLE',
+    };
+  }
+  try {
+    const catalog = loadAuthorityDomainCatalogRuntime(
+      resolveAuthorityDomainCatalogPaths(),
+      {
+        snapshotId: resolved.snapshotId,
+        snapshotHash: resolved.snapshotHash,
+        releaseId: resolved.releaseId,
+        releaseSetId: resolved.releaseSetId,
+      },
+    );
+    return { status: 'available', catalog };
+  } catch (error) {
+    if (error instanceof DomainCatalogLoadError) {
+      return {
+        status: 'unavailable',
+        reason: error.message,
+        code: `ACTIVE_DOMAIN_CATALOG_${error.code.toUpperCase().replace(/-/g, '_')}`,
+      };
+    }
+    return {
+      status: 'unavailable',
+      reason: error instanceof Error ? error.message : 'domain-catalog-load-failed',
+      code: 'ACTIVE_DOMAIN_CATALOG_UNAVAILABLE',
+    };
+  }
+}
+
+/**
+ * Presentation-only root summaries for the active Authority workspace.
+ * Excludes canonical IDs and Authority topology counts.
+ */
+export function readActiveDomainRootPresentation():
+  | { status: 'available'; root: AuthorityDomainRootPresentation }
+  | { status: 'unavailable'; reason: string; code: string } {
+  const resolved = resolveActiveSnapshot();
+  if (
+    resolved.status !== 'ready'
+    || !resolved.snapshotId
+    || !resolved.snapshotHash
+    || !resolved.releaseId
+  ) {
+    return {
+      status: 'unavailable',
+      reason: resolved.reason ?? 'active-authority-unavailable',
+      code: 'ACTIVE_DOMAIN_ROOT_AUTHORITY_UNAVAILABLE',
+    };
+  }
+  try {
+    const root = loadAuthorityDomainRootPresentation(
+      resolveAuthorityDomainCatalogPaths(),
+      {
+        snapshotId: resolved.snapshotId,
+        snapshotHash: resolved.snapshotHash,
+        releaseId: resolved.releaseId,
+        releaseSetId: resolved.releaseSetId,
+      },
+    );
+    return { status: 'available', root };
+  } catch (error) {
+    if (error instanceof DomainCatalogLoadError) {
+      return {
+        status: 'unavailable',
+        reason: error.message,
+        code: `ACTIVE_DOMAIN_ROOT_${error.code.toUpperCase().replace(/-/g, '_')}`,
+      };
+    }
+    return {
+      status: 'unavailable',
+      reason: error instanceof Error ? error.message : 'domain-root-load-failed',
+      code: 'ACTIVE_DOMAIN_ROOT_UNAVAILABLE',
+    };
+  }
 }
 
 export function readActiveCanvas():

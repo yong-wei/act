@@ -134,4 +134,3 @@ The capture and gate SHALL share one deterministic `SensitiveValueMatcher` for r
 - **WHEN** the governance gate reads active visual or role evidence
 - **THEN** it SHALL require passing forbidden-surface scans and no visible copy entry for internal identity values
 - **AND** it SHALL reject evidence whose source revision does not match the current adapter, capture and gate source hashes
-

@@ -5,6 +5,7 @@
 ## 身份与权限边界
 
 - 先以只读方式检查 ECS 的磁盘、容器挂载、现有 runtime 体积、RAM Role metadata、`ossfs` 与 `ossutil` 可用性。没有可用 ECS RAM Role 时，停止 OSS 写入、挂载和切换，只提交所需最小 RAM policy；不得改用长期 AccessKey 或把密钥写入仓库、`.env`、脚本或主机配置文件。
+- 需要通过 ECS 控制台投予实例的角色，必须按“云服务 → 云服务器 ECS / ECS”创建，并在信任策略中使用 `ecs.aliyuncs.com`。信任当前云账号的普通 RAM 角色不能由 ECS 扮演；为实例角色创建前应复用已审计的最小 OSS 自定义策略，而不是授予 OSS 全权限。
 - 发布者与生产运行时身份必须分离。发布者只可写 `runtime/releases/<release-id>/`；运行时仅可对已经选定的 Release 前缀执行必要的 `GetObject`/`ListObjects`。浏览器不获得永久 OSS URL。
 - Bucket 保持私有、阻止公共访问和服务器端加密。需要浏览器访问的媒体由服务端根据 allowlist 生成短时下载重定向；不得把 OSS 签名 URL 固化到 runtime 文件或长期配置。
 - 若 Next.js standalone 应用使用 `ali-oss` 与 `@alicloud/credentials` 生成该重定向，二者必须列为 `serverExternalPackages`，避免 Turbopack 进入 `urllib` 的动态 `proxy-agent` 分支并在生产构建失败；以生产所需 Node heap 完成一次 standalone build 验证。
@@ -12,6 +13,7 @@
 ## Release 与选择不变量
 
 - 每次发布写入唯一且不可变的 `runtime/releases/<release-id>/` 前缀。release id 必须由 canonical `{sourceRevision, treeSha256}` 的 SHA-256 派生，避免不同 source identity 并发写入同一前缀；同一 identity 的重试仍必须以远端 receipt 精确核对 manifest/tree digest。Release manifest 必须记录 schema、source revision、文件数量、总字节数、逐文件相对路径/大小/SHA-256、tree digest 和 manifest digest。
+- `ossutil sync` 的增量比较只适合同一可变目标前缀，不能减少不同不可变 Release 前缀之间的上传或存储；在同一 release id 的中断重试中，由发布桥按对象 key、大小和 SHA-256 精确续传即可。若要跨 Release 复用对象，必须单独设计内容寻址 blob、Release manifest 与可验证的运行态 materialization，不能以 `sync` 覆盖或删除现有 Release。
 - 发布前必须先在声明的内容真源目录计算完整 manifest；仅有相同 Git revision 不足以证明 ECS 既有 runtime 与该真源字节相同。若准备直接以 ECS 本地 runtime 为上传源，必须独立重算其 file count、total bytes 与 tree SHA-256，并与真源 manifest 完全一致；不一致时不得上传 ECS 旧树、不得覆盖正在服务的 legacy runtime，也不得在接近满盘的主机上复制完整 staging 目录。此时应使用经审计的流式本地→ECS publisher transport，或另行准备有容量的发布执行环境。
 - 完整上传后必须从 OSS 重新读取并校验 manifest 与所有对象的大小和哈希；任一缺失或不匹配均不得选择该 Release。不得复用、覆盖或原地修复已经发布的 Release。
 - 完整内容校验由 publisher bridge 的 upload/readback receipt 承担一次。恢复 ECS read role 后，验证必须通过 ECS 上的 read-only bridge，而不是在本机伪造 IMDS 身份；它只需严格读取 manifest、精确比对对象 key 集合、检查全部元数据并读取有上限的代表性对象。不要在每次切换前重复读取整个 Release；全量 read-role 哈希审计属于独立周期性诊断。
