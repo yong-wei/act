@@ -2,9 +2,9 @@
 
 /**
  * Operator-side production data-plane activation for one already verified
- * versioned knowledge package. It is intentionally run in the target image:
- * the normal image build remains immutable while this tool uses its tested
- * first-activation coordinator and store implementations.
+ * versioned knowledge package. The target application image is immutable and
+ * carries the active-shard product implementation; this tool is a separately
+ * sealed operator source tree executed only during the transaction window.
  */
 
 import { createHash } from 'node:crypto';
@@ -81,10 +81,10 @@ import {
   resolveConsumerActivationStorePaths,
 } from '../../src/lib/versioned-knowledge-activation';
 
-const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v1';
+const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v2';
 const RECEIPT_CONTRACT = 'act-production-knowledge-cutover-receipt/v1';
 const MARKER_CONTRACT = 'act-production-knowledge-cutover-current/v1';
-const OPERATOR_BUNDLE_CONTRACT = 'act-knowledge-cutover-operator-bundle/v1';
+const OPERATOR_BUNDLE_CONTRACT = 'act-knowledge-cutover-operator-bundle/v2';
 const SHA256 = /^[a-f0-9]{64}$/u;
 const OCI_DIGEST = /^sha256:[a-f0-9]{64}$/u;
 const COMMIT = /^[a-f0-9]{40}$/u;
@@ -122,6 +122,8 @@ interface OperatorBundleFileDigest {
 interface OperatorBundleManifest {
   contract: typeof OPERATOR_BUNDLE_CONTRACT;
   builderVersion: string;
+  operatorSourceRevision: string;
+  operatorSourceTree: string;
   captureRevision: string;
   files: readonly OperatorBundleFileDigest[];
   bundleSha256: string;
@@ -146,10 +148,13 @@ interface ProductionCutoverPlan {
   createdAt: string;
   source: {
     releaseTag: string;
-    imageRevision: string;
+    applicationSourceRevision: string;
     imageTag: string;
     imageConfigDigest: string;
     imageTarSha256: string;
+    imageProvenanceSha256: string;
+    operatorSourceRevision: string;
+    operatorSourceTree: string;
     captureRevision: string;
     toolSha256: string;
     deploymentScriptSha256: string;
@@ -245,10 +250,12 @@ function hashFile(filePath: string): string {
   return sha256(readFileSync(filePath));
 }
 
-function operatorBundleDigestBody(bundle: Pick<OperatorBundleManifest, 'contract' | 'builderVersion' | 'captureRevision' | 'files'>) {
+function operatorBundleDigestBody(bundle: Pick<OperatorBundleManifest, 'contract' | 'builderVersion' | 'operatorSourceRevision' | 'operatorSourceTree' | 'captureRevision' | 'files'>) {
   return {
     contract: bundle.contract,
     builderVersion: bundle.builderVersion,
+    operatorSourceRevision: bundle.operatorSourceRevision,
+    operatorSourceTree: bundle.operatorSourceTree,
     captureRevision: bundle.captureRevision,
     files: [...bundle.files],
   };
@@ -257,6 +264,8 @@ function operatorBundleDigestBody(bundle: Pick<OperatorBundleManifest, 'contract
 function assertOperatorBundleManifest(bundle: OperatorBundleManifest): void {
   assert(bundle.contract === OPERATOR_BUNDLE_CONTRACT, 'operator bundle contract mismatch');
   assert(TOKEN.test(bundle.builderVersion), 'operator bundle builder version is invalid');
+  assert(COMMIT.test(bundle.operatorSourceRevision), 'operator bundle source revision is invalid');
+  assert(COMMIT.test(bundle.operatorSourceTree), 'operator bundle source tree is invalid');
   assert(COMMIT.test(bundle.captureRevision), 'operator bundle capture revision is invalid');
   assert(SHA256.test(bundle.bundleSha256), 'operator bundle digest is invalid');
   assert(bundle.files.length > 0, 'operator bundle contains no files');
@@ -302,7 +311,18 @@ function assertOperatorBundle(
   assert(hashFile(manifestPath) === plan.operatorBundle.manifestSha256, 'operator bundle manifest hash mismatch');
   const manifest = readJson<OperatorBundleManifest>(manifestPath);
   assertOperatorBundleManifest(manifest);
-  assert(manifest.captureRevision === plan.operatorBundle.captureRevision && manifest.captureRevision === plan.source.captureRevision, 'operator bundle capture revision mismatch');
+  assert(
+    manifest.captureRevision === plan.operatorBundle.captureRevision
+      && manifest.captureRevision === plan.source.captureRevision,
+    'operator bundle capture revision mismatch',
+  );
+  assert(
+    manifest.operatorSourceRevision === plan.operatorBundle.operatorSourceRevision
+      && manifest.operatorSourceRevision === plan.source.operatorSourceRevision
+      && manifest.operatorSourceTree === plan.operatorBundle.operatorSourceTree
+      && manifest.operatorSourceTree === plan.source.operatorSourceTree,
+    'operator bundle source tree identity mismatch',
+  );
   assert(manifest.bundleSha256 === plan.operatorBundle.bundleSha256, 'operator bundle identity mismatch');
   assert(manifest.files.length === plan.operatorBundle.files.length, 'operator bundle plan file count mismatch');
   const planFiles = new Map(plan.operatorBundle.files.map((file) => [file.path, file]));
@@ -370,11 +390,14 @@ function assertPlan(plan: ProductionCutoverPlan): void {
   assert(plan.contract === PLAN_CONTRACT, 'plan contract mismatch');
   assert(TOKEN.test(plan.transactionId), 'plan transaction id is invalid');
   assert(TOKEN.test(plan.source.releaseTag), 'plan release tag is invalid');
-  assert(COMMIT.test(plan.source.imageRevision), 'plan image revision is invalid');
+  assert(COMMIT.test(plan.source.applicationSourceRevision), 'plan application source revision is invalid');
   assert(COMMIT.test(plan.source.captureRevision), 'plan capture revision is invalid');
   assert(TOKEN.test(plan.source.imageTag.replaceAll(':', '-').replaceAll('/', '-')), 'plan image tag is invalid');
   assert(OCI_DIGEST.test(plan.source.imageConfigDigest), 'plan image config digest is invalid');
   assert(SHA256.test(plan.source.imageTarSha256), 'plan image tar hash is invalid');
+  assert(SHA256.test(plan.source.imageProvenanceSha256), 'plan image provenance hash is invalid');
+  assert(COMMIT.test(plan.source.operatorSourceRevision), 'plan operator source revision is invalid');
+  assert(COMMIT.test(plan.source.operatorSourceTree), 'plan operator source tree is invalid');
   assert(SHA256.test(plan.source.toolSha256), 'plan tool hash is invalid');
   assert(SHA256.test(plan.source.deploymentScriptSha256), 'plan deployment script hash is invalid');
   assert(SHA256.test(plan.source.cleanupEngineSha256), 'plan cleanup engine hash is invalid');
@@ -383,6 +406,9 @@ function assertPlan(plan: ProductionCutoverPlan): void {
   assert(SHA256.test(plan.operatorBundle.manifestSha256), 'plan operator bundle manifest hash is invalid');
   assert(SHA256.test(plan.operatorBundle.archiveSha256), 'plan operator bundle archive hash is invalid');
   assert(plan.operatorBundle.captureRevision === plan.source.captureRevision, 'plan operator bundle capture revision mismatch');
+  assert(plan.operatorBundle.operatorSourceRevision === plan.source.operatorSourceRevision, 'plan operator source revision mismatch');
+  assert(plan.operatorBundle.operatorSourceTree === plan.source.operatorSourceTree, 'plan operator source tree mismatch');
+  assert(plan.source.operatorSourceRevision !== plan.source.captureRevision, 'operator source revision must not reuse capture revision');
   assert(SHA256.test(plan.planHash), 'plan hash is invalid');
   assert(sha256(canonicalJson(planBody(plan))) === plan.planHash, 'plan hash mismatch');
   assert(plan.pointers.length === 5, 'plan must define exactly five pointers');
@@ -647,17 +673,19 @@ function buildPlan(): ProductionCutoverPlan {
   const output = path.resolve(option('--output'));
   const transactionId = option('--transaction-id');
   const releaseTag = option('--release-tag');
-  const imageRevision = option('--image-revision');
+  const applicationSourceRevision = optionalOption('--application-source-revision') ?? option('--image-revision');
   const imageTag = option('--image-tag');
   const imageConfigDigest = option('--image-config-digest');
   const imageTarSha256 = option('--image-tar-sha256');
+  const imageProvenanceSha256 = option('--image-provenance-sha256');
   const deploymentScript = path.resolve(option('--deployment-script'));
   const cleanupEngine = path.resolve(option('--cleanup-engine'));
   const operatorBundleManifestPath = path.resolve(option('--operator-bundle-manifest'));
   const operatorBundleArchivePath = path.resolve(option('--operator-bundle-archive'));
-  if (!COMMIT.test(imageRevision)) fail('image revision must be one lowercase Git commit');
+  if (!COMMIT.test(applicationSourceRevision)) fail('application source revision must be one lowercase Git commit');
   if (!OCI_DIGEST.test(imageConfigDigest)) fail('image config digest must be one sha256 OCI digest');
   if (!SHA256.test(imageTarSha256)) fail('image tar hash must be one sha256 digest');
+  if (!SHA256.test(imageProvenanceSha256)) fail('image provenance hash must be one sha256 digest');
   const authorityPointerPath = 'course-content/authoring/knowledge/authority/current.json';
   const projectionPointerPath = 'course-content/runtime/knowledge/projection/current.json';
   const prerequisitePointerPath = 'course-content/runtime/knowledge/prerequisites/current.json';
@@ -743,6 +771,10 @@ function buildPlan(): ProductionCutoverPlan {
     manifestSha256: hashFile(operatorBundleManifestPath),
     archiveSha256: hashFile(operatorBundleArchivePath),
   };
+  const operatorTool = operatorBundleManifest.files.find(
+    (file) => file.path === 'scripts/knowledge-cutover/production-cutover.ts',
+  );
+  assert(operatorTool, 'operator bundle does not contain production-cutover.ts');
   const reportPath = 'artifacts/actkg-cutover-preparation/1a56317aa44e46322be0b0d1ac73948c03c5c2c0/activation/first-activation-report.json';
   const body = {
     contract: PLAN_CONTRACT,
@@ -750,12 +782,15 @@ function buildPlan(): ProductionCutoverPlan {
     createdAt: new Date().toISOString(),
     source: {
       releaseTag,
-      imageRevision,
+      applicationSourceRevision,
       imageTag,
       imageConfigDigest,
       imageTarSha256,
+      imageProvenanceSha256,
+      operatorSourceRevision: operatorBundleManifest.operatorSourceRevision,
+      operatorSourceTree: operatorBundleManifest.operatorSourceTree,
       captureRevision,
-      toolSha256: hashFile(path.resolve(process.argv[1]!)),
+      toolSha256: operatorTool.sha256,
       deploymentScriptSha256: hashFile(deploymentScript),
       cleanupEngineSha256: hashFile(cleanupEngine),
     },
@@ -792,9 +827,7 @@ function buildPlan(): ProductionCutoverPlan {
 function readPlan(): ProductionCutoverPlan {
   const plan = readJson<ProductionCutoverPlan>(path.resolve(option('--plan')));
   assertPlan(plan);
-  const actualToolHash = hashFile(path.resolve(process.argv[1]!));
-  assert(actualToolHash === plan.source.toolSha256, 'operator tool hash does not match sealed plan');
-  assert(process.env.APP_REVISION === plan.source.imageRevision, 'container image revision does not match sealed plan');
+  assert(process.env.APP_REVISION === plan.source.applicationSourceRevision, 'container image revision does not match sealed plan');
   return plan;
 }
 
@@ -1024,9 +1057,12 @@ function assertReceiptBinding(receipt: Record<string, string>, plan: ProductionC
     receipt.contract === RECEIPT_CONTRACT
       && receipt.transactionId === plan.transactionId
       && receipt.planHash === plan.planHash
-      && receipt.imageRevision === plan.source.imageRevision
+      && receipt.applicationSourceRevision === plan.source.applicationSourceRevision
       && receipt.imageConfigDigest === plan.source.imageConfigDigest
       && receipt.imageTarSha256 === plan.source.imageTarSha256
+      && receipt.imageProvenanceSha256 === plan.source.imageProvenanceSha256
+      && receipt.operatorSourceRevision === plan.source.operatorSourceRevision
+      && receipt.operatorSourceTree === plan.source.operatorSourceTree
       && receipt.captureRevision === plan.source.captureRevision,
     'production cutover receipt mismatch',
   );
@@ -1076,9 +1112,12 @@ function assertCommittedMarker(marker: Record<string, string>, plan: ProductionC
     marker.contract === MARKER_CONTRACT
       && marker.transactionId === plan.transactionId
       && marker.planHash === plan.planHash
-      && marker.imageRevision === plan.source.imageRevision
+      && marker.applicationSourceRevision === plan.source.applicationSourceRevision
       && marker.imageConfigDigest === plan.source.imageConfigDigest
       && marker.imageTarSha256 === plan.source.imageTarSha256
+      && marker.imageProvenanceSha256 === plan.source.imageProvenanceSha256
+      && marker.operatorSourceRevision === plan.source.operatorSourceRevision
+      && marker.operatorSourceTree === plan.source.operatorSourceTree
       && marker.captureRevision === plan.source.captureRevision
       && marker.status === 'COMMITTED',
     'production cutover marker mismatch',
@@ -1098,9 +1137,12 @@ function runActivate(): void {
     contract: RECEIPT_CONTRACT,
     transactionId: plan.transactionId,
     planHash: plan.planHash,
-    imageRevision: plan.source.imageRevision,
+    applicationSourceRevision: plan.source.applicationSourceRevision,
     imageConfigDigest: plan.source.imageConfigDigest,
     imageTarSha256: plan.source.imageTarSha256,
+    imageProvenanceSha256: plan.source.imageProvenanceSha256,
+    operatorSourceRevision: plan.source.operatorSourceRevision,
+    operatorSourceTree: plan.source.operatorSourceTree,
     captureRevision: plan.source.captureRevision,
     status: 'PREPARED',
     preparedAt: new Date().toISOString(),
@@ -1140,9 +1182,12 @@ function runActivate(): void {
       contract: MARKER_CONTRACT,
       transactionId: plan.transactionId,
       planHash: plan.planHash,
-      imageRevision: plan.source.imageRevision,
+      applicationSourceRevision: plan.source.applicationSourceRevision,
       imageConfigDigest: plan.source.imageConfigDigest,
       imageTarSha256: plan.source.imageTarSha256,
+      imageProvenanceSha256: plan.source.imageProvenanceSha256,
+      operatorSourceRevision: plan.source.operatorSourceRevision,
+      operatorSourceTree: plan.source.operatorSourceTree,
       captureRevision: plan.source.captureRevision,
       status: 'COMMITTED',
       committedAt: new Date().toISOString(),

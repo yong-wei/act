@@ -74,6 +74,17 @@ RUN case "${APP_REVISION}" in \
   esac \
   && printf '%s\n' "${APP_REVISION}" > /app/.app-revision
 
+# The cutover verifier checks this marker in the loaded immutable image. It is
+# deliberately generated inside the builder from the same source tree as the
+# application so a stale image cannot pass by merely carrying a matching
+# revision label.
+RUN test -f src/features/knowledge/active-authority-graph.tsx \
+  && test -f src/features/knowledge/active-authority-shard-store.ts \
+  && test -f src/lib/authority-domain-shards/materialize.ts \
+  && test -f src/app/api/knowledge/shards/active/route.ts \
+  && grep -q '/api/knowledge/shards/active' src/features/knowledge/active-authority-graph.tsx \
+  && printf '%s\n' "${APP_REVISION}" > /app/.active-authority-shards-product
+
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS=--max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE}
@@ -145,6 +156,7 @@ RUN rm -f \
   course-content/runtime/knowledge/authority-domain-shards/current.json \
   course-content/runtime/knowledge/projection/current.json
 COPY --from=builder /app/.app-revision ./.app-revision
+COPY --from=builder /app/.active-authority-shards-product ./.active-authority-shards-product
 
 # 验证生产镜像内的 SymPy 与 LaTeX parser 依赖，并运行真实计算烟测。
 RUN python3 -c 'import json, subprocess; result = subprocess.run(["python3", "scripts/math-calc/calc.py"], input=json.dumps({"expression": r"\frac{1}{s}", "operation": "simplify"}), text=True, capture_output=True, check=True); payload = json.loads(result.stdout); assert payload["status"] == "ok", payload; assert payload["steps"][0]["operation"] == "identify", payload'

@@ -4,13 +4,17 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-RELEASE_TAG='v0.4.0'
-IMAGE_REVISION='58f70df257f493f7dc13b2dabfb0383b972ee017'
-IMAGE_TAG='localhost/act-obe-platform:v0.4.0-58f70df'
+APPLICATION_SOURCE_REVISION="${APPLICATION_SOURCE_REVISION:-$(git rev-parse HEAD)}"
+[[ "$APPLICATION_SOURCE_REVISION" =~ ^[a-f0-9]{40}$ ]] || { echo 'ERROR: APPLICATION_SOURCE_REVISION 必须为 40 位 Git revision' >&2; exit 1; }
+IMAGE_REVISION="$APPLICATION_SOURCE_REVISION"
+IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:knowledge-${APPLICATION_SOURCE_REVISION:0:12}}"
+RELEASE_TAG="${RELEASE_TAG:-source-${APPLICATION_SOURCE_REVISION:0:12}}"
+OPERATOR_SOURCE_REVISION="${OPERATOR_SOURCE_REVISION:-$APPLICATION_SOURCE_REVISION}"
+BUILD_APPLICATION_IMAGE="${BUILD_APPLICATION_IMAGE:-0}"
 SSH_TARGET="${SSH_TARGET:-root@121.40.124.135}"
 REMOTE_PROJECT_DIR="${REMOTE_PROJECT_DIR:-/home/projects/act}"
 PUBLIC_URL="${PUBLIC_URL:-https://act.adapt-learn.online}"
-LOCAL_IMAGE_TAR="${LOCAL_IMAGE_TAR:-${ROOT_DIR}/deploy/images/act-obe-v0.4.0-58f70df.tar}"
+LOCAL_IMAGE_TAR="${LOCAL_IMAGE_TAR:-${ROOT_DIR}/deploy/images/act-obe-knowledge-${APPLICATION_SOURCE_REVISION:0:12}.tar}"
 LOCAL_PROVENANCE_FILE="${LOCAL_PROVENANCE_FILE:-${LOCAL_IMAGE_TAR}.provenance.json}"
 PROVENANCE_HELPER="${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs"
 CUTOVER_TOOL="${ROOT_DIR}/scripts/knowledge-cutover/production-cutover.ts"
@@ -28,9 +32,9 @@ usage() {
 用法: scripts/remote-activate-knowledge-cutover.sh [--transaction-id <id>]
        scripts/remote-activate-knowledge-cutover.sh --cleanup-failed-authority <transaction-id>
 
-仅执行已冻结 v0.4.0 / 58f70df 的生产数据面图谱切换：
-  - 不构建、不上传或重标记应用镜像；
-  - 在远端以同一不可变镜像运行既有 first-activation 协调器；
+执行当前 application source revision 的生产数据面图谱切换：
+  - 应用镜像必须由当前 revision 构建、带有 provenance，并在远端加载后做内容证明；
+  - 新 image 只承载长期 Next runtime，operator source bundle 只在交易窗口执行；
   - 切换失败时只按本 transaction 的身份回滚，并恢复 Legacy 服务；
   - 在远端保留 plan、Authority staging archive、journal、receipt 和命令日志。
 
@@ -120,17 +124,23 @@ if [[ -n "$CLEANUP_FAILED_AUTHORITY_TRANSACTION_ID" ]]; then
   [[ -z "$TRANSACTION_ID" ]] || fail '--cleanup-failed-authority 不能与 --transaction-id 同时使用'
   TRANSACTION_ID="$CLEANUP_FAILED_AUTHORITY_TRANSACTION_ID"
 elif [[ -z "$TRANSACTION_ID" ]]; then
-  TRANSACTION_ID="production-v040-58f70df-$(date -u +%Y%m%dT%H%M%SZ)"
+  TRANSACTION_ID="production-knowledge-${APPLICATION_SOURCE_REVISION:0:12}-$(date -u +%Y%m%dT%H%M%SZ)"
 fi
-[[ "$TRANSACTION_ID" =~ ^production-v040-58f70df-[0-9]{8}T[0-9]{6}Z$ ]] \
-  || fail 'transaction id 必须为 production-v040-58f70df-YYYYmmddTHHMMSSZ'
+if [[ -n "$CLEANUP_FAILED_AUTHORITY_TRANSACTION_ID" ]]; then
+  [[ "$TRANSACTION_ID" =~ ^production-knowledge-[a-f0-9]{12}-[0-9]{8}T[0-9]{6}Z$|^production-v040-[a-f0-9]{7,12}-[0-9]{8}T[0-9]{6}Z$ ]] \
+    || fail 'cleanup transaction id 格式无效'
+else
+  [[ "$TRANSACTION_ID" =~ ^production-knowledge-[a-f0-9]{12}-[0-9]{8}T[0-9]{6}Z$ ]] \
+    || fail 'transaction id 必须为 production-knowledge-<revision>-YYYYmmddTHHMMSSZ'
+fi
 
 for command in git node tar ssh scp awk; do
   require_cmd "$command"
 done
-for value in "$SSH_TARGET" "$REMOTE_PROJECT_DIR" "$PUBLIC_URL" "$IMAGE_TAG" "$IMAGE_REVISION" "$TRANSACTION_ID"; do
+for value in "$SSH_TARGET" "$REMOTE_PROJECT_DIR" "$PUBLIC_URL" "$IMAGE_TAG" "$IMAGE_REVISION" "$OPERATOR_SOURCE_REVISION" "$TRANSACTION_ID"; do
   safe_remote_value "$value"
 done
+[[ "$OPERATOR_SOURCE_REVISION" =~ ^[a-f0-9]{40}$ ]] || fail 'OPERATOR_SOURCE_REVISION 必须为 40 位 Git revision'
 
 [[ -f "$REMOTE_OPERATOR_SCRIPT" ]] || fail "缺少远端切换操作器: $REMOTE_OPERATOR_SCRIPT"
 [[ -f "$CLEANUP_ENGINE" ]] || fail "缺少 failed Authority cleanup 引擎: $CLEANUP_ENGINE"
@@ -157,13 +167,19 @@ fi
 [[ -f "$OPERATOR_BUNDLE_HELPER" ]] || fail "缺少 operator bundle 构建器: $OPERATOR_BUNDLE_HELPER"
 [[ -f "$LOCAL_APP_DEPLOY_SCRIPT" ]] || fail "缺少本轮部署脚本: $LOCAL_APP_DEPLOY_SCRIPT"
 [[ -d "$AUTHORITY_ROOT" ]] || fail "缺少 Authority 工件目录: $AUTHORITY_ROOT"
-[[ -s "$LOCAL_IMAGE_TAR" ]] || fail "缺少冻结镜像包: $LOCAL_IMAGE_TAR"
-[[ -f "$LOCAL_PROVENANCE_FILE" ]] || fail "缺少冻结 provenance: $LOCAL_PROVENANCE_FILE"
 [[ -f "$PROVENANCE_HELPER" ]] || fail "缺少 provenance 校验器: $PROVENANCE_HELPER"
 
-tag_revision="$(git rev-parse "${RELEASE_TAG}^{commit}")"
-[[ "$tag_revision" == "$IMAGE_REVISION" ]] \
-  || fail "${RELEASE_TAG} 未解析为固定 revision ${IMAGE_REVISION}"
+if [[ "$BUILD_APPLICATION_IMAGE" == '1' ]]; then
+  log '[build] 按当前 application source revision 构建新的 immutable application image'
+  IMAGE_TAG="$IMAGE_TAG" OUTPUT_TAR="$LOCAL_IMAGE_TAR" scripts/build.sh
+fi
+[[ -s "$LOCAL_IMAGE_TAR" ]] || fail "缺少 application immutable image 包: $LOCAL_IMAGE_TAR"
+[[ -f "$LOCAL_PROVENANCE_FILE" ]] || fail "缺少 application image provenance: $LOCAL_PROVENANCE_FILE"
+
+git rev-parse --verify "${APPLICATION_SOURCE_REVISION}^{commit}" >/dev/null \
+  || fail "application source revision 不存在: ${APPLICATION_SOURCE_REVISION}"
+git rev-parse --verify "${OPERATOR_SOURCE_REVISION}^{commit}" >/dev/null \
+  || fail "operator source revision 不存在: ${OPERATOR_SOURCE_REVISION}"
 
 source_paths=(
   'course-content/authoring/knowledge/authority'
@@ -173,11 +189,11 @@ source_paths=(
   'artifacts/actkg-cutover-preparation/1a56317aa44e46322be0b0d1ac73948c03c5c2c0/activation/first-activation-report.json'
 )
 for source_path in "${source_paths[@]}"; do
-  git cat-file -e "${RELEASE_TAG}:${source_path}" \
-    || fail "冻结 tag 缺少切换输入: ${source_path}"
+  git cat-file -e "${APPLICATION_SOURCE_REVISION}:${source_path}" \
+    || fail "application source revision 缺少切换输入: ${source_path}"
 done
-if ! git diff --quiet "$RELEASE_TAG" -- "${source_paths[@]}"; then
-  fail '当前工作树中的图谱切换输入与 v0.4.0 不一致'
+if ! git diff --quiet "$APPLICATION_SOURCE_REVISION" -- "${source_paths[@]}"; then
+  fail '当前工作树的切换输入与 application source revision 不一致'
 fi
 if [[ -n "$(git status --porcelain --untracked-files=all -- "${source_paths[@]}")" ]]; then
   fail '图谱切换输入存在未提交或未跟踪内容，拒绝生成混合 transaction plan'
@@ -206,10 +222,12 @@ image_config_digest="$(oci_image_config_digest "$LOCAL_IMAGE_TAR")"
 [[ "$image_config_digest" =~ ^sha256:[a-f0-9]{64}$ ]] \
   || fail '无法从冻结镜像导出有效 OCI config digest'
 safe_remote_value "$image_config_digest"
-for field in appRevision runtimeSourceRevision indexSourceRevision; do
-  value="$(node "$PROVENANCE_HELPER" print-field --sidecar "$LOCAL_PROVENANCE_FILE" --field "$field")"
-  [[ "$value" == "$IMAGE_REVISION" ]] || fail "provenance ${field} 未绑定到固定 revision"
-done
+application_provenance_revision="$(node "$PROVENANCE_HELPER" print-field --sidecar "$LOCAL_PROVENANCE_FILE" --field appRevision)"
+runtime_provenance_revision="$(node "$PROVENANCE_HELPER" print-field --sidecar "$LOCAL_PROVENANCE_FILE" --field runtimeSourceRevision)"
+index_provenance_revision="$(node "$PROVENANCE_HELPER" print-field --sidecar "$LOCAL_PROVENANCE_FILE" --field indexSourceRevision)"
+[[ "$application_provenance_revision" == "$APPLICATION_SOURCE_REVISION" ]] || fail 'provenance appRevision 未绑定到 application source revision'
+[[ "$runtime_provenance_revision" =~ ^[a-f0-9]{40}$ && "$runtime_provenance_revision" == "$index_provenance_revision" ]] \
+  || fail 'provenance runtime/index source revision 必须独立且彼此一致'
 node "$PROVENANCE_HELPER" verify-runtime \
   --runtime-root "${ROOT_DIR}/course-content/runtime/resources/textbooks-v2" \
   --index-dir "${ROOT_DIR}/course-content/runtime/resources/textbook-retrieval" \
@@ -226,6 +244,7 @@ authority_archive="${work_dir}/authority.tar.gz"
 operator_bundle_root="${work_dir}/operator-bundle"
 operator_bundle_manifest="${work_dir}/operator-bundle.manifest.json"
 operator_bundle_archive="${work_dir}/operator-bundle.tar.gz"
+image_provenance_sha256="$(sha256_file "$LOCAL_PROVENANCE_FILE")"
 trap 'rm -rf -- "$work_dir"' EXIT
 
 capture_revision="$(node -e '
@@ -245,6 +264,7 @@ node "$OPERATOR_BUNDLE_HELPER" \
   --repo-root "$ROOT_DIR" \
   --output "$operator_bundle_root" \
   --manifest "$operator_bundle_manifest" \
+  --operator-source-revision "$OPERATOR_SOURCE_REVISION" \
   --capture-revision "$capture_revision"
 COPYFILE_DISABLE=1 tar -czf "$operator_bundle_archive" -C "$operator_bundle_root" .
 
@@ -254,10 +274,11 @@ log '[plan] 生成 hash-sealed production transaction plan'
   --output "$plan_path" \
   --transaction-id "$TRANSACTION_ID" \
   --release-tag "$RELEASE_TAG" \
-  --image-revision "$IMAGE_REVISION" \
+  --application-source-revision "$IMAGE_REVISION" \
   --image-tag "$IMAGE_TAG" \
   --image-config-digest "$image_config_digest" \
   --image-tar-sha256 "$image_tar_sha256" \
+  --image-provenance-sha256 "$image_provenance_sha256" \
   --deployment-script "$LOCAL_APP_DEPLOY_SCRIPT" \
   --cleanup-engine "$CLEANUP_ENGINE" \
   --operator-bundle-manifest "$operator_bundle_manifest" \
@@ -291,11 +312,13 @@ ssh -o BatchMode=yes "$SSH_TARGET" "mkdir -p '$remote_stage' && chmod 700 '$remo
 scp -q "$plan_path" "$SSH_TARGET:${remote_stage}/plan.json.tmp"
 scp -q "$operator_bundle_archive" "$SSH_TARGET:${remote_stage}/operator-bundle.tar.gz.tmp"
 scp -q "$operator_bundle_manifest" "$SSH_TARGET:${remote_stage}/operator-bundle.manifest.json.tmp"
+scp -q "$LOCAL_IMAGE_TAR" "$SSH_TARGET:${remote_stage}/image.tar.tmp"
+scp -q "$LOCAL_PROVENANCE_FILE" "$SSH_TARGET:${remote_stage}/image.tar.provenance.json.tmp"
 scp -q "$authority_archive" "$SSH_TARGET:${remote_stage}/authority.tar.gz.tmp"
 scp -q "$LOCAL_APP_DEPLOY_SCRIPT" "$SSH_TARGET:${remote_stage}/4-deploy.sh.tmp"
 scp -q "$CLEANUP_ENGINE" "$SSH_TARGET:${remote_stage}/cleanup-failed-authority-identity.cjs.tmp"
 ssh -o BatchMode=yes "$SSH_TARGET" \
-  "bash -s -- stage '$remote_stage' '$plan_sha' '$bundle_archive_sha' '$bundle_manifest_sha' '$archive_sha' '$deploy_sha' '$cleanup_engine_sha'" \
+  "bash -s -- stage '$remote_stage' '$plan_sha' '$bundle_archive_sha' '$bundle_manifest_sha' '$image_tar_sha256' '$image_provenance_sha256' '$archive_sha' '$deploy_sha' '$cleanup_engine_sha'" \
   < "$REMOTE_OPERATOR_SCRIPT"
 
 log '[activate] 在远端固定镜像中执行 first-activation；失败将自动恢复 Legacy 服务'

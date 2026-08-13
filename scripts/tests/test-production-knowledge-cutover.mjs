@@ -9,6 +9,7 @@ const root = process.cwd();
 const tsx = path.join(root, 'node_modules', '.bin', 'tsx');
 const tool = path.join(root, 'scripts', 'knowledge-cutover', 'production-cutover.ts');
 const revision = '58f70df257f493f7dc13b2dabfb0383b972ee017';
+const operatorSourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 const imageTag = 'localhost/act-obe-platform:v0.4.0-58f70df';
 const imageTar = process.env.ACT_TEST_PRODUCTION_IMAGE_TAR
   ?? path.join(root, 'deploy', 'images', 'act-obe-v0.4.0-58f70df.tar');
@@ -20,7 +21,7 @@ const operatorBundleHelper = path.join(root, 'scripts', 'knowledge-cutover', 'cr
 const cleanupEngine = path.join(root, 'scripts', 'knowledge-cutover', 'cleanup-failed-authority-identity.cjs');
 const AUTHORITY_PREFIX = 'course-content/authoring/knowledge/authority/';
 const SHARD_PREFIX = 'course-content/runtime/knowledge/authority-domain-shards/';
-const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v1';
+const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v2';
 
 function imageConfigDigest(archive) {
   const read = (entry) => execFileSync('tar', ['-xOf', archive, entry]);
@@ -173,9 +174,12 @@ function writePreparedReceipt(fixtureRoot, plan, overrides = {}) {
     contract: 'act-production-knowledge-cutover-receipt/v1',
     transactionId: plan.transactionId,
     planHash: plan.planHash,
-    imageRevision: plan.source.imageRevision,
+    applicationSourceRevision: plan.source.applicationSourceRevision,
     imageConfigDigest: plan.source.imageConfigDigest,
     imageTarSha256: plan.source.imageTarSha256,
+    imageProvenanceSha256: plan.source.imageProvenanceSha256,
+    operatorSourceRevision: plan.source.operatorSourceRevision,
+    operatorSourceTree: plan.source.operatorSourceTree,
     captureRevision: plan.source.captureRevision,
     status: 'PREPARED',
     preparedAt: '2026-08-13T00:00:00.000Z',
@@ -230,10 +234,13 @@ function writeSealedCleanupPlan(planPath, transactionId, authorityFiles) {
     createdAt: '2026-08-11T00:00:00.000Z',
     source: {
       releaseTag: 'v0.4.0',
-      imageRevision: revision,
+      applicationSourceRevision: revision,
       imageTag,
       imageConfigDigest: `sha256:${'a'.repeat(64)}`,
       imageTarSha256: 'b'.repeat(64),
+      imageProvenanceSha256: '9'.repeat(64),
+      operatorSourceRevision,
+      operatorSourceTree: '8'.repeat(40),
       captureRevision: revision,
       toolSha256: 'c'.repeat(64),
       deploymentScriptSha256: 'd'.repeat(64),
@@ -1464,6 +1471,16 @@ function main() {
     'remote activation must build the dedicated operator bundle',
   );
   assert.match(
+    remoteActivatorSource,
+    /--operator-source-revision "\$OPERATOR_SOURCE_REVISION"/u,
+    'operator bundle must be built from an explicit source revision',
+  );
+  assert.match(
+    remoteActivatorSource,
+    /--image-provenance-sha256 "\$image_provenance_sha256"/u,
+    'sealed plan must bind the application image provenance sidecar',
+  );
+  assert.match(
     remoteOperatorSource,
     /operator-bundle\.tar\.gz[\s\S]*operator-bundle\.manifest\.json/u,
     'remote staging must carry the bundle archive and manifest',
@@ -1472,6 +1489,16 @@ function main() {
     remoteOperatorSource,
     /operator_bundle_root[\s\S]*run_driver verify-bundle ro/u,
     'remote activation must verify the extracted bundle before stopping consumers',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /verify_staged_application_image\(\)[\s\S]*active-authority-shards-product[\s\S]*consumer_stop_started=1/u,
+    'remote activation must prove the loaded image contains the active-shard product before stopping consumers',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /previous_image_digest[\s\S]*APP_IMAGE="\$previous_image_digest"/u,
+    'failure recovery must redeploy the pre-cutover immutable image identity',
   );
   assert.match(
     remoteOperatorSource,
@@ -1584,6 +1611,8 @@ function main() {
       operatorBundleRoot,
       '--manifest',
       operatorBundleManifest,
+      '--operator-source-revision',
+      operatorSourceRevision,
       '--capture-revision',
       captureRevision,
     ], { cwd: root, encoding: 'utf8' });
@@ -1599,7 +1628,7 @@ function main() {
       transactionId,
       '--release-tag',
       'v0.4.0',
-      '--image-revision',
+      '--application-source-revision',
       revision,
       '--image-tag',
       imageTag,
@@ -1607,6 +1636,8 @@ function main() {
       configDigest,
       '--image-tar-sha256',
       tarSha256,
+      '--image-provenance-sha256',
+      '9'.repeat(64),
       '--deployment-script',
       path.join(root, 'deploy', 'podman', 'deploy.sh'),
       '--cleanup-engine',
@@ -1637,12 +1668,17 @@ function main() {
     assert.equal(plan.files.length > 0, true, 'plan must seal staged artifacts');
     assert.equal(plan.source.imageConfigDigest, configDigest, 'plan must bind the exact OCI config digest');
     assert.equal(plan.source.imageTarSha256, tarSha256, 'plan must bind the frozen image tar hash');
+    assert.equal(plan.source.applicationSourceRevision, revision, 'plan must bind the application source revision');
+    assert.equal(plan.source.imageProvenanceSha256, '9'.repeat(64), 'plan must bind image provenance digest');
+    assert.equal(plan.source.operatorSourceRevision, operatorSourceRevision, 'plan must bind operator source revision separately');
+    assert.match(plan.source.operatorSourceTree, /^[a-f0-9]{40}$/u, 'plan must bind operator source tree');
     assert.equal(
       plan.source.cleanupEngineSha256,
       sha256File(cleanupEngine),
       'plan must bind the standalone failed Authority cleanup engine',
     );
     assert.equal(plan.operatorBundle.captureRevision, captureRevision, 'plan must bind the operator bundle capture revision');
+    assert.notEqual(plan.source.operatorSourceRevision, plan.source.captureRevision, 'operator source revision must not reuse capture revision');
     assert.ok(plan.operatorBundle.bundleSha256, 'plan must bind the operator bundle logical digest');
     assert.ok(plan.operatorBundle.manifestSha256, 'plan must bind the operator bundle manifest digest');
     assert.ok(plan.operatorBundle.archiveSha256, 'plan must bind the operator bundle archive digest');
@@ -1668,6 +1704,38 @@ function main() {
         path.join(operatorBundleFixture, 'operator-bundle.manifest.json'),
       ]);
       assert.equal(verifiedBundle.status, 0, verifiedBundle.stderr);
+
+      const sourceMismatchFixture = createFixture(plan, 'operator-bundle-source-mismatch', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        const mismatchPlan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+        const mismatchedRevision = '0'.repeat(40);
+        mismatchPlan.source.operatorSourceRevision = mismatchedRevision;
+        mismatchPlan.operatorBundle.operatorSourceRevision = mismatchedRevision;
+        const bundleBody = {
+          contract: mismatchPlan.operatorBundle.contract,
+          builderVersion: mismatchPlan.operatorBundle.builderVersion,
+          operatorSourceRevision: mismatchedRevision,
+          operatorSourceTree: mismatchPlan.operatorBundle.operatorSourceTree,
+          captureRevision: mismatchPlan.operatorBundle.captureRevision,
+          files: mismatchPlan.operatorBundle.files,
+        };
+        mismatchPlan.operatorBundle.bundleSha256 = sha256Bytes(canonicalJson(bundleBody));
+        const { planHash: _ignoredPlanHash, ...mismatchBody } = mismatchPlan;
+        mismatchPlan.planHash = sha256Bytes(canonicalJson(mismatchBody));
+        const mismatchPlanPath = path.join(sourceMismatchFixture, 'mismatch-plan.json');
+        fs.writeFileSync(mismatchPlanPath, `${JSON.stringify(mismatchPlan, null, 2)}\n`);
+        const mismatchResult = run([
+          'verify-bundle', '--root', sourceMismatchFixture, '--plan', mismatchPlanPath,
+          '--bundle-root', path.join(sourceMismatchFixture, 'operator-bundle'),
+          '--bundle-manifest', path.join(sourceMismatchFixture, 'operator-bundle.manifest.json'),
+        ]);
+        expectFailure(mismatchResult, /operator bundle source tree identity mismatch/u, 'operator source revision/tree mismatch must fail closed');
+      } finally {
+        fs.rmSync(sourceMismatchFixture, { recursive: true, force: true });
+      }
 
       const missingBundle = createFixture(plan, 'operator-bundle-missing', {
         operatorBundleSource: operatorBundleRoot,

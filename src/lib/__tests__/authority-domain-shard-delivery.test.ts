@@ -34,6 +34,7 @@ import {
   loadRootShard,
   loadOptionalDomainTeachingProjection,
   projectAuthorityLearnerShard,
+  projectAuthorityObject,
   teachingCoverageFromState,
   writeAuthorityDomainShards,
   type AuthorityShardEnvelope,
@@ -317,6 +318,8 @@ describe('authority domain shard delivery', () => {
     expect(association.relations[0]?.sourceId).toBe(MODELING);
     expect(association.relations[0]?.targetId).toBe(NEIGHBOR);
     expect(association.relations[0]?.predicate).toBe('association');
+    expect(materialized.neighborhoods[NEIGHBOR]).toBeDefined();
+    expect(materialized.details[NEIGHBOR]).toBeDefined();
     const neighborhood = materialized.neighborhoods[MODELING];
     expect(neighborhood.relations).toHaveLength(2);
     expect(neighborhood.truncated).toBe(false);
@@ -338,6 +341,15 @@ describe('authority domain shard delivery', () => {
     const rootBytes = Buffer.byteLength(`${JSON.stringify(materialized.root)}\n`);
     expect(rootBytes).toBeLessThan(AUTHORITY_SHARD_PAYLOAD_BUDGETS.root);
     expect(rootBytes).toBeLessThan(80_000);
+  });
+
+  it('uses a controlled unavailable label when an Authority object has no human-readable label', () => {
+    const projected = projectAuthorityObject({
+      ...objectRow(MODELING, MODELING),
+      payload: {},
+    }, catalogRuntime());
+    expect(projected.label).toBe('名称暂不可用');
+    expect(projected.label).not.toBe(MODELING);
   });
 
   it('loads root and domain-default without opening engineering.json', () => {

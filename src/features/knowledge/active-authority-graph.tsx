@@ -119,13 +119,17 @@ function useActiveAuthorityWorkspace(retry: number): {
   workspace: AuthorityShardWorkspaceState;
   enterDomain: (visualRole: string) => void;
   enableFamily: (family: EngineeringRelationFamily) => void;
+  familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
   requestNeighborhood: (nodeId: string) => void;
+  neighborhoodFailures: Record<string, string>;
   resetDomain: () => void;
   applyShard: (shard: IncomingAuthorityShard, generation?: number, domainRevision?: number) => boolean;
   onIdentityFailure: () => void;
 } {
   const [state, setState] = useState<WorkspaceLoadState>({ status: 'loading' });
   const [workspace, setWorkspace] = useState<AuthorityShardWorkspaceState>(createEmptyAuthorityShardWorkspace);
+  const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, string>>>({});
+  const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, string>>({});
   const workspaceRef = useRef(workspace);
   const requestGenerationRef = useRef(0);
   const requestControllersRef = useRef(new Set<AbortController>());
@@ -157,6 +161,8 @@ function useActiveAuthorityWorkspace(retry: number): {
     const empty = createEmptyAuthorityShardWorkspace();
     workspaceRef.current = empty;
     setWorkspace(empty);
+    setFamilyFailures({});
+    setNeighborhoodFailures({});
     setState({ status: 'error', message: errorMessage(409) });
   }
 
@@ -234,6 +240,8 @@ function useActiveAuthorityWorkspace(retry: number): {
     failClosedRef.current = false;
     requestControllersRef.current.add(controller);
     setState({ status: 'loading' });
+    setFamilyFailures({});
+    setNeighborhoodFailures({});
     updateWorkspace(() => createEmptyAuthorityShardWorkspace());
     fetchAuthorityShard('/api/knowledge/shards/active', 'root', controller.signal)
       .then((shard) => {
@@ -266,6 +274,8 @@ function useActiveAuthorityWorkspace(retry: number): {
       ...workspace,
       activeVisualRole: visualRole,
     }));
+    setFamilyFailures({});
+    setNeighborhoodFailures({});
     const generation = nextRequestGeneration();
     fetchDomainDefault(visualRole, generation, workspaceRef.current.domainRevision);
   }
@@ -275,6 +285,12 @@ function useActiveAuthorityWorkspace(retry: number): {
     const domainId = current.activeDomainId;
     const visualRole = current.activeVisualRole;
     const domainRevision = current.domainRevision;
+    setFamilyFailures((currentFailures) => {
+      if (!currentFailures[family]) return currentFailures;
+      const next = { ...currentFailures };
+      delete next[family];
+      return next;
+    });
     updateWorkspace((workspace) => enableAuthorityShardFamily(workspace, family));
     if (!domainId || !visualRole) return;
     const key = `relation-family:${domainId}:${family}`;
@@ -287,11 +303,31 @@ function useActiveAuthorityWorkspace(retry: number): {
       'relation-family',
       controller.signal,
       )
-      .then((shard) => applyShard(shard, generation, domainRevision))
-      .catch((error: unknown) => {
-        if (!controller.signal.aborted && generation === requestGenerationRef.current && isIdentityFailure(error)) {
-          onIdentityFailure();
+      .then((shard) => {
+        const applied = applyShard(shard, generation, domainRevision);
+        if (applied) {
+          setFamilyFailures((currentFailures) => {
+            if (!currentFailures[family]) return currentFailures;
+            const next = { ...currentFailures };
+            delete next[family];
+            return next;
+          });
         }
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || generation !== requestGenerationRef.current) return;
+        if (isIdentityFailure(error)) {
+          onIdentityFailure();
+          return;
+        }
+        updateWorkspace((current) => ({
+          ...current,
+          enabledFamilies: current.enabledFamilies.filter((enabledFamily) => enabledFamily !== family),
+        }));
+        setFamilyFailures((currentFailures) => ({
+          ...currentFailures,
+          [family]: error instanceof Error ? error.message : '关系族分片暂时无法加载，请重试。',
+        }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
   }
@@ -301,6 +337,12 @@ function useActiveAuthorityWorkspace(retry: number): {
     if (workspaceRef.current.loadedShardKeys.includes(key)) return;
     const domainRevision = workspaceRef.current.domainRevision;
     const generation = requestGenerationRef.current;
+    setNeighborhoodFailures((currentFailures) => {
+      if (!currentFailures[nodeId]) return currentFailures;
+      const next = { ...currentFailures };
+      delete next[nodeId];
+      return next;
+    });
     const controller = new AbortController();
     requestControllersRef.current.add(controller);
     fetchAuthorityShard(
@@ -308,11 +350,27 @@ function useActiveAuthorityWorkspace(retry: number): {
       'node-neighborhood',
       controller.signal,
       )
-      .then((shard) => applyShard(shard, generation, domainRevision))
-      .catch((error: unknown) => {
-        if (!controller.signal.aborted && generation === requestGenerationRef.current && isIdentityFailure(error)) {
-          onIdentityFailure();
+      .then((shard) => {
+        const applied = applyShard(shard, generation, domainRevision);
+        if (applied) {
+          setNeighborhoodFailures((currentFailures) => {
+            if (!currentFailures[nodeId]) return currentFailures;
+            const next = { ...currentFailures };
+            delete next[nodeId];
+            return next;
+          });
         }
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || generation !== requestGenerationRef.current) return;
+        if (isIdentityFailure(error)) {
+          onIdentityFailure();
+          return;
+        }
+        setNeighborhoodFailures((currentFailures) => ({
+          ...currentFailures,
+          [nodeId]: error instanceof Error ? error.message : '邻域分片暂时无法加载，请重试。',
+        }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
   }
@@ -320,9 +378,22 @@ function useActiveAuthorityWorkspace(retry: number): {
   function resetDomain() {
     nextRequestGeneration();
     updateWorkspace(resetAuthorityShardDomain);
+    setFamilyFailures({});
+    setNeighborhoodFailures({});
   }
 
-  return { state, workspace, enterDomain, enableFamily, requestNeighborhood, resetDomain, applyShard, onIdentityFailure };
+  return {
+    state,
+    workspace,
+    enterDomain,
+    enableFamily,
+    familyFailures,
+    requestNeighborhood,
+    neighborhoodFailures,
+    resetDomain,
+    applyShard,
+    onIdentityFailure,
+  };
 }
 
 function useActiveNodeDetail(
@@ -933,7 +1004,9 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     workspace,
     enterDomain,
     enableFamily,
+    familyFailures,
     requestNeighborhood,
+    neighborhoodFailures,
     resetDomain,
     applyShard,
     onIdentityFailure,
@@ -1198,18 +1271,38 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                 </div>
                 {ENGINEERING_RELATION_FAMILIES.map((family) => {
                   const enabled = workspace.enabledFamilies.includes(family);
+                  const failure = familyFailures[family];
                   return (
+                    <div key={family} className="flex items-center gap-1">
                     <button
-                      key={family}
                       type="button"
                       data-authority-relation-family={family}
                       data-authority-family-enabled={enabled ? 'true' : 'false'}
                       aria-pressed={enabled}
+                      aria-label={failure ? `${FAMILY_LABELS[family]}关系加载失败，点击重试` : undefined}
                       onClick={() => enableFamily(family)}
                       className={`rounded-md border px-2.5 py-2 text-xs ${enabled ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
                     >
                       {FAMILY_LABELS[family]}
                     </button>
+                    {failure ? (
+                      <span
+                        role="alert"
+                        aria-live="polite"
+                        data-authority-family-failure={family}
+                        className="max-w-44 text-[11px] text-red-200"
+                      >
+                        {failure}
+                        <button
+                          type="button"
+                          onClick={() => enableFamily(family)}
+                          aria-label={`重试${FAMILY_LABELS[family]}关系`}
+                          data-authority-family-retry={family}
+                          className="ml-1 underline underline-offset-2"
+                        >重试</button>
+                      </span>
+                    ) : null}
+                    </div>
                   );
                 })}
                 <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />返回领域</button>
@@ -1220,6 +1313,17 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
               <span>{scopedGraph.nodes.length} 个对象 · {scopedGraph.relations.length} 条关系 · 可见范围</span>
               <span>总覆盖 {model.totalNodeCount} 个对象 · {model.totalRelationCount} 条关系</span>
             </div>
+            {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
+              <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
+                <span>{neighborhoodFailures[selectedNodeKey]}</span>
+                <button
+                  type="button"
+                  onClick={() => requestNeighborhood(selectedNodeKey)}
+                  data-authority-neighborhood-retry={selectedNodeKey}
+                  className="shrink-0 underline underline-offset-2"
+                >重试邻域</button>
+              </div>
+            ) : null}
             <div className="relative overflow-hidden rounded-xl border border-platform-border bg-[#07111f]" data-active-graph-stage="authority" tabIndex={-1}>
               <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-md border border-platform-border bg-platform-surface/90 p-1">
                 <button type="button" aria-label="缩小图谱" onClick={() => setZoom((value) => Math.max(0.65, Number((value - 0.15).toFixed(2))))} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><Minus className="h-3.5 w-3.5" aria-hidden="true" /></button>

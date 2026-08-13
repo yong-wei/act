@@ -69,41 +69,45 @@ run_preflight() {
   [ "$available_bytes" -ge "$minimum_free_bytes" ] \
     || die "远端可用空间不足 1 GiB: ${available_bytes} bytes"
 
-  podman image exists "$image_tag" || die "固定镜像不存在: $image_tag"
-  local image_id
-  image_id="$(normalize_oci_digest "$(podman image inspect "$image_tag" --format '{{.Id}}')")"
-  [ "$image_id" = "$image_config_digest" ] \
-    || die "固定镜像 OCI config digest 不一致: $image_id"
-  local label_revision
-  label_revision="$(podman image inspect "$image_tag" --format '{{ index .Labels "org.opencontainers.image.revision" }}')"
-  [ "$label_revision" = "$image_revision" ] \
-    || die "固定镜像 OCI revision 不一致: $label_revision"
+  # The target image is uploaded and loaded only after this preflight. The
+  # running Legacy containers may therefore legitimately use the previous
+  # image. Capture that identity and require the two consumers to agree; the
+  # target digest/revision/product proof is enforced in run_activate before
+  # the first stop attempt.
+  local running_image_id=''
   local container
   for container in act-obe-app act-obe-worker; do
     podman container exists "$container" || die "运行容器不存在: $container"
     [ "$(podman inspect "$container" --format '{{.State.Running}}')" = true ] \
       || die "运行容器未启动: $container"
-    [ "$(normalize_oci_digest "$(podman inspect "$container" --format '{{.Image}}')")" = "$image_id" ] \
-      || die "运行容器未使用固定镜像: $container"
-    [ "$(podman exec "$container" cat /app/.app-revision)" = "$image_revision" ] \
-      || die "运行容器 app revision 不一致: $container"
+    local container_image_id
+    container_image_id="$(normalize_oci_digest "$(podman inspect "$container" --format '{{.Image}}')")"
+    if [ -z "$running_image_id" ]; then
+      running_image_id="$container_image_id"
+    elif [ "$container_image_id" != "$running_image_id" ]; then
+      die "运行消费者未使用同一旧镜像: $container"
+    fi
+    [ -n "$(podman exec "$container" cat /app/.app-revision)" ] \
+      || die "运行容器缺少 app revision: $container"
   done
 
-  printf 'remote_preflight=passed available_bytes=%s image_config_digest=%s\n' "$available_bytes" "$image_id"
+  printf 'remote_preflight=passed available_bytes=%s running_image_config_digest=%s target_image_config_digest=%s\n' "$available_bytes" "$running_image_id" "$image_config_digest"
 }
 
 run_stage() {
-  [ "$#" -eq 7 ] || die 'stage requires stage plan_sha bundle_archive_sha bundle_manifest_sha archive_sha deploy_sha cleanup_engine_sha'
+  [ "$#" -eq 9 ] || die 'stage requires stage plan_sha bundle_archive_sha bundle_manifest_sha image_tar_sha image_provenance_sha archive_sha deploy_sha cleanup_engine_sha'
   local stage="$1"
   local plan_sha="$2"
   local bundle_archive_sha="$3"
   local bundle_manifest_sha="$4"
-  local archive_sha="$5"
-  local deploy_sha="$6"
-  local cleanup_engine_sha="$7"
+  local image_tar_sha="$5"
+  local image_provenance_sha="$6"
+  local archive_sha="$7"
+  local deploy_sha="$8"
+  local cleanup_engine_sha="$9"
   local pair file expected
 
-  for pair in "plan.json.tmp:$plan_sha" "operator-bundle.tar.gz.tmp:$bundle_archive_sha" "operator-bundle.manifest.json.tmp:$bundle_manifest_sha" "authority.tar.gz.tmp:$archive_sha" "4-deploy.sh.tmp:$deploy_sha" "cleanup-failed-authority-identity.cjs.tmp:$cleanup_engine_sha"; do
+  for pair in "plan.json.tmp:$plan_sha" "operator-bundle.tar.gz.tmp:$bundle_archive_sha" "operator-bundle.manifest.json.tmp:$bundle_manifest_sha" "image.tar.tmp:$image_tar_sha" "image.tar.provenance.json.tmp:$image_provenance_sha" "authority.tar.gz.tmp:$archive_sha" "4-deploy.sh.tmp:$deploy_sha" "cleanup-failed-authority-identity.cjs.tmp:$cleanup_engine_sha"; do
     file="${pair%%:*}"
     expected="${pair#*:}"
     [ "$(hash_file "${stage}/${file}")" = "$expected" ] || {
@@ -118,17 +122,21 @@ if (plan.source?.deploymentScriptSha256 !== process.argv[2]) process.exit(1);
 if (plan.source?.cleanupEngineSha256 !== process.argv[3]) process.exit(1);
 if (plan.operatorBundle?.archiveSha256 !== process.argv[4]) process.exit(1);
 if (plan.operatorBundle?.manifestSha256 !== process.argv[5]) process.exit(1);
-' "${stage}/plan.json.tmp" "$deploy_sha" "$cleanup_engine_sha" "$bundle_archive_sha" "$bundle_manifest_sha" || {
+if (plan.source?.imageTarSha256 !== process.argv[6]) process.exit(1);
+if (plan.source?.imageProvenanceSha256 !== process.argv[7]) process.exit(1);
+' "${stage}/plan.json.tmp" "$deploy_sha" "$cleanup_engine_sha" "$bundle_archive_sha" "$bundle_manifest_sha" "$image_tar_sha" "$image_provenance_sha" || {
     echo 'ERROR: sealed plan deployment, cleanup engine, or operator bundle hash mismatch' >&2
     exit 1
   }
   mv "${stage}/plan.json.tmp" "${stage}/plan.json"
   mv "${stage}/operator-bundle.tar.gz.tmp" "${stage}/operator-bundle.tar.gz"
   mv "${stage}/operator-bundle.manifest.json.tmp" "${stage}/operator-bundle.manifest.json"
+  mv "${stage}/image.tar.tmp" "${stage}/image.tar"
+  mv "${stage}/image.tar.provenance.json.tmp" "${stage}/image.tar.provenance.json"
   mv "${stage}/authority.tar.gz.tmp" "${stage}/authority.tar.gz"
   mv "${stage}/4-deploy.sh.tmp" "${stage}/4-deploy.sh"
   mv "${stage}/cleanup-failed-authority-identity.cjs.tmp" "${stage}/cleanup-failed-authority-identity.cjs"
-  chmod 600 "${stage}/plan.json" "${stage}/operator-bundle.tar.gz" "${stage}/operator-bundle.manifest.json" "${stage}/authority.tar.gz" "${stage}/4-deploy.sh" "${stage}/cleanup-failed-authority-identity.cjs"
+  chmod 600 "${stage}/plan.json" "${stage}/operator-bundle.tar.gz" "${stage}/operator-bundle.manifest.json" "${stage}/image.tar" "${stage}/image.tar.provenance.json" "${stage}/authority.tar.gz" "${stage}/4-deploy.sh" "${stage}/cleanup-failed-authority-identity.cjs"
 }
 
 run_stage_cleanup_engine() {
@@ -356,6 +364,8 @@ run_activate() {
   local marker="${runtime_root}/knowledge/production-cutover-transactions/current.json"
   local journal="${runtime_root}/knowledge/consumer-activation/first-activation-transactions/${transaction_id}.json"
   local command_log="${stage}/command.log"
+  local image_tar="${stage}/image.tar"
+  local image_provenance="${stage}/image.tar.provenance.json"
   local operator_bundle_archive="${stage}/operator-bundle.tar.gz"
   local operator_bundle_manifest="${stage}/operator-bundle.manifest.json"
   local operator_bundle_root="${stage}/operator-bundle"
@@ -366,6 +376,86 @@ run_activate() {
     "${runtime_root}/knowledge/authority-domain-shards/current.json"
     "${runtime_root}/knowledge/consumer-activation/current.json"
   )
+  local previous_image_digest=''
+  local previous_image_revision=''
+
+  capture_previous_image_identity() {
+    local app_image_digest worker_image_digest app_image_revision worker_image_revision
+    app_image_digest="$(normalize_oci_digest "$(podman inspect act-obe-app --format '{{.Image}}')")"
+    worker_image_digest="$(normalize_oci_digest "$(podman inspect act-obe-worker --format '{{.Image}}')")"
+    [ "$app_image_digest" = "$worker_image_digest" ] \
+      || die '切换前 app/worker 未使用同一旧镜像'
+    app_image_revision="$(podman exec act-obe-app cat /app/.app-revision)"
+    worker_image_revision="$(podman exec act-obe-worker cat /app/.app-revision)"
+    [ -n "$app_image_revision" ] && [ "$app_image_revision" = "$worker_image_revision" ] \
+      || die '切换前 app/worker source revision 不一致'
+    previous_image_digest="$app_image_digest"
+    previous_image_revision="$app_image_revision"
+    node -e '
+const fs = require("node:fs");
+const [output, digest, revision] = process.argv.slice(1);
+fs.writeFileSync(output, `${JSON.stringify({ contract: "act-production-knowledge-cutover-previous-image/v1", imageConfigDigest: digest, applicationSourceRevision: revision })}\n`, { mode: 0o600, flag: "w" });
+' "${stage}/previous-image.json" "$previous_image_digest" "$previous_image_revision"
+  }
+
+  normalize_runtime_env_to_legacy() {
+    local env_file="${project_dir}/data/runtime/act-obe.env"
+    [ -f "$env_file" ] || return 0
+    local temporary="${env_file}.tmp.$$"
+    awk -F= '$1 != "ACT_KNOWLEDGE_DEPLOYMENT_MODE"' "$env_file" > "$temporary"
+    printf '%s\n' 'ACT_KNOWLEDGE_DEPLOYMENT_MODE=legacy' >> "$temporary"
+    chmod --reference="$env_file" "$temporary" 2>/dev/null || chmod 600 "$temporary"
+    mv -f "$temporary" "$env_file"
+  }
+
+  verify_staged_application_image() {
+    [ -f "$image_tar" ] && [ ! -L "$image_tar" ] \
+      || die 'staged application image tar must be a regular file'
+    [ -f "$image_provenance" ] && [ ! -L "$image_provenance" ] \
+      || die 'staged application image provenance must be a regular file'
+    local expected_tar_sha expected_provenance_sha
+    expected_tar_sha="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).source?.imageTarSha256 ?? "")' "${stage}/plan.json")"
+    expected_provenance_sha="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).source?.imageProvenanceSha256 ?? "")' "${stage}/plan.json")"
+    [[ "$expected_tar_sha" =~ ^[a-f0-9]{64}$ ]] || die 'sealed plan image tar hash is invalid'
+    [[ "$expected_provenance_sha" =~ ^[a-f0-9]{64}$ ]] || die 'sealed plan image provenance hash is invalid'
+    [ "$(hash_file "$image_tar")" = "$expected_tar_sha" ] \
+      || die 'staged application image tar hash mismatch with sealed plan'
+    [ "$(hash_file "$image_provenance")" = "$expected_provenance_sha" ] \
+      || die 'staged application image provenance hash mismatch with sealed plan'
+    node -e '
+const fs = require("node:fs");
+const sidecar = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+if (sidecar.imageTarSha256 !== process.argv[2] || sidecar.appRevision !== process.argv[3]) process.exit(1);
+if (typeof sidecar.runtimeSourceRevision !== "string" || !/^[a-f0-9]{40}$/.test(sidecar.runtimeSourceRevision)) process.exit(1);
+if (sidecar.runtimeSourceRevision !== sidecar.indexSourceRevision) process.exit(1);
+' "$image_provenance" "$expected_tar_sha" "$image_revision" \
+      || die 'staged application image provenance does not bind target source revision'
+
+    # Loading the tar and checking the resulting local image identity happens
+    # while the old consumers are still serving. No pointer or container stop
+    # is attempted until every identity and product proof below succeeds.
+    podman load -i "$image_tar" >/dev/null
+    podman image exists "$image_tag" || die 'staged application image tag is unavailable after load'
+    local loaded_digest loaded_revision
+    loaded_digest="$(normalize_oci_digest "$(podman image inspect "$image_tag" --format '{{.Id}}')")"
+    [ "$loaded_digest" = "$image_config_digest" ] \
+      || die 'loaded application image config digest mismatch'
+    loaded_revision="$(podman image inspect "$image_tag" --format '{{ index .Labels "org.opencontainers.image.revision" }}')"
+    [ "$loaded_revision" = "$image_revision" ] \
+      || die 'loaded application image source revision label mismatch'
+    podman run --rm --network none --entrypoint /bin/sh "$image_tag" -lc '
+      set -eu
+      expected_revision="$1"
+      test "$(cat /app/.app-revision)" = "$expected_revision"
+      test -f /app/.active-authority-shards-product
+      grep -Fxq "$expected_revision" /app/.active-authority-shards-product
+      test -f /app/src/features/knowledge/active-authority-graph.tsx
+      test -f /app/src/features/knowledge/active-authority-shard-store.ts
+      test -f /app/src/lib/authority-domain-shards/materialize.ts
+      grep -q "/api/knowledge/shards/active" /app/src/features/knowledge/active-authority-graph.tsx
+      test -f /app/src/app/api/knowledge/shards/active/route.ts
+    ' sh "$image_revision" || die 'application image does not contain the active-shard product implementation'
+  }
 
   exec > >(tee -a "$command_log") 2>&1
 
@@ -473,8 +563,18 @@ run_activate() {
         fi
       fi
       if [ "$recovery_ok" -eq 0 ]; then
-        APP_IMAGE="$image_tag" ACT_KNOWLEDGE_DEPLOYMENT_MODE=legacy "$deploy_script" --app-only
-      else
+        normalize_runtime_env_to_legacy
+        APP_IMAGE="$previous_image_digest" ACT_KNOWLEDGE_DEPLOYMENT_MODE=legacy "$deploy_script" --app-only
+        [ "$(normalize_oci_digest "$(podman inspect act-obe-app --format '{{.Image}}')")" = "$previous_image_digest" ] \
+          || recovery_ok=1
+        [ "$(normalize_oci_digest "$(podman inspect act-obe-worker --format '{{.Image}}')")" = "$previous_image_digest" ] \
+          || recovery_ok=1
+        [ "$(podman exec act-obe-app cat /app/.app-revision)" = "$previous_image_revision" ] \
+          || recovery_ok=1
+        [ "$(podman exec act-obe-worker cat /app/.app-revision)" = "$previous_image_revision" ] \
+          || recovery_ok=1
+      fi
+      if [ "$recovery_ok" -ne 0 ]; then
         printf 'ERROR: 自动恢复未完成；消费者保持停止，保留 stage/journal 供显式恢复。\n' >&2
       fi
     else
@@ -493,13 +593,6 @@ run_activate() {
   if [ -n "$authority_entry" ]; then
     die 'Authority host store 在 transaction 开始时不为空'
   fi
-  podman image exists "$image_tag" || die '固定镜像在 transaction 前不可用'
-  [ "$(normalize_oci_digest "$(podman image inspect "$image_tag" --format '{{.Id}}')")" = "$image_config_digest" ] \
-    || die '固定镜像 OCI config digest 在 transaction 前不一致'
-  [ "$(podman image inspect "$image_tag" --format '{{ index .Labels "org.opencontainers.image.revision" }}')" = "$image_revision" ] \
-    || die '固定镜像 revision 在 transaction 前不一致'
-  podman run --rm --network none --entrypoint /bin/sh "$image_tag" -lc \
-    'test -x ./node_modules/.bin/tsx'
 
   local expected_deploy_sha
   expected_deploy_sha="$(node -e 'const fs=require("node:fs"); process.stdout.write(JSON.parse(fs.readFileSync(process.argv[1], "utf8")).source.deploymentScriptSha256)' "${stage}/plan.json")"
@@ -513,6 +606,8 @@ run_activate() {
   # Content/security/metadata validation must fail closed before any consumer stop.
   validate_authority_archive_listing "${stage}/authority.tar.gz"
   prepare_operator_bundle
+  capture_previous_image_identity
+  verify_staged_application_image
 
   # Mutation window lock: shared with failed-authority cleanup, independent of the
   # TypeScript first-activation lock under consumer-activation/.
@@ -558,6 +653,10 @@ run_activate() {
       || die "切换后容器镜像不一致: $container"
     [ "$(normalize_oci_digest "$(podman inspect "$container" --format '{{.Image}}')")" = "$image_config_digest" ] \
       || die "切换后容器 OCI config digest 不一致: $container"
+    [ "$(podman exec "$container" cat /app/.app-revision)" = "$image_revision" ] \
+      || die "切换后容器 application source revision 不一致: $container"
+    podman exec "$container" sh -c 'test -f /app/.active-authority-shards-product && grep -Fxq "$1" /app/.active-authority-shards-product' sh "$image_revision" \
+      || die "切换后容器缺少 active-shard product proof: $container"
     [ "$(podman inspect "$container" --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Fxc 'ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover')" = 1 ] \
       || die "切换后容器未收到 explicit cutover mode: $container"
   done

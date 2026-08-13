@@ -24,6 +24,8 @@
 - ACCEPT：production cutover 未将 Authority domain shard pointer 纳入 sealed activation transaction，后续 Authority/Teaching 切换可能留下旧 shard pointer 并使 runtime fail closed。采用第五组件方案；plan、activation、rollback、recovery 与 active verification 必须共同覆盖该 pointer 和其 sealed immutable set。immutable set 的删除授权无法从可变 receipt 证明，故 rollback/recovery 只恢复 selector，不删除任何 set。
 
 - ACCEPT（最终整改 A）：所有分片类别共享 Authority/catalog/Teaching identity drift 处理；Authority/catalog drift 中止当前请求世代并清空 workspace，Teaching-only drift 仅清除教学关系、coverage、domain-default/detail cache 与 loaded keys，保留工程对象、关系和布局并在新世代重取 active domain。
-- ACCEPT（最终整改 B）：固定 OCI image `58f70df` 通过专用 full-src operator bundle 运行本 PR 的 `production-cutover.ts` 与静态依赖闭包；manifest、逐文件 digest、bundle/archive/manifest digest 与 capture revision 全部封存并绑定 sealed plan。远端在停止消费者前完成实际 bundle verifier，隔离 root 运行 activate/verify/rollback/recover。
+- ACCEPT（最终整改 B）：历史固定 OCI image `58f70df` 缺少本 PR 的 shard 实现；生产改为构建当前 application source revision 的新 immutable image，并通过专用 full-src operator bundle 运行 `production-cutover.ts` 与静态依赖闭包。manifest、逐文件 digest、bundle/archive/manifest digest、显式 operator source revision/tree 与 capture revision 全部封存并绑定 sealed plan。远端在停止消费者前完成实际 image/product proof 与 bundle verifier，隔离 root 运行 activate/verify/rollback/recover。
 - ACCEPT（最终整改 C）：node-detail API 按认证角色投影，STUDENT 响应完全移除 `teachingFields`，TEACHER/ADMIN 保持已有允许字段边界。
 - ACCEPT（最终整改 D）：分片 API 对已知内部 store/identity 错误仅公开稳定 code、HTTP status 与固定安全文案，不得透传 I/O、解析器或本机路径原文。
+- ACCEPT（发布绑定整改）：sealed plan 绑定 application OCI config/tar/provenance 与 application source revision，并独立绑定 operator source revision/tree、bundle per-file/manifest/archive digest 及 data capture revision；operator bundle 仅从显式 Git tree 构造，远端停止消费者前完成目标镜像内容证明，异常恢复使用 pointer 对应的旧镜像 digest。
+- ACCEPT（产品边界整改）：对象缺少人类可读名称时受控不可用且不显示 canonical ID；bounded neighborhood 对每个实际返回的邻居生成后续 shard；relation-family/neighborhood 请求失败撤销 optimistic enabled 状态并提供可见重试。

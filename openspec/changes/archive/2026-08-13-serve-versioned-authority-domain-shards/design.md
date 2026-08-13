@@ -40,16 +40,33 @@ Add endpoints beside the current active canvas endpoint, prove payload and reque
    relations, layout, selection and inspector state. The rule applies equally
    to relation-family, node-neighborhood and node-detail responses; the active
    domain is fetched again under a new request generation.
-2. The fixed OCI image `58f70df` does not provide this change's shard and
-   first-activation source. Production therefore seals a dedicated full-src
-   operator bundle (manifest, per-file digests, logical/archive/manifest
-   digests and capture revision) into the transaction plan. The remote driver
-   validates and extracts that bundle before stopping consumers, then runs it
-   from an isolated `/operator-bundle` root with the fixed image's tsx and
-   node_modules; it never mounts or falls back to the image's `/app/src`.
+2. The historical fixed OCI image `58f70df` does not provide this change's
+   shard and first-activation source. Production therefore builds and seals a
+   new immutable application image from the application source revision, and
+   separately seals a dedicated full-src operator bundle (manifest, per-file
+   digests, logical/archive/manifest digests and explicit operator source
+   revision/tree) into the transaction plan. The remote driver validates the
+   target image and bundle before stopping consumers; it runs the operator
+   from an isolated `/operator-bundle` root with the immutable image's tsx and
+   node_modules and never mounts or falls back to an unsealed worktree.
 3. Immutable node-detail sources may retain `teachingFields`, but the API
    projects the response by authenticated role: STUDENT JSON omits the field
    entirely, while TEACHER and ADMIN retain their existing allowed boundary.
 4. Known internal shard store and identity failures expose only their stable
    response code, HTTP status and a fixed safe message. I/O, parser and local
    path detail remains server-side and is never included in product JSON.
+5. The production cutover plan is sealed against the immutable application
+   OCI config/tar/provenance identity and its application source revision,
+   independently from the operator source revision/tree and data capture
+   revision. The operator bundle is reconstructed from the explicitly named
+   clean Git tree; the current worktree is never copied as another revision.
+   Remote activation loads and proves the target image (revision label,
+   provenance, active-shard graph/client/store marker) before stopping any
+   consumer. Failure recovery redeploys the captured pre-cutover image digest
+   and revision after pointer rollback/recovery.
+6. A missing human-readable object label is controlled unavailable data, never
+   a visible canonical/internal ID fallback. Bounded neighborhoods materialize
+   follow-on shards for every returned neighbor so selectable nodes do not
+   resolve to an unmaterialized 404. Relation-family and neighborhood load
+   failures roll back optimistic state and remain visible with an explicit
+   retry action.

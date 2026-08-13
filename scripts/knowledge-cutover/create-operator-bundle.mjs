@@ -1,29 +1,27 @@
 #!/usr/bin/env node
 
 /**
- * Build the source-only operator bundle used by the v0.4.0 cutover driver.
+ * Build the source-only operator bundle used by the production cutover driver.
  *
- * The fixed application image supplies Node and its node_modules, but it does
- * not contain the shard/first-activation source introduced after that image
- * was built.  Keep the bundle layout identical to the repository layout so
- * relative imports resolve inside the isolated bundle root.
+ * The immutable application image supplies Node and its node_modules. Keep the
+ * bundle layout identical to the repository layout so relative imports resolve
+ * inside the isolated bundle root, while sourcing every byte from the explicit
+ * Git tree rather than the caller's worktree.
  */
 
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import {
-  copyFileSync,
   existsSync,
-  lstatSync,
   mkdirSync,
-  readFileSync,
-  readdirSync,
   rmSync,
+  readFileSync,
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
 
-const CONTRACT = 'act-knowledge-cutover-operator-bundle/v1';
-const BUILDER_VERSION = '2026-08-13.full-src-v1';
+const CONTRACT = 'act-knowledge-cutover-operator-bundle/v2';
+const BUILDER_VERSION = '2026-08-13.git-tree-v2';
 const COMMIT = /^[a-f0-9]{40}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
 
@@ -63,57 +61,91 @@ function relative(value) {
   return normalized;
 }
 
-function copyTree(sourceRoot, bundleRoot, sourceRelative, files) {
-  const source = path.join(sourceRoot, sourceRelative);
-  const target = path.join(bundleRoot, sourceRelative);
-  const stat = lstatSync(source);
-  if (stat.isSymbolicLink()) fail(`symlink is forbidden: ${sourceRelative}`);
-  if (stat.isDirectory()) {
-    mkdirSync(target, { recursive: true });
-    for (const entry of readdirSync(source, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
-      copyTree(sourceRoot, bundleRoot, path.join(sourceRelative, entry.name), files);
-    }
-    return;
+function git(repoRoot, args, options = {}) {
+  try {
+    return execFileSync('git', ['-C', repoRoot, ...args], {
+      ...options,
+      encoding: options.encoding ?? 'utf8',
+      maxBuffer: options.maxBuffer ?? 64 * 1024 * 1024,
+    });
+  } catch (error) {
+    fail(`git ${args.join(' ')} failed: ${error instanceof Error ? error.message : String(error)}`);
   }
-  if (!stat.isFile()) fail(`unsupported source entry: ${sourceRelative}`);
-  mkdirSync(path.dirname(target), { recursive: true });
-  copyFileSync(source, target);
-  const bytes = requireBuffer(target);
-  files.push({
-    path: relative(sourceRelative),
-    sha256: sha256(bytes),
-    size: stat.size,
-  });
 }
 
-function requireBuffer(filePath) {
-  // Keep the only fs read in this helper local so the manifest always hashes
-  // the copied bytes rather than trusting source metadata.
-  return readFileSync(filePath);
+function gitTreeFiles(repoRoot, revision, sourcePaths) {
+  const listing = git(repoRoot, ['ls-tree', '-r', '-z', '--full-tree', revision, '--', ...sourcePaths], { encoding: 'buffer' });
+  const files = [];
+  for (const record of listing.toString('utf8').split('\0').filter(Boolean)) {
+    const separator = record.indexOf('\t');
+    if (separator < 0) fail('git tree entry is malformed');
+    const metadata = record.slice(0, separator).split(' ');
+    const sourceRelative = record.slice(separator + 1);
+    if (metadata[0] !== '100644' && metadata[0] !== '100755') {
+      fail(`operator bundle Git tree contains a non-regular entry: ${sourceRelative}`);
+    }
+    files.push(sourceRelative);
+  }
+  return files.sort((left, right) => left.localeCompare(right));
+}
+
+function copyGitTree(repoRoot, bundleRoot, revision, sourcePaths, files) {
+  const sourceFiles = gitTreeFiles(repoRoot, revision, sourcePaths);
+  const archive = git(repoRoot, ['archive', '--format=tar', revision, '--', ...sourcePaths], {
+    encoding: 'buffer',
+    maxBuffer: 1024 * 1024 * 1024,
+  });
+  execFileSync('tar', ['-xf', '-', '-C', bundleRoot], {
+    input: archive,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  for (const sourceRelative of sourceFiles) {
+    const target = path.join(bundleRoot, sourceRelative);
+    const bytes = readFileSync(target);
+    files.push({
+      path: relative(sourceRelative),
+      sha256: sha256(bytes),
+      size: bytes.length,
+    });
+  }
 }
 
 function main() {
   const repoRoot = path.resolve(option('--repo-root'));
   const output = path.resolve(option('--output'));
   const manifestPath = path.resolve(option('--manifest'));
+  const operatorSourceRevision = option('--operator-source-revision');
   const captureRevision = option('--capture-revision');
+  if (!COMMIT.test(operatorSourceRevision)) fail('operator source revision must be one lowercase Git commit');
   if (!COMMIT.test(captureRevision)) fail('capture revision must be one lowercase Git commit');
   if (output === repoRoot || manifestPath === repoRoot) fail('output must not replace repository root');
+
+  const resolvedRevision = git(repoRoot, ['rev-parse', '--verify', `${operatorSourceRevision}^{commit}`]).trim();
+  if (resolvedRevision !== operatorSourceRevision) fail('operator source revision must resolve to the exact requested commit');
+  const operatorSourceTree = git(repoRoot, ['rev-parse', '--verify', `${operatorSourceRevision}^{tree}`]).trim();
+  if (!COMMIT.test(operatorSourceTree)) fail('operator source tree is invalid');
+  const sourcePaths = ['src', 'scripts/knowledge-cutover/production-cutover.ts', 'tsconfig.json'];
 
   const bundleRoot = output;
   if (existsSync(bundleRoot)) rmSync(bundleRoot, { recursive: true, force: true });
   mkdirSync(bundleRoot, { recursive: true });
   const files = [];
-  for (const sourceRelative of ['src', 'scripts/knowledge-cutover/production-cutover.ts', 'tsconfig.json']) {
-    const source = path.join(repoRoot, sourceRelative);
-    if (!existsSync(source)) fail(`source is missing: ${sourceRelative}`);
-    copyTree(repoRoot, bundleRoot, sourceRelative, files);
+  for (const sourceRelative of sourcePaths) {
+    if (!gitTreeFiles(repoRoot, operatorSourceRevision, [sourceRelative]).length) fail(`source is missing from Git tree: ${sourceRelative}`);
   }
+  copyGitTree(repoRoot, bundleRoot, operatorSourceRevision, sourcePaths, files);
   files.sort((left, right) => left.path.localeCompare(right.path));
   if (!files.some((file) => file.path === 'scripts/knowledge-cutover/production-cutover.ts')) {
     fail('production-cutover.ts is missing from bundle');
   }
-  const digestBody = { contract: CONTRACT, builderVersion: BUILDER_VERSION, captureRevision, files };
+  const digestBody = {
+    contract: CONTRACT,
+    builderVersion: BUILDER_VERSION,
+    operatorSourceRevision,
+    operatorSourceTree,
+    captureRevision,
+    files,
+  };
   const manifest = {
     ...digestBody,
     bundleSha256: sha256(canonicalJson(digestBody)),
@@ -123,6 +155,8 @@ function main() {
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
   process.stdout.write(`${JSON.stringify({
     contract: CONTRACT,
+    operatorSourceRevision,
+    operatorSourceTree,
     captureRevision,
     bundleRoot,
     manifestPath,

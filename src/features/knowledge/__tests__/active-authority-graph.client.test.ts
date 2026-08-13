@@ -606,6 +606,38 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).toContain('当前 Authority 身份发生漂移');
   });
 
+  it('rolls back an optimistic relation-family enable and exposes a retry after a load failure', async () => {
+    let failures = 0;
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/') && url.includes('/families/association')) {
+        if (failures++ === 0) return { ok: false, status: 503, json: async () => ({}) };
+        return mockResponse(familyShard('association', [canvas.relations[0]]));
+      }
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const familyButton = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="association"]');
+    expect(familyButton).not.toBeNull();
+    await act(async () => familyButton!.click());
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(familyButton?.dataset.authorityFamilyEnabled).toBe('false');
+    expect(container.querySelector('[data-authority-family-failure="association"]')).not.toBeNull();
+    const retry = container.querySelector<HTMLButtonElement>('[data-authority-family-retry="association"]');
+    expect(retry).not.toBeNull();
+    await act(async () => retry!.click());
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(container.querySelector('[data-authority-family-failure="association"]')).toBeNull();
+    expect(familyButton?.dataset.authorityFamilyEnabled).toBe('true');
+  });
+
   it('fails closed when a neighborhood response reports identity drift without an envelope', async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -634,6 +666,44 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
     expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+  });
+
+  it('keeps the canvas visible and exposes a retry after a neighborhood load failure', async () => {
+    let failures = 0;
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      if (url.includes('/neighborhoods/')) {
+        if (failures++ === 0) return { ok: false, status: 503, json: async () => ({}) };
+        return mockResponse(neighborhoodShard(nodeId));
+      }
+      if (url.includes('/shards/active/nodes/')) {
+        return mockResponse({
+          shardClass: 'node-detail', envelope: shardEnvelope,
+          node: { ...nodeDetail(nodeId).node, teachingFields: {}, media: { cardAvailable: false, infographAvailable: false } },
+        });
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(container.querySelector('[data-active-graph-stage="authority"]')).not.toBeNull();
+    expect(container.querySelector('[data-authority-neighborhood-failure="node-concept"]')).not.toBeNull();
+    const retry = container.querySelector<HTMLButtonElement>('[data-authority-neighborhood-retry="node-concept"]');
+    expect(retry).not.toBeNull();
+    await act(async () => retry!.click());
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(container.querySelector('[data-authority-neighborhood-failure="node-concept"]')).toBeNull();
   });
 
   it('routes a node-detail 200 Authority/catalog drift through the global reset', async () => {

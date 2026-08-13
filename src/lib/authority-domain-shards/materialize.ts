@@ -101,14 +101,18 @@ function stringOrNull(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
-function safeLabel(payload: JsonObject, fallback: string): string {
+function safeLabel(payload: JsonObject, fallback?: string): string {
   const preferredLabels = Array.isArray(payload.preferred_labels)
     ? payload.preferred_labels.map(asObject)
     : [];
   const preferred = preferredLabels.find((label) => (
     label.language === 'zh-CN' && typeof label.text === 'string'
   )) ?? preferredLabels.find((label) => typeof label.text === 'string');
-  return typeof preferred?.text === 'string' ? preferred.text : fallback;
+  if (typeof preferred?.text === 'string' && preferred.text.trim()) return preferred.text.trim();
+  if (typeof fallback === 'string' && fallback.trim()) return fallback.trim();
+  // Keep the object available for bounded graph traversal, but never expose
+  // its canonical/internal identifier as a product label.
+  return '名称暂不可用';
 }
 
 export class AuthorityShardMaterializeError extends Error {
@@ -165,7 +169,12 @@ export function projectAuthorityObject(
   return {
     id: object.canonicalId,
     canonicalType: object.canonicalType,
-    label: safeLabel(payload, object.semanticName ?? object.canonicalId),
+    label: safeLabel(
+      payload,
+      object.semanticName && object.semanticName !== object.canonicalId
+        ? object.semanticName
+        : undefined,
+    ),
     description: stringOrNull(payload.description),
     governance: {
       reviewStatus: object.reviewStatus,
@@ -369,6 +378,27 @@ export function buildAuthorityDomainShards(
     }
   }
 
+  // Every node that can be returned by a bounded neighborhood shard must have
+  // its own follow-on shard. Expand only through the same bounded relation
+  // slice used by each neighborhood so this closure remains finite and does
+  // not turn materialization into an unbounded graph traversal.
+  const pending = [...seedIds].sort();
+  for (let index = 0; index < pending.length; index += 1) {
+    const nodeId = pending[index]!;
+    const incident = input.engineering.relations
+      .filter((relation) => relation.sourceId === nodeId || relation.targetId === nodeId)
+      .sort((left, right) => left.relationId.localeCompare(right.relationId))
+      .slice(0, limit);
+    for (const relation of incident) {
+      for (const endpoint of [relation.sourceId, relation.targetId]) {
+        if (objectsById.has(endpoint) && !seedIds.has(endpoint)) {
+          seedIds.add(endpoint);
+          pending.push(endpoint);
+        }
+      }
+    }
+  }
+
   const neighborhoods: Record<string, AuthorityNodeNeighborhoodShard> = {};
   const details: Record<string, AuthorityNodeDetailShard> = {};
 
@@ -412,7 +442,12 @@ export function buildAuthorityDomainShards(
       node: {
         id: center.canonicalId,
         canonicalType: center.canonicalType,
-        label: safeLabel(payload, center.semanticName ?? center.canonicalId),
+        label: safeLabel(
+          payload,
+          center.semanticName && center.semanticName !== center.canonicalId
+            ? center.semanticName
+            : undefined,
+        ),
         description: stringOrNull(payload.description) ?? stringOrNull(nested.description),
         teachingFields: teachingFields(payload),
         governance: {
