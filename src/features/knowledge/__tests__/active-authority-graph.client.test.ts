@@ -13,9 +13,24 @@ import {
   layoutActiveAuthorityNodes,
 } from '../active-authority-graph';
 import {
+  createEmptyAuthorityShardWorkspace,
+  enableAuthorityShardFamily,
+  invalidateTeachingBearingShards,
+  mergeAuthorityShard,
+  rememberAuthorityShardPositions,
+  selectAuthorityShardObject,
+} from '../active-authority-shard-store';
+import {
   parseSafeApiEvidenceV1,
   safeApiHasResponsiveNoActiveNode,
 } from '../../../../scripts/tests/test-commercial-ui-governance';
+import type {
+  AuthorityShardPublicEnvelope,
+  PublicAuthorityDomainDefaultShard,
+  PublicAuthorityNodeNeighborhoodShard,
+  PublicAuthorityRelationFamilyShard,
+  PublicAuthorityRootShard,
+} from '@/lib/authority-domain-shards/contracts';
 
 const canvas = {
   projectionVersion: 'act.canvas.v2' as const,
@@ -95,12 +110,23 @@ const canvas = {
   },
 };
 
-const shardEnvelope = {
+const shardEnvelope: AuthorityShardPublicEnvelope = {
   contract: 'act-authority-shard-envelope/v1' as const,
   authorityCatalogVersion: 'acv-test-shards',
   teachingVersion: null,
   match: { authority: true as const, catalog: true as const, teaching: null },
 };
+
+function teachingEnvelope(
+  teachingVersion: string,
+  teachingMatch = true,
+): AuthorityShardPublicEnvelope {
+  return {
+    ...shardEnvelope,
+    teachingVersion,
+    match: { ...shardEnvelope.match, teaching: teachingMatch },
+  };
+}
 
 const rootShard = {
   shardClass: 'root' as const,
@@ -128,7 +154,7 @@ const rootShard = {
       domainCount: 8,
     },
   },
-};
+} satisfies PublicAuthorityRootShard;
 
 function shardObject(node: (typeof canvas.nodes)[number]) {
   return {
@@ -141,30 +167,70 @@ function shardObject(node: (typeof canvas.nodes)[number]) {
   };
 }
 
-function domainDefaultShard(nodes = canvas.nodes, relations: typeof canvas.relations = []) {
+type TestTeachingCoverageState = 'available' | 'partial' | 'empty' | 'unavailable';
+
+const defaultTeachingCoverage = {
+  status: 'unavailable' as TestTeachingCoverageState,
+  domainId: 'system-modeling' as const,
+  relationCount: 0,
+  coreNodeCount: 0,
+  uncoveredCoreNodeCount: 0,
+  note: '教学关系暂不可用',
+};
+
+function teachingRelation(id: string, sourceId = 'node-concept', targetId = 'node-formula') {
   return {
-    shardClass: 'domain-default' as const,
-    envelope: shardEnvelope,
-    domainId: 'system-modeling' as const,
-    visualRole: 'modeling' as const,
-    objects: nodes.map(shardObject),
-    teachingRelations: [] as const,
-    teachingCoverage: {
-      status: 'unavailable' as const,
-      domainId: 'system-modeling' as const,
-      relationCount: 0,
-      coreNodeCount: 0,
-      uncoveredCoreNodeCount: 0,
-      note: '教学关系暂不可用',
-    },
-    relations,
+    ...canvas.relations[0],
+    id,
+    predicate: 'PREREQUISITE' as const,
+    sourceId,
+    targetId,
+    direction: 'source_to_target' as const,
+    layer: 'ACT_TEACHING' as const,
+    relationFamily: 'teaching-prerequisite' as const,
   };
 }
 
-function familyShard(family: 'association' | 'application-and-analysis', relations: typeof canvas.relations) {
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
+function mockResponse<T>(payload: T) {
+  return { ok: true, status: 200, json: async () => payload };
+}
+
+function domainDefaultShard(
+  nodes = canvas.nodes,
+  _relations: typeof canvas.relations = [],
+  options: {
+    envelope?: AuthorityShardPublicEnvelope;
+    teachingRelations?: readonly ReturnType<typeof teachingRelation>[];
+    teachingCoverage?: Partial<typeof defaultTeachingCoverage>;
+  } = {},
+): PublicAuthorityDomainDefaultShard {
+  return {
+    shardClass: 'domain-default' as const,
+    envelope: options.envelope ?? shardEnvelope,
+    domainId: 'system-modeling' as const,
+    visualRole: 'modeling' as const,
+    objects: nodes.map(shardObject),
+    teachingRelations: options.teachingRelations ?? [],
+    teachingCoverage: { ...defaultTeachingCoverage, ...options.teachingCoverage },
+  };
+}
+
+function familyShard(
+  family: 'association' | 'application-and-analysis',
+  relations: typeof canvas.relations,
+  envelope: AuthorityShardPublicEnvelope = shardEnvelope,
+): PublicAuthorityRelationFamilyShard {
   return {
     shardClass: 'relation-family' as const,
-    envelope: shardEnvelope,
+    envelope,
     domainId: 'system-modeling' as const,
     family,
     objects: canvas.nodes.map(shardObject),
@@ -173,10 +239,13 @@ function familyShard(family: 'association' | 'application-and-analysis', relatio
   };
 }
 
-function neighborhoodShard(nodeId: string) {
+function neighborhoodShard(
+  nodeId: string,
+  envelope: AuthorityShardPublicEnvelope = shardEnvelope,
+): PublicAuthorityNodeNeighborhoodShard {
   return {
     shardClass: 'node-neighborhood' as const,
-    envelope: shardEnvelope,
+    envelope,
     nodeId,
     limit: 32,
     truncated: false,
@@ -184,7 +253,9 @@ function neighborhoodShard(nodeId: string) {
     relations: canvas.relations.map((relation) => ({
       ...relation,
       layer: 'ENGINEERING' as const,
-      relationFamily: relation.predicate === 'association' ? 'association' : 'application-and-analysis',
+      relationFamily: relation.predicate === 'association'
+        ? 'association' as const
+        : 'application-and-analysis' as const,
     })),
     boundaries: [],
   };
@@ -208,6 +279,7 @@ function nodeDetail(nodeId: string) {
       canonicalType: current.type,
       label: current.label,
       description: current.description,
+      governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
       adjacency: nodeId === 'node-isolated' ? [] : [{
         relationId: 'relation-association', predicate: 'association', direction: 'unordered', qualityTier: 'GOLD', neighborId: 'node-formula', traversal: 'outgoing' as const, readOnly: true as const,
       }],
@@ -280,6 +352,165 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => root.unmount());
     container.remove();
     vi.unstubAllGlobals();
+  });
+
+  it('invalidates changed Teaching identity without resetting engineering workspace state', () => {
+    const oldEnvelope = teachingEnvelope('teaching-v1');
+    const nextEnvelope = teachingEnvelope('teaching-v2');
+    let workspace = createEmptyAuthorityShardWorkspace();
+    workspace = mergeAuthorityShard(workspace, { ...rootShard, envelope: oldEnvelope });
+    workspace = mergeAuthorityShard(workspace, domainDefaultShard(canvas.nodes, [], {
+      envelope: oldEnvelope,
+      teachingRelations: [teachingRelation('teaching-old')],
+      teachingCoverage: {
+        status: 'available',
+        relationCount: 1,
+        coreNodeCount: 2,
+        uncoveredCoreNodeCount: 0,
+        note: '旧教学覆盖',
+      },
+    }));
+    workspace = mergeAuthorityShard(workspace, familyShard('association', [canvas.relations[0]], oldEnvelope));
+    workspace = enableAuthorityShardFamily(workspace, 'association');
+    workspace = rememberAuthorityShardPositions(workspace, { 'node-concept': { x: 144, y: 288 } });
+    workspace = selectAuthorityShardObject(workspace, 'node-concept');
+
+    const invalidated = invalidateTeachingBearingShards(workspace, nextEnvelope);
+    expect(invalidated.envelope).toEqual(nextEnvelope);
+    expect(invalidated.objectsByCanonicalId['node-concept']).toBeDefined();
+    expect(invalidated.relationsByLayerKey['ENGINEERING:relation-association']).toBeDefined();
+    expect(invalidated.relationsByLayerKey['ACT_TEACHING:teaching-old']).toBeUndefined();
+    expect(invalidated.teachingCoverageByDomain).toEqual({});
+    expect(invalidated.loadedShardKeys).toContain('root');
+    expect(invalidated.loadedShardKeys).toContain('relation-family:system-modeling:association');
+    expect(invalidated.loadedShardKeys).not.toContain('domain-default:system-modeling');
+    expect(invalidated.positionsByCanonicalId['node-concept']).toEqual({ x: 144, y: 288 });
+    expect(invalidated.selectedCanonicalId).toBe('node-concept');
+    expect(invalidated.inspectorOpen).toBe(true);
+    expect(invalidated.enabledFamilies).toEqual(['association']);
+
+    const refreshed = mergeAuthorityShard(invalidated, domainDefaultShard(canvas.nodes, [], {
+      envelope: nextEnvelope,
+      teachingRelations: [teachingRelation('teaching-new')],
+      teachingCoverage: {
+        status: 'partial',
+        relationCount: 1,
+        coreNodeCount: 2,
+        uncoveredCoreNodeCount: 1,
+        note: '新教学覆盖',
+      },
+    }));
+    expect(refreshed.relationsByLayerKey['ACT_TEACHING:teaching-new']).toBeDefined();
+    expect(refreshed.relationsByLayerKey['ACT_TEACHING:teaching-old']).toBeUndefined();
+    expect(refreshed.relationsByLayerKey['ENGINEERING:relation-association']).toBeDefined();
+    expect(refreshed.teachingCoverageByDomain['system-modeling']?.note).toBe('新教学覆盖');
+    expect(refreshed.loadedShardKeys).toContain('domain-default:system-modeling');
+    expect(refreshed.positionsByCanonicalId['node-concept']).toEqual({ x: 144, y: 288 });
+    expect(refreshed.selectedCanonicalId).toBe('node-concept');
+    expect(refreshed.inspectorOpen).toBe(true);
+  });
+
+  it('drops a late old domain-default response after a newer Teaching identity wins', async () => {
+    const oldEnvelope = teachingEnvelope('teaching-v1');
+    const nextEnvelope = teachingEnvelope('teaching-v2');
+    const oldDomainResponse = deferred<ReturnType<typeof domainDefaultShard>>();
+    const nextDomainResponse = deferred<ReturnType<typeof domainDefaultShard>>();
+    let domainRequestCount = 0;
+
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) {
+        return { ok: true, status: 200, json: async () => ({ ...rootShard, envelope: oldEnvelope }) };
+      }
+      if (url.includes('/domains/')) {
+        domainRequestCount += 1;
+        if (domainRequestCount === 1) return oldDomainResponse.promise.then(mockResponse);
+        if (domainRequestCount === 2) return nextDomainResponse.promise.then(mockResponse);
+        return {
+          ok: true,
+          status: 200,
+          json: async () => domainDefaultShard(canvas.nodes, [], {
+            envelope: nextEnvelope,
+            teachingRelations: [teachingRelation('teaching-new')],
+            teachingCoverage: { status: 'partial', relationCount: 1, note: '新教学覆盖' },
+          }),
+        };
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    const entry = container.querySelector<HTMLButtonElement>('[data-authority-domain-entry="modeling"]');
+    expect(entry).not.toBeNull();
+    await act(async () => entry!.click());
+    await act(async () => entry!.click());
+    expect(domainRequestCount).toBe(2);
+
+    nextDomainResponse.resolve({
+      ...domainDefaultShard(canvas.nodes, [], {
+        envelope: nextEnvelope,
+        teachingRelations: [teachingRelation('teaching-new')],
+        teachingCoverage: { status: 'partial', relationCount: 1, note: '新教学覆盖' },
+      }),
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(domainRequestCount).toBe(3);
+    expect(container.querySelector('[data-active-authority-relation="teaching-new"]')).not.toBeNull();
+
+    oldDomainResponse.resolve({
+      ...domainDefaultShard(canvas.nodes, [], {
+        envelope: oldEnvelope,
+        teachingRelations: [teachingRelation('teaching-old')],
+        teachingCoverage: { status: 'available', relationCount: 1, note: '旧教学覆盖' },
+      }),
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(domainRequestCount).toBe(3);
+    expect(container.querySelector('[data-active-authority-relation="teaching-new"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-relation="teaching-old"]')).toBeNull();
+    expect(container.textContent).toContain('新教学覆盖');
+    expect(container.textContent).not.toContain('旧教学覆盖');
+  });
+
+  it('keeps the Teaching envelope stable across engineering-only family, neighborhood and detail shards', () => {
+    const oldEnvelope = teachingEnvelope('teaching-v1');
+    const engineeringEnvelope = teachingEnvelope('teaching-v2');
+    let workspace = createEmptyAuthorityShardWorkspace();
+    workspace = mergeAuthorityShard(workspace, { ...rootShard, envelope: oldEnvelope });
+    workspace = mergeAuthorityShard(workspace, domainDefaultShard(canvas.nodes, [], {
+      envelope: oldEnvelope,
+      teachingRelations: [teachingRelation('teaching-old')],
+      teachingCoverage: { status: 'available', relationCount: 1, note: '旧教学覆盖' },
+    }));
+    const engineeringFamily = familyShard('association', [canvas.relations[0]], engineeringEnvelope);
+    const engineeringNeighborhood = neighborhoodShard('node-concept', engineeringEnvelope);
+    const engineeringDetail = {
+      shardClass: 'node-detail' as const,
+      envelope: engineeringEnvelope,
+      node: {
+        ...nodeDetail('node-concept').node,
+        teachingFields: {},
+        media: { cardAvailable: false as const, infographAvailable: false as const },
+      },
+    };
+    workspace = mergeAuthorityShard(workspace, engineeringFamily);
+    workspace = mergeAuthorityShard(workspace, engineeringNeighborhood);
+    workspace = mergeAuthorityShard(workspace, engineeringDetail);
+
+    expect(workspace.envelope).toEqual(oldEnvelope);
+    expect(workspace.relationsByLayerKey['ACT_TEACHING:teaching-old']).toBeDefined();
+    expect(workspace.teachingCoverageByDomain['system-modeling']?.note).toBe('旧教学覆盖');
+    expect(workspace.relationsByLayerKey['ENGINEERING:relation-association']).toBeDefined();
   });
 
   it('renders a semantic active canvas and keeps active/Legacy responses independent', async () => {

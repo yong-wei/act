@@ -13,6 +13,11 @@ import {
   buildAuthorityDomainCatalog,
   type AuthorityDomainCatalogAuthoring,
 } from '@/lib/authority-domain-catalog';
+import {
+  composeDomainTeachingProjection,
+  teachingCacheFamilyFor,
+  type DomainTeachingComposedArtifacts,
+} from '@/lib/teaching-projection/domain-fragments';
 import type { AuthorityEngineeringBody } from '@/lib/authoritative-knowledge/authority-snapshot';
 import {
   AUTHORITY_SHARD_ENVELOPE_CONTRACT,
@@ -23,9 +28,11 @@ import {
   createTeachingOverlay,
   defaultShardIo,
   loadDomainDefaultShard,
+  loadNodeDetailShard,
   loadNodeNeighborhoodShard,
   loadRelationFamilyShard,
   loadRootShard,
+  loadOptionalDomainTeachingProjection,
   projectAuthorityLearnerShard,
   teachingCoverageFromState,
   writeAuthorityDomainShards,
@@ -205,7 +212,47 @@ function engineeringBody(): AuthorityEngineeringBody {
   };
 }
 
-function writeShards(teaching = createTeachingOverlay(null)) {
+function publishedTeachingArtifacts(): {
+  artifacts: DomainTeachingComposedArtifacts;
+  pointer: {
+    contract: 'act-domain-teaching-projection-current/v1';
+    projectionId: string;
+    projectionHash: string;
+    authorityReleaseId: string;
+    authorityDigest: string;
+    teachingCacheFamily: string;
+    activatedAt: string;
+  };
+} {
+  const fragmentPath = path.join(
+    process.cwd(),
+    'course-content/authoring/knowledge/teaching-projection/domain-fragments/first-fragment.json',
+  );
+  const fragment = JSON.parse(readFileSync(fragmentPath, 'utf8')) as DomainTeachingComposedArtifacts['fragments'][number];
+  const artifacts = composeDomainTeachingProjection({
+    fragments: [fragment],
+    authoringRevision: fragment.authoringRevision,
+    authorityBinding: fragment.authorityBinding,
+    authoritySelection: fragment.authoritySelection,
+  });
+  return {
+    artifacts,
+    pointer: {
+      contract: 'act-domain-teaching-projection-current/v1',
+      projectionId: artifacts.manifest.projectionId,
+      projectionHash: artifacts.manifest.projectionHash,
+      authorityReleaseId: artifacts.manifest.authorityBinding.releaseId,
+      authorityDigest: artifacts.manifest.authorityDigest,
+      teachingCacheFamily: teachingCacheFamilyFor(artifacts.manifest),
+      activatedAt: '2026-08-13T00:00:00.000Z',
+    },
+  };
+}
+
+function writeShards(
+  teaching = createTeachingOverlay(null),
+  envelopeOverride?: AuthorityShardEnvelope,
+) {
   const root = mkdtempSync(path.join(tmpdir(), 'act-authority-shards-'));
   tempRoots.push(root);
   const shardPaths = {
@@ -214,7 +261,7 @@ function writeShards(teaching = createTeachingOverlay(null)) {
     setsDir: path.join(root, 'sets'),
   };
   const catalog = catalogRuntime();
-  const built = envelope({
+  const built = envelopeOverride ?? envelope({
     catalog: {
       catalogId: catalog.catalogId,
       catalogHash: catalog.catalogHash,
@@ -230,6 +277,28 @@ function writeShards(teaching = createTeachingOverlay(null)) {
   });
   writeAuthorityDomainShards(shardPaths, materialized);
   return { shardPaths, materialized, catalog, envelope: built };
+}
+
+function writeTeachingProjectionFixture(root: string) {
+  const published = publishedTeachingArtifacts();
+  const relative = 'teaching-projection';
+  const releaseDir = path.join(root, relative, 'releases', published.pointer.projectionId);
+  mkdirSync(path.join(releaseDir, 'fragments'), { recursive: true });
+  writeFileSync(
+    path.join(root, relative, 'current.json'),
+    `${JSON.stringify(published.pointer, null, 2)}\n`,
+  );
+  writeFileSync(
+    path.join(releaseDir, 'manifest.json'),
+    `${JSON.stringify(published.artifacts.manifest, null, 2)}\n`,
+  );
+  for (const fragment of published.artifacts.fragments) {
+    writeFileSync(
+      path.join(releaseDir, 'fragments', `${fragment.fragmentId}.json`),
+      `${JSON.stringify(fragment, null, 2)}\n`,
+    );
+  }
+  return { ...published, relative };
 }
 
 describe('authority domain shard delivery', () => {
@@ -291,6 +360,33 @@ describe('authority domain shard delivery', () => {
     expect(materialized.pointer.snapshotId).toBe(expected.authority.snapshotId);
   });
 
+  it('resolves the pointer through an immutable composed Teaching artifact', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'act-teaching-projection-'));
+    tempRoots.push(root);
+    const fixture = writeTeachingProjectionFixture(root);
+    const resolved = loadOptionalDomainTeachingProjection({
+      repoRoot: root,
+      relative: fixture.relative,
+    });
+    expect(resolved.pointer?.projectionId).toBe(fixture.pointer.projectionId);
+    expect(resolved.artifacts?.manifest.projectionHash).toBe(fixture.artifacts.manifest.projectionHash);
+    expect(resolved.artifacts?.relations.length).toBe(fixture.artifacts.relations.length);
+    const overlay = createTeachingOverlay(resolved.pointer, { artifacts: resolved.artifacts });
+    expect(overlay.relations('system-modeling')).toHaveLength(4);
+    expect(overlay.coverage('system-modeling').status).toBe('available');
+
+    writeFileSync(
+      path.join(root, fixture.relative, 'current.json'),
+      `${JSON.stringify({ ...fixture.pointer, projectionHash: '0'.repeat(64) }, null, 2)}\n`,
+    );
+    const mismatched = loadOptionalDomainTeachingProjection({
+      repoRoot: root,
+      relative: fixture.relative,
+    });
+    expect(mismatched.pointer?.projectionId).toBe(fixture.pointer.projectionId);
+    expect(mismatched.artifacts).toBeNull();
+  });
+
   it('fails closed on mixed identity and missing shards', () => {
     const { shardPaths, materialized, catalog, envelope: expected } = writeShards();
     const options = {
@@ -308,7 +404,8 @@ describe('authority domain shard delivery', () => {
       shardPaths.currentPath,
       `${JSON.stringify({ ...raw, teachingProjectionId: 'unexpected-teaching-projection' }, null, 2)}\n`,
     );
-    expect(() => loadRootShard(options)).toThrow(/does not match the active Authority\/catalog identity/u);
+    const staleTeachingRoot = loadRootShard(options);
+    expect(staleTeachingRoot.envelope.teaching.projectionId).toBeNull();
     writeFileSync(shardPaths.currentPath, `${JSON.stringify(raw, null, 2)}\n`);
     const manifestPath = path.join(shardPaths.setsDir, materialized.manifest.shardSetId, 'manifest.json');
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { files: Record<string, string> };
@@ -338,40 +435,40 @@ describe('authority domain shard delivery', () => {
           'system-modeling': teachingCoverageFromState('system-modeling', 'empty'),
         },
       }),
-      createTeachingOverlay({
-        contract: 'act-domain-teaching-projection-current/v1',
-        projectionId: 'proj-partial',
-        projectionHash: 'd'.repeat(64),
-        authorityReleaseId: RELEASE_ID,
-        authorityDigest: 'e'.repeat(64),
-        teachingCacheFamily: 'teaching-domain-proj:proj-partial:dddddddddddddddd',
-        activatedAt: '2026-08-13T00:00:00.000Z',
-        relationsByDomain: {
-          'system-modeling': [{
-            edgeId: 'teach-1',
-            sourceNodeId: MODELING,
-            targetNodeId: SHARED,
-            layer: 'ACT_TEACHING',
-            relationType: 'PREREQUISITE',
-            strength: 'REQUIRED',
-            domainKeys: ['system-modeling'],
-            evidenceRefs: [],
-            curatorId: null,
-            curatorRationale: null,
-            authorDecisionId: null,
-            edgeDigest: 'f'.repeat(64),
-            presentationFamily: 'teaching-prerequisite',
-          }],
-        },
-      }, {
-        coverageByDomain: {
-          'system-modeling': teachingCoverageFromState('system-modeling', 'partial', {
-            relationCount: 1,
-            coreNodeCount: 2,
-            uncoveredCoreNodeCount: 1,
-          }),
-        },
-      }),
+      (() => {
+        const published = publishedTeachingArtifacts();
+        const artifacts: DomainTeachingComposedArtifacts = {
+          ...published.artifacts,
+          relations: [
+            {
+              edgeId: 'teach-1',
+              sourceNodeId: MODELING,
+              targetNodeId: SHARED,
+              layer: 'ACT_TEACHING',
+              relationType: 'PREREQUISITE',
+              strength: 'REQUIRED',
+              domainKeys: ['system-modeling'],
+              evidenceRefs: [],
+              curatorId: null,
+              curatorRationale: null,
+              authorDecisionId: null,
+              edgeDigest: 'f'.repeat(64),
+              presentationFamily: 'teaching-prerequisite',
+            },
+          ],
+          coverage: published.artifacts.coverage.map((entry) => entry.domainId === 'system-modeling'
+            ? {
+                ...entry,
+                coverage: 'partial' as const,
+                relationCount: 1,
+                coreNodeCount: 2,
+                uncoveredCoreNodeCount: 1,
+                note: '该领域仅有部分教学关系已发布',
+              }
+            : entry),
+        };
+        return createTeachingOverlay(published.pointer, { artifacts });
+      })(),
     ] as const;
 
     for (const teaching of cases) {
@@ -394,6 +491,86 @@ describe('authority domain shard delivery', () => {
         expect(domain.teachingRelations[0]?.layer).toBe('ACT_TEACHING');
       }
     }
+  });
+
+  it('keeps engineering shards readable while a sealed Teaching set is stale', () => {
+    const published = publishedTeachingArtifacts();
+    const catalog = catalogRuntime();
+    const teachingV1 = {
+      status: 'available' as const,
+      projectionId: published.pointer.projectionId,
+      projectionHash: published.pointer.projectionHash,
+      teachingCacheFamily: published.pointer.teachingCacheFamily,
+    };
+    const envelopeV1 = envelope({
+      catalog: {
+        catalogId: catalog.catalogId,
+        catalogHash: catalog.catalogHash,
+        catalogVersion: catalog.catalogVersion,
+      },
+      teaching: teachingV1,
+      match: { authority: true, catalog: true, teaching: true },
+    });
+    const sealedV1 = writeShards(
+      createTeachingOverlay(published.pointer, { artifacts: published.artifacts }),
+      envelopeV1,
+    );
+    const envelopeV2 = envelope({
+      catalog: {
+        catalogId: catalog.catalogId,
+        catalogHash: catalog.catalogHash,
+        catalogVersion: catalog.catalogVersion,
+      },
+      teaching: {
+        status: 'unavailable',
+        projectionId: 'proj-v2',
+        projectionHash: '2'.repeat(64),
+        teachingCacheFamily: 'teaching-domain-proj:proj-v2:2222222222222222',
+      },
+      match: { authority: true, catalog: true, teaching: false },
+    });
+    const staleOptions = {
+      shardPaths: sealedV1.shardPaths,
+      identity: {
+        envelope: envelopeV2,
+        catalog,
+        teachingPointer: published.pointer,
+      },
+    };
+    const staleRoot = loadRootShard(staleOptions);
+    const staleDomain = loadDomainDefaultShard('system-modeling', staleOptions);
+    const staleFamily = loadRelationFamilyShard('system-modeling', 'association', staleOptions);
+    const staleNeighborhood = loadNodeNeighborhoodShard(MODELING, staleOptions);
+    const staleDetail = loadNodeDetailShard(MODELING, staleOptions);
+    expect(staleRoot.envelope.teaching.projectionId).toBe('proj-v2');
+    expect(staleRoot.envelope.teaching.status).toBe('unavailable');
+    expect(staleDomain.teachingRelations).toEqual([]);
+    expect(staleDomain.teachingCoverage.status).toBe('unavailable');
+    expect(staleFamily.relations).toHaveLength(1);
+    expect(staleNeighborhood.relations.length).toBeGreaterThan(0);
+    expect(staleDetail.node.id).toBe(MODELING);
+
+    const pointerV2 = {
+      ...published.pointer,
+      projectionId: 'proj-v2',
+      projectionHash: '2'.repeat(64),
+      teachingCacheFamily: 'teaching-domain-proj:proj-v2:2222222222222222',
+    };
+    const envelopeV2Matched = {
+      ...envelopeV2,
+      match: { authority: true as const, catalog: true as const, teaching: true as const },
+    };
+    const matching = writeShards(
+      createTeachingOverlay(pointerV2, { artifacts: published.artifacts }),
+      envelopeV2Matched,
+    );
+    const matchingOptions = {
+      shardPaths: matching.shardPaths,
+      identity: { envelope: envelopeV2Matched, catalog, teachingPointer: pointerV2 },
+    };
+    const matchingDomain = loadDomainDefaultShard('system-modeling', matchingOptions);
+    expect(matchingDomain.teachingRelations.length).toBeGreaterThan(0);
+    expect(matchingDomain.envelope.match.teaching).toBe(true);
   });
 
   it('merges canonical objects once and rejects mismatched envelopes', () => {

@@ -40,7 +40,8 @@ import {
   type ShardIo,
 } from './store';
 import {
-  loadOptionalDomainTeachingPointer,
+  loadOptionalDomainTeachingProjection,
+  type DomainTeachingComposedArtifacts,
   type DomainTeachingRuntimePointer,
 } from './teaching';
 
@@ -60,6 +61,8 @@ export interface ActiveShardIdentity {
   envelope: AuthorityShardEnvelope;
   catalog: AuthorityDomainCatalogRuntime;
   teachingPointer: DomainTeachingRuntimePointer | null;
+  /** Verified immutable composed Teaching artifact, when available. */
+  teachingArtifacts?: DomainTeachingComposedArtifacts | null;
 }
 
 export interface ResolveActiveShardIdentityOptions {
@@ -168,13 +171,22 @@ export function resolveActiveShardIdentity(
     );
   }
 
-  const teachingPointer = options.teachingPointer !== undefined
-    ? options.teachingPointer
-    : loadOptionalDomainTeachingPointer(repoRoot, io);
+  const teachingResolution = loadOptionalDomainTeachingProjection({
+    repoRoot,
+    io,
+    pointer: options.teachingPointer,
+    authority: {
+      releaseId: combination.authorityReleaseId,
+      releaseSetId: manifest.releaseSetId,
+      snapshotId: combination.authoritySnapshotId,
+      snapshotHash: combination.authoritySnapshotHash,
+    },
+  });
+  const teachingPointer = teachingResolution.pointer;
 
   const teaching: AuthorityShardTeachingIdentity = teachingPointer
     ? {
-        status: 'available',
+        status: teachingResolution.artifacts ? 'available' : 'unavailable',
         projectionId: teachingPointer.projectionId,
         projectionHash: teachingPointer.projectionHash,
         teachingCacheFamily: teachingPointer.teachingCacheFamily,
@@ -207,16 +219,24 @@ export function resolveActiveShardIdentity(
     match: {
       authority: true,
       catalog: true,
-      teaching: teachingPointer ? true : null,
+      // Keep the live pointer identity public even if its immutable artifact
+      // is missing/corrupt/mismatched.  Only a verified artifact is a match.
+      teaching: teachingPointer ? teachingResolution.artifacts ? true : false : null,
     },
   };
 
-  return { envelope, catalog, teachingPointer };
+  return {
+    envelope,
+    catalog,
+    teachingPointer,
+    teachingArtifacts: teachingResolution.artifacts,
+  };
 }
 
 export function assertEnvelopeMatchesActive(
   expected: AuthorityShardEnvelope,
   actual: AuthorityShardEnvelope,
+  options: { requireTeaching?: boolean } = {},
 ): void {
   const authorityKeys: Array<keyof AuthorityShardEnvelope['authority']> = [
     'snapshotId',
@@ -246,17 +266,19 @@ export function assertEnvelopeMatchesActive(
       'shard catalog identity does not match the active pointer',
     );
   }
-  if (
-    expected.teaching.status !== actual.teaching.status
-    || expected.teaching.projectionId !== actual.teaching.projectionId
-    || expected.teaching.projectionHash !== actual.teaching.projectionHash
-    || expected.teaching.teachingCacheFamily !== actual.teaching.teachingCacheFamily
-    || expected.match.teaching !== actual.match.teaching
-  ) {
-    throw new AuthorityShardStoreError(
-      'teaching-identity-mismatch',
-      'shard teaching identity does not match the active pointer',
-    );
+  if (options.requireTeaching !== false) {
+    if (
+      expected.teaching.status !== actual.teaching.status
+      || expected.teaching.projectionId !== actual.teaching.projectionId
+      || expected.teaching.projectionHash !== actual.teaching.projectionHash
+      || expected.teaching.teachingCacheFamily !== actual.teaching.teachingCacheFamily
+      || expected.match.teaching !== actual.match.teaching
+    ) {
+      throw new AuthorityShardStoreError(
+        'teaching-identity-mismatch',
+        'shard teaching identity does not match the active pointer',
+      );
+    }
   }
   if (actual.authority.projectionId !== null || actual.authority.projectionHash !== null) {
     throw new AuthorityShardStoreError(

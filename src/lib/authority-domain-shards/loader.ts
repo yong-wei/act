@@ -30,6 +30,7 @@ import {
   resolveActiveShardIdentity,
   type ResolveActiveShardIdentityOptions,
 } from './identity';
+import { teachingCoverageFromState } from './teaching';
 import {
   AuthorityShardStoreError,
   defaultShardIo,
@@ -68,8 +69,6 @@ function loadContext(options: LoadAuthorityShardOptions = {}): LoadedAuthoritySh
     || pointer.releaseId !== identity.envelope.authority.releaseId
     || pointer.catalogId !== identity.envelope.catalog.catalogId
     || pointer.catalogHash !== identity.envelope.catalog.catalogHash
-    || pointer.teachingProjectionId !== identity.envelope.teaching.projectionId
-    || pointer.teachingProjectionHash !== identity.envelope.teaching.projectionHash
   ) {
     throw new AuthorityShardStoreError(
       'pointer-identity-mismatch',
@@ -98,8 +97,55 @@ function loadContext(options: LoadAuthorityShardOptions = {}): LoadedAuthoritySh
   ) {
     throw new AuthorityShardStoreError('manifest-hash-mismatch', 'shard set manifest seal is invalid');
   }
-  assertEnvelopeMatchesActive(identity.envelope, manifest.envelope);
+  // The shard set may have been sealed against an older Teaching pointer.
+  // Authority/catalog identity is still fail-closed; Teaching is reconciled
+  // per shard below so engineering artifacts remain readable during a
+  // pointer/artifact cutover.
+  assertEnvelopeMatchesActive(identity.envelope, manifest.envelope, {
+    requireTeaching: false,
+  });
   return { identity, paths, setDir, manifest, io };
+}
+
+function teachingEnvelopeMatches(
+  expected: AuthorityRootShard['envelope'],
+  actual: AuthorityRootShard['envelope'],
+): boolean {
+  return (
+    expected.teaching.status === actual.teaching.status
+    && expected.teaching.projectionId === actual.teaching.projectionId
+    && expected.teaching.projectionHash === actual.teaching.projectionHash
+    && expected.teaching.teachingCacheFamily === actual.teaching.teachingCacheFamily
+    && expected.match.teaching === actual.match.teaching
+  );
+}
+
+function reconcileTeachingEnvelope<T extends {
+  envelope: AuthorityRootShard['envelope'];
+  shardClass: string;
+}>(
+  context: LoadedAuthorityShardContext,
+  shard: T,
+): T {
+  if (teachingEnvelopeMatches(context.identity.envelope, shard.envelope)) {
+    return shard;
+  }
+
+  const envelope = context.identity.envelope;
+  if (shard.shardClass === 'domain-default') {
+    const domainShard = shard as unknown as AuthorityDomainDefaultShard;
+    return {
+      ...domainShard,
+      envelope,
+      teachingRelations: [],
+      teachingCoverage: teachingCoverageFromState(domainShard.domainId, 'unavailable'),
+    } as unknown as T;
+  }
+
+  // Root, engineering-family, neighborhood and detail shards carry no
+  // Teaching payload.  They are returned with the live envelope so clients
+  // cannot accidentally move the Teaching cache identity backwards.
+  return { ...shard, envelope } as T;
 }
 
 function readVerifiedShard<T extends { envelope: AuthorityRootShard['envelope']; shardClass: string }>(
@@ -128,8 +174,10 @@ function readVerifiedShard<T extends { envelope: AuthorityRootShard['envelope'];
   if (shard.shardClass !== expectedClass) {
     throw new AuthorityShardStoreError('shard-class-mismatch', `${relative} is not a ${expectedClass} shard`);
   }
-  assertEnvelopeMatchesActive(context.identity.envelope, shard.envelope);
-  return shard;
+  assertEnvelopeMatchesActive(context.identity.envelope, shard.envelope, {
+    requireTeaching: false,
+  });
+  return reconcileTeachingEnvelope(context, shard);
 }
 
 export function resolveShardDomainKey(

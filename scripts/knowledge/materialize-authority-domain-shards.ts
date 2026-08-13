@@ -37,7 +37,9 @@ export function materializeCommittedAuthorityDomainShards(
     envelope: identity.envelope,
     catalog: identity.catalog,
     engineering,
-    teaching: createTeachingOverlay(identity.teachingPointer),
+    teaching: createTeachingOverlay(identity.teachingPointer, {
+      artifacts: identity.teachingArtifacts,
+    }),
     activatedAt: '2026-08-13T00:00:00.000Z',
   });
   writeAuthorityDomainShards(resolveAuthorityDomainShardPaths(repoRoot), materialized);

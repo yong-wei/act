@@ -38,6 +38,7 @@ import {
 import {
   createEmptyAuthorityShardWorkspace,
   enableAuthorityShardFamily,
+  invalidateTeachingBearingShards,
   mergeAuthorityShard,
   visibleAuthorityShardRelations,
   type AuthorityShardWorkspaceState,
@@ -109,17 +110,91 @@ function useActiveAuthorityWorkspace(retry: number): {
   const [state, setState] = useState<WorkspaceLoadState>({ status: 'loading' });
   const [workspace, setWorkspace] = useState<AuthorityShardWorkspaceState>(createEmptyAuthorityShardWorkspace);
   const workspaceRef = useRef(workspace);
+  const teachingGenerationRef = useRef(0);
+  const teachingControllerRef = useRef<AbortController | null>(null);
   workspaceRef.current = workspace;
+
+  function updateWorkspace(
+    update: (current: AuthorityShardWorkspaceState) => AuthorityShardWorkspaceState,
+  ): AuthorityShardWorkspaceState {
+    const next = update(workspaceRef.current);
+    // Requests may resolve before React commits the state update. Keep the
+    // request coordinator on the same snapshot so a just-accepted Teaching
+    // identity cannot be mistaken for another version change.
+    workspaceRef.current = next;
+    setWorkspace(next);
+    return next;
+  }
+
+  function nextTeachingGeneration(): number {
+    teachingGenerationRef.current += 1;
+    teachingControllerRef.current?.abort();
+    return teachingGenerationRef.current;
+  }
+
+  function fetchDomainDefault(visualRole: string, generation: number): void {
+    const controller = new AbortController();
+    teachingControllerRef.current = controller;
+    fetchAuthorityShard(
+      `/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`,
+      'domain-default',
+      controller.signal,
+    )
+      .then((shard) => applyShard(shard, generation))
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || generation !== teachingGenerationRef.current) return;
+        setState({
+          status: 'error',
+          message: error instanceof Error ? error.message : '当前领域分片暂时无法加载。',
+        });
+      })
+      .finally(() => {
+        if (teachingControllerRef.current === controller) teachingControllerRef.current = null;
+      });
+  }
+
+  function applyShard(shard: IncomingAuthorityShard, generation?: number): void {
+    const teachingBearing = shard.shardClass === 'root' || shard.shardClass === 'domain-default';
+    if (teachingBearing && generation !== undefined && generation < teachingGenerationRef.current) {
+      return;
+    }
+
+    const previous = workspaceRef.current;
+    const identityChanged = teachingBearing
+      && previous.envelope !== null
+      && !publicTeachingIdentityMatches(previous.envelope, shard.envelope);
+    const refreshVisualRole = identityChanged
+      ? previous.activeVisualRole
+        ?? (shard.shardClass === 'domain-default' ? shard.visualRole : null)
+      : null;
+
+    const next = updateWorkspace((current) => {
+      const invalidated = identityChanged
+        && current.envelope
+        && !publicTeachingIdentityMatches(current.envelope, shard.envelope)
+        ? invalidateTeachingBearingShards(current, shard.envelope)
+        : current;
+      return mergeAuthorityShard(invalidated, shard);
+    });
+    setState({ status: 'ready', workspace: next });
+
+    // A root/domain response is itself the signal that the live Teaching
+    // identity changed.  Re-read the active domain once, under a newer
+    // generation, so an old in-flight response cannot restore stale edges.
+    if (refreshVisualRole) {
+      const refreshGeneration = nextTeachingGeneration();
+      fetchDomainDefault(refreshVisualRole, refreshGeneration);
+    }
+  }
 
   useEffect(() => {
     const controller = new AbortController();
+    const generation = nextTeachingGeneration();
     setState({ status: 'loading' });
-    setWorkspace(createEmptyAuthorityShardWorkspace());
+    updateWorkspace(() => createEmptyAuthorityShardWorkspace());
     fetchAuthorityShard('/api/knowledge/shards/active', 'root', controller.signal)
       .then((shard) => {
-        const next = mergeAuthorityShard(createEmptyAuthorityShardWorkspace(), shard);
-        setWorkspace(next);
-        setState({ status: 'ready', workspace: next });
+        applyShard(shard, generation);
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
@@ -128,45 +203,30 @@ function useActiveAuthorityWorkspace(retry: number): {
           message: error instanceof Error ? error.message : '当前 Authority 图谱暂时无法加载。',
         });
       });
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      teachingControllerRef.current?.abort();
+    };
   }, [retry]);
 
-  function applyShard(shard: IncomingAuthorityShard) {
-    setWorkspace((current) => {
-      const next = mergeAuthorityShard(current, shard);
-      setState({ status: 'ready', workspace: next });
-      return next;
-    });
-  }
-
   function enterDomain(visualRole: string) {
-    setWorkspace((current) => ({
-      ...current,
-      activeVisualRole: visualRole,
-    }));
-    if (workspaceRef.current.activeVisualRole === visualRole && workspaceRef.current.activeDomainId) {
+    const current = workspaceRef.current;
+    if (current.activeVisualRole === visualRole && current.activeDomainId) {
       return;
     }
-    const controller = new AbortController();
-    fetchAuthorityShard(
-      `/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`,
-      'domain-default',
-      controller.signal,
-    )
-      .then(applyShard)
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
-        setState({
-          status: 'error',
-          message: error instanceof Error ? error.message : '当前领域分片暂时无法加载。',
-        });
-      });
+    updateWorkspace((workspace) => ({
+      ...workspace,
+      activeVisualRole: visualRole,
+    }));
+    const generation = nextTeachingGeneration();
+    fetchDomainDefault(visualRole, generation);
   }
 
   function enableFamily(family: EngineeringRelationFamily) {
-    const domainId = workspaceRef.current.activeDomainId;
-    const visualRole = workspaceRef.current.activeVisualRole;
-    setWorkspace((current) => enableAuthorityShardFamily(current, family));
+    const current = workspaceRef.current;
+    const domainId = current.activeDomainId;
+    const visualRole = current.activeVisualRole;
+    updateWorkspace((workspace) => enableAuthorityShardFamily(workspace, family));
     if (!domainId || !visualRole) return;
     const key = `relation-family:${domainId}:${family}`;
     if (workspaceRef.current.loadedShardKeys.includes(key)) return;
@@ -176,7 +236,7 @@ function useActiveAuthorityWorkspace(retry: number): {
       'relation-family',
       controller.signal,
     )
-      .then(applyShard)
+      .then((shard) => applyShard(shard))
       .catch(() => undefined);
   }
 
@@ -189,12 +249,12 @@ function useActiveAuthorityWorkspace(retry: number): {
       'node-neighborhood',
       controller.signal,
     )
-      .then(applyShard)
+      .then((shard) => applyShard(shard))
       .catch(() => undefined);
   }
 
   function resetDomain() {
-    setWorkspace((current) => ({
+    updateWorkspace((current) => ({
       ...current,
       activeDomainId: null,
       activeVisualRole: null,
@@ -238,10 +298,7 @@ function useActiveNodeDetail(
           throw new Error('节点详情暂时无法加载。');
         }
         const shard = candidate;
-        if (
-          !publicEnvelopesShareAuthorityAndCatalog(expectedEnvelope, shard.envelope)
-          || !publicTeachingIdentityMatches(expectedEnvelope, shard.envelope)
-        ) {
+        if (!publicEnvelopesShareAuthorityAndCatalog(expectedEnvelope, shard.envelope)) {
           throw new Error('节点详情身份校验失败，已停止显示。');
         }
         const node = {
