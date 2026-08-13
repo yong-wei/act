@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
 const evidenceRoot = 'artifacts/commercial-ui/issue-1366-micro-tutoring-navigation';
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
 const evidenceDir = join(process.cwd(), evidenceRoot, 'playwright');
 const manifestPath = join(process.cwd(), evidenceRoot, 'evidence-manifest.json');
 const screenshotsManifestPath = join(evidenceDir, 'screenshots.json');
@@ -136,16 +137,16 @@ function validatePersistedEvidence() {
 }
 
 async function establishAuthenticatedSession(context: BrowserContext) {
-  const csrfResponse = await context.request.get('/api/auth/csrf');
+  const csrfResponse = await context.request.get(`${baseURL}/api/auth/csrf`);
   const csrf = await csrfResponse.json() as { csrfToken?: string };
   expect(csrfResponse.ok()).toBe(true);
   expect(csrf.csrfToken).toBeTruthy();
-  const loginResponse = await context.request.post('/api/auth/callback/credentials?json=true', {
+  const loginResponse = await context.request.post(`${baseURL}/api/auth/callback/credentials?json=true`, {
     form: {
       csrfToken: csrf.csrfToken!,
       email: 'demo',
       password: 'DemoStudent@Just2026!',
-      callbackUrl: 'http://127.0.0.1:3200',
+      callbackUrl: baseURL,
       json: 'true',
     },
   });
