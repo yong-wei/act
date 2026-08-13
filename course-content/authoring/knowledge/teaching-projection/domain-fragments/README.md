@@ -27,6 +27,10 @@ Append-only, immutable domain shards of reviewed core-node memberships and direc
   - `foundation-three-domain-v1.json`
   - `foundation-three-domain-v1.coverage.json`
   - `fixtures/foundation-three-domain-two-fragment-manifest.json` (two-fragment validation fixture only; not a runtime current pointer)
+- **Modern-control increment** (#1373; two independent empty fragments while admission remains unresolved):
+  - `modern-discrete-time-v1.{source,worklist,authoring,json,coverage}.json`
+  - `modern-state-space-v1.{source,worklist,authoring,json,coverage}.json`
+  - Each worklist keeps the exact node as a `DEFER`/`authority unresolved` candidate with domain-specific CourseCoverage evidence (`issue-1195` for discrete time, `issue-1208` for state space); it is not a denominator member. Range-level deferred/excluded boundary notices carry no synthetic relation endpoint.
 - **Fixtures**: `fixtures/` verification samples only
 - **Source inventory**: `../prerequisites/inventory/` (translated without semantic change)
 

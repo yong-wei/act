@@ -1,0 +1,59 @@
+{
+  "contract": "act-modern-control-domain-worklist/v1",
+  "fragmentKey": "modern-discrete-time-v1",
+  "fragmentVersion": "1",
+  "domainId": "discrete-time-control-analysis",
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "4e33e24f49efe5f89822373b92a4f8cbba4730486037fb0e6c125c4040030426"
+  },
+  "authorityNodeIds": [
+    "ctkg:v3e-object-0bb7941e989275e607a110d0",
+    "ctkg:v3e-object-0e5df270abeaa062e3a81d33"
+  ],
+  "denominatorNodeIds": [],
+  "coreNodes": [],
+  "acceptedLocalRelationCount": 0,
+  "unresolvedCoreCandidates": [
+    {
+      "canonicalId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "status": "DEFER",
+      "stageConclusion": "DEFER",
+      "authorityResolution": "unresolved",
+      "evidencePath": "course-content/authoring/knowledge/issue-1195-course-coverage-review/primary-independent-stage-source.json",
+      "evidenceDigest": "44c164afa1ed2cddcb5cfe6b5656c8ab5798adf6a91b91d1a8222f7a610ba6fa",
+      "evidenceRefs": [
+        "course-content/authoring/knowledge/issue-1195-course-coverage-review/primary-independent-stage-source.json"
+      ],
+      "reason": "CourseCoverage 阶段结论为 DEFER，authority unresolved；当前无 lesson、syllabus 或 curriculum 的独立 ACT admission evidence，因此候选不得进入已接纳分母。"
+    }
+  ],
+  "deferredBoundaries": [
+    {
+      "scope": "cross-domain-entry",
+      "disposition": "deferred",
+      "reason": "跨域入口说明留给独立 cross-domain 变更审核。"
+    }
+  ],
+  "excludedScopes": [
+    {
+      "scope": "non-catalog-engineering-adjacency",
+      "disposition": "excluded",
+      "reason": "非 catalog 工程邻接不是 ACT_TEACHING 证据，明确排除出本地分片。"
+    }
+  ],
+  "inputDigest": "417caac71122917ff40fbcad67c86ff5f75dccd648842cec537307dcf6acf819"
+}

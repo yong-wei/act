@@ -15,4 +15,3 @@ The system SHALL publish reviewed core-node memberships and direct REQUIRED or R
 - **WHEN** two classical-control objects are connected only by an engineering relation
 - **THEN** no teaching prerequisite SHALL be published
 - **AND** the candidate SHALL remain non-blocking
-
