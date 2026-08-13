@@ -1,93 +1,93 @@
 {
   "issue": 1168,
-  "generatedAt": "2026-08-13T08:39:05.530Z",
-  "codeCommit": "ef6c0bf7f910800805741274c94124ac47503c47",
-  "codeTree": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
+  "generatedAt": "2026-08-13T08:53:18.203Z",
+  "codeCommit": "b1893b6e864113dee8a847ee516734bd07955e33",
+  "codeTree": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
   "baseUrl": "http://localhost:32183",
   "route": "/assessment/adaptive-practice",
   "authenticatedRole": "student",
   "runtimeProvenance": {
     "revisionProbePath": "/api/internal/local-qa/revision",
-    "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-    "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-    "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+    "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+    "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+    "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
     "cleanAtCaptureStart": true,
     "checks": [
       {
         "phase": "capture-start",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "after-screenshot:desktop-1440-unfinished",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "after-screenshot:desktop-1440-cross-page-dedup",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "after-screenshot:mobile-320-recent-mistake",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "after-screenshot:mobile-320-question-loading",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "after-screenshot:mobile-320-submit-feedback",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "after-screenshot:mobile-320-question-unavailable",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "after-screenshot:mobile-320-question-failed",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "after-screenshot:desktop-1440-new-evidence",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "after-screenshot:desktop-1440-cold-start",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       },
       {
         "phase": "before-manifest-write",
-        "commitSha": "ef6c0bf7f910800805741274c94124ac47503c47",
-        "treeSha": "0953fa0171e62c2ea77c19582aa40ce5eedfa442",
-        "sourceFingerprint": "aaa242526889ea85196cbe524e6d6b5481338c16708e52a2cfafba4798fa9750",
+        "commitSha": "b1893b6e864113dee8a847ee516734bd07955e33",
+        "treeSha": "6100033e0dbf00d6552deb8d5d5f07fc11181918",
+        "sourceFingerprint": "ac61d3aa0b3b844245a77937577f56e4a4b73e75eeb5cfb38fb68662556f87ea",
         "clean": true
       }
     ]
@@ -105,7 +105,7 @@
     "src/components/shared/page-floating-controls.tsx": "a29b8444d1d228fb6830beee4469a47b963ccac08b4bcced25f57a2db07099b7",
     "src/features/assessment/adaptive-persistence.ts": "c8fd76187f32f39f89b6272ed1d2180e7c60047eefe6bf9ba9681bd7dea8cf1a",
     "src/lib/konling-continuity-assessment.ts": "9c8519ebb2967cd35326192f1ed6fa292f42b508beaf35c19482376b203377fd",
-    "src/lib/konling-learning-continuity.ts": "938d0f8ee362bddecf74e43ae74bf437ee648839c2ddf6e3ee691f4f779b4264",
+    "src/lib/konling-learning-continuity.ts": "c5ca5057f20a59cb26bb744427a7a3086afa632a31b5dffb866c6cc1cb855d11",
     "scripts/tests/capture-adaptive-path-product-qa.ts": "521626f549a0e97b021ea137e951342434fee6104bf7ccf7cfaedb5895dd5672",
     "artifacts/issue-1168-konling-continuity/browser-acceptance.mjs": "4033e0c6b738388083a85f59dc7171e0f725d5631b204af2bc8ffd867b640019",
     "artifacts/issue-1168-konling-continuity/browser-evidence-provenance.mjs": "78e4398bdec3594e20d520fe60222008c526d2e29bfcbc9647a873aa5b981fc5",
@@ -186,7 +186,7 @@
     {
       "name": "Enter submits governed answer",
       "passed": true,
-      "detail": "[{\"api\":\"next-question\",\"body\":{\"sessionId\":\"practice-8glozxhb\",\"goalId\":\"control-correction\",\"routeIntent\":\"practice\",\"pathId\":null,\"nodeId\":null}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unfinished\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unfinished\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"practice-x9fj2qib\",\"goalId\":\"control-correction\",\"routeIntent\":\"practice\",\"pathId\":null,\"nodeId\":null}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:recent\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:recent\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:recent\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"submit-answer\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:recent\",\"questionId\":\"question-evidence\",\"selectedOption\":\"A\",\"timeSpent\":0,\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:recent\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}}]"
+      "detail": "[{\"api\":\"next-question\",\"body\":{\"sessionId\":\"practice-0lc85whe\",\"goalId\":\"control-correction\",\"routeIntent\":\"practice\",\"pathId\":null,\"nodeId\":null}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unfinished\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unfinished\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"practice-bysgv7hi\",\"goalId\":\"control-correction\",\"routeIntent\":\"practice\",\"pathId\":null,\"nodeId\":null}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:recent\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:recent\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:recent\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"submit-answer\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:recent\",\"questionId\":\"question-evidence\",\"selectedOption\":\"A\",\"timeSpent\":0,\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:recent\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}}]"
     },
     {
       "name": "mobile-320-submit-feedback: no horizontal overflow",
@@ -241,7 +241,7 @@
     {
       "name": "re-explain enters governed Konling conversation",
       "passed": true,
-      "detail": "{\"api\":\"chat\",\"body\":{\"pageContext\":{\"courseId\":\"adaptive-practice\",\"courseTitle\":\"自适应练习\",\"pageType\":\"practice\",\"stepId\":\"/assessment/adaptive-practice\",\"topic\":\"自适应学习路径\",\"learningObjectives\":[],\"knowledgeType\":\"C\",\"url\":\"/assessment/adaptive-practice\",\"assistantEntryPoint\":null},\"userProfile\":{\"id\":\"cmjm5lkjk0000t69bqiupz5am\",\"name\":\"测试学生\",\"learningStyle\":\"INTERACTIVE\",\"cognitiveLevel\":3,\"abilityVector\":{\"computational\":0.5,\"crossDomain\":0.5,\"design\":0.5,\"analysis\":0.5,\"evaluation\":0.5}},\"conversationId\":\"conversation-evidence\",\"courseId\":\"adaptive-practice\",\"pageId\":\"/assessment/adaptive-practice\",\"tools\":[],\"id\":\"Np16tia7KuVPOdHi\",\"messages\":[{\"parts\":[{\"type\":\"text\",\"text\":\"请讲解知识点：根轨迹稳定性判断\"}],\"id\":\"6kHPSjjgpFtffTTT\",\"role\":\"user\"}],\"trigger\":\"submit-message\"}}"
+      "detail": "{\"api\":\"chat\",\"body\":{\"pageContext\":{\"courseId\":\"adaptive-practice\",\"courseTitle\":\"自适应练习\",\"pageType\":\"practice\",\"stepId\":\"/assessment/adaptive-practice\",\"topic\":\"自适应学习路径\",\"learningObjectives\":[],\"knowledgeType\":\"C\",\"url\":\"/assessment/adaptive-practice\",\"assistantEntryPoint\":null},\"userProfile\":{\"id\":\"cmjm5lkjk0000t69bqiupz5am\",\"name\":\"测试学生\",\"learningStyle\":\"INTERACTIVE\",\"cognitiveLevel\":3,\"abilityVector\":{\"computational\":0.5,\"crossDomain\":0.5,\"design\":0.5,\"analysis\":0.5,\"evaluation\":0.5}},\"conversationId\":\"conversation-evidence\",\"courseId\":\"adaptive-practice\",\"pageId\":\"/assessment/adaptive-practice\",\"tools\":[],\"id\":\"JYbszSvPLHK3M7rQ\",\"messages\":[{\"parts\":[{\"type\":\"text\",\"text\":\"请讲解知识点：根轨迹稳定性判断\"}],\"id\":\"db7ZCC2uBCOJg2Hn\",\"role\":\"user\"}],\"trigger\":\"submit-message\"}}"
     },
     {
       "name": "single visible Konling trigger",
@@ -271,7 +271,7 @@
     {
       "name": "one governed question request per snapshot action",
       "passed": true,
-      "detail": "[{\"api\":\"next-question\",\"body\":{\"sessionId\":\"practice-8glozxhb\",\"goalId\":\"control-correction\",\"routeIntent\":\"practice\",\"pathId\":null,\"nodeId\":null}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unfinished\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unfinished\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"practice-x9fj2qib\",\"goalId\":\"control-correction\",\"routeIntent\":\"practice\",\"pathId\":null,\"nodeId\":null}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:recent\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:recent\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:recent\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"submit-answer\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:recent\",\"questionId\":\"question-evidence\",\"selectedOption\":\"A\",\"timeSpent\":0,\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:recent\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unavailable\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:unavailable\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:unavailable\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:failed\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:failed\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:failed\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:failed\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:failed\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:refreshed\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:refreshed\"},{\"api\":\"conversation-session\",\"method\":\"POST\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions/conversation-evidence\"},{\"api\":\"chat\",\"body\":{\"pageContext\":{\"courseId\":\"adaptive-practice\",\"courseTitle\":\"自适应练习\",\"pageType\":\"practice\",\"stepId\":\"/assessment/adaptive-practice\",\"topic\":\"自适应学习路径\",\"learningObjectives\":[],\"knowledgeType\":\"C\",\"url\":\"/assessment/adaptive-practice\",\"assistantEntryPoint\":null},\"userProfile\":{\"id\":\"cmjm5lkjk0000t69bqiupz5am\",\"name\":\"测试学生\",\"learningStyle\":\"INTERACTIVE\",\"cognitiveLevel\":3,\"abilityVector\":{\"computational\":0.5,\"crossDomain\":0.5,\"design\":0.5,\"analysis\":0.5,\"evaluation\":0.5}},\"conversationId\":\"conversation-evidence\",\"courseId\":\"adaptive-practice\",\"pageId\":\"/assessment/adaptive-practice\",\"tools\":[],\"id\":\"Np16tia7KuVPOdHi\",\"messages\":[{\"parts\":[{\"type\":\"text\",\"text\":\"请讲解知识点：根轨迹稳定性判断\"}],\"id\":\"6kHPSjjgpFtffTTT\",\"role\":\"user\"}],\"trigger\":\"submit-message\"}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions/conversation-evidence\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:cold\"}]"
+      "detail": "[{\"api\":\"next-question\",\"body\":{\"sessionId\":\"practice-0lc85whe\",\"goalId\":\"control-correction\",\"routeIntent\":\"practice\",\"pathId\":null,\"nodeId\":null}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unfinished\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unfinished\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"practice-bysgv7hi\",\"goalId\":\"control-correction\",\"routeIntent\":\"practice\",\"pathId\":null,\"nodeId\":null}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:recent\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:recent\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:recent\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"submit-answer\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:recent\",\"questionId\":\"question-evidence\",\"selectedOption\":\"A\",\"timeSpent\":0,\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:recent\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:unavailable\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:unavailable\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:unavailable\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:failed\"},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:failed\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:failed\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"next-question\",\"body\":{\"sessionId\":\"konling-continuity:continuity:evidence:failed\",\"goalId\":\"root-locus\",\"continuity\":{\"origin\":\"konling-companion-practice\",\"snapshotId\":\"continuity:evidence:failed\",\"targetKnowledgeId\":\"root-locus\",\"structuredCauseId\":\"cause-evidence\"}}},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:refreshed\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:refreshed\"},{\"api\":\"conversation-session\",\"method\":\"POST\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions/conversation-evidence\"},{\"api\":\"chat\",\"body\":{\"pageContext\":{\"courseId\":\"adaptive-practice\",\"courseTitle\":\"自适应练习\",\"pageType\":\"practice\",\"stepId\":\"/assessment/adaptive-practice\",\"topic\":\"自适应学习路径\",\"learningObjectives\":[],\"knowledgeType\":\"C\",\"url\":\"/assessment/adaptive-practice\",\"assistantEntryPoint\":null},\"userProfile\":{\"id\":\"cmjm5lkjk0000t69bqiupz5am\",\"name\":\"测试学生\",\"learningStyle\":\"INTERACTIVE\",\"cognitiveLevel\":3,\"abilityVector\":{\"computational\":0.5,\"crossDomain\":0.5,\"design\":0.5,\"analysis\":0.5,\"evaluation\":0.5}},\"conversationId\":\"conversation-evidence\",\"courseId\":\"adaptive-practice\",\"pageId\":\"/assessment/adaptive-practice\",\"tools\":[],\"id\":\"JYbszSvPLHK3M7rQ\",\"messages\":[{\"parts\":[{\"type\":\"text\",\"text\":\"请讲解知识点：根轨迹稳定性判断\"}],\"id\":\"db7ZCC2uBCOJg2Hn\",\"role\":\"user\"}],\"trigger\":\"submit-message\"}},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions\"},{\"api\":\"conversation-session\",\"method\":\"GET\",\"url\":\"http://localhost:32183/api/ai/sessions/conversation-evidence\"},{\"api\":\"continuity\",\"snapshotId\":\"continuity:evidence:cold\"}]"
     }
   ],
   "screenshots": [
@@ -283,7 +283,7 @@
         "height": 1000
       },
       "file": "artifacts/issue-1168-konling-continuity/desktop-1440-unfinished.png",
-      "sha256": "30d763279231946163213947358037f4384b19a68ed8bfbfe70b6137a69542a4",
+      "sha256": "7670c0b890b62c1747390254e1874f78b327d28cf19a9071f1e6d502c040bb20",
       "noHorizontalOverflow": true
     },
     {
@@ -294,7 +294,7 @@
         "height": 1000
       },
       "file": "artifacts/issue-1168-konling-continuity/desktop-1440-cross-page-dedup.png",
-      "sha256": "91978ccddc1f18b6b7cc8e6040257734031c45f4e220388c60ad0c854fdedf0d",
+      "sha256": "cb2e271fe119f652b5c3f2882b950842c5cc0a9dfa36e4b797db7e79704ec006",
       "noHorizontalOverflow": true
     },
     {
@@ -305,7 +305,7 @@
         "height": 900
       },
       "file": "artifacts/issue-1168-konling-continuity/mobile-320-recent-mistake.png",
-      "sha256": "46d8428b90b4676be7936174f029b494b44f3af572d6d17dfbf96686d9f7121d",
+      "sha256": "4c9d3589e10af87c399d8f3ff626f27623552130d391c559007d825814e7e726",
       "noHorizontalOverflow": true
     },
     {
@@ -349,7 +349,7 @@
         "height": 900
       },
       "file": "artifacts/issue-1168-konling-continuity/mobile-320-question-failed.png",
-      "sha256": "53abd1662c1e9be8dc884994b4d362ab7b542f8a147722659ab0665444e68adb",
+      "sha256": "ae049db704fca303946db74933436bc74314de7dea854b7f6ba5ececfee0e56b",
       "noHorizontalOverflow": true
     },
     {
@@ -360,7 +360,7 @@
         "height": 1000
       },
       "file": "artifacts/issue-1168-konling-continuity/desktop-1440-new-evidence.png",
-      "sha256": "534f3f8f99bc975a82eb7609f1b31f72a6ed6e5437a9b4512741204ab6e25a38",
+      "sha256": "0207f24c33ec4869a819c41ac3e88368aa5aca23db494fd3559a94708d26dd69",
       "noHorizontalOverflow": true
     },
     {
@@ -371,7 +371,7 @@
         "height": 1000
       },
       "file": "artifacts/issue-1168-konling-continuity/desktop-1440-cold-start.png",
-      "sha256": "dc47e3a0b098f64615b1d7904d3baef32048049483ed8c1201f251bc33cee3f2",
+      "sha256": "51e65be4ed8b7acf9446623c4cd10a8de16359565cef8c8a9646d0b492f1abff",
       "noHorizontalOverflow": true
     }
   ],
@@ -379,7 +379,7 @@
     {
       "api": "next-question",
       "body": {
-        "sessionId": "practice-8glozxhb",
+        "sessionId": "practice-0lc85whe",
         "goalId": "control-correction",
         "routeIntent": "practice",
         "pathId": null,
@@ -402,7 +402,7 @@
     {
       "api": "next-question",
       "body": {
-        "sessionId": "practice-x9fj2qib",
+        "sessionId": "practice-bysgv7hi",
         "goalId": "control-correction",
         "routeIntent": "practice",
         "pathId": null,
@@ -547,7 +547,7 @@
         "courseId": "adaptive-practice",
         "pageId": "/assessment/adaptive-practice",
         "tools": [],
-        "id": "Np16tia7KuVPOdHi",
+        "id": "JYbszSvPLHK3M7rQ",
         "messages": [
           {
             "parts": [
@@ -556,7 +556,7 @@
                 "text": "请讲解知识点：根轨迹稳定性判断"
               }
             ],
-            "id": "6kHPSjjgpFtffTTT",
+            "id": "db7ZCC2uBCOJg2Hn",
             "role": "user"
           }
         ],
