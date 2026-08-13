@@ -90,6 +90,18 @@ function fixtureEnvelope(
   });
 }
 
+function composeProjection(
+  input: Parameters<typeof composeDomainTeachingProjection>[0],
+) {
+  return composeDomainTeachingProjection({
+    ...input,
+    authoringRevision:
+      input.authoringRevision
+      ?? input.authority?.authoringRevision
+      ?? COMMIT,
+  });
+}
+
 function independentExpectedIdentity(
   envelope: DomainTeachingAuthorityEnvelope,
   composed: Pick<DomainTeachingComposedArtifacts, 'manifest'>,
@@ -229,8 +241,8 @@ describe('enable-incremental-domain-teaching-projection', () => {
         baseAuthoring(),
         fixtureEnvelope(),
       );
-      const a = composeDomainTeachingProjection({ fragments: [fragment] });
-      const b = composeDomainTeachingProjection({ fragments: [fragment] });
+      const a = composeProjection({ fragments: [fragment] });
+      const b = composeProjection({ fragments: [fragment] });
       expect(a.manifest.projectionHash).toBe(b.manifest.projectionHash);
       expect(a.manifest.projectionId).toBe(b.manifest.projectionId);
       expect(JSON.stringify(a.manifest)).toBe(JSON.stringify(b.manifest));
@@ -286,8 +298,8 @@ describe('enable-incremental-domain-teaching-projection', () => {
         fixtureEnvelope(),
       );
 
-      const prior = composeDomainTeachingProjection({ fragments: [first] });
-      const next = composeDomainTeachingProjection({
+      const prior = composeProjection({ fragments: [first] });
+      const next = composeProjection({
         fragments: [first, second],
       });
       expect(next.manifest.projectionHash).not.toBe(prior.manifest.projectionHash);
@@ -381,10 +393,10 @@ describe('enable-incremental-domain-teaching-projection', () => {
 
     it('empty coverage composition requires full binding and never emits unbound', () => {
       expect(() =>
-        composeDomainTeachingProjection({ fragments: [] }),
+        composeProjection({ fragments: [] }),
       ).toThrow(DomainCompositionError);
 
-      const empty = composeDomainTeachingProjection({
+      const empty = composeProjection({
         fragments: [],
         authority: fixtureEnvelope(),
         authoringRevision: COMMIT,
@@ -398,7 +410,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
       ).toBe(true);
 
       // Prior complete binding may be reused without re-supplying binding.
-      const fromPrior = composeDomainTeachingProjection({
+      const fromPrior = composeProjection({
         fragments: [],
         priorArtifacts: empty,
       });
@@ -514,7 +526,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         baseAuthoring(),
         fixtureEnvelope(),
       );
-      const prior = composeDomainTeachingProjection({ fragments: [first] });
+      const prior = composeProjection({ fragments: [first] });
       const second = buildDomainTeachingFragment(
         baseAuthoring({
           fragmentKey: 'cycle-fragment',
@@ -565,7 +577,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         }),
         fixtureEnvelope(),
       );
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [emptyFragment],
       });
       const rootLocus = composed.coverage.find((c) => c.domainId === 'root-locus');
@@ -592,7 +604,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         }),
         fixtureEnvelope(),
       );
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [partial],
       });
       const modeling = composed.coverage.find(
@@ -604,7 +616,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
     });
 
     it('distinguishes unavailable service from empty published relation', () => {
-      const empty = composeDomainTeachingProjection({
+      const empty = composeProjection({
         fragments: [],
         authority: fixtureEnvelope(),
       });
@@ -629,7 +641,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         baseAuthoring(),
         fixtureEnvelope(),
       );
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [fragment],
       });
       const envelope = fixtureEnvelope();
@@ -652,7 +664,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         baseAuthoring({ fragmentVersion: '2' }),
         fixtureEnvelope(),
       );
-      const next = composeDomainTeachingProjection({
+      const next = composeProjection({
         fragments: [nextFragment],
       });
       const nextActivation = activateDomainTeachingProjection({
@@ -693,7 +705,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         baseAuthoring(),
         fixtureEnvelope(),
       );
-      const prior = composeDomainTeachingProjection({ fragments: [first] });
+      const prior = composeProjection({ fragments: [first] });
 
       const futureAuthoring = baseAuthoring({
         fragmentVersion: 'future-1',
@@ -716,7 +728,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         futureAuthoring,
         fixtureEnvelope(),
       );
-      const next = composeDomainTeachingProjection({
+      const next = composeProjection({
         fragments: [futureFragment],
       });
       expect(next.manifest.projectionHash).not.toBe(prior.manifest.projectionHash);
@@ -774,8 +786,9 @@ describe('enable-incremental-domain-teaching-projection', () => {
       expect(fragment.relationCount).toBe(fragment.relations.length);
       expect(fragment.relationCount).toBeGreaterThan(0);
 
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [fragment],
+        authoringRevision: authoring.authoringRevision,
       });
       expect(composed.manifest.authorityBinding).toEqual(
         LIVE_AUTHORITY_DOMAIN_TEACHING_BINDING,
@@ -792,8 +805,9 @@ describe('enable-incremental-domain-teaching-projection', () => {
           publishedInventoryAuthorityNodes(),
         ),
       });
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [fragment],
+        authoringRevision: live.authoringRevision,
       });
 
       const authoringPath = path.join(
@@ -854,7 +868,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         baseAuthoring(),
         fixtureEnvelope(),
       );
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [fragment],
       });
       const frequency = composed.coverage.find(
@@ -871,9 +885,9 @@ describe('enable-incremental-domain-teaching-projection', () => {
         baseAuthoring(),
         fixtureEnvelope(),
       );
-      const prior = composeDomainTeachingProjection({ fragments: [first] });
+      const prior = composeProjection({ fragments: [first] });
       try {
-        composeDomainTeachingProjection({
+        composeProjection({
           fragments: [first, first],
           priorArtifacts: prior,
         });
@@ -962,7 +976,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         baseAuthoring(),
         fixtureEnvelope(),
       );
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [fragment],
       });
       const envelope = fixtureEnvelope();
@@ -1153,10 +1167,10 @@ describe('enable-incremental-domain-teaching-projection', () => {
         fixtureEnvelope(),
       );
 
-      const forward = composeDomainTeachingProjection({
+      const forward = composeProjection({
         fragments: [modeling, stability],
       });
-      const reverse = composeDomainTeachingProjection({
+      const reverse = composeProjection({
         fragments: [stability, modeling],
       });
       expect(forward.relations).toHaveLength(1);
@@ -1224,7 +1238,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
     it('P1: copied self-asserted identity cannot activate a tampered artifact', () => {
       const envelope = fixtureEnvelope();
       const fragment = buildDomainTeachingFragment(baseAuthoring(), envelope);
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [fragment],
       });
       const tampered = {
@@ -1264,7 +1278,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
         baseAuthoring(),
         fixtureEnvelope(),
       );
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [fragment],
       });
       const result = activateDomainTeachingProjectionFailClosed({
@@ -1292,8 +1306,9 @@ describe('enable-incremental-domain-teaching-projection', () => {
         publishedInventoryAuthorityNodes(),
       );
       const { fragment } = translateAndBuildFirstDomainFragment({ authority });
-      const composed = composeDomainTeachingProjection({
+      const composed = composeProjection({
         fragments: [fragment],
+        authoringRevision: live.authoringRevision,
       });
       const activation = activateDomainTeachingProjection({
         artifacts: composed,
@@ -1303,6 +1318,161 @@ describe('enable-incremental-domain-teaching-projection', () => {
       expect(activation.projectionId).toBe(composed.manifest.projectionId);
       expect(activation.authorityDigest).toBe(composed.manifest.authorityDigest);
       expect(composed.manifest.gatePassed).toBe(true);
+    });
+  });
+
+  describe('P1 composition authority envelope and authoring revision', () => {
+    it('fails closed when a supplied Authority envelope sourceDatasetHash has drifted', () => {
+      const first = buildDomainTeachingFragment(
+        baseAuthoring(),
+        fixtureEnvelope(),
+      );
+      const prior = composeProjection({ fragments: [first] });
+      const drifted = createDomainTeachingAuthorityEnvelope({
+        binding: FIXTURE_BINDING,
+        sourceDatasetHash: 'e'.repeat(64),
+        captureRevision: COMMIT,
+        authoringRevision: COMMIT,
+        nodes: authorityNodes(),
+      });
+      const result = composeDomainTeachingProjectionFailClosed({
+        fragments: [first],
+        authority: drifted,
+        authoringRevision: COMMIT,
+        priorArtifacts: prior,
+      });
+      expect(result.ok).toBe(false);
+      expect(result.priorPreserved).toBe(true);
+      expect(result.artifacts).toBe(prior);
+      expect(result.artifacts?.manifest.projectionHash).toBe(
+        prior.manifest.projectionHash,
+      );
+      expect(result.errorCode).toBe('authority-selection-mismatch');
+      expect(
+        result.findings.some(
+          (finding) =>
+            finding.code === 'authority-selection-mismatch'
+            && finding.message.includes('sourceDatasetHash'),
+        ),
+      ).toBe(true);
+    });
+
+    it('uses the canonical Authority envelope revision when no explicit revision is supplied', () => {
+      const authority = fixtureEnvelope();
+      const fragment = buildDomainTeachingFragment(
+        baseAuthoring(),
+        authority,
+      );
+      const composed = composeDomainTeachingProjection({
+        fragments: [fragment],
+        authority,
+      });
+      expect(composed.manifest.authoringRevision).toBe(
+        authority.authoringRevision,
+      );
+    });
+
+    it('retains an explicit composition authoringRevision instead of lexicographic SHA order', () => {
+      const lexicallyLast = 'f'.repeat(40);
+      const lexicallyFirst = '0'.repeat(40);
+      const explicitRevision = 'b'.repeat(40);
+      const first = buildDomainTeachingFragment(
+        baseAuthoring({
+          authoringRevision: lexicallyLast,
+          authoritySelection: undefined,
+        }),
+        createDomainTeachingAuthorityEnvelope({
+          binding: FIXTURE_BINDING,
+          sourceDatasetHash: FIXTURE_SOURCE_DATASET_HASH,
+          captureRevision: COMMIT,
+          authoringRevision: lexicallyLast,
+          nodes: authorityNodes(),
+        }),
+      );
+      const second = buildDomainTeachingFragment(
+        baseAuthoring({
+          fragmentKey: 'stability-seed',
+          domainKeys: ['stability-analysis'],
+          authoringRevision: lexicallyFirst,
+          authoritySelection: undefined,
+          coreNodes: [
+            {
+              canonicalId: 'node.stability',
+              domainKeys: ['stability-analysis'],
+              pathEligible: true,
+              cardPolicy: 'OPTIONAL',
+              moduleId: 'module-2-stability',
+              rationale: 'Stability concept',
+              sourceKind: 'PREREQUISITE_ENDPOINT',
+              sourceEvidence: ['authoring/lessons/3-1/boppps.md'],
+            },
+          ],
+          relations: [],
+        }),
+        createDomainTeachingAuthorityEnvelope({
+          binding: FIXTURE_BINDING,
+          sourceDatasetHash: FIXTURE_SOURCE_DATASET_HASH,
+          captureRevision: COMMIT,
+          authoringRevision: lexicallyFirst,
+          nodes: authorityNodes(),
+        }),
+      );
+
+      const composed = composeDomainTeachingProjection({
+        fragments: [first, second],
+        authoringRevision: explicitRevision,
+      });
+      expect(composed.manifest.authoringRevision).toBe(explicitRevision);
+      expect(composed.manifest.authoringRevision).not.toBe(lexicallyLast);
+      expect(composed.manifest.authoringRevision).not.toBe(lexicallyFirst);
+      expect(lexicallyLast > lexicallyFirst).toBe(true);
+
+      const reversed = composeDomainTeachingProjection({
+        fragments: [second, first],
+        authoringRevision: lexicallyFirst,
+      });
+      expect(reversed.manifest.authoringRevision).toBe(lexicallyFirst);
+      expect(reversed.manifest.authoringRevision).not.toBe(lexicallyLast);
+    });
+
+    it('fails closed when a non-empty composition has no explicit revision or Authority envelope', () => {
+      const first = buildDomainTeachingFragment(
+        baseAuthoring(),
+        fixtureEnvelope(),
+      );
+      const prior = composeProjection({ fragments: [first] });
+      const second = buildDomainTeachingFragment(
+        baseAuthoring({
+          fragmentKey: 'stability-seed',
+          domainKeys: ['stability-analysis'],
+          coreNodes: [
+            {
+              canonicalId: 'node.stability',
+              domainKeys: ['stability-analysis'],
+              pathEligible: true,
+              cardPolicy: 'OPTIONAL',
+              rationale: 'Stability concept',
+              sourceKind: 'PREREQUISITE_ENDPOINT',
+              sourceEvidence: ['authoring/lessons/3-1/boppps.md'],
+            },
+          ],
+          relations: [],
+        }),
+        fixtureEnvelope(),
+      );
+      try {
+        composeDomainTeachingProjection({
+          fragments: [first, second],
+          priorArtifacts: prior,
+        });
+        expect.unreachable('expected missing composition revision rejection');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DomainCompositionError);
+        expect((error as DomainCompositionError).code).toBe(
+          'authoring-revision-unspecified',
+        );
+        expect((error as DomainCompositionError).priorArtifacts).toBe(prior);
+      }
     });
   });
 });

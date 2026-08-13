@@ -35,6 +35,7 @@ import {
   authoritySelectionFromEnvelope,
   authoritySelectionMismatchFields,
   assertDomainTeachingAuthorityEnvelope,
+  assertNonEmpty,
   assertPublishedAuthoritySelection,
   computeImmutableAuthorityDigest,
   domainFragmentEdgeSemanticKey,
@@ -78,8 +79,9 @@ export interface ComposeDomainTeachingProjectionInput {
   /** Ordered accepted fragments. Order is part of projection identity. */
   fragments: readonly DomainTeachingFragment[];
   /**
-   * Optional explicit authoring revision for the composition event.
-   * Defaults to the lexicographically last fragment revision.
+   * Explicit authoring revision for the composition event.
+   * Required for a non-empty composition unless a canonical Authority
+   * envelope supplies `authoringRevision`. Never inferred by sorting Git SHAs.
    */
   authoringRevision?: string;
   /**
@@ -91,7 +93,10 @@ export interface ComposeDomainTeachingProjectionInput {
   authorityBinding?: DomainFragmentAuthorityBinding | DomainFragmentAuthorityBindingComplete;
   /** Sealed Authority input identity for legal empty coverage. */
   authoritySelection?: DomainFragmentAuthoritySelection;
-  /** Canonical envelope for empty coverage or extra composition-time checks. */
+  /**
+   * Canonical envelope for empty coverage, composition revision, or sealed
+   * identity checks against the shared fragment Authority selection.
+   */
   authority?: DomainTeachingAuthorityEnvelope;
   /** Prior published composition preserved on fail-closed rejection. */
   priorArtifacts?: DomainTeachingComposedArtifacts | null;
@@ -193,6 +198,53 @@ function resolveEmptyCompositionSelection(input: {
           severity: 'error',
           message:
             'empty composition must not emit an unsealed Authority identity',
+        },
+      ],
+      priorArtifacts: input.prior,
+    },
+  );
+}
+
+function resolveNonEmptyCompositionAuthoringRevision(input: {
+  authoringRevision?: string;
+  envelopeAuthoringRevision?: string;
+  prior: DomainTeachingComposedArtifacts | null;
+}): string {
+  if (input.authoringRevision !== undefined) {
+    try {
+      return assertNonEmpty(
+        input.authoringRevision,
+        'composition.authoringRevision',
+      );
+    } catch (error) {
+      if (error instanceof DomainFragmentValidationError) {
+        throw new DomainCompositionError(error.code, error.message, {
+          findings: [
+            {
+              code: error.code,
+              severity: 'error',
+              message: error.message,
+            },
+          ],
+          priorArtifacts: input.prior,
+        });
+      }
+      throw error;
+    }
+  }
+  if (input.envelopeAuthoringRevision) {
+    return input.envelopeAuthoringRevision;
+  }
+  throw new DomainCompositionError(
+    'authoring-revision-unspecified',
+    'non-empty composition requires an explicit authoringRevision or a canonical Authority envelope; lexicographic Git SHA selection is forbidden',
+    {
+      findings: [
+        {
+          code: 'authoring-revision-unspecified',
+          severity: 'error',
+          message:
+            'composition authoringRevision must come from input.authoringRevision or the canonical Authority envelope',
         },
       ],
       priorArtifacts: input.prior,
@@ -798,12 +850,61 @@ export function composeDomainTeachingProjection(
       }
     }
 
+    let envelopeAuthoringRevision: string | undefined;
+    if (input.authority) {
+      try {
+        const envelope = assertDomainTeachingAuthorityEnvelope(
+          input.authority,
+          'composition.authority',
+        );
+        const supplied = authoritySelectionFromEnvelope(envelope);
+        const mismatch = authoritySelectionMismatchFields(
+          sharedSelection,
+          supplied,
+        );
+        if (mismatch.length > 0) {
+          throw new DomainCompositionError(
+            'authority-selection-mismatch',
+            `composition authority envelope mismatches fragments on: ${mismatch.join(', ')}`,
+            {
+              findings: [
+                {
+                  code: 'authority-selection-mismatch',
+                  severity: 'error',
+                  message: `authority envelope mismatch: ${mismatch.join(', ')}`,
+                },
+              ],
+              priorArtifacts: prior,
+            },
+          );
+        }
+        envelopeAuthoringRevision = envelope.authoringRevision;
+      } catch (error) {
+        if (error instanceof DomainCompositionError) throw error;
+        if (error instanceof DomainFragmentValidationError) {
+          throw new DomainCompositionError(error.code, error.message, {
+            findings: [
+              {
+                code: error.code,
+                severity: 'error',
+                message: error.message,
+              },
+            ],
+            priorArtifacts: prior,
+          });
+        }
+        throw error;
+      }
+    }
+
     const authorityBinding = sharedBinding;
     const authoritySelection = sharedSelection;
 
-    const authoringRevision =
-      input.authoringRevision
-      ?? [...input.fragments.map((f) => f.authoringRevision)].sort(compareCodePoint).at(-1)!;
+    const authoringRevision = resolveNonEmptyCompositionAuthoringRevision({
+      authoringRevision: input.authoringRevision,
+      envelopeAuthoringRevision,
+      prior,
+    });
 
     const fragmentRefs: DomainFragmentRef[] = input.fragments.map(
       (fragment, index) => ({
