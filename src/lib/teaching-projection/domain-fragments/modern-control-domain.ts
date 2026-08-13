@@ -85,10 +85,38 @@ export const MODERN_CONTROL_COURSE_COVERAGE_EVIDENCE = {
     'course-content/authoring/knowledge/issue-1208-course-coverage-review/primary-independent-stage-source.json',
 } as const;
 
+export const MODERN_CONTROL_COURSE_COVERAGE_EXPECTATIONS = {
+  [MODERN_DISCRETE_DOMAIN]: {
+    domainId: MODERN_DISCRETE_DOMAIN,
+    canonicalId: MODERN_DISCRETE_NODE_ID,
+    evidencePath: MODERN_CONTROL_COURSE_COVERAGE_EVIDENCE[MODERN_DISCRETE_DOMAIN],
+    expectedMemberDigest:
+      '44c164afa1ed2cddcb5cfe6b5656c8ab5798adf6a91b91d1a8222f7a610ba6fa',
+  },
+  [MODERN_STATE_SPACE_DOMAIN]: {
+    domainId: MODERN_STATE_SPACE_DOMAIN,
+    canonicalId: MODERN_STATE_SPACE_NODE_ID,
+    evidencePath: MODERN_CONTROL_COURSE_COVERAGE_EVIDENCE[MODERN_STATE_SPACE_DOMAIN],
+    expectedMemberDigest:
+      '17f0484c5ff80d6947343686c604ad69acd36b824cd8b1494b2a92a41ef223ac',
+  },
+} as const satisfies Record<
+  ModernControlDomainId,
+  {
+    domainId: ModernControlDomainId;
+    canonicalId: ModernControlNodeId;
+    evidencePath: string;
+    expectedMemberDigest: string;
+  }
+>;
+
 export interface ModernControlUnresolvedCoreCandidate {
   canonicalId: ModernControlNodeId;
   status: 'DEFER';
+  stageConclusion: 'DEFER';
   authorityResolution: 'unresolved';
+  evidencePath: string;
+  evidenceDigest: string;
   evidenceRefs: string[];
   reason: string;
 }
@@ -176,6 +204,22 @@ interface CatalogMembership {
   domainIds?: string[];
 }
 
+interface CourseCoverageMemberRecord {
+  canonicalId?: unknown;
+  stageConclusion?: unknown;
+  rationale?: unknown;
+  authorityResolution?: unknown;
+  [key: string]: unknown;
+}
+
+interface BoundCourseCoverageMember {
+  canonicalId: ModernControlNodeId;
+  stageConclusion: 'DEFER';
+  authorityResolution: 'unresolved';
+  evidencePath: string;
+  evidenceDigest: string;
+}
+
 function compareCodePoint(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
@@ -197,15 +241,103 @@ function resolveDefinition(domainId: ModernControlDomainId): ModernDomainDefinit
 }
 
 function unresolvedCoreCandidate(
-  definition: ModernDomainDefinition,
+  coverageMember: BoundCourseCoverageMember,
 ): ModernControlUnresolvedCoreCandidate {
   return {
-    canonicalId: definition.canonicalId,
-    status: 'DEFER',
-    authorityResolution: 'unresolved',
-    evidenceRefs: [MODERN_CONTROL_COURSE_COVERAGE_EVIDENCE[definition.domainId]],
+    canonicalId: coverageMember.canonicalId,
+    status: coverageMember.stageConclusion,
+    stageConclusion: coverageMember.stageConclusion,
+    authorityResolution: coverageMember.authorityResolution,
+    evidencePath: coverageMember.evidencePath,
+    evidenceDigest: coverageMember.evidenceDigest,
+    evidenceRefs: [coverageMember.evidencePath],
     reason:
       'CourseCoverage 阶段结论为 DEFER，authority unresolved；当前无 lesson、syllabus 或 curriculum 的独立 ACT admission evidence，因此候选不得进入已接纳分母。',
+  };
+}
+
+function hasIndependentCourseEvidenceGap(rationale: string): boolean {
+  return /independent-course|独立课程证据/iu.test(rationale);
+}
+
+function hasUnresolvedAuthorityRationale(rationale: string): boolean {
+  return /authority[\s\S]{0,120}unresolved|unresolved[\s\S]{0,120}authority|role-free\s+DEFER/iu.test(
+    rationale,
+  );
+}
+
+function readBoundCourseCoverageMember(
+  repoRoot: string,
+  definition: ModernDomainDefinition,
+): BoundCourseCoverageMember {
+  const expectation = MODERN_CONTROL_COURSE_COVERAGE_EXPECTATIONS[definition.domainId];
+  const evidencePath = MODERN_CONTROL_COURSE_COVERAGE_EVIDENCE[definition.domainId];
+  if (
+    expectation.domainId !== definition.domainId
+    || expectation.canonicalId !== definition.canonicalId
+    || expectation.evidencePath !== evidencePath
+  ) {
+    throw new Error(
+      `CourseCoverage evidence drift: expected binding mismatch for ${definition.domainId}`,
+    );
+  }
+  let document: { stage?: unknown; members?: unknown[] };
+  try {
+    document = readJson<{ stage?: unknown; members?: unknown[] }>(
+      repoRoot,
+      evidencePath,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`CourseCoverage evidence ${evidencePath} is unreadable: ${message}`);
+  }
+  if (document.stage !== 'PRIMARY' || !Array.isArray(document.members)) {
+    throw new Error(`CourseCoverage evidence ${evidencePath} is not a PRIMARY member document`);
+  }
+  const matching = document.members.filter(
+    (member): member is CourseCoverageMemberRecord =>
+      Boolean(member)
+      && typeof member === 'object'
+      && (member as CourseCoverageMemberRecord).canonicalId === definition.canonicalId,
+  );
+  if (matching.length !== 1) {
+    throw new Error(
+      `CourseCoverage evidence ${evidencePath} must contain exactly one member for ${definition.canonicalId}`,
+    );
+  }
+  const member = matching[0];
+  if (member.stageConclusion !== 'DEFER') {
+    throw new Error(
+      `CourseCoverage evidence ${evidencePath} ${definition.canonicalId} stageConclusion must remain DEFER`,
+    );
+  }
+  if (typeof member.rationale !== 'string') {
+    throw new Error(
+      `CourseCoverage evidence ${evidencePath} ${definition.canonicalId} rationale is missing`,
+    );
+  }
+  if (
+    (member.authorityResolution !== undefined
+      && member.authorityResolution !== 'unresolved')
+    || !hasIndependentCourseEvidenceGap(member.rationale)
+    || !hasUnresolvedAuthorityRationale(member.rationale)
+  ) {
+    throw new Error(
+      `CourseCoverage evidence ${evidencePath} ${definition.canonicalId} rationale must preserve authority unresolved and the independent-course evidence gap`,
+    );
+  }
+  const evidenceDigest = projectionDigest(member);
+  if (evidenceDigest !== expectation.expectedMemberDigest) {
+    throw new Error(
+      `CourseCoverage evidence drift for ${definition.domainId}/${definition.canonicalId}: expected ${expectation.expectedMemberDigest}, got ${evidenceDigest}`,
+    );
+  }
+  return {
+    canonicalId: definition.canonicalId,
+    stageConclusion: 'DEFER',
+    authorityResolution: 'unresolved',
+    evidencePath,
+    evidenceDigest,
   };
 }
 
@@ -298,6 +430,7 @@ function coverageForEmptyDomain(
 export function buildModernControlDomainArtifacts(
   domainId: ModernControlDomainId,
   authority: DomainTeachingAuthorityEnvelope,
+  repoRoot = process.cwd(),
 ): ModernControlDomainArtifacts {
   const envelope = assertDomainTeachingAuthorityEnvelope(
     authority,
@@ -313,7 +446,10 @@ export function buildModernControlDomainArtifacts(
   );
   const denominatorNodeIds = [] as [];
   const coreNodes: DomainFragmentCoreNodeAuthoring[] = [];
-  const unresolvedCoreCandidates = [unresolvedCoreCandidate(definition)];
+  const coverageMember = readBoundCourseCoverageMember(repoRoot, definition);
+  const unresolvedCoreCandidates = [
+    unresolvedCoreCandidate(coverageMember),
+  ];
   const { deferredBoundaries, excludedScopes } = boundaryNoticesFor();
   const sourceDigest = projectionDigest({
     contract: MODERN_CONTROL_SOURCE_CONTRACT,
@@ -350,6 +486,7 @@ export function buildModernControlDomainArtifacts(
     sourceDigest,
     denominatorNodeIds,
     acceptedLocalRelationCount: 0,
+    unresolvedCoreCandidates,
     deferredBoundaries,
     excludedScopes,
   });

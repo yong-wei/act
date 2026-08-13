@@ -33,6 +33,7 @@ export function generateModernControlDomainTeaching(
     buildModernControlDomainArtifacts(
       definition.domainId as ModernControlDomainId,
       authority,
+      repoRoot,
     ),
   );
   return {
@@ -59,4 +60,3 @@ export function writeModernControlDomainArtifacts(
 if (process.argv[1]?.endsWith('generate-modern-control-domain-teaching.ts')) {
   writeModernControlDomainArtifacts();
 }
-

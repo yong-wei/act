@@ -31,7 +31,10 @@
     {
       "canonicalId": "ctkg:v3e-object-0bb7941e989275e607a110d0",
       "status": "DEFER",
+      "stageConclusion": "DEFER",
       "authorityResolution": "unresolved",
+      "evidencePath": "course-content/authoring/knowledge/issue-1208-course-coverage-review/primary-independent-stage-source.json",
+      "evidenceDigest": "17f0484c5ff80d6947343686c604ad69acd36b824cd8b1494b2a92a41ef223ac",
       "evidenceRefs": [
         "course-content/authoring/knowledge/issue-1208-course-coverage-review/primary-independent-stage-source.json"
       ],
@@ -52,5 +55,5 @@
       "reason": "非 catalog 工程邻接不是 ACT_TEACHING 证据，明确排除出本地分片。"
     }
   ],
-  "sourceDigest": "af35e32927659f3344364992d986cbf657316180f94ac85b84eab6cd52ef8dd5"
+  "sourceDigest": "5c04c2acaab2341e801405da1d8189e7cbbfa8c2b7f585d4c1fd4bed5dfe7d43"
 }

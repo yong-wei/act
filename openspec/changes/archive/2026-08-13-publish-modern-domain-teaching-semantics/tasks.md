@@ -13,3 +13,5 @@
 
 - [x] 3.1 Prove unresolved candidates and range-level boundary notices do not enter the local fragments or published coverage counts and do not block publication.
 - [x] 3.2 Run teaching-projection content tests and strict OpenSpec validation.
+- [x] 3.3 Bind each generated candidate to the validated CourseCoverage member digest and fail closed on missing, duplicated, or changed evidence.
+- [x] 3.4 Pin reviewed member digests by domain, candidate ID, and primary evidence path; reject digest or binding drift before artifact emission.
