@@ -1,0 +1,149 @@
+{
+  "contract": "act-foundation-three-domain-source/v1",
+  "fragmentKey": "foundation-three-domain-v1",
+  "fragmentVersion": "1",
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "bf6c2cccf0ee1adc1601d2bb2fe9d1f831d40f3f108fa9733ee8b38bf89630e9"
+  },
+  "authorityNodeIds": [
+    "ctc:modeling-00d2998755974a1329049aac",
+    "ctc:modeling-2088bbde171b2e9ef66070d5",
+    "ctc:modeling-865eb1c8824e157c2f05a903",
+    "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+    "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+    "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "ctkg:v3e-object-8c4354096b719a1d5e090da4"
+  ],
+  "denominatorNodeIds": [
+    "ctc:modeling-00d2998755974a1329049aac",
+    "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "ctc:v11g-1c9f955b68fd25e1f4ad86f6"
+  ],
+  "coreNodes": [
+    {
+      "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+      "domainKeys": [
+        "system-modeling"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-1-modeling",
+      "rationale": "1-5 课程目标要求学生调节增益并以同一对象读取闭环行为。",
+      "sourceKind": "OBJECTIVE",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "domainKeys": [
+        "time-domain-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-3-time",
+      "rationale": "2-2 教学主线从单位阶跃响应开始建立时域指标语言。",
+      "sourceKind": "OBJECTIVE",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "domainKeys": [
+        "stability-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "OPTIONAL",
+      "moduleId": "module-2-stability",
+      "rationale": "1-5 课程目标要求识别稳定、临界稳定与不稳定状态。",
+      "sourceKind": "OBJECTIVE",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "domainKeys": [
+        "stability-analysis",
+        "time-domain-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-3-time",
+      "rationale": "2-2 将调节时间定义为单位阶跃响应的动态性能指标。",
+      "sourceKind": "PRIMARY_COVERS",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "foundation-step-response-to-settling-time",
+      "sourceNodeId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "targetNodeId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "relationType": "PREREQUISITE",
+      "strength": "REQUIRED",
+      "evidenceRefs": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ],
+      "directness": "direct",
+      "isDirect": true,
+      "isTransitive": false,
+      "status": "published",
+      "unpublishedReason": null,
+      "evidencePath": "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+    },
+    {
+      "candidateId": "foundation-gain-to-stability",
+      "sourceNodeId": "ctc:modeling-00d2998755974a1329049aac",
+      "targetNodeId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "relationType": "PREREQUISITE",
+      "strength": "RECOMMENDED",
+      "evidenceRefs": [
+        "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+      ],
+      "directness": "not-direct",
+      "isDirect": false,
+      "isTransitive": false,
+      "status": "unresolved",
+      "unpublishedReason": "证据仅为同课共现，未形成直接教学顺序，故不得发布 ACT_TEACHING。",
+      "evidencePath": "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+    },
+    {
+      "candidateId": "foundation-stability-to-settling-time",
+      "sourceNodeId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "targetNodeId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "relationType": "PREREQUISITE",
+      "strength": "RECOMMENDED",
+      "evidenceRefs": [
+        "course-content/authoring/lessons/1-5/design/1-5-boppps.md",
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ],
+      "directness": "not-direct",
+      "isDirect": false,
+      "isTransitive": false,
+      "status": "unresolved",
+      "unpublishedReason": "证据只形成三域链条，不能将其转写为直接先修，故不得发布 ACT_TEACHING。",
+      "evidencePath": "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+    }
+  ],
+  "sourceDigest": "11d0a3fe271aa5d91f807dbef4d801e578136021e205b52af5adaee7c3682f84"
+}

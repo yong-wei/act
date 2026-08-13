@@ -1,0 +1,81 @@
+{
+  "contract": "act-foundation-three-domain-coverage/v1",
+  "fragmentKey": "foundation-three-domain-v1",
+  "fragmentVersion": "1",
+  "fragmentId": "dtf-792eae60887a19d9f8ff473f975aa74b03f4976f5c18be4f8124403e78c357d9",
+  "fragmentDigest": "792eae60887a19d9f8ff473f975aa74b03f4976f5c18be4f8124403e78c357d9",
+  "sourceInventoryDigest": "2c1bb464a82092fcc8776ff667c84e8c45761615b8a6a0e88b1988ba33d345f5",
+  "denominatorNodeIds": [
+    "ctc:modeling-00d2998755974a1329049aac",
+    "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "ctc:v11g-1c9f955b68fd25e1f4ad86f6"
+  ],
+  "blocking": false,
+  "coverage": [
+    {
+      "domainId": "classical-control-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "root-locus",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "stability-analysis",
+      "coverage": "partial",
+      "coreNodeCount": 2,
+      "relationCount": 1,
+      "uncoveredCoreNodeCount": 1,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "system-modeling",
+      "coverage": "empty",
+      "coreNodeCount": 1,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 1,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "coverage": "available",
+      "coreNodeCount": 2,
+      "relationCount": 1,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    }
+  ]
+}

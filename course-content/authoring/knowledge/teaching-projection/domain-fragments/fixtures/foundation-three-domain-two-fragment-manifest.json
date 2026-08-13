@@ -1,0 +1,128 @@
+{
+  "contract": "act-domain-teaching-composed-manifest/v1",
+  "builderVersion": "act-domain-teaching-composition-builder/v1",
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "bf6c2cccf0ee1adc1601d2bb2fe9d1f831d40f3f108fa9733ee8b38bf89630e9"
+  },
+  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "sourceInventoryDigest": "a6b0a867036a01fc2b16738e7d0142a80de0a34fb6487d6cb39f08f37cb0e0e9",
+  "authorityDigest": "aceacc10350f11c2f17c9ff0ad4141c9ea6cb7e974dcff690ffacde19c1eec1b",
+  "fragments": [
+    {
+      "order": 0,
+      "fragmentId": "dtf-9966a485498eaaa304b7b28023ce9494207a1f8cb735be837405a34a524b0154",
+      "fragmentKey": "foundation-published-v1",
+      "fragmentVersion": "1",
+      "fragmentDigest": "9966a485498eaaa304b7b28023ce9494207a1f8cb735be837405a34a524b0154",
+      "sourceInventoryDigest": "a6065975057175f73fa29f2346e85eeb2514bed6ba7d08a580b1e03bb13b581c",
+      "domainKeys": [
+        "stability-analysis",
+        "system-modeling"
+      ]
+    },
+    {
+      "order": 1,
+      "fragmentId": "dtf-792eae60887a19d9f8ff473f975aa74b03f4976f5c18be4f8124403e78c357d9",
+      "fragmentKey": "foundation-three-domain-v1",
+      "fragmentVersion": "1",
+      "fragmentDigest": "792eae60887a19d9f8ff473f975aa74b03f4976f5c18be4f8124403e78c357d9",
+      "sourceInventoryDigest": "2c1bb464a82092fcc8776ff667c84e8c45761615b8a6a0e88b1988ba33d345f5",
+      "domainKeys": [
+        "stability-analysis",
+        "system-modeling",
+        "time-domain-analysis"
+      ]
+    }
+  ],
+  "domainCoverage": [
+    {
+      "domainId": "classical-control-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "root-locus",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "stability-analysis",
+      "coverage": "available",
+      "coreNodeCount": 3,
+      "relationCount": 3,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "system-modeling",
+      "coverage": "partial",
+      "coreNodeCount": 4,
+      "relationCount": 4,
+      "uncoveredCoreNodeCount": 1,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "coverage": "available",
+      "coreNodeCount": 2,
+      "relationCount": 1,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    }
+  ],
+  "coreNodeCount": 8,
+  "relationCount": 5,
+  "gateStatus": "PUBLISHED",
+  "gatePassed": true,
+  "sourceHashes": {
+    "fragments": "5a94bb2a4e552df23c01238d544afd10a0f6343039f26b121c1e6d943eb5d38e",
+    "sourceInventory": "a6b0a867036a01fc2b16738e7d0142a80de0a34fb6487d6cb39f08f37cb0e0e9",
+    "body": "338e2d3cad82189b8ee2eab46344131727840993057a7f544797ab08fe7dd007"
+  },
+  "projectionId": "proj-42934fbe3f7c55a72340a5ad341db81f04644df0b718daeecda1a948485eec51",
+  "projectionHash": "42934fbe3f7c55a72340a5ad341db81f04644df0b718daeecda1a948485eec51"
+}

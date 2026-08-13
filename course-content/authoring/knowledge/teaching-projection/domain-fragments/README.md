@@ -8,6 +8,13 @@ Append-only, immutable domain shards of reviewed core-node memberships and direc
   - `first-fragment.authoring.json`
   - `first-fragment.json`
   - `composed-manifest.json`
+- **Foundation three-domain increment** (`foundation-three-domain-v1`, #1371; does not rewrite the first fragment):
+  - `foundation-three-domain-v1.source.json`
+  - `foundation-three-domain-v1.worklist.json`
+  - `foundation-three-domain-v1.authoring.json`
+  - `foundation-three-domain-v1.json`
+  - `foundation-three-domain-v1.coverage.json`
+  - `fixtures/foundation-three-domain-two-fragment-manifest.json` (two-fragment validation fixture only; not a runtime current pointer)
 - **Fixtures**: `fixtures/` verification samples only
 - **Source inventory**: `../prerequisites/inventory/` (translated without semantic change)
 
