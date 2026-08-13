@@ -5,6 +5,7 @@ export * from './builder';
 export * from './cards';
 export * from './contracts';
 export * from './crosswalk';
+export * from './domain-fragments';
 export * from './gate';
 export * from './hash';
 export * from './identity';

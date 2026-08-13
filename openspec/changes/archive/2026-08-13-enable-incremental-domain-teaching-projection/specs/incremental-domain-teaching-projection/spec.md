@@ -12,22 +12,22 @@ The system SHALL publish Teaching Projection content as immutable, versioned dom
 - **THEN** the candidate projection SHALL fail closed and the prior published projection SHALL remain unchanged
 
 ### Requirement: Teaching coverage is independent from Authority readiness
-The system SHALL represent domain teaching coverage as `available`, `partial`, `empty` or `unavailable` independently from Engineering Authority readiness. Low edge counts, uncovered Authority objects and an empty valid domain SHALL NOT block Authority activation, domain navigation or engineering relation browsing.
+The system SHALL represent domain teaching coverage as `available`, `partial`, `empty` or `unavailable` independently from Engineering Authority readiness. Low edge counts, uncovered Authority objects and an empty valid domain SHALL NOT fail the fragment/composition gate or require Authority reactivation.
 
 #### Scenario: Domain has partial teaching coverage
 - **WHEN** some reviewed direct teaching relations are published and other objects remain uncovered
-- **THEN** the published relations SHALL load and the domain SHALL report partial coverage
-- **AND** Engineering Authority SHALL remain usable
+- **THEN** the composed artifact SHALL retain those relations and record partial coverage
+- **AND** the Authority binding SHALL remain valid for the independent activation contract
 
 #### Scenario: Teaching service is unavailable
 - **WHEN** the optional teaching layer cannot be resolved
-- **THEN** engineering objects and eligible engineering relations SHALL remain available
-- **AND** the product SHALL distinguish service unavailability from no published teaching relation
+- **THEN** the artifact contract SHALL distinguish unavailability from empty published coverage
+- **AND** it SHALL not fabricate a teaching relation or alter the Authority binding
 
-### Requirement: Future reviewed relations load without frontend code changes
-A future direct teaching relation SHALL enter its matching domain shards after a valid new Teaching Projection is activated, provided its registered presentation contract is supported. The system SHALL NOT require a hard-coded per-release relation allowlist in the frontend.
+### Requirement: Future reviewed relations enter the composed projection without release-specific relation lists
+A future direct teaching relation SHALL enter its matching composed Teaching Projection when its immutable fragment is accepted and its registered presentation contract is supported. The composition contract SHALL NOT require a hard-coded per-release relation allowlist.
 
 #### Scenario: New reviewed prerequisite is published
 - **WHEN** a later projection version adds a valid registered direct prerequisite
-- **THEN** the next version-matched domain request SHALL include it automatically
+- **THEN** the next composed projection SHALL include the relation according to its declared domain membership
 - **AND** unchanged engineering facts and prior teaching evidence SHALL not require re-review
