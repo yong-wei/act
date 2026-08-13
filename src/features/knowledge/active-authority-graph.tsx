@@ -48,8 +48,10 @@ import {
 } from './active-authority-shard-store';
 import type {
   AuthorityShardPublicEnvelope,
+  AuthorityShardMembership,
   EngineeringRelationFamily,
 } from '@/lib/authority-domain-shards/contracts';
+import { REGISTERED_PEER_DOMAIN_IDS } from '@/lib/authority-domain-catalog/contracts';
 import { ENGINEERING_RELATION_FAMILIES } from '@/lib/authority-domain-shards/contracts';
 import {
   isPublicAuthorityLearnerShard,
@@ -71,6 +73,18 @@ const FAMILY_LABELS: Record<EngineeringRelationFamily, string> = {
   'application-and-analysis': '应用与分析',
   association: '关联',
 };
+
+/** Choose the reviewed owning domain without relying on shard arrival order. */
+export function selectActiveAuthorityMembership(
+  memberships: readonly AuthorityShardMembership[],
+): AuthorityShardMembership | null {
+  const ordered = [...memberships].sort((left, right) => (
+    REGISTERED_PEER_DOMAIN_IDS.indexOf(left.domainId) - REGISTERED_PEER_DOMAIN_IDS.indexOf(right.domainId)
+    || left.domainId.localeCompare(right.domainId)
+    || left.visualRole.localeCompare(right.visualRole)
+  ));
+  return ordered.find((membership) => membership.preferred) ?? ordered[0] ?? null;
+}
 
 function errorMessage(status: number): string {
   if (status === 401) return '请先登录后查看当前 Authority 图谱。';
@@ -117,7 +131,7 @@ async function fetchAuthorityShard(
 function useActiveAuthorityWorkspace(retry: number): {
   state: WorkspaceLoadState;
   workspace: AuthorityShardWorkspaceState;
-  enterDomain: (visualRole: string) => void;
+  enterDomain: (visualRole: string) => Promise<boolean>;
   enableFamily: (family: EngineeringRelationFamily) => void;
   familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
   requestNeighborhood: (nodeId: string) => void;
@@ -166,25 +180,26 @@ function useActiveAuthorityWorkspace(retry: number): {
     setState({ status: 'error', message: errorMessage(409) });
   }
 
-  function fetchDomainDefault(visualRole: string, generation: number, domainRevision: number): void {
+  function fetchDomainDefault(visualRole: string, generation: number, domainRevision: number): Promise<boolean> {
     const controller = new AbortController();
     requestControllersRef.current.add(controller);
-    fetchAuthorityShard(
+    return fetchAuthorityShard(
       `/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`,
       'domain-default',
       controller.signal,
     )
       .then((shard) => applyShard(shard, generation, domainRevision))
       .catch((error: unknown) => {
-        if (controller.signal.aborted || generation !== requestGenerationRef.current) return;
+        if (controller.signal.aborted || generation !== requestGenerationRef.current) return false;
         if (isIdentityFailure(error)) {
           onIdentityFailure();
-          return;
+          return false;
         }
         setState({
           status: 'error',
           message: error instanceof Error ? error.message : '当前领域分片暂时无法加载。',
         });
+        return false;
       })
       .finally(() => {
         requestControllersRef.current.delete(controller);
@@ -265,10 +280,14 @@ function useActiveAuthorityWorkspace(retry: number): {
     };
   }, [retry]);
 
-  function enterDomain(visualRole: string) {
+  function enterDomain(visualRole: string): Promise<boolean> {
     const current = workspaceRef.current;
     if (current.activeVisualRole === visualRole && current.activeDomainId) {
-      return;
+      return Promise.resolve(true);
+    }
+    if (current.activeDomainId) {
+      nextRequestGeneration();
+      updateWorkspace(resetAuthorityShardDomain);
     }
     updateWorkspace((workspace) => ({
       ...workspace,
@@ -277,7 +296,7 @@ function useActiveAuthorityWorkspace(retry: number): {
     setFamilyFailures({});
     setNeighborhoodFailures({});
     const generation = nextRequestGeneration();
-    fetchDomainDefault(visualRole, generation, workspaceRef.current.domainRevision);
+    return fetchDomainDefault(visualRole, generation, workspaceRef.current.domainRevision);
   }
 
   function enableFamily(family: EngineeringRelationFamily) {
@@ -1018,6 +1037,8 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<SVGGElement | null>(null);
+  const selectionIntentRef = useRef(0);
+  const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const draggingRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const isCompactViewport = viewportWidth !== null && viewportWidth < 640;
   const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
@@ -1059,8 +1080,16 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   const modelReady = Boolean(model);
   useEffect(() => {
     if (!model) return;
-    setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
-    setSelectedNodeKey(null);
+    const pending = pendingCrossDomainSelectionRef.current;
+    if (pending && pending.intent === selectionIntentRef.current && model.nodeByKey.has(pending.key)) {
+      setVisibleKeys(materializeActiveNodeScope(model, pending.key, visibleNodeLimit));
+      setSelectedNodeKey(pending.key);
+      pendingCrossDomainSelectionRef.current = null;
+    } else {
+      pendingCrossDomainSelectionRef.current = null;
+      setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
+      setSelectedNodeKey(null);
+    }
     setQuery('');
     setTypeFilter('');
     setZoom(1);
@@ -1121,27 +1150,63 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   );
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
 
-  function selectNode(key: string, target?: SVGGElement) {
+  function resolveNodeSelection(key: string, mode: 'canvas' | 'search'): void {
     if (!model) return;
+    const intent = selectionIntentRef.current + 1;
+    selectionIntentRef.current = intent;
+    if (mode === 'search') {
+      // The result button is removed when the query is cleared; restore focus
+      // to the newly materialized semantic node or the canvas instead.
+      triggerRef.current = null;
+      setQuery('');
+      setTypeFilter('');
+    }
+
+    const object = workspace.objectsByCanonicalId[key];
+    const memberships = object?.memberships.filter((membership) => (
+      workspace.root?.domains.some((domain) => domain.visualRole === membership.visualRole) ?? false
+    )) ?? [];
+    const membership = selectActiveAuthorityMembership(memberships);
+    const owningDomain = membership
+      ? workspace.root?.domains.find((domain) => domain.visualRole === membership.visualRole)
+      : undefined;
+    if (!membership || !owningDomain || (
+      workspace.activeDomainId === membership.domainId
+      && workspace.activeVisualRole === owningDomain.visualRole
+    )) {
+      pendingCrossDomainSelectionRef.current = null;
+      setVisibleKeys((current) => mode === 'search'
+        ? materializeActiveNodeScope(model, key, visibleNodeLimit)
+        : expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit));
+      setSelectedNodeKey(key);
+      requestNeighborhood(key);
+      return;
+    }
+
+    // A boundary object is present in the current domain only as an endpoint.
+    // Load its owning domain first; the domain response then establishes the
+    // active revision before selection and neighborhood loading begin.
+    pendingCrossDomainSelectionRef.current = { key, intent };
+    void enterDomain(owningDomain.visualRole).then((loaded) => {
+      if (!loaded || selectionIntentRef.current !== intent) return;
+      const pending = pendingCrossDomainSelectionRef.current;
+      if (!pending || pending.key !== key || pending.intent !== intent) return;
+      requestNeighborhood(key);
+    });
+  }
+
+  function selectNode(key: string, target?: SVGGElement) {
     triggerRef.current = target ?? null;
-    setVisibleKeys((current) => expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit));
-    setSelectedNodeKey(key);
-    requestNeighborhood(key);
+    resolveNodeSelection(key, 'canvas');
   }
 
   function focusSearchResult(key: string) {
-    if (!model) return;
-    // The result button is removed when the query is cleared; restore focus
-    // to the newly materialized semantic node or the canvas instead.
-    triggerRef.current = null;
-    setVisibleKeys(materializeActiveNodeScope(model, key, visibleNodeLimit));
-    setSelectedNodeKey(key);
-    setQuery('');
-    setTypeFilter('');
-    requestNeighborhood(key);
+    resolveNodeSelection(key, 'search');
   }
 
   function resetOverview() {
+    selectionIntentRef.current += 1;
+    pendingCrossDomainSelectionRef.current = null;
     resetDomain();
     setSelectedNodeKey(null);
     setQuery('');
