@@ -27,10 +27,10 @@ import {
   serializeRuntimeBlobReleaseManifest,
   serializeRuntimeBlobReleaseReceipt,
   serializeRuntimeReleaseManifest,
-  verifyRuntimeBlobReleaseDirectory,
   verifyRuntimeReleaseDirectory,
   type ActRuntimeReleaseManifest,
 } from '@/lib/runtime-release';
+import type { GitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
 
 const RELEASE_KEY_PREFIX = 'runtime/releases/';
 const BLOB_KEY_PREFIX = 'runtime/blobs/sha256/';
@@ -505,8 +505,8 @@ async function openVerifiedRuntimeSourceFile(root: string, relativePath: string)
   return createReadStream(absolutePath);
 }
 
-async function streamSourceFrame(child: ChildProcess, root: string, file: ActRuntimeReleaseFile) {
-  const source = await openVerifiedRuntimeSourceFile(root, file.path);
+async function streamSourceFrame(child: ChildProcess, sourceFactory: () => Promise<Readable>, file: ActRuntimeReleaseFile) {
+  const source = await sourceFactory();
   const hash = createHash('sha256');
   let sizeBytes = 0;
   try {
@@ -627,7 +627,7 @@ async function publishRuntimeReleaseStream(input: {
       for (const file of input.manifest.files) {
         if (!missing.has(file.objectKey)) continue;
         await writeChild(child, `${JSON.stringify({ key: file.objectKey, sizeBytes: file.sizeBytes, sha256: file.sha256 })}\n`, file.path);
-        await streamSourceFrame(child, input.runtimeRoot, file);
+        await streamSourceFrame(child, () => openVerifiedRuntimeSourceFile(input.runtimeRoot, file.path), file);
       }
       await writeChild(child, 'DONE\n', 'publish');
       child.stdin.end();
@@ -671,7 +671,7 @@ export async function publishRuntimeReleaseViaSsh(input: {
 }
 
 async function publishRuntimeBlobReleaseStream(input: {
-  runtimeRoot: string;
+  snapshot: GitRuntimeBlobReleaseSnapshot;
   manifest: ActRuntimeBlobReleaseManifest;
   config: RuntimeReleaseSshPublisherConfig;
   spawn?: RuntimeReleaseSshPublisherDependencies['spawn'];
@@ -681,7 +681,13 @@ async function publishRuntimeBlobReleaseStream(input: {
   } catch (error) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-id-not-content-addressed', 'Runtime blob release id must bind source revision and tree identity before publishing.', { cause: error });
   }
-  await verifyRuntimeBlobReleaseDirectory(input.runtimeRoot, input.manifest);
+  if (
+    input.snapshot.manifest.releaseId !== input.manifest.releaseId
+    || input.snapshot.manifest.manifestSha256 !== input.manifest.manifestSha256
+    || input.snapshot.sourceRevision !== input.manifest.sourceRevision
+  ) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-git-source-mismatch', 'Git snapshot identity does not match the submitted blob manifest.');
+  }
   const child = spawnChild(input.spawn, input.config.sshBinary ?? 'ssh', buildRuntimeReleaseSshArgv(input.config, 'publish', {
     prefix: runtimeReleasePrefix(input.manifest.releaseId),
   }));
@@ -740,7 +746,11 @@ async function publishRuntimeBlobReleaseStream(input: {
       for (const [key, file] of sourcesByKey) {
         if (!missing.has(key)) continue;
         await writeChild(child, `${JSON.stringify({ key, sizeBytes: file.sizeBytes, sha256: file.sha256 })}\n`, file.path);
-        await streamSourceFrame(child, input.runtimeRoot, file);
+        const snapshotFile = input.snapshot.filesByPath.get(file.path);
+        if (!snapshotFile || snapshotFile.sizeBytes !== file.sizeBytes || snapshotFile.sha256 !== file.sha256) {
+          throw new RuntimeReleaseStreamingPublisherError('runtime-release-git-source-mismatch', `Git snapshot source differs from the blob manifest for ${file.path}.`);
+        }
+        await streamSourceFrame(child, () => input.snapshot.openFile(file.path), file);
       }
       await writeChild(child, 'DONE\n', 'blob publish');
       child.stdin.end();
@@ -768,13 +778,13 @@ async function publishRuntimeBlobReleaseStream(input: {
 }
 
 export async function publishRuntimeBlobReleaseViaSsh(input: {
-  runtimeRoot: string;
+  snapshot: GitRuntimeBlobReleaseSnapshot;
   manifest: ActRuntimeBlobReleaseManifest;
   ssh: RuntimeReleaseSshPublisherConfig;
   dependencies?: RuntimeReleaseSshPublisherDependencies;
 }) {
   return publishRuntimeBlobReleaseStream({
-    runtimeRoot: input.runtimeRoot,
+    snapshot: input.snapshot,
     manifest: input.manifest,
     config: input.ssh,
     spawn: input.dependencies?.spawn,

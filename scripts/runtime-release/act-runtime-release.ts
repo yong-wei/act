@@ -16,6 +16,7 @@ import {
   verifyPublishedRuntimeBlobReleaseViaSsh,
   verifyPublishedRuntimeReleaseViaSsh,
 } from '@/lib/runtime-release-streaming-publisher';
+import { buildGitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
 import { buildRuntimeReleaseMediaClosure, serializeRuntimeReleaseMediaClosure } from '@/lib/runtime-release-media-closure';
 
 function argument(name: string) {
@@ -32,9 +33,10 @@ function required(name: string) {
 function usage() {
   return [
     'Usage:',
-    '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1|v2]',
+    '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2',
+    '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 --output <manifest.json>',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--format v1|v2] [--output <closure.json>]',
-    '  act-runtime-release publish-streaming --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
+    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <manifest.json>]',
     '',
@@ -76,21 +78,31 @@ async function buildManifestForFormat(runtimeRoot: string, sourceRevision: strin
     : await buildRuntimeBlobReleaseManifest(runtimeRoot, { sourceRevision });
 }
 
+async function buildGitManifest(sourceRevision: string) {
+  if (process.argv.includes('--integration-ref')) {
+    throw new Error('Production v2 CLI fixes the ancestry authority to origin/integration; --integration-ref is not supported.');
+  }
+  return buildGitRuntimeBlobReleaseSnapshot({
+    repoRoot: required('--repo-root'),
+    sourceRevision,
+    integrationRef: 'origin/integration',
+  });
+}
+
 async function main() {
   const command = process.argv[2];
   if (!command || command === '--help' || command === '-h') {
     process.stdout.write(`${usage()}\n`);
     return;
   }
-  if (!['plan', 'verify-media-closure', 'publish-streaming', 'verify', 'inspect'].includes(command)) throw new Error(usage());
+  if (!['plan', 'build-manifest', 'verify-media-closure', 'publish-streaming', 'verify', 'inspect'].includes(command)) throw new Error(usage());
   if (command === 'plan') {
     const format = releaseFormat();
-    const manifest = format === 'v1'
-      ? await buildRuntimeReleaseManifest(required('--runtime-root'), {
+    const snapshot = format === 'v2'
+      ? await buildGitManifest(required('--source-revision'))
+      : undefined;
+    const manifest = snapshot?.manifest ?? await buildRuntimeReleaseManifest(required('--runtime-root'), {
         releaseId: 'runtime-plan',
-        sourceRevision: required('--source-revision'),
-      })
-      : await buildRuntimeBlobReleaseManifest(required('--runtime-root'), {
         sourceRevision: required('--source-revision'),
       });
     await writeOutput(argument('--output'), {
@@ -98,6 +110,13 @@ async function main() {
       sourceRevision: manifest.sourceRevision,
       treeSha256: manifest.treeSha256,
     });
+    return;
+  }
+  if (command === 'build-manifest') {
+    const format = releaseFormat();
+    if (format !== 'v2') throw new Error('build-manifest is reserved for the v2 candidate materialization contract.');
+    const snapshot = await buildGitManifest(required('--source-revision'));
+    await writeOutput(required('--output'), JSON.parse(serializeRuntimeBlobReleaseManifest(snapshot.manifest)));
     return;
   }
   if (command === 'verify-media-closure') {
@@ -114,17 +133,22 @@ async function main() {
   }
   const releaseId = required('--release-id');
   if (command === 'publish-streaming') {
-    const runtimeRoot = required('--runtime-root');
     const sourceRevision = required('--source-revision');
     const format = releaseFormat();
-    const manifest = await buildManifestForFormat(runtimeRoot, sourceRevision, releaseId, format);
-    const expectedReleaseId = deriveRuntimeReleaseId(manifest.sourceRevision, manifest.treeSha256);
-    if (releaseId !== expectedReleaseId) {
-      throw new Error(`Release id does not bind this runtime source identity. Run plan and use: ${expectedReleaseId}`);
-    }
     const receipt = format === 'v1'
-      ? await publishRuntimeReleaseViaSsh({ runtimeRoot, manifest, ssh: sshBridgeOptions() })
-      : await publishRuntimeBlobReleaseViaSsh({ runtimeRoot, manifest, ssh: sshBridgeOptions() });
+      ? await (async () => {
+        const runtimeRoot = required('--runtime-root');
+        const manifest = await buildRuntimeReleaseManifest(runtimeRoot, { releaseId, sourceRevision });
+        const expectedReleaseId = deriveRuntimeReleaseId(manifest.sourceRevision, manifest.treeSha256);
+        if (releaseId !== expectedReleaseId) throw new Error(`Release id does not bind this runtime source identity. Run plan and use: ${expectedReleaseId}`);
+        return publishRuntimeReleaseViaSsh({ runtimeRoot, manifest, ssh: sshBridgeOptions() });
+      })()
+      : await (async () => {
+        const snapshot = await buildGitManifest(sourceRevision);
+        const expectedReleaseId = deriveRuntimeReleaseId(snapshot.manifest.sourceRevision, snapshot.manifest.treeSha256);
+        if (releaseId !== expectedReleaseId) throw new Error(`Release id does not bind this runtime source identity. Run plan and use: ${expectedReleaseId}`);
+        return publishRuntimeBlobReleaseViaSsh({ snapshot, manifest: snapshot.manifest, ssh: sshBridgeOptions() });
+      })();
     await writeOutput(argument('--output'), receipt);
     return;
   }

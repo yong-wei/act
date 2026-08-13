@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { parseRuntimeLessonMediaDocument, type RuntimeLessonMediaKind } from '@/lib/runtime-lesson-media-document';
+import type { ActRuntimeBlobReleaseManifest } from '@/lib/runtime-release';
 import { stableStringify } from '@/lib/aggregate-governance/hash';
 
 const MEDIA_EXTENSIONS = new Set(['.mp4', '.webm', '.m4a', '.mp3', '.wav', '.pdf', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif']);
@@ -45,14 +46,33 @@ function compareCodePoints(left: string, right: string) {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-async function walkFiles(root: string, current = root): Promise<string[]> {
+async function walkFiles(
+  root: string,
+  current = root,
+  blobBackedFiles: Map<string, { sizeBytes: number; sha256: string }> | null = null,
+  blobRoot: string | null = null,
+): Promise<string[]> {
   const entries = (await readdir(current, { withFileTypes: true })).sort((left, right) => compareCodePoints(left.name, right.name));
   const files: string[] = [];
   for (const entry of entries) {
     const absolutePath = path.join(current, entry.name);
-    if (entry.isSymbolicLink()) throw new RuntimeMediaInventoryError('runtime-media-inventory-symlink', `Symlink is not allowed: ${path.relative(root, absolutePath)}`);
+    const relativePath = path.relative(root, absolutePath).replace(/\\/g, '/');
+    if (entry.isSymbolicLink()) {
+      const expected = blobBackedFiles?.get(relativePath);
+      if (!expected || !blobRoot) throw new RuntimeMediaInventoryError('runtime-media-inventory-symlink', `Symlink is not allowed: ${relativePath}`);
+      const target = await realpath(absolutePath).catch(() => null);
+      if (!target || path.relative(blobRoot, target).startsWith('..') || path.isAbsolute(path.relative(blobRoot, target))) {
+        throw new RuntimeMediaInventoryError('runtime-media-inventory-symlink', `Symlink escapes the validated blob root: ${relativePath}`);
+      }
+      const contents = await readFile(absolutePath);
+      if (contents.byteLength !== expected.sizeBytes || createHash('sha256').update(contents).digest('hex') !== expected.sha256) {
+        throw new RuntimeMediaInventoryError('runtime-media-inventory-symlink', `Symlink content differs from the validated blob manifest: ${relativePath}`);
+      }
+      files.push(absolutePath);
+      continue;
+    }
     if (entry.isDirectory()) {
-      files.push(...await walkFiles(root, absolutePath));
+      files.push(...await walkFiles(root, absolutePath, blobBackedFiles, blobRoot));
     } else if (entry.isFile()) {
       files.push(absolutePath);
     }
@@ -88,9 +108,19 @@ export async function buildRuntimeMediaInventory(input: {
   runtimeRoot: string;
   authoringLessonsRoot: string;
   sourceRevision: string;
+  blobManifest?: ActRuntimeBlobReleaseManifest;
+  blobRoot?: string;
 }): Promise<RuntimeMediaInventory> {
   if (!/^[0-9a-f]{40}$/i.test(input.sourceRevision)) throw new RuntimeMediaInventoryError('runtime-media-inventory-source-revision-invalid', 'sourceRevision must be a 40-character Git SHA.');
-  const allRuntimeFiles = await walkFiles(input.runtimeRoot);
+  if (Boolean(input.blobManifest) !== Boolean(input.blobRoot)) {
+    throw new RuntimeMediaInventoryError('runtime-media-inventory-blob-contract-invalid', 'blobManifest and blobRoot must be provided together.');
+  }
+  const blobRoot = input.blobRoot ? await realpath(input.blobRoot).catch(() => null) : null;
+  if (input.blobRoot && !blobRoot) throw new RuntimeMediaInventoryError('runtime-media-inventory-blob-contract-invalid', 'blobRoot must resolve to a readable directory.');
+  const blobBackedFiles = input.blobManifest
+    ? new Map(input.blobManifest.files.map((file) => [file.path, { sizeBytes: file.sizeBytes, sha256: file.sha256 }]))
+    : null;
+  const allRuntimeFiles = await walkFiles(input.runtimeRoot, input.runtimeRoot, blobBackedFiles, blobRoot);
   const runtimeMediaFiles = allRuntimeFiles.filter((file) => MEDIA_EXTENSIONS.has(path.extname(file).toLowerCase()));
   const runtimeMediaByExtension = Object.fromEntries([...new Set(runtimeMediaFiles.map((file) => path.extname(file).toLowerCase()))]
     .sort(compareCodePoints)

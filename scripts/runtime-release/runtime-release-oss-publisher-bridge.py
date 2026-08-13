@@ -36,9 +36,8 @@ BLOB_RECEIPT_SCHEMA_VERSION = "act-runtime-release-receipt.v2"
 BUCKET_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$")
 SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 ROLE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
-PUBLISHER_ECS_ROLE_NAME = "act-runtime-oss-publisher"
-READER_ECS_ROLE_NAME = "act-runtime-oss-read"
-EXPECTED_ECS_ROLE_NAME = PUBLISHER_ECS_ROLE_NAME
+ECS_ROLE_NAME = "act-runtime-oss-release-operator-ecs"
+EXPECTED_ECS_ROLE_NAME = ECS_ROLE_NAME
 OSS_ENDPOINT = "oss-cn-hangzhou-internal.aliyuncs.com"
 OSS_REGION = "cn-hangzhou"
 DEFAULT_OSSUTIL_PATH = "/opt/act-ops/ossutil-2.3.0/ossutil"
@@ -176,7 +175,7 @@ def current_ecs_role_name() -> str:
         fail(f"unable to read ECS RAM role metadata: {error}")
     role_names = [line.strip() for line in payload.splitlines() if line.strip()]
     if len(role_names) != 1 or not ROLE_NAME_PATTERN.fullmatch(role_names[0]) or role_names[0] != EXPECTED_ECS_ROLE_NAME:
-        fail("ECS RAM role metadata does not match the restricted publisher role")
+        fail("ECS RAM role metadata does not match the restricted release operator role")
     _CURRENT_ROLE_NAME = role_names[0]
     return _CURRENT_ROLE_NAME
 
@@ -1163,8 +1162,6 @@ def main() -> None:
     parser.add_argument("--key-b64")
     arguments = parser.parse_args()
     bucket = validate_bucket(arguments.bucket)
-    global EXPECTED_ECS_ROLE_NAME
-    EXPECTED_ECS_ROLE_NAME = PUBLISHER_ECS_ROLE_NAME if arguments.operation == "publish" else READER_ECS_ROLE_NAME
     if arguments.operation == "list":
         if not arguments.prefix_b64:
             fail("list requires --prefix-b64")

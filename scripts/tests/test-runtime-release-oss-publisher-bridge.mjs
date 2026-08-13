@@ -20,7 +20,7 @@ await mkdir(spoolRoot, { recursive: true });
 await mkdir(lockRoot, { recursive: true });
 await chmod(spoolRoot, 0o700);
 
-let imdsRoleName = 'act-runtime-oss-publisher';
+let imdsRoleName = 'act-runtime-oss-release-operator-ecs';
 const imds = createServer((_request, response) => {
   response.writeHead(200, { 'content-type': 'text/plain' });
   response.end(`${imdsRoleName}\n`);
@@ -487,7 +487,9 @@ try {
   await assert.rejects(() => publishBlob({ data: poisonedBlob }), /blob bridge (failed before state|publish failed)/);
   await rm(path.join(ossRoot, poisonedBlob.files[0].objectKey), { force: true });
 
-  imdsRoleName = 'act-runtime-oss-read';
+  imdsRoleName = 'act-runtime-oss-publisher';
+  assert.match(await verify(state, { expectFailure: true }), /restricted release operator role/);
+  imdsRoleName = 'act-runtime-oss-release-operator-ecs';
   const readVerification = await verify();
   assert.deepEqual(readVerification, {
     schemaVersion: 'runtime-release-verification.v1',
@@ -517,7 +519,7 @@ try {
   const tamperedTree = forgeManifest({ treeSha256: 'd'.repeat(64) });
   await seedForgedRelease(tamperedTree);
   assert.match(await verify(tamperedTree, { expectFailure: true }), /tree digest/);
-  imdsRoleName = 'act-runtime-oss-publisher';
+  imdsRoleName = 'act-runtime-oss-release-operator-ecs';
 
   await rm(path.join(ossRoot, state.prefix), { recursive: true, force: true });
   await assert.rejects(() => publish({ env: { FAKE_V1_MODE: 'outside' } }), /bridge publish failed/);

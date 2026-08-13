@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -9,7 +10,7 @@ const source = fs.readFileSync(script, 'utf8');
 const bridge = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-release-oss-publisher-bridge.py'), 'utf8');
 const resolverRoute = fs.readFileSync(path.join(root, 'src/app/api/course-runtime/assets/[...assetPath]/route.ts'), 'utf8');
 
-assert.match(source, /\['plan', 'verify-media-closure', 'publish-streaming', 'verify', 'inspect'\]/, 'CLI must expose only the streaming write command');
+assert.match(source, /\['plan', 'build-manifest', 'verify-media-closure', 'publish-streaming', 'verify', 'inspect'\]/, 'CLI must expose only the streaming write command');
 assert.doesNotMatch(source, /command === ['"]publish['"]|\bpublish --runtime-root/, 'CLI must not expose a direct mutating publish command');
 assert.match(source, /verifyPublishedRuntimeReleaseViaSsh/, 'verify must run through the ECS read-role bridge instead of local IMDS');
 assert.match(source, /verifyPublishedRuntimeBlobReleaseViaSsh/, 'v2 verify must run through the ECS read-role bridge instead of local IMDS');
@@ -23,6 +24,8 @@ assert.match(source, /deriveRuntimeReleaseId/, 'plan and publish must derive the
 assert.match(source, /publishRuntimeReleaseViaSsh/, 'streaming publish must use the SSH source-authoritative transport');
 assert.match(source, /publishRuntimeBlobReleaseViaSsh/, 'v2 streaming publish must use the SSH source-authoritative transport');
 assert.match(source, /buildRuntimeBlobReleaseManifest/, 'v2 CLI operations must build the deterministic blob-backed manifest locally before streaming');
+assert.match(source, /integrationRef: ['"]origin\/integration['"]/, 'production v2 CLI must pin ancestry authority to origin/integration');
+assert.doesNotMatch(source, /--integration-ref <ref>/, 'production v2 CLI must not expose an ancestry override');
 assert.match(source, /buildRuntimeReleaseMediaClosure/, 'media closure verification must bind published resources to the release manifest');
 assert.match(source, /--known-hosts-file/, 'streaming publish must require an explicit known-hosts file');
 assert.match(bridge, /api", "put-object"/, 'ECS bridge must use the ossutil v2 PutObject API');
@@ -53,9 +56,9 @@ assert.match(bridge, /MIN_FREE_BYTES\s*=\s*1024 \* 1024 \* 1024/, 'ECS bridge mu
 assert.match(bridge, /tempfile\.mkstemp/, 'ECS bridge must exclusively create unpredictable spool files');
 assert.match(bridge, /runtime release spool contains residual files/, 'ECS bridge must reject residual spool files instead of broad cleanup');
 assert.match(bridge, /choices=\("list", "get", "publish", "verify"\)/, 'ECS bridge must expose the read-role verification protocol alongside publishing');
-assert.match(bridge, /PUBLISHER_ECS_ROLE_NAME\s*=\s*["']act-runtime-oss-publisher["']/, 'publish must bind the publisher role');
-assert.match(bridge, /READER_ECS_ROLE_NAME\s*=\s*["']act-runtime-oss-read["']/, 'read-only operations must bind the reader role');
-assert.match(bridge, /arguments\.operation == "publish" else READER_ECS_ROLE_NAME/, 'read-only bridge operations must reject the publisher role');
+assert.match(bridge, /ECS_ROLE_NAME\s*=\s*["']act-runtime-oss-release-operator-ecs["']/, 'all bridge operations must bind the ECS release operator role');
+assert.match(bridge, /EXPECTED_ECS_ROLE_NAME\s*=\s*ECS_ROLE_NAME/, 'bridge must use one immutable ECS role allowlist for every operation');
+assert.doesNotMatch(bridge, /act-runtime-oss-(?:publisher|read)/, 'bridge must not retain the retired split publisher/read role names');
 assert.match(bridge, /def verify_operation\(/, 'read-role verification must execute entirely on ECS');
 assert.match(bridge, /READINESS_SAMPLE_MAX_BYTES\s*=\s*4 \* 1024 \* 1024/, 'read-role verification must bound representative content reads');
 assert.match(bridge, /selected_indexes = sorted\(\{0, len\(candidates\) \/\/ 2, len\(candidates\) - 1\}\)/, 'read-role verification must sample deterministic representatives');
@@ -79,5 +82,57 @@ const result = spawnSync('npx', ['tsx', script, '--help'], {
 });
 assert.equal(result.status, 0, result.stderr);
 assert.match(result.stdout, /AccessKey or Secret/, 'help must state the credential boundary');
+
+const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-release-cli-'));
+try {
+  const output = path.join(temporary, 'manifest.json');
+  const gitRuntimeRoot = path.join(temporary, 'course-content', 'runtime');
+  fs.mkdirSync(path.join(gitRuntimeRoot, 'lessons', '1-1'), { recursive: true });
+  fs.writeFileSync(path.join(gitRuntimeRoot, 'lessons', '1-1', 'lesson.json'), '{"id":"1-1"}\n');
+  for (const args of [
+    ['init', '-b', 'integration'],
+    ['config', 'user.email', 'test@example.invalid'],
+    ['config', 'user.name', 'Test'],
+    ['add', '.'],
+    ['commit', '-m', 'fixture'],
+  ]) {
+    const result = spawnSync('git', args, { cwd: temporary, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+  }
+  const sourceRevision = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: temporary, encoding: 'utf8' }).stdout.trim();
+  let result = spawnSync('git', ['update-ref', 'refs/remotes/origin/integration', sourceRevision], { cwd: temporary, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const buildManifest = spawnSync('npx', ['tsx', script, 'build-manifest', '--repo-root', temporary, '--source-revision', sourceRevision, '--format', 'v2', '--output', output], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.equal(buildManifest.status, 0, buildManifest.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(output, 'utf8')).schemaVersion, 'act-runtime-release.v2');
+
+  result = spawnSync('git', ['checkout', '-b', 'unpublished'], { cwd: temporary, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  fs.writeFileSync(path.join(gitRuntimeRoot, 'lessons', '1-1', 'unpublished.json'), 'not-on-integration\n');
+  result = spawnSync('git', ['add', '.'], { cwd: temporary, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  result = spawnSync('git', ['commit', '-m', 'unpublished'], { cwd: temporary, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const unpublishedRevision = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: temporary, encoding: 'utf8' }).stdout.trim();
+  result = spawnSync('git', ['checkout', 'integration'], { cwd: temporary, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const unpublishedBuild = spawnSync('npx', ['tsx', script, 'build-manifest', '--repo-root', temporary, '--source-revision', unpublishedRevision, '--format', 'v2', '--output', path.join(temporary, 'unpublished.json')], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.notEqual(unpublishedBuild.status, 0, 'a commit outside origin/integration must be rejected');
+  assert.match(unpublishedBuild.stderr, /not an ancestor of origin\/integration/);
+  const bypassAttempt = spawnSync('npx', ['tsx', script, 'build-manifest', '--repo-root', temporary, '--source-revision', unpublishedRevision, '--integration-ref', 'unpublished', '--format', 'v2', '--output', path.join(temporary, 'bypass.json')], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.notEqual(bypassAttempt.status, 0, 'the public CLI must reject an ancestry override');
+  assert.match(bypassAttempt.stderr, /--integration-ref is not supported/);
+} finally {
+  fs.rmSync(temporary, { recursive: true, force: true });
+}
 
 console.log('runtime release CLI contract passed');

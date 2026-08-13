@@ -1,6 +1,7 @@
-import { spawn, type SpawnOptions } from 'node:child_process';
+import { execFile as execFileCallback, spawn, type SpawnOptions } from 'node:child_process';
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { Readable } from 'node:stream';
+import { promisify } from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -15,12 +16,14 @@ import {
   verifyPublishedRuntimeReleaseViaSsh,
 } from '../runtime-release-streaming-publisher';
 import {
-  buildRuntimeBlobReleaseManifest,
   buildRuntimeReleaseManifest,
   computeRuntimeReleaseManifestWireSha256,
   deriveRuntimeReleaseId,
   runtimeBlobReleaseManifestWireSha256,
 } from '../runtime-release';
+import { buildGitRuntimeBlobReleaseSnapshot } from '../runtime-release-git-snapshot';
+
+const execFile = promisify(execFileCallback);
 
 const config = {
   target: 'publisher@example.invalid',
@@ -260,12 +263,23 @@ describe('source-authoritative SSH runtime release transport', () => {
   });
 
   it('streams each unique blob once and requires the v2 manifest-last receipt identity', async () => {
-    const root = await fixture();
-    await writeFile(path.join(root, 'lessons', 'duplicate.json'), '{"id":"stream"}\n');
-    const manifest = await buildRuntimeBlobReleaseManifest(root, { sourceRevision: 'd'.repeat(40) });
+    const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-release-git-stream-'));
+    roots.push(root);
+    const runtimeRoot = path.join(root, 'course-content', 'runtime');
+    await mkdir(path.join(runtimeRoot, 'lessons'), { recursive: true });
+    await writeFile(path.join(runtimeRoot, 'lessons', 'lesson.json'), '{"id":"stream"}\n');
+    await writeFile(path.join(runtimeRoot, 'lessons', 'duplicate.json'), '{"id":"stream"}\n');
+    await execFile('git', ['init', '-b', 'integration'], { cwd: root });
+    await execFile('git', ['config', 'user.email', 'test@example.invalid'], { cwd: root });
+    await execFile('git', ['config', 'user.name', 'Test'], { cwd: root });
+    await execFile('git', ['add', '.'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'fixture'], { cwd: root });
+    const commit = (await execFile('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const snapshot = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision: commit, integrationRef: 'integration' });
+    const manifest = snapshot.manifest;
     const calls: Array<{ command: string; args: readonly string[] }> = [];
     const receipt = await publishRuntimeBlobReleaseViaSsh({
-      runtimeRoot: root,
+      snapshot,
       manifest,
       ssh: config,
       dependencies: { spawn: streamingBridgeSpawnFactory(calls) },

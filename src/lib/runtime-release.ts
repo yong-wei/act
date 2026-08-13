@@ -76,6 +76,12 @@ export interface BuildRuntimeBlobReleaseManifestOptions {
   sourceRevision: string;
 }
 
+export interface RuntimeBlobReleaseFileMetadata {
+  path: string;
+  sizeBytes: number;
+  sha256: string;
+}
+
 export class RuntimeReleaseValidationError extends Error {
   constructor(public readonly code: string, message: string) {
     super(message);
@@ -340,22 +346,44 @@ export async function buildRuntimeBlobReleaseManifest(
   if (new Set(paths).size !== paths.length) {
     throw new RuntimeReleaseValidationError('runtime-release-path-duplicate', 'Runtime source normalizes to duplicate paths.');
   }
-  const files = collected
-    .sort((left, right) => compareCodePoints(left.path, right.path))
-    .map(({ path: relativePath, sizeBytes, sha256: fileSha256 }) => ({
-      path: relativePath,
-      objectKey: runtimeBlobObjectKey(fileSha256),
+  return buildRuntimeBlobReleaseManifestFromFiles(options.sourceRevision, collected);
+}
+
+export function buildRuntimeBlobReleaseManifestFromFiles(
+  sourceRevision: string,
+  entries: readonly RuntimeBlobReleaseFileMetadata[],
+): ActRuntimeBlobReleaseManifest {
+  if (!/^[0-9a-f]{40}$/i.test(sourceRevision)) {
+    throw new RuntimeReleaseValidationError('runtime-release-source-revision-invalid', 'Runtime source revision must be a 40-character Git SHA.');
+  }
+  const sortedEntries = [...entries].sort((left, right) => compareCodePoints(left.path, right.path));
+  const paths = sortedEntries.map((entry) => normalizedRelativePath(entry.path));
+  if (new Set(paths).size !== paths.length) {
+    throw new RuntimeReleaseValidationError('runtime-release-path-duplicate', 'Runtime source normalizes to duplicate paths.');
+  }
+  const files = sortedEntries.map((entry, index) => {
+    const sizeBytes = entry.sizeBytes;
+    if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 0) {
+      throw new RuntimeReleaseValidationError('runtime-release-file-size-invalid', `Runtime source size is invalid: ${paths[index]}`);
+    }
+    if (!SHA256_PATTERN.test(entry.sha256)) {
+      throw new RuntimeReleaseValidationError('runtime-release-file-hash-invalid', `Runtime source SHA-256 is invalid: ${paths[index]}`);
+    }
+    return {
+      path: paths[index],
+      objectKey: runtimeBlobObjectKey(entry.sha256),
       sizeBytes,
-      sha256: fileSha256,
-    }));
+      sha256: entry.sha256,
+    };
+  });
   if (files.length === 0) {
     throw new RuntimeReleaseValidationError('runtime-release-empty', 'Runtime release must contain at least one file.');
   }
   const treeSha256 = treeDigest(files);
   const withoutManifestDigest = {
     schemaVersion: ACT_RUNTIME_BLOB_RELEASE_SCHEMA_VERSION,
-    releaseId: deriveRuntimeReleaseId(options.sourceRevision, treeSha256),
-    sourceRevision: options.sourceRevision.toLowerCase(),
+    releaseId: deriveRuntimeReleaseId(sourceRevision, treeSha256),
+    sourceRevision: sourceRevision.toLowerCase(),
     fileCount: files.length,
     totalBytes: files.reduce((total, file) => total + file.sizeBytes, 0),
     treeSha256,

@@ -19,7 +19,7 @@
 | `src/app/course-runtime/[...assetPath]/route.ts` | `normalize`、根前缀检查、`readFile` 提供公开非治理资源 | 根目录真实；资源叶链接只能指向被 manifest 绑定的 blob | 课程图片/PDF/媒体成功；私有治理路径和路径穿越拒绝 |
 | `src/lib/runtime-active-release.ts` 与媒体签名路由 | 读取本地活动 manifest，以 manifest 作为唯一媒体 allowlist | 本地兼容 manifest 必须是普通文件，并同时绑定 v2 semantic/wire/tree identity；叶 blob key 只能由 SHA 推导 | 活动身份不一致、未知媒体、篡改 object key、过期签名和 legacy URL fallback 分别验证 |
 | `src/lib/runtime-release-media-closure.ts` 与 `scripts/runtime-release/verify-runtime-release-media-closure.ts` | 遍历课程目录、`stat` 媒体叶、比对 manifest | 课程/媒体目录真实，叶链接解析后 size 与 hash 必须匹配 | 已发布课程媒体闭包和外链 fallback 在候选根复验 |
-| `src/lib/runtime-media-inventory.ts` 与其运维 CLI | 当前递归遍历时拒绝任何 symlink | 现状不兼容；候选路径必须改为 manifest 驱动审计或显式接受受控叶链接 | 正常候选 inventory 与 manifest 一致；目录/越界/非 manifest 链接仍拒绝 |
+| `src/lib/runtime-media-inventory.ts` 与其运维 CLI | 递归遍历；legacy 调用拒绝全部链接，blob-backed 调用要求显式 manifest/blob root，并逐叶 `realpath`、size、SHA-256 校验 | 只有 manifest 精确绑定且目标在受控 blob root 内的叶链接可用；目录、越界、非 manifest 链接仍拒绝 | 单元测试已覆盖受控媒体叶链接与越界拒绝；真实候选 inventory 仍待执行 |
 | `src/lib/textbook-retrieval/loader.ts` | `realpath(indexRoot)`，顺序/随机打开、`stat`、流读取和共享索引缓存 | `resources/textbook-retrieval` 必须是真实目录；索引文件可为受控叶链接，`realpath` 的根不得改变 | `vectors.f32`、`bodies.utf8`、`lexical-postings.bin` 的冷/热/并发读取、哈希和检索 smoke |
 | `src/lib/runtime-textbook-retrieval-hot-cache.ts` | 对 runtime root 和 cache parent 做 `lstat`，再对索引叶 `createReadStream` | runtime root/cache parent 必须非链接目录；候选叶可读取且与 manifest 精确匹配 | 有/无热缓存、源 size/hash 不符、缓存 receipt identity 不符分别验证 |
 
@@ -48,4 +48,4 @@
 
 ## 当前结论
 
-v1 host verifier 和 runtime media inventory 均明确拒绝 symlink，因此 symlink forest 还没有资格进入生产选择。任务 4.1 至 4.3 必须先完成受控链接验证、完整 harness 和真实 ECS candidate benchmark；结果通过后才能评估独立的生产切换授权。
+runtime media inventory 已具备受控 blob 叶链接的候选审计路径；v1 host verifier 仍明确拒绝 symlink，且尚未执行真实 ECS candidate 的课程路由、媒体 resolver、检索与 benchmark。因此 symlink forest 尚不具备生产选择资格。任务 4.2 至 4.3 必须先完成 v2-aware host verifier、完整 harness 和真实候选 benchmark；结果通过后才能评估独立的生产切换授权。

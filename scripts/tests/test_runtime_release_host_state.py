@@ -1,5 +1,6 @@
 import json
 import hashlib
+import os
 import subprocess
 import tempfile
 import unittest
@@ -8,11 +9,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/runtime-release/runtime-release-host-state.py"
+MATERIALIZER = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
 
 
 class RuntimeReleaseHostStateTests(unittest.TestCase):
     def call(self, *args: str, expect_ok: bool = True):
         result = subprocess.run(["python3", str(SCRIPT), *args], text=True, capture_output=True)
+        if expect_ok:
+            self.assertEqual(result.returncode, 0, result.stderr)
+            return json.loads(result.stdout)
+        self.assertNotEqual(result.returncode, 0)
+        return result
+
+    def call_materializer(self, *args: str, expect_ok: bool = True):
+        result = subprocess.run(["python3", str(MATERIALIZER), *args], text=True, capture_output=True)
         if expect_ok:
             self.assertEqual(result.returncode, 0, result.stderr)
             return json.loads(result.stdout)
@@ -28,6 +38,99 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             "treeSha256": "b" * 64,
         }), encoding="utf-8")
         return path
+
+    def v2_release(self, root: Path, contents):
+        blob_root = root / "blob-root"
+        blob_root.mkdir()
+        files = []
+        for relative, body in sorted(contents.items()):
+            file_sha = hashlib.sha256(body).hexdigest()
+            (blob_root / file_sha).write_bytes(body)
+            files.append({
+                "path": relative,
+                "objectKey": "runtime/blobs/sha256/" + file_sha,
+                "sizeBytes": len(body),
+                "sha256": file_sha,
+            })
+        tree = hashlib.sha256(json.dumps(
+            [{"path": item["path"], "sizeBytes": item["sizeBytes"], "sha256": item["sha256"]} for item in files],
+            separators=(",", ":"), sort_keys=True, ensure_ascii=False,
+        ).encode("utf-8")).hexdigest()
+        source_revision = "a" * 40
+        release_id = "runtime-" + hashlib.sha256(json.dumps(
+            {"sourceRevision": source_revision, "treeSha256": tree},
+            separators=(",", ":"), sort_keys=True, ensure_ascii=False,
+        ).encode("utf-8")).hexdigest()[:55]
+        manifest = {
+            "schemaVersion": "act-runtime-release.v2",
+            "releaseId": release_id,
+            "sourceRevision": source_revision,
+            "fileCount": len(files),
+            "totalBytes": sum(item["sizeBytes"] for item in files),
+            "treeSha256": tree,
+            "files": files,
+        }
+        manifest["manifestSha256"] = hashlib.sha256(json.dumps(
+            manifest, separators=(",", ":"), sort_keys=True, ensure_ascii=False,
+        ).encode("utf-8")).hexdigest()
+        manifest_wire = json.dumps(manifest, separators=(",", ":"), sort_keys=True, ensure_ascii=False).encode("utf-8") + b"\n"
+        manifest_path = root / "manifest.json"
+        manifest_path.write_bytes(manifest_wire)
+        release_receipt = root / "release-receipt.json"
+        release_payload = {
+            "schemaVersion": "act-runtime-release-receipt.v2",
+            "releaseId": release_id,
+            "manifestVersion": "act-runtime-release.v2",
+            "manifestObjectKey": "runtime/releases/%s/manifest.json" % release_id,
+            "manifestSha256": manifest["manifestSha256"],
+            "manifestWireSha256": hashlib.sha256(manifest_wire).hexdigest(),
+            "manifestWireSizeBytes": len(manifest_wire),
+            "treeSha256": tree,
+            "fileCount": manifest["fileCount"],
+            "totalBytes": manifest["totalBytes"],
+            "blobs": sorted({
+                (item["objectKey"], item["sizeBytes"], item["sha256"])
+                for item in files
+            }),
+        }
+        release_payload["blobs"] = [
+            {"objectKey": key, "sizeBytes": size, "sha256": file_sha}
+            for key, size, file_sha in release_payload["blobs"]
+        ]
+        release_payload["receiptSha256"] = hashlib.sha256(json.dumps(
+            release_payload, separators=(",", ":"), sort_keys=True, ensure_ascii=False,
+        ).encode("utf-8")).hexdigest()
+        release_receipt.write_bytes(json.dumps(release_payload, separators=(",", ":"), sort_keys=True, ensure_ascii=False).encode("utf-8") + b"\n")
+        verification_receipt = root / "verification-receipt.json"
+        verification_receipt.write_bytes(json.dumps({
+            "schemaVersion": "runtime-release-verification.v2",
+            "releaseId": release_id,
+            "manifestObjectKey": "runtime/releases/%s/manifest.json" % release_id,
+            "manifestSha256": manifest["manifestSha256"],
+            "wireSha256": hashlib.sha256(manifest_wire).hexdigest(),
+            "wireSizeBytes": len(manifest_wire),
+            "treeSha256": tree,
+            "fileCount": manifest["fileCount"],
+            "totalBytes": manifest["totalBytes"],
+        }, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n")
+        view_root = root / "view-root"
+        self.call_materializer(
+            "prepare", "--manifest", str(manifest_path), "--receipt", str(release_receipt),
+            "--blob-root", str(blob_root), "--view-root", str(view_root),
+        )
+        return {
+            "blob_root": blob_root,
+            "view": view_root / "views" / release_id,
+            "release_id": release_id,
+            "release_receipt": release_receipt,
+            "verification_receipt": verification_receipt,
+        }
+
+    def make_view_writable(self, view: Path):
+        for candidate in sorted(view.rglob("*"), key=lambda path: len(path.parts), reverse=True):
+            if candidate.is_dir() and not candidate.is_symlink():
+                os.chmod(candidate, 0o755)
+        os.chmod(view, 0o755)
 
     def test_fenced_selection_and_failed_candidate_preserve_active_receipt(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -115,6 +218,139 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             (runtime / "unexpected.txt").write_text("unexpected", encoding="utf-8")
             rejected = self.call("verify-mounted", "--runtime-root", str(runtime), "--release-id", "runtime-a", "--verification-receipt", str(receipt), expect_ok=False)
             self.assertIn("file set differs", rejected.stderr)
+
+    def test_v1_mounted_symlink_remains_rejected_by_default(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            runtime.mkdir()
+            body = b"v1\n"
+            logical = runtime / "lesson.json"
+            logical.write_bytes(body)
+            file_digest = hashlib.sha256(body).hexdigest()
+            tree = hashlib.sha256(json.dumps(
+                [{"path": "lesson.json", "sizeBytes": len(body), "sha256": file_digest}],
+                separators=(",", ":"), sort_keys=True,
+            ).encode("utf-8")).hexdigest()
+            manifest = {
+                "schemaVersion": "act-runtime-release.v1",
+                "releaseId": "runtime-a",
+                "sourceRevision": "a" * 40,
+                "fileCount": 1,
+                "totalBytes": len(body),
+                "treeSha256": tree,
+                "files": [{
+                    "path": "lesson.json",
+                    "objectKey": "runtime/releases/runtime-a/lesson.json",
+                    "sizeBytes": len(body),
+                    "sha256": file_digest,
+                }],
+            }
+            manifest["manifestSha256"] = hashlib.sha256(json.dumps(
+                manifest, separators=(",", ":"), sort_keys=True,
+            ).encode("utf-8")).hexdigest()
+            (runtime / ".act-runtime-release.v1.json").write_text(json.dumps(manifest), encoding="utf-8")
+            receipt = self.receipt(root, "runtime-a", manifest["manifestSha256"])
+            receipt_value = json.loads(receipt.read_text(encoding="utf-8"))
+            receipt_value["treeSha256"] = tree
+            receipt.write_text(json.dumps(receipt_value), encoding="utf-8")
+            root_link = root / "runtime-link"
+            root_link.symlink_to(runtime, target_is_directory=True)
+            rejected_root = self.call(
+                "verify-mounted", "--runtime-root", str(root_link), "--release-id", "runtime-a",
+                "--verification-receipt", str(receipt), expect_ok=False,
+            )
+            self.assertIn("mounted runtime root is invalid", rejected_root.stderr)
+            outside = root / "outside.txt"
+            outside.write_bytes(body)
+            logical.unlink()
+            logical.symlink_to(outside)
+            rejected = self.call(
+                "verify-mounted", "--runtime-root", str(runtime), "--release-id", "runtime-a",
+                "--verification-receipt", str(receipt), expect_ok=False,
+            )
+            self.assertIn("non-regular file", rejected.stderr)
+
+    def test_v2_accepts_duplicate_blob_symlink_view_and_release_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), {
+                "lessons/1-1/lesson.json": b"duplicate\n",
+                "lessons/1-1/media/copy.json": b"duplicate\n",
+            })
+            self.assertTrue((fixture["view"] / "lessons/1-1/lesson.json").is_symlink())
+            self.assertEqual(
+                os.path.realpath(fixture["view"] / "lessons/1-1/lesson.json"),
+                os.path.realpath(fixture["view"] / "lessons/1-1/media/copy.json"),
+            )
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]),
+            )
+            self.assertEqual(verified["releaseId"], fixture["release_id"])
+            self.assertEqual(verified["fileCount"], 2)
+            self.assertGreater(verified["wireSizeBytes"], 0)
+            release_verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["release_receipt"]),
+            )
+            self.assertEqual(release_verified["treeSha256"], verified["treeSha256"])
+
+    def test_v2_rejects_blob_escape_and_directory_symlink(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), {"lessons/1-1/lesson.json": b"ok\n"})
+            self.make_view_writable(fixture["view"])
+            logical = fixture["view"] / "lessons/1-1/lesson.json"
+            outside = Path(directory) / "outside.txt"
+            outside.write_bytes(b"ok\n")
+            logical.unlink()
+            logical.symlink_to(outside)
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("outside its manifest blob", rejected.stderr)
+
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), {"lessons/1-1/lesson.json": b"ok\n"})
+            self.make_view_writable(fixture["view"])
+            lesson_dir = fixture["view"] / "lessons/1-1"
+            (lesson_dir / "lesson.json").unlink()
+            lesson_dir.rmdir()
+            lesson_dir.symlink_to(Path(directory) / "outside-dir", target_is_directory=True)
+            (Path(directory) / "outside-dir").mkdir()
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertTrue("symlinked directory" in rejected.stderr or "file set differs" in rejected.stderr)
+
+    def test_v2_rejects_extra_file_and_mismatched_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), {"lesson.json": b"ok\n"})
+            self.make_view_writable(fixture["view"])
+            (fixture["view"] / "extra.txt").write_text("extra", encoding="utf-8")
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("non-symlink logical file", rejected.stderr)
+
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), {"lesson.json": b"ok\n"})
+            damaged = json.loads(fixture["verification_receipt"].read_text(encoding="utf-8"))
+            damaged["manifestSha256"] = "f" * 64
+            fixture["verification_receipt"].write_text(json.dumps(damaged), encoding="utf-8")
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("identity does not match", rejected.stderr)
 
 
 if __name__ == "__main__":
