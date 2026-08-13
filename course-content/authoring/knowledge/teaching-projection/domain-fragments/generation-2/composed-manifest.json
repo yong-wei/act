@@ -19,7 +19,7 @@
     "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40"
   },
   "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
-  "sourceInventoryDigest": "ae257672ad76c8d8b11401f093993e3c6a84d07347392ccc5bb2b0bbaa40a967",
+  "sourceInventoryDigest": "7ca51621c16d8bbc583786c95bef12022d4dc657629730b3b3ae7697aec86cf5",
   "authorityDigest": "bc5e41d86cd12ae44948a7dba8ab364370de7bdc92c91bf6e2be6fa0705c8ba9",
   "fragments": [
     {
@@ -29,37 +29,113 @@
       "fragmentVersion": "1",
       "fragmentDigest": "ee895f0af6c222bcb7558f3866263b6d6f792bebdb7461d4035984c805cabbd1",
       "sourceInventoryDigest": "a6065975057175f73fa29f2346e85eeb2514bed6ba7d08a580b1e03bb13b581c",
-      "domainKeys": ["stability-analysis", "system-modeling"]
+      "domainKeys": [
+        "stability-analysis",
+        "system-modeling"
+      ]
     },
     {
       "order": 1,
+      "fragmentId": "dtf-eca300d96abb1e4c2bd3a0de9e77b4d8d5aa7fe0a989c818bd790cad1ed039bc",
+      "fragmentKey": "foundation-three-domain-published-v2",
+      "fragmentVersion": "1",
+      "fragmentDigest": "eca300d96abb1e4c2bd3a0de9e77b4d8d5aa7fe0a989c818bd790cad1ed039bc",
+      "sourceInventoryDigest": "ad454416452ae8a0fc663a3812158416355b081bd6049ecbd23ecd0ccf5a1677",
+      "domainKeys": [
+        "stability-analysis",
+        "system-modeling",
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "order": 2,
       "fragmentId": "dtf-a69f4cad60b550093856adc6913439af8ecd7c0be0083e7ae48e14320ef1867f",
       "fragmentKey": "classical-control-published-v1",
       "fragmentVersion": "1",
       "fragmentDigest": "a69f4cad60b550093856adc6913439af8ecd7c0be0083e7ae48e14320ef1867f",
       "sourceInventoryDigest": "0b713eb20d5376ea12eec2367490cf87e7f6d751dd8efa270fc96f270d44d732",
-      "domainKeys": ["classical-control-design", "frequency-domain-analysis", "root-locus"]
+      "domainKeys": [
+        "classical-control-design",
+        "frequency-domain-analysis",
+        "root-locus"
+      ]
     }
   ],
   "domainCoverage": [
-    {"domainId": "classical-control-design", "coverage": "available", "coreNodeCount": 1, "relationCount": 2, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
-    {"domainId": "discrete-time-control-analysis", "coverage": "empty", "coreNodeCount": 0, "relationCount": 0, "uncoveredCoreNodeCount": 0, "note": "该领域尚无已发布的教学关系"},
-    {"domainId": "frequency-domain-analysis", "coverage": "available", "coreNodeCount": 1, "relationCount": 1, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
-    {"domainId": "root-locus", "coverage": "available", "coreNodeCount": 1, "relationCount": 1, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
-    {"domainId": "stability-analysis", "coverage": "available", "coreNodeCount": 2, "relationCount": 2, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
-    {"domainId": "state-space-control-analysis-and-design", "coverage": "empty", "coreNodeCount": 0, "relationCount": 0, "uncoveredCoreNodeCount": 0, "note": "该领域尚无已发布的教学关系"},
-    {"domainId": "system-modeling", "coverage": "available", "coreNodeCount": 3, "relationCount": 4, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
-    {"domainId": "time-domain-analysis", "coverage": "empty", "coreNodeCount": 0, "relationCount": 0, "uncoveredCoreNodeCount": 0, "note": "该领域尚无已发布的教学关系"}
+    {
+      "domainId": "classical-control-design",
+      "coverage": "available",
+      "coreNodeCount": 1,
+      "relationCount": 2,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "coverage": "available",
+      "coreNodeCount": 1,
+      "relationCount": 1,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "root-locus",
+      "coverage": "available",
+      "coreNodeCount": 1,
+      "relationCount": 1,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "stability-analysis",
+      "coverage": "available",
+      "coreNodeCount": 3,
+      "relationCount": 3,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "system-modeling",
+      "coverage": "partial",
+      "coreNodeCount": 4,
+      "relationCount": 4,
+      "uncoveredCoreNodeCount": 1,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "coverage": "available",
+      "coreNodeCount": 2,
+      "relationCount": 1,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    }
   ],
-  "coreNodeCount": 8,
-  "relationCount": 6,
+  "coreNodeCount": 11,
+  "relationCount": 7,
   "gateStatus": "PUBLISHED",
   "gatePassed": true,
   "sourceHashes": {
-    "fragments": "3ddbabf3f41aa5435c8d71f74562bb31c6414d9ac7e08e772507e1c6a0d30ffd",
-    "sourceInventory": "ae257672ad76c8d8b11401f093993e3c6a84d07347392ccc5bb2b0bbaa40a967",
-    "body": "f15b6dc3468f0152738f328cb347491d8d66c9cb90beba4063a287c0bf5b1a69"
+    "fragments": "4af756cafc56ca418b4983b20de741b8379020cc7b5027a64769bc51bad4ea51",
+    "sourceInventory": "7ca51621c16d8bbc583786c95bef12022d4dc657629730b3b3ae7697aec86cf5",
+    "body": "86f01a90ca8c6b3ef800382a6b4dbea8832f74495c4a2713e8fb625e8074c280"
   },
-  "projectionId": "proj-e54db5bd902eb39556fdb0a42c5d0e8d5205f8f5f30a7b1d24b00cc038abb9b8",
-  "projectionHash": "e54db5bd902eb39556fdb0a42c5d0e8d5205f8f5f30a7b1d24b00cc038abb9b8"
+  "projectionId": "proj-a878894623f42f4911453df756f6f0a891d85c87889c0248ba0ae7153555d559",
+  "projectionHash": "a878894623f42f4911453df756f6f0a891d85c87889c0248ba0ae7153555d559"
 }

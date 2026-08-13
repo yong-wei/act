@@ -927,6 +927,18 @@ describe('enable-incremental-domain-teaching-projection', () => {
         foundationFragment: readJson(
           path.join(DOMAIN_GENERATION_TWO_DIR, 'foundation-fragment.json'),
         ),
+        foundationThreeDomainAuthoring: readJson(
+          path.join(
+            DOMAIN_GENERATION_TWO_DIR,
+            'foundation-three-domain-fragment.authoring.json',
+          ),
+        ),
+        foundationThreeDomainFragment: readJson(
+          path.join(
+            DOMAIN_GENERATION_TWO_DIR,
+            'foundation-three-domain-fragment.json',
+          ),
+        ),
         classicalAuthoring: readJson(
           path.join(DOMAIN_GENERATION_TWO_DIR, 'classical-fragment.authoring.json'),
         ),
@@ -941,6 +953,12 @@ describe('enable-incremental-domain-teaching-projection', () => {
       expect(persisted.authoritySource).toEqual(built.authoritySource);
       expect(persisted.foundationAuthoring).toEqual(built.foundationAuthoring);
       expect(persisted.foundationFragment).toEqual(built.foundationFragment);
+      expect(persisted.foundationThreeDomainAuthoring).toEqual(
+        built.foundationThreeDomainAuthoring,
+      );
+      expect(persisted.foundationThreeDomainFragment).toEqual(
+        built.foundationThreeDomainFragment,
+      );
       expect(persisted.classicalAuthoring).toEqual(built.classicalAuthoring);
       expect(persisted.classicalFragment).toEqual(built.classicalFragment);
       expect(persisted.manifest).toEqual(built.composed.manifest);
@@ -964,6 +982,30 @@ describe('enable-incremental-domain-teaching-projection', () => {
       );
     });
 
+    it('preserves the published three-domain increment in generation 2', () => {
+      const published = readJson(
+        path.join(DOMAIN_FRAGMENTS_DIR, 'foundation-three-domain-v1.authoring.json'),
+      ) as DomainTeachingFragmentAuthoring;
+      const rebuilt = buildDomainTeachingGenerationV2();
+      const timeDomainCoverage = rebuilt.composed.manifest.domainCoverage.find(
+        (entry) => entry.domainId === 'time-domain-analysis',
+      );
+
+      expect(teachingSemantics(rebuilt.foundationThreeDomainAuthoring)).toEqual(
+        teachingSemantics(published),
+      );
+      expect(rebuilt.foundationThreeDomainAuthoring.fragmentKey).toBe(
+        'foundation-three-domain-published-v2',
+      );
+      expect(rebuilt.foundationThreeDomainFragment.coreNodes).toHaveLength(4);
+      expect(rebuilt.foundationThreeDomainFragment.relations).toHaveLength(1);
+      expect(timeDomainCoverage).toMatchObject({
+        coverage: 'available',
+        coreNodeCount: 2,
+        relationCount: 1,
+      });
+    });
+
     it('uses the full pinned index and is insensitive to source object order', () => {
       const snapshotPath = path.join(
         process.cwd(),
@@ -982,6 +1024,13 @@ describe('enable-incremental-domain-teaching-projection', () => {
       );
       for (const endpoint of [
         ...built.foundationFragment.coreNodes.map((node) => node.canonicalId),
+        ...built.foundationThreeDomainFragment.coreNodes.map(
+          (node) => node.canonicalId,
+        ),
+        ...built.foundationThreeDomainFragment.relations.flatMap((relation) => [
+          relation.sourceNodeId,
+          relation.targetNodeId,
+        ]),
         ...built.classicalFragment.coreNodes.map((node) => node.canonicalId),
         ...built.classicalFragment.relations.flatMap((relation) => [
           relation.sourceNodeId,

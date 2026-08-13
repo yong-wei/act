@@ -18,6 +18,9 @@ import {
   type DomainTeachingFragmentAuthoring,
 } from '../../src/lib/teaching-projection';
 import {
+  buildFoundationThreeDomainArtifacts,
+} from '../../src/lib/teaching-projection/domain-fragments/foundation-three-domain';
+import {
   verifyMaterializedSnapshot,
   type AuthorityEngineeringBody,
   type AuthoritySnapshotManifest,
@@ -85,6 +88,17 @@ function rebindFoundationAuthoring(input: {
   return {
     ...input.authoring,
     fragmentKey: 'foundation-published-v2',
+    nodeIndexDigest: input.nodeIndexDigest,
+  };
+}
+
+function rebindFoundationThreeDomainAuthoring(input: {
+  authoring: DomainTeachingFragmentAuthoring;
+  nodeIndexDigest: string;
+}): DomainTeachingFragmentAuthoring {
+  return {
+    ...input.authoring,
+    fragmentKey: 'foundation-three-domain-published-v2',
     nodeIndexDigest: input.nodeIndexDigest,
   };
 }
@@ -253,6 +267,10 @@ export function buildDomainTeachingGenerationV2(
     authoring: foundation,
     nodeIndexDigest: authority.nodeIndexDigest,
   });
+  const foundationThreeDomain = rebindFoundationThreeDomainAuthoring({
+    authoring: buildFoundationThreeDomainArtifacts(authority).authoring,
+    nodeIndexDigest: authority.nodeIndexDigest,
+  });
   const classical = classicalAuthoring({
     authorityBinding: authority.binding,
     authoringRevision: authority.authoringRevision,
@@ -264,9 +282,17 @@ export function buildDomainTeachingGenerationV2(
     reboundFoundation,
     authority,
   );
+  const foundationThreeDomainFragment = buildDomainTeachingFragment(
+    foundationThreeDomain,
+    authority,
+  );
   const classicalFragment = buildDomainTeachingFragment(classical, authority);
   const composed = composeDomainTeachingProjection({
-    fragments: [foundationFragment, classicalFragment],
+    fragments: [
+      foundationFragment,
+      foundationThreeDomainFragment,
+      classicalFragment,
+    ],
     authoringRevision: authority.authoringRevision,
   });
 
@@ -286,6 +312,8 @@ export function buildDomainTeachingGenerationV2(
     },
     foundationAuthoring: reboundFoundation,
     foundationFragment,
+    foundationThreeDomainAuthoring: foundationThreeDomain,
+    foundationThreeDomainFragment,
     classicalAuthoring: classical,
     classicalFragment,
     composed,

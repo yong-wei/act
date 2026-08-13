@@ -13,6 +13,9 @@ Append-only, immutable domain shards of reviewed core-node memberships and direc
     extracted from the same pinned Authority snapshot.
   - `generation-2/foundation-fragment.*` reseals the unchanged foundation
     teaching semantics against that complete endpoint universe.
+  - `generation-2/foundation-three-domain-fragment.*` reseals the already
+    published system-modeling, time-domain and stability increment against the
+    same complete endpoint universe.
   - `generation-2/classical-worklist.json` records reviewed and pending
     candidates; engineering-only adjacency stays pending.
   - `generation-2/classical-fragment.*` and `generation-2/composed-manifest.json`
