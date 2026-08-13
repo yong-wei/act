@@ -15,6 +15,7 @@ Authority knowledge cards and accepted infographs are tracked and exported, but 
 3. **Use one stable inspector.** Desktop uses a side panel and mobile uses the existing focus-contained sheet. Selection updates content without remounting the graph; close or Escape returns focus to the originating node or canvas.
 4. **Represent review states honestly.** Accepted content renders. Missing content and blocked card drafts use controlled learner wording; raw review enums, local paths, hashes and object IDs never enter DOM, accessibility, tooltip or copy surfaces.
 5. **Keep graph topology primary.** The Knowledge Card and infograph are detail content, not replacement cards on the canvas.
+6. **Bind exported learning content through the active Teaching Projection.** A node can use an exported card only when the active, passed Teaching Projection selects that canonical object and its Authority release-set/snapshot identity exactly matches the sealed node-detail shard. Runtime hashes verify the selected card and infograph bytes; the product never falls back to authoring files or constructs asset paths from client input.
 
 ## Risks / Trade-offs
 

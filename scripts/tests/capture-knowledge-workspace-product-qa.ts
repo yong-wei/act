@@ -36,6 +36,8 @@ const sourceFiles = [
   'src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts',
   'src/app/api/knowledge/shards/active/neighborhoods/[id]/route.ts',
   'src/app/api/knowledge/shards/active/nodes/[id]/route.ts',
+  'src/app/api/knowledge/shards/active/nodes/[id]/infograph/route.ts',
+  'src/lib/authority-domain-shards/learning-content.ts',
   'src/app/knowledge/page.tsx',
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/knowledge/graph/knowledge-graph-2d.tsx',
@@ -133,6 +135,11 @@ const ACTIVE_CANVAS_SOURCE_IDENTITY_FIELDS: readonly ActiveSourceIdentityField[]
   'projectionDigest',
   'sourceDatasetHash',
 ];
+
+// The frozen active Teaching Projection selects this published Authority card.
+// Capture must exercise it rather than an arbitrary node whose governed
+// learning content can correctly be absent.
+const ACCEPTED_AUTHORITY_LEARNING_NODE_ID = 'ctc:modeling-865eb1c8824e157c2f05a903';
 const ACTIVE_NODE_SOURCE_IDENTITY_FIELDS: readonly ActiveSourceIdentityField[] = [
   'authorityState',
   'releaseSetId',
@@ -172,7 +179,7 @@ export function validateActiveSourceIdentity(
   };
 }
 
-type SafeApiEndpointClass = 'active-canvas' | 'active-node' | 'legacy' | 'candidate';
+type SafeApiEndpointClass = 'active-canvas' | 'active-node' | 'active-media' | 'legacy' | 'candidate';
 type SafeApiRoleClass = KnowledgeRole;
 type SafeApiSequenceEntry = {
   endpointClass: SafeApiEndpointClass;
@@ -204,6 +211,7 @@ type SafeApiProjectionOptions = {
 const SAFE_API_ENDPOINT_ORDER: readonly SafeApiEndpointClass[] = [
   'active-canvas',
   'active-node',
+  'active-media',
   'legacy',
   'candidate',
 ];
@@ -488,6 +496,13 @@ function canonicalKnowledgeApiPath(pathName: string, method: string) {
     '/api/knowledge/shards/active/nodes/:node',
   );
   if (activeDetailPath) return activeDetailPath;
+  const activeInfographPath = canonicalAuthorityShardPath(
+    pathName,
+    '/api/knowledge/shards/active/nodes/',
+    [':node', 'infograph'],
+    '/api/knowledge/shards/active/nodes/:node/infograph',
+  );
+  if (activeInfographPath) return activeInfographPath;
   if (pathName === '/api/knowledge/graph/active') return '/api/knowledge/graph/active';
   if (pathName.startsWith('/api/knowledge/nodes/active')) {
     return canonicalKnowledgeNodePath(
@@ -547,10 +562,11 @@ function summarizeKnowledgeApiResponse(
   const activation = objectRecord(provenance.activation);
   const projection = objectRecord(provenance.projection);
   const shardEnvelope = objectRecord(record.envelope);
-  const isActiveResponse = pathName === '/api/knowledge/graph/active'
+  const isActiveMediaResponse = pathName === '/api/knowledge/shards/active/nodes/:node/infograph';
+  const isActiveResponse = !isActiveMediaResponse && (pathName === '/api/knowledge/graph/active'
     || pathName === '/api/knowledge/nodes/active/:node'
-    || pathName.startsWith('/api/knowledge/shards/active');
-  const isActiveShardResponse = pathName.startsWith('/api/knowledge/shards/active');
+    || pathName.startsWith('/api/knowledge/shards/active'));
+  const isActiveShardResponse = !isActiveMediaResponse && pathName.startsWith('/api/knowledge/shards/active');
   const isActiveNodeResponse = pathName === '/api/knowledge/nodes/active/:node'
     || pathName === '/api/knowledge/shards/active/nodes/:node';
   const responseNode = objectRecord(record.node);
@@ -681,12 +697,16 @@ function createKnowledgeApiProbe(page: Page): KnowledgeApiProbe {
     if (
       safePath === '/api/knowledge/nodes/active/:node'
       || safePath === '/api/knowledge/shards/active/nodes/:node'
+      || safePath === '/api/knowledge/shards/active/nodes/:node/infograph'
     ) {
       try {
         const prefix = safePath === '/api/knowledge/nodes/active/:node'
           ? '/api/knowledge/nodes/active/'
           : '/api/knowledge/shards/active/nodes/';
-        requestedNodeKey = decodeURIComponent(responseUrl.pathname.slice(prefix.length));
+        const encodedNodeKey = safePath === '/api/knowledge/shards/active/nodes/:node/infograph'
+          ? responseUrl.pathname.slice(prefix.length, -'/infograph'.length)
+          : responseUrl.pathname.slice(prefix.length);
+        requestedNodeKey = decodeURIComponent(encodedNodeKey);
       } catch {
         requestedNodeKey = null;
       }
@@ -763,6 +783,7 @@ function safeApiEndpointClass(pathName: string): SafeApiEndpointClass {
     pathName === '/api/knowledge/nodes/active/:node'
     || pathName === '/api/knowledge/shards/active/nodes/:node'
   ) return 'active-node';
+  if (pathName === '/api/knowledge/shards/active/nodes/:node/infograph') return 'active-media';
   if (
     pathName === '/api/knowledge/graph/active'
     || pathName.startsWith('/api/knowledge/shards/active')
@@ -941,6 +962,7 @@ function projectSafeApiEvidence(
   const allowedEndpointClasses = new Set<SafeApiEndpointClass>([
     'active-canvas',
     'active-node',
+    'active-media',
     ...(options.allowLegacy ? ['legacy' as const] : []),
     ...(options.allowCandidate ? ['candidate' as const] : []),
   ]);
@@ -1123,9 +1145,13 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
 }
 
 async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiProbe) {
-  const node = page.locator('[data-active-authority-node]').first();
+  const node = page.locator(
+    `[data-active-authority-node="${ACCEPTED_AUTHORITY_LEARNING_NODE_ID}"]`,
+  );
   const originKey = await node.getAttribute('data-active-authority-node');
-  if (!originKey) throw new Error('active semantic node key missing for detail interaction');
+  if (!originKey) {
+    throw new Error('published Authority learning-content node is unavailable for detail interaction');
+  }
   await page.evaluate((key) => {
     const qaWindow = window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA_EXPECTED_ACTIVE_NODE__?: string | null };
     qaWindow.__ACT_KNOWLEDGE_PRODUCT_QA_EXPECTED_ACTIVE_NODE__ = key;
@@ -1139,6 +1165,8 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   const detailEvidence = await page.evaluate(() => ({
     detailPanelFocusedAfterOpen: document.activeElement?.matches('[data-active-node-detail]') ?? false,
     semanticDetailVisible: Boolean(document.querySelector('[data-active-node-detail]')),
+    learningCardVisible: Boolean(document.querySelector('[data-active-node-detail] [aria-labelledby="active-detail-card"]')),
+    learningInfographVisible: Boolean(document.querySelector('[data-active-node-detail] img[alt$="信息图"]')),
     adjacencyInteraction: document.querySelectorAll('[data-active-authority-relation]').length > 0,
     renderedEdgeCount: document.querySelectorAll('[data-active-authority-relation]').length,
     teachingRelationsUnavailable: document.querySelector('[data-authority-teaching-coverage="true"]')?.textContent?.trim() === '教学关系暂不可用',
@@ -2091,10 +2119,12 @@ async function captureAuthenticatedRoleEvidence(
       }
       const activeInteractionEvidence = await captureActiveInteractionEvidence(page, probe);
       if (
-        objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
+        activeInteractionEvidence.learningCardVisible !== true
+        || activeInteractionEvidence.learningInfographVisible !== true
+        || objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
         || objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed !== true
       ) {
-        throw new Error(`active detail surface scan failed in role:${role}`);
+        throw new Error(`active Authority learning-content evidence failed in role:${role}`);
       }
       const initialLog = await probe.readLog();
       const activeApiEvidence = projectSafeApiEvidence(
@@ -2210,6 +2240,7 @@ async function captureAuthenticatedRoleEvidence(
         await mobilePage.goto(`${baseUrl}/knowledge?qa=knowledge-product`, { waitUntil: 'domcontentloaded' });
         await waitForActiveReady(mobilePage, mobileProbe, `role:${role}:mobile`);
         const activeSurfaceScan = await captureActiveSurfaceScan(mobilePage, mobileProbe);
+        const activeInteractionEvidence = await captureActiveInteractionEvidence(mobilePage, mobileProbe);
         const markers = await captureMarkers(mobilePage, `role:${role}:mobile`);
         const activeMarkers = objectRecord(markers.activeAuthority);
         const activeApiEvidence = projectSafeApiEvidence(
@@ -2225,6 +2256,10 @@ async function captureAuthenticatedRoleEvidence(
         );
         if (
           activeSurfaceScan.passed !== true
+          || activeInteractionEvidence.learningCardVisible !== true
+          || activeInteractionEvidence.learningInfographVisible !== true
+          || objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
+          || objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed !== true
           || activeMarkers.viewport !== 'compact'
           || activeMarkers.visibleNodeCount <= 0
           || activeMarkers.stage !== 'authority'
@@ -2238,6 +2273,7 @@ async function captureAuthenticatedRoleEvidence(
           viewport: { width: 320, height: 800 },
           api: activeApiEvidence,
           activeSurfaceScan,
+          activeInteractionEvidence,
           graphVisible: true,
           nonEmptyCanvas: true,
           screenshotPath: path.relative(repoRoot, screenshot),

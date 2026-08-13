@@ -62,6 +62,13 @@ course-content/runtime/resource-governance/*
 course-content/runtime/knowledge/*
 !course-content/runtime/knowledge/authority-domain-shards
 !course-content/runtime/knowledge/authority-domain-shards/**
+!course-content/runtime/knowledge/authority-learning-content-manifest.json
+!course-content/runtime/knowledge/cards
+!course-content/runtime/knowledge/cards/authority
+!course-content/runtime/knowledge/cards/authority/**
+!course-content/runtime/knowledge/infographs
+!course-content/runtime/knowledge/infographs/authority
+!course-content/runtime/knowledge/infographs/authority/**
 !course-content/runtime/knowledge/projection
 !course-content/runtime/knowledge/projection/**
 # Authoring authority store is under authoring/knowledge (not fully ignored by default)

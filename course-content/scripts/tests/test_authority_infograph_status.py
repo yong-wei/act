@@ -156,3 +156,29 @@ def test_default_export_gate_skips_draft_blocked_cards_without_runtime_writes():
     assert "cards_exported=952" in result.stdout
     assert "cards_skipped=284" in result.stdout
     assert "images_exported=1236" in result.stdout
+
+
+def test_selective_export_keeps_the_runtime_scope_on_requested_authority_nodes():
+    """A consumer can export its selected Authority card set without copying the full catalog."""
+    script = AUTHORITY_SCRIPTS / "export_authority_cards_and_infographs.py"
+    projection = REPO / "course-content" / "authoring" / "knowledge" / "releases" / "control-theory-engineering-v0.12" / "domain-projection.json"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--projection",
+            str(projection),
+            "--entity-id",
+            "ctc:modeling-865eb1c8824e157c2f05a903",
+            "--entity-id",
+            "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+            "--dry-run",
+        ],
+        cwd=REPO,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "cards_exported=1" in result.stdout
+    assert "cards_skipped=1" in result.stdout
+    assert "images_exported=2" in result.stdout
