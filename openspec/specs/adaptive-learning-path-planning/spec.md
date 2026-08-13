@@ -768,3 +768,105 @@ The planner SHALL preserve the student's requested time budget as the request co
 - **THEN** the planner SHALL not generate a path that represents the higher duration as requested
 - **AND** it SHALL return the requested duration, the minimum executable duration, and a student-safe corrective action.
 
+### Requirement: Candidate paths preserve aggregate recommendation basis
+The adaptive learning path planner SHALL persist a student-safe aggregate recommendation basis snapshot for each formally generated candidate path without changing candidate selection, ranking, or scoring.
+#### Scenario: Evidence supports a candidate path recommendation
+- **WHEN** a candidate path is generated from learner-state deficits and governed resource nodes
+- **THEN** the candidate path SHALL preserve one or more entries that connect an aggregate state summary to a capability or knowledge judgment and the path resources affected by that judgment
+- **AND** each entry SHALL use generation-time facts so restoring the saved path does not reinterpret the original recommendation from newer learner state.
+- **AND** the snapshot SHALL NOT represent aggregate counts or confidence as event-level evidence provenance.
+#### Scenario: Evidence is insufficient for reliable personalization
+- **WHEN** the candidate path or a target deficit has insufficient effective evidence
+- **THEN** the provenance snapshot SHALL mark the explanation as low confidence and identify course structure, prerequisite policy, and available resources as the fallback basis
+- **AND** it SHALL provide a student-safe evidence-gathering action rather than presenting missing evidence as a confirmed weakness.
+#### Scenario: Student-safe provenance is produced
+- **WHEN** aggregate recommendation basis is serialized for a student-facing candidate path
+- **THEN** it SHALL contain only governed display labels, bounded evidence summaries, confidence, affected resource titles or identities, limitations, and a governed evidence-review target
+- **AND** it SHALL NOT expose raw answers, private conversations, database identifiers, internal reason codes, raw evidence payloads, or hidden prompt content.
+
+### Requirement: Confirmed correction candidates update only eligible future path nodes
+The system SHALL apply a confirmed correction candidate by preserving completed nodes and the current node once execution has entered it, excluding unfinished historical nodes that a governed skip, replacement, or abandonment deviation explicitly marks as no longer applicable, and replacing only eligible adjustable unfinished future nodes. It SHALL preserve existing execution and deviation records and terminal evidence unless the confirmed candidate itself contains a governed future terminal node.
+
+#### Scenario: Current node is in progress
+- **WHEN** a learner confirms a correction while the current node is started but not completed
+- **THEN** the system SHALL keep the current node and its position unchanged
+- **AND** it SHALL apply the candidate only to later eligible unfinished nodes.
+
+#### Scenario: Path has no eligible future node
+- **WHEN** a current candidate has no eligible future node that can be safely replaced
+- **THEN** the system SHALL reject confirmation as unavailable or conflicted
+- **AND** it SHALL not alter the persisted path.
+
+### Requirement: Path execution exposes candidate correction proposals
+The system SHALL derive a student-visible candidate correction proposal when a path has a trusted failed checkpoint result or a recorded skip, replacement, or abandonment deviation for its current or unfinished nodes. The candidate proposal SHALL affect only unfinished nodes and SHALL NOT mutate the persisted path, current node, completion state, or deviation record.
+
+#### Scenario: Failed checkpoint has a feasible correction
+- **WHEN** a learner has a failed checkpoint and the current governed path and resource facts support a changed unfinished-node sequence
+- **THEN** the path journey SHALL expose a candidate correction proposal with a student-visible action to inspect it
+- **AND** the persisted path and current node SHALL remain unchanged.
+
+#### Scenario: Deviation has a feasible correction
+- **WHEN** a learner records a skip, replacement, or abandonment deviation and a changed unfinished-node sequence can be formed from governed facts
+- **THEN** the path journey SHALL expose a candidate correction proposal that identifies the recorded deviation as its trigger
+- **AND** it SHALL NOT automatically apply the proposal.
+
+#### Scenario: Recorded deviation takes precedence over a residual failed checkpoint
+- **WHEN** a valid recorded skip, replacement, or abandonment deviation exists for unfinished nodes after a checkpoint failure remains in execution metadata
+- **THEN** the path journey SHALL derive the candidate from the recorded deviation and identify that deviation as its trigger
+- **AND** it SHALL NOT present the residual failed checkpoint as the candidate trigger.
+
+#### Scenario: Correction cannot be generated reliably
+- **WHEN** trusted execution facts, eligible governed resources, prerequisite relationships, or a material path difference are insufficient
+- **THEN** the path journey SHALL expose a student-safe unavailable reason
+- **AND** it SHALL NOT fabricate a correction proposal or alter the existing path.
+
+### Requirement: Candidate correction proposals are explainable and comparable
+The system SHALL show a candidate correction proposal with its trigger, node additions, removals, replacements, or ordering changes, supporting learning evidence or prerequisite facts, and estimated effect on remaining work. The comparison SHALL use persisted path and governed resource identities rather than client-supplied ordering or generated content.
+
+#### Scenario: Student inspects a candidate correction proposal
+- **WHEN** a learner opens an available candidate correction proposal
+- **THEN** the UI SHALL show the original unfinished path alongside the proposed changes, the trigger, supporting facts, and estimated remaining-work effect
+- **AND** it SHALL state that the proposal is not applied until the student confirms it through the available decision workflow.
+
+#### Scenario: Candidate has no material difference
+- **WHEN** a derived candidate has the same unfinished node identities and order as the persisted path
+- **THEN** the system SHALL treat the candidate as unavailable
+- **AND** it SHALL NOT present it as a correction.
+
+### Requirement: Recommendation provenance preserves student-safe event references
+The planner SHALL attach event references only when a governed event can be proven to support the target judgment used by the candidate path. Each reference MUST contain a stable event type, occurrence time, student-readable summary, and student-safe navigation action, and MUST exclude internal identifiers and raw evidence payloads.
+
+#### Scenario: Governed events support a candidate path judgment
+- **WHEN** target-scoped learning events contribute to a deficit or capability judgment used by a candidate path
+- **THEN** the persisted recommendation provenance includes at most three most-recent student-safe event references for that target
+- **AND** each reference identifies the affected judgment and the path nodes or resources selected from it
+
+#### Scenario: Recent event did not participate in planning
+- **WHEN** a recent learning event is not part of the target-scoped evidence used by the planner
+- **THEN** the event is not included in recommendation provenance
+
+#### Scenario: Only aggregate or restricted evidence is available
+- **WHEN** a target judgment is backed only by aggregate snapshots, feature caches, restricted AI evidence, or unresolvable source references
+- **THEN** recommendation provenance contains no fabricated event reference
+- **AND** records an explicit limitation that event-level evidence cannot be verified
+
+#### Scenario: Student-safe provenance is serialized
+- **WHEN** candidate path provenance is persisted or returned to a student consumer
+- **THEN** it does not expose database IDs, LearningFact IDs, source log IDs, source event IDs, raw answers, private conversations, reason codes, fingerprints, raw evidence JSON, or model prompts
+
+### Requirement: Adopted node selection basis preserves event references
+When a candidate path is adopted, the system SHALL project the candidate's student-safe event references onto each affected node's historical selection basis and SHALL retain them as execution state changes.
+
+#### Scenario: Candidate with event references is adopted
+- **WHEN** a student selects a candidate path whose recommendation provenance links events to specific nodes
+- **THEN** each affected selected node stores those references in its historical selection basis
+
+#### Scenario: Selected node later completes or becomes locked
+- **WHEN** execution state changes after the path was adopted
+- **THEN** the node retains the event references that explained its original selection
+
+#### Scenario: Legacy path has no event references
+- **WHEN** an adopted path predates event-reference support
+- **THEN** the node explanation remains available through its existing aggregate or legacy fallback contract
+- **AND** no event reference is inferred from the current learner portrait
+

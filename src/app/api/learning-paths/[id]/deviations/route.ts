@@ -19,7 +19,7 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-const DEVIATION_TYPES = new Set(['skip', 'timeout', 'manual-jump', 'resource-failure', 'abandonment', 'help-request']);
+const DEVIATION_TYPES = new Set(['skip', 'timeout', 'manual-jump', 'resource-failure', 'replacement', 'abandonment', 'help-request']);
 const EVIDENCE_CONFIDENCE = new Set(['low', 'medium', 'high', 'unknown']);
 const SKIP_WARNING_TEXT = '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。';
 

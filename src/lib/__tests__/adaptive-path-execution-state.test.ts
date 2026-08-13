@@ -30,6 +30,18 @@ describe('resolveAdaptivePathExecutionNodeStatus', () => {
       pendingResult: false,
     })).toBe('completed');
   });
+
+  it('keeps a skipped historical node skipped even when its old readiness was locked', () => {
+    expect(resolveAdaptivePathExecutionNodeStatus({
+      completed: false,
+      failed: false,
+      skipped: true,
+      current: false,
+      rawStatus: 'locked',
+      readinessState: 'locked',
+      pendingResult: false,
+    })).toBe('skipped');
+  });
 });
 
 describe('resolveAdaptivePathContextRecoveryState', () => {

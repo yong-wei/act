@@ -98,6 +98,102 @@ describe('adaptive path journey control', () => {
     expect(html).toContain('href="/interactive-learning/control-workbench?pathId=path-1"');
   });
 
+  it('renders an inspectable, read-only correction proposal with its path comparison', () => {
+    const journeyWithCorrection = journey({
+      state: 'blocked',
+      nodeId: 'node-2',
+      title: '校正检查点',
+      type: 'checkpoint',
+      href: null,
+      reason: '检查点未通过',
+      recovery: { label: '返回学习路径', href: launchContext().returnHref },
+    });
+    journeyWithCorrection.correction = {
+      proposal: {
+        trigger: { kind: 'failed-checkpoint', nodeId: 'node-2', title: '校正检查点', reason: '检查点结果未通过。' },
+        originalRemaining: [
+          { nodeId: 'node-2', title: '校正检查点', type: 'checkpoint', estimatedTimeMinutes: 15 },
+          { nodeId: 'node-3', title: '误差复习', type: 'knowledge_card', estimatedTimeMinutes: 20 },
+        ],
+        proposedRemaining: [
+          { nodeId: 'node-3', title: '误差复习', type: 'knowledge_card', estimatedTimeMinutes: 20 },
+          { nodeId: 'node-2', title: '校正检查点', type: 'checkpoint', estimatedTimeMinutes: 15 },
+        ],
+        changes: [{ kind: 'reordered', nodeId: 'node-2', title: '校正检查点', movedAfterNodeId: 'node-3' }],
+        supportingFacts: ['检查点结果未通过。'],
+        estimatedRemainingWork: { originalMinutes: 35, proposedMinutes: 35, differenceMinutes: 0 },
+      },
+      unavailableReason: null,
+      candidateFingerprint: 'correction-12345678',
+      pathUpdatedAt: '2026-08-04T09:00:00.000Z',
+      decision: null,
+      history: [],
+    };
+
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: journeyWithCorrection,
+      error: null,
+      onRefresh: () => undefined,
+    }));
+
+    expect(html).toContain('data-adaptive-path-correction="available"');
+    expect(html).toContain('查看纠偏方案');
+    expect(html).toContain('当前未完成路径');
+    expect(html).toContain('建议顺序');
+    expect(html).toContain('本方案仅供查看，尚未应用到当前学习路径。');
+    expect(html).toContain('data-adaptive-path-correction-actions="available"');
+    expect(html).toContain('确认调整');
+
+    journeyWithCorrection.correction.decision = {
+      decision: 'rejected',
+      createdAt: '2026-08-04T09:01:00.000Z',
+      applied: false,
+    };
+    const rejectedHtml = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: journeyWithCorrection,
+      error: null,
+      onRefresh: () => undefined,
+    }));
+    expect(rejectedHtml).toContain('data-adaptive-path-correction-decision="rejected"');
+    expect(rejectedHtml).not.toContain('data-adaptive-path-correction-actions="available"');
+  });
+
+  it('renders a student-safe unavailable reason without an applied correction', () => {
+    const journeyWithoutCorrection = journey({
+      state: 'blocked',
+      nodeId: 'node-2',
+      title: '校正检查点',
+      type: 'checkpoint',
+      href: null,
+      reason: '检查点未通过',
+      recovery: { label: '返回学习路径', href: launchContext().returnHref },
+    });
+    journeyWithoutCorrection.correction = {
+      proposal: null,
+      unavailableReason: '检查点未通过，但路径中没有可用于调整顺序的受治理复习节点。',
+      candidateFingerprint: null,
+      pathUpdatedAt: null,
+      decision: null,
+      history: [],
+    };
+
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: journeyWithoutCorrection,
+      error: null,
+      onRefresh: () => undefined,
+    }));
+
+    expect(html).toContain('data-adaptive-path-correction="unavailable"');
+    expect(html).toContain('暂无法生成纠偏方案');
+    expect(html).not.toContain('查看纠偏方案');
+  });
+
   it('renders only one return action when the ready next action resolves to the path return', () => {
     const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
       launchContext: launchContext(),

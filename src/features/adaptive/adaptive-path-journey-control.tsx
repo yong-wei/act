@@ -11,6 +11,10 @@ import {
   type AdaptivePathLaunchContext,
 } from './adaptive-learning-center-contracts';
 import type {
+  AdaptivePathCorrectionNode,
+  AdaptivePathCorrectionDecisionType,
+  AdaptivePathCorrectionDecisionHistoryItem,
+  AdaptivePathCorrectionProposal,
   AdaptivePathJourneyNextActionState,
   AuthorizedAdaptivePathJourney,
 } from './adaptive-path-journey-contracts';
@@ -178,6 +182,13 @@ export function AdaptivePathJourneyControl({
   const state = journey?.nextAction.state ?? (status === 'error' ? 'blocked' : 'pending-result');
   const returnAction = journey?.return ?? { label: '返回学习路径', href: launchContext.returnHref };
   const nextAction = journey?.nextAction ?? null;
+  const correction = journey?.correction ?? null;
+  const correctionHistory = correction?.history ?? [];
+  const correctionCanBeDecided = Boolean(
+    correction?.proposal && correction.candidateFingerprint && correction.pathUpdatedAt,
+  );
+  const [correctionDecisionPending, setCorrectionDecisionPending] = useState(false);
+  const [correctionDecisionError, setCorrectionDecisionError] = useState<string | null>(null);
   const nextActionDuplicatesReturn = nextAction?.href
     ? areEquivalentJourneyActions(returnAction, { label: nextAction.title, href: nextAction.href })
     : false;
@@ -189,6 +200,42 @@ export function AdaptivePathJourneyControl({
   const refreshLabel = recoveryDuplicatesReturn
     ? '刷新路径状态'
     : nextAction?.recovery?.label ?? '刷新路径状态';
+
+  const submitCorrectionDecision = useCallback(async (decision: AdaptivePathCorrectionDecisionType) => {
+    if (!correction?.proposal || !correction.candidateFingerprint || !correction.pathUpdatedAt) return;
+    setCorrectionDecisionPending(true);
+    setCorrectionDecisionError(null);
+    try {
+      const response = await fetch(
+        `/api/learning-paths/${encodeURIComponent(journey?.path.id ?? launchContext.pathId)}/correction-decisions`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            decision,
+            candidateFingerprint: correction.candidateFingerprint,
+            pathUpdatedAt: correction.pathUpdatedAt,
+            idempotencyKey: typeof crypto?.randomUUID === 'function'
+              ? crypto.randomUUID()
+              : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          }),
+        },
+      );
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        setCorrectionDecisionError(payload?.refreshRequired === true
+          ? '方案已更新，请刷新后重新查看。'
+          : '暂时无法记录纠偏决策，请稍后重试。');
+        if (payload?.refreshRequired === true) onRefresh();
+        return;
+      }
+      onRefresh();
+    } catch {
+      setCorrectionDecisionError('暂时无法记录纠偏决策，请稍后重试。');
+    } finally {
+      setCorrectionDecisionPending(false);
+    }
+  }, [correction, journey?.path.id, launchContext.pathId, onRefresh]);
 
   return (
     <section
@@ -267,8 +314,169 @@ export function AdaptivePathJourneyControl({
           )}
         </div>
       </div>
+      {correction?.proposal ? (
+        <details
+          className="mt-3 border-t border-platform-border pt-3"
+          data-adaptive-path-correction="available"
+        >
+          <summary className="cursor-pointer text-sm font-medium text-platform-action-primary">
+            查看纠偏方案
+          </summary>
+          <div className="mt-3 grid gap-3 text-sm text-platform-fg-secondary lg:grid-cols-2">
+            <PathCorrectionSequence title="当前未完成路径" nodes={correction.proposal.originalRemaining} />
+            <PathCorrectionSequence title="建议顺序" nodes={correction.proposal.proposedRemaining} />
+          </div>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-platform-fg-secondary">
+            {correction.proposal.changes.map((change) => (
+              <li key={`${change.kind}-${change.nodeId}`}>{formatPathCorrectionChange(change)}</li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-platform-fg-secondary">
+            触发依据：{correction.proposal.trigger.reason}
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-platform-fg-tertiary">
+            {correction.proposal.supportingFacts.map((fact) => <li key={fact}>{fact}</li>)}
+          </ul>
+          <p className="mt-3 text-xs text-platform-fg-tertiary">
+            预计剩余学习量：{formatEstimatedRemainingWork(correction.proposal.estimatedRemainingWork)}。本方案仅供查看，尚未应用到当前学习路径。
+          </p>
+          {correction.decision?.decision === 'rejected' ? (
+            <p className="mt-3 text-xs text-platform-fg-tertiary" data-adaptive-path-correction-decision="rejected">
+              你已拒绝此方案。它会保留在决策记录中；出现新的方案时仍会提示你。
+            </p>
+          ) : correction.decision?.decision === 'confirmed' ? (
+            <p className="mt-3 text-xs text-platform-fg-tertiary" data-adaptive-path-correction-decision="confirmed">
+              此方案已确认并应用到后续未完成节点。
+            </p>
+          ) : correctionCanBeDecided ? (
+            <div className="mt-3 flex flex-wrap gap-2" data-adaptive-path-correction-actions="available">
+              <button
+                type="button"
+                disabled={correctionDecisionPending}
+                onClick={() => void submitCorrectionDecision('confirmed')}
+                className="inline-flex h-9 items-center rounded-md bg-platform-action-primary px-3 text-sm font-medium text-platform-action-primary-fg disabled:opacity-60"
+              >
+                确认调整
+              </button>
+              <button
+                type="button"
+                disabled={correctionDecisionPending}
+                onClick={() => void submitCorrectionDecision('deferred')}
+                className="inline-flex h-9 items-center rounded-md border border-platform-border px-3 text-sm font-medium text-platform-fg-primary disabled:opacity-60"
+              >
+                暂不处理
+              </button>
+              <button
+                type="button"
+                disabled={correctionDecisionPending}
+                onClick={() => void submitCorrectionDecision('rejected')}
+                className="inline-flex h-9 items-center rounded-md border border-platform-border px-3 text-sm font-medium text-platform-fg-primary disabled:opacity-60"
+              >
+                不采用
+              </button>
+              {correction.decision?.decision === 'deferred' ? (
+                <span className="self-center text-xs text-platform-fg-tertiary">已暂缓，可在此后继续决定。</span>
+              ) : null}
+            </div>
+          ) : null}
+          {correctionDecisionError ? <p className="mt-2 text-xs text-platform-evidence-context">{correctionDecisionError}</p> : null}
+        </details>
+      ) : correction?.unavailableReason ? (
+        <p
+          className="mt-3 border-t border-platform-border pt-3 text-xs text-platform-fg-tertiary"
+          data-adaptive-path-correction="unavailable"
+        >
+          暂无法生成纠偏方案：{correction.unavailableReason}
+        </p>
+      ) : null}
+      {correctionHistory.length > 0 ? (
+        <details className="mt-3 border-t border-platform-border pt-3 text-xs text-platform-fg-tertiary">
+          <summary className="cursor-pointer">查看纠偏决策记录</summary>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {correctionHistory.map((item, index) => (
+              <li
+                key={`${item.candidateFingerprint}-${item.createdAt ?? index}`}
+                data-adaptive-path-correction-decision={item.decision}
+                data-adaptive-path-correction-outcome={item.outcome?.state ?? 'none'}
+                data-adaptive-path-correction-limitation={item.outcome?.limitation ?? undefined}
+              >
+                {formatCorrectionDecisionHistory(item)}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
     </section>
   );
+}
+
+function formatPathCorrectionChange(
+  change: AdaptivePathCorrectionProposal['changes'][number],
+): string {
+  if (change.kind === 'reordered') return `将“${change.title}”调整到“${change.movedAfterNodeId}”之后。`;
+  if (change.kind === 'replaced') return `将“${change.title}”替换为“${change.replacementTitle}”。`;
+  return `移除“${change.title}”：${change.reason}`;
+}
+
+function PathCorrectionSequence({
+  title,
+  nodes,
+}: {
+  title: string;
+  nodes: AdaptivePathCorrectionNode[];
+}) {
+  return (
+    <div>
+      <p className="font-medium text-platform-fg-primary">{title}</p>
+      <ol className="mt-1 space-y-1 text-xs">
+        {nodes.map((node, index) => (
+          <li key={node.nodeId}>{index + 1}. {node.title}</li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function formatEstimatedRemainingWork(value: {
+  originalMinutes: number | null;
+  proposedMinutes: number | null;
+  differenceMinutes: number | null;
+}): string {
+  if (value.originalMinutes === null || value.proposedMinutes === null) return '现有节点未提供完整时长估计';
+  if (value.differenceMinutes === null) return `由 ${value.originalMinutes} 分钟变为 ${value.proposedMinutes} 分钟`;
+  if (value.differenceMinutes === 0) return `保持 ${value.originalMinutes} 分钟不变`;
+  const direction = value.differenceMinutes > 0 ? '增加' : '减少';
+  return `由 ${value.originalMinutes} 分钟变为 ${value.proposedMinutes} 分钟（${direction} ${Math.abs(value.differenceMinutes)} 分钟）`;
+}
+
+function formatCorrectionDecisionHistory(item: AdaptivePathCorrectionDecisionHistoryItem): string {
+  const label = item.decision === 'confirmed'
+    ? item.applied ? '已确认并应用' : '已确认'
+    : item.decision === 'rejected'
+      ? '未采用'
+      : '暂不处理';
+  const decision = item.createdAt ? `${label}：${new Date(item.createdAt).toLocaleString('zh-CN')}` : label;
+  return item.outcome ? `${decision}；${formatCorrectionOutcome(item.outcome)}` : decision;
+}
+
+function formatCorrectionOutcome(item: NonNullable<AdaptivePathCorrectionDecisionHistoryItem['outcome']>): string {
+  const label = item.state === 'improved'
+    ? '后续证据显示已改善'
+    : item.state === 'needs-review'
+      ? '后续证据显示仍需复习'
+      : item.state === 'pending-verification'
+        ? '尚未验证'
+        : '无法判断';
+  const limitation = item.limitation === 'no-follow-up-evidence'
+    ? '暂无关联的后续完成或失败记录'
+    : item.limitation === 'conflicting-follow-up-evidence'
+      ? '后续证据存在冲突'
+      : item.limitation === 'invalid-decision-timestamp'
+        ? '确认时间不可用'
+        : item.limitation === 'insufficient-confidence'
+          ? '关联节点证据不足'
+          : null;
+  return limitation ? `${label}（${limitation}）` : label;
 }
 
 function areEquivalentJourneyActions(

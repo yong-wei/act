@@ -1,17 +1,51 @@
-import Link from 'next/link';
 import { ArrowRight, LockKeyhole } from 'lucide-react';
 
 import type { AdaptivePathUnlockChain } from '@/lib/adaptive-path-unlock-chain';
 
+export interface AdaptivePathUnlockProjectedAction {
+  nodeId: string | null;
+  href: string;
+  method: 'GET' | 'POST';
+  body?: Record<string, unknown>;
+  redirectHref?: string;
+}
+
+export function resolveAdaptivePathUnlockChainAction<T extends AdaptivePathUnlockProjectedAction>(
+  chain: AdaptivePathUnlockChain | undefined,
+  projectedAction: T | null | undefined,
+): T | null {
+  const chainNodeId = chain?.nextAction?.nodeId;
+  if (!chainNodeId || !projectedAction || projectedAction.nodeId !== chainNodeId) return null;
+  if (!projectedAction.href.trim()) return null;
+  if (projectedAction.method === 'POST' && (
+    !projectedAction.body || !isSafeProjectedRedirect(projectedAction.redirectHref)
+  )) return null;
+  return projectedAction;
+}
+
+function isSafeProjectedRedirect(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 type AdaptivePathUnlockChainViewProps = {
   chain: AdaptivePathUnlockChain;
   estimatedTimeMinutes?: number | null;
+  onAction?: (nodeId: string) => void;
 };
 
 export function AdaptivePathUnlockChainView({
   chain,
   estimatedTimeMinutes = null,
+  onAction,
 }: AdaptivePathUnlockChainViewProps) {
+  const actionNodeId = chain.nextAction?.nodeId;
+  const canStartAction = Boolean(actionNodeId && onAction);
+
   return (
     <div
       className="rounded-lg border border-platform-evidence-context/45 bg-platform-evidence-context/10 p-3"
@@ -52,19 +86,24 @@ export function AdaptivePathUnlockChainView({
         </div>
       ) : null}
       {chain.nextAction ? (
-        chain.nextAction.target ? (
-          <div className="mt-3">
-            <Link
-              href={chain.nextAction.target}
+        <div className="mt-3">
+          <p className="text-xs font-medium text-subtle">下一步</p>
+          {canStartAction ? (
+            <button
+              type="button"
+              data-adaptive-path-unlock-action="governed"
+              onClick={() => {
+                if (actionNodeId) onAction?.(actionNodeId);
+              }}
               className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-border bg-background/70 px-3 py-2 text-sm font-medium text-foreground hover:bg-background"
             >
               去完成前置任务
               <ArrowRight className="size-3.5" aria-hidden="true" />
-            </Link>
-          </div>
-        ) : (
-          <p className="mt-3 text-xs leading-5 text-foreground">{chain.nextAction.title}</p>
-        )
+            </button>
+          ) : (
+            <p className="mt-1 text-sm leading-6 text-foreground">{chain.nextAction.title}</p>
+          )}
+        </div>
       ) : null}
     </div>
   );

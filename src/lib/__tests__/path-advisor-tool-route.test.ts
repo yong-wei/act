@@ -222,6 +222,19 @@ describe('path advisor tool route readiness', () => {
   });
 
   it('returns ready readiness after successful path generation', async () => {
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn().mockResolvedValue({
+        pathId: 'path-1',
+        generationStatus: 'persisted',
+        candidateBatch: {
+          id: 'batch-1',
+          generationRequestId: 'path-generation-request:generation-request-1',
+          candidateIds: ['candidate-1'],
+        },
+      }),
+      reviseLearningPathOptions: vi.fn(),
+    });
     const response = await post({});
 
     expect(response.status).toBe(200);
@@ -234,7 +247,13 @@ describe('path advisor tool route readiness', () => {
         studentAction: 'continue-practice',
         staffAction: 'none',
       },
-      result: { pathId: 'path-1' },
+      result: {
+        pathId: 'path-1',
+        candidateBatch: {
+          id: 'batch-1',
+          candidateIds: ['candidate-1'],
+        },
+      },
       generationRequest: {
         id: 'generation-request-1',
         status: 'succeeded',
@@ -297,6 +316,25 @@ describe('path advisor tool route readiness', () => {
         id: 'stable-request-1',
         status: 'running',
       },
+    });
+  });
+
+  it('keeps an awaiting-approval tool request active without candidate identity', async () => {
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn().mockResolvedValue({
+        status: 'awaiting_approval',
+        candidateBatch: null,
+      }),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({ generationRequestId: 'stable-request-1' });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      result: { candidateBatch: null },
+      generationRequest: { id: 'stable-request-1', status: 'running' },
     });
   });
 

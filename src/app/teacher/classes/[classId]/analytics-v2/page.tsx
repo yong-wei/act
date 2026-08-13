@@ -20,6 +20,7 @@ import {
 
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
 import type { HeatmapData } from '@/app/api/teacher/classes/[classId]/heatmap/route';
+import type { ControlCorrectionTeacherReport } from '@/lib/data-governance/control-correction-teacher-report';
 import {
   buildTeacherStudentInsightsHref,
   formatTeacherStudentDisplayId,
@@ -66,6 +67,7 @@ export default function ClassAnalyticsV2Page() {
 
   const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
+  const [correctionReport, setCorrectionReport] = useState<ControlCorrectionTeacherReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deliveryState, setDeliveryState] = useState<AuditedActionState | null>(null);
@@ -74,9 +76,10 @@ export default function ClassAnalyticsV2Page() {
     try {
       setLoading(true);
       setError(null);
-      const [insightsRes, heatmapRes] = await Promise.all([
+      const [insightsRes, heatmapRes, correctionReportRes] = await Promise.all([
         fetch(`/api/teacher/classes/${classId}/insights`),
         fetch(`/api/teacher/classes/${classId}/heatmap`),
+        fetch(`/api/teacher/classes/${classId}/control-correction-report`),
       ]);
 
       if (!insightsRes.ok) {
@@ -91,6 +94,12 @@ export default function ClassAnalyticsV2Page() {
         setHeatmap(heatmapPayload);
       } else {
         setHeatmap(null);
+      }
+      if (correctionReportRes.ok) {
+        const correctionReportPayload = await correctionReportRes.json() as { report?: ControlCorrectionTeacherReport };
+        setCorrectionReport(correctionReportPayload.report ?? null);
+      } else {
+        setCorrectionReport(null);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
@@ -520,6 +529,8 @@ export default function ClassAnalyticsV2Page() {
           </div>
         </section>
 
+        <CorrectionOutcomeSummaryPanel report={correctionReport} />
+
         <section className="mb-8 grid gap-4 lg:grid-cols-[1.1fr,0.9fr]">
           <div className="surface-card p-6">
             <div className="mb-4 flex items-center justify-between gap-4">
@@ -798,6 +809,50 @@ function ReportDeliveryPanel({
       <ReportDeliveryHandoffStates entry={ledgerEntry} canDeliver={canDeliver} onRecordIntervention={onRecordIntervention} />
       <ReportDeliveryLedgerDetails entry={ledgerEntry} />
       {state ? <ActionStatusPanel state={state} className="mt-4" /> : null}
+    </section>
+  );
+}
+
+function CorrectionOutcomeSummaryPanel({
+  report,
+}: {
+  report: ControlCorrectionTeacherReport | null;
+}) {
+  const summary = report?.correctionOutcomeSummary;
+  const states: Array<{
+    key: keyof NonNullable<ControlCorrectionTeacherReport['correctionOutcomeSummary']>['states'];
+    label: string;
+  }> = [
+    { key: 'improved', label: '后续证据显示已改善' },
+    { key: 'needs-review', label: '后续证据显示仍需复习' },
+    { key: 'pending-verification', label: '尚未有足够后续证据' },
+    { key: 'indeterminate', label: '证据无法判断' },
+  ];
+
+  return (
+    <section className="surface-card mb-8 p-6" data-teacher-correction-outcome-summary="aggregate-only">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-foreground">纠偏方案后续证据</h2>
+        <p className="mt-1 text-sm text-subtle">
+          仅统计已确认并应用的方案；这些结果反映后续证据，不代表纠偏方案造成了结果。
+        </p>
+      </div>
+      {!summary ? (
+        <p className="text-sm text-subtle">当前暂无可用的班级聚合数据。</p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-correction-outcome-total={summary.total}>
+          {states.map(({ key, label }) => {
+            const item = summary.states[key];
+            return (
+              <div key={key} className="teacher-insight-metric" data-correction-outcome-state={key}>
+                <p className="text-sm font-medium text-foreground">{label}</p>
+                <p className="mt-2 text-2xl font-semibold text-foreground">{item.count}</p>
+                <p className="text-xs text-subtle">{Math.round(item.rate * 100)}% of eligible corrections</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

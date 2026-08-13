@@ -55,6 +55,15 @@ describe('adaptive path recommendation provenance', () => {
         confidence: 0.7,
         evidenceCount: 3,
         reasonCode: 'internal-low-mastery-target',
+        eventReferences: [{
+          sourceScope: 'adaptive-practice-submission',
+          occurredAt: '2026-08-03T08:30:00.000Z',
+          summary: '自适应练习记录参与了该项能力判断。',
+          nextAction: {
+            href: '/assessment/adaptive-practice?intent=practice',
+            label: '继续自适应练习',
+          },
+        }],
       }],
       confidence: 'medium',
     });
@@ -67,11 +76,16 @@ describe('adaptive path recommendation provenance', () => {
         targetKind: 'knowledge',
         confidence: 'medium',
         evidenceSummary: '掌握状态 32%，来自 3 条有效证据，置信度 70%。',
+        eventReferences: [expect.objectContaining({
+          sourceScope: 'adaptive-practice-submission',
+          occurredAt: '2026-08-03T08:30:00.000Z',
+        })],
       })],
     });
     expect(provenance.entries[0]?.affectedResourceTitles.length).toBeGreaterThan(0);
     expect(JSON.stringify(provenance)).not.toContain('internal-low-mastery-target');
     expect(JSON.stringify(provenance)).not.toContain('targetId');
+    expect(JSON.stringify(provenance)).not.toContain('sourceId');
   });
 
   it('uses course structure language instead of treating missing evidence as a confirmed weakness', () => {
@@ -96,6 +110,8 @@ describe('adaptive path recommendation provenance', () => {
       affectedResourceTitles: [],
     });
     expect(provenance.entries[0]?.judgment).toContain('暂不能确认该项为稳定薄弱点');
+    expect(provenance.entries[0]?.eventReferences).toEqual([]);
+    expect(provenance.limitations).toContain('部分判断尚无可核验的事件级学习记录。');
     expect(provenance.nextAction).toBe('完成诊断或练习，补充有效学习证据。');
   });
 
@@ -3516,6 +3532,12 @@ describe('adaptive learning path planner', () => {
                 confidence: 0.7,
                 directEvidenceCount: 1,
                 supportingEvidenceCount: 3,
+                eventReferences: [{
+                  sourceScope: 'arena-official-result',
+                  occurredAt: '2026-05-19T01:00:00.000Z',
+                  summary: 'Arena 官方评测结果参与了该项能力判断。',
+                  nextAction: { href: '/arena', label: '查看 Arena 结果' },
+                }],
                 source: 'adaptive-learner-state',
                 recommendationBias: 'targeted-practice',
               },
@@ -3531,8 +3553,50 @@ describe('adaptive learning path planner', () => {
       knowledgeMastery: null,
       confidence: 0.7,
       directEvidenceCount: 1,
+      eventReferences: [expect.objectContaining({ sourceScope: 'arena-official-result' })],
       recommendationBias: 'targeted-practice',
     }));
+    expect(goalSliceEvidencePlan.visualization.evidence.learnerStateDeficits.find((item) =>
+      item.targetId === 'control-correction:arena-transfer'
+    )?.eventReferences).toEqual([]);
+    expect(goalSliceEvidencePlan.visualization.evidence.learnerStateDeficits.find((item) =>
+      item.targetId === 'parameterDesign'
+    )?.eventReferences).toEqual([]);
+    expect(buildAdaptivePathRecommendationProvenance({
+      path: goalSliceEvidencePlan.mainPath,
+      deficits: goalSliceEvidencePlan.visualization.evidence.learnerStateDeficits,
+      confidence: goalSliceEvidencePlan.confidence.level,
+    }).limitations).toContain(
+      '部分判断尚无可核验的事件级学习记录。',
+    );
+
+    const judgmentLineagePlan = buildAdaptiveLearningPathPlan(plannerInput({
+      ...input,
+      learnerState: {
+        ...input.learnerState!,
+        knowledgeMastery: {
+          tags: {
+            ...input.learnerState!.knowledgeMastery!.tags,
+            'control-correction:arena-transfer': {
+              posteriorMastery: 0.24,
+              confidence: 0.7,
+              evidenceCount: 3,
+              eventReferences: [{
+                sourceScope: 'arena-official-result',
+                occurredAt: '2026-05-19T01:00:00.000Z',
+                summary: 'Arena 官方评测结果直接参与了该项掌握状态判断。',
+                nextAction: { href: '/arena', label: '查看 Arena 结果' },
+              }],
+            },
+          },
+        },
+      },
+    }));
+    expect(judgmentLineagePlan.visualization.evidence.learnerStateDeficits.find((item) =>
+      item.targetId === 'control-correction:arena-transfer'
+    )?.eventReferences).toEqual([
+      expect.objectContaining({ sourceScope: 'arena-official-result' }),
+    ]);
     const lowConfidencePlan = buildAdaptiveLearningPathPlan(plannerInput({
       ...input,
       learnerState: {

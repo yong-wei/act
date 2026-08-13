@@ -129,6 +129,30 @@ describe('GET /api/learning-paths/[id]/journey', () => {
     });
   });
 
+  it('returns a read-only correction proposal for a recorded skip', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(pathRecord({
+      currentNodeId: 'node-2',
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+      deviations: [{ deviationType: 'skip', priorNodeId: 'node-1', targetNodeId: 'node-1' }],
+    }));
+
+    const response = await GET(request('node-2'), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey.correction).toMatchObject({
+      proposal: {
+        trigger: { kind: 'deviation', nodeId: 'node-1' },
+        originalRemaining: [{ nodeId: 'node-1' }, { nodeId: 'node-2' }],
+        proposedRemaining: [{ nodeId: 'node-2' }],
+        changes: [{ kind: 'removed', nodeId: 'node-1' }],
+      },
+      unavailableReason: null,
+    });
+    expect(payload.journey.current).toMatchObject({ nodeId: 'node-2' });
+    expect(payload.journey.nextAction).toMatchObject({ state: 'blocked', nodeId: 'node-2' });
+  });
+
   it.each([
     ['legacy registry', 'registry' as const],
     ['Yang Fan fixture', 'yangfan' as const],

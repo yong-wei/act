@@ -118,12 +118,18 @@ async function collectSignals(page, item, screenshotPath) {
     optionUnlockChainCount: document.querySelectorAll(
       '[data-learning-path-option-module="route"] [data-adaptive-path-unlock-chain]',
     ).length,
+    optionUnlockActionElementCount: document.querySelectorAll(
+      '[data-learning-path-option-module="route"] [data-adaptive-path-unlock-chain] a[href], [data-learning-path-option-module="route"] [data-adaptive-path-unlock-chain] button',
+    ).length,
     executionUnlockChainCount: document.querySelectorAll(
       '[data-adaptive-path-execution-surface="active-route"] [data-adaptive-path-unlock-chain]',
     ).length,
-    lockedNodeActionButtonCount: document.querySelectorAll(
-      '[data-adaptive-path-node-state="locked"] [data-adaptive-path-node-actions="attached"] button',
+    executionUnlockActionButtonCount: document.querySelectorAll(
+      '[data-adaptive-path-execution-surface="active-route"] [data-adaptive-path-unlock-action="governed"]',
     ).length,
+    lockedNodeActionButtonCount: Array.from(document.querySelectorAll(
+      '[data-adaptive-path-node-state="locked"] [data-adaptive-path-node-actions="attached"] button',
+    )).filter((button) => !button.textContent?.includes('后解锁')).length,
     unlockedNodeActionCount: document.querySelectorAll(
       '[data-adaptive-path-node-state="locked"] [data-adaptive-path-node-actions="attached"] a, [data-adaptive-path-node-state="locked"] [data-adaptive-path-node-actions="attached"] span',
     ).length,
@@ -159,7 +165,9 @@ async function collectSignals(page, item, screenshotPath) {
     clientWidth: metrics.clientWidth,
     bodyScrollWidth: metrics.bodyScrollWidth,
     optionUnlockChainCount: metrics.optionUnlockChainCount,
+    optionUnlockActionElementCount: metrics.optionUnlockActionElementCount,
     executionUnlockChainCount: metrics.executionUnlockChainCount,
+    executionUnlockActionButtonCount: metrics.executionUnlockActionButtonCount,
     structuredChainCount: structuredChains.length,
     fallbackChainCount: fallbackChains.length,
     lockedNodeActionButtonCount: metrics.lockedNodeActionButtonCount,
@@ -169,7 +177,7 @@ async function collectSignals(page, item, screenshotPath) {
     multipleGapsVisible: metrics.visibleText.includes('同步 1 项指定学习结果') &&
       metrics.visibleText.includes('补充 2 条可复核学习证据') &&
       metrics.visibleText.includes('提升对应能力准备度'),
-    actionableTargetVisible: metrics.nextActionLinkCount > 0,
+    actionableTargetVisible: metrics.optionUnlockActionElementCount > 0,
     textOnlyActionVisible: metrics.visibleText.includes('完成「前置节点」后解锁'),
     fallbackMessageVisible: metrics.visibleText.includes('Arena 暂未解锁，完成仿真验证后会自动进入。'),
     unavailableVisible: metrics.visibleText.includes('暂时无法展示具体解锁条件'),
@@ -284,8 +292,8 @@ function assertCase(caseEntry, signals) {
     if (!signals.multipleGapsVisible) {
       issues.push('multiple structured gaps not visible');
     }
-    if (!signals.actionableTargetVisible) {
-      issues.push('actionable next-action target not visible');
+    if (signals.optionUnlockActionElementCount !== 0) {
+      issues.push(`candidate unlock actions=${signals.optionUnlockActionElementCount}`);
     }
     if (!signals.textOnlyActionVisible) {
       issues.push('text-only next action not visible');
@@ -304,6 +312,9 @@ function assertCase(caseEntry, signals) {
     }
     if (signals.lockedNodeActionButtonCount !== 0) {
       issues.push(`locked node start buttons=${signals.lockedNodeActionButtonCount}`);
+    }
+    if (signals.executionUnlockActionButtonCount > 1) {
+      issues.push(`governed unlock action buttons=${signals.executionUnlockActionButtonCount}`);
     }
   }
 

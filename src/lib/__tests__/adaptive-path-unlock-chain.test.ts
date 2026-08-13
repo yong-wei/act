@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it } from 'vitest';
 
@@ -12,6 +14,10 @@ import {
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionWriteOption,
 } from '@/lib/adaptive-path-option-display';
+import {
+  AdaptivePathUnlockChainView,
+  resolveAdaptivePathUnlockChainAction,
+} from '@/features/adaptive/adaptive-path-unlock-chain-view';
 
 const repoRoot = process.cwd();
 
@@ -56,9 +62,10 @@ describe('buildAdaptivePathUnlockChain', () => {
       required: '已完成',
     });
     expect(chain.nextAction).toMatchObject({
+      nodeId: 'card:bode',
       title: '完成「Bode 图知识卡」后解锁',
-      target: '/knowledge/cards/bode',
     });
+    expect(chain.nextAction).not.toHaveProperty('target');
   });
 
   it('uses fallback and prerequisite nodes when structured gaps are absent', () => {
@@ -76,8 +83,9 @@ describe('buildAdaptivePathUnlockChain', () => {
     expect(chain.canExplain).toBe(true);
     expect(chain.missingConditions).toHaveLength(1);
     expect(chain.missingConditions[0].title).toBe('完成「准备知识卡」');
+    expect(chain.nextAction?.nodeId).toBe('card:prep');
     expect(chain.nextAction?.title).toBe('完成「准备知识卡」后解锁');
-    expect(chain.nextAction?.target).toBeUndefined();
+    expect(chain.nextAction).not.toHaveProperty('target');
   });
 
   it('does not link unauthorized, locked, or blocked prerequisite targets', () => {
@@ -109,9 +117,12 @@ describe('buildAdaptivePathUnlockChain', () => {
       status: 'blocked',
     }]);
 
-    expect(lockedChain.nextAction?.target).toBeUndefined();
-    expect(restrictedChain.nextAction?.target).toBeUndefined();
-    expect(blockedChain.nextAction?.target).toBeUndefined();
+    expect(lockedChain.nextAction?.nodeId).toBe('card:locked');
+    expect(restrictedChain.nextAction?.nodeId).toBe('card:restricted');
+    expect(blockedChain.nextAction?.nodeId).toBe('quiz:blocked');
+    expect(lockedChain.nextAction).not.toHaveProperty('target');
+    expect(restrictedChain.nextAction).not.toHaveProperty('target');
+    expect(blockedChain.nextAction).not.toHaveProperty('target');
   });
 
   it('falls back to unlockMessage without fabricating a chain', () => {
@@ -200,7 +211,64 @@ describe('adaptive path option unlock chain display', () => {
     });
     expect(display.orderedNodes?.[1].unlockChain?.canExplain).toBe(true);
     expect(display.orderedNodes?.[1].unlockChain?.missingConditions[0].title).toContain('Bode 图知识卡');
-    expect(display.orderedNodes?.[1].unlockChain?.nextAction?.target).toBe('/knowledge/cards/bode');
+    expect(display.orderedNodes?.[1].unlockChain?.nextAction?.nodeId).toBe('card:bode');
+    expect(display.orderedNodes?.[1].unlockChain?.nextAction).not.toHaveProperty('target');
+  });
+});
+
+describe('adaptive path unlock projected actions', () => {
+  it('accepts only an exact projected GET action', () => {
+    const chain = buildAdaptivePathUnlockChain(node({
+      readiness: { state: 'locked', missingCompletedNodeIds: ['card:bode'] },
+    }), [{ nodeId: 'card:bode', title: 'Bode 图知识卡' }]);
+    const projected = {
+      nodeId: 'card:bode',
+      title: '打开 Bode 图知识卡',
+      href: '/knowledge?source=adaptive-path-center&pathId=path-1&nodeId=card:bode',
+      method: 'GET' as const,
+    };
+
+    expect(resolveAdaptivePathUnlockChainAction(chain, projected)).toBe(projected);
+    expect(resolveAdaptivePathUnlockChainAction(chain, { ...projected, nodeId: 'other-node' })).toBeNull();
+    expect(resolveAdaptivePathUnlockChainAction(chain, null)).toBeNull();
+  });
+
+  it('accepts an exact projected POST action only with its existing launch contract', () => {
+    const chain = buildAdaptivePathUnlockChain(node({
+      readiness: { state: 'locked', missingCompletedNodeIds: ['external:bode'] },
+    }), [{ nodeId: 'external:bode', title: '外部资料' }]);
+    const projected = {
+      nodeId: 'external:bode',
+      title: '打开外部资料',
+      href: '/api/learning-paths/path-1/execute',
+      method: 'POST' as const,
+      body: { nodeId: 'external:bode', status: 'started' },
+      redirectHref: 'https://example.edu/control/bode',
+    };
+
+    expect(resolveAdaptivePathUnlockChainAction(chain, projected)).toBe(projected);
+    expect(resolveAdaptivePathUnlockChainAction(chain, { ...projected, body: undefined })).toBeNull();
+    expect(resolveAdaptivePathUnlockChainAction(chain, {
+      ...projected,
+      redirectHref: '/local-only',
+    })).toBeNull();
+  });
+
+  it('renders candidate preview action as text even when raw target evidence exists', () => {
+    const chain = buildAdaptivePathUnlockChain(node({
+      readiness: { state: 'locked', missingCompletedNodeIds: ['card:bode'] },
+    }), [{
+      nodeId: 'card:bode',
+      title: 'Bode 图知识卡',
+      target: '/knowledge?node=control-root-locus',
+      type: 'knowledge_card',
+      status: 'current',
+    }]);
+    const html = renderToStaticMarkup(createElement(AdaptivePathUnlockChainView, { chain }));
+
+    expect(html).not.toContain('<a ');
+    expect(html).not.toContain('/knowledge?node=control-root-locus');
+    expect(html).toContain('完成「Bode 图知识卡」后解锁');
   });
 });
 
@@ -212,9 +280,16 @@ describe('adaptive practice page unlock chain integration', () => {
     );
 
     expect(source).toContain('buildAdaptivePathUnlockChain({');
-    expect(source).toContain('AdaptivePathUnlockChainView chain={node.unlockChain}');
+    expect(source).toContain('AdaptivePathUnlockChainView');
     expect(source).toContain('unlockChain?: AdaptivePathUnlockChain');
     expect(source).toContain("type: typeof record.type === 'string'");
     expect(source).toContain("status: typeof record.status === 'string' ? record.status : undefined");
+    expect(source).not.toContain('nextAction.target');
+    expect(source).toContain('resolveAdaptivePathUnlockChainAction');
+    expect(source).not.toContain('resolveUnlockChainActionNode');
+    expect(source).toContain('window.location.assign(action.href)');
+    expect(source).toContain('launchPathNodeAction(action)');
+    expect(source).toContain('buildAdaptivePathLaunchHref(ownedTarget, launchContext)');
+    expect(source).toContain("targetDisposition === 'external-fallback'");
   });
 });

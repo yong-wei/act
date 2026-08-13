@@ -52,6 +52,28 @@
 3. 作者配置的 `unlockMessage`；
 4. 明确展示“暂时无法展示具体解锁条件”，不退回无意义的“稍后解锁”作为唯一说明。
 
+### 收尾证据裁决（PR #1169）
+
+当前页面修订进入 PR 后，商业 UI 门禁要求 adaptive-path 产品 QA 工件晚于该页面的最后源代码变更。仅重新生成汇总 JSON 会更新哈希而不会重新验证视觉状态，不能作为证据刷新。
+
+因此，收尾必须在最终页面修订上重新采集完整的 13 个 adaptive-path 产品 QA 状态，并由独立审查确认新截图和交互状态；随后再生成汇总工件。`/knowledge` 产品 QA 的独立证据漂移属于 `integration` 基线，不属于本变更的功能实现。为使 #1169 能在完整门禁下收尾，必须先由独立基线修复 PR 修复正式 adaptive-path 捕获合同；该 PR 不得更新会因 #1169 的页面变更立即失效的产品证据。#1169 随后以 merge 方式同步 integration，并在组合后的最终 HEAD 一次性真实重采 adaptive-path 与 `/knowledge` 两组证据。两项修复均不得放宽门禁、替换摘要或复用不同修订上的截图。
+
+### 解锁动作的启动合同（PR #1169 P1 修复）
+
+解锁链路只负责解释锁定条件和标识下一步节点，不以 readiness 中的原始 `target` 授权导航。已选路径的动作必须由既有 journey/path-center 投影解析，并复用已有启动合同：内部目标带入 `goalId`、`pathId`、`nodeId` 与返回上下文；外部资源保持 execute POST、重定向和完成确认。
+
+候选预览尚无权威 `pathId`，不得启动资源或伪造执行上下文。它仍展示相同的解锁链路，但只提供既有路径选择/创建动作；不存在这种受治理动作时显示文本。无法唯一解析、已锁定、已阻断或过期的动作一律降级为文本。
+
+当前 learning-center projection 仅公开唯一的 `nextAction`，未提供任意节点的 action 列表。因此，执行时间线只在解锁链的 `nodeId` 与该 `nextAction.nodeId` 严格相等、且 action 通过既有可用性判断时显示动作；点击直接复用完整投影 action。GET 使用投影 `href`，POST 复用 `href`、`body`、`redirectHref` 与完成合同。本地执行节点、链路标题和原始目标均不得补推导授权。
+
+### 基线门禁依赖的提交边界（PR #1169 收尾）
+
+独立基线 PR 只修复共享 adaptive-path 捕获合同及其测试。它不得包含 #1167 的解锁链路行为，也不得提交 `/knowledge` 或 adaptive-path 的产品证据，因为 `/knowledge` 矩阵跟踪 adaptive-practice 页面。#1169 仅在该 PR 合并后使用非改写 merge 同步 integration，再在自己的最终组合 HEAD 上重采 `/knowledge` 与 adaptive-path 的全部受影响状态。完整 `npm run test` 与 current-HEAD 审查均以该最终组合 HEAD 为准。
+
+### 展开导航与 Dock 菜单的证据语义（PR #1169 收尾）
+
+`app-shell-expanded-dock-desktop-dark` 保留既有状态 ID 和矩阵成员，但其验收语义是“平台导航展开 + 共享 Dock 辅助菜单展开”，而非 Global AI sidebar 展开。捕获通过真实导航按钮和辅助菜单触发器完成，并在截图前断言导航为 expanded、菜单面板可见且有有效尺寸。为呈现已有的辅助菜单，runner 可以复用既有 development-only `knowledge-product` QA 条件；它不修改页面、权限、`canSubmitPathGeneration` 或控件优先级。该条件下 GlobalAI 是已启用的 Dock primary，`adaptive-path-konling` 必须在辅助菜单中保持可见但 disabled。任何主观 DOM 注入、强制属性修改、坐标伪点击或仅更新 manifest 的做法均不可作为证据。
+
 ## Risks / Trade-offs
 
 - [旧路径记录缺少结构化 readiness] → 按降级策略展示 `unlockMessage` 或明确不可解释文案，不伪造链路。

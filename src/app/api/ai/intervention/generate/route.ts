@@ -11,6 +11,11 @@ import {
   type InterventionDecision,
   type StudentState,
 } from '@/features/ai/companion/intervention-engine';
+import {
+  ArenaCompanionContextError,
+  resolveArenaCompanionContext,
+} from '@/features/ai/companion/arena-companion-context';
+import type { ControllerMethod } from '@/features/arena/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +27,8 @@ interface GenerateRequest {
   pageId?: string;
   resourceId?: string;
   pathNodeId?: string;
+  arenaTaskId?: string;
+  method?: ControllerMethod;
 }
 
 export async function POST(request: Request) {
@@ -32,6 +39,24 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as GenerateRequest;
+    const hasArenaTaskId = Boolean(body.arenaTaskId);
+    const hasArenaMethod = Boolean(body.method);
+    if (hasArenaTaskId !== hasArenaMethod) {
+      return NextResponse.json({ error: '竞技场任务和控制方法必须同时提供' }, { status: 400 });
+    }
+
+    let arenaContext;
+    if (hasArenaTaskId && hasArenaMethod) {
+      try {
+        arenaContext = resolveArenaCompanionContext(body.arenaTaskId!, body.method!);
+      } catch (error) {
+        if (error instanceof ArenaCompanionContextError) {
+          return NextResponse.json({ error: error.message }, { status: 400 });
+        }
+        throw error;
+      }
+    }
+
     const scope = await verifyKonlingRuntimeScope(prisma, {
       authenticatedUserId: session.user.id,
       role: session.user.role,
@@ -49,6 +74,7 @@ export async function POST(request: Request) {
     const intervention = await createGovernedKonlingIntervention(prisma, {
       scope: scope.scope,
       studentState: body.studentState,
+      arenaContext,
     });
 
     return NextResponse.json({

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "capturedAt": "2026-08-08T09:58:47.234Z",
+  "sourceRevision": "0eb974368bb8485f646ebcbd80fcf6dd5d9c011e",
+  "generator": {
+    "file": "tests/adaptive-path-node-decision-visual-acceptance.spec.ts",
+    "sha256": "02e1ebe4a1112cc614a97c8b29a81a29a790ffe5f1e37bd2e4db09edf8b6397f"
+  },
+  "productionSourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "c78e4614835670a9f8a39b1f073ca67f5cecc009673e81579d90dc2219a7ec26"
+  },
+  "assertions": [
+    {
+      "viewport": "desktop-1440",
+      "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&nodeDecisionFixture=locked",
+      "passed": true,
+      "checks": [
+        "blocked node retains governed readiness lock explanation",
+        "recorded selection evidence remains visible",
+        "attached node actions remain reachable",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&nodeDecisionFixture=locked",
+      "passed": true,
+      "checks": [
+        "blocked node retains governed readiness lock explanation",
+        "recorded selection evidence remains visible",
+        "attached node actions remain reachable",
+        "no horizontal overflow"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&nodeDecisionFixture=locked",
+      "file": "openspec/changes/explain-active-path-node-decisions/evidence/commercial-ui/desktop-1440.png",
+      "sha256": "43eaf8cce83f2d8987e2f7662d7191635405f4f2be4ea2f20237d693af15f888",
+      "noHorizontalOverflow": true
+    },
+    {
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "route": "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution&nodeDecisionFixture=locked",
+      "file": "openspec/changes/explain-active-path-node-decisions/evidence/commercial-ui/mobile-320.png",
+      "sha256": "0bdc2d898ef93e6c488b8f017318d44a3b09d5f59d5ab94a0dce8ee7821237e0",
+      "noHorizontalOverflow": true
+    }
+  ]
+}

@@ -1,6 +1,10 @@
 import { buildAdaptivePathLaunchHref } from './adaptive-learning-center-contracts';
 import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
 import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
+import {
+  projectAdaptivePathCorrectionOutcome,
+  type AdaptivePathCorrectionOutcome,
+} from './adaptive-path-correction-outcomes';
 
 export type AdaptivePathJourneyNextActionState = 'ready' | 'blocked' | 'pending-result' | 'path-complete';
 
@@ -20,6 +24,75 @@ export interface AdaptivePathJourneyNextAction {
   recovery: { label: string; href: string } | null;
 }
 
+export interface AdaptivePathCorrectionNode extends AdaptivePathJourneyNodeView {
+  estimatedTimeMinutes: number | null;
+}
+
+export interface AdaptivePathCorrectionProposal {
+  trigger: {
+    kind: 'failed-checkpoint' | 'deviation';
+    nodeId: string;
+    title: string;
+    reason: string;
+  };
+  originalRemaining: AdaptivePathCorrectionNode[];
+  proposedRemaining: AdaptivePathCorrectionNode[];
+  changes: Array<
+    | {
+        kind: 'reordered';
+        nodeId: string;
+        title: string;
+        movedAfterNodeId: string;
+      }
+    | {
+        kind: 'removed';
+        nodeId: string;
+        title: string;
+        reason: string;
+      }
+    | {
+        kind: 'replaced';
+        nodeId: string;
+        title: string;
+        replacementNodeId: string;
+        replacementTitle: string;
+      }
+  >;
+  supportingFacts: string[];
+  estimatedRemainingWork: {
+    originalMinutes: number | null;
+    proposedMinutes: number | null;
+    differenceMinutes: number | null;
+  };
+}
+
+export interface AdaptivePathJourneyCorrection {
+  proposal: AdaptivePathCorrectionProposal | null;
+  unavailableReason: string | null;
+  candidateFingerprint: string | null;
+  pathUpdatedAt: string | null;
+  decision: AdaptivePathCorrectionDecisionState | null;
+  history: AdaptivePathCorrectionDecisionHistoryItem[];
+}
+
+interface AdaptivePathJourneyCorrectionProjection {
+  proposal: AdaptivePathCorrectionProposal | null;
+  unavailableReason: string | null;
+}
+
+export type AdaptivePathCorrectionDecisionType = 'confirmed' | 'rejected' | 'deferred';
+
+export interface AdaptivePathCorrectionDecisionState {
+  decision: AdaptivePathCorrectionDecisionType;
+  createdAt: string | null;
+  applied: boolean;
+}
+
+export interface AdaptivePathCorrectionDecisionHistoryItem extends AdaptivePathCorrectionDecisionState {
+  candidateFingerprint: string;
+  outcome: AdaptivePathCorrectionOutcome | null;
+}
+
 export interface AuthorizedAdaptivePathJourney {
   path: { id: string; title: string };
   goal: { id: string };
@@ -29,6 +102,7 @@ export interface AuthorizedAdaptivePathJourney {
   return: { label: string; href: string };
   pathStatus: string;
   nextAction: AdaptivePathJourneyNextAction;
+  correction?: AdaptivePathJourneyCorrection;
 }
 
 export interface AdaptivePathJourneyPathRecord {
@@ -41,6 +115,10 @@ export interface AdaptivePathJourneyPathRecord {
   pathPayload?: unknown;
   terminalValidation?: unknown;
   lastExecutionMetadata?: unknown;
+  deviations?: unknown;
+  updatedAt?: unknown;
+  correctionDecisions?: unknown;
+  executions?: unknown;
 }
 
 export type AdaptivePathJourneyTargetDisposition =
@@ -92,6 +170,7 @@ export function buildAuthorizedAdaptivePathJourney(
   const nodeById = new Map(journeyNodes.map((node) => [node.nodeId, node]));
   const completedNodeIds = new Set(readStringArray(metadata.completedNodeIds));
   const failedNodeIds = new Set(readStringArray(metadata.failedNodeIds));
+  const deviations = readRecordArray(path.deviations);
   const currentNodeId = readNonEmptyString(path.currentNodeId);
   const persistedCurrentNode = currentNodeId ? nodeById.get(currentNodeId) ?? null : null;
   const requestedNodeId = readNonEmptyString(input.requestedNodeId);
@@ -129,6 +208,30 @@ export function buildAuthorizedAdaptivePathJourney(
       })
     : persistedCurrentNode;
   const returnHref = buildPathCenterHref({ pathId, goalId, nodeId: actionNode?.nodeId ?? currentNodeId });
+  const correction = structureComplete
+    ? buildAdaptivePathJourneyCorrection({
+        mainPathNodeIds,
+        nodeById,
+        completedNodeIds,
+        failedNodeIds,
+        terminalNodeId,
+        terminalState,
+        deviations,
+      })
+    : {
+        proposal: null,
+        unavailableReason: hasCorrectionTrigger({ failedNodeIds, terminalState, deviations })
+          ? '学习路径结构不完整，暂时无法生成可靠的纠偏方案。'
+          : null,
+      };
+  const projectedCorrection = projectAdaptivePathCorrectionDecisionState({
+    correction,
+    pathUpdatedAt: readDateISOString(path.updatedAt),
+    decisions: readRecordArray(path.correctionDecisions),
+    executions: readRecordArray(path.executions),
+    terminalNodeId,
+    terminalState,
+  });
   const base = {
     path: {
       id: pathId,
@@ -143,6 +246,7 @@ export function buildAuthorizedAdaptivePathJourney(
     },
     return: { label: '返回学习路径', href: returnHref },
     pathStatus: normalizedPathStatus,
+    correction: projectedCorrection,
   };
 
   if (!structureComplete) {
@@ -349,6 +453,9 @@ interface JourneyNodeRecord extends AdaptivePathJourneyNodeView {
   target: string | null;
   status: string | null;
   readiness: unknown;
+  estimatedTimeMinutes: number | null;
+  checkpoint: boolean;
+  prerequisiteNodeIds: string[];
 }
 
 function readJourneyNode(value: Record<string, unknown>): JourneyNodeRecord | null {
@@ -363,7 +470,378 @@ function readJourneyNode(value: Record<string, unknown>): JourneyNodeRecord | nu
     target: readNonEmptyString(value.target),
     status: readNonEmptyString(value.status),
     readiness: value.readiness,
+    estimatedTimeMinutes: readNonNegativeNumber(value.estimatedTimeMinutes),
+    checkpoint: value.checkpoint === true || type === 'checkpoint',
+    prerequisiteNodeIds: readStringArray(value.prerequisiteNodeIds),
   };
+}
+
+function projectAdaptivePathCorrectionDecisionState(input: {
+  correction: AdaptivePathJourneyCorrectionProjection;
+  pathUpdatedAt: string | null;
+  decisions: Record<string, unknown>[];
+  executions: Record<string, unknown>[];
+  terminalNodeId: string | null;
+  terminalState: string | null;
+}): AdaptivePathJourneyCorrection {
+  const candidateFingerprint = input.correction.proposal
+    ? fingerprintAdaptivePathCorrectionProposal(input.correction.proposal)
+    : null;
+  const decisions = input.decisions
+    .map((value) => toAdaptivePathCorrectionDecisionHistoryItem(
+      value,
+      input.executions,
+      input.terminalNodeId,
+      input.terminalState,
+    ))
+    .filter((item): item is AdaptivePathCorrectionDecisionHistoryItem => Boolean(item));
+  const history = decisions.slice(0, 10);
+  const decision = candidateFingerprint
+    ? decisions.find((item) => item.candidateFingerprint === candidateFingerprint) ?? null
+    : null;
+  return {
+    ...input.correction,
+    candidateFingerprint,
+    pathUpdatedAt: input.pathUpdatedAt,
+    decision,
+    history,
+  };
+}
+
+function toAdaptivePathCorrectionDecisionHistoryItem(
+  value: Record<string, unknown>,
+  executions: Record<string, unknown>[],
+  terminalNodeId: string | null,
+  terminalState: string | null,
+): AdaptivePathCorrectionDecisionHistoryItem | null {
+  const candidateFingerprint = readNonEmptyString(value.candidateFingerprint);
+  const decision = readAdaptivePathCorrectionDecisionType(value.decision);
+  if (!candidateFingerprint || !decision) return null;
+  const applicationResult = readRecord(value.applicationResult);
+  return {
+    candidateFingerprint,
+    decision,
+    createdAt: readDateISOString(value.createdAt),
+    applied: applicationResult.applied === true,
+    outcome: projectAdaptivePathCorrectionOutcome({ decision: value, executions, terminalNodeId, terminalState }),
+  };
+}
+
+function readAdaptivePathCorrectionDecisionType(value: unknown): AdaptivePathCorrectionDecisionType | null {
+  return value === 'confirmed' || value === 'rejected' || value === 'deferred' ? value : null;
+}
+
+export function fingerprintAdaptivePathCorrectionProposal(proposal: AdaptivePathCorrectionProposal): string {
+  const input = JSON.stringify({
+    trigger: proposal.trigger,
+    originalRemaining: proposal.originalRemaining,
+    proposedRemaining: proposal.proposedRemaining,
+    changes: proposal.changes,
+    supportingFacts: proposal.supportingFacts,
+    estimatedRemainingWork: proposal.estimatedRemainingWork,
+  });
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `correction-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+function buildAdaptivePathJourneyCorrection(input: {
+  mainPathNodeIds: string[];
+  nodeById: Map<string, JourneyNodeRecord>;
+  completedNodeIds: Set<string>;
+  failedNodeIds: Set<string>;
+  terminalNodeId: string | null;
+  terminalState: string | null;
+  deviations: Record<string, unknown>[];
+}): AdaptivePathJourneyCorrectionProjection {
+  const remainingNodeIds = input.mainPathNodeIds.filter((nodeId) => !input.completedNodeIds.has(nodeId));
+  const originalRemaining = remainingNodeIds
+    .map((nodeId) => input.nodeById.get(nodeId))
+    .filter((node): node is JourneyNodeRecord => Boolean(node));
+  if (originalRemaining.length !== remainingNodeIds.length) {
+    return { proposal: null, unavailableReason: hasCorrectionTrigger(input) ? '路径中的未完成节点信息不完整，暂时无法生成可靠的纠偏方案。' : null };
+  }
+
+  const deviation = findCorrectableDeviation(input.deviations, originalRemaining);
+  if (deviation) {
+    return correctionFromDeviation({
+      originalRemaining,
+      trigger: {
+        kind: 'deviation',
+        node: deviation.priorNode,
+        reason: deviation.reason,
+      },
+      deviation,
+      completedNodeIds: input.completedNodeIds,
+      supportingFacts: [
+        deviation.reason,
+        '候选差异仅来自已记录的路径执行事实和当前未完成的受治理节点。',
+      ],
+    });
+  }
+  if (hasRelevantDeviation(input.deviations)) {
+    return {
+      proposal: null,
+      unavailableReason: hasNoMaterialDeviation(input.deviations, originalRemaining)
+        ? '候选调整与当前未完成路径没有实质差异。'
+        : '偏离记录缺少可核验的未完成节点对应关系，暂时无法生成可靠的纠偏方案。',
+    };
+  }
+
+  const failedCheckpoint = originalRemaining.find((node) =>
+    input.failedNodeIds.has(node.nodeId) && node.checkpoint,
+  ) ?? (
+    input.terminalState === 'failed' && input.terminalNodeId
+      ? originalRemaining.find((node) => node.nodeId === input.terminalNodeId && node.checkpoint) ?? null
+      : null
+  );
+  if (failedCheckpoint) {
+    const preparation = findFailedCheckpointPreparation(failedCheckpoint, originalRemaining);
+    return preparation
+      ? correctionFromReordering({
+          originalRemaining,
+          trigger: {
+            kind: 'failed-checkpoint',
+            node: failedCheckpoint,
+            reason: '检查点结果未通过。',
+          },
+          movedNode: failedCheckpoint,
+          anchorNode: preparation,
+          completedNodeIds: input.completedNodeIds,
+          supportingFacts: [
+            `“${failedCheckpoint.title}”的检查点结果未通过。`,
+            `“${preparation.title}”是该检查点的可核验先修节点，且当前处于可用状态。`,
+          ],
+        })
+      : {
+          proposal: null,
+          unavailableReason: '检查点未通过，但当前路径未提供可核验的补救关系，暂时无法生成可靠的纠偏方案。',
+        };
+  }
+
+  return { proposal: null, unavailableReason: null };
+}
+
+function findFailedCheckpointPreparation(
+  failedCheckpoint: JourneyNodeRecord,
+  remainingNodes: JourneyNodeRecord[],
+): JourneyNodeRecord | null {
+  const failedIndex = remainingNodes.indexOf(failedCheckpoint);
+  if (failedIndex < 0) return null;
+  const prerequisiteIds = new Set(failedCheckpoint.prerequisiteNodeIds);
+  const candidates = remainingNodes.filter((node, index) =>
+    index > failedIndex && prerequisiteIds.has(node.nodeId) && isEligibleCorrectionNode(node),
+  );
+  return candidates.at(-1) ?? null;
+}
+
+function isEligibleCorrectionNode(node: JourneyNodeRecord): boolean {
+  if (node.status === 'locked') return false;
+  const readinessState = readNonEmptyString(readRecord(node.readiness).state);
+  return readinessState === 'ready';
+}
+
+function findCorrectableDeviation(
+  deviations: Record<string, unknown>[],
+  remainingNodes: JourneyNodeRecord[],
+): {
+  type: 'skip' | 'replacement' | 'abandonment';
+  priorNode: JourneyNodeRecord;
+  targetNode: JourneyNodeRecord | null;
+  reason: string;
+} | null {
+  const nodeById = new Map(remainingNodes.map((node) => [node.nodeId, node]));
+  for (const deviation of deviations) {
+    const deviationType = readNonEmptyString(deviation.deviationType);
+    if (deviationType !== 'skip' && deviationType !== 'replacement' && deviationType !== 'abandonment') continue;
+    const priorNodeId = readNonEmptyString(deviation.priorNodeId);
+    const targetNodeId = readNonEmptyString(deviation.targetNodeId);
+    const priorNode = priorNodeId ? nodeById.get(priorNodeId) ?? null : null;
+    const targetNode = targetNodeId ? nodeById.get(targetNodeId) ?? null : null;
+    if (!priorNode) continue;
+    if (deviationType === 'skip' && (!targetNode || targetNode.nodeId !== priorNode.nodeId)) continue;
+    if (deviationType === 'replacement' && (!targetNode || targetNode.nodeId === priorNode.nodeId)) continue;
+    return {
+      type: deviationType,
+      priorNode,
+      targetNode,
+      reason: deviationType === 'skip'
+        ? `已记录跳过“${priorNode.title}”。`
+        : deviationType === 'replacement'
+          ? `已记录将“${priorNode.title}”替换为“${targetNode?.title ?? '当前受治理节点'}”。`
+          : `已记录放弃“${priorNode.title}”。`,
+    };
+  }
+  return null;
+}
+
+function correctionFromDeviation(input: {
+  originalRemaining: JourneyNodeRecord[];
+  trigger: { kind: 'deviation'; node: JourneyNodeRecord; reason: string };
+  deviation: NonNullable<ReturnType<typeof findCorrectableDeviation>>;
+  completedNodeIds: Set<string>;
+  supportingFacts: string[];
+}): AdaptivePathJourneyCorrectionProjection {
+  const proposedNodes = input.originalRemaining.filter((node) => node.nodeId !== input.deviation.priorNode.nodeId);
+  if (!hasValidPrerequisiteOrder(proposedNodes, input.originalRemaining, input.completedNodeIds)) {
+    return { proposal: null, unavailableReason: '已记录偏离会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。' };
+  }
+  if (sameNodeSequence(input.originalRemaining, proposedNodes)) {
+    return { proposal: null, unavailableReason: '候选调整与当前未完成路径没有实质差异。' };
+  }
+  const changes: AdaptivePathCorrectionProposal['changes'] = input.deviation.type === 'replacement' && input.deviation.targetNode
+    ? [{
+        kind: 'replaced',
+        nodeId: input.deviation.priorNode.nodeId,
+        title: input.deviation.priorNode.title,
+        replacementNodeId: input.deviation.targetNode.nodeId,
+        replacementTitle: input.deviation.targetNode.title,
+      }]
+    : [{
+        kind: 'removed',
+        nodeId: input.deviation.priorNode.nodeId,
+        title: input.deviation.priorNode.title,
+        reason: input.deviation.type === 'skip' ? '已记录跳过。' : '已记录放弃。',
+      }];
+  return buildCorrectionProposal({
+    originalRemaining: input.originalRemaining,
+    proposedNodes,
+    trigger: input.trigger,
+    changes,
+    supportingFacts: input.supportingFacts,
+  });
+}
+
+function correctionFromReordering(input: {
+  originalRemaining: JourneyNodeRecord[];
+  trigger: { kind: 'failed-checkpoint' | 'deviation'; node: JourneyNodeRecord; reason: string };
+  movedNode: JourneyNodeRecord;
+  anchorNode: JourneyNodeRecord;
+  completedNodeIds: Set<string>;
+  supportingFacts: string[];
+}): AdaptivePathJourneyCorrectionProjection {
+  const proposedNodes = input.originalRemaining.filter((node) => node.nodeId !== input.movedNode.nodeId);
+  const anchorIndex = proposedNodes.findIndex((node) => node.nodeId === input.anchorNode.nodeId);
+  if (anchorIndex < 0) {
+    return { proposal: null, unavailableReason: '候选纠偏缺少可核验的目标节点，暂时无法生成。' };
+  }
+  proposedNodes.splice(anchorIndex + 1, 0, input.movedNode);
+  if (!hasValidPrerequisiteOrder(proposedNodes, input.originalRemaining, input.completedNodeIds)) {
+    return { proposal: null, unavailableReason: '候选调整会破坏当前未完成路径的先修约束，暂时无法生成可靠的纠偏方案。' };
+  }
+  if (sameNodeSequence(input.originalRemaining, proposedNodes)) {
+    return { proposal: null, unavailableReason: '候选调整与当前未完成路径没有实质差异。' };
+  }
+  return buildCorrectionProposal({
+    originalRemaining: input.originalRemaining,
+    proposedNodes,
+    trigger: input.trigger,
+    changes: [{
+      kind: 'reordered',
+      nodeId: input.movedNode.nodeId,
+      title: input.movedNode.title,
+      movedAfterNodeId: input.anchorNode.nodeId,
+    }],
+    supportingFacts: input.supportingFacts,
+  });
+}
+
+function hasValidPrerequisiteOrder(
+  nodes: JourneyNodeRecord[],
+  originalRemaining: JourneyNodeRecord[],
+  completedNodeIds: Set<string>,
+): boolean {
+  const indexByNodeId = new Map(nodes.map((node, index) => [node.nodeId, index]));
+  const originalNodeIds = new Set(originalRemaining.map((node) => node.nodeId));
+  return nodes.every((node, index) => node.prerequisiteNodeIds.every((prerequisiteNodeId) => {
+    const prerequisiteIndex = indexByNodeId.get(prerequisiteNodeId);
+    return originalNodeIds.has(prerequisiteNodeId)
+      ? prerequisiteIndex !== undefined && prerequisiteIndex < index
+      : completedNodeIds.has(prerequisiteNodeId);
+  }));
+}
+
+function buildCorrectionProposal(input: {
+  originalRemaining: JourneyNodeRecord[];
+  proposedNodes: JourneyNodeRecord[];
+  trigger: { kind: 'failed-checkpoint' | 'deviation'; node: JourneyNodeRecord; reason: string };
+  changes: AdaptivePathCorrectionProposal['changes'];
+  supportingFacts: string[];
+}): AdaptivePathJourneyCorrectionProjection {
+  const originalMinutes = totalEstimatedMinutes(input.originalRemaining);
+  const proposedMinutes = totalEstimatedMinutes(input.proposedNodes);
+  return {
+    proposal: {
+      trigger: {
+        kind: input.trigger.kind,
+        nodeId: input.trigger.node.nodeId,
+        title: input.trigger.node.title,
+        reason: input.trigger.reason,
+      },
+      originalRemaining: input.originalRemaining.map(toCorrectionNode),
+      proposedRemaining: input.proposedNodes.map(toCorrectionNode),
+      changes: input.changes,
+      supportingFacts: input.supportingFacts,
+      estimatedRemainingWork: {
+        originalMinutes,
+        proposedMinutes,
+        differenceMinutes: originalMinutes !== null && proposedMinutes !== null ? proposedMinutes - originalMinutes : null,
+      },
+    },
+    unavailableReason: null,
+  };
+}
+
+function hasCorrectionTrigger(input: {
+  failedNodeIds: Set<string>;
+  terminalState: string | null;
+  deviations: Record<string, unknown>[];
+}): boolean {
+  return input.failedNodeIds.size > 0 || input.terminalState === 'failed' || hasRelevantDeviation(input.deviations);
+}
+
+function hasRelevantDeviation(deviations: Record<string, unknown>[]): boolean {
+  return deviations.some((deviation) => {
+    const type = readNonEmptyString(deviation.deviationType);
+    return type === 'skip' || type === 'replacement' || type === 'abandonment';
+  });
+}
+
+function hasNoMaterialDeviation(
+  deviations: Record<string, unknown>[],
+  remainingNodes: JourneyNodeRecord[],
+): boolean {
+  const nodeIndexById = new Map(remainingNodes.map((node, index) => [node.nodeId, index]));
+  return deviations.some((deviation) => {
+    const type = readNonEmptyString(deviation.deviationType);
+    if (type !== 'skip' && type !== 'replacement' && type !== 'abandonment') return false;
+    const priorNodeId = readNonEmptyString(deviation.priorNodeId);
+    const targetNodeId = readNonEmptyString(deviation.targetNodeId);
+    if (!priorNodeId || !targetNodeId) return false;
+    if (priorNodeId === targetNodeId) return true;
+    const priorIndex = nodeIndexById.get(priorNodeId);
+    const targetIndex = nodeIndexById.get(targetNodeId);
+    return priorIndex !== undefined && targetIndex !== undefined && priorIndex === targetIndex + 1;
+  });
+}
+
+function sameNodeSequence(left: JourneyNodeRecord[], right: JourneyNodeRecord[]): boolean {
+  return left.length === right.length && left.every((node, index) => node.nodeId === right[index]?.nodeId);
+}
+
+function toCorrectionNode(node: JourneyNodeRecord): AdaptivePathCorrectionNode {
+  return {
+    ...toNodeView(node),
+    estimatedTimeMinutes: node.estimatedTimeMinutes,
+  };
+}
+
+function totalEstimatedMinutes(nodes: JourneyNodeRecord[]): number | null {
+  if (!nodes.every((node) => node.estimatedTimeMinutes !== null)) return null;
+  return nodes.reduce((total, node) => total + (node.estimatedTimeMinutes ?? 0), 0);
 }
 
 function hasCompleteJourneyStructure(
@@ -491,6 +969,17 @@ function readStringArray(value: unknown): string[] {
 
 function readNonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
+function readNonNegativeNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function readDateISOString(value: unknown): string | null {
+  if (value instanceof Date && Number.isFinite(value.getTime())) return value.toISOString();
+  if (typeof value !== 'string') return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

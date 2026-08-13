@@ -33,7 +33,7 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
   const featureDisabled = ensureControlCorrectionPathRoutesEnabled();
   if (featureDisabled) return featureDisabled;
 
-  const path = await prisma.learningPath.findUnique({
+  const path = await (prisma as any).learningPath.findUnique({
     where: { id: pathId },
     select: {
       id: true,
@@ -42,6 +42,7 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
       classId: true,
       goalId: true,
       pathStatus: true,
+      updatedAt: true,
       currentNodeId: true,
       nodeIds: true,
       entryNodeId: true,
@@ -51,10 +52,32 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
       terminalValidation: true,
       lastExecutionMetadata: true,
       deviations: {
+        orderBy: { createdAt: 'desc' },
         select: {
           id: true,
+          deviationType: true,
           priorNodeId: true,
           targetNodeId: true,
+        },
+      },
+      correctionDecisions: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          candidateFingerprint: true,
+          decision: true,
+          applicationResult: true,
+          createdAt: true,
+        },
+      },
+      executions: {
+        orderBy: { createdAt: 'asc' },
+        select: {
+          nodeId: true,
+          resourceType: true,
+          status: true,
+          createdAt: true,
+          completedAt: true,
+          failedAt: true,
         },
       },
     },

@@ -14,8 +14,8 @@ export interface AdaptivePathUnlockCondition {
 }
 
 export interface AdaptivePathUnlockNextAction {
+  nodeId?: string;
   title: string;
-  target?: string;
 }
 
 export interface AdaptivePathUnlockChain {
@@ -186,10 +186,9 @@ function buildNextAction(
   if (firstNodeCondition) {
     const nodeId = firstNodeCondition.id.slice('completed-node:'.length);
     const title = titleFor(nodeId, nodeById) ?? '前置节点';
-    const target = authorizedTarget(nodeById.get(nodeId));
     return {
+      nodeId,
       title: `完成「${title}」后解锁`,
-      ...(target ? { target } : {}),
     };
   }
 
@@ -197,10 +196,9 @@ function buildNextAction(
   if (firstPrerequisite) {
     const nodeId = firstPrerequisite.id.slice('prerequisite:'.length);
     const title = titleFor(nodeId, nodeById) ?? '前置节点';
-    const target = authorizedTarget(nodeById.get(nodeId));
     return {
+      nodeId,
       title: `完成「${title}」后解锁`,
-      ...(target ? { target } : {}),
     };
   }
 
@@ -218,13 +216,6 @@ function readNonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-function authorizedTarget(node: AdaptivePathUnlockChainContextNode | undefined): string | undefined {
-  if (!node || node.status === 'locked' || node.status === 'blocked') return undefined;
-  const target = readNonEmptyString(node.target);
-  if (!target || !node.type) return undefined;
-  return resolveAdaptivePathJourneyTargetDisposition(node.type, target) === 'blocked' ? undefined : target;
-}
-
 function titleFor(
   nodeId: string,
   nodeById: Map<string, AdaptivePathUnlockChainContextNode>,
@@ -235,4 +226,3 @@ function titleFor(
 function unique(values: readonly string[]): string[] {
   return [...new Set(values)];
 }
-import { resolveAdaptivePathJourneyTargetDisposition } from '@/features/adaptive/adaptive-path-journey-contracts';
