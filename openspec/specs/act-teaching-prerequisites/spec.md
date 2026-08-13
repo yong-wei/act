@@ -1,8 +1,6 @@
 ## Purpose
 ACT-owned core teaching-node denominator and versioned ACT_TEACHING prerequisite publication contract.
-
 ## Requirements
-
 ### Requirement: Core teaching nodes have an explicit bounded denominator
 The system MUST derive core teaching nodes only from formal course objectives, primary `COVERS` bindings, prerequisite endpoints, or explicit teacher curation. Each core node MUST declare scope, `pathEligible`, `cardPolicy`, module, and rationale.
 
@@ -46,3 +44,12 @@ Published edges MUST bind the current Authority/projection identity, authoring r
 - **WHEN** an evidence path, Canonical identity, or Authority release changes
 - **THEN** the affected edge SHALL become stale/review-required
 - **AND** unrelated edges SHALL retain their prior digest
+
+### Requirement: Foundation prerequisite increment is scope-bounded
+The foundation teaching increment MUST limit its denominator and publication to explicitly selected core nodes in system modeling, time-domain analysis and stability analysis. Unselected Authority objects MUST remain outside the coverage denominator.
+
+#### Scenario: Unselected foundation object exists
+- **WHEN** the Authority contains a foundation-domain object not selected by an ACT objective, binding, prerequisite endpoint or curator
+- **THEN** it SHALL remain not projected
+- **AND** it SHALL not block publication of the reviewed increment
+
