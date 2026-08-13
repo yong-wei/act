@@ -369,7 +369,17 @@ describe('authority domain display catalog contract', () => {
       ),
     ).toThrow(/must not be a raw enum value/i);
 
-    for (const rawEnum of ['association', 'approved', 'GOLD']) {
+    for (const rawEnum of [
+      'association',
+      'source_to_target',
+      'approved',
+      'published',
+      'GOLD',
+      'gold',
+      'silver',
+      'CORE',
+      'EXTENSION',
+    ]) {
       expect(() =>
         buildAuthorityDomainCatalog(
           baseAuthoring({

@@ -36,6 +36,7 @@ const SNAPSHOT_ID_PATTERN = /\bsnap-[a-f0-9]{64}\b/iu;
 const CATALOG_KEY_PATTERN =
   /\b(?:system-modeling|time-domain-analysis|stability-analysis|frequency-domain-analysis|root-locus|classical-control-design|discrete-time-control-analysis|state-space-control-analysis-and-design|control-theory-integration)\b/u;
 const RAW_AUTHORITY_ENUM_TOKENS = [
+  // Presentation roles and active Authority object types.
   'domain',
   'aggregate',
   'DomainConcept',
@@ -43,6 +44,9 @@ const RAW_AUTHORITY_ENUM_TOKENS = [
   'KnowledgeStatement',
   'SystemModel',
   'ModelRepresentation',
+  // Schema relation predicates and source directions.
+  'contains',
+  'prerequisite',
   'applies_to',
   'association',
   'derived_from',
@@ -52,9 +56,24 @@ const RAW_AUTHORITY_ENUM_TOKENS = [
   'is_a',
   'part_of',
   'used_to_analyze',
+  'refers_to',
+  'mentions',
+  'parent_to_child',
+  'earlier_to_later',
   'source_to_target',
   'unordered',
+  'directed',
+  'undirected',
+  'source-to-target',
+  // Reviewed snapshot governance and tier vocabulary.
   'GOLD',
+  'SILVER',
+  'CORE',
+  'EXTENSION',
+  'UNCLASSIFIED',
+  'gold',
+  'silver',
+  'support',
   'approved',
   'published',
 ] as const;

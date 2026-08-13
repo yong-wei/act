@@ -24,6 +24,7 @@ The current active Authority contains thousands of heterogeneous objects. ActKG 
 5. **Keep catalog ownership in ACT.** The accepted architecture decision is an independent, reviewed ACT authoring/runtime catalog with a deterministic builder and loader. It binds at least the active `snapshotId`, `snapshotHash` and `releaseId`; incomplete or mismatched bindings deny loading. This does not extend, rewrite or select the ActKG Authority snapshot, manifest, activation pointer or engineering data.
 6. **Separate product roots from server-private membership.** The root DTO contains only display fields, controlled presentation metadata and aggregate counts. Canonical identifiers and the many-to-many membership index remain server-private, while the deterministic preferred domain is used only to resolve navigation.
 7. **Defer workspace consumption.** This change publishes and validates the catalog plus its root DTO only. Domain shards, root-node rendering and workspace navigation are subsequent series changes; this archive must not claim them as delivered behavior.
+8. **Bind product-string filtering to the current Authority vocabulary.** The authoring validator carries the closed set of raw object types, relation predicates and directions, plus governance and tier values for the Authority selection to which this catalog is bound. A catalog rebinding to another Authority selection requires review of that set; presentation strings must use the reviewed Chinese labels instead.
 
 ## Risks / Trade-offs
 
