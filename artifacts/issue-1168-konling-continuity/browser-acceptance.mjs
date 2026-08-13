@@ -1,21 +1,38 @@
-import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import {
+  REVISION_PROBE_PATH,
+  assertCaptureProvenance,
+  sha256File,
+} from './browser-evidence-provenance.mjs';
 
 const repoRoot = process.cwd();
-const outputDir = path.join(repoRoot, 'artifacts/issue-1168-konling-continuity');
+const outputRelative = 'artifacts/issue-1168-konling-continuity';
+const outputDir = path.join(repoRoot, outputRelative);
 const baseUrl = process.env.KONLING_CONTINUITY_BASE_URL ?? 'http://localhost:3000';
 const codeCommit = process.env.CODE_COMMIT ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const student = { account: 'demo', password: 'DemoStudent@Just2026!' };
 const sourceFiles = [
+  'src/app/assessment/adaptive-practice/page.tsx',
+  'src/app/globals.css',
+  'src/app/api/ai/konling-continuity/route.ts',
+  'src/app/api/assessment/next-question/route.ts',
+  'src/app/api/assessment/submit-answer/route.ts',
   'src/components/ai/global-ai-sidebar.tsx',
   'src/components/ai/konling-continuity-card.tsx',
-  'src/lib/konling-learning-continuity.ts',
-  'src/lib/konling-continuity-assessment.ts',
+  'src/components/platform/app-shell.tsx',
+  'src/components/providers/global-ai-provider.tsx',
+  'src/components/shared/page-floating-controls.tsx',
   'src/features/assessment/adaptive-persistence.ts',
+  'src/lib/konling-continuity-assessment.ts',
+  'src/lib/konling-learning-continuity.ts',
+  'scripts/tests/capture-adaptive-path-product-qa.ts',
   'artifacts/issue-1168-konling-continuity/browser-acceptance.mjs',
+  'artifacts/issue-1168-konling-continuity/browser-evidence-provenance.mjs',
+  'src/lib/commercial-ui-capture-revision.ts',
+  'src/app/api/internal/local-qa/revision/route.ts',
 ];
 
 const unfinished = {
@@ -63,14 +80,26 @@ const state = {
 };
 const screenshots = [];
 const assertions = [];
+const provenanceChecks = [];
+let captureStartProof;
 
 function check(name, condition, detail) {
   assertions.push({ name, passed: Boolean(condition), detail });
   if (!condition) throw new Error(`${name}: ${detail}`);
 }
 
-async function hashFile(relativePath) {
-  return createHash('sha256').update(await readFile(path.join(repoRoot, relativePath))).digest('hex');
+async function verifyProvenance(phase, allowEvidenceOutputs) {
+  const proof = await assertCaptureProvenance({
+    repoRoot,
+    declaredRevision: codeCommit,
+    sourceFiles,
+    baseUrl,
+    allowedOutputPaths: allowEvidenceOutputs ? [outputRelative] : [],
+    expectedProof: captureStartProof,
+    phase,
+  });
+  provenanceChecks.push({ phase, ...proof });
+  return proof;
 }
 
 async function capture(page, name, viewport, stateName) {
@@ -86,9 +115,10 @@ async function capture(page, name, viewport, stateName) {
     state: stateName,
     viewport,
     file: relativePath,
-    sha256: await hashFile(relativePath),
+    sha256: await sha256File(repoRoot, relativePath),
     noHorizontalOverflow: true,
   });
+  await verifyProvenance(`after-screenshot:${name}`, true);
 }
 
 async function login(page) {
@@ -130,6 +160,7 @@ async function setSnapshotAndOpen(page, snapshot) {
 }
 
 async function main() {
+  captureStartProof = await verifyProvenance('capture-start', false);
   await mkdir(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
@@ -314,14 +345,26 @@ async function main() {
     );
     check('one governed question request per snapshot action', companionQuestionRequests.length === 4, JSON.stringify(apiRequests));
 
-    const sourceSha256 = Object.fromEntries(await Promise.all(sourceFiles.map(async (file) => [file, await hashFile(file)])));
+    await verifyProvenance('before-manifest-write', true);
+    const sourceSha256 = Object.fromEntries(
+      await Promise.all(sourceFiles.map(async (file) => [file, await sha256File(repoRoot, file)])),
+    );
     const manifest = {
       issue: 1168,
       generatedAt: new Date().toISOString(),
       codeCommit,
+      codeTree: captureStartProof.treeSha,
       baseUrl,
       route: '/assessment/adaptive-practice',
       authenticatedRole: 'student',
+      runtimeProvenance: {
+        revisionProbePath: REVISION_PROBE_PATH,
+        commitSha: captureStartProof.commitSha,
+        treeSha: captureStartProof.treeSha,
+        sourceFingerprint: captureStartProof.sourceFingerprint,
+        cleanAtCaptureStart: captureStartProof.clean,
+        checks: provenanceChecks,
+      },
       sourceSha256,
       assertions,
       screenshots,
@@ -329,6 +372,7 @@ async function main() {
       passed: assertions.every((assertion) => assertion.passed),
     };
     await writeFile(path.join(outputDir, 'browser-evidence.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+    await verifyProvenance('after-manifest-write', true);
     if (!manifest.passed) process.exitCode = 1;
     process.stdout.write(`Captured ${screenshots.length} Issue 1168 browser states for ${codeCommit}\n`);
   } finally {

@@ -32,4 +32,4 @@
 ## 6. Validation
 
 - [x] 6.1 Run targeted unit and integration tests for the continuity resolver, Konling card, assessment persistence, authorization, and path non-mutation.
-- [x] 6.2 Run TypeScript checking and strict OpenSpec validation, then record final browser evidence for desktop and mobile student flows.
+- [x] 6.2 Run TypeScript checking and strict OpenSpec validation, then record fail-closed, revision-bound browser evidence for desktop and mobile student flows.

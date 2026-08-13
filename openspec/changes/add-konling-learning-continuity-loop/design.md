@@ -90,6 +90,10 @@ The forward-compatible deployment order is migration first, then application cod
 
 Per-visit deduplication remains application-memory state. Closing and reopening Konling or navigating between pages in the same application visit does not repeat an unchanged `snapshotId`; a full reload or a later application visit may present it again. A newly governed result changes the snapshot identity and may therefore produce one new presentation.
 
+### Browser evidence provenance
+
+The browser acceptance generator fails closed unless the declared full commit SHA equals `HEAD`, the tracked worktree is clean at capture start, and every declared runtime input has the same bytes as its Git blob at that revision. The local development service must expose the development-only revision probe and return the same commit, tree, source fingerprint, and clean state. During capture, only files below the Issue 1168 evidence output directory may change; the generator repeats local and runtime checks after every screenshot and immediately before and after writing the manifest.
+
 ## Open Questions
 
 无。首版状态、数据边界、练习数量和路径隔离均已确认。
