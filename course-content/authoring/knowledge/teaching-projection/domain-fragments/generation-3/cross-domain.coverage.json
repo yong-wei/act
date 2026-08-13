@@ -1,0 +1,78 @@
+{
+  "contract": "act-cross-domain-teaching-coverage/v1",
+  "fragmentKey": "cross-domain-v1",
+  "fragmentVersion": "1",
+  "fragmentId": "dtf-7afb5e0209c53e146208de042039f2a97d5f0c7f421b64b1af58e6ef90b2637d",
+  "fragmentDigest": "7afb5e0209c53e146208de042039f2a97d5f0c7f421b64b1af58e6ef90b2637d",
+  "sourceInventoryDigest": "3e15353f1af379e4291ef79a4a2ed581dc523d39ce385a0d05d89b70e4993368",
+  "denominatorNodeIds": [],
+  "acceptedRelationCount": 0,
+  "coverage": [
+    {
+      "domainId": "classical-control-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "root-locus",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "stability-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "system-modeling",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    }
+  ],
+  "coverageRationale": "已收集的 foundation / classical / modern 边界候选均不是可接纳的直接 ACT_TEACHING 边：已发布边留在原领域分片，未解决项仍非直接教学顺序，工程邻接与无端点跨域入口不得造边。",
+  "blocking": false
+}

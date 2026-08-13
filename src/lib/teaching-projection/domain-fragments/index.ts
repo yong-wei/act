@@ -7,6 +7,7 @@ export * from './builder';
 export * from './compose';
 export * from './contracts';
 export * from './coverage';
+export * from './cross-domain';
 export * from './foundation-three-domain';
 export * from './modern-control-domain';
 export * from './presentation';
