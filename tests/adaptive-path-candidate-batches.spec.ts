@@ -448,6 +448,7 @@ test('does not write an unauthorized generated batch to the URL', async ({ conte
   await expect(generateAction).toBeEnabled();
   await generateAction.click();
   await expect(page.locator('[data-adaptive-path-candidate-state="loading"]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-candidate-recovery-state="failed"]')).toBeVisible();
   await expect(page).not.toHaveURL(/batch=unauthorized-generated/);
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
