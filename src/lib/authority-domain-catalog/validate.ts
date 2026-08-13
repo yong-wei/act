@@ -73,8 +73,8 @@ export function assertPresentationStringSafe(
   }
   // Raw enum-like tokens that must never surface as product text.
   if (
-    /^(?:domain|aggregate|DomainConcept|Formula|KnowledgeStatement|SystemModel|ModelRepresentation)$/u.test(
-      value.trim(),
+    /\b(?:domain|aggregate|DomainConcept|Formula|KnowledgeStatement|SystemModel|ModelRepresentation)\b/u.test(
+      value,
     )
   ) {
     throw new DomainCatalogValidationError(

@@ -362,6 +362,18 @@ describe('authority domain display catalog contract', () => {
         baseAuthoring({
           aggregate: {
             ...baseAuthoring().aggregate,
+            summary: '采用 SystemModel 表示受控对象。',
+          },
+        }),
+        fixtureNodes(),
+      ),
+    ).toThrow(/must not be a raw enum value/i);
+
+    expect(() =>
+      buildAuthorityDomainCatalog(
+        baseAuthoring({
+          aggregate: {
+            ...baseAuthoring().aggregate,
             summary: 'ctm:v11g-6b66a370b1cd788194b0f8ab',
           },
         }),
