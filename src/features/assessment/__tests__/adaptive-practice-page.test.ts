@@ -366,8 +366,11 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('const router = useRouter()');
     expect(generationBlock).toContain("setCandidateBatchLoadState('loading')");
     expect(generationBlock).toContain("nextUrl.searchParams.set('batch', generatedBatchId)");
-    expect(generationBlock.indexOf("nextUrl.searchParams.set('batch', generatedBatchId)")).toBeLessThan(
-      generationBlock.indexOf('await fetchCandidateBatch(activeGoal, generatedBatchId)'),
+    expect(generationBlock.indexOf('await fetchCandidateBatch(activeGoal, generatedBatchId)')).toBeLessThan(
+      generationBlock.indexOf("nextUrl.searchParams.set('batch', generatedBatchId)"),
+    );
+    expect(generationBlock.indexOf("setCandidateBatchLoadState('ready')")).toBeLessThan(
+      generationBlock.indexOf("nextUrl.searchParams.set('batch', generatedBatchId)"),
     );
     expect(generationBlock).toContain("nextUrl.searchParams.delete('candidate')");
     expect(generationBlock).toContain('router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false })');
@@ -379,7 +382,7 @@ describe('adaptive practice page entry states', () => {
 
     expect(source).toContain("const shouldShowCandidateComparison = (showGenerationWorkspace || showSelectionWorkspace) && Boolean(requestedBatchId)");
     expect(source).toContain("const showCandidateBatchRecovery = shouldShowCandidateComparison &&");
-    expect(source).toContain("const canRenderCandidateComparison = shouldShowCandidateComparison && !showCandidateBatchRecovery");
+    expect(source).toContain("const canRenderCandidateComparison = shouldShowCandidateComparison && candidateBatchLoadState === 'ready'");
     expect(source).toContain("workspaceIntent !== 'generation' && workspaceIntent !== 'selection'");
     expect(source).toContain("requestedBatchId ?? 'batch:none'");
     expect(source).toContain("const hasCandidateBatchContext = shouldShowCandidateComparison");
