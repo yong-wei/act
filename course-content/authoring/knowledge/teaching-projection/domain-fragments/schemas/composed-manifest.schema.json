@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-domain-teaching-composed-manifest/v1",
+  "title": "ACT Domain Teaching Composed Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "builderVersion",
+    "projectionId",
+    "projectionHash",
+    "authorityBinding",
+    "authoritySelection",
+    "authoringRevision",
+    "sourceInventoryDigest",
+    "authorityDigest",
+    "fragments",
+    "domainCoverage",
+    "coreNodeCount",
+    "relationCount",
+    "gateStatus",
+    "gatePassed",
+    "sourceHashes"
+  ],
+  "properties": {
+    "contract": { "const": "act-domain-teaching-composed-manifest/v1" },
+    "builderVersion": {
+      "const": "act-domain-teaching-composition-builder/v1"
+    },
+    "projectionId": {
+      "type": "string",
+      "pattern": "^proj-[a-f0-9]{64}$"
+    },
+    "projectionHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "authorityBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["releaseId", "releaseSetId", "snapshotId", "snapshotHash"],
+      "properties": {
+        "releaseId": { "type": "string", "minLength": 1 },
+        "releaseSetId": { "type": "string", "minLength": 1 },
+        "snapshotId": {
+          "type": "string",
+          "pattern": "^snap-[a-f0-9]{64}$"
+        },
+        "snapshotHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "authoritySelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityBinding",
+        "sourceDatasetHash",
+        "captureRevision",
+        "nodeIndexDigest"
+      ],
+      "properties": {
+        "authorityBinding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["releaseId", "releaseSetId", "snapshotId", "snapshotHash"],
+          "properties": {
+            "releaseId": { "type": "string", "minLength": 1 },
+            "releaseSetId": { "type": "string", "minLength": 1 },
+            "snapshotId": {
+              "type": "string",
+              "pattern": "^snap-[a-f0-9]{64}$"
+            },
+            "snapshotHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        },
+        "sourceDatasetHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "captureRevision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "nodeIndexDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "authoringRevision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceInventoryDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "authorityDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "fragments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "order",
+          "fragmentId",
+          "fragmentKey",
+          "fragmentVersion",
+          "fragmentDigest",
+          "sourceInventoryDigest",
+          "domainKeys"
+        ],
+        "properties": {
+          "order": { "type": "integer", "minimum": 0 },
+          "fragmentId": { "type": "string", "minLength": 1 },
+          "fragmentKey": { "type": "string", "minLength": 1 },
+          "fragmentVersion": { "type": "string", "minLength": 1 },
+          "fragmentDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "sourceInventoryDigest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "domainKeys": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "domainCoverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "domainId",
+          "coverage",
+          "coreNodeCount",
+          "relationCount",
+          "uncoveredCoreNodeCount",
+          "note"
+        ],
+        "properties": {
+          "domainId": { "type": "string", "minLength": 1 },
+          "coverage": {
+            "type": "string",
+            "enum": ["available", "partial", "empty", "unavailable"]
+          },
+          "coreNodeCount": { "type": "integer", "minimum": 0 },
+          "relationCount": { "type": "integer", "minimum": 0 },
+          "uncoveredCoreNodeCount": { "type": "integer", "minimum": 0 },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "coreNodeCount": { "type": "integer", "minimum": 0 },
+    "relationCount": { "type": "integer", "minimum": 0 },
+    "gateStatus": {
+      "type": "string",
+      "enum": ["PUBLISHED", "REVIEW_REQUIRED", "NOT_PROJECTED"]
+    },
+    "gatePassed": { "type": "boolean" },
+    "sourceHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fragments", "body", "sourceInventory"],
+      "properties": {
+        "fragments": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "body": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "sourceInventory": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

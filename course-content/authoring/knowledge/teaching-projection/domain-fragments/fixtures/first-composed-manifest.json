@@ -1,0 +1,115 @@
+{
+  "contract": "act-domain-teaching-composed-manifest/v1",
+  "builderVersion": "act-domain-teaching-composition-builder/v1",
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "025e7623f0be2ec4d9e2a928a50d7b2e2ca69753b6d1f686405169d073170c08"
+  },
+  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "sourceInventoryDigest": "9c72c4f8f657d076b880645f3e263b167cbdb1259128698be50cb40196402242",
+  "authorityDigest": "fa450aa837e35fb868cc409054931e651a92291c8ac596b3e080382012582d09",
+  "fragments": [
+    {
+      "order": 0,
+      "fragmentId": "dtf-a8d8d1d6bc958b66df4fd171cfff1e42236d814ac49f71997c08f5f344ca92f7",
+      "fragmentKey": "foundation-published-v1",
+      "fragmentVersion": "1",
+      "fragmentDigest": "a8d8d1d6bc958b66df4fd171cfff1e42236d814ac49f71997c08f5f344ca92f7",
+      "sourceInventoryDigest": "a6065975057175f73fa29f2346e85eeb2514bed6ba7d08a580b1e03bb13b581c",
+      "domainKeys": [
+        "stability-analysis",
+        "system-modeling"
+      ]
+    }
+  ],
+  "domainCoverage": [
+    {
+      "domainId": "classical-control-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "root-locus",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "stability-analysis",
+      "coverage": "available",
+      "coreNodeCount": 2,
+      "relationCount": 2,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "system-modeling",
+      "coverage": "available",
+      "coreNodeCount": 3,
+      "relationCount": 4,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    }
+  ],
+  "coreNodeCount": 5,
+  "relationCount": 4,
+  "gateStatus": "PUBLISHED",
+  "gatePassed": true,
+  "sourceHashes": {
+    "fragments": "aa69f0b84eaeef993d9201d5eb2bceb6b61118b01015008f30aef8f58029ba59",
+    "sourceInventory": "9c72c4f8f657d076b880645f3e263b167cbdb1259128698be50cb40196402242",
+    "body": "20c0abfb8b56055831202ee89c6ec5acaa489b473f6430d72dd3097d2baef2ca"
+  },
+  "projectionId": "proj-a53dd4c50156a29505496b6c430795ca3ca9b49cfb6c1e810e3cc28133f0e17a",
+  "projectionHash": "a53dd4c50156a29505496b6c430795ca3ca9b49cfb6c1e810e3cc28133f0e17a"
+}
