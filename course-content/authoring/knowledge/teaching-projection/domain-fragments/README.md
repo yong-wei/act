@@ -8,6 +8,18 @@ Append-only, immutable domain shards of reviewed core-node memberships and direc
   - `first-fragment.authoring.json`
   - `first-fragment.json`
   - `composed-manifest.json`
+- **Generation 2** (classical-control increment, immutable alongside generation 1):
+  - `generation-2/authority-source.json` identifies the complete node index
+    extracted from the same pinned Authority snapshot.
+  - `generation-2/foundation-fragment.*` reseals the unchanged foundation
+    teaching semantics against that complete endpoint universe.
+  - `generation-2/foundation-three-domain-fragment.*` reseals the already
+    published system-modeling, time-domain and stability increment against the
+    same complete endpoint universe.
+  - `generation-2/classical-worklist.json` records reviewed and pending
+    candidates; engineering-only adjacency stays pending.
+  - `generation-2/classical-fragment.*` and `generation-2/composed-manifest.json`
+    publish the reviewed classical-control increment and its coverage report.
 - **Foundation three-domain increment** (`foundation-three-domain-v1`, #1371; does not rewrite the first fragment):
   - `foundation-three-domain-v1.source.json`
   - `foundation-three-domain-v1.worklist.json`
