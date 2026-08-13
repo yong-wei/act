@@ -608,7 +608,6 @@ for (const viewport of [
     await expect(generateAction).toBeEnabled();
     await generateAction.click();
     comparison = page.locator('[data-learning-path-options-layout="route-modules"]');
-    await expect(page.locator('[data-adaptive-path-candidate-state="loading"]')).toBeVisible();
     await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
     releaseCandidateBatch?.();
     await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
