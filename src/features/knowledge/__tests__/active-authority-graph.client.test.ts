@@ -404,6 +404,10 @@ describe('active Authority knowledge workspace client boundary', () => {
       ...memberships,
       { domainId: 'system-modeling', visualRole: 'modeling', preferred: true },
     ])?.visualRole).toBe('modeling');
+    expect(selectActiveAuthorityMembership([
+      { domainId: 'classical-control-design', visualRole: 'design', preferred: false },
+      { domainId: 'root-locus', visualRole: 'root-locus', preferred: true },
+    ], 'classical-control-design')?.visualRole).toBe('design');
   });
 
   it('invalidates changed Teaching identity without resetting engineering workspace state', () => {

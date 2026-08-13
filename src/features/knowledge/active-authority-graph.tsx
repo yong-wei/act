@@ -74,16 +74,20 @@ const FAMILY_LABELS: Record<EngineeringRelationFamily, string> = {
   association: '关联',
 };
 
-/** Choose the reviewed owning domain without relying on shard arrival order. */
+/** Keep an in-domain selection stable; otherwise choose the reviewed owner deterministically. */
 export function selectActiveAuthorityMembership(
   memberships: readonly AuthorityShardMembership[],
+  activeDomainId?: string | null,
 ): AuthorityShardMembership | null {
   const ordered = [...memberships].sort((left, right) => (
     REGISTERED_PEER_DOMAIN_IDS.indexOf(left.domainId) - REGISTERED_PEER_DOMAIN_IDS.indexOf(right.domainId)
     || left.domainId.localeCompare(right.domainId)
     || left.visualRole.localeCompare(right.visualRole)
   ));
-  return ordered.find((membership) => membership.preferred) ?? ordered[0] ?? null;
+  return ordered.find((membership) => membership.domainId === activeDomainId)
+    ?? ordered.find((membership) => membership.preferred)
+    ?? ordered[0]
+    ?? null;
 }
 
 function errorMessage(status: number): string {
@@ -1166,7 +1170,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     const memberships = object?.memberships.filter((membership) => (
       workspace.root?.domains.some((domain) => domain.visualRole === membership.visualRole) ?? false
     )) ?? [];
-    const membership = selectActiveAuthorityMembership(memberships);
+    const membership = selectActiveAuthorityMembership(memberships, workspace.activeDomainId);
     const owningDomain = membership
       ? workspace.root?.domains.find((domain) => domain.visualRole === membership.visualRole)
       : undefined;
