@@ -360,6 +360,18 @@ describe('authority domain display catalog contract', () => {
     expect(() =>
       buildAuthorityDomainCatalog(
         baseAuthoring({
+          aggregate: {
+            ...baseAuthoring().aggregate,
+            summary: 'ctm:v11g-6b66a370b1cd788194b0f8ab',
+          },
+        }),
+        fixtureNodes(),
+      ),
+    ).toThrow(/must not contain raw Authority identifiers/i);
+
+    expect(() =>
+      buildAuthorityDomainCatalog(
+        baseAuthoring({
           domains: [
             ...baseDomains(),
             {

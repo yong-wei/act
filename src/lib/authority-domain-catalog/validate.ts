@@ -29,7 +29,7 @@ export class DomainCatalogValidationError extends Error {
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const SNAPSHOT_ID = /^snap-[a-f0-9]{64}$/u;
-const CANONICAL_ID_IN_TEXT = /\b(?:ctc|ctf|ctk|ctkg|ctr):[A-Za-z0-9:._-]+/u;
+const CANONICAL_ID_IN_TEXT = /\b(?:ctc|ctf|ctk|ctkg|ctm|ctr):[A-Za-z0-9:._-]+/u;
 const RAW_HEX_BLOB = /\b[a-f0-9]{40,64}\b/iu;
 const RELEASE_ID_PATTERN = /\bctr:release:[^\s]+\b/iu;
 const SNAPSHOT_ID_PATTERN = /\bsnap-[a-f0-9]{64}\b/iu;
