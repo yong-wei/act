@@ -6,15 +6,15 @@
 
 ## 2. Blob-backed release format and verification
 
-- [ ] 2.1 Add versioned blob-backed manifest types, canonical serialization, path/aggregate validation, logical tree digest and release identity tests alongside v1 compatibility parsing, including same-tree same-revision, same-tree different-revision and different-tree same-revision vectors.
-- [ ] 2.2 Add deterministic blob-key derivation and read-only manifest/blob verification that rejects unsupported versions, arbitrary keys, unsafe paths, duplicate paths and digest drift.
-- [ ] 2.3 Extend release inspection and locator/media parsing so the active manifest remains the sole allowlist for logical files and private media blob keys.
+- [x] 2.1 Add versioned blob-backed manifest types, canonical serialization, path/aggregate validation, logical tree digest and release identity tests alongside v1 compatibility parsing, including same-tree same-revision, same-tree different-revision and different-tree same-revision vectors.
+- [x] 2.2 Add deterministic blob-key derivation and read-only manifest/blob verification that rejects unsupported versions, arbitrary keys, unsafe paths, duplicate paths and digest drift.
+- [x] 2.3 Extend release inspection and locator/media parsing so the active manifest remains the sole allowlist for logical files and private media blob keys.
 
 ## 3. Append-only publishing and recovery
 
-- [ ] 3.1 Extend the single ECS streaming bridge to conditionally publish and independently verify content-addressed blobs, then write the immutable manifest last.
-- [ ] 3.2 Add exact-resume, interrupted-publish, pre-existing same/different blob, malformed remote listing and manifest-terminal regression tests.
-- [ ] 3.3 Preserve the publisher/read-role separation and update credential-free publish/verify/inspect contracts without storing permanent credentials.
+- [x] 3.1 Extend the single ECS streaming bridge to conditionally publish and independently verify content-addressed blobs, then write the immutable manifest last.
+- [x] 3.2 Add exact-resume, interrupted-publish, pre-existing same/different blob, malformed remote listing and manifest-terminal regression tests.
+- [x] 3.3 Preserve the publisher/read-role separation and update credential-free publish/verify/inspect contracts without storing permanent credentials.
 
 ## 4. Candidate materialization and selection proof
 

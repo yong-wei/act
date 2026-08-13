@@ -26,7 +26,9 @@ This is a durable storage-format, host-selection, and garbage-collection change.
 
 ### 1. Logical release manifests remain the authority; blobs are storage implementation
 
-Define a versioned blob-backed manifest at `runtime/releases/<release-id>/manifest.json`; the release prefix may contain only that immutable manifest and its receipt. The manifest records the logical runtime tree in canonical path order and binds every logical path to its `sizeBytes`, SHA-256 and the deterministic blob key `runtime/blobs/sha256/<sha256>`. It also records `sourceRevision`, `fileCount`, `totalBytes`, logical tree digest, semantic manifest digest and wire digest.
+Define a versioned blob-backed manifest at `runtime/releases/<release-id>/manifest.json`; the release prefix may contain only that immutable manifest and its receipt. The manifest records the logical runtime tree in canonical path order and binds every logical path to its `sizeBytes`, SHA-256 and the deterministic blob key `runtime/blobs/sha256/<sha256>`. It also records `sourceRevision`, `fileCount`, `totalBytes`, logical tree digest and semantic manifest digest.
+
+The v2 `manifestSha256` is the SHA-256 digest of the versioned canonical semantic projection with its own digest and every transport field excluded. A manifest does not contain a digest of its own final serialized bytes. After final serialization, the publisher records the final `wireSha256`, byte length, manifest object key, release ID, format version and semantic digest in the immutable receipt/locator; readers verify wire identity before parsing and semantic identity after parsing.
 
 The release ID remains content-addressed from the source identity and logical tree digest. A blob key is derived solely from the file SHA-256; a manifest may not name an arbitrary object key. Existing v1 manifests stay readable until a v2 active and rollback pair has passed migration evidence.
 

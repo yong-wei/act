@@ -12,8 +12,11 @@ import {
   readActiveRuntimeReleaseManifest,
 } from '../runtime-active-release';
 import {
+  ACT_RUNTIME_BLOB_MATERIALIZED_MANIFEST_FILENAME,
   ACT_RUNTIME_RELEASE_MANIFEST_FILENAME,
+  buildRuntimeBlobReleaseManifest,
   buildRuntimeReleaseManifest,
+  serializeRuntimeBlobReleaseManifest,
   serializeRuntimeReleaseManifest,
 } from '../runtime-release';
 
@@ -57,5 +60,20 @@ describe('active runtime release manifest', () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-active-release-empty-'));
     roots.push(root);
     await expect(readActiveRuntimeReleaseManifest(root)).resolves.toBeNull();
+  });
+
+  it('uses the materialized v2 manifest as the only blob media allowlist', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-active-blob-release-'));
+    roots.push(root);
+    await mkdir(path.join(root, 'lessons', '1-1', 'media'), { recursive: true });
+    await writeFile(path.join(root, 'lessons', '1-1', 'media', 'intro.mp4'), Buffer.from([1, 2, 3]));
+    const manifest = await buildRuntimeBlobReleaseManifest(root, { sourceRevision: 'b'.repeat(40) });
+    await writeFile(path.join(root, ACT_RUNTIME_BLOB_MATERIALIZED_MANIFEST_FILENAME), serializeRuntimeBlobReleaseManifest(manifest));
+
+    const active = await readActiveRuntimeReleaseManifest(root);
+    expect(active).toEqual(manifest);
+    expect(findRuntimeMediaReleaseObject(active!, 'lessons/1-1/media/intro.mp4')).toMatchObject({
+      objectKey: `runtime/blobs/sha256/${manifest.files[0].sha256}`,
+    });
   });
 });

@@ -9,10 +9,18 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   buildRuntimeReleaseSshArgv,
   createSshRuntimeReleaseObjectStore,
+  publishRuntimeBlobReleaseViaSsh,
   publishRuntimeReleaseViaSsh,
+  verifyPublishedRuntimeBlobReleaseViaSsh,
   verifyPublishedRuntimeReleaseViaSsh,
 } from '../runtime-release-streaming-publisher';
-import { buildRuntimeReleaseManifest, computeRuntimeReleaseManifestWireSha256, deriveRuntimeReleaseId } from '../runtime-release';
+import {
+  buildRuntimeBlobReleaseManifest,
+  buildRuntimeReleaseManifest,
+  computeRuntimeReleaseManifestWireSha256,
+  deriveRuntimeReleaseId,
+  runtimeBlobReleaseManifestWireSha256,
+} from '../runtime-release';
 
 const config = {
   target: 'publisher@example.invalid',
@@ -46,7 +54,9 @@ let buffer = Buffer.alloc(0);
 let state = 'header';
 let manifest;
 let wireSha256;
+let receiptWireSha256;
 let missing = [];
+let filesByKey = [];
 let frameIndex = 0;
 function consume() {
   while (true) {
@@ -57,7 +67,9 @@ function consume() {
       buffer = buffer.subarray(newline + 1);
       manifest = JSON.parse(Buffer.from(header.manifestWireBase64, 'base64url').toString());
       wireSha256 = header.wireSha256;
-      missing = manifest.files.map((file) => file.objectKey);
+      receiptWireSha256 = header.receiptWireSha256;
+      filesByKey = [...new Map(manifest.files.map((file) => [file.objectKey, file])).values()];
+      missing = filesByKey.map((file) => file.objectKey);
       process.stdout.write(JSON.stringify({ status: 'stream', missingKeys: missing }) + '\\n');
       state = 'frame';
     }
@@ -67,11 +79,11 @@ function consume() {
       const frame = buffer.subarray(0, newline).toString();
       if (frame === 'DONE') {
         buffer = buffer.subarray(newline + 1);
-        process.stdout.write(JSON.stringify({ status: 'complete', releaseId: manifest.releaseId, manifestSha256: manifest.manifestSha256, wireSha256, treeSha256: manifest.treeSha256, fileCount: manifest.fileCount, totalBytes: manifest.totalBytes }) + '\\n');
+        process.stdout.write(JSON.stringify({ status: 'complete', releaseId: manifest.releaseId, manifestSha256: manifest.manifestSha256, wireSha256, receiptWireSha256, treeSha256: manifest.treeSha256, fileCount: manifest.fileCount, totalBytes: manifest.totalBytes }) + '\\n');
         process.exit(0);
       }
       const header = JSON.parse(frame);
-      const file = manifest.files[frameIndex];
+      const file = filesByKey[frameIndex];
       const size = header.sizeBytes;
       if (!file || header.key !== file.objectKey || buffer.length - (newline + 1) < size) return;
       buffer = buffer.subarray(newline + 1 + size);
@@ -91,7 +103,7 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 
-function fakeSpawnFactory(mode: 'success' | 'child-failure' | 'get-failure') {
+function fakeSpawnFactory(mode: 'success' | 'child-failure' | 'get-failure' | 'blob-verify') {
   const calls: Array<{ command: string; args: readonly string[] }> = [];
   const spawnFake = (command: string, args: readonly string[], options: SpawnOptions) => {
     calls.push({ command, args });
@@ -101,7 +113,17 @@ function fakeSpawnFactory(mode: 'success' | 'child-failure' | 'get-failure') {
     const prefix = Buffer.from(args[args.indexOf('--prefix-b64') + 1] ?? '', 'base64url').toString('utf8');
     const releaseId = prefix.split('/').filter(Boolean).at(-1);
     const script = operation === 'verify'
-      ? `process.stdout.write(${JSON.stringify(JSON.stringify({
+      ? `process.stdout.write(${JSON.stringify(JSON.stringify(mode === 'blob-verify' ? {
+        schemaVersion: 'runtime-release-verification.v2',
+        releaseId,
+        manifestObjectKey: 'runtime/releases/' + releaseId + '/manifest.json',
+        manifestSha256: 'a'.repeat(64),
+        wireSha256: 'b'.repeat(64),
+        wireSizeBytes: 42,
+        treeSha256: 'c'.repeat(64),
+        fileCount: 1,
+        totalBytes: 42,
+      } : {
         schemaVersion: 'runtime-release-verification.v1',
         releaseId,
         manifestSha256: 'a'.repeat(64),
@@ -170,6 +192,20 @@ describe('source-authoritative SSH runtime release transport', () => {
     expect(fake.calls[0].args).toContain('verify');
   });
 
+  it('uses the read-role bridge only for a v2 blob verification receipt', async () => {
+    const fake = fakeSpawnFactory('blob-verify');
+    await expect(verifyPublishedRuntimeBlobReleaseViaSsh({
+      releaseId: 'runtime-test',
+      ssh: config,
+      dependencies: { spawn: fake.spawnFake },
+    })).resolves.toMatchObject({
+      schemaVersion: 'runtime-release-verification.v2',
+      releaseId: 'runtime-test',
+      manifestObjectKey: 'runtime/releases/runtime-test/manifest.json',
+    });
+    expect(fake.calls).toHaveLength(1);
+  });
+
   it('propagates a child upload failure instead of reporting a successful stream', async () => {
     const fake = fakeSpawnFactory('child-failure');
     const store = createSshRuntimeReleaseObjectStore(config, { spawn: fake.spawnFake });
@@ -221,5 +257,27 @@ describe('source-authoritative SSH runtime release transport', () => {
     });
     expect(calls).toHaveLength(1);
     expect(calls[0].args).toContain('publish');
+  });
+
+  it('streams each unique blob once and requires the v2 manifest-last receipt identity', async () => {
+    const root = await fixture();
+    await writeFile(path.join(root, 'lessons', 'duplicate.json'), '{"id":"stream"}\n');
+    const manifest = await buildRuntimeBlobReleaseManifest(root, { sourceRevision: 'd'.repeat(40) });
+    const calls: Array<{ command: string; args: readonly string[] }> = [];
+    const receipt = await publishRuntimeBlobReleaseViaSsh({
+      runtimeRoot: root,
+      manifest,
+      ssh: config,
+      dependencies: { spawn: streamingBridgeSpawnFactory(calls) },
+    });
+    expect(receipt).toMatchObject({
+      schemaVersion: 'runtime-release-verification.v2',
+      releaseId: manifest.releaseId,
+      manifestSha256: manifest.manifestSha256,
+      wireSha256: runtimeBlobReleaseManifestWireSha256(manifest),
+      fileCount: manifest.fileCount,
+    });
+    expect(new Set(manifest.files.map((file) => file.objectKey))).toHaveLength(1);
+    expect(calls).toHaveLength(1);
   });
 });

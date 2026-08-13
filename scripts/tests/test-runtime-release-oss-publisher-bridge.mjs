@@ -193,6 +193,68 @@ const headerFor = ({ file, manifest, wire, prefix }) => JSON.stringify({
   wireSha256: sha(wire),
   manifestWireBase64: wire.toString('base64url'),
 });
+const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes) => {
+  const files = [
+    'lessons/1-1/media/shared-a.bin',
+    'lessons/1-2/media/shared-b.bin',
+  ].map((filePath) => ({
+    path: filePath,
+    objectKey: `runtime/blobs/sha256/${sha(frameBytes)}`,
+    sizeBytes: frameBytes.byteLength,
+    sha256: sha(frameBytes),
+  }));
+  const treeSha256 = sha(stable(files.map(({ path: filePath, sizeBytes, sha256 }) => ({ path: filePath, sizeBytes, sha256 }))));
+  const releaseId = `runtime-${sha(stable({ sourceRevision, treeSha256 })).slice(0, 55)}`;
+  const body = {
+    schemaVersion: 'act-runtime-release.v2',
+    releaseId,
+    sourceRevision,
+    fileCount: files.length,
+    totalBytes: files.reduce((total, file) => total + file.sizeBytes, 0),
+    treeSha256,
+    files,
+  };
+  const manifest = { ...body, manifestSha256: sha(stable(body)) };
+  const wire = Buffer.from(`${stable(manifest)}\n`);
+  const prefix = `runtime/releases/${releaseId}/`;
+  const manifestKey = `${prefix}manifest.json`;
+  const receiptBody = {
+    schemaVersion: 'act-runtime-release-receipt.v2',
+    releaseId,
+    manifestVersion: 'act-runtime-release.v2',
+    manifestObjectKey: manifestKey,
+    manifestSha256: manifest.manifestSha256,
+    manifestWireSha256: sha(wire),
+    manifestWireSizeBytes: wire.byteLength,
+    treeSha256,
+    fileCount: files.length,
+    totalBytes: body.totalBytes,
+    blobs: [{ objectKey: files[0].objectKey, sizeBytes: frameBytes.byteLength, sha256: sha(frameBytes) }],
+  };
+  const receipt = { ...receiptBody, receiptSha256: sha(stable(receiptBody)) };
+  const receiptWire = Buffer.from(`${stable(receipt)}\n`);
+  return {
+    files,
+    manifest,
+    wire,
+    receipt,
+    receiptWire,
+    prefix,
+    manifestKey,
+    receiptKey: `${prefix}receipt.json`,
+    frameBytes,
+  };
+};
+const blobHeaderFor = (data) => JSON.stringify({
+  protocol: 'act-runtime-blob-release-stream.v2',
+  releaseId: data.manifest.releaseId,
+  prefix: data.prefix,
+  manifestSha256: data.manifest.manifestSha256,
+  wireSha256: sha(data.wire),
+  manifestWireBase64: data.wire.toString('base64url'),
+  receiptWireSha256: sha(data.receiptWire),
+  receiptWireBase64: data.receiptWire.toString('base64url'),
+});
 const close = (child) => new Promise((resolve) => child.once('close', (code, signal) => resolve({ code, signal })));
 const spoolFor = (prefix) => path.join(spoolRoot, sha(prefix));
 
@@ -249,6 +311,65 @@ async function publish({ data = state, crashAfterFrame = false, frameBytes = byt
   const result = await close(child);
   reader.close();
   if (result.code !== 0) throw new Error(`bridge publish failed: ${Buffer.concat(stderr).toString()}`);
+  assert.equal(final.done, false);
+  return JSON.parse(final.value);
+}
+
+async function publishBlob({ data = buildBlobState(), crashAfterFrame = false, crashDelayMs = 100, frameBytes = data.frameBytes, env = {} } = {}) {
+  const child = spawn('python3', [bridge, '--bucket', 'test-bucket', '--operation', 'publish', '--prefix-b64', Buffer.from(data.prefix).toString('base64url')], {
+    env: {
+      ...process.env,
+      ACT_RUNTIME_RELEASE_TEST_MODE: '1',
+      ACT_RUNTIME_RELEASE_OSSUTIL: fakeOssutil,
+      ACT_RUNTIME_RELEASE_IMDS_ROLE_URL: imdsRoleUrl,
+      ACT_RUNTIME_RELEASE_LOCK_DIR: lockRoot,
+      ACT_RUNTIME_RELEASE_SPOOL_DIR: spoolRoot,
+      FAKE_OSS_ROOT: ossRoot,
+      FAKE_PAGE_SIZE: '1',
+      ...env,
+    },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  const stderr = [];
+  child.stderr.on('data', (chunk) => stderr.push(chunk));
+  const reader = createInterface({ input: child.stdout });
+  const lines = reader[Symbol.asyncIterator]();
+  child.stdin.write(`${blobHeaderFor(data)}\n`);
+  const first = await lines.next();
+  if (first.done) {
+    const result = await close(child);
+    reader.close();
+    throw new Error(`blob bridge failed before state: ${Buffer.concat(stderr).toString()} (${JSON.stringify(result)})`);
+  }
+  const control = JSON.parse(first.value);
+  if (control.status === 'complete') {
+    child.stdin.end();
+    const result = await close(child);
+    reader.close();
+    assert.equal(result.code, 0, Buffer.concat(stderr).toString());
+    return control;
+  }
+  assert.equal(control.status, 'stream');
+  const sources = new Map(data.files.map((file) => [file.objectKey, file]));
+  for (const key of control.missingKeys) {
+    const file = sources.get(key);
+    assert.ok(file, `bridge requested known blob ${key}`);
+    child.stdin.write(`${JSON.stringify({ key, sizeBytes: file.sizeBytes, sha256: file.sha256 })}\n`);
+    child.stdin.write(frameBytes);
+    if (crashAfterFrame) {
+      await new Promise((resolve) => setTimeout(resolve, crashDelayMs));
+      child.kill('SIGKILL');
+      const result = await close(child);
+      reader.close();
+      assert.equal(result.signal, 'SIGKILL');
+      return null;
+    }
+  }
+  child.stdin.end('DONE\n');
+  const final = await lines.next();
+  const result = await close(child);
+  reader.close();
+  if (result.code !== 0) throw new Error(`blob bridge publish failed: ${Buffer.concat(stderr).toString()}`);
   assert.equal(final.done, false);
   return JSON.parse(final.value);
 }
@@ -339,6 +460,33 @@ try {
   const puts = (await readFile(log, 'utf8')).trim().split('\n');
   assert.equal(puts.at(-1), state.manifestKey, 'completion manifest must be the final put');
 
+  const blobState = buildBlobState();
+  const blobNextRevision = buildBlobState('e'.repeat(40));
+  const blobLog = path.join(temporary, 'blob-put.log');
+  const blobFirst = await publishBlob({ data: blobState, env: { FAKE_LOG: blobLog } });
+  assert.equal(blobFirst.putCount, 3, 'the first blob release writes one shared blob, receipt, then manifest');
+  const blobPuts = (await readFile(blobLog, 'utf8')).trim().split('\n');
+  assert.deepEqual(blobPuts.slice(-2), [blobState.receiptKey, blobState.manifestKey], 'receipt precedes the terminal immutable manifest');
+  const blobSecond = await publishBlob({ data: blobNextRevision, env: { FAKE_LOG: blobLog } });
+  assert.equal(blobSecond.putCount, 2, 'a second logical release must reuse an already verified cross-release blob');
+  const blobReplay = await publishBlob({ data: blobState });
+  assert.equal(blobReplay.putCount, 0, 'a completed blob release retry is verification-only');
+
+  const interruptedBlob = buildBlobState('f'.repeat(40), Buffer.from('interrupted blob bytes'));
+  const interruptedSpool = spoolFor(interruptedBlob.prefix);
+  const crashedBlob = await publishBlob({ data: interruptedBlob, crashAfterFrame: true, crashDelayMs: 1200, env: { FAKE_PUT_DELAY_MS: '1000' } });
+  assert.equal(crashedBlob, null);
+  assert.equal((await readdir(interruptedSpool)).length, 0, 'an interruption after the verified blob but before the manifest leaves an empty resumable spool directory');
+  await rm(interruptedSpool, { recursive: true, force: true });
+  const resumedBlob = await publishBlob({ data: interruptedBlob });
+  assert.equal(resumedBlob.putCount, 2, 'an interrupted publish resumes from the exact pre-existing blob and writes only receipt and manifest');
+
+  const poisonedBlob = buildBlobState('a'.repeat(40), Buffer.from('poisoned blob expected bytes'));
+  await mkdir(path.dirname(path.join(ossRoot, poisonedBlob.files[0].objectKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, poisonedBlob.files[0].objectKey), 'different');
+  await assert.rejects(() => publishBlob({ data: poisonedBlob }), /blob bridge (failed before state|publish failed)/);
+  await rm(path.join(ossRoot, poisonedBlob.files[0].objectKey), { force: true });
+
   imdsRoleName = 'act-runtime-oss-read';
   const readVerification = await verify();
   assert.deepEqual(readVerification, {
@@ -350,6 +498,18 @@ try {
     fileCount: state.manifest.fileCount,
     totalBytes: state.manifest.totalBytes,
   }, 'read-role verification must re-list and re-read the immutable release');
+  const blobReadVerification = await verify(blobState);
+  assert.deepEqual(blobReadVerification, {
+    schemaVersion: 'runtime-release-verification.v2',
+    releaseId: blobState.manifest.releaseId,
+    manifestObjectKey: blobState.manifestKey,
+    manifestSha256: blobState.manifest.manifestSha256,
+    wireSha256: sha(blobState.wire),
+    wireSizeBytes: blobState.wire.byteLength,
+    treeSha256: blobState.manifest.treeSha256,
+    fileCount: blobState.manifest.fileCount,
+    totalBytes: blobState.manifest.totalBytes,
+  }, 'read-role verification must re-read every reachable blob and immutable documents');
 
   const unsupportedSchema = forgeManifest({ schemaVersion: 'unsupported-runtime-release.v999' });
   await seedForgedRelease(unsupportedSchema);

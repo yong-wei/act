@@ -13,17 +13,27 @@ import {
   type RuntimeReleaseObjectExpectation,
   type RuntimeReleaseObjectStore,
   type RuntimeReleaseStoredObject,
+  type RuntimeBlobReleaseVerificationReceipt,
   type RuntimeReleaseVerificationReceipt,
 } from '@/lib/runtime-release-store';
 import {
+  type ActRuntimeBlobReleaseManifest,
+  type ActRuntimeReleaseFile,
   assertContentAddressedRuntimeReleaseId,
+  buildRuntimeBlobReleaseReceipt,
   computeRuntimeReleaseManifestWireSha256,
+  runtimeBlobReleaseManifestObjectKey,
+  runtimeBlobReleaseManifestWireSha256,
+  serializeRuntimeBlobReleaseManifest,
+  serializeRuntimeBlobReleaseReceipt,
   serializeRuntimeReleaseManifest,
+  verifyRuntimeBlobReleaseDirectory,
   verifyRuntimeReleaseDirectory,
   type ActRuntimeReleaseManifest,
 } from '@/lib/runtime-release';
 
 const RELEASE_KEY_PREFIX = 'runtime/releases/';
+const BLOB_KEY_PREFIX = 'runtime/blobs/sha256/';
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const BUCKET_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$/;
 const TARGET_PATTERN = /^[A-Za-z0-9._@[\]:-]+$/;
@@ -69,6 +79,13 @@ function assertObjectKey(value: string, context = 'object key') {
   assertNoControlCharacters(value, context);
   if (!value.startsWith(RELEASE_KEY_PREFIX) || value.includes('\\') || value.split('/').some((part) => !part || part === '.' || part === '..')) {
     invalid(`${context} is not a safe runtime release object key.`);
+  }
+}
+
+function assertBlobObjectKey(value: string, context = 'blob object key') {
+  assertNoControlCharacters(value, context);
+  if (!value.startsWith(BLOB_KEY_PREFIX) || !SHA256_PATTERN.test(value.slice(BLOB_KEY_PREFIX.length))) {
+    invalid(`${context} is not a SHA-256 addressed runtime blob key.`);
   }
 }
 
@@ -327,7 +344,7 @@ export function createSshRuntimeReleaseObjectStore(config: RuntimeReleaseSshPubl
   return new SshRuntimeReleaseObjectStore(config, dependencies);
 }
 
-function parseVerificationReceipt(bytes: Buffer, releaseId: string): RuntimeReleaseVerificationReceipt {
+function parseVerificationReceipt(bytes: Buffer, releaseId: string): RuntimeReleaseVerificationReceipt | RuntimeBlobReleaseVerificationReceipt {
   let value: unknown;
   try {
     value = JSON.parse(bytes.toString('utf8').trim());
@@ -337,8 +354,32 @@ function parseVerificationReceipt(bytes: Buffer, releaseId: string): RuntimeRele
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Read-role verification bridge returned an invalid receipt.');
   }
-  const receipt = value as Partial<RuntimeReleaseVerificationReceipt>;
+  const receipt = value as Record<string, unknown>;
   const { manifestSha256, wireSha256, treeSha256, fileCount, totalBytes } = receipt;
+  if (
+    receipt.schemaVersion === 'runtime-release-verification.v2'
+    && receipt.releaseId === releaseId
+    && typeof receipt.manifestObjectKey === 'string'
+    && receipt.manifestObjectKey === runtimeBlobReleaseManifestObjectKey(releaseId)
+    && typeof manifestSha256 === 'string' && SHA256_PATTERN.test(manifestSha256)
+    && typeof wireSha256 === 'string' && SHA256_PATTERN.test(wireSha256)
+    && typeof receipt.wireSizeBytes === 'number' && Number.isSafeInteger(receipt.wireSizeBytes) && receipt.wireSizeBytes > 0
+    && typeof treeSha256 === 'string' && SHA256_PATTERN.test(treeSha256)
+    && typeof fileCount === 'number' && Number.isSafeInteger(fileCount) && fileCount > 0
+    && typeof totalBytes === 'number' && Number.isSafeInteger(totalBytes) && totalBytes >= 0
+  ) {
+    return {
+      schemaVersion: 'runtime-release-verification.v2',
+      releaseId,
+      manifestObjectKey: receipt.manifestObjectKey,
+      manifestSha256,
+      wireSha256,
+      wireSizeBytes: receipt.wireSizeBytes,
+      treeSha256,
+      fileCount,
+      totalBytes,
+    };
+  }
   if (
     receipt.schemaVersion !== 'runtime-release-verification.v1'
     || receipt.releaseId !== releaseId
@@ -369,7 +410,26 @@ export async function verifyPublishedRuntimeReleaseViaSsh(input: {
   const prefix = runtimeReleasePrefix(input.releaseId);
   assertPrefix(prefix);
   const child = spawnChild(input.dependencies?.spawn, input.ssh.sshBinary ?? 'ssh', buildRuntimeReleaseSshArgv(input.ssh, 'verify', { prefix }));
-  return parseVerificationReceipt(await runBuffered(child, 'verify'), input.releaseId);
+  const receipt = parseVerificationReceipt(await runBuffered(child, 'verify'), input.releaseId);
+  if (receipt.schemaVersion !== 'runtime-release-verification.v1') {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Read-role verification returned a blob release receipt for a v1 release request.');
+  }
+  return receipt;
+}
+
+export async function verifyPublishedRuntimeBlobReleaseViaSsh(input: {
+  releaseId: string;
+  ssh: RuntimeReleaseSshPublisherConfig;
+  dependencies?: RuntimeReleaseSshPublisherDependencies;
+}) {
+  const prefix = runtimeReleasePrefix(input.releaseId);
+  assertPrefix(prefix);
+  const child = spawnChild(input.dependencies?.spawn, input.ssh.sshBinary ?? 'ssh', buildRuntimeReleaseSshArgv(input.ssh, 'verify', { prefix }));
+  const receipt = parseVerificationReceipt(await runBuffered(child, 'verify'), input.releaseId);
+  if (receipt.schemaVersion !== 'runtime-release-verification.v2') {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Read-role verification did not return a blob release receipt.');
+  }
+  return receipt;
 }
 
 type PublishControlMessage = {
@@ -378,6 +438,7 @@ type PublishControlMessage = {
   releaseId?: unknown;
   manifestSha256?: unknown;
   wireSha256?: unknown;
+  receiptWireSha256?: unknown;
   treeSha256?: unknown;
   fileCount?: unknown;
   totalBytes?: unknown;
@@ -444,7 +505,7 @@ async function openVerifiedRuntimeSourceFile(root: string, relativePath: string)
   return createReadStream(absolutePath);
 }
 
-async function streamSourceFrame(child: ChildProcess, root: string, file: ActRuntimeReleaseManifest['files'][number]) {
+async function streamSourceFrame(child: ChildProcess, root: string, file: ActRuntimeReleaseFile) {
   const source = await openVerifiedRuntimeSourceFile(root, file.path);
   const hash = createHash('sha256');
   let sizeBytes = 0;
@@ -482,6 +543,34 @@ function parsePublishReceipt(message: PublishControlMessage, manifest: ActRuntim
     releaseId: manifest.releaseId,
     manifestSha256: manifest.manifestSha256,
     wireSha256: expectedWireSha256,
+    treeSha256: manifest.treeSha256,
+    fileCount: manifest.fileCount,
+    totalBytes: manifest.totalBytes,
+  };
+}
+
+function parseBlobPublishReceipt(message: PublishControlMessage, manifest: ActRuntimeBlobReleaseManifest): RuntimeBlobReleaseVerificationReceipt {
+  const receipt = buildRuntimeBlobReleaseReceipt(manifest);
+  const expectedWireSha256 = runtimeBlobReleaseManifestWireSha256(manifest);
+  if (
+    message.status !== 'complete'
+    || message.releaseId !== manifest.releaseId
+    || message.manifestSha256 !== manifest.manifestSha256
+    || message.wireSha256 !== expectedWireSha256
+    || message.receiptWireSha256 !== createHash('sha256').update(serializeRuntimeBlobReleaseReceipt(receipt)).digest('hex')
+    || message.treeSha256 !== manifest.treeSha256
+    || message.fileCount !== manifest.fileCount
+    || message.totalBytes !== manifest.totalBytes
+  ) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-remote-identity-mismatch', 'Blob publisher bridge completion receipt does not match the submitted manifest.');
+  }
+  return {
+    schemaVersion: 'runtime-release-verification.v2',
+    releaseId: manifest.releaseId,
+    manifestObjectKey: runtimeBlobReleaseManifestObjectKey(manifest.releaseId),
+    manifestSha256: manifest.manifestSha256,
+    wireSha256: expectedWireSha256,
+    wireSizeBytes: Buffer.byteLength(serializeRuntimeBlobReleaseManifest(manifest)),
     treeSha256: manifest.treeSha256,
     fileCount: manifest.fileCount,
     totalBytes: manifest.totalBytes,
@@ -574,6 +663,117 @@ export async function publishRuntimeReleaseViaSsh(input: {
   dependencies?: RuntimeReleaseSshPublisherDependencies;
 }) {
   return publishRuntimeReleaseStream({
+    runtimeRoot: input.runtimeRoot,
+    manifest: input.manifest,
+    config: input.ssh,
+    spawn: input.dependencies?.spawn,
+  });
+}
+
+async function publishRuntimeBlobReleaseStream(input: {
+  runtimeRoot: string;
+  manifest: ActRuntimeBlobReleaseManifest;
+  config: RuntimeReleaseSshPublisherConfig;
+  spawn?: RuntimeReleaseSshPublisherDependencies['spawn'];
+}) {
+  try {
+    assertContentAddressedRuntimeReleaseId(input.manifest);
+  } catch (error) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-id-not-content-addressed', 'Runtime blob release id must bind source revision and tree identity before publishing.', { cause: error });
+  }
+  await verifyRuntimeBlobReleaseDirectory(input.runtimeRoot, input.manifest);
+  const child = spawnChild(input.spawn, input.config.sshBinary ?? 'ssh', buildRuntimeReleaseSshArgv(input.config, 'publish', {
+    prefix: runtimeReleasePrefix(input.manifest.releaseId),
+  }));
+  if (!child.stdin || !child.stdout) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'Blob publish bridge did not provide bidirectional streams.');
+  }
+  const exitPromise = childExit(child);
+  const stderrPromise = readOutput(child.stderr);
+  const reader = createInterface({ input: child.stdout });
+  const lines = reader[Symbol.asyncIterator]();
+  const manifestWireBytes = Buffer.from(serializeRuntimeBlobReleaseManifest(input.manifest), 'utf8');
+  const receipt = buildRuntimeBlobReleaseReceipt(input.manifest);
+  const receiptWireBytes = Buffer.from(serializeRuntimeBlobReleaseReceipt(receipt), 'utf8');
+  const header = {
+    protocol: 'act-runtime-blob-release-stream.v2',
+    releaseId: input.manifest.releaseId,
+    prefix: runtimeReleasePrefix(input.manifest.releaseId),
+    manifestSha256: input.manifest.manifestSha256,
+    wireSha256: runtimeBlobReleaseManifestWireSha256(input.manifest),
+    manifestWireBase64: manifestWireBytes.toString('base64url'),
+    receiptWireSha256: createHash('sha256').update(receiptWireBytes).digest('hex'),
+    receiptWireBase64: receiptWireBytes.toString('base64url'),
+  };
+  const sourcesByKey = new Map<string, ActRuntimeReleaseFile>();
+  for (const file of input.manifest.files) {
+    assertBlobObjectKey(file.objectKey);
+    const existing = sourcesByKey.get(file.objectKey);
+    if (existing && (existing.sizeBytes !== file.sizeBytes || existing.sha256 !== file.sha256)) {
+      throw new RuntimeReleaseStreamingPublisherError('runtime-release-manifest-invalid', `Blob manifest has inconsistent source bindings: ${file.objectKey}`);
+    }
+    if (!existing) sourcesByKey.set(file.objectKey, file);
+  }
+  let published: RuntimeBlobReleaseVerificationReceipt;
+  try {
+    await writeChild(child, `${JSON.stringify(header)}\n`, 'blob publish');
+    const first = await lines.next();
+    if (first.done || typeof first.value !== 'string') {
+      throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge closed before reporting release state.');
+    }
+    const control = parsePublishControlLine(first.value, 'Blob publish');
+    if (control.status === 'complete') {
+      child.stdin.end();
+      published = parseBlobPublishReceipt(control, input.manifest);
+    } else {
+      if (control.status !== 'stream' || !Array.isArray(control.missingKeys) || control.missingKeys.some((key) => typeof key !== 'string')) {
+        throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge returned an invalid release state.');
+      }
+      const missing = new Set<string>();
+      for (const key of control.missingKeys) {
+        assertBlobObjectKey(key, 'blob publish missing key');
+        if (!sourcesByKey.has(key) || missing.has(key)) {
+          throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge requested an unexpected or duplicate source blob.');
+        }
+        missing.add(key);
+      }
+      for (const [key, file] of sourcesByKey) {
+        if (!missing.has(key)) continue;
+        await writeChild(child, `${JSON.stringify({ key, sizeBytes: file.sizeBytes, sha256: file.sha256 })}\n`, file.path);
+        await streamSourceFrame(child, input.runtimeRoot, file);
+      }
+      await writeChild(child, 'DONE\n', 'blob publish');
+      child.stdin.end();
+      const finalLine = await lines.next();
+      if (finalLine.done || typeof finalLine.value !== 'string') {
+        throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge closed before returning a completion receipt.');
+      }
+      published = parseBlobPublishReceipt(parsePublishControlLine(finalLine.value, 'Blob publish'), input.manifest);
+    }
+  } catch (error) {
+    if (child.exitCode === null && child.signalCode === null) child.kill();
+    if (error instanceof RuntimeReleaseStreamingPublisherError) throw error;
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'Blob publish bridge process failed.', { cause: error });
+  } finally {
+    reader.close();
+  }
+  const exit = await exitPromise.catch((error) => {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'Blob publish bridge process failed.', { cause: error });
+  });
+  const stderr = await stderrPromise;
+  if (exit.code !== 0) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', `Blob publish bridge exited unsuccessfully: ${stderr.toString('utf8').trim()}`);
+  }
+  return published;
+}
+
+export async function publishRuntimeBlobReleaseViaSsh(input: {
+  runtimeRoot: string;
+  manifest: ActRuntimeBlobReleaseManifest;
+  ssh: RuntimeReleaseSshPublisherConfig;
+  dependencies?: RuntimeReleaseSshPublisherDependencies;
+}) {
+  return publishRuntimeBlobReleaseStream({
     runtimeRoot: input.runtimeRoot,
     manifest: input.manifest,
     config: input.ssh,
