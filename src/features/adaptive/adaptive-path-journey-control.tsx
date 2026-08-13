@@ -180,10 +180,18 @@ export function AdaptivePathJourneyControl({
   className,
 }: AdaptivePathJourneyControlProps) {
   const state = journey?.nextAction.state ?? (status === 'error' ? 'blocked' : 'pending-result');
-  const returnAction = journey?.return ?? {
+  const returnAction = journey?.return
+    ? {
+        ...journey.return,
+        // The journey control is the single owner of resource-page return
+        // navigation. Always target the path-center landing page so the
+        // user leaves the execution workspace instead of re-entering it.
+        href: buildAdaptivePathOverviewHref(launchContext),
+      }
+    : {
     label: '返回学习路径',
     href: buildAdaptivePathOverviewHref(launchContext),
-  };
+      };
   const nextAction = journey?.nextAction ?? null;
   const correction = journey?.correction ?? null;
   const correctionHistory = correction?.history ?? [];
@@ -531,11 +539,10 @@ function normalizeJourneyActionTarget(href: string): string | null {
 }
 
 function buildAdaptivePathOverviewHref(context: AdaptivePathLaunchContext): string {
-  const params = new URLSearchParams({
-    goal: context.goalId,
-    intent: context.routeIntent,
-    pathId: context.pathId,
-  });
+  // Return to the path center entry so it can restore the current path and
+  // render the landing actions. Keeping path-execution here leaves the user
+  // on the execution workspace and makes the return action appear inert.
+  const params = new URLSearchParams({ goal: context.goalId });
   return `/assessment/adaptive-practice?${params.toString()}`;
 }
 
