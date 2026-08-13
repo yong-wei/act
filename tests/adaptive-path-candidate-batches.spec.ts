@@ -607,11 +607,11 @@ for (const viewport of [
     const generateAction = page.locator('[data-adaptive-path-generation-action="submit-panel-request"]');
     await expect(generateAction).toBeEnabled();
     await generateAction.click();
-    await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
     comparison = page.locator('[data-learning-path-options-layout="route-modules"]');
     await expect(page.locator('[data-adaptive-path-candidate-state="loading"]')).toBeVisible();
     await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
     releaseCandidateBatch?.();
+    await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
     await expect(comparison).toBeVisible();
     await expect(comparison.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
     await expect(comparison.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
