@@ -1,0 +1,65 @@
+{
+  "contract": "act-domain-teaching-composed-manifest/v1",
+  "builderVersion": "act-domain-teaching-composition-builder/v1",
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40"
+  },
+  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "sourceInventoryDigest": "ae257672ad76c8d8b11401f093993e3c6a84d07347392ccc5bb2b0bbaa40a967",
+  "authorityDigest": "bc5e41d86cd12ae44948a7dba8ab364370de7bdc92c91bf6e2be6fa0705c8ba9",
+  "fragments": [
+    {
+      "order": 0,
+      "fragmentId": "dtf-ee895f0af6c222bcb7558f3866263b6d6f792bebdb7461d4035984c805cabbd1",
+      "fragmentKey": "foundation-published-v2",
+      "fragmentVersion": "1",
+      "fragmentDigest": "ee895f0af6c222bcb7558f3866263b6d6f792bebdb7461d4035984c805cabbd1",
+      "sourceInventoryDigest": "a6065975057175f73fa29f2346e85eeb2514bed6ba7d08a580b1e03bb13b581c",
+      "domainKeys": ["stability-analysis", "system-modeling"]
+    },
+    {
+      "order": 1,
+      "fragmentId": "dtf-a69f4cad60b550093856adc6913439af8ecd7c0be0083e7ae48e14320ef1867f",
+      "fragmentKey": "classical-control-published-v1",
+      "fragmentVersion": "1",
+      "fragmentDigest": "a69f4cad60b550093856adc6913439af8ecd7c0be0083e7ae48e14320ef1867f",
+      "sourceInventoryDigest": "0b713eb20d5376ea12eec2367490cf87e7f6d751dd8efa270fc96f270d44d732",
+      "domainKeys": ["classical-control-design", "frequency-domain-analysis", "root-locus"]
+    }
+  ],
+  "domainCoverage": [
+    {"domainId": "classical-control-design", "coverage": "available", "coreNodeCount": 1, "relationCount": 2, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
+    {"domainId": "discrete-time-control-analysis", "coverage": "empty", "coreNodeCount": 0, "relationCount": 0, "uncoveredCoreNodeCount": 0, "note": "该领域尚无已发布的教学关系"},
+    {"domainId": "frequency-domain-analysis", "coverage": "available", "coreNodeCount": 1, "relationCount": 1, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
+    {"domainId": "root-locus", "coverage": "available", "coreNodeCount": 1, "relationCount": 1, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
+    {"domainId": "stability-analysis", "coverage": "available", "coreNodeCount": 2, "relationCount": 2, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
+    {"domainId": "state-space-control-analysis-and-design", "coverage": "empty", "coreNodeCount": 0, "relationCount": 0, "uncoveredCoreNodeCount": 0, "note": "该领域尚无已发布的教学关系"},
+    {"domainId": "system-modeling", "coverage": "available", "coreNodeCount": 3, "relationCount": 4, "uncoveredCoreNodeCount": 0, "note": "该领域已发布可用的教学关系覆盖"},
+    {"domainId": "time-domain-analysis", "coverage": "empty", "coreNodeCount": 0, "relationCount": 0, "uncoveredCoreNodeCount": 0, "note": "该领域尚无已发布的教学关系"}
+  ],
+  "coreNodeCount": 8,
+  "relationCount": 6,
+  "gateStatus": "PUBLISHED",
+  "gatePassed": true,
+  "sourceHashes": {
+    "fragments": "3ddbabf3f41aa5435c8d71f74562bb31c6414d9ac7e08e772507e1c6a0d30ffd",
+    "sourceInventory": "ae257672ad76c8d8b11401f093993e3c6a84d07347392ccc5bb2b0bbaa40a967",
+    "body": "f15b6dc3468f0152738f328cb347491d8d66c9cb90beba4063a287c0bf5b1a69"
+  },
+  "projectionId": "proj-e54db5bd902eb39556fdb0a42c5d0e8d5205f8f5f30a7b1d24b00cc038abb9b8",
+  "projectionHash": "e54db5bd902eb39556fdb0a42c5d0e8d5205f8f5f30a7b1d24b00cc038abb9b8"
+}

@@ -1,8 +1,6 @@
 ## Purpose
 ACT-owned core teaching-node denominator and versioned ACT_TEACHING prerequisite publication contract.
-
 ## Requirements
-
 ### Requirement: Core teaching nodes have an explicit bounded denominator
 The system MUST derive core teaching nodes only from formal course objectives, primary `COVERS` bindings, prerequisite endpoints, or explicit teacher curation. Each core node MUST declare scope, `pathEligible`, `cardPolicy`, module, and rationale.
 
@@ -46,3 +44,12 @@ Published edges MUST bind the current Authority/projection identity, authoring r
 - **WHEN** an evidence path, Canonical identity, or Authority release changes
 - **THEN** the affected edge SHALL become stale/review-required
 - **AND** unrelated edges SHALL retain their prior digest
+
+### Requirement: Classical-control prerequisite increment is scope-bounded
+The classical-control teaching increment MUST limit its denominator to explicitly selected core nodes in root locus, frequency-domain analysis and classical control design and MUST preserve partial coverage as a non-blocking publication state.
+
+#### Scenario: Some classical candidates remain pending
+- **WHEN** the accepted direct edges are endpoint-closed and acyclic but other candidates remain pending
+- **THEN** the valid fragment MAY publish with partial coverage
+- **AND** pending candidates SHALL not be represented as published edges
+

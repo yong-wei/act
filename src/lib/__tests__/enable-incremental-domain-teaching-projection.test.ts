@@ -8,6 +8,18 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  authorityNodesFromPinnedSnapshot,
+  buildDomainTeachingGenerationV2,
+  DOMAIN_TEACHING_GENERATION_V2_RELATIVE,
+  PINNED_AUTHORITY_ENGINEERING_RELATIVE,
+  PINNED_AUTHORITY_MANIFEST_RELATIVE,
+} from '../../../scripts/knowledge-cutover/build-domain-teaching-generation-v2';
+import type {
+  AuthorityEngineeringBody,
+  AuthoritySnapshotManifest,
+} from '../authoritative-knowledge/authority-snapshot';
+
+import {
   activateDomainTeachingProjection,
   activateDomainTeachingProjectionFailClosed,
   assertCompleteAuthorityBinding,
@@ -61,6 +73,29 @@ const DOMAIN_FRAGMENTS_DIR = path.resolve(
   process.cwd(),
   'course-content/authoring/knowledge/teaching-projection/domain-fragments',
 );
+
+const DOMAIN_GENERATION_TWO_DIR = path.resolve(
+  process.cwd(),
+  DOMAIN_TEACHING_GENERATION_V2_RELATIVE,
+);
+
+function readJson(pathname: string): unknown {
+  return JSON.parse(readFileSync(pathname, 'utf8'));
+}
+
+function teachingSemantics(
+  authoring: Pick<
+    DomainTeachingFragmentAuthoring,
+    'domainKeys' | 'evidenceRefs' | 'coreNodes' | 'relations'
+  >,
+) {
+  return {
+    domainKeys: authoring.domainKeys,
+    evidenceRefs: authoring.evidenceRefs,
+    coreNodes: authoring.coreNodes,
+    relations: authoring.relations,
+  };
+}
 
 function authorityNodes() {
   return [
@@ -876,6 +911,164 @@ describe('enable-incremental-domain-teaching-projection', () => {
       );
       expect(frequency?.coverage).toBe('empty');
       expect(composed.manifest.gatePassed).toBe(true);
+    });
+  });
+
+  describe('classical generation is sealed to the complete pinned Authority index', () => {
+    it('rebuilds deterministic artifacts from the pinned Authority snapshot', () => {
+      const built = buildDomainTeachingGenerationV2();
+      const persisted = {
+        authoritySource: readJson(
+          path.join(DOMAIN_GENERATION_TWO_DIR, 'authority-source.json'),
+        ),
+        foundationAuthoring: readJson(
+          path.join(DOMAIN_GENERATION_TWO_DIR, 'foundation-fragment.authoring.json'),
+        ),
+        foundationFragment: readJson(
+          path.join(DOMAIN_GENERATION_TWO_DIR, 'foundation-fragment.json'),
+        ),
+        classicalAuthoring: readJson(
+          path.join(DOMAIN_GENERATION_TWO_DIR, 'classical-fragment.authoring.json'),
+        ),
+        classicalFragment: readJson(
+          path.join(DOMAIN_GENERATION_TWO_DIR, 'classical-fragment.json'),
+        ),
+        manifest: readJson(
+          path.join(DOMAIN_GENERATION_TWO_DIR, 'composed-manifest.json'),
+        ),
+      };
+
+      expect(persisted.authoritySource).toEqual(built.authoritySource);
+      expect(persisted.foundationAuthoring).toEqual(built.foundationAuthoring);
+      expect(persisted.foundationFragment).toEqual(built.foundationFragment);
+      expect(persisted.classicalAuthoring).toEqual(built.classicalAuthoring);
+      expect(persisted.classicalFragment).toEqual(built.classicalFragment);
+      expect(persisted.manifest).toEqual(built.composed.manifest);
+      expect(built.composed.manifest.gatePassed).toBe(true);
+    });
+
+    it('keeps first-generation teaching semantics while resealing its endpoint universe', () => {
+      const firstGeneration = readJson(
+        path.join(DOMAIN_FRAGMENTS_DIR, 'first-fragment.authoring.json'),
+      ) as DomainTeachingFragmentAuthoring;
+      const rebuilt = buildDomainTeachingGenerationV2();
+
+      expect(teachingSemantics(rebuilt.foundationAuthoring)).toEqual(
+        teachingSemantics(firstGeneration),
+      );
+      expect(rebuilt.foundationAuthoring.fragmentKey).toBe(
+        'foundation-published-v2',
+      );
+      expect(rebuilt.foundationAuthoring.nodeIndexDigest).not.toBe(
+        firstGeneration.nodeIndexDigest,
+      );
+    });
+
+    it('uses the full pinned index and is insensitive to source object order', () => {
+      const snapshotPath = path.join(
+        process.cwd(),
+        PINNED_AUTHORITY_ENGINEERING_RELATIVE,
+      );
+      const snapshot = readJson(snapshotPath) as { objects: unknown[] };
+      const reversed = {
+        ...snapshot,
+        objects: [...snapshot.objects].reverse(),
+      };
+      const built = buildDomainTeachingGenerationV2();
+
+      expect(built.authority.nodes).toHaveLength(4891);
+      expect(authorityNodesFromPinnedSnapshot(reversed as never)).toEqual(
+        built.authority.nodes,
+      );
+      for (const endpoint of [
+        ...built.foundationFragment.coreNodes.map((node) => node.canonicalId),
+        ...built.classicalFragment.coreNodes.map((node) => node.canonicalId),
+        ...built.classicalFragment.relations.flatMap((relation) => [
+          relation.sourceNodeId,
+          relation.targetNodeId,
+        ]),
+      ]) {
+        expect(
+          built.authority.nodes.some((node) => node.canonicalId === endpoint),
+        ).toBe(true);
+      }
+    });
+
+    it('does not publish an engineering-only adjacency as an ACT teaching edge', () => {
+      const worklist = readJson(
+        path.join(DOMAIN_GENERATION_TWO_DIR, 'classical-worklist.json'),
+      ) as {
+        candidates: Array<{
+          candidateId: string;
+          sourceCanonicalId: string;
+          targetCanonicalId: string;
+          status: string;
+        }>;
+      };
+      const candidate = worklist.candidates.find(
+        (entry) => entry.candidateId === 'engineering-only-root-locus-to-compensator',
+      );
+      const engineering = readJson(
+        path.join(process.cwd(), PINNED_AUTHORITY_ENGINEERING_RELATIVE),
+      ) as {
+        relations: Array<{
+          sourceId: string;
+          targetId: string;
+          relationType: string;
+        }>;
+      };
+      const built = buildDomainTeachingGenerationV2();
+
+      expect(candidate?.status).toBe('PENDING');
+      expect(
+        engineering.relations.some(
+          (relation) =>
+            relation.sourceId === candidate?.sourceCanonicalId
+            && relation.targetId === candidate?.targetCanonicalId
+            && ['applies_to', 'association'].includes(relation.relationType),
+        ),
+      ).toBe(true);
+      expect(
+        built.classicalFragment.relations.some(
+          (relation) =>
+            relation.sourceNodeId === candidate?.sourceCanonicalId
+            && relation.targetNodeId === candidate?.targetCanonicalId,
+        ),
+      ).toBe(false);
+    });
+
+    it('fails closed when the pinned Authority engineering body drifts', () => {
+      const manifest = readJson(
+        path.join(process.cwd(), PINNED_AUTHORITY_MANIFEST_RELATIVE),
+      ) as AuthoritySnapshotManifest;
+      const engineering = readJson(
+        path.join(process.cwd(), PINNED_AUTHORITY_ENGINEERING_RELATIVE),
+      ) as AuthorityEngineeringBody;
+      const relationEndpoints = new Set(
+        engineering.relations.flatMap((relation) => [
+          relation.sourceId,
+          relation.targetId,
+        ]),
+      );
+      const index = engineering.objects.findIndex(
+        (object) => !relationEndpoints.has(object.canonicalId),
+      );
+      expect(index).toBeGreaterThanOrEqual(0);
+      const objects = [...engineering.objects];
+      const candidate = objects[index]!;
+      objects[index] = {
+        ...candidate,
+        canonicalId: `${candidate.canonicalId}-tampered`,
+      };
+
+      expect(() =>
+        buildDomainTeachingGenerationV2({
+          authoritySnapshot: {
+            manifest,
+            engineering: { ...engineering, objects },
+          },
+        }),
+      ).toThrow(/engineeringDigest does not match engineering body/);
     });
   });
 
