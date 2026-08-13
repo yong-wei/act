@@ -1,7 +1,7 @@
 {
   "schemaVersion": "commercial-ui-evidence.v1",
-  "capturedAt": "2026-08-13T05:49:58.956Z",
-  "commitSha": "a7395e0209400b736fbeaf07efd8a001cf1f418a",
+  "capturedAt": "2026-08-13T05:51:21.320Z",
+  "commitSha": "dd807ff976339a5996aa06ee45e0dff9f4f4aada",
   "captureMethod": "Playwright with Google Chrome channel against local Next.js Webpack dev server",
   "sourceSha256": {
     "src/app/layout.tsx": "70788834ad107d27471406dc9c84c68be5938c142fb19eb1be23024444683b03",
