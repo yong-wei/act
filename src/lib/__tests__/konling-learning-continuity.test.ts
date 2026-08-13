@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import { PRESET_QUESTIONS } from '@/features/assessment/adaptive-question-bank';
 import { resolveKonlingContinuitySnapshot } from '@/lib/konling-learning-continuity';
 import { verifyCompanionPracticeMetadata, verifyCompanionPracticeSubmissionMetadata } from '@/lib/konling-continuity-assessment';
 
@@ -27,11 +29,18 @@ function db(input?: {
   };
 }
 
+function governedMetadata(value: Record<string, unknown> = {}) {
+  return {
+    kaq: { learningGoalIds: ['root-locus-analysis-foundations'] },
+    ...value,
+  };
+}
+
 describe('Konling learning continuity', () => {
   it('prioritizes an unfinished task over a recent mistake', async () => {
     const store = db({
       path: { id: 'path-1', title: '根轨迹练习', currentNodeId: 'node-2', updatedAt: new Date('2026-08-01T08:00:00Z') },
-      mistake: { id: 'answer-1', answeredAt: new Date('2026-08-01T09:00:00Z'), questionRef: { knowledgeTags: ['root-locus'], metadata: {} } },
+      mistake: { id: 'answer-1', answeredAt: new Date('2026-08-01T09:00:00Z'), questionRef: { knowledgeTags: ['root-locus'], metadata: governedMetadata() } },
     });
     const snapshot = await resolveKonlingContinuitySnapshot(store, { userId: 'student-1' });
     expect(snapshot).toMatchObject({ state: 'unfinished_task', unfinishedTask: { pathId: 'path-1', nodeId: 'node-2' } });
@@ -40,12 +49,29 @@ describe('Konling learning continuity', () => {
 
   it('uses a governed recent mistake without inventing a missing cause', async () => {
     const store = db({
-      mistake: { id: 'answer-1', answeredAt: new Date('2026-08-01T09:00:00Z'), questionRef: { knowledgeTags: ['root-locus'], metadata: { knowledgeLabel: '根轨迹' } } },
+      mistake: { id: 'answer-1', answeredAt: new Date('2026-08-01T09:00:00Z'), questionRef: { knowledgeTags: ['root-locus'], metadata: governedMetadata({ knowledgeLabel: '根轨迹' }) } },
     });
     const snapshot = await resolveKonlingContinuitySnapshot(store, { userId: 'student-1' });
     expect(snapshot).toMatchObject({
       state: 'recent_mistake',
-      recentMistake: { knowledgeId: 'root-locus', knowledgeLabel: '根轨迹', structuredCauseId: null, structuredCauseLabel: null },
+      recentMistake: { knowledgeId: 'root-locus-analysis-foundations', knowledgeLabel: '根轨迹', structuredCauseId: null, structuredCauseLabel: null },
+    });
+    expect(PRESET_QUESTIONS.some((question) => (
+      buildKaqQuizQuestionMetadata(question).learningGoalIds.includes(snapshot.recentMistake!.knowledgeId)
+    ))).toBe(true);
+  });
+
+  it('does not expose an ungoverned knowledge tag as a selectable learning goal', async () => {
+    const store = db({
+      mistake: {
+        id: 'answer-1',
+        answeredAt: new Date('2026-08-01T09:00:00Z'),
+        questionRef: { knowledgeTags: ['pole-stability'], metadata: {} },
+      },
+    });
+    await expect(resolveKonlingContinuitySnapshot(store, { userId: 'student-1' })).resolves.toMatchObject({
+      state: 'cold_start',
+      evidenceAsOf: null,
     });
   });
 
@@ -63,7 +89,7 @@ describe('Konling learning continuity', () => {
       mistake: {
         id: 'answer-1',
         answeredAt: new Date('2026-08-01T09:00:00Z'),
-        questionRef: { knowledgeTags: ['root-locus'], metadata: { structuredCause: { id: 'cause-1', label: '符号方向错误' } } },
+        questionRef: { knowledgeTags: ['root-locus'], metadata: governedMetadata({ structuredCause: { id: 'cause-1', label: '符号方向错误' } }) },
       },
     });
     const snapshot = await resolveKonlingContinuitySnapshot(store, { userId: 'student-1' });
@@ -72,7 +98,7 @@ describe('Konling learning continuity', () => {
       continuity: {
         origin: 'konling-companion-practice',
         snapshotId: snapshot.snapshotId,
-        targetKnowledgeId: 'root-locus',
+        targetKnowledgeId: 'root-locus-analysis-foundations',
         structuredCauseId: 'cause-1',
       },
     })).resolves.toMatchObject({ snapshotId: snapshot.snapshotId });
@@ -82,7 +108,7 @@ describe('Konling learning continuity', () => {
       continuity: {
         origin: 'konling-companion-practice',
         snapshotId: snapshot.snapshotId,
-        targetKnowledgeId: 'root-locus',
+        targetKnowledgeId: 'root-locus-analysis-foundations',
         structuredCauseId: 'cause-1',
       },
     })).rejects.toThrow('Stale or cross-user');
@@ -90,13 +116,13 @@ describe('Konling learning continuity', () => {
 
   it('changes the snapshot and separates a correct companion result from stable mastery', async () => {
     const store = db({
-      mistake: { id: 'answer-1', answeredAt: new Date('2026-08-01T09:00:00Z'), questionRef: { knowledgeTags: ['root-locus'], metadata: {} } },
+      mistake: { id: 'answer-1', answeredAt: new Date('2026-08-01T09:00:00Z'), questionRef: { knowledgeTags: ['root-locus'], metadata: governedMetadata() } },
       latest: {
         id: 'answer-2',
         answeredAt: new Date('2026-08-01T10:00:00Z'),
         isCorrect: true,
-        session: { metadata: { origin: 'konling-companion-practice', targetKnowledgeId: 'root-locus' } },
-        questionRef: { knowledgeTags: ['root-locus'], metadata: {} },
+        session: { metadata: { origin: 'konling-companion-practice', targetKnowledgeId: 'root-locus-analysis-foundations' } },
+        questionRef: { knowledgeTags: ['root-locus'], metadata: governedMetadata() },
       },
     });
     const snapshot = await resolveKonlingContinuitySnapshot(store, { userId: 'student-1' });
