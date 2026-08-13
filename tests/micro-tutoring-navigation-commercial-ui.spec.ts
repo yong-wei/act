@@ -70,12 +70,13 @@ function sourceHashAtRevision(revision: string, file: string): string {
 }
 
 function hasWorkingTreeRuntimeDrift(): boolean {
-  try {
-    execFileSync('git', ['diff', '--quiet', 'HEAD', '--', '.', `:(exclude)${evidenceRoot}`]);
-    return false;
-  } catch {
-    return true;
-  }
+  const changes = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], {
+    encoding: 'utf8',
+  }).split('\n').filter(Boolean);
+  return changes.some((change) => {
+    const file = change.slice(3).replace(/^.* -> /, '');
+    return file !== evidenceRoot && !file.startsWith(`${evidenceRoot}/`);
+  });
 }
 
 function captureSourceSnapshot(): SourceSnapshot {
