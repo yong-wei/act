@@ -871,7 +871,7 @@ export async function readAdaptiveLearnerState(
   ]);
 
   const masteryFacts = uniqueFactsById([
-    ...facts,
+    ...personalizationFacts,
     ...await readAdaptiveMasteryLearningFacts(db, input.userId, masteryUpdates),
   ]);
 

@@ -417,7 +417,7 @@ describe('simulation agent evidence materialization', () => {
     expect(result.learningFacts).toEqual([]);
   });
 
-  it('materializes approved deterministic AgentToolRun evidence into simulation-agent feature inputs', () => {
+  it('keeps approved deterministic AgentToolRun evidence out of personalized feature inputs', () => {
     const result = buildSimulationAgentEvidenceMaterialization({
       agentToolRuns: [
         agentToolRun({
@@ -443,6 +443,12 @@ describe('simulation agent evidence materialization', () => {
       sourceEventId: 'simulation-agent-evidence:agent_tool_run:tool-run-1:analysis-1',
       sourceLogId: 'AgentToolRun:tool-run-1',
       contextJson: {
+        evidenceGovernance: {
+          evidenceQuality: 'partial',
+          profileWeight: 0,
+          skipProfileContribution: true,
+          policyReason: 'unmanaged_learning_fact_context_only',
+        },
         agentTool: {
           agentToolRunId: 'tool-run-1',
           simulationRunId: 'run-1',
@@ -460,12 +466,12 @@ describe('simulation agent evidence materialization', () => {
       now: completedAt,
     });
     expect(payload.features.simulationArena.allTime).toMatchObject({
-      evidenceCount: 1,
-      agentAssistedCount: 1,
-      traceReferenceCount: 1,
+      evidenceCount: 0,
+      agentAssistedCount: 0,
+      traceReferenceCount: 0,
       interventionOutcome: {
-        reviewedCount: 1,
-        improvedCount: 1,
+        reviewedCount: 0,
+        improvedCount: 0,
         lowConfidenceCount: 0,
       },
     });
@@ -514,7 +520,7 @@ describe('simulation agent evidence materialization', () => {
     });
   });
 
-  it('feeds feature cache and teacher scope from materialized summaries without raw trace scans', () => {
+  it('excludes context-only simulation summaries from feature cache and teacher scope', () => {
     const result = buildSimulationAgentEvidenceMaterialization({
       simulationRuns: [
         {
@@ -544,14 +550,14 @@ describe('simulation agent evidence materialization', () => {
       now: completedAt,
     });
     expect(payload.features.simulationArena.allTime).toMatchObject({
-      evidenceCount: 1,
-      previewCount: 1,
-      agentAssistedCount: 1,
-      traceReferenceCount: 1,
+      evidenceCount: 0,
+      previewCount: 0,
+      agentAssistedCount: 0,
+      traceReferenceCount: 0,
       replayConfidence: {
-        average: 0.45,
+        average: null,
         highConfidenceCount: 0,
-        lowConfidenceCount: 1,
+        lowConfidenceCount: 0,
       },
     });
     expect(JSON.stringify(payload.features.simulationArena)).not.toContain('samples');
@@ -564,7 +570,7 @@ describe('simulation agent evidence materialization', () => {
         now: completedAt,
       },
     );
-    expect(scoped.get('student-1')?.allTime.evidenceCount).toBe(1);
+    expect(scoped.get('student-1')?.allTime.evidenceCount).toBe(0);
     expect(scoped.get('student-2')?.allTime.evidenceCount).toBe(0);
   });
 });

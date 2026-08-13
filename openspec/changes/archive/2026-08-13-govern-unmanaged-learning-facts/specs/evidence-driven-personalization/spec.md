@@ -27,3 +27,7 @@ The system SHALL use governed evidence, snapshots, summaries, or student evidenc
 - **WHEN** personalization consumers are upgraded to governed evidence
 - **THEN** the change SHALL preserve the existing recommendation scope and competency model
 - **AND** it SHALL NOT introduce a new AI recommendation engine
+
+#### Scenario: Simulation features contribute to weak-area rationale
+- **WHEN** simulation or Arena-derived feature cache data identifies weak metrics, repeated constraint failures, low replay confidence, or incomplete evidence
+- **THEN** personalization output SHALL be able to reference those governed features as rationale with source coverage and confidence metadata
