@@ -1,5 +1,8 @@
-## ADDED Requirements
+# authority-domain-display-catalog Specification
 
+## Purpose
+TBD - created by archiving change define-authority-domain-display-catalog. Update Purpose after archive.
+## Requirements
 ### Requirement: Authority navigation uses a reviewed domain catalog
 The system SHALL publish a versioned display catalog containing exactly the eight registered engineering domains `system-modeling`, `time-domain-analysis`, `stability-analysis`, `frequency-domain-analysis`, `root-locus`, `classical-control-design`, `discrete-time-control-analysis`, and `state-space-control-analysis-and-design`. The control-theory integration component SHALL be an aggregate navigation entry and SHALL NOT be counted as a ninth peer domain.
 
@@ -18,7 +21,7 @@ Each catalog member SHALL reference an object present in the bound Authority sel
 #### Scenario: Object spans analysis and design domains
 - **WHEN** reviewers assign one Authority object to multiple domains
 - **THEN** each domain shard SHALL reference the same canonical object
-- **AND** the product SHALL present its other domain memberships without duplicating the object as separate knowledge facts
+- **AND** the runtime catalog SHALL retain its other reviewed domain memberships without duplicating the object as a separate knowledge fact
 
 #### Scenario: Membership references an absent object
 - **WHEN** a catalog member is not present in the bound Authority selection
@@ -27,7 +30,7 @@ Each catalog member SHALL reference an object present in the bound Authority sel
 ### Requirement: Domain presentation is human-readable and source-safe
 Every domain and aggregate entry SHALL have reviewed Chinese name, summary, order and presentation role. Product-visible text, accessible names, tooltips and copy surfaces SHALL NOT contain catalog keys, Authority object identifiers, release identifiers, hashes or raw enum values.
 
-#### Scenario: Root navigation is rendered
-- **WHEN** any product role opens the Authority root view
+#### Scenario: Root navigation DTO is projected
+- **WHEN** the runtime catalog is projected into a root navigation DTO
 - **THEN** each entry SHALL be identified by its reviewed human name and summary
 - **AND** no internal catalog or Authority identity SHALL be exposed

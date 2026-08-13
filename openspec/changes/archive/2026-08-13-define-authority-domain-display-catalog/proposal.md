@@ -15,10 +15,6 @@
 ### New Capabilities
 - `authority-domain-display-catalog`: 定义 Authority 人类导航领域、成员关系、汇总入口与版本化审核合同。
 
-### Modified Capabilities
-- `active-authority-semantic-graph-presentation`: 允许明确标识的展示导航节点先于真实 Authority 对象出现，同时禁止将展示节点或汇总边表达为工程事实。
-- `resource-node-knowledge-workspace-ui`: 以经过审核的多对多领域目录替代单一推断归属，并保持领域入口的渐进加载合同。
-
 ## Impact
 
-影响 Authority 图谱投影生成、领域目录工件、根级接口、工作区导航与治理测试；不修改 ActKG 对象、关系、选择器或生产 Authority 身份。
+影响领域目录工件、根级受控读取接口与治理测试；领域分片、工作区导航与图谱入口消费由本系列的后续变更实现。本项不修改 ActKG 对象、关系、选择器或生产 Authority 身份。
