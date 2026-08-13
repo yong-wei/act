@@ -34,7 +34,7 @@ describe('adaptive path journey contracts', () => {
       context: { requestedNodeId: 'node-1' },
       current: { nodeId: 'node-2', title: '校正练习', type: 'adaptive_quiz' },
       progress: { completed: 1, total: 2 },
-      return: { href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-2' },
+      return: { href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1' },
       pathStatus: 'active',
       nextAction: {
         state: 'ready',
@@ -46,6 +46,19 @@ describe('adaptive path journey contracts', () => {
       },
     });
     expect(journey.nextAction.href).toContain('pathId=path-1');
+    expect(journey.nextAction.href).toContain('nodeId=node-2');
+  });
+
+  it('returns from node execution to the current path overview', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath(), { requestedNodeId: 'node-1' });
+
+    expect(journey.return).toEqual({
+      label: '返回学习路径',
+      href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1',
+    });
+    expect(journey.return.href).not.toContain('nodeId=');
+    expect(journey.return.href).toContain('intent=path-execution');
+    expect(journey.return.href).toContain('pathId=path-1');
     expect(journey.nextAction.href).toContain('nodeId=node-2');
   });
 
