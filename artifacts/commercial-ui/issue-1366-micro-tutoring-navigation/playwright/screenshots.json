@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-08-13T05:55:31.667Z",
-  "gitRevision": "bfda2bc6b9e23ec06d6835d1371c0b8b19176c0f",
+  "capturedAt": "2026-08-13T06:41:01.914Z",
+  "gitRevision": "bedfdb5258160c3068f679fe67c589a4b4ca1238",
   "evidence": [
     {
       "file": "student-home-light-desktop-1440.png",
@@ -9,7 +9,7 @@
       "viewport": "desktop-1440",
       "width": 1440,
       "height": 1000,
-      "sha256": "e41be52bfcca648a9659c0a696e62175a37211c408acf638ea37019ea42e4f44",
+      "sha256": "54bcd39269c260559a647d27152639788d3d3031fed648566994daa182c2160a",
       "noHorizontalOverflow": true,
       "clientNavigation": false,
       "noReactScriptTagConsoleError": true
@@ -21,7 +21,7 @@
       "viewport": "desktop-1440",
       "width": 1440,
       "height": 1000,
-      "sha256": "53fef3720299ebcae7ad7b0efdff50fc968dbaed44dfb112be96fc94b615b15f",
+      "sha256": "7e561ad0be134825b6fb66c185356a4aa73538c2f298c8cd98a547a20d868945",
       "noHorizontalOverflow": true,
       "clientNavigation": true,
       "noReactScriptTagConsoleError": true
@@ -33,7 +33,7 @@
       "viewport": "desktop-1440",
       "width": 1440,
       "height": 1000,
-      "sha256": "fd2fc045d803d033cc02b1bafb85629a260987d9a29d69a95855e844a38c7dfd",
+      "sha256": "906677258581636e43c79a050d884248ec97edc2d5bb47e7aaa493891405a397",
       "noHorizontalOverflow": true,
       "clientNavigation": false,
       "noReactScriptTagConsoleError": true
@@ -45,7 +45,7 @@
       "viewport": "desktop-1440",
       "width": 1440,
       "height": 1000,
-      "sha256": "9bbb7fa76f79e5baffe152c7cbeb45212d555567a7741a1abb18a2f41ec6f6ac",
+      "sha256": "9ba21d1f5ee4769f848b97e44da1c531ee83bf447ba4be0fce8663d738a10132",
       "noHorizontalOverflow": true,
       "clientNavigation": true,
       "noReactScriptTagConsoleError": true
@@ -57,7 +57,7 @@
       "viewport": "mobile-320",
       "width": 320,
       "height": 900,
-      "sha256": "a710f59b280133d08de4c63ff9d8df68a97d098f9c24027570e77ff059e1b675",
+      "sha256": "aee39484ae93211adb88ad4a4e92962efac25e694f7799dd381cf8c40e3dc800",
       "noHorizontalOverflow": true,
       "clientNavigation": false,
       "noReactScriptTagConsoleError": true
@@ -69,7 +69,7 @@
       "viewport": "mobile-320",
       "width": 320,
       "height": 900,
-      "sha256": "94a1f0eb27a854f685d1c65c65254fa1bdf1d912e1d468a0ee5766882da19057",
+      "sha256": "0a9710acb82f6689b361c158b838d13c360cb714938ee67a635dc0758f1e0b90",
       "noHorizontalOverflow": true,
       "clientNavigation": true,
       "noReactScriptTagConsoleError": true
@@ -81,7 +81,7 @@
       "viewport": "mobile-320",
       "width": 320,
       "height": 900,
-      "sha256": "f01f93430a867500600e5074811d250cb77829c7b42a304410d091f582286dde",
+      "sha256": "37d222ec5587c4d4b54b30579d722e658adcd75895f86a83ce54459d33f3f242",
       "noHorizontalOverflow": true,
       "clientNavigation": false,
       "noReactScriptTagConsoleError": true
@@ -93,7 +93,7 @@
       "viewport": "mobile-320",
       "width": 320,
       "height": 900,
-      "sha256": "9cb995c3c65113119293938c67fa1461385722243e195ca737aaa1ca49746af7",
+      "sha256": "486694c59d7fd8a50f61683a838e841092eda981226af8ba9db184c735ea5d31",
       "noHorizontalOverflow": true,
       "clientNavigation": true,
       "noReactScriptTagConsoleError": true
