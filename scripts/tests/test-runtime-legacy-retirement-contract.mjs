@@ -31,7 +31,7 @@ try {
   executable('flock', 'exit 0');
   executable('systemctl', 'exit 0');
   executable('findmnt', 'if [[ "$*" == *FSTYPE* ]]; then printf "fuse.ossfs\\n"; else printf "ro\\n"; fi');
-  executable('podman', 'if [[ "$*" == *"act-obe-app" ]]; then printf "%s\\t/app/course-content/runtime\\t[ro rbind]\\n%s/knowledge/projection\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT" "$ACT_TEST_MOUNT"; fi');
+  executable('podman', 'if [[ "$*" == *"act-obe-app" ]]; then printf "%s\\t/app/course-content/runtime\\t%s\\n%s/knowledge/projection\\t/app/course-content/runtime/knowledge/projection\\tfalse\\n" "$ACT_TEST_MOUNT" "${ACT_TEST_RUNTIME_RW:-false}" "$ACT_TEST_MOUNT"; fi');
   executable('curl', 'exit 0');
   executable('df', 'printf "Filesystem 1B-blocks Used Available Use%% Mounted on\\n/dev/test 1000 100 900 10%% /\\n"');
   executable('du', 'printf "16\\t%s\\n" "${@: -1}"');
@@ -66,6 +66,29 @@ try {
   assert.equal(retirement.rollbackMountVerified, true);
   assert.equal(retirement.legacyRuntimeBytesBefore, 16);
   assert.equal(retirement.legacyRuntimeFilesBefore, 1);
+  const writableLegacy = path.join(temporary, 'legacy-writable');
+  fs.mkdirSync(writableLegacy, { recursive: true });
+  fs.writeFileSync(path.join(writableLegacy, 'runtime.json'), '{"legacy":true}\n');
+  const writable = spawnSync('bash', [script,
+    '--release-id', 'runtime-new',
+    '--rollback-release-id', 'runtime-old',
+    '--rollback-verification-receipt', rollbackReceipt,
+    '--ram-role', 'act-runtime-oss-read',
+    '--legacy-runtime-root', writableLegacy,
+    '--mount-root', mountRoot,
+    '--state-dir', state,
+    '--host-state-script', hostState,
+    '--ossfs-config-script', path.join(bin, 'configure-ossfs'),
+    '--app-port', '8084',
+    '--report', path.join(temporary, 'writable-report.json'),
+  ], {
+    cwd: root,
+    encoding: 'utf8',
+    env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, ACT_TEST_MOUNT: path.join(mountRoot, 'runtime-new'), ACT_TEST_RUNTIME_RW: 'true' },
+  });
+  assert.notEqual(writable.status, 0, 'a writable app runtime bind must block legacy retirement');
+  assert.match(writable.stderr, /must bind the active OSS runtime exactly once read-only/);
+  assert.equal(fs.existsSync(writableLegacy), true, 'a writable app runtime bind must preserve the legacy runtime');
   const driftLegacy = path.join(temporary, 'legacy-drift');
   const driftReport = path.join(temporary, 'drift-report.json');
   const activeCounter = path.join(temporary, 'active-count');
@@ -128,7 +151,7 @@ try {
     makeBlocked('flock', 'exit 0');
     makeBlocked('systemctl', 'exit 0');
     makeBlocked('findmnt', 'if [[ "$*" == *FSTYPE* ]]; then printf "fuse.ossfs\\n"; else printf "ro\\n"; fi');
-    makeBlocked('podman', 'if [[ "$*" == *"act-obe-app" ]]; then printf "%s\\t/app/course-content/runtime\\t[ro rbind]\\n%s/knowledge/projection\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT" "$ACT_TEST_MOUNT"; if [[ "${ACT_TEST_APP_NESTED:-}" == 1 ]]; then printf "%s\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT"; fi; elif [[ "${ACT_TEST_WORKER_NESTED:-}" == 1 ]]; then printf "%s\\t/app/course-content/runtime/knowledge/projection\\t[ro rbind]\\n" "$ACT_TEST_MOUNT"; elif [[ "${ACT_TEST_WORKER_LEGACY:-}" == 1 ]]; then printf "%s/knowledge/projection\\t/app/other\\t[ro rbind]\\n" "$ACT_TEST_LEGACY"; fi');
+    makeBlocked('podman', 'if [[ "$*" == *"act-obe-app" ]]; then printf "%s\\t/app/course-content/runtime\\tfalse\\n%s/knowledge/projection\\t/app/course-content/runtime/knowledge/projection\\tfalse\\n" "$ACT_TEST_MOUNT" "$ACT_TEST_MOUNT"; if [[ "${ACT_TEST_APP_NESTED:-}" == 1 ]]; then printf "%s\\t/app/course-content/runtime/knowledge/projection\\tfalse\\n" "$ACT_TEST_MOUNT"; fi; elif [[ "${ACT_TEST_WORKER_NESTED:-}" == 1 ]]; then printf "%s\\t/app/course-content/runtime/knowledge/projection\\tfalse\\n" "$ACT_TEST_MOUNT"; elif [[ "${ACT_TEST_WORKER_LEGACY:-}" == 1 ]]; then printf "%s/knowledge/projection\\t/app/other\\tfalse\\n" "$ACT_TEST_LEGACY"; fi');
     makeBlocked('curl', 'exit 0');
     makeBlocked('df', 'printf "Filesystem 1B-blocks Used Available Use%% Mounted on\\n/dev/test 1000 100 900 10%% /\\n"');
     makeBlocked('du', 'printf "16\\t%s\\n" "${@: -1}"');
