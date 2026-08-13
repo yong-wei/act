@@ -31,6 +31,13 @@ Append-only, immutable domain shards of reviewed core-node memberships and direc
   - `modern-discrete-time-v1.{source,worklist,authoring,json,coverage}.json`
   - `modern-state-space-v1.{source,worklist,authoring,json,coverage}.json`
   - Each worklist keeps the exact node as a `DEFER`/`authority unresolved` candidate with domain-specific CourseCoverage evidence (`issue-1195` for discrete time, `issue-1208` for state space); it is not a denominator member. Range-level deferred/excluded boundary notices carry no synthetic relation endpoint.
+- **Generation 3** (global combination, #1374; does not rewrite generation-2, modern, foundation or classical published bytes):
+  - `generation-3/authority-source.json` and `generation-3/conversion-protocol.json` pin the complete 4891-node Authority envelope and the closed identity allowlist.
+  - `generation-3/upstream-pins.json` records each upstream path, original byte digest, original published/semantic digest, resealed digest and snapshot binding.
+  - `generation-3/foundation-fragment.*`, `generation-3/foundation-three-domain-fragment.*` and `generation-3/classical-fragment.*` reseal existing teaching semantics against that envelope.
+  - `generation-3/modern-discrete-time.*` and `generation-3/modern-state-space.*` reseal the empty modern shards, keeping unresolved `DEFER` candidates and empty denominators.
+  - `generation-3/cross-domain.*` is an empty reviewed fragment: no admissible direct ACT_TEACHING candidate, zero core nodes/relations/denominator.
+  - `generation-3/composed-manifest.json` is the unrelaxed global composition.
 - **Fixtures**: `fixtures/` verification samples only
 - **Source inventory**: `../prerequisites/inventory/` (translated without semantic change)
 

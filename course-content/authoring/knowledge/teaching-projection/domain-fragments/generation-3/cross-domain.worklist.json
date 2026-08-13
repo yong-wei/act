@@ -1,0 +1,149 @@
+{
+  "contract": "act-cross-domain-teaching-worklist/v1",
+  "fragmentKey": "cross-domain-v1",
+  "fragmentVersion": "1",
+  "domainKeys": [
+    "system-modeling",
+    "time-domain-analysis",
+    "stability-analysis",
+    "frequency-domain-analysis",
+    "root-locus",
+    "classical-control-design",
+    "discrete-time-control-analysis",
+    "state-space-control-analysis-and-design"
+  ],
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40"
+  },
+  "denominatorNodeIds": [],
+  "coreNodes": [],
+  "relations": [],
+  "collectedCandidates": [
+    {
+      "candidateId": "foundation-gain-to-stability",
+      "originWorklist": "foundation-three-domain-v1.worklist.json",
+      "sourceNodeId": "ctc:modeling-00d2998755974a1329049aac",
+      "targetNodeId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "originStatus": "unresolved",
+      "reason": "证据仅为同课共现，未形成直接教学顺序，故不得发布 ACT_TEACHING。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "foundation-stability-to-settling-time",
+      "originWorklist": "foundation-three-domain-v1.worklist.json",
+      "sourceNodeId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "targetNodeId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "originStatus": "unresolved",
+      "reason": "证据只形成三域链条，不能将其转写为直接先修，故不得发布 ACT_TEACHING。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "foundation-step-response-to-settling-time",
+      "originWorklist": "foundation-three-domain-v1.worklist.json",
+      "sourceNodeId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "targetNodeId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "originStatus": "published",
+      "reason": "已在 foundation 领域分片发布，不是新增跨领域 ACT_TEACHING 候选。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "classical-4-7-bode-to-lead",
+      "originWorklist": "generation-2/classical-worklist.json",
+      "sourceNodeId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "targetNodeId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "originStatus": "ACCEPTED",
+      "reason": "已在 classical 领域分片发布，不是新增跨领域 ACT_TEACHING 候选。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "classical-4-7-root-locus-to-lead",
+      "originWorklist": "generation-2/classical-worklist.json",
+      "sourceNodeId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "targetNodeId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "originStatus": "ACCEPTED",
+      "reason": "已在 classical 领域分片发布，不是新增跨领域 ACT_TEACHING 候选。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "engineering-only-root-locus-to-compensator",
+      "originWorklist": "generation-2/classical-worklist.json",
+      "sourceNodeId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "targetNodeId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "originStatus": "PENDING",
+      "reason": "冻结 Authority 快照存在工程应用和关联边，但当前 ACT 课案没有确认该对对象的直接学习依赖，因此不得发布 ACT_TEACHING 先修边。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "modern-discrete-time-v1:cross-domain-entry",
+      "originWorklist": "modern-discrete-time-v1.worklist.json",
+      "sourceNodeId": null,
+      "targetNodeId": null,
+      "originStatus": "deferred",
+      "reason": "跨域入口说明留给独立 cross-domain 变更审核。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "modern-discrete-time-v1:non-catalog-engineering-adjacency",
+      "originWorklist": "modern-discrete-time-v1.worklist.json",
+      "sourceNodeId": null,
+      "targetNodeId": null,
+      "originStatus": "excluded",
+      "reason": "非 catalog 工程邻接不是 ACT_TEACHING 证据，明确排除出本地分片。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "modern-discrete-time-v1:unresolved:ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "originWorklist": "modern-discrete-time-v1.worklist.json",
+      "sourceNodeId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "targetNodeId": null,
+      "originStatus": "DEFER",
+      "reason": "CourseCoverage 阶段结论为 DEFER，authority unresolved；当前无 lesson、syllabus 或 curriculum 的独立 ACT admission evidence，因此候选不得进入已接纳分母。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "modern-state-space-v1:cross-domain-entry",
+      "originWorklist": "modern-state-space-v1.worklist.json",
+      "sourceNodeId": null,
+      "targetNodeId": null,
+      "originStatus": "deferred",
+      "reason": "跨域入口说明留给独立 cross-domain 变更审核。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "modern-state-space-v1:non-catalog-engineering-adjacency",
+      "originWorklist": "modern-state-space-v1.worklist.json",
+      "sourceNodeId": null,
+      "targetNodeId": null,
+      "originStatus": "excluded",
+      "reason": "非 catalog 工程邻接不是 ACT_TEACHING 证据，明确排除出本地分片。",
+      "admissibleDirectActTeaching": false
+    },
+    {
+      "candidateId": "modern-state-space-v1:unresolved:ctkg:v3e-object-0bb7941e989275e607a110d0",
+      "originWorklist": "modern-state-space-v1.worklist.json",
+      "sourceNodeId": "ctkg:v3e-object-0bb7941e989275e607a110d0",
+      "targetNodeId": null,
+      "originStatus": "DEFER",
+      "reason": "CourseCoverage 阶段结论为 DEFER，authority unresolved；当前无 lesson、syllabus 或 curriculum 的独立 ACT admission evidence，因此候选不得进入已接纳分母。",
+      "admissibleDirectActTeaching": false
+    }
+  ],
+  "acceptedDirectActTeachingCandidates": [],
+  "noAdmissibleDirectActTeachingCandidate": true,
+  "reason": "已收集的 foundation / classical / modern 边界候选均不是可接纳的直接 ACT_TEACHING 边：已发布边留在原领域分片，未解决项仍非直接教学顺序，工程邻接与无端点跨域入口不得造边。",
+  "inputDigest": "b3943a26eb1338437c60bfb12ed37a44d569c258ae862b21211469868d7182f1"
+}
