@@ -141,6 +141,7 @@ function verifyCutoverFailureGate() {
       'knowledge/consumer-activation/current.json',
       'knowledge/projection/current.json',
       'knowledge/prerequisites/current.json',
+      'knowledge/authority-domain-shards/current.json',
     ]) {
       assert.match(
         rsyncArgs,
@@ -357,6 +358,7 @@ function main() {
     'knowledge/consumer-activation/current.json',
     'knowledge/projection/current.json',
     'knowledge/prerequisites/current.json',
+    'knowledge/authority-domain-shards/current.json',
   ]) {
     assert.match(
       script,

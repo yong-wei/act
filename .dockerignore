@@ -60,6 +60,8 @@ course-content/runtime/resource-governance/*
 # Activation-gate Authority / Teaching Projection stores (Konling dual-domain #1274)
 !course-content/runtime/knowledge
 course-content/runtime/knowledge/*
+!course-content/runtime/knowledge/authority-domain-shards
+!course-content/runtime/knowledge/authority-domain-shards/**
 !course-content/runtime/knowledge/projection
 !course-content/runtime/knowledge/projection/**
 # Authoring authority store is under authoring/knowledge (not fully ignored by default)

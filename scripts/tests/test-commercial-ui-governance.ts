@@ -2318,12 +2318,24 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
   const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
   const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
+  const activeAuthorityShardStoreSourcePath = 'src/features/knowledge/active-authority-shard-store.ts';
   const activeAuthorityPresentationSourcePath = 'src/features/knowledge/active-authority-presentation.ts';
   const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
+  const authorityShardContractsSourcePath = 'src/lib/authority-domain-shards/contracts.ts';
+  const authorityShardEnvelopeSourcePath = 'src/lib/authority-domain-shards/envelope.ts';
+  const authorityShardLoaderSourcePath = 'src/lib/authority-domain-shards/loader.ts';
+  const authorityShardMaterializeSourcePath = 'src/lib/authority-domain-shards/materialize.ts';
+  const activeAuthorityApiSourcePath = 'src/app/api/knowledge/_active-authority.ts';
+  const authorityShardRootRouteSourcePath = 'src/app/api/knowledge/shards/active/route.ts';
+  const authorityShardDomainRouteSourcePath = 'src/app/api/knowledge/shards/active/domains/[domain]/route.ts';
+  const authorityShardFamilyRouteSourcePath = 'src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts';
+  const authorityShardNeighborhoodRouteSourcePath = 'src/app/api/knowledge/shards/active/neighborhoods/[id]/route.ts';
+  const authorityShardNodeRouteSourcePath = 'src/app/api/knowledge/shards/active/nodes/[id]/route.ts';
   const knowledgePageSourcePath = 'src/app/knowledge/page.tsx';
   const adaptivePracticePageSourcePath = 'src/app/assessment/adaptive-practice/page.tsx';
   const graph2dSourcePath = 'src/features/knowledge/graph/knowledge-graph-2d.tsx';
   const graph3dSourcePath = 'src/features/knowledge/graph/knowledge-graph-canvas.tsx';
+  const relationFamilyControlSourcePath = 'src/features/knowledge/graph/relation-family-control.tsx';
   const graphVisualConfigSourcePath = 'src/features/knowledge/graph/visual-config.ts';
   const resourcePanelSourcePath = 'src/features/knowledge/resource-panel/resource-panel.tsx';
   const globalAiButtonSourcePath = 'src/components/ai/global-ai-button.tsx';
@@ -2339,12 +2351,24 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     graphSourcePath,
     knowledgeWorkspaceSourcePath,
     activeAuthorityGraphSourcePath,
+    activeAuthorityShardStoreSourcePath,
     activeAuthorityPresentationSourcePath,
     activeAuthorityGraphContractsSourcePath,
+    authorityShardContractsSourcePath,
+    authorityShardEnvelopeSourcePath,
+    authorityShardLoaderSourcePath,
+    authorityShardMaterializeSourcePath,
+    activeAuthorityApiSourcePath,
+    authorityShardRootRouteSourcePath,
+    authorityShardDomainRouteSourcePath,
+    authorityShardFamilyRouteSourcePath,
+    authorityShardNeighborhoodRouteSourcePath,
+    authorityShardNodeRouteSourcePath,
     knowledgePageSourcePath,
     adaptivePracticePageSourcePath,
     graph2dSourcePath,
     graph3dSourcePath,
+    relationFamilyControlSourcePath,
     graphVisualConfigSourcePath,
     resourcePanelSourcePath,
     globalAiButtonSourcePath,

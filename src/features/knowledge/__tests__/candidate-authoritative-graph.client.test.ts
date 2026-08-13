@@ -135,31 +135,25 @@ const canvas = {
   ],
 };
 
-const activeCanvas = {
-  ...canvas,
-  source: {
-    ...canvas.source,
-    authorityState: 'active' as const,
-    projectionDigest: null,
+const activeRootShard = {
+  shardClass: 'root' as const,
+  envelope: {
+    contract: 'act-authority-shard-envelope/v1' as const,
+    authorityCatalogVersion: 'acv-active-shards',
+    teachingVersion: null,
+    match: { authority: true, catalog: true, teaching: null },
   },
-  provenance: {
-    authority: {
-      consumerId: 'engineering-graph' as const,
-      snapshotId: 'snap-active',
-      snapshotHash: 'a'.repeat(64),
-      releaseId: 'control-theory-engineering-v0.12',
-      releaseSetId: 'actkg-engineering-authority',
-    },
-    activation: {
-      mode: 'use-combination' as const,
-      status: 'READY' as const,
-      activationId: 'activation-active',
-      activationHash: 'c'.repeat(64),
-    },
-    projection: {
-      status: 'not-applicable' as const,
-      projectionId: null,
-      projectionHash: null,
+  root: {
+    kind: 'presentation-root-catalog' as const,
+    domains: [],
+    aggregate: {
+      kind: 'presentation-aggregate' as const,
+      order: 0,
+      displayName: '控制理论综合',
+      summary: '汇总入口',
+      presentationRole: 'aggregate' as const,
+      visualRole: 'aggregate' as const,
+      domainCount: 8,
     },
   },
 };
@@ -242,8 +236,8 @@ describe('candidate authoritative graph client isolation', () => {
         status: 200,
         json: async () => url.includes('/nodes/active/')
           ? detail(nodeId)
-          : url.endsWith('/graph/active')
-            ? activeCanvas
+          : url.endsWith('/shards/active')
+            ? activeRootShard
             : url.includes('/nodes/v2/') ? detail(nodeId) : canvas,
       };
     });
@@ -358,7 +352,7 @@ describe('candidate authoritative graph client isolation', () => {
     expect(resetCore.getAttribute('aria-pressed')).toBe('false');
     expect(container.querySelector('[data-candidate-node-detail]')).toBeNull();
     expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
-      '/api/knowledge/graph/active',
+      '/api/knowledge/shards/active',
       '/api/knowledge/graph/v2',
       '/api/knowledge/nodes/v2/concept',
       '/api/knowledge/nodes/v2/formula',
@@ -374,7 +368,7 @@ describe('candidate authoritative graph client isolation', () => {
     expect(container.querySelector('[data-candidate-node-detail="formula"]')).not.toBeNull();
     expect(container.textContent).toContain('edition-1 · section-1');
     expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
-      '/api/knowledge/graph/active',
+      '/api/knowledge/shards/active',
       '/api/knowledge/graph/v2',
       '/api/knowledge/nodes/v2/formula',
     ]);
@@ -403,7 +397,7 @@ describe('candidate authoritative graph client isolation', () => {
     });
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
     expect(container.textContent).not.toContain('受控候选诊断');
-    expect(fetchMock).toHaveBeenCalledWith('/api/knowledge/graph/active', expect.any(Object));
+    expect(fetchMock).toHaveBeenCalledWith('/api/knowledge/shards/active', expect.any(Object));
   });
 
   it('shows a candidate error without requesting Legacy fallback', async () => {
@@ -411,7 +405,7 @@ describe('candidate authoritative graph client isolation', () => {
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => activeCanvas,
+        json: async () => activeRootShard,
       })
       .mockResolvedValueOnce({
         ok: false,

@@ -1,47 +1,36 @@
 # 知识工作区产品 QA 独立视觉复核
 
-最终结论：PASS（`finalResult=passed`，无阻断 finding）。
+最终结论：PASS（`finalResult=passed`，`blockingFindings=[]`）。
 
-## 审核身份与绑定范围
+## 审查范围与绑定
 
-Grok 4.5 在只读范围完成独立视觉复核，未修改项目文件、暂存区或 Git 历史。
+- 审查范围：提交 `6f4045a49fb01249246b350b47717290fa1f80f9`，树 `3e1574a1b0c80ee89e7da7acf9ef33449fdcdcb2`。
+- 复核对象：29 项产品状态矩阵、4 项 active Authority 响应式矩阵、三种已认证角色的交互与焦点记录。
+- 绑定：33/33 截图 SHA-256、宽高与当前 `browser-evidence.json` 一致；32/32 受管源码 SHA-256 同时匹配捕获提交 blob 与当前工作树。精确 `reviewedStateSha256` 与 `reviewedSourceSha256` 由同文件的 `independentVisualReview` 字段承载。
+- 审查者：`independent-reviewer (gpt-5.6-sol medium)`，只读复核；未修改项目文件、暂存区或 Git 历史。
+- 使用 Grok 4.6 的专项只读审查未在限定窗口内生成可验证终态，未作为通过证据。
 
-- commit：`2bae1c52acf9b1bb5c833b7d895707ff99785518`
-- tree：`23e9c6b3490c30b297f338f033f298cb152766c7`
-- 复核对象：29 项状态矩阵、4 项活跃权威响应式矩阵，以及三种已认证角色的交互与焦点证据。
-- 绑定：全部 33 项截图和 21 项受管源码哈希与当前产品 QA 浏览器证据逐项相同。
+## 结论
 
-## 视觉结论
+| 维度 | 结果 |
+| --- | --- |
+| handoffAlignment | PASS |
+| conceptAdoptionRejection | PASS |
+| appShellContinuity | PASS |
+| localTools | PASS |
+| semanticMap | PASS |
+| inspectorHierarchy | PASS |
+| konlingDock | PASS |
+| interactionStability | PASS |
+| keyboardFocus | PASS |
+| themeParity | PASS |
+| mobileBehavior | PASS |
+| tabletBreakpoint | PASS |
+| stressNonOverlap | PASS |
+| canvasGeometry | PASS |
 
-| 维度 | 结果 | 依据 |
-| --- | --- | --- |
-| handoffAlignment | PASS | 共享应用壳、局部工具与 Konling Dock 保持既定交接结构。 |
-| conceptAdoptionRejection | PASS | 未出现独立全局导航、重复助手区域或模拟角色切换器。 |
-| appShellContinuity | PASS | 折叠、展开、应力与相关页面状态保持同一应用壳。 |
-| localTools | PASS | 目录、筛选与视图工具在矩阵状态中可见且不重叠。 |
-| semanticMap | PASS | 默认、选中邻域和全部关系族状态呈现真实节点、边与关系控制；有向箭头止于目标形状边界，无向关联不表达出入方向，选中节点相邻边得到强调。 |
-| inspectorHierarchy | PASS | 桌面详情与移动检查器层级清楚。 |
-| konlingDock | PASS | 选中、无选择、降级与应力状态保持同一 Dock。 |
-| interactionStability | PASS | 拖拽、重排和选择交互保持稳定。 |
-| keyboardFocus | PASS | 角色详情交互覆盖打开、Escape 与返回原语义节点或画布。 |
-| themeParity | PASS | 明暗主题中的结构、控件位置与可读性一致。 |
-| mobileBehavior | PASS | 320px 双列六节点画布、标签与检查器在移动状态下可读。 |
-| tabletBreakpoint | PASS | 1024、1100、1279 宽度下工具、检查器与 Konling 无重叠。 |
-| stressNonOverlap | PASS | 状态矩阵与活跃权威矩阵均未出现有害重叠。 |
-| canvasGeometry | PASS | 活跃画布中的节点、边端点与标签均处于 SVG 几何边界内。 |
+`active-desktop-dark`、`active-desktop-light`、`active-tablet` 与 `active-mobile` 均通过。`active-desktop-light` 的直接原图复核显示非空的节点、关系边及受控可读标签，和 DOM/SVG 几何记录一致。本轮亦核验重捕获的 hover、stress 和三个 tablet 截图。
 
-## 活跃权威画布证据
+此前“浅色 active Authority 画布为空白”的 P1 主张为工具渲染误读，已 REJECT；同一精确文件的直接原图可复现其非空图形，不存在可达产品缺陷。
 
-- desktop-dark：8 个节点、12 条关系；节点、边端点与标签均可见。
-- desktop-light、tablet：24 个节点、37 条关系；四行上限布局无裁切。
-- mobile：6 个节点、10 条关系；最小有效标签像素为 10.32。
-- 所有活跃状态均记录有效 SVG 几何；详情态与三种角色的受控语义详情、邻接关系和焦点返回均通过。
-- 搜索结果不再截断；类型筛选后选择对象会回到完整的一跳真实拓扑，跨类型邻居与关系保持可见。
-- 搜索结果首次只渲染 12 项并显示总数；用户可通过明确的“加载更多”控件继续访问后续结果，避免大图搜索一次性创建无界 DOM。
-- 详情在切换对象后聚焦新详情面板；Escape 返回原语义节点或语义画布。
-
-## 非阻断观察
-
-- 320px 静态 PNG 的抗锯齿使第三行节点不如前两行醒目；同一捕获中的 DOM、SVG 几何、节点标签与关系计数均记录为 6 个节点、10 条关系，且全部在画布内。独立审查未将其判定为 P0/P1，后续真实浏览器回放可继续关注第三行的主观可辨识度。
-
-本轮增量审查未发现新的 P0/P1 重大问题。
+本轮增量审查未发现新的 P0/P1 重大问题。残余风险：页面不会在无 root/domain-default 请求时主动轮询后台 Teaching 版本；该实时刷新能力不属于本 Issue 范围。

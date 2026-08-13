@@ -32,8 +32,22 @@ export const FIRST_ACTIVATION_COMPONENTS = [
   'consumer-activation',
 ] as const;
 
+/**
+ * The extended production plan inserts the shard pointer after the
+ * prerequisite pointer while retaining the historical four-step journal
+ * shape for old v2 transactions.
+ */
+export const FIRST_ACTIVATION_EXTENDED_COMPONENTS = [
+  'authority',
+  'projection',
+  'prerequisite',
+  'authority-domain-shards',
+  'consumer-activation',
+] as const;
+
 export type FirstActivationComponent =
-  (typeof FIRST_ACTIVATION_COMPONENTS)[number];
+  | (typeof FIRST_ACTIVATION_COMPONENTS)[number]
+  | (typeof FIRST_ACTIVATION_EXTENDED_COMPONENTS)[number];
 
 export interface FirstActivationPointerIdentity {
   component: FirstActivationComponent;
@@ -137,6 +151,20 @@ function isJournalStepStatus(value: unknown): value is FirstActivationJournalSte
     || value === 'STARTED'
     || value === 'APPLIED'
     || value === 'ROLLED_BACK';
+}
+
+function componentsForStepCount(
+  stepCount: number,
+): readonly FirstActivationComponent[] {
+  if (stepCount === FIRST_ACTIVATION_COMPONENTS.length) {
+    return FIRST_ACTIVATION_COMPONENTS;
+  }
+  if (stepCount === FIRST_ACTIVATION_EXTENDED_COMPONENTS.length) {
+    return FIRST_ACTIVATION_EXTENDED_COMPONENTS;
+  }
+  throw new FirstActivationError(
+    'first-activation journal must contain four historical or five extended component steps',
+  );
 }
 
 function assertTargetIdentity(
@@ -262,10 +290,11 @@ export function readFirstActivationJournal(journalPath: string): FirstActivation
   ) {
     throw new FirstActivationError('first-activation journal hash or contract mismatch');
   }
-  if (!Array.isArray(journal.steps) || journal.steps.length !== FIRST_ACTIVATION_COMPONENTS.length) {
+  if (!Array.isArray(journal.steps)) {
     throw new FirstActivationError('first-activation journal steps are invalid');
   }
-  for (const [index, component] of FIRST_ACTIVATION_COMPONENTS.entries()) {
+  const components = componentsForStepCount(journal.steps.length);
+  for (const [index, component] of components.entries()) {
     const step = journal.steps[index];
     if (!step || step.component !== component) {
       throw new FirstActivationError('first-activation journal step order is invalid');
@@ -280,7 +309,7 @@ export function readFirstActivationJournal(journalPath: string): FirstActivation
     normalizeLocatorPath(step.pointer.path);
   }
   const pointerLocators = journal.steps.map((step) => step.pointer.path);
-  if (new Set(pointerLocators).size !== FIRST_ACTIVATION_COMPONENTS.length) {
+  if (new Set(pointerLocators).size !== pointerLocators.length) {
     throw new FirstActivationError('first-activation journal pointer locators must be unique');
   }
   return journal;
@@ -446,6 +475,7 @@ export function readFirstActivationPointerIdentity(input: {
     authority: ['snapshotId', 'snapshotHash'],
     projection: ['projectionId', 'projectionHash'],
     prerequisite: ['publicationId', 'publicationHash'],
+    'authority-domain-shards': ['shardSetId', 'shardSetHash'],
     'consumer-activation': ['activationId', 'activationHash'],
   } as const;
   const [idField, hashField] = fields[input.component];
@@ -473,14 +503,12 @@ function assertPlan(input: {
   repoRoot: string;
   steps: readonly FirstActivationStep[];
 }): void {
-  if (input.steps.length !== FIRST_ACTIVATION_COMPONENTS.length) {
-    throw new FirstActivationError('first activation requires exactly four component steps');
-  }
+  const components = componentsForStepCount(input.steps.length);
   const pointerPaths = new Set<string>();
-  for (const [index, component] of FIRST_ACTIVATION_COMPONENTS.entries()) {
+  for (const [index, component] of components.entries()) {
     const step = input.steps[index];
     if (!step || step.component !== component || step.target.component !== component) {
-      throw new FirstActivationError(`first activation step order must be ${FIRST_ACTIVATION_COMPONENTS.join(' → ')}`);
+      throw new FirstActivationError(`first activation step order must be ${components.join(' → ')}`);
     }
     assertTargetIdentity(step.target, component);
     const pointerPath = locatorForPointerPath(input.repoRoot, step.pointerPath).path;
@@ -544,7 +572,7 @@ function resolveJournalPointerPaths(
   journal: FirstActivationJournal,
 ): string[] {
   const pointerPaths = journal.steps.map((step) => resolvePointerLocator(repoRoot, step.pointer));
-  if (new Set(pointerPaths).size !== FIRST_ACTIVATION_COMPONENTS.length) {
+  if (new Set(pointerPaths).size !== pointerPaths.length) {
     throw new FirstActivationError('first-activation journal pointer locators must be unique');
   }
   return pointerPaths;

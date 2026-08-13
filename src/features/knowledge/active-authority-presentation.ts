@@ -156,6 +156,12 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
     directionLabel: '由前者指向后者',
     supported: true,
   },
+  PREREQUISITE: {
+    label: '先修',
+    kind: 'directed',
+    directionLabel: '由前者指向后者',
+    supported: true,
+  },
 };
 
 const GOVERNANCE_LABELS: Readonly<Record<string, string>> = {
@@ -531,6 +537,30 @@ export function activeNodeRelationSummaries(
       };
     })
     .filter((value): value is NonNullable<typeof value> => Boolean(value))
+    .sort((left, right) => left.key.localeCompare(right.key));
+}
+
+export function activeModelRelationSummaries(
+  model: ActiveAuthorityGraphModel,
+  nodeKey: string,
+): Array<{
+  key: string;
+  relationLabel: string;
+  directionLabel: string;
+  neighborLabel: string;
+  traversal: ActiveNodeAdjacency['traversal'];
+}> {
+  return (model.adjacency.get(nodeKey) ?? [])
+    .map((relation) => {
+      const neighborKey = relation.sourceKey === nodeKey ? relation.targetKey : relation.sourceKey;
+      return {
+        key: relation.key,
+        relationLabel: relation.semantic.label,
+        directionLabel: relation.semantic.directionLabel,
+        neighborLabel: model.nodeByKey.get(neighborKey)?.label ?? '对象名称暂不可用',
+        traversal: (relation.sourceKey === nodeKey ? 'outgoing' : 'incoming') as ActiveNodeAdjacency['traversal'],
+      };
+    })
     .sort((left, right) => left.key.localeCompare(right.key));
 }
 

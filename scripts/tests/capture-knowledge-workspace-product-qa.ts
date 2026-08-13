@@ -23,8 +23,19 @@ const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
   'src/features/knowledge/knowledge-graph-workspace.tsx',
   'src/features/knowledge/active-authority-graph.tsx',
+  'src/features/knowledge/active-authority-shard-store.ts',
   'src/features/knowledge/active-authority-presentation.ts',
   'src/features/knowledge/active-authority-graph-contracts.ts',
+  'src/lib/authority-domain-shards/contracts.ts',
+  'src/lib/authority-domain-shards/envelope.ts',
+  'src/lib/authority-domain-shards/loader.ts',
+  'src/lib/authority-domain-shards/materialize.ts',
+  'src/app/api/knowledge/_active-authority.ts',
+  'src/app/api/knowledge/shards/active/route.ts',
+  'src/app/api/knowledge/shards/active/domains/[domain]/route.ts',
+  'src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts',
+  'src/app/api/knowledge/shards/active/neighborhoods/[id]/route.ts',
+  'src/app/api/knowledge/shards/active/nodes/[id]/route.ts',
   'src/app/knowledge/page.tsx',
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/knowledge/graph/knowledge-graph-2d.tsx',
@@ -419,8 +430,64 @@ function canonicalKnowledgeNodePath(pathName: string, prefix: string, canonicalP
   }
 }
 
+function canonicalAuthorityShardPath(
+  pathName: string,
+  prefix: string,
+  expectedSegments: readonly string[],
+  canonicalPath: string,
+) {
+  if (!pathName.startsWith(prefix)) return null;
+  const segments = pathName.slice(prefix.length).split('/');
+  if (segments.length !== expectedSegments.length) return null;
+  for (let index = 0; index < segments.length; index += 1) {
+    const segment = segments[index];
+    const expected = expectedSegments[index];
+    if (!segment) return null;
+    if (expected.startsWith(':')) {
+      try {
+        const decoded = decodeURIComponent(segment);
+        if (!decoded || decoded.includes('/')) return null;
+      } catch {
+        return null;
+      }
+    } else if (segment !== expected) {
+      return null;
+    }
+  }
+  return canonicalPath;
+}
+
 function canonicalKnowledgeApiPath(pathName: string, method: string) {
   if (method !== 'GET') return null;
+  if (pathName === '/api/knowledge/shards/active') return '/api/knowledge/shards/active';
+  const activeDomainPath = canonicalAuthorityShardPath(
+    pathName,
+    '/api/knowledge/shards/active/domains/',
+    [':domain'],
+    '/api/knowledge/shards/active/domains/:domain',
+  );
+  if (activeDomainPath) return activeDomainPath;
+  const activeFamilyPath = canonicalAuthorityShardPath(
+    pathName,
+    '/api/knowledge/shards/active/domains/',
+    [':domain', 'families', ':family'],
+    '/api/knowledge/shards/active/domains/:domain/families/:family',
+  );
+  if (activeFamilyPath) return activeFamilyPath;
+  const activeNeighborhoodPath = canonicalAuthorityShardPath(
+    pathName,
+    '/api/knowledge/shards/active/neighborhoods/',
+    [':node'],
+    '/api/knowledge/shards/active/neighborhoods/:node',
+  );
+  if (activeNeighborhoodPath) return activeNeighborhoodPath;
+  const activeDetailPath = canonicalAuthorityShardPath(
+    pathName,
+    '/api/knowledge/shards/active/nodes/',
+    [':node'],
+    '/api/knowledge/shards/active/nodes/:node',
+  );
+  if (activeDetailPath) return activeDetailPath;
   if (pathName === '/api/knowledge/graph/active') return '/api/knowledge/graph/active';
   if (pathName.startsWith('/api/knowledge/nodes/active')) {
     return canonicalKnowledgeNodePath(
@@ -479,33 +546,53 @@ function summarizeKnowledgeApiResponse(
     : null;
   const activation = objectRecord(provenance.activation);
   const projection = objectRecord(provenance.projection);
+  const shardEnvelope = objectRecord(record.envelope);
   const isActiveResponse = pathName === '/api/knowledge/graph/active'
-    || pathName === '/api/knowledge/nodes/active/:node';
-  const isActiveNodeResponse = pathName === '/api/knowledge/nodes/active/:node';
+    || pathName === '/api/knowledge/nodes/active/:node'
+    || pathName.startsWith('/api/knowledge/shards/active');
+  const isActiveShardResponse = pathName.startsWith('/api/knowledge/shards/active');
+  const isActiveNodeResponse = pathName === '/api/knowledge/nodes/active/:node'
+    || pathName === '/api/knowledge/shards/active/nodes/:node';
   const responseNode = objectRecord(record.node);
   const responseNodeKey = typeof responseNode.id === 'string' ? responseNode.id : null;
   const authorityRecord = objectRecord(authority);
-  const sourceIdentity = validateActiveSourceIdentity(pathName, source);
+  const shardEnvelopeValid = isActiveShardResponse
+    && shardEnvelope.contract === 'act-authority-shard-envelope/v1'
+    && typeof shardEnvelope.authorityCatalogVersion === 'string'
+    && Boolean(shardEnvelope.authorityCatalogVersion)
+    && (typeof shardEnvelope.teachingVersion === 'string' || shardEnvelope.teachingVersion === null)
+    && objectRecord(shardEnvelope.match).authority === true
+    && objectRecord(shardEnvelope.match).catalog === true
+    && [true, false, null].includes(objectRecord(shardEnvelope.match).teaching as boolean | null);
+  const sourceIdentity = isActiveShardResponse
+    ? { identityFieldCount: shardEnvelopeValid ? 3 : 0, hasSourceIdentityFields: shardEnvelopeValid, sourceDatasetHashValid: true }
+    : validateActiveSourceIdentity(pathName, source);
   const { identityFieldCount, hasSourceIdentityFields } = sourceIdentity;
   const authorityRequiredFields = ['consumerId', 'snapshotId', 'snapshotHash', 'releaseId', 'releaseSetId'];
   const activationRequiredFields = ['mode', 'status', 'activationId', 'activationHash'];
   const authorityComplete = authorityRequiredFields.every((field) => typeof authorityRecord[field] === 'string' && authorityRecord[field]);
   const activationComplete = activationRequiredFields.every((field) => typeof activation[field] === 'string' && activation[field]);
-  const authorityIdentityMatches = source.authorityState === 'active'
+  const authorityIdentityMatches = isActiveShardResponse
+    ? shardEnvelopeValid
+    : source.authorityState === 'active'
     && hasSourceIdentityFields
     && source.projectionDigest === null
     && authorityComplete
     && authorityRecord.consumerId === 'engineering-graph'
     && source.releaseSetId === authorityRecord.releaseSetId
     && source.releaseId === authorityRecord.releaseId;
-  const activationIdentityMatches = activation.mode === 'use-combination'
+  const activationIdentityMatches = isActiveShardResponse || (
+    activation.mode === 'use-combination'
     && activation.status === 'READY'
-    && activationComplete;
-  const projectionBoundaryValid = Object.prototype.hasOwnProperty.call(projection, 'projectionId')
+    && activationComplete
+  );
+  const projectionBoundaryValid = isActiveShardResponse || (
+    Object.prototype.hasOwnProperty.call(projection, 'projectionId')
     && projection.projectionId === null
     && Object.prototype.hasOwnProperty.call(projection, 'projectionHash')
     && projection.projectionHash === null
-    && projection.status === 'not-applicable';
+    && projection.status === 'not-applicable'
+  );
   const provenanceFieldCount = authorityRequiredFields.filter((field) => typeof authorityRecord[field] === 'string' && authorityRecord[field])
     .length
     + activationRequiredFields.filter((field) => typeof activation[field] === 'string' && activation[field]).length
@@ -523,21 +610,35 @@ function summarizeKnowledgeApiResponse(
   return {
     path: pathName,
     status,
-    nodeCount: Array.isArray(record.nodes) ? record.nodes.length : null,
-    relationCount: Array.isArray(record.relations) ? record.relations.length : null,
-    authorityActive: source.authorityState === 'active',
+    nodeCount: Array.isArray(record.nodes)
+      ? record.nodes.length
+      : Array.isArray(record.objects)
+        ? record.objects.length
+        : Array.isArray(objectRecord(record.root).domains)
+          ? objectRecord(record.root).domains.length
+          : null,
+    relationCount: Array.isArray(record.relations)
+      ? record.relations.length
+      : Array.isArray(record.teachingRelations)
+        ? record.teachingRelations.length
+        : null,
+    authorityActive: isActiveShardResponse ? shardEnvelopeValid : source.authorityState === 'active',
     candidateAuthority: source.authorityState === 'candidate',
-    hasAuthorityProvenance: Boolean(authority),
+    hasAuthorityProvenance: isActiveShardResponse ? shardEnvelopeValid : Boolean(authority),
     authorityIdentityMatches,
     activationIdentityMatches,
     identityFieldCount,
-    projectionVersionValid: typeof record.projectionVersion === 'string'
+    projectionVersionValid: isActiveShardResponse
+      ? typeof record.shardClass === 'string'
+      : typeof record.projectionVersion === 'string'
       && (pathName === '/api/knowledge/graph/active'
         ? record.projectionVersion === 'act.canvas.v2'
         : pathName === '/api/knowledge/nodes/active/:node'
           ? record.projectionVersion === 'act.node-detail.v2'
           : record.projectionVersion.length > 0),
-    provenanceIntegrityMatches: authorityIdentityMatches && activationIdentityMatches && projectionBoundaryValid,
+    provenanceIntegrityMatches: isActiveShardResponse
+      ? shardEnvelopeValid
+      : authorityIdentityMatches && activationIdentityMatches && projectionBoundaryValid,
     provenanceFieldCount,
     coverageObjectCount: typeof coverage.objectCount === 'number' ? coverage.objectCount : null,
     coverageRelationCount: typeof coverage.relationCount === 'number' ? coverage.relationCount : null,
@@ -577,9 +678,15 @@ function createKnowledgeApiProbe(page: Page): KnowledgeApiProbe {
       return;
     }
     let requestedNodeKey: string | null = null;
-    if (safePath === '/api/knowledge/nodes/active/:node') {
+    if (
+      safePath === '/api/knowledge/nodes/active/:node'
+      || safePath === '/api/knowledge/shards/active/nodes/:node'
+    ) {
       try {
-        requestedNodeKey = decodeURIComponent(responseUrl.pathname.slice('/api/knowledge/nodes/active/'.length));
+        const prefix = safePath === '/api/knowledge/nodes/active/:node'
+          ? '/api/knowledge/nodes/active/'
+          : '/api/knowledge/shards/active/nodes/';
+        requestedNodeKey = decodeURIComponent(responseUrl.pathname.slice(prefix.length));
       } catch {
         requestedNodeKey = null;
       }
@@ -652,8 +759,14 @@ async function readExpectedActiveNodeKey(page: Page): Promise<string | null> {
 }
 
 function safeApiEndpointClass(pathName: string): SafeApiEndpointClass {
-  if (pathName === '/api/knowledge/graph/active') return 'active-canvas';
-  if (pathName === '/api/knowledge/nodes/active/:node') return 'active-node';
+  if (
+    pathName === '/api/knowledge/nodes/active/:node'
+    || pathName === '/api/knowledge/shards/active/nodes/:node'
+  ) return 'active-node';
+  if (
+    pathName === '/api/knowledge/graph/active'
+    || pathName.startsWith('/api/knowledge/shards/active')
+  ) return 'active-canvas';
   if (pathName === '/api/knowledge/graph' || pathName === '/api/knowledge/nodes/:node') return 'legacy';
   if (pathName === '/api/knowledge/graph/v2') return 'candidate';
   throw new Error('unknown Knowledge API endpoint cannot be projected');
@@ -867,8 +980,7 @@ function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: st
   if (
     !summary
     || summary.status !== 200
-    || summary.nodeCount === null
-    || summary.nodeCount <= 0
+    || (summary.nodeCount !== null && summary.nodeCount <= 0)
     || !summary.authorityActive
     || !summary.hasAuthorityProvenance
     || !summary.authorityIdentityMatches
@@ -883,6 +995,14 @@ function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: st
 
 async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context: string) {
   await page.waitForSelector('[data-knowledge-graph-mode="active"]', { timeout: 30000 });
+  await page.waitForSelector('[data-authority-shard-root="true"]', { timeout: 30000 });
+  const domain = page.locator('[data-authority-domain-entry]').first();
+  await domain.click({ timeout: 10000 });
+  await page.waitForSelector('[data-active-graph-stage="authority"]', { timeout: 30000 });
+  for (const family of ['structure', 'derivation-and-representation', 'application-and-analysis', 'association']) {
+    const control = page.locator(`[data-authority-relation-family="${family}"]`);
+    if (await control.isVisible().catch(() => false)) await control.click({ timeout: 10000 });
+  }
   await page.waitForFunction(() => {
     const graph = document.querySelector('[data-active-authority-graph="true"]');
     const stage = document.querySelector('[data-active-graph-stage="authority"]');
@@ -891,12 +1011,16 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
     const nodeCount = document.querySelectorAll('[data-active-authority-node]').length;
     return Boolean(graph && stage && !loading && !failure && nodeCount > 0);
   }, undefined, { timeout: 30000 });
-  await probe.waitForPath('/api/knowledge/graph/active');
+  await probe.waitForPath('/api/knowledge/shards/active');
   await page.waitForTimeout(100);
   const log = await probe.readLog();
-  const active = latestApiSummary(log, '/api/knowledge/graph/active');
+  const active = latestApiSummary(log, '/api/knowledge/shards/active');
   assertActiveApiSummary(active, context);
-  if (log.some((entry) => entry.path === '/api/knowledge/graph' || entry.path === '/api/knowledge/graph/v2')) {
+  if (log.some((entry) => (
+    entry.path === '/api/knowledge/graph/active'
+    || entry.path === '/api/knowledge/graph'
+    || entry.path === '/api/knowledge/graph/v2'
+  ))) {
     throw new Error(`active Authority unexpectedly requested Legacy or candidate API in ${context}`);
   }
   return active;
@@ -997,7 +1121,7 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   const semanticNodeFocusedBeforeClick = await node.evaluate((candidate) => candidate === document.activeElement);
   await node.click();
   await page.waitForSelector('[data-active-node-detail]', { timeout: 10000 });
-  await probe.waitForPath('/api/knowledge/nodes/active/:node');
+  await probe.waitForPath('/api/knowledge/shards/active/nodes/:node');
   await page.waitForTimeout(50);
   const detailEvidence = await page.evaluate(() => ({
     detailPanelFocusedAfterOpen: document.activeElement?.matches('[data-active-node-detail]') ?? false,
@@ -2155,10 +2279,14 @@ async function captureActiveAuthorityVisualMatrix(
     const { context, page, url, probe } = await openStatePage(browser, state, storageState);
     try {
       const apiLog = await probe.readLog();
-      const activeSummary = latestApiSummary(apiLog, '/api/knowledge/graph/active');
+      const activeSummary = latestApiSummary(apiLog, '/api/knowledge/shards/active');
       assertActiveApiSummary(activeSummary, `${state.name}:visual-matrix`);
-      if (apiLog.some((entry) => entry.path === '/api/knowledge/graph' || entry.path === '/api/knowledge/graph/v2')) {
-        throw new Error(`active visual matrix requested a non-active graph API in ${state.name}`);
+      if (apiLog.some((entry) => (
+        entry.path === '/api/knowledge/graph/active'
+        || entry.path === '/api/knowledge/graph'
+        || entry.path === '/api/knowledge/graph/v2'
+      ))) {
+        throw new Error(`active visual matrix requested a non-shard graph API in ${state.name}`);
       }
       const interactionEvidence = state.beforeShot
         ? await state.beforeShot(page, probe) ?? undefined

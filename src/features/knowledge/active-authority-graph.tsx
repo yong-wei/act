@@ -16,10 +16,10 @@ import {
 } from 'lucide-react';
 
 import type {
-  ActiveCanvasResponse,
   ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
 import {
+  activeModelRelationSummaries,
   activeNodeRelationSummaries,
   activeNodeSearch,
   createActiveAuthorityGraphModel,
@@ -35,16 +35,60 @@ import {
   type ActiveAuthorityGraphModel,
   type ActiveNodePresentation,
 } from './active-authority-presentation';
+import {
+  createEmptyAuthorityShardWorkspace,
+  enableAuthorityShardFamily,
+  invalidateTeachingBearingShards,
+  mergeAuthorityShard,
+  resetAuthorityShardDomain,
+  shardIdentityDrift,
+  visibleAuthorityShardRelations,
+  type AuthorityShardWorkspaceState,
+  type IncomingAuthorityShard,
+} from './active-authority-shard-store';
+import type {
+  AuthorityShardPublicEnvelope,
+  AuthorityShardMembership,
+  EngineeringRelationFamily,
+} from '@/lib/authority-domain-shards/contracts';
+import { REGISTERED_PEER_DOMAIN_IDS } from '@/lib/authority-domain-catalog/contracts';
+import { ENGINEERING_RELATION_FAMILIES } from '@/lib/authority-domain-shards/contracts';
+import {
+  isPublicAuthorityLearnerShard,
+  publicEnvelopesShareAuthorityAndCatalog,
+} from '@/lib/authority-domain-shards/envelope';
 
 interface ActiveAuthorityGraphProps {
   viewerRole: 'student' | 'teacher' | 'admin' | 'audit';
 }
 
-type CanvasState =
+type WorkspaceLoadState =
   | { status: 'loading' }
-  | { status: 'ready'; projection: ActiveCanvasResponse }
-  | { status: 'empty'; projection: ActiveCanvasResponse }
+  | { status: 'ready'; workspace: AuthorityShardWorkspaceState }
   | { status: 'error'; message: string };
+
+const FAMILY_LABELS: Record<EngineeringRelationFamily, string> = {
+  structure: '结构',
+  'derivation-and-representation': '推导与表示',
+  'application-and-analysis': '应用与分析',
+  association: '关联',
+};
+
+/** Keep an in-domain selection stable; otherwise choose the reviewed owner deterministically. */
+export function selectActiveAuthorityMembership(
+  memberships: readonly AuthorityShardMembership[],
+  activeDomainId?: string | null,
+): AuthorityShardMembership | null {
+  const ordered = [...memberships].sort((left, right) => (
+    REGISTERED_PEER_DOMAIN_IDS.indexOf(left.domainId) - REGISTERED_PEER_DOMAIN_IDS.indexOf(right.domainId)
+    || left.domainId.localeCompare(right.domainId)
+    || left.visualRole.localeCompare(right.visualRole)
+  ));
+  return ordered.find((membership) => membership.domainId === activeDomainId)
+    ?? ordered.find((membership) => membership.preferred)
+    ?? ordered[0]
+    ?? null;
+}
 
 function errorMessage(status: number): string {
   if (status === 401) return '请先登录后查看当前 Authority 图谱。';
@@ -53,54 +97,334 @@ function errorMessage(status: number): string {
   return '当前 Authority 图谱暂时无法加载。';
 }
 
-function isActiveCanvasResponse(value: unknown): value is ActiveCanvasResponse {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as Partial<ActiveCanvasResponse>;
-  return candidate.projectionVersion === 'act.canvas.v2'
-    && candidate.source?.authorityState === 'active'
-    && Array.isArray(candidate.nodes)
-    && Array.isArray(candidate.relations)
-    && candidate.provenance?.projection?.projectionId === null
-    && candidate.provenance?.projection?.projectionHash === null;
+class AuthorityShardFetchError extends Error {
+  readonly status: number;
+
+  constructor(status: number) {
+    super(errorMessage(status));
+    this.name = 'AuthorityShardFetchError';
+    this.status = status;
+  }
 }
 
-function useActiveCanvas(retry: number): CanvasState {
-  const [state, setState] = useState<CanvasState>({ status: 'loading' });
+function isIdentityFailure(error: unknown): boolean {
+  return error instanceof AuthorityShardFetchError && error.status === 409;
+}
+
+function isShardClass<T extends IncomingAuthorityShard['shardClass']>(
+  value: unknown,
+  shardClass: T,
+): value is Extract<IncomingAuthorityShard, { shardClass: T }> {
+  return isPublicAuthorityLearnerShard(value) && value.shardClass === shardClass;
+}
+
+async function fetchAuthorityShard(
+  url: string,
+  shardClass: IncomingAuthorityShard['shardClass'],
+  signal: AbortSignal,
+): Promise<IncomingAuthorityShard> {
+  const response = await fetch(url, { signal, headers: { accept: 'application/json' } });
+  if (!response.ok) throw new AuthorityShardFetchError(response.status);
+  const payload: unknown = await response.json();
+  if (!isShardClass(payload, shardClass)) {
+    throw new Error('当前 Authority 响应身份校验失败，已停止显示。');
+  }
+  return payload as IncomingAuthorityShard;
+}
+
+function useActiveAuthorityWorkspace(retry: number): {
+  state: WorkspaceLoadState;
+  workspace: AuthorityShardWorkspaceState;
+  enterDomain: (visualRole: string) => Promise<boolean>;
+  enableFamily: (family: EngineeringRelationFamily) => void;
+  familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
+  requestNeighborhood: (nodeId: string) => void;
+  neighborhoodFailures: Record<string, string>;
+  resetDomain: () => void;
+  applyShard: (shard: IncomingAuthorityShard, generation?: number, domainRevision?: number) => boolean;
+  onIdentityFailure: () => void;
+} {
+  const [state, setState] = useState<WorkspaceLoadState>({ status: 'loading' });
+  const [workspace, setWorkspace] = useState<AuthorityShardWorkspaceState>(createEmptyAuthorityShardWorkspace);
+  const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, string>>>({});
+  const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, string>>({});
+  const workspaceRef = useRef(workspace);
+  const requestGenerationRef = useRef(0);
+  const requestControllersRef = useRef(new Set<AbortController>());
+  const failClosedRef = useRef(false);
+  workspaceRef.current = workspace;
+
+  function updateWorkspace(
+    update: (current: AuthorityShardWorkspaceState) => AuthorityShardWorkspaceState,
+  ): AuthorityShardWorkspaceState {
+    const next = update(workspaceRef.current);
+    // Requests may resolve before React commits the state update. Keep the
+    // request coordinator on the same snapshot so a just-accepted Teaching
+    // identity cannot be mistaken for another version change.
+    workspaceRef.current = next;
+    setWorkspace(next);
+    return next;
+  }
+
+  function nextRequestGeneration(): number {
+    requestGenerationRef.current += 1;
+    for (const controller of requestControllersRef.current) controller.abort();
+    requestControllersRef.current.clear();
+    return requestGenerationRef.current;
+  }
+
+  function onIdentityFailure(): void {
+    failClosedRef.current = true;
+    nextRequestGeneration();
+    const empty = createEmptyAuthorityShardWorkspace();
+    workspaceRef.current = empty;
+    setWorkspace(empty);
+    setFamilyFailures({});
+    setNeighborhoodFailures({});
+    setState({ status: 'error', message: errorMessage(409) });
+  }
+
+  function fetchDomainDefault(visualRole: string, generation: number, domainRevision: number): Promise<boolean> {
+    const controller = new AbortController();
+    requestControllersRef.current.add(controller);
+    return fetchAuthorityShard(
+      `/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`,
+      'domain-default',
+      controller.signal,
+    )
+      .then((shard) => applyShard(shard, generation, domainRevision))
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || generation !== requestGenerationRef.current) return false;
+        if (isIdentityFailure(error)) {
+          onIdentityFailure();
+          return false;
+        }
+        setState({
+          status: 'error',
+          message: error instanceof Error ? error.message : '当前领域分片暂时无法加载。',
+        });
+        return false;
+      })
+      .finally(() => {
+        requestControllersRef.current.delete(controller);
+      });
+  }
+
+  function applyShard(shard: IncomingAuthorityShard, generation?: number, domainRevision?: number): boolean {
+    if (failClosedRef.current) return false;
+    if (domainRevision !== undefined && domainRevision !== workspaceRef.current.domainRevision) {
+      return false;
+    }
+    if (generation !== undefined && generation !== requestGenerationRef.current) {
+      return false;
+    }
+
+    const previous = workspaceRef.current;
+    const drift = shardIdentityDrift(previous, shard);
+    if (drift === 'authority-catalog') {
+      // Authority/catalog drift invalidates every request in the current
+      // generation.  Do not recover from the mismatching response: a fresh
+      // root request must be explicitly started by the user.
+      onIdentityFailure();
+      return false;
+    }
+    const identityChanged = drift === 'teaching';
+    const refreshVisualRole = identityChanged
+      ? previous.activeVisualRole
+        ?? (shard.shardClass === 'domain-default' ? shard.visualRole : null)
+      : null;
+
+    const next = updateWorkspace((current) => {
+      const invalidated = identityChanged
+        && current.envelope
+        ? invalidateTeachingBearingShards(current, shard.envelope)
+        : current;
+      return mergeAuthorityShard(invalidated, shard);
+    });
+    setState({ status: 'ready', workspace: next });
+
+    // A root/domain response is itself the signal that the live Teaching
+    // identity changed.  Re-read the active domain once, under a newer
+    // generation, so an old in-flight response cannot restore stale edges.
+    if (refreshVisualRole) {
+      const refreshGeneration = nextRequestGeneration();
+      fetchDomainDefault(refreshVisualRole, refreshGeneration, workspaceRef.current.domainRevision);
+    }
+    return true;
+  }
 
   useEffect(() => {
     const controller = new AbortController();
+    const generation = nextRequestGeneration();
+    failClosedRef.current = false;
+    requestControllersRef.current.add(controller);
     setState({ status: 'loading' });
-    fetch('/api/knowledge/graph/active', {
-      signal: controller.signal,
-      headers: { accept: 'application/json' },
-    })
-      .then(async (response) => {
-        if (!response.ok) throw new Error(errorMessage(response.status));
-        const projection: unknown = await response.json();
-        if (!isActiveCanvasResponse(projection)) {
-          throw new Error('当前 Authority 响应身份校验失败，已停止显示。');
-        }
-        return projection;
-      })
-      .then((projection) => {
-        setState(projection.nodes.length === 0
-          ? { status: 'empty', projection }
-          : { status: 'ready', projection });
+    setFamilyFailures({});
+    setNeighborhoodFailures({});
+    updateWorkspace(() => createEmptyAuthorityShardWorkspace());
+    fetchAuthorityShard('/api/knowledge/shards/active', 'root', controller.signal)
+      .then((shard) => {
+        applyShard(shard, generation);
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
+        if (isIdentityFailure(error)) {
+          onIdentityFailure();
+          return;
+        }
         setState({
           status: 'error',
           message: error instanceof Error ? error.message : '当前 Authority 图谱暂时无法加载。',
         });
       });
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      requestControllersRef.current.delete(controller);
+      nextRequestGeneration();
+    };
   }, [retry]);
 
-  return state;
+  function enterDomain(visualRole: string): Promise<boolean> {
+    const current = workspaceRef.current;
+    if (current.activeVisualRole === visualRole && current.activeDomainId) {
+      return Promise.resolve(true);
+    }
+    if (current.activeDomainId) {
+      nextRequestGeneration();
+      updateWorkspace(resetAuthorityShardDomain);
+    }
+    updateWorkspace((workspace) => ({
+      ...workspace,
+      activeVisualRole: visualRole,
+    }));
+    setFamilyFailures({});
+    setNeighborhoodFailures({});
+    const generation = nextRequestGeneration();
+    return fetchDomainDefault(visualRole, generation, workspaceRef.current.domainRevision);
+  }
+
+  function enableFamily(family: EngineeringRelationFamily) {
+    const current = workspaceRef.current;
+    const domainId = current.activeDomainId;
+    const visualRole = current.activeVisualRole;
+    const domainRevision = current.domainRevision;
+    setFamilyFailures((currentFailures) => {
+      if (!currentFailures[family]) return currentFailures;
+      const next = { ...currentFailures };
+      delete next[family];
+      return next;
+    });
+    updateWorkspace((workspace) => enableAuthorityShardFamily(workspace, family));
+    if (!domainId || !visualRole) return;
+    const key = `relation-family:${domainId}:${family}`;
+    if (workspaceRef.current.loadedShardKeys.includes(key)) return;
+    const generation = requestGenerationRef.current;
+    const controller = new AbortController();
+    requestControllersRef.current.add(controller);
+    fetchAuthorityShard(
+      `/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`,
+      'relation-family',
+      controller.signal,
+      )
+      .then((shard) => {
+        const applied = applyShard(shard, generation, domainRevision);
+        if (applied) {
+          setFamilyFailures((currentFailures) => {
+            if (!currentFailures[family]) return currentFailures;
+            const next = { ...currentFailures };
+            delete next[family];
+            return next;
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || generation !== requestGenerationRef.current) return;
+        if (isIdentityFailure(error)) {
+          onIdentityFailure();
+          return;
+        }
+        updateWorkspace((current) => ({
+          ...current,
+          enabledFamilies: current.enabledFamilies.filter((enabledFamily) => enabledFamily !== family),
+        }));
+        setFamilyFailures((currentFailures) => ({
+          ...currentFailures,
+          [family]: error instanceof Error ? error.message : '关系族分片暂时无法加载，请重试。',
+        }));
+      })
+      .finally(() => requestControllersRef.current.delete(controller));
+  }
+
+  function requestNeighborhood(nodeId: string) {
+    const key = `node-neighborhood:${nodeId}`;
+    if (workspaceRef.current.loadedShardKeys.includes(key)) return;
+    const domainRevision = workspaceRef.current.domainRevision;
+    const generation = requestGenerationRef.current;
+    setNeighborhoodFailures((currentFailures) => {
+      if (!currentFailures[nodeId]) return currentFailures;
+      const next = { ...currentFailures };
+      delete next[nodeId];
+      return next;
+    });
+    const controller = new AbortController();
+    requestControllersRef.current.add(controller);
+    fetchAuthorityShard(
+      `/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`,
+      'node-neighborhood',
+      controller.signal,
+      )
+      .then((shard) => {
+        const applied = applyShard(shard, generation, domainRevision);
+        if (applied) {
+          setNeighborhoodFailures((currentFailures) => {
+            if (!currentFailures[nodeId]) return currentFailures;
+            const next = { ...currentFailures };
+            delete next[nodeId];
+            return next;
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || generation !== requestGenerationRef.current) return;
+        if (isIdentityFailure(error)) {
+          onIdentityFailure();
+          return;
+        }
+        setNeighborhoodFailures((currentFailures) => ({
+          ...currentFailures,
+          [nodeId]: error instanceof Error ? error.message : '邻域分片暂时无法加载，请重试。',
+        }));
+      })
+      .finally(() => requestControllersRef.current.delete(controller));
+  }
+
+  function resetDomain() {
+    nextRequestGeneration();
+    updateWorkspace(resetAuthorityShardDomain);
+    setFamilyFailures({});
+    setNeighborhoodFailures({});
+  }
+
+  return {
+    state,
+    workspace,
+    enterDomain,
+    enableFamily,
+    familyFailures,
+    requestNeighborhood,
+    neighborhoodFailures,
+    resetDomain,
+    applyShard,
+    onIdentityFailure,
+  };
 }
 
-function useActiveNodeDetail(nodeId: string | null): {
+function useActiveNodeDetail(
+  nodeId: string | null,
+  expectedEnvelope: AuthorityShardPublicEnvelope | null,
+  onShard?: (shard: IncomingAuthorityShard) => boolean,
+  onIdentityFailure?: () => void,
+): {
   detail: ActiveNodeDetailResponse | null;
   failure: string | null;
   loading: boolean;
@@ -108,9 +432,13 @@ function useActiveNodeDetail(nodeId: string | null): {
   const [detail, setDetail] = useState<ActiveNodeDetailResponse | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const onShardRef = useRef(onShard);
+  onShardRef.current = onShard;
+  const onIdentityFailureRef = useRef(onIdentityFailure);
+  onIdentityFailureRef.current = onIdentityFailure;
 
   useEffect(() => {
-    if (!nodeId) {
+    if (!nodeId || !expectedEnvelope) {
       setDetail(null);
       setFailure(null);
       setLoading(false);
@@ -120,17 +448,60 @@ function useActiveNodeDetail(nodeId: string | null): {
     setDetail(null);
     setFailure(null);
     setLoading(true);
-    fetch(`/api/knowledge/nodes/active/${encodeURIComponent(nodeId)}`, {
+    fetch(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, {
       signal: controller.signal,
       headers: { accept: 'application/json' },
     })
       .then(async (response) => {
-        if (!response.ok) throw new Error(errorMessage(response.status));
+        if (!response.ok) {
+          if (!controller.signal.aborted && response.status === 409) onIdentityFailureRef.current?.();
+          throw new AuthorityShardFetchError(response.status);
+        }
         const candidate: unknown = await response.json();
-        if (!candidate || typeof candidate !== 'object' || !('node' in candidate)) {
+        if (!isShardClass(candidate, 'node-detail')) {
           throw new Error('节点详情暂时无法加载。');
         }
-        return candidate as ActiveNodeDetailResponse;
+        const shard = candidate;
+        if (onShardRef.current && !onShardRef.current(shard)) {
+          throw new Error('当前 Authority 身份发生漂移，已停止显示。');
+        }
+        if (!publicEnvelopesShareAuthorityAndCatalog(expectedEnvelope, shard.envelope)) {
+          throw new Error('节点详情身份校验失败，已停止显示。');
+        }
+        const node = {
+          ...shard.node,
+          adjacency: [],
+        } as ActiveNodeDetailResponse['node'] & { media?: unknown };
+        return {
+          projectionVersion: 'act.node-detail.v2',
+          source: {
+            authorityState: 'active',
+            releaseSetId: '',
+            releaseId: '',
+            productionAuthoritative: false,
+            historical: false,
+            projectionDigest: null,
+          },
+          role: 'STUDENT',
+          fields: { included: ['node.id'], hidden: ['node.payload'] },
+          node: {
+            ...node,
+            adjacency: Array.isArray(node.adjacency) ? node.adjacency : [],
+            sources: Array.isArray(node.sources) ? node.sources : [],
+            semanticSupport: node.semanticSupport ?? { supported: true, readOnly: true as const },
+          },
+          provenance: {
+            authority: {
+              consumerId: 'engineering-graph',
+              snapshotId: '',
+              snapshotHash: '',
+              releaseId: '',
+              releaseSetId: '',
+            },
+            activation: { mode: 'use-combination', status: 'READY', activationId: '', activationHash: '' },
+            projection: { status: 'not-applicable', projectionId: null, projectionHash: null },
+          },
+        } satisfies ActiveNodeDetailResponse;
       })
       .then(setDetail)
       .catch((error: unknown) => {
@@ -142,7 +513,7 @@ function useActiveNodeDetail(nodeId: string | null): {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [nodeId]);
+  }, [nodeId, expectedEnvelope]);
 
   return { detail, failure, loading };
 }
@@ -499,21 +870,29 @@ function ActiveNodeDetail({
   nodeKey,
   fallbackNode,
   model,
+  envelope,
+  onShard,
+  onIdentityFailure,
   onClose,
 }: {
   nodeKey: string;
   fallbackNode: ActiveNodePresentation | undefined;
   model: ActiveAuthorityGraphModel;
+  envelope: AuthorityShardPublicEnvelope | null;
+  onShard: (shard: IncomingAuthorityShard) => boolean;
+  onIdentityFailure: () => void;
   onClose: () => void;
 }) {
-  const { detail, failure, loading } = useActiveNodeDetail(nodeKey);
+  const { detail, failure, loading } = useActiveNodeDetail(nodeKey, envelope, onShard, onIdentityFailure);
   const panelRef = useRef<HTMLElement>(null);
   useEffect(() => {
     panelRef.current?.focus();
   }, [nodeKey]);
   const node = detail?.node;
   const type = presentActiveNodeType(node?.canonicalType ?? fallbackNode?.type.canonicalType ?? '');
-  const summaries = node ? activeNodeRelationSummaries(node, model) : [];
+  const summaries = node && node.adjacency.length > 0
+    ? activeNodeRelationSummaries(node, model)
+    : activeModelRelationSummaries(model, nodeKey);
   const detailLabel = presentActiveHumanText(
     node && node.label !== nodeKey ? node.label : fallbackNode?.label,
     '名称暂不可用',
@@ -643,7 +1022,18 @@ function SearchResults({
 export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorityGraphProps) {
   const [retry, setRetry] = useState(0);
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
-  const state = useActiveCanvas(retry);
+  const {
+    state,
+    workspace,
+    enterDomain,
+    enableFamily,
+    familyFailures,
+    requestNeighborhood,
+    neighborhoodFailures,
+    resetDomain,
+    applyShard,
+    onIdentityFailure,
+  } = useActiveAuthorityWorkspace(retry);
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
@@ -651,6 +1041,8 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<SVGGElement | null>(null);
+  const selectionIntentRef = useRef(0);
+  const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const draggingRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const isCompactViewport = viewportWidth !== null && viewportWidth < 640;
   const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
@@ -662,23 +1054,76 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     return () => window.removeEventListener('resize', updateViewportWidth);
   }, []);
 
-  const model = useMemo(
-    () => state.status === 'ready' || state.status === 'empty'
-      ? createActiveAuthorityGraphModel(state.projection)
-      : null,
-    [state],
-  );
-  const projection = state.status === 'ready' || state.status === 'empty' ? state.projection : null;
+  const model = useMemo(() => {
+    if (state.status !== 'ready' || !workspace.activeDomainId) return null;
+    const relations = visibleAuthorityShardRelations(workspace);
+    const allowed = new Set<string>();
+    for (const object of Object.values(workspace.objectsByCanonicalId)) {
+      if (object.memberships.some((membership) => membership.domainId === workspace.activeDomainId)) {
+        allowed.add(object.id);
+      }
+    }
+    for (const relation of relations) {
+      allowed.add(relation.sourceId);
+      allowed.add(relation.targetId);
+    }
+    const nodes = Object.values(workspace.objectsByCanonicalId).filter((object) => allowed.has(object.id));
+    return createActiveAuthorityGraphModel({
+      nodes,
+      relations: relations.map((relation) => ({
+        ...relation,
+        relationFamily: relation.relationFamily ?? undefined,
+      })),
+    });
+  }, [state.status, workspace]);
+  const teachingCoverage = workspace.activeDomainId
+    ? workspace.teachingCoverageByDomain[workspace.activeDomainId]
+    : null;
 
+  const domainEpoch = `${workspace.envelope?.authorityCatalogVersion ?? ''}:${workspace.activeDomainId ?? ''}`;
+  const modelReady = Boolean(model);
   useEffect(() => {
     if (!model) return;
-    setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
-    setSelectedNodeKey(null);
+    const pending = pendingCrossDomainSelectionRef.current;
+    if (pending && pending.intent === selectionIntentRef.current && model.nodeByKey.has(pending.key)) {
+      setVisibleKeys(materializeActiveNodeScope(model, pending.key, visibleNodeLimit));
+      setSelectedNodeKey(pending.key);
+      pendingCrossDomainSelectionRef.current = null;
+    } else {
+      pendingCrossDomainSelectionRef.current = null;
+      setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
+      setSelectedNodeKey(null);
+    }
     setQuery('');
     setTypeFilter('');
     setZoom(1);
     setPan({ x: 0, y: 0 });
-  }, [model, visibleNodeLimit]);
+  }, [domainEpoch, modelReady, visibleNodeLimit]);
+
+  useEffect(() => {
+    if (!model) return;
+    setVisibleKeys((current) => {
+      const next = new Set(current);
+      for (const relation of model.relations) {
+        next.add(relation.sourceKey);
+        next.add(relation.targetKey);
+      }
+      return next;
+    });
+  }, [model]);
+
+  useEffect(() => {
+    if (!model || !selectedNodeKey) return;
+    setVisibleKeys((current) => {
+      const next = new Set(current);
+      if (model.nodeByKey.has(selectedNodeKey)) next.add(selectedNodeKey);
+      for (const relation of model.adjacency.get(selectedNodeKey) ?? []) {
+        next.add(relation.sourceKey);
+        next.add(relation.targetKey);
+      }
+      return next;
+    });
+  }, [model, selectedNodeKey]);
 
   useEffect(() => {
     if (!selectedNodeKey) return;
@@ -709,32 +1154,68 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   );
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
 
-  function selectNode(key: string, target?: SVGGElement) {
+  function resolveNodeSelection(key: string, mode: 'canvas' | 'search'): void {
     if (!model) return;
+    const intent = selectionIntentRef.current + 1;
+    selectionIntentRef.current = intent;
+    if (mode === 'search') {
+      // The result button is removed when the query is cleared; restore focus
+      // to the newly materialized semantic node or the canvas instead.
+      triggerRef.current = null;
+      setQuery('');
+      setTypeFilter('');
+    }
+
+    const object = workspace.objectsByCanonicalId[key];
+    const memberships = object?.memberships.filter((membership) => (
+      workspace.root?.domains.some((domain) => domain.visualRole === membership.visualRole) ?? false
+    )) ?? [];
+    const membership = selectActiveAuthorityMembership(memberships, workspace.activeDomainId);
+    const owningDomain = membership
+      ? workspace.root?.domains.find((domain) => domain.visualRole === membership.visualRole)
+      : undefined;
+    if (!membership || !owningDomain || (
+      workspace.activeDomainId === membership.domainId
+      && workspace.activeVisualRole === owningDomain.visualRole
+    )) {
+      pendingCrossDomainSelectionRef.current = null;
+      setVisibleKeys((current) => mode === 'search'
+        ? materializeActiveNodeScope(model, key, visibleNodeLimit)
+        : expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit));
+      setSelectedNodeKey(key);
+      requestNeighborhood(key);
+      return;
+    }
+
+    // A boundary object is present in the current domain only as an endpoint.
+    // Load its owning domain first; the domain response then establishes the
+    // active revision before selection and neighborhood loading begin.
+    pendingCrossDomainSelectionRef.current = { key, intent };
+    void enterDomain(owningDomain.visualRole).then((loaded) => {
+      if (!loaded || selectionIntentRef.current !== intent) return;
+      const pending = pendingCrossDomainSelectionRef.current;
+      if (!pending || pending.key !== key || pending.intent !== intent) return;
+      requestNeighborhood(key);
+    });
+  }
+
+  function selectNode(key: string, target?: SVGGElement) {
     triggerRef.current = target ?? null;
-    setVisibleKeys((current) => expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit));
-    setSelectedNodeKey(key);
+    resolveNodeSelection(key, 'canvas');
   }
 
   function focusSearchResult(key: string) {
-    if (!model) return;
-    // The result button is removed when the query is cleared; restore focus
-    // to the newly materialized semantic node or the canvas instead.
-    triggerRef.current = null;
-    setVisibleKeys(materializeActiveNodeScope(model, key, visibleNodeLimit));
-    setSelectedNodeKey(key);
-    setQuery('');
-    setTypeFilter('');
+    resolveNodeSelection(key, 'search');
   }
 
   function resetOverview() {
-    if (!model) return;
-    setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
+    selectionIntentRef.current += 1;
+    pendingCrossDomainSelectionRef.current = null;
+    resetDomain();
     setSelectedNodeKey(null);
     setQuery('');
     setTypeFilter('');
     triggerRef.current = null;
-    window.setTimeout(() => document.querySelector<SVGElement>('[data-active-graph-stage]')?.focus(), 0);
   }
 
   function closeDetail() {
@@ -787,12 +1268,14 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
               <h2 className="text-base font-semibold">当前 Engineering Authority</h2>
               <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100">当前 Authority</span>
             </div>
-            <p className="mt-1 text-xs text-platform-fg-secondary">以语义对象和已发布工程关系呈现，可搜索并逐步探索。</p>
+            <p className="mt-1 text-xs text-platform-fg-secondary">先选择知识领域，再按需加载教学骨架与工程关系族。</p>
           </div>
-          {projection ? (
+          {workspace.root ? (
             <div className="text-right text-xs text-platform-fg-secondary">
-              <div>覆盖：{projection.coverage.objectCount} 个对象 · {projection.coverage.relationCount} 条关系</div>
-              <div className="mt-1 text-emerald-200">教学关系尚未发布</div>
+              <div>已审领域 {workspace.root.domains.length} 个 · 综合入口 1 个</div>
+              <div className="mt-1 text-emerald-200">
+                {teachingCoverage?.note ?? '教学关系尚未发布'}
+              </div>
             </div>
           ) : null}
         </div>
@@ -811,9 +1294,28 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
             <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />重试当前 Authority</button>
           </div>
         </div>
-      ) : state.status === 'empty' || !model || !scopedGraph ? (
+      ) : state.status === 'ready' && workspace.root && !workspace.activeDomainId ? (
+        <div className="flex-1 overflow-y-auto p-4" data-authority-shard-root="true">
+          <p className="mb-3 text-sm text-platform-fg-secondary">选择一个已审知识领域进入默认教学骨架。完整图谱不会在此加载。</p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {workspace.root.domains.map((domain) => (
+              <button
+                key={domain.visualRole}
+                type="button"
+                data-authority-domain-entry={domain.visualRole}
+                onClick={() => enterDomain(domain.visualRole)}
+                className="rounded-xl border border-platform-border bg-platform-surface p-4 text-left hover:bg-platform-action-subtle"
+              >
+                <div className="text-sm font-semibold text-platform-fg-primary">{domain.displayName}</div>
+                <p className="mt-2 text-xs leading-5 text-platform-fg-secondary">{domain.summary}</p>
+                <div className="mt-3 text-[11px] text-platform-fg-muted">已审对象 {domain.memberCount} 个</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : !model || !scopedGraph ? (
         <div className="flex flex-1 items-center justify-center p-6 text-center">
-          <div><Network className="mx-auto h-7 w-7 text-platform-fg-muted" aria-hidden="true" /><p className="mt-3 text-sm text-platform-fg-secondary">当前 Authority 暂无可显示对象。</p><p className="mt-1 text-xs text-platform-fg-muted">未请求 Legacy API。</p></div>
+          <div><Network className="mx-auto h-7 w-7 text-platform-fg-muted" aria-hidden="true" /><p className="mt-3 text-sm text-platform-fg-secondary">当前领域暂无可显示对象。</p><p className="mt-1 text-xs text-platform-fg-muted">未请求完整图谱或 Legacy API。</p></div>
         </div>
       ) : (
         <div className={`grid min-h-0 flex-1 ${selectedNodeKey ? 'grid-cols-[minmax(0,1fr)_minmax(19rem,27rem)] max-lg:grid-cols-1' : 'grid-cols-1'}`}>
@@ -836,7 +1338,43 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-platform-fg-muted" aria-hidden="true" />
                 </div>
-                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />返回总览</button>
+                {ENGINEERING_RELATION_FAMILIES.map((family) => {
+                  const enabled = workspace.enabledFamilies.includes(family);
+                  const failure = familyFailures[family];
+                  return (
+                    <div key={family} className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      data-authority-relation-family={family}
+                      data-authority-family-enabled={enabled ? 'true' : 'false'}
+                      aria-pressed={enabled}
+                      aria-label={failure ? `${FAMILY_LABELS[family]}关系加载失败，点击重试` : undefined}
+                      onClick={() => enableFamily(family)}
+                      className={`rounded-md border px-2.5 py-2 text-xs ${enabled ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
+                    >
+                      {FAMILY_LABELS[family]}
+                    </button>
+                    {failure ? (
+                      <span
+                        role="alert"
+                        aria-live="polite"
+                        data-authority-family-failure={family}
+                        className="max-w-44 text-[11px] text-red-200"
+                      >
+                        {failure}
+                        <button
+                          type="button"
+                          onClick={() => enableFamily(family)}
+                          aria-label={`重试${FAMILY_LABELS[family]}关系`}
+                          data-authority-family-retry={family}
+                          className="ml-1 underline underline-offset-2"
+                        >重试</button>
+                      </span>
+                    ) : null}
+                    </div>
+                  );
+                })}
+                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />返回领域</button>
               </div>
             </div>
 
@@ -844,6 +1382,17 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
               <span>{scopedGraph.nodes.length} 个对象 · {scopedGraph.relations.length} 条关系 · 可见范围</span>
               <span>总覆盖 {model.totalNodeCount} 个对象 · {model.totalRelationCount} 条关系</span>
             </div>
+            {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
+              <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
+                <span>{neighborhoodFailures[selectedNodeKey]}</span>
+                <button
+                  type="button"
+                  onClick={() => requestNeighborhood(selectedNodeKey)}
+                  data-authority-neighborhood-retry={selectedNodeKey}
+                  className="shrink-0 underline underline-offset-2"
+                >重试邻域</button>
+              </div>
+            ) : null}
             <div className="relative overflow-hidden rounded-xl border border-platform-border bg-[#07111f]" data-active-graph-stage="authority" tabIndex={-1}>
               <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-md border border-platform-border bg-platform-surface/90 p-1">
                 <button type="button" aria-label="缩小图谱" onClick={() => setZoom((value) => Math.max(0.65, Number((value - 0.15).toFixed(2))))} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><Minus className="h-3.5 w-3.5" aria-hidden="true" /></button>
@@ -897,7 +1446,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
             {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">部分内容暂不可解释，已隐藏以保持语义安全。</p> : null}
             {searchResults.length === 0 && (query || typeFilter) ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />没有匹配的语义对象。</p> : null}
           </main>
-          {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} onClose={closeDetail} /> : null}
+          {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} /> : null}
         </div>
       )}
     </div>
