@@ -1456,6 +1456,24 @@ describe('enable-incremental-domain-teaching-projection', () => {
       );
     });
 
+    it('fails closed for an invalid empty-composition authoringRevision and preserves prior', () => {
+      const first = buildDomainTeachingFragment(
+        baseAuthoring(),
+        fixtureEnvelope(),
+      );
+      const prior = composeProjection({ fragments: [first] });
+      const result = composeDomainTeachingProjectionFailClosed({
+        fragments: [],
+        authoringRevision: 'not-a-git-sha',
+        priorArtifacts: prior,
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result.errorCode).toBe('authority-envelope-malformed');
+      expect(result.priorPreserved).toBe(true);
+      expect(result.artifacts).toBe(prior);
+    });
+
     it('fails closed when a non-empty composition has no explicit revision or Authority envelope', () => {
       const first = buildDomainTeachingFragment(
         baseAuthoring(),

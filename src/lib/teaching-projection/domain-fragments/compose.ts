@@ -205,17 +205,17 @@ function resolveEmptyCompositionSelection(input: {
   );
 }
 
-function resolveNonEmptyCompositionAuthoringRevision(input: {
+function resolveCompositionAuthoringRevision(input: {
   authoringRevision?: string;
-  envelopeAuthoringRevision?: string;
+  authorityEnvelope?: DomainTeachingAuthorityEnvelope;
   prior: DomainTeachingComposedArtifacts | null;
+  sealedCaptureRevision: string;
+  allowPriorManifest: boolean;
+  allowSealedCaptureFallback: boolean;
 }): string {
-  if (input.authoringRevision !== undefined) {
+  const requireCandidate = (value: string | undefined, label: string): string => {
     try {
-      return requireCommitSha(
-        input.authoringRevision,
-        'composition.authoringRevision',
-      );
+      return requireCommitSha(value, label);
     } catch (error) {
       if (error instanceof DomainFragmentValidationError) {
         throw new DomainCompositionError(error.code, error.message, {
@@ -231,9 +231,34 @@ function resolveNonEmptyCompositionAuthoringRevision(input: {
       }
       throw error;
     }
+  };
+
+  if (input.authoringRevision !== undefined) {
+    return requireCandidate(
+      input.authoringRevision,
+      'composition.authoringRevision',
+    );
   }
-  if (input.envelopeAuthoringRevision) {
-    return input.envelopeAuthoringRevision;
+  if (input.authorityEnvelope) {
+    return requireCandidate(
+      input.authorityEnvelope.authoringRevision,
+      'composition.authority.authoringRevision',
+    );
+  }
+  if (
+    input.allowPriorManifest
+    && input.prior?.manifest.authoringRevision !== undefined
+  ) {
+    return requireCandidate(
+      input.prior.manifest.authoringRevision,
+      'prior.manifest.authoringRevision',
+    );
+  }
+  if (input.allowSealedCaptureFallback) {
+    return requireCandidate(
+      input.sealedCaptureRevision,
+      'composition.authoritySelection.captureRevision',
+    );
   }
   throw new DomainCompositionError(
     'authoring-revision-unspecified',
@@ -508,12 +533,13 @@ export function composeDomainTeachingProjection(
     if (!input.fragments || input.fragments.length === 0) {
       // Empty composition is legal: all domains empty coverage.
       // Must still carry a complete Authority binding (supplied or prior).
+      const authorityEnvelope = input.authority
+        ? assertDomainTeachingAuthorityEnvelope(input.authority, 'composition.authority')
+        : undefined;
       const authoritySelection = resolveEmptyCompositionSelection({
         authorityBinding: input.authorityBinding,
-        authoritySelection: input.authority
-          ? authoritySelectionFromEnvelope(
-              assertDomainTeachingAuthorityEnvelope(input.authority, 'composition.authority'),
-            )
+        authoritySelection: authorityEnvelope
+          ? authoritySelectionFromEnvelope(authorityEnvelope)
           : input.authoritySelection,
         prior,
       });
@@ -527,11 +553,14 @@ export function composeDomainTeachingProjection(
         relations,
       });
       const gate = evaluateGate([]);
-      const authoringRevision =
-        input.authoringRevision
-        ?? input.authority?.authoringRevision
-        ?? prior?.manifest.authoringRevision
-        ?? authoritySelection.captureRevision;
+      const authoringRevision = resolveCompositionAuthoringRevision({
+        authoringRevision: input.authoringRevision,
+        authorityEnvelope,
+        prior,
+        sealedCaptureRevision: authoritySelection.captureRevision,
+        allowPriorManifest: true,
+        allowSealedCaptureFallback: true,
+      });
       const sourceInventoryDigest = projectionDigest({
         kind: 'act-domain-teaching-source-inventory',
         nodes: [],
@@ -850,7 +879,7 @@ export function composeDomainTeachingProjection(
       }
     }
 
-    let envelopeAuthoringRevision: string | undefined;
+    let authorityEnvelope: DomainTeachingAuthorityEnvelope | undefined;
     if (input.authority) {
       try {
         const envelope = assertDomainTeachingAuthorityEnvelope(
@@ -878,7 +907,7 @@ export function composeDomainTeachingProjection(
             },
           );
         }
-        envelopeAuthoringRevision = envelope.authoringRevision;
+        authorityEnvelope = envelope;
       } catch (error) {
         if (error instanceof DomainCompositionError) throw error;
         if (error instanceof DomainFragmentValidationError) {
@@ -900,10 +929,13 @@ export function composeDomainTeachingProjection(
     const authorityBinding = sharedBinding;
     const authoritySelection = sharedSelection;
 
-    const authoringRevision = resolveNonEmptyCompositionAuthoringRevision({
+    const authoringRevision = resolveCompositionAuthoringRevision({
       authoringRevision: input.authoringRevision,
-      envelopeAuthoringRevision,
+      authorityEnvelope,
       prior,
+      sealedCaptureRevision: authoritySelection.captureRevision,
+      allowPriorManifest: false,
+      allowSealedCaptureFallback: false,
     });
 
     const fragmentRefs: DomainFragmentRef[] = input.fragments.map(
