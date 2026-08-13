@@ -842,11 +842,12 @@ export async function readStudentEvidenceFeatures(
     ? (options.now ?? new Date()).getTime() - refreshedAt.getTime() > staleAfterDays * DAY_MS
     : true;
   const markers = Array.isArray(compatibleCache.statusMarkers) ? compatibleCache.statusMarkers : [];
+  const staleByVersion = compatibleCache.payloadVersion !== STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION;
   const staleBySchema = !hasCurrentFeaturePayloadSchema(compatibleCache);
 
   return {
     state: staleByAge || markers.includes('stale') || staleBySchema ? 'stale' : 'ready',
-    cache: compatibleCache,
+    cache: staleByVersion ? null : compatibleCache,
     rawReadExceptions: [...STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS],
   };
 }

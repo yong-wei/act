@@ -1910,9 +1910,7 @@ describe('student evidence feature cache service', () => {
       })
     ).resolves.toMatchObject({
       state: 'stale',
-      cache: {
-        userId: 'student-1',
-      },
+      cache: null,
     });
   });
 
@@ -1972,10 +1970,7 @@ describe('student evidence feature cache service', () => {
       })
     ).resolves.toMatchObject({
       state: 'stale',
-      cache: {
-        userId: 'student-1',
-        payloadVersion: 'student-evidence-features.v5',
-      },
+      cache: null,
     });
   });
 
