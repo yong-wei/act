@@ -2695,6 +2695,7 @@ export default function AdaptivePracticePage() {
   const [activePathRound, setActivePathRound] = useState<LearningPathRoundView | null>(null);
   const [activeCandidateBatch, setActiveCandidateBatch] = useState<AdaptivePathCandidateBatchView | null>(null);
   const [candidateBatchLoadState, setCandidateBatchLoadState] = useState<AdaptivePathContextLoadState>('idle');
+  const [generatedCandidateBatchFailure, setGeneratedCandidateBatchFailure] = useState(false);
   const [focusedCandidateId, setFocusedCandidateId] = useState<string | null>(requestedCandidateId);
   const [pathContextLoadState, setPathContextLoadState] = useState<AdaptivePathContextLoadState>('idle');
   const [loadedPathContextKey, setLoadedPathContextKey] = useState<string | null>(null);
@@ -2867,7 +2868,7 @@ export default function AdaptivePracticePage() {
   const hasCandidateBatchContext = shouldShowCandidateComparison &&
     candidateBatchLoadState !== 'missing' &&
     candidateBatchLoadState !== 'failed';
-  const showCandidateBatchRecovery = shouldShowCandidateComparison &&
+  const showCandidateBatchRecovery = (shouldShowCandidateComparison || generatedCandidateBatchFailure) &&
     (candidateBatchLoadState === 'missing' || candidateBatchLoadState === 'failed');
   const canRenderCandidateComparison = shouldShowCandidateComparison && candidateBatchLoadState === 'ready';
   const hasLoadedPathContextForRecovery = hasLoadedCurrentPathContext || hasCandidateBatchContext;
@@ -3389,15 +3390,18 @@ export default function AdaptivePracticePage() {
     if (!activeGoal || (!isDemoMode && authStatus !== 'authenticated') || (!shouldShowCandidateComparison && !showGenerationWorkspace)) {
       setActiveCandidateBatch(null);
       setCandidateBatchLoadState('idle');
+      setGeneratedCandidateBatchFailure(false);
       return;
     }
     if (requestedCandidateId && !requestedBatchId) {
       setActiveCandidateBatch(null);
       setCandidateBatchLoadState('missing');
+      setGeneratedCandidateBatchFailure(false);
       return;
     }
     let cancelled = false;
     setCandidateBatchLoadState('loading');
+    setGeneratedCandidateBatchFailure(false);
     void fetchCandidateBatch(activeGoal, requestedBatchId, requestedCandidateId).then((result) => {
       if (cancelled) return;
       if (result.status === 'loaded') {
@@ -3744,7 +3748,8 @@ export default function AdaptivePracticePage() {
         const generatedBatchId = operation === 'generate' && typeof payload.result?.candidateBatch?.id === 'string'
           ? payload.result.candidateBatch.id
           : null;
-        if (generatedBatchId && activeGoal) {
+    if (generatedBatchId && activeGoal) {
+          setGeneratedCandidateBatchFailure(false);
           setActiveCandidateBatch(null);
           setCandidateBatchLoadState('loading');
           const loadedBatch = await fetchCandidateBatch(activeGoal, generatedBatchId);
@@ -3757,6 +3762,7 @@ export default function AdaptivePracticePage() {
             router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false });
           } else {
             setCandidateBatchLoadState(loadedBatch.status);
+            setGeneratedCandidateBatchFailure(true);
           }
         }
         await refreshLatestLearningPathAfterKonling();

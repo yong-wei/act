@@ -381,7 +381,7 @@ describe('adaptive practice page entry states', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
     expect(source).toContain("const shouldShowCandidateComparison = (showGenerationWorkspace || showSelectionWorkspace) && Boolean(requestedBatchId)");
-    expect(source).toContain("const showCandidateBatchRecovery = shouldShowCandidateComparison &&");
+    expect(source).toContain("const showCandidateBatchRecovery = (shouldShowCandidateComparison || generatedCandidateBatchFailure) &&");
     expect(source).toContain("const canRenderCandidateComparison = shouldShowCandidateComparison && candidateBatchLoadState === 'ready'");
     expect(source).toContain("workspaceIntent !== 'generation' && workspaceIntent !== 'selection'");
     expect(source).toContain("requestedBatchId ?? 'batch:none'");
