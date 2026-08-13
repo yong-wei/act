@@ -2279,10 +2279,14 @@ async function captureActiveAuthorityVisualMatrix(
     const { context, page, url, probe } = await openStatePage(browser, state, storageState);
     try {
       const apiLog = await probe.readLog();
-      const activeSummary = latestApiSummary(apiLog, '/api/knowledge/graph/active');
+      const activeSummary = latestApiSummary(apiLog, '/api/knowledge/shards/active');
       assertActiveApiSummary(activeSummary, `${state.name}:visual-matrix`);
-      if (apiLog.some((entry) => entry.path === '/api/knowledge/graph' || entry.path === '/api/knowledge/graph/v2')) {
-        throw new Error(`active visual matrix requested a non-active graph API in ${state.name}`);
+      if (apiLog.some((entry) => (
+        entry.path === '/api/knowledge/graph/active'
+        || entry.path === '/api/knowledge/graph'
+        || entry.path === '/api/knowledge/graph/v2'
+      ))) {
+        throw new Error(`active visual matrix requested a non-shard graph API in ${state.name}`);
       }
       const interactionEvidence = state.beforeShot
         ? await state.beforeShot(page, probe) ?? undefined
