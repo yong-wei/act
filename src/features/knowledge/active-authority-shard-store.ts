@@ -13,6 +13,7 @@ import type {
   PublicAuthorityRelationFamilyShard,
   PublicAuthorityRootShard,
   AuthorityShardPublicEnvelope,
+  AuthorityShardBoundaryRef,
   AuthorityShardObject,
   AuthorityShardRelation,
   EngineeringRelationFamily,
@@ -50,6 +51,8 @@ export interface AuthorityShardWorkspaceState {
   teachingCoverageByDomain: Record<string, PublicAuthorityDomainDefaultShard['teachingCoverage']>;
   root: PublicAuthorityRootShard['root'] | null;
   detailsByCanonicalId: Record<string, PublicAuthorityNodeDetailShard['node']>;
+  /** Reviewed cross-domain cues from loaded family and neighborhood shards. */
+  boundaryRefsByCanonicalId: Record<string, AuthorityShardBoundaryRef>;
   /** Monotonic domain epoch used to reject responses started before reset. */
   domainRevision: number;
 }
@@ -77,6 +80,7 @@ export function createEmptyAuthorityShardWorkspace(): AuthorityShardWorkspaceSta
     teachingCoverageByDomain: {},
     root: null,
     detailsByCanonicalId: {},
+    boundaryRefsByCanonicalId: {},
     domainRevision: 0,
   };
 }
@@ -184,6 +188,7 @@ export function mergeAuthorityShard(
   const relationsByLayerKey = { ...current.relationsByLayerKey };
   const teachingCoverageByDomain = { ...current.teachingCoverageByDomain };
   const detailsByCanonicalId = { ...current.detailsByCanonicalId };
+  const boundaryRefsByCanonicalId = { ...current.boundaryRefsByCanonicalId };
   const loadedShardKeys = current.loadedShardKeys.includes(key)
     ? current.loadedShardKeys
     : [...current.loadedShardKeys, key];
@@ -227,11 +232,15 @@ export function mergeAuthorityShard(
     for (const relation of shard.relations) {
       relationsByLayerKey[relationCacheKey(relation)] = relation;
     }
+    for (const boundary of shard.boundaries) {
+      boundaryRefsByCanonicalId[boundary.canonicalId] = boundary;
+    }
     return {
       ...current,
       envelope,
       objectsByCanonicalId,
       relationsByLayerKey,
+      boundaryRefsByCanonicalId,
       loadedShardKeys,
       selectedCanonicalId: current.selectedCanonicalId,
       inspectorOpen: current.inspectorOpen,
@@ -314,6 +323,7 @@ export function resetAuthorityShardDomain(
   return {
     ...current,
     relationsByLayerKey: {},
+    boundaryRefsByCanonicalId: {},
     teachingCoverageByDomain: {},
     loadedShardKeys: current.loadedShardKeys.filter((key) => key === 'root'),
     enabledFamilies: [],

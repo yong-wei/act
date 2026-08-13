@@ -427,6 +427,30 @@ export function selectInitialScope(
 
 export const selectActiveEntryScope = selectInitialScope;
 
+const PRIMARY_DOMAIN_OBJECT_TYPES = new Set(['DomainConcept', 'SystemModel']);
+
+/**
+ * Keep the first domain canvas readable. Formulae and knowledge statements
+ * remain in the model for explicit search, directory filtering and one-hop
+ * disclosure, but do not occupy the initial object layer.
+ */
+export function selectInitialPrimaryDomainScope(
+  model: ActiveAuthorityGraphModel,
+  limit = ACTIVE_GRAPH_NODE_LIMIT,
+): Set<string> {
+  const boundedLimit = Math.max(1, Math.floor(limit));
+  const primary = model.nodes
+    .filter((node) => PRIMARY_DOMAIN_OBJECT_TYPES.has(node.type.canonicalType))
+    .sort((left, right) => degree(model, right.key) - degree(model, left.key) || left.key.localeCompare(right.key));
+  return primary.length > 0
+    ? new Set(primary.slice(0, boundedLimit).map((node) => node.key))
+    : selectInitialScope(model, boundedLimit);
+}
+
+export function isPrimaryDomainObject(node: ActiveNodePresentation): boolean {
+  return PRIMARY_DOMAIN_OBJECT_TYPES.has(node.type.canonicalType);
+}
+
 export function buildActiveAdjacencyIndex(
   model: ActiveAuthorityGraphModel,
 ): ReadonlyMap<string, readonly ActiveRelationView[]> {

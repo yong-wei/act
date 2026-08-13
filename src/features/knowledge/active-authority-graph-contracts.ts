@@ -71,6 +71,8 @@ export interface ActiveCanvasRelation {
     publicationStatus: string | null;
   };
   relationFamily?: string;
+  /** Presentation grammar only; never rendered as a raw product string. */
+  layer?: 'ENGINEERING' | 'ACT_TEACHING';
   evidenceState?: string;
   releaseTier?: string | null;
   semanticSupport: { supported: boolean; readOnly: true };
@@ -162,4 +164,3 @@ export interface ActiveNodeDetailResponse {
   };
   provenance: ActiveAuthorityProvenance;
 }
-

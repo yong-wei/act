@@ -996,6 +996,15 @@ function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: st
 async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context: string) {
   await page.waitForSelector('[data-knowledge-graph-mode="active"]', { timeout: 30000 });
   await page.waitForSelector('[data-authority-shard-root="true"]', { timeout: 30000 });
+  const rootDomainCount = await page.locator('[data-authority-domain-entry]').count();
+  const aggregateEntry = page.locator('[data-authority-aggregate-entry="true"]');
+  if (
+    rootDomainCount !== 8
+    || await aggregateEntry.count() !== 1
+    || await page.locator('[data-active-authority-graph="true"]').count() !== 0
+  ) {
+    throw new Error(`active Authority root layering contract failed in ${context}`);
+  }
   const domain = page.locator('[data-authority-domain-entry]').first();
   await domain.click({ timeout: 10000 });
   await page.waitForSelector('[data-active-graph-stage="authority"]', { timeout: 30000 });

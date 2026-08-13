@@ -30,6 +30,7 @@ import {
 } from '../../../../scripts/tests/test-commercial-ui-governance';
 import type {
   AuthorityShardPublicEnvelope,
+  EngineeringRelationFamily,
   PublicAuthorityDomainDefaultShard,
   PublicAuthorityNodeNeighborhoodShard,
   PublicAuthorityRelationFamilyShard,
@@ -262,7 +263,7 @@ function domainDefaultShard(
 }
 
 function familyShard(
-  family: 'association' | 'application-and-analysis',
+  family: EngineeringRelationFamily,
   relations: typeof canvas.relations,
   envelope: AuthorityShardPublicEnvelope = shardEnvelope,
   domainId: RegisteredPeerDomainId = 'system-modeling',
@@ -542,7 +543,7 @@ describe('active Authority knowledge workspace client boundary', () => {
           status: 200,
           json: async () => domainDefaultShard(canvas.nodes, [], {
             envelope: nextEnvelope,
-            teachingRelations: [teachingRelation('teaching-new')],
+            teachingRelations: [teachingRelation('teaching-new', 'node-concept', 'node-model')],
             teachingCoverage: { status: 'partial', relationCount: 1, note: '新教学覆盖' },
           }),
         };
@@ -563,7 +564,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     nextDomainResponse.resolve({
       ...domainDefaultShard(canvas.nodes, [], {
         envelope: nextEnvelope,
-        teachingRelations: [teachingRelation('teaching-new')],
+        teachingRelations: [teachingRelation('teaching-new', 'node-concept', 'node-model')],
         teachingCoverage: { status: 'partial', relationCount: 1, note: '新教学覆盖' },
       }),
     });
@@ -578,7 +579,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     oldDomainResponse.resolve({
       ...domainDefaultShard(canvas.nodes, [], {
         envelope: oldEnvelope,
-        teachingRelations: [teachingRelation('teaching-old')],
+        teachingRelations: [teachingRelation('teaching-old', 'node-concept', 'node-model')],
         teachingCoverage: { status: 'available', relationCount: 1, note: '旧教学覆盖' },
       }),
     });
@@ -858,7 +859,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await enterModelingDomain();
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-graph-stage="authority"]')).not.toBeNull();
-    expect(container.textContent).toContain('当前 Engineering Authority');
+    expect(container.textContent).toContain('当前知识图谱');
     expect(container.querySelector('[aria-label="当前 Authority 语义关系画布"]')).not.toBeNull();
     expect(container.textContent).not.toContain('internal-release');
     expect(container.textContent).not.toContain('internal-snapshot');
@@ -902,6 +903,79 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(requested).toContain('/api/knowledge/shards/active/nodes/node-concept');
     expect(requested.some((url) => url.includes('/graph/active'))).toBe(false);
     expect(requested.every((url) => url.includes('/active'))).toBe(true);
+  });
+
+  it('renders the aggregate entry and keeps secondary objects behind explicit disclosure', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/')) {
+        return mockResponse(domainDefaultShard(canvas.nodes, [], {
+          teachingRelations: [teachingRelation('teaching-primary', 'node-concept', 'node-model')],
+          teachingCoverage: { status: 'available', relationCount: 1, coreNodeCount: 2, note: '已发布教学顺序' },
+        }));
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    expect(container.querySelector('[data-authority-aggregate-entry="true"]')).not.toBeNull();
+
+    await enterModelingDomain({ families: false });
+    expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
+    expect(container.querySelector('[data-authority-relation-legend="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-relation="teaching-primary"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-isolated"]')).toBeNull();
+
+    const filter = container.querySelector<HTMLSelectElement>('#active-authority-type-filter');
+    expect(filter).not.toBeNull();
+    await act(async () => {
+      filter!.value = 'Formula';
+      filter!.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+  });
+
+  it('loads each enabled engineering group from the active domain shard endpoint', async () => {
+    const families = [
+      'structure',
+      'derivation-and-representation',
+      'application-and-analysis',
+      'association',
+    ] as const;
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/') && url.includes('/families/')) {
+        const family = families.find((entry) => url.endsWith(`/families/${entry}`));
+        if (family) return mockResponse(familyShard(family, [canvas.relations[0]]));
+      }
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+
+    for (const family of families) {
+      const control = container.querySelector<HTMLButtonElement>(`[data-authority-relation-family="${family}"]`);
+      expect(control).not.toBeNull();
+      await act(async () => control!.click());
+    }
+    await act(async () => Promise.resolve());
+
+    const requests = fetchMock.mock.calls.map(([url]) => String(url));
+    for (const family of families) {
+      expect(requests).toContain(`/api/knowledge/shards/active/domains/modeling/families/${family}`);
+      expect(container.querySelector<HTMLButtonElement>(`[data-authority-relation-family="${family}"]`)?.dataset.authorityFamilyEnabled).toBe('true');
+    }
   });
 
   it('supports search, type filtering, isolated nodes, selection and zoom controls', async () => {
@@ -1018,9 +1092,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => familyButton!.click());
     await act(async () => Promise.resolve());
 
-    const boundaryNode = container.querySelector<SVGGElement>('[data-active-authority-node="node-formula"]');
-    expect(boundaryNode).not.toBeNull();
-    await act(async () => boundaryNode!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
+    const boundaryEntry = container.querySelector<HTMLButtonElement>('[data-authority-boundary-node="node-formula"]');
+    expect(boundaryEntry).not.toBeNull();
+    await act(async () => boundaryEntry!.click());
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
@@ -1056,6 +1131,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     const crossFamily = {
       ...familyShard('association', [crossRelation]),
       objects: [sourceObject, boundaryObject],
+      boundaries: [{
+        canonicalId: 'node-formula',
+        label: '特征方程',
+        canonicalType: 'Formula',
+        adjacentDomainIds: ['frequency-domain-analysis'] as const,
+      }],
     } satisfies PublicAuthorityRelationFamilyShard;
 
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
@@ -1077,9 +1158,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => familyButton!.click());
     await act(async () => Promise.resolve());
 
-    const boundaryNode = container.querySelector<SVGGElement>('[data-active-authority-node="node-formula"]');
-    expect(boundaryNode).not.toBeNull();
-    await act(async () => boundaryNode!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
+    const boundaryEntry = container.querySelector<HTMLButtonElement>('[data-authority-boundary-node="node-formula"]');
+    expect(boundaryEntry).not.toBeNull();
+    await act(async () => boundaryEntry!.click());
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
