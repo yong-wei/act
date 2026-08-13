@@ -35,11 +35,11 @@ import {
   authoritySelectionFromEnvelope,
   authoritySelectionMismatchFields,
   assertDomainTeachingAuthorityEnvelope,
-  assertNonEmpty,
   assertPublishedAuthoritySelection,
   computeImmutableAuthorityDigest,
   domainFragmentEdgeSemanticKey,
   DomainFragmentValidationError,
+  requireCommitSha,
   validateComposedRelations,
 } from './validate';
 
@@ -212,7 +212,7 @@ function resolveNonEmptyCompositionAuthoringRevision(input: {
 }): string {
   if (input.authoringRevision !== undefined) {
     try {
-      return assertNonEmpty(
+      return requireCommitSha(
         input.authoringRevision,
         'composition.authoringRevision',
       );

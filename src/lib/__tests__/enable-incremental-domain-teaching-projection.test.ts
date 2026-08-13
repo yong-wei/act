@@ -1435,6 +1435,27 @@ describe('enable-incremental-domain-teaching-projection', () => {
       expect(reversed.manifest.authoringRevision).not.toBe(lexicallyLast);
     });
 
+    it('fails closed for an invalid explicit composition authoringRevision', () => {
+      const first = buildDomainTeachingFragment(
+        baseAuthoring(),
+        fixtureEnvelope(),
+      );
+      const prior = composeProjection({ fragments: [first] });
+      const result = composeDomainTeachingProjectionFailClosed({
+        fragments: [first],
+        authoringRevision: 'not-a-git-sha',
+        priorArtifacts: prior,
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result.errorCode).toBe('authority-envelope-malformed');
+      expect(result.priorPreserved).toBe(true);
+      expect(result.artifacts).toBe(prior);
+      expect(result.errorMessage).toContain(
+        'composition.authoringRevision must be a 40-character lowercase Git SHA',
+      );
+    });
+
     it('fails closed when a non-empty composition has no explicit revision or Authority envelope', () => {
       const first = buildDomainTeachingFragment(
         baseAuthoring(),

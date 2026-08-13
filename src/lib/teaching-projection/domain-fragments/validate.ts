@@ -202,7 +202,7 @@ function requireSha256(value: string | null | undefined, label: string): string 
   return hash;
 }
 
-function requireCommitSha(value: string | null | undefined, label: string): string {
+export function requireCommitSha(value: string | null | undefined, label: string): string {
   const revision = assertNonEmpty(value, label);
   if (!COMMIT_SHA.test(revision)) {
     throw new DomainFragmentValidationError(
