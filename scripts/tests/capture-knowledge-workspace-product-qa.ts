@@ -996,12 +996,25 @@ function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: st
 async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context: string) {
   await page.waitForSelector('[data-knowledge-graph-mode="active"]', { timeout: 30000 });
   await page.waitForSelector('[data-authority-shard-root="true"]', { timeout: 30000 });
+  const rootDomainCount = await page.locator('[data-authority-domain-entry]').count();
+  const aggregateEntry = page.locator('[data-authority-aggregate-entry="true"]');
+  if (
+    rootDomainCount !== 8
+    || await aggregateEntry.count() !== 1
+    || await page.locator('[data-active-graph-stage="authority"]').count() !== 0
+  ) {
+    throw new Error(`active Authority root layering contract failed in ${context}`);
+  }
   const domain = page.locator('[data-authority-domain-entry]').first();
   await domain.click({ timeout: 10000 });
   await page.waitForSelector('[data-active-graph-stage="authority"]', { timeout: 30000 });
   for (const family of ['structure', 'derivation-and-representation', 'application-and-analysis', 'association']) {
     const control = page.locator(`[data-authority-relation-family="${family}"]`);
-    if (await control.isVisible().catch(() => false)) await control.click({ timeout: 10000 });
+    if (!(await control.isVisible().catch(() => false))) {
+      throw new Error(`engineering relation filter unavailable in ${context}: ${family}`);
+    }
+    await control.click({ timeout: 10000 });
+    await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family');
   }
   await page.waitForFunction(() => {
     const graph = document.querySelector('[data-active-authority-graph="true"]');
@@ -1128,6 +1141,7 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
     semanticDetailVisible: Boolean(document.querySelector('[data-active-node-detail]')),
     adjacencyInteraction: document.querySelectorAll('[data-active-authority-relation]').length > 0,
     renderedEdgeCount: document.querySelectorAll('[data-active-authority-relation]').length,
+    teachingRelationsUnavailable: document.querySelector('[data-authority-teaching-coverage="true"]')?.textContent?.trim() === '教学关系暂不可用',
   }));
   const detailSurfaceScan = await captureActiveSurfaceScan(page, probe);
   await page.keyboard.press('Escape');
@@ -1737,6 +1751,7 @@ async function captureMarkers(page: Page, stateName: string) {
     const legacyWorkspaceRoot = document.querySelector('[data-knowledge-workspace]');
     const canvas = document.querySelector('[data-knowledge-canvas-primary]');
     const activeGraph = document.querySelector('[data-active-authority-graph="true"]');
+    const teachingCoverage = document.querySelector('[data-authority-teaching-coverage="true"]');
     const candidateGraph = document.querySelector('[data-candidate-authoritative-graph="true"]');
     const legacyView = document.querySelector('[data-knowledge-legacy-view="true"]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
@@ -1872,6 +1887,7 @@ async function captureMarkers(page: Page, stateName: string) {
         nodeLimit: Number(activeSvg?.getAttribute('data-active-authority-node-limit') ?? Number.NaN),
         viewBox: activeSvg?.getAttribute('viewBox') ?? null,
         nodeLabelReadability,
+        teachingCoverageNote: teachingCoverage?.textContent?.trim() ?? null,
         stage: document.querySelector('[data-active-graph-stage="authority"]') ? 'authority' : null,
       } : null,
       candidateAuthority: candidateGraph ? {
@@ -2180,6 +2196,58 @@ async function captureAuthenticatedRoleEvidence(
         };
       }
 
+      const mobileContext = await browser.newContext({
+        viewport: { width: 320, height: 800 },
+        deviceScaleFactor: 1,
+        storageState: session.storageState,
+      });
+      await addKnowledgeApiProbe(mobileContext);
+      const mobilePage = await mobileContext.newPage();
+      const mobileProbe = createKnowledgeApiProbe(mobilePage);
+      mobileContext.once('close', () => mobileProbe.dispose());
+      let mobile: Record<string, unknown>;
+      try {
+        await mobilePage.goto(`${baseUrl}/knowledge?qa=knowledge-product`, { waitUntil: 'domcontentloaded' });
+        await waitForActiveReady(mobilePage, mobileProbe, `role:${role}:mobile`);
+        const activeSurfaceScan = await captureActiveSurfaceScan(mobilePage, mobileProbe);
+        const markers = await captureMarkers(mobilePage, `role:${role}:mobile`);
+        const activeMarkers = objectRecord(markers.activeAuthority);
+        const activeApiEvidence = projectSafeApiEvidence(
+          role,
+          await mobileProbe.readLog(),
+          {
+            allowLegacy: false,
+            allowCandidate: false,
+            requireActiveCanvas: true,
+            forbiddenDataAbsent: activeSurfaceScan.passed === true,
+          },
+          await mobileProbe.readSensitiveTokens(),
+        );
+        if (
+          activeSurfaceScan.passed !== true
+          || activeMarkers.viewport !== 'compact'
+          || activeMarkers.visibleNodeCount <= 0
+          || activeMarkers.stage !== 'authority'
+        ) {
+          throw new Error(`active mobile product evidence failed in role:${role}`);
+        }
+        const screenshot = path.join(outputDir, `role-${role}-active-mobile.png`);
+        await mobilePage.screenshot({ path: screenshot, fullPage: false });
+        mobile = {
+          mode: 'active',
+          viewport: { width: 320, height: 800 },
+          api: activeApiEvidence,
+          activeSurfaceScan,
+          graphVisible: true,
+          nonEmptyCanvas: true,
+          screenshotPath: path.relative(repoRoot, screenshot),
+          screenshotSha256: sha256(path.relative(repoRoot, screenshot)),
+        };
+      } finally {
+        mobileProbe.dispose();
+        await mobileContext.close();
+      }
+
       results.push({
         role,
         default: {
@@ -2196,6 +2264,7 @@ async function captureAuthenticatedRoleEvidence(
           screenshotPath: path.relative(repoRoot, defaultScreenshot),
           screenshotSha256: sha256(path.relative(repoRoot, defaultScreenshot)),
         },
+        mobile,
         legacy: {
           mode: 'legacy',
           api: legacyApiEvidence,
@@ -2296,10 +2365,11 @@ async function captureActiveAuthorityVisualMatrix(
       const completedApiLog = await probe.readLog();
       const activeMarkers = objectRecord(markers.activeAuthority);
       const activeNodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
+      const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
       if (
         markers.knowledgeGraphMode !== 'active'
         || activeMarkers.visibleNodeCount <= 0
-        || activeMarkers.relationCount <= 0
+        || (!teachingRelationsUnavailable && activeMarkers.relationCount <= 0)
         || activeMarkers.resolvedEdgeEndpointCount !== activeMarkers.relationCount
         || activeMarkers.visibleSvgGeometryCount !== activeMarkers.relationCount
         || activeMarkers.activeSvgGeometryRectValid !== true
@@ -2369,6 +2439,7 @@ async function captureActiveAuthorityVisualMatrix(
         markers,
         surfaceScan,
         interactionEvidence,
+        teachingRelationsUnavailable,
         screenshotPath: screenshotRelativePath,
         screenshotSha256: sha256(screenshotRelativePath),
       });

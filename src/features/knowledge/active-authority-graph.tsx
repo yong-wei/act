@@ -26,10 +26,12 @@ import {
   expandActiveAuthorityOneHop,
   materializeActiveNodeScope,
   presentActiveNodeType,
+  presentActiveRelation,
   presentActiveHumanText,
   presentGovernanceLabel,
   presentSourceCitation,
-  selectInitialScope,
+  isPrimaryDomainObject,
+  selectInitialPrimaryDomainScope,
   visibleActiveGraph,
   ACTIVE_GRAPH_NODE_LIMIT,
   type ActiveAuthorityGraphModel,
@@ -821,7 +823,8 @@ function GraphEdge({
 }) {
   const label = `${sourceLabel}，${relation.semantic.label}，${targetLabel}，${relation.semantic.directionLabel}`;
   const endpoints = activeAuthorityEdgeEndpoints(sourceShape, targetShape, source, target);
-  const edgeStroke = selected ? '#e2e8f0' : '#64748b';
+  const teachingRelation = relation.sourceRelation.layer === 'ACT_TEACHING';
+  const edgeStroke = selected ? '#e2e8f0' : teachingRelation ? '#38bdf8' : '#64748b';
   return (
     <g
       data-active-authority-relation={relation.key}
@@ -838,6 +841,7 @@ function GraphEdge({
           stroke={edgeStroke}
           strokeWidth={selected ? 3 : 2}
           strokeLinecap="round"
+          strokeDasharray={teachingRelation ? undefined : '5 3'}
           markerEnd={relation.semantic.kind === 'directed' ? 'url(#active-authority-arrow)' : undefined}
         />
       ) : (
@@ -849,6 +853,7 @@ function GraphEdge({
           stroke={edgeStroke}
           strokeWidth={selected ? 3 : 2}
           strokeLinecap="round"
+          strokeDasharray={teachingRelation ? undefined : '5 3'}
           markerEnd={relation.semantic.kind === 'directed' ? 'url(#active-authority-arrow)' : undefined}
         />
       )}
@@ -1057,20 +1062,18 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   const model = useMemo(() => {
     if (state.status !== 'ready' || !workspace.activeDomainId) return null;
     const relations = visibleAuthorityShardRelations(workspace);
-    const allowed = new Set<string>();
-    for (const object of Object.values(workspace.objectsByCanonicalId)) {
-      if (object.memberships.some((membership) => membership.domainId === workspace.activeDomainId)) {
-        allowed.add(object.id);
-      }
-    }
-    for (const relation of relations) {
-      allowed.add(relation.sourceId);
-      allowed.add(relation.targetId);
-    }
-    const nodes = Object.values(workspace.objectsByCanonicalId).filter((object) => allowed.has(object.id));
+    const inActiveDomain = (canonicalId: string) => (
+      workspace.objectsByCanonicalId[canonicalId]?.memberships
+        .some((membership) => membership.domainId === workspace.activeDomainId) ?? false
+    );
+    const nodes = Object.values(workspace.objectsByCanonicalId)
+      .filter((object) => inActiveDomain(object.id));
+    const inDomainRelations = relations.filter((relation) => (
+      inActiveDomain(relation.sourceId) && inActiveDomain(relation.targetId)
+    ));
     return createActiveAuthorityGraphModel({
       nodes,
-      relations: relations.map((relation) => ({
+      relations: inDomainRelations.map((relation) => ({
         ...relation,
         relationFamily: relation.relationFamily ?? undefined,
       })),
@@ -1079,6 +1082,34 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   const teachingCoverage = workspace.activeDomainId
     ? workspace.teachingCoverageByDomain[workspace.activeDomainId]
     : null;
+  const boundaryCues = useMemo(() => {
+    if (!workspace.activeDomainId || !workspace.root) return [];
+    const root = workspace.root;
+    const knownBoundaryIds = new Set(Object.keys(workspace.boundaryRefsByCanonicalId));
+    return visibleAuthorityShardRelations(workspace)
+      .flatMap((relation) => {
+        const source = workspace.objectsByCanonicalId[relation.sourceId];
+        const target = workspace.objectsByCanonicalId[relation.targetId];
+        const sourceInDomain = source?.memberships.some((membership) => membership.domainId === workspace.activeDomainId) ?? false;
+        const targetInDomain = target?.memberships.some((membership) => membership.domainId === workspace.activeDomainId) ?? false;
+        if (sourceInDomain === targetInDomain) return [];
+        const boundary = sourceInDomain ? target : source;
+        if (!boundary || !knownBoundaryIds.has(boundary.id)) return [];
+        const membership = selectActiveAuthorityMembership(boundary.memberships, workspace.activeDomainId);
+        const domain = membership
+          ? root.domains.find((entry) => entry.visualRole === membership.visualRole)
+          : undefined;
+        if (!domain) return [];
+        return [{
+          key: `${relation.layer}:${relation.id}:${boundary.id}`,
+          nodeId: boundary.id,
+          domainName: domain.displayName,
+          relationLabel: presentActiveRelation(relation.predicate, relation.direction).label,
+          objectLabel: presentActiveHumanText(boundary.label, '名称暂不可用'),
+        }];
+      })
+      .sort((left, right) => left.domainName.localeCompare(right.domainName) || left.objectLabel.localeCompare(right.objectLabel) || left.key.localeCompare(right.key));
+  }, [workspace]);
 
   const domainEpoch = `${workspace.envelope?.authorityCatalogVersion ?? ''}:${workspace.activeDomainId ?? ''}`;
   const modelReady = Boolean(model);
@@ -1091,7 +1122,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
       pendingCrossDomainSelectionRef.current = null;
     } else {
       pendingCrossDomainSelectionRef.current = null;
-      setVisibleKeys(selectInitialScope(model, visibleNodeLimit));
+      setVisibleKeys(selectInitialPrimaryDomainScope(model, visibleNodeLimit));
       setSelectedNodeKey(null);
     }
     setQuery('');
@@ -1105,12 +1136,17 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     setVisibleKeys((current) => {
       const next = new Set(current);
       for (const relation of model.relations) {
+        const source = model.nodeByKey.get(relation.sourceKey);
+        const target = model.nodeByKey.get(relation.targetKey);
+        if (workspace.enabledFamilies.length === 0 && (!source || !target || !isPrimaryDomainObject(source) || !isPrimaryDomainObject(target))) {
+          continue;
+        }
         next.add(relation.sourceKey);
         next.add(relation.targetKey);
       }
       return next;
     });
-  }, [model]);
+  }, [model, workspace.enabledFamilies.length]);
 
   useEffect(() => {
     if (!model || !selectedNodeKey) return;
@@ -1155,7 +1191,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
 
   function resolveNodeSelection(key: string, mode: 'canvas' | 'search'): void {
-    if (!model) return;
+    if (!model && !workspace.objectsByCanonicalId[key]) return;
     const intent = selectionIntentRef.current + 1;
     selectionIntentRef.current = intent;
     if (mode === 'search') {
@@ -1178,6 +1214,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
       workspace.activeDomainId === membership.domainId
       && workspace.activeVisualRole === owningDomain.visualRole
     )) {
+      if (!model) return;
       pendingCrossDomainSelectionRef.current = null;
       setVisibleKeys((current) => mode === 'search'
         ? materializeActiveNodeScope(model, key, visibleNodeLimit)
@@ -1206,6 +1243,11 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
 
   function focusSearchResult(key: string) {
     resolveNodeSelection(key, 'search');
+  }
+
+  function followBoundary(nodeId: string) {
+    triggerRef.current = null;
+    resolveNodeSelection(nodeId, 'canvas');
   }
 
   function resetOverview() {
@@ -1265,8 +1307,8 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-semibold">当前 Engineering Authority</h2>
-              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100">当前 Authority</span>
+              <h2 className="text-base font-semibold">当前知识图谱</h2>
+              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100">工程知识</span>
             </div>
             <p className="mt-1 text-xs text-platform-fg-secondary">先选择知识领域，再按需加载教学骨架与工程关系族。</p>
           </div>
@@ -1311,6 +1353,15 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                 <div className="mt-3 text-[11px] text-platform-fg-muted">已审对象 {domain.memberCount} 个</div>
               </button>
             ))}
+            <article
+              data-authority-aggregate-entry="true"
+              className="rounded-xl border border-platform-border bg-platform-canvas-muted p-4"
+              aria-label={`${workspace.root.aggregate.displayName}汇总入口`}
+            >
+              <div className="text-sm font-semibold text-platform-fg-primary">{workspace.root.aggregate.displayName}</div>
+              <p className="mt-2 text-xs leading-5 text-platform-fg-secondary">{workspace.root.aggregate.summary}</p>
+              <div className="mt-3 text-[11px] text-platform-fg-muted">汇总 {workspace.root.aggregate.domainCount} 个已审领域，不展开全局关系。</div>
+            </article>
           </div>
         </div>
       ) : !model || !scopedGraph ? (
@@ -1332,12 +1383,33 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
               <div className="flex flex-wrap items-center gap-2">
                 <label className="sr-only" htmlFor="active-authority-type-filter">按对象类型筛选</label>
                 <div className="relative">
-                  <select id="active-authority-type-filter" aria-label="按对象类型筛选" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} className="appearance-none rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-3 pr-8 text-xs text-platform-fg-secondary">
+                  <select
+                    id="active-authority-type-filter"
+                    aria-label="按对象类型筛选"
+                    value={typeFilter}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setTypeFilter(value);
+                      if (value === 'Formula' || value === 'KnowledgeStatement') {
+                        setVisibleKeys((current) => new Set([
+                          ...current,
+                          ...model.nodes.filter((node) => node.type.canonicalType === value).map((node) => node.key),
+                        ]));
+                      }
+                    }}
+                    className="appearance-none rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-3 pr-8 text-xs text-platform-fg-secondary"
+                  >
                     <option value="">全部类型</option>
                     {model.nodes.reduce<string[]>((types, node) => types.includes(node.type.canonicalType) ? types : [...types, node.type.canonicalType], []).sort().map((canonicalType) => <option key={canonicalType} value={canonicalType}>{presentActiveNodeType(canonicalType).label}</option>)}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-platform-fg-muted" aria-hidden="true" />
                 </div>
+                <span
+                  data-authority-relation-family="teaching-order"
+                  className="rounded-md border border-sky-300/50 bg-sky-400/10 px-2.5 py-2 text-xs text-sky-100"
+                >
+                  教学顺序（默认）
+                </span>
                 {ENGINEERING_RELATION_FAMILIES.map((family) => {
                   const enabled = workspace.enabledFamilies.includes(family);
                   const failure = familyFailures[family];
@@ -1377,6 +1449,30 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                 <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />返回领域</button>
               </div>
             </div>
+
+            <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-platform-fg-secondary" data-authority-relation-legend="true">
+              <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 bg-sky-300" />教学顺序</span>
+              <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 border-t border-dashed border-slate-400" />工程关系</span>
+              <span data-authority-teaching-coverage="true">{teachingCoverage?.note ?? '教学关系暂不可用'}</span>
+            </div>
+            {boundaryCues.length > 0 ? (
+              <section className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-3" aria-labelledby="active-authority-boundaries">
+                <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary">跨领域入口</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {boundaryCues.map((cue) => (
+                    <button
+                      key={cue.key}
+                      type="button"
+                      data-authority-boundary-node={cue.nodeId}
+                      onClick={() => followBoundary(cue.nodeId)}
+                      className="rounded-md border border-platform-border px-2.5 py-1.5 text-left text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"
+                    >
+                      进入{cue.domainName}查看{cue.objectLabel}（{cue.relationLabel}）
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted">
               <span>{scopedGraph.nodes.length} 个对象 · {scopedGraph.relations.length} 条关系 · 可见范围</span>
