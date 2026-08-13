@@ -171,7 +171,8 @@ runtime_root=\"${runtime_dir}\"
 for pointer in \
   knowledge/consumer-activation/current.json \
   knowledge/projection/current.json \
-  knowledge/prerequisites/current.json; do
+  knowledge/prerequisites/current.json \
+  knowledge/authority-domain-shards/current.json; do
   if [ -e \"\${runtime_root}/\${pointer}\" ]; then
     echo \"ERROR: production runtime pointer must be absent: \${pointer}\" >&2
     exit 1
@@ -550,6 +551,7 @@ case "${RUNTIME_DELIVERY_MODE}" in
       --exclude=knowledge/consumer-activation/current.json
       --exclude=knowledge/projection/current.json
       --exclude=knowledge/prerequisites/current.json
+      --exclude=knowledge/authority-domain-shards/current.json
       -e "ssh -o BatchMode=yes"
     )
     if remote "test -d '${REMOTE_RUNTIME_DIR}'"; then

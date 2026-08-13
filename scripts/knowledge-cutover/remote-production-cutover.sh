@@ -44,6 +44,7 @@ run_preflight() {
     "${authority_root}/current.json" \
     "${runtime_root}/knowledge/projection/current.json" \
     "${runtime_root}/knowledge/prerequisites/current.json" \
+    "${runtime_root}/knowledge/authority-domain-shards/current.json" \
     "${runtime_root}/knowledge/consumer-activation/current.json" \
     "$marker"; do
     if [ -e "$pointer" ] || [ -L "$pointer" ]; then
@@ -264,6 +265,7 @@ run_cleanup_failed_authority() {
     "${authority_root}/current.json" \
     "${runtime_root}/knowledge/projection/current.json" \
     "${runtime_root}/knowledge/prerequisites/current.json" \
+    "${runtime_root}/knowledge/authority-domain-shards/current.json" \
     "${runtime_root}/knowledge/consumer-activation/current.json" \
     "$marker"; do
     if [ -e "$pointer" ] || [ -L "$pointer" ]; then
@@ -325,6 +327,7 @@ run_activate() {
     "${authority_root}/current.json"
     "${runtime_root}/knowledge/projection/current.json"
     "${runtime_root}/knowledge/prerequisites/current.json"
+    "${runtime_root}/knowledge/authority-domain-shards/current.json"
     "${runtime_root}/knowledge/consumer-activation/current.json"
   )
 

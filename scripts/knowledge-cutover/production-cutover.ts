@@ -14,6 +14,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
@@ -29,11 +30,33 @@ import {
   resolveAuthorityStorePaths,
 } from '../../src/lib/authoritative-knowledge';
 import {
+  loadAuthorityDomainCatalogRuntime,
+  resolveAuthorityDomainCatalogPaths,
+} from '../../src/lib/authority-domain-catalog';
+import {
+  AUTHORITY_SHARD_CURRENT_CONTRACT,
+  AUTHORITY_SHARD_ENVELOPE_CONTRACT,
+  AUTHORITY_SHARD_SET_CONTRACT,
+  buildAuthorityDomainShards,
+  createTeachingOverlay,
+  loadActiveShardContext,
+  loadOptionalDomainTeachingProjection,
+  readCurrentShardPointer,
+  resolveAuthorityDomainShardPaths,
+  shardDigest,
+  shardSha256,
+  shardSetDir,
+  type AuthorityShardCurrentPointer,
+  type AuthorityShardEnvelope,
+  type AuthorityShardSetManifest,
+} from '../../src/lib/authority-domain-shards';
+import {
   executeFirstActivation,
   readFirstActivationJournal,
   recoverInterruptedFirstActivation,
   rollbackCommittedFirstActivation,
   type FirstActivationStep,
+  type FirstActivationJournal,
 } from '../../src/lib/knowledge-cutover/first-activation';
 import {
   activatePrerequisitePublication,
@@ -71,7 +94,12 @@ const CONSUMERS = [
   'learning-path',
 ] as const;
 
-type Component = 'authority' | 'projection' | 'prerequisite' | 'consumer-activation';
+type Component =
+  | 'authority'
+  | 'projection'
+  | 'prerequisite'
+  | 'authority-domain-shards'
+  | 'consumer-activation';
 
 interface FileDigest {
   path: string;
@@ -123,6 +151,7 @@ interface ProductionCutoverPlan {
     activationHash: string;
     readyConsumerIds: readonly string[];
   };
+  authorityDomainShards: AuthorityShardCurrentPointer;
   pointers: readonly PointerTarget[];
   files: readonly FileDigest[];
   localFirstActivationReportSha256: string;
@@ -245,9 +274,14 @@ function assertPlan(plan: ProductionCutoverPlan): void {
   assert(SHA256.test(plan.localFirstActivationReportSha256), 'plan first-activation report hash is invalid');
   assert(SHA256.test(plan.planHash), 'plan hash is invalid');
   assert(sha256(canonicalJson(planBody(plan))) === plan.planHash, 'plan hash mismatch');
-  assert(plan.pointers.length === 4, 'plan must define exactly four pointers');
-  assert(new Set(plan.pointers.map((pointer) => pointer.component)).size === 4, 'plan pointer components are not unique');
-  assert(new Set(plan.pointers.map((pointer) => pointer.path)).size === 4, 'plan pointer paths are not unique');
+  assert(plan.pointers.length === 5, 'plan must define exactly five pointers');
+  assert(new Set(plan.pointers.map((pointer) => pointer.component)).size === 5, 'plan pointer components are not unique');
+  assert(new Set(plan.pointers.map((pointer) => pointer.path)).size === 5, 'plan pointer paths are not unique');
+  assert(
+    plan.pointers.map((pointer) => pointer.component).join(',')
+      === 'authority,projection,prerequisite,authority-domain-shards,consumer-activation',
+    'plan pointer order is invalid',
+  );
   for (const pointer of plan.pointers) {
     relativePath(pointer.path);
     assert(IDENTITY_TOKEN.test(pointer.id) && SHA256.test(pointer.hash), `invalid pointer target: ${pointer.component}`);
@@ -257,6 +291,19 @@ function assertPlan(plan: ProductionCutoverPlan): void {
   assert(IDENTITY_TOKEN.test(plan.projection.projectionId) && SHA256.test(plan.projection.projectionHash), 'invalid Teaching Projection identity');
   assert(IDENTITY_TOKEN.test(plan.prerequisite.publicationId) && SHA256.test(plan.prerequisite.publicationHash), 'invalid prerequisite publication identity');
   assert(IDENTITY_TOKEN.test(plan.activation.activationId) && SHA256.test(plan.activation.activationHash), 'invalid consumer activation identity');
+  assert(plan.authorityDomainShards.contract === AUTHORITY_SHARD_CURRENT_CONTRACT, 'invalid Authority domain shard pointer contract');
+  assert(IDENTITY_TOKEN.test(plan.authorityDomainShards.shardSetId) && SHA256.test(plan.authorityDomainShards.shardSetHash), 'invalid Authority domain shard set identity');
+  assert(plan.authorityDomainShards.snapshotId === plan.authority.snapshotId && plan.authorityDomainShards.snapshotHash === plan.authority.snapshotHash, 'Authority domain shard snapshot identity mismatch');
+  assert(plan.authorityDomainShards.releaseId === plan.authority.releaseId, 'Authority domain shard release identity mismatch');
+  assert(IDENTITY_TOKEN.test(plan.authorityDomainShards.catalogId) && SHA256.test(plan.authorityDomainShards.catalogHash), 'invalid Authority domain shard catalog identity');
+  assert(
+    (plan.authorityDomainShards.teachingProjectionId === null && plan.authorityDomainShards.teachingProjectionHash === null)
+      || (IDENTITY_TOKEN.test(plan.authorityDomainShards.teachingProjectionId) && SHA256.test(plan.authorityDomainShards.teachingProjectionHash)),
+    'invalid Authority domain shard Teaching identity',
+  );
+  assert(typeof plan.authorityDomainShards.activatedAt === 'string' && plan.authorityDomainShards.activatedAt.length > 0, 'invalid Authority domain shard activation time');
+  const shardPointer = plan.pointers.find((pointer) => pointer.component === 'authority-domain-shards');
+  assert(shardPointer?.id === plan.authorityDomainShards.shardSetId && shardPointer.hash === plan.authorityDomainShards.shardSetHash, 'Authority domain shard pointer target mismatch');
   assert(plan.files.length > 0, 'plan has no sealed files');
   assert(new Set(plan.files.map((file) => file.path)).size === plan.files.length, 'plan file paths are not unique');
   for (const file of plan.files) {
@@ -271,6 +318,217 @@ function componentPointer(plan: ProductionCutoverPlan, component: Component): Po
   const pointer = plan.pointers.find((entry) => entry.component === component);
   if (!pointer) fail(`plan is missing ${component} pointer`);
   return pointer;
+}
+
+const AUTHORITY_SHARD_RUNTIME_RELATIVE =
+  'course-content/runtime/knowledge/authority-domain-shards';
+const AUTHORITY_SHARD_CATALOG_RUNTIME_RELATIVE =
+  'course-content/runtime/knowledge/authority-domain-catalog';
+
+function collectFilesIfPresent(
+  root: string,
+  relative: string,
+  group: FileDigest['group'],
+): FileDigest[] {
+  return existsSync(under(root, relative))
+    ? collectFiles(root, relative, group)
+    : [];
+}
+
+function buildAuthorityDomainShardSet(input: {
+  root: string;
+  authority: ReturnType<typeof loadStagedAuthoritySnapshot>;
+  catalog: ReturnType<typeof loadAuthorityDomainCatalogRuntime>;
+  activationId: string;
+  activationHash: string;
+  activatedAt: string;
+}): ReturnType<typeof buildAuthorityDomainShards> {
+  const teachingResolution = loadOptionalDomainTeachingProjection({
+    repoRoot: input.root,
+    authority: {
+      releaseId: input.authority.manifest.releaseId,
+      releaseSetId: input.authority.manifest.releaseSetId,
+      snapshotId: input.authority.snapshotId,
+      snapshotHash: input.authority.snapshotHash,
+    },
+  });
+  const teachingPointer = teachingResolution.pointer;
+  const envelope: AuthorityShardEnvelope = {
+    contract: AUTHORITY_SHARD_ENVELOPE_CONTRACT,
+    authority: {
+      snapshotId: input.authority.snapshotId,
+      snapshotHash: input.authority.snapshotHash,
+      releaseId: input.authority.manifest.releaseId,
+      releaseSetId: input.authority.manifest.releaseSetId,
+      activationId: input.activationId,
+      activationHash: input.activationHash,
+      projectionId: null,
+      projectionHash: null,
+    },
+    catalog: {
+      catalogId: input.catalog.catalogId,
+      catalogHash: input.catalog.catalogHash,
+      catalogVersion: input.catalog.catalogVersion,
+    },
+    teaching: teachingPointer
+      ? {
+          status: teachingResolution.artifacts ? 'available' : 'unavailable',
+          projectionId: teachingPointer.projectionId,
+          projectionHash: teachingPointer.projectionHash,
+          teachingCacheFamily: teachingPointer.teachingCacheFamily,
+        }
+      : {
+          status: 'unavailable',
+          projectionId: null,
+          projectionHash: null,
+          teachingCacheFamily: null,
+        },
+    match: {
+      authority: true,
+      catalog: true,
+      teaching: teachingPointer ? Boolean(teachingResolution.artifacts) : null,
+    },
+  };
+  return buildAuthorityDomainShards({
+    envelope,
+    catalog: input.catalog,
+    engineering: input.authority.engineering,
+    teaching: createTeachingOverlay(teachingPointer, {
+      artifacts: teachingResolution.artifacts,
+      forceUnavailable: Boolean(teachingPointer && !teachingResolution.artifacts),
+    }),
+    activatedAt: input.activatedAt,
+  });
+}
+
+function materializeShardFiles(
+  root: string,
+  materialized: ReturnType<typeof buildAuthorityDomainShards>,
+): void {
+  const paths = resolveAuthorityDomainShardPaths(root);
+  const target = shardSetDir(paths, materialized.manifest.shardSetId);
+  const writeAndVerify = (directory: string): void => {
+    for (const [relative, value] of Object.entries(materialized.files)) {
+      const filePath = path.join(directory, relative);
+      const raw = `${JSON.stringify(value, null, 2)}\n`;
+      writeJsonAtomic(filePath, value);
+      assert(hashFile(filePath) === shardSha256(raw), `Authority domain shard artifact write mismatch: ${relative}`);
+    }
+  };
+  if (pointerExists(target)) {
+    const targetStat = lstatSync(target);
+    assert(targetStat.isDirectory() && !targetStat.isSymbolicLink(), 'Authority domain shard set directory must be a regular directory');
+    for (const [relative, value] of Object.entries(materialized.files)) {
+      const filePath = path.join(target, relative);
+      const raw = `${JSON.stringify(value, null, 2)}\n`;
+      assert(pointerExists(filePath) && hashFile(filePath) === shardSha256(raw), `Authority domain shard artifact drift: ${relative}`);
+    }
+    return;
+  }
+  const staging = `${target}.staging-${process.pid}`;
+  assert(!pointerExists(staging), 'Authority domain shard staging directory already exists');
+  writeAndVerify(staging);
+  renameSync(staging, target);
+}
+
+function sealedShardFiles(
+  materialized: ReturnType<typeof buildAuthorityDomainShards>,
+): FileDigest[] {
+  const prefix = `${AUTHORITY_SHARD_RUNTIME_RELATIVE}/sets/${materialized.manifest.shardSetId}`;
+  return Object.entries(materialized.files)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([relative, value]) => {
+      const raw = `${JSON.stringify(value, null, 2)}\n`;
+      return {
+        path: `${prefix}/${relative}`,
+        sha256: shardSha256(raw),
+        size: Buffer.byteLength(raw, 'utf8'),
+        group: 'runtime' as const,
+      };
+    });
+}
+
+function shardSetPrefix(plan: ProductionCutoverPlan): string {
+  return `${AUTHORITY_SHARD_RUNTIME_RELATIVE}/sets/${plan.authorityDomainShards.shardSetId}/`;
+}
+
+function assertSealedShardSet(
+  root: string,
+  plan: ProductionCutoverPlan,
+  options: { allowAbsent?: boolean } = {},
+): void {
+  const pointer = plan.authorityDomainShards;
+  const prefix = shardSetPrefix(plan);
+  const setPath = under(root, prefix.slice(0, -1));
+  if (!pointerExists(setPath)) {
+    assert(options.allowAbsent, 'Authority domain shard set is missing');
+    return;
+  }
+  const planFiles = new Map(
+    plan.files
+      .filter((file) => file.path.startsWith(prefix))
+      .map((file) => [file.path.slice(prefix.length), file]),
+  );
+  assert(planFiles.size > 0, 'plan has no sealed Authority domain shard files');
+  const manifest = readJson<AuthorityShardSetManifest>(
+    under(root, `${prefix}manifest.json`),
+  );
+  assert(manifest.contract === AUTHORITY_SHARD_SET_CONTRACT, 'Authority domain shard manifest contract mismatch');
+  assert(manifest.shardSetId === pointer.shardSetId && manifest.shardSetHash === pointer.shardSetHash, 'Authority domain shard manifest identity mismatch');
+  assert(manifest.envelope.authority.snapshotId === plan.authority.snapshotId && manifest.envelope.authority.snapshotHash === plan.authority.snapshotHash, 'Authority domain shard manifest snapshot mismatch');
+  assert(manifest.envelope.authority.releaseId === plan.authority.releaseId, 'Authority domain shard manifest release mismatch');
+  assert(manifest.envelope.catalog.catalogId === pointer.catalogId && manifest.envelope.catalog.catalogHash === pointer.catalogHash, 'Authority domain shard manifest catalog mismatch');
+  assert(manifest.envelope.teaching.projectionId === pointer.teachingProjectionId && manifest.envelope.teaching.projectionHash === pointer.teachingProjectionHash, 'Authority domain shard manifest Teaching identity mismatch');
+  assert(
+    manifest.shardSetHash === shardDigest({ envelope: manifest.envelope, files: manifest.files })
+      && manifest.shardSetId === `ads-${manifest.shardSetHash}`,
+    'Authority domain shard manifest seal mismatch',
+  );
+  for (const [relative, digest] of Object.entries(manifest.files)) {
+    const file = planFiles.get(relative);
+    assert(file && file.sha256 === digest, `Authority domain shard file is not sealed in plan: ${relative}`);
+    const full = under(root, `${prefix}${relative}`);
+    assert(pointerExists(full), `Authority domain shard file is missing: ${relative}`);
+    assert(hashFile(full) === digest, `Authority domain shard file hash mismatch: ${relative}`);
+  }
+  assert(planFiles.size === Object.keys(manifest.files).length + 1, 'plan Authority domain shard file set differs from manifest');
+  const actualFiles = collectFiles(root, prefix.slice(0, -1), 'runtime')
+    .map((file) => file.path.slice(prefix.length))
+    .sort();
+  const expectedFiles = ['manifest.json', ...Object.keys(manifest.files)].sort();
+  assert(actualFiles.join('\n') === expectedFiles.join('\n'), 'Authority domain shard file set differs from manifest');
+}
+
+function buildPlannedAuthorityDomainShardSet(
+  root: string,
+  plan: ProductionCutoverPlan,
+): ReturnType<typeof buildAuthorityDomainShards> {
+  const authority = loadStagedAuthoritySnapshot(
+    resolveAuthorityStorePaths(under(root, 'course-content/authoring/knowledge/authority')),
+    plan.authority.snapshotId,
+  );
+  assert(authority.snapshotHash === plan.authority.snapshotHash, 'staged Authority snapshot hash mismatch for domain shards');
+  const catalog = loadAuthorityDomainCatalogRuntime(
+    resolveAuthorityDomainCatalogPaths(root),
+    {
+      snapshotId: plan.authority.snapshotId,
+      snapshotHash: plan.authority.snapshotHash,
+      releaseId: plan.authority.releaseId,
+      releaseSetId: plan.authority.releaseSetId,
+    },
+  );
+  const materialized = buildAuthorityDomainShardSet({
+    root,
+    authority,
+    catalog,
+    activationId: plan.activation.activationId,
+    activationHash: plan.activation.activationHash,
+    activatedAt: plan.authorityDomainShards.activatedAt,
+  });
+  assert(materialized.manifest.shardSetId === plan.authorityDomainShards.shardSetId && materialized.manifest.shardSetHash === plan.authorityDomainShards.shardSetHash, 'planned Authority domain shard identity changed');
+  assert(materialized.pointer.catalogId === plan.authorityDomainShards.catalogId && materialized.pointer.catalogHash === plan.authorityDomainShards.catalogHash, 'planned Authority domain shard catalog changed');
+  assert(materialized.pointer.teachingProjectionId === plan.authorityDomainShards.teachingProjectionId && materialized.pointer.teachingProjectionHash === plan.authorityDomainShards.teachingProjectionHash, 'planned Authority domain shard Teaching identity changed');
+  return materialized;
 }
 
 function buildPlan(): ProductionCutoverPlan {
@@ -290,6 +548,7 @@ function buildPlan(): ProductionCutoverPlan {
   const authorityPointerPath = 'course-content/authoring/knowledge/authority/current.json';
   const projectionPointerPath = 'course-content/runtime/knowledge/projection/current.json';
   const prerequisitePointerPath = 'course-content/runtime/knowledge/prerequisites/current.json';
+  const shardPointerPath = `${AUTHORITY_SHARD_RUNTIME_RELATIVE}/current.json`;
   const consumerPointerPath = 'course-content/runtime/knowledge/consumer-activation/current.json';
   const authorityPointer = readJson<Record<string, string>>(under(root, authorityPointerPath));
   const projectionPointer = readJson<Record<string, string>>(under(root, projectionPointerPath));
@@ -303,6 +562,19 @@ function buildPlan(): ProductionCutoverPlan {
   const prerequisiteManifest = readJson<Record<string, string>>(under(root, prerequisiteManifestPath));
   const activationPath = `course-content/runtime/knowledge/consumer-activation/releases/${consumerPointer.activationId}/activation.json`;
   const activation = readJson<Record<string, unknown>>(under(root, activationPath));
+  const stagedAuthority = loadStagedAuthoritySnapshot(
+    resolveAuthorityStorePaths(under(root, 'course-content/authoring/knowledge/authority')),
+    authorityPointer.snapshotId,
+  );
+  const catalog = loadAuthorityDomainCatalogRuntime(
+    resolveAuthorityDomainCatalogPaths(root),
+    {
+      snapshotId: authorityPointer.snapshotId,
+      snapshotHash: authorityPointer.snapshotHash,
+      releaseId: authorityManifest.releaseId!,
+      releaseSetId: authorityManifest.releaseSetId!,
+    },
+  );
   const consumers = Array.isArray(activation.consumers) ? activation.consumers as Array<Record<string, unknown>> : [];
   const ready = consumers.filter((row) => row.status === 'READY');
   const captureRevisions = new Set(ready.map((row) => (row.combination as Record<string, unknown> | null)?.captureRevision).filter((value): value is string => typeof value === 'string'));
@@ -326,12 +598,24 @@ function buildPlan(): ProductionCutoverPlan {
       assert(combination?.projectionHash === projectionManifest.projectionHash, `consumer projection hash mismatch: ${String(row.consumerId)}`);
     }
   }
+  const shardActivatedAt = new Date().toISOString();
+  const materializedShards = buildAuthorityDomainShardSet({
+    root,
+    authority: stagedAuthority,
+    catalog,
+    activationId: String(activation.activationId),
+    activationHash: String(activation.activationHash),
+    activatedAt: shardActivatedAt,
+  });
   const authorityRoot = 'course-content/authoring/knowledge/authority';
   const files = [
     ...collectFiles(root, authorityRoot, 'authority').filter((file) => file.path !== authorityPointerPath),
     ...collectFiles(root, `course-content/runtime/knowledge/projection/releases/${projectionPointer.projectionId}`, 'runtime'),
     ...collectFiles(root, `course-content/runtime/knowledge/prerequisites/releases/${prerequisitePointer.publicationId}`, 'runtime'),
     ...collectFiles(root, `course-content/runtime/knowledge/consumer-activation/releases/${consumerPointer.activationId}`, 'runtime'),
+    ...sealedShardFiles(materializedShards),
+    ...collectFiles(root, AUTHORITY_SHARD_CATALOG_RUNTIME_RELATIVE, 'runtime'),
+    ...collectFilesIfPresent(root, 'course-content/runtime/knowledge/teaching-projection/domain-fragments', 'runtime'),
     (() => {
       const relative = `course-content/runtime/knowledge/consumer-activation/activations/${consumerPointer.activationReceiptId}.json`;
       const full = under(root, relative);
@@ -364,10 +648,12 @@ function buildPlan(): ProductionCutoverPlan {
     projection: { projectionId: projectionManifest.projectionId!, projectionHash: projectionManifest.projectionHash! },
     prerequisite: { publicationId: prerequisiteManifest.publicationId!, publicationHash: prerequisiteManifest.publicationHash! },
     activation: { activationId: String(activation.activationId), activationHash: String(activation.activationHash), readyConsumerIds: [...CONSUMERS] },
+    authorityDomainShards: materializedShards.pointer,
     pointers: [
       { component: 'authority' as const, path: authorityPointerPath, id: authorityManifest.snapshotId!, hash: authorityManifest.snapshotHash!, sourcePointerSha256: hashFile(under(root, authorityPointerPath)) },
       { component: 'projection' as const, path: projectionPointerPath, id: projectionManifest.projectionId!, hash: projectionManifest.projectionHash!, sourcePointerSha256: hashFile(under(root, projectionPointerPath)) },
       { component: 'prerequisite' as const, path: prerequisitePointerPath, id: prerequisiteManifest.publicationId!, hash: prerequisiteManifest.publicationHash!, sourcePointerSha256: hashFile(under(root, prerequisitePointerPath)) },
+      { component: 'authority-domain-shards' as const, path: shardPointerPath, id: materializedShards.pointer.shardSetId, hash: materializedShards.pointer.shardSetHash, sourcePointerSha256: sha256(`${JSON.stringify(materializedShards.pointer, null, 2)}\n`) },
       { component: 'consumer-activation' as const, path: consumerPointerPath, id: String(activation.activationId), hash: String(activation.activationHash), sourcePointerSha256: hashFile(under(root, consumerPointerPath)) },
     ],
     files,
@@ -396,6 +682,7 @@ function pathsFor(root: string) {
     projection: resolveTeachingProjectionStorePaths(under(root, 'course-content/runtime/knowledge/projection')),
     prerequisite: resolvePrerequisiteStorePaths(under(root, 'course-content/runtime/knowledge/prerequisites')),
     consumer: resolveConsumerActivationStorePaths(under(root, 'course-content/runtime/knowledge/consumer-activation')),
+    shards: resolveAuthorityDomainShardPaths(root),
     transactionDir: under(root, 'course-content/runtime/knowledge/production-cutover-transactions'),
   };
 }
@@ -403,10 +690,18 @@ function pathsFor(root: string) {
 function assertSealedFiles(
   root: string,
   plan: ProductionCutoverPlan,
-  options: { allowCommittedReceipts?: boolean } = {},
+  options: {
+    allowCommittedReceipts?: boolean;
+    allowAbsentShardSet?: boolean;
+  } = {},
 ): void {
   for (const file of plan.files) {
     const full = under(root, file.path);
+    if (
+      options.allowAbsentShardSet
+      && file.path.startsWith(shardSetPrefix(plan))
+      && !pointerExists(full)
+    ) continue;
     assert(pointerExists(full), `sealed artifact is missing: ${file.path}`);
     assert(hashFile(full) === file.sha256, `sealed artifact hash mismatch: ${file.path}`);
     assert(lstatSync(full).size === file.size, `sealed artifact size mismatch: ${file.path}`);
@@ -426,10 +721,14 @@ function assertSealedFiles(
 function assertStagedArtifacts(
   root: string,
   plan: ProductionCutoverPlan,
-  options: { allowCommittedReceipts?: boolean } = {},
+  options: {
+    allowCommittedReceipts?: boolean;
+    allowAbsentShardSet?: boolean;
+  } = {},
 ): ReturnType<typeof pathsFor> {
   const paths = pathsFor(root);
   assertSealedFiles(root, plan, options);
+  assertSealedShardSet(root, plan, { allowAbsent: options.allowAbsentShardSet });
   const authority = loadStagedAuthoritySnapshot(paths.authority, plan.authority.snapshotId);
   assert(authority.snapshotHash === plan.authority.snapshotHash && authority.manifest.releaseId === plan.authority.releaseId && authority.manifest.releaseSetId === plan.authority.releaseSetId, 'staged Authority identity mismatch');
   const projection = loadStagedTeachingProjection(paths.projection, plan.projection.projectionId);
@@ -479,6 +778,25 @@ function assertActive(root: string, plan: ProductionCutoverPlan): Record<string,
     under(root, componentPointer(plan, 'prerequisite').path),
   );
   assert(prerequisitePointer.publicationId === plan.prerequisite.publicationId && prerequisitePointer.publicationHash === plan.prerequisite.publicationHash, 'active prerequisite post-read mismatch');
+  const activeShardPointer = readCurrentShardPointer(paths.shards);
+  assert(
+    activeShardPointer.shardSetId === plan.authorityDomainShards.shardSetId
+      && activeShardPointer.shardSetHash === plan.authorityDomainShards.shardSetHash
+      && activeShardPointer.snapshotId === plan.authorityDomainShards.snapshotId
+      && activeShardPointer.snapshotHash === plan.authorityDomainShards.snapshotHash
+      && activeShardPointer.releaseId === plan.authorityDomainShards.releaseId
+      && activeShardPointer.catalogId === plan.authorityDomainShards.catalogId
+      && activeShardPointer.catalogHash === plan.authorityDomainShards.catalogHash
+      && activeShardPointer.teachingProjectionId === plan.authorityDomainShards.teachingProjectionId
+      && activeShardPointer.teachingProjectionHash === plan.authorityDomainShards.teachingProjectionHash,
+    'active Authority domain shard pointer mismatch',
+  );
+  const shardContext = loadActiveShardContext({ repoRoot: root });
+  assert(
+    shardContext.manifest.shardSetId === plan.authorityDomainShards.shardSetId
+      && shardContext.manifest.shardSetHash === plan.authorityDomainShards.shardSetHash,
+    'active Authority domain shard post-read mismatch',
+  );
   assert(process.env.ACT_AUTHORITY_STORE_ROOT === paths.authority.root, 'read-only graph query must use the mounted Authority store');
   assert(process.env.ACT_CONSUMER_ACTIVATION_ROOT === paths.consumer.root, 'read-only graph query must use the mounted consumer activation store');
   const graphQuery = resolveEngineeringGraphAuthority(paths.authority);
@@ -496,6 +814,7 @@ function assertActive(root: string, plan: ProductionCutoverPlan): Record<string,
     authorityRelationCount: authority.snapshot.manifest.relationCount,
     engineeringGraphActivationMode: graphQuery.activationMode,
     projectionId: projection.staged.projectionId,
+    shardSetId: shardContext.manifest.shardSetId,
     activationId: consumer.pointer.activationId,
     readyConsumerIds: [...CONSUMERS],
   };
@@ -536,6 +855,17 @@ function activationSteps(root: string, plan: ProductionCutoverPlan): FirstActiva
       activate: () => { activatePrerequisitePublication(paths.prerequisite, plan.prerequisite.publicationId, { activatedAt }); },
     },
     {
+      component: 'authority-domain-shards',
+      pointerPath: under(root, componentPointer(plan, 'authority-domain-shards').path),
+      target: { component: 'authority-domain-shards', id: plan.authorityDomainShards.shardSetId, hash: plan.authorityDomainShards.shardSetHash },
+      activate: () => {
+        const materialized = buildPlannedAuthorityDomainShardSet(root, plan);
+        materializeShardFiles(root, materialized);
+        assertSealedShardSet(root, plan);
+        writeJsonAtomic(paths.shards.currentPath, plan.authorityDomainShards);
+      },
+    },
+    {
       component: 'consumer-activation',
       pointerPath: under(root, componentPointer(plan, 'consumer-activation').path),
       target: { component: 'consumer-activation', id: plan.activation.activationId, hash: plan.activation.activationHash },
@@ -551,7 +881,7 @@ function activationSteps(root: string, plan: ProductionCutoverPlan): FirstActiva
   ];
 }
 
-function assertCommittedReceipt(receipt: Record<string, string>, plan: ProductionCutoverPlan): void {
+function assertReceiptBinding(receipt: Record<string, string>, plan: ProductionCutoverPlan): void {
   assert(
     receipt.contract === RECEIPT_CONTRACT
       && receipt.transactionId === plan.transactionId
@@ -559,9 +889,47 @@ function assertCommittedReceipt(receipt: Record<string, string>, plan: Productio
       && receipt.imageRevision === plan.source.imageRevision
       && receipt.imageConfigDigest === plan.source.imageConfigDigest
       && receipt.imageTarSha256 === plan.source.imageTarSha256
-      && receipt.captureRevision === plan.source.captureRevision
-      && receipt.status === 'COMMITTED',
+      && receipt.captureRevision === plan.source.captureRevision,
     'production cutover receipt mismatch',
+  );
+}
+
+function assertCommittedReceipt(receipt: Record<string, string>, plan: ProductionCutoverPlan): void {
+  assertReceiptBinding(receipt, plan);
+  assert(receipt.status === 'COMMITTED', 'production cutover receipt is not committed');
+}
+
+function assertRecoverableReceipt(receipt: Record<string, string>, plan: ProductionCutoverPlan): void {
+  assertReceiptBinding(receipt, plan);
+  assert(
+    receipt.status === 'PREPARED' || receipt.status === 'POINTERS_VERIFIED',
+    'production cutover receipt is not recoverable',
+  );
+}
+
+function assertJournalMatchesPlan(
+  root: string,
+  plan: ProductionCutoverPlan,
+  journal: FirstActivationJournal,
+): void {
+  assert(journal.transactionId === plan.transactionId, 'first-activation journal transaction mismatch');
+  assert(journal.steps.length === plan.pointers.length, 'first-activation journal component count mismatch');
+  for (const [index, pointer] of plan.pointers.entries()) {
+    const step = journal.steps[index];
+    assert(
+      step
+        && step.component === pointer.component
+        && step.pointer.kind === 'repo-relative'
+        && step.pointer.path === pointer.path
+        && step.target.component === pointer.component
+        && step.target.id === pointer.id
+        && step.target.hash === pointer.hash,
+      `first-activation journal identity mismatch: ${pointer.component}`,
+    );
+  }
+  assert(
+    journal.steps.every((step) => under(root, step.pointer.path) === under(root, componentPointer(plan, step.component).path)),
+    'first-activation journal pointer path mismatch',
   );
 }
 
@@ -582,7 +950,7 @@ function assertCommittedMarker(marker: Record<string, string>, plan: ProductionC
 function runActivate(): void {
   const root = path.resolve(option('--root'));
   const plan = readPlan();
-  const paths = assertStagedArtifacts(root, plan);
+  const paths = assertStagedArtifacts(root, plan, { allowAbsentShardSet: true });
   assertPointersAbsent(root, plan);
   mkdirSync(paths.transactionDir, { recursive: true });
   const journalPath = path.join(paths.consumer.root, 'first-activation-transactions', `${plan.transactionId}.json`);
@@ -607,6 +975,12 @@ function runActivate(): void {
       lockPath,
       transactionId: plan.transactionId,
       steps: activationSteps(root, plan),
+      beforeActivate: (component) => {
+        if (component !== 'authority') return;
+        const materialized = buildPlannedAuthorityDomainShardSet(root, plan);
+        materializeShardFiles(root, materialized);
+        assertSealedShardSet(root, plan);
+      },
       postCommit: () => {
         const verification = assertActive(root, plan);
         writeJsonAtomic(receiptPath(paths, plan.transactionId), { ...receipt, status: 'POINTERS_VERIFIED', verification, verifiedAt: new Date().toISOString() });
@@ -666,6 +1040,7 @@ function runRollback(): void {
   assertCommittedMarker(marker, plan);
   const journalPath = path.join(paths.consumer.root, 'first-activation-transactions', `${plan.transactionId}.json`);
   const lockPath = path.join(paths.consumer.root, '.production-first-activation.lock');
+  assertJournalMatchesPlan(root, plan, readFirstActivationJournal(journalPath));
   const journal = rollbackCommittedFirstActivation({ repoRoot: root, journalPath, lockPath });
   rmSync(markerPath(paths));
   writeJsonAtomic(path.join(paths.transactionDir, `${plan.transactionId}.rollback.json`), {
@@ -685,7 +1060,11 @@ function runRecover(): void {
   const paths = pathsFor(root);
   const journalPath = path.join(paths.consumer.root, 'first-activation-transactions', `${plan.transactionId}.json`);
   const lockPath = path.join(paths.consumer.root, '.production-first-activation.lock');
+  const receiptFile = receiptPath(paths, plan.transactionId);
+  const receipt = readJson<Record<string, string>>(receiptFile);
+  assertRecoverableReceipt(receipt, plan);
   const before = readFirstActivationJournal(journalPath);
+  assertJournalMatchesPlan(root, plan, before);
   assert(before.status !== 'COMMITTED', 'committed production activation requires explicit rollback');
   const journal = recoverInterruptedFirstActivation({ repoRoot: root, journalPath, lockPath });
   writeJsonAtomic(path.join(paths.transactionDir, `${plan.transactionId}.recovery.json`), {

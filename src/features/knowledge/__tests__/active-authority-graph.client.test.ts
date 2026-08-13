@@ -18,7 +18,9 @@ import {
   invalidateTeachingBearingShards,
   mergeAuthorityShard,
   rememberAuthorityShardPositions,
+  resetAuthorityShardDomain,
   selectAuthorityShardObject,
+  visibleAuthorityShardRelations,
 } from '../active-authority-shard-store';
 import {
   parseSafeApiEvidenceV1,
@@ -31,6 +33,7 @@ import type {
   PublicAuthorityRelationFamilyShard,
   PublicAuthorityRootShard,
 } from '@/lib/authority-domain-shards/contracts';
+import type { RegisteredPeerDomainId } from '@/lib/authority-domain-catalog/contracts';
 
 const canvas = {
   projectionVersion: 'act.canvas.v2' as const,
@@ -156,12 +159,16 @@ const rootShard = {
   },
 } satisfies PublicAuthorityRootShard;
 
-function shardObject(node: (typeof canvas.nodes)[number]) {
+function shardObject(
+  node: (typeof canvas.nodes)[number],
+  domainId: RegisteredPeerDomainId = 'system-modeling',
+  visualRole: 'modeling' | 'frequency' = 'modeling',
+) {
   return {
     ...node,
     memberships: [{
-      domainId: 'system-modeling' as const,
-      visualRole: 'modeling' as const,
+      domainId,
+      visualRole,
       preferred: true,
     }],
   };
@@ -209,17 +216,21 @@ function domainDefaultShard(
   options: {
     envelope?: AuthorityShardPublicEnvelope;
     teachingRelations?: readonly ReturnType<typeof teachingRelation>[];
-    teachingCoverage?: Partial<typeof defaultTeachingCoverage>;
+    teachingCoverage?: Partial<Omit<typeof defaultTeachingCoverage, 'domainId'>> & { domainId?: RegisteredPeerDomainId };
+    domainId?: RegisteredPeerDomainId;
+    visualRole?: 'modeling' | 'frequency';
   } = {},
 ): PublicAuthorityDomainDefaultShard {
+  const domainId = options.domainId ?? 'system-modeling';
+  const visualRole = options.visualRole ?? 'modeling';
   return {
     shardClass: 'domain-default' as const,
     envelope: options.envelope ?? shardEnvelope,
-    domainId: 'system-modeling' as const,
-    visualRole: 'modeling' as const,
-    objects: nodes.map(shardObject),
+    domainId,
+    visualRole,
+    objects: nodes.map((node) => shardObject(node, domainId, visualRole)),
     teachingRelations: options.teachingRelations ?? [],
-    teachingCoverage: { ...defaultTeachingCoverage, ...options.teachingCoverage },
+    teachingCoverage: { ...defaultTeachingCoverage, domainId, ...options.teachingCoverage },
   };
 }
 
@@ -227,13 +238,15 @@ function familyShard(
   family: 'association' | 'application-and-analysis',
   relations: typeof canvas.relations,
   envelope: AuthorityShardPublicEnvelope = shardEnvelope,
+  domainId: RegisteredPeerDomainId = 'system-modeling',
 ): PublicAuthorityRelationFamilyShard {
+  const visualRole = domainId === 'frequency-domain-analysis' ? 'frequency' : 'modeling';
   return {
     shardClass: 'relation-family' as const,
     envelope,
-    domainId: 'system-modeling' as const,
+    domainId,
     family,
-    objects: canvas.nodes.map(shardObject),
+    objects: canvas.nodes.map((node) => shardObject(node, domainId, visualRole)),
     relations: relations.map((relation) => ({ ...relation, layer: 'ENGINEERING' as const, relationFamily: family })),
     boundaries: [],
   };
@@ -249,7 +262,7 @@ function neighborhoodShard(
     nodeId,
     limit: 32,
     truncated: false,
-    objects: canvas.nodes.map(shardObject),
+    objects: canvas.nodes.map((node) => shardObject(node)),
     relations: canvas.relations.map((relation) => ({
       ...relation,
       layer: 'ENGINEERING' as const,
@@ -408,6 +421,61 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(refreshed.positionsByCanonicalId['node-concept']).toEqual({ x: 144, y: 288 });
     expect(refreshed.selectedCanonicalId).toBe('node-concept');
     expect(refreshed.inspectorOpen).toBe(true);
+  });
+
+  it('resets domain relations and Teaching coverage without losing graph selection state', () => {
+    const teachingA = teachingRelation('teaching-a');
+    const teachingB = teachingRelation('teaching-b', 'node-model', 'node-formula');
+    const relationA = { ...canvas.relations[0], id: 'relation-a' };
+    const relationB = { ...canvas.relations[1], id: 'relation-b' };
+    let workspace = createEmptyAuthorityShardWorkspace();
+    workspace = mergeAuthorityShard(workspace, rootShard);
+    workspace = mergeAuthorityShard(workspace, domainDefaultShard(canvas.nodes, [], {
+      teachingRelations: [teachingA],
+      teachingCoverage: { status: 'available', relationCount: 1, note: 'A 教学覆盖' },
+    }));
+    workspace = mergeAuthorityShard(workspace, familyShard('association', [relationA]));
+    workspace = enableAuthorityShardFamily(workspace, 'association');
+    workspace = rememberAuthorityShardPositions(workspace, { 'node-concept': { x: 144, y: 288 } });
+    workspace = selectAuthorityShardObject(workspace, 'node-concept');
+
+    expect(visibleAuthorityShardRelations(workspace).map((relation) => relation.id)).toEqual(['teaching-a', 'relation-a']);
+
+    workspace = resetAuthorityShardDomain(workspace);
+    expect(visibleAuthorityShardRelations(workspace)).toEqual([]);
+    expect(workspace.relationsByLayerKey).toEqual({});
+    expect(workspace.teachingCoverageByDomain).toEqual({});
+    expect(workspace.loadedShardKeys).toEqual(['root']);
+    expect(workspace.enabledFamilies).toEqual([]);
+    expect(workspace.positionsByCanonicalId['node-concept']).toEqual({ x: 144, y: 288 });
+    expect(workspace.selectedCanonicalId).toBe('node-concept');
+    expect(workspace.inspectorOpen).toBe(true);
+
+    workspace = mergeAuthorityShard(workspace, domainDefaultShard(canvas.nodes, [], {
+      domainId: 'frequency-domain-analysis',
+      visualRole: 'frequency',
+      teachingRelations: [teachingB],
+      teachingCoverage: {
+        domainId: 'frequency-domain-analysis',
+        status: 'partial',
+        relationCount: 1,
+        note: 'B 教学覆盖',
+      },
+    }));
+    expect(workspace.relationsByLayerKey['ACT_TEACHING:teaching-a']).toBeUndefined();
+    expect(workspace.relationsByLayerKey['ACT_TEACHING:teaching-b']).toBeDefined();
+    expect(workspace.teachingCoverageByDomain['system-modeling']).toBeUndefined();
+    expect(workspace.teachingCoverageByDomain['frequency-domain-analysis']?.note).toBe('B 教学覆盖');
+    expect(workspace.enabledFamilies).toEqual([]);
+    expect(visibleAuthorityShardRelations(workspace).map((relation) => relation.id)).toEqual(['teaching-b']);
+
+    workspace = mergeAuthorityShard(
+      workspace,
+      familyShard('association', [relationB], shardEnvelope, 'frequency-domain-analysis'),
+    );
+    expect(visibleAuthorityShardRelations(workspace).map((relation) => relation.id)).toEqual(['teaching-b']);
+    workspace = enableAuthorityShardFamily(workspace, 'association');
+    expect(visibleAuthorityShardRelations(workspace).map((relation) => relation.id)).toEqual(['teaching-b', 'relation-b']);
   });
 
   it('drops a late old domain-default response after a newer Teaching identity wins', async () => {
@@ -762,7 +830,7 @@ describe('active Authority knowledge workspace client boundary', () => {
           ok: true,
           status: 200,
           json: async () => url.includes('/neighborhoods/')
-            ? { ...neighborhoodShard(nodeId), objects: nodes.map(shardObject), relations: [] }
+            ? { ...neighborhoodShard(nodeId), objects: nodes.map((node) => shardObject(node)), relations: [] }
             : { shardClass: 'node-detail', envelope: shardEnvelope, node: { ...nodeDetail(nodeId).node, teachingFields: {}, media: { cardAvailable: false, infographAvailable: false } } },
         };
       }

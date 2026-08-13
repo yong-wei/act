@@ -70,6 +70,15 @@ function main() {
     'Docker runner 必须在复制候选 authority/projection 工件后删除 production current pointer',
   );
   assert.ok(
+    dockerignore.includes('!course-content/runtime/knowledge/authority-domain-shards/**'),
+    'Docker ignore 必须放行 immutable Authority domain shard set',
+  );
+  assert.match(
+    dockerfile,
+    /course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*COPY --from=builder \/app\/course-content\/runtime\/knowledge\/authority-domain-shards \.\/course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*course-content\/runtime\/knowledge\/authority-domain-shards\/current\.json/,
+    'Docker builder/runner 必须覆盖 Authority domain shard set，并删除 runtime current pointer',
+  );
+  assert.ok(
     runnerStage.indexOf('course-content/authoring/knowledge/releases') >= 0,
     'Docker runner 必须保留 authority candidate release assets',
   );

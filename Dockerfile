@@ -66,6 +66,7 @@ COPY . .
 # even when the build context has not activated a gate output yet (#1274).
 RUN mkdir -p \
   course-content/authoring/knowledge/authority \
+  course-content/runtime/knowledge/authority-domain-shards \
   course-content/runtime/knowledge/projection
 RUN case "${APP_REVISION}" in \
     [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;; \
@@ -135,11 +136,13 @@ COPY --from=builder /app/course-content/runtime/resource-governance/runtime-reso
 # ACT_AUTHORITY_STORE_ROOT / ACT_TEACHING_PROJECTION_STORE_ROOT or build-time
 # packaging of current.json + releases make Konling teaching context reachable.
 COPY --from=builder /app/course-content/authoring/knowledge/authority ./course-content/authoring/knowledge/authority
+COPY --from=builder /app/course-content/runtime/knowledge/authority-domain-shards ./course-content/runtime/knowledge/authority-domain-shards
 COPY --from=builder /app/course-content/runtime/knowledge/projection ./course-content/runtime/knowledge/projection
 # Production keeps candidate releases/receipts but never packages an authority
 # or teaching-projection current pointer without an explicit production cutover.
 RUN rm -f \
   course-content/authoring/knowledge/authority/current.json \
+  course-content/runtime/knowledge/authority-domain-shards/current.json \
   course-content/runtime/knowledge/projection/current.json
 COPY --from=builder /app/.app-revision ./.app-revision
 

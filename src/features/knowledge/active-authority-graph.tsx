@@ -40,6 +40,7 @@ import {
   enableAuthorityShardFamily,
   invalidateTeachingBearingShards,
   mergeAuthorityShard,
+  resetAuthorityShardDomain,
   visibleAuthorityShardRelations,
   type AuthorityShardWorkspaceState,
   type IncomingAuthorityShard,
@@ -132,7 +133,7 @@ function useActiveAuthorityWorkspace(retry: number): {
     return teachingGenerationRef.current;
   }
 
-  function fetchDomainDefault(visualRole: string, generation: number): void {
+  function fetchDomainDefault(visualRole: string, generation: number, domainRevision: number): void {
     const controller = new AbortController();
     teachingControllerRef.current = controller;
     fetchAuthorityShard(
@@ -140,7 +141,7 @@ function useActiveAuthorityWorkspace(retry: number): {
       'domain-default',
       controller.signal,
     )
-      .then((shard) => applyShard(shard, generation))
+      .then((shard) => applyShard(shard, generation, domainRevision))
       .catch((error: unknown) => {
         if (controller.signal.aborted || generation !== teachingGenerationRef.current) return;
         setState({
@@ -153,7 +154,10 @@ function useActiveAuthorityWorkspace(retry: number): {
       });
   }
 
-  function applyShard(shard: IncomingAuthorityShard, generation?: number): void {
+  function applyShard(shard: IncomingAuthorityShard, generation?: number, domainRevision?: number): void {
+    if (domainRevision !== undefined && domainRevision !== workspaceRef.current.domainRevision) {
+      return;
+    }
     const teachingBearing = shard.shardClass === 'root' || shard.shardClass === 'domain-default';
     if (teachingBearing && generation !== undefined && generation < teachingGenerationRef.current) {
       return;
@@ -183,7 +187,7 @@ function useActiveAuthorityWorkspace(retry: number): {
     // generation, so an old in-flight response cannot restore stale edges.
     if (refreshVisualRole) {
       const refreshGeneration = nextTeachingGeneration();
-      fetchDomainDefault(refreshVisualRole, refreshGeneration);
+      fetchDomainDefault(refreshVisualRole, refreshGeneration, workspaceRef.current.domainRevision);
     }
   }
 
@@ -219,13 +223,14 @@ function useActiveAuthorityWorkspace(retry: number): {
       activeVisualRole: visualRole,
     }));
     const generation = nextTeachingGeneration();
-    fetchDomainDefault(visualRole, generation);
+    fetchDomainDefault(visualRole, generation, workspaceRef.current.domainRevision);
   }
 
   function enableFamily(family: EngineeringRelationFamily) {
     const current = workspaceRef.current;
     const domainId = current.activeDomainId;
     const visualRole = current.activeVisualRole;
+    const domainRevision = current.domainRevision;
     updateWorkspace((workspace) => enableAuthorityShardFamily(workspace, family));
     if (!domainId || !visualRole) return;
     const key = `relation-family:${domainId}:${family}`;
@@ -236,29 +241,27 @@ function useActiveAuthorityWorkspace(retry: number): {
       'relation-family',
       controller.signal,
     )
-      .then((shard) => applyShard(shard))
+      .then((shard) => applyShard(shard, undefined, domainRevision))
       .catch(() => undefined);
   }
 
   function requestNeighborhood(nodeId: string) {
     const key = `node-neighborhood:${nodeId}`;
     if (workspaceRef.current.loadedShardKeys.includes(key)) return;
+    const domainRevision = workspaceRef.current.domainRevision;
     const controller = new AbortController();
     fetchAuthorityShard(
       `/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`,
       'node-neighborhood',
       controller.signal,
     )
-      .then((shard) => applyShard(shard))
+      .then((shard) => applyShard(shard, undefined, domainRevision))
       .catch(() => undefined);
   }
 
   function resetDomain() {
-    updateWorkspace((current) => ({
-      ...current,
-      activeDomainId: null,
-      activeVisualRole: null,
-    }));
+    nextTeachingGeneration();
+    updateWorkspace(resetAuthorityShardDomain);
   }
 
   return { state, workspace, enterDomain, enableFamily, requestNeighborhood, resetDomain };

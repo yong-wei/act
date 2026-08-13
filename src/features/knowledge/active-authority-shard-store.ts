@@ -50,6 +50,8 @@ export interface AuthorityShardWorkspaceState {
   teachingCoverageByDomain: Record<string, PublicAuthorityDomainDefaultShard['teachingCoverage']>;
   root: PublicAuthorityRootShard['root'] | null;
   detailsByCanonicalId: Record<string, PublicAuthorityNodeDetailShard['node']>;
+  /** Monotonic domain epoch used to reject responses started before reset. */
+  domainRevision: number;
 }
 
 export type IncomingAuthorityShard =
@@ -75,6 +77,7 @@ export function createEmptyAuthorityShardWorkspace(): AuthorityShardWorkspaceSta
     teachingCoverageByDomain: {},
     root: null,
     detailsByCanonicalId: {},
+    domainRevision: 0,
   };
 }
 
@@ -112,6 +115,13 @@ export function validateIncomingShard(
     return 'reject';
   }
   if (isTeachingBearingShard(shard) && !publicTeachingIdentityMatches(current.envelope, shard.envelope)) {
+    return 'reject';
+  }
+  if (
+    current.activeDomainId
+    && (shard.shardClass === 'domain-default' || shard.shardClass === 'relation-family')
+    && shard.domainId !== current.activeDomainId
+  ) {
     return 'reject';
   }
   return 'accept';
@@ -258,11 +268,43 @@ export function enableAuthorityShardFamily(
 export function visibleAuthorityShardRelations(
   current: AuthorityShardWorkspaceState,
 ): AuthorityShardRelation[] {
+  const activeDomainId = current.activeDomainId;
+  if (!activeDomainId) return [];
   return Object.values(current.relationsByLayerKey).filter((relation) => {
-    if (relation.layer === 'ACT_TEACHING') return true;
-    return relation.relationFamily !== null
-      && current.enabledFamilies.includes(relation.relationFamily as EngineeringRelationFamily);
+    const relationIsEnabled = relation.layer === 'ACT_TEACHING'
+      || (relation.relationFamily !== null
+        && current.enabledFamilies.includes(relation.relationFamily as EngineeringRelationFamily));
+    if (!relationIsEnabled) return false;
+    const source = current.objectsByCanonicalId[relation.sourceId];
+    const target = current.objectsByCanonicalId[relation.targetId];
+    return Boolean(
+      source?.memberships.some((membership) => membership.domainId === activeDomainId)
+      || target?.memberships.some((membership) => membership.domainId === activeDomainId),
+    );
   });
+}
+
+/**
+ * Leave the canonical graph shell intact while dropping every domain-scoped
+ * cache.  The caller increments its request epoch so a response started in
+ * the previous domain cannot repopulate these caches after the reset.
+ */
+export function resetAuthorityShardDomain(
+  current: AuthorityShardWorkspaceState,
+): AuthorityShardWorkspaceState {
+  return {
+    ...current,
+    relationsByLayerKey: {},
+    teachingCoverageByDomain: {},
+    loadedShardKeys: current.loadedShardKeys.filter((key) => key === 'root'),
+    enabledFamilies: [],
+    activeDomainId: null,
+    activeVisualRole: null,
+    domainRevision: current.domainRevision + 1,
+    selectedCanonicalId: current.selectedCanonicalId,
+    inspectorOpen: current.inspectorOpen,
+    positionsByCanonicalId: current.positionsByCanonicalId,
+  };
 }
 
 export function invalidateTeachingBearingShards(

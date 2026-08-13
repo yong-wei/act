@@ -10,11 +10,13 @@ const tsx = path.join(root, 'node_modules', '.bin', 'tsx');
 const tool = path.join(root, 'scripts', 'knowledge-cutover', 'production-cutover.ts');
 const revision = '58f70df257f493f7dc13b2dabfb0383b972ee017';
 const imageTag = 'localhost/act-obe-platform:v0.4.0-58f70df';
-const imageTar = path.join(root, 'deploy', 'images', 'act-obe-v0.4.0-58f70df.tar');
+const imageTar = process.env.ACT_TEST_PRODUCTION_IMAGE_TAR
+  ?? path.join(root, 'deploy', 'images', 'act-obe-v0.4.0-58f70df.tar');
 const remoteActivator = path.join(root, 'scripts', 'remote-activate-knowledge-cutover.sh');
 const remoteOperator = path.join(root, 'scripts', 'knowledge-cutover', 'remote-production-cutover.sh');
 const cleanupEngine = path.join(root, 'scripts', 'knowledge-cutover', 'cleanup-failed-authority-identity.cjs');
 const AUTHORITY_PREFIX = 'course-content/authoring/knowledge/authority/';
+const SHARD_PREFIX = 'course-content/runtime/knowledge/authority-domain-shards/';
 const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v1';
 
 function imageConfigDigest(archive) {
@@ -76,9 +78,34 @@ function copyFile(relativePath, fixtureRoot) {
   fs.copyFileSync(path.join(root, relativePath), target);
 }
 
-function createFixture(plan, name) {
+function fileTreeFingerprint(directory) {
+  const entries = [];
+  const visit = (current, relative) => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
+      const next = path.join(current, entry.name);
+      const nested = relative ? `${relative}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) visit(next, nested);
+      else if (entry.isFile()) entries.push([nested, sha256File(next)]);
+      else throw new Error(`unsupported shard runtime entry: ${nested}`);
+    }
+  };
+  visit(directory, '');
+  return entries;
+}
+
+function createFixture(plan, name, options = {}) {
   const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), `production-cutover-${name}-`));
-  for (const file of plan.files) copyFile(file.path, fixtureRoot);
+  const shardPrefix = `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/`;
+  for (const file of plan.files) {
+    if (!file.path.startsWith(shardPrefix)) copyFile(file.path, fixtureRoot);
+  }
+  if (options.shardSetSource) {
+    fs.cpSync(
+      options.shardSetSource,
+      path.join(fixtureRoot, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}`),
+      { recursive: true },
+    );
+  }
   return fixtureRoot;
 }
 
@@ -99,6 +126,56 @@ function driverEnv(fixtureRoot) {
       'course-content/runtime/knowledge/consumer-activation',
     ),
   };
+}
+
+function writePreparedReceipt(fixtureRoot, plan, overrides = {}) {
+  const receipt = {
+    contract: 'act-production-knowledge-cutover-receipt/v1',
+    transactionId: plan.transactionId,
+    planHash: plan.planHash,
+    imageRevision: plan.source.imageRevision,
+    imageConfigDigest: plan.source.imageConfigDigest,
+    imageTarSha256: plan.source.imageTarSha256,
+    captureRevision: plan.source.captureRevision,
+    status: 'PREPARED',
+    preparedAt: '2026-08-13T00:00:00.000Z',
+    ...overrides,
+  };
+  const receiptPath = path.join(
+    fixtureRoot,
+    'course-content/runtime/knowledge/production-cutover-transactions',
+    `${plan.transactionId}.json`,
+  );
+  fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+  fs.writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
+}
+
+function writePreparedJournal(fixtureRoot, plan) {
+  const body = {
+    contract: 'actkg-to-act-first-activation-journal/v2',
+    transactionId: plan.transactionId,
+    createdAt: '2026-08-13T00:00:00.000Z',
+    status: 'PREPARED',
+    prestate: 'ALL_POINTERS_ABSENT',
+    steps: plan.pointers.map((pointer) => ({
+      component: pointer.component,
+      pointer: { kind: 'repo-relative', path: pointer.path },
+      target: { component: pointer.component, id: pointer.id, hash: pointer.hash },
+      status: 'PENDING',
+    })),
+    failure: null,
+  };
+  const journalPath = path.join(
+    fixtureRoot,
+    'course-content/runtime/knowledge/consumer-activation/first-activation-transactions',
+    `${plan.transactionId}.json`,
+  );
+  fs.mkdirSync(path.dirname(journalPath), { recursive: true });
+  fs.writeFileSync(
+    journalPath,
+    `${JSON.stringify({ ...body, journalHash: sha256Bytes(canonicalJson(body)) }, null, 2)}\n`,
+  );
+  return journalPath;
 }
 
 function expectFailure(result, expression, message) {
@@ -1186,7 +1263,7 @@ function remoteOperatorSourceSlice() {
 
 function main() {
   assert.ok(fs.existsSync(tsx), 'tsx runtime must be available for production cutover tests');
-  assert.ok(fs.existsSync(imageTar), 'frozen v0.4.0 OCI image tar must be available');
+  assert.ok(fs.existsSync(imageTar), 'configured OCI image tar must be available');
   const remoteActivatorSource = fs.readFileSync(remoteActivator, 'utf8');
   const remoteOperatorSource = fs.readFileSync(remoteOperator, 'utf8');
   const cleanupEngineSource = fs.readFileSync(cleanupEngine, 'utf8');
@@ -1224,6 +1301,11 @@ function main() {
     remoteOperatorSource,
     /APP_IMAGE="\$image_tag" ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover "\$deploy_script" --app-only/u,
     'cutover deployment must pass its mode directly to the deployment command',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /knowledge\/authority-domain-shards\/current\.json/u,
+    'remote operator all-ABSENT checks must include the Authority domain shard pointer',
   );
   assert.doesNotMatch(
     remoteOperatorSource,
@@ -1301,6 +1383,7 @@ function main() {
   const tarSha256 = sha256File(imageTar);
   const workRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'production-cutover-plan-'));
   try {
+    const sourceShardRuntimeBefore = fileTreeFingerprint(path.join(root, SHARD_PREFIX));
     const planPath = path.join(workRoot, 'plan.json');
     const transactionId = 'test-production-cutover';
     const planResult = run([
@@ -1328,7 +1411,22 @@ function main() {
     ]);
     assert.equal(planResult.status, 0, planResult.stderr);
     const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
-    assert.equal(plan.pointers.length, 4, 'plan must seal every current pointer');
+    assert.equal(plan.pointers.length, 5, 'plan must seal every current pointer');
+    assert.deepEqual(
+      plan.pointers.map((pointer) => pointer.component),
+      ['authority', 'projection', 'prerequisite', 'authority-domain-shards', 'consumer-activation'],
+      'plan must retain the shard pointer between prerequisite and consumer activation',
+    );
+    assert.ok(plan.authorityDomainShards?.shardSetId, 'plan must seal the planned shard set identity');
+    assert.deepEqual(
+      fileTreeFingerprint(path.join(root, SHARD_PREFIX)),
+      sourceShardRuntimeBefore,
+      'planning must seal Authority domain shard bytes without mutating the source runtime',
+    );
+    assert.ok(
+      plan.files.some((file) => file.path.startsWith(`${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/`)),
+      'plan must seal every immutable Authority domain shard file',
+    );
     assert.equal(plan.files.length > 0, true, 'plan must seal staged artifacts');
     assert.equal(plan.source.imageConfigDigest, configDigest, 'plan must bind the exact OCI config digest');
     assert.equal(plan.source.imageTarSha256, tarSha256, 'plan must bind the frozen image tar hash');
@@ -1337,6 +1435,19 @@ function main() {
       sha256File(cleanupEngine),
       'plan must bind the standalone failed Authority cleanup engine',
     );
+
+    const shardSeedFixture = createFixture(plan, 'shard-seed');
+    try {
+      const seed = run(
+        ['activate', '--root', shardSeedFixture, '--plan', planPath],
+        driverEnv(shardSeedFixture),
+      );
+      assert.equal(seed.status, 0, seed.stderr);
+      const shardSetSource = path.join(
+        shardSeedFixture,
+        `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}`,
+      );
+      assert.equal(fs.existsSync(path.join(shardSetSource, 'manifest.json')), true);
 
     const driftFixture = createFixture(plan, 'drift');
     try {
@@ -1353,6 +1464,41 @@ function main() {
       }
     } finally {
       fs.rmSync(driftFixture, { recursive: true, force: true });
+    }
+
+    for (const [label, mutate] of [
+      ['missing-shard-immutable', (filePath) => fs.rmSync(filePath)],
+      ['tampered-shard-immutable', (filePath) => fs.appendFileSync(filePath, '\n')],
+      ['unexpected-shard-immutable', (filePath) => fs.writeFileSync(path.join(path.dirname(filePath), 'unexpected.json'), '{}\n')],
+    ]) {
+      const shardFixture = createFixture(plan, label, { shardSetSource });
+      try {
+        const shardFile = plan.files.find((file) => (
+          file.path.startsWith(`${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/`)
+            && !file.path.endsWith('/manifest.json')
+        ));
+        assert.ok(shardFile, 'plan must contain a non-manifest immutable shard file');
+        const shardPath = path.join(shardFixture, shardFile.path);
+        mutate(shardPath);
+        const result = run(
+          ['activate', '--root', shardFixture, '--plan', planPath],
+          driverEnv(shardFixture),
+        );
+        expectFailure(
+          result,
+          label.startsWith('missing')
+            ? /Authority domain shard file is missing/u
+            : label.startsWith('tampered')
+              ? /sealed artifact hash mismatch/u
+              : /Authority domain shard file set differs from manifest/u,
+          `${label} must fail before any pointer is written`,
+        );
+        for (const pointer of plan.pointers) {
+          assert.equal(fs.existsSync(path.join(shardFixture, pointer.path)), false);
+        }
+      } finally {
+        fs.rmSync(shardFixture, { recursive: true, force: true });
+      }
     }
 
     const nonAbsentFixture = createFixture(plan, 'non-absent');
@@ -1399,22 +1545,142 @@ function main() {
       const journal = JSON.parse(fs.readFileSync(journalPath, 'utf8'));
       assert.deepEqual(
         journal.steps.map((step) => step.component),
-        ['authority', 'projection', 'prerequisite', 'consumer-activation'],
+        ['authority', 'projection', 'prerequisite', 'authority-domain-shards', 'consumer-activation'],
         'production activation must retain consumer-last order',
       );
       assert.deepEqual(
         journal.steps.map((step) => step.status),
-        ['APPLIED', 'APPLIED', 'APPLIED', 'APPLIED'],
+        ['APPLIED', 'APPLIED', 'APPLIED', 'APPLIED', 'APPLIED'],
       );
       for (const pointer of plan.pointers) {
         assert.equal(fs.existsSync(path.join(activeFixture, pointer.path)), true);
       }
+      const shardPointer = pointerPath(activeFixture, plan, 'authority-domain-shards');
+      const shardCurrent = JSON.parse(fs.readFileSync(shardPointer, 'utf8'));
+      assert.equal(shardCurrent.shardSetId, plan.authorityDomainShards.shardSetId);
+      assert.equal(shardCurrent.shardSetHash, plan.authorityDomainShards.shardSetHash);
 
       const verified = run(
         ['verify', '--root', activeFixture, '--plan', planPath],
         env,
       );
       assert.equal(verified.status, 0, verified.stderr);
+
+      const shardSetManifest = path.join(
+        activeFixture,
+        `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/manifest.json`,
+      );
+      assert.equal(fs.existsSync(shardSetManifest), true, 'active cutover must retain the immutable shard set');
+
+      const activeReceiptPath = path.join(
+        activeFixture,
+        'course-content/runtime/knowledge/production-cutover-transactions',
+        `${transactionId}.json`,
+      );
+      const activeReceipt = JSON.parse(fs.readFileSync(activeReceiptPath, 'utf8'));
+      activeReceipt.transactionId = 'foreign-production-cutover';
+      fs.writeFileSync(activeReceiptPath, `${JSON.stringify(activeReceipt)}\n`);
+      const receiptDriftRollback = run(
+        ['rollback', '--root', activeFixture, '--plan', planPath],
+        env,
+      );
+      expectFailure(
+        receiptDriftRollback,
+        /production cutover receipt mismatch/u,
+        'rollback must reject a receipt that does not bind this plan before mutating any pointer',
+      );
+      for (const pointer of plan.pointers) {
+        assert.equal(fs.existsSync(path.join(activeFixture, pointer.path)), true);
+      }
+      activeReceipt.transactionId = transactionId;
+      fs.writeFileSync(activeReceiptPath, `${JSON.stringify(activeReceipt)}\n`);
+
+      const ownedSetFixture = createFixture(plan, 'owned-set');
+      try {
+        const ownedEnv = driverEnv(ownedSetFixture);
+        const ownedActivation = run(
+          ['activate', '--root', ownedSetFixture, '--plan', planPath],
+          ownedEnv,
+        );
+        assert.equal(ownedActivation.status, 0, ownedActivation.stderr);
+        const ownedRollback = run(
+          ['rollback', '--root', ownedSetFixture, '--plan', planPath],
+          ownedEnv,
+        );
+        assert.equal(ownedRollback.status, 0, ownedRollback.stderr);
+        assert.equal(
+          fs.existsSync(path.join(ownedSetFixture, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}`)),
+          true,
+          'rollback must preserve immutable shard bytes because no mutable receipt authorizes deletion',
+        );
+      } finally {
+        fs.rmSync(ownedSetFixture, { recursive: true, force: true });
+      }
+
+      const retainedSetFixture = createFixture(plan, 'retained-set', { shardSetSource });
+      try {
+        const retainedEnv = driverEnv(retainedSetFixture);
+        const retainedActivation = run(
+          ['activate', '--root', retainedSetFixture, '--plan', planPath],
+          retainedEnv,
+        );
+        assert.equal(retainedActivation.status, 0, retainedActivation.stderr);
+        const retainedRollback = run(
+          ['rollback', '--root', retainedSetFixture, '--plan', planPath],
+          retainedEnv,
+        );
+        assert.equal(retainedRollback.status, 0, retainedRollback.stderr);
+        assert.equal(
+          fs.existsSync(path.join(retainedSetFixture, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/manifest.json`)),
+          true,
+          'rollback must retain a pre-existing sha-matching shard set',
+        );
+      } finally {
+        fs.rmSync(retainedSetFixture, { recursive: true, force: true });
+      }
+
+      const recoveredSetFixture = createFixture(plan, 'recovered-set', { shardSetSource });
+      try {
+        const recoveryEnv = driverEnv(recoveredSetFixture);
+        writePreparedReceipt(recoveredSetFixture, plan);
+        writePreparedJournal(recoveredSetFixture, plan);
+        const recovered = run(
+          ['recover', '--root', recoveredSetFixture, '--plan', planPath],
+          recoveryEnv,
+        );
+        assert.equal(recovered.status, 0, recovered.stderr);
+        assert.equal(
+          fs.existsSync(path.join(recoveredSetFixture, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/manifest.json`)),
+          true,
+          'recovery must preserve immutable shard bytes',
+        );
+      } finally {
+        fs.rmSync(recoveredSetFixture, { recursive: true, force: true });
+      }
+
+      const receiptDriftRecoveryFixture = createFixture(plan, 'receipt-drift-recovery', { shardSetSource });
+      try {
+        const recoveryEnv = driverEnv(receiptDriftRecoveryFixture);
+        writePreparedReceipt(receiptDriftRecoveryFixture, plan, { transactionId: 'foreign-production-cutover' });
+        const journalPath = writePreparedJournal(receiptDriftRecoveryFixture, plan);
+        const receiptDriftRecovery = run(
+          ['recover', '--root', receiptDriftRecoveryFixture, '--plan', planPath],
+          recoveryEnv,
+        );
+        expectFailure(
+          receiptDriftRecovery,
+          /production cutover receipt mismatch/u,
+          'recovery must reject a receipt that does not bind this plan before pointer compensation',
+        );
+        assert.equal(JSON.parse(fs.readFileSync(journalPath, 'utf8')).status, 'PREPARED');
+        assert.equal(
+          fs.existsSync(path.join(receiptDriftRecoveryFixture, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/manifest.json`)),
+          true,
+          'receipt drift must not delete a pre-existing immutable shard set',
+        );
+      } finally {
+        fs.rmSync(receiptDriftRecoveryFixture, { recursive: true, force: true });
+      }
 
       const markerPath = path.join(
         activeFixture,
@@ -1461,11 +1727,15 @@ function main() {
         true,
         'failed identity-constrained rollback must retain the production marker',
       );
+
     } finally {
       fs.rmSync(activeFixture, { recursive: true, force: true });
     }
 
-    process.stdout.write('production knowledge cutover transaction tests passed\n');
+      process.stdout.write('production knowledge cutover transaction tests passed\n');
+    } finally {
+      fs.rmSync(shardSeedFixture, { recursive: true, force: true });
+    }
   } finally {
     fs.rmSync(workRoot, { recursive: true, force: true });
   }
