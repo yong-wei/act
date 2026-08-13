@@ -1,25 +1,25 @@
 {
   "schemaVersion": 1,
   "issue": 1349,
-  "capturedAt": "2026-08-13T08:19:31.488Z",
-  "commitSha": "b986c40e17ac9631b0c7b483e625ba3f28213a9b",
+  "capturedAt": "2026-08-13T09:07:18.366Z",
+  "commitSha": "b13aae168c1939c2c226b3e1cbfe84be22132e92",
   "generator": "tests/adaptive-path-candidate-batches.spec.ts",
-  "generatorSha256": "b06d39d0f5f42a09c6e4b41c3958918cf3d6e4a9f0fad07e547e79643e25cfe1",
+  "generatorSha256": "58b5d80195723080e590f8d95644638a435b0ac4eb2545fe1fd41749a4d7e262",
   "representativeRoute": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "e03ad5a1ac74728890306f3fd7cabab541010938d46fda152281ca0ea104f6e9",
+    "src/app/assessment/adaptive-practice/page.tsx": "ad8b667af71466ca916c68e03898249a1b37754ccf19991f5e27ece58b5359b6",
     "src/lib/adaptive-path-candidate-batches.ts": "d4dc4fc6a030337ebaad1d747894950bb73c86d01dc22572a5abe16c655510b5",
-    "tests/adaptive-path-candidate-batches.spec.ts": "b06d39d0f5f42a09c6e4b41c3958918cf3d6e4a9f0fad07e547e79643e25cfe1"
+    "tests/adaptive-path-candidate-batches.spec.ts": "58b5d80195723080e590f8d95644638a435b0ac4eb2545fe1fd41749a4d7e262"
   },
   "captureWorkingTreeSourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "e03ad5a1ac74728890306f3fd7cabab541010938d46fda152281ca0ea104f6e9",
+    "src/app/assessment/adaptive-practice/page.tsx": "ad8b667af71466ca916c68e03898249a1b37754ccf19991f5e27ece58b5359b6",
     "src/lib/adaptive-path-candidate-batches.ts": "d4dc4fc6a030337ebaad1d747894950bb73c86d01dc22572a5abe16c655510b5",
-    "tests/adaptive-path-candidate-batches.spec.ts": "b06d39d0f5f42a09c6e4b41c3958918cf3d6e4a9f0fad07e547e79643e25cfe1"
+    "tests/adaptive-path-candidate-batches.spec.ts": "58b5d80195723080e590f8d95644638a435b0ac4eb2545fe1fd41749a4d7e262"
   },
   "sourceGitBlobIds": {
-    "src/app/assessment/adaptive-practice/page.tsx": "e6fb036e08a54bfa666d64a8f433e80f9e202ac7",
+    "src/app/assessment/adaptive-practice/page.tsx": "df5b041715bccfb66c483a42e9b9a94089a108ec",
     "src/lib/adaptive-path-candidate-batches.ts": "46b1ba49a7abc372e4c0da619f85fc72f369bb79",
-    "tests/adaptive-path-candidate-batches.spec.ts": "e4cbfcd78f7b9b63c560ec88ac67a9bead128672"
+    "tests/adaptive-path-candidate-batches.spec.ts": "c5009ea2ff52be0d9f9386637247dbd6569e0b60"
   },
   "screenshots": [
     {
@@ -151,7 +151,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1349/missing-mobile-320.png",
-      "sha256": "9123415a43a75507852b5db6368d77c84b1666bc96d414f05137e26f012b2c3c",
+      "sha256": "ab5dfb8c89e872b92517245993134b8e707b83657e2e73bb3f2511f12204649a",
       "scenario": "missing",
       "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327-missing&pathId=missing-path",
       "width": 320,
@@ -168,7 +168,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1349/failed-mobile-320.png",
-      "sha256": "0b9b0793afbb68cbba4356e36d3d85a64e3e4b5dd6d2d6aef853e8c3dc933cf5",
+      "sha256": "48ad42f777ec603665c922ba564211805df1e1f2165d9f2071c42a6ad525e70f",
       "scenario": "failed",
       "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327-failed&pathId=missing-path",
       "width": 320,
@@ -185,7 +185,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1349/unauthorized-mobile-320.png",
-      "sha256": "0b9b0793afbb68cbba4356e36d3d85a64e3e4b5dd6d2d6aef853e8c3dc933cf5",
+      "sha256": "48ad42f777ec603665c922ba564211805df1e1f2165d9f2071c42a6ad525e70f",
       "scenario": "unauthorized",
       "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1349-unauthorized&pathId=missing-path",
       "width": 320,
