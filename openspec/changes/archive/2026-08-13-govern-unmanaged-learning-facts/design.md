@@ -50,4 +50,12 @@ context-only 事实不得进入推荐活动、最近活动、连续学习、证�
 
 ## Migration Plan
 
-部署后读取侧立即对历史未治理事实失效封闭。新事件写入带有上下文事实治理声明；无数据迁移。若需要回滚，可恢复旧解析规则，现有 JSON 字段保持兼容且不会丢失。
+部署后读取侧立即对历史未治理事实和旧 v2 画像失效封闭。新事件写入带有上下文事实治理声明；LearningFact 原始记录无需回填。
+
+画像计算版本从 `portrait-v2-cumulative.v2` 提升到 v3，因此发布必须使用现有的 stopped-service 迁移门禁推进全局 fence 并重建学习者与班级当前指针：
+
+1. 停止画像物化 writer/worker，运行 `npm run db:backfill-cumulative-attainment -- --run-id=<plan-id>`，记录 `inputDigest`。
+2. 运行 `npm run db:backfill-cumulative-attainment -- --apply --run-id=<apply-id> --plan-run-id=<plan-id> --expected-input-digest=<digest> --wait`。
+3. 运行 `npm run db:backfill-cumulative-attainment -- --verify --run-id=<apply-id>`；只有验证通过后才能恢复画像物化服务。
+
+迁移会在事务内把 cutover fence、学习者 generation、班级 generation 和 queue generation 一起推进，并使旧队列工作失效；从 v2 fence 升级到当前计算版本由回归测试覆盖。若需要回滚，必须再次通过同一受围栏迁移建立与回滚代码匹配的当前指针，不能直接复用已失效的旧快照。

@@ -26,6 +26,11 @@ The system SHALL use governed evidence, snapshots, summaries, or student evidenc
 - **那么** 读取路径必须持续分页至获得所需合格事实或数据耗尽
 - **并且** context-only 事实不得遮蔽最近活动、连续学习、证据覆盖或学习者状态偏好所需的合格事实
 
+#### 场景：治理规则提升画像计算版本
+- **当** 治理规则使已有累计画像计算版本失效
+- **那么** 发布流程必须在恢复画像物化服务前，通过受围栏的累计画像迁移完成 dry-run、apply 和 verify
+- **并且** cutover fence、学习者当前指针和班级当前指针必须统一推进到新的计算版本
+
 #### Scenario: Existing scope is preserved
 - **WHEN** personalization consumers are upgraded to governed evidence
 - **THEN** the change SHALL preserve the existing recommendation scope and competency model

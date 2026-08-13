@@ -13,3 +13,4 @@
 - [x] 3.1 覆盖缺失、部分、上下文和显式画像治理在画像与能力向量中的行为。
 - [x] 3.2 覆盖文档评分、Arena 写入及推荐读取的治理边界。
 - [x] 3.3 运行相关 Vitest、OpenSpec 严格校验和 TypeScript 检查。
+- [x] 3.4 将 v2→v3 画像升级绑定到 stopped-service dry-run/apply/verify 门禁，并覆盖旧 fence 推进到当前版本的回归。
