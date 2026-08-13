@@ -342,7 +342,7 @@ async function login(context: BrowserContext) {
   expect(response.ok() || (response.status() >= 300 && response.status() < 400), await response.text()).toBe(true);
 }
 
-test('keeps the comparison surface visible while a candidate batch is loading', async ({ page }) => {
+test('hides the comparison surface while a candidate batch is loading', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   let releaseCandidateBatch: (() => void) | undefined;
   const candidateBatchGate = new Promise<void>((resolve) => {
@@ -359,6 +359,7 @@ test('keeps the comparison surface visible while a candidate batch is loading', 
   await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('[data-adaptive-path-candidate-state="loading"]')).toBeVisible();
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
   releaseCandidateBatch?.();
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
   await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();

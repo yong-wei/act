@@ -2869,7 +2869,7 @@ export default function AdaptivePracticePage() {
     candidateBatchLoadState !== 'failed';
   const showCandidateBatchRecovery = shouldShowCandidateComparison &&
     (candidateBatchLoadState === 'missing' || candidateBatchLoadState === 'failed');
-  const canRenderCandidateComparison = shouldShowCandidateComparison && !showCandidateBatchRecovery;
+  const canRenderCandidateComparison = shouldShowCandidateComparison && candidateBatchLoadState === 'ready';
   const hasLoadedPathContextForRecovery = hasLoadedCurrentPathContext || hasCandidateBatchContext;
   const pathContextRecoveryState = useMemo(() => resolveAdaptivePathContextRecoveryState({
     workspaceIntent,
