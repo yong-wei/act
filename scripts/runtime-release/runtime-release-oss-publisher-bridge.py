@@ -110,6 +110,8 @@ def validate_prefix(prefix: str) -> str:
 
 
 def validate_list_prefix(prefix: str) -> str:
+    if prefix == BLOB_KEY_PREFIX:
+        return prefix
     if prefix.startswith(BLOB_KEY_PREFIX):
         return validate_key(prefix)
     return validate_prefix(prefix)
@@ -932,9 +934,13 @@ def publish_blob_release(
         assert_object_set(release_objects, partial_expected, allow_manifest=False)
         if receipt_key in existing_release and remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
             fail("partial blob receipt differs from the submitted immutable identity")
+        available_blobs = {
+            str(entry["key"]): entry
+            for entry in list_objects_v2(bucket, BLOB_KEY_PREFIX)
+        }
         missing: List[Dict[str, Any]] = []
         for entry in expected_blobs:
-            remote = find_exact_object(bucket, entry["objectKey"])
+            remote = available_blobs.get(entry["objectKey"])
             if remote is None:
                 missing.append(entry)
                 continue

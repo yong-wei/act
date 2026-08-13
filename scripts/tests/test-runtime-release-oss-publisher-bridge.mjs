@@ -46,6 +46,7 @@ if (operation === 'api') {
     if (mode === 'nonzero') process.exit(12);
     if (mode === 'malformed') { process.stdout.write('{malformed'); process.exit(0); }
     const prefix = args[args.indexOf('--prefix') + 1];
+    if (process.env.FAKE_LIST_LOG) await writeFile(process.env.FAKE_LIST_LOG, prefix + '\\n', { flag: 'a' });
     const token = args.includes('--continuation-token') ? args[args.indexOf('--continuation-token') + 1] : null;
     let entries = [];
     async function visit(current) {
@@ -194,14 +195,16 @@ const headerFor = ({ file, manifest, wire, prefix }) => JSON.stringify({
   manifestWireBase64: wire.toString('base64url'),
 });
 const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes) => {
+  const fileBytes = Array.isArray(frameBytes) ? frameBytes : [frameBytes, frameBytes];
+  assert.equal(fileBytes.length, 2, 'blob test fixtures require two logical files');
   const files = [
     'lessons/1-1/media/shared-a.bin',
     'lessons/1-2/media/shared-b.bin',
-  ].map((filePath) => ({
+  ].map((filePath, index) => ({
     path: filePath,
-    objectKey: `runtime/blobs/sha256/${sha(frameBytes)}`,
-    sizeBytes: frameBytes.byteLength,
-    sha256: sha(frameBytes),
+    objectKey: `runtime/blobs/sha256/${sha(fileBytes[index])}`,
+    sizeBytes: fileBytes[index].byteLength,
+    sha256: sha(fileBytes[index]),
   }));
   const treeSha256 = sha(stable(files.map(({ path: filePath, sizeBytes, sha256 }) => ({ path: filePath, sizeBytes, sha256 }))));
   const releaseId = `runtime-${sha(stable({ sourceRevision, treeSha256 })).slice(0, 55)}`;
@@ -229,7 +232,11 @@ const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes) => 
     treeSha256,
     fileCount: files.length,
     totalBytes: body.totalBytes,
-    blobs: [{ objectKey: files[0].objectKey, sizeBytes: frameBytes.byteLength, sha256: sha(frameBytes) }],
+    blobs: [...new Map(files.map((file) => [file.objectKey, {
+      objectKey: file.objectKey,
+      sizeBytes: file.sizeBytes,
+      sha256: file.sha256,
+    }])).values()].sort((left, right) => left.objectKey.localeCompare(right.objectKey)),
   };
   const receipt = { ...receiptBody, receiptSha256: sha(stable(receiptBody)) };
   const receiptWire = Buffer.from(`${stable(receipt)}\n`);
@@ -242,7 +249,7 @@ const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes) => 
     prefix,
     manifestKey,
     receiptKey: `${prefix}receipt.json`,
-    frameBytes,
+    frameBytesByKey: new Map(files.map((file, index) => [file.objectKey, fileBytes[index]])),
   };
 };
 const blobHeaderFor = (data) => JSON.stringify({
@@ -315,7 +322,7 @@ async function publish({ data = state, crashAfterFrame = false, frameBytes = byt
   return JSON.parse(final.value);
 }
 
-async function publishBlob({ data = buildBlobState(), crashAfterFrame = false, crashDelayMs = 100, frameBytes = data.frameBytes, env = {} } = {}) {
+async function publishBlob({ data = buildBlobState(), crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {} } = {}) {
   const child = spawn('python3', [bridge, '--bucket', 'test-bucket', '--operation', 'publish', '--prefix-b64', Buffer.from(data.prefix).toString('base64url')], {
     env: {
       ...process.env,
@@ -355,7 +362,7 @@ async function publishBlob({ data = buildBlobState(), crashAfterFrame = false, c
     const file = sources.get(key);
     assert.ok(file, `bridge requested known blob ${key}`);
     child.stdin.write(`${JSON.stringify({ key, sizeBytes: file.sizeBytes, sha256: file.sha256 })}\n`);
-    child.stdin.write(frameBytes);
+    child.stdin.write(frameBytes ?? data.frameBytesByKey.get(key));
     if (crashAfterFrame) {
       await new Promise((resolve) => setTimeout(resolve, crashDelayMs));
       child.kill('SIGKILL');
@@ -471,6 +478,14 @@ try {
   assert.equal(blobSecond.putCount, 2, 'a second logical release must reuse an already verified cross-release blob');
   const blobReplay = await publishBlob({ data: blobState });
   assert.equal(blobReplay.putCount, 0, 'a completed blob release retry is verification-only');
+
+  const multipleBlobState = buildBlobState('9'.repeat(40), [Buffer.from('unique blob a'), Buffer.from('unique blob b')]);
+  const blobListLog = path.join(temporary, 'blob-list.log');
+  const multipleBlobReceipt = await publishBlob({ data: multipleBlobState, env: { FAKE_LIST_LOG: blobListLog } });
+  assert.equal(multipleBlobReceipt.putCount, 4, 'two distinct blobs, receipt, and manifest must be written');
+  const blobListRequests = (await readFile(blobListLog, 'utf8')).trim().split('\n')
+    .filter((prefix) => prefix === 'runtime/blobs/sha256/');
+  assert.equal(blobListRequests.length, 1, 'a publish must inventory the shared blob prefix once rather than issue one remote list per blob');
 
   const interruptedBlob = buildBlobState('f'.repeat(40), Buffer.from('interrupted blob bytes'));
   const interruptedSpool = spoolFor(interruptedBlob.prefix);
