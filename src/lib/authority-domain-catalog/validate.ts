@@ -35,6 +35,33 @@ const RELEASE_ID_PATTERN = /\bctr:release:[^\s]+\b/iu;
 const SNAPSHOT_ID_PATTERN = /\bsnap-[a-f0-9]{64}\b/iu;
 const CATALOG_KEY_PATTERN =
   /\b(?:system-modeling|time-domain-analysis|stability-analysis|frequency-domain-analysis|root-locus|classical-control-design|discrete-time-control-analysis|state-space-control-analysis-and-design|control-theory-integration)\b/u;
+const RAW_AUTHORITY_ENUM_TOKENS = [
+  'domain',
+  'aggregate',
+  'DomainConcept',
+  'Formula',
+  'KnowledgeStatement',
+  'SystemModel',
+  'ModelRepresentation',
+  'applies_to',
+  'association',
+  'derived_from',
+  'has_component',
+  'has_formula',
+  'has_representation',
+  'is_a',
+  'part_of',
+  'used_to_analyze',
+  'source_to_target',
+  'unordered',
+  'GOLD',
+  'approved',
+  'published',
+] as const;
+const RAW_AUTHORITY_ENUM_TOKEN = new RegExp(
+  `\\b(?:${RAW_AUTHORITY_ENUM_TOKENS.join('|')})\\b`,
+  'u',
+);
 
 /** Product presentation strings must not embed internal identities or keys. */
 export function assertPresentationStringSafe(
@@ -71,12 +98,9 @@ export function assertPresentationStringSafe(
       `${field} must not contain catalog keys`,
     );
   }
-  // Raw enum-like tokens that must never surface as product text.
-  if (
-    /\b(?:domain|aggregate|DomainConcept|Formula|KnowledgeStatement|SystemModel|ModelRepresentation)\b/u.test(
-      value,
-    )
-  ) {
+  // Closed vocabulary from the Authority snapshot's object, relation and
+  // governance contracts. Product text must use reviewed Chinese wording.
+  if (RAW_AUTHORITY_ENUM_TOKEN.test(value)) {
     throw new DomainCatalogValidationError(
       'prohibited-presentation-string',
       `${field} must not be a raw enum value`,

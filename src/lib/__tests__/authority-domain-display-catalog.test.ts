@@ -369,6 +369,20 @@ describe('authority domain display catalog contract', () => {
       ),
     ).toThrow(/must not be a raw enum value/i);
 
+    for (const rawEnum of ['association', 'approved', 'GOLD']) {
+      expect(() =>
+        buildAuthorityDomainCatalog(
+          baseAuthoring({
+            aggregate: {
+              ...baseAuthoring().aggregate,
+              summary: `采用 ${rawEnum} 表达。`,
+            },
+          }),
+          fixtureNodes(),
+        ),
+      ).toThrow(/must not be a raw enum value/i);
+    }
+
     expect(() =>
       buildAuthorityDomainCatalog(
         baseAuthoring({
