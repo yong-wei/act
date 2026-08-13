@@ -2195,6 +2195,58 @@ async function captureAuthenticatedRoleEvidence(
         };
       }
 
+      const mobileContext = await browser.newContext({
+        viewport: { width: 320, height: 800 },
+        deviceScaleFactor: 1,
+        storageState: session.storageState,
+      });
+      await addKnowledgeApiProbe(mobileContext);
+      const mobilePage = await mobileContext.newPage();
+      const mobileProbe = createKnowledgeApiProbe(mobilePage);
+      mobileContext.once('close', () => mobileProbe.dispose());
+      let mobile: Record<string, unknown>;
+      try {
+        await mobilePage.goto(`${baseUrl}/knowledge?qa=knowledge-product`, { waitUntil: 'domcontentloaded' });
+        await waitForActiveReady(mobilePage, mobileProbe, `role:${role}:mobile`);
+        const activeSurfaceScan = await captureActiveSurfaceScan(mobilePage, mobileProbe);
+        const markers = await captureMarkers(mobilePage, `role:${role}:mobile`);
+        const activeMarkers = objectRecord(markers.activeAuthority);
+        const activeApiEvidence = projectSafeApiEvidence(
+          role,
+          await mobileProbe.readLog(),
+          {
+            allowLegacy: false,
+            allowCandidate: false,
+            requireActiveCanvas: true,
+            forbiddenDataAbsent: activeSurfaceScan.passed === true,
+          },
+          await mobileProbe.readSensitiveTokens(),
+        );
+        if (
+          activeSurfaceScan.passed !== true
+          || activeMarkers.viewport !== 'compact'
+          || activeMarkers.visibleNodeCount <= 0
+          || activeMarkers.stage !== 'authority'
+        ) {
+          throw new Error(`active mobile product evidence failed in role:${role}`);
+        }
+        const screenshot = path.join(outputDir, `role-${role}-active-mobile.png`);
+        await mobilePage.screenshot({ path: screenshot, fullPage: false });
+        mobile = {
+          mode: 'active',
+          viewport: { width: 320, height: 800 },
+          api: activeApiEvidence,
+          activeSurfaceScan,
+          graphVisible: true,
+          nonEmptyCanvas: true,
+          screenshotPath: path.relative(repoRoot, screenshot),
+          screenshotSha256: sha256(path.relative(repoRoot, screenshot)),
+        };
+      } finally {
+        mobileProbe.dispose();
+        await mobileContext.close();
+      }
+
       results.push({
         role,
         default: {
@@ -2211,6 +2263,7 @@ async function captureAuthenticatedRoleEvidence(
           screenshotPath: path.relative(repoRoot, defaultScreenshot),
           screenshotSha256: sha256(path.relative(repoRoot, defaultScreenshot)),
         },
+        mobile,
         legacy: {
           mode: 'legacy',
           api: legacyApiEvidence,
