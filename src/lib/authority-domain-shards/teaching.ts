@@ -37,7 +37,7 @@ export interface TeachingOverlay {
   relations(domainId: RegisteredPeerDomainId): AuthorityShardRelation[];
 }
 
-const UNAVAILABLE_NOTE = '教学投影层暂不可用';
+const UNAVAILABLE_NOTE = '教学关系暂不可用';
 
 export function loadOptionalDomainTeachingPointer(
   repoRoot = process.cwd(),

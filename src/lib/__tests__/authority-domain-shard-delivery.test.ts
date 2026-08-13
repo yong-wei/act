@@ -242,6 +242,7 @@ describe('authority domain shard delivery', () => {
     );
     expect(materialized.domainDefaults['system-modeling'].teachingRelations).toEqual([]);
     expect(materialized.domainDefaults['system-modeling'].teachingCoverage.status).toBe('unavailable');
+    expect(materialized.domainDefaults['system-modeling'].teachingCoverage.note).toBe('教学关系暂不可用');
     const association = materialized.families['system-modeling:association'];
     expect(association.relations.map((row) => row.id)).toEqual(['rel-assoc']);
     expect(association.relations[0]?.sourceId).toBe(MODELING);

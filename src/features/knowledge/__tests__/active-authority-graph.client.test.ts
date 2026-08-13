@@ -155,7 +155,7 @@ function domainDefaultShard(nodes = canvas.nodes, relations: typeof canvas.relat
       relationCount: 0,
       coreNodeCount: 0,
       uncoveredCoreNodeCount: 0,
-      note: '教学投影层暂不可用',
+      note: '教学关系暂不可用',
     },
     relations,
   };
