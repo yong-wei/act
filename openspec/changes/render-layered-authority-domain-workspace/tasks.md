@@ -15,5 +15,5 @@
 ## 3. Verification
 
 - [x] 3.1 Add unit and integration tests for default teaching order, every relation filter, secondary objects and incomplete teaching coverage.
-- [ ] 3.2 Capture authenticated student, teacher and administrator desktop/mobile product evidence including request and payload budgets.
-- [ ] 3.3 Run UI governance, accessibility, typecheck, lint and strict OpenSpec validation.
+- [x] 3.2 Capture authenticated student, teacher and administrator desktop/mobile product evidence including request and payload budgets.
+- [x] 3.3 Run UI governance, accessibility, typecheck, lint and strict OpenSpec validation.
