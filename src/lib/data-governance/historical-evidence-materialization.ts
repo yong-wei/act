@@ -15,6 +15,7 @@ import {
 } from './evidence-source-catalog';
 import type { LearningEvent } from './event-protocol';
 import {
+  authorizeServerVerifiedCompetencyContribution,
   eventToLearningFactInput,
   shouldMaterializeLearningFact,
 } from './learning-fact-materialization';
@@ -122,6 +123,16 @@ const SOURCE_ACTION_TYPES: Partial<Record<EvidenceSourceId, string>> = {
   DesignSession: 'design_session_complete',
   ArenaSubmission: 'arena_submit',
 };
+
+const SERVER_VERIFIED_HISTORICAL_CONTRIBUTION_SOURCES = new Set<EvidenceSourceId>([
+  'StudentStepResponse',
+  'SimulationLog',
+  'UserAnswer',
+  'AbilityAssessment',
+  'PromptAssessment',
+  'DesignSession',
+  'ArenaSubmission',
+]);
 
 const EVIDENCE_SUBTYPES: Partial<Record<EvidenceSourceId, string>> = {
   StudentStepResponse: 'student_step_response',
@@ -299,7 +310,11 @@ function buildFactInput(
     source: 'system',
     priority: 'core',
   };
-  const fact = eventToLearningFactInput(event);
+  const fact = eventToLearningFactInput(
+    SERVER_VERIFIED_HISTORICAL_CONTRIBUTION_SOURCES.has(sourceId)
+      ? authorizeServerVerifiedCompetencyContribution(event)
+      : event,
+  );
   if (!fact) return null;
 
   const contextJson = compactJsonObject({

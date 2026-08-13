@@ -45,6 +45,14 @@ Published edges MUST bind the current Authority/projection identity, authoring r
 - **THEN** the affected edge SHALL become stale/review-required
 - **AND** unrelated edges SHALL retain their prior digest
 
+### Requirement: Classical-control prerequisite increment is scope-bounded
+The classical-control teaching increment MUST limit its denominator to explicitly selected core nodes in root locus, frequency-domain analysis and classical control design and MUST preserve partial coverage as a non-blocking publication state.
+
+#### Scenario: Some classical candidates remain pending
+- **WHEN** the accepted direct edges are endpoint-closed and acyclic but other candidates remain pending
+- **THEN** the valid fragment MAY publish with partial coverage
+- **AND** pending candidates SHALL not be represented as published edges
+
 ### Requirement: Foundation prerequisite increment is scope-bounded
 The foundation teaching increment MUST limit its denominator and publication to explicitly selected core nodes in system modeling, time-domain analysis and stability analysis. Unselected Authority objects MUST remain outside the coverage denominator.
 
@@ -52,7 +60,6 @@ The foundation teaching increment MUST limit its denominator and publication to 
 - **WHEN** the Authority contains a foundation-domain object not selected by an ACT objective, binding, prerequisite endpoint or curator
 - **THEN** it SHALL remain not projected
 - **AND** it SHALL not block publication of the reviewed increment
-
 ### Requirement: Modern-control prerequisite increment is scope-bounded
 The modern-control teaching increment MUST limit its denominator to explicitly selected core nodes in discrete-time and state-space control domains. Objects shared with another domain MAY retain multiple reviewed memberships but SHALL retain one canonical prerequisite endpoint identity.
 
@@ -60,4 +67,3 @@ The modern-control teaching increment MUST limit its denominator to explicitly s
 - **WHEN** one selected Authority object is reviewed into a modern domain and another domain
 - **THEN** prerequisite publication SHALL reference the same canonical endpoint
 - **AND** domain membership SHALL not duplicate the teaching edge
-
