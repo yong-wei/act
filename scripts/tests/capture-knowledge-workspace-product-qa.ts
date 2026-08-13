@@ -1141,6 +1141,7 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
     semanticDetailVisible: Boolean(document.querySelector('[data-active-node-detail]')),
     adjacencyInteraction: document.querySelectorAll('[data-active-authority-relation]').length > 0,
     renderedEdgeCount: document.querySelectorAll('[data-active-authority-relation]').length,
+    teachingRelationsUnavailable: document.querySelector('[data-authority-teaching-coverage="true"]')?.textContent?.trim() === '教学关系暂不可用',
   }));
   const detailSurfaceScan = await captureActiveSurfaceScan(page, probe);
   await page.keyboard.press('Escape');
