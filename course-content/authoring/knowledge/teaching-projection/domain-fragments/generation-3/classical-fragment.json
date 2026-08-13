@@ -1,0 +1,134 @@
+{
+  "contract": "act-domain-teaching-fragment/v1",
+  "builderVersion": "act-domain-teaching-fragment-builder/v1",
+  "fragmentId": "dtf-b8834add0a20ec980428722683769cd555bf2f4eca32efbe801134e7a1b15ae2",
+  "fragmentKey": "classical-control-published-v3",
+  "fragmentVersion": "1",
+  "fragmentDigest": "b8834add0a20ec980428722683769cd555bf2f4eca32efbe801134e7a1b15ae2",
+  "domainKeys": [
+    "classical-control-design",
+    "frequency-domain-analysis",
+    "root-locus"
+  ],
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40"
+  },
+  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "sourceInventoryDigest": "0b713eb20d5376ea12eec2367490cf87e7f6d751dd8efa270fc96f270d44d732",
+  "authorityDigest": "bc5e41d86cd12ae44948a7dba8ab364370de7bdc92c91bf6e2be6fa0705c8ba9",
+  "evidenceRefs": [
+    "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
+    "course-content/authoring/lessons/4-7/design/4-7-handout.md",
+    "course-content/authoring/lessons/4-7/design/4-7-teacher-handout.md"
+  ],
+  "coreNodes": [
+    {
+      "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "domainKeys": [
+        "classical-control-design"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-6-classical-design",
+      "rationale": "4-7 讲义将中频相位不足对应到超前支路的职责，并要求据此解释 PI 加超前的传统设计。",
+      "sourceKind": "PRIMARY_COVERS",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
+        "course-content/authoring/lessons/4-7/design/4-7-handout.md"
+      ],
+      "nodeDigest": "c4788e43c7a84e79e3edace740996c18f6c81265ef0da305b454d9f9cf610f93"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "domainKeys": [
+        "frequency-domain-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-4-frequency",
+      "rationale": "4-7 课案以 Bode 幅相读图解释中频相位不足，并作为传统结构定型的直接课堂证据。",
+      "sourceKind": "PRIMARY_COVERS",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
+        "course-content/authoring/lessons/4-7/design/4-7-handout.md"
+      ],
+      "nodeDigest": "9565fc2e2c5fb8296d063b7fa843515021e223e9afcf4ead8f6a8351036a2efb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "domainKeys": [
+        "root-locus"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-5-root-locus",
+      "rationale": "4-7 课案要求学生从根轨迹读出可用闭环极点受慢极点牵制，再解释传统结构选择。",
+      "sourceKind": "PRIMARY_COVERS",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
+        "course-content/authoring/lessons/4-7/design/4-7-teacher-handout.md"
+      ],
+      "nodeDigest": "f02a13c982c064281930e6866a2cc3908565aa618ad5ad7d7f88a3bc360b09f0"
+    }
+  ],
+  "relations": [
+    {
+      "edgeId": "dt-edge-39825c415ad17a237c37734a",
+      "sourceNodeId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "targetNodeId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "layer": "ACT_TEACHING",
+      "relationType": "PREREQUISITE",
+      "strength": "RECOMMENDED",
+      "domainKeys": [
+        "classical-control-design",
+        "root-locus"
+      ],
+      "evidenceRefs": [
+        "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
+        "course-content/authoring/lessons/4-7/design/4-7-teacher-handout.md"
+      ],
+      "curatorId": "act.classical-control.4-7",
+      "curatorRationale": "根轨迹读图用于解释可用闭环极点的约束，并与频域证据共同支撑超前支路选择；该关系保留为建议性学习依赖。",
+      "authorDecisionId": "classical-4-7-root-locus-to-lead",
+      "presentationFamily": "teaching-prerequisite",
+      "edgeDigest": "b9b8266ef16b2992cd12c5322f2965d53e207d9e099769f1e33fca8c77481887"
+    },
+    {
+      "edgeId": "dt-edge-6fbaeb3a4b172d99694b1009",
+      "sourceNodeId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "targetNodeId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "layer": "ACT_TEACHING",
+      "relationType": "PREREQUISITE",
+      "strength": "RECOMMENDED",
+      "domainKeys": [
+        "classical-control-design",
+        "frequency-domain-analysis"
+      ],
+      "evidenceRefs": [
+        "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
+        "course-content/authoring/lessons/4-7/design/4-7-handout.md"
+      ],
+      "curatorId": "act.classical-control.4-7",
+      "curatorRationale": "Bode 幅相读图用于解释相位不足为何需要超前支路；它是传统结构定型的直接但非唯一学习入口。",
+      "authorDecisionId": "classical-4-7-bode-to-lead",
+      "presentationFamily": "teaching-prerequisite",
+      "edgeDigest": "619bfec0973f4f0e690189212169b099643ec9b6a8bf533c4695e9617c18a5fa"
+    }
+  ],
+  "coreNodeCount": 3,
+  "relationCount": 2
+}

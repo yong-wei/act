@@ -1,0 +1,80 @@
+{
+  "contract": "act-modern-control-domain-coverage/v1",
+  "fragmentKey": "modern-state-space-published-v3",
+  "fragmentVersion": "1",
+  "fragmentId": "dtf-3fa18232755453f80562f4a0e98df2dac72d652c4b5351809ab6fcbcd2012a6a",
+  "fragmentDigest": "3fa18232755453f80562f4a0e98df2dac72d652c4b5351809ab6fcbcd2012a6a",
+  "sourceInventoryDigest": "3e15353f1af379e4291ef79a4a2ed581dc523d39ce385a0d05d89b70e4993368",
+  "domainId": "state-space-control-analysis-and-design",
+  "denominatorNodeIds": [],
+  "denominatorEvidence": {},
+  "acceptedLocalRelationCount": 0,
+  "coverage": [
+    {
+      "domainId": "classical-control-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "root-locus",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "stability-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "system-modeling",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "coverage": "empty",
+      "coreNodeCount": 0,
+      "relationCount": 0,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域尚无已发布的教学关系"
+    }
+  ],
+  "coverageRationale": "CourseCoverage 对该候选给出 DEFER 且 authority unresolved；无独立 ACT admission evidence 时不进入分母，因此当前空覆盖为 empty 且不阻断。",
+  "blocking": false
+}
