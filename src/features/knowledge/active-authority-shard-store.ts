@@ -1,0 +1,298 @@
+/**
+ * Browser-safe Authority shard cache and merge (#1375).
+ *
+ * Identity comes from the established root envelope. Canonical objects are
+ * stored once; relations are keyed by layer + id. Shard arrival must not
+ * remount existing nodes or reset selection, inspector or positions.
+ */
+
+import type {
+  PublicAuthorityDomainDefaultShard,
+  PublicAuthorityNodeDetailShard,
+  PublicAuthorityNodeNeighborhoodShard,
+  PublicAuthorityRelationFamilyShard,
+  PublicAuthorityRootShard,
+  AuthorityShardPublicEnvelope,
+  AuthorityShardObject,
+  AuthorityShardRelation,
+  EngineeringRelationFamily,
+} from '@/lib/authority-domain-shards/contracts';
+import { relationCacheKey } from '@/lib/authority-domain-shards/contracts';
+import {
+  publicEnvelopesShareAuthorityAndCatalog,
+  publicTeachingIdentityMatches,
+} from '@/lib/authority-domain-shards/envelope';
+
+export type AuthorityShardKind =
+  | 'root'
+  | 'domain-default'
+  | 'relation-family'
+  | 'node-neighborhood'
+  | 'node-detail';
+
+export interface AuthorityShardPosition {
+  x: number;
+  y: number;
+}
+
+export interface AuthorityShardWorkspaceState {
+  envelope: AuthorityShardPublicEnvelope | null;
+  objectsByCanonicalId: Record<string, AuthorityShardObject>;
+  relationsByLayerKey: Record<string, AuthorityShardRelation>;
+  positionsByCanonicalId: Record<string, AuthorityShardPosition>;
+  selectedCanonicalId: string | null;
+  inspectorOpen: boolean;
+  activeDomainId: string | null;
+  activeVisualRole: string | null;
+  enabledFamilies: EngineeringRelationFamily[];
+  loadedShardKeys: string[];
+  rejectedShardKeys: string[];
+  teachingCoverageByDomain: Record<string, PublicAuthorityDomainDefaultShard['teachingCoverage']>;
+  root: PublicAuthorityRootShard['root'] | null;
+  detailsByCanonicalId: Record<string, PublicAuthorityNodeDetailShard['node']>;
+}
+
+export type IncomingAuthorityShard =
+  | PublicAuthorityRootShard
+  | PublicAuthorityDomainDefaultShard
+  | PublicAuthorityRelationFamilyShard
+  | PublicAuthorityNodeNeighborhoodShard
+  | PublicAuthorityNodeDetailShard;
+
+export function createEmptyAuthorityShardWorkspace(): AuthorityShardWorkspaceState {
+  return {
+    envelope: null,
+    objectsByCanonicalId: {},
+    relationsByLayerKey: {},
+    positionsByCanonicalId: {},
+    selectedCanonicalId: null,
+    inspectorOpen: false,
+    activeDomainId: null,
+    activeVisualRole: null,
+    enabledFamilies: [],
+    loadedShardKeys: [],
+    rejectedShardKeys: [],
+    teachingCoverageByDomain: {},
+    root: null,
+    detailsByCanonicalId: {},
+  };
+}
+
+export function shardRequestKey(shard: IncomingAuthorityShard): string {
+  switch (shard.shardClass) {
+    case 'root':
+      return 'root';
+    case 'domain-default':
+      return `domain-default:${shard.domainId}`;
+    case 'relation-family':
+      return `relation-family:${shard.domainId}:${shard.family}`;
+    case 'node-neighborhood':
+      return `node-neighborhood:${shard.nodeId}`;
+    case 'node-detail':
+      return `node-detail:${shard.node.id}`;
+    default: {
+      const _never: never = shard;
+      return _never;
+    }
+  }
+}
+
+export function isTeachingBearingShard(shard: IncomingAuthorityShard): boolean {
+  return shard.shardClass === 'domain-default';
+}
+
+export function validateIncomingShard(
+  current: AuthorityShardWorkspaceState,
+  shard: IncomingAuthorityShard,
+): 'accept' | 'reject' | 'establish' {
+  if (!current.envelope) {
+    return shard.shardClass === 'root' ? 'establish' : 'reject';
+  }
+  if (!publicEnvelopesShareAuthorityAndCatalog(current.envelope, shard.envelope)) {
+    return 'reject';
+  }
+  if (isTeachingBearingShard(shard) && !publicTeachingIdentityMatches(current.envelope, shard.envelope)) {
+    return 'reject';
+  }
+  return 'accept';
+}
+
+function mergeObject(
+  current: AuthorityShardObject | undefined,
+  incoming: AuthorityShardObject,
+): AuthorityShardObject {
+  if (!current) return incoming;
+  const memberships = [...current.memberships];
+  for (const membership of incoming.memberships) {
+    if (!memberships.some((item) => item.domainId === membership.domainId)) {
+      memberships.push(membership);
+    }
+  }
+  return {
+    ...current,
+    memberships,
+  };
+}
+
+export function mergeAuthorityShard(
+  current: AuthorityShardWorkspaceState,
+  shard: IncomingAuthorityShard,
+): AuthorityShardWorkspaceState {
+  const decision = validateIncomingShard(current, shard);
+  const key = shardRequestKey(shard);
+  if (decision === 'reject') {
+    if (current.rejectedShardKeys.includes(key)) return current;
+    return {
+      ...current,
+      rejectedShardKeys: [...current.rejectedShardKeys, key],
+    };
+  }
+
+  const envelope = decision === 'establish' ? shard.envelope : current.envelope;
+  if (!envelope) return current;
+
+  const objectsByCanonicalId = { ...current.objectsByCanonicalId };
+  const relationsByLayerKey = { ...current.relationsByLayerKey };
+  const teachingCoverageByDomain = { ...current.teachingCoverageByDomain };
+  const detailsByCanonicalId = { ...current.detailsByCanonicalId };
+  const loadedShardKeys = current.loadedShardKeys.includes(key)
+    ? current.loadedShardKeys
+    : [...current.loadedShardKeys, key];
+
+  if (shard.shardClass === 'root') {
+    return {
+      ...current,
+      envelope,
+      root: shard.root,
+      loadedShardKeys,
+    };
+  }
+
+  if (shard.shardClass === 'domain-default') {
+    for (const object of shard.objects) {
+      objectsByCanonicalId[object.id] = mergeObject(objectsByCanonicalId[object.id], object);
+    }
+    for (const relation of shard.teachingRelations) {
+      relationsByLayerKey[relationCacheKey(relation)] = relation;
+    }
+    teachingCoverageByDomain[shard.domainId] = shard.teachingCoverage;
+    return {
+      ...current,
+      envelope,
+      objectsByCanonicalId,
+      relationsByLayerKey,
+      teachingCoverageByDomain,
+      activeDomainId: current.activeDomainId ?? shard.domainId,
+      activeVisualRole: current.activeVisualRole ?? shard.visualRole,
+      loadedShardKeys,
+      selectedCanonicalId: current.selectedCanonicalId,
+      inspectorOpen: current.inspectorOpen,
+      positionsByCanonicalId: current.positionsByCanonicalId,
+    };
+  }
+
+  if (shard.shardClass === 'relation-family' || shard.shardClass === 'node-neighborhood') {
+    for (const object of shard.objects) {
+      objectsByCanonicalId[object.id] = mergeObject(objectsByCanonicalId[object.id], object);
+    }
+    for (const relation of shard.relations) {
+      relationsByLayerKey[relationCacheKey(relation)] = relation;
+    }
+    return {
+      ...current,
+      envelope,
+      objectsByCanonicalId,
+      relationsByLayerKey,
+      loadedShardKeys,
+      selectedCanonicalId: current.selectedCanonicalId,
+      inspectorOpen: current.inspectorOpen,
+      positionsByCanonicalId: current.positionsByCanonicalId,
+    };
+  }
+
+  detailsByCanonicalId[shard.node.id] = shard.node;
+  return {
+    ...current,
+    envelope,
+    detailsByCanonicalId,
+    loadedShardKeys,
+    selectedCanonicalId: current.selectedCanonicalId,
+    inspectorOpen: current.inspectorOpen,
+    positionsByCanonicalId: current.positionsByCanonicalId,
+  };
+}
+
+export function rememberAuthorityShardPositions(
+  current: AuthorityShardWorkspaceState,
+  positions: Record<string, AuthorityShardPosition>,
+): AuthorityShardWorkspaceState {
+  const next = { ...current.positionsByCanonicalId };
+  for (const [id, point] of Object.entries(positions)) {
+    if (!next[id]) next[id] = point;
+  }
+  return { ...current, positionsByCanonicalId: next };
+}
+
+export function selectAuthorityShardObject(
+  current: AuthorityShardWorkspaceState,
+  canonicalId: string | null,
+): AuthorityShardWorkspaceState {
+  return {
+    ...current,
+    selectedCanonicalId: canonicalId,
+    inspectorOpen: canonicalId !== null,
+  };
+}
+
+export function enableAuthorityShardFamily(
+  current: AuthorityShardWorkspaceState,
+  family: EngineeringRelationFamily,
+): AuthorityShardWorkspaceState {
+  if (current.enabledFamilies.includes(family)) return current;
+  return {
+    ...current,
+    enabledFamilies: [...current.enabledFamilies, family],
+  };
+}
+
+export function visibleAuthorityShardRelations(
+  current: AuthorityShardWorkspaceState,
+): AuthorityShardRelation[] {
+  return Object.values(current.relationsByLayerKey).filter((relation) => {
+    if (relation.layer === 'ACT_TEACHING') return true;
+    return relation.relationFamily !== null
+      && current.enabledFamilies.includes(relation.relationFamily as EngineeringRelationFamily);
+  });
+}
+
+export function invalidateTeachingBearingShards(
+  current: AuthorityShardWorkspaceState,
+  nextEnvelope: AuthorityShardPublicEnvelope,
+): AuthorityShardWorkspaceState {
+  if (!current.envelope) {
+    return { ...current, envelope: nextEnvelope };
+  }
+  if (!publicEnvelopesShareAuthorityAndCatalog(current.envelope, nextEnvelope)) {
+    return {
+      ...createEmptyAuthorityShardWorkspace(),
+      envelope: nextEnvelope,
+    };
+  }
+  if (publicTeachingIdentityMatches(current.envelope, nextEnvelope)) {
+    return { ...current, envelope: nextEnvelope };
+  }
+  const teachingKeys = current.loadedShardKeys.filter((key) => key.startsWith('domain-default:'));
+  const relationsByLayerKey = Object.fromEntries(
+    Object.entries(current.relationsByLayerKey).filter(([, relation]) => relation.layer !== 'ACT_TEACHING'),
+  );
+  return {
+    ...current,
+    envelope: nextEnvelope,
+    relationsByLayerKey,
+    teachingCoverageByDomain: {},
+    loadedShardKeys: current.loadedShardKeys.filter((key) => !teachingKeys.includes(key)),
+    selectedCanonicalId: current.selectedCanonicalId,
+    inspectorOpen: current.inspectorOpen,
+    positionsByCanonicalId: current.positionsByCanonicalId,
+  };
+}

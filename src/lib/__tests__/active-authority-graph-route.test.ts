@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   authorizeActiveGraph: vi.fn(),
+  authorizeActiveFullGraphDiagnostics: vi.fn(),
   readActiveCanvas: vi.fn(),
   readActiveNode: vi.fn(),
   activeProjectionResponse: vi.fn(),
@@ -19,6 +20,7 @@ const available = { status: 'available', projection: { source: { authorityState:
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.authorizeActiveGraph.mockResolvedValue({ ok: true, role: 'STUDENT' });
+  mocks.authorizeActiveFullGraphDiagnostics.mockResolvedValue({ ok: true, role: 'ADMIN' });
   mocks.readActiveCanvas.mockReturnValue(available);
   mocks.readActiveNode.mockReturnValue(available);
   mocks.activeProjectionResponse.mockImplementation((result) => (
@@ -37,18 +39,18 @@ describe('active Authority graph routes', () => {
       'http://localhost/api/knowledge/graph/active?releaseId=attacker&snapshotId=other&manifest=raw',
     ));
     expect(response.status).toBe(200);
-    expect(mocks.authorizeActiveGraph).toHaveBeenCalledTimes(1);
+    expect(mocks.authorizeActiveFullGraphDiagnostics).toHaveBeenCalledTimes(1);
     expect(mocks.readActiveCanvas).toHaveBeenCalledWith();
     expect(mocks.activeProjectionResponse).toHaveBeenCalledWith(available);
   });
 
   it('returns authorization responses before touching the active resolver', async () => {
-    mocks.authorizeActiveGraph.mockResolvedValueOnce({
+    mocks.authorizeActiveFullGraphDiagnostics.mockResolvedValueOnce({
       ok: false,
-      response: NextResponse.json({ code: 'ACTIVE_GRAPH_UNAUTHORIZED' }, { status: 401 }),
+      response: NextResponse.json({ code: 'ACTIVE_GRAPH_DIAGNOSTICS_FORBIDDEN' }, { status: 403 }),
     });
     const response = await getCanvas(new Request('http://localhost/api/knowledge/graph/active'));
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
     expect(mocks.readActiveCanvas).not.toHaveBeenCalled();
   });
 

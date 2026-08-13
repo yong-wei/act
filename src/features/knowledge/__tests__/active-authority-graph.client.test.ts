@@ -95,6 +95,101 @@ const canvas = {
   },
 };
 
+const shardEnvelope = {
+  contract: 'act-authority-shard-envelope/v1' as const,
+  authorityCatalogVersion: 'acv-test-shards',
+  teachingVersion: null,
+  match: { authority: true as const, catalog: true as const, teaching: null },
+};
+
+const rootShard = {
+  shardClass: 'root' as const,
+  envelope: shardEnvelope,
+  root: {
+    kind: 'presentation-root-catalog' as const,
+    domains: [
+      {
+        kind: 'presentation-domain' as const,
+        order: 1,
+        displayName: '系统建模',
+        summary: '从对象到系统模型',
+        presentationRole: 'domain' as const,
+        visualRole: 'modeling' as const,
+        memberCount: 4,
+      },
+    ],
+    aggregate: {
+      kind: 'presentation-aggregate' as const,
+      order: 0,
+      displayName: '控制理论综合',
+      summary: '汇总入口',
+      presentationRole: 'aggregate' as const,
+      visualRole: 'aggregate' as const,
+      domainCount: 8,
+    },
+  },
+};
+
+function shardObject(node: (typeof canvas.nodes)[number]) {
+  return {
+    ...node,
+    memberships: [{
+      domainId: 'system-modeling' as const,
+      visualRole: 'modeling' as const,
+      preferred: true,
+    }],
+  };
+}
+
+function domainDefaultShard(nodes = canvas.nodes, relations: typeof canvas.relations = []) {
+  return {
+    shardClass: 'domain-default' as const,
+    envelope: shardEnvelope,
+    domainId: 'system-modeling' as const,
+    visualRole: 'modeling' as const,
+    objects: nodes.map(shardObject),
+    teachingRelations: [] as const,
+    teachingCoverage: {
+      status: 'unavailable' as const,
+      domainId: 'system-modeling' as const,
+      relationCount: 0,
+      coreNodeCount: 0,
+      uncoveredCoreNodeCount: 0,
+      note: '教学投影层暂不可用',
+    },
+    relations,
+  };
+}
+
+function familyShard(family: 'association' | 'application-and-analysis', relations: typeof canvas.relations) {
+  return {
+    shardClass: 'relation-family' as const,
+    envelope: shardEnvelope,
+    domainId: 'system-modeling' as const,
+    family,
+    objects: canvas.nodes.map(shardObject),
+    relations: relations.map((relation) => ({ ...relation, layer: 'ENGINEERING' as const, relationFamily: family })),
+    boundaries: [],
+  };
+}
+
+function neighborhoodShard(nodeId: string) {
+  return {
+    shardClass: 'node-neighborhood' as const,
+    envelope: shardEnvelope,
+    nodeId,
+    limit: 32,
+    truncated: false,
+    objects: canvas.nodes.map(shardObject),
+    relations: canvas.relations.map((relation) => ({
+      ...relation,
+      layer: 'ENGINEERING' as const,
+      relationFamily: relation.predicate === 'association' ? 'association' : 'application-and-analysis',
+    })),
+    boundaries: [],
+  };
+}
+
 function nodeDetail(nodeId: string) {
   const names: Record<string, { type: string; label: string; description: string | null }> = {
     'node-concept': { type: 'DomainConcept', label: '稳定性', description: '稳定性描述' },
@@ -135,15 +230,51 @@ describe('active Authority knowledge workspace client boundary', () => {
     root = createRoot(container);
     fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
-      const nodeId = url.split('/').pop() ?? 'node-concept';
-      return {
-        ok: true,
-        status: 200,
-        json: async () => url.includes('/nodes/active/') ? nodeDetail(nodeId) : canvas,
-      };
+      const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
+      if (url.endsWith('/api/knowledge/shards/active')) {
+        return { ok: true, status: 200, json: async () => rootShard };
+      }
+      if (url.includes('/domains/') && url.includes('/families/association')) {
+        return { ok: true, status: 200, json: async () => familyShard('association', [canvas.relations[0]]) };
+      }
+      if (url.includes('/domains/') && url.includes('/families/application-and-analysis')) {
+        return { ok: true, status: 200, json: async () => familyShard('application-and-analysis', [canvas.relations[1]]) };
+      }
+      if (url.includes('/domains/')) {
+        return { ok: true, status: 200, json: async () => domainDefaultShard() };
+      }
+      if (url.includes('/neighborhoods/')) {
+        return { ok: true, status: 200, json: async () => neighborhoodShard(nodeId) };
+      }
+      if (url.includes('/shards/active/nodes/')) {
+        return { ok: true, status: 200, json: async () => ({
+          shardClass: 'node-detail',
+          envelope: shardEnvelope,
+          node: {
+            ...nodeDetail(nodeId).node,
+            teachingFields: {},
+            media: { cardAvailable: false, infographAvailable: false },
+          },
+        }) };
+      }
+      throw new Error(`unexpected product request ${url}`);
     });
     vi.stubGlobal('fetch', fetchMock);
   });
+
+  async function enterModelingDomain(options: { families?: boolean } = {}) {
+    const button = container.querySelector<HTMLButtonElement>('[data-authority-domain-entry="modeling"]');
+    expect(button).not.toBeNull();
+    await act(async () => button!.click());
+    await act(async () => Promise.resolve());
+    if (options.families === false) return;
+    for (const family of ['association', 'application-and-analysis'] as const) {
+      const familyButton = container.querySelector<HTMLButtonElement>(`[data-authority-relation-family="${family}"]`);
+      expect(familyButton).not.toBeNull();
+      await act(async () => familyButton!.click());
+    }
+    await act(async () => Promise.resolve());
+  }
 
   afterEach(async () => {
     await act(async () => root.unmount());
@@ -159,10 +290,12 @@ describe('active Authority knowledge workspace client boundary', () => {
       }));
     });
     await act(async () => Promise.resolve());
+    expect(container.querySelector('[data-authority-shard-root="true"]')).not.toBeNull();
+    await enterModelingDomain();
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-graph-stage="authority"]')).not.toBeNull();
     expect(container.textContent).toContain('当前 Engineering Authority');
-    expect(container.textContent).toContain('语义对象');
+    expect(container.querySelector('[aria-label="当前 Authority 语义关系画布"]')).not.toBeNull();
     expect(container.textContent).not.toContain('internal-release');
     expect(container.textContent).not.toContain('internal-snapshot');
     expect(container.textContent).not.toContain('future_internal');
@@ -199,10 +332,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-node-detail]')).toBeNull();
-    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
-      '/api/knowledge/graph/active', '/api/knowledge/nodes/active/node-concept', '/api/knowledge/graph/active',
-    ]);
-    expect(fetchMock.mock.calls.every(([url]) => String(url).includes('/active'))).toBe(true);
+    const requested = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(requested[0]).toBe('/api/knowledge/shards/active');
+    expect(requested).toContain('/api/knowledge/shards/active/domains/modeling');
+    expect(requested).toContain('/api/knowledge/shards/active/nodes/node-concept');
+    expect(requested.some((url) => url.includes('/graph/active'))).toBe(false);
+    expect(requested.every((url) => url.includes('/active'))).toBe(true);
   });
 
   it('supports search, type filtering, isolated nodes, selection and zoom controls', async () => {
@@ -210,6 +345,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
+    await enterModelingDomain();
     const search = container.querySelector<HTMLInputElement>('#active-authority-search')!;
     await act(async () => {
       search.value = '孤立';
@@ -242,6 +378,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
+    await enterModelingDomain();
 
     const filter = container.querySelector<HTMLSelectElement>('#active-authority-type-filter')!;
     await act(async () => {
@@ -275,6 +412,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
+    await enterModelingDomain();
 
     const directedLine = container.querySelector<SVGLineElement>('[data-active-authority-relation="relation-applies"] line');
     const unorderedLine = container.querySelector<SVGLineElement>('[data-active-authority-relation="relation-association"] line');
@@ -313,14 +451,16 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
+    await enterModelingDomain();
     const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
     expect(node).not.toBeNull();
     await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     await act(async () => Promise.resolve());
     const detail = container.querySelector('[data-active-node-detail="node-concept"]');
     expect(detail?.textContent).toContain('关联关系');
-    expect(detail?.textContent).not.toContain('出向');
-    expect(detail?.textContent).not.toContain('入向');
+    expect(detail?.textContent).toContain('关联关系 · 特征方程');
+    expect(detail?.textContent).not.toContain('出向 · 由前者指向后者 · 特征方程');
+    expect(detail?.textContent).not.toContain('入向 · 由前者指向后者 · 特征方程');
   });
 
   it('emphasizes only real incident edges for the selected node', async () => {
@@ -328,6 +468,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
+    await enterModelingDomain();
     const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-formula"]');
     expect(node).not.toBeNull();
     await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
@@ -346,6 +487,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
+    await enterModelingDomain();
     const firstNode = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
     expect(firstNode).not.toBeNull();
     await act(async () => firstNode!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
@@ -377,18 +519,30 @@ describe('active Authority knowledge workspace client boundary', () => {
     };
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
-      const nodeId = url.split('/').pop() ?? 'search-node-1';
-      return {
-        ok: true,
-        status: 200,
-        json: async () => url.includes('/nodes/active/') ? nodeDetail(nodeId) : searchableCanvas,
-      };
+      const nodeId = decodeURIComponent(url.split('/').pop() ?? 'search-node-1');
+      if (url.endsWith('/api/knowledge/shards/active')) {
+        return { ok: true, status: 200, json: async () => rootShard };
+      }
+      if (url.includes('/domains/')) {
+        return { ok: true, status: 200, json: async () => domainDefaultShard(nodes) };
+      }
+      if (url.includes('/shards/active/nodes/') || url.includes('/neighborhoods/')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => url.includes('/neighborhoods/')
+            ? { ...neighborhoodShard(nodeId), objects: nodes.map(shardObject), relations: [] }
+            : { shardClass: 'node-detail', envelope: shardEnvelope, node: { ...nodeDetail(nodeId).node, teachingFields: {}, media: { cardAvailable: false, infographAvailable: false } } },
+        };
+      }
+      throw new Error(`unexpected product request ${url}`);
     });
 
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
 
     const filter = container.querySelector<HTMLSelectElement>('#active-authority-type-filter')!;
     await act(async () => {
@@ -433,16 +587,34 @@ describe('active Authority knowledge workspace client boundary', () => {
       nodes,
       relations: [],
     };
-    fetchMock.mockImplementation(async (input: RequestInfo | URL) => ({
-      ok: true,
-      status: 200,
-      json: async () => String(input).includes('/nodes/active/') ? nodeDetail(String(input).split('/').pop() ?? 'thousand-node-1') : searchableCanvas,
-    }));
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) {
+        return { ok: true, status: 200, json: async () => rootShard };
+      }
+      if (url.includes('/domains/')) {
+        return { ok: true, status: 200, json: async () => domainDefaultShard(nodes) };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          shardClass: 'node-detail',
+          envelope: shardEnvelope,
+          node: {
+            ...nodeDetail(url.split('/').pop() ?? 'thousand-node-1').node,
+            teachingFields: {},
+            media: { cardAvailable: false, infographAvailable: false },
+          },
+        }),
+      };
+    });
 
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
 
     const search = container.querySelector<HTMLInputElement>('#active-authority-search')!;
     await act(async () => {
@@ -467,6 +639,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
+    await enterModelingDomain();
 
     const svg = container.querySelector<SVGSVGElement>('[data-active-authority-svg="true"]');
     expect(svg).not.toBeNull();
@@ -514,6 +687,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
+    await enterModelingDomain();
 
     const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-formula"]');
     expect(node).not.toBeNull();
@@ -524,9 +698,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
 
     expect(container.querySelector('[data-active-node-detail="node-formula"]')).not.toBeNull();
-    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
-      '/api/knowledge/graph/active', '/api/knowledge/nodes/active/node-formula',
-    ]);
+    const requested = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(requested[0]).toBe('/api/knowledge/shards/active');
+    expect(requested).toContain('/api/knowledge/shards/active/nodes/node-formula');
+    expect(requested.some((url) => url.includes('/graph/active'))).toBe(false);
   });
 
   it('shows candidate only as an explicit administrator diagnostic', async () => {
@@ -536,7 +711,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
     expect(container.textContent).toContain('受控候选诊断');
-    expect(fetchMock).toHaveBeenCalledWith('/api/knowledge/graph/active', expect.any(Object));
+    expect(fetchMock).toHaveBeenCalledWith('/api/knowledge/shards/active', expect.any(Object));
+    expect(fetchMock.mock.calls.every(([url]) => !String(url).includes('/graph/active'))).toBe(true);
   });
 
   it('keeps the active component browser-safe and free of server or Legacy resolver imports', () => {
@@ -549,7 +725,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(presentationSource).not.toContain('node:fs');
     expect(captureSource).toContain('source.releaseSetId === authorityRecord.releaseSetId');
     expect(captureSource).toContain('source.releaseId === authorityRecord.releaseId');
-    expect(captureSource).toContain("'/api/knowledge/nodes/active/:node'");
+    expect(captureSource).toContain("'/api/knowledge/shards/active/nodes/:node'");
     expect(captureSource).toContain("'/api/knowledge/nodes/:node'");
     expect(captureSource).toContain("if (method !== 'GET') return null;");
     expect(captureSource).toContain("if (!encodedNodeKey || encodedNodeKey.includes('/')) return null;");
@@ -583,7 +759,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('activeNodeRequestObserved');
     expect(captureSource).toContain('expectedActiveNodeKey');
     expect(captureSource).toContain('activeNodeIdentityMatches');
-    expect(captureSource).toContain("await probe.waitForPath('/api/knowledge/nodes/active/:node');");
+    expect(captureSource).toContain("await probe.waitForPath('/api/knowledge/shards/active/nodes/:node');");
     expect(captureSource).toContain('provenanceIntegrityMatches');
     const maliciousOpaqueId = 'node/opaque-id?raw=1';
     expect(encodeURIComponent(maliciousOpaqueId)).toContain('%2F');
@@ -614,27 +790,26 @@ describe('active Authority knowledge workspace client boundary', () => {
 
   it('fails closed before slicing unrelated Knowledge API paths', () => {
     const captureSource = readFileSync(path.join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'), 'utf8');
-    const helperStart = captureSource.indexOf('function canonicalKnowledgeNodePath');
+    const helperStart = captureSource.indexOf('function canonicalAuthorityShardPath');
     const guardOffset = captureSource.indexOf('if (!pathName.startsWith(prefix)) return null;', helperStart);
-    const sliceOffset = captureSource.indexOf('const encodedNodeKey = pathName.slice(prefix.length);', helperStart);
+    const sliceOffset = captureSource.indexOf("const segments = pathName.slice(prefix.length).split('/');", helperStart);
     expect(helperStart).toBeGreaterThanOrEqual(0);
     expect(guardOffset).toBeGreaterThan(helperStart);
     expect(sliceOffset).toBeGreaterThan(guardOffset);
-    expect(captureSource).toContain("if (pathName.startsWith('/api/knowledge/nodes/active'))");
+    expect(captureSource).toContain("if (pathName === '/api/knowledge/shards/active')");
+    expect(captureSource).toContain("'/api/knowledge/shards/active/nodes/:node'");
     expect(captureSource).toContain("if (pathName.startsWith('/api/knowledge/nodes/v2')) return null;");
   });
 
   it('uses endpoint-specific source identity requirements for active API evidence', () => {
     const captureSource = readFileSync(path.join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'), 'utf8');
-    expect(captureSource).toContain('const ACTIVE_CANVAS_SOURCE_IDENTITY_FIELDS');
-    expect(captureSource).toContain('const ACTIVE_NODE_SOURCE_IDENTITY_FIELDS');
-    expect(captureSource).toContain("const isActiveNode = pathName === '/api/knowledge/nodes/active/:node';");
-    expect(captureSource).toContain('const sourceDatasetHashValid = !sourceDatasetHashPresent');
-    expect(captureSource).toContain('&& (isActiveNode || sourceDatasetHashPresent)');
-    expect(captureSource).toContain("if (field === 'sourceDatasetHash') return sourceDatasetHashValid;");
-    expect(captureSource).toContain('source.projectionDigest === null');
-    expect(captureSource).toContain('SHA256_HEX.test(source.sourceDatasetHash)');
-    expect(captureSource).toContain("collectKnowledgeApiSensitiveValues(source, rememberToken, 'source');");
+    expect(captureSource).toContain('const shardEnvelopeValid = isActiveShardResponse');
+    expect(captureSource).toContain("shardEnvelope.contract === 'act-authority-shard-envelope/v1'");
+    expect(captureSource).toContain('typeof shardEnvelope.authorityCatalogVersion === \'string\'');
+    expect(captureSource).toContain('typeof shardEnvelope.teachingVersion === \'string\'');
+    expect(captureSource).toContain('objectRecord(shardEnvelope.match).authority === true');
+    expect(captureSource).toContain('objectRecord(shardEnvelope.match).catalog === true');
+    expect(captureSource).toContain('isActiveShardResponse ? shardEnvelopeValid');
   });
 
   it('accepts only the exact safe API evidence schema and rejects opaque leakage', () => {

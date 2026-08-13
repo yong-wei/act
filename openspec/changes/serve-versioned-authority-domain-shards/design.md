@@ -15,6 +15,7 @@ The active Authority adapter currently obtains the full canvas payload and only 
 3. **Merge canonical objects once.** The client stores objects by canonical identity and relations by stable layer-aware identity. A secondary domain membership never duplicates an object or resets coordinates.
 4. **Fail layers independently.** Invalid Authority or catalog identity blocks the requested shard. Missing or partial teaching data removes only the teaching relation set and returns a coverage state; engineering family requests still succeed.
 5. **Keep detail lazy.** Knowledge Card and infograph data are never part of root or domain-default payloads.
+6. **Materialize versioned Authority shards at activation.** The active pointer selects one immutable, composite-versioned shard set. Root, domain-default, relation-family and bounded one-hop resolvers read only their matching small artifacts; they never parse `engineering.json` and never fall back to an older or whole-graph artifact. This changes storage and delivery only: Authority and Teaching facts, `engineering-graph`'s null `projectionId`, domain membership and relation direction remain unchanged. Missing, partial, empty or unavailable Teaching data produces an empty teaching layer without blocking valid engineering shards.
 
 ## Risks / Trade-offs
 
