@@ -1200,6 +1200,16 @@ function main() {
     /REMOTE_OPERATOR_SCRIPT=.*remote-production-cutover\.sh/u,
     'remote activation must use the versioned remote operator transport',
   );
+  assert.match(
+    remoteActivatorSource,
+    /--index-dir "\$\{ROOT_DIR\}\/course-content\/runtime\/resources\/textbook-hybrid-retrieval\/bge-m3"/u,
+    'remote activation must verify the canonical BGE-M3 textbook index before production cutover',
+  );
+  assert.doesNotMatch(
+    remoteActivatorSource,
+    /course-content\/runtime\/resources\/textbook-retrieval/u,
+    'remote activation must not verify the retired textbook retrieval directory',
+  );
   assert.equal(
     (remoteActivatorSource.match(/< "\$REMOTE_OPERATOR_SCRIPT"/gu) ?? []).length,
     5,

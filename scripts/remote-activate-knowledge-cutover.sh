@@ -199,7 +199,7 @@ for field in appRevision runtimeSourceRevision indexSourceRevision; do
 done
 node "$PROVENANCE_HELPER" verify-runtime \
   --runtime-root "${ROOT_DIR}/course-content/runtime/resources/textbooks-v2" \
-  --index-dir "${ROOT_DIR}/course-content/runtime/resources/textbook-retrieval" \
+  --index-dir "${ROOT_DIR}/course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3" \
   --sidecar "$LOCAL_PROVENANCE_FILE"
 
 log '[preflight] 核验远端 Legacy all-ABSENT 状态、镜像身份与容量'

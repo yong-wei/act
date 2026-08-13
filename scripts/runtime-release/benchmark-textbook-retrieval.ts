@@ -4,9 +4,9 @@ import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 
 const indexPaths = [
-  'resources/textbook-retrieval/vectors.f32',
-  'resources/textbook-retrieval/bodies.utf8',
-  'resources/textbook-retrieval/lexical-postings.bin',
+  'resources/textbook-hybrid-retrieval/bge-m3/vectors.f32',
+  'resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8',
+  'resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin',
 ];
 
 function argument(name: string) {
