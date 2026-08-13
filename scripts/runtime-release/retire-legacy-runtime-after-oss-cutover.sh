@@ -60,15 +60,15 @@ exec 9>"$state_dir/.act-runtime-selection.lock"
 flock -x 9
 
 read_container_mounts() {
-  podman inspect --format '{{range .Mounts}}{{printf "%s\t%s\t%v\n" .Source .Destination .Options}}{{end}}' "$1"
+  podman inspect --format '{{range .Mounts}}{{printf "%s\t%s\t%v\n" .Source .Destination .RW}}{{end}}' "$1"
 }
 
 assert_app_runtime_mounts() {
   local mounts="$1"
   local active_matches
-  active_matches="$(printf '%s\n' "$mounts" | awk -F '\t' -v source="$candidate_root" '$1 == source && $2 == "/app/course-content/runtime" && $3 ~ /ro/ { count += 1 } END { print count + 0 }')"
+  active_matches="$(printf '%s\n' "$mounts" | awk -F '\t' -v source="$candidate_root" '$1 == source && $2 == "/app/course-content/runtime" && $3 == "false" { count += 1 } END { print count + 0 }')"
   [[ "$active_matches" == '1' ]] || { echo "ERROR: ${app_container} must bind the active OSS runtime exactly once read-only" >&2; exit 1; }
-  if printf '%s\n' "$mounts" | awk -F '\t' -v source="${candidate_root}/knowledge/projection" '$2 ~ "^/app/course-content/runtime/" { nested += 1; if ($1 != source || $2 != "/app/course-content/runtime/knowledge/projection" || $3 !~ /ro/) { invalid=1 } } END { exit(invalid || nested > 1 ? 0 : 1) }'; then
+  if printf '%s\n' "$mounts" | awk -F '\t' -v source="${candidate_root}/knowledge/projection" '$2 ~ "^/app/course-content/runtime/" { nested += 1; if ($1 != source || $2 != "/app/course-content/runtime/knowledge/projection" || $3 != "false") { invalid=1 } } END { exit(invalid || nested > 1 ? 0 : 1) }'; then
     echo "ERROR: ${app_container} has an unexpected nested runtime mount" >&2
     exit 1
   fi
