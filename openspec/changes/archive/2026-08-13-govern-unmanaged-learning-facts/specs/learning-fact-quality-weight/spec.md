@@ -1,8 +1,5 @@
-# learning-fact-quality-weight Specification
+## MODIFIED Requirements
 
-## Purpose
-Define how evidence quality controls LearningFact contribution to competency profiles while preserving traceability for low-quality or incomplete evidence.
-## Requirements
 ### Requirement: Profile contribution follows evidence quality
 The system SHALL weight or suppress competency contribution according to complete, explicit evidence governance.
 

@@ -296,7 +296,15 @@ describe('simulation-task-learning-fact', () => {
     expect(fact.factType).toBe('simulation_task_evidence');
     expect(fact.competencyContribution).toEqual({});
     expect(fact.sourceEventId).toMatch(/^simulation-task-evidence:v2:[a-f0-9]{64}$/);
-    expect(fact.contextJson).toEqual({ simulationTaskEvidence: evidence });
+    expect(fact.contextJson).toEqual({
+      evidenceGovernance: {
+        evidenceQuality: 'partial',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'unmanaged_learning_fact_context_only',
+      },
+      simulationTaskEvidence: evidence,
+    });
   });
 
   it('uses skipDuplicates for idempotent persistence', async () => {

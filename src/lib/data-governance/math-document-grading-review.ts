@@ -220,6 +220,7 @@ export function buildPipelineReviewFacts(input: { run: any; edits: any[]; review
         normalizedScore,
         evidenceGovernance: {
           evidenceQuality: 'rich',
+          profileWeight: 1,
           skipProfileContribution: false,
           policyReason: 'adaptive_assessment_evidence',
         },
