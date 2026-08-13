@@ -1,5 +1,5 @@
 /**
- * Browser-safe Authority shard cache and merge (#1375).
+ * Browser-safe Authority shard cache and merge (Issue 1375).
  *
  * Identity comes from the established root envelope. Canonical objects are
  * stored once; relations are keyed by layer + id. Shard arrival must not
