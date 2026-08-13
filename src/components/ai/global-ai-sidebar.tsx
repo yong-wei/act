@@ -43,9 +43,12 @@ import {
 import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
 import { platformLayerStyle } from '@/components/platform/platform-layers';
 import { useOptionalPageFloatingControls } from '@/components/shared/page-floating-controls';
+import { KonlingContinuityCard } from './konling-continuity-card';
+import type { KonlingContinuitySnapshot } from '@/lib/konling-learning-continuity';
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const MOBILE_HISTORY_QUERY = '(max-width: 767px)';
+const presentedContinuitySnapshotIds = new Set<string>();
 
 function getFocusableElements(container: HTMLElement) {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
@@ -95,6 +98,7 @@ export function GlobalAISidebar() {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [continuitySnapshot, setContinuitySnapshot] = useState<KonlingContinuitySnapshot | null>(null);
   const floatingControls = useOptionalPageFloatingControls();
   const isNarrowViewport = useMediaQuery(MOBILE_HISTORY_QUERY);
   const isMobileHistoryDrawerOpen = isMaximized && isNarrowViewport && libraryOpen;
@@ -612,6 +616,45 @@ export function GlobalAISidebar() {
     [append, chatBody, clearUnread, ensureConversation, isConversationLoading, isConversationMutating, isLoading]
   );
 
+  useEffect(() => {
+    if (!isOpen) {
+      setContinuitySnapshot(null);
+      return;
+    }
+    const controller = new AbortController();
+    void fetch('/api/ai/konling-continuity', { signal: controller.signal, cache: 'no-store' })
+      .then(async (response) => response.ok ? response.json() as Promise<KonlingContinuitySnapshot> : null)
+      .then((snapshot) => {
+        if (!snapshot || presentedContinuitySnapshotIds.has(snapshot.snapshotId)) return;
+        presentedContinuitySnapshotIds.add(snapshot.snapshotId);
+        setContinuitySnapshot(snapshot);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [isOpen]);
+
+  async function reExplainContinuity(snapshot: KonlingContinuitySnapshot) {
+    const response = await fetch('/api/ai/konling-continuity', { cache: 'no-store' });
+    if (!response.ok) {
+      setActionStatus('当前学习状态无法重新确认。');
+      setContinuitySnapshot(null);
+      return;
+    }
+    const current = await response.json() as KonlingContinuitySnapshot;
+    if (current.snapshotId !== snapshot.snapshotId || current.state !== snapshot.state) {
+      setActionStatus('学习状态已更新，请重新打开控灵查看最新建议。');
+      setContinuitySnapshot(null);
+      return;
+    }
+    const prompt = current.state === 'unfinished_task' && current.unfinishedTask
+      ? `请重新讲解任务：${current.unfinishedTask.title}`
+      : current.state === 'recent_mistake' && current.recentMistake
+        ? `请讲解知识点：${current.recentMistake.knowledgeLabel}`
+        : null;
+    setContinuitySnapshot(null);
+    if (prompt) void handleQuickQuestion(prompt);
+  }
+
   const handleConversationSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isLoading || isConversationLoading || isConversationMutating) return;
@@ -1013,6 +1056,14 @@ export function GlobalAISidebar() {
             >
               {actionStatus}
             </div>
+          )}
+          {continuitySnapshot && (
+            <KonlingContinuityCard
+              snapshot={continuitySnapshot}
+              onDismiss={() => setContinuitySnapshot(null)}
+              onReExplain={() => void reExplainContinuity(continuitySnapshot)}
+              onGoalEntry={() => document.querySelector<HTMLInputElement>('input[name="global-ai-sidebar-input"]')?.focus()}
+            />
           )}
           {messages.length === 0 ? (
             <div className="space-y-6">

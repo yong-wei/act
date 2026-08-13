@@ -3985,6 +3985,7 @@ model AdaptiveAssessmentSession {
   userId              String
   sessionKey          String
   selectedQuestionIds String[]  @default([])
+  metadata            Json      @default("{}")
   algorithmVersion    String
   startedAt           DateTime  @default(now())
   lastAnsweredAt      DateTime?
