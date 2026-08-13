@@ -80,6 +80,10 @@ export function runtimeReleasePrefix(releaseId: string) {
   return `runtime/releases/${releaseId}/`;
 }
 
+export function runtimeBlobReleasePrefix(releaseId: string) {
+  return `runtime/blob-releases/${releaseId}/`;
+}
+
 async function readStream(stream: Readable) {
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -249,7 +253,7 @@ export async function verifyPublishedRuntimeBlobRelease(store: RuntimeReleaseObj
   const manifestKey = runtimeBlobReleaseManifestObjectKey(releaseId);
   const receiptKey = runtimeBlobReleaseReceiptObjectKey(releaseId);
   const receipt = await inspectPublishedRuntimeBlobReleaseReceipt(store, releaseId, manifest);
-  const releaseObjects = await store.listObjects(runtimeReleasePrefix(releaseId));
+  const releaseObjects = await store.listObjects(runtimeBlobReleasePrefix(releaseId));
   const expectedReleaseObjects = new Map([
     [manifestKey, Buffer.byteLength(serializeRuntimeBlobReleaseManifest(manifest))],
     [receiptKey, Buffer.byteLength(serializeRuntimeBlobReleaseReceipt(receipt))],

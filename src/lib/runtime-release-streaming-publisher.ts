@@ -15,11 +15,14 @@ import {
   type RuntimeReleaseStoredObject,
   type RuntimeBlobReleaseVerificationReceipt,
   type RuntimeReleaseVerificationReceipt,
+  inspectPublishedRuntimeRelease,
+  runtimeBlobReleasePrefix,
 } from '@/lib/runtime-release-store';
 import {
   type ActRuntimeBlobReleaseManifest,
   type ActRuntimeReleaseFile,
   assertContentAddressedRuntimeReleaseId,
+  buildRuntimeBlobReleaseManifestFromFiles,
   buildRuntimeBlobReleaseReceipt,
   computeRuntimeReleaseManifestWireSha256,
   runtimeBlobReleaseManifestObjectKey,
@@ -33,6 +36,7 @@ import {
 import type { GitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
 
 const RELEASE_KEY_PREFIX = 'runtime/releases/';
+const BLOB_RELEASE_KEY_PREFIX = 'runtime/blob-releases/';
 const BLOB_KEY_PREFIX = 'runtime/blobs/sha256/';
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const BUCKET_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$/;
@@ -77,7 +81,7 @@ function assertNoControlCharacters(value: string, context: string) {
 
 function assertObjectKey(value: string, context = 'object key') {
   assertNoControlCharacters(value, context);
-  if (!value.startsWith(RELEASE_KEY_PREFIX) || value.includes('\\') || value.split('/').some((part) => !part || part === '.' || part === '..')) {
+  if ((!value.startsWith(RELEASE_KEY_PREFIX) && !value.startsWith(BLOB_RELEASE_KEY_PREFIX)) || value.includes('\\') || value.split('/').some((part) => !part || part === '.' || part === '..')) {
     invalid(`${context} is not a safe runtime release object key.`);
   }
 }
@@ -91,7 +95,7 @@ function assertBlobObjectKey(value: string, context = 'blob object key') {
 
 function assertPrefix(value: string) {
   assertNoControlCharacters(value, 'release prefix');
-  if (!value.startsWith(RELEASE_KEY_PREFIX) || !value.endsWith('/') || value.split('/').filter(Boolean).some((part) => part === '.' || part === '..')) invalid('Release prefix must be a runtime release prefix.');
+  if ((!value.startsWith(RELEASE_KEY_PREFIX) && !value.startsWith(BLOB_RELEASE_KEY_PREFIX)) || !value.endsWith('/') || value.split('/').filter(Boolean).some((part) => part === '.' || part === '..')) invalid('Release prefix must be a runtime release prefix.');
 }
 
 function encodeArgument(value: string) {
@@ -120,7 +124,7 @@ function assertConfig(config: RuntimeReleaseSshPublisherConfig) {
   if (config.connectTimeoutSeconds !== undefined && (!Number.isInteger(config.connectTimeoutSeconds) || config.connectTimeoutSeconds < 1 || config.connectTimeoutSeconds > 300)) invalid('SSH connect timeout must be between 1 and 300 seconds.');
 }
 
-type SshOperation = 'list' | 'get' | 'put' | 'publish' | 'verify';
+type SshOperation = 'list' | 'get' | 'put' | 'publish' | 'import-v1' | 'verify';
 
 export function buildRuntimeReleaseSshArgv(
   config: RuntimeReleaseSshPublisherConfig,
@@ -142,8 +146,8 @@ export function buildRuntimeReleaseSshArgv(
     if (!input.prefix) invalid(`${operation === 'verify' ? 'Verify' : 'List'} operation requires a release prefix.`);
     assertPrefix(input.prefix);
     args.push('--prefix-b64', encodeArgument(input.prefix));
-  } else if (operation === 'publish') {
-    if (!input.prefix) invalid('Publish operation requires a release prefix.');
+  } else if (operation === 'publish' || operation === 'import-v1') {
+    if (!input.prefix) invalid(`${operation === 'import-v1' ? 'Import' : 'Publish'} operation requires a release prefix.`);
     assertPrefix(input.prefix);
     args.push('--prefix-b64', encodeArgument(input.prefix));
   } else {
@@ -422,7 +426,7 @@ export async function verifyPublishedRuntimeBlobReleaseViaSsh(input: {
   ssh: RuntimeReleaseSshPublisherConfig;
   dependencies?: RuntimeReleaseSshPublisherDependencies;
 }) {
-  const prefix = runtimeReleasePrefix(input.releaseId);
+  const prefix = runtimeBlobReleasePrefix(input.releaseId);
   assertPrefix(prefix);
   const child = spawnChild(input.dependencies?.spawn, input.ssh.sshBinary ?? 'ssh', buildRuntimeReleaseSshArgv(input.ssh, 'verify', { prefix }));
   const receipt = parseVerificationReceipt(await runBuffered(child, 'verify'), input.releaseId);
@@ -689,7 +693,7 @@ async function publishRuntimeBlobReleaseStream(input: {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-git-source-mismatch', 'Git snapshot identity does not match the submitted blob manifest.');
   }
   const child = spawnChild(input.spawn, input.config.sshBinary ?? 'ssh', buildRuntimeReleaseSshArgv(input.config, 'publish', {
-    prefix: runtimeReleasePrefix(input.manifest.releaseId),
+    prefix: runtimeBlobReleasePrefix(input.manifest.releaseId),
   }));
   if (!child.stdin || !child.stdout) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'Blob publish bridge did not provide bidirectional streams.');
@@ -704,7 +708,7 @@ async function publishRuntimeBlobReleaseStream(input: {
   const header = {
     protocol: 'act-runtime-blob-release-stream.v2',
     releaseId: input.manifest.releaseId,
-    prefix: runtimeReleasePrefix(input.manifest.releaseId),
+    prefix: runtimeBlobReleasePrefix(input.manifest.releaseId),
     manifestSha256: input.manifest.manifestSha256,
     wireSha256: runtimeBlobReleaseManifestWireSha256(input.manifest),
     manifestWireBase64: manifestWireBytes.toString('base64url'),
@@ -793,6 +797,79 @@ export async function publishRuntimeBlobReleaseViaSsh(input: {
     config: input.ssh,
     spawn: input.dependencies?.spawn,
   });
+}
+
+export async function importV1RuntimeBlobReleaseViaSsh(input: {
+  sourceReleaseId: string;
+  expectedSourceManifestSha256: string;
+  ssh: RuntimeReleaseSshPublisherConfig;
+  dependencies?: RuntimeReleaseSshPublisherDependencies;
+}) {
+  const sourcePrefix = runtimeReleasePrefix(input.sourceReleaseId);
+  assertPrefix(sourcePrefix);
+  if (!SHA256_PATTERN.test(input.expectedSourceManifestSha256)) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-import-source-invalid', 'V1 import requires an expected source manifest SHA-256.');
+  }
+  const store = createSshRuntimeReleaseObjectStore(input.ssh, input.dependencies);
+  const sourceManifest = await inspectPublishedRuntimeRelease(store, input.sourceReleaseId);
+  if (sourceManifest.manifestSha256 !== input.expectedSourceManifestSha256) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-import-source-mismatch', 'Pinned v1 source manifest SHA-256 does not match the immutable source release.');
+  }
+  const manifest = buildRuntimeBlobReleaseManifestFromFiles(sourceManifest.sourceRevision, sourceManifest.files.map((file) => ({
+    path: file.path,
+    sizeBytes: file.sizeBytes,
+    sha256: file.sha256,
+  })));
+  const targetPrefix = runtimeBlobReleasePrefix(manifest.releaseId);
+  const child = spawnChild(input.dependencies?.spawn, input.ssh.sshBinary ?? 'ssh', buildRuntimeReleaseSshArgv(input.ssh, 'import-v1', { prefix: targetPrefix }));
+  if (!child.stdin || !child.stdout) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'V1 import bridge did not provide bidirectional streams.');
+  }
+  const exitPromise = childExit(child);
+  const stderrPromise = readOutput(child.stderr);
+  const reader = createInterface({ input: child.stdout });
+  const lines = reader[Symbol.asyncIterator]();
+  const manifestWireBytes = Buffer.from(serializeRuntimeBlobReleaseManifest(manifest), 'utf8');
+  const receipt = buildRuntimeBlobReleaseReceipt(manifest);
+  const receiptWireBytes = Buffer.from(serializeRuntimeBlobReleaseReceipt(receipt), 'utf8');
+  const header = {
+    protocol: 'act-runtime-blob-release-import.v1',
+    releaseId: manifest.releaseId,
+    prefix: targetPrefix,
+    manifestSha256: manifest.manifestSha256,
+    wireSha256: runtimeBlobReleaseManifestWireSha256(manifest),
+    manifestWireBase64: manifestWireBytes.toString('base64url'),
+    receiptWireSha256: createHash('sha256').update(receiptWireBytes).digest('hex'),
+    receiptWireBase64: receiptWireBytes.toString('base64url'),
+    sourceReleaseId: sourceManifest.releaseId,
+    sourcePrefix,
+    sourceManifestSha256: sourceManifest.manifestSha256,
+    sourceManifestWireSha256: computeRuntimeReleaseManifestWireSha256(sourceManifest),
+  };
+  let published: RuntimeBlobReleaseVerificationReceipt;
+  try {
+    await writeChild(child, `${JSON.stringify(header)}\n`, 'v1 import');
+    child.stdin.end();
+    const finalLine = await lines.next();
+    if (finalLine.done || typeof finalLine.value !== 'string') {
+      throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'V1 import bridge closed before returning a completion receipt.');
+    }
+    published = parseBlobPublishReceipt(parsePublishControlLine(finalLine.value, 'V1 import'), manifest);
+  } catch (error) {
+    if (child.exitCode === null && child.signalCode === null) child.kill();
+    if (error instanceof RuntimeReleaseStreamingPublisherError) throw error;
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'V1 import bridge process failed.', { cause: error });
+  } finally {
+    reader.close();
+  }
+  const exit = await exitPromise.catch((error) => {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'V1 import bridge process failed.', { cause: error });
+  });
+  const stderr = await stderrPromise;
+  if (exit.code !== 0) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', `V1 import bridge exited unsuccessfully: ${stderr.toString('utf8').trim()}`);
+  }
+  return { sourceManifest, manifest, receipt: published };
 }
 
 export { runtimeReleasePrefix };

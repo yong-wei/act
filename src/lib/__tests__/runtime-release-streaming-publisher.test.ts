@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   buildRuntimeReleaseSshArgv,
   createSshRuntimeReleaseObjectStore,
+  importV1RuntimeBlobReleaseViaSsh,
   publishRuntimeBlobReleaseViaSsh,
   publishRuntimeReleaseViaSsh,
   verifyPublishedRuntimeBlobReleaseViaSsh,
@@ -19,6 +20,7 @@ import {
   buildRuntimeReleaseManifest,
   computeRuntimeReleaseManifestWireSha256,
   deriveRuntimeReleaseId,
+  serializeRuntimeReleaseManifest,
   runtimeBlobReleaseManifestWireSha256,
 } from '../runtime-release';
 import { buildGitRuntimeBlobReleaseSnapshot } from '../runtime-release-git-snapshot';
@@ -69,6 +71,7 @@ function consume() {
       if (newline < 0) return;
       const header = JSON.parse(buffer.subarray(0, newline).toString());
       buffer = buffer.subarray(newline + 1);
+      if (header.prefix !== expectedPrefix) process.exit(19);
       manifest = JSON.parse(Buffer.from(header.manifestWireBase64, 'base64url').toString());
       wireSha256 = header.wireSha256;
       receiptWireSha256 = header.receiptWireSha256;
@@ -98,10 +101,34 @@ function consume() {
     }
   }
 }
+
 process.stdin.on('data', (chunk) => { buffer = Buffer.concat([buffer, chunk]); consume(); });
 `;
   return (command: string, args: readonly string[], options: SpawnOptions) => {
     calls.push({ command, args });
+    const expectedPrefix = Buffer.from(args[args.indexOf('--prefix-b64') + 1] ?? '', 'base64url').toString('utf8');
+    return spawn(process.execPath, ['-e', `const expectedPrefix = ${JSON.stringify(expectedPrefix)};\n${script}`], options);
+  };
+}
+
+function v1ImportBridgeSpawnFactory(sourceManifest: Awaited<ReturnType<typeof contentAddressedManifest>>, calls: Array<{ command: string; args: readonly string[] }>) {
+  const sourceWire = serializeRuntimeReleaseManifest(sourceManifest);
+  return (command: string, args: readonly string[], options: SpawnOptions) => {
+    calls.push({ command, args });
+    const operation = args[args.indexOf('--operation') + 1];
+    const script = operation === 'get'
+      ? `process.stdout.write(${JSON.stringify(sourceWire)});`
+      : `
+        let input = '';
+        process.stdin.setEncoding('utf8');
+        process.stdin.on('data', (chunk) => { input += chunk; });
+        process.stdin.on('end', () => {
+          const header = JSON.parse(input.trim());
+          const manifest = JSON.parse(Buffer.from(header.manifestWireBase64, 'base64url').toString('utf8'));
+          if (header.protocol !== 'act-runtime-blob-release-import.v1' || header.sourceReleaseId !== ${JSON.stringify(sourceManifest.releaseId)} || header.sourceManifestSha256 !== ${JSON.stringify(sourceManifest.manifestSha256)}) process.exit(9);
+          process.stdout.write(JSON.stringify({ status: 'complete', releaseId: manifest.releaseId, manifestSha256: manifest.manifestSha256, wireSha256: header.wireSha256, receiptWireSha256: header.receiptWireSha256, treeSha256: manifest.treeSha256, fileCount: manifest.fileCount, totalBytes: manifest.totalBytes }) + '\\n');
+        });
+      `;
     return spawn(process.execPath, ['-e', script], options);
   };
 }
@@ -123,7 +150,7 @@ function fakeSpawnFactory(mode: 'success' | 'child-failure' | 'get-failure' | 'b
       ? `process.stdout.write(${JSON.stringify(JSON.stringify(mode === 'blob-verify' ? {
         schemaVersion: 'runtime-release-verification.v2',
         releaseId,
-        manifestObjectKey: 'runtime/releases/' + releaseId + '/manifest.json',
+        manifestObjectKey: 'runtime/blob-releases/' + releaseId + '/manifest.json',
         manifestSha256: 'a'.repeat(64),
         wireSha256: 'b'.repeat(64),
         wireSizeBytes: 42,
@@ -208,9 +235,26 @@ describe('source-authoritative SSH runtime release transport', () => {
     })).resolves.toMatchObject({
       schemaVersion: 'runtime-release-verification.v2',
       releaseId: 'runtime-test',
-      manifestObjectKey: 'runtime/releases/runtime-test/manifest.json',
+      manifestObjectKey: 'runtime/blob-releases/runtime-test/manifest.json',
     });
     expect(fake.calls).toHaveLength(1);
+  });
+
+  it('imports only a pinned immutable v1 release into the separate v2 namespace', async () => {
+    const root = await fixture();
+    const sourceManifest = await contentAddressedManifest(root);
+    const calls: Array<{ command: string; args: readonly string[] }> = [];
+    const result = await importV1RuntimeBlobReleaseViaSsh({
+      sourceReleaseId: sourceManifest.releaseId,
+      expectedSourceManifestSha256: sourceManifest.manifestSha256,
+      ssh: config,
+      dependencies: { spawn: v1ImportBridgeSpawnFactory(sourceManifest, calls) },
+    });
+    expect(result.manifest.releaseId).toBe(sourceManifest.releaseId);
+    expect(result.manifest.files[0]?.objectKey).toMatch(/^runtime\/blobs\/sha256\//);
+    expect(calls.map((call) => call.args[call.args.indexOf('--operation') + 1])).toEqual(['get', 'import-v1']);
+    const importCall = calls[1];
+    expect(Buffer.from(importCall?.args[importCall.args.indexOf('--prefix-b64') + 1] ?? '', 'base64url').toString('utf8')).toBe(`runtime/blob-releases/${sourceManifest.releaseId}/`);
   });
 
   it('propagates a child upload failure instead of reporting a successful stream', async () => {
@@ -264,6 +308,7 @@ describe('source-authoritative SSH runtime release transport', () => {
     });
     expect(calls).toHaveLength(1);
     expect(calls[0].args).toContain('publish');
+    expect(Buffer.from(calls[0].args[calls[0].args.indexOf('--prefix-b64') + 1] ?? '', 'base64url').toString('utf8')).toBe(`runtime/releases/${manifest.releaseId}/`);
   });
 
   it('streams each unique blob once and requires the v2 manifest-last receipt identity', async () => {

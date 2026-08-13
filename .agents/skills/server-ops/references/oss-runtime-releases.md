@@ -12,7 +12,7 @@
 
 ## Release 与选择不变量
 
-- 每次发布写入唯一且不可变的 `runtime/releases/<release-id>/` 前缀。release id 必须由 canonical `{sourceRevision, treeSha256}` 的 SHA-256 派生，避免不同 source identity 并发写入同一前缀；同一 identity 的重试仍必须以远端 receipt 精确核对 manifest/tree digest。Release manifest 必须记录 schema、source revision、文件数量、总字节数、逐文件相对路径/大小/SHA-256、tree digest 和 manifest digest。
+- v1 release 只使用不可变的 `runtime/releases/<release-id>/` 前缀；v2 blob release 只使用独立的 `runtime/blob-releases/<release-id>/` 前缀。两个格式允许同一 `{sourceRevision, treeSha256}` 推导出相同 release ID，完整身份必须包含 format、namespace、release ID 与 manifest SHA-256；不得借路径冲突篡改 source identity，也不得在共享前缀中混合读取、验证或删除。
 - `ossutil sync` 的增量比较只适合同一可变目标前缀，不能减少不同不可变 Release 前缀之间的上传或存储；在同一 release id 的中断重试中，由发布桥按对象 key、大小和 SHA-256 精确续传即可。若要跨 Release 复用对象，必须单独设计内容寻址 blob、Release manifest 与可验证的运行态 materialization，不能以 `sync` 覆盖或删除现有 Release。
 - 发布前必须先在声明的内容真源目录计算完整 manifest；仅有相同 Git revision 不足以证明 ECS 既有 runtime 与该真源字节相同。若准备直接以 ECS 本地 runtime 为上传源，必须独立重算其 file count、total bytes 与 tree SHA-256，并与真源 manifest 完全一致；不一致时不得上传 ECS 旧树、不得覆盖正在服务的 legacy runtime，也不得在接近满盘的主机上复制完整 staging 目录。此时应使用经审计的流式本地→ECS publisher transport，或另行准备有容量的发布执行环境。
 - 完整上传后必须从 OSS 重新读取并校验 manifest 与所有对象的大小和哈希；任一缺失或不匹配均不得选择该 Release。不得复用、覆盖或原地修复已经发布的 Release。
@@ -24,6 +24,7 @@
 ## ossfs 与 Podman
 
 - 使用 ossfs 2.0、ECS RAM Role 与同地域内网 endpoint。将固定 Release 前缀挂载到独立的宿主机目录，并以只读 bind mount 提供给容器中的 `/app/course-content/runtime`。
+- ossfs 配置中的 `--ram_role` 必须与 ECS IMDS 当前唯一角色名完全一致；角色具备 `GetObject` 并不足够，名称不一致时 FUSE 仍可能显示为 `ro`，但目录无法读取。迁移期间可令只读 ossfs 挂载使用已审计的 operator role；完成后必须将 ECS 实例角色和 `--ram_role` 同步切回 read role。角色切换或 ossfs 重挂载会使已存在的 Podman bind 挂载变为 `Socket not connected`，必须通过受管 stack 的正常启动路径重建 app/worker 容器，再核验容器内 runtime 条目、release manifest 与 `/api/readyz`。
 - ossfs 2.0 的配置文件使用 `ossfs2 mount <mount-root>/<release-id> -c <release-id>.conf`；必须显式写入 `--ro=true`、`--allow_other=true`、目标 uid/gid、`--file_mode=0644` 与 `--dir_mode=0755`。不要依赖 ossfs 默认权限，也不要在配置文件中写 AccessKey/Secret。
 - 不得将现有 `.staging`、`current`、`previous` 的 rsync/rename 发布算法直接运行在 ossfs 挂载点；OSS runtime Release 永远不依赖目录 rename 原子性。
 - 当 ECS 无法同时容纳完整 image tar 与 Podman 解包层时，不得以磁盘 staging、手工管道或删除现有镜像绕过容量。受控流式导入必须先从本地已验证 tar 固定 config image ID、OCI revision 与 layer 字节总量；远端 `GraphRoot` 可用空间必须不少于 layer 总量加 1 GiB。通过该门禁后，同一 SSH stdin 只能同时送入 SHA-256 与 `podman load`，二者结束并精确核对 tar 摘要、image ID 和 revision 后才能激活；空间不足时停止并先扩容。
@@ -53,7 +54,9 @@
 
 ## 内容寻址 Blob Release（v2，候选资格）
 
-- v2 只在已完成格式、物化、生命周期和回收资格验证后使用：逻辑 manifest 位于 `runtime/releases/<release-id>/manifest.json`，逐文件 key 必须等于 `runtime/blobs/sha256/<file-sha256>`；release prefix 只允许 immutable `manifest.json` 与 `receipt.json`。不得在 release prefix 内复制逻辑文件，也不得用可变对象替代 manifest。
+- v2 只在已完成格式、物化、生命周期和回收资格验证后使用：逻辑 manifest 位于 `runtime/blob-releases/<release-id>/manifest.json`，逐文件 key 必须等于 `runtime/blobs/sha256/<file-sha256>`；release prefix 只允许 immutable `manifest.json` 与 `receipt.json`。不得在 release prefix 内复制逻辑文件，也不得用可变对象替代 manifest。
+- 首次 v1→v2 导入必须固定一个 v1 release ID、其 manifest semantic SHA-256 与 wire SHA-256；bridge 读取、重算并校验每个源对象后才允许写入 v2 blob，最后写 receipt 与 manifest。导入前后再次读取固定 v1 manifest；任一 identity、路径、大小或摘要漂移均失败关闭。导入尚未完成 v2 selection 前，v1 active release 不得删除。
+- 为 v2 导入授权 operator role 时，Bucket 级 `oss:ListObjects` 的 `oss:Prefix` 需显式加入 `runtime/blob-releases/` 与 `runtime/blob-releases/*`；对象级 Get/Put/Delete 仅加入 `acs:oss:*:*:act-course-assets/runtime/blob-releases/*`，blob 复用继续限定于 `runtime/blobs/sha256/*`。不为 v2 importer 增加 v1 `runtime/releases/*` Delete，也不放宽 selector 权限。Policy 更新后先验证 IMDS role、bridge `py_compile` 与只读 list，再开始导入。
 - 面向发布的 v2 CLI 必须将 source revision 解析为完整 Git commit，并只从该 commit 的 `course-content/runtime` Git tree 读取 regular blob；禁止把任意 SHA 与工作树扫描混用，禁止读取 symlink、gitlink、checkout filter 或未追踪文件。正式发布的 source commit 必须可从 `origin/integration` 到达，保证合作开发者同步集成分支后能够重建同一 manifest。
 - `manifestSha256` 是不含自身字段和传输字段的 canonical 语义摘要；最终 manifest 字节的 SHA-256 和长度写入 immutable receipt。读取顺序固定为：先核对 receipt 的 wire digest/长度，再解析并核对 manifest 语义摘要、tree、release ID 与 blob 闭包。把最终 wire digest 写回 manifest 自身会形成不可生成的自引用，禁止采用。
 - 同一 blob 的条件冲突只有在单独 readback 精确验证大小和 SHA-256 后才可视为成功。所有 blob 通过验证后先写 receipt，manifest 是唯一终止写入；未出现 manifest 的发布一律不可选择。重复发布同一 Release 只能做 readback，不得覆盖。

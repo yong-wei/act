@@ -174,7 +174,7 @@ def parse_receipt(path: Path, manifest: Dict[str, Any], manifest_wire: bytes) ->
     release_id = manifest["releaseId"]
     if raw["schemaVersion"] != RECEIPT_SCHEMA or raw["manifestVersion"] != MANIFEST_SCHEMA:
         fail("release receipt has an unsupported version")
-    if raw["releaseId"] != release_id or raw["manifestObjectKey"] != "runtime/releases/%s/manifest.json" % release_id:
+    if raw["releaseId"] != release_id or raw["manifestObjectKey"] != "runtime/blob-releases/%s/manifest.json" % release_id:
         fail("release receipt does not bind this manifest object")
     if raw["manifestSha256"] != manifest["manifestSha256"] or raw["treeSha256"] != manifest["treeSha256"]:
         fail("release receipt identity does not match manifest")

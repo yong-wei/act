@@ -6,10 +6,11 @@
 
 ## What Changes
 
-- 新增内容寻址 runtime blob 存储：每个普通文件按 SHA-256 写入只可新增的 blob key；`runtime/releases/<release-id>/` 仅保存不可变 logical manifest 与 receipt，manifest 将逻辑路径、size、SHA-256 与 blob key 绑定为一个可验证的逻辑 runtime 树。
+- 新增内容寻址 runtime blob 存储：每个普通文件按 SHA-256 写入只可新增的 blob key；v2 `runtime/blob-releases/<release-id>/` 仅保存不可变 logical manifest 与 receipt，并与既有 v1 `runtime/releases/<release-id>/` 分离；manifest 将逻辑路径、size、SHA-256 与 blob key 绑定为一个可验证的逻辑 runtime 树。
 - 新增受验证的 release materialization：在 ECS 上从 active/rollback manifest 生成临时逻辑目录视图，完成完整性验证后原子选择该视图；应用仍以只读 `/app/course-content/runtime` 读取，不感知 blob layout。
 - 新增 release 生命周期与 GC 规则：发布、materialization、activate、rollback 与 GC 使用同一把宿主锁；仅从 immutable protected manifest 的可达 blob 集合决定删除，失败或并发状态不得删除 active、rollback、发布中或有 receipt 引用的对象。
-- 保持 OSS Bucket 私有、ECS RAM Role 短期凭据、读角色不能写入、浏览器短时媒体 redirect 和现有 v1 release rollback。该变更不授权生产切换或删除任何现有 release。
+- 保持 OSS Bucket 私有、ECS RAM Role 短期凭据、ossfs 与容器 bind 只读、浏览器短时媒体 redirect 和现有 v1 release rollback。迁移期间 ECS 可持有前缀受限的 operator role；该变更不授权生产切换或删除任何现有 release。
+- 首次完整 v2 候选允许从一个已固定且已验证的 v1 Release 导入，而不是虚构“Git tree 已完整覆盖生产 runtime”。导入器必须逐对象重读、重算哈希并产出完整等价性证明；常规后续 v2 发布仍只接受 `origin/integration` 可达 Git tree。
 - 为 blob 去重率、manifest 完整性、materialization 等价性、热索引性能、故障恢复、并发发布/GC 和 rollback 增加可复验工件与自动测试。
 
 ## Capabilities

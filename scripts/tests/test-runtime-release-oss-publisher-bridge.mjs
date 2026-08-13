@@ -138,8 +138,7 @@ const stable = (value) => value === null || typeof value !== 'object'
     : `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stable(value[key])}`).join(',')}}`;
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 const bytes = Buffer.from('{"bridge":true}\n');
-const buildManifest = (sizeOverride = bytes.byteLength) => {
-  const sourceRevision = 'c'.repeat(40);
+const buildManifest = (sizeOverride = bytes.byteLength, sourceRevision = 'c'.repeat(40)) => {
   const file = {
     path: `deep/${'segment-'.repeat(28)}folder/课程 文件/${'尾巴-'.repeat(20)}lesson.json`,
     objectKey: '',
@@ -219,7 +218,7 @@ const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes) => 
   };
   const manifest = { ...body, manifestSha256: sha(stable(body)) };
   const wire = Buffer.from(`${stable(manifest)}\n`);
-  const prefix = `runtime/releases/${releaseId}/`;
+  const prefix = `runtime/blob-releases/${releaseId}/`;
   const manifestKey = `${prefix}manifest.json`;
   const receiptBody = {
     schemaVersion: 'act-runtime-release-receipt.v2',
@@ -252,6 +251,45 @@ const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes) => 
     frameBytesByKey: new Map(files.map((file, index) => [file.objectKey, fileBytes[index]])),
   };
 };
+const buildBlobStateFromV1 = (source) => {
+  const files = source.manifest.files.map((file) => ({
+    path: file.path,
+    objectKey: `runtime/blobs/sha256/${file.sha256}`,
+    sizeBytes: file.sizeBytes,
+    sha256: file.sha256,
+  }));
+  const treeSha256 = sha(stable(files.map(({ path: filePath, sizeBytes, sha256 }) => ({ path: filePath, sizeBytes, sha256 }))));
+  const releaseId = `runtime-${sha(stable({ sourceRevision: source.manifest.sourceRevision, treeSha256 })).slice(0, 55)}`;
+  const body = {
+    schemaVersion: 'act-runtime-release.v2',
+    releaseId,
+    sourceRevision: source.manifest.sourceRevision,
+    fileCount: files.length,
+    totalBytes: files.reduce((total, file) => total + file.sizeBytes, 0),
+    treeSha256,
+    files,
+  };
+  const manifest = { ...body, manifestSha256: sha(stable(body)) };
+  const wire = Buffer.from(`${stable(manifest)}\n`);
+  const prefix = `runtime/blob-releases/${releaseId}/`;
+  const manifestKey = `${prefix}manifest.json`;
+  const receiptBody = {
+    schemaVersion: 'act-runtime-release-receipt.v2',
+    releaseId,
+    manifestVersion: 'act-runtime-release.v2',
+    manifestObjectKey: manifestKey,
+    manifestSha256: manifest.manifestSha256,
+    manifestWireSha256: sha(wire),
+    manifestWireSizeBytes: wire.byteLength,
+    treeSha256,
+    fileCount: files.length,
+    totalBytes: body.totalBytes,
+    blobs: files.map((file) => ({ objectKey: file.objectKey, sizeBytes: file.sizeBytes, sha256: file.sha256 })),
+  };
+  const receipt = { ...receiptBody, receiptSha256: sha(stable(receiptBody)) };
+  const receiptWire = Buffer.from(`${stable(receipt)}\n`);
+  return { files, manifest, wire, receiptWire, prefix, manifestKey, receiptKey: `${prefix}receipt.json` };
+};
 const blobHeaderFor = (data) => JSON.stringify({
   protocol: 'act-runtime-blob-release-stream.v2',
   releaseId: data.manifest.releaseId,
@@ -261,6 +299,20 @@ const blobHeaderFor = (data) => JSON.stringify({
   manifestWireBase64: data.wire.toString('base64url'),
   receiptWireSha256: sha(data.receiptWire),
   receiptWireBase64: data.receiptWire.toString('base64url'),
+});
+const blobImportHeaderFor = (source, target) => JSON.stringify({
+  protocol: 'act-runtime-blob-release-import.v1',
+  releaseId: target.manifest.releaseId,
+  prefix: target.prefix,
+  manifestSha256: target.manifest.manifestSha256,
+  wireSha256: sha(target.wire),
+  manifestWireBase64: target.wire.toString('base64url'),
+  receiptWireSha256: sha(target.receiptWire),
+  receiptWireBase64: target.receiptWire.toString('base64url'),
+  sourceReleaseId: source.manifest.releaseId,
+  sourcePrefix: source.prefix,
+  sourceManifestSha256: source.manifest.manifestSha256,
+  sourceManifestWireSha256: sha(source.wire),
 });
 const close = (child) => new Promise((resolve) => child.once('close', (code, signal) => resolve({ code, signal })));
 const spoolFor = (prefix) => path.join(spoolRoot, sha(prefix));
@@ -379,6 +431,30 @@ async function publishBlob({ data = buildBlobState(), crashAfterFrame = false, c
   if (result.code !== 0) throw new Error(`blob bridge publish failed: ${Buffer.concat(stderr).toString()}`);
   assert.equal(final.done, false);
   return JSON.parse(final.value);
+}
+
+async function importBlobFromV1(source, target) {
+  const child = spawn('python3', [bridge, '--bucket', 'test-bucket', '--operation', 'import-v1', '--prefix-b64', Buffer.from(target.prefix).toString('base64url')], {
+    env: {
+      ...process.env,
+      ACT_RUNTIME_RELEASE_TEST_MODE: '1',
+      ACT_RUNTIME_RELEASE_OSSUTIL: fakeOssutil,
+      ACT_RUNTIME_RELEASE_IMDS_ROLE_URL: imdsRoleUrl,
+      ACT_RUNTIME_RELEASE_LOCK_DIR: lockRoot,
+      ACT_RUNTIME_RELEASE_SPOOL_DIR: spoolRoot,
+      FAKE_OSS_ROOT: ossRoot,
+      FAKE_PAGE_SIZE: '1',
+    },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  const stdout = [];
+  const stderr = [];
+  child.stdout.on('data', (chunk) => stdout.push(chunk));
+  child.stderr.on('data', (chunk) => stderr.push(chunk));
+  child.stdin.end(`${blobImportHeaderFor(source, target)}\n`);
+  const result = await close(child);
+  if (result.code !== 0) throw new Error(`blob v1 import failed: ${Buffer.concat(stderr).toString()}`);
+  return JSON.parse(Buffer.concat(stdout).toString('utf8'));
 }
 
 async function verify(data = state, { expectFailure = false } = {}) {
@@ -527,6 +603,18 @@ try {
     fileCount: blobState.manifest.fileCount,
     totalBytes: blobState.manifest.totalBytes,
   }, 'read-role verification must re-read every reachable blob and immutable documents');
+
+  const importSource = buildManifest(bytes.byteLength, 'b'.repeat(40));
+  const importTarget = buildBlobStateFromV1(importSource);
+  await publish({ data: importSource });
+  const importReceipt = await importBlobFromV1(importSource, importTarget);
+  assert.equal(importReceipt.status, 'complete');
+  assert.equal(importReceipt.sourceReleaseId, importSource.manifest.releaseId);
+  assert.equal(importReceipt.sourceManifestSha256, importSource.manifest.manifestSha256);
+  assert.equal(importReceipt.putCount, 2, 'v1 import reuses a verified shared blob and writes its receipt and manifest');
+  assert.equal((await verify(importTarget)).schemaVersion, 'runtime-release-verification.v2');
+  await writeFile(path.join(ossRoot, importSource.file.objectKey), 'tampered source');
+  await assert.rejects(() => importBlobFromV1(importSource, importTarget), /v1 import failed/);
 
   const unsupportedSchema = forgeManifest({ schemaVersion: 'unsupported-runtime-release.v999' });
   await seedForgedRelease(unsupportedSchema);

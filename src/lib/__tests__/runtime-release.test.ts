@@ -116,11 +116,11 @@ describe('act runtime release manifest', () => {
     expect(first.schemaVersion).toBe(ACT_RUNTIME_BLOB_RELEASE_SCHEMA_VERSION);
     expect(first.releaseId).toBe(deriveRuntimeReleaseId(revision, first.treeSha256));
     expect(first.files.map((file) => file.objectKey)).toEqual(first.files.map((file) => runtimeBlobObjectKey(file.sha256)));
-    expect(runtimeBlobReleaseManifestObjectKey(first.releaseId)).toBe(`runtime/releases/${first.releaseId}/manifest.json`);
+    expect(runtimeBlobReleaseManifestObjectKey(first.releaseId)).toBe(`runtime/blob-releases/${first.releaseId}/manifest.json`);
     expect(runtimeBlobReleaseManifestWireSha256(first)).toMatch(/^[a-f0-9]{64}$/);
     expect(parseRuntimeBlobReleaseManifest(JSON.parse(serializeRuntimeBlobReleaseManifest(first)))).toEqual(first);
     const receipt = buildRuntimeBlobReleaseReceipt(first);
-    expect(runtimeBlobReleaseReceiptObjectKey(first.releaseId)).toBe(`runtime/releases/${first.releaseId}/receipt.json`);
+    expect(runtimeBlobReleaseReceiptObjectKey(first.releaseId)).toBe(`runtime/blob-releases/${first.releaseId}/receipt.json`);
     expect(parseRuntimeBlobReleaseReceipt(JSON.parse(serializeRuntimeBlobReleaseReceipt(receipt)))).toEqual(receipt);
     expect(parseAnyRuntimeReleaseManifest(first)).toEqual(first);
   });

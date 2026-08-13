@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Blob-backed runtime manifest is deterministic and complete
-The system SHALL generate a versioned, canonical manifest for a blob-backed runtime release. A publish-facing v2 operation SHALL resolve `sourceRevision` to one full Git commit and read every input byte only from that commit's `course-content/runtime` Git tree, never from a working-tree fallback. The manifest SHALL enumerate every logical runtime path in strict normalized order and bind each path to an exact non-negative safe-integer size, lowercase SHA-256, and the deterministic key `runtime/blobs/sha256/<sha256>`. It SHALL bind source revision, file count, total bytes, logical tree digest, semantic manifest digest and wire digest. It SHALL reject unsafe paths, duplicate normalized paths, unsupported schema versions, Git symlink or gitlink entries, inconsistent aggregate values and a blob key that is not derived from its file SHA-256.
+The system SHALL generate a versioned, canonical manifest for a blob-backed runtime release. A v2 release document SHALL reside only at `runtime/blob-releases/<release-id>/`, separately from v1 `runtime/releases/<release-id>/`; release identity is therefore the composite of format version, namespace, release ID and manifest SHA-256. A publish-facing v2 operation SHALL resolve `sourceRevision` to one full Git commit and read every input byte only from that commit's `course-content/runtime` Git tree, never from a working-tree fallback. The manifest SHALL enumerate every logical runtime path in strict normalized order and bind each path to an exact non-negative safe-integer size, lowercase SHA-256, and the deterministic key `runtime/blobs/sha256/<sha256>`. It SHALL bind source revision, file count, total bytes, logical tree digest, semantic manifest digest and wire digest. It SHALL reject unsafe paths, duplicate normalized paths, unsupported schema versions, Git symlink or gitlink entries, inconsistent aggregate values and a blob key that is not derived from its file SHA-256.
 
 #### Scenario: Equivalent frozen inputs produce the same logical release identity
 - **WHEN** two frozen runtime inputs contain the same source revision, normalized paths and bytes
@@ -14,6 +14,17 @@ The system SHALL generate a versioned, canonical manifest for a blob-backed runt
 #### Scenario: Working-tree drift cannot affect a Git-bound v2 release
 - **WHEN** a caller supplies a valid source commit while its checkout has changed, untracked, filtered or missing runtime files
 - **THEN** v2 manifest construction and publish SHALL use only the matching Git tree blobs, or fail before any upload if that tree contains an unsupported or unreadable entry
+
+### Requirement: Initial v1 Release import is fixed and equivalence-proven
+The system SHALL permit one explicit `v1-release-import` source mode only for initial migration of a complete existing runtime. Before any write, it SHALL fix the v1 release ID and expected immutable v1 manifest semantic and wire identities; it SHALL not resolve a selector alias or accept an arbitrary local directory. The ECS bridge SHALL read and rehash every v1 manifest object, derive only deterministic v2 blob keys, write the v2 manifest last under its separate namespace, and produce an immutable proof binding both composite release identities, normalized logical tuples, tree digest, file count and total bytes. The import SHALL fail without selection when any source object, manifest identity, path tuple or aggregate differs.
+
+#### Scenario: Fixed v1 source imports into an equivalent v2 candidate
+- **WHEN** an operator supplies one verified v1 release ID and its expected manifest identity
+- **THEN** the importer SHALL create a non-selectable v2 candidate only after every source object has been rehashed and the complete normalized v1/v2 logical trees are equal
+
+#### Scenario: Selector drift or source mismatch is rejected
+- **WHEN** the fixed v1 source manifest changes, a declared source object differs, or an operator attempts to use an active alias or arbitrary directory
+- **THEN** the importer SHALL fail before writing a v2 terminal manifest or changing any production selection state
 
 ### Requirement: Blob publication is append-only and manifest-last
 The production release writer SHALL upload a blob only through a conditional no-overwrite operation after verifying the source stream's exact size and SHA-256. A pre-existing blob SHALL be reused only after an independent read verifies the same exact size and SHA-256. The writer SHALL verify every reachable blob before it writes the immutable manifest as the terminal operation, and SHALL not update selectors or receipts for an incomplete release.

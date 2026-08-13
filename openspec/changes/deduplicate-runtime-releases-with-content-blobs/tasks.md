@@ -15,6 +15,7 @@
 - [x] 3.1 Extend the single ECS streaming bridge to conditionally publish and independently verify content-addressed blobs, then write the immutable manifest last.
 - [x] 3.2 Add exact-resume, interrupted-publish, pre-existing same/different blob, malformed remote listing and manifest-terminal regression tests.
 - [x] 3.3 Bind publish/verify/inspect to the exact user-provisioned ECS operator role, keep ossfs and the runtime bind read-only, and preserve credential-free contracts without storing permanent credentials.
+- [x] 3.4 Add a one-time fixed v1 Release import path that verifies every immutable source object, publishes only derived v2 blobs, writes the v2 manifest last, and emits a complete v1/v2 equivalence proof without changing a selector.
 
 ## 4. Candidate materialization and selection proof
 
@@ -27,11 +28,11 @@
 ## 5. Reachability-based retention and garbage collection
 
 - [x] 5.1 Implement locked protected-manifest snapshotting from the durable desired/active/rollback/publishing/retained lifecycle record, including signed-media URL grace protection and explicit desired cancellation/replacement transitions.
-- [ ] 5.2 Implement dry-run GC plan, selector-generation fencing, per-object revalidation, deletion receipt and fail-closed malformed/paginated-list handling.
-- [ ] 5.3 Add concurrency, interrupted lifecycle, rollback and protected-blob regression coverage; prove that ordinary GC cannot delete a reachable blob or any manifest.
+- [x] 5.2 Implement dry-run GC plan, selector-generation fencing, per-object revalidation, deletion receipt and fail-closed malformed/paginated-list handling.
+- [x] 5.3 Add concurrency, interrupted lifecycle, rollback and protected-blob regression coverage; prove that ordinary GC cannot delete a reachable blob or any manifest.
 
 ## 6. Migration evidence and operational handoff
 
-- [ ] 6.1 Publish disposable v2 candidate releases and verify dedupe savings, blob closure, candidate mount and rollback materialization with immutable receipts.
+- [ ] 6.1 Publish disposable Git-bound protocol candidates and one complete fixed-v1-import v2 candidate; verify dedupe savings, blob closure, candidate mount and rollback materialization with immutable receipts.
 - [ ] 6.2 Update OSS release runbooks and `server-ops` skill with measured role, mount, materialization, GC, rollback and capacity evidence.
 - [ ] 6.3 Complete targeted tests, typecheck, lint, runtime/deploy suites and build; prepare separate production-switch and v1-retirement checklists for explicit user authorization.

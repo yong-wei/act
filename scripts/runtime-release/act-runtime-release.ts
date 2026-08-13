@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -11,6 +12,7 @@ import {
 import { inspectPublishedRuntimeBlobRelease, inspectPublishedRuntimeRelease } from '@/lib/runtime-release-store';
 import {
   createSshRuntimeReleaseObjectStore,
+  importV1RuntimeBlobReleaseViaSsh,
   publishRuntimeBlobReleaseViaSsh,
   publishRuntimeReleaseViaSsh,
   verifyPublishedRuntimeBlobReleaseViaSsh,
@@ -18,6 +20,7 @@ import {
 } from '@/lib/runtime-release-streaming-publisher';
 import { buildGitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
 import { buildRuntimeReleaseMediaClosure, serializeRuntimeReleaseMediaClosure } from '@/lib/runtime-release-media-closure';
+import { stableStringify } from '@/lib/aggregate-governance/hash';
 
 function argument(name: string) {
   const index = process.argv.indexOf(name);
@@ -37,6 +40,7 @@ function usage() {
     '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 --output <manifest.json>',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--format v1|v2] [--output <closure.json>]',
     '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
+    '  act-runtime-release import-v1 --source-release-id <immutable-v1-release-id> --source-manifest-sha256 <sha256> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <manifest.json>]',
     '',
@@ -95,7 +99,7 @@ async function main() {
     process.stdout.write(`${usage()}\n`);
     return;
   }
-  if (!['plan', 'build-manifest', 'verify-media-closure', 'publish-streaming', 'verify', 'inspect'].includes(command)) throw new Error(usage());
+  if (!['plan', 'build-manifest', 'verify-media-closure', 'publish-streaming', 'import-v1', 'verify', 'inspect'].includes(command)) throw new Error(usage());
   if (command === 'plan') {
     const format = releaseFormat();
     const snapshot = format === 'v2'
@@ -129,6 +133,49 @@ async function main() {
       runtimeRoot: required('--runtime-root'),
       manifest,
     }))));
+    return;
+  }
+  if (command === 'import-v1') {
+    const imported = await importV1RuntimeBlobReleaseViaSsh({
+      sourceReleaseId: required('--source-release-id'),
+      expectedSourceManifestSha256: required('--source-manifest-sha256'),
+      ssh: sshBridgeOptions(),
+    });
+    const proofBody = {
+      schemaVersion: 'runtime-v1-v2-equivalence-proof.v1',
+      source: {
+        formatVersion: imported.sourceManifest.schemaVersion,
+        namespace: `runtime/releases/${imported.sourceManifest.releaseId}/`,
+        releaseId: imported.sourceManifest.releaseId,
+        manifestSha256: imported.sourceManifest.manifestSha256,
+        manifestWireSha256: createHash('sha256').update(serializeRuntimeReleaseManifest(imported.sourceManifest)).digest('hex'),
+        sourceRevision: imported.sourceManifest.sourceRevision,
+      },
+      candidate: {
+        formatVersion: imported.manifest.schemaVersion,
+        namespace: `runtime/blob-releases/${imported.manifest.releaseId}/`,
+        releaseId: imported.manifest.releaseId,
+        manifestSha256: imported.manifest.manifestSha256,
+        manifestWireSha256: imported.receipt.wireSha256,
+      },
+      logicalTreeSha256: imported.manifest.treeSha256,
+      logicalFileCount: imported.manifest.fileCount,
+      logicalTotalBytes: imported.manifest.totalBytes,
+      verifier: 'runtime-release-oss-publisher-bridge/import-v1.v1',
+    };
+    const equivalenceProof = {
+      ...proofBody,
+      proofSha256: createHash('sha256').update(stableStringify(proofBody)).digest('hex'),
+    };
+    await writeOutput(argument('--output'), {
+      source: {
+        releaseId: imported.sourceManifest.releaseId,
+        manifestSha256: imported.sourceManifest.manifestSha256,
+        sourceRevision: imported.sourceManifest.sourceRevision,
+      },
+      candidate: imported.receipt,
+      equivalenceProof,
+    });
     return;
   }
   const releaseId = required('--release-id');

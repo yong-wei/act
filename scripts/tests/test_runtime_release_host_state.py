@@ -81,7 +81,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             "schemaVersion": "act-runtime-release-receipt.v2",
             "releaseId": release_id,
             "manifestVersion": "act-runtime-release.v2",
-            "manifestObjectKey": "runtime/releases/%s/manifest.json" % release_id,
+            "manifestObjectKey": "runtime/blob-releases/%s/manifest.json" % release_id,
             "manifestSha256": manifest["manifestSha256"],
             "manifestWireSha256": hashlib.sha256(manifest_wire).hexdigest(),
             "manifestWireSizeBytes": len(manifest_wire),
@@ -105,7 +105,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
         verification_receipt.write_bytes(json.dumps({
             "schemaVersion": "runtime-release-verification.v2",
             "releaseId": release_id,
-            "manifestObjectKey": "runtime/releases/%s/manifest.json" % release_id,
+            "manifestObjectKey": "runtime/blob-releases/%s/manifest.json" % release_id,
             "manifestSha256": manifest["manifestSha256"],
             "wireSha256": hashlib.sha256(manifest_wire).hexdigest(),
             "wireSizeBytes": len(manifest_wire),

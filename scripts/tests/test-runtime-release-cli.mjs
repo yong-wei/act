@@ -10,7 +10,7 @@ const source = fs.readFileSync(script, 'utf8');
 const bridge = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-release-oss-publisher-bridge.py'), 'utf8');
 const resolverRoute = fs.readFileSync(path.join(root, 'src/app/api/course-runtime/assets/[...assetPath]/route.ts'), 'utf8');
 
-assert.match(source, /\['plan', 'build-manifest', 'verify-media-closure', 'publish-streaming', 'verify', 'inspect'\]/, 'CLI must expose only the streaming write command');
+assert.match(source, /\['plan', 'build-manifest', 'verify-media-closure', 'publish-streaming', 'import-v1', 'verify', 'inspect'\]/, 'CLI must expose only Git streaming publish and the fixed v1 import write commands');
 assert.doesNotMatch(source, /command === ['"]publish['"]|\bpublish --runtime-root/, 'CLI must not expose a direct mutating publish command');
 assert.match(source, /verifyPublishedRuntimeReleaseViaSsh/, 'verify must run through the ECS read-role bridge instead of local IMDS');
 assert.match(source, /verifyPublishedRuntimeBlobReleaseViaSsh/, 'v2 verify must run through the ECS read-role bridge instead of local IMDS');
@@ -23,6 +23,9 @@ assert.match(source, /inspectPublishedRuntimeRelease/, 'inspect must read the pu
 assert.match(source, /deriveRuntimeReleaseId/, 'plan and publish must derive the content-addressed release identity');
 assert.match(source, /publishRuntimeReleaseViaSsh/, 'streaming publish must use the SSH source-authoritative transport');
 assert.match(source, /publishRuntimeBlobReleaseViaSsh/, 'v2 streaming publish must use the SSH source-authoritative transport');
+assert.match(source, /importV1RuntimeBlobReleaseViaSsh/, 'the one-time v1 import must use the SSH source-authoritative transport');
+assert.match(source, /--source-release-id <immutable-v1-release-id>/, 'v1 import must require an immutable source release rather than a selector alias');
+assert.match(source, /--source-manifest-sha256 <sha256>/, 'v1 import must pin the source manifest identity');
 assert.match(source, /buildRuntimeBlobReleaseManifest/, 'v2 CLI operations must build the deterministic blob-backed manifest locally before streaming');
 assert.match(source, /integrationRef: ['"]origin\/integration['"]/, 'production v2 CLI must pin ancestry authority to origin/integration');
 assert.doesNotMatch(source, /--integration-ref <ref>/, 'production v2 CLI must not expose an ancestry override');
@@ -55,7 +58,9 @@ assert.match(bridge, /MAX_FRAME_BYTES\s*=\s*256 \* 1024 \* 1024/, 'ECS bridge mu
 assert.match(bridge, /MIN_FREE_BYTES\s*=\s*1024 \* 1024 \* 1024/, 'ECS bridge must preserve a 1 GiB spool reserve');
 assert.match(bridge, /tempfile\.mkstemp/, 'ECS bridge must exclusively create unpredictable spool files');
 assert.match(bridge, /runtime release spool contains residual files/, 'ECS bridge must reject residual spool files instead of broad cleanup');
-assert.match(bridge, /choices=\("list", "get", "publish", "verify"\)/, 'ECS bridge must expose the read-role verification protocol alongside publishing');
+assert.match(bridge, /choices=\("list", "get", "publish", "import-v1", "verify"\)/, 'ECS bridge must expose the fixed v1 import and verification protocols alongside publishing');
+assert.match(bridge, /BLOB_RELEASE_KEY_PREFIX\s*=\s*["']runtime\/blob-releases\/["']/, 'v2 release documents must use a namespace separate from v1 runtime releases');
+assert.match(bridge, /def import_v1_blob_release\(/, 'ECS bridge must provide the bounded fixed-v1 importer');
 assert.match(bridge, /ECS_ROLE_NAME\s*=\s*["']act-runtime-oss-release-operator-ecs["']/, 'all bridge operations must bind the ECS release operator role');
 assert.match(bridge, /EXPECTED_ECS_ROLE_NAME\s*=\s*ECS_ROLE_NAME/, 'bridge must use one immutable ECS role allowlist for every operation');
 assert.doesNotMatch(bridge, /act-runtime-oss-(?:publisher|read)/, 'bridge must not retain the retired split publisher/read role names');

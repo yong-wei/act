@@ -138,12 +138,12 @@ export function runtimeBlobObjectKey(sha256: string) {
 
 export function runtimeBlobReleaseManifestObjectKey(releaseId: string) {
   assertRuntimeReleaseId(releaseId);
-  return `runtime/releases/${releaseId}/${ACT_RUNTIME_BLOB_RELEASE_MANIFEST_FILENAME}`;
+  return `runtime/blob-releases/${releaseId}/${ACT_RUNTIME_BLOB_RELEASE_MANIFEST_FILENAME}`;
 }
 
 export function runtimeBlobReleaseReceiptObjectKey(releaseId: string) {
   assertRuntimeReleaseId(releaseId);
-  return `runtime/releases/${releaseId}/${ACT_RUNTIME_BLOB_RELEASE_RECEIPT_FILENAME}`;
+  return `runtime/blob-releases/${releaseId}/${ACT_RUNTIME_BLOB_RELEASE_RECEIPT_FILENAME}`;
 }
 
 export function deriveRuntimeReleaseId(sourceRevision: string, treeSha256: string) {

@@ -26,6 +26,7 @@ from urllib.request import ProxyHandler, Request, build_opener
 
 
 KEY_PREFIX = "runtime/releases/"
+BLOB_RELEASE_KEY_PREFIX = "runtime/blob-releases/"
 BLOB_KEY_PREFIX = "runtime/blobs/sha256/"
 MANIFEST_NAME = ".act-runtime-release.v1.json"
 MANIFEST_SCHEMA_VERSION = "act-runtime-release.v1"
@@ -90,7 +91,7 @@ def validate_key(key: str) -> str:
         if not SHA256_PATTERN.fullmatch(digest):
             fail("Blob object key is not SHA-256 addressed")
         return key
-    if not key.startswith(KEY_PREFIX) or "\\" in key:
+    if (not key.startswith(KEY_PREFIX) and not key.startswith(BLOB_RELEASE_KEY_PREFIX)) or "\\" in key:
         fail("Object key is outside the immutable runtime release namespace")
     parts = key.split("/")
     if any(not part or part in {".", ".."} for part in parts):
@@ -109,12 +110,29 @@ def validate_prefix(prefix: str) -> str:
     return prefix
 
 
+def validate_blob_release_prefix(prefix: str) -> str:
+    if any(ord(char) < 0x20 or ord(char) == 0x7F for char in prefix):
+        fail("Blob release prefix contains a control character")
+    if not prefix.startswith(BLOB_RELEASE_KEY_PREFIX) or not prefix.endswith("/"):
+        fail("Blob release prefix is outside the immutable runtime blob release prefix")
+    parts = prefix.split("/")
+    if any(not part or part in {".", ".."} for part in parts[:-1]):
+        fail("Blob release prefix contains an unsafe path component")
+    return prefix
+
+
+def validate_release_prefix(prefix: str) -> str:
+    if prefix.startswith(KEY_PREFIX):
+        return validate_prefix(prefix)
+    return validate_blob_release_prefix(prefix)
+
+
 def validate_list_prefix(prefix: str) -> str:
     if prefix == BLOB_KEY_PREFIX:
         return prefix
     if prefix.startswith(BLOB_KEY_PREFIX):
         return validate_key(prefix)
-    return validate_prefix(prefix)
+    return validate_release_prefix(prefix)
 
 
 def destination(bucket: str, key: str) -> str:
@@ -316,7 +334,7 @@ def list_objects_v2(bucket: str, prefix: str) -> List[Dict[str, Any]]:
 
 def list_objects_v1(bucket: str, prefix: str) -> List[Dict[str, Any]]:
     process = subprocess.run(
-        ossutil_argv("v1", ["ls", f"oss://{validate_bucket(bucket)}/{validate_prefix(prefix)}", "-s"]),
+        ossutil_argv("v1", ["ls", f"oss://{validate_bucket(bucket)}/{validate_release_prefix(prefix)}", "-s"]),
         check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -575,7 +593,7 @@ def validate_blob_receipt(
     }
     if not isinstance(receipt, dict) or set(receipt) != required_fields:
         fail("blob receipt has unsupported or missing fields")
-    manifest_key = f"{KEY_PREFIX}{release_id}/{BLOB_MANIFEST_NAME}"
+    manifest_key = f"{BLOB_RELEASE_KEY_PREFIX}{release_id}/{BLOB_MANIFEST_NAME}"
     if (
         receipt.get("schemaVersion") != BLOB_RECEIPT_SCHEMA_VERSION
         or receipt.get("releaseId") != release_id
@@ -631,9 +649,9 @@ def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str,
     receipt_wire_sha = header.get("receiptWireSha256")
     if not isinstance(release_id, str) or not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", release_id):
         fail("blob release id is invalid")
-    if prefix != f"{KEY_PREFIX}{release_id}/":
+    if prefix != f"{BLOB_RELEASE_KEY_PREFIX}{release_id}/":
         fail("blob publish prefix does not match release id")
-    validate_prefix(prefix)
+    validate_blob_release_prefix(prefix)
     if (
         not isinstance(encoded, str)
         or not isinstance(wire_sha, str)
@@ -777,7 +795,7 @@ def read_validated_manifest(bucket: str, prefix: str) -> Tuple[Dict[str, Any], b
 
 
 def read_validated_blob_release(bucket: str, prefix: str) -> Tuple[Dict[str, Any], bytes, str, bytes, str, List[Dict[str, Any]]]:
-    prefix = validate_prefix(prefix)
+    prefix = validate_blob_release_prefix(prefix)
     release_id = prefix.rstrip("/").split("/")[-1]
     manifest_wire = read_manifest_wire(bucket, f"{prefix}{BLOB_MANIFEST_NAME}")
     receipt_wire = read_manifest_wire(bucket, f"{prefix}{BLOB_RECEIPT_NAME}")
@@ -1007,6 +1025,223 @@ def publish_blob_release(
         lock_file.close()
 
 
+def validate_blob_import_header(header: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bytes, str, bytes, str, List[Dict[str, Any]], str, str, str]:
+    required_fields = {
+        "protocol", "releaseId", "prefix", "manifestSha256", "wireSha256", "manifestWireBase64",
+        "receiptWireSha256", "receiptWireBase64", "sourceReleaseId", "sourcePrefix",
+        "sourceManifestSha256", "sourceManifestWireSha256",
+    }
+    if not isinstance(header, dict) or set(header) != required_fields or header.get("protocol") != "act-runtime-blob-release-import.v1":
+        fail("unsupported blob import protocol")
+    source_release_id = header.get("sourceReleaseId")
+    source_prefix = header.get("sourcePrefix")
+    source_manifest_sha = header.get("sourceManifestSha256")
+    source_manifest_wire_sha = header.get("sourceManifestWireSha256")
+    if (
+        not isinstance(source_release_id, str)
+        or not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", source_release_id)
+        or source_prefix != f"{KEY_PREFIX}{source_release_id}/"
+        or not isinstance(source_manifest_sha, str)
+        or not SHA256_PATTERN.fullmatch(source_manifest_sha)
+        or not isinstance(source_manifest_wire_sha, str)
+        or not SHA256_PATTERN.fullmatch(source_manifest_wire_sha)
+    ):
+        fail("blob import source identity is invalid")
+    target_header = dict(header)
+    target_header["protocol"] = "act-runtime-blob-release-stream.v2"
+    del target_header["sourceReleaseId"]
+    del target_header["sourcePrefix"]
+    del target_header["sourceManifestSha256"]
+    del target_header["sourceManifestWireSha256"]
+    prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files = validate_blob_publish_header(target_header)
+    return (
+        prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files,
+        source_prefix, source_manifest_sha, source_manifest_wire_sha,
+    )
+
+
+def read_import_source(
+    bucket: str,
+    source_prefix: str,
+    source_manifest_sha: str,
+    source_manifest_wire_sha: str,
+    target_manifest: Dict[str, Any],
+    target_files: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    source_manifest, source_wire, source_wire_sha, source_files = read_validated_manifest(bucket, source_prefix)
+    if source_manifest["manifestSha256"] != source_manifest_sha or source_wire_sha != source_manifest_wire_sha:
+        fail("v1 import source manifest differs from the pinned immutable identity")
+    if source_manifest["sourceRevision"] != target_manifest["sourceRevision"]:
+        fail("v1 import target source revision differs from the pinned v1 release")
+    source_tuples = [(entry["path"], entry["sizeBytes"], entry["sha256"]) for entry in source_files]
+    target_tuples = [(entry["path"], entry["sizeBytes"], entry["sha256"]) for entry in target_files]
+    if source_tuples != target_tuples:
+        fail("v1 import target logical file set differs from the pinned v1 release")
+    if hashlib.sha256(source_wire).hexdigest() != source_manifest_wire_sha:
+        fail("v1 import source manifest wire digest changed while validating")
+    return source_files
+
+
+def copy_source_object_to_spool(
+    bucket: str,
+    source_key: str,
+    directory: str,
+    expected_size: int,
+    expected_sha: str,
+) -> str:
+    fd, temp_path = new_spool_file(directory, expected_size)
+    digest = hashlib.sha256()
+    size = 0
+    process: Optional[subprocess.Popen] = None
+    try:
+        process = subprocess.Popen(
+            ossutil_argv("v2", ["api", "get-object", "--bucket", bucket, "--key", validate_key(source_key), "-q"]),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if process.stdout is None or process.stderr is None:
+            fail("ossutil v2 source download did not provide complete streams")
+        with os.fdopen(fd, "wb") as output:
+            while True:
+                chunk = process.stdout.read(1024 * 1024)
+                if not chunk:
+                    break
+                size += len(chunk)
+                if size > expected_size:
+                    fail(f"v1 import source exceeds manifest size for {source_key}")
+                digest.update(chunk)
+                output.write(chunk)
+            output.flush()
+            os.fsync(output.fileno())
+        stderr = process.stderr.read().decode("utf-8", errors="replace").strip()
+        if process.wait() != 0:
+            fail(f"ossutil v2 source download failed for {source_key}: {stderr}")
+        if size != expected_size or digest.hexdigest() != expected_sha:
+            fail(f"v1 import source object differs from the pinned v1 manifest: {source_key}")
+        return temp_path
+    except Exception:
+        remove_temp(temp_path)
+        raise
+
+
+def verify_import_source_objects(bucket: str, source_files: List[Dict[str, Any]], directory: str) -> None:
+    for source_entry in source_files:
+        temp_path = copy_source_object_to_spool(
+            bucket, source_entry["key"], directory, source_entry["sizeBytes"], source_entry["sha256"],
+        )
+        remove_temp(temp_path)
+
+
+def import_v1_blob_release(bucket: str, requested_prefix: str) -> None:
+    raw_header = sys.stdin.buffer.readline()
+    if not raw_header:
+        fail("v1 import ended before its header")
+    try:
+        header = json.loads(raw_header.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail(f"v1 import header is invalid: {error}")
+    if not isinstance(header, dict):
+        fail("v1 import header must be an object")
+    (
+        prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files,
+        source_prefix, source_manifest_sha, source_manifest_wire_sha,
+    ) = validate_blob_import_header(header)
+    if prefix != requested_prefix:
+        fail("v1 import target prefix does not match the SSH argument")
+    manifest_key = f"{prefix}{BLOB_MANIFEST_NAME}"
+    receipt_key = f"{prefix}{BLOB_RECEIPT_NAME}"
+    expected_release_sizes = {manifest_key: len(manifest_wire), receipt_key: len(receipt_wire)}
+    expected_blobs = expected_blob_receipt_files(files)
+    lock_file = open(lock_path(prefix), "a+b")
+    spool_directory: Optional[str] = None
+    try:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        spool_directory = release_spool_directory(prefix)
+        source_files = read_import_source(
+            bucket, source_prefix, source_manifest_sha, source_manifest_wire_sha, manifest, files,
+        )
+        release_objects = list_objects(bucket, prefix)
+        existing_release = {str(entry["key"]): int(entry["sizeBytes"]) for entry in release_objects}
+        if manifest_key in existing_release:
+            assert_object_set(release_objects, expected_release_sizes, allow_manifest=True)
+            cross_check_v1_keys(bucket, prefix, release_objects)
+            if remote_digest(bucket, manifest_key) != {"sizeBytes": len(manifest_wire), "sha256": manifest_wire_sha}:
+                fail("existing imported blob manifest differs from the submitted immutable identity")
+            if remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
+                fail("existing imported blob receipt differs from the submitted immutable identity")
+            for entry in expected_blobs:
+                if remote_digest(bucket, entry["objectKey"]) != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]}:
+                    fail(f"existing imported blob differs from manifest for {entry['objectKey']}")
+            verify_import_source_objects(bucket, source_files, spool_directory)
+            read_import_source(bucket, source_prefix, source_manifest_sha, source_manifest_wire_sha, manifest, files)
+            write_json({
+                "status": "complete", "releaseId": manifest["releaseId"], "manifestSha256": manifest["manifestSha256"],
+                "wireSha256": manifest_wire_sha, "receiptWireSha256": receipt_wire_sha, "treeSha256": manifest["treeSha256"],
+                "fileCount": manifest["fileCount"], "totalBytes": manifest["totalBytes"], "putCount": 0,
+                "sourceReleaseId": source_prefix.rstrip("/").split("/")[-1], "sourceManifestSha256": source_manifest_sha,
+            })
+            return
+        partial_expected = {receipt_key: len(receipt_wire)}
+        assert_object_set(release_objects, partial_expected, allow_manifest=False)
+        if receipt_key in existing_release and remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
+            fail("partial imported blob receipt differs from the submitted immutable identity")
+        available_blobs = {str(entry["key"]): entry for entry in list_objects_v2(bucket, BLOB_KEY_PREFIX)}
+        missing = set()
+        for entry in expected_blobs:
+            remote = available_blobs.get(entry["objectKey"])
+            if remote is None:
+                missing.add(entry["objectKey"])
+            elif remote["sizeBytes"] != entry["sizeBytes"] or remote_digest(bucket, entry["objectKey"]) != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]}:
+                fail(f"pre-existing blob differs from imported manifest for {entry['objectKey']}")
+        target_by_path = {entry["path"]: entry for entry in files}
+        put_count = 0
+        imported = set()
+        for source_entry in source_files:
+            target = target_by_path[source_entry["path"]]
+            temp_path = copy_source_object_to_spool(
+                bucket, source_entry["key"], spool_directory, source_entry["sizeBytes"], source_entry["sha256"],
+            )
+            try:
+                if target["key"] in missing and target["key"] not in imported:
+                    put_spooled_file(bucket, target["key"], temp_path, target["sizeBytes"], target["sha256"])
+                    imported.add(target["key"])
+                    put_count += 1
+            finally:
+                remove_temp(temp_path)
+        if imported != missing:
+            fail("v1 import did not materialize every missing target blob")
+        for entry in expected_blobs:
+            if remote_digest(bucket, entry["objectKey"]) != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]}:
+                fail(f"imported blob failed final verification for {entry['objectKey']}")
+        if receipt_key not in existing_release:
+            put_payload(bucket, receipt_key, receipt_wire, receipt_wire_sha, spool_directory)
+            put_count += 1
+        put_payload(bucket, manifest_key, manifest_wire, manifest_wire_sha, spool_directory)
+        put_count += 1
+        final_objects = list_objects(bucket, prefix)
+        assert_object_set(final_objects, expected_release_sizes, allow_manifest=True)
+        cross_check_v1_keys(bucket, prefix, final_objects)
+        if remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
+            fail("imported blob receipt failed final verification")
+        if remote_digest(bucket, manifest_key) != {"sizeBytes": len(manifest_wire), "sha256": manifest_wire_sha}:
+            fail("imported blob completion manifest failed final verification")
+        read_import_source(bucket, source_prefix, source_manifest_sha, source_manifest_wire_sha, manifest, files)
+        write_json({
+            "status": "complete", "releaseId": manifest["releaseId"], "manifestSha256": manifest["manifestSha256"],
+            "wireSha256": manifest_wire_sha, "receiptWireSha256": receipt_wire_sha, "treeSha256": manifest["treeSha256"],
+            "fileCount": manifest["fileCount"], "totalBytes": manifest["totalBytes"], "putCount": put_count,
+            "sourceReleaseId": source_prefix.rstrip("/").split("/")[-1], "sourceManifestSha256": source_manifest_sha,
+        })
+    finally:
+        if spool_directory is not None:
+            try:
+                os.rmdir(spool_directory)
+            except OSError:
+                pass
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+        lock_file.close()
+
+
 def publish(bucket: str, requested_prefix: str) -> None:
     raw_header = sys.stdin.buffer.readline()
     if not raw_header:
@@ -1091,12 +1326,14 @@ def publish(bucket: str, requested_prefix: str) -> None:
 
 
 def verify_operation(bucket: str, prefix_b64: str) -> None:
-    prefix = validate_prefix(decode_value(prefix_b64, "prefix"))
+    prefix = validate_release_prefix(decode_value(prefix_b64, "prefix"))
     objects = list_objects(bucket, prefix)
-    keys = {entry["key"] for entry in objects}
-    if f"{prefix}{MANIFEST_NAME}" not in keys and f"{prefix}{BLOB_MANIFEST_NAME}" in keys:
+    if prefix.startswith(BLOB_RELEASE_KEY_PREFIX):
         verify_blob_operation(bucket, prefix, objects)
         return
+    keys = {entry["key"] for entry in objects}
+    if f"{prefix}{MANIFEST_NAME}" not in keys:
+        fail("v1 release completion manifest is missing")
     manifest, wire, wire_sha, files = read_validated_manifest(bucket, prefix)
     manifest_key = f"{prefix}{MANIFEST_NAME}"
     expected_sizes = {entry["key"]: entry["sizeBytes"] for entry in files}
@@ -1163,7 +1400,7 @@ def list_operation(bucket: str, prefix_b64: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--bucket", required=True)
-    parser.add_argument("--operation", choices=("list", "get", "publish", "verify"), required=True)
+    parser.add_argument("--operation", choices=("list", "get", "publish", "import-v1", "verify"), required=True)
     parser.add_argument("--prefix-b64")
     parser.add_argument("--key-b64")
     arguments = parser.parse_args()
@@ -1176,8 +1413,14 @@ def main() -> None:
     if arguments.operation == "publish":
         if not arguments.prefix_b64:
             fail("publish requires --prefix-b64")
-        requested_prefix = validate_prefix(decode_value(arguments.prefix_b64, "prefix"))
+        requested_prefix = validate_release_prefix(decode_value(arguments.prefix_b64, "prefix"))
         publish(bucket, requested_prefix)
+        return
+    if arguments.operation == "import-v1":
+        if not arguments.prefix_b64:
+            fail("import-v1 requires --prefix-b64")
+        requested_prefix = validate_blob_release_prefix(decode_value(arguments.prefix_b64, "prefix"))
+        import_v1_blob_release(bucket, requested_prefix)
         return
     if arguments.operation == "verify":
         if not arguments.prefix_b64:

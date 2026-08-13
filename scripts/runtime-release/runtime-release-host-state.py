@@ -23,7 +23,7 @@ REPRESENTATIVE_MAX_BYTES = 4 * 1024 * 1024
 V2_VERIFICATION_SCHEMA = "runtime-release-verification.v2"
 V2_RELEASE_RECEIPT_SCHEMA = "act-runtime-release-receipt.v2"
 V2_MATERIALIZATION_SCHEMA = "runtime-blob-materialization.v1"
-V2_MANIFEST_OBJECT_PREFIX = "runtime/releases/"
+V2_MANIFEST_OBJECT_PREFIX = "runtime/blob-releases/"
 V2_MANIFEST_FILENAME = "manifest.json"
 
 

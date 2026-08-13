@@ -26,13 +26,15 @@ This is a durable storage-format, host-selection, and garbage-collection change.
 
 ### 1. Logical release manifests remain the authority; blobs are storage implementation
 
-Define a versioned blob-backed manifest at `runtime/releases/<release-id>/manifest.json`; the release prefix may contain only that immutable manifest and its receipt. The manifest records the logical runtime tree in canonical path order and binds every logical path to its `sizeBytes`, SHA-256 and the deterministic blob key `runtime/blobs/sha256/<sha256>`. It also records `sourceRevision`, `fileCount`, `totalBytes`, logical tree digest and semantic manifest digest.
+Define a versioned blob-backed manifest at `runtime/blob-releases/<release-id>/manifest.json`; the release prefix may contain only that immutable manifest and its receipt. V1 remains exclusively under `runtime/releases/<release-id>/`. A v1 and v2 manifest may have the same content-addressed release ID, so their durable identity is `(formatVersion, namespace, releaseId, manifestSha256)`. The manifest records the logical runtime tree in canonical path order and binds every logical path to its `sizeBytes`, SHA-256 and the deterministic blob key `runtime/blobs/sha256/<sha256>`. It also records `sourceRevision`, `fileCount`, `totalBytes`, logical tree digest and semantic manifest digest.
 
 The v2 `manifestSha256` is the SHA-256 digest of the versioned canonical semantic projection with its own digest and every transport field excluded. A manifest does not contain a digest of its own final serialized bytes. After final serialization, the publisher records the final `wireSha256`, byte length, manifest object key, release ID, format version and semantic digest in the immutable receipt/locator; readers verify wire identity before parsing and semantic identity after parsing.
 
 The release ID remains content-addressed from the source identity and logical tree digest. A blob key is derived solely from the file SHA-256; a manifest may not name an arbitrary object key. Existing v1 manifests stay readable until a v2 active and rollback pair has passed migration evidence.
 
 For a v2 publish-facing CLI, `sourceRevision` is resolved to one full Git commit and all logical file bytes are read from that commit's `course-content/runtime` Git tree. It never scans the caller's working tree or falls back to checkout bytes. The snapshot reader accepts regular Git blobs only, rejects symlink and gitlink entries, recomputes every file size/SHA-256 before manifest creation, and streams the same Git blobs again during publish. The source commit must be reachable from `origin/integration` before a formal publish. Fixture-level filesystem manifest builders remain available only for unit tests and local candidate construction.
+
+The first complete v2 migration is a separate, one-time `v1-release-import` source mode. It fixes one exact v1 release ID and the expected v1 manifest semantic and wire identities before any write; it never resolves an `active` alias or scans an arbitrary ECS directory. The importer reads the immutable v1 manifest and every declared v1 object through the ECS operator bridge, recomputes each byte stream's size/SHA-256, and then writes or reuses only the derived v2 blob key. It accepts the resulting v2 manifest only when normalized `{path,sizeBytes,sha256}` tuples, tree digest, file count and total bytes exactly equal the fixed v1 source, and records both composite source/target identities and proof identities in a Git-tracked candidate locator. The usual Git-bound path remains the sole source for later releases.
 
 This separates logical release identity from physical duplication. `sourceRevision` remains part of release identity, while equal bytes across revisions still reuse the same blob. Keeping `objectKey` in the media-facing parsed manifest preserves the resolver interface while changing its validated value from a release-prefix object to a blob object.
 
@@ -89,7 +91,7 @@ Missing blob mounts, hash mismatches, dangling materialized entries, mixed manif
 
 1. Reconcile the active v1 change into its archived capability spec without changing production selectors.
 2. Implement and test blob-backed manifest generation, read-only verification and release receipts in parallel with v1 parsing.
-3. Publish a disposable candidate from a frozen source revision, measure dedupe and mount a non-selected materialized view.
+3. Publish a disposable Git-bound protocol candidate, then run the one-time fixed v1 Release import to create the only complete non-selected v2 candidate; measure dedupe and mount a non-selected materialized view.
 4. Complete the filesystem-equivalence, media, route, textbook retrieval, readiness, interrupted publication, concurrent lifecycle and GC safety evidence.
 5. Publish a v2 rollback candidate and a v2 active candidate; prove `A active → B active/A rollback → C candidate`, failed candidate recovery and v2-to-v1 rollback paths, then record a capacity report.
 6. Request separate user authorization for production selection. Retain v1 releases until the new active/rollback pair and rollback evidence satisfy the declared retention policy.

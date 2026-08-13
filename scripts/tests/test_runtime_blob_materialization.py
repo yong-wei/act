@@ -51,7 +51,7 @@ def write_release(root: Path, contents):
         "schemaVersion": "act-runtime-release-receipt.v2",
         "releaseId": release_id,
         "manifestVersion": "act-runtime-release.v2",
-        "manifestObjectKey": "runtime/releases/%s/manifest.json" % release_id,
+        "manifestObjectKey": "runtime/blob-releases/%s/manifest.json" % release_id,
         "manifestSha256": manifest["manifestSha256"],
         "manifestWireSha256": hashlib.sha256(manifest_wire).hexdigest(),
         "manifestWireSizeBytes": len(manifest_wire),
