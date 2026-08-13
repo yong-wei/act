@@ -605,9 +605,9 @@ if (sidecar.runtimeSourceRevision !== sidecar.indexSourceRevision) process.exit(
 
   # Content/security/metadata validation must fail closed before any consumer stop.
   validate_authority_archive_listing "${stage}/authority.tar.gz"
-  prepare_operator_bundle
   capture_previous_image_identity
   verify_staged_application_image
+  prepare_operator_bundle
 
   # Mutation window lock: shared with failed-authority cleanup, independent of the
   # TypeScript first-activation lock under consumer-activation/.

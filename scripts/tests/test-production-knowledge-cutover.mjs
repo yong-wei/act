@@ -1172,6 +1172,30 @@ function testArchiveValidationOrder() {
   testConsumerStopRecoveryIntent();
 }
 
+function testApplicationImageValidationOrder() {
+  const activateBody = remoteOperatorSourceSlice();
+  const verifyCallIdx = activateBody.indexOf('\n  verify_staged_application_image\n');
+  const prepareCallIdx = activateBody.indexOf('\n  prepare_operator_bundle\n');
+  const activateDriverIdx = activateBody.indexOf('run_driver activate rw');
+  assert.ok(verifyCallIdx >= 0, 'activate must call staged image verification');
+  assert.ok(prepareCallIdx >= 0, 'activate must prepare the operator bundle');
+  assert.match(activateBody, /run_driver verify-bundle ro/u, 'operator bundle preparation must run its bundle verifier');
+  assert.ok(activateDriverIdx >= 0, 'activate must run the activation driver');
+  assert.ok(
+    verifyCallIdx < prepareCallIdx && verifyCallIdx < activateDriverIdx,
+    'staged image verification must complete before any normal target-image driver invocation',
+  );
+
+  const verifyStart = activateBody.indexOf('  verify_staged_application_image() {');
+  const verifyEnd = activateBody.indexOf('\n  exec >', verifyStart);
+  assert.ok(verifyStart >= 0 && verifyEnd > verifyStart, 'staged image verifier body must be locatable');
+  const verifyBody = activateBody.slice(verifyStart, verifyEnd);
+  const loadIdx = verifyBody.indexOf('podman load -i "$image_tar"');
+  const digestIdx = verifyBody.indexOf('podman image inspect "$image_tag" --format \'{{.Id}}\'');
+  const productProofIdx = verifyBody.indexOf('podman run --rm --network none --entrypoint /bin/sh "$image_tag"');
+  assert.ok(loadIdx >= 0 && digestIdx > loadIdx && productProofIdx > digestIdx, 'staged image verifier must load, prove identity, then prove product files');
+}
+
 function testOperatorBundleArchiveValidation() {
   const source = fs.readFileSync(remoteOperator, 'utf8');
   const validateStart = source.indexOf('validate_operator_bundle_archive()');
@@ -1574,6 +1598,7 @@ function main() {
     const syntax = spawnSync('bash', ['-n', scriptPath], { cwd: root, encoding: 'utf8' });
     assert.equal(syntax.status, 0, syntax.stderr);
   }
+  testApplicationImageValidationOrder();
   testArchiveValidationOrder();
   testOperatorBundleArchiveValidation();
   testCleanupFailedAuthorityGuards();
