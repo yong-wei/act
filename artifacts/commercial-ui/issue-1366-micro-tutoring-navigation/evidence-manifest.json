@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "capturedAt": "2026-08-13T06:41:01.914Z",
+  "commitSha": "bedfdb5258160c3068f679fe67c589a4b4ca1238",
+  "captureMethod": "Playwright with Google Chrome channel against local Next.js Webpack dev server",
+  "sourceSha256": {
+    "src/app/layout.tsx": "70788834ad107d27471406dc9c84c68be5938c142fb19eb1be23024444683b03",
+    "src/app/(main)/profile/page.tsx": "a7fc605f87ff83a419083432e6e2ee5747328a549f919e865841576e0cde88fb",
+    "src/app/assessment/adaptive-practice/page.tsx": "3f17431a8be3bfb353d02255b61c8e957a11b1eb198d3fb074c2992c01253b83",
+    "src/components/providers/theme-provider.tsx": "3f8a2b73802d3a177f1081635a3f693050549fb6c422304211e6f4da4682374c",
+    "src/features/assessment/micro-intervention-outcomes.ts": "9fae1c337f0b2ab7926ea150bee96ee3e815395eb7f76f1f2639b16a5c807023",
+    "src/features/assessment/remediation-orchestration.ts": "f34fe482ed765e3210573edfc68a0176d9351be0649e9932309620d352713c22",
+    "src/features/assessment/student-micro-tutoring-panel.tsx": "541bb667fd84b33cd354fc2097271d470ac73ccd6315a2e8a01b4f758a95b974",
+    "src/lib/theme-config.ts": "5c01cc3f8ca1f88646e34cbf0844045fbe7ad7405b9156b64c7025ceedf7158e",
+    "tests/micro-tutoring-navigation-commercial-ui.spec.ts": "6cca5616dd1cb6e649a53df4df7c00c7abe93b5d6c845a13b8ff607b972cfda4"
+  },
+  "routes": [
+    {
+      "route": "/profile",
+      "purpose": "Student shell entry and client-side practice navigation"
+    },
+    {
+      "route": "/assessment/adaptive-practice?intent=practice",
+      "purpose": "Adaptive practice and micro-tutoring entry surface"
+    }
+  ],
+  "assertions": {
+    "initialThemeAndClientNavigationRemainConsistent": true,
+    "reactScriptTagConsoleErrorAbsent": true,
+    "noHorizontalOverflow": true
+  },
+  "screenshots": [
+    {
+      "file": "playwright/student-home-light-desktop-1440.png",
+      "sha256": "54bcd39269c260559a647d27152639788d3d3031fed648566994daa182c2160a",
+      "route": "/profile",
+      "theme": "light",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "clientNavigation": false
+    },
+    {
+      "file": "playwright/adaptive-practice-light-desktop-1440.png",
+      "sha256": "7e561ad0be134825b6fb66c185356a4aa73538c2f298c8cd98a547a20d868945",
+      "route": "/assessment/adaptive-practice?intent=practice",
+      "theme": "light",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "clientNavigation": true
+    },
+    {
+      "file": "playwright/student-home-dark-desktop-1440.png",
+      "sha256": "906677258581636e43c79a050d884248ec97edc2d5bb47e7aaa493891405a397",
+      "route": "/profile",
+      "theme": "dark",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "clientNavigation": false
+    },
+    {
+      "file": "playwright/adaptive-practice-dark-desktop-1440.png",
+      "sha256": "9ba21d1f5ee4769f848b97e44da1c531ee83bf447ba4be0fce8663d738a10132",
+      "route": "/assessment/adaptive-practice?intent=practice",
+      "theme": "dark",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1000,
+      "clientNavigation": true
+    },
+    {
+      "file": "playwright/student-home-light-mobile-320.png",
+      "sha256": "aee39484ae93211adb88ad4a4e92962efac25e694f7799dd381cf8c40e3dc800",
+      "route": "/profile",
+      "theme": "light",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "clientNavigation": false
+    },
+    {
+      "file": "playwright/adaptive-practice-light-mobile-320.png",
+      "sha256": "0a9710acb82f6689b361c158b838d13c360cb714938ee67a635dc0758f1e0b90",
+      "route": "/assessment/adaptive-practice?intent=practice",
+      "theme": "light",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "clientNavigation": true
+    },
+    {
+      "file": "playwright/student-home-dark-mobile-320.png",
+      "sha256": "37d222ec5587c4d4b54b30579d722e658adcd75895f86a83ce54459d33f3f242",
+      "route": "/profile",
+      "theme": "dark",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "clientNavigation": false
+    },
+    {
+      "file": "playwright/adaptive-practice-dark-mobile-320.png",
+      "sha256": "486694c59d7fd8a50f61683a838e841092eda981226af8ba9db184c735ea5d31",
+      "route": "/assessment/adaptive-practice?intent=practice",
+      "theme": "dark",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 900,
+      "clientNavigation": true
+    }
+  ]
+}

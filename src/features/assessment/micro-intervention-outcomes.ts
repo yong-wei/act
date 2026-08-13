@@ -1,6 +1,7 @@
 import { getAdaptiveQuestionById } from '@/features/assessment/adaptive-engine';
 import { createHash } from 'node:crypto';
 import {
+  REMEDIATION_MANUAL_PRACTICE_PATH,
   readAvailableRemediationInterventionSource,
   type AvailableRemediationInterventionSource,
   type RemediationOrchestrationDb,
@@ -313,7 +314,9 @@ function recommendation(value: unknown): MicroInterventionRecommendation | null 
   }
   if (kind === 'ADJUST_TUTORING_STRATEGY') {
     const manualPracticePath = actionPath(snapshot?.manualPracticePath);
-    return manualPracticePath ? { kind, basisSummary, manualPracticePath } : null;
+    return manualPracticePath === REMEDIATION_MANUAL_PRACTICE_PATH || manualPracticePath === '/student/practice'
+      ? { kind, basisSummary, manualPracticePath: REMEDIATION_MANUAL_PRACTICE_PATH }
+      : null;
   }
   if (kind === 'TRANSFER_PRACTICE') {
     const actions = Array.isArray(snapshot?.actions) ? snapshot.actions.map((entry) => {
@@ -561,7 +564,7 @@ async function recommendationForFailure(
   return {
     kind: 'ADJUST_TUTORING_STRATEGY',
     basisSummary: '本次验证未通过；当前没有可用的受治理前置节点，请调整辅导策略后进入人工练习。',
-    manualPracticePath: '/student/practice',
+    manualPracticePath: REMEDIATION_MANUAL_PRACTICE_PATH,
   };
 }
 
