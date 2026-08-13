@@ -1010,7 +1010,11 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
   await page.waitForSelector('[data-active-graph-stage="authority"]', { timeout: 30000 });
   for (const family of ['structure', 'derivation-and-representation', 'application-and-analysis', 'association']) {
     const control = page.locator(`[data-authority-relation-family="${family}"]`);
-    if (await control.isVisible().catch(() => false)) await control.click({ timeout: 10000 });
+    if (!(await control.isVisible().catch(() => false))) {
+      throw new Error(`engineering relation filter unavailable in ${context}: ${family}`);
+    }
+    await control.click({ timeout: 10000 });
+    await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family');
   }
   await page.waitForFunction(() => {
     const graph = document.querySelector('[data-active-authority-graph="true"]');
@@ -1746,6 +1750,7 @@ async function captureMarkers(page: Page, stateName: string) {
     const legacyWorkspaceRoot = document.querySelector('[data-knowledge-workspace]');
     const canvas = document.querySelector('[data-knowledge-canvas-primary]');
     const activeGraph = document.querySelector('[data-active-authority-graph="true"]');
+    const teachingCoverage = document.querySelector('[data-authority-teaching-coverage="true"]');
     const candidateGraph = document.querySelector('[data-candidate-authoritative-graph="true"]');
     const legacyView = document.querySelector('[data-knowledge-legacy-view="true"]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
@@ -1881,6 +1886,7 @@ async function captureMarkers(page: Page, stateName: string) {
         nodeLimit: Number(activeSvg?.getAttribute('data-active-authority-node-limit') ?? Number.NaN),
         viewBox: activeSvg?.getAttribute('viewBox') ?? null,
         nodeLabelReadability,
+        teachingCoverageNote: teachingCoverage?.textContent?.trim() ?? null,
         stage: document.querySelector('[data-active-graph-stage="authority"]') ? 'authority' : null,
       } : null,
       candidateAuthority: candidateGraph ? {
@@ -2305,10 +2311,11 @@ async function captureActiveAuthorityVisualMatrix(
       const completedApiLog = await probe.readLog();
       const activeMarkers = objectRecord(markers.activeAuthority);
       const activeNodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
+      const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
       if (
         markers.knowledgeGraphMode !== 'active'
         || activeMarkers.visibleNodeCount <= 0
-        || activeMarkers.relationCount <= 0
+        || (!teachingRelationsUnavailable && activeMarkers.relationCount <= 0)
         || activeMarkers.resolvedEdgeEndpointCount !== activeMarkers.relationCount
         || activeMarkers.visibleSvgGeometryCount !== activeMarkers.relationCount
         || activeMarkers.activeSvgGeometryRectValid !== true
@@ -2378,6 +2385,7 @@ async function captureActiveAuthorityVisualMatrix(
         markers,
         surfaceScan,
         interactionEvidence,
+        teachingRelationsUnavailable,
         screenshotPath: screenshotRelativePath,
         screenshotSha256: sha256(screenshotRelativePath),
       });
