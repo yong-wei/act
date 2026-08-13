@@ -1,8 +1,8 @@
 ## 1. Contract convergence and baseline evidence
 
-- [ ] 1.1 Archive `migrate-runtime-to-oss-immutable-releases` into its main specs before applying this change's three modified capability deltas; verify the resulting main specs have one v1/v2 migration contract.
-- [ ] 1.2 Record a frozen active/rollback release inventory, unique-byte analysis, release cadence and measured peak-space budget for the production Bucket.
-- [ ] 1.3 Audit all production runtime filesystem consumers for `lstat`, `readlink`, `realpath`, containment, directory traversal, watch and inode-sensitive behavior; define the materialization equivalence test matrix.
+- [x] 1.1 Archive `migrate-runtime-to-oss-immutable-releases` into its main specs before applying this change's three modified capability deltas; verify the resulting main specs have one v1/v2 migration contract.
+- [x] 1.2 Record a frozen active/rollback release inventory, unique-byte analysis, release cadence and measured peak-space budget for the production Bucket.
+- [x] 1.3 Audit all production runtime filesystem consumers for `lstat`, `readlink`, `realpath`, containment, directory traversal, watch and inode-sensitive behavior; define the materialization equivalence test matrix.
 
 ## 2. Blob-backed release format and verification
 
