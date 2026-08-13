@@ -2,7 +2,10 @@ import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { getRegisteredResourceMetadataByNodeId } from '@/lib/resource-registry-metadata';
-import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
+import {
+  authorizeServerVerifiedCompetencyContribution,
+  persistCoreLearningFact,
+} from '@/lib/data-governance/learning-fact-materialization';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
   buildKaqQuizQuestionMetadata,
@@ -965,8 +968,7 @@ async function persistAdaptiveAssessmentSubmission(
     kaqQuizEvidence,
   });
 
-  await persistCoreLearningFact(
-    tx,
+  const learningEvent = authorizeServerVerifiedCompetencyContribution(
     buildAssessmentLearningEvent({
       details: durableDetails,
       answerId: answer.id,
@@ -977,6 +979,7 @@ async function persistAdaptiveAssessmentSubmission(
       masteryConfidence,
     }),
   );
+  await persistCoreLearningFact(tx, learningEvent);
 
   return {
     durableSessionId: session.id,

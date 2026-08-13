@@ -97,10 +97,7 @@ describe('eventToLearningFactInput', () => {
       score: 67,
       sourceEventId: 'event-001',
     });
-    expect(fact?.competencyContribution).toMatchObject({
-      controlModeling: 0.5,
-      selfDirectedLearning: 0.3,
-    });
+    expect(fact?.competencyContribution).toEqual({});
     expect(fact?.contextJson).toMatchObject({
       evidenceGovernance: {
         evidenceQuality: 'legacy',
@@ -120,7 +117,7 @@ describe('eventToLearningFactInput', () => {
     expect(fact).toBeNull();
   });
 
-  it('materializes sampled parameter exploration as a low-weight simulation fact', () => {
+  it('materializes sampled parameter exploration without a profile contribution', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'workspace-param-sampled-001',
       actionType: 'param_change',
@@ -140,10 +137,7 @@ describe('eventToLearningFactInput', () => {
       lessonId: 'unit-4-1-design-task-expression-v1',
       outcome: 'success',
     });
-    expect(fact?.competencyContribution).toMatchObject({
-      controlModeling: 0.1,
-      selfDirectedLearning: 0.1,
-    });
+    expect(fact?.competencyContribution).toEqual({});
   });
 
   it('keeps second-based duration payloads as seconds in canonical facts', () => {
@@ -672,11 +666,13 @@ describe('eventToLearningFactInput', () => {
     });
   });
 
-  it('uses scored 4-4 submission telemetry as the learning fact evidence basis', () => {
+  it('keeps scored client submission evidence but rejects forged profile contributions', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'unit-4-4-submit-001',
       actionType: 'submit',
       sessionId: 'session-4-4',
+      source: 'system',
+      derivedMetrics: { engineeringDecision: 0.9 },
       payload: {
         eventType: 'lesson_submit',
         lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
@@ -710,9 +706,17 @@ describe('eventToLearningFactInput', () => {
       outcome: 'success',
       score: 100,
     });
-    expect(fact?.competencyContribution).toMatchObject({
-      parameterDesign: 0.7,
-      controlModeling: 0.4,
+    expect(fact?.competencyContribution).toEqual({});
+    expect(fact?.contextJson).toMatchObject({
+      interactiveQuiz: {
+        cards: [
+          expect.objectContaining({
+            cardId: 'weight-preference',
+            answered: true,
+            isCorrect: true,
+          }),
+        ],
+      },
     });
   });
 
