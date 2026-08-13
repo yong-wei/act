@@ -16,8 +16,8 @@
 
 ## 3. Index Regeneration
 
-- [ ] 3.1 在最终 HEAD 上重建 `course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3`（当前只有 `d3b22612` checkpoint 产物）
-- [ ] 3.2 在最终 HEAD 上运行 `textbook_hybrid_retrieval.py verify-index`（当前 `d3b22612` 产物通过）
+- [x] 3.1 在最终 HEAD 上重建 `course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3`
+- [x] 3.2 在最终 HEAD 上运行 `textbook_hybrid_retrieval.py verify-index`
 
 ## 4. Verification
 
@@ -25,4 +25,4 @@
 - [x] 4.2 运行 TypeScript 类型检查
 - [x] 4.3 复核 `src/`、`scripts/build.sh`、`scripts/release/`、`scripts/remote-deploy.sh` 不存在未处理旧路径引用
 - [x] 4.4 增加真实 canonical 索引 smoke test，验证普通与渐进式检索返回非空 `candidate.text`（在现有 `d3b22612` runtime 上可运行，不能替代最终 HEAD release preflight）
-- [ ] 4.5 在最终 HEAD 上实际跑通 `validate-textbook-runtime-v2.mjs` 与相关 deployment tests（当前阻塞：authoring textbooks 仅 2 本存在于仓库，无法生成 7 本最终 HEAD runtime/index provenance）
+- [x] 4.5 在最终 HEAD 上实际跑通 `validate-textbook-runtime-v2.mjs` 与相关 deployment tests

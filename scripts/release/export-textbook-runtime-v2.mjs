@@ -201,6 +201,7 @@ export function replaceRuntimeDirectories(
   replacements,
   {
     existsSync = fs.existsSync,
+    mkdirSync = fs.mkdirSync,
     renameSync = fs.renameSync,
     rmSync = fs.rmSync,
   } = {},
@@ -226,6 +227,7 @@ export function replaceRuntimeDirectories(
       }
     }
     for (const state of states) {
+      mkdirSync(path.dirname(state.target), { recursive: true });
       renameSync(state.staged, state.target);
       state.installed = true;
     }

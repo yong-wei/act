@@ -294,6 +294,33 @@ for (const failAtInstall of [2, 3]) {
 }
 
 {
+  const nestedTargetRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'textbook-runtime-nested-target-'),
+  );
+  try {
+    const staged = path.join(nestedTargetRoot, 'staged', 'bge-m3');
+    const target = path.join(
+      nestedTargetRoot,
+      'current',
+      'textbook-hybrid-retrieval',
+      'bge-m3',
+    );
+    fs.mkdirSync(staged, { recursive: true });
+    fs.writeFileSync(path.join(staged, 'manifest.json'), '{}\n');
+
+    replaceRuntimeDirectories([{ staged, target }]);
+
+    assert.equal(
+      fs.readFileSync(path.join(target, 'manifest.json'), 'utf8'),
+      '{}\n',
+      '嵌套索引目标的父目录不存在时仍应原子安装',
+    );
+  } finally {
+    removePathSync(nestedTargetRoot);
+  }
+}
+
+{
   const permissionRoot = fs.mkdtempSync(
     path.join(os.tmpdir(), 'textbook-runtime-permissions-'),
   );
@@ -774,34 +801,44 @@ assert.equal(
   remoteDeployScript.includes('runtime_rsync_args=(') &&
     remoteDeployScript.includes('rsync "${runtime_rsync_args[@]}"') &&
     remoteDeployScript.includes('REMOTE_RUNTIME_STAGING_DIR') &&
-    remoteDeployScript.includes('stop_remote_runtime_consumers') &&
+    remoteDeployScript.includes('REMOTE_RUNTIME_SELECTION_LOCK') &&
+    remoteDeployScript.includes('podman stop -t 30') &&
     remoteDeployScript.includes('course-content/runtime') &&
     (remoteDeployScript.includes('${REMOTE_PROJECT_DIR}/course-content/runtime') ||
       remoteDeployScript.includes('${REMOTE_RUNTIME_DIR}/')),
   true,
-  '远端部署脚本应先停消费者，再将 runtime 同步到 staging 并替换正式目录',
+  '远端部署脚本应先同步并验证 staging，再持锁停消费者并替换正式目录',
 );
 
 const remotePreflightIndex = remoteDeployScript.indexOf(
   'scripts/release/validate-textbook-runtime-v2.mjs',
 );
 const runtimeRsyncIndex = remoteDeployScript.indexOf('rsync "${runtime_rsync_args[@]}"');
+const runtimeCutoverIndex = remoteDeployScript.indexOf(
+  'Step 0/8: 在 runtime 锁内替换 Legacy runtime',
+  runtimeRsyncIndex,
+);
 const runtimeStopIndex = remoteDeployScript.indexOf(
-  'stop_remote_runtime_consumers',
-  remotePreflightIndex,
+  'podman stop -t 30',
+  runtimeCutoverIndex,
 );
 const remoteHostCheckIndex = remoteDeployScript.indexOf(
   'check_remote_textbook_v2_files',
   runtimeRsyncIndex,
 );
+const runtimeSwapIndex = remoteDeployScript.indexOf(
+  'if ! mv \\"${REMOTE_RUNTIME_STAGING_DIR}\\" \\"${REMOTE_RUNTIME_DIR}\\"',
+  runtimeStopIndex,
+);
 assert.equal(
   remotePreflightIndex >= 0 &&
     remotePreflightIndex < runtimeRsyncIndex &&
-    runtimeStopIndex > remotePreflightIndex &&
-    runtimeStopIndex < runtimeRsyncIndex &&
-    remoteHostCheckIndex > runtimeRsyncIndex,
+    remoteHostCheckIndex > runtimeRsyncIndex &&
+    remoteHostCheckIndex < runtimeCutoverIndex &&
+    runtimeCutoverIndex < runtimeStopIndex &&
+    runtimeStopIndex < runtimeSwapIndex,
   true,
-  '远端部署即使 skip-build 也必须在 rsync 前执行本地 preflight，并在 rsync 后检查远端宿主文件集',
+  '远端部署即使 skip-build 也必须先 preflight 和 staging 校验，再持锁停消费者并原子替换',
 );
 
 assert.equal(
@@ -863,9 +900,9 @@ assert.equal(
 );
 
 assert.equal(
-  remoteDeployScript.includes("test -d '${REMOTE_PROJECT_DIR}/course-content/runtime'"),
+  remoteDeployScript.includes("test -d '${REMOTE_RUNTIME_DIR}'"),
   true,
-  '远端部署脚本应校验远端 runtime 目录存在后再执行部署验证',
+  '远端部署脚本应校验当前选择的 runtime 目录存在后再执行部署验证',
 );
 
 assert.equal(
