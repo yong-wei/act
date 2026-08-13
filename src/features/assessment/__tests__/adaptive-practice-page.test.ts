@@ -365,6 +365,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("import { useRouter, useSearchParams } from 'next/navigation'");
     expect(source).toContain('const router = useRouter()');
     expect(generationBlock).toContain("setCandidateBatchLoadState('loading')");
+    expect(generationBlock).toContain('synchronizedCandidateBatchRef.current = {');
     expect(generationBlock).toContain("nextUrl.searchParams.set('batch', generatedBatchId)");
     expect(generationBlock.indexOf('await fetchCandidateBatch(activeGoal, generatedBatchId)')).toBeLessThan(
       generationBlock.indexOf("nextUrl.searchParams.set('batch', generatedBatchId)"),
@@ -375,6 +376,22 @@ describe('adaptive practice page entry states', () => {
     expect(generationBlock).toContain("nextUrl.searchParams.delete('candidate')");
     expect(generationBlock).toContain('router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false })');
     expect(generationBlock).not.toContain('window.history.replaceState');
+  });
+
+  it('reuses the authorized batch after synchronizing its route', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const candidateBatchEffect = source.slice(
+      source.indexOf("useEffect(() => {\n    if (!activeGoal || (!isDemoMode && authStatus !== 'authenticated')"),
+      source.indexOf("useEffect(() => {\n    if (activeGoal || !pathAdvisorContextGoal", source.indexOf("useEffect(() => {\n    if (!activeGoal || (!isDemoMode && authStatus !== 'authenticated')")),
+    );
+
+    expect(candidateBatchEffect).toContain('const synchronizedBatch = synchronizedCandidateBatchRef.current');
+    expect(candidateBatchEffect).toContain('synchronizedBatch.batchId === requestedBatchId');
+    expect(candidateBatchEffect).toContain('synchronizedBatch.candidateId === requestedCandidateId');
+    expect(candidateBatchEffect).toContain('setActiveCandidateBatch(synchronizedBatch.batch)');
+    expect(candidateBatchEffect.indexOf('setActiveCandidateBatch(synchronizedBatch.batch)')).toBeLessThan(
+      candidateBatchEffect.indexOf('fetchCandidateBatch(activeGoal, requestedBatchId, requestedCandidateId)'),
+    );
   });
 
   it('keeps candidate selection visible while its batch is loading independently', () => {

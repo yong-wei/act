@@ -268,7 +268,13 @@ const learnerStateWithoutActivePath = {
   },
 };
 
-async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<void>, generatedBatchId = batchId) {
+async function installRoutes(
+  page: Page,
+  waitForCandidateBatch?: () => Promise<void>,
+  generatedBatchId = batchId,
+  observeCandidateBatchRequest?: (requestCount: number) => number | undefined,
+) {
+  let candidateBatchRequestCount = 0;
   await page.route('**/api/adaptive/path-advisor-context**', (route) => route.fulfill({
     json: {
       goalId: 'control-correction',
@@ -303,6 +309,12 @@ async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<v
   await page.route(`**/api/learning-paths/${activePathId}`, (route) => route.fulfill({ json: activePath }));
   await page.route('**/api/learning-paths/candidate-batches/latest?**', (route) => route.fulfill({ json: { batch: candidateBatch } }));
   await page.route(`**/api/learning-paths/candidate-batches/${batchId}**`, async (route) => {
+    candidateBatchRequestCount += 1;
+    const forcedStatus = observeCandidateBatchRequest?.(candidateBatchRequestCount);
+    if (forcedStatus) {
+      await route.fulfill({ status: forcedStatus, json: { error: 'Candidate batch unavailable' } });
+      return;
+    }
     await waitForCandidateBatch?.();
     const candidateId = new URL(route.request().url()).searchParams.get('candidate');
     if (candidateId && !candidateIds.includes(candidateId)) {
@@ -432,6 +444,31 @@ test('shows candidate comparison immediately after generation adds a candidate b
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
   await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+});
+
+test('reuses the authorized candidate batch when generation synchronizes the route', async ({ context, page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await login(context);
+  let candidateBatchRequestCount = 0;
+  await installRoutes(page, undefined, batchId, (requestCount) => {
+    candidateBatchRequestCount = requestCount;
+    return requestCount > 1 ? 500 : undefined;
+  });
+
+  const query = new URLSearchParams({
+    goal: 'control-correction',
+    intent: 'contextual-recommendation',
+  });
+  await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+  const generateAction = page.locator('[data-adaptive-path-generation-action="submit-panel-request"]');
+  await expect(generateAction).toBeEnabled();
+  await generateAction.click();
+
+  await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
+  await page.waitForTimeout(250);
+  await expect(page.locator('[data-adaptive-path-candidate-recovery-state]')).toHaveCount(0);
+  expect(candidateBatchRequestCount).toBe(1);
 });
 
 test('does not write an unauthorized generated batch to the URL', async ({ context, page }) => {
