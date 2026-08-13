@@ -4,7 +4,7 @@
 
 ## 审查范围与绑定
 
-- 审查范围：提交 `f92c65415f25a62b78745ca4768a9fd9dd16293d`，树 `c7ed1a87243d66233b5d39c020ff0e91a7adc08f`。
+- 审查范围：提交 `245077b2909c01015340a79ed91f48908bb69705`，树 `7f02862efca129e77d7fba52030de755a642f85e`。
 - 复核对象：29 项产品状态矩阵、4 项 active Authority 响应式矩阵、三种已认证角色的交互与焦点记录。
 - 绑定：33/33 截图 SHA-256、宽高与当前 `browser-evidence.json` 一致；32/32 受管源码 SHA-256 同时匹配捕获提交 blob 与当前工作树。精确 `reviewedStateSha256` 与 `reviewedSourceSha256` 由同文件的 `independentVisualReview` 字段承载。
 - 审查者：`independent-reviewer (gpt-5.6-sol medium)`，只读复核；未修改项目文件、暂存区或 Git 历史。
@@ -29,7 +29,7 @@
 | stressNonOverlap | PASS |
 | canvasGeometry | PASS |
 
-`active-desktop-dark`、`active-desktop-light`、`active-tablet` 与 `active-mobile` 均通过。`active-desktop-light`（SHA `45e5a8a343805b0beda64bbff9863a7cd5394b5b94e9eaf2acc4aa4406b7a190`）的直接原图复核显示 4 个节点、3 条关系边及可读标签，和 DOM/SVG 几何记录一致。
+`active-desktop-dark`、`active-desktop-light`、`active-tablet` 与 `active-mobile` 均通过。`active-desktop-light`（SHA `45e5a8a343805b0beda64bbff9863a7cd5394b5b94e9eaf2acc4aa4406b7a190`）的直接原图复核显示 4 个节点、3 条关系边及可读标签，和 DOM/SVG 几何记录一致。本轮亦核验重捕获的 hover、stress 和三个 tablet 截图。
 
 此前“浅色 active Authority 画布为空白”的 P1 主张为工具渲染误读，已 REJECT；同一精确文件的直接原图可复现其非空图形，不存在可达产品缺陷。
 

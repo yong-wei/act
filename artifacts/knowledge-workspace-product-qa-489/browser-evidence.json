@@ -1,10 +1,10 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-08-13T13:34:54.536Z",
+  "capturedAt": "2026-08-13T15:09:59.946Z",
   "captureRevision": {
-    "commitSha": "f92c65415f25a62b78745ca4768a9fd9dd16293d",
-    "treeSha": "c7ed1a87243d66233b5d39c020ff0e91a7adc08f"
+    "commitSha": "245077b2909c01015340a79ed91f48908bb69705",
+    "treeSha": "7f02862efca129e77d7fba52030de755a642f85e"
   },
   "baseUrl": "http://localhost:3001",
   "selectedNodeConfigured": true,
@@ -38,20 +38,20 @@
   "currentSourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
     "src/features/knowledge/knowledge-graph-workspace.tsx": "b31ee8d30629484c5ea4a7a4b0dbf3641bfc36b36a741d5f465743af7f2f6087",
-    "src/features/knowledge/active-authority-graph.tsx": "87255dde9b66584fa02d26c089311099e42f9158fd706fd66f06c2df344c7637",
-    "src/features/knowledge/active-authority-shard-store.ts": "1280264a284343df82866302448e96dfff54ee26fb6e53a2d8e1e16dac5f4e0b",
+    "src/features/knowledge/active-authority-graph.tsx": "a56912fb6b0fbe4e0d08e82ff21794a5f54b6495b34d82962041652986e7b8da",
+    "src/features/knowledge/active-authority-shard-store.ts": "a7622d1beab73e1addf1abaaee71874075c40380dd46d641aab2d234f59c82ed",
     "src/features/knowledge/active-authority-presentation.ts": "350b576c5f1eb7f2492b1035e19332be325585e980d560940631a7e01c2bd465",
     "src/features/knowledge/active-authority-graph-contracts.ts": "2fa2981fbd42f48eea74a8571b708e54ba1afd2089f33d0abdb4f9560cdd5a95",
     "src/lib/authority-domain-shards/contracts.ts": "6ed43c8a0c5114dce5a7fb2b564e2bb3f3aeea3f80751738dab76b1783a51c5a",
     "src/lib/authority-domain-shards/envelope.ts": "038b7c2408ac8272612b29b51897c039105d7a79785f3e7b655b9e5597cf0255",
     "src/lib/authority-domain-shards/loader.ts": "6098f6be0631d8f8810b01ec3938f9d73c496e27f16b1c57302ce05c51573693",
     "src/lib/authority-domain-shards/materialize.ts": "5cd96c31012e90541402815137e5f05f368a62eb7eaac7bf9dcd3ae64bb576a1",
-    "src/app/api/knowledge/_active-authority.ts": "951efbb72418f47028e4f6394eb538fdef5b46eabaf01b294e68566dda0ff946",
+    "src/app/api/knowledge/_active-authority.ts": "ff46fe8a3810d903e03ccec3b0cf9249ef9daf9477669e8a2d9a7e4a967ea022",
     "src/app/api/knowledge/shards/active/route.ts": "12b16e321786c942a201ee1febf179e01efb697ccb5e72c068ee92ceabe167e7",
     "src/app/api/knowledge/shards/active/domains/[domain]/route.ts": "1cc4a1e25fe78d0468194c09e0da5d9423ee349b311c0c758e65655adbc39bdc",
     "src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts": "a8f371a0f57198218634a7e5694f7120e141a048f40c06712d78bc82ef6c7047",
     "src/app/api/knowledge/shards/active/neighborhoods/[id]/route.ts": "7c6170058617994bce215af8929c8719186c8e11f28d690424a6c7cff6deb734",
-    "src/app/api/knowledge/shards/active/nodes/[id]/route.ts": "9241a63c4ed349b0cdaf93c686e3a998ae4574393a506305afbe1f03288dd92d",
+    "src/app/api/knowledge/shards/active/nodes/[id]/route.ts": "b764bed2c3b603e22fbd523e48b17698ec4182eb575f6c8a033b274ec7f40278",
     "src/app/knowledge/page.tsx": "185dcc4d6535435e1613afc111ce520479dcbe6ca7ff4c7dbb277e629035a9cc",
     "src/app/assessment/adaptive-practice/page.tsx": "3f17431a8be3bfb353d02255b61c8e957a11b1eb198d3fb074c2992c01253b83",
     "src/features/knowledge/graph/knowledge-graph-2d.tsx": "cf4470e1a527bced705b4f46e9b83b7ce7c052766cec6f36bb02dbe2d7f67898",
@@ -1381,7 +1381,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "86cff3a77ce260030ba143f663521091ba1499de7809436a9f5b9574caf60842",
+      "screenshotSha256": "d0cd89418febc9a26ebc5c922717fd6fade559db8ab8f52e3f41319bb461b11d",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4130,7 +4130,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "c6855931714058afa1a151953316ac0621932125c5b23104c37466e18c01d5c6",
+      "screenshotSha256": "63503b7c629d1c752e5c7f7f3c8eb4c729aa5f5ee3c911b91057c8f9371154ed",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5109,7 +5109,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "907021f584a07b2b38ebbb48cd589e54d7a3303e675d74edd4696768a15e9379",
+      "screenshotSha256": "a0df719cc13119ead8c3d65d6cd99c8d922dccdbdb26196b3885fa8e4d479d61",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5270,7 +5270,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "a7318b66741c9446cfabc2c5a50ab9377abbdb825a64723c6700deef0a774db3",
+      "screenshotSha256": "0025357790e8fc5dbbf47e4707fed7f6bc24d3e609b466b58f5f17ee21950d15",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5438,7 +5438,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "92d664140a75f5b27695a79d2ae5344d99bc9791d12c47314b4702d6ec9755e6",
+      "screenshotSha256": "c2258ef69c34c21f3ec18c29511c5734a324d17a34d45454bb0fa25347ee8d63",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -7125,7 +7125,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-legacy.png",
-        "screenshotSha256": "c810e72c4dc774a6ec08214eddc305ccddafe629b8ad922431942f7a86fac651"
+        "screenshotSha256": "58de12bfb77bb30c58cdf2320b52f5fb2a9da44739f597d69994c237f590f0bf"
       },
       "candidate": null
     },
@@ -7255,7 +7255,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-legacy.png",
-        "screenshotSha256": "baf4fae173e2b7e73ae4862094c36f8ea20143dd557fd45bc44298d2aedc8e06"
+        "screenshotSha256": "1c04af92e995f4ba56ac7ecc716add643b07d7356356117defeedcb83c99a5d5"
       },
       "candidate": null
     },
@@ -7385,7 +7385,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-legacy.png",
-        "screenshotSha256": "5f9a9ffaa9efe679ee35524fe9342844997c1571c8739b1e19309bab16abc56b"
+        "screenshotSha256": "cf2e0636f71bdc6ee5bc55eab2a4b247447ba45bd60f519dd7672ca06f1aede8"
       },
       "candidate": {
         "mode": "candidate",
@@ -7482,22 +7482,22 @@
       "desktop-selected-focus-dark": "c2cd4e53cd20becf864da4c345dc7384eb3ea49fe77affc9fc1ef753f1c1b5b2",
       "desktop-all-relation-families-dark": "2a4e2a6d81b528c8cb2fb72da42e6a2e88856d77264baa1b45e00bcdc19dedff",
       "desktop-selected-inspector-light": "4c2a999af3429acb250876229388950cceb6ebddd6995ef5015a466e68b6e4c5",
-      "desktop-hover-click-drag-dark": "86cff3a77ce260030ba143f663521091ba1499de7809436a9f5b9574caf60842",
+      "desktop-hover-click-drag-dark": "d0cd89418febc9a26ebc5c922717fd6fade559db8ab8f52e3f41319bb461b11d",
       "desktop-selected-page-tools-menu-dark": "c2a8d218135d11891217a28a65ab7e924dfaccbbc4b75a879e4fdf87e1ddfac0",
       "desktop-explicit-relayout-dark": "b1f2e942edaeb7e05e217c34e7ddc71f597eef857ac3f182e87cddf9b530695c",
       "desktop-3d-fit-relayout-dark": "4ad79e2fea63d8511e5decefbfa8273fe2231a9f33bba3cf1f35a68811f4ef79",
       "desktop-konling-selected-expanded-dark": "1126e68b16ff56bca9442ec3b45fbc13d1b644e6a9c8b018405d5075f904d51c",
       "desktop-konling-no-selection-dark": "67051a544540e615a59f66004492bfdda251ce1eb96c774b9ac1ec7a651ada4d",
       "desktop-konling-degraded-dark": "a432f28d6ef59a67f2945cded9013bd45ca1540760ce7731876070facf472720",
-      "desktop-stress-expanded-tool-inspector-konling-dark": "c6855931714058afa1a151953316ac0621932125c5b23104c37466e18c01d5c6",
+      "desktop-stress-expanded-tool-inspector-konling-dark": "63503b7c629d1c752e5c7f7f3c8eb4c729aa5f5ee3c911b91057c8f9371154ed",
       "desktop-wide-default-dark": "c3698dd76ba010c8dda6c1d49592eb10ff968b071f6b65da7b896691a3fc6ef8",
       "desktop-wide-inspector-tools-dark": "f731347546102c12d0976d7d4efeb66dbfc483722e370500813e6aaf9e230f98",
       "tablet-1100-default-dark": "493c1c82e86c58b75d8655263a14904db531fd38ff1c66fb213c3a0d8e0d8914",
       "tablet-1100-local-tools-filter-dark": "63c457492bd94733d45a020745489fb1ffc15b69fb72ff499fcbb549e306afad",
       "tablet-1100-selected-inspector-dark": "1ca87ece9bb4294e2e2c2dc698cca06b49e4e65235249c9b0d82a0f1325751ba",
-      "tablet-1024-inspector-tools-konling-dark": "907021f584a07b2b38ebbb48cd589e54d7a3303e675d74edd4696768a15e9379",
-      "tablet-1100-inspector-tools-konling-dark": "a7318b66741c9446cfabc2c5a50ab9377abbdb825a64723c6700deef0a774db3",
-      "tablet-1279-inspector-tools-konling-dark": "92d664140a75f5b27695a79d2ae5344d99bc9791d12c47314b4702d6ec9755e6",
+      "tablet-1024-inspector-tools-konling-dark": "a0df719cc13119ead8c3d65d6cd99c8d922dccdbdb26196b3885fa8e4d479d61",
+      "tablet-1100-inspector-tools-konling-dark": "0025357790e8fc5dbbf47e4707fed7f6bc24d3e609b466b58f5f17ee21950d15",
+      "tablet-1279-inspector-tools-konling-dark": "c2258ef69c34c21f3ec18c29511c5734a324d17a34d45454bb0fa25347ee8d63",
       "mobile-320-local-tools-dark": "7a117a67e8289d091b4039aca3c3b51b41175bc25f587e1bf28d618eec639125",
       "mobile-320-selected-inspector-dark": "90be14d406126709e2f7db379f8a2ff05cef5abf1252297f4ced724b6d12603d",
       "mobile-320-konling-expanded-dark": "b170b8eac8f3f3d57e759de1b2ed44fbe4818e8d4ecd1e7e4b4c6b8d9c55cbae",
@@ -7511,20 +7511,20 @@
     "reviewedSourceSha256": {
       "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
       "src/features/knowledge/knowledge-graph-workspace.tsx": "b31ee8d30629484c5ea4a7a4b0dbf3641bfc36b36a741d5f465743af7f2f6087",
-      "src/features/knowledge/active-authority-graph.tsx": "87255dde9b66584fa02d26c089311099e42f9158fd706fd66f06c2df344c7637",
-      "src/features/knowledge/active-authority-shard-store.ts": "1280264a284343df82866302448e96dfff54ee26fb6e53a2d8e1e16dac5f4e0b",
+      "src/features/knowledge/active-authority-graph.tsx": "a56912fb6b0fbe4e0d08e82ff21794a5f54b6495b34d82962041652986e7b8da",
+      "src/features/knowledge/active-authority-shard-store.ts": "a7622d1beab73e1addf1abaaee71874075c40380dd46d641aab2d234f59c82ed",
       "src/features/knowledge/active-authority-presentation.ts": "350b576c5f1eb7f2492b1035e19332be325585e980d560940631a7e01c2bd465",
       "src/features/knowledge/active-authority-graph-contracts.ts": "2fa2981fbd42f48eea74a8571b708e54ba1afd2089f33d0abdb4f9560cdd5a95",
       "src/lib/authority-domain-shards/contracts.ts": "6ed43c8a0c5114dce5a7fb2b564e2bb3f3aeea3f80751738dab76b1783a51c5a",
       "src/lib/authority-domain-shards/envelope.ts": "038b7c2408ac8272612b29b51897c039105d7a79785f3e7b655b9e5597cf0255",
       "src/lib/authority-domain-shards/loader.ts": "6098f6be0631d8f8810b01ec3938f9d73c496e27f16b1c57302ce05c51573693",
       "src/lib/authority-domain-shards/materialize.ts": "5cd96c31012e90541402815137e5f05f368a62eb7eaac7bf9dcd3ae64bb576a1",
-      "src/app/api/knowledge/_active-authority.ts": "951efbb72418f47028e4f6394eb538fdef5b46eabaf01b294e68566dda0ff946",
+      "src/app/api/knowledge/_active-authority.ts": "ff46fe8a3810d903e03ccec3b0cf9249ef9daf9477669e8a2d9a7e4a967ea022",
       "src/app/api/knowledge/shards/active/route.ts": "12b16e321786c942a201ee1febf179e01efb697ccb5e72c068ee92ceabe167e7",
       "src/app/api/knowledge/shards/active/domains/[domain]/route.ts": "1cc4a1e25fe78d0468194c09e0da5d9423ee349b311c0c758e65655adbc39bdc",
       "src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts": "a8f371a0f57198218634a7e5694f7120e141a048f40c06712d78bc82ef6c7047",
       "src/app/api/knowledge/shards/active/neighborhoods/[id]/route.ts": "7c6170058617994bce215af8929c8719186c8e11f28d690424a6c7cff6deb734",
-      "src/app/api/knowledge/shards/active/nodes/[id]/route.ts": "9241a63c4ed349b0cdaf93c686e3a998ae4574393a506305afbe1f03288dd92d",
+      "src/app/api/knowledge/shards/active/nodes/[id]/route.ts": "b764bed2c3b603e22fbd523e48b17698ec4182eb575f6c8a033b274ec7f40278",
       "src/app/knowledge/page.tsx": "185dcc4d6535435e1613afc111ce520479dcbe6ca7ff4c7dbb277e629035a9cc",
       "src/app/assessment/adaptive-practice/page.tsx": "3f17431a8be3bfb353d02255b61c8e957a11b1eb198d3fb074c2992c01253b83",
       "src/features/knowledge/graph/knowledge-graph-2d.tsx": "cf4470e1a527bced705b4f46e9b83b7ce7c052766cec6f36bb02dbe2d7f67898",
