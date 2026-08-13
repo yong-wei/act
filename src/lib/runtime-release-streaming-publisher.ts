@@ -743,8 +743,12 @@ async function publishRuntimeBlobReleaseStream(input: {
         }
         missing.add(key);
       }
-      for (const [key, file] of sourcesByKey) {
-        if (!missing.has(key)) continue;
+      for (const requestedKey of control.missingKeys) {
+        const key = requestedKey as string;
+        const file = sourcesByKey.get(key);
+        if (!file || !missing.has(key)) {
+          throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge requested a source blob that was not validated.');
+        }
         await writeChild(child, `${JSON.stringify({ key, sizeBytes: file.sizeBytes, sha256: file.sha256 })}\n`, file.path);
         const snapshotFile = input.snapshot.filesByPath.get(file.path);
         if (!snapshotFile || snapshotFile.sizeBytes !== file.sizeBytes || snapshotFile.sha256 !== file.sha256) {

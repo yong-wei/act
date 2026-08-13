@@ -60,6 +60,7 @@ let wireSha256;
 let receiptWireSha256;
 let missing = [];
 let filesByKey = [];
+let missingFiles = [];
 let frameIndex = 0;
 function consume() {
   while (true) {
@@ -72,7 +73,10 @@ function consume() {
       wireSha256 = header.wireSha256;
       receiptWireSha256 = header.receiptWireSha256;
       filesByKey = [...new Map(manifest.files.map((file) => [file.objectKey, file])).values()];
-      missing = filesByKey.map((file) => file.objectKey);
+      missingFiles = header.protocol === 'act-runtime-blob-release-stream.v2'
+        ? [...filesByKey].sort((left, right) => right.objectKey.localeCompare(left.objectKey))
+        : filesByKey;
+      missing = missingFiles.map((file) => file.objectKey);
       process.stdout.write(JSON.stringify({ status: 'stream', missingKeys: missing }) + '\\n');
       state = 'frame';
     }
@@ -86,7 +90,7 @@ function consume() {
         process.exit(0);
       }
       const header = JSON.parse(frame);
-      const file = filesByKey[frameIndex];
+      const file = missingFiles[frameIndex];
       const size = header.sizeBytes;
       if (!file || header.key !== file.objectKey || buffer.length - (newline + 1) < size) return;
       buffer = buffer.subarray(newline + 1 + size);
@@ -268,7 +272,7 @@ describe('source-authoritative SSH runtime release transport', () => {
     const runtimeRoot = path.join(root, 'course-content', 'runtime');
     await mkdir(path.join(runtimeRoot, 'lessons'), { recursive: true });
     await writeFile(path.join(runtimeRoot, 'lessons', 'lesson.json'), '{"id":"stream"}\n');
-    await writeFile(path.join(runtimeRoot, 'lessons', 'duplicate.json'), '{"id":"stream"}\n');
+    await writeFile(path.join(runtimeRoot, 'lessons', 'duplicate.json'), '{"id":"distinct"}\n');
     await execFile('git', ['init', '-b', 'integration'], { cwd: root });
     await execFile('git', ['config', 'user.email', 'test@example.invalid'], { cwd: root });
     await execFile('git', ['config', 'user.name', 'Test'], { cwd: root });
@@ -291,7 +295,7 @@ describe('source-authoritative SSH runtime release transport', () => {
       wireSha256: runtimeBlobReleaseManifestWireSha256(manifest),
       fileCount: manifest.fileCount,
     });
-    expect(new Set(manifest.files.map((file) => file.objectKey))).toHaveLength(1);
+    expect(new Set(manifest.files.map((file) => file.objectKey))).toHaveLength(2);
     expect(calls).toHaveLength(1);
   });
 });
