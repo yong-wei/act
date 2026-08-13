@@ -142,6 +142,8 @@ export interface Generation3UpstreamPin {
   resealedDigest: string;
   snapshotBinding: DomainTeachingAuthorityEnvelope['binding'];
   conversionProtocol: typeof CROSS_DOMAIN_CONVERSION_CONTRACT;
+  auditOutput?: 'multi-source-cross-domain-worklist';
+  auditOutputSources?: readonly string[];
 }
 
 export class Generation3EquivalenceError extends Error {
@@ -215,6 +217,46 @@ export function teachingSemanticPayload(value: unknown): unknown {
   };
 }
 
+export function reviewerWorklistSemanticPayload(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const record = value as Record<string, unknown>;
+  return {
+    candidates: record.candidates ?? null,
+    unresolvedCoreCandidates: record.unresolvedCoreCandidates ?? null,
+    deferredBoundaries: record.deferredBoundaries ?? null,
+    excludedScopes: record.excludedScopes ?? null,
+  };
+}
+
+export const CROSS_DOMAIN_BOUNDARY_WORKLISTS = [
+  {
+    role: 'cross-domain-boundary-foundation-three-domain-worklist',
+    path: 'course-content/authoring/knowledge/teaching-projection/domain-fragments/foundation-three-domain-v1.worklist.json',
+    originWorklist: 'foundation-three-domain-v1.worklist.json',
+  },
+  {
+    role: 'cross-domain-boundary-classical-worklist',
+    path: 'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/classical-worklist.json',
+    originWorklist: 'generation-2/classical-worklist.json',
+  },
+  {
+    role: 'cross-domain-boundary-modern-discrete-worklist',
+    path: 'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.worklist.json',
+    originWorklist: 'modern-discrete-time-v1.worklist.json',
+  },
+  {
+    role: 'cross-domain-boundary-modern-state-space-worklist',
+    path: 'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.worklist.json',
+    originWorklist: 'modern-state-space-v1.worklist.json',
+  },
+] as const;
+
+export type CrossDomainBoundaryWorklistSpec =
+  (typeof CROSS_DOMAIN_BOUNDARY_WORKLISTS)[number];
+
+export const CROSS_DOMAIN_BOUNDARY_WORKLIST_PATHS =
+  CROSS_DOMAIN_BOUNDARY_WORKLISTS.map((item) => item.path);
+
 export function publishedIdentityDigest(value: unknown): string {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     const record = value as Record<string, unknown>;
@@ -273,6 +315,7 @@ function candidate(
 export function collectCrossDomainBoundaryCandidates(
   repoRoot = process.cwd(),
 ): CrossDomainCollectedCandidate[] {
+  const [foundationSpec, classicalSpec, ...modernSpecs] = CROSS_DOMAIN_BOUNDARY_WORKLISTS;
   const foundation = readJson<{
     candidates?: Array<{
       candidateId?: string;
@@ -282,10 +325,7 @@ export function collectCrossDomainBoundaryCandidates(
       unpublishedReason?: string | null;
       directness?: string;
     }>;
-  }>(
-    repoRoot,
-    'course-content/authoring/knowledge/teaching-projection/domain-fragments/foundation-three-domain-v1.worklist.json',
-  );
+  }>(repoRoot, foundationSpec.path);
   const classical = readJson<{
     candidates?: Array<{
       candidateId?: string;
@@ -295,21 +335,14 @@ export function collectCrossDomainBoundaryCandidates(
       disposition?: string;
       rationale?: string;
     }>;
-  }>(
-    repoRoot,
-    'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/classical-worklist.json',
-  );
-  const modernWorklists = [
-    'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.worklist.json',
-    'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.worklist.json',
-  ] as const;
+  }>(repoRoot, classicalSpec.path);
 
   const collected: CrossDomainCollectedCandidate[] = [];
   for (const item of foundation.candidates ?? []) {
     const alreadyPublished = item.status === 'published';
     collected.push(candidate({
       candidateId: String(item.candidateId ?? 'foundation-unknown'),
-      originWorklist: 'foundation-three-domain-v1.worklist.json',
+      originWorklist: foundationSpec.originWorklist,
       sourceNodeId: item.sourceNodeId ?? null,
       targetNodeId: item.targetNodeId ?? null,
       originStatus: String(item.status ?? 'unknown'),
@@ -322,7 +355,7 @@ export function collectCrossDomainBoundaryCandidates(
     const accepted = item.status === 'ACCEPTED';
     collected.push(candidate({
       candidateId: String(item.candidateId ?? 'classical-unknown'),
-      originWorklist: 'generation-2/classical-worklist.json',
+      originWorklist: classicalSpec.originWorklist,
       sourceNodeId: item.sourceCanonicalId ?? null,
       targetNodeId: item.targetCanonicalId ?? null,
       originStatus: String(item.status ?? 'unknown'),
@@ -331,17 +364,17 @@ export function collectCrossDomainBoundaryCandidates(
         : String(item.rationale ?? 'classical 工程邻接不得转写为 ACT_TEACHING。'),
     }));
   }
-  for (const relative of modernWorklists) {
+  for (const spec of modernSpecs) {
     const worklist = readJson<{
       fragmentKey?: string;
       deferredBoundaries?: Array<{ scope?: string; reason?: string }>;
       excludedScopes?: Array<{ scope?: string; reason?: string }>;
       unresolvedCoreCandidates?: Array<{ canonicalId?: string; reason?: string }>;
-    }>(repoRoot, relative);
+    }>(repoRoot, spec.path);
     for (const item of worklist.deferredBoundaries ?? []) {
       collected.push(candidate({
         candidateId: `${worklist.fragmentKey ?? 'modern'}:${item.scope ?? 'deferred'}`,
-        originWorklist: relative.split('/').slice(-1)[0] ?? relative,
+        originWorklist: spec.originWorklist,
         sourceNodeId: null,
         targetNodeId: null,
         originStatus: 'deferred',
@@ -351,7 +384,7 @@ export function collectCrossDomainBoundaryCandidates(
     for (const item of worklist.excludedScopes ?? []) {
       collected.push(candidate({
         candidateId: `${worklist.fragmentKey ?? 'modern'}:${item.scope ?? 'excluded'}`,
-        originWorklist: relative.split('/').slice(-1)[0] ?? relative,
+        originWorklist: spec.originWorklist,
         sourceNodeId: null,
         targetNodeId: null,
         originStatus: 'excluded',
@@ -361,7 +394,7 @@ export function collectCrossDomainBoundaryCandidates(
     for (const item of worklist.unresolvedCoreCandidates ?? []) {
       collected.push(candidate({
         candidateId: `${worklist.fragmentKey ?? 'modern'}:unresolved:${item.canonicalId ?? 'unknown'}`,
-        originWorklist: relative.split('/').slice(-1)[0] ?? relative,
+        originWorklist: spec.originWorklist,
         sourceNodeId: item.canonicalId ?? null,
         targetNodeId: null,
         originStatus: 'DEFER',

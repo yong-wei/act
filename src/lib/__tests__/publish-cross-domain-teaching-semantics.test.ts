@@ -1,15 +1,25 @@
 /** Cross-domain Teaching Projection generation-3 (#1374). */
 
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
 import {
+  assertPinnedBoundaryWorklistBytes,
+  assertPinnedReviewerWorklistSemantics,
   buildDomainTeachingGenerationV3,
   generation3ArtifactRelatives,
   PINNED_PUBLISHED_BYTE_DIGESTS,
+  PINNED_REVIEWER_WORKLIST_SEMANTIC_DIGESTS,
   serializeGeneration3Json,
 } from '../../../scripts/knowledge-cutover/build-domain-teaching-generation-v3';
 import {
@@ -25,6 +35,7 @@ import {
   assertPinnedFileBytes,
   buildDomainTeachingFragment,
   composeDomainTeachingProjection,
+  CROSS_DOMAIN_BOUNDARY_WORKLIST_PATHS,
   CROSS_DOMAIN_FRAGMENT_KEY,
   CROSS_DOMAIN_NO_ADMISSIBLE_REASON,
   detectDomainRequiredCycles,
@@ -218,7 +229,7 @@ describe('publish-cross-domain-teaching-semantics', () => {
   });
 
   it('records upstream path, byte, published, semantic and resealed digests', () => {
-    expect(built.pinLedger.artifacts).toHaveLength(16);
+    expect(built.pinLedger.artifacts).toHaveLength(20);
     for (const pin of built.pinLedger.artifacts) {
       expect(pin.path.length).toBeGreaterThan(0);
       expect(pin.originalBytesDigest).toMatch(/^[a-f0-9]{64}$/u);
@@ -275,6 +286,106 @@ describe('publish-cross-domain-teaching-semantics', () => {
         engineering: { ...engineering, objects },
       },
     })).toThrow(/engineeringDigest does not match engineering body/);
+  });
+
+  it('pins every collected boundary worklist to the shared empty cross-domain output', () => {
+    const expectedPaths: string[] = [...CROSS_DOMAIN_BOUNDARY_WORKLIST_PATHS].sort();
+    const reviewerPins = built.pinLedger.artifacts.filter((pin) =>
+      pin.role.startsWith('cross-domain-boundary-'),
+    );
+    expect(reviewerPins.map((pin) => pin.path).sort()).toEqual(expectedPaths);
+    expect(new Set(reviewerPins.map((pin) => pin.path)).size).toBe(4);
+
+    const ledgerWorklistPaths = [...new Set(
+      built.pinLedger.artifacts
+        .filter((pin) => expectedPaths.includes(pin.path))
+        .map((pin) => pin.path),
+    )].sort();
+    expect(ledgerWorklistPaths).toEqual(expectedPaths);
+
+    for (const pin of reviewerPins) {
+      const original = readJson(pin.path);
+      expect(pin.originalBytesDigest).toBe(
+        PINNED_PUBLISHED_BYTE_DIGESTS[
+          pin.path as keyof typeof PINNED_PUBLISHED_BYTE_DIGESTS
+        ],
+      );
+      expect(pin.originalSemanticDigest).toBe(
+        PINNED_REVIEWER_WORKLIST_SEMANTIC_DIGESTS[
+          pin.path as keyof typeof PINNED_REVIEWER_WORKLIST_SEMANTIC_DIGESTS
+        ],
+      );
+      expect(pin.resealedDigest).toBe(built.crossDomain.worklist.inputDigest);
+      expect(pin.snapshotBinding).toEqual(built.authority.binding);
+      expect(pin.conversionProtocol).toBe('act-generation-3-conversion-protocol/v1');
+      expect(pin.auditOutput).toBe('multi-source-cross-domain-worklist');
+      expect(pin.auditOutputSources).toEqual(CROSS_DOMAIN_BOUNDARY_WORKLIST_PATHS);
+      expect(() => assertExplicitIdentityEquivalence(
+        original,
+        built.crossDomain.worklist,
+        pin.role,
+      )).toThrow(Generation3EquivalenceError);
+    }
+
+    const replayed = buildDomainTeachingGenerationV3();
+    expect(replayed.pinLedger).toEqual(built.pinLedger);
+    expect(replayed.crossDomain.worklist).toEqual(built.crossDomain.worklist);
+    expect(replayed.crossDomain.source).toEqual(built.crossDomain.source);
+  });
+
+  it('fails closed when a collected boundary worklist changes bytes', () => {
+    const fixture = mkdtempSync(path.join(tmpdir(), 'generation-3-worklist-pin-'));
+    try {
+      for (const relativePath of CROSS_DOMAIN_BOUNDARY_WORKLIST_PATHS) {
+        const destination = path.join(fixture, relativePath);
+        mkdirSync(path.dirname(destination), { recursive: true });
+        cpSync(path.join(REPO_ROOT, relativePath), destination);
+      }
+      expect(() => assertPinnedBoundaryWorklistBytes(fixture)).not.toThrow();
+
+      for (const drifted of CROSS_DOMAIN_BOUNDARY_WORKLIST_PATHS) {
+        const destination = path.join(fixture, drifted);
+        const original = readFileSync(destination);
+        writeFileSync(
+          destination,
+          `${JSON.stringify({ tampered: true }, null, 2)}\n`,
+          'utf8',
+        );
+        expect(() => assertPinnedBoundaryWorklistBytes(fixture)).toThrow(Generation3PinError);
+        expect(() => buildDomainTeachingGenerationV3({ repoRoot: fixture })).toThrow(
+          Generation3PinError,
+        );
+        writeFileSync(destination, original);
+      }
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  });
+
+  it('fails closed when a collected boundary worklist changes semantic payload', () => {
+    for (const relativePath of CROSS_DOMAIN_BOUNDARY_WORKLIST_PATHS) {
+      const original = readJson<Record<string, unknown>>(relativePath);
+      expect(() => assertPinnedReviewerWorklistSemantics(
+        relativePath,
+        original,
+      )).not.toThrow();
+
+      const drifted = {
+        ...original,
+        candidates: [
+          ...((original.candidates as unknown[] | undefined) ?? []),
+          { candidateId: `${relativePath}:tampered` },
+        ],
+        unresolvedCoreCandidates: [
+          ...((original.unresolvedCoreCandidates as unknown[] | undefined) ?? []),
+          { canonicalId: `${relativePath}:tampered` },
+        ],
+      };
+      expect(() => assertPinnedReviewerWorklistSemantics(
+        relativePath,
+        drifted,
+      )).toThrow(Generation3EquivalenceError);
+    }
   });
 
   it('fails closed on source-byte and semantic-payload drift', () => {

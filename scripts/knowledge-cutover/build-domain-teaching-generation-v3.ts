@@ -19,8 +19,11 @@ import {
   assertExplicitIdentityEquivalence,
   assertPinnedFileBytes,
   buildCrossDomainArtifacts,
+  CROSS_DOMAIN_BOUNDARY_WORKLIST_PATHS,
+  CROSS_DOMAIN_BOUNDARY_WORKLISTS,
   CROSS_DOMAIN_CONVERSION_CONTRACT,
   CROSS_DOMAIN_PIN_CONTRACT,
+  Generation3EquivalenceError,
   GENERATION_3_ALLOWED_IDENTITY_PATHS,
   GENERATION_3_CLASSICAL_FRAGMENT_KEY,
   GENERATION_3_FOUNDATION_FRAGMENT_KEY,
@@ -29,6 +32,7 @@ import {
   GENERATION_3_MODERN_STATE_SPACE_FRAGMENT_KEY,
   publishedIdentityDigest,
   rebindFragmentAuthoring,
+  reviewerWorklistSemanticPayload,
   teachingSemanticPayload,
   type Generation3UpstreamPin,
 } from '../../src/lib/teaching-projection/domain-fragments/cross-domain';
@@ -107,6 +111,17 @@ export const PINNED_PUBLISHED_BYTE_DIGESTS = {
     'bf25630617d97ffd1b3353b23c51f0e8e7227546d346818f7f1abc6019e4ea57',
   [PINNED_AUTHORITY_MANIFEST_RELATIVE]:
     'f4d745a0b65130b6deecc58eb8a7d1cf5dbbea331e2b77e7846f7a5e9ee06420',
+} as const;
+
+export const PINNED_REVIEWER_WORKLIST_SEMANTIC_DIGESTS = {
+  'course-content/authoring/knowledge/teaching-projection/domain-fragments/foundation-three-domain-v1.worklist.json':
+    '9b456cb8cff4d281e10966270e184e1f277a7a442321ee7818d4130772c7ec5c',
+  'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/classical-worklist.json':
+    'b7a72ad1376fa667cdccc47ee1c03f2887b8813e8c88c3a66a643aaeb96b60a5',
+  'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.worklist.json':
+    '0a1d40a844a01af3720fe7fcb44f62309b73ceaaa9f3ecc12fdc9160b81d3b94',
+  'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.worklist.json':
+    '27337c4b24fe815e2d650247bb2b6472c4f4f9af3c4ffab17e9d4b88651fb8b7',
 } as const;
 
 const RESEAL_UPSTREAMS = [
@@ -196,7 +211,46 @@ function readJson<T>(repoRoot: string, relativePath: string): T {
   return JSON.parse(readFileSync(path.join(repoRoot, relativePath), 'utf8')) as T;
 }
 
+function pinnedPublishedByteDigest(relativePath: string): string {
+  const expected = (PINNED_PUBLISHED_BYTE_DIGESTS as Record<string, string>)[relativePath];
+  if (!expected) {
+    throw new Error(`missing published byte pin for ${relativePath}`);
+  }
+  return expected;
+}
+
+function pinnedReviewerWorklistSemanticDigest(relativePath: string): string {
+  const expected = (
+    PINNED_REVIEWER_WORKLIST_SEMANTIC_DIGESTS as Record<string, string>
+  )[relativePath];
+  if (!expected) {
+    throw new Error(`missing reviewer worklist semantic pin for ${relativePath}`);
+  }
+  return expected;
+}
+
+export function assertPinnedReviewerWorklistSemantics(
+  relativePath: string,
+  original: unknown,
+): string {
+  const expected = pinnedReviewerWorklistSemanticDigest(relativePath);
+  const actual = projectionDigest(reviewerWorklistSemanticPayload(original));
+  if (actual !== expected) {
+    throw new Generation3EquivalenceError(
+      `reviewer worklist semantic drift for ${relativePath}: expected ${expected}, got ${actual}`,
+    );
+  }
+  return actual;
+}
+
+export function assertPinnedBoundaryWorklistBytes(repoRoot = process.cwd()): void {
+  for (const spec of CROSS_DOMAIN_BOUNDARY_WORKLISTS) {
+    assertPinnedFileBytes(repoRoot, spec.path, pinnedPublishedByteDigest(spec.path));
+  }
+}
+
 export function assertPinnedPublishedBytes(repoRoot = process.cwd()): void {
+  assertPinnedBoundaryWorklistBytes(repoRoot);
   for (const [relativePath, expected] of Object.entries(PINNED_PUBLISHED_BYTE_DIGESTS)) {
     assertPinnedFileBytes(repoRoot, relativePath, expected);
   }
@@ -220,6 +274,31 @@ function pinArtifact(input: {
     resealedDigest: publishedIdentityDigest(input.resealed),
     snapshotBinding: input.snapshotBinding,
     conversionProtocol: CROSS_DOMAIN_CONVERSION_CONTRACT,
+  };
+}
+
+function pinSharedReviewerWorklist(input: {
+  role: string;
+  path: string;
+  original: unknown;
+  resultingWorklist: unknown;
+  originalBytesDigest: string;
+  snapshotBinding: Generation3UpstreamPin['snapshotBinding'];
+}): Generation3UpstreamPin {
+  return {
+    role: input.role,
+    path: input.path,
+    originalBytesDigest: input.originalBytesDigest,
+    originalPublishedDigest: publishedIdentityDigest(input.original),
+    originalSemanticDigest: assertPinnedReviewerWorklistSemantics(
+      input.path,
+      input.original,
+    ),
+    resealedDigest: publishedIdentityDigest(input.resultingWorklist),
+    snapshotBinding: input.snapshotBinding,
+    conversionProtocol: CROSS_DOMAIN_CONVERSION_CONTRACT,
+    auditOutput: 'multi-source-cross-domain-worklist',
+    auditOutputSources: [...CROSS_DOMAIN_BOUNDARY_WORKLIST_PATHS],
   };
 }
 
@@ -353,7 +432,7 @@ export function buildDomainTeachingGenerationV3(
     'modern-state-space-worklist': modernStateSpace.worklist,
     'modern-state-space-coverage': modernStateSpace.coverage,
   };
-  const upstreamPins = RESEAL_UPSTREAMS.map((spec) => {
+  const resealPins = RESEAL_UPSTREAMS.map((spec) => {
     const original = readJson(repoRoot, spec.path);
     return pinArtifact({
       role: spec.role,
@@ -364,6 +443,28 @@ export function buildDomainTeachingGenerationV3(
       snapshotBinding: authority.binding,
     });
   });
+  const reviewerPins = CROSS_DOMAIN_BOUNDARY_WORKLISTS.map((spec) => {
+    const originalBytesDigest = pinnedPublishedByteDigest(spec.path);
+    assertPinnedFileBytes(repoRoot, spec.path, originalBytesDigest);
+    return pinSharedReviewerWorklist({
+      role: spec.role,
+      path: spec.path,
+      original: readJson(repoRoot, spec.path),
+      resultingWorklist: crossDomain.worklist,
+      originalBytesDigest,
+      snapshotBinding: authority.binding,
+    });
+  });
+  const reviewerPathSet = new Set(reviewerPins.map((pin) => pin.path));
+  if (
+    reviewerPathSet.size !== CROSS_DOMAIN_BOUNDARY_WORKLISTS.length
+    || CROSS_DOMAIN_BOUNDARY_WORKLISTS.some((spec) => !reviewerPathSet.has(spec.path))
+  ) {
+    throw new Error(
+      'generation-3 pin ledger does not exactly cover collected boundary worklists',
+    );
+  }
+  const upstreamPins = [...resealPins, ...reviewerPins];
   const conversionProtocol = {
     contract: CROSS_DOMAIN_CONVERSION_CONTRACT,
     snapshotBinding: authority.binding,
