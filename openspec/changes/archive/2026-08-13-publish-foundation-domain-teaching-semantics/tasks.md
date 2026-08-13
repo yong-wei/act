@@ -13,3 +13,4 @@
 
 - [x] 3.1 Prove unresolved candidates remain unpublished and engineering relations are not converted to prerequisites.
 - [x] 3.2 Run teaching-projection content tests and strict OpenSpec validation. Tests must also prove first-fragment bytes/hashes are unchanged and two-fragment composition keeps both derived fixture fragments/provenance without silent collision; no runtime/store/pointer/activation path is changed.
+- [x] 3.3 Accepted current-head remediation: align the shared stability core-node provenance with retained `first-fragment` fields for validation-only composition, while retaining #1371 denominator-selection evidence in the worklist/coverage artifacts. Do not change the generic compose contract.

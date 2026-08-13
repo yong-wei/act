@@ -90,12 +90,37 @@ export const FOUNDATION_THREE_DOMAIN_EVIDENCE = {
   ],
 } as const;
 
+/**
+ * The retained #1370 first fragment is authoritative for the shared node's
+ * composed provenance.  #1371's 1-5 evidence remains selection evidence in
+ * the increment-specific worklist and coverage artifact below.
+ */
+const FOUNDATION_THREE_DOMAIN_SHARED_STABILITY_PROVENANCE = {
+  moduleId: 'module-2-stability',
+  rationale: '当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。',
+  sourceKind: 'PREREQUISITE_ENDPOINT',
+  sourceEvidence: [
+    'course-content/authoring/lessons/3-1/design/3-1-boppps.md',
+  ],
+} as const;
+
+export const FOUNDATION_THREE_DOMAIN_DENOMINATOR_EVIDENCE: Readonly<
+  Record<FoundationThreeDomainNodeId, readonly string[]>
+> = {
+  [FOUNDATION_THREE_DOMAIN_GAIN_ID]: FOUNDATION_THREE_DOMAIN_EVIDENCE.gain,
+  [FOUNDATION_THREE_DOMAIN_UNIT_STEP_ID]: FOUNDATION_THREE_DOMAIN_EVIDENCE.stepResponse,
+  [FOUNDATION_THREE_DOMAIN_STABILITY_ID]: FOUNDATION_THREE_DOMAIN_EVIDENCE.stability,
+  [FOUNDATION_THREE_DOMAIN_SETTLING_TIME_ID]: FOUNDATION_THREE_DOMAIN_EVIDENCE.settlingTime,
+};
+
 type FoundationCandidateStatus = 'published' | 'unresolved';
 type FoundationDirectness = 'direct' | 'transitive' | 'not-direct';
 
 export interface FoundationThreeDomainCoreWorklistEntry
   extends DomainFragmentCoreNodeAuthoring {
   status: 'selected-core';
+  /** Evidence for #1371 denominator selection, separate from node provenance. */
+  selectionEvidence: string[];
   denominatorReason: string;
 }
 
@@ -150,6 +175,8 @@ export interface FoundationThreeDomainCoverageArtifact {
   fragmentDigest: string;
   sourceInventoryDigest: string;
   denominatorNodeIds: FoundationThreeDomainNodeId[];
+  /** #1371 curation evidence for each fixed-denominator member. */
+  denominatorEvidence: Record<FoundationThreeDomainNodeId, string[]>;
   coverage: DomainCoverageReportEntry[];
   blocking: false;
 }
@@ -188,10 +215,7 @@ const CORE_NODES: readonly DomainFragmentCoreNodeAuthoring[] = [
     domainKeys: ['stability-analysis'],
     pathEligible: true,
     cardPolicy: 'OPTIONAL',
-    moduleId: 'module-2-stability',
-    rationale: '1-5 课程目标要求识别稳定、临界稳定与不稳定状态。',
-    sourceKind: 'OBJECTIVE',
-    sourceEvidence: [...FOUNDATION_THREE_DOMAIN_EVIDENCE.stability],
+    ...FOUNDATION_THREE_DOMAIN_SHARED_STABILITY_PROVENANCE,
   },
   {
     canonicalId: FOUNDATION_THREE_DOMAIN_NODE_IDS[3],
@@ -364,8 +388,15 @@ export function buildFoundationThreeDomainArtifacts(
       domainKeys: [...node.domainKeys],
       sourceEvidence: [...node.sourceEvidence],
       status: 'selected-core',
+      selectionEvidence: [
+        ...FOUNDATION_THREE_DOMAIN_DENOMINATOR_EVIDENCE[
+          node.canonicalId as FoundationThreeDomainNodeId
+        ],
+      ],
       denominatorReason:
-        '由本增量明确选定的四个 live Authority 核心节点；未选 Authority 对象不进入分母。',
+        `由本增量明确选定的四个 live Authority 核心节点（证据：${FOUNDATION_THREE_DOMAIN_DENOMINATOR_EVIDENCE[
+          node.canonicalId as FoundationThreeDomainNodeId
+        ].join('、')}）；未选 Authority 对象不进入分母。`,
     }),
   );
   const sourceDigest = projectionDigest({
@@ -442,6 +473,12 @@ export function buildFoundationThreeDomainArtifacts(
     fragmentDigest: fragment.fragmentDigest,
     sourceInventoryDigest: fragment.sourceInventoryDigest,
     denominatorNodeIds,
+    denominatorEvidence: Object.fromEntries(
+      denominatorNodeIds.map((canonicalId) => [
+        canonicalId,
+        [...FOUNDATION_THREE_DOMAIN_DENOMINATOR_EVIDENCE[canonicalId]],
+      ]),
+    ) as Record<FoundationThreeDomainNodeId, string[]>,
     blocking: false,
     coverage: buildDomainCoverageReport({
       declaredDomainKeys: authoring.domainKeys,

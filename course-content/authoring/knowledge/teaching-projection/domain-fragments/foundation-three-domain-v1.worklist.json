@@ -50,7 +50,10 @@
         "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
       ],
       "status": "selected-core",
-      "denominatorReason": "由本增量明确选定的四个 live Authority 核心节点；未选 Authority 对象不进入分母。"
+      "selectionEvidence": [
+        "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+      ],
+      "denominatorReason": "由本增量明确选定的四个 live Authority 核心节点（证据：course-content/authoring/lessons/1-5/design/1-5-boppps.md）；未选 Authority 对象不进入分母。"
     },
     {
       "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
@@ -66,7 +69,10 @@
         "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
       ],
       "status": "selected-core",
-      "denominatorReason": "由本增量明确选定的四个 live Authority 核心节点；未选 Authority 对象不进入分母。"
+      "selectionEvidence": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ],
+      "denominatorReason": "由本增量明确选定的四个 live Authority 核心节点（证据：course-content/authoring/lessons/2-2/design/2-2-boppps.md）；未选 Authority 对象不进入分母。"
     },
     {
       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
@@ -76,13 +82,16 @@
       "pathEligible": true,
       "cardPolicy": "OPTIONAL",
       "moduleId": "module-2-stability",
-      "rationale": "1-5 课程目标要求识别稳定、临界稳定与不稳定状态。",
-      "sourceKind": "OBJECTIVE",
+      "rationale": "当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。",
+      "sourceKind": "PREREQUISITE_ENDPOINT",
       "sourceEvidence": [
-        "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+        "course-content/authoring/lessons/3-1/design/3-1-boppps.md"
       ],
       "status": "selected-core",
-      "denominatorReason": "由本增量明确选定的四个 live Authority 核心节点；未选 Authority 对象不进入分母。"
+      "selectionEvidence": [
+        "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+      ],
+      "denominatorReason": "由本增量明确选定的四个 live Authority 核心节点（证据：course-content/authoring/lessons/1-5/design/1-5-boppps.md）；未选 Authority 对象不进入分母。"
     },
     {
       "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
@@ -99,7 +108,10 @@
         "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
       ],
       "status": "selected-core",
-      "denominatorReason": "由本增量明确选定的四个 live Authority 核心节点；未选 Authority 对象不进入分母。"
+      "selectionEvidence": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ],
+      "denominatorReason": "由本增量明确选定的四个 live Authority 核心节点（证据：course-content/authoring/lessons/2-2/design/2-2-boppps.md）；未选 Authority 对象不进入分母。"
     }
   ],
   "relationCandidates": [
@@ -205,5 +217,5 @@
     }
   ],
   "candidateCount": 3,
-  "inputDigest": "4aa295829ea1438d93fb21634ce7853449e377c2d9f8cec66771543aa201ad92"
+  "inputDigest": "bc7178b240e9ad317930d28e75f27047d5fca3f4962cad25adab784c3a2b0c37"
 }

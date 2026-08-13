@@ -15,6 +15,7 @@ import {
   detectDomainRequiredCycles,
   FOUNDATION_THREE_DOMAIN_CORE_NODE_IDS,
   FOUNDATION_THREE_DOMAIN_EVIDENCE,
+  FOUNDATION_THREE_DOMAIN_DENOMINATOR_EVIDENCE,
   FOUNDATION_THREE_DOMAIN_FRAGMENT_KEY,
   FOUNDATION_THREE_DOMAIN_GAIN_ID,
   FOUNDATION_THREE_DOMAIN_SETTLING_TIME_ID,
@@ -152,8 +153,30 @@ describe('publish-foundation-domain-teaching-semantics', () => {
     for (const node of built.worklist.coreNodes) {
       expect(node.status).toBe('selected-core');
       expect(node.denominatorReason.length).toBeGreaterThan(0);
+      expect(node.selectionEvidence).toEqual(
+        FOUNDATION_THREE_DOMAIN_DENOMINATOR_EVIDENCE[
+          node.canonicalId as keyof typeof FOUNDATION_THREE_DOMAIN_DENOMINATOR_EVIDENCE
+        ],
+      );
       expect(node.sourceEvidence.length).toBeGreaterThan(0);
     }
+    const stability = byId.get(FOUNDATION_THREE_DOMAIN_STABILITY_ID);
+    expect(stability?.sourceKind).toBe('PREREQUISITE_ENDPOINT');
+    expect(stability?.moduleId).toBe('module-2-stability');
+    expect(stability?.rationale).toBe(
+      '当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。',
+    );
+    expect(stability?.sourceEvidence).toEqual([
+      'course-content/authoring/lessons/3-1/design/3-1-boppps.md',
+    ]);
+    expect(stability?.selectionEvidence).toEqual(
+      FOUNDATION_THREE_DOMAIN_EVIDENCE.stability,
+    );
+    expect(stability?.denominatorReason).toContain(
+      FOUNDATION_THREE_DOMAIN_EVIDENCE.lesson15,
+    );
+    expect(built.coverage.denominatorEvidence[FOUNDATION_THREE_DOMAIN_STABILITY_ID])
+      .toEqual(FOUNDATION_THREE_DOMAIN_EVIDENCE.stability);
   });
 
   it('resolves all four endpoints from the complete live Authority envelope', () => {
@@ -326,8 +349,12 @@ describe('publish-foundation-domain-teaching-semantics', () => {
     );
     expect(stability?.cardPolicy).toBe('OPTIONAL');
     expect(stability?.pathEligible).toBe(true);
+    expect(stability?.moduleId).toBe('module-2-stability');
+    expect(stability?.sourceKind).toBe('PREREQUISITE_ENDPOINT');
+    expect(stability?.rationale).toBe(
+      '当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。',
+    );
     expect(stability?.sourceEvidence).toEqual([
-      FOUNDATION_THREE_DOMAIN_EVIDENCE.lesson15,
       'course-content/authoring/lessons/3-1/design/3-1-boppps.md',
     ]);
 

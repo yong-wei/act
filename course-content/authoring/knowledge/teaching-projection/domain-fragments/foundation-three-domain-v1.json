@@ -1,10 +1,10 @@
 {
   "contract": "act-domain-teaching-fragment/v1",
   "builderVersion": "act-domain-teaching-fragment-builder/v1",
-  "fragmentId": "dtf-792eae60887a19d9f8ff473f975aa74b03f4976f5c18be4f8124403e78c357d9",
+  "fragmentId": "dtf-edcb43e618e8f0934b6b884044cda82db38acb19fa30d8ff72b60f2de5e4caf1",
   "fragmentKey": "foundation-three-domain-v1",
   "fragmentVersion": "1",
-  "fragmentDigest": "792eae60887a19d9f8ff473f975aa74b03f4976f5c18be4f8124403e78c357d9",
+  "fragmentDigest": "edcb43e618e8f0934b6b884044cda82db38acb19fa30d8ff72b60f2de5e4caf1",
   "domainKeys": [
     "stability-analysis",
     "system-modeling",
@@ -28,7 +28,7 @@
     "nodeIndexDigest": "bf6c2cccf0ee1adc1601d2bb2fe9d1f831d40f3f108fa9733ee8b38bf89630e9"
   },
   "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
-  "sourceInventoryDigest": "2c1bb464a82092fcc8776ff667c84e8c45761615b8a6a0e88b1988ba33d345f5",
+  "sourceInventoryDigest": "ad454416452ae8a0fc663a3812158416355b081bd6049ecbd23ecd0ccf5a1677",
   "authorityDigest": "aceacc10350f11c2f17c9ff0ad4141c9ea6cb7e974dcff690ffacde19c1eec1b",
   "evidenceRefs": [
     "course-content/authoring/lessons/1-5/design/1-5-boppps.md",
@@ -89,12 +89,12 @@
       "pathEligible": true,
       "cardPolicy": "OPTIONAL",
       "moduleId": "module-2-stability",
-      "rationale": "1-5 课程目标要求识别稳定、临界稳定与不稳定状态。",
-      "sourceKind": "OBJECTIVE",
+      "rationale": "当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。",
+      "sourceKind": "PREREQUISITE_ENDPOINT",
       "sourceEvidence": [
-        "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+        "course-content/authoring/lessons/3-1/design/3-1-boppps.md"
       ],
-      "nodeDigest": "0dd3886bc334445ed523150273d378e5dbbca55d6486d319fb0b59c3143c43e1"
+      "nodeDigest": "5f8d97be628bcdf68b6eaaba4a75402d83ff55470c6c9e9415bcbd772c3f4e9e"
     }
   ],
   "relations": [
