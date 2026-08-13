@@ -268,7 +268,7 @@ const learnerStateWithoutActivePath = {
   },
 };
 
-async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<void>) {
+async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<void>, generatedBatchId = batchId) {
   await page.route('**/api/adaptive/path-advisor-context**', (route) => route.fulfill({
     json: {
       goalId: 'control-correction',
@@ -294,7 +294,7 @@ async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<v
       generationRequest: { id: 'generation-request-issue-1349', status: 'succeeded' },
       result: {
         generationStatus: 'succeeded',
-        candidateBatch: { id: batchId },
+        candidateBatch: { id: generatedBatchId },
       },
     }),
   }));
@@ -320,6 +320,11 @@ async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<v
   await page.route(`**/api/learning-paths/candidate-batches/${unauthorizedBatchId}**`, (route) => (
     route.fulfill({ status: 403, json: { error: 'Candidate batch is not available to this learner' } })
   ));
+  if (generatedBatchId !== batchId) {
+    await page.route(`**/api/learning-paths/candidate-batches/${generatedBatchId}**`, (route) => (
+      route.fulfill({ status: 403, json: { error: 'Candidate batch is not available to this learner' } })
+    ));
+  }
   await page.route('**/api/learning-paths/missing-path', (route) => (
     route.fulfill({ status: 404, json: { error: 'Learning path not found' } })
   ));
@@ -427,6 +432,24 @@ test('shows candidate comparison immediately after generation adds a candidate b
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
   await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+});
+
+test('does not write an unauthorized generated batch to the URL', async ({ context, page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await login(context);
+  await installRoutes(page, undefined, 'unauthorized-generated');
+
+  const query = new URLSearchParams({
+    goal: 'control-correction',
+    intent: 'contextual-recommendation',
+  });
+  await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+  const generateAction = page.locator('[data-adaptive-path-generation-action="submit-panel-request"]');
+  await expect(generateAction).toBeEnabled();
+  await generateAction.click();
+  await expect(page.locator('[data-adaptive-path-candidate-recovery-state="failed"]')).toBeVisible();
+  await expect(page).not.toHaveURL(/batch=unauthorized-generated/);
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
 
 async function openGeneration(page: Page, requestedBatchId?: string, candidateId?: string, pathId?: string) {
