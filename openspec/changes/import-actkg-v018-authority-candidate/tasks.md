@@ -35,5 +35,5 @@
 - [x] 3.3 Assert Authority, Teaching Projection, prerequisite, Authority
   domain-shard, consumer, and production marker pointers remain byte-identical
   v0.9 values.
-- [ ] 3.4 Run focused adapter/import/snapshot tests, typecheck, lint, strict
+- [x] 3.4 Run focused adapter/import/snapshot tests, typecheck, lint, strict
   OpenSpec validation, and stable-revision review.
