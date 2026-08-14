@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Blob-backed runtime manifest is deterministic and complete
-The system SHALL generate a versioned, canonical manifest for a blob-backed runtime release. A v2 release document SHALL reside only at `runtime/blob-releases/<release-id>/`, separately from v1 `runtime/releases/<release-id>/`; release identity is therefore the composite of format version, namespace, release ID and manifest SHA-256. A publish-facing v2 operation SHALL resolve `sourceRevision` to one full Git commit and read every input byte only from that commit's `course-content/runtime` Git tree, never from a working-tree fallback. The manifest SHALL enumerate every logical runtime path in strict normalized order and bind each path to an exact non-negative safe-integer size, lowercase SHA-256, and the deterministic key `runtime/blobs/sha256/<sha256>`. It SHALL bind source revision, file count, total bytes, logical tree digest, semantic manifest digest and wire digest. It SHALL reject unsafe paths, duplicate normalized paths, unsupported schema versions, Git symlink or gitlink entries, inconsistent aggregate values and a blob key that is not derived from its file SHA-256.
+The system SHALL generate a versioned, canonical manifest for a blob-backed runtime release. A v2 release document SHALL reside only at `runtime/blob-releases/<release-id>/`, separately from v1 `runtime/releases/<release-id>/`; release identity is therefore the composite of format version, namespace, release ID and manifest SHA-256. A publish-facing v2 operation SHALL resolve `sourceRevision` to one full Git commit reachable from `origin/integration`, enumerate that commit's `course-content/runtime` Git tree before reading any body, and never use a working-tree fallback. Each Git-managed entry SHALL bind its Git object format and blob OID as source identity as well as exact non-negative safe-integer size, lowercase SHA-256, and deterministic key `runtime/blobs/sha256/<sha256>`. The manifest SHALL enumerate strict normalized paths and bind source revision, optional parent release identity, file count, total bytes, logical tree digest, semantic manifest digest and wire digest. It SHALL reject unsafe paths, duplicate normalized paths, unsupported schema versions, Git symlink or gitlink entries, inconsistent aggregate values and a blob key that is not derived from its file SHA-256.
 
 #### Scenario: Equivalent frozen inputs produce the same logical release identity
 - **WHEN** two frozen runtime inputs contain the same source revision, normalized paths and bytes
@@ -15,6 +15,14 @@ The system SHALL generate a versioned, canonical manifest for a blob-backed runt
 - **WHEN** a caller supplies a valid source commit while its checkout has changed, untracked, filtered or missing runtime files
 - **THEN** v2 manifest construction and publish SHALL use only the matching Git tree blobs, or fail before any upload if that tree contains an unsupported or unreadable entry
 
+#### Scenario: Parent source identity avoids inherited body reads
+- **WHEN** a target Git entry has the same source blob OID as a validated parent manifest entry
+- **THEN** the publisher SHALL inherit that exact SHA-256, size and deterministic blob key without reading its body or issuing a remote metadata request
+
+#### Scenario: Unknown non-Git source is rejected
+- **WHEN** a logical runtime entry is not a regular Git blob and has no Git-tracked external or generated source identity
+- **THEN** delta planning SHALL fail before any object write
+
 ### Requirement: Initial v1 Release import is fixed and equivalence-proven
 The system SHALL permit one explicit `v1-release-import` source mode only for initial migration of a complete existing runtime. Before any write, it SHALL fix the v1 release ID and expected immutable v1 manifest semantic and wire identities; it SHALL not resolve a selector alias or accept an arbitrary local directory. The ECS bridge SHALL read and rehash every v1 manifest object, derive only deterministic v2 blob keys, write the v2 manifest last under its separate namespace, and produce an immutable proof binding both composite release identities, normalized logical tuples, tree digest, file count and total bytes. The import SHALL fail without selection when any source object, manifest identity, path tuple or aggregate differs.
 
@@ -27,18 +35,18 @@ The system SHALL permit one explicit `v1-release-import` source mode only for in
 - **THEN** the importer SHALL fail before writing a v2 terminal manifest or changing any production selection state
 
 ### Requirement: Blob publication is append-only and manifest-last
-The production release writer SHALL upload a blob only through a conditional no-overwrite operation after verifying the source stream's exact size and SHA-256. A pre-existing blob SHALL be reused only after an independent read verifies the same exact size and SHA-256. The writer SHALL verify every reachable blob before it writes the immutable manifest as the terminal operation, and SHALL not update selectors or receipts for an incomplete release.
+The local production release writer SHALL upload only a changed or otherwise unknown blob through a conditional no-overwrite operation after verifying the source stream's exact size and SHA-256. A changed or unknown pre-existing blob SHALL be reused only after one remote metadata read verifies exact size and SHA-256 metadata. A validated parent-manifest binding SHALL be inherited without a body read or remote metadata read while that parent remains protected by lifecycle reachability. The writer SHALL verify every changed or unknown reachable blob before it writes the immutable receipt and terminal manifest, and SHALL not update selectors for an incomplete release.
 
 #### Scenario: Interrupted publish leaves no selectable release
 - **WHEN** a blob upload, remote verification or manifest upload fails
 - **THEN** the system SHALL not write a selectable manifest, desired selector or active receipt for that release
 
-#### Scenario: Repeated publish reuses verified blobs
-- **WHEN** a later publication requests a blob that was already verified under the same SHA-256 and size
-- **THEN** the system SHALL not rewrite the blob and SHALL continue only after exact read verification
+#### Scenario: Repeated publish reuses inherited blobs
+- **WHEN** a later publication has the same source identity as its validated parent entry
+- **THEN** the system SHALL not rewrite, read or remotely inspect that blob during daily publication
 
 ### Requirement: Materialized runtime preserves the selected logical release
-The system SHALL build a temporary host-owned materialized runtime view only from blobs reachable in one verified manifest. Before selection it SHALL validate every logical entry against that manifest, require the blob mount and materialized view to be read-only to application consumers, and atomically select the view under the host lifecycle lock. The application SHALL continue to receive exactly one read-only bind at `/app/course-content/runtime`.
+The system SHALL build a temporary host-owned materialized runtime view only from blobs reachable in one verified manifest. When a matching parent view is available, it SHALL derive the candidate from local directory/symlink topology plus manifest delta and write a receipt binding manifest identity, path set, blob set, helper mount and hot-cache identities. Before selection it SHALL validate path topology, changed links and the receipt rather than rehashing every inherited blob, require the blob mount and materialized view to be read-only to application consumers, and atomically select the view under the host lifecycle lock. The application SHALL continue to receive exactly one read-only bind at `/app/course-content/runtime`.
 
 #### Scenario: Missing or mismatched blob blocks selection
 - **WHEN** a selected manifest references a missing blob, a blob with a different size or SHA-256, or a dangling materialized entry

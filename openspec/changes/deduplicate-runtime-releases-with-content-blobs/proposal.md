@@ -1,32 +1,33 @@
 ## Why
 
-当前不可变 runtime release 以完整目录前缀保存。生产 active 与 rollback 两个 release 共占 12,286,210,506 bytes；按内容哈希去重后为 6,359,383,407 bytes，可释放 5,926,827,099 bytes（48.24%）。20 GB Bucket 在保留发布中的新 release、active 与 rollback 时没有足够余量。
+当前 v1 immutable runtime release 在 active 与 rollback 前缀中重复存储相同字节。内容寻址 v2 已经建立候选 blob namespace、固定 v1 导入证明、单 runtime bind 与受保护的 lifecycle/GC 基础，但其日常发布和候选验证仍会重复读取约 6.36 GB runtime。这与原 ECS `rsync` 增量同步的可接受部署时长不相容。
 
-`ossutil sync` 只能在同一可变目标前缀内跳过未变化文件，不能安全地把旧 release 中的对象重用于新的 immutable release。本变更建立内容寻址 blob 库、release manifest 和受验证的宿主 materialization，使相同字节跨 release 只保存一次，同时保持应用现有的 filesystem runtime 合同。
+本变更保留 v2 的“每个唯一内容一个 blob”布局，改用父 release manifest 继承结论。日常发布只处理 source identity 变化或未知的内容；全量 body audit 改为首迁、异常和低频独立操作。runtime-only 发布也必须与镜像、数据库和 Nginx 发布分离。
 
 ## What Changes
 
-- 新增内容寻址 runtime blob 存储：每个普通文件按 SHA-256 写入只可新增的 blob key；v2 `runtime/blob-releases/<release-id>/` 仅保存不可变 logical manifest 与 receipt，并与既有 v1 `runtime/releases/<release-id>/` 分离；manifest 将逻辑路径、size、SHA-256 与 blob key 绑定为一个可验证的逻辑 runtime 树。
-- 新增受验证的 release materialization：在 ECS 上从 active/rollback manifest 生成临时逻辑目录视图，完成完整性验证后原子选择该视图；应用仍以只读 `/app/course-content/runtime` 读取，不感知 blob layout。
-- 新增 release 生命周期与 GC 规则：发布、materialization、activate、rollback 与 GC 使用同一把宿主锁；仅从 immutable protected manifest 的可达 blob 集合决定删除，失败或并发状态不得删除 active、rollback、发布中或有 receipt 引用的对象。
-- 保持 OSS Bucket 私有、ECS RAM Role 短期凭据、ossfs 与容器 bind 只读、浏览器短时媒体 redirect 和现有 v1 release rollback。迁移期间 ECS 可持有前缀受限的 operator role；该变更不授权生产切换或删除任何现有 release。
-- 首次完整 v2 候选允许从一个已固定且已验证的 v1 Release 导入，而不是虚构“Git tree 已完整覆盖生产 runtime”。导入器必须逐对象重读、重算哈希并产出完整等价性证明；常规后续 v2 发布仍只接受 `origin/integration` 可达 Git tree。
-- 为 blob 去重率、manifest 完整性、materialization 等价性、热索引性能、故障恢复、并发发布/GC 和 rollback 增加可复验工件与自动测试。
+- v2 manifest 为每个 Git 管理条目记录 Git blob OID 作为 source identity；以 parent manifest 规划 delta，OID 未变的条目直接继承其 blob SHA、size 与 key，不读取 body、不作 HEAD。
+- 本机受控 publisher 使用独立 `act-runtime-oss-release-operator` 身份执行 runtime blob CRUD，并在每个写操作前校验调用者、Bucket、Region 与前缀。ECS 恢复并长期保持 `act-runtime-oss-read`，只执行只读 ossfs、view materialization 与容器操作。
+- 新增 Blob 才流式计算 SHA-256/size、上传并 HEAD 验证 metadata；manifest-last、不可覆盖、单发布者锁与可恢复 journal 保持不变。已继承 Blob 的完整性结论来自受保护 parent manifest，full audit 另行运行。
+- v2 ECS view 由 parent view 的目录和相对符号链接增量派生，使用 view receipt 复用已完成视图；prepare/select/host verify 不再三次读取全部 body。
+- 部署拆分为 `deploy:runtime`、`deploy:app` 与 `deploy:all`。runtime-only 变更不得构建镜像、上传 image tar、导入数据库、执行 Prisma migration 或复制完整 runtime。
+- 在不改动生产 selector 前完成候选应用 smoke、一次小增量发布、rollback、容量报告与 v1 退役/GC 准备；生产切换仍要求单独用户授权。
 
 ## Capabilities
 
 ### New Capabilities
 
-- `content-addressed-runtime-release-storage`: 以不可覆盖 blob、确定性 logical release manifest、受验证 materialization 和可达性 GC 管理 runtime release 的跨版本字节复用。
+- `content-addressed-runtime-release-storage`: 以 parent-manifest 增量证明、不可覆盖 blob、确定性 logical release manifest、受验证 materialized view 和可达性 GC 管理 runtime release。
 
 ### Modified Capabilities
 
-- `oss-runtime-release-management`: 扩展 v1 release-prefix 发布合同，使 v1/v2 manifest 可并存，v2 以跨 release 的 append-only blob 与 manifest-last 方式发布。
-- `oss-runtime-deployment-bridge`: 扩展直接 release-prefix 挂载合同，使通过 qualification 的 v2 host materialized view 可与 v1 共存，并明确 desired、active 与 rollback 的持久状态迁移。
-- `private-runtime-media-delivery`: 使 active manifest 对媒体 object key 的 allowlist 同时支持 v1 release-prefix key 和 v2 blob key，且仅 active identity 可签名。
+- `oss-runtime-release-management`: 允许 v2 日常发布继承 immutable parent manifest，只验证 changed/unknown blob；full audit 成为独立操作。
+- `oss-runtime-deployment-bridge`: 将 v2 view 物化、selection 和 runtime-only 部署从全量 body 校验改为 delta、receipt、mount 和应用 smoke。
+- `private-runtime-media-delivery`: 继续只从 active manifest 解析 blob object key；helper 目录不得通过任何公共路径暴露。
 
 ## Impact
 
-- 影响 `src/lib/runtime-release*.ts`、ECS publish bridge、runtime release CLI、ossfs/systemd materialization、release locator、媒体 object resolver、部署与 rollback 工具及其测试。
-- 影响 `act-course-assets/runtime/` 的对象布局和 ECS 的本地受控 materialization/cache 空间；不改变应用内 `/app/course-content/runtime` 路径或私有 Bucket 策略。
-- 不新增长期 AccessKey/Secret，不引入自定义 FUSE；是否采用宿主 symlink forest 取决于 runtime callsite 与 ossfs 语义等价性验证，未通过则保持当前 release-prefix 设计并另行评估 Bucket 扩容。实施前必须先归档 `migrate-runtime-to-oss-immutable-releases`，使本变更的 capability delta 有唯一主 spec 基线。
+- 影响 runtime release manifest/publisher/CLI、ECS host materializer/selector、部署脚本、运行手册与自动测试。
+- 不改写应用的 Node filesystem runtime 合同，不公开 Bucket，不保存永久 signed URL，不使用 OSS 目录 rename 或 custom FUSE。
+- Git 之外的 runtime 内容必须有 Git 跟踪的 external/generated source identity；没有稳定 identity 的文件不得进入增量发布。
+- 当前 v2 candidate 的固定 v1 等价性证明是 baseline，而非日常全量验证门禁。

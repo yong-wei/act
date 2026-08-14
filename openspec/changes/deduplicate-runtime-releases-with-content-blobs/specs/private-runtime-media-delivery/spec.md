@@ -12,7 +12,7 @@ Each runtime media resource that exists in a verified active v1 or v2 release SH
 - **THEN** its projection SHALL retain that URL as the fallback without inventing object metadata
 
 ### Requirement: Private media resolver signs only manifest-bound assets
-The server-side resolver SHALL accept only a normalized runtime media path that is present in the active release manifest and allowed for client delivery. It SHALL issue a short-lived signed redirect using in-process ECS RAM role credentials and SHALL not expose a permanent OSS URL, credentials, arbitrary object-key access or a desired-but-not-active release object.
+The server-side resolver SHALL accept only a normalized runtime media path that is present in the active release manifest and allowed for client delivery. It SHALL issue a short-lived signed redirect using in-process ECS RAM role credentials and SHALL not expose a permanent OSS URL, credentials, arbitrary object-key access, a desired-but-not-active release object or the reserved `.act-runtime-blobs` helper path.
 
 #### Scenario: Browser requests an authorized published media asset
 - **WHEN** the requested media path is public-deliverable and bound by the active v1 or v2 manifest

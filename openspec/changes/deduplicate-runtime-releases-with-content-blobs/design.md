@@ -1,108 +1,106 @@
 ## Context
 
-`migrate-runtime-to-oss-immutable-releases` establishes `act-runtime-release.v1`: each release owns a complete object prefix and a deterministic manifest. The production pair currently has 10,228 active files and 10,222 rollback files. Every rollback byte is also present in the active tree, but the two release prefixes consume 12,286,210,506 bytes because OSS stores the duplicate bytes twice.
+v1 release-prefix storage duplicates active and rollback bytes. The fixed v1→v2 import has already established a complete candidate with deterministic manifest, receipt and equivalence proof. The candidate proved physical blob de-duplication, one read-only Podman runtime bind, a container-visible `.act-runtime-blobs` helper mount, hot-index caching, lifecycle protection and mark-and-sweep planning.
 
-The active application reads `/app/course-content/runtime` through Node filesystem APIs. The host mounts a selected private OSS prefix with ossfs and exposes it read-only to Podman. Media delivery already resolves an allowlisted active-manifest `objectKey` into a short-lived signed redirect. These contracts must remain valid while storage layout changes.
-
-This is a durable storage-format, host-selection, and garbage-collection change. It follows the independent Sol medium decision to establish and prove a content-addressed design before any production switch and not use custom FUSE. The separately authorized current v1 retention policy is outside this change.
+The remaining design defect is operational: a normal v2 run still re-hashes or re-reads the full logical tree during publish, prepare, select and host verification. It makes a small runtime edit take hours. This amendment changes the proof boundary, not the blob layout: immutable parent releases supply the proof for inherited entries; a daily release proves only its delta.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Store equal runtime file bytes once across every blob-backed release while preserving a separately immutable logical manifest for each release.
-- Prove that the selected materialized runtime is equivalent to its manifest for all production filesystem consumers, media resolution, textbook retrieval and readiness checks.
-- Permit rollback by selecting a prior manifest without re-uploading its blobs.
-- Reclaim only unreachable blobs with an auditable, fail-closed lifecycle protocol.
+- Persist each unique byte sequence once at `runtime/blobs/sha256/<sha256>` while preserving a complete deterministic manifest for every logical release.
+- Reduce an unchanged release to a no-op and a small runtime change to work proportional to changed/unknown content, without weakening blob immutability or protected-root GC.
+- Separate local OSS publication from ECS read-only serving and separate runtime deployment from image/database deployment.
+- Materialize and select v2 views from parent-view delta, receipts, mount state and application smoke rather than repeated body scans.
 
 **Non-Goals:**
 
-- Rewriting runtime consumers to an OSS SDK, implementing a custom FUSE filesystem, making the Bucket public, or persisting OSS signed URLs.
-- Changing the existing v1 active/rollback releases, their selectors, or their deletion policy as part of this proposal.
-- Treating a blob design as permission for a production cutover. A separate user authorization follows a successful candidate proof.
-- Promising exactly one physical copy of every file: different SHA-256 bytes remain distinct blobs, and local materialization/cache metadata has bounded overhead.
+- Rewriting runtime consumers to the OSS SDK, adding a custom FUSE implementation, using OSS rename semantics, publishing permanent media URLs, or changing a browser's private media contract.
+- Treating metadata-only reuse as a replacement for the one-time v1 import proof or for independent sample/full audits.
+- Accepting a runtime file that is neither a reachable Git blob nor covered by a Git-tracked external/generated source identity.
+- Selecting a v2 candidate or retiring v1 production data without a later explicit production authorization.
 
 ## Decisions
 
-### 1. Logical release manifests remain the authority; blobs are storage implementation
+### 1. Parent manifest is the daily proof cache
 
-Define a versioned blob-backed manifest at `runtime/blob-releases/<release-id>/manifest.json`; the release prefix may contain only that immutable manifest and its receipt. V1 remains exclusively under `runtime/releases/<release-id>/`. A v1 and v2 manifest may have the same content-addressed release ID, so their durable identity is `(formatVersion, namespace, releaseId, manifestSha256)`. The manifest records the logical runtime tree in canonical path order and binds every logical path to its `sizeBytes`, SHA-256 and the deterministic blob key `runtime/blobs/sha256/<sha256>`. It also records `sourceRevision`, `fileCount`, `totalBytes`, logical tree digest and semantic manifest digest.
+A v2 semantic manifest remains the authority for one logical runtime tree and lives at `runtime/blob-releases/<release-id>/manifest.json`; its receipt is written before the terminal manifest. Every regular Git entry records:
 
-The v2 `manifestSha256` is the SHA-256 digest of the versioned canonical semantic projection with its own digest and every transport field excluded. A manifest does not contain a digest of its own final serialized bytes. After final serialization, the publisher records the final `wireSha256`, byte length, manifest object key, release ID, format version and semantic digest in the immutable receipt/locator; readers verify wire identity before parsing and semantic identity after parsing.
+```json
+{
+  "path": "lessons/1-2/lesson.json",
+  "mode": "100644",
+  "source": { "kind": "git-blob", "objectFormat": "sha1", "oid": "..." },
+  "blob": { "sha256": "...", "size": 123, "key": "runtime/blobs/sha256/..." }
+}
+```
 
-The release ID remains content-addressed from the source identity and logical tree digest. A blob key is derived solely from the file SHA-256; a manifest may not name an arbitrary object key. Existing v1 manifests stay readable until a v2 active and rollback pair has passed migration evidence.
+The publisher reads the target `origin/integration`-reachable Git tree metadata first. It builds an inverse `git OID → blob` map from the declared parent manifest.
 
-For a v2 publish-facing CLI, `sourceRevision` is resolved to one full Git commit and all logical file bytes are read from that commit's `course-content/runtime` Git tree. It never scans the caller's working tree or falls back to checkout bytes. The snapshot reader accepts regular Git blobs only, rejects symlink and gitlink entries, recomputes every file size/SHA-256 before manifest creation, and streams the same Git blobs again during publish. The source commit must be reachable from `origin/integration` before a formal publish. Fixture-level filesystem manifest builders remain available only for unit tests and local candidate construction.
+| Target source identity | Daily action |
+| --- | --- |
+| Same parent Git OID, including a rename | Inherit exact blob binding; no body read and no HEAD. |
+| New Git OID | Stream that Git blob once to compute SHA-256 and size. |
+| Non-Git source with declared stable identity | Reuse only when the declared identity matches parent; otherwise validate its declared source rule. |
+| No stable source identity | Reject before any publish. |
 
-The first complete v2 migration is a separate, one-time `v1-release-import` source mode. It fixes one exact v1 release ID and the expected v1 manifest semantic and wire identities before any write; it never resolves an `active` alias or scans an arbitrary ECS directory. The importer reads the immutable v1 manifest and every declared v1 object through the ECS operator bridge, recomputes each byte stream's size/SHA-256, and then writes or reuses only the derived v2 blob key. It accepts the resulting v2 manifest only when normalized `{path,sizeBytes,sha256}` tuples, tree digest, file count and total bytes exactly equal the fixed v1 source, and records both composite source/target identities and proof identities in a Git-tracked candidate locator. The usual Git-bound path remains the sole source for later releases.
+Git OID is only the delta key. Blob address and final integrity remain SHA-256 plus exact size. Multiple changed paths with one OID hash once; different OIDs that yield identical bytes share one blob.
 
-This separates logical release identity from physical duplication. `sourceRevision` remains part of release identity, while equal bytes across revisions still reuse the same blob. Keeping `objectKey` in the media-facing parsed manifest preserves the resolver interface while changing its validated value from a release-prefix object to a blob object.
+The semantic projection excludes timestamps, machine identity, principal and transfer metrics. It therefore gives the same release identity for the same source revision and logical tree. The transport receipt carries wire hash, immutable manifest locator, parent identity, principal, and publication metrics.
 
-### 2. Publish blobs append-only, then publish the manifest last
+### 2. New/unknown blobs are verified; inherited blobs are protected
 
-The existing single ECS release bridge remains the only production writer. It computes the canonical manifest from a frozen local input, verifies each local stream's size and SHA-256, and writes a blob only with conditional no-overwrite semantics. A conditional conflict is acceptable only after a separate read verifies the exact requested SHA-256 and size.
+For a blob not inherited from its parent manifest, the publisher streams the source once, calculates SHA-256 and size, then performs one object metadata lookup. A missing object is uploaded with no-overwrite semantics and metadata:
 
-After every required blob is verified, the bridge writes the immutable manifest as the terminal operation and records a receipt containing its complete reachable blob set. It does not mutate a blob, manifest, active selector or rollback selector. Interrupted publication leaves no selectable manifest; repeated publication of the same release performs only verification for already valid blobs and manifest.
+```text
+x-oss-meta-schema: act-runtime-blob.v1
+x-oss-meta-sha256: <sha256>
+x-oss-meta-size: <decimal-size>
+```
 
-`ossutil sync` is not part of this protocol: its same-prefix incremental comparison does not prove cross-release immutable reuse or defend a release manifest from mutable destination state.
+It is rechecked by size and metadata after upload. An existing object is reused only when that metadata and size agree; mismatch fails closed. Blob body downloads are not part of daily reuse. Receipt precedes manifest; a terminal manifest is immutable and makes the release selectable.
 
-### 3. Use host materialization only after a filesystem-equivalence qualification gate
+Daily verification validates manifest/receipt identity, changed/unknown bodies, changed/unknown object metadata, view receipt, mount state, topology and application smoke. Sample audit and full audit are separate read-only commands. A full audit is mandatory for initial import, protocol change, suspected storage fault and an explicit low-frequency schedule; it reads every unique blob body. Audit failure freezes publish and GC.
 
-The candidate design mounts the blob namespace read-only with ossfs and builds a temporary, host-owned logical directory view whose entries refer only to validated blobs. It validates every materialized entry against the selected manifest, then uses a local-filesystem atomic rename and the existing host lock to select the view. Podman continues to receive only one read-only bind at `/app/course-content/runtime`.
+### 3. Publisher and serving identities are separate
 
-A symlink forest is the first candidate because it avoids copying file bytes. It is not assumed equivalent: implementation must first audit all runtime consumer calls involving `lstat`, `readlink`, `realpath`, path containment, directory traversal, file watching, inode assumptions and error handling; then prove the candidate view under ossfs for the published courses and hot indexes. If any required consumer observes incompatible symlink behavior, the change stops before production selection and retains the v1 release-prefix bridge while evaluating a bounded compatible materializer or additional Bucket capacity.
+The publisher runs on the local maintenance host under the user-provisioned `act-runtime-oss-release-operator` principal. Its startup gate checks caller account/principal and the expected Bucket, Region, endpoint and permitted runtime prefixes before any write. Credentials are supplied only by the host's configured credential provider; no AccessKey, Secret or STS token is written to repository files, `.env`, release artifacts or logs.
 
-No OSS directory rename, object symlink, custom FUSE, writable container bind, or application-visible blob path is permitted.
+ECS normally holds only `act-runtime-oss-read`. It mounts the blob namespace through read-only ossfs, materializes a logical view locally, starts or restarts runtime consumers, and performs read-only smoke. It has no runtime Put/Delete/Abort permission. The local publisher serializes publication with a local `flock`; its pending journal records `from`, `to`, operation identity and expiry. Before committing the control selection, it rereads generation and stops on divergence. This is a single-publisher protocol, not a distributed lock.
 
-### 3a. Container-visible materialization topology (accepted 2026-08-14)
+### 4. Materialize parent view delta locally
 
-The first ECS candidate proved that an external absolute leaf symlink passes host verification but resolves to `ENOENT` in a Podman container that receives only the selected view bind. The v2 symlink forest therefore uses one fixed reserved direct child of each selected view, `.act-runtime-blobs`, as a host-managed read-only helper mount for the shared blob namespace. Every logical leaf link is relative and resolves only within that selected view.
+Each selected view contains directories, relative logical leaf symlinks, `.act-runtime-blobs` as a host-managed read-only helper mount, an optional bounded digest-pinned hot cache, and `view-receipt.json`. The helper is excluded from manifest enumeration and is rejected by every public runtime path resolver.
 
-The helper mount is not a logical runtime path: it is excluded from manifest tree enumeration and host file-set validation, and every public route, readable-content resolver, media resolver and inventory walk must reject or prune it. Podman still receives exactly one read-only bind of the selected view; the helper is prepared on the host before container creation and is never a second Podman volume. The mount may expose the shared blob namespace to the kernel inside that bind, but no application API, route or signed URL may expose its name or contents.
+For a candidate with a usable parent view, the host copies the parent directory/symlink topology into a local staging directory, applies only added/changed/removed manifest paths, updates changed hot-cache entries, validates path set plus symlink containment, writes the receipt, then atomically renames the local staging directory. It never renames inside ossfs.
 
-### 4. Durable lifecycle state distinguishes desired, active and rollback
+`prepare` validates topology and changed blobs. `select` trusts an exactly matching existing view receipt and validates identity/generation/mount state. `host verify` performs representative file reads and application smoke, not another full body hash. Existing candidate views are idempotently reused when receipt and helper mount identity match.
 
-V2 introduces one local durable lifecycle record, updated under the existing host lock and recovery journal. It holds a normalized identity for `desired`, `active`, `rollback` and `publishing`, plus retention leases for releases that have left the active/rollback protection set. Every lease records its immutable identity, UTC retention time, signed-media maximum lifetime, the derived UTC release deadline and a policy version. The lifecycle has a monotonic generation and transaction ID. An identity includes release ID, manifest version, semantic/wire digest and logical tree digest. A persistent authority marker defines exactly one recovery mode:
+### 5. Runtime deployment is a separate pipeline
 
-- an absent marker means the host has never migrated and only validated v1 selector/receipt state is authoritative;
-- `mode=v2` makes the matching lifecycle record the sole authority, while v1 selector/receipt files are rebuildable compatibility projections;
-- `mode=v1-rollback` records a completed explicit v2-to-v1 recovery, making the verified v1 selector/receipt authoritative again.
+```text
+deploy:runtime = publish immutable release → materialize candidate → smoke → select
+deploy:app     = build/transfer application image → application deployment using active runtime
+deploy:all     = ordered composition when both change
+```
 
-First migration validates and imports both v1 desired and v1 active identities, including a valid desired-versus-active divergence. It writes a journal after-image and lifecycle record, then commits the `mode=v2` marker. It never writes that marker before all inputs are durable. A v2 marker with missing or invalid lifecycle data must recover only from a matching committed journal; without one it fails closed and must not serve from a stale v1 projection.
+`deploy:runtime` must not build or upload an image, import/export database state, run Prisma migration, rewrite Nginx/systemd configuration, or rsync a complete runtime. No runtime source change is a reason to copy `staging/current/previous` runtime trees to ECS.
 
-On successful activation from A to B, the recovered lifecycle state records B as active and A as rollback. If an older rollback leaves that protection set, the same durable transaction creates its retention lease using the repository-controlled maximum media signed-URL lifetime. A later explicit retirement does the same. Repeated retention can extend but never shorten a lease; release is generation-fenced and fails before the derived deadline or on invalid/rolled-back time. On a failed B candidate, it records B as desired only while retaining A as active and its prior rollback unchanged. Readiness and media signing bind only the active identity; desired-versus-active divergence is an explicit healthy recovery state, not a readiness failure. V2-to-v1 rollback first writes and verifies complete v1 selector/receipt state, then atomically changes the marker to `mode=v1-rollback` through the journal; it never deletes the marker.
+### 6. Lifecycle, rollback and GC retain their safety boundary
 
-### 5. Reachability-based GC protects logical release lifecycle state
-
-The host lifecycle lock covers manifest publication, candidate materialization, activation, rollback and GC. A GC run first captures the durable lifecycle record plus immutable manifests and receipts for desired, active, rollback, currently publishing and explicitly retained leases; it derives the protected blob set from those manifests only. It may delete a blob only when it is absent from that exact protected set and no lifecycle operation is in progress. A desired candidate remains protected until an explicit lifecycle transaction cancels, replaces or activates it. A retired release remains protected until its durable lease reaches its deadline and a separate generation-fenced release operation succeeds; GC never shortens or releases a lease.
-
-GC uses a plan/verify/delete/receipt sequence: immutable input manifest digests and selector generations are recorded before mutation; each candidate is rechecked under the same lock; any selector, manifest, receipt, list-pagination or validation drift aborts before deletion. Deleting manifests requires a separately explicit retention policy; ordinary GC only deletes unreachable blobs. This preserves both logical active and rollback releases without storing duplicate bytes.
-
-### 6. Active selection, media and readiness bind the same manifest
-
-The v2 lifecycle record, active receipt and active selector projection carry release ID, manifest version, semantic/wire digest and logical tree digest. Candidate materialization, `/api/readyz`, media resolution and textbook-retrieval smoke read the active identity only. A desired candidate may legitimately differ from active after failure. The media resolver signs only the validated blob key from the active manifest and retains its legacy URL fallback for a media path absent from the manifest.
-
-Missing blob mounts, hash mismatches, dangling materialized entries, mixed manifest identities or stale selector generations fail readiness and preserve the prior active release. The ECS bridge requires the exact user-provisioned `act-runtime-oss-release-operator-ecs` IMDS role and never accepts permanent credentials. The ossfs mount and the Podman runtime bind remain read-only; bridge operations remain limited by the immutable publish/verify protocol and the role's prefix-scoped policy.
-
-## Risks / Trade-offs
-
-- [Symlink forest changes a consumer's observable filesystem semantics] → complete callsite audit and candidate runtime/route/retrieval proof are mandatory before selection; do not switch if a required observation differs.
-- [Concurrent publish, rollback or GC deletes a needed blob] → one host lock, immutable manifest snapshots, selector-generation fencing and reachable-set revalidation before every delete.
-- [Content address incorrectly equates different inputs] → only SHA-256 plus exact size permits reuse; logical tree identity continues to bind each path and release source revision.
-- [Blob object listing is paginated or inconsistent] → use continuation-safe listing, record pages in the GC plan, and abort on malformed, duplicate or drifting results.
-- [First cold OSS mount regresses textbook retrieval] → benchmark `vectors.f32`, `bodies.utf8` and `lexical-postings.bin` under cold, warm and concurrent access; use only a bounded digest-pinned local hot cache when evidence requires it.
-- [20 GB capacity remains inadequate for genuinely changed data] → report release reachability, unique-byte growth and peak spool/materialization requirements before publishing; request capacity expansion rather than weakening immutability or deleting protected data.
+V2 lifecycle state remains journaled and generation-fenced. `desired`, `active`, `rollback`, `publishing`, retained leases and any pending operation are GC roots. Normal GC deletes only unreachable blob keys using plan → fixed plan digest → delete → receipt; it never deletes manifest/receipt artifacts. V1 body retirement remains after a v2 active/rollback pair, one real small v2 increment, rollback proof and explicit authorization. Manifests and v1/v2 equivalence proof remain retained.
 
 ## Migration Plan
 
-1. Reconcile the active v1 change into its archived capability spec without changing production selectors.
-2. Implement and test blob-backed manifest generation, read-only verification and release receipts in parallel with v1 parsing.
-3. Publish a disposable Git-bound protocol candidate, then run the one-time fixed v1 Release import to create the only complete non-selected v2 candidate; measure dedupe and mount a non-selected materialized view.
-4. Complete the filesystem-equivalence, media, route, textbook retrieval, readiness, interrupted publication, concurrent lifecycle and GC safety evidence.
-5. Publish a v2 rollback candidate and a v2 active candidate; prove `A active → B active/A rollback → C candidate`, failed candidate recovery and v2-to-v1 rollback paths, then record a capacity report.
-6. Request separate user authorization for production selection. Retain v1 releases until the new active/rollback pair and rollback evidence satisfy the declared retention policy.
+1. Keep the current fixed v1→v2 candidate and its complete equivalence proof as the baseline; do not regenerate it for daily delivery.
+2. Add parent-manifest planner and local publisher adapter, then prove no-op and three-file deltas in a clean clone without local cache.
+3. Add delta materialization, view receipt reuse and `deploy:runtime`; prove candidate application flows, helper 404, hot-index cold/warm/concurrent reads and rollback.
+4. Restore ECS to its read-only role, request separate authorization for v2 production selection, then demonstrate one actual v2→v2 small increment and rollback.
+5. Generate and execute a separately approved v1 retirement/GC plan, retaining immutable release evidence and enabling scheduled sample/full audit.
 
-## Open Questions
+## Risks / Trade-offs
 
-- The qualification audit determines whether the symlink forest is compatible. It is a release gate, not a design assumption.
-- The implementation must set retention count and minimum free-space thresholds from measured release cadence and unique-byte growth, not from the current two-release sample alone.
+- A daily run no longer proves every historic blob body. The protection comes from no-overwrite blob keys, protected parent manifests, metadata verification for new/unknown blobs, sample audits and periodic full audit.
+- Git OID only covers Git-managed inputs. An undeclared generated or external file is rejected instead of silently forcing a full scan.
+- A rollback can contain unique old bytes. Deduplication means one copy per unique content, not one copy for all distinct release history.
+- A single publisher is necessary until a real external coordination service is introduced. A second publisher must fail on the local publisher lock/control-generation check rather than overwrite selection.

@@ -1,38 +1,28 @@
-## 1. Contract convergence and baseline evidence
+## 1. Baseline retained from the v2 candidate
 
-- [x] 1.1 Archive `migrate-runtime-to-oss-immutable-releases` into its main specs before applying this change's three modified capability deltas; verify the resulting main specs have one v1/v2 migration contract.
-- [x] 1.2 Record a frozen active/rollback release inventory, unique-byte analysis, release cadence and measured peak-space budget for the production Bucket.
-- [x] 1.3 Audit all production runtime filesystem consumers for `lstat`, `readlink`, `realpath`, containment, directory traversal, watch and inode-sensitive behavior; define the materialization equivalence test matrix.
+- [x] 1.1 Archive the v1 migration change into main specs and record the frozen v1 active/rollback inventory and capacity analysis.
+- [x] 1.2 Implement canonical v2 blob manifests, path safety, receipt/wire identity, media allowlisting and deterministic blob-key validation.
+- [x] 1.3 Implement and record the fixed v1 import, complete v1/v2 equivalence proof and non-selected blob candidate.
+- [x] 1.4 Implement a read-only helper-mounted candidate view, lifecycle/authority marker, protected-root GC plan and bounded textbook index cache.
 
-## 2. Blob-backed release format and verification
+## 2. Parent-manifest incremental publication
 
-- [x] 2.1 Add versioned blob-backed manifest types, canonical serialization, path/aggregate validation, logical tree digest and release identity tests alongside v1 compatibility parsing, including same-tree same-revision, same-tree different-revision and different-tree same-revision vectors.
-- [x] 2.2 Add deterministic blob-key derivation and read-only manifest/blob verification that rejects unsupported versions, arbitrary keys, unsafe paths, duplicate paths and digest drift.
-- [x] 2.3 Extend release inspection and locator/media parsing so the active manifest remains the sole allowlist for logical files and private media blob keys.
+- [ ] 2.1 Extend v2 semantic manifest entries with Git blob source identity, validate Git/object format identity and build parent-manifest OID-to-blob lookup.
+- [ ] 2.2 Implement a delta planner that reads only the target Git tree metadata and rejects non-Git or generated runtime inputs lacking a Git-tracked stable source identity.
+- [ ] 2.3 Implement changed/unknown-only body hashing, SHA/size de-duplication, no-overwrite blob upload, metadata HEAD verification, terminal receipt/manifest publication and exact resumability.
+- [ ] 2.4 Implement the local `act-runtime-oss-release-operator` publisher adapter with principal/Bucket/Region/prefix preflight, local single-publisher lock and credential-redacting diagnostics; remove ECS writer authority from the daily path.
+- [ ] 2.5 Add no-op, rename, repeated OID, three-file delta, identical-different-OID, clean-clone-without-cache, missing identity, existing-metadata-mismatch, interrupted upload and manifest-last tests with exact body/HEAD/upload counters.
 
-## 3. Append-only publishing and recovery
+## 3. Fast materialization and runtime-only deployment
 
-- [x] 3.1 Extend the single ECS streaming bridge to conditionally publish and independently verify content-addressed blobs, then write the immutable manifest last.
-- [x] 3.2 Add exact-resume, interrupted-publish, pre-existing same/different blob, malformed remote listing and manifest-terminal regression tests.
-- [x] 3.3 Bind publish/verify/inspect to the exact user-provisioned ECS operator role, keep ossfs and the runtime bind read-only, and preserve credential-free contracts without storing permanent credentials.
-- [x] 3.4 Add a one-time fixed v1 Release import path that verifies every immutable source object, publishes only derived v2 blobs, writes the v2 manifest last, and emits a complete v1/v2 equivalence proof without changing a selector.
+- [ ] 3.1 Implement parent-view clone plus manifest-delta application, receipt-bound idempotent view reuse, local atomic rename and changed hot-cache update.
+- [ ] 3.2 Replace repeated prepare/select/host body verification with manifest/receipt, topology, helper mount, changed-blob and representative-read checks; keep `audit --sample` and `audit --full` as independent read-only commands.
+- [ ] 3.3 Implement `deploy:runtime`, `deploy:app` and `deploy:all`; ensure runtime-only deployment cannot build images, transfer image tar, manipulate database, Prisma, Nginx/systemd or copy a full runtime tree.
+- [ ] 3.4 Prove candidate filesystem/route/media/knowledge/textbook/worker compatibility, helper-path 404, one runtime bind, cold/warm/concurrent index behavior and rollback from a small v2 increment.
 
-## 4. Candidate materialization and selection proof
+## 4. Operational safety and handoff
 
-- [x] 4.1 Implement a host-locked temporary materializer that creates a read-only logical runtime view solely from one verified blob-backed manifest and atomically selects it only after validation.
-- [ ] 4.2 Build and execute the symlink-forest equivalence harness against the audited filesystem APIs, runtime routes, media resolver and representative published courses; stop the production path if an incompatible observation is found.
-- [ ] 4.3 Run cold, warm and concurrent `resources/textbook-retrieval` benchmarks for `vectors.f32`, `bodies.utf8` and `lexical-postings.bin`; implement a bounded digest-pinned hot cache only when measured evidence requires it.
-- [x] 4.4 Add a journaled durable v2 lifecycle record for normalized desired, active, rollback, publishing and retained identities; persist a v1/v2 authority marker and keep valid v1 selector/receipt reads authoritative only before migration or after explicit `v1-rollback`; bind materialized view, readiness and media signing only to active identity.
-- [x] 4.5 Prove v1 startup and import of desired-active divergence, crash boundaries before/during/after v2 marker commit, v2 lifecycle corruption recovery/fail-closed behavior, `A active → B active/A rollback → C desired candidate`, failed candidate divergence, v2 rollback and v2-to-v1 rollback without changing production selection.
-
-## 5. Reachability-based retention and garbage collection
-
-- [x] 5.1 Implement locked protected-manifest snapshotting from the durable desired/active/rollback/publishing/retained lifecycle record, including signed-media URL grace protection and explicit desired cancellation/replacement transitions.
-- [x] 5.2 Implement dry-run GC plan, selector-generation fencing, per-object revalidation, deletion receipt and fail-closed malformed/paginated-list handling.
-- [x] 5.3 Add concurrency, interrupted lifecycle, rollback and protected-blob regression coverage; prove that ordinary GC cannot delete a reachable blob or any manifest.
-
-## 6. Migration evidence and operational handoff
-
-- [ ] 6.1 Publish disposable Git-bound protocol candidates and one complete fixed-v1-import v2 candidate; verify dedupe savings, blob closure, candidate mount and rollback materialization with immutable receipts.
-- [ ] 6.2 Update OSS release runbooks and `server-ops` skill with measured role, mount, materialization, GC, rollback and capacity evidence.
-- [ ] 6.3 Complete targeted tests, typecheck, lint, runtime/deploy suites and build; prepare separate production-switch and v1-retirement checklists for explicit user authorization.
+- [ ] 4.1 Keep ECS on `act-runtime-oss-read` for normal serving; verify its Put/Delete/Abort denial and record the separate local publisher credential-provider setup without committing credentials.
+- [ ] 4.2 Produce daily, sample and full audit reports with release identity, parent identity, changed counts, body bytes hashed, metadata requests, uploaded bytes, materialization/smoke timing and capacity projection.
+- [ ] 4.3 Update runtime deployment and server-ops runbooks with local-publisher/ECS-reader separation, recovery, GC, audit and rollback evidence.
+- [ ] 4.4 Run targeted tests, typecheck, lint, runtime/deploy suites and build; prepare a separate production-selection and v1-retirement checklist for explicit authorization.
