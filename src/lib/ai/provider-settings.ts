@@ -18,7 +18,7 @@ import {
 export const AI_PROVIDER_SETTINGS_KEY = 'ai_provider_settings';
 export const AI_PROVIDER_SETTINGS_AUDIT_KEY = 'ai_provider_settings_audit';
 const SECRET_REF_PATTERN = /^env:[A-Z][A-Z0-9_]*$/;
-type AIProviderSettingsDb = Pick<typeof prisma, 'platformSetting'>;
+export type AIProviderSettingsDb = Pick<typeof prisma, 'platformSetting'>;
 
 export interface AIProviderModelSetting {
   id: string;

@@ -5,28 +5,43 @@
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
   AI_PROVIDER_SETTINGS_KEY,
+  AIProviderSettingsDb,
   getDefaultAIProviderSettings,
   normalizeAIProviderSettings,
   setAIProviderSettings,
   withSiliconFlowQwenDefault,
 } from '../../src/lib/ai/provider-settings';
 
+export interface SyncSiliconFlowQwenDefaultResult {
+  changed: boolean;
+  selectedModel: string;
+}
+
+export async function syncSiliconFlowQwenDefault(
+  db: AIProviderSettingsDb,
+  logger: (message: string) => void = (message) => console.log(message),
+): Promise<SyncSiliconFlowQwenDefaultResult> {
+  const row = await db.platformSetting.findUnique({
+    where: { key: AI_PROVIDER_SETTINGS_KEY },
+    select: { value: true },
+  });
+  const current = normalizeAIProviderSettings(row?.value, getDefaultAIProviderSettings());
+  const next = withSiliconFlowQwenDefault(current);
+  const siliconflow = next.providers.find((provider) => provider.id === 'siliconflow');
+  const selectedModel = siliconflow?.selectedModel ?? '';
+  if (JSON.stringify(next) === JSON.stringify(current)) {
+    logger(`SiliconFlow selectedModel is already ${selectedModel}.`);
+    return { changed: false, selectedModel };
+  }
+  await setAIProviderSettings(next, db);
+  logger(`Updated SiliconFlow selectedModel to ${selectedModel}.`);
+  return { changed: true, selectedModel };
+}
+
 async function main() {
   const prisma = createPrismaClient();
   try {
-    const row = await prisma.platformSetting.findUnique({
-      where: { key: AI_PROVIDER_SETTINGS_KEY },
-      select: { value: true },
-    });
-    const current = normalizeAIProviderSettings(row?.value, getDefaultAIProviderSettings());
-    const next = withSiliconFlowQwenDefault(current);
-    if (JSON.stringify(next) === JSON.stringify(current)) {
-      console.log('SiliconFlow selectedModel is already Qwen/Qwen3.6-35B-A3B.');
-      return;
-    }
-    await setAIProviderSettings(next, prisma);
-    const siliconflow = next.providers.find((provider) => provider.id === 'siliconflow');
-    console.log(`Updated SiliconFlow selectedModel to ${siliconflow?.selectedModel ?? 'unknown'}.`);
+    await syncSiliconFlowQwenDefault(prisma);
   } finally {
     await prisma.$disconnect();
   }
