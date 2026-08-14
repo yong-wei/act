@@ -1314,6 +1314,11 @@ export async function loadAndValidateRegisteredPublicBundleV2(options: {
   if (selectedRuntime.identity.projectionProfile !== runtimeProfile.profileId) {
     integrity('runtime projection does not bind the registered v0.18 Projection v3 profile', registry);
   }
+  const runtimeRelationIds = new Set(
+    records(selectedRuntime.payload.links ?? [], 'runtime.links', registry).map((link, index) => (
+      string(link.relation_id, `runtime.links[${index}].relation_id`, registry)
+    )),
+  );
 
   for (const entry of projections) {
     const nodes = records(entry.payload.nodes ?? [], `${entry.artifact.descriptor.path}.nodes`, registry);
@@ -1431,7 +1436,16 @@ export async function loadAndValidateRegisteredPublicBundleV2(options: {
   }
   const runtimeMetadata = allLinkMetadata
     .filter((entry) => entry.profiles.includes('runtime'))
-    .flatMap((entry) => entry.rows);
+    .flatMap((entry) => entry.rows)
+    .filter((row) => runtimeRelationIds.has(row.relationId));
+  if (runtimeMetadata.length === 0) integrity('runtime projection lacks link metadata coverage', registry);
+  const runtimeMetadataIds = new Set(runtimeMetadata.map((row) => row.relationId));
+  if (
+    runtimeMetadataIds.size !== runtimeMetadata.length
+    || canonicalJson([...runtimeMetadataIds].sort()) !== canonicalJson([...runtimeRelationIds].sort())
+  ) {
+    integrity('runtime link metadata is not one-to-one closed', registry);
+  }
 
   const labelArtifacts = byRole.get('multilingual_label_index') ?? [];
   if (labelArtifacts.length !== 1) {

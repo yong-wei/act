@@ -326,7 +326,7 @@ const buildBlobStateFromV1 = (source) => {
   const receiptWire = Buffer.from(`${stable(receipt)}\n`);
   return { files, manifest, wire, receiptWire, prefix, manifestKey, receiptKey: `${prefix}receipt.json` };
 };
-const blobHeaderFor = (data, parent) => JSON.stringify({
+const blobHeaderFor = (data, parent, { strict = false } = {}) => JSON.stringify({
   protocol: 'act-runtime-blob-release-stream.v2',
   releaseId: data.manifest.releaseId,
   prefix: data.prefix,
@@ -335,6 +335,7 @@ const blobHeaderFor = (data, parent) => JSON.stringify({
   manifestWireBase64: data.wire.toString('base64url'),
   receiptWireSha256: sha(data.receiptWire),
   receiptWireBase64: data.receiptWire.toString('base64url'),
+  ...(strict ? { sourceIdentityMode: 'strict-bundle' } : {}),
   ...(parent ? { parentRelease: { releaseId: parent.manifest.releaseId, manifestSha256: parent.manifest.manifestSha256 } } : {}),
 });
 const blobImportHeaderFor = (source, target) => JSON.stringify({
@@ -412,7 +413,7 @@ async function publish({ data = state, crashAfterFrame = false, frameBytes = byt
   return JSON.parse(final.value);
 }
 
-async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {}, local = false } = {}) {
+async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {}, local = false, strict = false } = {}) {
   const localArguments = local ? [
     '--credential-mode', 'local',
     '--ossutil-path', fakeOssutil,
@@ -444,7 +445,7 @@ async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = 
   child.stderr.on('data', (chunk) => stderr.push(chunk));
   const reader = createInterface({ input: child.stdout });
   const lines = reader[Symbol.asyncIterator]();
-  child.stdin.write(`${blobHeaderFor(data, parent)}\n`);
+  child.stdin.write(`${blobHeaderFor(data, parent, { strict })}\n`);
   const first = await lines.next();
   if (first.done) {
     const result = await close(child);
@@ -614,6 +615,22 @@ try {
   assert.equal(externalBlobReceipt.status, 'complete', 'declared generated inputs must be accepted by the publisher bridge');
   const publishedExternalManifest = JSON.parse(await readFile(path.join(ossRoot, externalBlobState.manifestKey), 'utf8'));
   assert.deepEqual(publishedExternalManifest.files[0].source, externalSource, 'publisher must preserve external source identity in the immutable manifest');
+  const strictSource = {
+    ...externalSource,
+    bundleSemanticSha256: 'b'.repeat(64),
+    bundleWireSha256: 'c'.repeat(64),
+  };
+  const strictBlobState = buildBlobState('4'.repeat(40), bytes, {
+    'lessons/1-1/media/shared-a.bin': strictSource,
+    'lessons/1-2/media/shared-b.bin': { gitObjectId: 'd'.repeat(40) },
+  });
+  const strictBlobReceipt = await publishBlob({ data: strictBlobState, strict: true });
+  assert.equal(strictBlobReceipt.status, 'complete', 'strict bundle source identities must be accepted only with the strict stream marker');
+  await assert.rejects(
+    () => publishBlob({ data: externalBlobState, strict: true }),
+    /blob bridge failed before state/,
+    'strict bundle source identities must not be accepted by the legacy stream mode',
+  );
   const mixedSource = {
     gitObjectId: 'b'.repeat(40),
     externalInputId: externalSource.externalInputId,

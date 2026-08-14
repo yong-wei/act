@@ -7,8 +7,16 @@ import { promisify } from 'node:util';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildGitRuntimeBlobReleaseSnapshot, openGitRuntimeBlobReleaseSnapshot } from '../runtime-release-git-snapshot';
+import { buildGitRuntimeBlobReleaseSnapshot, openGitRuntimeBlobReleaseSnapshot, verifyGitRuntimeSnapshotFile } from '../runtime-release-git-snapshot';
 import { buildRuntimeBlobReleaseManifestFromFiles } from '../runtime-release';
+import {
+  buildExternalInputBundle,
+  EXTERNAL_INPUT_BUNDLE_PREFIXES,
+  EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES,
+  serializeExternalInputBundle,
+  serializeExternalInputBundleDeclaration,
+} from '../runtime-external-input-bundle';
+import { stableStringify } from '../aggregate-governance/hash';
 
 const execFile = promisify(execFileCallback);
 const roots: string[] = [];
@@ -16,6 +24,16 @@ const roots: string[] = [];
 async function git(root: string, ...args: string[]) {
   const result = await execFile('git', args, { cwd: root });
   return result.stdout.trim();
+}
+
+async function runtimeTreeDigest(root: string, revision: string) {
+  const result = await execFile('git', ['ls-tree', '-r', '--full-tree', revision, '--', 'course-content/runtime'], { cwd: root });
+  const entries = result.stdout.split('\n').filter(Boolean).map((entry) => {
+    const tab = entry.indexOf('\t');
+    const header = entry.slice(0, tab).split(' ');
+    return { path: entry.slice(tab + 1).slice('course-content/runtime/'.length), objectId: header[2] };
+  }).sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+  return createHash('sha256').update(stableStringify(entries)).digest('hex');
 }
 
 async function fixture() {
@@ -55,7 +73,8 @@ describe('Git-backed runtime release snapshots', () => {
     const second = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
     expect(second.manifest).toEqual(first.manifest);
     expect(first.manifest.files.map((file) => file.path)).toEqual(['lessons/lesson.json']);
-    expect(first.manifest.files[0]?.source).toEqual({ gitObjectId: first.filesByPath.get('lessons/lesson.json')?.blobObjectId });
+    const firstSource = first.filesByPath.get('lessons/lesson.json');
+    expect(first.manifest.files[0]?.source).toEqual({ gitObjectId: firstSource && 'blobObjectId' in firstSource ? firstSource.blobObjectId : undefined });
     expect(first.stats).toEqual({ reusedFileCount: 0, reusedBytes: 0, hashedFileCount: 1, hashedBytes: 23 });
     const source = await first.openFile('lessons/lesson.json');
     const chunks: Buffer[] = [];
@@ -91,7 +110,9 @@ describe('Git-backed runtime release snapshots', () => {
 
     expect(reopened.manifest).toEqual(planned.manifest);
     expect(reopened.stats).toEqual({ reusedFileCount: 0, reusedBytes: 0, hashedFileCount: 0, hashedBytes: 0 });
-    expect(reopened.filesByPath.get('lessons/lesson.json')?.blobObjectId).toBe(planned.filesByPath.get('lessons/lesson.json')?.blobObjectId);
+    const reopenedSource = reopened.filesByPath.get('lessons/lesson.json');
+    const plannedSource = planned.filesByPath.get('lessons/lesson.json');
+    expect(reopenedSource && 'blobObjectId' in reopenedSource ? reopenedSource.blobObjectId : undefined).toBe(plannedSource && 'blobObjectId' in plannedSource ? plannedSource.blobObjectId : undefined);
   });
 
   it('hashes only target Git objects absent from the parent manifest', async () => {
@@ -266,6 +287,73 @@ describe('Git-backed runtime release snapshots', () => {
     await git(root, 'commit', '-m', 'symlink');
     const sourceRevision = await git(root, 'rev-parse', 'HEAD');
     await expect(buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: sourceRevision })).rejects.toThrow(/unsupported entry|entry/);
+  });
+
+  it('combines the exact external bundle with an unchanged Git capture and rejects source drift', async () => {
+    const { root, sourceRevision: baseRevision } = await fixture();
+    const runtimeRoot = path.join(root, 'course-content', 'runtime');
+    const externalPath = path.join(runtimeRoot, 'knowledge', 'infographs', 'authority', 'a.svg');
+    await mkdir(path.dirname(externalPath), { recursive: true });
+    const externalBytes = Buffer.from('external bytes\n');
+    await writeFile(externalPath, externalBytes);
+    const bundle = buildExternalInputBundle({
+      externalInputId: 'current-production-runtime-v1',
+      sourceRevision: baseRevision,
+      baseSourceRevision: baseRevision,
+      provenance: {
+        schemaVersion: 'act.textbook-runtime-input-provenance.v1',
+        sourceRevision: baseRevision,
+        inputDigest: 'b'.repeat(64),
+        inputFileCount: 1,
+      },
+      generator: { id: 'test-generator', version: '1' },
+      overlay: {
+        baseSourceRevision: baseRevision,
+        baseRuntimeTreeSha256: await runtimeTreeDigest(root, baseRevision),
+        replacedPrefixes: [...EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES],
+        generatedPrefixes: [...EXTERNAL_INPUT_BUNDLE_PREFIXES],
+        generatedTreeSha256: 'c'.repeat(64),
+      },
+      files: [{
+        path: 'knowledge/infographs/authority/a.svg',
+        sizeBytes: externalBytes.byteLength,
+        sha256: createHash('sha256').update(externalBytes).digest('hex'),
+        absolutePath: externalPath,
+      }],
+      root: runtimeRoot,
+    });
+    await writeFile(path.join(root, 'course-content', 'authoring', 'runtime-external-input-bundles.v1.json'), serializeExternalInputBundleDeclaration({
+      schemaVersion: 'act-runtime-external-input-bundles.v1',
+      inputs: [{
+        externalInputId: bundle.externalInputId,
+        prefixes: bundle.prefixes,
+        bundleSemanticSha256: bundle.manifestSha256,
+        bundleWireSha256: bundle.wireSha256,
+        sourceRevision: bundle.sourceRevision,
+        baseSourceRevision: bundle.baseSourceRevision,
+        overlaySha256: bundle.overlaySha256,
+        inputDigest: bundle.provenance.inputDigest,
+        inputFileCount: bundle.provenance.inputFileCount,
+      }],
+    }));
+    await git(root, 'add', 'course-content/authoring/runtime-external-input-bundles.v1.json');
+    await git(root, 'commit', '-m', 'bind external runtime bundle');
+    const targetRevision = await git(root, 'rev-parse', 'HEAD');
+
+    const snapshot = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision: targetRevision, integrationRef: 'integration', externalBundle: bundle });
+    expect(snapshot.manifest.files).toHaveLength(2);
+    expect(snapshot.manifest.files.find((file) => file.path === 'knowledge/infographs/authority/a.svg')?.source).toMatchObject({
+      externalInputId: bundle.externalInputId,
+      bundleSemanticSha256: bundle.manifestSha256,
+      bundleWireSha256: bundle.wireSha256,
+    });
+    expect(snapshot.stats.reusedFileCount).toBe(1);
+    const externalFile = snapshot.manifest.files.find((file) => file.path === 'knowledge/infographs/authority/a.svg');
+    if (!externalFile) throw new Error('external fixture missing');
+    await verifyGitRuntimeSnapshotFile({ snapshot, file: externalFile });
+    await writeFile(externalPath, 'drifted bytes\n');
+    await expect(verifyGitRuntimeSnapshotFile({ snapshot, file: externalFile })).rejects.toMatchObject({ code: 'runtime-release-external-source-changed' });
+    expect(serializeExternalInputBundle(bundle)).not.toContain(runtimeRoot);
   });
 
   it('rejects gitlink entries from the Git runtime tree', async () => {

@@ -35,6 +35,7 @@ import {
   type ActRuntimeReleaseManifest,
 } from '@/lib/runtime-release';
 import type { GitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
+import { verifyExternalInputBundleFilesystem } from '@/lib/runtime-external-input-bundle';
 
 const RELEASE_KEY_PREFIX = 'runtime/releases/';
 const BLOB_RELEASE_KEY_PREFIX = 'runtime/blob-releases/';
@@ -611,6 +612,38 @@ async function streamSourceFrame(child: ChildProcess, sourceFactory: () => Promi
   }
 }
 
+async function verifyExternalBundleBytes(snapshot: GitRuntimeBlobReleaseSnapshot, manifest: ActRuntimeBlobReleaseManifest) {
+  if (!snapshot.externalBundle) return;
+  const bundlePaths = new Set(snapshot.externalBundle.files.map((file) => file.path));
+  const gitPaths = new Set([...snapshot.filesByPath.keys()].filter((relativePath) => !bundlePaths.has(relativePath)));
+  try {
+    await verifyExternalInputBundleFilesystem(snapshot.externalBundle, gitPaths);
+  } catch (error) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-external-source-changed', error instanceof Error ? error.message : String(error), { cause: error });
+  }
+  for (const bundleFile of snapshot.externalBundle.files) {
+    const manifestFile = manifest.files.find((file) => file.path === bundleFile.path);
+    if (!manifestFile || !manifestFile.source || !('bundleSemanticSha256' in manifestFile.source)) {
+      throw new RuntimeReleaseStreamingPublisherError('runtime-release-external-source-missing', `External bundle path is not present with a strict source identity: ${bundleFile.path}.`);
+    }
+    const source = await snapshot.openFile(bundleFile.path);
+    const hash = createHash('sha256');
+    let sizeBytes = 0;
+    try {
+      for await (const chunk of source) {
+        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        hash.update(bytes);
+        sizeBytes += bytes.byteLength;
+      }
+    } catch (error) {
+      throw new RuntimeReleaseStreamingPublisherError('runtime-release-stream-source-failed', `External bundle source stream failed for ${bundleFile.path}.`, { cause: error });
+    }
+    if (sizeBytes !== bundleFile.sizeBytes || hash.digest('hex') !== bundleFile.sha256 || manifestFile.sizeBytes !== bundleFile.sizeBytes || manifestFile.sha256 !== bundleFile.sha256) {
+      throw new RuntimeReleaseStreamingPublisherError('runtime-release-external-source-changed', `External bundle bytes differ from the prepared manifest for ${bundleFile.path}.`);
+    }
+  }
+}
+
 function parsePublishReceipt(message: PublishControlMessage, manifest: ActRuntimeReleaseManifest): RuntimeReleaseVerificationReceipt {
   const expectedWireSha256 = computeRuntimeReleaseManifestWireSha256(manifest);
   if (
@@ -795,6 +828,7 @@ async function publishRuntimeBlobReleaseStream(input: {
   ) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-git-source-mismatch', 'Git snapshot identity does not match the submitted blob manifest.');
   }
+  await verifyExternalBundleBytes(input.snapshot, input.manifest);
   const child = spawnChild(input.spawn, input.bridge.command, input.bridge.args);
   if (!child.stdin || !child.stdout) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'Blob publish bridge did not provide bidirectional streams.');
@@ -815,6 +849,7 @@ async function publishRuntimeBlobReleaseStream(input: {
     manifestWireBase64: manifestWireBytes.toString('base64url'),
     receiptWireSha256: createHash('sha256').update(receiptWireBytes).digest('hex'),
     receiptWireBase64: receiptWireBytes.toString('base64url'),
+    ...(input.snapshot.externalBundle ? { sourceIdentityMode: 'strict-bundle' } : {}),
     ...(input.snapshot.parentManifest ? {
       parentRelease: {
         releaseId: input.snapshot.parentManifest.releaseId,
