@@ -66,6 +66,31 @@ profile, label, component, and statistics records. Downstream code must branch
 on the validated protocol version rather than treating the new fields as
 optional additions to the v1 type.
 
+### 5. Accepted Sol DECIDE=A: registry-controlled admission binding
+
+The upstream v0.18 Manifest is immutable input and carries only
+`source_revision:{tag,commit}`. The offline loader first verifies the exact raw
+Manifest hash, then validates every declared artifact, component and the
+Manifest `source_revision` against the reviewed registry. It never reads an
+upstream Git checkout and never claims that the Manifest or Bundle declared the
+publication tag.
+
+Publication-tag and source-tag target checks remain a separate admission-time
+gate. The gate receives a controlled upstream Git root, checks the pinned
+repository identity, and independently resolves both `tag^{commit}` targets
+against the frozen registry. Missing tags, wrong repositories, and retargeted
+tags fail closed. Its gate-only report may carry the gate's `status:'PASS'`, but
+it is never accepted as loader input and is not a cryptographic signature.
+
+The loader result keeps `manifestSourceRevision` (Manifest-only) and emits a
+`registeredAdmissionBinding` copied from the module-controlled, deeply frozen
+registry. The binding records `provenance:'registry'`,
+`verificationScope:'admission-time'`, `verifiedDuringLoad:false`, repository,
+publication/source tag commits, and Bundle identity. It is a fresh frozen copy,
+so callers cannot replace or mutate registry state. A later tag retarget cannot
+change an already loaded offline Bundle; it only causes a new admission check
+to fail. Caller-supplied admission, proof, or registry fields are rejected.
+
 ## Risks / Trade-offs
 
 - Exact pinning requires a new review for the next Bundle or Schema identity;
