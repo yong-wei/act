@@ -1,7 +1,62 @@
 {
-  "captureRevision": "f22c04748",
-  "capturedAt": "2026-08-14T04:48:49.433Z",
-  "flow": "path execution -> resource -> return -> path center",
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "status": "passed",
+  "capturedAt": "2026-08-14T09:28:14.772Z",
+  "sourceRevision": "0104095050c8b50f7a5f85ed1c39cc074cb626e7",
+  "treeSha": "06fb5a93fd92b81e12d27536f0e81cb762d11b6e",
+  "serviceRevisionProof": {
+    "commitSha": "0104095050c8b50f7a5f85ed1c39cc074cb626e7",
+    "treeSha": "06fb5a93fd92b81e12d27536f0e81cb762d11b6e",
+    "sourceFingerprint": "35480d1e97b168534e6af495828cf75d0439d0fb30f487069a0e508864933ea3",
+    "clean": true
+  },
+  "sourceFiles": [
+    {
+      "file": "src/features/adaptive/adaptive-path-journey-control.tsx",
+      "gitBlobId": "bc024a282ac7014821c063eed75b03908fe72f87",
+      "sha256": "59e3984b68d9b84976db0eab843648655770bc5f001768a5fe467bfc758c8560"
+    },
+    {
+      "file": "src/features/interactive/__tests__/adaptive-path-journey-control.client.test.tsx",
+      "gitBlobId": "cd6a182e4df46cd12654ea678150ad2c1819aaec",
+      "sha256": "dc07e3b19aaa4b820f9560ae3576509dd5c4a153938a1aca29c99fd181868b60"
+    },
+    {
+      "file": "src/lib/__tests__/adaptive-path-journey-control.test.ts",
+      "gitBlobId": "29a7d6ac0c6661c471197dfa3378f736057ab892",
+      "sha256": "afd524dc81185632ced26b8b60791059092db6a0428aeafa3c63c40d6439a745"
+    },
+    {
+      "file": "openspec/changes/fix-path-resource-return-center/specs/adaptive-learning-center-ui/spec.md",
+      "gitBlobId": "62fc44703915bd90c5961aa64da1c7036f20c16b",
+      "sha256": "f62670e2b48c9f0454e39315213a9a3e211740609a87144af69d7063349417e2"
+    },
+    {
+      "file": "src/lib/commercial-ui-capture-revision.ts",
+      "gitBlobId": "219ee19f27cf59631a0bcbbcd3c3c9e87aedb0bb",
+      "sha256": "b2bd5af4cd3dac341531bd34df6cd481010eb3816b179bff8d3f5e03534e9afc"
+    },
+    {
+      "file": "src/app/api/internal/local-qa/revision/route.ts",
+      "gitBlobId": "c8a8fb215e611def4373a376958f22ab64890f58",
+      "sha256": "8e9f2143eb25abf1d408617719140e7684e7ba151c28e5ec3d6a3014d8f122b5"
+    },
+    {
+      "file": "artifacts/commercial-ui/pr-1387-return-center/capture-evidence.mjs",
+      "gitBlobId": "935e37332fcbe93ff8dd00cb671df66fc5f40ac8",
+      "sha256": "6adb27c1b111d4ba569262401b09d206204fd205aeb52c7650393188ec2e59a7"
+    }
+  ],
+  "baseUrl": "http://localhost:3002",
+  "flow": "path execution -> blocked journey resource -> deduplicated return -> path center",
+  "fixtureBoundary": "The resource body, blocked journey payload, and unauthenticated AI conversation list are deterministic browser fixtures; the journey-control rendering, return href, click navigation, and path-center landing are production code from the bound source revision.",
+  "assertions": {
+    "oneVisibleReturnAction": true,
+    "duplicateRecoverySuppressed": true,
+    "goalOnlyReturnHref": true,
+    "executionAndCandidateParametersCleared": true,
+    "responsiveNoHorizontalOverflow": true
+  },
   "results": [
     {
       "viewport": {
@@ -9,17 +64,18 @@
         "width": 1440,
         "height": 1100
       },
-      "resourceUrl": "http://127.0.0.1:3002/interactive-learning/resources/lesson13-cruise-bridge?demo=1&source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction%3Acandidate_0c39810885f0a7c9f8de713f&nodeId=registry%3Alesson13-cruise-bridge&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dadaptive-path%253Acmma7hfvd0061g9q2jqfd291i%253Acontrol-correction%253Acandidate_0c39810885f0a7c9f8de713f%26nodeId%3Dregistry%253Alesson13-cruise-bridge&resourceType=knowledge_card",
+      "resourceUrl": "http://localhost:3002/interactive-learning/resources/lesson13-cruise-bridge?demo=1&source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction%3Acandidate_0c39810885f0a7c9f8de713f&nodeId=registry%3Alesson13-cruise-bridge&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dadaptive-path%253Acmma7hfvd0061g9q2jqfd291i%253Acontrol-correction%253Acandidate_0c39810885f0a7c9f8de713f%26nodeId%3Dregistry%253Alesson13-cruise-bridge&resourceType=knowledge_card",
+      "returnActionCount": 1,
       "returnHref": "/assessment/adaptive-practice?goal=control-correction",
-      "returnedUrl": "http://127.0.0.1:3002/assessment/adaptive-practice?goal=control-correction",
-      "consoleErrors": [
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=zy2pZawwroo7k_sfSKqiA' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ]
+      "recoveryActionCount": 0,
+      "returnedUrl": "http://localhost:3002/assessment/adaptive-practice?goal=control-correction",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "responseFailures": [],
+      "resourceScreenshot": "resource-desktop.png",
+      "resourceScreenshotSha256": "8e00ec132a413dd0cd453ea2032f7f99971d09fa30b89b0fbefcfafb5a2403ea",
+      "centerScreenshot": "center-after-return-desktop.png",
+      "centerScreenshotSha256": "6bf1eb09ec67872ab2aa35558c0452d181be917c1d3aa7850ccb2f6a8348730f"
     },
     {
       "viewport": {
@@ -27,17 +83,18 @@
         "width": 320,
         "height": 1200
       },
-      "resourceUrl": "http://127.0.0.1:3002/interactive-learning/resources/lesson13-cruise-bridge?demo=1&source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction%3Acandidate_0c39810885f0a7c9f8de713f&nodeId=registry%3Alesson13-cruise-bridge&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dadaptive-path%253Acmma7hfvd0061g9q2jqfd291i%253Acontrol-correction%253Acandidate_0c39810885f0a7c9f8de713f%26nodeId%3Dregistry%253Alesson13-cruise-bridge&resourceType=knowledge_card",
+      "resourceUrl": "http://localhost:3002/interactive-learning/resources/lesson13-cruise-bridge?demo=1&source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction%3Acandidate_0c39810885f0a7c9f8de713f&nodeId=registry%3Alesson13-cruise-bridge&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dadaptive-path%253Acmma7hfvd0061g9q2jqfd291i%253Acontrol-correction%253Acandidate_0c39810885f0a7c9f8de713f%26nodeId%3Dregistry%253Alesson13-cruise-bridge&resourceType=knowledge_card",
+      "returnActionCount": 1,
       "returnHref": "/assessment/adaptive-practice?goal=control-correction",
-      "returnedUrl": "http://127.0.0.1:3002/assessment/adaptive-practice?goal=control-correction",
-      "consoleErrors": [
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
-        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=SAy9gDKr_rkmzGMJF5BA-' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
-      ]
+      "recoveryActionCount": 0,
+      "returnedUrl": "http://localhost:3002/assessment/adaptive-practice?goal=control-correction",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "responseFailures": [],
+      "resourceScreenshot": "resource-mobile-320.png",
+      "resourceScreenshotSha256": "5bc5af8e968da48a03925580e062a24aa9b383aaabfa2b7a5022a9e2d3c56d00",
+      "centerScreenshot": "center-after-return-mobile-320.png",
+      "centerScreenshotSha256": "047b28345a8a9eae047798e2319b7c9a86c2d09d11a66e4038d1fc54b0ddf611"
     }
   ]
 }
