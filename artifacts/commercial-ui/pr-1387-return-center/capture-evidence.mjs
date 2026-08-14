@@ -135,6 +135,34 @@ try {
         body: JSON.stringify(blockedJourney()),
       });
     });
+    await page.route('**/api/resources/lesson13-cruise-bridge', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'lesson13-cruise-bridge',
+          title: '巡航控制桥接',
+          displayName: '巡航控制桥接',
+          description: '学习路径返回控制验收资源',
+          type: 'STATIC_TEXT',
+          content: '# 巡航控制桥接\n\n此页面用于验证学习路径返回控制。',
+          registryId: null,
+          config: null,
+          aiHints: null,
+        }),
+      });
+    });
+    await page.route('**/api/ai/sessions', async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ conversations: [] }),
+      });
+    });
 
     await page.goto(`${baseUrl}${resourceRoute}`, { waitUntil: 'domcontentloaded' });
     const returnLink = page.getByRole('link', { name: '返回学习路径', exact: true });
@@ -206,6 +234,7 @@ await writeFile(path.join(outputDir, 'return-flow-evidence.json'), `${JSON.strin
   sourceFiles: sourceSnapshot.files,
   baseUrl,
   flow: 'path execution -> blocked journey resource -> deduplicated return -> path center',
+  fixtureBoundary: 'The resource body, blocked journey payload, and unauthenticated AI conversation list are deterministic browser fixtures; the journey-control rendering, return href, click navigation, and path-center landing are production code from the bound source revision.',
   assertions: {
     oneVisibleReturnAction: true,
     duplicateRecoverySuppressed: true,
