@@ -34,6 +34,7 @@ RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 GIT_REVISION = re.compile(r"^[a-f0-9]{40}$")
 GIT_OBJECT_ID = re.compile(r"^(?:[a-f0-9]{40}|[a-f0-9]{64})$")
+EXTERNAL_INPUT_ID = re.compile(r"^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$")
 BLOB_PREFIX = "runtime/blobs/sha256/"
 TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
     "resources/textbook-retrieval/bodies.utf8",
@@ -130,6 +131,32 @@ def derive_release_id(source_revision: str, tree_sha256: str) -> str:
     return "runtime-" + digest({"sourceRevision": source_revision, "treeSha256": tree_sha256})[:55]
 
 
+def parse_manifest_source(source: Any, label: str) -> Dict[str, str]:
+    if not isinstance(source, dict):
+        fail("%s is invalid" % label)
+    keys = set(source)
+    if keys == {"gitObjectId"}:
+        git_object_id = require_string(source["gitObjectId"], "%s.gitObjectId" % label).lower()
+        if not GIT_OBJECT_ID.fullmatch(git_object_id):
+            fail("%s.gitObjectId is invalid" % label)
+        return {"gitObjectId": git_object_id}
+    if keys == {"externalInputId", "externalInputManifestObjectId"}:
+        external_input_id = require_string(source["externalInputId"], "%s.externalInputId" % label)
+        manifest_object_id = require_string(
+            source["externalInputManifestObjectId"],
+            "%s.externalInputManifestObjectId" % label,
+        ).lower()
+        if not EXTERNAL_INPUT_ID.fullmatch(external_input_id):
+            fail("%s.externalInputId is invalid" % label)
+        if not GIT_OBJECT_ID.fullmatch(manifest_object_id):
+            fail("%s.externalInputManifestObjectId is invalid" % label)
+        return {
+            "externalInputId": external_input_id,
+            "externalInputManifestObjectId": manifest_object_id,
+        }
+    fail("%s has unsupported or missing fields" % label)
+
+
 def parse_manifest(path: Path) -> Tuple[Dict[str, Any], bytes]:
     require_regular(path, "manifest")
     wire = path.read_bytes()
@@ -158,11 +185,7 @@ def parse_manifest(path: Path) -> Tuple[Dict[str, Any], bytes]:
             fail("manifest.files[%d].objectKey is not blob-addressed" % index)
         parsed = {"path": relative, "objectKey": object_key, "sizeBytes": require_integer(item["sizeBytes"], "manifest.files[%d].sizeBytes" % index), "sha256": file_sha}
         if "source" in item:
-            source = require_exact_keys(item["source"], ["gitObjectId"], "manifest.files[%d].source" % index)
-            git_object_id = require_string(source["gitObjectId"], "manifest.files[%d].source.gitObjectId" % index).lower()
-            if source["gitObjectId"] != git_object_id or not GIT_OBJECT_ID.fullmatch(git_object_id):
-                fail("manifest.files[%d].source.gitObjectId is invalid" % index)
-            parsed["source"] = {"gitObjectId": git_object_id}
+            parsed["source"] = parse_manifest_source(item["source"], "manifest.files[%d].source" % index)
         files.append(parsed)
     if files != sorted(files, key=lambda item: item["path"]):
         fail("manifest.files must be strictly code-point sorted")

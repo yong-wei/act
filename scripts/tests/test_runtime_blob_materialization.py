@@ -33,19 +33,23 @@ def digest(value):
     return hashlib.sha256(canonical(value)).hexdigest()
 
 
-def write_release(root: Path, contents):
+def write_release(root: Path, contents, sources=None):
+    sources = sources or {}
     blob_root = root / "blobs"
     blob_root.mkdir(parents=True)
     files = []
     for relative, body in sorted(contents.items()):
         sha = hashlib.sha256(body).hexdigest()
         (blob_root / sha).write_bytes(body)
-        files.append({
+        item = {
             "path": relative,
             "objectKey": "runtime/blobs/sha256/" + sha,
             "sizeBytes": len(body),
             "sha256": sha,
-        })
+        }
+        if relative in sources:
+            item["source"] = sources[relative]
+        files.append(item)
     tree = digest([{"path": item["path"], "sizeBytes": item["sizeBytes"], "sha256": item["sha256"]} for item in files])
     source_revision = "a" * 40
     release_id = "runtime-" + digest({"sourceRevision": source_revision, "treeSha256": tree})[:55]
@@ -187,6 +191,56 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertTrue(selected["selected"])
             self.assertEqual(os.readlink(view_root / "current"), "views/" + release_id)
             self.assertEqual(self.call("active", "--view-root", str(view_root))["activeReleaseId"], release_id)
+
+    def test_accepts_external_input_source_identity_and_rejects_mixed_or_extra_shapes(self):
+        external_source = {
+            "externalInputId": "textbook-runtime-generated-v1",
+            "externalInputManifestObjectId": "b" * 40,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(
+                root,
+                {"resources/textbooks-v2/book.json": b"generated\n"},
+                {"resources/textbooks-v2/book.json": external_source},
+            )
+            view_root = root / "views-root"
+            prepared = self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+            )
+            self.assertTrue(prepared["prepared"])
+            materialized_manifest = json.loads(
+                (view_root / "views" / release_id / ".act-runtime-release.v2.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(materialized_manifest["files"][0]["source"], external_source)
+
+        invalid_sources = [
+            {
+                "gitObjectId": "a" * 40,
+                "externalInputId": "textbook-runtime-generated-v1",
+                "externalInputManifestObjectId": "b" * 40,
+            },
+            {
+                "externalInputId": "textbook-runtime-generated-v1",
+                "externalInputManifestObjectId": "b" * 40,
+                "extra": True,
+            },
+        ]
+        for index, invalid_source in enumerate(invalid_sources):
+            with self.subTest(index=index), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                blob_root, manifest, receipt, _ = write_release(
+                    root,
+                    {"resources/textbooks-v2/book.json": b"generated\n"},
+                    {"resources/textbooks-v2/book.json": invalid_source},
+                )
+                rejected = self.call(
+                    "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                    "--blob-root", str(blob_root), "--view-root", str(root / "views-root"),
+                    expect_ok=False,
+                )
+                self.assertIn("unsupported or missing fields", rejected.stderr)
 
     def test_rejects_corrupted_blob_receipt_and_out_of_tree_logical_link_before_selection(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -36,6 +36,8 @@ BLOB_RECEIPT_NAME = "receipt.json"
 BLOB_RECEIPT_SCHEMA_VERSION = "act-runtime-release-receipt.v2"
 BUCKET_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$")
 SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
+EXTERNAL_INPUT_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$")
+SOURCE_OBJECT_ID_PATTERN = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 ROLE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 ECS_ROLE_NAME = "act-runtime-oss-release-operator-ecs"
 EXPECTED_ECS_ROLE_NAME = ECS_ROLE_NAME
@@ -342,6 +344,37 @@ def manifest_integer(value: Any, label: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool) or value < 0 or value > MAX_SAFE_INTEGER:
         fail(f"{label} is not a non-negative safe integer")
     return value
+
+
+def parse_blob_manifest_source(source: Any, label: str) -> Dict[str, str]:
+    if not isinstance(source, dict):
+        fail(f"{label} is invalid")
+    keys = set(source)
+    if keys == {"gitObjectId"}:
+        object_id = source.get("gitObjectId")
+        if not isinstance(object_id, str):
+            fail(f"{label}.gitObjectId is invalid")
+        normalized = object_id.lower()
+        if not SOURCE_OBJECT_ID_PATTERN.fullmatch(normalized):
+            fail(f"{label}.gitObjectId is invalid")
+        return {"gitObjectId": normalized}
+    if keys == {"externalInputId", "externalInputManifestObjectId"}:
+        input_id = source.get("externalInputId")
+        manifest_object_id = source.get("externalInputManifestObjectId")
+        if (
+            not isinstance(input_id, str)
+            or not EXTERNAL_INPUT_ID_PATTERN.fullmatch(input_id)
+            or not isinstance(manifest_object_id, str)
+        ):
+            fail(f"{label} is invalid")
+        normalized_manifest_object_id = manifest_object_id.lower()
+        if not SOURCE_OBJECT_ID_PATTERN.fullmatch(normalized_manifest_object_id):
+            fail(f"{label}.externalInputManifestObjectId is invalid")
+        return {
+            "externalInputId": input_id,
+            "externalInputManifestObjectId": normalized_manifest_object_id,
+        }
+    fail(f"{label} is invalid")
 
 
 def remote_digest(bucket: str, key: str) -> Dict[str, Any]:
@@ -721,11 +754,7 @@ def expected_blob_manifest_files(manifest: Dict[str, Any]) -> List[Dict[str, Any
             fail("blob manifest object key is not SHA-256 addressed")
         source = item.get("source")
         if source is not None:
-            if not isinstance(source, dict) or set(source) != {"gitObjectId"}:
-                fail("blob manifest file source is invalid")
-            source_object_id = source.get("gitObjectId")
-            if not isinstance(source_object_id, str) or source_object_id.lower() != source_object_id or not re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", source_object_id):
-                fail("blob manifest file source Git object id is invalid")
+            source = parse_blob_manifest_source(source, f"blob manifest file source for {relative_path}")
         size = manifest_integer(size, f"blob manifest file size for {relative_path}")
         if size > MAX_FRAME_BYTES:
             fail("blob manifest file exceeds the maximum runtime frame size")
@@ -744,7 +773,7 @@ def expected_blob_manifest_files(manifest: Dict[str, Any]) -> List[Dict[str, Any
             fail("blob manifest totalBytes exceeds the maximum safe integer")
         entry = {"path": relative_path, "key": key, "sizeBytes": size, "sha256": digest}
         if source is not None:
-            entry["source"] = {"gitObjectId": source_object_id}
+            entry["source"] = source
         expected.append(entry)
     if manifest_integer(manifest.get("totalBytes"), "blob manifest.totalBytes") != total:
         fail("blob manifest.totalBytes does not match blob manifest.files")

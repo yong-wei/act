@@ -227,7 +227,7 @@ const headerFor = ({ file, manifest, wire, prefix }) => JSON.stringify({
   wireSha256: sha(wire),
   manifestWireBase64: wire.toString('base64url'),
 });
-const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes) => {
+const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes, sourceByPath = {}) => {
   const fileBytes = Array.isArray(frameBytes) ? frameBytes : [frameBytes, frameBytes];
   assert.equal(fileBytes.length, 2, 'blob test fixtures require two logical files');
   const files = [
@@ -238,6 +238,7 @@ const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes) => 
     objectKey: `runtime/blobs/sha256/${sha(fileBytes[index])}`,
     sizeBytes: fileBytes[index].byteLength,
     sha256: sha(fileBytes[index]),
+    ...(sourceByPath[filePath] ? { source: sourceByPath[filePath] } : {}),
   }));
   const treeSha256 = sha(stable(files.map(({ path: filePath, sizeBytes, sha256 }) => ({ path: filePath, sizeBytes, sha256 }))));
   const releaseId = `runtime-${sha(stable({ sourceRevision, treeSha256 })).slice(0, 55)}`;
@@ -601,6 +602,33 @@ try {
   assert.equal(blobFirst.putCount, 3, 'the first blob release writes one shared blob, receipt, then manifest');
   const blobPuts = (await readFile(blobLog, 'utf8')).trim().split('\n');
   assert.deepEqual(blobPuts.slice(-2), [blobState.receiptKey, blobState.manifestKey], 'receipt precedes the terminal immutable manifest');
+  const externalSource = {
+    externalInputId: 'textbook-runtime-generated-v1',
+    externalInputManifestObjectId: 'a'.repeat(40),
+  };
+  const externalBlobState = buildBlobState('7'.repeat(40), bytes, {
+    'lessons/1-1/media/shared-a.bin': externalSource,
+  });
+  const externalBlobReceipt = await publishBlob({ data: externalBlobState });
+  assert.equal(externalBlobReceipt.status, 'complete', 'declared generated inputs must be accepted by the publisher bridge');
+  const publishedExternalManifest = JSON.parse(await readFile(path.join(ossRoot, externalBlobState.manifestKey), 'utf8'));
+  assert.deepEqual(publishedExternalManifest.files[0].source, externalSource, 'publisher must preserve external source identity in the immutable manifest');
+  const mixedSource = {
+    gitObjectId: 'b'.repeat(40),
+    externalInputId: externalSource.externalInputId,
+    externalInputManifestObjectId: externalSource.externalInputManifestObjectId,
+  };
+  await assert.rejects(
+    () => publishBlob({ data: buildBlobState('6'.repeat(40), bytes, { 'lessons/1-1/media/shared-a.bin': mixedSource }) }),
+    /blob bridge failed before state/,
+    'mixed source identity shapes must fail closed',
+  );
+  const extraSource = { ...externalSource, unexpected: true };
+  await assert.rejects(
+    () => publishBlob({ data: buildBlobState('5'.repeat(40), bytes, { 'lessons/1-1/media/shared-a.bin': extraSource }) }),
+    /blob bridge failed before state/,
+    'source identities with extra fields must fail closed',
+  );
   const blobGetLog = path.join(temporary, 'blob-get.log');
   const blobHeadLog = path.join(temporary, 'blob-head.log');
   const blobSecond = await publishBlob({
