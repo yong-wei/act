@@ -64,6 +64,55 @@ evidence. Re-import MUST NOT duplicate mutable rows or rewrite an immutable rele
 - **WHEN** both runs use the same capture and admitted package
 - **THEN** both SHALL resolve to the same snapshot and evidence hashes
 
+### Requirement: Candidate evidence uses a two-commit source and derived contract
+
+The candidate-only evidence runner MUST distinguish a stable source
+`captureRevision` E from the `generationRevision` F being verified. F MUST be the
+current HEAD. E == F is valid; E may be an ancestor of F only when every changed
+path in E..F is below an explicitly declared derived-output path. A non-ancestor,
+an ordinary non-output change, or a generation revision that is not current HEAD
+MUST fail closed.
+
+The runner MUST resolve the complete source path membership from declared roots
+only, then compare path set, Git object type, blob bytes, and Git mode across E,
+F, and the working tree. Source and derived roots MUST be disjoint. Missing,
+extra, symlink, mode, or content drift MUST fail closed. The candidate receipt
+MUST be treated as a derived output and record both revisions, the source
+contract version, source manifest digest, the complete `sourceEntries` set from
+the declared roots (including the controlled Bundle root), and every derived
+output's path, mode, byte length, and digest. The receipt digest MAY use a
+documented canonical body-excluding-outputs scope to avoid self-reference; a
+final commit SHA MUST NOT be invented. During generation, the receipt's
+generation revision is the stable generator revision (equal to E); the
+derived-only verification of F is a
+separate read-only closeout.
+
+#### Scenario: The final evidence commit contains only derived outputs
+
+- **WHEN** E is an ancestor of current HEAD F and all E..F paths are under the
+  declared candidate output root
+- **THEN** the runner SHALL accept the capture and bind the receipt to E and F
+
+#### Scenario: A source or ordinary path changes after capture
+
+- **WHEN** E..F changes a source, code, manifest, schema, config, lock, or any
+  undeclared path
+- **THEN** the runner MUST reject the evidence even if the derived outputs are
+  otherwise valid
+
+#### Scenario: Source bytes or modes drift in the working tree
+
+- **WHEN** a declared source is missing, extra, symlinked, mode-changed, or its
+  bytes differ from E/F
+- **THEN** the runner MUST fail closed before publishing candidate evidence
+
+#### Scenario: An ignored extra controlled Bundle member appears after F
+
+- **WHEN** an additional file is placed below the declared controlled Bundle
+  root and hidden with `.git/info/exclude`
+- **THEN** the explicit source walk used by `--verify-derived` MUST reject the
+  evidence even though Git status reports no untracked path
+
 ### Requirement: Candidate import never activates knowledge consumers
 
 The workflow MUST record before-and-after hashes for Authority, Teaching
@@ -74,4 +123,3 @@ production marker pointers and MUST leave each byte-for-byte unchanged.
 
 - **WHEN** all import and reproducibility gates pass
 - **THEN** the snapshot SHALL remain staged and production SHALL continue to select v0.9
-

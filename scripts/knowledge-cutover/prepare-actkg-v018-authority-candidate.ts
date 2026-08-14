@@ -4,7 +4,7 @@ import 'dotenv/config';
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { lstat, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { lstat, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { PrismaClient } from '@prisma/client';
@@ -93,10 +93,57 @@ export const V018_CANDIDATE_CAPTURE_PATHS = [
   'src/lib/authoritative-knowledge/authority-store.ts',
   'src/lib/authoritative-knowledge/engineering-authority-consumers.ts',
   'course-content/authoring/knowledge/releases/control-theory-engineering-v0.9',
+  // The loader reads the complete controlled Bundle tree; the root is a
+  // source input, not a derived candidate output.
+  V018_ACT_CONTROLLED_PATH,
   V018_MIRROR_RECEIPT_PATH,
 ] as const;
 
 export const V018_CANDIDATE_MIGRATIONS_PATH = 'prisma/migrations' as const;
+
+/**
+ * The candidate evidence runner has a deliberately local capture contract.
+ * The generic Bundle capture helper still requires an exact HEAD; this
+ * contract is the only place where an ancestor source commit is admitted, and
+ * only when the descendant contains derived output paths.
+ */
+export const V018_CANDIDATE_SOURCE_CONTRACT_VERSION =
+  'actkg-v018-authority-candidate/source/1' as const;
+export const V018_CANDIDATE_EVIDENCE_CONTRACT =
+  'actkg-v018-authority-candidate/evidence-capture/2' as const;
+
+const GIT_FILE_MODES = new Set(['100644', '100755']);
+
+export interface V018CandidateSourceEntry {
+  path: string;
+  mode: string;
+  objectType: string;
+  gitObject: string;
+  byteLength: number;
+  sha256: string;
+}
+
+type CandidateGitEntry = V018CandidateSourceEntry;
+
+export interface V018CandidateOutputSummary {
+  path: string;
+  mode: '100644' | '100755';
+  byteLength: number;
+  sha256: string;
+  digestScope: 'bytes' | 'receipt-body-without-outputs';
+}
+
+export interface V018CandidateEvidenceCaptureContract {
+  contract: typeof V018_CANDIDATE_EVIDENCE_CONTRACT;
+  sourceContractVersion: typeof V018_CANDIDATE_SOURCE_CONTRACT_VERSION;
+  captureRevision: string;
+  generationRevision: string;
+  sourcePaths: string[];
+  derivedPaths: string[];
+  sourceManifestDigest: string;
+  sourceEntries: CandidateGitEntry[];
+  outputs: V018CandidateOutputSummary[];
+}
 
 interface PointerState {
   relativePath: string;
@@ -128,6 +175,12 @@ export interface V018AuthorityCandidateReceipt {
   deterministic: true;
   nonActivation: true;
   captureRevision: string;
+  generationRevision: string;
+  sourceContractVersion: typeof V018_CANDIDATE_SOURCE_CONTRACT_VERSION;
+  sourceManifestDigest: string;
+  sourceEntries: V018CandidateSourceEntry[];
+  derivedPaths: string[];
+  outputs: V018CandidateOutputSummary[];
   stagedAt: string;
   mirror: ActkgV018MirrorReceipt;
   validated: {
@@ -206,6 +259,403 @@ function gitBlobSha1(bytes: Buffer): string {
     .update(Buffer.from(`blob ${bytes.byteLength}\u0000`, 'utf8'))
     .update(bytes)
     .digest('hex');
+}
+
+function normalizeContractPath(value: string, label: string): string {
+  const normalized = value.trim().replaceAll('\\', '/');
+  if (
+    normalized.length === 0
+    || path.posix.isAbsolute(normalized)
+    || normalized === '.'
+    || normalized === '..'
+    || normalized.startsWith('../')
+    || normalized.includes('\u0000')
+    || path.posix.normalize(normalized) !== normalized
+  ) {
+    fail(`${label} must be a normalized repository-relative path`);
+  }
+  return normalized;
+}
+
+function contractGitText(repoRoot: string, args: string[]): string {
+  try {
+    return execFileSync('git', args, {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch {
+    fail(`candidate capture Git command failed: git ${args.join(' ')}`);
+  }
+}
+
+function contractGitEntries(
+  repoRoot: string,
+  revision: string,
+  roots: readonly string[],
+  allowEmpty = false,
+): Map<string, CandidateGitEntry> {
+  const entries = new Map<string, CandidateGitEntry>();
+  for (const root of roots) {
+    const output = contractGitText(repoRoot, [
+      'ls-tree', '-r', '-l', '-z', '--full-tree', revision, '--', root,
+    ]);
+    for (const record of output.split('\u0000').filter(Boolean)) {
+      const separator = record.indexOf('\t');
+      if (separator < 0) fail(`candidate capture Git tree entry is malformed for ${root}`);
+      const [mode, objectType, gitObject] = record.slice(0, separator).split(' ');
+      const relativePath = record.slice(separator + 1).replaceAll('\\', '/');
+      if (!mode || !objectType || !gitObject || !relativePath) {
+        fail(`candidate capture Git tree entry is incomplete for ${relativePath || root}`);
+      }
+      if (relativePath !== root && !relativePath.startsWith(`${root}/`)) {
+        fail(`candidate capture Git tree path escaped declared root: ${relativePath}`);
+      }
+      if (objectType !== 'blob' || !GIT_FILE_MODES.has(mode)) {
+        fail(`candidate source contains unsupported Git object or mode: ${relativePath}`);
+      }
+      const bytes = (() => {
+        try {
+          return execFileSync('git', ['show', `${revision}:${relativePath}`], {
+            cwd: repoRoot,
+            maxBuffer: 128 * 1024 * 1024,
+          });
+        } catch {
+          fail(`candidate capture Git blob could not be read: ${relativePath}`);
+        }
+      })();
+      const candidate: CandidateGitEntry = {
+        path: relativePath,
+        mode,
+        objectType,
+        gitObject,
+        byteLength: bytes.byteLength,
+        sha256: sha256(bytes),
+      };
+      const previous = entries.get(relativePath);
+      if (previous && canonicalJson(previous) !== canonicalJson(candidate)) {
+        fail(`candidate source path was declared more than once with different Git entries: ${relativePath}`);
+      }
+      entries.set(relativePath, candidate);
+    }
+  }
+  if (entries.size === 0 && !allowEmpty) fail('candidate source roots resolved to no Git files');
+  return entries;
+}
+
+interface WorkingCandidateEntry {
+  path: string;
+  mode: '100644' | '100755';
+  objectType: 'blob';
+  gitObject: string;
+  byteLength: number;
+  sha256: string;
+}
+
+async function workingCandidateEntries(
+  repoRoot: string,
+  roots: readonly string[],
+): Promise<Map<string, WorkingCandidateEntry>> {
+  const entries = new Map<string, WorkingCandidateEntry>();
+  const visit = async (absolutePath: string, relative: string): Promise<void> => {
+    const fileStat = await lstat(absolutePath).catch((error: unknown) => {
+      if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
+        fail(`candidate source path is missing from the working tree: ${relative}`);
+      }
+      throw error;
+    });
+    if (fileStat.isDirectory()) {
+      for (const child of await readdir(absolutePath)) {
+        await visit(path.join(absolutePath, child), path.posix.join(relative, child));
+      }
+      return;
+    }
+    if (!fileStat.isFile()) {
+      fail(`candidate source contains a symlink or unsupported file type: ${relative}`);
+    }
+    const mode = (fileStat.mode & 0o111) !== 0 ? '100755' : '100644';
+    const bytes = await readFile(absolutePath);
+    entries.set(relative, {
+      path: relative,
+      mode,
+      objectType: 'blob',
+      gitObject: gitBlobSha1(bytes),
+      byteLength: bytes.byteLength,
+      sha256: sha256(bytes),
+    });
+  };
+
+  for (const root of roots) {
+    await visit(path.join(repoRoot, root), root);
+  }
+  return entries;
+}
+
+function assertEntryMapsEqual(
+  expected: ReadonlyMap<string, CandidateGitEntry>,
+  actual: ReadonlyMap<string, CandidateGitEntry | WorkingCandidateEntry>,
+  label: string,
+): void {
+  if (expected.size !== actual.size) {
+    fail(`${label} path set drift (expected ${expected.size}, got ${actual.size})`);
+  }
+  for (const [relativePath, expectedEntry] of expected) {
+    const actualEntry = actual.get(relativePath);
+    if (!actualEntry) fail(`${label} is missing path: ${relativePath}`);
+    if (
+      actualEntry.mode !== expectedEntry.mode
+      || actualEntry.objectType !== expectedEntry.objectType
+      || actualEntry.gitObject !== expectedEntry.gitObject
+      || actualEntry.byteLength !== expectedEntry.byteLength
+      || actualEntry.sha256 !== expectedEntry.sha256
+    ) {
+      fail(`${label} drift at ${relativePath}`);
+    }
+  }
+  for (const relativePath of actual.keys()) {
+    if (!expected.has(relativePath)) fail(`${label} contains undeclared path: ${relativePath}`);
+  }
+}
+
+function pathWithin(pathValue: string, root: string): boolean {
+  return pathValue === root || pathValue.startsWith(`${root}/`);
+}
+
+function pathsOverlap(left: string, right: string): boolean {
+  return pathWithin(left, right) || pathWithin(right, left);
+}
+
+function assertSourceDerivedDisjoint(sourceRoots: readonly string[], derivedRoots: readonly string[]): void {
+  for (const source of sourceRoots) {
+    for (const derived of derivedRoots) {
+      if (pathsOverlap(source, derived)) {
+        fail(`candidate source/derived path overlap: ${source} <-> ${derived}`);
+      }
+    }
+  }
+}
+
+function gitRevision(repoRoot: string, revision: string, label: string): string {
+  if (!COMMIT.test(revision)) fail(`${label} must be a 40-character Git SHA`);
+  const resolved = contractGitText(repoRoot, ['rev-parse', '--verify', `${revision}^{commit}`]).trim();
+  if (resolved !== revision) fail(`${label} does not resolve to the requested Git commit`);
+  return resolved;
+}
+
+function assertAncestorAndDerivedDiff(
+  repoRoot: string,
+  captureRevision: string,
+  generationRevision: string,
+  derivedRoots: readonly string[],
+): void {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', captureRevision, generationRevision], {
+      cwd: repoRoot,
+      stdio: 'ignore',
+    });
+  } catch {
+    fail('captureRevision is not an ancestor of generationRevision');
+  }
+  const output = contractGitText(repoRoot, [
+    'diff-tree', '--no-commit-id', '--root', '-r', '--name-only', '-z', '--no-renames',
+    captureRevision,
+    generationRevision,
+  ]);
+  for (const changedPath of output.split('\u0000').filter(Boolean).map((value) => value.replaceAll('\\', '/'))) {
+    if (!derivedRoots.some((root) => pathWithin(changedPath, root))) {
+      fail(`capture-to-generation diff contains non-derived path: ${changedPath}`);
+    }
+  }
+}
+
+function assertWorkingTreeChangesBounded(repoRoot: string, derivedRoots: readonly string[]): void {
+  const output = contractGitText(repoRoot, ['status', '--porcelain=v1', '--untracked-files=all', '-z']);
+  const records = output.split('\u0000').filter(Boolean);
+  for (const record of records) {
+    const relativePath = record.slice(3).replaceAll('\\', '/');
+    if (!relativePath || !derivedRoots.some((root) => pathWithin(relativePath, root))) {
+      fail(`working-tree drift is outside derived output paths: ${relativePath || record}`);
+    }
+  }
+}
+
+async function candidateOutputSummaries(
+  repoRoot: string,
+  derivedRoots: readonly string[],
+): Promise<V018CandidateOutputSummary[]> {
+  const entries = await workingCandidateEntries(repoRoot, derivedRoots);
+  if (entries.size === 0) fail('candidate derived output roots contain no files');
+  return Promise.all([...entries.values()]
+    .sort((left, right) => left.path.localeCompare(right.path))
+    .map(async (entry) => {
+      if (entry.path.endsWith('/candidate-receipt.json') || entry.path === 'candidate-receipt.json') {
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse((await readFile(path.join(repoRoot, entry.path))).toString('utf8')) as unknown;
+        } catch {
+          fail(`candidate receipt output is not valid JSON: ${entry.path}`);
+        }
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          fail(`candidate receipt output must be a JSON object: ${entry.path}`);
+        }
+        return {
+          path: entry.path,
+          mode: entry.mode,
+          byteLength: entry.byteLength,
+          sha256: sha256(canonicalJson({ ...(parsed as Record<string, unknown>), outputs: [] })),
+          digestScope: 'receipt-body-without-outputs' as const,
+        };
+      }
+      return {
+        path: entry.path,
+        mode: entry.mode,
+        byteLength: entry.byteLength,
+        sha256: entry.sha256,
+        digestScope: 'bytes' as const,
+      };
+    }));
+}
+
+/**
+ * Resolve the candidate-only two-commit contract. `captureRevision` is the
+ * stable source commit (E); `generationRevision` is the commit being verified
+ * (F) and must be the current HEAD. E == F is valid. E < F is valid only when
+ * every changed Git path is below one declared derived output root.
+ */
+export async function assertV018CandidateEvidenceCaptureContract(options: {
+  repoRoot: string;
+  captureRevision: string;
+  generationRevision?: string;
+  sourcePaths?: readonly string[];
+  derivedPaths: readonly string[];
+  /** Generation-time replay may be writing an output root before commit F. */
+  allowUncommittedDerived?: boolean;
+}): Promise<V018CandidateEvidenceCaptureContract> {
+  const repoRoot = path.resolve(options.repoRoot);
+  const sourcePaths = [...(options.sourcePaths ?? V018_CANDIDATE_CAPTURE_PATHS)]
+    .map((value, index) => normalizeContractPath(value, `sourcePaths[${index}]`));
+  const derivedPaths = [...options.derivedPaths]
+    .map((value, index) => normalizeContractPath(value, `derivedPaths[${index}]`));
+  if (sourcePaths.length === 0) fail('candidate source paths must not be empty');
+  if (derivedPaths.length === 0) fail('candidate derived paths must not be empty');
+  if (new Set(sourcePaths).size !== sourcePaths.length) fail('candidate source paths must be unique');
+  if (new Set(derivedPaths).size !== derivedPaths.length) fail('candidate derived paths must be unique');
+  assertSourceDerivedDisjoint(sourcePaths, derivedPaths);
+
+  const captureRevision = gitRevision(repoRoot, options.captureRevision, 'captureRevision');
+  const generationRevision = gitRevision(
+    repoRoot,
+    options.generationRevision ?? contractGitText(repoRoot, ['rev-parse', '--verify', 'HEAD']).trim(),
+    'generationRevision',
+  );
+  const currentHead = contractGitText(repoRoot, ['rev-parse', '--verify', 'HEAD']).trim();
+  if (generationRevision !== currentHead) fail('generationRevision must equal the current Git HEAD');
+  assertAncestorAndDerivedDiff(repoRoot, captureRevision, generationRevision, derivedPaths);
+
+  const sourceAtCapture = contractGitEntries(repoRoot, captureRevision, sourcePaths);
+  const sourceAtGeneration = contractGitEntries(repoRoot, generationRevision, sourcePaths);
+  assertEntryMapsEqual(sourceAtCapture, sourceAtGeneration, 'candidate source Git tree');
+  const sourceInWorkingTree = await workingCandidateEntries(repoRoot, sourcePaths);
+  assertEntryMapsEqual(sourceAtCapture, sourceInWorkingTree, 'candidate source working tree');
+
+  // A normal source/config/lock edit in the worktree is never an output. Git
+  // status is used only for bounded path classification; source membership is
+  // still proven by the explicit tree/worktree collections above.
+  assertWorkingTreeChangesBounded(repoRoot, derivedPaths);
+  const derivedAtGeneration = contractGitEntries(repoRoot, generationRevision, derivedPaths, true);
+  const derivedInWorkingTree = await workingCandidateEntries(repoRoot, derivedPaths);
+  if (options.allowUncommittedDerived) {
+    for (const [relativePath, expectedEntry] of derivedAtGeneration) {
+      const actualEntry = derivedInWorkingTree.get(relativePath);
+      if (!actualEntry) fail(`candidate derived output is missing from the working tree: ${relativePath}`);
+      if (
+        actualEntry.mode !== expectedEntry.mode
+        || actualEntry.objectType !== expectedEntry.objectType
+        || actualEntry.gitObject !== expectedEntry.gitObject
+      ) {
+        fail(`candidate derived output drift at ${relativePath}`);
+      }
+    }
+  } else {
+    assertEntryMapsEqual(derivedAtGeneration, derivedInWorkingTree, 'candidate derived output');
+  }
+  const outputs = await candidateOutputSummaries(repoRoot, derivedPaths);
+
+  return {
+    contract: V018_CANDIDATE_EVIDENCE_CONTRACT,
+    sourceContractVersion: V018_CANDIDATE_SOURCE_CONTRACT_VERSION,
+    captureRevision,
+    generationRevision,
+    sourcePaths,
+    derivedPaths,
+    sourceManifestDigest: sha256(canonicalJson({
+      contract: V018_CANDIDATE_SOURCE_CONTRACT_VERSION,
+      paths: sourcePaths,
+      entries: [...sourceAtCapture.values()].sort((left, right) => left.path.localeCompare(right.path)),
+    })),
+    sourceEntries: [...sourceAtCapture.values()].sort((left, right) => left.path.localeCompare(right.path)),
+    outputs,
+  };
+}
+
+/**
+ * Verify a previously generated candidate after the derived-only commit F has
+ * been created. This path does not replay PostgreSQL or rewrite evidence; it
+ * only proves that the committed outputs still match the source contract and
+ * the receipt generated from E (or explicitly rebound to F). Keeping this
+ * separate avoids inventing F's final commit SHA inside a self-referential
+ * receipt.
+ */
+export async function verifyV018CandidateEvidence(input: {
+  repoRoot: string;
+  captureRevision: string;
+  generationRevision: string;
+  outputRoot: string;
+  sourcePaths?: readonly string[];
+}): Promise<V018CandidateEvidenceCaptureContract> {
+  const repoRoot = path.resolve(input.repoRoot);
+  const outputRoot = path.resolve(input.outputRoot);
+  const derivedPath = relativePath(repoRoot, outputRoot);
+  const contract = await assertV018CandidateEvidenceCaptureContract({
+    repoRoot,
+    captureRevision: input.captureRevision,
+    generationRevision: input.generationRevision,
+    sourcePaths: input.sourcePaths,
+    derivedPaths: [derivedPath],
+  });
+  const receiptPath = path.join(outputRoot, 'candidate-receipt.json');
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse((await readFile(receiptPath)).toString('utf8')) as unknown;
+  } catch {
+    fail('candidate receipt is missing or invalid JSON after derived commit');
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    fail('candidate receipt must be a JSON object after derived commit');
+  }
+  const receipt = parsed as Partial<V018AuthorityCandidateReceipt>;
+  if (
+    receipt.captureRevision !== contract.captureRevision
+    || (
+      receipt.generationRevision !== contract.captureRevision
+      && receipt.generationRevision !== contract.generationRevision
+    )
+    || receipt.sourceContractVersion !== contract.sourceContractVersion
+    || receipt.sourceManifestDigest !== contract.sourceManifestDigest
+    || canonicalJson(receipt.sourceEntries) !== canonicalJson(contract.sourceEntries)
+    || canonicalJson(receipt.outputs) !== canonicalJson(contract.outputs)
+  ) {
+    fail('candidate receipt capture contract does not match the committed source/derived contract');
+  }
+  if (!receipt.mirror) fail('candidate receipt is missing the mirror closure');
+  await assertV018MirrorReceiptMatchesCapture({
+    gitRoot: repoRoot,
+    revision: contract.captureRevision,
+    expected: receipt.mirror,
+    fail,
+  });
+  return contract;
 }
 
 /**
@@ -309,6 +759,8 @@ export async function writeV018CandidateReceiptAfterCaptureCheck(options: {
   expectedMirrorReceipt: ActkgV018MirrorReceipt;
   outputRoot: string;
   receipt: V018AuthorityCandidateReceipt;
+  captureContract?: V018CandidateEvidenceCaptureContract;
+  allowUncommittedDerived?: boolean;
 }): Promise<V018AuthorityCandidateReceipt> {
   let outputPublished = false;
   try {
@@ -318,12 +770,70 @@ export async function writeV018CandidateReceiptAfterCaptureCheck(options: {
       expected: options.expectedMirrorReceipt,
       fail,
     });
-    const receipt = { ...options.receipt, mirror };
+    let receipt: V018AuthorityCandidateReceipt = { ...options.receipt, mirror };
+    if (options.captureContract) {
+      if (
+        receipt.captureRevision !== options.captureContract.captureRevision
+        || receipt.generationRevision !== options.captureContract.generationRevision
+        || receipt.sourceManifestDigest !== options.captureContract.sourceManifestDigest
+        || receipt.sourceContractVersion !== options.captureContract.sourceContractVersion
+        || canonicalJson(receipt.sourceEntries) !== canonicalJson(options.captureContract.sourceEntries)
+      ) {
+        fail('candidate receipt capture contract does not match the verified source contract');
+      }
+      const receiptRelativePath = relativePath(
+        options.repoRoot,
+        path.join(options.outputRoot, 'candidate-receipt.json'),
+      );
+      const outputs = options.captureContract.outputs.filter((output) => output.path !== receiptRelativePath);
+      const receiptSummary = {
+        path: receiptRelativePath,
+        mode: '100644' as const,
+        byteLength: 0,
+        sha256: '',
+        digestScope: 'receipt-body-without-outputs' as const,
+      };
+      receipt = { ...receipt, outputs: [...outputs, receiptSummary].sort((left, right) => left.path.localeCompare(right.path)) };
+      // The receipt is itself a derived output. Its digest intentionally covers
+      // the canonical receipt body with `outputs` removed, avoiding an
+      // impossible self-referential hash while retaining an auditable summary.
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const digest = sha256(canonicalJson({ ...receipt, outputs: [] }));
+        const bytes = Buffer.from(`${canonicalJson({ ...receipt, outputs: receipt.outputs.map((output) => (
+          output.path === receiptRelativePath
+            ? { ...output, sha256: digest }
+            : output
+        )) })}\n`);
+        const nextLength = bytes.byteLength;
+        const current = receipt.outputs.find((output) => output.path === receiptRelativePath);
+        if (!current) fail('candidate receipt output summary is missing itself');
+        receipt = {
+          ...receipt,
+          outputs: receipt.outputs.map((output) => output.path === receiptRelativePath
+            ? { ...output, sha256: digest, byteLength: nextLength }
+            : output),
+        };
+        if (current.byteLength === nextLength && current.sha256 === digest) break;
+      }
+    }
     await writeFile(
       path.join(options.outputRoot, 'candidate-receipt.json'),
       `${canonicalJson(receipt)}\n`,
       { mode: 0o644 },
     );
+    if (options.captureContract) {
+      const verified = await assertV018CandidateEvidenceCaptureContract({
+        repoRoot: options.repoRoot,
+        captureRevision: options.captureContract.captureRevision,
+        generationRevision: options.captureContract.generationRevision,
+        sourcePaths: options.captureContract.sourcePaths,
+        derivedPaths: options.captureContract.derivedPaths,
+        allowUncommittedDerived: options.allowUncommittedDerived,
+      });
+      if (canonicalJson(verified.outputs) !== canonicalJson(receipt.outputs)) {
+        fail('candidate receipt output summaries drifted during publication');
+      }
+    }
     outputPublished = true;
     return receipt;
   } finally {
@@ -503,10 +1013,7 @@ export async function prepareV018AuthorityCandidate(input: {
   });
   const captureRevision = resolveTrustedCaptureRevision({
     gitRoot: repoRoot,
-    trackedPaths: [
-      ...V018_CANDIDATE_CAPTURE_PATHS,
-      V018_ACT_CONTROLLED_PATH,
-    ],
+    trackedPaths: [...V018_CANDIDATE_CAPTURE_PATHS],
     expectedCaptureRevision: input.captureRevision,
     fail: (reason) => fail(reason),
   });
@@ -583,6 +1090,13 @@ export async function prepareV018AuthorityCandidate(input: {
     });
     const impactPath = path.join(outputRoot, 'impact-report.json');
     await writeFile(impactPath, impactBytes1, { mode: 0o644 });
+    const captureContract = await assertV018CandidateEvidenceCaptureContract({
+      repoRoot,
+      captureRevision,
+      generationRevision: captureRevision,
+      derivedPaths: [relativePath(repoRoot, outputRoot)],
+      allowUncommittedDerived: true,
+    });
     const publicAfter = await fingerprintPublicSchema(baseClient);
     const pointersAfter = await capturePointers(repoRoot);
     assertPointersUnchanged(pointersBefore, pointersAfter);
@@ -595,6 +1109,12 @@ export async function prepareV018AuthorityCandidate(input: {
       deterministic: true,
       nonActivation: true,
       captureRevision,
+      generationRevision: captureContract.generationRevision,
+      sourceContractVersion: captureContract.sourceContractVersion,
+      sourceManifestDigest: captureContract.sourceManifestDigest,
+      sourceEntries: captureContract.sourceEntries,
+      derivedPaths: captureContract.derivedPaths,
+      outputs: captureContract.outputs,
       stagedAt,
       mirror: finalMirrorReceipt,
       validated: {
@@ -644,6 +1164,8 @@ export async function prepareV018AuthorityCandidate(input: {
       expectedMirrorReceipt: mirror.receipt,
       outputRoot,
       receipt,
+      captureContract,
+      allowUncommittedDerived: true,
     });
     outputPublished = true;
     return publishedReceipt;
@@ -655,6 +1177,16 @@ export async function prepareV018AuthorityCandidate(input: {
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
+  if (argv.includes('--verify-derived')) {
+    const contract = await verifyV018CandidateEvidence({
+      repoRoot: requiredOption(argv, '--repo-root'),
+      captureRevision: requiredOption(argv, '--capture-revision'),
+      generationRevision: requiredOption(argv, '--generation-revision'),
+      outputRoot: requiredOption(argv, '--output-root'),
+    });
+    process.stdout.write(`${canonicalJson(contract)}\n`);
+    return;
+  }
   const receipt = await prepareV018AuthorityCandidate({
     repoRoot: requiredOption(argv, '--repo-root'),
     upstreamGitRoot: requiredOption(argv, '--upstream-git-root'),

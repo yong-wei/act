@@ -91,6 +91,41 @@ therefore removes the partial output root and cannot leave a candidate receipt.
 `--v09-root` is only an assertion of that captured path; it cannot select an
 external working tree.
 
+### 6a. Separate stable source capture from derived candidate evidence
+
+The candidate evidence runner uses a local two-commit contract. `captureRevision`
+is the stable source commit E. `generationRevision` is the verification HEAD F
+and must resolve to the current HEAD. E == F remains valid; an ancestor E < F is
+accepted only when every E..F changed tree path is under the explicitly declared
+candidate output root. A non-ancestor, an ordinary code/manifest/schema/config/
+lock change, or a caller-supplied generation revision that is not current HEAD
+fails closed. No generic V1 or Bundle capture helper is widened for this
+exception.
+
+The runner resolves the complete source membership from the declared capture
+roots only. For every source path it compares the E Git path set, object type,
+blob bytes, and Git mode with the F tree and the current working tree; missing,
+extra, symlink, mode, or content drift is rejected. Source and derived roots
+must be strictly disjoint. The default roots include the complete controlled
+Bundle tree, and the receipt persists every captured `sourceEntries` member in
+addition to the source manifest digest. An ignored untracked file inside that
+tree is still discovered by the explicit walk and therefore fails closed.
+Derived output files are checked against F and are summarized in the receipt
+with byte length, digest, and mode. The receipt is itself a derived output;
+its digest uses the canonical receipt body with the `outputs` list removed to
+avoid a self-referential hash. The receipt records both revisions, the source
+contract version, and the source manifest digest;
+the generation-time receipt's `generationRevision` is the stable generator
+revision (equal to E), while the verifier's contract `generationRevision` is
+the committed F checked separately. The receipt never invents a final commit
+SHA.
+
+The runner's `--verify-derived` path is read-only with respect to candidate
+evidence: after the generated files are committed as F, it replays the source
+contract and receipt/output summaries without rerunning or rewriting the
+candidate. The full PostgreSQL disposable-schema replay remains a real-run
+gate; unit tests cover the Git boundary and receipt closeout only.
+
 ### 7. Merge V2 projection evidence by normalized profile identity
 
 The V2 preserved-projection list may already contain the selected runtime

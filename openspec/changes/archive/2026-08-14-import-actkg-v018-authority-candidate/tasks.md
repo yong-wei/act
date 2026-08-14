@@ -36,6 +36,19 @@
   semantic validation. After replay and impact computation, the same check MUST
   run again before closeout; late receipt drift MUST remove the partial output
   root and leave no `candidate-receipt.json`.
+- [x] 3.1a Add the candidate-only two-commit source/derived capture contract:
+  `captureRevision` is stable source E, `generationRevision` is current HEAD F,
+  exact-head remains valid, and an ancestor is allowed only when every E..F
+  change is below declared derived output paths. Compare the complete declared
+  source path set, Git object type, bytes, and mode across E, F, and the working
+  tree; reject non-ancestor, non-output, overlap, symlink, extra-input, and
+  generation-HEAD drift. Record source manifest digest/contract version and
+  persist every source entry (including the complete controlled Bundle root),
+  and reject an ignored extra member added there after F. Record
+  every derived output summary (including the receipt's mode and self-excluded
+  body digest). Keep the generation-time receipt revision equal to E, and
+  provide a read-only `--verify-derived` closeout against commit F; the
+  disposable PostgreSQL replay remains a required real-run gate.
 - [x] 3.2 Prove idempotent re-import and disposable-schema cleanup on success and failure.
 - [x] 3.3 Assert Authority, Teaching Projection, prerequisite, Authority
   domain-shard, consumer, and production marker pointers remain byte-identical

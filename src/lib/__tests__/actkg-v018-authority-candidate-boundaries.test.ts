@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { chmod, cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { chmod, cp, mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -22,8 +22,10 @@ import {
 import { acquireV2ImportLocks } from '../../../scripts/actkg-release/public-bundle-v2-import';
 import {
   assertV018CandidateBundleCounts,
+  assertV018CandidateEvidenceCaptureContract,
   assertGitFileMatchesWorkingTree,
   assertV018MirrorReceiptMatchesCapture,
+  verifyV018CandidateEvidence,
   writeV018CandidateReceiptAfterCaptureCheck,
   V018_CANDIDATE_CAPTURE_PATHS,
   V018_CANDIDATE_MIGRATIONS_PATH,
@@ -131,9 +133,297 @@ async function createV09CaptureFixture(): Promise<{ root: string; head: string }
   return { root, head: git(root, ['rev-parse', 'HEAD']) };
 }
 
+async function createEvidenceContractFixture(): Promise<{
+  root: string;
+  base: string;
+  capture: string;
+  generation: string;
+  unrelated: string;
+}> {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'actkg-v018-evidence-contract-'));
+  await mkdir(path.join(root, 'source'), { recursive: true });
+  await writeFile(path.join(root, 'source/input.txt'), 'stable source\n');
+  await writeFile(path.join(root, 'source/tool.sh'), '#!/bin/sh\nprintf stable\n');
+  await chmod(path.join(root, 'source/tool.sh'), 0o755);
+  git(root, ['init', '-q']);
+  git(root, ['config', 'user.email', 'actkg-evidence@example.invalid']);
+  git(root, ['config', 'user.name', 'actkg-evidence']);
+  git(root, ['add', '.']);
+  git(root, ['commit', '-qm', 'base source']);
+  const base = git(root, ['rev-parse', 'HEAD']);
+
+  await writeFile(path.join(root, 'source/input.txt'), 'captured source\n');
+  git(root, ['add', 'source/input.txt']);
+  git(root, ['commit', '-qm', 'stable capture']);
+  const capture = git(root, ['rev-parse', 'HEAD']);
+
+  await mkdir(path.join(root, 'derived'), { recursive: true });
+  await writeFile(path.join(root, 'derived/evidence.json'), '{"ok":true}\n');
+  git(root, ['add', 'derived/evidence.json']);
+  git(root, ['commit', '-qm', 'derived evidence']);
+  const generation = git(root, ['rev-parse', 'HEAD']);
+
+  git(root, ['checkout', '-qb', 'unrelated', base]);
+  await writeFile(path.join(root, 'source/input.txt'), 'unrelated source\n');
+  git(root, ['add', 'source/input.txt']);
+  git(root, ['commit', '-qm', 'unrelated history']);
+  const unrelated = git(root, ['rev-parse', 'HEAD']);
+  git(root, ['checkout', '-q', generation]);
+  return { root, base, capture, generation, unrelated };
+}
+
+async function createDefaultEvidenceContractFixture(): Promise<{
+  root: string;
+  capture: string;
+  generation: string;
+  outputRoot: string;
+}> {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'actkg-v018-default-evidence-contract-'));
+  for (const sourcePath of V018_CANDIDATE_CAPTURE_PATHS) {
+    const target = path.join(root, sourcePath);
+    if (sourcePath === V018_MIRROR_RECEIPT_PATH) {
+      await mkdir(path.dirname(target), { recursive: true });
+      await cp(path.join(process.cwd(), sourcePath), target);
+    } else if (sourcePath === V018_ACT_CONTROLLED_PATH) {
+      await mkdir(target, { recursive: true });
+      await writeFile(path.join(target, 'bundle-manifest.json'), '{"fixture":"controlled"}\n');
+      await writeFile(path.join(target, 'release.json'), '{"fixture":"controlled-release"}\n');
+    } else if (sourcePath.endsWith('/migrations')) {
+      const migration = path.join(target, '20260101000000_fixture', 'migration.sql');
+      await mkdir(path.dirname(migration), { recursive: true });
+      await writeFile(migration, 'CREATE TABLE "fixture" ("id" TEXT);\n');
+    } else if (sourcePath.includes('/schemas/')) {
+      await mkdir(target, { recursive: true });
+      await writeFile(path.join(target, 'fixture.json'), '{"type":"object"}\n');
+    } else if (sourcePath.endsWith('/control-theory-engineering-v0.9')) {
+      await mkdir(target, { recursive: true });
+      await writeFile(path.join(target, 'bundle-manifest.json'), '{"fixture":"v09"}\n');
+    } else {
+      await mkdir(path.dirname(target), { recursive: true });
+      await writeFile(target, `export const fixture = ${JSON.stringify(sourcePath)};\n`);
+    }
+  }
+
+  git(root, ['init', '-q']);
+  git(root, ['config', 'user.email', 'actkg-v018-default-evidence@example.invalid']);
+  git(root, ['config', 'user.name', 'actkg-v018-default-evidence']);
+  git(root, ['add', '.']);
+  git(root, ['commit', '-qm', 'default source capture']);
+  const capture = git(root, ['rev-parse', 'HEAD']);
+
+  const outputRoot = path.join(root, 'candidate-output');
+  await mkdir(outputRoot, { recursive: true });
+  await writeFile(path.join(outputRoot, 'impact-report.json'), '{"ok":true}\n');
+  const mirror = JSON.parse(
+    (await readFile(path.join(root, V018_MIRROR_RECEIPT_PATH))).toString('utf8'),
+  ) as ActkgV018MirrorReceipt;
+  const captureContract = await assertV018CandidateEvidenceCaptureContract({
+    repoRoot: root,
+    captureRevision: capture,
+    generationRevision: capture,
+    derivedPaths: ['candidate-output'],
+    allowUncommittedDerived: true,
+  });
+  await writeV018CandidateReceiptAfterCaptureCheck({
+    repoRoot: root,
+    captureRevision: capture,
+    expectedMirrorReceipt: mirror,
+    outputRoot,
+    captureContract,
+    allowUncommittedDerived: true,
+    receipt: {
+      captureRevision: capture,
+      generationRevision: capture,
+      sourceContractVersion: captureContract.sourceContractVersion,
+      sourceManifestDigest: captureContract.sourceManifestDigest,
+      sourceEntries: captureContract.sourceEntries,
+      outputs: captureContract.outputs,
+      mirror,
+    } as V018AuthorityCandidateReceipt,
+  });
+  git(root, ['add', 'candidate-output']);
+  git(root, ['commit', '-qm', 'derived candidate evidence']);
+  return { root, capture, generation: git(root, ['rev-parse', 'HEAD']), outputRoot };
+}
+
 const emptyCandidate = {} as ValidatedActKGBundleV2;
 
 describe('ActKG v0.18 candidate capture boundaries', () => {
+  it('accepts exact-head and output-only ancestor captures with a source manifest', async () => {
+    const fixture = await createEvidenceContractFixture();
+    try {
+      const ancestor = await assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.generation,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      });
+      expect(ancestor.captureRevision).toBe(fixture.capture);
+      expect(ancestor.generationRevision).toBe(fixture.generation);
+      expect(ancestor.sourceContractVersion).toBe('actkg-v018-authority-candidate/source/1');
+      expect(ancestor.sourceEntries.map((entry) => entry.path)).toEqual([
+        'source/input.txt',
+        'source/tool.sh',
+      ]);
+      expect(ancestor.outputs).toEqual([expect.objectContaining({
+        path: 'derived/evidence.json',
+        mode: '100644',
+        digestScope: 'bytes',
+      })]);
+
+      git(fixture.root, ['checkout', '-q', fixture.capture]);
+      await mkdir(path.join(fixture.root, 'derived'), { recursive: true });
+      await writeFile(path.join(fixture.root, 'derived/evidence.json'), '{"ok":true}\n');
+      git(fixture.root, ['add', 'derived/evidence.json']);
+      git(fixture.root, ['commit', '-qm', 'exact-head derived evidence']);
+      const exactHead = git(fixture.root, ['rev-parse', 'HEAD']);
+      const exact = await assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: exactHead,
+        generationRevision: exactHead,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      });
+      expect(exact.captureRevision).toBe(exactHead);
+      expect(exact.generationRevision).toBe(exactHead);
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it('uses the default controlled Bundle source root and rejects ignored extras after F', async () => {
+    const fixture = await createDefaultEvidenceContractFixture();
+    const controlledFile = path.join(fixture.root, V018_ACT_CONTROLLED_PATH, 'bundle-manifest.json');
+    const receiptPath = path.join(fixture.outputRoot, 'candidate-receipt.json');
+    try {
+      const receipt = JSON.parse((await readFile(receiptPath)).toString('utf8')) as V018AuthorityCandidateReceipt;
+      expect(receipt.sourceEntries).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          path: `${V018_ACT_CONTROLLED_PATH}/bundle-manifest.json`,
+          objectType: 'blob',
+        }),
+        expect.objectContaining({
+          path: `${V018_ACT_CONTROLLED_PATH}/release.json`,
+          objectType: 'blob',
+        }),
+      ]));
+
+      await writeFile(path.join(fixture.root, '.git/info/exclude'), '\ncontrolled-extra.json\n', { flag: 'a' });
+      await writeFile(path.join(path.dirname(controlledFile), 'controlled-extra.json'), '{"ignored":true}\n');
+      await expect(verifyV018CandidateEvidence({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.generation,
+        outputRoot: fixture.outputRoot,
+      })).rejects.toThrow(/source working tree path set drift/u);
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects non-output ancestor diffs, non-ancestor revisions, and generation mismatch', async () => {
+    const fixture = await createEvidenceContractFixture();
+    try {
+      await writeFile(path.join(fixture.root, 'source/input.txt'), 'ordinary drift\n');
+      git(fixture.root, ['add', 'source/input.txt']);
+      git(fixture.root, ['commit', '-qm', 'ordinary source drift']);
+      const nonOutputGeneration = git(fixture.root, ['rev-parse', 'HEAD']);
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: nonOutputGeneration,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      })).rejects.toThrow(/non-derived path/u);
+
+      git(fixture.root, ['checkout', '-q', fixture.unrelated]);
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.unrelated,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      })).rejects.toThrow(/not an ancestor/u);
+
+      git(fixture.root, ['checkout', '-q', fixture.generation]);
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.capture,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      })).rejects.toThrow(/current Git HEAD/u);
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects source content, mode, extra-input, symlink, and source/derived overlap drift', async () => {
+    const fixture = await createEvidenceContractFixture();
+    try {
+      await writeFile(path.join(fixture.root, 'source/input.txt'), 'changed source\n');
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.generation,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      })).rejects.toThrow(/source working tree drift/u);
+
+      await writeFile(path.join(fixture.root, 'source/input.txt'), 'captured source\n');
+      await chmod(path.join(fixture.root, 'source/input.txt'), 0o755);
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.generation,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      })).rejects.toThrow(/source working tree drift/u);
+      await chmod(path.join(fixture.root, 'source/input.txt'), 0o644);
+
+      await writeFile(path.join(fixture.root, 'source/extra.txt'), 'undeclared\n');
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.generation,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      })).rejects.toThrow(/path set drift/u);
+      await rm(path.join(fixture.root, 'source/extra.txt'));
+
+      await chmod(path.join(fixture.root, 'derived/evidence.json'), 0o755);
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.generation,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      })).rejects.toThrow(/derived output drift/u);
+      await chmod(path.join(fixture.root, 'derived/evidence.json'), 0o644);
+
+      await symlink('input.txt', path.join(fixture.root, 'source/link.txt'));
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.generation,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+      })).rejects.toThrow(/symlink/u);
+      await rm(path.join(fixture.root, 'source/link.txt'));
+
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.capture,
+        generationRevision: fixture.generation,
+        sourcePaths: ['source'],
+        derivedPaths: ['source/derived'],
+      })).rejects.toThrow(/source\/derived path overlap/u);
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
   it('accepts the registered V2 bundle statistics and rejects a projection count drift', async () => {
     const capture = await createRegisteredBundleCaptureFixture();
     try {
@@ -332,8 +622,10 @@ describe('ActKG v0.18 candidate capture boundaries', () => {
       'src/lib/authoritative-knowledge/repository.ts',
       'src/lib/authoritative-knowledge/authority-snapshot.ts',
       'scripts/knowledge-cutover/prepare-actkg-v018-authority-candidate.ts',
+      V018_ACT_CONTROLLED_PATH,
       V018_MIRROR_RECEIPT_PATH,
     ]));
+    expect(new Set(V018_CANDIDATE_CAPTURE_PATHS).size).toBe(V018_CANDIDATE_CAPTURE_PATHS.length);
   });
 
   it('accepts a clean migration tree and rejects old-file, deletion, and new-file drift', async () => {
@@ -469,6 +761,95 @@ describe('ActKG v0.18 candidate capture boundaries', () => {
       })).rejects.toThrow(/content drift/u);
       await expect(stat(candidateReceiptPath)).rejects.toBeDefined();
       await expect(stat(outputRoot)).rejects.toBeDefined();
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects a receipt whose capture/generation fields do not match the verified contract', async () => {
+    const fixture = await createV09CaptureFixture();
+    const outputRoot = path.join(fixture.root, 'candidate-output');
+    try {
+      await mkdir(outputRoot, { recursive: true });
+      await writeFile(path.join(outputRoot, 'impact-report.json'), '{"ok":true}\n');
+      const captureContract = await assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.head,
+        generationRevision: fixture.head,
+        sourcePaths: [V018_MIRROR_RECEIPT_PATH],
+        derivedPaths: ['candidate-output'],
+        allowUncommittedDerived: true,
+      });
+      const mirror = JSON.parse(
+        (await readFile(path.join(fixture.root, V018_MIRROR_RECEIPT_PATH))).toString('utf8'),
+      ) as ActkgV018MirrorReceipt;
+      await expect(writeV018CandidateReceiptAfterCaptureCheck({
+        repoRoot: fixture.root,
+        captureRevision: fixture.head,
+        expectedMirrorReceipt: mirror,
+        outputRoot,
+        captureContract,
+        allowUncommittedDerived: true,
+        receipt: {
+          captureRevision: fixture.head,
+          generationRevision: '0'.repeat(40),
+          sourceContractVersion: captureContract.sourceContractVersion,
+          sourceManifestDigest: captureContract.sourceManifestDigest,
+        } as V018AuthorityCandidateReceipt,
+      })).rejects.toThrow(/capture contract does not match/u);
+      await expect(stat(outputRoot)).rejects.toBeDefined();
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it('verifies a committed derived-only candidate without inventing its final SHA', async () => {
+    const fixture = await createV09CaptureFixture();
+    const outputRoot = path.join(fixture.root, 'candidate-output');
+    try {
+      await mkdir(outputRoot, { recursive: true });
+      await writeFile(path.join(outputRoot, 'impact-report.json'), '{"ok":true}\n');
+      const captureContract = await assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.head,
+        generationRevision: fixture.head,
+        sourcePaths: [V018_MIRROR_RECEIPT_PATH],
+        derivedPaths: ['candidate-output'],
+        allowUncommittedDerived: true,
+      });
+      const mirror = JSON.parse(
+        (await readFile(path.join(fixture.root, V018_MIRROR_RECEIPT_PATH))).toString('utf8'),
+      ) as ActkgV018MirrorReceipt;
+      await writeV018CandidateReceiptAfterCaptureCheck({
+        repoRoot: fixture.root,
+        captureRevision: fixture.head,
+        expectedMirrorReceipt: mirror,
+        outputRoot,
+        captureContract,
+        allowUncommittedDerived: true,
+        receipt: {
+          captureRevision: fixture.head,
+          generationRevision: fixture.head,
+          sourceContractVersion: captureContract.sourceContractVersion,
+          sourceManifestDigest: captureContract.sourceManifestDigest,
+          sourceEntries: captureContract.sourceEntries,
+          outputs: captureContract.outputs,
+          mirror,
+        } as V018AuthorityCandidateReceipt,
+      });
+      git(fixture.root, ['add', 'candidate-output']);
+      git(fixture.root, ['commit', '-qm', 'candidate derived evidence']);
+      const generationRevision = git(fixture.root, ['rev-parse', 'HEAD']);
+      await expect(verifyV018CandidateEvidence({
+        repoRoot: fixture.root,
+        captureRevision: fixture.head,
+        generationRevision,
+        outputRoot,
+        sourcePaths: [V018_MIRROR_RECEIPT_PATH],
+      })).resolves.toMatchObject({
+        captureRevision: fixture.head,
+        generationRevision,
+      });
     } finally {
       await rm(fixture.root, { recursive: true, force: true });
     }
