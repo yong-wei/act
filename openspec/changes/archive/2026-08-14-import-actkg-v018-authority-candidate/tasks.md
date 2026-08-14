@@ -28,9 +28,14 @@
   capture and require byte-identical outputs. The runner preflight MUST bind
   the complete `prisma/migrations/` tree plus the disposable-database helper,
   Prisma config/client seams, V2 loader/admission schemas, and v0.9 audit
-  inputs to the capture revision;
-  Git-tree versus working-directory comparison MUST reject changed, deleted,
-  newly added, and ignored migration files before replay.
+  inputs to the capture revision; the adjacent mirror receipt is part of the
+  same capture closure. Git-tree versus working-directory comparison MUST
+  reject changed, deleted, newly added, and ignored migration files, and the
+  shared exact Git-file check MUST reject receipt byte, mode, missing-path, and
+  new-path drift before replay or candidate publication while preserving JSON
+  semantic validation. After replay and impact computation, the same check MUST
+  run again before closeout; late receipt drift MUST remove the partial output
+  root and leave no `candidate-receipt.json`.
 - [x] 3.2 Prove idempotent re-import and disposable-schema cleanup on success and failure.
 - [x] 3.3 Assert Authority, Teaching Projection, prerequisite, Authority
   domain-shard, consumer, and production marker pointers remain byte-identical

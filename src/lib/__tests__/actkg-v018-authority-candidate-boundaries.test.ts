@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { chmod, cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -15,12 +15,20 @@ import {
   resolveTrustedCaptureRevision,
 } from '../../../scripts/actkg-release/capture-revision';
 import { loadAndValidatePublicBundleV2 } from '../../../scripts/actkg-release/public-bundle-v2';
-import { V018_ACT_CONTROLLED_PATH } from '../../../scripts/actkg-release/actkg-v018-release-mirror';
+import {
+  V018_ACT_CONTROLLED_PATH,
+  type ActkgV018MirrorReceipt,
+} from '../../../scripts/actkg-release/actkg-v018-release-mirror';
 import { acquireV2ImportLocks } from '../../../scripts/actkg-release/public-bundle-v2-import';
 import {
   assertV018CandidateBundleCounts,
+  assertGitFileMatchesWorkingTree,
+  assertV018MirrorReceiptMatchesCapture,
+  writeV018CandidateReceiptAfterCaptureCheck,
   V018_CANDIDATE_CAPTURE_PATHS,
   V018_CANDIDATE_MIGRATIONS_PATH,
+  V018_MIRROR_RECEIPT_PATH,
+  type V018AuthorityCandidateReceipt,
 } from '../../../scripts/knowledge-cutover/prepare-actkg-v018-authority-candidate';
 import type { ValidatedActKGBundleV2 } from '../../../scripts/actkg-release/public-bundle-types';
 
@@ -112,6 +120,9 @@ async function createV09CaptureFixture(): Promise<{ root: string; head: string }
     await mkdir(path.dirname(absolutePath), { recursive: true });
     await writeFile(absolutePath, `export const fixture = ${JSON.stringify(relativePath)};\n`);
   }
+  const mirrorReceipt = path.join(root, V018_MIRROR_RECEIPT_PATH);
+  await mkdir(path.dirname(mirrorReceipt), { recursive: true });
+  await cp(path.join(process.cwd(), V018_MIRROR_RECEIPT_PATH), mirrorReceipt);
   git(root, ['init', '-q']);
   git(root, ['config', 'user.email', 'actkg-v018-boundary@example.invalid']);
   git(root, ['config', 'user.name', 'actkg-v018-boundary']);
@@ -321,6 +332,7 @@ describe('ActKG v0.18 candidate capture boundaries', () => {
       'src/lib/authoritative-knowledge/repository.ts',
       'src/lib/authoritative-knowledge/authority-snapshot.ts',
       'scripts/knowledge-cutover/prepare-actkg-v018-authority-candidate.ts',
+      V018_MIRROR_RECEIPT_PATH,
     ]));
   });
 
@@ -385,6 +397,78 @@ describe('ActKG v0.18 candidate capture boundaries', () => {
         relativeDirectory: V018_CANDIDATE_MIGRATIONS_PATH,
         fail: (message) => { throw new Error(message); },
       })).rejects.toThrow(/undeclared file/u);
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it('binds the mirror receipt to exact capture bytes and mode before publication', async () => {
+    const fixture = await createV09CaptureFixture();
+    const receiptPath = path.join(fixture.root, V018_MIRROR_RECEIPT_PATH);
+    const originalBytes = await readFile(receiptPath);
+    const expected = JSON.parse(originalBytes.toString('utf8')) as ActkgV018MirrorReceipt;
+    const fail = (message: string): never => { throw new Error(message); };
+    const assertReceipt = () => assertV018MirrorReceiptMatchesCapture({
+      gitRoot: fixture.root,
+      revision: fixture.head,
+      expected,
+      fail,
+    });
+    try {
+      await expect(assertReceipt()).resolves.toEqual(expected);
+
+      await writeFile(receiptPath, `${JSON.stringify(expected, null, 2)}\n`);
+      await expect(assertReceipt()).rejects.toThrow(/content drift/u);
+
+      await writeFile(receiptPath, originalBytes);
+      await chmod(receiptPath, 0o755);
+      await expect(assertReceipt()).rejects.toThrow(/mode drift/u);
+
+      await chmod(receiptPath, 0o644);
+      await rm(receiptPath);
+      await expect(assertReceipt()).rejects.toThrow(/missing from working tree/u);
+
+      const newReceiptPath = `${V018_MIRROR_RECEIPT_PATH}.new`;
+      await writeFile(path.join(fixture.root, newReceiptPath), originalBytes);
+      await expect(assertGitFileMatchesWorkingTree({
+        gitRoot: fixture.root,
+        revision: fixture.head,
+        relativePath: newReceiptPath,
+        fail,
+      })).rejects.toThrow(/Git file is missing/u);
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it('rechecks receipt drift at closeout and removes partial replay output', async () => {
+    const fixture = await createV09CaptureFixture();
+    const receiptPath = path.join(fixture.root, V018_MIRROR_RECEIPT_PATH);
+    const originalBytes = await readFile(receiptPath);
+    const expected = JSON.parse(originalBytes.toString('utf8')) as ActkgV018MirrorReceipt;
+    const fail = (message: string): never => { throw new Error(message); };
+    const outputRoot = path.join(fixture.root, 'candidate-output');
+    const candidateReceiptPath = path.join(outputRoot, 'candidate-receipt.json');
+    try {
+      await expect(assertV018MirrorReceiptMatchesCapture({
+        gitRoot: fixture.root,
+        revision: fixture.head,
+        expected,
+        fail,
+      })).resolves.toEqual(expected);
+
+      await writeFile(receiptPath, `${JSON.stringify(expected, null, 2)}\n`);
+      await mkdir(outputRoot, { recursive: true });
+      await writeFile(path.join(outputRoot, 'replay-1.partial'), 'replay artifact\n');
+      await expect(writeV018CandidateReceiptAfterCaptureCheck({
+        repoRoot: fixture.root,
+        captureRevision: fixture.head,
+        expectedMirrorReceipt: expected,
+        outputRoot,
+        receipt: {} as V018AuthorityCandidateReceipt,
+      })).rejects.toThrow(/content drift/u);
+      await expect(stat(candidateReceiptPath)).rejects.toBeDefined();
+      await expect(stat(outputRoot)).rejects.toBeDefined();
     } finally {
       await rm(fixture.root, { recursive: true, force: true });
     }

@@ -3,7 +3,8 @@
 import 'dotenv/config';
 
 import { execFileSync } from 'node:child_process';
-import { readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { lstat, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { PrismaClient } from '@prisma/client';
@@ -53,6 +54,9 @@ import {
 export const V018_CANDIDATE_RECEIPT_PROTOCOL =
   'actkg-v018-authority-candidate/1' as const;
 
+export const V018_MIRROR_RECEIPT_PATH =
+  `${V018_ACT_CONTROLLED_PATH}.mirror-receipt.json` as const;
+
 const COMMIT = /^[a-f0-9]{40}$/u;
 const FIXED_STAGED_AT = '1970-01-01T00:00:00.000Z';
 const POINTER_PATHS = [
@@ -89,6 +93,7 @@ export const V018_CANDIDATE_CAPTURE_PATHS = [
   'src/lib/authoritative-knowledge/authority-store.ts',
   'src/lib/authoritative-knowledge/engineering-authority-consumers.ts',
   'course-content/authoring/knowledge/releases/control-theory-engineering-v0.9',
+  V018_MIRROR_RECEIPT_PATH,
 ] as const;
 
 export const V018_CANDIDATE_MIGRATIONS_PATH = 'prisma/migrations' as const;
@@ -194,6 +199,136 @@ function optionalOption(argv: readonly string[], name: string): string | undefin
 function relativePath(repoRoot: string, target: string): string {
   const value = path.relative(repoRoot, path.resolve(target));
   return value === '' ? '.' : value;
+}
+
+function gitBlobSha1(bytes: Buffer): string {
+  return createHash('sha1')
+    .update(Buffer.from(`blob ${bytes.byteLength}\u0000`, 'utf8'))
+    .update(bytes)
+    .digest('hex');
+}
+
+/**
+ * Compare one captured Git file with the current filesystem, including raw
+ * bytes and executable mode. This is intentionally local to the v0.18
+ * candidate boundary so the runner and its closeout can share the same
+ * single-file closure without widening the generic capture helper contract.
+ */
+export async function assertGitFileMatchesWorkingTree(options: {
+  gitRoot: string;
+  revision: string;
+  relativePath: string;
+  fail: (message: string) => never;
+}): Promise<Buffer> {
+  const relativePath = options.relativePath.replaceAll('\\', '/');
+  if (
+    path.posix.isAbsolute(relativePath)
+    || relativePath === '..'
+    || relativePath.startsWith('../')
+    || relativePath.includes('\u0000')
+  ) {
+    options.fail(`ACT capture file is not repository-relative: ${options.relativePath}`);
+  }
+
+  let treeOutput: string;
+  try {
+    treeOutput = execFileSync(
+      'git',
+      ['ls-tree', '-l', '-z', options.revision, '--', relativePath],
+      { cwd: options.gitRoot, encoding: 'utf8', maxBuffer: 64 * 1024 },
+    );
+  } catch {
+    options.fail(`ACT capture Git file could not be read for ${relativePath}`);
+  }
+  const records = treeOutput.split('\u0000').filter(Boolean);
+  if (records.length !== 1) {
+    options.fail(`ACT capture Git file is missing: ${relativePath}`);
+  }
+  const match = /^(\d{6}) blob ([a-f0-9]{40})\s+(\d+)\t(.+)$/u.exec(records[0]!);
+  if (!match || match[4] !== relativePath) {
+    options.fail(`ACT capture Git file entry is malformed: ${relativePath}`);
+  }
+  const [, expectedMode, expectedObject, expectedLength] = match;
+  if (!expectedMode || !expectedObject || !expectedLength) {
+    options.fail(`ACT capture Git file entry is incomplete: ${relativePath}`);
+  }
+
+  let workingStat;
+  try {
+    workingStat = await lstat(path.join(options.gitRoot, relativePath));
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
+      options.fail(`ACT capture Git file is missing from working tree: ${relativePath}`);
+    }
+    throw error;
+  }
+  if (!workingStat.isFile()) options.fail(`ACT capture Git file is not a regular file: ${relativePath}`);
+  const actualMode = (workingStat.mode & 0o111) !== 0 ? '100755' : '100644';
+  if (actualMode !== expectedMode) options.fail(`ACT capture Git file mode drift: ${relativePath}`);
+
+  const bytes = await readFile(path.join(options.gitRoot, relativePath));
+  if (bytes.byteLength !== Number(expectedLength) || gitBlobSha1(bytes) !== expectedObject) {
+    options.fail(`ACT capture Git file content drift: ${relativePath}`);
+  }
+  return bytes;
+}
+
+export async function assertV018MirrorReceiptMatchesCapture(options: {
+  gitRoot: string;
+  revision: string;
+  expected: ActkgV018MirrorReceipt;
+  fail: (message: string) => never;
+}): Promise<ActkgV018MirrorReceipt> {
+  const bytes = await assertGitFileMatchesWorkingTree({
+    gitRoot: options.gitRoot,
+    revision: options.revision,
+    relativePath: V018_MIRROR_RECEIPT_PATH,
+    fail: options.fail,
+  });
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(bytes.toString('utf8')) as unknown;
+  } catch {
+    options.fail('ACT v0.18 mirror receipt is not valid JSON');
+  }
+  if (canonicalJson(parsed) !== canonicalJson(options.expected)) {
+    options.fail('ACT v0.18 mirror receipt semantic drift');
+  }
+  return parsed as ActkgV018MirrorReceipt;
+}
+
+/**
+ * Close out a candidate only after the capture-bound mirror receipt has been
+ * checked again. The outer runner already owns this output root, so a failed
+ * closeout removes every partial candidate artifact before propagating the
+ * rejection.
+ */
+export async function writeV018CandidateReceiptAfterCaptureCheck(options: {
+  repoRoot: string;
+  captureRevision: string;
+  expectedMirrorReceipt: ActkgV018MirrorReceipt;
+  outputRoot: string;
+  receipt: V018AuthorityCandidateReceipt;
+}): Promise<V018AuthorityCandidateReceipt> {
+  let outputPublished = false;
+  try {
+    const mirror = await assertV018MirrorReceiptMatchesCapture({
+      gitRoot: options.repoRoot,
+      revision: options.captureRevision,
+      expected: options.expectedMirrorReceipt,
+      fail,
+    });
+    const receipt = { ...options.receipt, mirror };
+    await writeFile(
+      path.join(options.outputRoot, 'candidate-receipt.json'),
+      `${canonicalJson(receipt)}\n`,
+      { mode: 0o644 },
+    );
+    outputPublished = true;
+    return receipt;
+  } finally {
+    if (!outputPublished) await rm(options.outputRoot, { recursive: true, force: true });
+  }
 }
 
 async function requireAbsent(target: string, label: string): Promise<void> {
@@ -364,6 +499,7 @@ export async function prepareV018AuthorityCandidate(input: {
   const mirror = await mirrorPinnedV018Release({
     upstreamGitRoot: input.upstreamGitRoot,
     repoRoot,
+    receiptPath: path.join(repoRoot, V018_MIRROR_RECEIPT_PATH),
   });
   const captureRevision = resolveTrustedCaptureRevision({
     gitRoot: repoRoot,
@@ -375,6 +511,15 @@ export async function prepareV018AuthorityCandidate(input: {
     fail: (reason) => fail(reason),
   });
   if (captureRevision !== input.captureRevision) fail('captureRevision drifted during candidate preparation');
+  if (relativePath(repoRoot, mirror.receiptPath) !== V018_MIRROR_RECEIPT_PATH) {
+    fail('v0.18 mirror receipt path drifted from the capture contract');
+  }
+  await assertV018MirrorReceiptMatchesCapture({
+    gitRoot: repoRoot,
+    revision: captureRevision,
+    expected: mirror.receipt,
+    fail,
+  });
   await assertGitDirectoryMatchesWorkingTree({
     gitRoot: repoRoot,
     revision: captureRevision,
@@ -430,6 +575,12 @@ export async function prepareV018AuthorityCandidate(input: {
     const impactBytes1 = Buffer.from(serializeV018ImpactReport(impact1));
     const impactBytes2 = Buffer.from(serializeV018ImpactReport(impact2));
     if (!impactBytes1.equals(impactBytes2)) fail('clean replay impact reports differ');
+    const finalMirrorReceipt = await assertV018MirrorReceiptMatchesCapture({
+      gitRoot: repoRoot,
+      revision: captureRevision,
+      expected: mirror.receipt,
+      fail,
+    });
     const impactPath = path.join(outputRoot, 'impact-report.json');
     await writeFile(impactPath, impactBytes1, { mode: 0o644 });
     const publicAfter = await fingerprintPublicSchema(baseClient);
@@ -445,7 +596,7 @@ export async function prepareV018AuthorityCandidate(input: {
       nonActivation: true,
       captureRevision,
       stagedAt,
-      mirror: mirror.receipt,
+      mirror: finalMirrorReceipt,
       validated: {
         protocol: bundle.protocol,
         ...identity,
@@ -487,9 +638,15 @@ export async function prepareV018AuthorityCandidate(input: {
       replayByteEquivalent: true,
       impactByteEquivalent: true,
     };
-    await writeFile(path.join(outputRoot, 'candidate-receipt.json'), `${canonicalJson(receipt)}\n`, { mode: 0o644 });
+    const publishedReceipt = await writeV018CandidateReceiptAfterCaptureCheck({
+      repoRoot,
+      captureRevision,
+      expectedMirrorReceipt: mirror.receipt,
+      outputRoot,
+      receipt,
+    });
     outputPublished = true;
-    return receipt;
+    return publishedReceipt;
   } finally {
     await baseClient.end().catch(() => undefined);
     if (!outputPublished) await rm(outputRoot, { recursive: true, force: true });

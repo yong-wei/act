@@ -81,8 +81,15 @@ runner additionally compares every migration Git blob and mode with the
 current filesystem, including ignored and untracked files, because Prisma
 reads the directory directly. A changed, deleted, added, or ignored migration
 therefore fails closed even when ordinary Git status path filtering would miss
-it. `--v09-root` is only an assertion of that captured path; it cannot select
-an external working tree.
+it. The adjacent tracked v0.18 mirror receipt is also in this closure: the
+runner and closeout use the same exact Git-file check to compare its blob bytes
+and mode, then retain the existing JSON semantic comparison. Blank, reformatted,
+mode-drifted, missing, or newly introduced receipt paths fail closed before any
+candidate artifact is written. After both replays and both impact computations,
+the runner repeats the same check immediately before publication; a late drift
+therefore removes the partial output root and cannot leave a candidate receipt.
+`--v09-root` is only an assertion of that captured path; it cannot select an
+external working tree.
 
 ### 7. Merge V2 projection evidence by normalized profile identity
 
