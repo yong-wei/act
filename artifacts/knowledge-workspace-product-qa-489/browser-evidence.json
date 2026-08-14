@@ -1,12 +1,12 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-08-13T20:10:13.018Z",
+  "capturedAt": "2026-08-14T02:52:51.863Z",
   "captureRevision": {
-    "commitSha": "25517a51efa55c6395115d0f3d259d7481c492cd",
-    "treeSha": "24842b063cfcf3f00c9102a385d6a1b00d25fd56"
+    "commitSha": "f52393a3e1f8acc12159d207ef18e87b8d005932",
+    "treeSha": "2057471c47d02119c1a8ea362f629aa62a626ed2"
   },
-  "baseUrl": "http://localhost:3001",
+  "baseUrl": "http://localhost:3002",
   "selectedNodeConfigured": true,
   "designSourceOfTruth": {
     "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
@@ -38,20 +38,22 @@
   "currentSourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
     "src/features/knowledge/knowledge-graph-workspace.tsx": "b31ee8d30629484c5ea4a7a4b0dbf3641bfc36b36a741d5f465743af7f2f6087",
-    "src/features/knowledge/active-authority-graph.tsx": "4ae37b9465845f6e4a992b2f26e93071cf2259788fb4b85da5aabdc41f78c779",
+    "src/features/knowledge/active-authority-graph.tsx": "71a60126ed003da273b4db666ec7a3aa45aed5e7a17f0830f773b7ccdb2312c3",
     "src/features/knowledge/active-authority-shard-store.ts": "a455e9d0b20b90b189f047f6cb61f308e9920c23d942c3f3fc2a58a965f0ab08",
     "src/features/knowledge/active-authority-presentation.ts": "581985de8c58380eacc1469994514469017dae1777aff1e3f4d1c08f4d3f9f1d",
-    "src/features/knowledge/active-authority-graph-contracts.ts": "1bbe65ef023bbcfd02cf4882694b914f8e54095b77ebd8f4fbc7a59b842a1bde",
-    "src/lib/authority-domain-shards/contracts.ts": "6ed43c8a0c5114dce5a7fb2b564e2bb3f3aeea3f80751738dab76b1783a51c5a",
+    "src/features/knowledge/active-authority-graph-contracts.ts": "220c1978c996c1caecac3c22d83f01c32ebaae7bafec63998146e35ebcffd186",
+    "src/lib/authority-domain-shards/contracts.ts": "d3a156b2c8311719c2d95e6f54a5698fd9f938db67becb2706cb40df98e0baab",
     "src/lib/authority-domain-shards/envelope.ts": "038b7c2408ac8272612b29b51897c039105d7a79785f3e7b655b9e5597cf0255",
     "src/lib/authority-domain-shards/loader.ts": "6098f6be0631d8f8810b01ec3938f9d73c496e27f16b1c57302ce05c51573693",
     "src/lib/authority-domain-shards/materialize.ts": "ddf5dddf777b41a9782b015cca03ab8ffd71ba319b317e51f26086daa840e356",
-    "src/app/api/knowledge/_active-authority.ts": "a408356855350d759c0b9e4e4261a35fbe019a36b5ab4ae0fc4235898d20ddfc",
+    "src/app/api/knowledge/_active-authority.ts": "352622ece8f98b004c90ac27082223ef8816fe8c7e098e306e617c0f80224084",
     "src/app/api/knowledge/shards/active/route.ts": "12b16e321786c942a201ee1febf179e01efb697ccb5e72c068ee92ceabe167e7",
     "src/app/api/knowledge/shards/active/domains/[domain]/route.ts": "1cc4a1e25fe78d0468194c09e0da5d9423ee349b311c0c758e65655adbc39bdc",
     "src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts": "a8f371a0f57198218634a7e5694f7120e141a048f40c06712d78bc82ef6c7047",
     "src/app/api/knowledge/shards/active/neighborhoods/[id]/route.ts": "7c6170058617994bce215af8929c8719186c8e11f28d690424a6c7cff6deb734",
     "src/app/api/knowledge/shards/active/nodes/[id]/route.ts": "b764bed2c3b603e22fbd523e48b17698ec4182eb575f6c8a033b274ec7f40278",
+    "src/app/api/knowledge/shards/active/nodes/[id]/infograph/route.ts": "4b7cf6421c72ba8121ee08e3ca834134261dcb61e523d949076782cadcb8f3a9",
+    "src/lib/authority-domain-shards/learning-content.ts": "b01b73efa6478741b3122e5b83194b0933cc1c25d472abb9abb2b6b83d01ab8d",
     "src/app/knowledge/page.tsx": "185dcc4d6535435e1613afc111ce520479dcbe6ca7ff4c7dbb277e629035a9cc",
     "src/app/assessment/adaptive-practice/page.tsx": "3f17431a8be3bfb353d02255b61c8e957a11b1eb198d3fb074c2992c01253b83",
     "src/features/knowledge/graph/knowledge-graph-2d.tsx": "cf4470e1a527bced705b4f46e9b83b7ce7c052766cec6f36bb02dbe2d7f67898",
@@ -66,14 +68,14 @@
     "src/components/shared/page-floating-controls.tsx": "a29b8444d1d228fb6830beee4469a47b963ccac08b4bcced25f57a2db07099b7",
     "src/app/globals.css": "897c4a477bfd9180f9bc516112daa005a12b8a55cb7df360439480d02929eacd",
     "src/lib/konling-agent-runtime.ts": "571ffcb51106904056095cf73f6a9af8ce48176d97afde56d57b7cd9210a1dea",
-    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "79c3a94564b6480ae4e116b14f60863c0e8a8eb63c0b68a471e29c5c368b0413",
+    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "e3b145d2a1092e9f65c75f2dacfaeff6a1c359708c1d1799e34aac5f7773a810",
     "scripts/tests/test-commercial-ui-governance.ts": "f2148f631c5890235d9e96beae7b219894b6bcdb1a01f70000f37f70d1a43a7d"
   },
   "stateMatrix": [
     {
       "name": "desktop-default-collapsed-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -222,7 +224,7 @@
     {
       "name": "desktop-expanded-persisted-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -371,7 +373,7 @@
     {
       "name": "desktop-local-tools-directory-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -527,7 +529,7 @@
     {
       "name": "desktop-local-tools-filter-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -683,7 +685,7 @@
     {
       "name": "desktop-local-tools-view-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -845,7 +847,7 @@
     {
       "name": "desktop-selected-focus-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1026,7 +1028,7 @@
     {
       "name": "desktop-all-relation-families-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1175,7 +1177,7 @@
     {
       "name": "desktop-selected-inspector-light",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -1343,7 +1345,7 @@
     {
       "name": "desktop-hover-click-drag-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1381,7 +1383,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "5c34118a5d4dc79cd7d3a9500911419018b59f1d99bd5975b8790628070e3d48",
+      "screenshotSha256": "0c3f8f2f52a8a5f19b1346e82080ac7a5bf0e86ddb0066443c2c005ae090fa1b",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1548,11 +1550,11 @@
         "drag": {
           "method": "pointer-drag",
           "dragFrom": {
-            "x": 873.8525757585923,
+            "x": 873.8525757585921,
             "y": 489.46926907126056
           },
           "dragTo": {
-            "x": 953.8525757585923,
+            "x": 953.8525757585921,
             "y": 525.4692690712606
           },
           "pinned": true,
@@ -1579,7 +1581,7 @@
     {
       "name": "desktop-selected-page-tools-menu-dark",
       "route": "/assessment/adaptive-practice",
-      "url": "http://localhost:3001/assessment/adaptive-practice?qa=knowledge-product",
+      "url": "http://localhost:3002/assessment/adaptive-practice?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1606,7 +1608,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-page-tools-menu-dark.png",
-      "screenshotSha256": "3465e065692a0e35696195d0f23520c7ef3ff385ab0f093bd4725e6094bdf4b6",
+      "screenshotSha256": "c2a8d218135d11891217a28a65ab7e924dfaccbbc4b75a879e4fdf87e1ddfac0",
       "markers": {
         "htmlClass": "dark",
         "workspace": null,
@@ -1694,7 +1696,7 @@
     {
       "name": "desktop-explicit-relayout-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1875,7 +1877,7 @@
     {
       "name": "desktop-3d-fit-relayout-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -3624,7 +3626,7 @@
     {
       "name": "desktop-konling-selected-expanded-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -3780,7 +3782,7 @@
     {
       "name": "desktop-konling-no-selection-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -3936,7 +3938,7 @@
     {
       "name": "desktop-konling-degraded-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=missing-node&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=missing-node&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4092,7 +4094,7 @@
     {
       "name": "desktop-stress-expanded-tool-inspector-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4130,7 +4132,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "258f7e9bed502ec04d9a7a95feaa127cea82f4c514eac1f429098b34b9c17342",
+      "screenshotSha256": "d62c8fba13ed5976c58442e1a0394cf231a25a1e3b4eaeff82ad8d9ab17b0245",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4274,7 +4276,7 @@
     {
       "name": "desktop-wide-default-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1920,
@@ -4423,7 +4425,7 @@
     {
       "name": "desktop-wide-inspector-tools-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1920,
@@ -4598,7 +4600,7 @@
     {
       "name": "tablet-1100-default-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -4747,7 +4749,7 @@
     {
       "name": "tablet-1100-local-tools-filter-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -4903,7 +4905,7 @@
     {
       "name": "tablet-1100-selected-inspector-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5071,7 +5073,7 @@
     {
       "name": "tablet-1024-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1024,
@@ -5109,7 +5111,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "666d1b529d57cf3005bc41a9bad5907a6f0328161f267d7313a8ddaf9c0fdf61",
+      "screenshotSha256": "b2f43033886fc5e3bc3dd985d5d649652c1ef1089bc7ff7a957d89ba4155435a",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5232,7 +5234,7 @@
     {
       "name": "tablet-1100-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5270,7 +5272,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "bee76d1043fe8ee14fd7cf038d698ec0a985c66cc9d8c58d5999ab1198eb7c01",
+      "screenshotSha256": "3e436e12ecbe4b8fc6d482f5a99927db642f395d92d5689da3ce94ff71f383e2",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5400,7 +5402,7 @@
     {
       "name": "tablet-1279-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1279,
@@ -5438,7 +5440,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "5af348a739a2ce6211d9e2b78c1cd67b0aef740797e2655613863e668b3a2ac1",
+      "screenshotSha256": "d1c73349b9d7087d2d23c25eacb6bf4dc51a36bc4381269dcc23f70e86c5cded",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5568,7 +5570,7 @@
     {
       "name": "mobile-320-local-tools-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -5723,7 +5725,7 @@
     {
       "name": "mobile-320-selected-inspector-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -5891,7 +5893,7 @@
     {
       "name": "mobile-320-konling-expanded-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -6033,7 +6035,7 @@
     {
       "name": "mobile-320-inspector-konling-stress-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -6175,7 +6177,7 @@
     {
       "name": "light-theme-default",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -6370,7 +6372,7 @@
     {
       "name": "active-desktop-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -6523,9 +6525,16 @@
         "passed": true
       },
       "interactionEvidence": {
+        "detailRequestBeforeSelection": false,
+        "mediaRequestBeforeSelection": false,
+        "detailRequestObservedAfterSelection": true,
+        "mediaRequestObservedAfterSelection": false,
         "semanticNodeFocusedBeforeClick": true,
         "detailPanelFocusedAfterOpen": true,
         "semanticDetailVisible": true,
+        "learningCardVisible": false,
+        "learningInfographVisible": false,
+        "optionalLearningContentOmitted": true,
         "adjacencyInteraction": false,
         "renderedEdgeCount": 0,
         "teachingRelationsUnavailable": true,
@@ -6562,7 +6571,7 @@
     {
       "name": "active-desktop-light",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -6711,7 +6720,7 @@
     {
       "name": "active-tablet",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1024,
@@ -6860,7 +6869,7 @@
     {
       "name": "active-mobile",
       "route": "/knowledge",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -7048,9 +7057,16 @@
           "passed": true
         },
         "activeInteractionEvidence": {
+          "detailRequestBeforeSelection": false,
+          "mediaRequestBeforeSelection": false,
+          "detailRequestObservedAfterSelection": true,
+          "mediaRequestObservedAfterSelection": false,
           "semanticNodeFocusedBeforeClick": true,
           "detailPanelFocusedAfterOpen": true,
           "semanticDetailVisible": true,
+          "learningCardVisible": false,
+          "learningInfographVisible": false,
+          "optionalLearningContentOmitted": true,
           "adjacencyInteraction": false,
           "renderedEdgeCount": 0,
           "teachingRelationsUnavailable": true,
@@ -7098,7 +7114,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-default.png",
-        "screenshotSha256": "1087f5672b0cf8a5d5e493c20718725fc5b026904324d770aa6362084cc0628e"
+        "screenshotSha256": "b41d55c7febb514d0b3bd38c328af7fa1a1a137f6aaea50d5262112b08d48d0c"
       },
       "mobile": {
         "mode": "active",
@@ -7113,13 +7129,18 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 6
+              "requestCount": 7
+            },
+            {
+              "endpointClass": "active-node",
+              "status": 200,
+              "requestCount": 1
             }
           ],
           "checks": {
-            "activeNodeRequestObserved": false,
+            "activeNodeRequestObserved": true,
             "activeCanvasIdentityVerified": true,
-            "activeNodeIdentityVerified": false,
+            "activeNodeIdentityVerified": true,
             "provenanceIdentityVerified": true,
             "roleRequestIsolationVerified": true,
             "forbiddenDataAbsent": true
@@ -7136,10 +7157,50 @@
           "copyEntryPresent": false,
           "passed": true
         },
+        "activeInteractionEvidence": {
+          "detailRequestBeforeSelection": false,
+          "mediaRequestBeforeSelection": false,
+          "detailRequestObservedAfterSelection": true,
+          "mediaRequestObservedAfterSelection": false,
+          "semanticNodeFocusedBeforeClick": true,
+          "detailPanelFocusedAfterOpen": true,
+          "semanticDetailVisible": true,
+          "learningCardVisible": false,
+          "learningInfographVisible": false,
+          "optionalLearningContentOmitted": true,
+          "adjacencyInteraction": false,
+          "renderedEdgeCount": 0,
+          "teachingRelationsUnavailable": true,
+          "detailSurfaceScan": {
+            "graphPresent": true,
+            "scannedSurfaceCount": 71,
+            "forbiddenTokenCount": 0,
+            "forbiddenEnumCount": 0,
+            "forbiddenLocatorCount": 0,
+            "internalIdentityLeakCount": 0,
+            "copyEntryCount": 0,
+            "copyEntryPresent": false,
+            "passed": true
+          },
+          "overviewSurfaceScan": {
+            "graphPresent": true,
+            "scannedSurfaceCount": 58,
+            "forbiddenTokenCount": 0,
+            "forbiddenEnumCount": 0,
+            "forbiddenLocatorCount": 0,
+            "internalIdentityLeakCount": 0,
+            "copyEntryCount": 0,
+            "copyEntryPresent": false,
+            "passed": true
+          },
+          "focusReturnedToOriginNode": true,
+          "focusReturnedToSemanticCanvas": false,
+          "focusReturnedToSemanticSurface": true
+        },
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-active-mobile.png",
-        "screenshotSha256": "0992eb6da2ad741e8be3b55dd8bfcf633c6f3a82453c0a7653ef4449fc2afc3a"
+        "screenshotSha256": "a0d9fc4545aa88d1e750491fe8f8104bd37e766d3dd416965bf4923bafb2301e"
       },
       "legacy": {
         "mode": "legacy",
@@ -7176,7 +7237,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-legacy.png",
-        "screenshotSha256": "c1d25c6c5f76b22e4260302d334494f93e4987ed507d5a08e918c06257a7713c"
+        "screenshotSha256": "7e064b4715956e4cab2c076a8ad4326e28a0a959ae9cccef7d7483ee42c1ce9c"
       },
       "candidate": null
     },
@@ -7220,9 +7281,16 @@
           "passed": true
         },
         "activeInteractionEvidence": {
+          "detailRequestBeforeSelection": false,
+          "mediaRequestBeforeSelection": false,
+          "detailRequestObservedAfterSelection": true,
+          "mediaRequestObservedAfterSelection": false,
           "semanticNodeFocusedBeforeClick": true,
           "detailPanelFocusedAfterOpen": true,
           "semanticDetailVisible": true,
+          "learningCardVisible": false,
+          "learningInfographVisible": false,
+          "optionalLearningContentOmitted": true,
           "adjacencyInteraction": false,
           "renderedEdgeCount": 0,
           "teachingRelationsUnavailable": true,
@@ -7285,13 +7353,18 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 6
+              "requestCount": 7
+            },
+            {
+              "endpointClass": "active-node",
+              "status": 200,
+              "requestCount": 1
             }
           ],
           "checks": {
-            "activeNodeRequestObserved": false,
+            "activeNodeRequestObserved": true,
             "activeCanvasIdentityVerified": true,
-            "activeNodeIdentityVerified": false,
+            "activeNodeIdentityVerified": true,
             "provenanceIdentityVerified": true,
             "roleRequestIsolationVerified": true,
             "forbiddenDataAbsent": true
@@ -7308,10 +7381,50 @@
           "copyEntryPresent": false,
           "passed": true
         },
+        "activeInteractionEvidence": {
+          "detailRequestBeforeSelection": false,
+          "mediaRequestBeforeSelection": false,
+          "detailRequestObservedAfterSelection": true,
+          "mediaRequestObservedAfterSelection": false,
+          "semanticNodeFocusedBeforeClick": true,
+          "detailPanelFocusedAfterOpen": true,
+          "semanticDetailVisible": true,
+          "learningCardVisible": false,
+          "learningInfographVisible": false,
+          "optionalLearningContentOmitted": true,
+          "adjacencyInteraction": false,
+          "renderedEdgeCount": 0,
+          "teachingRelationsUnavailable": true,
+          "detailSurfaceScan": {
+            "graphPresent": true,
+            "scannedSurfaceCount": 68,
+            "forbiddenTokenCount": 0,
+            "forbiddenEnumCount": 0,
+            "forbiddenLocatorCount": 0,
+            "internalIdentityLeakCount": 0,
+            "copyEntryCount": 0,
+            "copyEntryPresent": false,
+            "passed": true
+          },
+          "overviewSurfaceScan": {
+            "graphPresent": true,
+            "scannedSurfaceCount": 55,
+            "forbiddenTokenCount": 0,
+            "forbiddenEnumCount": 0,
+            "forbiddenLocatorCount": 0,
+            "internalIdentityLeakCount": 0,
+            "copyEntryCount": 0,
+            "copyEntryPresent": false,
+            "passed": true
+          },
+          "focusReturnedToOriginNode": true,
+          "focusReturnedToSemanticCanvas": false,
+          "focusReturnedToSemanticSurface": true
+        },
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-active-mobile.png",
-        "screenshotSha256": "7d88a14272011228eb2c64ff867a8c3f6a167bc27ea69b0a92672bfa2032e573"
+        "screenshotSha256": "4c6951ff48c7216b207c2c3efef4e63dddc2ed2dfae1f490f0dddf10c2e49491"
       },
       "legacy": {
         "mode": "legacy",
@@ -7348,7 +7461,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-legacy.png",
-        "screenshotSha256": "4ff4bcd09678c1f4447fc14552c2c00fd5698bbda975e9ae5262d4ad77bfbfe2"
+        "screenshotSha256": "17f093c9d580d1b8f679abfa0fc034e572b92b1018b4ca5ed1182dc81de5b698"
       },
       "candidate": null
     },
@@ -7392,9 +7505,16 @@
           "passed": true
         },
         "activeInteractionEvidence": {
+          "detailRequestBeforeSelection": false,
+          "mediaRequestBeforeSelection": false,
+          "detailRequestObservedAfterSelection": true,
+          "mediaRequestObservedAfterSelection": false,
           "semanticNodeFocusedBeforeClick": true,
           "detailPanelFocusedAfterOpen": true,
           "semanticDetailVisible": true,
+          "learningCardVisible": false,
+          "learningInfographVisible": false,
+          "optionalLearningContentOmitted": true,
           "adjacencyInteraction": false,
           "renderedEdgeCount": 0,
           "teachingRelationsUnavailable": true,
@@ -7457,13 +7577,18 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 6
+              "requestCount": 7
+            },
+            {
+              "endpointClass": "active-node",
+              "status": 200,
+              "requestCount": 1
             }
           ],
           "checks": {
-            "activeNodeRequestObserved": false,
+            "activeNodeRequestObserved": true,
             "activeCanvasIdentityVerified": true,
-            "activeNodeIdentityVerified": false,
+            "activeNodeIdentityVerified": true,
             "provenanceIdentityVerified": true,
             "roleRequestIsolationVerified": true,
             "forbiddenDataAbsent": true
@@ -7480,10 +7605,50 @@
           "copyEntryPresent": false,
           "passed": true
         },
+        "activeInteractionEvidence": {
+          "detailRequestBeforeSelection": false,
+          "mediaRequestBeforeSelection": false,
+          "detailRequestObservedAfterSelection": true,
+          "mediaRequestObservedAfterSelection": false,
+          "semanticNodeFocusedBeforeClick": true,
+          "detailPanelFocusedAfterOpen": true,
+          "semanticDetailVisible": true,
+          "learningCardVisible": false,
+          "learningInfographVisible": false,
+          "optionalLearningContentOmitted": true,
+          "adjacencyInteraction": false,
+          "renderedEdgeCount": 0,
+          "teachingRelationsUnavailable": true,
+          "detailSurfaceScan": {
+            "graphPresent": true,
+            "scannedSurfaceCount": 68,
+            "forbiddenTokenCount": 0,
+            "forbiddenEnumCount": 0,
+            "forbiddenLocatorCount": 0,
+            "internalIdentityLeakCount": 0,
+            "copyEntryCount": 0,
+            "copyEntryPresent": false,
+            "passed": true
+          },
+          "overviewSurfaceScan": {
+            "graphPresent": true,
+            "scannedSurfaceCount": 55,
+            "forbiddenTokenCount": 0,
+            "forbiddenEnumCount": 0,
+            "forbiddenLocatorCount": 0,
+            "internalIdentityLeakCount": 0,
+            "copyEntryCount": 0,
+            "copyEntryPresent": false,
+            "passed": true
+          },
+          "focusReturnedToOriginNode": true,
+          "focusReturnedToSemanticCanvas": false,
+          "focusReturnedToSemanticSurface": true
+        },
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-active-mobile.png",
-        "screenshotSha256": "09cc465f721da606b9c1dd017def2a3410c723d14fadfd516c6cbd7e8118481c"
+        "screenshotSha256": "c0b7bcf78c1582e239a2c1454701c1a6394965c1149d999dce9f9373cde40fae"
       },
       "legacy": {
         "mode": "legacy",
@@ -7520,7 +7685,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-legacy.png",
-        "screenshotSha256": "96ff65147af6deb76b70076a82d3f8b09c47a55e530c32bdd58fc1c086f3f34c"
+        "screenshotSha256": "8501b0b03d3bf6d205b864e9008320ef043cf88caec9c3dc628bfb546942ee24"
       },
       "candidate": {
         "mode": "candidate",
@@ -7589,94 +7754,12 @@
   },
   "independentVisualReview": {
     "path": "artifacts/knowledge-workspace-product-qa-489/visual-review.md",
-    "reviewer": "independent-reviewer (gpt-5.6-sol medium)",
-    "finalResult": "passed",
-    "blockingFindings": [],
-    "dimensions": {
-      "handoffAlignment": "PASS",
-      "conceptAdoptionRejection": "PASS",
-      "appShellContinuity": "PASS",
-      "localTools": "PASS",
-      "semanticMap": "PASS",
-      "inspectorHierarchy": "PASS",
-      "konlingDock": "PASS",
-      "interactionStability": "PASS",
-      "keyboardFocus": "PASS",
-      "themeParity": "PASS",
-      "mobileBehavior": "PASS",
-      "tabletBreakpoint": "PASS",
-      "stressNonOverlap": "PASS",
-      "canvasGeometry": "PASS"
-    },
-    "reviewedStateSha256": {
-      "desktop-default-collapsed-dark": "0e22e17e8464431f00dd6e67da8925b980dee5ea0c334651a672f7bb08fca155",
-      "desktop-expanded-persisted-dark": "6d1ff0b002cfea65f2493ac0a26e4191576671e622e643a70b0aa215138c47fd",
-      "desktop-local-tools-directory-dark": "d2592cf6cc4b2c3b4a0c388dc63ba1a7e0e9f14f8eab5f6a45506ac8ba5ea266",
-      "desktop-local-tools-filter-dark": "21f498872d927e91f669c084d14459005907cf48f9ff1e5e43cead60a751c38a",
-      "desktop-local-tools-view-dark": "41056c0499537ed0f164688bcba0c3d40bb1bd811bb0786618179a47b0cc658b",
-      "desktop-selected-focus-dark": "c2cd4e53cd20becf864da4c345dc7384eb3ea49fe77affc9fc1ef753f1c1b5b2",
-      "desktop-all-relation-families-dark": "2a4e2a6d81b528c8cb2fb72da42e6a2e88856d77264baa1b45e00bcdc19dedff",
-      "desktop-selected-inspector-light": "4c2a999af3429acb250876229388950cceb6ebddd6995ef5015a466e68b6e4c5",
-      "desktop-hover-click-drag-dark": "5c34118a5d4dc79cd7d3a9500911419018b59f1d99bd5975b8790628070e3d48",
-      "desktop-selected-page-tools-menu-dark": "3465e065692a0e35696195d0f23520c7ef3ff385ab0f093bd4725e6094bdf4b6",
-      "desktop-explicit-relayout-dark": "b1f2e942edaeb7e05e217c34e7ddc71f597eef857ac3f182e87cddf9b530695c",
-      "desktop-3d-fit-relayout-dark": "4ad79e2fea63d8511e5decefbfa8273fe2231a9f33bba3cf1f35a68811f4ef79",
-      "desktop-konling-selected-expanded-dark": "1126e68b16ff56bca9442ec3b45fbc13d1b644e6a9c8b018405d5075f904d51c",
-      "desktop-konling-no-selection-dark": "67051a544540e615a59f66004492bfdda251ce1eb96c774b9ac1ec7a651ada4d",
-      "desktop-konling-degraded-dark": "a432f28d6ef59a67f2945cded9013bd45ca1540760ce7731876070facf472720",
-      "desktop-stress-expanded-tool-inspector-konling-dark": "258f7e9bed502ec04d9a7a95feaa127cea82f4c514eac1f429098b34b9c17342",
-      "desktop-wide-default-dark": "c3698dd76ba010c8dda6c1d49592eb10ff968b071f6b65da7b896691a3fc6ef8",
-      "desktop-wide-inspector-tools-dark": "f731347546102c12d0976d7d4efeb66dbfc483722e370500813e6aaf9e230f98",
-      "tablet-1100-default-dark": "493c1c82e86c58b75d8655263a14904db531fd38ff1c66fb213c3a0d8e0d8914",
-      "tablet-1100-local-tools-filter-dark": "63c457492bd94733d45a020745489fb1ffc15b69fb72ff499fcbb549e306afad",
-      "tablet-1100-selected-inspector-dark": "1ca87ece9bb4294e2e2c2dc698cca06b49e4e65235249c9b0d82a0f1325751ba",
-      "tablet-1024-inspector-tools-konling-dark": "666d1b529d57cf3005bc41a9bad5907a6f0328161f267d7313a8ddaf9c0fdf61",
-      "tablet-1100-inspector-tools-konling-dark": "bee76d1043fe8ee14fd7cf038d698ec0a985c66cc9d8c58d5999ab1198eb7c01",
-      "tablet-1279-inspector-tools-konling-dark": "5af348a739a2ce6211d9e2b78c1cd67b0aef740797e2655613863e668b3a2ac1",
-      "mobile-320-local-tools-dark": "7a117a67e8289d091b4039aca3c3b51b41175bc25f587e1bf28d618eec639125",
-      "mobile-320-selected-inspector-dark": "90be14d406126709e2f7db379f8a2ff05cef5abf1252297f4ced724b6d12603d",
-      "mobile-320-konling-expanded-dark": "b170b8eac8f3f3d57e759de1b2ed44fbe4818e8d4ecd1e7e4b4c6b8d9c55cbae",
-      "mobile-320-inspector-konling-stress-dark": "b170b8eac8f3f3d57e759de1b2ed44fbe4818e8d4ecd1e7e4b4c6b8d9c55cbae",
-      "light-theme-default": "52a2a79df6f9786f23e5cd2c5b6a8f2f81b86b48b4cbbec2c2c27f2b3d629aeb",
-      "active-desktop-dark": "0a10ec0f0cf2564b18e5f0f60657ed35685583a81e34f73fb840848791b80bfd",
-      "active-desktop-light": "3d9900248e39779c65f9a61130d4c6060452d0be9b51bca7240d65c9ca1828fc",
-      "active-tablet": "81062daf7236e0e305c367f14c5127843e72004ae530493a5fdef6ec6077a241",
-      "active-mobile": "cfb7150c579fd7634546f4567811d17e45969380375bad4e25b0dfbd6412658a"
-    },
-    "reviewedSourceSha256": {
-      "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
-      "src/features/knowledge/knowledge-graph-workspace.tsx": "b31ee8d30629484c5ea4a7a4b0dbf3641bfc36b36a741d5f465743af7f2f6087",
-      "src/features/knowledge/active-authority-graph.tsx": "4ae37b9465845f6e4a992b2f26e93071cf2259788fb4b85da5aabdc41f78c779",
-      "src/features/knowledge/active-authority-shard-store.ts": "a455e9d0b20b90b189f047f6cb61f308e9920c23d942c3f3fc2a58a965f0ab08",
-      "src/features/knowledge/active-authority-presentation.ts": "581985de8c58380eacc1469994514469017dae1777aff1e3f4d1c08f4d3f9f1d",
-      "src/features/knowledge/active-authority-graph-contracts.ts": "1bbe65ef023bbcfd02cf4882694b914f8e54095b77ebd8f4fbc7a59b842a1bde",
-      "src/lib/authority-domain-shards/contracts.ts": "6ed43c8a0c5114dce5a7fb2b564e2bb3f3aeea3f80751738dab76b1783a51c5a",
-      "src/lib/authority-domain-shards/envelope.ts": "038b7c2408ac8272612b29b51897c039105d7a79785f3e7b655b9e5597cf0255",
-      "src/lib/authority-domain-shards/loader.ts": "6098f6be0631d8f8810b01ec3938f9d73c496e27f16b1c57302ce05c51573693",
-      "src/lib/authority-domain-shards/materialize.ts": "ddf5dddf777b41a9782b015cca03ab8ffd71ba319b317e51f26086daa840e356",
-      "src/app/api/knowledge/_active-authority.ts": "a408356855350d759c0b9e4e4261a35fbe019a36b5ab4ae0fc4235898d20ddfc",
-      "src/app/api/knowledge/shards/active/route.ts": "12b16e321786c942a201ee1febf179e01efb697ccb5e72c068ee92ceabe167e7",
-      "src/app/api/knowledge/shards/active/domains/[domain]/route.ts": "1cc4a1e25fe78d0468194c09e0da5d9423ee349b311c0c758e65655adbc39bdc",
-      "src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts": "a8f371a0f57198218634a7e5694f7120e141a048f40c06712d78bc82ef6c7047",
-      "src/app/api/knowledge/shards/active/neighborhoods/[id]/route.ts": "7c6170058617994bce215af8929c8719186c8e11f28d690424a6c7cff6deb734",
-      "src/app/api/knowledge/shards/active/nodes/[id]/route.ts": "b764bed2c3b603e22fbd523e48b17698ec4182eb575f6c8a033b274ec7f40278",
-      "src/app/knowledge/page.tsx": "185dcc4d6535435e1613afc111ce520479dcbe6ca7ff4c7dbb277e629035a9cc",
-      "src/app/assessment/adaptive-practice/page.tsx": "3f17431a8be3bfb353d02255b61c8e957a11b1eb198d3fb074c2992c01253b83",
-      "src/features/knowledge/graph/knowledge-graph-2d.tsx": "cf4470e1a527bced705b4f46e9b83b7ce7c052766cec6f36bb02dbe2d7f67898",
-      "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "2a34823ab0c39743983fed99ec25f435210e9a68fc2971f07afb2f86106757c4",
-      "src/features/knowledge/graph/relation-family-control.tsx": "6525e3ae4d5071f0db149c9acdba60de088b30db1f45ec3ff8bd24b622139f24",
-      "src/features/knowledge/graph/visual-config.ts": "41d44ca2ff04a4ea5a058a6534421c51ea56ecb9fd2dfbf0c9a11d98c45bc9c5",
-      "src/features/knowledge/resource-panel/resource-panel.tsx": "1dad1cbcac3028e4d83ab407479902e2c1a9f998b4d5e8d94573c4276e862975",
-      "src/components/ai/global-ai-button.tsx": "6243083863a81d41f891dbf3bf5217967af28b7f302a20361b2254d366f2715b",
-      "src/components/ai/global-ai-sidebar.tsx": "3877aef6b36a12cbfb82188f1aa6a5ad9aeab7c30a24961eea40dcd2a62d4db9",
-      "src/components/providers/global-ai-provider.tsx": "6bbe1231f5bb01d7ebcf11f2d0bb72315d540f9d6e5b4f0c29b49120666448ef",
-      "src/components/platform/app-shell.tsx": "50ab2beb30e925b3586ed1b8c3a652c8b1306a6cebf08c5712625353cb40ac9a",
-      "src/components/shared/page-floating-controls.tsx": "a29b8444d1d228fb6830beee4469a47b963ccac08b4bcced25f57a2db07099b7",
-      "src/app/globals.css": "897c4a477bfd9180f9bc516112daa005a12b8a55cb7df360439480d02929eacd",
-      "src/lib/konling-agent-runtime.ts": "571ffcb51106904056095cf73f6a9af8ce48176d97afde56d57b7cd9210a1dea",
-      "scripts/tests/capture-knowledge-workspace-product-qa.ts": "79c3a94564b6480ae4e116b14f60863c0e8a8eb63c0b68a471e29c5c368b0413",
-      "scripts/tests/test-commercial-ui-governance.ts": "f2148f631c5890235d9e96beae7b219894b6bcdb1a01f70000f37f70d1a43a7d"
-    }
+    "reviewer": "critical-reviewer",
+    "finalResult": "pending",
+    "blockingFindings": [
+      "visual-review-not-run"
+    ],
+    "dimensions": {}
   },
   "temporaryExceptions": []
 }
