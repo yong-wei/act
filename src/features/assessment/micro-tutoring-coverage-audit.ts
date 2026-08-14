@@ -5,6 +5,8 @@ import { evaluateAssessmentEvidenceAuthority } from '@/features/adaptive-assessm
 import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 
 export const MICRO_TUTORING_COVERAGE_AUDIT_VERSION = 'micro-tutoring-coverage-audit.v1';
+export const MICRO_TUTORING_PRACTICE_BASELINE_VERSION = 'micro-tutoring-practice-baseline.v1';
+export const MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT = 54;
 
 export type MicroTutoringCoverageGapReason =
   | 'ATTRIBUTION_UNCERTAIN'
@@ -15,13 +17,15 @@ export type MicroTutoringCoverageGapReason =
   | 'REFERENCE_DRIFT';
 
 export type MicroTutoringCoverageBaselineIssue =
+  | 'BASELINE_ITEM_COUNT_DRIFT'
+  | 'BASELINE_VERSION_UNSUPPORTED'
   | 'BASELINE_ITEM_MISSING'
   | 'BASELINE_ITEM_EXTRA'
   | 'BASELINE_ITEM_DUPLICATE'
   | 'CONTENT_HASH_DRIFT';
 
 export interface MicroTutoringPracticeBaseline {
-  version: 'micro-tutoring-practice-baseline.v1';
+  version: string;
   entries: Array<{
     catalogItemId: string;
     contentHash: string;
@@ -102,6 +106,8 @@ export interface MicroTutoringCoverageAuditReport {
     catalogItemId: string;
     expectedContentHash?: string;
     actualContentHash?: string;
+    expectedItemCount?: number;
+    actualItemCount?: number;
   }>;
   gapReasonCounts: Record<MicroTutoringCoverageGapReason, number>;
   rows: MicroTutoringCoverageRow[];
@@ -134,6 +140,29 @@ function baselineIssues(
   qualifiedItems: AdaptiveAssessmentCatalogItem[],
 ): MicroTutoringCoverageAuditReport['baselineIssues'] {
   const issues: MicroTutoringCoverageAuditReport['baselineIssues'] = [];
+  if (baseline.version !== MICRO_TUTORING_PRACTICE_BASELINE_VERSION) {
+    issues.push({
+      reason: 'BASELINE_VERSION_UNSUPPORTED',
+      catalogItemId: baseline.version,
+    });
+  } else {
+    if (baseline.entries.length !== MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT) {
+      issues.push({
+        reason: 'BASELINE_ITEM_COUNT_DRIFT',
+        catalogItemId: baseline.version,
+        expectedItemCount: MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT,
+        actualItemCount: baseline.entries.length,
+      });
+    }
+    if (qualifiedItems.length !== MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT) {
+      issues.push({
+        reason: 'BASELINE_ITEM_COUNT_DRIFT',
+        catalogItemId: 'qualified-practice-items',
+        expectedItemCount: MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT,
+        actualItemCount: qualifiedItems.length,
+      });
+    }
+  }
   const baselineById = new Map<string, string>();
   const duplicateIds = new Set<string>();
   for (const entry of baseline.entries) {
@@ -316,7 +345,12 @@ export function microTutoringCoverageAuditMarkdown(report: MicroTutoringCoverage
     '## 基线异常',
     '',
     ...(report.baselineIssues.length
-      ? report.baselineIssues.map((issue) => `- ${issue.reason}: ${issue.catalogItemId}`)
+      ? report.baselineIssues.map((issue) => {
+        const itemCount = issue.expectedItemCount === undefined
+          ? ''
+          : `（预期 ${issue.expectedItemCount}，实际 ${issue.actualItemCount}）`;
+        return `- ${issue.reason}: ${issue.catalogItemId}${itemCount}`;
+      })
       : ['- 无']),
     '',
     '## 覆盖记录',

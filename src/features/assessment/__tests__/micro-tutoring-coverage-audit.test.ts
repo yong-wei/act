@@ -4,7 +4,10 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import {
+  assessmentItemSemanticReviewSourceHash,
+  type AssessmentItemSemanticReviewDecision,
+} from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   buildMicroTutoringCoverageAuditReport,
   microTutoringCoverageAuditIsStrictlyComplete,
@@ -92,6 +95,95 @@ describe('micro tutoring coverage audit', () => {
     expect(result.baselineIssues).toEqual(expect.arrayContaining([
       expect.objectContaining({ reason: 'BASELINE_ITEM_DUPLICATE', catalogItemId: baseline.entries[0].catalogItemId }),
       expect.objectContaining({ reason: 'CONTENT_HASH_DRIFT', catalogItemId: baseline.entries[0].catalogItemId }),
+    ]));
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
+  it('rejects a baseline and catalog that expand together beyond the v1 denominator', () => {
+    const sourceItem = catalogItems.find((item) => item.catalogItemId === baseline.entries[0].catalogItemId)!;
+    const sourceDecision = reviewDecisions.find((decision) => decision.catalogItemId === sourceItem.catalogItemId)!;
+    const contentHash = 'c'.repeat(64);
+    const catalogItemId = `${sourceItem.catalogItemId}-expanded`;
+    const extraItem: AdaptiveAssessmentCatalogItem = {
+      ...sourceItem,
+      catalogItemId,
+      sourceId: `${sourceItem.sourceId}-expanded`,
+      sourceAnchor: `${sourceItem.sourceAnchor}-expanded`,
+      contentHash,
+      lineage: {
+        ...sourceItem.lineage,
+        sourceId: `${sourceItem.lineage.sourceId}-expanded`,
+        sourceHash: contentHash,
+      },
+    };
+    const { reviewSourceHash: _reviewSourceHash, ...extraDecisionInput } = sourceDecision;
+    const extraDecision = {
+      ...extraDecisionInput,
+      catalogItemId,
+      sourceContentHash: contentHash,
+    };
+    const extraAttributions = (extraItem.questionRefs.options ?? [])
+      .filter((option) => option.isCorrect === false && option.key)
+      .map((option) => ({
+        catalogItemId,
+        contentHash,
+        optionKey: option.key!,
+        learningGoalId: 'learning-goal-1',
+        misconceptionTag: 'misconception-1',
+        knowledgeNodeId: 'node-1',
+        version: 'attribution.v1',
+      }));
+    const result = report({
+      catalogItems: [...catalogItems, extraItem],
+      reviewDecisions: [
+        ...reviewDecisions,
+        {
+          ...extraDecision,
+          reviewSourceHash: assessmentItemSemanticReviewSourceHash(extraDecision),
+        },
+      ],
+      baseline: {
+        ...baseline,
+        entries: [...baseline.entries, { catalogItemId, contentHash }],
+      },
+      optionAttributions: [...buildAttributions(), ...extraAttributions],
+    });
+
+    expect(result.baselineItemCount).toBe(55);
+    expect(result.qualifiedPracticeItemCount).toBe(55);
+    expect(result.gapOptionCount).toBe(0);
+    expect(result.baselineIssues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        reason: 'BASELINE_ITEM_COUNT_DRIFT',
+        catalogItemId: baseline.version,
+        expectedItemCount: 54,
+        actualItemCount: 55,
+      }),
+      expect.objectContaining({
+        reason: 'BASELINE_ITEM_COUNT_DRIFT',
+        catalogItemId: 'qualified-practice-items',
+        expectedItemCount: 54,
+        actualItemCount: 55,
+      }),
+    ]));
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
+  it('fails closed when the baseline version changes without an explicit audit migration', () => {
+    const result = report({
+      baseline: {
+        ...baseline,
+        version: 'micro-tutoring-practice-baseline.v2',
+      },
+      optionAttributions: buildAttributions(),
+    });
+
+    expect(result.gapOptionCount).toBe(0);
+    expect(result.baselineIssues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        reason: 'BASELINE_VERSION_UNSUPPORTED',
+        catalogItemId: 'micro-tutoring-practice-baseline.v2',
+      }),
     ]));
     expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
   });
