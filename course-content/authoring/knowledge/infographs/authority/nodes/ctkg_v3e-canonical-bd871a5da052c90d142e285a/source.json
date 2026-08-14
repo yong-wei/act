@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+  "safe_id": "ctkg_v3e-canonical-bd871a5da052c90d142e285a",
+  "node": {
+    "name": "Transient response",
+    "name_en": "Transient response",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Transient response：The component y1(t) is called the transient response as it decays to zero as time goes on.",
+  "intuition": null,
+  "explanation": "The component y1(t) is called the transient response as it decays to zero as time goes on.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Transient r…",
+    "Transient re"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-bd871a5da052c90d142e285a.md",
+  "provider_policy": "grok-image_gen"
+}

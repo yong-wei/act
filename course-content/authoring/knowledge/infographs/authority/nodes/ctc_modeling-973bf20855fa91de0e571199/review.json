@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:03:44+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-973bf20855fa91de0e571199",
+  "safe_id": "ctc_modeling-973bf20855fa91de0e571199",
+  "node_name": "The voltage across an",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (纯延迟/电感/nontouching/数学工具/电阻)"
+}

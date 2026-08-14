@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0006",
+  "offset": 30,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-b95aad56e25e573b0902c1c3",
+      "batch": "B",
+      "name": "Input compensation (as a scheme)",
+      "definition": "Input compensation (as a scheme)：A compensation scheme where the compensator is placed before the summing junction of the main feedback loop in a single…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Input compe…",
+        "一种·Input"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Input compensation (as a scheme)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Input compensation (as a scheme)：A compensation scheme where the compensator is placed before the summing junction of the main feedback loop in a single…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Input comp」、「一种·Input」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d9716ac7221be94d7e69f7d3",
+      "batch": "B",
+      "name": "Kalman state-space decomposition",
+      "definition": "Kalman state-space decomposition：A mechanism for partitioning the state-space to expose controllable/uncontrollable or observable/unobservable subspaces.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Kalman stat…",
+        "用于分析·Obse…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Kalman state-space decomposition\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Kalman state-space decomposition：A mechanism for partitioning the state-space to expose controllable/uncontrollable or observable/unobservable subspaces.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Kalman sta」、「用于分析·Obse…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "batch": "B",
+      "name": "Sinusoidal steady-state response",
+      "definition": "Sinusoidal steady-state response：The steady-state output of a stable linear system when excited by a sinusoidal input, consisting solely of a sinusoid a…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sinusoidal …",
+        "关联·Natura…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Sinusoidal steady-state response\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Sinusoidal steady-state response：The steady-state output of a stable linear system when excited by a sinusoidal input, consisting solely of a sinusoid a…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Sinusoidal」、「关联·Natura…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0cf99c642f502f5984fc4317",
+      "batch": "B",
+      "name": "Time-domain performance measures",
+      "definition": "Time-domain performance measures：Performance measures used to describe control system behavior in the time domain, including peak time, maximum percent…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Time-domain…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Time-domain performance measures\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Time-domain performance measures：Performance measures used to describe control system behavior in the time domain, including peak time, maximum percent…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Time-domai」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7920406a5dc429be713c5890",
+      "batch": "B",
+      "name": "Feedback compensation (as a scheme)",
+      "definition": "Feedback compensation (as a scheme)：A compensation scheme where the compensator is placed in the feedback path of a single-loop feedback control system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Feedback co…",
+        "一种·Feedba…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Feedback compensation (as a scheme)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Feedback compensation (as a scheme)：A compensation scheme where the compensator is placed in the feedback path of a single-loop feedback control system.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Feedback c」、「一种·Feedba…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

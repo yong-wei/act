@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-207d2721a1e69d2051980b49",
+  "safe_id": "ctkg_v3e-canonical-207d2721a1e69d2051980b49",
+  "node": {
+    "name": "Pole-zero constellation",
+    "name_en": "Pole-zero constellation",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Pole-zero constellation：Information about y(t) can be obtained from the pole-zero constellation of Y(s) without actually inverting it.",
+  "intuition": null,
+  "explanation": "Information about y(t) can be obtained from the pole-zero constellation of Y(s) without actually inverting it.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Pole-zero c…",
+    "Pole-zero co"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-207d2721a1e69d2051980b49.md",
+  "provider_policy": "grok-image_gen"
+}

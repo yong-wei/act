@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-af604268b1e07a0ddba886f3",
+  "safe_id": "ctkg_v3e-object-af604268b1e07a0ddba886f3",
+  "node": {
+    "name": "Nichols chart",
+    "name_en": "Nichols chart",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Nichols chart：Nichols chart",
+  "intuition": null,
+  "explanation": "Nichols chart",
+  "relation_head": "前置 → Frequency response method",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Frequency response method",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Nichols cha…",
+    "Nichols char",
+    "关联·Freque…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-af604268b1e07a0ddba886f3.md",
+  "provider_policy": "grok-image_gen"
+}

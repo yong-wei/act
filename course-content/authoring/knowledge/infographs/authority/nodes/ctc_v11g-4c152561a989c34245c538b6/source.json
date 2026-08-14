@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-4c152561a989c34245c538b6",
+  "safe_id": "ctc_v11g-4c152561a989c34245c538b6",
+  "node": {
+    "name": "asymptote",
+    "name_en": "asymptote",
+    "concept_kind": "representation_kind",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "asymptote：The path the root locus follows as the parameter becomes very large and approaches ∞.",
+  "intuition": null,
+  "explanation": "The path the root locus follows as the parameter becomes very large and approaches ∞.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "asymptote"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-4c152561a989c34245c538b6.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -6,7 +6,10 @@ import {
   type QuestionType,
 } from '@/features/assessment/adaptive-question-bank';
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
-import { selectCatalogBackedAssessmentItem } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import {
+  findAdaptiveAssessmentCatalogSnapshot,
+  selectCatalogBackedAssessmentItem,
+} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import {
   checkpointAuthoredQuestionRuntimeId,
   getCheckpointAuthoredQuestionRecordByRuntimeId,
@@ -34,6 +37,7 @@ export interface SubmitAnswerParams {
   questionId: string;
   selectedOption: string;
   timeSpent: number;
+  continuity?: CompanionPracticeMetadata;
   pathContext?: {
     pathId: string;
     nodeId: string;
@@ -41,6 +45,13 @@ export interface SubmitAnswerParams {
     routeIntent?: string | null;
     questionScope?: AdaptiveQuestionScope;
   };
+}
+
+export interface CompanionPracticeMetadata {
+  origin: 'konling-companion-practice';
+  snapshotId: string;
+  targetKnowledgeId: string;
+  structuredCauseId: string | null;
 }
 
 export interface SubmitAnswerResult {
@@ -58,6 +69,7 @@ export interface SubmittedAnswerDetails {
   selectedOptionKey: string;
   correctOptionKey: string;
   pathContext?: SubmitAnswerParams['pathContext'];
+  continuity?: CompanionPracticeMetadata;
 }
 
 interface SessionState {
@@ -127,6 +139,20 @@ function toPublicQuestion(question: CrossDomainQuestion): PublicQuestion {
       text: option.text,
       explanation: option.explanation,
     })),
+  };
+}
+
+export function getAdaptiveQuestionSelectionById(
+  params: { userId: string; sessionId: string; questionId: string },
+  answers: AdaptiveAnswerRecord[],
+): { question: PublicQuestion; estimatedAbility: number; confidenceInterval: [number, number] } {
+  const question = getQuestionForSession(params.questionId, params);
+  if (!question) throw new Error('Companion-practice question is unavailable.');
+  const theta = estimateAdaptiveAbility(answers);
+  return {
+    question: toPublicQuestion(question),
+    estimatedAbility: Number(theta.toFixed(2)),
+    confidenceInterval: estimateAdaptiveConfidence(answers, theta),
   };
 }
 
@@ -412,7 +438,16 @@ export function selectNextQuestionFromAnswers(
   }
 
   const candidates = filterQuestionsByGoal(allQuestions(params), targetGoalId, questionScope);
-  const unaskedCandidates = candidates.filter((question) => !askedQuestionIds.has(question.id));
+  const governedPracticeCandidates = questionScope === 'practice' && !targetGoalId
+    ? candidates.filter((question) => {
+        const snapshot = findAdaptiveAssessmentCatalogSnapshot(question.id);
+        return snapshot?.reviewDecision.outcome === 'approved' && snapshot.allowedStages.includes('low-stakes-practice');
+      })
+    : [];
+  const selectableCandidates = governedPracticeCandidates.length > 0
+    ? governedPracticeCandidates
+    : candidates;
+  const unaskedCandidates = selectableCandidates.filter((question) => !askedQuestionIds.has(question.id));
   if (targetGoalId && (questionScope === 'readiness' || questionScope === 'checkpoint') && unaskedCandidates.length === 0) {
     const selectedUnansweredCandidate = candidates.find((question) => (
       askedQuestionIds.has(question.id) && !answeredQuestionIds.has(question.id)
@@ -425,7 +460,7 @@ export function selectNextQuestionFromAnswers(
       };
     }
   }
-  const selectionPool = unaskedCandidates.length > 0 ? unaskedCandidates : candidates;
+  const selectionPool = unaskedCandidates.length > 0 ? unaskedCandidates : selectableCandidates;
   const scored = selectionPool.map((question) => {
     const closeness = 1 - Math.abs(question.difficulty - targetDifficulty);
     const weakBoost = question.knowledgeTags.reduce((sum, tag) => sum + (weakAreas.has(tag) ? 0.15 : 0), 0);
@@ -596,6 +631,7 @@ export function submitAnswerWithDetails(params: SubmitAnswerParams): SubmittedAn
     selectedOptionKey: selected.optionKey,
     correctOptionKey: correct.optionKey,
     pathContext: params.pathContext,
+    continuity: params.continuity,
   };
 
   return {
@@ -659,6 +695,7 @@ export function createSubmitAnswerDetails(params: SubmitAnswerParams): Submitted
     selectedOptionKey: selected.optionKey,
     correctOptionKey: correct.optionKey,
     pathContext: params.pathContext,
+    continuity: params.continuity,
   };
 
   return {

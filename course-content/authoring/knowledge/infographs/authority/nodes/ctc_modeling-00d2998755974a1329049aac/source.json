@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-00d2998755974a1329049aac",
+  "safe_id": "ctc_modeling-00d2998755974a1329049aac",
+  "node": {
+    "name": "增益",
+    "name_en": "gain",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "增益：v3T accepted candidate for gain.。",
+  "intuition": null,
+  "explanation": "v3T accepted candidate for gain.",
+  "relation_head": "前置 → ultimate gain、K_G*、根轨迹增益",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "ultimate gain",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "K_G*",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "根轨迹增益",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "graphical gain calculation method",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "gain stabilization",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "negative gain root locus",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "增益",
+    "gain",
+    "一种·ultima…",
+    "是一种·K G*",
+    "是一种·根轨迹增益",
+    "应用于·graph…",
+    "应用于·gain …"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-00d2998755974a1329049aac.md",
+  "provider_policy": "grok-image_gen"
+}

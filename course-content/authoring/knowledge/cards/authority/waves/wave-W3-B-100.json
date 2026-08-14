@@ -1,0 +1,665 @@
+{
+  "wave_id": "W3",
+  "batch": "B",
+  "title": "Batch B slice 3",
+  "offset": 100,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-a2b2e4c67cee79eef87f3b81",
+      "entity_id": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+      "name": "forward path",
+      "name_en": "forward_path",
+      "definition": "forward path：v3T accepted candidate for forward path.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "forward path",
+        "属于·signal…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-a4b27ffcac4ec72c414a553b",
+      "entity_id": "ctc:modeling-a4b27ffcac4ec72c414a553b",
+      "name": "function that is for",
+      "name_en": "modeling_a4b27ffcac4ec72c414a553b",
+      "definition": "function that is for：A function that is 0 for t<0 and 1 for t≥0.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "function th…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-a650a5ff9a3147b7d49b45b0",
+      "entity_id": "ctc:modeling-a650a5ff9a3147b7d49b45b0",
+      "name": "单容水槽增益K=Ku R",
+      "name_en": "modeling_a650a5ff9a3147b7d49b45b0",
+      "definition": "单容水槽增益K=Ku R，其中Ku为阀门流量系数，R为液阻。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单容水槽增益K=Ku R"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-a802f59edc4ae0f920912630",
+      "entity_id": "ctc:modeling-a802f59edc4ae0f920912630",
+      "name": "带有箭头的直线",
+      "name_en": "modeling_a802f59edc4ae0f920912630",
+      "definition": "带有箭头的直线，箭头表示信号的流向，在直线旁标记信号的时间函数或象函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "带有箭头的直线"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "entity_id": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+      "name": "mathematical model of system",
+      "name_en": "modeling_aa10e4daa1e969c557f6ef83",
+      "definition": "mathematical model of system：A mathematical model of system elements that provides the analyst and designer with a useful representation",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "mathematica…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-aae409768220828b9a79a1b4",
+      "entity_id": "ctc:modeling-aae409768220828b9a79a1b4",
+      "name": "对于输入量中不含导数项的单输入…",
+      "name_en": "modeling_aae409768220828b9a79a1b4",
+      "definition": "对于输入量中不含导数项的单输入-单输出线性定常连续系统，选取n个状态变量为 x1=y, x2=dy/dt, ..., xn=y^(n-1)。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "对于输入量中不含导数项…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-acda4bbdef07ca9542e1d914",
+      "entity_id": "ctc:modeling-acda4bbdef07ca9542e1d914",
+      "name": "type of ideal element",
+      "name_en": "modeling_acda4bbdef07ca9542e1d914",
+      "definition": "type of ideal element：A type of ideal element that stores energy in a capacitive form, including capacitance, mass, moment of inertia, fluid…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "type of ide…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-ae27798a12142653b684e425",
+      "entity_id": "ctc:modeling-ae27798a12142653b684e425",
+      "name": "method of analyzing linear",
+      "name_en": "modeling_ae27798a12142653b684e425",
+      "definition": "method of analyzing linear：A method of analyzing linear system models by obtaining analytic solutions to step and sinusoidal inputs to gain insigh…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method of a…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-b2fd214ec64665147e16ff9d",
+      "entity_id": "ctc:modeling-b2fd214ec64665147e16ff9d",
+      "name": "device whose input is",
+      "name_en": "modeling_b2fd214ec64665147e16ff9d",
+      "definition": "device whose input is：A device whose input is the derivative of its output",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "device whos…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-b39d2fc34a2e7f4d7a214652",
+      "entity_id": "ctc:modeling-b39d2fc34a2e7f4d7a214652",
+      "name": "测速发电机输出斜率Kt",
+      "name_en": "modeling_b39d2fc34a2e7f4d7a214652",
+      "definition": "测速发电机输出斜率Kt，表示单位角速度的输出电压。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "测速发电机输出斜率Kt"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-b5aa1e9d744b24db0fdc4884",
+      "entity_id": "ctc:modeling-b5aa1e9d744b24db0fdc4884",
+      "name": "一对电位器组成误差检测器时",
+      "name_en": "modeling_b5aa1e9d744b24db0fdc4884",
+      "definition": "一对电位器组成误差检测器时，两个电位器电刷角位移之差，记为Δθ(t)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一对电位器组成误差检测…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-b778b7ffce8e779719191d7f",
+      "entity_id": "ctc:modeling-b778b7ffce8e779719191d7f",
+      "name": "construct that estimates the",
+      "name_en": "modeling_b778b7ffce8e779719191d7f",
+      "definition": "construct that estimates the：A construct that estimates the state based on the sensed output.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "construct t…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-b78ed64321ecf6db80e791bc",
+      "entity_id": "ctc:modeling-b78ed64321ecf6db80e791bc",
+      "name": "两相伺服电动机堵转转矩Ms",
+      "name_en": "modeling_b78ed64321ecf6db80e791bc",
+      "definition": "两相伺服电动机堵转转矩Ms，可由Ms=Cm ua确定，其中Cm可用额定电压时的堵转转矩确定。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "两相伺服电动机堵转转矩…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-b7bed1c1ee540651b7c02d87",
+      "entity_id": "ctc:modeling-b7bed1c1ee540651b7c02d87",
+      "name": "method to estimate key",
+      "name_en": "modeling_b7bed1c1ee540651b7c02d87",
+      "definition": "method to estimate key：A method to estimate key features of y(t) from the pole-zero constellation of Y(s) without explicitly inverting the Lap…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method to e…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-b7d2b341a154e6866de96630",
+      "entity_id": "ctc:modeling-b7d2b341a154e6866de96630",
+      "name": "领域概念",
+      "name_en": "modeling_b7d2b341a154e6866de96630",
+      "definition": "领域概念：The current through a capacitor is proportional to the rate of change of voltage across it, i = C dv/dt.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-bb52102ba5f63982e27e329a",
+      "entity_id": "ctc:modeling-bb52102ba5f63982e27e329a",
+      "name": "parallel connection",
+      "name_en": "parallel_connection",
+      "definition": "parallel connection：v3T accepted candidate for parallel connection.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "parallel co…",
+        "parallel con"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-bcacecb383311e8f70f58eda",
+      "entity_id": "ctc:modeling-bcacecb383311e8f70f58eda",
+      "name": "当bn=0时",
+      "name_en": "modeling_bcacecb383311e8f70f58eda",
+      "definition": "当bn=0时，按规则选择状态变量：xn = y, xi = dx_{i+1}/dt + a_i y - b_i u (i=1,2,...,n-1)。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "当bn=0时"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-bd4e3f71bf3101874e055029",
+      "entity_id": "ctc:modeling-bd4e3f71bf3101874e055029",
+      "name": "system in which one",
+      "name_en": "modeling_bd4e3f71bf3101874e055029",
+      "definition": "system in which one：A system in which one or more parameters may vary as a function of time.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "system in w…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-c00613a7c1461d8693f43488",
+      "entity_id": "ctc:modeling-c00613a7c1461d8693f43488",
+      "name": "领域概念",
+      "name_en": "modeling_c00613a7c1461d8693f43488",
+      "definition": "领域概念：A quantity that characterizes the state or behavior of a system and is used in formulating the mathematical model.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-c11008d631001e9adf28c536",
+      "entity_id": "ctc:modeling-c11008d631001e9adf28c536",
+      "name": "领域概念",
+      "name_en": "modeling_c11008d631001e9adf28c536",
+      "definition": "领域概念：A high-gain electronic amplifier that can realize operations in the Laplace transform variable s, commonly used in feed…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-c2650bdf6df39c39c8ac378c",
+      "entity_id": "ctc:modeling-c2650bdf6df39c39c8ac378c",
+      "name": "variable that is measured",
+      "name_en": "modeling_c2650bdf6df39c39c8ac378c",
+      "definition": "variable that is measured：A variable that is measured at a single point in a system element, such as torque, force, current, or heat flow rate, a…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "variable th…",
+        "关联·variab…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-c343400ab0cc996416d5a18a",
+      "entity_id": "ctc:modeling-c343400ab0cc996416d5a18a",
+      "name": "领域概念",
+      "name_en": "modeling_c343400ab0cc996416d5a18a",
+      "definition": "领域概念：A simplifying statement about system operation made due to complexity or ignorance of all relevant factors.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念",
+        "关联·领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-c52664289f7d9f3378930894",
+      "entity_id": "ctc:modeling-c52664289f7d9f3378930894",
+      "name": "The determinant with the",
+      "name_en": "modeling_c52664289f7d9f3378930894",
+      "definition": "The determinant with the：The determinant with the loops touching the kth path removed.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The determi…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-c5b0f0ad36036b531f6bcdec",
+      "entity_id": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+      "name": "The transfer function from",
+      "name_en": "modeling_c5b0f0ad36036b531f6bcdec",
+      "definition": "The transfer function from：The transfer function from the input signal R(s) to the feedback signal B(s) when the main feedback loop is opened, equ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The transfe…",
+        "一种·等效开环传递…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-c64dfb875b6343ff32d0acb2",
+      "entity_id": "ctc:modeling-c64dfb875b6343ff32d0acb2",
+      "name": "领域概念",
+      "name_en": "modeling_c64dfb875b6343ff32d0acb2",
+      "definition": "领域概念：A nonlinear friction model, also known as dry friction, that is a nonlinear function of mass velocity and possesses a d…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-caf967347827c5f93ed59795",
+      "entity_id": "ctc:modeling-caf967347827c5f93ed59795",
+      "name": "由初始条件产生的输出分量",
+      "name_en": "modeling_caf967347827c5f93ed59795",
+      "definition": "由初始条件产生的输出分量，与输入电压无关。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "由初始条件产生的输出分量"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-caf9d1bfa4acd33993e1d039",
+      "entity_id": "ctc:modeling-caf9d1bfa4acd33993e1d039",
+      "name": "流出端负载阀门的阻力",
+      "name_en": "modeling_caf9d1bfa4acd33993e1d039",
+      "definition": "流出端负载阀门的阻力，定义为R=Δh/ΔQo，由非线性关系Qo=Ao√(2gh)在平衡点线性化得到。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "流出端负载阀门的阻力"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-cb1f9e419f63a3e53ccc336b",
+      "entity_id": "ctc:modeling-cb1f9e419f63a3e53ccc336b",
+      "name": "领域概念",
+      "name_en": "modeling_cb1f9e419f63a3e53ccc336b",
+      "definition": "领域概念：A procedure for simplifying a block diagram by eliminating feedback loops using transformations from Table 2.5.。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-cba517bb72cccbe819db88e9",
+      "entity_id": "ctc:modeling-cba517bb72cccbe819db88e9",
+      "name": "point in block diagram",
+      "name_en": "modeling_cba517bb72cccbe819db88e9",
+      "definition": "point in block diagram：A point in a block diagram where any number of signals may be added together, represented by a circle with the symbol Σ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "point in bl…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-ccef964f06e57a0ef5e51635",
+      "entity_id": "ctc:modeling-ccef964f06e57a0ef5e51635",
+      "name": "Solve for the highest",
+      "name_en": "modeling_ccef964f06e57a0ef5e51635",
+      "definition": "Solve for the highest：Solve for the highest derivative term in the ODE, assume that highest derivative is available, obtain lower order terms…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Solve for t…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-cd450f490c2d0e12795560a9",
+      "entity_id": "ctc:modeling-cd450f490c2d0e12795560a9",
+      "name": "K1",
+      "name_en": "modeling_cd450f490c2d0e12795560a9",
+      "definition": "电位器电刷单位角位移对应的输出电压，记为K1，等于电源电压E与最大工作角度θ_max的比值。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-cde581a02e8cf843a69b8a69",
+      "entity_id": "ctc:modeling-cde581a02e8cf843a69b8a69",
+      "name": "input",
+      "name_en": "input",
+      "definition": "input：v3T accepted candidate for input.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "input",
+        "关联·系统的输入-…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-cf35c2ab1653eb95eecdb745",
+      "entity_id": "ctc:modeling-cf35c2ab1653eb95eecdb745",
+      "name": "An integral transform that",
+      "name_en": "modeling_cf35c2ab1653eb95eecdb745",
+      "definition": "An integral transform that：An integral transform that converts a time-domain function f(t) into a complex frequency-domain function F(s), defined…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "An integral…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-cfe23fc89a7d2442f25e31e1",
+      "entity_id": "ctc:modeling-cfe23fc89a7d2442f25e31e1",
+      "name": "type of ideal element",
+      "name_en": "modeling_cfe23fc89a7d2442f25e31e1",
+      "definition": "type of ideal element：A type of ideal element that dissipates energy, including electrical resistance, translational damper, rotational dampe…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "type of ide…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-d13998ec5f975280e3d339f7",
+      "entity_id": "ctc:modeling-d13998ec5f975280e3d339f7",
+      "name": "component that scales an",
+      "name_en": "modeling_d13998ec5f975280e3d339f7",
+      "definition": "component that scales an：A component that scales an input signal by a gain k, where 0 ≤ k ≤ 1.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "component t…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-d55636bf45da33ce5a6c5084",
+      "entity_id": "ctc:modeling-d55636bf45da33ce5a6c5084",
+      "name": "The column vector that",
+      "name_en": "modeling_d55636bf45da33ce5a6c5084",
+      "definition": "The column vector that：The column vector x that contains n elements for an nth-order system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The column …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-d558fb5e651ada9ab0cf60e9",
+      "entity_id": "ctc:modeling-d558fb5e651ada9ab0cf60e9",
+      "name": "离散化系统中用于描述状态转移的…",
+      "name_en": "modeling_d558fb5e651ada9ab0cf60e9",
+      "definition": "离散化系统中用于描述状态转移的矩阵，记为 Φ(k)，满足 x(k) = Φ(k) x(0)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散化系统中用于描述状…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-d5d32667c2633ba60a243b36",
+      "entity_id": "ctc:modeling-d5d32667c2633ba60a243b36",
+      "name": "The initial conditions of",
+      "name_en": "modeling_d5d32667c2633ba60a243b36",
+      "definition": "The initial conditions of：The initial conditions of the system can be represented by the initial conditions of the integrators, denoted as x1(0),…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The initial…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-d76278bb06547fd1acb9718d",
+      "entity_id": "ctc:modeling-d76278bb06547fd1acb9718d",
+      "name": "The roots of the",
+      "name_en": "modeling_d76278bb06547fd1acb9718d",
+      "definition": "The roots of the：The roots of the numerator polynomial p(s) are called the zeros of the system. At the zeros, the function becomes zero.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The roots o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-d978f6c1e3903da5373e65e3",
+      "entity_id": "ctc:modeling-d978f6c1e3903da5373e65e3",
+      "name": "Knowledge of the initial",
+      "name_en": "modeling_d978f6c1e3903da5373e65e3",
+      "definition": "Knowledge of the initial：Knowledge of the initial values of the state variables x(t0) = (x1(t0), x2(t0), ..., xn(t0)) at the initial time t0, an…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Knowledge o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-e2066e5e888d36826fd01d4d",
+      "entity_id": "ctc:modeling-e2066e5e888d36826fd01d4d",
+      "name": "领域概念",
+      "name_en": "modeling_e2066e5e888d36826fd01d4d",
+      "definition": "领域概念：A transient response that occurs when ζ < 1, exhibiting an oscillation whose amplitude decreases with time.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "领域概念"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-e304e644d69b0f1be6d6eca4",
+      "entity_id": "ctc:modeling-e304e644d69b0f1be6d6eca4",
+      "name": "The output of system",
+      "name_en": "modeling_e304e644d69b0f1be6d6eca4",
+      "definition": "The output of system：The output of a system when the input is a unit impulse",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The output …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-e442dacbfef4a0d7ea3c4c15",
+      "entity_id": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+      "name": "feedback connection",
+      "name_en": "feedback_connection",
+      "definition": "feedback connection：A block diagram configuration where two blocks are connected in a feedback arrangement so that each feeds into the othe…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "feedback co…",
+        "feedback con"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-e4b326508cc8d382de9da525",
+      "entity_id": "ctc:modeling-e4b326508cc8d382de9da525",
+      "name": "When the numerator degree",
+      "name_en": "modeling_e4b326508cc8d382de9da525",
+      "definition": "When the numerator degree：When the numerator degree m is less than the denominator degree n, the transfer function approaches zero as s approache…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "When the nu…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-e96fa139bbc059f3e779e62e",
+      "entity_id": "ctc:modeling-e96fa139bbc059f3e779e62e",
+      "name": "scalar in the state-variable",
+      "name_en": "modeling_e96fa139bbc059f3e779e62e",
+      "definition": "scalar in the state-variable：A scalar in the state-variable form.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "scalar in t…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-ea4a7ab91e2d3f6b2fb02260",
+      "entity_id": "ctc:modeling-ea4a7ab91e2d3f6b2fb02260",
+      "name": "两相伺服电动机传递系数Km=C…",
+      "name_en": "modeling_ea4a7ab91e2d3f6b2fb02260",
+      "definition": "两相伺服电动机传递系数Km=Cm/(fm+Cω)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "两相伺服电动机传递系数…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-ea5098dadda2a392d132f06c",
+      "entity_id": "ctc:modeling-ea5098dadda2a392d132f06c",
+      "name": "graphical model that relates",
+      "name_en": "modeling_ea5098dadda2a392d132f06c",
+      "definition": "graphical model that relates：A graphical model that relates the state variable concept to the transfer function representation, representable via si…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "graphical m…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-eac6404c25ea4a8f89cc3f5b",
+      "entity_id": "ctc:modeling-eac6404c25ea4a8f89cc3f5b",
+      "name": "method to expand rational",
+      "name_en": "modeling_eac6404c25ea4a8f89cc3f5b",
+      "definition": "method to expand rational：A method to expand a rational Laplace transform as a sum of simpler terms for inverse transformation.",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method to e…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-ebf5a771fd114720de11f6e3",
+      "entity_id": "ctc:modeling-ebf5a771fd114720de11f6e3",
+      "name": "series connection",
+      "name_en": "series_connection",
+      "definition": "series connection：v3T accepted candidate for series connection.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "series conn…",
+        "series conne"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctc_modeling-ec763ecf3151981eb739b352",
+      "entity_id": "ctc:modeling-ec763ecf3151981eb739b352",
+      "name": "An ideal current source",
+      "name_en": "modeling_ec763ecf3151981eb739b352",
+      "definition": "An ideal current source：An ideal current source delivers a specified current i_s regardless of voltage across its terminals.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "An ideal cu…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

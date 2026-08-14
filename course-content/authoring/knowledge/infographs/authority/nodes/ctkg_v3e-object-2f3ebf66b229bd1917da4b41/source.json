@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+  "safe_id": "ctkg_v3e-object-2f3ebf66b229bd1917da4b41",
+  "node": {
+    "name": "Gain Margin (GM)",
+    "name_en": "Gain Margin (GM)",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Gain Margin (GM)：The factor by which the gain can be increased (or decreased in certain cases) before instability results.",
+  "intuition": "在图谱邻接中可把握：前置 → Determining GM from root locus · 后续 → Determining GM from root locus、Determining GM from Bode plot。",
+  "explanation": "The factor by which the gain can be increased (or decreased in certain cases) before instability results.",
+  "relation_head": "前置 → Determining GM from root locus · 后续 → Determining GM from root locus、Determining GM from Bode plot",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Determining GM from root locus",
+      "relation": "派生自"
+    },
+    {
+      "direction": "后续",
+      "peer": "Determining GM from Bode plot",
+      "relation": "派生自"
+    },
+    {
+      "direction": "前置",
+      "peer": "Determining GM from root locus",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "Determining GM from Bode plot",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Gain Margin…",
+    "Gain Margin ",
+    "派生自·Deter…",
+    "关联·Determ…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-2f3ebf66b229bd1917da4b41.md",
+  "provider_policy": "grok-image_gen"
+}

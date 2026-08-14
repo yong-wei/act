@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-21fba199a9fdef15887d600f",
+  "safe_id": "ctc_v11g-21fba199a9fdef15887d600f",
+  "node": {
+    "name": "lag compensation",
+    "name_en": "lag_compensation",
+    "concept_kind": "design_method",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "lag compensation：A compensation scheme that approximates PI control, used to improve steady-state accuracy of the system.",
+  "intuition": null,
+  "explanation": "A compensation scheme that approximates PI control, used to improve steady-state accuracy of the system.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "lag compens…",
+    "lag compensa"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-21fba199a9fdef15887d600f.md",
+  "provider_policy": "grok-image_gen"
+}

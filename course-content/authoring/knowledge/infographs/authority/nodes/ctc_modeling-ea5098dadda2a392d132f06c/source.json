@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-ea5098dadda2a392d132f06c",
+  "safe_id": "ctc_modeling-ea5098dadda2a392d132f06c",
+  "node": {
+    "name": "graphical model that relates",
+    "name_en": "modeling_ea5098dadda2a392d132f06c",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "graphical model that relates：A graphical model that relates the state variable concept to the transfer function representation, representable via si…",
+  "intuition": null,
+  "explanation": "A graphical model that relates the state variable concept to the transfer function representation, representable via signal-flow graphs or block diagrams.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "graphical m…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-ea5098dadda2a392d132f06c.md",
+  "provider_policy": "grok-image_gen"
+}

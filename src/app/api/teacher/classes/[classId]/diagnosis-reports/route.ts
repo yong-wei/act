@@ -4,12 +4,18 @@ import { ZodError } from 'zod';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   DiagnosisReportScopeError,
-  diagnosisReportWriteSchema,
-  persistDiagnosisReport,
   readDiagnosisReports,
   type DiagnosisReportReadModel,
 } from '@/lib/diagnosis-persistence';
+import {
+  diagnosisGenerationErrorResponse,
+  diagnosisGenerationRequestSchema,
+  projectDiagnosisGenerationJob,
+  startDiagnosisGenerationJob,
+} from '@/lib/diagnosis-generation';
+import { enqueueDiagnosisGenerationJob } from '@/lib/diagnosis-generation-queue';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,19 +104,31 @@ export async function POST(
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
       return NextResponse.json({ error: '请求体无效' }, { status: 400 });
     }
-    const input = diagnosisReportWriteSchema.parse(body);
-    const report = await persistDiagnosisReport({
+    const input = diagnosisGenerationRequestSchema.parse(body);
+    const job = await startDiagnosisGenerationJob(prisma, {
       teacherId: session.user.id,
       classId,
       targetStudentId: input.targetStudentId ?? null,
-      reportBody: input.reportBody,
+      idempotencyKey: input.idempotencyKey,
     });
-    return NextResponse.json({ report }, { status: 201 });
+    const delivery = job.state === 'QUEUED'
+      ? await enqueueDiagnosisGenerationJob(prisma, job.id)
+      : { job, errorCode: null };
+    const deliveredJob = delivery.job ?? job;
+    return NextResponse.json(
+      {
+        job: projectDiagnosisGenerationJob(deliveredJob as Parameters<typeof projectDiagnosisGenerationJob>[0]),
+        ...(delivery.errorCode ? { error: delivery.errorCode } : {}),
+      },
+      { status: delivery.errorCode ? 503 : 202 },
+    );
   } catch (error) {
     rethrowIfNextDynamicError(error);
     const scopeResponse = scopeErrorResponse(error);
     if (scopeResponse) return scopeResponse;
-    console.error('[DiagnosisReports] Write failed:', error);
-    return NextResponse.json({ error: '保存诊断报告失败' }, { status: 500 });
+    const generationResponse = diagnosisGenerationErrorResponse(error);
+    if (generationResponse) return NextResponse.json(generationResponse.body, { status: generationResponse.status });
+    console.error('[DiagnosisReports] Generation request failed:', error);
+    return NextResponse.json({ error: '创建诊断生成任务失败' }, { status: 500 });
   }
 }

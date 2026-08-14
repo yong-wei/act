@@ -1,0 +1,73 @@
+{
+  "pack_id": "P0039",
+  "offset": 195,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-e3d758f51052980656178128",
+      "batch": "B",
+      "name": "System Type",
+      "definition": "System Type：A classification of systems according to the degree of polynomial input that they can track with a constant steady-stat…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "System Type"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: System Type\nSOURCE DEFINITION (fail-closed, do not invent beyond this): System Type：A classification of systems according to the degree of polynomial input that they can track with a constant steady-stat…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「System Typ」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-37427c0ceefae90634f93312",
+      "batch": "B",
+      "name": "Sector conditions",
+      "definition": "Sector conditions：Conditions defining a function f(x) belonging to the sector [k1, k2] if k1 x^2 ≤ f(x) x ≤ k2 x^2 for all inputs x.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sector cond…",
+        "Sector condi",
+        "关联·Circle…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Sector conditions\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Sector conditions：Conditions defining a function f(x) belonging to the sector [k1, k2] if k1 x^2 ≤ f(x) x ≤ k2 x^2 for all inputs x.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Sector con」、「Sector con」、「关联·Circle…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-62bfe5336223892d2ee2592a",
+      "batch": "B",
+      "name": "Determining GM from Bode plot",
+      "definition": "Determining GM from Bode plot：Measure vertical distance between |KG(jω)| curve and magnitude=1 line at frequency where ∠G(jω)=-180°.",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Determining…",
+        "派生自·Gain …",
+        "关联·Determ…",
+        "关联·Gain M…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Determining GM from Bode plot\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Determining GM from Bode plot：Measure vertical distance between |KG(jω)| curve and magnitude=1 line at frequency where ∠G(jω)=-180°.\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Determinin」、「派生自·Gain …」、「关联·Determ…」、「关联·Gain M…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7aa500461c5109b7cffd9b19",
+      "batch": "B",
+      "name": "Routh array",
+      "definition": "Routh array：An array used in the Routh-Hurwitz stability criterion, constructed from the coefficients of the characteristic equatio…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Routh array",
+        "属于·Auxili…",
+        "属于·First …",
+        "属于·Routh-…",
+        "包含组件·Rout…",
+        "派生自·特征方程"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Routh array\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Routh array：An array used in the Routh-Hurwitz stability criterion, constructed from the coefficients of the characteristic equatio…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Routh arra」、「属于·Auxili…」、「属于·First …」、「属于·Routh-…」、「包含组件·Rout…」、「派生自·特征方程」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d564eeb57b51d635721c5e78",
+      "batch": "B",
+      "name": "Tracking-error estimator",
+      "definition": "Tracking-error estimator：A configuration where M and N̄ are chosen so that only the tracking error e = r - y is used in the control.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Tracking-er…",
+        "Tracking-err",
+        "应用于·Track…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Tracking-error estimator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Tracking-error estimator：A configuration where M and N̄ are chosen so that only the tracking error e = r - y is used in the control.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Tracking-e」、「Tracking-e」、「应用于·Track…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,1220 @@
+{
+  "protocol": "actkg-to-act-cutover-authority-candidate/1",
+  "status": "staged",
+  "capturedAt": "2026-08-10T15:32:08.352Z",
+  "mode": "local-disposable-non-activation",
+  "local": true,
+  "disposable": true,
+  "nonActivation": true,
+  "repoRoot": ".",
+  "captureRoot": ".",
+  "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "bindingPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/metadata/latest-stable-aggregate-binding.json",
+  "chainReceiptPath": "course-content/authoring/knowledge/issue-1179-latest-stable-admission-v2/chain/chain-intake-receipt.json",
+  "outputRoot": "artifacts/actkg-cutover-preparation/1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "schemaName": "actkg_admission_15004_1786375929532",
+  "schemaDropped": true,
+  "release": {
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseHash": "bf885accc94ad95fea40a042600181606e076625ea3e9e6452137c261e4b1f92",
+    "bundleId": "ctb:control-theory-engineering-v0.9:r2",
+    "bundleDigest": "25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6"
+  },
+  "admission": {
+    "protocol": "actkg-latest-stable-aggregate-admission/1",
+    "status": "PASS",
+    "candidates": [
+      "ctb:control-theory-engineering-v0.3:r2",
+      "ctb:control-theory-engineering-v0.4:r3",
+      "ctb:control-theory-engineering-v0.5:r3",
+      "ctb:control-theory-engineering-v0.6:r3",
+      "ctb:control-theory-engineering-v0.7:r3",
+      "ctb:control-theory-engineering-v0.8:r3",
+      "ctb:control-theory-engineering-v0.9:r2"
+    ],
+    "deltaReceiptIds": [
+      "delta-receipt:4895fd778af4232b867cddab4e06ad8b2bb29ef1436be7f59ef3444bcce30a58",
+      "delta-receipt:2636d16af3a01f9d088ce0ca851a7c8aeb76cf333251833e4eab7e640969a4b3",
+      "delta-receipt:25e3e66bac3fa47c2f4bd5c8ba8147941916dd28d4019eaefb9c24259e32e621",
+      "delta-receipt:44f84c8ab5688e870678e62bd2f1a343613a0d8b5c14cd142fc00d78b2900d69",
+      "delta-receipt:c16cc86cbf6d05bf527f05a65092bed346a1ba060c026362d0f5fd8f5bebacc8",
+      "delta-receipt:4ea573d347b3f34cb3efd2ed9ac58dba3075ae5794c80a0576fb0c5e004e9beb",
+      "delta-receipt:f037f1094fa9b613c08153fa09cbe6e650b10b0bd98b395d04d1d3e0965d7297"
+    ],
+    "deltaReceipts": [
+      {
+        "order": 1,
+        "receiptId": "delta-receipt:4895fd778af4232b867cddab4e06ad8b2bb29ef1436be7f59ef3444bcce30a58",
+        "inputDigest": "76b437043aa3732990df109d30f09b7acfdc966821cebe4cc432e069e5b18575",
+        "outputDigest": "3097cbf4e492f1304fa80bb6f9f2d94a661836e47e23fd7bd3a75ec3cca953ff",
+        "upstreamDiffDigest": "3f3f2ec94a1aa82ccd9022a058f79e75a4f27173d6fa703067d00e7441a5e70e"
+      },
+      {
+        "order": 2,
+        "receiptId": "delta-receipt:2636d16af3a01f9d088ce0ca851a7c8aeb76cf333251833e4eab7e640969a4b3",
+        "inputDigest": "9056c4e3fd33e1007dbaab38ceff0fdae53c6ec89f16e275eb301677894862a7",
+        "outputDigest": "09c36769fa2d5c19d1a2be2970c3e011615f36738c9c1e3eab54f1b6aa858145",
+        "upstreamDiffDigest": "261414ffc31cec751ec3d5290737bf0332451059eb95af307706546c80f6e77b"
+      },
+      {
+        "order": 3,
+        "receiptId": "delta-receipt:25e3e66bac3fa47c2f4bd5c8ba8147941916dd28d4019eaefb9c24259e32e621",
+        "inputDigest": "441cafe5a07f470d6cff72df17b9ebe3b331bd771082ea971d2dd62e96cd0266",
+        "outputDigest": "f8f8821638ab3add06f566722b3ee25b83b12f6ffbe8eb8a1eef9695ab0b1dbf",
+        "upstreamDiffDigest": "3dfbabb7c3afaa6f530d86ecc101fdf7a6c8f02b002d3ef84b47d694574bc49d"
+      },
+      {
+        "order": 4,
+        "receiptId": "delta-receipt:44f84c8ab5688e870678e62bd2f1a343613a0d8b5c14cd142fc00d78b2900d69",
+        "inputDigest": "6e1d4983299af4c6818eda4ec3d6c22731b55b83c3da329c3f254810130d30b5",
+        "outputDigest": "280f09d7a49886549ca04949dd84872c9d761f8d1660f8e65b84c70d869f5caf",
+        "upstreamDiffDigest": "c65a04e77ce4584838be12289b8bc94a680982650406f41e4012eead80ff429d"
+      },
+      {
+        "order": 5,
+        "receiptId": "delta-receipt:c16cc86cbf6d05bf527f05a65092bed346a1ba060c026362d0f5fd8f5bebacc8",
+        "inputDigest": "c6bd1e1a71bbb32db597ca50c4419c72a33237c194c7d6eb22ac930ba489414f",
+        "outputDigest": "a5b00942dcf1998b7e5c7d7013dc27bd57312737d2177b6075fd5f3ce3c1584d",
+        "upstreamDiffDigest": "486c1b027d607616abde9875d23f19d7b2cf6fa9b065fe023fc1f9cf177864df"
+      },
+      {
+        "order": 6,
+        "receiptId": "delta-receipt:4ea573d347b3f34cb3efd2ed9ac58dba3075ae5794c80a0576fb0c5e004e9beb",
+        "inputDigest": "6e654ba0c0eeb351f505531593b6fafb057dd90bfb33ac52101b8a183be904f4",
+        "outputDigest": "f0a782dff2bfbc25b6b74395ba5ad774ffc2efff65b03f85d574c976304b7181",
+        "upstreamDiffDigest": "621e0a5dbb694cfb43d65383800778e6d9e8a3a6dddb9e9dfda1d6353517e74e"
+      },
+      {
+        "order": 7,
+        "receiptId": "delta-receipt:f037f1094fa9b613c08153fa09cbe6e650b10b0bd98b395d04d1d3e0965d7297",
+        "inputDigest": "0402d596dbe37e8b1d1bdab924acab1ea4c1c097cc378981f9e5ca05a2df7438",
+        "outputDigest": "75d51993b60401d16ee67bc2847673a38eb106251953efbd23e275473eb9be34",
+        "upstreamDiffDigest": "5232c969874e350715075c4e951e06b67305014f181b1466eb672223059c5db0"
+      }
+    ],
+    "gates": {
+      "PRODUCTION_SELECTOR_CHANGE": 0,
+      "GRAPH_RAG_SELECTOR_CHANGE": 0,
+      "CANONICAL_LEARNING_FACT_WRITER_FENCE_CHANGE": 0,
+      "before": {
+        "productionAuthority": "LEGACY",
+        "productionCanonicalWriterEnabled": false,
+        "graphRagAuthority": "LEGACY",
+        "graphRagCanonicalExpansionVisible": false,
+        "canonicalWriterFenceDigest": "3cd1a3946b515d147ad65bbff76828373d486e8574e39c2a64afcbebc79e806e"
+      },
+      "after": {
+        "productionAuthority": "LEGACY",
+        "productionCanonicalWriterEnabled": false,
+        "graphRagAuthority": "LEGACY",
+        "graphRagCanonicalExpansionVisible": false,
+        "canonicalWriterFenceDigest": "3cd1a3946b515d147ad65bbff76828373d486e8574e39c2a64afcbebc79e806e"
+      }
+    }
+  },
+  "snapshot": {
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "lifecycle": "staged",
+    "manifestPath": "artifacts/actkg-cutover-preparation/1a56317aa44e46322be0b0d1ac73948c03c5c2c0/authority/releases/snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7/manifest.json",
+    "engineeringPath": "artifacts/actkg-cutover-preparation/1a56317aa44e46322be0b0d1ac73948c03c5c2c0/authority/releases/snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7/engineering.json",
+    "stageReceiptPath": "artifacts/actkg-cutover-preparation/1a56317aa44e46322be0b0d1ac73948c03c5c2c0/authority/releases/snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7/stage-receipt.json",
+    "stageReceiptId": "stage-7f4cdd1084af419a",
+    "stagedAt": "2026-08-10T15:32:08.352Z"
+  },
+  "publicSchema": {
+    "before": {
+      "schema": "public",
+      "migrations": [
+        {
+          "migrationName": "20260110231831_init",
+          "checksum": "211a91e1fec524f9b71c7c9e20a2c8e0659824410b3d19652857eefbdb64d505",
+          "finishedAt": "2026-01-10T15:19:54.736Z"
+        },
+        {
+          "migrationName": "20260221235601_add_development_plan_modules",
+          "checksum": "0bd479743c5be951df6f0b521f831b57e6c46bf0a53309043eca79d692d17994",
+          "finishedAt": "2026-02-21T23:56:01.803Z"
+        },
+        {
+          "migrationName": "20260303142500_add_platform_settings",
+          "checksum": "21688adda545ba52feb4ccc2f2433bd72e990f55961841a378887cc1a148fbc9",
+          "finishedAt": "2026-03-11T01:08:33.372Z"
+        },
+        {
+          "migrationName": "20260317161000_unified_classroom_sync_analytics",
+          "checksum": "38688fde684b9a970fc7821b64d4dd8356bf9c153907de9be293eeabd2fa588c",
+          "finishedAt": "2026-03-17T14:19:11.395Z"
+        },
+        {
+          "migrationName": "20260319092000_add_data_governance_and_missing_schema_updates",
+          "checksum": "3f0ca8585e23f83010d57e947a2734cab88b9f27b52cc447a5891f8a8d8eac32",
+          "finishedAt": "2026-03-19T01:29:28.844Z"
+        },
+        {
+          "migrationName": "20260427050000_add_learning_fact_source_event_unique",
+          "checksum": "339b206942eb4a02acd017beea1e419d4fa7b2ede4e5e7f31531ecb81624c520",
+          "finishedAt": "2026-04-27T06:43:30.299Z"
+        },
+        {
+          "migrationName": "20260509150000_interactive_event_context_and_session_snapshot",
+          "checksum": "3d25838df9a90fbe5e8fe55dec2041e63e6f84b4658d8aa4b046ac2fce572ee1",
+          "finishedAt": "2026-05-11T03:02:30.233Z"
+        },
+        {
+          "migrationName": "20260510133000_add_arena_persistence",
+          "checksum": "0263ccf390350fea6da73c8bdc60ccaee3832d6667960d69a5a60fde622471ce",
+          "finishedAt": "2026-05-11T03:02:30.964Z"
+        },
+        {
+          "migrationName": "20260510145500_add_arena_submission_scope",
+          "checksum": "bfca8e7b3126280de586f67ab6d5c0fb0e8a748fb23a5db1858f798eb6e39a24",
+          "finishedAt": "2026-05-11T03:02:31.050Z"
+        },
+        {
+          "migrationName": "20260511102000_add_arena_blackbox_experiments",
+          "checksum": "5277c31005e8452439317302d9792f90320b619ad9a37c1ea9058bf08ffe353c",
+          "finishedAt": "2026-05-11T03:02:31.225Z"
+        },
+        {
+          "migrationName": "20260511113000_add_arena_virtual_simulation_runs",
+          "checksum": "8e5e302e1f0066743d61e322da718538bb4d0860cad4a5373e2f485191e13f1d",
+          "finishedAt": "2026-05-11T03:02:31.369Z"
+        },
+        {
+          "migrationName": "20260512114500_add_student_step_responses",
+          "checksum": "86e6a7ada78fb2121078f5e92581ea43eea6e273a4ecd893aac7d3db3ba4a05d",
+          "finishedAt": "2026-05-12T07:41:26.085Z"
+        },
+        {
+          "migrationName": "20260515130500_add_arena_teaching_platform_integration",
+          "checksum": "c798d36608724d86c70250e3421507786d8c519f60a79768360f78d7827b4710",
+          "finishedAt": "2026-05-18T16:13:56.869Z"
+        },
+        {
+          "migrationName": "20260516080000_add_arena_evaluation_metadata",
+          "checksum": "b19113b68e0e153230e988638dfb78ea3b83665b5c8b454b983c8e058d0dbb0b",
+          "finishedAt": "2026-05-18T16:13:57.001Z"
+        },
+        {
+          "migrationName": "20260519160000_add_student_evidence_feature_cache",
+          "checksum": "3f871be33cedee759cbff20bdcace90c710c250c81d281304475ff8242a1c8b9",
+          "finishedAt": "2026-05-20T01:01:52.647Z"
+        },
+        {
+          "migrationName": "20260525170000_add_arena_identification_models",
+          "checksum": "3aeffd1acc13fbd1af27dc2026dddde65e71c9b11f3c009208aebbafb02a6f5c",
+          "finishedAt": "2026-05-29T14:48:11.392Z"
+        },
+        {
+          "migrationName": "20260526163000_add_adaptive_assessment_persistence",
+          "checksum": "70999f0bf22a215fc0e281384dc42d908e9f644aceaf51a8f5b7473cb095c4f3",
+          "finishedAt": "2026-05-29T14:48:11.534Z"
+        },
+        {
+          "migrationName": "20260528091000_add_konling_agent_runtime_memory",
+          "checksum": "56c625804eb2bd97be4ad357f7f9147b9403d63ddbbe3f4676d80937c2f7dd34",
+          "finishedAt": "2026-05-29T14:48:11.588Z"
+        },
+        {
+          "migrationName": "20260528101000_add_simulation_run_contract",
+          "checksum": "1987b7105daec971b3c4685edaeae94740a8538819a299ab5f50c7a779cc4bfc",
+          "finishedAt": "2026-05-29T14:48:11.659Z"
+        },
+        {
+          "migrationName": "20260528113000_add_agent_sessions_tool_runs",
+          "checksum": "134391cad8dfe5a74fb45c44e181ce2d8283c9be9e50b1c367014a6bbfbde9ef",
+          "finishedAt": "2026-05-29T14:48:11.737Z"
+        },
+        {
+          "migrationName": "20260529143000_add_learning_evidence_drafts",
+          "checksum": "a17a829eb86115ec7d9240e8ac64b673ae9bd2ac38fb56555a98585046828ccb",
+          "finishedAt": "2026-05-29T14:48:11.791Z"
+        },
+        {
+          "migrationName": "20260604093000_add_control_correction_path_rounds",
+          "checksum": "cd2cf599ed68972496854606cd516e7fb38a94b4240a02413726666630857e8a",
+          "finishedAt": "2026-06-24T10:27:32.837Z"
+        },
+        {
+          "migrationName": "20260611155000_add_diagnosis_report_snapshots",
+          "checksum": "d5bfca91a736e6b89bca4eac408baa3dd3b20d07dcf491f16829123b45bcd8e9",
+          "finishedAt": "2026-06-24T10:27:33.008Z"
+        },
+        {
+          "migrationName": "20260612131500_add_course_enhancement_packs",
+          "checksum": "9ba9aa484aa5385f9f8ec5eb904ec7c2ddf91996b784789cb37b8ca23aac3958",
+          "finishedAt": "2026-06-24T10:27:33.060Z"
+        },
+        {
+          "migrationName": "20260615111000_add_agent_tool_run_scope_idempotency",
+          "checksum": "a917f9ccfbaeab4c1f77466e2077031c6ea16c118a338a55e0395ae04e6b9831",
+          "finishedAt": "2026-06-24T10:27:33.141Z"
+        },
+        {
+          "migrationName": "20260626050000_add_admin_operation_ledger",
+          "checksum": "b79c7262f2653ca8993e6a690059a23a3d724651ad484bccb2b8cf785b13c54d",
+          "finishedAt": "2026-07-02T16:00:14.025Z"
+        },
+        {
+          "migrationName": "20260701065000_add_arena_submission_attempt_key",
+          "checksum": "18adea60f74151eae073ddf74a118edd6b5559928cbb7d280f3453dba3e0f4a0",
+          "finishedAt": "2026-07-02T16:00:14.059Z"
+        },
+        {
+          "migrationName": "20260711002500_add_student_portrait_v2_snapshots",
+          "checksum": "b57b2f35ecfab9602ca0ac2e240c47678aef13e5661b8af0c266a12c1add052c",
+          "finishedAt": "2026-07-18T10:33:42.973Z"
+        },
+        {
+          "migrationName": "20260711083000_add_odyssey_run_idempotency",
+          "checksum": "3d1c47b327882e65316b077e5337ceec403cd27e9fc8f3fb2a4e31588378cfce",
+          "finishedAt": "2026-07-18T10:33:44.681Z"
+        },
+        {
+          "migrationName": "20260711090000_establish_assignment_authoring_domain",
+          "checksum": "d2b86bd0473c472d08f55d6766ac7e505e64554677a6daeca918613f31e21430",
+          "finishedAt": "2026-07-18T10:33:44.875Z"
+        },
+        {
+          "migrationName": "20260711170000_integrate_mainline_assignment_mission_center",
+          "checksum": "8bd6d323d05d1763950d142a2046af168ad69140867b789d1ceac9c96bf481b0",
+          "finishedAt": "2026-07-18T10:33:45.097Z"
+        },
+        {
+          "migrationName": "20260711183000_harden_portrait_v2_migration_idempotency",
+          "checksum": "ab631911ff78bfb6c69855655e2dc7abdbefb06af175e00fd37a4dc25070ca56",
+          "finishedAt": "2026-07-18T10:33:45.122Z"
+        },
+        {
+          "migrationName": "20260712170000_productionize_math_document_grading_pipeline",
+          "checksum": "dfe3997183ecc5fffccf3e1bdd15ec570f0c977fdc3817546731625a564fbcb7",
+          "finishedAt": "2026-07-18T10:33:45.864Z"
+        },
+        {
+          "migrationName": "20260712183000_issue916_concurrency_source_asset_lifecycle",
+          "checksum": "34a9626b8b181ef3b24217e13dafe3f2504fb7aca4a196f6b24e5a80d95788dc",
+          "finishedAt": "2026-07-18T10:33:45.923Z"
+        },
+        {
+          "migrationName": "20260713030000_issue916_lifecycle_audit_lease",
+          "checksum": "17be3e62cfafc68ef8412f2421fa975e0c9d3e8d38fad5233f6fd1dce2e477a0",
+          "finishedAt": "2026-07-18T10:33:46.033Z"
+        },
+        {
+          "migrationName": "20260713120000_issue916_review_hardening",
+          "checksum": "2b21fa63dac7a36754c4256ceca32225fa0f0a95787c1978030488e06ed7c22d",
+          "finishedAt": "2026-07-18T10:33:46.062Z"
+        },
+        {
+          "migrationName": "20260713150000_issue916_phase_three_data_governance",
+          "checksum": "ec9b39fee4ec20554d4c0b51735d020723b54f638b5c0f945bc7ffdbef4b9964",
+          "finishedAt": "2026-07-18T10:33:46.087Z"
+        },
+        {
+          "migrationName": "20260713170000_issue916_phase_four_data_governance",
+          "checksum": "783316c0ae7b22722e3e3ff2f693f22b6dc1038cd0715b80f954f5e4407e872a",
+          "finishedAt": "2026-07-18T10:33:46.120Z"
+        },
+        {
+          "migrationName": "20260713190000_issue916_phase_five_data_governance",
+          "checksum": "dd9957e395f940bbd433b0cb171f097d7ad61897838ab07425022dd33657a98b",
+          "finishedAt": "2026-07-18T10:33:46.149Z"
+        },
+        {
+          "migrationName": "20260713210000_issue916_phase_six_lifecycle_safety",
+          "checksum": "fafacb6776c7a17b67a3016e5b1859c8f74158f8be0a80a8c7b38135ceaf8a37",
+          "finishedAt": "2026-07-18T10:33:46.185Z"
+        },
+        {
+          "migrationName": "20260713230000_issue916_data_plane_reconciliation",
+          "checksum": "9bb0a2e547835c1f5aff8abacde3c1a36207dc755d9dc75114ddab1c6e647b90",
+          "finishedAt": "2026-07-18T10:33:46.222Z"
+        },
+        {
+          "migrationName": "20260714000000_issue916_p0_p1_lifecycle_isolation",
+          "checksum": "6d7e5d4e7b0031970a6c5f233e27a89662c98eef4b591670040362837a4b4021",
+          "finishedAt": "2026-07-18T10:33:46.241Z"
+        },
+        {
+          "migrationName": "20260714013000_issue916_submission_tombstone_lookup",
+          "checksum": "c963aeeab032dd88ea6282c828feb4e84bceab85f1103a14cb5a964484fe49cd",
+          "finishedAt": "2026-07-18T10:33:46.257Z"
+        },
+        {
+          "migrationName": "20260714020000_issue916_seed_submission_lifecycle_policies",
+          "checksum": "a04730837e73823030d376f3f8d8541ba1be466a41a1447312b1da3376dfb86d",
+          "finishedAt": "2026-07-18T10:33:46.266Z"
+        },
+        {
+          "migrationName": "20260714150000_preserve_knowledge_link_relations",
+          "checksum": "4ca9ec8295aa31c3ecb723058430f04538d249db87a4c008e05aaf85557d46df",
+          "finishedAt": "2026-07-18T10:33:46.337Z"
+        },
+        {
+          "migrationName": "20260714170000_add_grading_run_review_states",
+          "checksum": "357205c2613a2a615683d6ee7d9d7be6226a104b1d8b84c75d2c836e3931e82f",
+          "finishedAt": "2026-07-18T10:33:46.350Z"
+        },
+        {
+          "migrationName": "20260714210000_harden_grading_gc_governance",
+          "checksum": "e5a15418d16828a2480ba83847fcbd510a958c554a37d26818096dd9ca9d1cec",
+          "finishedAt": "2026-07-18T10:33:46.459Z"
+        },
+        {
+          "migrationName": "20260717093000_close_teacher_review_persistence",
+          "checksum": "49ce49fe6d0abe859b94337fab9af5de53d8f7224780a3306df5d5eb59dcd121",
+          "finishedAt": "2026-07-18T10:33:46.895Z"
+        },
+        {
+          "migrationName": "20260717103500_harden_teacher_review_derivative_claims",
+          "checksum": "3bb380d21cc4a8651a5b01c110da990bbfe34bc9d6d8f479b056ee2f37891cad",
+          "finishedAt": "2026-07-18T10:33:46.908Z"
+        },
+        {
+          "migrationName": "20260719120000_add_course_basis_core",
+          "checksum": "ba837d015e844e424f632eb55934de19a4b34a4c4f66259835b1d69d542b9ec4",
+          "finishedAt": "2026-07-20T20:03:28.600Z"
+        },
+        {
+          "migrationName": "20260719180000_add_smart_lesson_plan_core",
+          "checksum": "530a71563f838016838518f2d5ef4e5f4053d28302a7ace254ed6053da578c19",
+          "finishedAt": "2026-07-20T20:03:28.943Z"
+        },
+        {
+          "migrationName": "20260719210000_add_smart_courseware_foundation",
+          "checksum": "8d1aed9c9d1760364e2137091d662158a887a6359fd0d8bdb28bb2273c452366",
+          "finishedAt": "2026-07-20T20:03:29.054Z"
+        },
+        {
+          "migrationName": "20260719220000_add_smart_courseware_generation",
+          "checksum": "5c4fc3c8aa9af0bf655c30f75dc29cdbab4bd729d0428f440f0604243a5e7b52",
+          "finishedAt": "2026-07-20T20:03:29.169Z"
+        },
+        {
+          "migrationName": "20260719230000_add_smart_courseware_module_regeneration",
+          "checksum": "7f97be289a3f1a9f6d49b62240cd1015ef1987d61a88059d2e998754d37e0ab0",
+          "finishedAt": "2026-07-20T20:03:29.194Z"
+        },
+        {
+          "migrationName": "20260719240000_add_smart_courseware_approval",
+          "checksum": "f8f05e950d35b95a85148c695a2610dfb1ad50d2ee073d8496ba7ad46d982128",
+          "finishedAt": "2026-07-20T20:03:29.243Z"
+        },
+        {
+          "migrationName": "20260719250000_finalize_smart_courseware_module_audit",
+          "checksum": "00e028e55fc58e099c45cf3f98c85486692938ac77010db6f6eea9e45a5f01ff",
+          "finishedAt": "2026-07-20T20:03:29.283Z"
+        },
+        {
+          "migrationName": "20260719260000_link_module_provider_attempts",
+          "checksum": "2c1afcb9701d4b1944f83cd099337451b433e23ff70cc55696dfdec0e88aecfb",
+          "finishedAt": "2026-07-20T20:03:29.302Z"
+        },
+        {
+          "migrationName": "20260720090000_add_smart_courseware_publication",
+          "checksum": "f19a60f7e3fc00566c9a17eeb07acfca990421a225d02ac780af5bde80520292",
+          "finishedAt": "2026-07-22T12:35:20.766Z"
+        },
+        {
+          "migrationName": "20260720150000_bind_generated_courseware_classrooms",
+          "checksum": "09bc45a6277cb8c29a58e383ca298f5a3a8b66fa1c84699cbf9204248b7f7015",
+          "finishedAt": "2026-07-22T12:35:20.881Z"
+        },
+        {
+          "migrationName": "20260723090000_add_smart_courseware_pdf_export",
+          "checksum": "d409c8c71595f7c9e27c9de6401ad6115c1cbca734bcf5741383daec67dfc202",
+          "finishedAt": "2026-07-23T15:14:45.984Z"
+        },
+        {
+          "migrationName": "20260723120000_restore_cumulative_learning_portraits",
+          "checksum": "d74850c98c2545d10cb7f4aac5bfd8550a9a94734a5f7d1ffdac8f3d34195f79",
+          "finishedAt": "2026-07-23T12:25:28.229Z"
+        },
+        {
+          "migrationName": "20260723221000_enable_pgcrypto_for_cumulative_reconciliation",
+          "checksum": "6b9d13405012508438e45a4e665e444a10bd8172f56b825a3e5560f8e3329275",
+          "finishedAt": "2026-07-23T14:11:48.064Z"
+        },
+        {
+          "migrationName": "20260724090000_add_teacher_default_class",
+          "checksum": "b1c31752f6619b8da215fe309c32a47ddb7a47faad262d484d3b8bdd58f2b680",
+          "finishedAt": "2026-07-26T00:09:17.710Z"
+        },
+        {
+          "migrationName": "20260725143000_add_simulation_task_portrait_input_identity",
+          "checksum": "115cc09a9c241578a5bfa0f2b20c83388c3d6b25c9ebdc35fcf83add1983f96c",
+          "finishedAt": "2026-07-26T00:09:17.717Z"
+        },
+        {
+          "migrationName": "20260725161000_add_simulation_task_reconciliation_input",
+          "checksum": "6cc5b484bd812880d79586c3161d8b3af7a00f1ced959111bcf5263c4b49e0eb",
+          "finishedAt": "2026-07-26T00:09:17.718Z"
+        },
+        {
+          "migrationName": "20260725235000_add_smart_lesson_task_archive",
+          "checksum": "2b7c1f19841c1110b6d7e39c6117cf0d969d0c96444e9366ef1624cbd69762a3",
+          "finishedAt": "2026-07-26T00:09:17.734Z"
+        },
+        {
+          "migrationName": "20260726003000_add_konling_conversation_library",
+          "checksum": "16cf86d3ce2dac6b880070a2ed6672663334d910b78ec8bada7ff0035f176984",
+          "finishedAt": "2026-07-26T00:09:17.742Z"
+        },
+        {
+          "migrationName": "20260726120000_govern_course_basis_document_lifecycle",
+          "checksum": "f619220b0682b1e8f2822d05fa4456faed9f5d1f9d179c3f87f48375de03dd89",
+          "finishedAt": "2026-07-26T23:51:47.842Z"
+        },
+        {
+          "migrationName": "20260726140000_harden_smart_lesson_generation_experience",
+          "checksum": "31dabd8e9ab1165ca984db3daacf3e933919c791a3f4fbdc24942bb2030c4caf",
+          "finishedAt": "2026-07-26T23:51:47.852Z"
+        },
+        {
+          "migrationName": "20260726150000_harden_assignment_publication_identity",
+          "checksum": "009444cf91343e8259e93e5ef6b44cacdfa17366bab3672660a64222840fb3d2",
+          "finishedAt": "2026-07-26T23:51:47.855Z"
+        },
+        {
+          "migrationName": "20260726190000_ground_smart_preparation_sources",
+          "checksum": "8717f09e8f1c6a303611a86a9db69b2efd2d822d73bfa6282d1082f476354e51",
+          "finishedAt": "2026-07-29T19:01:26.062Z"
+        },
+        {
+          "migrationName": "20260727001000_assignment_rubric_v2_optional_level",
+          "checksum": "9c7f0e6be06e3765db5d44aa6fd420234557c93ffa8718c67f6d887bf8df24d7",
+          "finishedAt": "2026-07-26T23:51:47.856Z"
+        },
+        {
+          "migrationName": "20260727020000_unify_assignment_response_contract",
+          "checksum": "f1b941400914b8b3ec3f3724d0987b3c9b76a93f2757092eff8a7e52631ff3b8",
+          "finishedAt": "2026-07-26T23:51:47.861Z"
+        },
+        {
+          "migrationName": "20260727073000_govern_assignment_attachment_understanding",
+          "checksum": "0b11026a96db9fc952aa893556bc0daa57d0bf9b427a2eea1743bd015f46f058",
+          "finishedAt": "2026-07-26T23:51:47.863Z"
+        },
+        {
+          "migrationName": "20260727073500_persist_assignment_conversion_blocks",
+          "checksum": "c59272385c64e0c812185cc219f88ae8768ca885082eebd8f052944c942d5d22",
+          "finishedAt": "2026-07-27T03:24:57.620Z"
+        },
+        {
+          "migrationName": "20260727160000_ingest_authoritative_actkg_releases",
+          "checksum": "55e282a0f149d79305c4cbe0377455f20285e32d233b6d0a86a8b8cae14a05ae",
+          "finishedAt": "2026-07-29T19:01:26.092Z"
+        },
+        {
+          "migrationName": "20260727193000_assignment_content_assets",
+          "checksum": "d8498d32db1ebefde4186c9830989de2339d149f272d7c758220212b31f25603",
+          "finishedAt": "2026-07-29T19:01:26.097Z"
+        },
+        {
+          "migrationName": "20260728150000_add_course_knowledge_coverage_overlay",
+          "checksum": "0aec65f8c51c5e823f975ca9aec756b20f9f8bd69670be43a2a9c27098210bfa",
+          "finishedAt": "2026-07-29T19:01:26.104Z"
+        },
+        {
+          "migrationName": "20260728190000_add_canonical_resource_binding_shadow",
+          "checksum": "817a88ad3ad5d8d9dc50516a53b2abb9185c92f4dbfa2346414fe4b3da814b98",
+          "finishedAt": "2026-07-29T19:01:26.120Z"
+        },
+        {
+          "migrationName": "20260728210000_adopt_ctkg_0_2_aggregate_release",
+          "checksum": "2df8d82bccc55c0049c6342cf6e5bbf8d3f9ad09b537965acf5efb07a3b53d25",
+          "finishedAt": "2026-07-29T19:01:26.134Z"
+        },
+        {
+          "migrationName": "20260729120000_import_compatible_actkg_public_bundles",
+          "checksum": "57e22622c768289e6f1b94b750f95db356bb825bdbee68ffdecc93c1375f9c0f",
+          "finishedAt": "2026-07-29T19:01:26.146Z"
+        },
+        {
+          "migrationName": "20260729180000_govern_actkg_release_set_deltas",
+          "checksum": "a54fa62b31a54a2c93b754ea1b3b2f770454b0261982842cb0ee7ee3526eeaa9",
+          "finishedAt": "2026-07-29T19:01:26.156Z"
+        },
+        {
+          "migrationName": "20260730010000_govern_aggregate_course_coverage_and_resource_bindings",
+          "checksum": "67f321974d22549737542416e8f2d65c235561e2869d901d461b2f6e0023012c",
+          "finishedAt": "2026-07-29T19:01:26.173Z"
+        },
+        {
+          "migrationName": "20260730020000_bind_decisions_to_projection_and_governed_crosswalk",
+          "checksum": "97ba19a7df60202dcf4fe6d1d51f51010964bc4349b89900fb5c20b772ba48ce",
+          "finishedAt": "2026-07-29T19:01:26.176Z"
+        }
+      ],
+      "actkgRelations": [
+        {
+          "name": "ActkgAuthoritativeObject",
+          "rowCount": "103"
+        },
+        {
+          "name": "ActkgAuthoritativeRelation",
+          "rowCount": "41"
+        },
+        {
+          "name": "ActkgBundleArtifact",
+          "rowCount": "26"
+        },
+        {
+          "name": "ActkgBundleReceipt",
+          "rowCount": "2"
+        },
+        {
+          "name": "ActkgEvidenceSegment",
+          "rowCount": "2753"
+        },
+        {
+          "name": "ActkgEvidenceStructuralUnitCrosswalk",
+          "rowCount": "0"
+        },
+        {
+          "name": "ActkgImportReceipt",
+          "rowCount": "4"
+        },
+        {
+          "name": "ActkgOriginalReleasePayload",
+          "rowCount": "1"
+        },
+        {
+          "name": "ActkgProjectionIdentity",
+          "rowCount": "6"
+        },
+        {
+          "name": "ActkgProjectionLink",
+          "rowCount": "1583"
+        },
+        {
+          "name": "ActkgProjectionLinkMetadata",
+          "rowCount": "1486"
+        },
+        {
+          "name": "ActkgProjectionNode",
+          "rowCount": "4478"
+        },
+        {
+          "name": "ActkgRelease",
+          "rowCount": "4"
+        },
+        {
+          "name": "ActkgReleaseArtifact",
+          "rowCount": "7"
+        },
+        {
+          "name": "ActkgReleaseComponent",
+          "rowCount": "12"
+        },
+        {
+          "name": "ActkgReleaseEntry",
+          "rowCount": "6270"
+        },
+        {
+          "name": "ActkgReleaseSet",
+          "rowCount": "4"
+        },
+        {
+          "name": "ActkgReleaseSetDeltaReceipt",
+          "rowCount": "2"
+        },
+        {
+          "name": "ActkgReleaseSetDeltaSignal",
+          "rowCount": "2703"
+        },
+        {
+          "name": "ActkgSourceMapping",
+          "rowCount": "125"
+        },
+        {
+          "name": "ActkgSourceObject",
+          "rowCount": "1165"
+        },
+        {
+          "name": "ActkgUpstreamRagReference",
+          "rowCount": "8387"
+        }
+      ],
+      "digest": "3bcaf95406f2d839fd26aba7f480cd5d58313bd1f481258fbe395c750e3b495e"
+    },
+    "after": {
+      "schema": "public",
+      "migrations": [
+        {
+          "migrationName": "20260110231831_init",
+          "checksum": "211a91e1fec524f9b71c7c9e20a2c8e0659824410b3d19652857eefbdb64d505",
+          "finishedAt": "2026-01-10T15:19:54.736Z"
+        },
+        {
+          "migrationName": "20260221235601_add_development_plan_modules",
+          "checksum": "0bd479743c5be951df6f0b521f831b57e6c46bf0a53309043eca79d692d17994",
+          "finishedAt": "2026-02-21T23:56:01.803Z"
+        },
+        {
+          "migrationName": "20260303142500_add_platform_settings",
+          "checksum": "21688adda545ba52feb4ccc2f2433bd72e990f55961841a378887cc1a148fbc9",
+          "finishedAt": "2026-03-11T01:08:33.372Z"
+        },
+        {
+          "migrationName": "20260317161000_unified_classroom_sync_analytics",
+          "checksum": "38688fde684b9a970fc7821b64d4dd8356bf9c153907de9be293eeabd2fa588c",
+          "finishedAt": "2026-03-17T14:19:11.395Z"
+        },
+        {
+          "migrationName": "20260319092000_add_data_governance_and_missing_schema_updates",
+          "checksum": "3f0ca8585e23f83010d57e947a2734cab88b9f27b52cc447a5891f8a8d8eac32",
+          "finishedAt": "2026-03-19T01:29:28.844Z"
+        },
+        {
+          "migrationName": "20260427050000_add_learning_fact_source_event_unique",
+          "checksum": "339b206942eb4a02acd017beea1e419d4fa7b2ede4e5e7f31531ecb81624c520",
+          "finishedAt": "2026-04-27T06:43:30.299Z"
+        },
+        {
+          "migrationName": "20260509150000_interactive_event_context_and_session_snapshot",
+          "checksum": "3d25838df9a90fbe5e8fe55dec2041e63e6f84b4658d8aa4b046ac2fce572ee1",
+          "finishedAt": "2026-05-11T03:02:30.233Z"
+        },
+        {
+          "migrationName": "20260510133000_add_arena_persistence",
+          "checksum": "0263ccf390350fea6da73c8bdc60ccaee3832d6667960d69a5a60fde622471ce",
+          "finishedAt": "2026-05-11T03:02:30.964Z"
+        },
+        {
+          "migrationName": "20260510145500_add_arena_submission_scope",
+          "checksum": "bfca8e7b3126280de586f67ab6d5c0fb0e8a748fb23a5db1858f798eb6e39a24",
+          "finishedAt": "2026-05-11T03:02:31.050Z"
+        },
+        {
+          "migrationName": "20260511102000_add_arena_blackbox_experiments",
+          "checksum": "5277c31005e8452439317302d9792f90320b619ad9a37c1ea9058bf08ffe353c",
+          "finishedAt": "2026-05-11T03:02:31.225Z"
+        },
+        {
+          "migrationName": "20260511113000_add_arena_virtual_simulation_runs",
+          "checksum": "8e5e302e1f0066743d61e322da718538bb4d0860cad4a5373e2f485191e13f1d",
+          "finishedAt": "2026-05-11T03:02:31.369Z"
+        },
+        {
+          "migrationName": "20260512114500_add_student_step_responses",
+          "checksum": "86e6a7ada78fb2121078f5e92581ea43eea6e273a4ecd893aac7d3db3ba4a05d",
+          "finishedAt": "2026-05-12T07:41:26.085Z"
+        },
+        {
+          "migrationName": "20260515130500_add_arena_teaching_platform_integration",
+          "checksum": "c798d36608724d86c70250e3421507786d8c519f60a79768360f78d7827b4710",
+          "finishedAt": "2026-05-18T16:13:56.869Z"
+        },
+        {
+          "migrationName": "20260516080000_add_arena_evaluation_metadata",
+          "checksum": "b19113b68e0e153230e988638dfb78ea3b83665b5c8b454b983c8e058d0dbb0b",
+          "finishedAt": "2026-05-18T16:13:57.001Z"
+        },
+        {
+          "migrationName": "20260519160000_add_student_evidence_feature_cache",
+          "checksum": "3f871be33cedee759cbff20bdcace90c710c250c81d281304475ff8242a1c8b9",
+          "finishedAt": "2026-05-20T01:01:52.647Z"
+        },
+        {
+          "migrationName": "20260525170000_add_arena_identification_models",
+          "checksum": "3aeffd1acc13fbd1af27dc2026dddde65e71c9b11f3c009208aebbafb02a6f5c",
+          "finishedAt": "2026-05-29T14:48:11.392Z"
+        },
+        {
+          "migrationName": "20260526163000_add_adaptive_assessment_persistence",
+          "checksum": "70999f0bf22a215fc0e281384dc42d908e9f644aceaf51a8f5b7473cb095c4f3",
+          "finishedAt": "2026-05-29T14:48:11.534Z"
+        },
+        {
+          "migrationName": "20260528091000_add_konling_agent_runtime_memory",
+          "checksum": "56c625804eb2bd97be4ad357f7f9147b9403d63ddbbe3f4676d80937c2f7dd34",
+          "finishedAt": "2026-05-29T14:48:11.588Z"
+        },
+        {
+          "migrationName": "20260528101000_add_simulation_run_contract",
+          "checksum": "1987b7105daec971b3c4685edaeae94740a8538819a299ab5f50c7a779cc4bfc",
+          "finishedAt": "2026-05-29T14:48:11.659Z"
+        },
+        {
+          "migrationName": "20260528113000_add_agent_sessions_tool_runs",
+          "checksum": "134391cad8dfe5a74fb45c44e181ce2d8283c9be9e50b1c367014a6bbfbde9ef",
+          "finishedAt": "2026-05-29T14:48:11.737Z"
+        },
+        {
+          "migrationName": "20260529143000_add_learning_evidence_drafts",
+          "checksum": "a17a829eb86115ec7d9240e8ac64b673ae9bd2ac38fb56555a98585046828ccb",
+          "finishedAt": "2026-05-29T14:48:11.791Z"
+        },
+        {
+          "migrationName": "20260604093000_add_control_correction_path_rounds",
+          "checksum": "cd2cf599ed68972496854606cd516e7fb38a94b4240a02413726666630857e8a",
+          "finishedAt": "2026-06-24T10:27:32.837Z"
+        },
+        {
+          "migrationName": "20260611155000_add_diagnosis_report_snapshots",
+          "checksum": "d5bfca91a736e6b89bca4eac408baa3dd3b20d07dcf491f16829123b45bcd8e9",
+          "finishedAt": "2026-06-24T10:27:33.008Z"
+        },
+        {
+          "migrationName": "20260612131500_add_course_enhancement_packs",
+          "checksum": "9ba9aa484aa5385f9f8ec5eb904ec7c2ddf91996b784789cb37b8ca23aac3958",
+          "finishedAt": "2026-06-24T10:27:33.060Z"
+        },
+        {
+          "migrationName": "20260615111000_add_agent_tool_run_scope_idempotency",
+          "checksum": "a917f9ccfbaeab4c1f77466e2077031c6ea16c118a338a55e0395ae04e6b9831",
+          "finishedAt": "2026-06-24T10:27:33.141Z"
+        },
+        {
+          "migrationName": "20260626050000_add_admin_operation_ledger",
+          "checksum": "b79c7262f2653ca8993e6a690059a23a3d724651ad484bccb2b8cf785b13c54d",
+          "finishedAt": "2026-07-02T16:00:14.025Z"
+        },
+        {
+          "migrationName": "20260701065000_add_arena_submission_attempt_key",
+          "checksum": "18adea60f74151eae073ddf74a118edd6b5559928cbb7d280f3453dba3e0f4a0",
+          "finishedAt": "2026-07-02T16:00:14.059Z"
+        },
+        {
+          "migrationName": "20260711002500_add_student_portrait_v2_snapshots",
+          "checksum": "b57b2f35ecfab9602ca0ac2e240c47678aef13e5661b8af0c266a12c1add052c",
+          "finishedAt": "2026-07-18T10:33:42.973Z"
+        },
+        {
+          "migrationName": "20260711083000_add_odyssey_run_idempotency",
+          "checksum": "3d1c47b327882e65316b077e5337ceec403cd27e9fc8f3fb2a4e31588378cfce",
+          "finishedAt": "2026-07-18T10:33:44.681Z"
+        },
+        {
+          "migrationName": "20260711090000_establish_assignment_authoring_domain",
+          "checksum": "d2b86bd0473c472d08f55d6766ac7e505e64554677a6daeca918613f31e21430",
+          "finishedAt": "2026-07-18T10:33:44.875Z"
+        },
+        {
+          "migrationName": "20260711170000_integrate_mainline_assignment_mission_center",
+          "checksum": "8bd6d323d05d1763950d142a2046af168ad69140867b789d1ceac9c96bf481b0",
+          "finishedAt": "2026-07-18T10:33:45.097Z"
+        },
+        {
+          "migrationName": "20260711183000_harden_portrait_v2_migration_idempotency",
+          "checksum": "ab631911ff78bfb6c69855655e2dc7abdbefb06af175e00fd37a4dc25070ca56",
+          "finishedAt": "2026-07-18T10:33:45.122Z"
+        },
+        {
+          "migrationName": "20260712170000_productionize_math_document_grading_pipeline",
+          "checksum": "dfe3997183ecc5fffccf3e1bdd15ec570f0c977fdc3817546731625a564fbcb7",
+          "finishedAt": "2026-07-18T10:33:45.864Z"
+        },
+        {
+          "migrationName": "20260712183000_issue916_concurrency_source_asset_lifecycle",
+          "checksum": "34a9626b8b181ef3b24217e13dafe3f2504fb7aca4a196f6b24e5a80d95788dc",
+          "finishedAt": "2026-07-18T10:33:45.923Z"
+        },
+        {
+          "migrationName": "20260713030000_issue916_lifecycle_audit_lease",
+          "checksum": "17be3e62cfafc68ef8412f2421fa975e0c9d3e8d38fad5233f6fd1dce2e477a0",
+          "finishedAt": "2026-07-18T10:33:46.033Z"
+        },
+        {
+          "migrationName": "20260713120000_issue916_review_hardening",
+          "checksum": "2b21fa63dac7a36754c4256ceca32225fa0f0a95787c1978030488e06ed7c22d",
+          "finishedAt": "2026-07-18T10:33:46.062Z"
+        },
+        {
+          "migrationName": "20260713150000_issue916_phase_three_data_governance",
+          "checksum": "ec9b39fee4ec20554d4c0b51735d020723b54f638b5c0f945bc7ffdbef4b9964",
+          "finishedAt": "2026-07-18T10:33:46.087Z"
+        },
+        {
+          "migrationName": "20260713170000_issue916_phase_four_data_governance",
+          "checksum": "783316c0ae7b22722e3e3ff2f693f22b6dc1038cd0715b80f954f5e4407e872a",
+          "finishedAt": "2026-07-18T10:33:46.120Z"
+        },
+        {
+          "migrationName": "20260713190000_issue916_phase_five_data_governance",
+          "checksum": "dd9957e395f940bbd433b0cb171f097d7ad61897838ab07425022dd33657a98b",
+          "finishedAt": "2026-07-18T10:33:46.149Z"
+        },
+        {
+          "migrationName": "20260713210000_issue916_phase_six_lifecycle_safety",
+          "checksum": "fafacb6776c7a17b67a3016e5b1859c8f74158f8be0a80a8c7b38135ceaf8a37",
+          "finishedAt": "2026-07-18T10:33:46.185Z"
+        },
+        {
+          "migrationName": "20260713230000_issue916_data_plane_reconciliation",
+          "checksum": "9bb0a2e547835c1f5aff8abacde3c1a36207dc755d9dc75114ddab1c6e647b90",
+          "finishedAt": "2026-07-18T10:33:46.222Z"
+        },
+        {
+          "migrationName": "20260714000000_issue916_p0_p1_lifecycle_isolation",
+          "checksum": "6d7e5d4e7b0031970a6c5f233e27a89662c98eef4b591670040362837a4b4021",
+          "finishedAt": "2026-07-18T10:33:46.241Z"
+        },
+        {
+          "migrationName": "20260714013000_issue916_submission_tombstone_lookup",
+          "checksum": "c963aeeab032dd88ea6282c828feb4e84bceab85f1103a14cb5a964484fe49cd",
+          "finishedAt": "2026-07-18T10:33:46.257Z"
+        },
+        {
+          "migrationName": "20260714020000_issue916_seed_submission_lifecycle_policies",
+          "checksum": "a04730837e73823030d376f3f8d8541ba1be466a41a1447312b1da3376dfb86d",
+          "finishedAt": "2026-07-18T10:33:46.266Z"
+        },
+        {
+          "migrationName": "20260714150000_preserve_knowledge_link_relations",
+          "checksum": "4ca9ec8295aa31c3ecb723058430f04538d249db87a4c008e05aaf85557d46df",
+          "finishedAt": "2026-07-18T10:33:46.337Z"
+        },
+        {
+          "migrationName": "20260714170000_add_grading_run_review_states",
+          "checksum": "357205c2613a2a615683d6ee7d9d7be6226a104b1d8b84c75d2c836e3931e82f",
+          "finishedAt": "2026-07-18T10:33:46.350Z"
+        },
+        {
+          "migrationName": "20260714210000_harden_grading_gc_governance",
+          "checksum": "e5a15418d16828a2480ba83847fcbd510a958c554a37d26818096dd9ca9d1cec",
+          "finishedAt": "2026-07-18T10:33:46.459Z"
+        },
+        {
+          "migrationName": "20260717093000_close_teacher_review_persistence",
+          "checksum": "49ce49fe6d0abe859b94337fab9af5de53d8f7224780a3306df5d5eb59dcd121",
+          "finishedAt": "2026-07-18T10:33:46.895Z"
+        },
+        {
+          "migrationName": "20260717103500_harden_teacher_review_derivative_claims",
+          "checksum": "3bb380d21cc4a8651a5b01c110da990bbfe34bc9d6d8f479b056ee2f37891cad",
+          "finishedAt": "2026-07-18T10:33:46.908Z"
+        },
+        {
+          "migrationName": "20260719120000_add_course_basis_core",
+          "checksum": "ba837d015e844e424f632eb55934de19a4b34a4c4f66259835b1d69d542b9ec4",
+          "finishedAt": "2026-07-20T20:03:28.600Z"
+        },
+        {
+          "migrationName": "20260719180000_add_smart_lesson_plan_core",
+          "checksum": "530a71563f838016838518f2d5ef4e5f4053d28302a7ace254ed6053da578c19",
+          "finishedAt": "2026-07-20T20:03:28.943Z"
+        },
+        {
+          "migrationName": "20260719210000_add_smart_courseware_foundation",
+          "checksum": "8d1aed9c9d1760364e2137091d662158a887a6359fd0d8bdb28bb2273c452366",
+          "finishedAt": "2026-07-20T20:03:29.054Z"
+        },
+        {
+          "migrationName": "20260719220000_add_smart_courseware_generation",
+          "checksum": "5c4fc3c8aa9af0bf655c30f75dc29cdbab4bd729d0428f440f0604243a5e7b52",
+          "finishedAt": "2026-07-20T20:03:29.169Z"
+        },
+        {
+          "migrationName": "20260719230000_add_smart_courseware_module_regeneration",
+          "checksum": "7f97be289a3f1a9f6d49b62240cd1015ef1987d61a88059d2e998754d37e0ab0",
+          "finishedAt": "2026-07-20T20:03:29.194Z"
+        },
+        {
+          "migrationName": "20260719240000_add_smart_courseware_approval",
+          "checksum": "f8f05e950d35b95a85148c695a2610dfb1ad50d2ee073d8496ba7ad46d982128",
+          "finishedAt": "2026-07-20T20:03:29.243Z"
+        },
+        {
+          "migrationName": "20260719250000_finalize_smart_courseware_module_audit",
+          "checksum": "00e028e55fc58e099c45cf3f98c85486692938ac77010db6f6eea9e45a5f01ff",
+          "finishedAt": "2026-07-20T20:03:29.283Z"
+        },
+        {
+          "migrationName": "20260719260000_link_module_provider_attempts",
+          "checksum": "2c1afcb9701d4b1944f83cd099337451b433e23ff70cc55696dfdec0e88aecfb",
+          "finishedAt": "2026-07-20T20:03:29.302Z"
+        },
+        {
+          "migrationName": "20260720090000_add_smart_courseware_publication",
+          "checksum": "f19a60f7e3fc00566c9a17eeb07acfca990421a225d02ac780af5bde80520292",
+          "finishedAt": "2026-07-22T12:35:20.766Z"
+        },
+        {
+          "migrationName": "20260720150000_bind_generated_courseware_classrooms",
+          "checksum": "09bc45a6277cb8c29a58e383ca298f5a3a8b66fa1c84699cbf9204248b7f7015",
+          "finishedAt": "2026-07-22T12:35:20.881Z"
+        },
+        {
+          "migrationName": "20260723090000_add_smart_courseware_pdf_export",
+          "checksum": "d409c8c71595f7c9e27c9de6401ad6115c1cbca734bcf5741383daec67dfc202",
+          "finishedAt": "2026-07-23T15:14:45.984Z"
+        },
+        {
+          "migrationName": "20260723120000_restore_cumulative_learning_portraits",
+          "checksum": "d74850c98c2545d10cb7f4aac5bfd8550a9a94734a5f7d1ffdac8f3d34195f79",
+          "finishedAt": "2026-07-23T12:25:28.229Z"
+        },
+        {
+          "migrationName": "20260723221000_enable_pgcrypto_for_cumulative_reconciliation",
+          "checksum": "6b9d13405012508438e45a4e665e444a10bd8172f56b825a3e5560f8e3329275",
+          "finishedAt": "2026-07-23T14:11:48.064Z"
+        },
+        {
+          "migrationName": "20260724090000_add_teacher_default_class",
+          "checksum": "b1c31752f6619b8da215fe309c32a47ddb7a47faad262d484d3b8bdd58f2b680",
+          "finishedAt": "2026-07-26T00:09:17.710Z"
+        },
+        {
+          "migrationName": "20260725143000_add_simulation_task_portrait_input_identity",
+          "checksum": "115cc09a9c241578a5bfa0f2b20c83388c3d6b25c9ebdc35fcf83add1983f96c",
+          "finishedAt": "2026-07-26T00:09:17.717Z"
+        },
+        {
+          "migrationName": "20260725161000_add_simulation_task_reconciliation_input",
+          "checksum": "6cc5b484bd812880d79586c3161d8b3af7a00f1ced959111bcf5263c4b49e0eb",
+          "finishedAt": "2026-07-26T00:09:17.718Z"
+        },
+        {
+          "migrationName": "20260725235000_add_smart_lesson_task_archive",
+          "checksum": "2b7c1f19841c1110b6d7e39c6117cf0d969d0c96444e9366ef1624cbd69762a3",
+          "finishedAt": "2026-07-26T00:09:17.734Z"
+        },
+        {
+          "migrationName": "20260726003000_add_konling_conversation_library",
+          "checksum": "16cf86d3ce2dac6b880070a2ed6672663334d910b78ec8bada7ff0035f176984",
+          "finishedAt": "2026-07-26T00:09:17.742Z"
+        },
+        {
+          "migrationName": "20260726120000_govern_course_basis_document_lifecycle",
+          "checksum": "f619220b0682b1e8f2822d05fa4456faed9f5d1f9d179c3f87f48375de03dd89",
+          "finishedAt": "2026-07-26T23:51:47.842Z"
+        },
+        {
+          "migrationName": "20260726140000_harden_smart_lesson_generation_experience",
+          "checksum": "31dabd8e9ab1165ca984db3daacf3e933919c791a3f4fbdc24942bb2030c4caf",
+          "finishedAt": "2026-07-26T23:51:47.852Z"
+        },
+        {
+          "migrationName": "20260726150000_harden_assignment_publication_identity",
+          "checksum": "009444cf91343e8259e93e5ef6b44cacdfa17366bab3672660a64222840fb3d2",
+          "finishedAt": "2026-07-26T23:51:47.855Z"
+        },
+        {
+          "migrationName": "20260726190000_ground_smart_preparation_sources",
+          "checksum": "8717f09e8f1c6a303611a86a9db69b2efd2d822d73bfa6282d1082f476354e51",
+          "finishedAt": "2026-07-29T19:01:26.062Z"
+        },
+        {
+          "migrationName": "20260727001000_assignment_rubric_v2_optional_level",
+          "checksum": "9c7f0e6be06e3765db5d44aa6fd420234557c93ffa8718c67f6d887bf8df24d7",
+          "finishedAt": "2026-07-26T23:51:47.856Z"
+        },
+        {
+          "migrationName": "20260727020000_unify_assignment_response_contract",
+          "checksum": "f1b941400914b8b3ec3f3724d0987b3c9b76a93f2757092eff8a7e52631ff3b8",
+          "finishedAt": "2026-07-26T23:51:47.861Z"
+        },
+        {
+          "migrationName": "20260727073000_govern_assignment_attachment_understanding",
+          "checksum": "0b11026a96db9fc952aa893556bc0daa57d0bf9b427a2eea1743bd015f46f058",
+          "finishedAt": "2026-07-26T23:51:47.863Z"
+        },
+        {
+          "migrationName": "20260727073500_persist_assignment_conversion_blocks",
+          "checksum": "c59272385c64e0c812185cc219f88ae8768ca885082eebd8f052944c942d5d22",
+          "finishedAt": "2026-07-27T03:24:57.620Z"
+        },
+        {
+          "migrationName": "20260727160000_ingest_authoritative_actkg_releases",
+          "checksum": "55e282a0f149d79305c4cbe0377455f20285e32d233b6d0a86a8b8cae14a05ae",
+          "finishedAt": "2026-07-29T19:01:26.092Z"
+        },
+        {
+          "migrationName": "20260727193000_assignment_content_assets",
+          "checksum": "d8498d32db1ebefde4186c9830989de2339d149f272d7c758220212b31f25603",
+          "finishedAt": "2026-07-29T19:01:26.097Z"
+        },
+        {
+          "migrationName": "20260728150000_add_course_knowledge_coverage_overlay",
+          "checksum": "0aec65f8c51c5e823f975ca9aec756b20f9f8bd69670be43a2a9c27098210bfa",
+          "finishedAt": "2026-07-29T19:01:26.104Z"
+        },
+        {
+          "migrationName": "20260728190000_add_canonical_resource_binding_shadow",
+          "checksum": "817a88ad3ad5d8d9dc50516a53b2abb9185c92f4dbfa2346414fe4b3da814b98",
+          "finishedAt": "2026-07-29T19:01:26.120Z"
+        },
+        {
+          "migrationName": "20260728210000_adopt_ctkg_0_2_aggregate_release",
+          "checksum": "2df8d82bccc55c0049c6342cf6e5bbf8d3f9ad09b537965acf5efb07a3b53d25",
+          "finishedAt": "2026-07-29T19:01:26.134Z"
+        },
+        {
+          "migrationName": "20260729120000_import_compatible_actkg_public_bundles",
+          "checksum": "57e22622c768289e6f1b94b750f95db356bb825bdbee68ffdecc93c1375f9c0f",
+          "finishedAt": "2026-07-29T19:01:26.146Z"
+        },
+        {
+          "migrationName": "20260729180000_govern_actkg_release_set_deltas",
+          "checksum": "a54fa62b31a54a2c93b754ea1b3b2f770454b0261982842cb0ee7ee3526eeaa9",
+          "finishedAt": "2026-07-29T19:01:26.156Z"
+        },
+        {
+          "migrationName": "20260730010000_govern_aggregate_course_coverage_and_resource_bindings",
+          "checksum": "67f321974d22549737542416e8f2d65c235561e2869d901d461b2f6e0023012c",
+          "finishedAt": "2026-07-29T19:01:26.173Z"
+        },
+        {
+          "migrationName": "20260730020000_bind_decisions_to_projection_and_governed_crosswalk",
+          "checksum": "97ba19a7df60202dcf4fe6d1d51f51010964bc4349b89900fb5c20b772ba48ce",
+          "finishedAt": "2026-07-29T19:01:26.176Z"
+        }
+      ],
+      "actkgRelations": [
+        {
+          "name": "ActkgAuthoritativeObject",
+          "rowCount": "103"
+        },
+        {
+          "name": "ActkgAuthoritativeRelation",
+          "rowCount": "41"
+        },
+        {
+          "name": "ActkgBundleArtifact",
+          "rowCount": "26"
+        },
+        {
+          "name": "ActkgBundleReceipt",
+          "rowCount": "2"
+        },
+        {
+          "name": "ActkgEvidenceSegment",
+          "rowCount": "2753"
+        },
+        {
+          "name": "ActkgEvidenceStructuralUnitCrosswalk",
+          "rowCount": "0"
+        },
+        {
+          "name": "ActkgImportReceipt",
+          "rowCount": "4"
+        },
+        {
+          "name": "ActkgOriginalReleasePayload",
+          "rowCount": "1"
+        },
+        {
+          "name": "ActkgProjectionIdentity",
+          "rowCount": "6"
+        },
+        {
+          "name": "ActkgProjectionLink",
+          "rowCount": "1583"
+        },
+        {
+          "name": "ActkgProjectionLinkMetadata",
+          "rowCount": "1486"
+        },
+        {
+          "name": "ActkgProjectionNode",
+          "rowCount": "4478"
+        },
+        {
+          "name": "ActkgRelease",
+          "rowCount": "4"
+        },
+        {
+          "name": "ActkgReleaseArtifact",
+          "rowCount": "7"
+        },
+        {
+          "name": "ActkgReleaseComponent",
+          "rowCount": "12"
+        },
+        {
+          "name": "ActkgReleaseEntry",
+          "rowCount": "6270"
+        },
+        {
+          "name": "ActkgReleaseSet",
+          "rowCount": "4"
+        },
+        {
+          "name": "ActkgReleaseSetDeltaReceipt",
+          "rowCount": "2"
+        },
+        {
+          "name": "ActkgReleaseSetDeltaSignal",
+          "rowCount": "2703"
+        },
+        {
+          "name": "ActkgSourceMapping",
+          "rowCount": "125"
+        },
+        {
+          "name": "ActkgSourceObject",
+          "rowCount": "1165"
+        },
+        {
+          "name": "ActkgUpstreamRagReference",
+          "rowCount": "8387"
+        }
+      ],
+      "digest": "3bcaf95406f2d839fd26aba7f480cd5d58313bd1f481258fbe395c750e3b495e"
+    },
+    "unchanged": true
+  },
+  "defaultPointers": {
+    "before": [
+      {
+        "relativePath": "course-content/authoring/knowledge/authority/current.json",
+        "exists": false,
+        "byteLength": null,
+        "sha256": null
+      },
+      {
+        "relativePath": "course-content/runtime/knowledge/projection/current.json",
+        "exists": false,
+        "byteLength": null,
+        "sha256": null
+      },
+      {
+        "relativePath": "course-content/runtime/knowledge/consumer-activation/current.json",
+        "exists": false,
+        "byteLength": null,
+        "sha256": null
+      },
+      {
+        "relativePath": "course-content/runtime/knowledge/legacy-retirement/current.json",
+        "exists": false,
+        "byteLength": null,
+        "sha256": null
+      }
+    ],
+    "after": [
+      {
+        "relativePath": "course-content/authoring/knowledge/authority/current.json",
+        "exists": false,
+        "byteLength": null,
+        "sha256": null
+      },
+      {
+        "relativePath": "course-content/runtime/knowledge/projection/current.json",
+        "exists": false,
+        "byteLength": null,
+        "sha256": null
+      },
+      {
+        "relativePath": "course-content/runtime/knowledge/consumer-activation/current.json",
+        "exists": false,
+        "byteLength": null,
+        "sha256": null
+      },
+      {
+        "relativePath": "course-content/runtime/knowledge/legacy-retirement/current.json",
+        "exists": false,
+        "byteLength": null,
+        "sha256": null
+      }
+    ],
+    "unchanged": true
+  },
+  "authority": {
+    "root": "artifacts/actkg-cutover-preparation/1a56317aa44e46322be0b0d1ac73948c03c5c2c0/authority",
+    "currentPointerPresent": false
+  }
+}

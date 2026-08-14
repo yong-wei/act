@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0106",
+  "offset": 530,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-7fd09957133988dbf413a2df",
+      "batch": "B",
+      "name": "时域法校正",
+      "definition": "如果性能指标以单位阶跃响应的峰值时间、调节时间、超调量、阻尼比、稳态误差等时域特征量给出时，一般采用时域法校正。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "时域法校正"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 时域法校正\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 如果性能指标以单位阶跃响应的峰值时间、调节时间、超调量、阻尼比、稳态误差等时域特征量给出时，一般采用时域法校正。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「时域法校正」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ba8cd00d72479d23476d2061",
+      "batch": "B",
+      "name": "奇点",
+      "definition": "若在某点处 f(x, ẋ) 和 ẋ 同时为零，即有 dẋ/dx = 0/0 的不定形式，则称该点为相平面的奇点。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "奇点",
+        "是一种·稳定焦点",
+        "是一种·不稳定节点",
+        "是一种·稳定节点",
+        "是一种·不稳定焦点",
+        "是一种·实奇点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 奇点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 若在某点处 f(x, ẋ) 和 ẋ 同时为零，即有 dẋ/dx = 0/0 的不定形式，则称该点为相平面的奇点。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「奇点」、「是一种·稳定焦点」、「是一种·不稳定节点」、「是一种·稳定节点」、「是一种·不稳定焦点」、「是一种·实奇点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-930ada7e5567a735a2feadc9",
+      "batch": "B",
+      "name": "block diagram",
+      "definition": "block diagram：v3T accepted candidate for block diagram.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "block diagr…",
+        "block diagra",
+        "应用于·block…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: block diagram\nSOURCE DEFINITION (fail-closed, do not invent beyond this): block diagram：v3T accepted candidate for block diagram.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「block diag」、「block diag」、「应用于·block…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b09a84cc18c0b52151894b0f",
+      "batch": "B",
+      "name": "比例-微分控制改善系统性能的方法",
+      "definition": "适当选择开环增益和微分器时间常数，既可减小系统在斜坡输入时的稳态误差，又可使系统在阶跃输入时有满意的动态性能。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "比例-微分控制改善系统…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 比例-微分控制改善系统性能的方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 适当选择开环增益和微分器时间常数，既可减小系统在斜坡输入时的稳态误差，又可使系统在阶跃输入时有满意的动态性能。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「比例-微分控制改善系」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3d75878fdf803ba103376aab",
+      "batch": "B",
+      "name": "Analog-to-digital converter",
+      "definition": "Analog-to-digital converter：Analog-to-digital converter",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Analog-to-d…",
+        "关联·Amplit…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Analog-to-digital converter\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Analog-to-digital converter：Analog-to-digital converter\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Analog-to-」、「关联·Amplit…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

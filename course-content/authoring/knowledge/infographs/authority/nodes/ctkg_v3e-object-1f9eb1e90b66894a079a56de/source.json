@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-1f9eb1e90b66894a079a56de",
+  "safe_id": "ctkg_v3e-object-1f9eb1e90b66894a079a56de",
+  "node": {
+    "name": "Dominant Second-Order Poles Method",
+    "name_en": "Dominant Second-Order Poles Method",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Dominant Second-Order Poles Method：A pole-placement design approach that selects closed-loop poles for a higher-order system as a desired pair of dominant…",
+  "intuition": null,
+  "explanation": "A pole-placement design approach that selects closed-loop poles for a higher-order system as a desired pair of dominant second-order poles, and selects the rest of the poles to have real parts corresponding to sufficiently damped modes, so that the system will mimic a second-order response with reasonable control effort.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Dominant Se…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-1f9eb1e90b66894a079a56de.md",
+  "provider_policy": "grok-image_gen"
+}

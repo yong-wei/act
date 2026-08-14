@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-42df8c524c1d9b3e8ae03275",
+  "safe_id": "ctkg_v3e-object-42df8c524c1d9b3e8ae03275",
+  "node": {
+    "name": "期望的开环频率特性形状",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "低频段增益充分大，中频段对数幅频特性斜率一般为-20dB/dec并占据充分宽的频带，高频段增益尽快减小。",
+  "intuition": null,
+  "explanation": "低频段增益充分大，中频段对数幅频特性斜率一般为-20dB/dec并占据充分宽的频带，高频段增益尽快减小。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "期望的开环频率特性形状"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-42df8c524c1d9b3e8ae03275.md",
+  "provider_policy": "grok-image_gen"
+}

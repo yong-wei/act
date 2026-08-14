@@ -76,6 +76,13 @@ rtk bash scripts/remote-deploy.sh --skip-build
 - 大型 Canonical inventory 的首次持久化可能超过 Prisma 默认 5 秒 interactive transaction timeout；使用仓库当前限定于该事务的 30 秒超时，不要扩大为全局事务默认值
 - 远端 shell 程序若由单引号包裹，不得再嵌套单引号 grep pattern；部署前运行静态脚本测试，避免 quoting 错误在切换期间才出现
 
+### 已明确授权的生产图谱切换
+
+- 图谱切换是独立的数据面事务，不是普通 `remote-deploy.sh` 的副作用。仅在用户明确授权、冻结镜像与 runtime/provenance 闭合、四类 selector 和生产 marker 都满足事务前置状态时，使用 `scripts/remote-activate-knowledge-cutover.sh`。
+- 若一次 Authority 解包在 selector 写入前失败，清理只能绑定 canonical stage 的当前 transactionId、sealed plan 和 archive 精确身份。不同 transactionId 的历史 journal/receipt 是 Legacy 部署保留的 release 审计证据，必须保留，不得回滚、改写或作为清理阻断；当前 transactionId 的 journal、receipt、recovery 凭据或任何 active marker 则必须 fail closed。
+- cleanup engine 重试时，只有已提升 engine 与 `.tmp` 都是普通文件且 SHA-256 等于 sealed hash，才可删除该精确的重复 `.tmp`；symlink、非普通文件或 hash 不同的临时文件一律保留并失败。
+- 命令流中断、RTK 输出截断或容器启动出现一次性 runc 异常时，不得从局部输出推断成功或失败。以远端 committed receipt、current marker、四个 selector、app/worker 镜像 OCI digest 与 `ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover`、六个 READY consumers、local/public `readyz` 重新判定最终状态。
+
 5. 远端验收
 ```bash
 rtk ssh root@121.40.124.135 "podman ps -a --format 'table {{.Names}}\t{{.Status}}' | grep act-obe"
@@ -109,6 +116,7 @@ rtk ssh root@121.40.124.135 "curl -k -s https://act.adapt-learn.online/api/ready
 - 若为了验证脚本多次连续执行 `remote-deploy.sh --skip-build` 后触发 Podman/runc 级别异常，例如 `unable to freeze` 或 worker 停在 `Created`，优先做最小恢复：
   - 先确认 `readyz` 是否仍为 `app=true, db=true, redis=true`
   - 若仅 `worker` 未运行，优先 `podman start act-obe-worker`，不要直接再次全量重部署
+- 在 RTK 包装环境中，部署脚本内的 Node command substitution 或 SSH 远端脚本传输不得使用 heredoc（例如 `node - <<'NODE'`、`ssh ... <<'REMOTE'`）；其 heredoc 写入可能阻塞而尚未执行远端步骤。小型本地 OCI 元数据解析改用 `node -e '<program>' -- <arg>`；远端多行操作器以版本化本地脚本通过标准输入传输，并以静态回归测试禁止恢复 heredoc。
 
 6. 本地收尾并释放 Docker Desktop 内存
 
@@ -130,3 +138,5 @@ rtk proxy osascript -e 'quit app "Docker"'
 - 原子发布目录必须规范化目录遍历权限；文件可读但父目录为 `0700` 时，非 root 容器用户仍会得到 `Permission denied`
 - 远端数据库迁移、Canonical Shadow import 和权威知识 verify-only 都要在最终镜像启动后再次执行；本地测试只证明候选可部署，不证明生产路径成立
 - 删除远端旧镜像或 tar 前确认本地仍保留可校验归档；清理动作与回滚能力必须同时报告
+- 容量预检必须发生在停止 runtime 消费者之前：把本地 tar 实际大小、`docker image inspect .Size`、远端可用空间和数据库备份余量同表核对。经验下限为 `tar + image + 1 GiB`；不足时先清理已核验且本地仍有归档的历史 runtime 备份或传输工件。`podman system df` 的 reclaimable 值异常、或残留 `working-container` 时，不得把它视为可用空间；以 `df -B1 /` 为准，并额外核对 `podman ps --external`。
+- 若 `podman load` 因空间耗尽已停止 app/worker，先以仍存在的直接前驱镜像显式执行 `APP_IMAGE=<previous> /home/projects/act/scripts/4-deploy.sh --app-only` 恢复服务，并通过 `readyz` 后再清理和重试；旧服务未恢复前不得重复全量部署。

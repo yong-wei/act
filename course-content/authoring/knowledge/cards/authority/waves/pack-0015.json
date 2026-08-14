@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0015",
+  "offset": 75,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-453ccee1d99fcde47aefa517",
+      "batch": "B",
+      "name": "memoryless nonlinearity",
+      "definition": "memoryless nonlinearity：A nonlinearity that has no dynamics and is well approximated as a gain that varies as the size of its input signal vari…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "memoryless …",
+        "memoryless n",
+        "一种·gain",
+        "一种·Satura…",
+        "一种·relay",
+        "是一种·relay",
+        "一种·coulom…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: memoryless nonlinearity\nSOURCE DEFINITION (fail-closed, do not invent beyond this): memoryless nonlinearity：A nonlinearity that has no dynamics and is well approximated as a gain that varies as the size of its input signal vari…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「memoryless」、「memoryless」、「一种·gain」、「一种·Satura…」、「一种·relay」、「是一种·relay」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-81a7cae1259fabcfe3390cd2",
+      "batch": "B",
+      "name": "Resonant-peak magnitude Mr",
+      "definition": "Resonant-peak magnitude Mr：The resonant-peak magnitude Mr is a specification related to the closed-loop frequency response, defined in Fig. 6.5.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Resonant-pe…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Resonant-peak magnitude Mr\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Resonant-peak magnitude Mr：The resonant-peak magnitude Mr is a specification related to the closed-loop frequency response, defined in Fig. 6.5.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Resonant-p」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b193b69b94a9f4a6cc656cff",
+      "batch": "B",
+      "name": "Zero steady-state error",
+      "definition": "Zero steady-state error：The condition where the steady-state tracking error is zero, achieved by including an internal model of the reference i…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Zero steady…",
+        "Zero steady-",
+        "关联·Intern…",
+        "关联·Asympt…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Zero steady-state error\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Zero steady-state error：The condition where the steady-state tracking error is zero, achieved by including an internal model of the reference i…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Zero stead」、「Zero stead」、「关联·Intern…」、「关联·Asympt…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-70629af71e754aac8b740638",
+      "batch": "B",
+      "name": "procedure to obtain set",
+      "definition": "procedure to obtain set：A procedure to obtain a set of linearized equations describing a nonlinear system by expanding the nonlinear functions…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "procedure t…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: procedure to obtain set\nSOURCE DEFINITION (fail-closed, do not invent beyond this): procedure to obtain set：A procedure to obtain a set of linearized equations describing a nonlinear system by expanding the nonlinear functions…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「procedure 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-8a0ff75844bf161eeea3c542",
+      "batch": "B",
+      "name": "set of state variables",
+      "definition": "set of state variables：A set of state variables \\(x_1(t), x_2(t), \\ldots, x_n(t)\\) that are the outputs of integrators in a chain, used in the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "set of stat…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: set of state variables\nSOURCE DEFINITION (fail-closed, do not invent beyond this): set of state variables：A set of state variables \\(x_1(t), x_2(t), \\ldots, x_n(t)\\) that are the outputs of integrators in a chain, used in the…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「set of sta」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

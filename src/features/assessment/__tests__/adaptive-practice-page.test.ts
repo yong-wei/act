@@ -3,6 +3,11 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import {
+  buildPathGenerationGoalHref,
+  defaultPathGenerationPanel,
+} from '@/lib/adaptive-path-generation-panel';
+
 const repoRoot = process.cwd();
 
 function readRepoFile(relativePath: string) {
@@ -23,8 +28,20 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("'bg-primary text-primary-foreground hover:opacity-90'");
     expect(source).toContain('setPathAdvisorAssistantEntryPoint(pathAdvisorEntryPoint)');
     expect(source).toContain('openAssistantEntryPoint(pathAdvisorAssistantEntryPoint)');
+    expect(source).toContain('requestedBatchId ? `authorized-candidate-batch:${requestedBatchId}` : null');
+    expect(source).toContain('requestedBatchId ? { candidateBatchId: requestedBatchId } : {}');
     expect(source).toContain('解析请求失败，请重试');
     expect(source).not.toContain('serverContext: { question');
+  });
+
+  it('offers micro tutoring only for persisted incorrect answers while retaining the diagnosis entry', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';");
+    expect(source).toContain('!feedback.isCorrect && feedback.durableAnswerId');
+    expect(source).toContain('isMicroTutoringEligible(feedback.adaptiveAssessmentRef)');
+    expect(source).toContain('<StudentMicroTutoringPanel');
+    expect(source).toContain('onRequestHint={requestAttemptDiagnosis}');
   });
 
   it('does not leave unauthenticated homepage entry in an empty loading state', () => {
@@ -99,8 +116,8 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
     expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain("const showPresetGoalCards = isPresetGoalLanding && pathLandingState === 'cold-start';");
-    expect(source).toContain("showSelectionWorkspace && !showPathContextRecovery ? (");
-    expect(source).toContain("!showPathContextRecovery && (showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("canRenderCandidateComparison && !showPathContextRecovery ? (");
+    expect(source).toContain("!showPathContextRecovery && (showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
     expect(source).toContain("!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)");
     expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (");
     expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
@@ -210,6 +227,15 @@ describe('adaptive practice page entry states', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
     expect(source).toContain('resolveAdaptivePathLandingState({');
+    expect(source).toContain('data-adaptive-path-landing-state="active"');
+    expect(source).toContain('data-adaptive-path-action-bar="active"');
+    expect(source).toContain('data-adaptive-path-continue-action="current-path"');
+    expect(source).toContain('data-adaptive-path-generation-action="new-path"');
+    expect(source).toContain('原路径仍会保留；你可以继续学习，也可以生成新的候选路径进行比较。');
+    expect(source).toContain("(showLandingWorkspace || showGenerationWorkspace) && pathLandingState === 'active'");
+    expect(source).toContain('(showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
+    expect(source).toContain('showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (');
+    expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null :');
     expect(source).toContain("const showColdStartLandingWorkspace = showLandingWorkspace && pathLandingState === 'cold-start';");
     expect(source).toContain('data-adaptive-path-landing-state="loading"');
     expect(source).toContain('正在加载学习路径');
@@ -217,6 +243,29 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('学习路径暂时无法加载');
     expect(source).toContain('onClick={retryPathContext}');
     expect(source).toContain("setPathContextLoadState(pathLoadFailed ? 'failed' : 'missing');");
+  });
+
+  it('preserves the active goal and path when opening a new generation from the active landing', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const activePathGenerationHref = buildPathGenerationGoalHref(
+      'frequency-response-foundations',
+      defaultPathGenerationPanel,
+    );
+    const generationQuery = new URLSearchParams(activePathGenerationHref.split('?')[1]);
+
+    expect(generationQuery.get('goal')).toBe('frequency-response-foundations');
+    expect(generationQuery.get('intent')).toBe('contextual-recommendation');
+    expect(source).toContain('const activePathGenerationHref = useMemo(() => {');
+    expect(source).toContain('generationQuery.set(\'pathId\', activeExecutionPathId);');
+    expect(source).toContain('href={activePathGenerationHref}');
+
+    const generationBlock = source.slice(
+      source.indexOf('const submitPathGeneration = useCallback'),
+      source.indexOf('const startPathGenerationFromAdvisor = useCallback'),
+    );
+    expect(generationBlock).toContain('pathId: operation !== \'generate\' ? currentPathId : undefined');
+    expect(generationBlock).toContain('await refreshLatestLearningPathAfterKonling();');
+    expect(source).toContain('if (activePathId) {\n      const loaded = await fetchLearningPathRound(activePathId, activeGoal);');
   });
 
   it('keeps demo path state available for execution and visual QA routes', () => {
@@ -306,8 +355,28 @@ describe('adaptive practice page entry states', () => {
     expect(source).not.toContain('setActivePathRound(loadedBatch');
   });
 
+  it('keeps candidate selection visible while its batch is loading independently', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("const shouldShowCandidateComparison = (showGenerationWorkspace || showSelectionWorkspace) && Boolean(requestedBatchId)");
+    expect(source).toContain("const showCandidateBatchRecovery = shouldShowCandidateComparison &&");
+    expect(source).toContain("const canRenderCandidateComparison = shouldShowCandidateComparison && !showCandidateBatchRecovery");
+    expect(source).toContain("workspaceIntent !== 'generation' && workspaceIntent !== 'selection'");
+    expect(source).toContain("requestedBatchId ?? 'batch:none'");
+    expect(source).toContain("const hasCandidateBatchContext = shouldShowCandidateComparison");
+    expect(source).toContain('data-adaptive-path-candidate-recovery-state={candidateBatchLoadState}');
+    expect(source).toContain("candidateBatchLoadState !== 'missing'");
+    expect(source).toContain("candidateBatchLoadState !== 'failed'");
+    expect(source).toContain('hasLoadedPathContextForRecovery');
+    expect(source).toContain('data-adaptive-path-candidate-state="loading"');
+    expect(source).toContain('正在加载候选学习路径');
+    expect(source).toContain('canRenderCandidateComparison && !showPathContextRecovery');
+    expect(source).toContain('data-learning-path-options-layout="route-modules"');
+  });
+
   it('keeps candidate identity fail-closed and writes selections to the source path', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const sidebarSource = readRepoFile('src/components/ai/global-ai-sidebar.tsx');
 
     expect(source).toContain("requestedCandidateId && !requestedBatchId");
     expect(source).toContain('pathOptions.find((option) => option.optionId === display.id)?.candidateId === focusedCandidateId');
@@ -316,6 +385,23 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("? activeCandidateBatch?.sourcePathId");
     expect(source).toContain("compareAllCandidateQuery.delete('candidate')");
     expect(source).toContain('data-learning-path-compare-all');
-    expect(source).toContain('(showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
+    expect(sidebarSource).toContain("detail: { mode: 'path-advisor', batchId, candidateId, pathId, source: 'candidate-selection' }");
+    expect(sidebarSource).toContain("/choices`");
+    expect(source).toContain("setPathChoiceMessage('路径已选中，等待你开始学习。')");
+    expect(sidebarSource).not.toContain('/execute');
+    expect(source).toContain('(showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
+  });
+
+  it('renders student-safe event evidence for candidates and persisted active nodes', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('function StudentEvidenceEventList');
+    expect(source).toContain('data-adaptive-path-event-evidence');
+    expect(source).toContain('references={entry.eventReferences ?? []}');
+    expect(source).toContain('references={node.selectionBasis.eventReferences}');
+    expect(source).toContain('该项判断尚无可核验的事件级学习记录。');
+    expect(source).toContain('该路径生成时尚未记录可核验的事件级依据。');
+    expect(source).toContain('isSafeEvidenceActionHref');
+    expect(source).not.toContain('reference.sourceId');
   });
 });

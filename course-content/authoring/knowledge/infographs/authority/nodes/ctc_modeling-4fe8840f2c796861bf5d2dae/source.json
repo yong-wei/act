@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-4fe8840f2c796861bf5d2dae",
+  "safe_id": "ctc_modeling-4fe8840f2c796861bf5d2dae",
+  "node": {
+    "name": "在一个很小的范…",
+    "name_en": "modeling_4fe8840f2c796861bf5d2dae",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "一种线性化方法，特别适合于具有连续变化的非线性特性函数，其实质是在一个很小的范围内，将非线性特性用一段直线来代替。",
+  "intuition": null,
+  "explanation": "一种线性化方法，特别适合于具有连续变化的非线性特性函数，其实质是在一个很小的范围内，将非线性特性用一段直线来代替。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "在一个很小的范…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-4fe8840f2c796861bf5d2dae.md",
+  "provider_policy": "grok-image_gen"
+}

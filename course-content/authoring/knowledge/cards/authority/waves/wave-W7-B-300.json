@@ -1,0 +1,708 @@
+{
+  "wave_id": "W7",
+  "batch": "B",
+  "title": "Batch B slice 7",
+  "offset": 300,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-b1fa48122cb30019661f9eaa",
+      "entity_id": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+      "name": "Peak time T p",
+      "name_en": "Peak time T_p",
+      "definition": "Peak time T p：The time required for the response to reach the first peak of the overshoot.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Peak time T…",
+        "Peak time T "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b2d966c11bb22eca4c7bd77e",
+      "entity_id": "ctkg:v3e-canonical-b2d966c11bb22eca4c7bd77e",
+      "name": "Poles and zeros of T(s)",
+      "name_en": "Poles and zeros of T(s)",
+      "definition": "Poles and zeros of T(s)：The poles of T(s) are the roots of the characteristic equation Δ(s)=0",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Poles and z…",
+        "Poles and ze"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+      "entity_id": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+      "name": "过阻尼",
+      "name_en": null,
+      "definition": "ζ > 1，特征方程有两个不相等的负实根，单位阶跃响应非周期地趋于稳态输出，但响应速度比临界阻尼情况缓慢。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "过阻尼"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "entity_id": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "name": "Steady-state error e ss",
+      "name_en": "Steady-state error e_ss",
+      "definition": "Steady-state error e ss：The difference between the final value of the response and the desired input magnitude.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Steady-stat…",
+        "Steady-state",
+        "关联·Closed…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-bd426885220680f04a9aed17",
+      "entity_id": "ctkg:v3e-canonical-bd426885220680f04a9aed17",
+      "name": "复合控制方法",
+      "name_en": null,
+      "definition": "如果控制系统中存在强扰动，特别是低频强扰动，则一般的反馈控制方式难以满足高稳态精度的要求，此时可以采用复合控制方式。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "复合控制方法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-bd871a5da052c90d142e285a",
+      "entity_id": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "name": "Transient response",
+      "name_en": "Transient response",
+      "definition": "Transient response：The component y1(t) is called the transient response as it decays to zero as time goes on.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Transient r…",
+        "Transient re"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-bdaced0dc441be53ee6a1b64",
+      "entity_id": "ctkg:v3e-canonical-bdaced0dc441be53ee6a1b64",
+      "name": "Time invariance",
+      "name_en": "Time invariance",
+      "definition": "Time invariance：If the input is delayed or shifted in time, then the output is unchanged except also being shifted by exactly the same…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Time invari…",
+        "Time invaria"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "entity_id": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "name": "临界阻尼响应",
+      "name_en": null,
+      "definition": "临界阻尼情况下的二阶系统的单位阶跃响应称为临界阻尼响应。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "临界阻尼响应"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-c02b9566a9d9964dbab5cc5d",
+      "entity_id": "ctkg:v3e-canonical-c02b9566a9d9964dbab5cc5d",
+      "name": "Computing response via convolution",
+      "name_en": "Computing response via convolution",
+      "definition": "Computing response via convolution：Decompose the input signal into a sum of elementary components (impulses or exponentials), find the response to each, a…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Computing r…",
+        "包含组件·Conv…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-c036bd461db04fbed7e079fd",
+      "entity_id": "ctkg:v3e-canonical-c036bd461db04fbed7e079fd",
+      "name": "实验测定一阶系统时间常数的方法",
+      "name_en": null,
+      "definition": "可用实验方法测定一阶系统的时间常数，或判定所测系统是否属于一阶系统。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "实验测定一阶系统时间常…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "entity_id": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "name": "Damped Natural Frequency",
+      "name_en": "Damped Natural Frequency",
+      "definition": "Damped Natural Frequency：The frequency of oscillation of a second-order system's transient response, given by ω_d = ω_n sqrt(1-ζ^2).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Damped Natu…",
+        "Damped Natur"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-c8eb5072bc1783d917169c9a",
+      "entity_id": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+      "name": "稳态过程",
+      "name_en": null,
+      "definition": "系统在典型输入信号作用下，当时间 t 趋于无穷时，系统输出量的表现方式。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳态过程"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-c97db3319c6da0c0371648d5",
+      "entity_id": "ctkg:v3e-canonical-c97db3319c6da0c0371648d5",
+      "name": "无阻尼振荡频率",
+      "name_en": null,
+      "definition": "当ζ=0时，系统的振荡频率为ω_n，称为无阻尼振荡频率。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "无阻尼振荡频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-cc82e137f42aa09df514e615",
+      "entity_id": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+      "name": "用一对共轭复数主导极点对应的二…",
+      "name_en": null,
+      "definition": "工程上常采用闭环主导极点的概念对高阶系统进行近似分析，即用一对共轭复数主导极点对应的二阶系统动态性能指标来估算高阶系统的动态性能。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "用一对共轭复数主导极点…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-cdaeaeb76fbe3feb33aa40b3",
+      "entity_id": "ctkg:v3e-canonical-cdaeaeb76fbe3feb33aa40b3",
+      "name": "Undamped natural frequency omega n",
+      "name_en": "Undamped natural frequency omega_n",
+      "definition": "Undamped natural frequency omega n：The undamped natural frequency is the radius at which the poles are located in the s-plane.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Undamped na…",
+        "一种·Band",
+        "派生自·极点"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-d0323a65e86911f11fa1e579",
+      "entity_id": "ctkg:v3e-canonical-d0323a65e86911f11fa1e579",
+      "name": "副回路",
+      "name_en": null,
+      "definition": "串级控制系统中，由副调节器、被控对象和测量变送器构成的内部回路。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "副回路",
+        "属于·副调节器",
+        "包含组件·串级控制…",
+        "包含组件·副调节器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "entity_id": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "name": "过阻尼响应",
+      "name_en": null,
+      "definition": "过阻尼二阶系统的单位阶跃响应是非振荡的，称为过阻尼响应。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "过阻尼响应"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-d2d3366e7f924f0ab8b19205",
+      "entity_id": "ctkg:v3e-canonical-d2d3366e7f924f0ab8b19205",
+      "name": "串级控制系统",
+      "name_en": null,
+      "definition": "串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "串级控制系统",
+        "包含组件·副回路"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-d510dc60d0922c1ec40e6df2",
+      "entity_id": "ctkg:v3e-canonical-d510dc60d0922c1ec40e6df2",
+      "name": "Truxal's Formula",
+      "name_en": "Truxal's Formula",
+      "definition": "Truxal's Formula：A formula for the velocity constant of a Type 1 system in terms of the closed-loop poles and zeros.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Truxal's Fo…",
+        "Truxal's For"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-d798b1df9c92d6d95229853b",
+      "entity_id": "ctkg:v3e-canonical-d798b1df9c92d6d95229853b",
+      "name": "Amplitude ratio",
+      "name_en": "Amplitude ratio",
+      "definition": "Amplitude ratio：M is usually referred to as the amplitude ratio and is a function of the input frequency ω.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Amplitude r…",
+        "Amplitude ra"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-d970bf0f83666cbccb0fbd76",
+      "entity_id": "ctkg:v3e-canonical-d970bf0f83666cbccb0fbd76",
+      "name": "Steady state",
+      "name_en": "Steady state",
+      "definition": "Steady state：The component y2(t) is called the steady state and equals the response given by Eq. (3.29).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Steady state"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-da95a03f3b851fcd7239eac2",
+      "entity_id": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+      "name": "Design Synthesis",
+      "name_en": "Design Synthesis Using Time-Domain Specifications",
+      "definition": "Design Synthesis：A method to specify t_r, M_p, and t_s and determine where poles need to be so that actual responses are less than or eq…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Design Synt…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-de2d118612aaa2d2d0061b93",
+      "entity_id": "ctkg:v3e-canonical-de2d118612aaa2d2d0061b93",
+      "name": "Finding transfer",
+      "name_en": "Finding transfer function via Laplace transform of ODE",
+      "definition": "Finding transfer：Take the Laplace transform of both sides of the differential equation assuming zero initial conditions, then solve for…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Finding tra…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "entity_id": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+      "name": "Superposition principle",
+      "name_en": "Superposition principle",
+      "definition": "Superposition principle：The principle of superposition states that if the system has an input that can be expressed as a sum of signals, then t…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Superpositi…",
+        "Superpositio"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-e13adcff8a7f8bc37a3579c2",
+      "entity_id": "ctkg:v3e-canonical-e13adcff8a7f8bc37a3579c2",
+      "name": "Neglecting insig",
+      "name_en": "Neglecting insignificant poles for order reduction",
+      "definition": "Neglecting insig：One relatively simple way to delete a certain insignificant pole of a transfer function is to note a pole that has a ne…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Neglecting …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "entity_id": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "name": "误差信号",
+      "name_en": null,
+      "definition": "当输入信号 R(s) 与主反馈信号 B(s) 不等时，比较装置的输出 E(s)=R(s)-H(s)C(s) 称为误差信号，简称误差（亦称偏差）。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "误差信号"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-e3d758f51052980656178128",
+      "entity_id": "ctkg:v3e-canonical-e3d758f51052980656178128",
+      "name": "System Type",
+      "name_en": "System Type",
+      "definition": "System Type：A classification of systems according to the degree of polynomial input that they can track with a constant steady-stat…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "System Type"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-e48cc89f8ed152e7f44ba43f",
+      "entity_id": "ctkg:v3e-canonical-e48cc89f8ed152e7f44ba43f",
+      "name": "一阶系统的单位阶跃响应",
+      "name_en": null,
+      "definition": "一阶系统在单位阶跃输入信号下的输出响应，表达式为c(t)=1-e^{-t/T}。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一阶系统的单位阶跃响应"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-e5eec53e01f5ac974d074ac4",
+      "entity_id": "ctkg:v3e-canonical-e5eec53e01f5ac974d074ac4",
+      "name": "误差响应",
+      "name_en": null,
+      "definition": "对于图3-8所示的单位反馈系统，误差响应为 e(t)=r(t)-c(t)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "误差响应",
+        "关联·稳态误差"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ea380a2917dde24b49c608e4",
+      "entity_id": "ctkg:v3e-canonical-ea380a2917dde24b49c608e4",
+      "name": "可求出单位阶跃响应",
+      "name_en": null,
+      "definition": "利用MATLAB软件，先建立高阶系统模型，再直接调用step命令即可求出单位阶跃响应。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "可求出单位阶跃响应",
+        "包含组件·利用MA…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-eac850b3c1b21e7bef64f738",
+      "entity_id": "ctkg:v3e-canonical-eac850b3c1b21e7bef64f738",
+      "name": "Percent overshoot P.O.",
+      "name_en": "Percent overshoot P.O.",
+      "definition": "Percent overshoot P.O.：The amount that the response overshoots the final value, expressed as a percentage of the final value.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Percent ove…",
+        "Percent over"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-eaee7091900b796af8d937c1",
+      "entity_id": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+      "name": "超调量",
+      "name_en": "Overshoot",
+      "definition": "超调量：The maximum amount the system overshoots its final value divided by its final value (and is often expressed as a percen…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "超调量",
+        "Overshoot"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "entity_id": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+      "name": "System Type for ",
+      "name_en": "System Type for Regulation and Disturbance Rejection",
+      "definition": "System Type for ：A classification of a system based on its ability to reject polynomial disturbance inputs, analogous to the classificat…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "System Type…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ef5630b5a74449df22ea0222",
+      "entity_id": "ctkg:v3e-canonical-ef5630b5a74449df22ea0222",
+      "name": "Fast pole and slow pole",
+      "name_en": "Fast pole and slow pole",
+      "definition": "Fast pole and slow pole：Fast poles and slow poles refer to relative rate of signal decay.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Fast pole a…",
+        "Fast pole an",
+        "关联·Natura…",
+        "关联·极点"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-f04d9bd8bbd3d7197e2c3b56",
+      "entity_id": "ctkg:v3e-canonical-f04d9bd8bbd3d7197e2c3b56",
+      "name": "Negative Real Part of Pole",
+      "name_en": "Negative Real Part of Pole",
+      "definition": "Negative Real Part of Pole：The real part of a complex pole, denoted by σ, which determines the exponential decay rate of the transient response.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Negative Re…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-f1592d0294e49b97a717c2f0",
+      "entity_id": "ctkg:v3e-canonical-f1592d0294e49b97a717c2f0",
+      "name": "Ramp input",
+      "name_en": "Ramp input",
+      "definition": "Ramp input：A standard test input signal where r(t)=At for t>0 and r(t)=0 for t<0.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Ramp input"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-f9718484925341d6ce1dec78",
+      "entity_id": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+      "name": "动态过程",
+      "name_en": null,
+      "definition": "系统在典型输入信号作用下，系统输出量从初始状态到最终状态的响应过程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "动态过程"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-fc1c6377378e65e48e0f12fc",
+      "entity_id": "ctkg:v3e-canonical-fc1c6377378e65e48e0f12fc",
+      "name": "Time constant tau",
+      "name_en": "Time constant tau",
+      "definition": "Time constant tau：The time when the response is 1/e times the initial value. It is a measure of the rate of decay.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Time consta…",
+        "Time constan"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0008b516b8ac52f0e05c7596",
+      "entity_id": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "name": "谐振峰值",
+      "name_en": null,
+      "definition": "闭环幅频特性的极大值，记为M_r(dB)。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "谐振峰值",
+        "用于分析·得到闭环…",
+        "关联·得到闭环对数…",
+        "关联·谐振频率",
+        "关联·带宽频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-001f3d1e666624493091691f",
+      "entity_id": "ctkg:v3e-object-001f3d1e666624493091691f",
+      "name": "最大滞后角",
+      "name_en": null,
+      "definition": "滞后网络在最大滞后角频率处达到的最大滞后相角，φm=arcsin((1-b)/(1+b))。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "最大滞后角"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-003aff0599f6e3790bfdb93a",
+      "entity_id": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "name": "根轨迹法",
+      "name_en": "Root locus method",
+      "definition": "根轨迹法：A method for designing compensators by altering the root locus of the closed-loop system to achieve desired root locati…",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "根轨迹法",
+        "Root locus m",
+        "应用于·Compe…",
+        "应用于·根轨迹",
+        "关联·Compen…",
+        "关联·根轨迹"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0079fafb4b8e0579bedea1a6",
+      "entity_id": "ctkg:v3e-object-0079fafb4b8e0579bedea1a6",
+      "name": "External Stability",
+      "name_en": "External Stability",
+      "definition": "External Stability：Stability analysis based on input-output behavior, as in frequency-response methods.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "External St…",
+        "External Sta",
+        "用于分析·Circ…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-015051ab889bc2e6b3fd1b54",
+      "entity_id": "ctkg:v3e-object-015051ab889bc2e6b3fd1b54",
+      "name": "稳定焦点",
+      "name_en": null,
+      "definition": "当特征根为一对具有负实部的共轭复根时，奇点为稳定焦点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "稳定焦点",
+        "是一种·奇点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-01d6ba4cfbef38693c611d4a",
+      "entity_id": "ctkg:v3e-object-01d6ba4cfbef38693c611d4a",
+      "name": "argument principle",
+      "name_en": "argument principle",
+      "definition": "argument principle：A contour map of a complex function will encircle the origin Z-P times, where Z is the number of zeros and P is the num…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "argument pr…",
+        "argument pri"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-01daeca5c38811f6a58fcb01",
+      "entity_id": "ctkg:v3e-object-01daeca5c38811f6a58fcb01",
+      "name": "Equivalent gain ",
+      "name_en": "Equivalent gain analysis using root locus",
+      "definition": "Equivalent gain ：A technique to study the stability of systems with memoryless nonlinearities by replacing the nonlinearity with an equi…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Equivalent …",
+        "包含组件·equi…",
+        "用于分析·memo…",
+        "关联·Root-L…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-02ce94d02ad32ee9bc5528e9",
+      "entity_id": "ctkg:v3e-object-02ce94d02ad32ee9bc5528e9",
+      "name": "Resonant peak",
+      "name_en": "Resonant peak",
+      "definition": "Resonant peak：The maximum value of the frequency-response magnitude.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Resonant pe…",
+        "Resonant pea",
+        "关联·阻尼比",
+        "关联·Resona…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-02f9f0ab62cde123ae7dcc9a",
+      "entity_id": "ctkg:v3e-object-02f9f0ab62cde123ae7dcc9a",
+      "name": "Left Companion Matrix",
+      "name_en": "Left Companion Matrix",
+      "definition": "Left Companion Matrix：The matrix Aₒ in observer canonical form, where the coefficients of the characteristic equation appear on the left side.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Left Compan…",
+        "Left Compani"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-055bf5ba7d4fe5f6a75cdd79",
+      "entity_id": "ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79",
+      "name": "Type-two system",
+      "name_en": "Type-two system",
+      "definition": "Type-two system：A type-two system has satisfactory steady-state error for both step and ramp input signals.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Type-two sy…",
+        "Type-two sys"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-074ba027193fc06624e26f0a",
+      "entity_id": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+      "name": "Nyquist-Shannon sampling theorem",
+      "name_en": "Nyquist-Shannon sampling theorem",
+      "definition": "Nyquist-Shannon sampling theorem：A theorem stating that for a signal to be accurately reconstructed from samples, it must have no frequency component gr…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Nyquist-Sha…",
+        "包含组件·Nyqu…",
+        "应用于·alias…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-077a4ec4c19112baa379c0f5",
+      "entity_id": "ctkg:v3e-object-077a4ec4c19112baa379c0f5",
+      "name": "Asynchronous Sampling",
+      "name_en": "Asynchronous Sampling",
+      "definition": "Asynchronous Sampling：As noted in the previous paragraphs, divorcing the prefilter design from the control-law design may require using a fas…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Asynchronou…",
+        "Asynchronous"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

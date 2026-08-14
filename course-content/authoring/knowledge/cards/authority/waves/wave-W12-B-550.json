@@ -1,0 +1,748 @@
+{
+  "wave_id": "W12",
+  "batch": "B",
+  "title": "Batch B slice 12",
+  "offset": 550,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-670bb910ee2a73c3ebcc0c39",
+      "entity_id": "ctkg:v3e-object-670bb910ee2a73c3ebcc0c39",
+      "name": "Weak controllability",
+      "name_en": "Weak controllability",
+      "definition": "Weak controllability：A situation where a system is mathematically controllable, but certain modes are so weakly affected by the control inpu…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Weak contro…",
+        "Weak control"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-673ca3fc1e1f241021746105",
+      "entity_id": "ctkg:v3e-object-673ca3fc1e1f241021746105",
+      "name": "Observer Canonical Form",
+      "name_en": "Observer Canonical Form",
+      "definition": "Observer Canonical Form：A canonical form for which the estimator gain design equations are particularly simple and the existence of a solution…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Observer Ca…",
+        "Observer Can",
+        "关联·Observ…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-67d5555e935df3a1d09971f1",
+      "entity_id": "ctkg:v3e-object-67d5555e935df3a1d09971f1",
+      "name": "复现过程",
+      "name_en": null,
+      "definition": "D/A 转换的第二个过程：因为离散的模拟信号无法直接控制连续的被控对象，需要经过保持器将离散模拟信号复现为连续的模拟信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "复现过程",
+        "是一种·信号复现过程",
+        "属于·D/A转换器",
+        "包含组件·保持器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-683669a4b467dc55ddcf5d48",
+      "entity_id": "ctkg:v3e-object-683669a4b467dc55ddcf5d48",
+      "name": "朱利稳定判据",
+      "name_en": null,
+      "definition": "直接在z域内应用的稳定性判据，根据离散系统的闭环特征方程D(z)=0的系数，判别其根是否位于z平面上的单位圆内。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "朱利稳定判据",
+        "包含组件·朱利阵列",
+        "用于分析·朱利稳定…",
+        "用于分析·Unit…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6877b35880ea442923e49a5e",
+      "entity_id": "ctkg:v3e-object-6877b35880ea442923e49a5e",
+      "name": "Internal stability",
+      "name_en": "Internal stability",
+      "definition": "Internal stability：Internal stability occurs when all poles of the system are strictly in the left half-plane (LHP).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Internal st…",
+        "Internal sta"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-68b0b2f3295bb357fcb48d7d",
+      "entity_id": "ctkg:v3e-object-68b0b2f3295bb357fcb48d7d",
+      "name": "Reduced-order observer",
+      "name_en": "Reduced-order observer",
+      "definition": "Reduced-order observer：An observer that provides estimates only for the states not directly measured, as opposed to a full-state observer.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Reduced-ord…",
+        "Reduced-orde",
+        "关联·Full-s…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-68df257f762f259aef82b607",
+      "entity_id": "ctkg:v3e-object-68df257f762f259aef82b607",
+      "name": "Full-Order Estimator",
+      "name_en": "Full-Order Estimator",
+      "definition": "Full-Order Estimator：A method of estimating the state by constructing a full-order model of the plant dynamics.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Full-Order …",
+        "Full-Order E"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-69488c745082536d87afd1a7",
+      "entity_id": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "name": "Closed-loop bandwidth",
+      "name_en": "Closed-loop bandwidth",
+      "definition": "Closed-loop bandwidth：The closed-loop bandwidth is defined in Section 6.1 and Fig. 6.5. For a second-order system, the natural frequency is a…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Closed-loop…",
+        "Closed-loop "
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-69529eb08c9279e8b19dc4f6",
+      "entity_id": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "name": "交接频率",
+      "name_en": null,
+      "definition": "惯性环节的对数幅频渐近特性曲线低频部分和高频部分两条直线交于 ω=1/T 处，称频率 1/T 为惯性环节的交接频率。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "交接频率",
+        "属于·对数幅频渐近…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-695b9c7d4ee82924a8d65b12",
+      "entity_id": "ctkg:v3e-object-695b9c7d4ee82924a8d65b12",
+      "name": "Pole placement b",
+      "name_en": "Pole placement by coefficient matching in control canonical form",
+      "definition": "Pole placement b：A method for designing a full-state feedback control law by transforming the system to control canonical form, then equ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pole placem…",
+        "用于分析·Cont…",
+        "派生自·Acker…",
+        "关联·Ackerm…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6a408c0b64c072f7bea3db47",
+      "entity_id": "ctkg:v3e-object-6a408c0b64c072f7bea3db47",
+      "name": "Dominant second-order pole locations",
+      "name_en": "Dominant second-order pole locations",
+      "definition": "Dominant second-order pole locations：A pole placement strategy that shifts only the slow (low-frequency) poles while leaving fast poles unchanged.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Dominant se…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6aab5205709de2fd044b4024",
+      "entity_id": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+      "name": "奈奎斯特稳定判据（奈氏判据）",
+      "name_en": null,
+      "definition": "反馈控制系统稳定的充分必要条件是半闭合曲线Γ_GH不穿过(-1, j0)点且逆时针包围临界点(-1, j0)点的圈数R等于开环传递函数的正实部极点数P。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "奈奎斯特稳定判据（奈氏…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6ca8140f61e8805a2e5c8201",
+      "entity_id": "ctkg:v3e-object-6ca8140f61e8805a2e5c8201",
+      "name": "Matched Pole-Zero (MPZ) Method",
+      "name_en": "Matched Pole-Zero (MPZ) Method",
+      "definition": "Matched Pole-Zero (MPZ) Method：A digitization method that applies the relation z=e^{sT} to the poles and zeros of a transfer function. Steps: 1) Map p…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Matched Pol…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6d1db6977ad62639b73afe79",
+      "entity_id": "ctkg:v3e-object-6d1db6977ad62639b73afe79",
+      "name": "等σ线映射",
+      "name_en": null,
+      "definition": "s平面上的等σ垂线映射到z平面上的轨迹是以原点为圆心、以|z|=e^{σT}为半径的圆。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "等σ线映射"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6d78bc7ec6f37d397dd08c67",
+      "entity_id": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+      "name": "Relative Stability",
+      "name_en": "Relative Stability",
+      "definition": "Relative Stability：Given that a closed-loop system is stable, the degree of stability can be further characterized. This is referred to as…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Relative St…",
+        "Relative Sta",
+        "用于分析·Axis…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6e5d7c7223f605f9c16bda61",
+      "entity_id": "ctkg:v3e-object-6e5d7c7223f605f9c16bda61",
+      "name": "Regulator",
+      "name_en": "Regulator",
+      "definition": "Regulator：A state variable feedback compensator designed without reference inputs (i.e., r(t)=0).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Regulator"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6ecfad78b7fb0ba7b233047c",
+      "entity_id": "ctkg:v3e-object-6ecfad78b7fb0ba7b233047c",
+      "name": "数字控制系统",
+      "name_en": null,
+      "definition": "把数字序列形式的离散系统，称为数字控制系统或计算机控制系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字控制系统",
+        "是一种·离散时间系统",
+        "包含组件·模拟信号",
+        "包含组件·数字信号"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-6f45ed4aa09cbebb25093412",
+      "entity_id": "ctkg:v3e-object-6f45ed4aa09cbebb25093412",
+      "name": "Using roots to c",
+      "name_en": "Using roots to compute zeros from numerator polynomial",
+      "definition": "Using roots to c：Using roots to compute zeros from numerator polynomial",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Using roots…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-701047b791dcb064a8224082",
+      "entity_id": "ctkg:v3e-object-701047b791dcb064a8224082",
+      "name": "Bryson's Rule",
+      "name_en": "Bryson's Rule",
+      "definition": "Bryson's Rule：A method to start the LQR design iteration by initially choosing diagonal matrices Q and R such that Q_ii = 1 / maximum…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Bryson's Ru…",
+        "Bryson's Rul"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7055a0e2be50abb18ea92c6a",
+      "entity_id": "ctkg:v3e-object-7055a0e2be50abb18ea92c6a",
+      "name": "Decibel (dB)",
+      "name_en": "Decibel (dB)",
+      "definition": "Decibel (dB)：A unit of power gain, defined as 1/10 of a bel, used in Bode plots to express magnitude ratios on a logarithmic scale.",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Decibel (dB)",
+        "属于·Bel",
+        "派生自·Bel",
+        "关联·Decibel",
+        "关联·Bel"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-70598dd5728797c1595207c9",
+      "entity_id": "ctkg:v3e-object-70598dd5728797c1595207c9",
+      "name": "Kalman filter",
+      "name_en": "Kalman filter",
+      "definition": "Kalman filter：A time-varying optimal observer that solves the observer problem in the presence of measurement noise and process noise.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Kalman filt…",
+        "Kalman filte",
+        "一种·Full-s…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-710cc7b05bccac04bdf10d66",
+      "entity_id": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+      "name": "Asymptotic tracking",
+      "name_en": "Asymptotic tracking",
+      "definition": "Asymptotic tracking：The property of a control system where the tracking error approaches zero as time goes to infinity.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Asymptotic …",
+        "Asymptotic t",
+        "应用于·Refer…",
+        "应用于·Track…",
+        "关联·Intern…",
+        "关联·Zero s…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-714380036f5fc0b5608b23b2",
+      "entity_id": "ctkg:v3e-object-714380036f5fc0b5608b23b2",
+      "name": "counting scheme A/D conversion",
+      "name_en": "counting scheme A/D conversion",
+      "definition": "counting scheme A/D conversion：counting scheme A/D conversion",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "counting sc…",
+        "关联·A/D co…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-757a3f48777c318642e275e3",
+      "entity_id": "ctkg:v3e-object-757a3f48777c318642e275e3",
+      "name": "Estimator Gain S",
+      "name_en": "Estimator Gain Selection via Pole Placement",
+      "definition": "Estimator Gain S：Specify desired estimator error poles, form the desired characteristic equation, and solve for L by comparing coefficie…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Estimator G…",
+        "包含组件·Esti…",
+        "用于分析·Esti…",
+        "应用于·Estim…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-762239378940cb45b78991b3",
+      "entity_id": "ctkg:v3e-object-762239378940cb45b78991b3",
+      "name": "采样器",
+      "name_en": null,
+      "definition": "在连续信号和脉冲序列之间要用采样器，实现信号的转换。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样器",
+        "是一种·理想采样器",
+        "包含组件·采样控制…",
+        "关联·采样过程"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-763fd65e573e7a65dfc4b79c",
+      "entity_id": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "name": "Nyquist图",
+      "name_en": "Nyquist plot",
+      "definition": "Nyquist图：A plot of the magnitude of KG(s) versus the angle of KG(s) used to evaluate the open-loop transfer function for stabili…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Nyquist图",
+        "Nyquist plot",
+        "关联·Freque…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7669cc1cb18986463cbcfdf6",
+      "entity_id": "ctkg:v3e-object-7669cc1cb18986463cbcfdf6",
+      "name": "可观测性规范分解",
+      "name_en": null,
+      "definition": "将系统按可观测性分解为可观测子系统和不可观测子系统的过程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "可观测性规范分解",
+        "一种·可观测性规范…",
+        "应用于·可观测性规…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-76a08234eba9eed51ed0733b",
+      "entity_id": "ctkg:v3e-object-76a08234eba9eed51ed0733b",
+      "name": "Lyapunov's First Method",
+      "name_en": "Lyapunov's First Method",
+      "definition": "Lyapunov's First Method：A method for studying stability based on the linear approximation: if the linear approximation is strictly stable (all…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov's …",
+        "Lyapunov's F",
+        "用于分析·Nonl…",
+        "用于分析·Equi…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7761615701fb4915a76924ff",
+      "entity_id": "ctkg:v3e-object-7761615701fb4915a76924ff",
+      "name": "Crossover frequency",
+      "name_en": "Crossover frequency",
+      "definition": "Crossover frequency：The frequency at which the magnitude of the open-loop transfer function |KG(jω)| equals 1 (0 dB).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Crossover f…",
+        "Crossover fr",
+        "用于分析·Dete…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-780e0248e98d1a241ff3f3d5",
+      "entity_id": "ctkg:v3e-object-780e0248e98d1a241ff3f3d5",
+      "name": "量化过程",
+      "name_en": null,
+      "definition": "在计算机中，任何数值的离散信号必须表示成最小位二进制的整数倍，成为数字信号，才能进行运算。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "量化过程"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-785280d429b7e1a5f2f5db53",
+      "entity_id": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "name": "Nyquist stability criterion",
+      "name_en": "Nyquist stability criterion",
+      "definition": "Nyquist stability criterion：The Nyquist stability criterion relates the open-loop frequency response to the number of closed-loop poles of the syst…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Nyquist sta…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-78558546607d8234fb2ce368",
+      "entity_id": "ctkg:v3e-object-78558546607d8234fb2ce368",
+      "name": "周期信号的频谱",
+      "name_en": null,
+      "definition": "复系数 c_k 的集合称为周期信号的频谱，表示周期信号各次谐波分量的幅值和相位分布。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "周期信号的频谱",
+        "关联·幅值谱"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7920406a5dc429be713c5890",
+      "entity_id": "ctkg:v3e-object-7920406a5dc429be713c5890",
+      "name": "Feedback compensation (as a scheme)",
+      "name_en": "Feedback compensation (as a scheme)",
+      "definition": "Feedback compensation (as a scheme)：A compensation scheme where the compensator is placed in the feedback path of a single-loop feedback control system.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Feedback co…",
+        "一种·Feedba…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-79a7b9064a607526e69fb64b",
+      "entity_id": "ctkg:v3e-object-79a7b9064a607526e69fb64b",
+      "name": "内模控制器设计方法",
+      "name_en": null,
+      "definition": "一种校正控制器设计方法，通过在控制器中引入参考输入信号的内模，实现零稳态误差渐近跟踪各类参考输入信号（如阶跃、斜坡、正弦信号等）。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "内模控制器设计方法",
+        "应用于·内模控制器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-79d38366402d1a9806e1ed46",
+      "entity_id": "ctkg:v3e-object-79d38366402d1a9806e1ed46",
+      "name": "输出可控性矩阵 (output…",
+      "name_en": null,
+      "definition": "输出可控性矩阵 (output controllability matrix)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "输出可控性矩阵 (ou…",
+        "包含组件·否成立"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7aa500461c5109b7cffd9b19",
+      "entity_id": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+      "name": "Routh array",
+      "name_en": "Routh array",
+      "definition": "Routh array：An array used in the Routh-Hurwitz stability criterion, constructed from the coefficients of the characteristic equatio…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Routh array",
+        "属于·Auxili…",
+        "属于·First …",
+        "属于·Routh-…",
+        "包含组件·Rout…",
+        "派生自·特征方程"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7aeaea4f1aef78c48c3e8340",
+      "entity_id": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "name": "Ackermann's formula",
+      "name_en": "Ackermann's formula",
+      "definition": "Ackermann's formula：A compact formula for computing the state feedback gain matrix K for pole placement, given by K = [0 ... 0 1] * C^{-1}…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Ackermann's…",
+        "Ackermann's ",
+        "派生自·Pole …",
+        "关联·Pole p…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7aef0becfa3e700facb7a80e",
+      "entity_id": "ctkg:v3e-object-7aef0becfa3e700facb7a80e",
+      "name": "开环幅相特性曲线终点",
+      "name_en": null,
+      "definition": "开环幅相特性曲线在ω=∞处的点，取决于开环传递函数分子、分母多项式中最小相位环节和非最小相位环节的阶次和。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "开环幅相特性曲线终点"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7b59e975b2aaa6100b970b52",
+      "entity_id": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "name": "描述函数法",
+      "name_en": null,
+      "definition": "描述函数法是基于频域分析法和非线性特性谐波线性化的一种图解分析方法。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "描述函数法",
+        "包含组件·描述函数",
+        "包含组件·谐波线性化",
+        "用于分析·非线性系统",
+        "用于分析·极限环",
+        "用于分析·自激振荡"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7ca2c75eb92f65075a8ec793",
+      "entity_id": "ctkg:v3e-object-7ca2c75eb92f65075a8ec793",
+      "name": "successive-approximation technique",
+      "name_en": "successive-approximation technique",
+      "definition": "successive-approximation technique：An A/D conversion technique based on successively comparing the input voltage to reference levels representing the vari…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "successive-…",
+        "关联·A/D co…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7cae3d7feb631906644f0fad",
+      "entity_id": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+      "name": "Neutral Stability",
+      "name_en": "Neutral Stability",
+      "definition": "Neutral Stability：A position where if a cone rests on its side and is displaced slightly, it rolls with no tendency to leave the position…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Neutral Sta…",
+        "Neutral Stab",
+        "一种·Stable",
+        "是一种·稳定性",
+        "关联·Stabil…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7d0f4558ea9feb4c470dd47b",
+      "entity_id": "ctkg:v3e-object-7d0f4558ea9feb4c470dd47b",
+      "name": "系统完全可观测",
+      "name_en": null,
+      "definition": "对于式（9－81）所示线性时变系统，如果取定初始时刻 t0∈Tt，存在一个有限时刻 t1∈Tt, t1>t0，对于所有 t∈[t0, t1]，系统的输出 y(t) 能唯一确定状态向量的初值 x(t0)，则称系统在 [t0, t1] 内是完…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统完全可观测",
+        "是一种·可观测性",
+        "属于·可观测性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "entity_id": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+      "name": "Proportional plu",
+      "name_en": "Proportional plus integral (PI) controller",
+      "definition": "Proportional plu：A widely used form of controller with a transfer function G_c(s) = K_p + K_I/s.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Proportiona…",
+        "一种·Integr…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7d3704ae133f6be94bf5991b",
+      "entity_id": "ctkg:v3e-object-7d3704ae133f6be94bf5991b",
+      "name": "脉冲传递函数",
+      "name_en": null,
+      "definition": "线性定常离散系统的脉冲传递函数定义为系统输出采样信号的z变换与输入采样信号的z变换之比。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "脉冲传递函数",
+        "关联·线性定常离散…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7e19f05879897a5e2d7c3e97",
+      "entity_id": "ctkg:v3e-object-7e19f05879897a5e2d7c3e97",
+      "name": "Ackermann's form",
+      "name_en": "Ackermann's formula for state feedback gain",
+      "definition": "Ackermann's form：For a single-input, single-output system, Ackermann's formula is useful for determining the state variable feedback mat…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Ackermann's…",
+        "包含组件·Cont…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7e274b7e5ef258bd54400783",
+      "entity_id": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+      "name": "自然频率",
+      "name_en": "Natural frequency",
+      "definition": "自然频率：The bandwidth of a system ω_B, as indicated on the frequency response, can be approximately related to the natural freq…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "自然频率",
+        "Natural freq",
+        "关联·带宽"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7eb703ff92835fa45948a0bf",
+      "entity_id": "ctkg:v3e-object-7eb703ff92835fa45948a0bf",
+      "name": "离散模拟信号",
+      "name_en": null,
+      "definition": "控制器中的脉冲元件，其输人和输出为脉冲序列，即时间上离散而幅值上连续的信号，称为离散模拟信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散模拟信号",
+        "是一种·脉冲序列",
+        "包含组件·采样控制…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7ec200eb09dcb2beb627f1eb",
+      "entity_id": "ctkg:v3e-object-7ec200eb09dcb2beb627f1eb",
+      "name": "Duality-Based Es",
+      "name_en": "Duality-Based Estimator Design Using acker/place",
+      "definition": "Duality-Based Es：Use the duality relationships (A→Aᵀ, B→Cᵀ, C→Bᵀ) to apply control design tools (acker, place) for estimator gain comput…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Duality-Bas…",
+        "一种·Dualit…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7f2e4a28791adc1aab82c6d2",
+      "entity_id": "ctkg:v3e-object-7f2e4a28791adc1aab82c6d2",
+      "name": "read-only memory (ROM)",
+      "name_en": "read-only memory (ROM)",
+      "definition": "read-only memory (ROM)：read-only memory (ROM)",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "read-only m…",
+        "read-only me",
+        "一种·flash",
+        "一种·progra…",
+        "关联·random…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7f8322d930ad015c80e143ed",
+      "entity_id": "ctkg:v3e-object-7f8322d930ad015c80e143ed",
+      "name": "Digital-to-analog converter",
+      "name_en": "Digital-to-analog converter",
+      "definition": "Digital-to-analog converter：Digital-to-analog converter",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital-to-…",
+        "属于·Sample…",
+        "关联·Contin…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

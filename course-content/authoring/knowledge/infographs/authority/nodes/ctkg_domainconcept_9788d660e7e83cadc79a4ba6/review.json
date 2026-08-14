@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:26:26+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:9788d660e7e83cadc79a4ba6",
+  "safe_id": "ctkg_domainconcept_9788d660e7e83cadc79a4ba6",
+  "node_name": "G_c(s)-D(z) 变换方法",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1152-1156"
+}

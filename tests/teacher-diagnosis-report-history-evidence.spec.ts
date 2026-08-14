@@ -21,6 +21,11 @@ const artifactDirectory = path.resolve(
 const captureEnabled = process.env.TEACHER_DIAGNOSIS_REPORT_EVIDENCE_CAPTURE === '1';
 const authSecret = 'teacher-diagnosis-evidence-secret';
 
+type GenerationFixture = {
+  start: 'QUEUED' | 'TIMED_OUT';
+  poll?: 'COMPLETED';
+};
+
 test.skip(!captureEnabled, 'run with TEACHER_DIAGNOSIS_REPORT_EVIDENCE_CAPTURE=1');
 test.describe.configure({ mode: 'serial' });
 
@@ -74,6 +79,24 @@ test('distinguishes empty and failed report history on the class production rout
   await expect(page.locator('[data-report-history-state="error"]')).toBeVisible();
 });
 
+test('shows queued generation and refreshes history after completion on the class production route', async ({ page }) => {
+  await installTeacherSession(page);
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.emulateMedia({ colorScheme: 'light' });
+  const diagnostics = collectDiagnostics(page);
+  await installAuthorizedFixture(page, 'class', 'ready', 0, { start: 'QUEUED', poll: 'COMPLETED' });
+
+  await page.goto(`/teacher/classes/${EVIDENCE_CLASS_ID}`, { waitUntil: 'networkidle' });
+  await page.locator('[data-diagnosis-generation-action="generate"]').click();
+  await expect(page.locator('[data-diagnosis-generation-state="QUEUED"]')).toBeVisible();
+  await page.screenshot({ path: path.join(artifactDirectory, 'class-generation-queued-1440-light.png'), fullPage: true });
+  await expect(page.locator('[data-diagnosis-generation-state="COMPLETED"]')).toBeVisible({ timeout: 6_000 });
+  await page.screenshot({ path: path.join(artifactDirectory, 'class-generation-completed-1440-light.png'), fullPage: true });
+  await expectNoHorizontalOverflow(page);
+  expect(diagnostics.consoleErrors).toEqual([]);
+  expect(diagnostics.pageErrors).toEqual([]);
+});
+
 test('captures degraded student history at the 320px production route', async ({ page }) => {
   await installTeacherSession(page);
   await page.setViewportSize({ width: 320, height: 844 });
@@ -106,6 +129,25 @@ test('captures degraded student history at the 320px production route', async ({
   });
 });
 
+test('shows timeout and permits a retry on the 320px student production route', async ({ page }) => {
+  await installTeacherSession(page);
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.emulateMedia({ colorScheme: 'dark' });
+  const diagnostics = collectDiagnostics(page);
+  await installAuthorizedFixture(page, 'student', 'ready', 0, { start: 'TIMED_OUT' });
+
+  await page.goto(`/teacher/classes/${EVIDENCE_CLASS_ID}/students/${EVIDENCE_STUDENT_ID}`, { waitUntil: 'networkidle' });
+  await page.locator('[data-diagnosis-generation-action="generate"]').click();
+  await expect(page.locator('[data-diagnosis-generation-state="TIMED_OUT"]')).toBeVisible();
+  await page.screenshot({ path: path.join(artifactDirectory, 'student-generation-timeout-320-dark.png'), fullPage: true });
+  await page.locator('[data-diagnosis-generation-action="retry"]').click();
+  await expect(page.locator('[data-diagnosis-generation-state="QUEUED"]')).toBeVisible();
+  await page.screenshot({ path: path.join(artifactDirectory, 'student-generation-retry-320-dark.png'), fullPage: true });
+  await expectNoHorizontalOverflow(page);
+  expect(diagnostics.consoleErrors).toEqual([]);
+  expect(diagnostics.pageErrors).toEqual([]);
+});
+
 test('the real diagnosis-report API fails closed without an authenticated teacher', async ({ request }) => {
   const response = await request.get(`/api/teacher/classes/${EVIDENCE_CLASS_ID}/diagnosis-reports`);
   expect(response.status()).toBe(401);
@@ -116,8 +158,10 @@ async function installAuthorizedFixture(
   scope: 'class' | 'student',
   reportState: 'ready' | 'empty' | 'failure',
   reportDelayMs = 300,
+  generation?: GenerationFixture,
 ) {
   const requests: string[] = [];
+  let generationPolls = 0;
   await page.route('**/api/**', async (route) => {
     const pathname = new URL(route.request().url()).pathname;
     requests.push(pathname);
@@ -130,14 +174,42 @@ async function installAuthorizedFixture(
       return fulfill(route, studentInsightsFixture);
     }
     if (pathname === `/api/teacher/classes/${EVIDENCE_CLASS_ID}/diagnosis-reports`) {
+      if (route.request().method() === 'POST' && generation) {
+        return fulfill(route, { job: generationJob(generation.start) });
+      }
       await new Promise((resolve) => setTimeout(resolve, reportDelayMs));
       if (reportState === 'failure') return fulfill(route, { error: '受控证据读取失败' }, 503);
       if (reportState === 'empty') return fulfill(route, { reports: [] });
       return fulfill(route, scope === 'student' ? studentReportsPayload : classReportsPayload);
     }
+    if (pathname === '/api/teacher/diagnosis-generation-jobs/job-evidence') {
+      if (route.request().method() === 'POST' && generation) return fulfill(route, { job: generationJob('QUEUED') });
+      generationPolls += 1;
+      return fulfill(route, { job: generationJob(generation?.poll && generationPolls > 0 ? 'COMPLETED' : generation?.start ?? 'QUEUED') });
+    }
     return route.abort('blockedbyclient');
   });
   return requests;
+}
+
+function generationJob(state: 'QUEUED' | 'TIMED_OUT' | 'COMPLETED') {
+  return {
+    id: 'job-evidence',
+    classId: EVIDENCE_CLASS_ID,
+    targetStudentId: null,
+    scopeType: 'class',
+    scopeId: EVIDENCE_CLASS_ID,
+    state,
+    evidenceCutoff: '2026-08-08T08:00:00.000Z',
+    generatorVersion: 'teacher-diagnosis.v1',
+    failureCode: state === 'TIMED_OUT' ? 'diagnosis-generation-timeout' : null,
+    failureMessage: state === 'TIMED_OUT' ? 'Diagnosis generation timed out.' : null,
+    retryable: state === 'TIMED_OUT',
+    reportId: state === 'COMPLETED' ? 'report-class-latest' : null,
+    createdAt: '2026-08-08T08:00:00.000Z',
+    startedAt: state === 'QUEUED' ? null : '2026-08-08T08:00:01.000Z',
+    completedAt: state === 'COMPLETED' || state === 'TIMED_OUT' ? '2026-08-08T08:00:02.000Z' : null,
+  };
 }
 
 async function installTeacherSession(page: Page) {

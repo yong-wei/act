@@ -214,13 +214,13 @@ AI 可以解释、提示、总结和建议，但不能伪造学习事实、不�
 
 当前候选权威知识底座锁定为 ActKG CTKG 0.2 聚合工程包 `control-theory-engineering-v0.2`：841 个 release entries、744 个投影节点、97 条投影关系和 1302 条唯一上游 RAG crosswalk，谓词词表共九种。两个组件发布只用于校验聚合包声明的血缘与哈希，不作为并列导入项。
 
-公共 bundle 按原始字节完整导入，可逐字节重构并校验 SHA-256；ActKG 私有 CTKGDataset 明确不可用，平台不导入、不推断、不重建其内容。CTKG 0.1 仅保留为历史精确适配器，用于审计与回归，不再参与当前候选准入；Legacy 图谱仍是生产权威，本变更不切换生产 selector。
+公共 bundle 按原始字节完整导入，可逐字节重构并校验 SHA-256；ActKG 私有 CTKGDataset 明确不可用，平台不导入、不推断、不重建其内容。CTKG 0.1 仅保留为历史精确适配器，用于审计与回归，不再参与当前候选准入。2026-08-11，生产事务 `production-v040-58f70df-20260811T083732Z` 已将四类 selector 切换到冻结 `v0.4.0` 包中的 Authority Snapshot、Teaching Projection、prerequisite publication 与 consumer activation；六个 versioned graph consumers 以该组合运行。Legacy reader、crosswalk 与历史审计证据仍保留，但不再是这六类消费者的生产 authority。
 
 候选 Repository、三项投影（`act.canvas.v2`、`act.node-detail.v2`、`act.migration-review.v1`）、候选图谱与候选态控灵绑定同一聚合 ReleaseSet、`projectionDigest` 与 `sourceDatasetHash`，不混入旧 root-locus 行；方向或谓词与固定合同冲突时在导入或投影契约处失败关闭，不再运行时改写。旧发布身份下的 inventory、crosswalk、candidate、decision 与 binding 输出只保留为 historical/stale 审计记录，不充当当前 readiness。
 
 标准 public Bundle 可经兼容校验后作为显式非生产候选导入（#1131）；导入完成后 ACT 从已往返验证的数据库快照复算 `ReleaseSetDeltaReceipt`（#1132）。当前环境首个标准候选以已接受的 #1125 v0.2 为冻结 base；仅当安装内完全没有已接受 ReleaseSet 时才标记 `BASELINE`。上游 `release-diff` 只作交叉验证，分歧时不落 accepted 信号；纯包装修订只记录 Bundle 身份、不产生语义 signals。通用失效/增量信号只描述对象/关系/Crosswalk/组件/Projection/词表身份与原因，不决定课程角色、资源角色、教学关系，也不移动 candidate/active/Legacy selector。
 
-下游 CourseCoverage 与 ACT structural-unit crosswalk、资源教学角色、RAG/KAQ/SAR、学习路径、学习事实和最终生产权威切换仍受后续依赖门禁约束，不在 Delta 计算边界内接线。
+下游 CourseCoverage 与 ACT structural-unit crosswalk、资源教学角色、RAG/KAQ/SAR、学习路径和学习事实仍分别受各自依赖门禁约束，不在 Delta 计算边界内接线。此次生产切换不提升数据库 candidate、Canonical resource-binding shadow 或 KAQ selector；它只激活已经 READY 的 versioned graph consumer 组合。
 
 ## OpenSpec 与工作树协作
 
@@ -255,7 +255,7 @@ rtk bash scripts/build.sh
 rtk bash scripts/remote-deploy.sh
 ```
 
-生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。运行时课程资源通常以 `course-content/runtime/` 只读挂载方式供容器读取。
+生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。运行时课程资源通常以 `course-content/runtime/` 只读挂载方式供容器读取。部署脚本保留 `legacy-rsync` 兼容模式，并支持显式 `ossfs-release` 模式：不可变 OSS Release 经全量摘要复核后挂载到固定前缀，再以只读 bind mount 提供给应用；真实生产启用需要 RAM Role、候选挂载、性能与回退证据。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)。
 
 ## 维护入口
 

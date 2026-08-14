@@ -8,14 +8,18 @@
  * global Authority current.json.
  */
 
+import path from 'node:path';
+
 import {
   resolveEngineeringGraphProductionSelection,
   resolveEngineeringRagProductionSelection,
+  type ConsumerActivationStorePaths,
   type ConsumerProductionSelection,
 } from '@/lib/versioned-knowledge-activation';
 
 import {
   authoritySnapshotToRepositoryView,
+  DEFAULT_AUTHORITY_ROOT_RELATIVE,
   emptyTeachingSelectorFingerprint,
   type AuthorityEngineeringBody,
   type AuthoritySnapshotManifest,
@@ -28,6 +32,7 @@ import {
   stageAuthoritySnapshot,
   type ActivateAuthoritySnapshotResult,
   type AuthorityStorePaths,
+  type LoadedAuthoritySnapshot,
   type StagedAuthoritySnapshotFiles,
 } from './authority-store';
 import type {
@@ -36,6 +41,23 @@ import type {
   RepositoryResult,
 } from './contracts';
 import type { MaterializeAuthoritySnapshotInput } from './authority-snapshot';
+
+export function resolveConfiguredAuthorityRoot(repoRoot = process.cwd()): string {
+  const fromEnv =
+    process.env.ACT_AUTHORITY_STORE_ROOT?.trim()
+    || process.env.AUTHORITY_STORE_ROOT?.trim();
+  return path.resolve(fromEnv ?? path.join(repoRoot, DEFAULT_AUTHORITY_ROOT_RELATIVE));
+}
+
+function usesDefaultAuthorityStore(
+  paths: AuthorityStorePaths,
+  repoRoot = process.cwd(),
+): boolean {
+  // An injected/staged Authority store is an isolated test or repository
+  // boundary. It must not inherit the consumer pointer from the default ACT
+  // root, whose combination may reference unrelated snapshot files.
+  return path.resolve(paths.root) === resolveConfiguredAuthorityRoot(repoRoot);
+}
 
 export type EngineeringAuthorityConsumerId =
   | 'engineering-graph'
@@ -58,6 +80,159 @@ export interface EngineeringAuthorityResolveResult {
   /** How the Authority combination was selected (#1276). */
   activationMode?: ConsumerProductionSelection['mode'];
 }
+
+/**
+ * Strict, browser-facing Engineering Authority resolution.
+ *
+ * The existing consumer resolver intentionally preserves the historical
+ * global-pointer fallback for isolated callers.  The `/knowledge` active
+ * workspace cannot use that fallback: it must prove that the committed
+ * `engineering-graph` consumer is READY and bound to one immutable Authority
+ * combination.  Keep this contract separate so existing engineering RAG and
+ * migration callers retain their legacy semantics.
+ */
+export interface ActiveEngineeringGraphAuthorityResolveResult
+  extends EngineeringAuthorityResolveResult {
+  consumerStatus: ConsumerProductionSelection['resolved']['consumerStatus'];
+  activationId: string | null;
+  activationHash: string | null;
+  /** The committed combination is retained for provenance and identity checks. */
+  combination: ConsumerProductionSelection['combination'];
+  /** Engineering graph is not gated by a Teaching Projection. */
+  projectionId: null;
+  projectionHash: null;
+  /** Repository-shaped immutable snapshot for projection builders. */
+  snapshot: AuthoritativeKnowledgeSnapshot | null;
+}
+
+function unavailableActiveEngineeringGraph(
+  reason: string,
+  selection?: ConsumerProductionSelection,
+): ActiveEngineeringGraphAuthorityResolveResult {
+  return {
+    ...unavailableEngineering('engineering-graph', reason, selection?.mode),
+    consumerStatus: selection?.resolved.consumerStatus ?? null,
+    activationId: selection?.resolved.activationId ?? null,
+    activationHash: selection?.resolved.activationHash ?? null,
+    combination: selection?.combination ?? null,
+    projectionId: null,
+    projectionHash: null,
+    snapshot: null,
+  };
+}
+
+/**
+ * Resolve only the committed `engineering-graph` activation for the active
+ * knowledge workspace.  Missing activation, PINNED/SHADOW/BLOCKED status,
+ * absent identity fields, mismatched immutable materialization, or a non-null
+ * projection all fail closed.  In particular, this function never calls the
+ * global Authority pointer as a fallback.
+ */
+export function resolveActiveEngineeringGraphAuthority(
+  paths: AuthorityStorePaths,
+  options: {
+    repoRoot?: string;
+    activationPaths?: ConsumerActivationStorePaths;
+    /** Injected for unit tests; production resolves the committed selector. */
+    activationSelection?: ConsumerProductionSelection;
+  } = {},
+): ActiveEngineeringGraphAuthorityResolveResult {
+  const selection = options.activationSelection
+    ?? resolveEngineeringGraphProductionSelection({
+      repoRoot: options.repoRoot,
+      activationPaths: options.activationPaths,
+    });
+
+  if (selection.consumerId !== 'engineering-graph') {
+    return unavailableActiveEngineeringGraph(
+      'engineering-graph-consumer-id-mismatch',
+      selection,
+    );
+  }
+  if (selection.mode !== 'use-combination') {
+    return unavailableActiveEngineeringGraph(
+      selection.mode === 'absent'
+        ? 'engineering-graph-activation-absent'
+        : selection.mode === 'pin-combination'
+          ? 'engineering-graph-consumer-not-ready'
+          : selection.reasons.join('; ') || 'engineering-graph-activation-unavailable',
+      selection,
+    );
+  }
+  if (selection.resolved.consumerStatus !== 'READY') {
+    return unavailableActiveEngineeringGraph(
+      'engineering-graph-consumer-not-ready',
+      selection,
+    );
+  }
+
+  const combination = selection.combination;
+  if (
+    !combination
+    || !combination.authoritySnapshotId
+    || !combination.authoritySnapshotHash
+    || !combination.authorityReleaseId
+  ) {
+    return unavailableActiveEngineeringGraph(
+      'engineering-graph-authority-identity-missing',
+      selection,
+    );
+  }
+  if (combination.projectionId !== null || combination.projectionHash !== null) {
+    return unavailableActiveEngineeringGraph(
+      'engineering-graph-projection-must-be-null',
+      selection,
+    );
+  }
+
+  let loaded: LoadedAuthoritySnapshot;
+  try {
+    loaded = loadStagedAuthoritySnapshot(paths, combination.authoritySnapshotId);
+  } catch (error) {
+    return unavailableActiveEngineeringGraph(
+      error instanceof Error
+        ? `engineering-graph-authority-load-failed:${error.message}`
+        : 'engineering-graph-authority-load-failed',
+      selection,
+    );
+  }
+  if (
+    loaded.snapshotId !== combination.authoritySnapshotId
+    || loaded.snapshotHash !== combination.authoritySnapshotHash
+    || loaded.manifest.releaseId !== combination.authorityReleaseId
+  ) {
+    return unavailableActiveEngineeringGraph(
+      'engineering-graph-authority-identity-mismatch',
+      selection,
+    );
+  }
+
+  const snapshot = authoritySnapshotToRepositoryView({
+    manifest: loaded.manifest,
+    engineering: loaded.engineering,
+    authorityState: 'active',
+  });
+  const resolved = readyFromSnapshot(
+    'engineering-graph',
+    loaded,
+    'use-combination',
+    'consumer-activation-selected-authority',
+  );
+  return {
+    ...resolved,
+    consumerStatus: selection.resolved.consumerStatus,
+    activationId: selection.resolved.activationId,
+    activationHash: selection.resolved.activationHash,
+    combination,
+    projectionId: null,
+    projectionHash: null,
+    snapshot,
+  };
+}
+
+/** Compatibility alias for callers that use the "strict" terminology. */
+export const resolveStrictActiveEngineeringGraphAuthority =
+  resolveActiveEngineeringGraphAuthority;
 
 function unavailableEngineering(
   consumerId: EngineeringAuthorityConsumerId,
@@ -182,8 +357,9 @@ function resolveViaConsumerActivation(
 
 /**
  * Resolve the active Authority Snapshot for an engineering-only consumer.
- * Prefer the per-consumer activation combination (#1276) when present; otherwise
- * fall back to the global Authority current pointer. Fail closed on mismatch.
+ * The configured default Authority store prefers the per-consumer activation
+ * combination (#1276) when present; isolated stores fall back to their own
+ * global Authority current pointer. Fail closed on mismatch.
  */
 export function resolveEngineeringAuthorityConsumer(
   paths: AuthorityStorePaths,
@@ -194,18 +370,21 @@ export function resolveEngineeringAuthorityConsumer(
     activationSelection?: ConsumerProductionSelection;
   } = {},
 ): EngineeringAuthorityResolveResult {
-  const selection =
-    options.activationSelection
-    ?? (consumerId === 'engineering-graph'
-      ? resolveEngineeringGraphProductionSelection({ repoRoot: options.repoRoot })
-      : resolveEngineeringRagProductionSelection({ repoRoot: options.repoRoot }));
+  const selection = options.activationSelection
+    ?? (usesDefaultAuthorityStore(paths, options.repoRoot)
+      ? consumerId === 'engineering-graph'
+        ? resolveEngineeringGraphProductionSelection({ repoRoot: options.repoRoot })
+        : resolveEngineeringRagProductionSelection({ repoRoot: options.repoRoot })
+      : null);
 
-  const fromActivation = resolveViaConsumerActivation(
-    paths,
-    consumerId,
-    selection,
-  );
-  if (fromActivation) return fromActivation;
+  if (selection) {
+    const fromActivation = resolveViaConsumerActivation(
+      paths,
+      consumerId,
+      selection,
+    );
+    if (fromActivation) return fromActivation;
+  }
 
   const resolved = resolveActiveAuthoritySnapshot(paths);
   if (resolved.status !== 'available') {

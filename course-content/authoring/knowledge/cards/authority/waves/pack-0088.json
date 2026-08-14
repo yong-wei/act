@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0088",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-30cb7d43e8cbe99fe69e5e39",
+      "name": "Sampling period",
+      "definition": "Sampling period：The fixed period at which all numbers enter or leave the computer."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-393198bac91c71d371b1c217",
+      "name": "朱利阵列",
+      "definition": "由离散系统闭环特征方程D(z)=0的系数构造的(2n-3)行、(n+1)列阵列，用于朱利稳定判据。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3af39a858b2949296df5387f",
+      "name": "幅值谱",
+      "definition": "复系数c_k的幅值集合，用于表示周期信号的频谱。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3d75878fdf803ba103376aab",
+      "name": "Analog-to-digital converter",
+      "definition": "Analog-to-digital converter：Analog-to-digital converter"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3dcfcc93901edd979be43f5c",
+      "name": "否包含元素全…",
+      "definition": "当A的特征值两两相异时，通过线性变换化为对角线规范型，检查B矩阵是否包含元素全为零的行。"
+    }
+  ],
+  "created_at": "2026-08-05T16:28:51.727413+00:00"
+}

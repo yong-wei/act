@@ -21,6 +21,7 @@ import type {
   DiagnosisReportApiItem,
   DiagnosisReportsPayload,
 } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
+import type { DiagnosisGenerationJobApiItem } from '@/lib/diagnosis-generation';
 
 type ReportHistoryState = 'loading' | 'ready' | 'error';
 
@@ -38,6 +39,10 @@ interface TeacherDiagnosisReportHistoryViewProps {
   errorMessage?: string | null;
   onRefresh?: () => void;
   onSelectReport?: (reportId: string) => void;
+  generationJob?: DiagnosisGenerationJobApiItem | null;
+  generationError?: string | null;
+  onGenerate?: () => void;
+  onRetryGeneration?: () => void;
 }
 
 const CONFIDENCE_LABELS = {
@@ -77,6 +82,8 @@ export function TeacherDiagnosisReportHistory({
   const [reports, setReports] = useState<DiagnosisReportApiItem[]>([]);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [generationJob, setGenerationJob] = useState<DiagnosisGenerationJobApiItem | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const loadReports = useCallback(async () => {
     setState('loading');
@@ -112,6 +119,47 @@ export function TeacherDiagnosisReportHistory({
     void loadReports();
   }, [loadReports]);
 
+  const submitGeneration = useCallback(async (retry = false) => {
+    setGenerationError(null);
+    try {
+      const response = retry && generationJob
+        ? await fetch(`/api/teacher/diagnosis-generation-jobs/${encodeURIComponent(generationJob.id)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'retry', idempotencyKey: crypto.randomUUID() }),
+          })
+        : await fetch(`/api/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              idempotencyKey: crypto.randomUUID(),
+              ...(targetStudentId ? { targetStudentId } : {}),
+            }),
+          });
+      const payload = await response.json().catch(() => null) as { job?: DiagnosisGenerationJobApiItem; error?: string } | null;
+      if (!payload?.job) throw new Error(payload?.error || '创建诊断生成任务失败');
+      setGenerationJob(payload.job);
+      if (!response.ok) setGenerationError(payload.error || '诊断生成任务投递失败');
+    } catch (error) {
+      setGenerationError(error instanceof Error ? error.message : '创建诊断生成任务失败');
+    }
+  }, [classId, generationJob, targetStudentId]);
+
+  useEffect(() => {
+    if (!generationJob || !['QUEUED', 'RUNNING'].includes(generationJob.state)) return;
+    const timer = window.setInterval(() => {
+      void fetch(`/api/teacher/diagnosis-generation-jobs/${encodeURIComponent(generationJob.id)}`)
+        .then(async (response) => {
+          const payload = await response.json() as { job?: DiagnosisGenerationJobApiItem; error?: string };
+          if (!response.ok || !payload.job) throw new Error(payload.error || '读取诊断生成状态失败');
+          setGenerationJob(payload.job);
+          if (payload.job.state === 'COMPLETED') void loadReports();
+        })
+        .catch((error) => setGenerationError(error instanceof Error ? error.message : '读取诊断生成状态失败'));
+    }, 2_000);
+    return () => window.clearInterval(timer);
+  }, [generationJob, loadReports]);
+
   return (
     <TeacherDiagnosisReportHistoryView
       state={state}
@@ -121,6 +169,10 @@ export function TeacherDiagnosisReportHistory({
       errorMessage={errorMessage}
       onRefresh={() => void loadReports()}
       onSelectReport={setSelectedReportId}
+      generationJob={generationJob}
+      generationError={generationError}
+      onGenerate={() => void submitGeneration(false)}
+      onRetryGeneration={() => void submitGeneration(true)}
     />
   );
 }
@@ -133,6 +185,10 @@ export function TeacherDiagnosisReportHistoryView({
   errorMessage,
   onRefresh,
   onSelectReport,
+  generationJob,
+  generationError,
+  onGenerate,
+  onRetryGeneration,
 }: TeacherDiagnosisReportHistoryViewProps) {
   const selectedReport = useMemo(
     () => reports.find((report) => report.id === selectedReportId) ?? reports[0] ?? null,
@@ -163,16 +219,42 @@ export function TeacherDiagnosisReportHistoryView({
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={state === 'loading'}
-          className="btn-ghost-themed inline-flex items-center justify-center gap-2 self-start rounded-lg px-3 py-2 text-sm disabled:cursor-wait disabled:opacity-60"
-        >
-          <RefreshCw className={state === 'loading' ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
-          刷新历史
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            data-diagnosis-generation-action="generate"
+            onClick={onGenerate}
+            disabled={generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'}
+            className="btn-themed inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm disabled:cursor-wait disabled:opacity-60"
+          >
+            {generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <BookOpenCheck className="h-4 w-4" />}
+            {generationJob?.state === 'QUEUED'
+              ? '等待生成'
+              : generationJob?.state === 'RUNNING'
+                ? '正在生成'
+                : '生成新诊断'}
+          </button>
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={state === 'loading'}
+            className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm disabled:cursor-wait disabled:opacity-60"
+          >
+            <RefreshCw className={state === 'loading' ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+            刷新历史
+          </button>
+        </div>
       </header>
+
+      {generationJob || generationError ? (
+        <GenerationStatus
+          job={generationJob}
+          error={generationError}
+          onRetry={onRetryGeneration}
+        />
+      ) : null}
 
       {state === 'loading' ? <LoadingState /> : null}
       {state === 'error' ? <ErrorState message={errorMessage} onRetry={onRefresh} /> : null}
@@ -188,6 +270,50 @@ export function TeacherDiagnosisReportHistoryView({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function GenerationStatus({
+  job,
+  error,
+  onRetry,
+}: {
+  job?: DiagnosisGenerationJobApiItem | null;
+  error?: string | null;
+  onRetry?: () => void;
+}) {
+  const failed = job?.state === 'FAILED' || job?.state === 'TIMED_OUT';
+  return (
+    <div
+      className={`relative flex flex-col gap-2 border-b px-5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 ${
+        failed || error ? 'border-amber-500/25 bg-amber-500/10' : 'border-sky-500/20 bg-sky-500/5'
+      }`}
+      data-diagnosis-generation-state={job?.state ?? 'ERROR'}
+    >
+      <div>
+        <p className="font-medium text-foreground">
+          {job?.state === 'QUEUED' ? '诊断任务已进入队列' : null}
+          {job?.state === 'RUNNING' ? '正在依据固定证据快照生成诊断' : null}
+          {job?.state === 'COMPLETED' ? '诊断生成完成，报告历史已更新' : null}
+          {job?.state === 'FAILED' ? '诊断生成失败' : null}
+          {job?.state === 'TIMED_OUT' ? '诊断生成超时' : null}
+          {!job ? '诊断任务创建失败' : null}
+        </p>
+        <p className="mt-1 text-xs text-subtle">
+          {error || job?.failureMessage || (job ? `证据截止：${formatReportTime(job.evidenceCutoff)}` : '')}
+        </p>
+      </div>
+      {failed && job?.retryable ? (
+        <button
+          type="button"
+          data-diagnosis-generation-action="retry"
+          onClick={onRetry}
+          className="btn-ghost-themed rounded-lg px-3 py-2 text-sm"
+        >
+          重试原任务
+        </button>
+      ) : null}
+    </div>
   );
 }
 

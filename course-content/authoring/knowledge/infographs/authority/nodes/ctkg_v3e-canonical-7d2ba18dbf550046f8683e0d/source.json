@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+  "safe_id": "ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d",
+  "node": {
+    "name": "Transmission zeros",
+    "name_en": "Transmission zeros",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Transmission zeros：Transmission zeros",
+  "intuition": null,
+  "explanation": "Transmission zeros",
+  "relation_head": "前置 → Transmission zero、Using tzero to c",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Transmission zero",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "Using tzero to c",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Transmissio…",
+    "Transmission",
+    "一种·Transm…",
+    "用于分析·Usin…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d.md",
+  "provider_policy": "grok-image_gen"
+}

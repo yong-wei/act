@@ -1,0 +1,47 @@
+{
+  "contract": "act-classical-domain-teaching-worklist/v1",
+  "authoritySource": "authority-source.json",
+  "reviewScope": [
+    "root-locus",
+    "frequency-domain-analysis",
+    "classical-control-design"
+  ],
+  "candidates": [
+    {
+      "candidateId": "classical-4-7-bode-to-lead",
+      "sourceCanonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "targetCanonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "status": "ACCEPTED",
+      "strength": "RECOMMENDED",
+      "evidenceRefs": [
+        "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
+        "course-content/authoring/lessons/4-7/design/4-7-handout.md"
+      ],
+      "rationale": "4-7 将 Bode 幅相读图作为解释中频相位不足和选择超前支路的直接课堂活动；该路径不是唯一设计入口。"
+    },
+    {
+      "candidateId": "classical-4-7-root-locus-to-lead",
+      "sourceCanonicalId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "targetCanonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "status": "ACCEPTED",
+      "strength": "RECOMMENDED",
+      "evidenceRefs": [
+        "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
+        "course-content/authoring/lessons/4-7/design/4-7-teacher-handout.md"
+      ],
+      "rationale": "4-7 要求学生读取根轨迹中慢极点对可用闭环极点的牵制，并与频域证据共同说明超前支路选择。"
+    },
+    {
+      "candidateId": "engineering-only-root-locus-to-compensator",
+      "sourceCanonicalId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "targetCanonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "status": "PENDING",
+      "engineeringRelationTypes": [
+        "applies_to",
+        "association"
+      ],
+      "disposition": "ENGINEERING_ADJACENCY_ONLY",
+      "rationale": "冻结 Authority 快照存在工程应用和关联边，但当前 ACT 课案没有确认该对对象的直接学习依赖，因此不得发布 ACT_TEACHING 先修边。"
+    }
+  ]
+}

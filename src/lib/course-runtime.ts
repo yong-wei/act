@@ -7,8 +7,25 @@ import path from 'node:path';
 import {
   buildLessonHandoutMarkdownFilename,
   buildLessonHandoutPdfFilename,
-  isLessonHandoutMarkdownFilename,
 } from '@/lib/lesson-artifact-names';
+import {
+  parseRuntimeLessonMediaDocument as parseRuntimeLessonMediaDocumentImpl,
+  type RuntimeLessonMediaDocument,
+  type RuntimeLessonMediaResource,
+} from '@/lib/runtime-lesson-media-document';
+
+export {
+  parseRuntimeLessonMediaDocument,
+  parseRuntimeLessonMediaIndex,
+} from '@/lib/runtime-lesson-media-document';
+export type {
+  RuntimeLessonMediaAccessMode,
+  RuntimeLessonMediaDocument,
+  RuntimeLessonMediaEmbedMode,
+  RuntimeLessonMediaKind,
+  RuntimeLessonMediaResource,
+  RuntimeLessonMediaStatus,
+} from '@/lib/runtime-lesson-media-document';
 
 import {
   normalizeInteractiveRuntimeManifest,
@@ -20,6 +37,7 @@ import {
   resolveRuntimeContentPath,
   tryResolveRuntimeContentPath,
 } from '@/lib/runtime-content-path';
+import { findRuntimeMediaReleaseObject, readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
 
 type RuntimeNode = {
   id: string;
@@ -88,28 +106,6 @@ type RuntimeGraphOverlay = {
 
 export interface RuntimeLessonEntryNode extends RuntimeNode {
   frontContent: string;
-}
-
-export type RuntimeLessonMediaKind = 'video' | 'audio' | 'slides' | 'pdf' | 'other';
-export type RuntimeLessonMediaAccessMode = 'dialog' | 'new_tab';
-export type RuntimeLessonMediaEmbedMode = 'iframe' | 'none';
-export type RuntimeLessonMediaStatus = 'ready' | 'pending';
-
-export interface RuntimeLessonMediaResource {
-  id: string;
-  title: string;
-  filename: string;
-  kind: RuntimeLessonMediaKind;
-  url: string | null;
-  accessMode: RuntimeLessonMediaAccessMode;
-  embedMode: RuntimeLessonMediaEmbedMode;
-  status: RuntimeLessonMediaStatus;
-  featured: boolean;
-}
-
-export interface RuntimeLessonMediaDocument {
-  handoutSummary: string | null;
-  mediaResources: RuntimeLessonMediaResource[];
 }
 
 export interface RuntimeLessonEntryBundle {
@@ -320,84 +316,22 @@ function createHandoutSummary({
   return `围绕${summaryTopics}展开的配套讲义，适合在课前快速建立概念、图像与计算线索。`;
 }
 
-function inferRuntimeMediaKind(filename: string): RuntimeLessonMediaKind {
-  const ext = path.extname(filename).toLowerCase();
-  if (ext === '.mp4' || ext === '.webm') return 'video';
-  if (ext === '.m4a' || ext === '.mp3' || ext === '.wav') return 'audio';
-  if (ext === '.pdf' && /(^|[-_])slides(?:[-_.]|$)/i.test(path.basename(filename))) return 'slides';
-  if (ext === '.pdf') return 'pdf';
-  return 'other';
-}
-
-function normalizeRuntimeMediaId(filename: string) {
-  return filename.replace(/\.[^.]+$/, '');
-}
-
-export function parseRuntimeLessonMediaIndex(markdown: string): RuntimeLessonMediaResource[] {
-  return parseRuntimeLessonMediaDocument(markdown).mediaResources;
-}
-
-export function parseRuntimeLessonMediaDocument(markdown: string): RuntimeLessonMediaDocument {
-  const resources: RuntimeLessonMediaResource[] = [];
-  const lines = markdown.split(/\r?\n/);
-  let currentFilename: string | null = null;
-  let currentTitle: string | null = null;
-  let currentUrl: string | null = null;
-  let handoutSummary: string | null = null;
-  let inHandoutSection = false;
-
-  const flushCurrent = () => {
-    if (!currentFilename) return;
-    const kind = inferRuntimeMediaKind(currentFilename);
-    if (isLessonHandoutMarkdownFilename(currentFilename)) {
-      currentFilename = null;
-      currentTitle = null;
-      currentUrl = null;
-      return;
-    }
-    resources.push({
-      id: normalizeRuntimeMediaId(currentFilename),
-      title: currentTitle ?? currentFilename,
-      filename: currentFilename,
-      kind,
-      url: currentUrl,
-      accessMode: kind === 'pdf' || kind === 'slides' ? 'new_tab' : 'dialog',
-      embedMode: kind === 'pdf' || kind === 'slides' ? 'none' : 'iframe',
-      status: currentUrl ? 'ready' : 'pending',
-      featured: currentFilename.includes('-course.'),
-    });
-  };
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (line.startsWith('# ')) {
-      flushCurrent();
-      currentFilename = line.slice(2).trim();
-      currentTitle = null;
-      currentUrl = null;
-      inHandoutSection = isLessonHandoutMarkdownFilename(currentFilename);
-      continue;
-    }
-    if (inHandoutSection) {
-      if (line) {
-        handoutSummary = handoutSummary ? `${handoutSummary} ${line}` : line;
-      }
-      continue;
-    }
-    if (currentFilename && !currentTitle && line.startsWith('- ')) {
-      currentTitle = line.slice(2).trim();
-      continue;
-    }
-    if (currentFilename && !currentUrl && /^https?:\/\//i.test(line)) {
-      currentUrl = line;
-    }
-  }
-
-  flushCurrent();
-  return {
-    handoutSummary,
-    mediaResources: resources,
-  };
+async function projectRuntimeMediaResources(runtimeLessonPath: string, resources: RuntimeLessonMediaResource[]) {
+  const activeRelease = await readActiveRuntimeReleaseManifest();
+  return resources.map((resource) => {
+    const runtimePath = `${runtimeLessonPath}/media/${resource.filename}`;
+    const releaseObject = activeRelease && findRuntimeMediaReleaseObject(activeRelease, runtimePath);
+    if (!releaseObject) return resource;
+    return {
+      ...resource,
+      url: `/api/course-runtime/assets/${runtimePath}`,
+      legacyUrl: resource.url,
+      objectKey: releaseObject.objectKey,
+      sha256: releaseObject.sha256,
+      sizeBytes: releaseObject.sizeBytes,
+      status: 'ready' as const,
+    };
+  });
 }
 
 async function loadFrontContentForNode(node: RuntimeNode): Promise<string> {
@@ -461,9 +395,9 @@ export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeL
     fileExists(resolveRuntimeContentPath(interactiveManifestSourcePath).absolutePath),
   ]);
   const mediaDocument = mediaIndexExists
-    ? parseRuntimeLessonMediaDocument(await readReadableContentText(mediaIndexSourcePath))
+    ? parseRuntimeLessonMediaDocumentImpl(await readReadableContentText(mediaIndexSourcePath))
     : { handoutSummary: null, mediaResources: [] };
-  const mediaResources = mediaDocument.mediaResources;
+  const mediaResources = await projectRuntimeMediaResources(lessonDir.runtimePath, mediaDocument.mediaResources);
   const interactiveManifest = interactiveManifestExists
     ? normalizeInteractiveRuntimeManifest(
         await readJson(resolveRuntimeContentPath(interactiveManifestSourcePath).absolutePath),
@@ -553,7 +487,7 @@ export async function loadLessonRuntimeResourceCatalogEntry(
     fileExists(resolveRuntimeContentPath(mediaIndexSourcePath).absolutePath),
   ]);
   const mediaDocument = mediaIndexExists
-    ? parseRuntimeLessonMediaDocument(await readReadableContentText(mediaIndexSourcePath))
+    ? parseRuntimeLessonMediaDocumentImpl(await readReadableContentText(mediaIndexSourcePath))
     : { handoutSummary: null, mediaResources: [] };
 
   return {
@@ -576,7 +510,7 @@ export async function loadLessonRuntimeResourceCatalogEntry(
     handoutPath,
     handoutSourcePath,
     handoutPdfPath: handoutPdfExists ? handoutPdfPathCandidate : null,
-    mediaResources: mediaDocument.mediaResources,
+    mediaResources: await projectRuntimeMediaResources(lessonDir.runtimePath, mediaDocument.mediaResources),
   };
 }
 

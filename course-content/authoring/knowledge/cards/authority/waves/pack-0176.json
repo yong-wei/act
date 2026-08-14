@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0176",
+  "offset": 880,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_adbc098775012a91ff4207e3",
+      "batch": "C",
+      "name": "无纹波最少拍系统设计方法",
+      "definition": "无纹波最少拍系统设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "无纹波最少拍系统设计方法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 无纹波最少拍系统设计方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 无纹波最少拍系统设计方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「无纹波最少拍系统设计」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d5c2a895fabd5e94f4be1d92",
+      "batch": "C",
+      "name": "李雅普诺夫意义下的稳定性",
+      "definition": "李雅普诺夫意义下的稳定性是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "李雅普诺夫意义下的稳定性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 李雅普诺夫意义下的稳定性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 李雅普诺夫意义下的稳定性是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「李雅普诺夫意义下的稳」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_f713a296511f858ae3f3bfde",
+      "batch": "C",
+      "name": "大范围（全局）渐近稳定性",
+      "definition": "大范围（全局）渐近稳定性是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "大范围（全局）渐近稳定性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 大范围（全局）渐近稳定性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 大范围（全局）渐近稳定性是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「大范围（全局）渐近稳」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_3ffc77366f538e92e13a0296",
+      "batch": "C",
+      "name": "能量函数（李雅普诺夫）",
+      "definition": "能量函数（李雅普诺夫）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "能量函数（李雅普诺夫）",
+        "一种·李雅普诺夫函…",
+        "一种·李雅普诺夫函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 能量函数（李雅普诺夫）\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 能量函数（李雅普诺夫）是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「能量函数（李雅普诺夫」、「一种·李雅普诺夫函…」、「一种·李雅普诺夫函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_60729cbdf747b39c2ff781bb",
+      "batch": "C",
+      "name": "直接z域补偿器设计方法",
+      "definition": "直接z域补偿器设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "直接z域补偿器设计方法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 直接z域补偿器设计方法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 直接z域补偿器设计方法是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「直接z域补偿器设计方」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

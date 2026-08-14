@@ -541,7 +541,96 @@ describe('generateRecommendations', () => {
     vi.useRealTimers();
   });
 
-  it('fails closed on pre-#1116 v4 feature caches without knowledge identity diagnostics', async () => {
+  it('excludes ungoverned LearningFacts from recommendation activity evidence', async () => {
+    mocks.prisma.learningFact.findMany.mockResolvedValue([{
+      factType: 'question',
+      outcome: 'success',
+      startedAt: new Date('2026-05-20T10:00:00.000Z'),
+      score: 100,
+      contextJson: {},
+    }]);
+
+    const recommendations = await generateRecommendations('student-1');
+
+    expect(recommendations).toEqual([]);
+  });
+
+  it('does not let context-only facts create activity coverage or a learning streak', async () => {
+    const contextOnlyGovernance = {
+      evidenceGovernance: {
+        evidenceQuality: 'context-only',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'context-only-source',
+      },
+    };
+    const recentFacts = Array.from({ length: 7 }, (_, index) => ({
+      factType: 'question',
+      outcome: 'success',
+      startedAt: new Date(`2026-05-${20 - index}T10:00:00.000Z`),
+      score: 100,
+      contextJson: contextOnlyGovernance,
+    }));
+    mocks.prisma.learningFact.findMany.mockResolvedValue(recentFacts);
+
+    const recommendations = await generateRecommendations('student-1');
+
+    expect(recommendations.every((item) => item.rationale.evidenceCount === 0)).toBe(true);
+    expect(recommendations.find((item) => item.id.startsWith('self-directed-project-'))).toBeUndefined();
+  });
+
+  it('pages past context-only facts before deriving recent activity and streaks', async () => {
+    const contextOnlyFacts = Array.from({ length: 51 }, (_, index) => ({
+      id: `context-only-${index}`,
+      factType: 'question',
+      outcome: 'success',
+      startedAt: new Date('2026-05-20T10:00:00.000Z'),
+      score: 100,
+      contextJson: {
+        evidenceGovernance: {
+          evidenceQuality: 'context-only',
+          profileWeight: 0,
+          skipProfileContribution: true,
+          policyReason: 'context-only-source',
+        },
+      },
+    }));
+    const eligibleFacts = Array.from({ length: 7 }, (_, index) => ({
+      id: `eligible-${index}`,
+      factType: 'question',
+      outcome: 'success',
+      startedAt: new Date(`2026-05-${20 - index}T10:00:00.000Z`),
+      score: 100,
+      contextJson: {
+        evidenceGovernance: {
+          evidenceQuality: 'governed',
+          profileWeight: 1,
+          skipProfileContribution: false,
+          policyReason: 'approved-source',
+        },
+      },
+    }));
+    const rows = [...contextOnlyFacts, ...eligibleFacts];
+    mocks.prisma.learningFact.findMany.mockImplementation(async (args: {
+      cursor?: { id: string };
+      take?: number;
+    }) => {
+      const start = args.cursor
+        ? rows.findIndex((fact) => fact.id === args.cursor?.id) + 1
+        : 0;
+      return rows.slice(start, start + (args.take ?? 50));
+    });
+
+    const recommendations = await generateRecommendations('student-1');
+
+    expect(recommendations).toEqual([]);
+    expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      cursor: { id: 'context-only-49' },
+      select: { id: true, startedAt: true, contextJson: true },
+    }));
+  });
+
+  it('rejects pre-v6 feature caches without exposing them to recommendation rules', async () => {
     // Explicitly omit knowledgeIdentityCoverage / layers so missing diagnostics
     // cannot be treated as single-version comparable after #1116 rollout.
     const v4Cache = evidenceCache({
@@ -662,7 +751,7 @@ describe('generateRecommendations', () => {
       availability: 'empty' as const,
     };
     const cache = evidenceCache({
-      payloadVersion: 'student-evidence-features.v5',
+      payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
       refreshedAt: new Date('2026-05-20T12:00:00.000Z'),
       sourceCounts: {
         LearningFact: 0,
@@ -719,7 +808,7 @@ describe('generateRecommendations', () => {
 
   it('still fails closed for non-empty mixed-version LearningFact identity coverage', async () => {
     const cache = evidenceCache({
-      payloadVersion: 'student-evidence-features.v5',
+      payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
       refreshedAt: new Date('2026-05-20T12:00:00.000Z'),
       features: {
         knowledgeIdentityCoverage: {
@@ -769,6 +858,22 @@ describe('generateRecommendations', () => {
       where: { userId: 'student-1' },
     });
     expect(recommendations).toEqual([]);
+  });
+
+  it('does not consume a pre-governance v5 cache for direct recommendation rules', async () => {
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
+      payloadVersion: 'student-evidence-features.v5',
+      refreshedAt: new Date('2026-05-20T11:00:00.000Z'),
+    }));
+
+    const recommendations = await generateRecommendations('student-1');
+    const titles = recommendations.map((item) => item.title);
+
+    expect(mocks.prisma.studentCompetencySnapshot.findFirst).toHaveBeenCalled();
+    expect(titles).not.toContain('提升迁移整合与应用能力');
+    expect(recommendations.every(
+      (item) => item.rationale.evidenceBasis !== 'student-evidence-feature-cache',
+    )).toBe(true);
   });
 
   it.each(['no-recent-evidence', 'no-evidence-after-revocation'])('does not generate current recommendations for %s', async (state) => {

@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0010",
+  "offset": 50,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-ae27798a12142653b684e425",
+      "batch": "B",
+      "name": "method of analyzing linear",
+      "definition": "method of analyzing linear：A method of analyzing linear system models by obtaining analytic solutions to step and sinusoidal inputs to gain insigh…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method of a…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: method of analyzing linear\nSOURCE DEFINITION (fail-closed, do not invent beyond this): method of analyzing linear：A method of analyzing linear system models by obtaining analytic solutions to step and sinusoidal inputs to gain insigh…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「method of 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-c5b0f0ad36036b531f6bcdec",
+      "batch": "B",
+      "name": "The transfer function from",
+      "definition": "The transfer function from：The transfer function from the input signal R(s) to the feedback signal B(s) when the main feedback loop is opened, equ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The transfe…",
+        "一种·等效开环传递…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: The transfer function from\nSOURCE DEFINITION (fail-closed, do not invent beyond this): The transfer function from：The transfer function from the input signal R(s) to the feedback signal B(s) when the main feedback loop is opened, equ…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「The transf」、「一种·等效开环传递…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-f657ca93b0857c4560ba8c77",
+      "batch": "B",
+      "name": "method for writing circuit",
+      "definition": "method for writing circuit：A method for writing circuit equations by selecting a reference node, assuming voltages of all other nodes as unknowns,…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method for …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: method for writing circuit\nSOURCE DEFINITION (fail-closed, do not invent beyond this): method for writing circuit：A method for writing circuit equations by selecting a reference node, assuming voltages of all other nodes as unknowns,…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「method for」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "batch": "B",
+      "name": "Partial-fraction expansion",
+      "definition": "Partial-fraction expansion：The easiest way to find f(t) from its Laplace transform F(s), if F(s) is rational, is to expand F(s) as a sum of simple…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Partial-fra…",
+        "一种·Partia…",
+        "派生自·Final…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Partial-fraction expansion\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Partial-fraction expansion：The easiest way to find f(t) from its Laplace transform F(s), if F(s) is rational, is to expand F(s) as a sum of simple…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Partial-fr」、「一种·Partia…」、「派生自·Final…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2c2f917a06c974fda55b52fd",
+      "batch": "B",
+      "name": "Amplitude quantization error",
+      "definition": "Amplitude quantization error：The error introduced when the converted signal m(kT) is stored in digital logic with a finite number of binary digits.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Amplitude q…",
+        "一种·Quanti…",
+        "关联·Analog…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Amplitude quantization error\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Amplitude quantization error：The error introduced when the converted signal m(kT) is stored in digital logic with a finite number of binary digits.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Amplitude 」、「一种·Quanti…」、「关联·Analog…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-b43972ad376b62e88a817ba1",
+  "safe_id": "ctkg_v3e-object-b43972ad376b62e88a817ba1",
+  "node": {
+    "name": "Desired closed-loop poles",
+    "name_en": "Desired closed-loop poles",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Desired closed-loop poles：Poles of the closed-loop system positioned further left in the stable region.",
+  "intuition": "在图谱邻接中可把握：前置 → Desired closed-loop poles location。",
+  "explanation": "Poles of the closed-loop system positioned further left in the stable region.",
+  "relation_head": "前置 → Desired closed-loop poles location",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Desired closed-loop poles location",
+      "relation": "有表示"
+    }
+  ],
+  "labels": [
+    "Desired clo…",
+    "有表示·Desir…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b43972ad376b62e88a817ba1.md",
+  "provider_policy": "grok-image_gen"
+}

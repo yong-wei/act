@@ -1051,7 +1051,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('goalContexts[explicitGoal]');
     expect(source).toContain('updatePageContext({ assistantEntryPoint: null });');
     expect(source).toContain('return () => updatePageContext({ assistantEntryPoint: null });');
-    expect(source).toContain('promptContext: `student-path-center:${explicitGoal}:adaptive-path-center`');
+    expect(source).toContain('`student-path-center:${explicitGoal}:adaptive-path-center`');
+    expect(source).toContain('candidateBatchId ? { candidateBatchId } : {}');
     expect(source).toContain('goalId: explicitGoal');
     expect(layoutSource).toContain('const goalOptions = getAdaptivePracticeGoalOptions();');
     expect(layoutSource).toContain('Object.fromEntries(goalOptions.map((goal) => [');
@@ -1080,7 +1081,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('预计剩余');
     expect(source).toContain('完成节点');
     expect(source).toContain('检查点通过');
-    expect(source).toContain('推荐理由');
+    expect(source).toContain('data-adaptive-path-node-selection-basis=');
+    expect(source).toContain('data-adaptive-path-node-latest-adjustment=');
+    expect(source).toContain('data-adaptive-path-node-current-lock="governed"');
+    expect(source).toContain('入选依据');
+    expect(source).toContain('最近调整');
+    expect(source).toContain('当前锁定原因');
+    expect(source).toContain('该路径生成时尚未记录节点级入选依据');
+    expect(source).toContain('节点安排说明');
     expect(source).toContain('将收集的学习证据');
     expect(source).toContain('检查标准');
     expect(source).toContain('回顾');
@@ -1109,6 +1117,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('return null');
     expect(source).toContain("? { ...node, status: 'current' }");
     expect(source).toContain('resolveAdaptivePathExecutionNodeStatus({');
+    expect(source).toContain("['locked', 'evidence-needed', 'needs-preparation'].includes(node.readinessState)");
+    expect(source).toContain("node.status !== 'completed' && node.status !== 'skipped'");
     expect(source).not.toContain("selectedNode?.status === 'skipped'");
     expect(source).not.toContain('setSelectedPathNodeId(currentPathNode.nodeId)');
     expect(source).toContain('查看节点');
@@ -1469,6 +1479,32 @@ describe('adaptive learning center UI contracts', () => {
   });
 
   it('surfaces three-style path options and selection history for diagnosis panels', () => {
+    const mainPathNode = pathPlan().mainPath[0];
+    const policyOptionNodes: AdaptiveLearningPathPlan['mainPath'] = [
+      {
+        ...mainPathNode,
+        nodeId: 'knowledge-card:targets',
+        title: '目标知识卡',
+      },
+      {
+        ...mainPathNode,
+        nodeId: 'arena-task:terminal',
+        title: '终端 Arena',
+        prerequisiteNodeIds: ['knowledge-card:targets'],
+        status: 'locked',
+        readiness: {
+          state: 'locked',
+          message: '完成目标知识卡后解锁。',
+          unlockMessage: '完成目标知识卡后解锁。',
+          reasonCodes: ['readiness-required-completion'],
+          fallbackNodeIds: [],
+          missingCompetencies: [],
+          missingEvidenceCount: 0,
+          missingCompletedNodeIds: ['knowledge-card:targets'],
+          missingOutcomeRefs: [],
+        },
+      },
+    ];
     const view = buildAdaptiveLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
       learnerState: learnerState(),
@@ -1516,6 +1552,7 @@ describe('adaptive learning center UI contracts', () => {
                 },
               ],
               unlockMessages: [],
+              planNodes: policyOptionNodes,
               nodeSummaries: [
                 {
                   nodeId: 'knowledge-card:targets',
@@ -1625,6 +1662,15 @@ describe('adaptive learning center UI contracts', () => {
               message: '完成目标知识卡后解锁。',
             },
           ],
+          readinessDetails: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'arena-task:terminal',
+              prerequisiteNodeIds: ['knowledge-card:targets'],
+              readiness: expect.objectContaining({
+                missingCompletedNodeIds: ['knowledge-card:targets'],
+              }),
+            }),
+          ]),
           terminalValidationNodeIds: ['arena-task:terminal'],
           limitations: ['部分目标还缺少直接证据'],
         },
@@ -1642,6 +1688,15 @@ describe('adaptive learning center UI contracts', () => {
         },
       ],
     });
+
+    const pathOptions = (currentPath?.payload as { pathOptions?: AdaptivePathOptionWriteOption[] } | null)
+      ?.pathOptions ?? [];
+    const [optionDisplay] = buildAdaptivePathOptionDisplays(pathOptions);
+    expect(optionDisplay?.orderedNodes?.find((node) => node.nodeId === 'arena-task:terminal')?.unlockChain)
+      .toMatchObject({
+        canExplain: true,
+        missingConditions: [expect.objectContaining({ title: '完成「目标知识卡」' })],
+      });
 
     const mastery = view.panels.find((panel) => panel.region === 'mastery');
     expect(mastery?.payload).toEqual(learnerState().knowledgeMastery);

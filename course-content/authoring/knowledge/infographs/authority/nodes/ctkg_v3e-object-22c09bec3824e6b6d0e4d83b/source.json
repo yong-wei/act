@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+  "safe_id": "ctkg_v3e-object-22c09bec3824e6b6d0e4d83b",
+  "node": {
+    "name": "Phase-lead compensator",
+    "name_en": "Phase-lead compensator",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Phase-lead compensator：Phase-lead compensator",
+  "intuition": null,
+  "explanation": "Phase-lead compensator",
+  "relation_head": "前置 → Phase-lead compensator、超前校正网络、Phase-Lead Design Using the Bode Plot · 后续 → Compensator",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Phase-lead compensator",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "超前校正网络",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "Compensator",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "Phase-Lead Design Using the Bode Plot",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "根轨迹",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Maximum phase lead frequency ω m",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Phase-lead …",
+    "Phase-lead c",
+    "一种·Phase-…",
+    "是一种·超前校正网络",
+    "一种·Compen…",
+    "用于分析·Phas…",
+    "用于分析·根轨迹"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-22c09bec3824e6b6d0e4d83b.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-d0323a65e86911f11fa1e579",
+  "safe_id": "ctkg_v3e-canonical-d0323a65e86911f11fa1e579",
+  "node": {
+    "name": "副回路",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "串级控制系统中，由副调节器、被控对象和测量变送器构成的内部回路。",
+  "intuition": null,
+  "explanation": "串级控制系统中，由副调节器、被控对象和测量变送器构成的内部回路。",
+  "relation_head": "前置 → 副调节器、串级控制方法、串级控制系统 · 后续 → 副调节器",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "副调节器",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "串级控制方法",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "副调节器",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "串级控制系统",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "副回路",
+    "属于·副调节器",
+    "包含组件·串级控制…",
+    "包含组件·副调节器"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-d0323a65e86911f11fa1e579.md",
+  "provider_policy": "grok-image_gen"
+}

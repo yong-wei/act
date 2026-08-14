@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-71a76d12eda374c0191ffca3",
+  "safe_id": "ctc_modeling-71a76d12eda374c0191ffca3",
+  "node": {
+    "name": "两相伺服电动机时间常数Tm=J…",
+    "name_en": "modeling_71a76d12eda374c0191ffca3",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "两相伺服电动机时间常数Tm=Jm/(fm+Cω)。",
+  "intuition": null,
+  "explanation": "两相伺服电动机时间常数Tm=Jm/(fm+Cω)。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "两相伺服电动机时间常数…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-71a76d12eda374c0191ffca3.md",
+  "provider_policy": "grok-image_gen"
+}

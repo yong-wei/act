@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0042",
+  "offset": 210,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-e5bf87e0d969b6eec24c6d11",
+      "batch": "B",
+      "name": "DSP chips",
+      "definition": "DSP chips：Computers originally designed for digital signal-processing applications, giving the control designer full freedom to i…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "DSP chips"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: DSP chips\nSOURCE DEFINITION (fail-closed, do not invent beyond this): DSP chips：Computers originally designed for digital signal-processing applications, giving the control designer full freedom to i…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「DSP chips」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-18dc6cccc99e95f3ae794561",
+      "batch": "B",
+      "name": "aliasing",
+      "definition": "aliasing：The phenomenon where high-frequency noise is modulated to a lower frequency by the sampling process, occurring when the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "aliasing",
+        "用于分析·anti…",
+        "应用于·Nyqui…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: aliasing\nSOURCE DEFINITION (fail-closed, do not invent beyond this): aliasing：The phenomenon where high-frequency noise is modulated to a lower frequency by the sampling process, occurring when the…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「aliasing」、「用于分析·anti…」、「应用于·Nyqui…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1f331a007aa3ca6c2c95d297",
+      "batch": "B",
+      "name": "Estimation error",
+      "definition": "Estimation error：The difference between the actual state x(t) and the estimated state hat{x}(t), denoted e(t) = x(t) - hat{x}(t).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Estimation …",
+        "Estimation e"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Estimation error\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Estimation error：The difference between the actual state x(t) and the estimated state hat{x}(t), denoted e(t) = x(t) - hat{x}(t).\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Estimation」、「Estimation」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-763fd65e573e7a65dfc4b79c",
+      "batch": "B",
+      "name": "Nyquist图",
+      "definition": "Nyquist图：A plot of the magnitude of KG(s) versus the angle of KG(s) used to evaluate the open-loop transfer function for stabili…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Nyquist图",
+        "Nyquist plot",
+        "关联·Freque…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Nyquist图\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Nyquist图：A plot of the magnitude of KG(s) versus the angle of KG(s) used to evaluate the open-loop transfer function for stabili…\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Nyquist图」、「Nyquist pl」、「关联·Freque…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bb17295c711f6c4ef4ffd134",
+      "batch": "B",
+      "name": "Pole placement using place() function",
+      "definition": "Pole placement using place() function：A method to compute state feedback gain K or estimator gain L given desired pole locations.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Pole placem…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Pole placement using place() function\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Pole placement using place() function：A method to compute state feedback gain K or estimator gain L given desired pole locations.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Pole place」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

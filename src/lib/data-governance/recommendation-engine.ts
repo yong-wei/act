@@ -37,6 +37,9 @@ import {
   type PortraitV2ProjectedPayload,
 } from './portrait-v2-model';
 import { mapLegacyCompetencyDimensionToPortraitV2 } from './kaq-objective-taxonomy';
+import { isLearningFactEligibleForPersonalization } from './learning-fact-quality-weight';
+
+const RECOMMENDATION_FACT_PAGE_SIZE = 50;
 
 export type RecommendationType = 'immediate' | 'weekly' | 'challenge';
 export type RecommendationEvidenceBasis =
@@ -530,6 +533,29 @@ export async function generateRecommendations(userId: string): Promise<Recommend
   return recommendations.slice(0, maxRecommendations);
 }
 
+async function readEligibleRecommendationFacts<T extends { id: string; contextJson: unknown }>(
+  readPage: (cursorId: string | null) => Promise<T[]>,
+  eligibleTake: number,
+): Promise<T[]> {
+  const eligibleFacts: T[] = [];
+  let cursorId: string | null = null;
+
+  while (eligibleFacts.length < eligibleTake) {
+    const rows = await readPage(cursorId);
+    eligibleFacts.push(...rows
+      .filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson))
+      .slice(0, eligibleTake - eligibleFacts.length));
+
+    const nextCursorId = rows.at(-1)?.id ?? null;
+    if (rows.length < RECOMMENDATION_FACT_PAGE_SIZE || !nextCursorId || nextCursorId === cursorId) {
+      break;
+    }
+    cursorId = nextCursorId;
+  }
+
+  return eligibleFacts;
+}
+
 /**
  * Build recommendation context from database
  */
@@ -554,7 +580,7 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
     recentFacts,
     totalMissions,
     completedMissions,
-    lastFact,
+    lastFacts,
   ] = await Promise.all([
     cachedVector
       ? Promise.resolve(null)
@@ -568,33 +594,45 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
     prisma.studentRiskFlag.findMany({
       where: { userId, isResolved: false },
     }),
-    prisma.learningFact.findMany({
-      where: {
-        userId,
-        startedAt: { gte: thirtyDaysAgo },
-      },
-      orderBy: { startedAt: 'desc' },
-      take: 50,
-      select: {
-        factType: true,
-        outcome: true,
-        startedAt: true,
-        score: true,
-      },
-    }),
+    readEligibleRecommendationFacts(
+      (cursorId) => prisma.learningFact.findMany({
+        where: {
+          userId,
+          startedAt: { gte: thirtyDaysAgo },
+        },
+        orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+        take: RECOMMENDATION_FACT_PAGE_SIZE,
+        select: {
+          id: true,
+          factType: true,
+          outcome: true,
+          startedAt: true,
+          score: true,
+          contextJson: true,
+        },
+        ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+      }),
+      RECOMMENDATION_FACT_PAGE_SIZE,
+    ),
     prisma.userProgress.count({
       where: { userId },
     }),
     prisma.userProgress.count({
       where: { userId, status: 'COMPLETED' },
     }),
-    prisma.learningFact.findFirst({
-      where: { userId },
-      orderBy: { startedAt: 'desc' },
-      select: { startedAt: true },
-    }),
+    readEligibleRecommendationFacts(
+      (cursorId) => prisma.learningFact.findMany({
+        where: { userId },
+        orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+        take: RECOMMENDATION_FACT_PAGE_SIZE,
+        select: { id: true, startedAt: true, contextJson: true },
+        ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+      }),
+      1,
+    ),
   ]);
 
+  const lastFact = lastFacts[0] ?? null;
   const streakDays = calculateStreak(recentFacts.map(f => f.startedAt));
   const learnerStateUsable = isLearnerStateUsableForDirectPersonalization(learnerState);
   const primaryPortraitState = learnerState?.primaryPortraitState ?? 'UNAVAILABLE';

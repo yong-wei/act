@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-39f6714b8cafaaf18e43b898",
+  "safe_id": "ctkg_v3e-canonical-39f6714b8cafaaf18e43b898",
+  "node": {
+    "name": "串级控制方法",
+    "name_en": null,
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。",
+  "intuition": "在图谱邻接中可把握：后续 → 副回路。",
+  "explanation": "串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。",
+  "relation_head": "后续 → 副回路",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "副回路",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "串级控制方法",
+    "包含组件·副回路"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-39f6714b8cafaaf18e43b898.md",
+  "provider_policy": "grok-image_gen"
+}

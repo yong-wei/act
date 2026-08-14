@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0027",
+  "offset": 135,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-0a39d839518b55dc77e9d083",
+      "batch": "B",
+      "name": "Qualitative anal",
+      "definition": "Qualitative anal：Rather than inverting Y(s), one can use prior knowledge and intuition about the effects of pole and zero locations in Y…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Qualitative…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Qualitative anal\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Qualitative anal：Rather than inverting Y(s), one can use prior knowledge and intuition about the effects of pole and zero locations in Y…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Qualitativ」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-1ea3eb2ff15aa544b230f02f",
+      "batch": "B",
+      "name": "Determining y(t)",
+      "definition": "Determining y(t)：STEP 1: Determine H(s). STEP 2: Determine U(s). STEP 3: Compute Y(s)=H(s)U(s). STEP 4: Break up Y(s) by partial-fractio…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Determining…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Determining y(t)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Determining y(t)：STEP 1: Determine H(s). STEP 2: Determine U(s). STEP 3: Compute Y(s)=H(s)U(s). STEP 4: Break up Y(s) by partial-fractio…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Determinin」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-677f91cec4356ce5a40ceb97",
+      "batch": "B",
+      "name": "Routh approximat",
+      "definition": "Routh approximat：Another novel and useful method for reducing the order is the Routh approximation method based on the idea of truncatin…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Routh appro…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Routh approximat\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Routh approximat：Another novel and useful method for reducing the order is the Routh approximation method based on the idea of truncatin…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Routh appr」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-da95a03f3b851fcd7239eac2",
+      "batch": "B",
+      "name": "Design Synthesis",
+      "definition": "Design Synthesis：A method to specify t_r, M_p, and t_s and determine where poles need to be so that actual responses are less than or eq…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Design Synt…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Design Synthesis\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Design Synthesis：A method to specify t_r, M_p, and t_s and determine where poles need to be so that actual responses are less than or eq…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Design Syn」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-e13adcff8a7f8bc37a3579c2",
+      "batch": "B",
+      "name": "Neglecting insig",
+      "definition": "Neglecting insig：One relatively simple way to delete a certain insignificant pole of a transfer function is to note a pole that has a ne…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Neglecting …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Neglecting insig\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Neglecting insig：One relatively simple way to delete a certain insignificant pole of a transfer function is to note a pole that has a ne…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Neglecting」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

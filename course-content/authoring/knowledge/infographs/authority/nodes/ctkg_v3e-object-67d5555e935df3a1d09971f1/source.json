@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-67d5555e935df3a1d09971f1",
+  "safe_id": "ctkg_v3e-object-67d5555e935df3a1d09971f1",
+  "node": {
+    "name": "复现过程",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "D/A 转换的第二个过程：因为离散的模拟信号无法直接控制连续的被控对象，需要经过保持器将离散模拟信号复现为连续的模拟信号。",
+  "intuition": "在图谱邻接中可把握：前置 → 信号复现过程 · 后续 → D/A转换器、保持器。",
+  "explanation": "D/A 转换的第二个过程：因为离散的模拟信号无法直接控制连续的被控对象，需要经过保持器将离散模拟信号复现为连续的模拟信号。",
+  "relation_head": "前置 → 信号复现过程 · 后续 → D/A转换器、保持器",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "信号复现过程",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "D/A转换器",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "保持器",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "复现过程",
+    "是一种·信号复现过程",
+    "属于·D/A转换器",
+    "包含组件·保持器"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-67d5555e935df3a1d09971f1.md",
+  "provider_policy": "grok-image_gen"
+}

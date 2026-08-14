@@ -29,17 +29,27 @@ import {
   resolveActiveAuthoritySnapshot,
   resolveAuthorityStorePaths,
   resolveEngineeringGraphAuthority,
+  resolveActiveEngineeringGraphAuthority,
   resolveEngineeringRagAuthority,
   rollbackAuthorityPointer,
   authorityStoreFs,
+  DEFAULT_AUTHORITY_ROOT_RELATIVE,
   shouldStageAuthorityAfterDelta,
   stageAuthorityAfterValidatedBundleImport,
   stageAuthoritySnapshot,
+  stageAuthoritySnapshotArtifacts,
   stagedSnapshotNormalizedBytes,
   type AuthoritativeKnowledgeSnapshot,
   type AuthorityStorePaths,
+  type StagedAuthoritySnapshotFiles,
   type TeachingSelectorFingerprint,
 } from '../authoritative-knowledge';
+import { DEFAULT_CONSUMER_ACTIVATION_ROOT_RELATIVE } from '../versioned-knowledge-activation';
+import type {
+  ConsumerProductionSelection,
+  ConsumerVersionCombination,
+  ResolvedConsumerActivation,
+} from '../versioned-knowledge-activation';
 
 const hash = 'a'.repeat(64);
 const commit = 'b'.repeat(40);
@@ -338,6 +348,25 @@ describe('Authority Snapshot materialization (#1266)', () => {
     // No teaching review item created — only stage receipt.
     expect(a.stageReceipt.teachingSelectorsAdvanced).toBe(false);
   });
+
+  it('stages a separately validated materialization without reconstructing its source snapshot', () => {
+    const sourcePaths = tempAuthorityRoot();
+    const materialized = stageAuthoritySnapshot(sourcePaths, {
+      snapshot: baseSnapshot(),
+      deltaReceiptIds: ['delta-receipt:artifact-stage'],
+    });
+    const targetPaths = tempAuthorityRoot();
+
+    const staged = stageAuthoritySnapshotArtifacts(targetPaths, {
+      manifest: materialized.manifest,
+      engineering: materialized.engineering,
+    });
+
+    expect(staged.snapshotId).toBe(materialized.snapshotId);
+    expect(staged.snapshotHash).toBe(materialized.snapshotHash);
+    expect(staged.stageReceipt.reasons).toContain('staged-from-validated-artifacts');
+    expect(readCurrentAuthorityPointer(targetPaths)).toBeNull();
+  });
 });
 
 describe('Authority activation and rollback (#1266)', () => {
@@ -562,8 +591,41 @@ describe('Engineering consumers and Repository active resolution (#1266)', () =>
     expect(activation.receipt.teachingSelectorsAdvanced).toBe(false);
     expect(activation.receipt.teachingSelectorFingerprintAfter).toEqual(teaching);
 
-    expect(resolveEngineeringGraphAuthority(paths).status).toBe('ready');
-    expect(resolveEngineeringRagAuthority(paths).status).toBe('ready');
+    expect(resolveEngineeringGraphAuthority(paths)).toMatchObject({
+      status: 'ready',
+      activationMode: 'absent',
+    });
+    expect(resolveEngineeringRagAuthority(paths)).toMatchObject({
+      status: 'ready',
+      activationMode: 'absent',
+    });
+  });
+
+  it('default Authority root uses the active consumer pointer', () => {
+    const previousAuthorityRoot = process.env.ACT_AUTHORITY_STORE_ROOT;
+    const previousConsumerRoot = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+    const authorityRoot = path.resolve(process.cwd(), DEFAULT_AUTHORITY_ROOT_RELATIVE);
+    const consumerRoot = path.resolve(
+      process.cwd(),
+      DEFAULT_CONSUMER_ACTIVATION_ROOT_RELATIVE,
+    );
+    process.env.ACT_AUTHORITY_STORE_ROOT = authorityRoot;
+    process.env.ACT_CONSUMER_ACTIVATION_ROOT = consumerRoot;
+    try {
+      expect(resolveEngineeringGraphAuthority(resolveAuthorityStorePaths(authorityRoot))).toMatchObject({
+        status: 'ready',
+        activationMode: 'use-combination',
+      });
+      expect(resolveEngineeringRagAuthority(resolveAuthorityStorePaths(authorityRoot))).toMatchObject({
+        status: 'ready',
+        activationMode: 'use-combination',
+      });
+    } finally {
+      if (previousAuthorityRoot === undefined) delete process.env.ACT_AUTHORITY_STORE_ROOT;
+      else process.env.ACT_AUTHORITY_STORE_ROOT = previousAuthorityRoot;
+      if (previousConsumerRoot === undefined) delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+      else process.env.ACT_CONSUMER_ACTIVATION_ROOT = previousConsumerRoot;
+    }
   });
 
   it('capture-drift and schema drift fail closed before activation', () => {
@@ -1015,5 +1077,124 @@ describe('Codex review remediation (#1279)', () => {
     }
     expect(readCurrentAuthorityPointer(paths)).toBeNull();
     expect(existsSync(paths.releasesDir) ? readdirSync(paths.releasesDir) : []).toEqual([]);
+  });
+
+  function strictSelection(
+    staged: StagedAuthoritySnapshotFiles,
+    overrides: Partial<ConsumerVersionCombination> = {},
+  ): ConsumerProductionSelection {
+    const combination: ConsumerVersionCombination = {
+      authorityReleaseId: staged.manifest.releaseId,
+      authoritySnapshotId: staged.snapshotId,
+      authoritySnapshotHash: staged.snapshotHash,
+      projectionId: null,
+      projectionHash: null,
+      scopeId: null,
+      captureRevision: staged.manifest.captureRevision,
+      ...overrides,
+    };
+    const resolved: ResolvedConsumerActivation = {
+      status: 'ready',
+      consumerId: 'engineering-graph',
+      activationId: 'activation-test',
+      activationHash: hash,
+      consumerStatus: 'READY',
+      combination,
+      priorCombination: null,
+      reasons: [],
+      record: null,
+      manifest: null,
+    };
+    return {
+      mode: 'use-combination',
+      consumerId: 'engineering-graph',
+      combination,
+      resolved,
+      reasons: [],
+    };
+  }
+
+  it('strictly resolves READY use-combination with matching Authority identity and null projection', () => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    const resolved = resolveActiveEngineeringGraphAuthority(paths, {
+      activationSelection: strictSelection(staged),
+    });
+    expect(resolved).toMatchObject({
+      status: 'ready',
+      consumerId: 'engineering-graph',
+      activationMode: 'use-combination',
+      consumerStatus: 'READY',
+      activationId: 'activation-test',
+      activationHash: hash,
+      snapshotId: staged.snapshotId,
+      snapshotHash: staged.snapshotHash,
+      releaseId: staged.manifest.releaseId,
+      projectionId: null,
+      projectionHash: null,
+      teachingProjectionRequired: false,
+    });
+    expect(resolved.snapshot?.authorityState).toBe('active');
+  });
+
+  it('fails closed when activation is absent even if a global Authority pointer exists', () => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    activateEngineeringAuthority(paths, { snapshotId: staged.snapshotId });
+    const absent = strictSelection(staged);
+    absent.mode = 'absent';
+    absent.combination = null;
+    absent.resolved = {
+      ...absent.resolved,
+      status: 'unavailable',
+      consumerStatus: null,
+      combination: null,
+      reasons: ['current-pointer-missing'],
+    };
+    const resolved = resolveActiveEngineeringGraphAuthority(paths, {
+      activationSelection: absent,
+    });
+    expect(resolved.status).toBe('unavailable');
+    expect(resolved.reason).toBe('engineering-graph-activation-absent');
+    expect(resolved.snapshot).toBeNull();
+  });
+
+  it.each([
+    ['pin-combination', 'engineering-graph-consumer-not-ready'],
+    ['unavailable', 'activation-drift'],
+  ] as const)('fails closed for %s consumer selection', (mode, expectedReason) => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    const selection = strictSelection(staged);
+    selection.mode = mode;
+    selection.reasons = [expectedReason];
+    selection.resolved = {
+      ...selection.resolved,
+      status: mode === 'pin-combination' ? 'pinned' : 'unavailable',
+      consumerStatus: mode === 'pin-combination' ? 'PINNED_PREVIOUS' : null,
+    };
+    const resolved = resolveActiveEngineeringGraphAuthority(paths, {
+      activationSelection: selection,
+    });
+    expect(resolved.status).toBe('unavailable');
+    expect(resolved.reason).toBe(expectedReason === 'activation-drift'
+      ? expectedReason
+      : 'engineering-graph-consumer-not-ready');
+  });
+
+  it.each([
+    ['authoritySnapshotHash', { authoritySnapshotHash: 'f'.repeat(64) }],
+    ['authorityReleaseId', { authorityReleaseId: 'release-mismatch' }],
+    ['projectionId', { projectionId: 'teaching-projection' }],
+    ['projectionHash', { projectionHash: 'e'.repeat(64) }],
+  ] as const)('fails closed for mismatched %s identity', (_field, overrides) => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    const resolved = resolveActiveEngineeringGraphAuthority(paths, {
+      activationSelection: strictSelection(staged, overrides),
+    });
+    expect(resolved.status).toBe('unavailable');
+    expect(resolved.snapshot).toBeNull();
+    expect(resolved.reason).toMatch(/mismatch|must-be-null/);
   });
 });

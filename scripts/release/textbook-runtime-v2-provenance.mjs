@@ -360,14 +360,10 @@ function readSidecar(sidecarPath) {
   assertRevision(sidecar.appRevision, 'provenance-app-revision');
   assertRevision(sidecar.runtimeSourceRevision, 'provenance-runtime-source-revision');
   assertRevision(sidecar.indexSourceRevision, 'provenance-index-source-revision');
-  if (sidecar.runtimeSourceRevision !== sidecar.appRevision) {
+  if (sidecar.runtimeSourceRevision !== sidecar.indexSourceRevision) {
     throw new Error(
-      `textbook-v2-provenance-revision-mismatch:app=${sidecar.appRevision} runtime=${sidecar.runtimeSourceRevision}`,
-    );
-  }
-  if (sidecar.indexSourceRevision !== sidecar.appRevision) {
-    throw new Error(
-      `textbook-v2-provenance-index-revision-mismatch:app=${sidecar.appRevision} index=${sidecar.indexSourceRevision}`,
+      `textbook-v2-provenance-runtime-index-revision-mismatch:runtime=${sidecar.runtimeSourceRevision}`
+      + ` index=${sidecar.indexSourceRevision}`,
     );
   }
   if (typeof sidecar.imageTarSha256 !== 'string' || !SHA256_PATTERN.test(sidecar.imageTarSha256)) {
@@ -417,13 +413,12 @@ async function writeSidecar(options) {
   const appRevision = requireOption(options, 'app-revision');
   assertRevision(appRevision, 'app-revision');
   const runtime = inspectTextbookRuntimeV2(runtimeRoot, {
-    expectedSourceRevision: appRevision,
     assetsRoot: options['assets-root']
       ? path.resolve(options['assets-root'])
       : undefined,
   });
   const index = inspectTextbookRetrievalIndex(indexRoot, {
-    expectedSourceRevision: appRevision,
+    expectedSourceRevision: runtime.sourceRevision,
   });
   const sidecar = {
     schemaVersion: TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION,

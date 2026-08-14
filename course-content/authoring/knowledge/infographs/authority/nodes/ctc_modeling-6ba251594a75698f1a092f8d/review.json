@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T16:15:41+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-6ba251594a75698f1a092f8d",
+  "safe_id": "ctc_modeling-6ba251594a75698f1a092f8d",
+  "node_name": "系统的输入-输出描述",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0077 vision-mapped accept"
+}

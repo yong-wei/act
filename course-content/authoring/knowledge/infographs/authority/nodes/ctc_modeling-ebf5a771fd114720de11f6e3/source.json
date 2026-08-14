@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-ebf5a771fd114720de11f6e3",
+  "safe_id": "ctc_modeling-ebf5a771fd114720de11f6e3",
+  "node": {
+    "name": "series connection",
+    "name_en": "series_connection",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "series connection：v3T accepted candidate for series connection.",
+  "intuition": null,
+  "explanation": "v3T accepted candidate for series connection.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "series conn…",
+    "series conne"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-ebf5a771fd114720de11f6e3.md",
+  "provider_policy": "grok-image_gen"
+}

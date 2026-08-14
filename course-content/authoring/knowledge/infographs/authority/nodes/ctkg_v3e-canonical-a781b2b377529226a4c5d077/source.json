@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+  "safe_id": "ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+  "node": {
+    "name": "系统型别",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "以开环系统在 s 平面坐标原点上的极点数 v 来划分：v=0 称为 0 型系统；v=1 称为 I 型系统；v=2 称为 II 型系统。",
+  "intuition": "v=1 称为 I 型系统。",
+  "explanation": "以开环系统在 s 平面坐标原点上的极点数 v 来划分：v=0 称为 0 型系统；v=1 称为 I 型系统；v=2 称为 II 型系统。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "系统型别"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-a781b2b377529226a4c5d077.md",
+  "provider_policy": "grok-image_gen"
+}

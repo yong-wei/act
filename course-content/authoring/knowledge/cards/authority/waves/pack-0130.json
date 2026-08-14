@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0130",
+  "offset": 650,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-e48cc89f8ed152e7f44ba43f",
+      "batch": "B",
+      "name": "一阶系统的单位阶跃响应",
+      "definition": "一阶系统在单位阶跃输入信号下的输出响应，表达式为c(t)=1-e^{-t/T}。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一阶系统的单位阶跃响应"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 一阶系统的单位阶跃响应\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 一阶系统在单位阶跃输入信号下的输出响应，表达式为c(t)=1-e^{-t/T}。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「一阶系统的单位阶跃响」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0e2fd1303478a746919816fc",
+      "batch": "B",
+      "name": "级数求和法",
+      "definition": "直接根据z变换的定义，将式（7－23）写成展开形式，从而得到z变换的级数展开式。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "级数求和法",
+        "包含组件·z变换"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 级数求和法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 直接根据z变换的定义，将式（7－23）写成展开形式，从而得到z变换的级数展开式。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「级数求和法」、「包含组件·z变换」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-35b4c7c6116be04938f2e7a4",
+      "batch": "B",
+      "name": "非周期函数的频谱",
+      "definition": "非周期函数的频谱由傅氏变换 F(jω) 表示，为连续谱，描述信号谐波的分布特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "非周期函数的频谱"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 非周期函数的频谱\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 非周期函数的频谱由傅氏变换 F(jω) 表示，为连续谱，描述信号谐波的分布特性。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「非周期函数的频谱」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-79d38366402d1a9806e1ed46",
+      "batch": "B",
+      "name": "输出可控性矩阵 (output…",
+      "definition": "输出可控性矩阵 (output controllability matrix)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "输出可控性矩阵 (ou…",
+        "包含组件·否成立"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 输出可控性矩阵 (output…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 输出可控性矩阵 (output controllability matrix)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「输出可控性矩阵 (o」、「包含组件·否成立」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-87148367d17fdbebd5a95319",
+      "batch": "B",
+      "name": "开环采样系统",
+      "definition": "如果采样器位于系统闭合回路之外，或者系统本身不存在闭合回路，则称为开环采样系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "开环采样系统",
+        "是一种·采样控制系统",
+        "关联·采样控制系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 开环采样系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 如果采样器位于系统闭合回路之外，或者系统本身不存在闭合回路，则称为开环采样系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「开环采样系统」、「是一种·采样控制系统」、「关联·采样控制系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

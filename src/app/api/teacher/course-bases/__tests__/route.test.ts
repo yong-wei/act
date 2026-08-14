@@ -9,7 +9,7 @@ vi.mock('@/lib/auth', () => ({ getServerAuthSession }));
 vi.mock('@/lib/prisma', () => ({ prisma: { courseBasis: { findMany } } }));
 
 import { GET } from '../route';
-import { normalizedUploadMimeType } from '../documents/[documentId]/versions/route';
+import { normalizedUploadMimeType } from '@/lib/course-basis-upload';
 
 describe('course-bases list route', () => {
   beforeEach(() => {

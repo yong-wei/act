@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+  "safe_id": "ctkg_v3e-object-a36f17ddac0ec65e08118916",
+  "node": {
+    "name": "Discrete signal",
+    "name_en": "Discrete signal",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Discrete signal：Discrete signal",
+  "intuition": null,
+  "explanation": "Discrete signal",
+  "relation_head": "前置 → Discrete equivalent、Sampled-data system、Digital-to-analog (D/A) converter · 后续 → Sampled data、Sample period、Sample rate",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Sampled data",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "Sample period",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Discrete equivalent",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "Sampled-data system",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "Sample period",
+      "relation": "派生自"
+    },
+    {
+      "direction": "后续",
+      "peer": "Sample rate",
+      "relation": "派生自"
+    }
+  ],
+  "labels": [
+    "Discrete si…",
+    "Discrete sig",
+    "一种·Sample…",
+    "包含组件·Samp…",
+    "包含组件·Disc…",
+    "派生自·Sampl…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-a36f17ddac0ec65e08118916.md",
+  "provider_policy": "grok-image_gen"
+}

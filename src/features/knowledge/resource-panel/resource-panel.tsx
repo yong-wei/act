@@ -174,6 +174,12 @@ const RELATION_GROUP_LABEL: Record<RelatedNode['category'], string> = {
 };
 const MOBILE_INSPECTOR_QUERY = '(max-width: 1023px)';
 
+function matchesMobileInspectorViewport(): boolean {
+  return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(MOBILE_INSPECTOR_QUERY).matches;
+}
+
 export function formatRelationEvidence(node: RelatedNode): string | null {
   if (node.rationale) return node.rationale;
   if (node.sourceDocument) return node.sourceDocument;
@@ -404,6 +410,8 @@ function ResourcePanelContent({
     const activeElement = document.activeElement;
     if (
       activeElement instanceof HTMLElement
+      && activeElement !== document.body
+      && activeElement !== document.documentElement
       && activeElement !== closeButtonRef.current
       && !inspectorRef.current?.contains(activeElement)
     ) previouslyFocusedElementRef.current = activeElement;
@@ -475,8 +483,16 @@ function ResourcePanelContent({
   }, [detailRequestVersion, selectedNode.id]);
 
   useEffect(() => {
-    previouslyFocusedElementRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (!previouslyFocusedElementRef.current) {
+      const activeElement = document.activeElement;
+      if (
+        activeElement instanceof HTMLElement
+        && activeElement !== document.body
+        && activeElement !== document.documentElement
+        && activeElement !== closeButtonRef.current
+        && !inspectorRef.current?.contains(activeElement)
+      ) previouslyFocusedElementRef.current = activeElement;
+    }
 
     return () => {
       const previous = previouslyFocusedElementRef.current;
@@ -489,7 +505,7 @@ function ResourcePanelContent({
   }, []);
 
   useLayoutEffect(() => {
-    if (!isMobileInspector) {
+    if (!isMobileInspector && !matchesMobileInspectorViewport()) {
       mobileFocusInitializedRef.current = false;
       mobileFocusNodeIdRef.current = null;
       return;
@@ -497,16 +513,19 @@ function ResourcePanelContent({
     mobileFocusInitializedRef.current = true;
     mobileFocusNodeIdRef.current = selectedNode.id;
     restoreCloseFocusAfterPortalRef.current = false;
+    let mountFrame = 0;
     let focusFrame = 0;
-    window.requestAnimationFrame(() => {
+    const focusTarget = () => {
+      (closeButtonRef.current ?? inspectorRef.current)?.focus();
+    };
+    mountFrame = window.requestAnimationFrame(() => {
       focusFrame = window.requestAnimationFrame(() => {
-        if (closeButtonRef.current) {
-          closeButtonRef.current.focus();
-        }
+        focusTarget();
       });
     });
     return () => {
       restoreCloseFocusAfterPortalRef.current ||= document.activeElement === closeButtonRef.current;
+      window.cancelAnimationFrame(mountFrame);
       window.cancelAnimationFrame(focusFrame);
     };
   }, [isMobileInspector, mobileToolPanelOpen, selectedNode.id]);

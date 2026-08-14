@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T14:42:13+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-5c2ad2da07903ca99b2b1f08",
+  "safe_id": "ctkg_v3e-object-5c2ad2da07903ca99b2b1f08",
+  "node_name": "Frequency-domain performance measures",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack0002"
+}

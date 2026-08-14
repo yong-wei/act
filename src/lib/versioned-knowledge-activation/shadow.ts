@@ -102,6 +102,8 @@ export function compareShadowConsumerViews(input: {
   previousActivationId?: string | null;
   previous: readonly ShadowConsumerView[];
   next: readonly ShadowConsumerView[];
+  /** First activation has no active predecessor; expected new consumers are not discrepancies. */
+  allowInitialAbsentPrevious?: boolean;
   comparedAt?: string;
 }): ConsumerActivationShadowReport {
   const comparedAt = input.comparedAt ?? new Date().toISOString();
@@ -120,6 +122,7 @@ export function compareShadowConsumerViews(input: {
     if (next) nextSamples.push(sampleFromView(next));
 
     if (!prev || !next) {
+      if (!prev && next && input.allowInitialAbsentPrevious === true) continue;
       discrepancies.push({
         kind: KIND_BY_CONSUMER[consumerId],
         consumerId,
@@ -313,6 +316,7 @@ export function runConsumerActivationShadow(input: {
   previousActivationId?: string | null;
   previous: readonly ShadowConsumerView[];
   next: readonly ShadowConsumerView[];
+  allowInitialAbsentPrevious?: boolean;
   comparedAt?: string;
 }): ConsumerActivationShadowReport {
   const base = compareShadowConsumerViews(input);

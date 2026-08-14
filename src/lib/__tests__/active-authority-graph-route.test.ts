@@ -1,0 +1,105 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const mocks = vi.hoisted(() => ({
+  authorizeActiveGraph: vi.fn(),
+  authorizeActiveFullGraphDiagnostics: vi.fn(),
+  readActiveCanvas: vi.fn(),
+  readActiveNode: vi.fn(),
+  activeProjectionResponse: vi.fn(),
+  activeUnavailableResponse: vi.fn(),
+  readActiveDetailShard: vi.fn(),
+  activeShardResponse: vi.fn(),
+}));
+
+vi.mock('@/app/api/knowledge/_active-authority', () => mocks);
+
+import { NextResponse } from 'next/server';
+import { GET as getCanvas } from '@/app/api/knowledge/graph/active/route';
+import { GET as getNode } from '@/app/api/knowledge/nodes/active/[id]/route';
+import { GET as getShardNode } from '@/app/api/knowledge/shards/active/nodes/[id]/route';
+
+const available = { status: 'available', projection: { source: { authorityState: 'active' } } } as const;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.authorizeActiveGraph.mockResolvedValue({ ok: true, role: 'STUDENT' });
+  mocks.authorizeActiveFullGraphDiagnostics.mockResolvedValue({ ok: true, role: 'ADMIN' });
+  mocks.readActiveCanvas.mockReturnValue(available);
+  mocks.readActiveNode.mockReturnValue(available);
+  mocks.readActiveDetailShard.mockReturnValue({ shardClass: 'node-detail' });
+  mocks.activeShardResponse.mockImplementation((read, role) => {
+    read();
+    return NextResponse.json({ role });
+  });
+  mocks.activeProjectionResponse.mockImplementation((result) => (
+    result.status === 'available'
+      ? NextResponse.json(result.projection)
+      : NextResponse.json({ code: 'ACTIVE_GRAPH_UNAVAILABLE' }, { status: 503 })
+  ));
+  mocks.activeUnavailableResponse.mockImplementation((reason: string) => (
+    NextResponse.json({ code: reason }, { status: 503 })
+  ));
+});
+
+describe('active Authority graph routes', () => {
+  it('ignores client authority selectors and resolves the committed active contract', async () => {
+    const response = await getCanvas(new Request(
+      'http://localhost/api/knowledge/graph/active?releaseId=attacker&snapshotId=other&manifest=raw',
+    ));
+    expect(response.status).toBe(200);
+    expect(mocks.authorizeActiveFullGraphDiagnostics).toHaveBeenCalledTimes(1);
+    expect(mocks.readActiveCanvas).toHaveBeenCalledWith();
+    expect(mocks.activeProjectionResponse).toHaveBeenCalledWith(available);
+  });
+
+  it('returns authorization responses before touching the active resolver', async () => {
+    mocks.authorizeActiveFullGraphDiagnostics.mockResolvedValueOnce({
+      ok: false,
+      response: NextResponse.json({ code: 'ACTIVE_GRAPH_DIAGNOSTICS_FORBIDDEN' }, { status: 403 }),
+    });
+    const response = await getCanvas(new Request('http://localhost/api/knowledge/graph/active'));
+    expect(response.status).toBe(403);
+    expect(mocks.readActiveCanvas).not.toHaveBeenCalled();
+  });
+
+  it('passes only the path node id to the active detail resolver', async () => {
+    const response = await getNode(
+      new Request('http://localhost/api/knowledge/nodes/active/node-1?snapshotId=other'),
+      { params: Promise.resolve({ id: 'node-1' }) },
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.readActiveNode).toHaveBeenCalledWith('STUDENT', 'node-1');
+  });
+
+  it('rejects malformed detail ids without resolving Authority data', async () => {
+    const response = await getNode(
+      new Request('http://localhost/api/knowledge/nodes/active/invalid'),
+      { params: Promise.resolve({ id: '' }) },
+    );
+    expect(response.status).toBe(400);
+    expect(mocks.authorizeActiveGraph).not.toHaveBeenCalled();
+    expect(mocks.readActiveNode).not.toHaveBeenCalled();
+  });
+
+  it('keeps unavailable active state independent from Legacy routes', async () => {
+    mocks.readActiveCanvas.mockReturnValueOnce({ status: 'unavailable', reason: 'engineering-graph-activation-absent' });
+    mocks.activeProjectionResponse.mockImplementationOnce(() => (
+      NextResponse.json({ code: 'ACTIVE_GRAPH_ACTIVATION_ABSENT' }, { status: 503 })
+    ));
+    const response = await getCanvas(new Request('http://localhost/api/knowledge/graph/active'));
+    expect(response.status).toBe(503);
+    expect(mocks.readActiveCanvas).toHaveBeenCalledTimes(1);
+    expect(mocks.readActiveNode).not.toHaveBeenCalled();
+  });
+
+  it('passes the authenticated role into the active node-detail shard projection', async () => {
+    mocks.authorizeActiveGraph.mockResolvedValueOnce({ ok: true, role: 'STUDENT' });
+    const response = await getShardNode(
+      new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'),
+      { params: Promise.resolve({ id: 'node-1' }) },
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.readActiveDetailShard).toHaveBeenCalledWith('node-1');
+    expect(mocks.activeShardResponse).toHaveBeenCalledWith(expect.any(Function), 'STUDENT');
+  });
+});

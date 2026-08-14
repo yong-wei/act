@@ -135,6 +135,29 @@ const canvas = {
   ],
 };
 
+const activeRootShard = {
+  shardClass: 'root' as const,
+  envelope: {
+    contract: 'act-authority-shard-envelope/v1' as const,
+    authorityCatalogVersion: 'acv-active-shards',
+    teachingVersion: null,
+    match: { authority: true, catalog: true, teaching: null },
+  },
+  root: {
+    kind: 'presentation-root-catalog' as const,
+    domains: [],
+    aggregate: {
+      kind: 'presentation-aggregate' as const,
+      order: 0,
+      displayName: '控制理论综合',
+      summary: '汇总入口',
+      presentationRole: 'aggregate' as const,
+      visualRole: 'aggregate' as const,
+      domainCount: 8,
+    },
+  },
+};
+
 function detail(nodeId: 'concept' | 'formula') {
   const incoming = nodeId === 'formula';
   return {
@@ -211,7 +234,11 @@ describe('candidate authoritative graph client isolation', () => {
       return {
         ok: true,
         status: 200,
-        json: async () => url.includes('/nodes/v2/') ? detail(nodeId) : canvas,
+        json: async () => url.includes('/nodes/active/')
+          ? detail(nodeId)
+          : url.endsWith('/shards/active')
+            ? activeRootShard
+            : url.includes('/nodes/v2/') ? detail(nodeId) : canvas,
       };
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -223,16 +250,24 @@ describe('candidate authoritative graph client isolation', () => {
     vi.unstubAllGlobals();
   });
 
-  it('uses only independent V2 requests, renders detail, and resets state after switching', async () => {
+  async function mountCandidateWorkspace() {
     await act(async () => {
       root.render(createElement(KnowledgeGraphWorkspace, {
-        viewerRole: 'student',
+        viewerRole: 'admin',
         candidateAllowed: true,
-        controlledVerification: false,
+        controlledVerification: true,
         legacy: createElement('div', { 'data-legacy': 'true' }, 'Legacy graph'),
       }));
     });
     await act(async () => Promise.resolve());
+    const candidate = [...container.querySelectorAll('button')]
+      .find((button) => button.textContent === '受控候选诊断')!;
+    await act(async () => candidate.click());
+    await act(async () => Promise.resolve());
+  }
+
+  it('uses only independent V2 requests, renders detail, and resets state after switching', async () => {
+    await mountCandidateWorkspace();
 
     expect(container.textContent).toContain('控制理论工程聚合发布版');
     expect(container.textContent).toContain('教学关系尚未发布');
@@ -303,13 +338,13 @@ describe('candidate authoritative graph client isolation', () => {
       .not.toMatch(/出向|入向/);
 
     const legacy = [...container.querySelectorAll('button')]
-      .find((button) => button.textContent === '旧版 Legacy')!;
+      .find((button) => button.textContent === '历史 Legacy')!;
     await act(async () => legacy.click());
     expect(container.querySelector('[data-legacy="true"]')).not.toBeNull();
     expect(globalAIMocks.clearDynamicPageContext).toHaveBeenCalled();
 
     const candidate = [...container.querySelectorAll('button')]
-      .find((button) => button.textContent === '新版候选')!;
+      .find((button) => button.textContent === '受控候选诊断')!;
     await act(async () => candidate.click());
     await act(async () => Promise.resolve());
     const resetCore = [...container.querySelectorAll('button')]
@@ -317,6 +352,7 @@ describe('candidate authoritative graph client isolation', () => {
     expect(resetCore.getAttribute('aria-pressed')).toBe('false');
     expect(container.querySelector('[data-candidate-node-detail]')).toBeNull();
     expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      '/api/knowledge/shards/active',
       '/api/knowledge/graph/v2',
       '/api/knowledge/nodes/v2/concept',
       '/api/knowledge/nodes/v2/formula',
@@ -327,19 +363,12 @@ describe('candidate authoritative graph client isolation', () => {
 
   it('restores a fixed-projection canonical selection from the citation URL', async () => {
     window.history.replaceState(null, '', '/knowledge?canonicalId=formula');
-    await act(async () => {
-      root.render(createElement(KnowledgeGraphWorkspace, {
-        viewerRole: 'student',
-        candidateAllowed: true,
-        controlledVerification: false,
-        legacy: createElement('div', { 'data-legacy': 'true' }, 'Legacy graph'),
-      }));
-    });
-    await act(async () => Promise.resolve());
+    await mountCandidateWorkspace();
 
     expect(container.querySelector('[data-candidate-node-detail="formula"]')).not.toBeNull();
     expect(container.textContent).toContain('edition-1 · section-1');
     expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      '/api/knowledge/shards/active',
       '/api/knowledge/graph/v2',
       '/api/knowledge/nodes/v2/formula',
     ]);
@@ -349,22 +378,11 @@ describe('candidate authoritative graph client isolation', () => {
 
   it('ignores an unknown canonical citation URL without requesting detail or Legacy', async () => {
     window.history.replaceState(null, '', '/knowledge?canonicalId=unknown%0Alegacy');
-    await act(async () => {
-      root.render(createElement(KnowledgeGraphWorkspace, {
-        viewerRole: 'student',
-        candidateAllowed: true,
-        controlledVerification: false,
-        legacy: createElement('div', { 'data-legacy': 'true' }, 'Legacy graph'),
-      }));
-    });
-    await act(async () => Promise.resolve());
+    await mountCandidateWorkspace();
 
     expect(container.querySelector('[data-candidate-node-detail]')).toBeNull();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/knowledge/graph/v2',
-      expect.any(Object),
-    );
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenLastCalledWith('/api/knowledge/graph/v2', expect.any(Object));
     expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/knowledge/graph')).toBe(false);
   });
 
@@ -377,17 +395,23 @@ describe('candidate authoritative graph client isolation', () => {
         legacy: createElement('div', { 'data-legacy': 'true' }, 'Legacy graph'),
       }));
     });
-    expect(container.querySelector('[data-legacy="true"]')).not.toBeNull();
-    expect(container.textContent).not.toContain('新版候选');
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
+    expect(container.textContent).not.toContain('受控候选诊断');
+    expect(fetchMock).toHaveBeenCalledWith('/api/knowledge/shards/active', expect.any(Object));
   });
 
   it('shows a candidate error without requesting Legacy fallback', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: false,
-      status: 409,
-      json: async () => ({ code: 'CANDIDATE_GRAPH_DRIFT' }),
-    });
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => activeRootShard,
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 409,
+        json: async () => ({ code: 'CANDIDATE_GRAPH_DRIFT' }),
+      });
     await act(async () => {
       root.render(createElement(KnowledgeGraphWorkspace, {
         viewerRole: 'admin',
@@ -397,9 +421,15 @@ describe('candidate authoritative graph client isolation', () => {
       }));
     });
     await act(async () => Promise.resolve());
+    await act(async () => {
+      [...container.querySelectorAll('button')]
+        .find((button) => button.textContent === '受控候选诊断')!
+        .click();
+    });
+    await act(async () => Promise.resolve());
     expect(container.textContent).toContain('证据发生漂移');
     expect(container.textContent).toContain('未请求 Legacy API');
     expect(container.querySelector('[data-legacy="true"]')).toBeNull();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

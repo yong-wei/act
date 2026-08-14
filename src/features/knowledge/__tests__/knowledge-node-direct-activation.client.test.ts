@@ -215,6 +215,28 @@ describe('knowledge-node-direct-activation-contract', () => {
     );
   });
 
+  it('restores inspector close focus to the selected node control after the child panel unmounts', async () => {
+    vi.stubGlobal('fetch', vi.fn((url: string) => (
+      url.includes('mode=expansion')
+        ? json(domainPayload(domainA, [rootNode(domainA), members['a-1']]))
+        : json(rootPayload())
+    )));
+
+    await act(async () => root.render(createElement(KnowledgeGraphSystem)));
+    await flush();
+    await act(async () => container.querySelector<HTMLButtonElement>(`[data-testid="canvas-2D-${domainA}"]`)!.click());
+    await flush();
+
+    const nodeControl = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="a-1"]')!;
+    nodeControl.focus();
+    await act(async () => nodeControl.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
+
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="close-resource-panel"]')!.click());
+    await flush();
+    expect(document.activeElement).toBe(nodeControl);
+  });
+
   it('requests one current-view fit after each dense ordinary domain materializes without a view switch', async () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => {
       if (url.includes(encodeURIComponent(domainA))) return json(domainPayload(domainA, denseDomainNodes(domainA, '基本概念', 'dense-a')));

@@ -407,6 +407,10 @@ function draftToLearningFactInput(
         dedupeKey: draft.dedupeKey,
       }),
       evidenceGovernance: compactObject({
+        evidenceQuality: 'partial',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'unmanaged_learning_fact_context_only',
         sourceType: draft.sourceType,
         privacyScope: draft.privacyScope,
         confidence: draft.confidence,

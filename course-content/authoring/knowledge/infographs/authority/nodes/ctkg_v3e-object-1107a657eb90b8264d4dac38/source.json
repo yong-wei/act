@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+  "safe_id": "ctkg_v3e-object-1107a657eb90b8264d4dac38",
+  "node": {
+    "name": "非线性系统",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "当系统中含有一个或多个具有非线性特性的元件时，该系统称为非线性系统。",
+  "intuition": null,
+  "explanation": "当系统中含有一个或多个具有非线性特性的元件时，该系统称为非线性系统。",
+  "relation_head": "前置 → 小偏差线性化法、相平面法分析非线性系统、描述函数法 · 后续 → 自激振荡",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "小偏差线性化法",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "相平面法分析非线性系统",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "描述函数法",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "相平面法",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "平衡点附近增量线性化方法",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "小偏差线性化法",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "非线性系统",
+    "用于分析·小偏差线…",
+    "用于分析·相平面法…",
+    "用于分析·描述函数法",
+    "用于分析·相平面法",
+    "用于分析·平衡点附…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-1107a657eb90b8264d4dac38.md",
+  "provider_policy": "grok-image_gen"
+}

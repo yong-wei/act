@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5104f48a9527029987e0519a",
+  "safe_id": "ctkg_v3e-object-5104f48a9527029987e0519a",
+  "node": {
+    "name": "前馈校正",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "前馈校正又称顺馈校正，是在系统主反馈回路之外采用的校正方式。",
+  "intuition": "前馈校正装置接在系统给定值（或指令、参考输入信号）之后及主反馈作用点之前的前向通道上。",
+  "explanation": "前馈校正又称顺馈校正，是在系统主反馈回路之外采用的校正方式。前馈校正装置接在系统给定值（或指令、参考输入信号）之后及主反馈作用点之前的前向通道上。",
+  "relation_head": "前置 → 前置滤波器 · 后续 → 校正装置、前置滤波器",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "校正装置",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "前置滤波器",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "前置滤波器",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "前馈校正",
+    "是一种·校正装置",
+    "是一种·前置滤波器",
+    "关联·前置滤波器"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5104f48a9527029987e0519a.md",
+  "provider_policy": "grok-image_gen"
+}

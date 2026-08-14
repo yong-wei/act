@@ -1,0 +1,63 @@
+{
+  "pack_id": "P0016",
+  "offset": 80,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-b7bed1c1ee540651b7c02d87",
+      "batch": "B",
+      "name": "method to estimate key",
+      "definition": "method to estimate key：A method to estimate key features of y(t) from the pole-zero constellation of Y(s) without explicitly inverting the Lap…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "method to e…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: method to estimate key\nSOURCE DEFINITION (fail-closed, do not invent beyond this): method to estimate key：A method to estimate key features of y(t) from the pole-zero constellation of Y(s) without explicitly inverting the Lap…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「method to 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-cba517bb72cccbe819db88e9",
+      "batch": "B",
+      "name": "point in block diagram",
+      "definition": "point in block diagram：A point in a block diagram where any number of signals may be added together, represented by a circle with the symbol Σ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "point in bl…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: point in block diagram\nSOURCE DEFINITION (fail-closed, do not invent beyond this): point in block diagram：A point in a block diagram where any number of signals may be added together, represented by a circle with the symbol Σ…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「point in b」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-f67b645861d91ec61618959b",
+      "batch": "B",
+      "name": "system whose motion is",
+      "definition": "system whose motion is：A system whose motion is described by a partial differential equation because mass elements are continuously distribute…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "system whos…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: system whose motion is\nSOURCE DEFINITION (fail-closed, do not invent beyond this): system whose motion is：A system whose motion is described by a partial differential equation because mass elements are continuously distribute…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「system who」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-29bcae62e44c52ed219e6687",
+      "batch": "B",
+      "name": "logarithmic sensitivity",
+      "definition": "logarithmic sensitivity：A measure of the sensitivity of the system performance to specific parameter changes, given by S_K^T(s) = (∂T(s)/T(s))…",
+      "visual_archetype": "工程评审板",
+      "labels": [
+        "logarithmic…",
+        "logarithmic "
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: logarithmic sensitivity\nSOURCE DEFINITION (fail-closed, do not invent beyond this): logarithmic sensitivity：A measure of the sensitivity of the system performance to specific parameter changes, given by S_K^T(s) = (∂T(s)/T(s))…\nvisual_archetype: 工程评审板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「logarithmi」、「logarithmi」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-44d931dcd9405d845e782f87",
+      "batch": "B",
+      "name": "distributed rc network",
+      "definition": "distributed rc network：A network composed of distributed R and C elements, with an attenuation slope of 10n dB/decade, where n is the order of…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "distributed…",
+        "distributed "
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: distributed rc network\nSOURCE DEFINITION (fail-closed, do not invent beyond this): distributed rc network：A network composed of distributed R and C elements, with an attenuation slope of 10n dB/decade, where n is the order of…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「distribute」、「distribute」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

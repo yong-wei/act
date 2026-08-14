@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0078",
+  "items": [
+    {
+      "safe_id": "ctc_modeling-c343400ab0cc996416d5a18a",
+      "name": "领域概念",
+      "definition": "领域概念：A simplifying statement about system operation made due to complexity or ignorance of all relevant factors.。"
+    },
+    {
+      "safe_id": "ctc_modeling-cde581a02e8cf843a69b8a69",
+      "name": "input",
+      "definition": "input：v3T accepted candidate for input."
+    },
+    {
+      "safe_id": "ctc_modeling-ec82c77661197d36bca28424",
+      "name": "Designing the control law",
+      "definition": "Designing the control law：Designing the control law as if all state variables are measured and available for use."
+    },
+    {
+      "safe_id": "ctc_modeling-v2r-5585bf06f0e579bc1c362ac2",
+      "name": "loop",
+      "definition": "loop：v3T accepted candidate for loop."
+    },
+    {
+      "safe_id": "ctc_v11g-1ebbddfa13931f700f437271",
+      "name": "angle of departure",
+      "definition": "angle of departure：The angle at which a locus leaves a complex pole in the s-plane."
+    }
+  ],
+  "created_at": "2026-08-05T16:15:42.143754+00:00"
+}

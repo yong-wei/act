@@ -6,9 +6,10 @@ import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-asses
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import type { ResourceNode } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
+import { AUTOCONTROL_KAQ_GRAPH_CATALOG } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
 
 export const REMEDIATION_ORCHESTRATOR_VERSION = 'remediation-orchestrator.v1';
-export const REMEDIATION_MANUAL_PRACTICE_PATH = '/student/practice';
+export const REMEDIATION_MANUAL_PRACTICE_PATH = '/assessment/adaptive-practice?intent=practice';
 const REMEDIATION_VALIDATION_ESTIMATED_MINUTES = 2;
 const REMEDIATION_VALIDATION_ACTION_PATH = '/assessment/adaptive-practice';
 
@@ -23,6 +24,7 @@ export type RemediationUnavailableReason =
 interface AttributionRow {
   id: string;
   userId: string;
+  sessionId: string;
   questionId: string;
   state: string;
   knowledgeNodeIds: string[];
@@ -111,7 +113,7 @@ interface GovernedValidationItem {
   actionPath: string;
 }
 
-interface RemediationTaskSnapshot {
+export interface RemediationTaskSnapshot {
   version: 'remediation-task-snapshot.v1';
   goal: string;
   estimatedMinutes: number;
@@ -141,6 +143,13 @@ interface RemediationTaskProjection {
   estimatedMinutes: number;
   resources: RemediationTaskSnapshot['resources'];
   validationQuestion: RemediationTaskSnapshot['validationQuestion'];
+}
+
+export interface AvailableRemediationInterventionSource {
+  remediationResultId: string;
+  orchestratorVersion: string;
+  learnerSessionId: string;
+  task: RemediationTaskSnapshot;
 }
 
 export type RemediationOrchestrationProjection =
@@ -260,12 +269,11 @@ function parseValidationItem(
   row: ValidationItemRow,
   sourceQuestionId: string,
   knowledgeNodeId: string,
-  misconceptionTag: string,
+  _misconceptionTag: string,
 ): GovernedValidationItem | null {
   const metadata = record(row.metadata);
   const catalogSnapshotValue = record(metadata?.adaptiveAssessmentItemRef);
   const validation = record(metadata?.remediationValidation);
-  const relationship = record(validation?.relationship);
   const currentCatalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(row.questionId);
   const version = nonEmptyString(
     currentCatalogSnapshot?.versionRefs.adaptiveAssessmentSnapshotVersion ??
@@ -277,12 +285,6 @@ function parseValidationItem(
   const actionPath = governedActionPath(REMEDIATION_VALIDATION_ACTION_PATH);
   const graphNodeIds = currentCatalogSnapshot?.semanticRefs.graphNodeIds;
   const misconceptionTags = currentCatalogSnapshot?.semanticRefs.misconceptionTags;
-  const sourceQuestionIds = stringArray(relationship?.sourceQuestionIds);
-  const relationshipKind = nonEmptyString(relationship?.kind);
-  const relationshipMatches = (
-    relationshipKind === 'isomorphic' || relationshipKind === 'variant'
-  ) && (sourceQuestionIds?.includes(sourceQuestionId) ?? false);
-  const misconceptionMatches = misconceptionTags?.includes(misconceptionTag) ?? false;
   const authority = evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority(
     catalogSnapshotValue as unknown as AssessmentEvidenceCatalogSnapshot,
     currentCatalogSnapshot,
@@ -301,7 +303,6 @@ function parseValidationItem(
     !actionPath ||
     !graphNodeIds?.includes(knowledgeNodeId) ||
     !misconceptionTags ||
-    (!relationshipMatches && !misconceptionMatches) ||
     !/^[a-f0-9]{64}$/.test(row.contentHash)
   ) {
     return null;
@@ -393,18 +394,19 @@ async function persistUnavailable(input: {
   db: RemediationOrchestrationDb;
   attribution: AttributionRow;
   reason: RemediationUnavailableReason;
+  orchestratorVersion: string;
 }): Promise<PersistedResultRow> {
   return input.db.remediationOrchestrationResult.upsert({
     where: {
       wrongAnswerAttributionId_orchestratorVersion: {
         wrongAnswerAttributionId: input.attribution.id,
-        orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+        orchestratorVersion: input.orchestratorVersion,
       },
     },
     update: {},
     create: {
       wrongAnswerAttributionId: input.attribution.id,
-      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      orchestratorVersion: input.orchestratorVersion,
       userId: input.attribution.userId,
       status: 'UNAVAILABLE',
       unavailableReason: input.reason,
@@ -422,7 +424,9 @@ function unavailableProjection(
     status: 'UNAVAILABLE',
     orchestratorVersion: row.orchestratorVersion,
     unavailableReason: reason,
-    manualPracticePath: row.manualPracticePath ?? REMEDIATION_MANUAL_PRACTICE_PATH,
+    manualPracticePath: row.manualPracticePath === REMEDIATION_MANUAL_PRACTICE_PATH
+      ? row.manualPracticePath
+      : REMEDIATION_MANUAL_PRACTICE_PATH,
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -566,10 +570,81 @@ async function projectResult(
   };
 }
 
+export async function readAvailableRemediationInterventionSource(input: {
+  db: RemediationOrchestrationDb;
+  authenticatedUserId: string;
+  resultId: string;
+}): Promise<AvailableRemediationInterventionSource | null> {
+  const row = await input.db.remediationOrchestrationResult.findFirst({
+    where: {
+      id: input.resultId,
+      userId: input.authenticatedUserId,
+    },
+  });
+  if (!row) return null;
+
+  const attribution = await input.db.wrongAnswerAttribution.findFirst({
+    where: {
+      id: row.wrongAnswerAttributionId,
+      userId: input.authenticatedUserId,
+    },
+    select: { id: true, userId: true, sessionId: true },
+  });
+  if (!attribution?.sessionId) return null;
+
+  const projection = await projectResult(input.db, row);
+  if (projection.status !== 'AVAILABLE') return null;
+  const task = parseTaskSnapshot(row.taskSnapshot);
+  if (!task) return null;
+
+  return {
+    remediationResultId: row.id,
+    orchestratorVersion: row.orchestratorVersion,
+    learnerSessionId: attribution.sessionId,
+    task,
+  };
+}
+
 export async function orchestrateRemediation(input: {
   db: RemediationOrchestrationDb;
   authenticatedUserId: string;
   attributionId: string;
+}): Promise<RemediationOrchestrationProjection | null> {
+  return orchestrateRemediationVersion({
+    ...input,
+    orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+  });
+}
+
+export async function refreshRemediationOrchestration(input: {
+  db: RemediationOrchestrationDb;
+  authenticatedUserId: string;
+  attributionId: string;
+  refreshKey: string;
+}): Promise<RemediationOrchestrationProjection | null> {
+  const existing = await input.db.remediationOrchestrationResult.findFirst({
+    where: {
+      wrongAnswerAttributionId: input.attributionId,
+      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      userId: input.authenticatedUserId,
+    },
+  });
+  if (!existing) return null;
+  const projection = await projectResult(input.db, existing);
+  if (projection.status !== 'UNAVAILABLE' || projection.unavailableReason !== 'REFERENCE_DRIFT') {
+    return projection;
+  }
+  return orchestrateRemediationVersion({
+    ...input,
+    orchestratorVersion: `${REMEDIATION_ORCHESTRATOR_VERSION}:refresh:${input.refreshKey}`,
+  });
+}
+
+async function orchestrateRemediationVersion(input: {
+  db: RemediationOrchestrationDb;
+  authenticatedUserId: string;
+  attributionId: string;
+  orchestratorVersion: string;
 }): Promise<RemediationOrchestrationProjection | null> {
   const attribution = await input.db.wrongAnswerAttribution.findFirst({
     where: { id: input.attributionId, userId: input.authenticatedUserId },
@@ -587,7 +662,7 @@ export async function orchestrateRemediation(input: {
   const existing = await input.db.remediationOrchestrationResult.findFirst({
     where: {
       wrongAnswerAttributionId: attribution.id,
-      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      orchestratorVersion: input.orchestratorVersion,
       userId: input.authenticatedUserId,
     },
   });
@@ -602,20 +677,28 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'ATTRIBUTION_UNCERTAIN',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
   const knowledgeNodeId = attribution.knowledgeNodeIds[0];
   const misconceptionTag = attribution.misconceptionTags[0];
-  const knowledgeNode = await input.db.knowledgeNode.findFirst({
+  const persistedKnowledgeNode = await input.db.knowledgeNode.findFirst({
     where: { id: knowledgeNodeId, isActive: true },
     select: { id: true, name: true, isActive: true },
   });
+  const canonicalGraphNode = AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.find((node) => (
+    node.id === knowledgeNodeId && node.status === 'active'
+  ));
+  const knowledgeNode = persistedKnowledgeNode ?? (canonicalGraphNode
+    ? { id: canonicalGraphNode.id, name: canonicalGraphNode.title, isActive: true }
+    : null);
   if (!knowledgeNode) {
     return unavailableProjection(await persistUnavailable({
       db: input.db,
       attribution,
       reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -643,6 +726,7 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -664,6 +748,7 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'VALIDATION_QUESTION_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -680,6 +765,7 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'TIME_BUDGET_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -705,13 +791,13 @@ export async function orchestrateRemediation(input: {
     where: {
       wrongAnswerAttributionId_orchestratorVersion: {
         wrongAnswerAttributionId: attribution.id,
-        orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+        orchestratorVersion: input.orchestratorVersion,
       },
     },
     update: {},
     create: {
       wrongAnswerAttributionId: attribution.id,
-      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      orchestratorVersion: input.orchestratorVersion,
       userId: attribution.userId,
       status: 'AVAILABLE',
       taskSnapshot,

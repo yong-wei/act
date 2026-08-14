@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-d812fa08ed1f541982be0df4",
+  "safe_id": "ctkg_v3e-object-d812fa08ed1f541982be0df4",
+  "node": {
+    "name": "D/A转换器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "D/A 转换器是把离散的数字信号转换为连续模拟信号的装置。",
+  "intuition": null,
+  "explanation": "D/A 转换器是把离散的数字信号转换为连续模拟信号的装置。",
+  "relation_head": "前置 → 复现过程、解码过程、模拟信号",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "复现过程",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "解码过程",
+      "relation": "属于"
+    },
+    {
+      "direction": "前置",
+      "peer": "模拟信号",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "数字信号",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "D/A转换器",
+    "属于·复现过程",
+    "属于·解码过程",
+    "关联·模拟信号",
+    "关联·数字信号"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-d812fa08ed1f541982be0df4.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-7d3f65e0e26470e469650c4d",
+  "safe_id": "ctc_modeling-7d3f65e0e26470e469650c4d",
+  "node": {
+    "name": "领域概念",
+    "name_en": "modeling_7d3f65e0e26470e469650c4d",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "necessary_prerequisite"
+  },
+  "definition": "领域概念：A five-step procedure: (1) determine the transfer function H(s), (2) determine the Laplace transform of the input U(s),…",
+  "intuition": null,
+  "explanation": "A five-step procedure: (1) determine the transfer function H(s), (2) determine the Laplace transform of the input U(s), (3) compute Y(s)=H(s)U(s), (4) break up Y(s) by partial-fraction expansion, (5) find y(t) by inverse Laplace transform.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "领域概念"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-7d3f65e0e26470e469650c4d.md",
+  "provider_policy": "grok-image_gen"
+}

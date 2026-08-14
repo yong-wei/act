@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0031",
+  "offset": 155,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-801c2bf7fd001c355296f342",
+      "batch": "B",
+      "name": "Transformation t",
+      "definition": "Transformation t：Find a transformation to take a given system to observer canonical form if and only if the system is observable (observ…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Transformat…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Transformation t\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Transformation t：Find a transformation to take a given system to observer canonical form if and only if the system is observable (observ…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Transforma」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "batch": "B",
+      "name": "Lead Compensation",
+      "definition": "Lead Compensation：Dynamic compensation that approximates proportional-derivative (PD) feedback, implemented by adding a first-order pole…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lead Compen…",
+        "Lead Compens"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Lead Compensation\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Lead Compensation：Dynamic compensation that approximates proportional-derivative (PD) feedback, implemented by adding a first-order pole…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Lead Compe」、「Lead Compe」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8a3c314c47ad84ae14ce5cb8",
+      "batch": "B",
+      "name": "Phase stabilizat",
+      "definition": "Phase stabilizat：A method to prevent limit cycles by placing compensation zeros near the poles of a lightly damped oscillatory mode such…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase stabi…",
+        "包含组件·Phas…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Phase stabilizat\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Phase stabilizat：A method to prevent limit cycles by placing compensation zeros near the poles of a lightly damped oscillatory mode such…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Phase stab」、「包含组件·Phas…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-8ba6baca586dfe58f396b9a0",
+      "batch": "B",
+      "name": "Phase-lead compe",
+      "definition": "Phase-lead compe：The lead compensator can provide a phase-lead angle and thus a satisfactory phase margin for a system. Alternatively, t…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Phase-lead …",
+        "应用于·Phase…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Phase-lead compe\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Phase-lead compe：The lead compensator can provide a phase-lead angle and thus a satisfactory phase margin for a system. Alternatively, t…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Phase-lead」、「应用于·Phase…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-90b61fb22c14c7c7328d0283",
+      "batch": "B",
+      "name": "Evaluation of st",
+      "definition": "Evaluation of st：Set U(s)=0, use the signal-flow graph with initial conditions, and apply Mason's signal-flow gain formula to obtain the…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Evaluation …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Evaluation of st\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Evaluation of st：Set U(s)=0, use the signal-flow graph with initial conditions, and apply Mason's signal-flow gain formula to obtain the…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Evaluation」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

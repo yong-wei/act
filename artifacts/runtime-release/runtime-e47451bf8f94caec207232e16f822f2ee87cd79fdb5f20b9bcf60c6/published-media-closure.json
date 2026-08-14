@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "runtime-release-media-closure.v1",
+  "releaseId": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6",
+  "sourceRevision": "c0a3200e1be6f3a6be2482a35f2ce2a599987cb0",
+  "treeSha256": "47facad67e6f232ef3734011700a0311d9b1cb6e1f3dd2fee777d4746346446b",
+  "manifestSha256": "f38d2a088944cff658650e1aab2b920fbcf5f857d0e1cf08f18bc2ee6cf88d24",
+  "publishedEntries": 105,
+  "legacyFallbackEntries": 89,
+  "pendingEntries": 19,
+  "failures": 0,
+  "ready": true,
+  "entryCount": 124,
+  "entryDigest": "8e7323527e04bdc0d17093c37d87c2292328985ecb7919f0f0d7b4f991989abc"
+}

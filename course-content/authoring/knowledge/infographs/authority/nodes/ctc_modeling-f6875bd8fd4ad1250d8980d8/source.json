@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-f6875bd8fd4ad1250d8980d8",
+  "safe_id": "ctc_modeling-f6875bd8fd4ad1250d8980d8",
+  "node": {
+    "name": "One can often linearize",
+    "name_en": "modeling_f6875bd8fd4ad1250d8980d8",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "One can often linearize：One can often linearize nonlinear elements assuming small-signal conditions, which is the normal approach used to obtai…",
+  "intuition": null,
+  "explanation": "One can often linearize nonlinear elements assuming small-signal conditions, which is the normal approach used to obtain a linear equivalent circuit for electronic circuits and transistors.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "One can oft…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-f6875bd8fd4ad1250d8980d8.md",
+  "provider_policy": "grok-image_gen"
+}

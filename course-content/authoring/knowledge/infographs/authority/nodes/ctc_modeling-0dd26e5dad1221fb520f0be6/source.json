@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-0dd26e5dad1221fb520f0be6",
+  "safe_id": "ctc_modeling-0dd26e5dad1221fb520f0be6",
+  "node": {
+    "name": "偏差向量至反馈向量之间的传递矩…",
+    "name_en": "modeling_0dd26e5dad1221fb520f0be6",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "explicit_extension"
+  },
+  "definition": "偏差向量至反馈向量之间的传递矩阵 H(s)G(s)。",
+  "intuition": null,
+  "explanation": "偏差向量至反馈向量之间的传递矩阵 H(s)G(s)。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "偏差向量至反馈向量之间…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-0dd26e5dad1221fb520f0be6.md",
+  "provider_policy": "grok-image_gen"
+}

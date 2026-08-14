@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:36:48+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-canonical-fabd3ae6177fe2f84e1bde6a",
+  "safe_id": "ctkg_v3e-canonical-fabd3ae6177fe2f84e1bde6a",
+  "node_name": "Sifting property",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1237-1241"
+}

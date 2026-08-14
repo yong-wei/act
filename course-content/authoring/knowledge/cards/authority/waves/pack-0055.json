@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0055",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-b3fb723e0aebb8b4dca3e23c",
+      "name": "信号复现过程",
+      "definition": "在采样控制系统中，把脉冲序列转变为连续信号的过程称为信号复现过程。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "name": "Compensation",
+      "definition": "Compensation：The alteration or adjustment of a control system in order to provide a suitable performance"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c48ceeda1ba4dc2b7714e367",
+      "name": "Discrete design",
+      "definition": "Discrete design：A technique for finding difference equations directly without designing D_c(s) first."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ca34eff2440293f793a1aafa",
+      "name": "Circle Criterion",
+      "definition": "Circle Criterion：A frequency-response-based stability method that considers the energy seen at the terminals of the system"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d812fa08ed1f541982be0df4",
+      "name": "D/A转换器",
+      "definition": "D/A 转换器是把离散的数字信号转换为连续模拟信号的装置。"
+    }
+  ],
+  "created_at": "2026-08-05T15:44:55.802840+00:00"
+}

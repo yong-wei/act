@@ -94,7 +94,7 @@ describe('portrait v2 incremental updates', () => {
     expect(result.payload.dimensions.find((item) => item.id === 'controlModelingRepresentation')?.score).toBe(100);
   });
   it.each([0, -1, Number.POSITIVE_INFINITY, Number.NaN])('reports governed mapping issues for invalid fact rubricWeight %s', (rubricWeight) => {
-    const mapped = mapLearningFactsToPortraitEvidence([{ id: 'invalid-weight', startedAt: new Date(baselineAt), createdAt: new Date(baselineAt), outcome: 'success', score: 1, competencyContribution: { controlModeling: 1 }, contextJson: { rubricWeight } }]);
+    const mapped = mapLearningFactsToPortraitEvidence([{ id: 'invalid-weight', startedAt: new Date(baselineAt), createdAt: new Date(baselineAt), outcome: 'success', score: 1, competencyContribution: { controlModeling: 1 }, contextJson: governedContext({ rubricWeight }) }]);
     expect(mapped.mappingIssues).toContain('invalid-rubric-weight:invalid-weight');
     expect(mapped.evidence[0].rubricWeight).toBe(1);
   });
@@ -281,6 +281,43 @@ describe('portrait v2 incremental updates', () => {
     expect(mapped.evidence.find((item) => item.id === 'path-only')?.outcome).toBe('context-only');
     expect(mapped.evidence.find((item) => item.id === 'known')?.contributions.controllerDesignSynthesis).toBe(0.8);
     expect(mapped.mappingIssues).toEqual(['unknown-portrait-dimension:futureDimension']);
+  });
+
+  it('does not produce profile evidence or change scores for a materialized client fact without a contribution', () => {
+    const previous = baseline();
+    const mapped = mapLearningFactsToPortraitEvidence([
+      fact('forged-client-contribution', {}, {
+        interactiveQuiz: { score: 100, cards: [{ cardId: 'q1', answered: true, isCorrect: true }] },
+      }),
+    ]);
+    const result = updatePortraitV2Incrementally({
+      userId: previous.userId,
+      previous,
+      evidence: mapped.evidence,
+      generatedAt: '2026-05-02T00:00:00.000Z',
+    });
+
+    expect(mapped.evidence).toHaveLength(1);
+    expect(mapped.evidence[0]?.contributions).toEqual({});
+    expect(mapped.evidence.filter(isPortraitV2ProfileEvidence)).toEqual([]);
+    expect(result.affectedDimensions).toEqual([]);
+    expect(result.payload.dimensions.map((item) => item.score)).toEqual(
+      previous.dimensions.map((item) => item.score),
+    );
+  });
+
+  it('maps a LearningFact without evidence governance as context-only', () => {
+    const mapped = mapLearningFactsToPortraitEvidence([{
+      id: 'unmanaged',
+      startedAt: new Date('2026-05-02T00:00:00.000Z'),
+      createdAt: new Date('2026-05-02T00:00:01.000Z'),
+      outcome: 'success',
+      score: 1,
+      competencyContribution: { controlModeling: 1 },
+      contextJson: {},
+    }]);
+
+    expect(mapped.evidence).toMatchObject([{ id: 'unmanaged', outcome: 'context-only' }]);
   });
 
   it('keeps a Yang Fan-style rich baseline intact when a sparse path-selection fact is context-only', () => {
@@ -1047,17 +1084,34 @@ describe('portrait v2 incremental updates', () => {
   });
 });
 
-function fact(id: string, contribution: Record<string, number>, contextJson: unknown) {
+function governedContext(context: Record<string, unknown> = {}) {
+  const declaredGovernance = context.evidenceGovernance;
+  const evidenceGovernance = declaredGovernance && typeof declaredGovernance === 'object' && !Array.isArray(declaredGovernance)
+    ? declaredGovernance
+    : {};
+  return {
+    ...context,
+    evidenceGovernance: {
+      evidenceQuality: 'rich',
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'rich_objective_evidence',
+      ...evidenceGovernance,
+    },
+  };
+}
+
+function fact(id: string, contribution: Record<string, number>, contextJson: Record<string, unknown>) {
   return {
     id,
-    sourceEventId: `governed-event:${id}`,
+    sourceEventId: `adaptive-assessment:${id}`,
     sourceLogId: `governed-log:${id}`,
     knowledgeRevisionRef: null,
     startedAt: new Date('2026-05-02T00:00:00.000Z'),
     outcome: 'success',
     score: 1,
     competencyContribution: contribution,
-    contextJson,
+    contextJson: governedContext(contextJson),
     createdAt: new Date('2026-05-02T00:00:01.000Z'),
   };
 }

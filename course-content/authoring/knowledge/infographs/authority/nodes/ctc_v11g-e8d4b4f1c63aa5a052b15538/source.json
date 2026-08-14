@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+  "safe_id": "ctc_v11g-e8d4b4f1c63aa5a052b15538",
+  "node": {
+    "name": "根轨迹法",
+    "name_en": "root_locus_method",
+    "concept_kind": "analysis_method",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "根轨迹法：A graphical method for sketching the locus of roots in the s-plane as a parameter is varied, used to analyze the relati…",
+  "intuition": "在图谱邻接中可把握：前置 → Root locus z-plane method、Root-Locus Techn、闭环极点 · 后续 → root of the denominator、特征方程、传递函数。",
+  "explanation": "A graphical method for sketching the locus of roots in the s-plane as a parameter is varied, used to analyze the relative stability and transient performance of a closed-loop control system.",
+  "relation_head": "前置 → Root locus z-plane method、Root-Locus Techn、闭环极点 · 后续 → root of the denominator、特征方程、传递函数",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "root of the denominator",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "特征方程",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "传递函数",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "根轨迹",
+      "relation": "应用于"
+    },
+    {
+      "direction": "前置",
+      "peer": "Root locus z-plane method",
+      "relation": "派生自"
+    },
+    {
+      "direction": "前置",
+      "peer": "Root-Locus Techn",
+      "relation": "派生自"
+    }
+  ],
+  "labels": [
+    "根轨迹法",
+    "root locus m",
+    "用于分析·root…",
+    "用于分析·特征方程",
+    "应用于·传递函数",
+    "应用于·根轨迹",
+    "派生自·Root …"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-e8d4b4f1c63aa5a052b15538.md",
+  "provider_policy": "grok-image_gen"
+}

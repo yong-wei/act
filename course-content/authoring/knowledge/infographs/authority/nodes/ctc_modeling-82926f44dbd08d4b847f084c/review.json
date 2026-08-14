@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:57:14+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-82926f44dbd08d4b847f084c",
+  "safe_id": "ctc_modeling-82926f44dbd08d4b847f084c",
+  "node_name": "根据结构图的信号线明确传递的信…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch10 A accept"
+}

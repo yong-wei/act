@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-3d704911971a572aac4e975e",
+  "safe_id": "ctkg_v3e-object-3d704911971a572aac4e975e",
+  "node": {
+    "name": "等效增益",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "将非线性特性视为一个环节，环节的输入为x，输出为y，按照线性系统中比例环节的描述，定义非线性环节输出y和输入x的比值为等效增益。",
+  "intuition": "在图谱邻接中可把握：后续 → 摩擦特性、间隙特性、饱和特性。",
+  "explanation": "将非线性特性视为一个环节，环节的输入为x，输出为y，按照线性系统中比例环节的描述，定义非线性环节输出y和输入x的比值为等效增益。",
+  "relation_head": "后续 → 摩擦特性、间隙特性、饱和特性",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "摩擦特性",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "间隙特性",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "饱和特性",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "死区特性",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "等效增益",
+    "关联·摩擦特性",
+    "关联·间隙特性",
+    "关联·饱和特性",
+    "关联·死区特性"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3d704911971a572aac4e975e.md",
+  "provider_policy": "grok-image_gen"
+}

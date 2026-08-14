@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5ed6282c976442e9747881b4",
+  "safe_id": "ctkg_v3e-object-5ed6282c976442e9747881b4",
+  "node": {
+    "name": "Bode plot construction method",
+    "name_en": "Bode plot construction method",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Bode plot construction method：A procedure to construct Bode magnitude and phase plots by converting the transfer function to Bode form, plotting low-…",
+  "intuition": null,
+  "explanation": "A procedure to construct Bode magnitude and phase plots by converting the transfer function to Bode form, plotting low-frequency asymptotes, stepping slopes at break points, and adding individual phase curves.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Bode plot c…"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5ed6282c976442e9747881b4.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,22 @@
+{
+  "contract": "act-teaching-prerequisite-publication/v1",
+  "builderVersion": "act-teaching-prerequisite-builder/v1",
+  "scopeId": "act-control-theory-core",
+  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+  "projectionCaptureId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+  "coreNodeCount": 5,
+  "publishedEdgeCount": 4,
+  "candidateCount": 0,
+  "sourceHashes": {
+    "coreNodes": "584aaeef1cd382a3e41ed952f5dad0c7471aa3ec6a49c154302d5efe997656d0",
+    "edges": "89f3edb9050fa76739d3f983e7b912531fdf3c5b285d8d050467a80577f94e62",
+    "decisions": "6ce64960c166268c562aa1f533270f78db5bbe78185ad9757f4c3093ce072d0d",
+    "candidates": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "body": "d03df9b9508b17dbc7af2bbca9ae21ad5bdc6018f7ac5104bd9f224366342e0f"
+  },
+  "gateStatus": "PUBLISHED",
+  "gatePassed": true,
+  "publicationId": "proj-b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b",
+  "publicationHash": "b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b"
+}

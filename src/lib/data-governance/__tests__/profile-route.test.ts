@@ -844,9 +844,7 @@ describe('GET /api/user/profile', () => {
       actionUrl: '/assessment/adaptive-practice?intent=practice',
     });
     expect(body.arenaPortfolio.submissionSummary.total).toBe(2);
-    expect(mocks.prisma.arenaVirtualSimulationRun.count).toHaveBeenCalledWith({
-      where: { userId: 'student-1' },
-    });
+    expect(mocks.prisma.arenaVirtualSimulationRun.count).not.toHaveBeenCalled();
     expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith({
       where: {
         userId: 'student-1',
@@ -954,8 +952,9 @@ describe('GET /api/user/profile', () => {
   it('reads Arena training count and bounded runs from one RepeatableRead transaction snapshot', async () => {
     const transactionClient = {
       arenaVirtualSimulationRun: {
-        count: vi.fn().mockResolvedValue(17),
-        findMany: vi.fn().mockResolvedValue([arenaTrainingRun()]),
+        findMany: vi.fn().mockResolvedValue(
+          Array.from({ length: 17 }, (_, index) => arenaTrainingRun({ id: `arena-training-${index + 1}` })),
+        ),
       },
     };
     mocks.prisma.$transaction.mockImplementationOnce(async (callback, options) => {
@@ -970,15 +969,12 @@ describe('GET /api/user/profile', () => {
     expect(body.arenaPortfolio.trainingSummary).toMatchObject({
       total: 17,
       previewCount: 17,
-      recentRuns: [expect.objectContaining({ id: 'arena-training-1' })],
+      recentRuns: expect.arrayContaining([expect.objectContaining({ id: 'arena-training-1' })]),
     });
     expect(mocks.prisma.$transaction).toHaveBeenCalledWith(
       expect.any(Function),
       { isolationLevel: 'RepeatableRead' },
     );
-    expect(transactionClient.arenaVirtualSimulationRun.count).toHaveBeenCalledWith({
-      where: { userId: 'student-1' },
-    });
     expect(transactionClient.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ userId: 'student-1' }),
@@ -989,7 +985,7 @@ describe('GET /api/user/profile', () => {
     expect(mocks.prisma.arenaVirtualSimulationRun.findMany).not.toHaveBeenCalled();
   });
 
-  it('bounds the scan to the first one hundred candidates and keeps the total count independent', async () => {
+  it('paginates beyond the first one hundred candidates so totals use the same evidence filter', async () => {
     const firstHundred = Array.from({ length: 100 }, (_, index) => damagedArenaTrainingRun({
       id: `training-damaged-${index + 1}`,
       createdAt: new Date('2026-05-16T08:40:00.000Z'),
@@ -998,28 +994,27 @@ describe('GET /api/user/profile', () => {
       id: 'training-complete-101',
       createdAt: new Date('2026-05-16T08:40:00.000Z'),
     });
-    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(101);
-    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValueOnce([
-      ...firstHundred,
-      oneHundredFirst,
-    ]);
+    mocks.prisma.arenaVirtualSimulationRun.findMany
+      .mockResolvedValueOnce(firstHundred)
+      .mockResolvedValueOnce([oneHundredFirst]);
 
     const response = await GET();
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body.arenaPortfolio.trainingSummary).toMatchObject({
-      total: 101,
-      previewCount: 101,
-      recentRuns: [],
+      total: 1,
+      previewCount: 1,
+      recentRuns: [expect.objectContaining({ id: 'training-complete-101' })],
     });
-    expect(body.arenaPortfolio.trainingSummary.recentRuns).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ id: 'training-complete-101' })]),
-    );
-    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(2);
     expect(mocks.prisma.arenaVirtualSimulationRun.findMany.mock.calls[0]?.[0]).toMatchObject({
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: 100,
+    });
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany.mock.calls[1]?.[0]).toMatchObject({
+      cursor: { id: 'training-damaged-100' },
+      skip: 1,
     });
   });
 
@@ -1033,7 +1028,9 @@ describe('GET /api/user/profile', () => {
       })),
     ];
     mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(100);
-    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValueOnce(page);
+    mocks.prisma.arenaVirtualSimulationRun.findMany
+      .mockResolvedValueOnce(page)
+      .mockResolvedValueOnce([]);
 
     const response = await GET();
     const body = await response.json();
@@ -1043,7 +1040,7 @@ describe('GET /api/user/profile', () => {
     expect(body.arenaPortfolio.trainingSummary.recentRuns.every(
       (run: { confidence: string }) => run.confidence === 'low',
     )).toBe(true);
-    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(2);
   });
 
   it('accepts dispersed canonical and historical preview boundary paths', async () => {

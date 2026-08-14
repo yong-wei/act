@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T15:42:26+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+  "safe_id": "ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+  "node_name": "相角裕度",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0052 vision-mapped accept"
+}

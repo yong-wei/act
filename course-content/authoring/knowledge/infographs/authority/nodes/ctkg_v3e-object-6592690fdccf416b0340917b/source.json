@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-6592690fdccf416b0340917b",
+  "safe_id": "ctkg_v3e-object-6592690fdccf416b0340917b",
+  "node": {
+    "name": "带宽频率",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "系统闭环幅频特性下降到某一阈值时的频率，记为ω_b。",
+  "intuition": null,
+  "explanation": "系统闭环幅频特性下降到某一阈值时的频率，记为ω_b",
+  "relation_head": "前置 → 得到闭环对数幅频和相频曲线、谐振峰值、截止频率",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "得到闭环对数幅频和相频曲线",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "谐振峰值",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "得到闭环对数幅频和相频曲线",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "截止频率",
+      "relation": "关联"
+    },
+    {
+      "direction": "前置",
+      "peer": "谐振频率",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "带宽频率",
+    "用于分析·得到闭环…",
+    "关联·谐振峰值",
+    "关联·得到闭环对数…",
+    "关联·截止频率",
+    "关联·谐振频率"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-6592690fdccf416b0340917b.md",
+  "provider_policy": "grok-image_gen"
+}

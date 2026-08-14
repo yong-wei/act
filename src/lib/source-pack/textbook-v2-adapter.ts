@@ -68,7 +68,8 @@ const DEFAULT_INDEX_ROOT = path.join(
   'course-content',
   'runtime',
   'resources',
-  'textbook-retrieval',
+  'textbook-hybrid-retrieval',
+  'bge-m3',
 );
 
 type RetrieveTextbook = (

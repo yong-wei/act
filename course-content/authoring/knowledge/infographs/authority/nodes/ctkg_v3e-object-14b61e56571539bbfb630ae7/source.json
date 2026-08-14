@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-14b61e56571539bbfb630ae7",
+  "safe_id": "ctkg_v3e-object-14b61e56571539bbfb630ae7",
+  "node": {
+    "name": "小偏差线性化法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "当系统方程解析且工作在某一数值附近的较小范围内时，可运用小偏差法将非线性模型线性化。",
+  "intuition": "在图谱邻接中可把握：后续 → 非线性系统。",
+  "explanation": "当系统方程解析且工作在某一数值附近的较小范围内时，可运用小偏差法将非线性模型线性化。",
+  "relation_head": "后续 → 非线性系统",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "非线性系统",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "非线性系统",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "小偏差线性化法",
+    "用于分析·非线性系统",
+    "应用于·非线性系统"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-14b61e56571539bbfb630ae7.md",
+  "provider_policy": "grok-image_gen"
+}

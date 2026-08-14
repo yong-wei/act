@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:21:29+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+  "safe_id": "ctkg_v3e-canonical-6db84c73a9b0e833400e64fc",
+  "node_name": "比例-微分控制",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (PD/无零点二阶/初始斜率/c2/ωn)"
+}

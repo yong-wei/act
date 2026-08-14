@@ -1,0 +1,7 @@
+{
+  "contract": "actkg-to-act-first-activation-journal-state-correction/v1",
+  "transactionId": "first-cutover-7f4cdd1084af419a3e837876-exercise",
+  "beforeJournalHash": "6623806ce4c454d06aa07221468357fc7a46613cc3d419a983942c85df25b873",
+  "afterJournalHash": "355d677055abfc7d0a8cb909ea39d2ed5d2ef8913349470268ec5f515cd9af19",
+  "correctedAt": "2026-08-11T00:30:00.000Z"
+}

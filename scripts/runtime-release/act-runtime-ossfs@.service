@@ -1,0 +1,16 @@
+[Unit]
+Description=ACT immutable OSS runtime release %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=ACT_RUNTIME_MOUNT_ROOT=/home/projects/act/data/runtime/ossfs/releases
+Environment=ACT_RUNTIME_OSSFS_CONFIG_DIR=/etc/act-runtime-ossfs
+ExecStartPre=/usr/bin/mkdir -p ${ACT_RUNTIME_MOUNT_ROOT}/%i
+ExecStart=/usr/local/bin/ossfs2 mount ${ACT_RUNTIME_MOUNT_ROOT}/%i -c ${ACT_RUNTIME_OSSFS_CONFIG_DIR}/%i.conf
+ExecStop=/usr/bin/umount ${ACT_RUNTIME_MOUNT_ROOT}/%i
+
+[Install]
+WantedBy=multi-user.target

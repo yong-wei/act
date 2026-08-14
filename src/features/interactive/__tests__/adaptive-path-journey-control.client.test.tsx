@@ -20,6 +20,7 @@ vi.mock('next/link', () => ({
 }));
 
 import {
+  AdaptivePathJourneyControl,
   AdaptivePathJourneyControlFromRoute,
   AdaptivePathOwnedResourceAction,
   publishAdaptivePathJourneyResponse,
@@ -400,5 +401,88 @@ describe('adaptive path journey client behavior', () => {
     });
     await act(async () => requestAdaptivePathJourneyRefresh());
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('refreshes after a stale correction-decision response without applying a client-side path change', async () => {
+    const correctedJourney = journey('path-1', 'node-1', '继续当前路径');
+    correctedJourney.correction = {
+      proposal: {
+        trigger: { kind: 'deviation', nodeId: 'node-1', title: '节点 node-1', reason: '已记录偏离。' },
+        originalRemaining: [{ nodeId: 'node-1', title: '节点 node-1', type: 'knowledge_card', estimatedTimeMinutes: 5 }],
+        proposedRemaining: [{ nodeId: 'node-1', title: '节点 node-1', type: 'knowledge_card', estimatedTimeMinutes: 5 }],
+        changes: [{ kind: 'removed', nodeId: 'node-old', title: '旧节点', reason: '已跳过。' }],
+        supportingFacts: ['存在可核验的偏离记录。'],
+        estimatedRemainingWork: { originalMinutes: 5, proposedMinutes: 5, differenceMinutes: 0 },
+      },
+      unavailableReason: null,
+      candidateFingerprint: 'correction-stale',
+      pathUpdatedAt: '2026-08-04T09:00:00.000Z',
+      decision: null,
+      history: [],
+    };
+    const refresh = vi.fn();
+    const fetchMock = vi.fn(() => response({ refreshRequired: true }, 409));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await act(async () => root.render(createElement(AdaptivePathJourneyControl, {
+      launchContext: {
+        goalId: 'control-correction', pathId: 'path-1', nodeId: 'node-1',
+        routeIntent: 'path-execution', resourceType: 'knowledge_card', returnHref: correctedJourney.return.href,
+        source: 'adaptive-path-center',
+      },
+      status: 'ready',
+      journey: correctedJourney,
+      error: null,
+      onRefresh: refresh,
+    })));
+    const confirmButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('确认调整'));
+    expect(confirmButton).toBeTruthy();
+
+    await act(async () => {
+      confirmButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/learning-paths/path-1/correction-decisions',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain('方案已更新，请刷新后重新查看。');
+  });
+
+  it('keeps an applied correction decision visible after its candidate is no longer current', async () => {
+    const correctedJourney = journey('path-1', 'node-1', '继续当前路径');
+    correctedJourney.correction = {
+      proposal: null,
+      unavailableReason: null,
+      candidateFingerprint: null,
+      pathUpdatedAt: '2026-08-04T09:00:00.000Z',
+      decision: null,
+      history: [{
+        candidateFingerprint: 'correction-applied',
+        decision: 'confirmed',
+        applied: true,
+        createdAt: '2026-08-04T09:02:00.000Z',
+        outcome: null,
+      }],
+    };
+
+    await act(async () => root.render(createElement(AdaptivePathJourneyControl, {
+      launchContext: {
+        goalId: 'control-correction', pathId: 'path-1', nodeId: 'node-1',
+        routeIntent: 'path-execution', resourceType: 'knowledge_card', returnHref: correctedJourney.return.href,
+        source: 'adaptive-path-center',
+      },
+      status: 'ready',
+      journey: correctedJourney,
+      error: null,
+      onRefresh: vi.fn(),
+    })));
+
+    expect(container.textContent).toContain('查看纠偏决策记录');
+    expect(container.textContent).toContain('已确认并应用');
+    expect(container.querySelector('[data-adaptive-path-correction="available"]')).toBeNull();
   });
 });

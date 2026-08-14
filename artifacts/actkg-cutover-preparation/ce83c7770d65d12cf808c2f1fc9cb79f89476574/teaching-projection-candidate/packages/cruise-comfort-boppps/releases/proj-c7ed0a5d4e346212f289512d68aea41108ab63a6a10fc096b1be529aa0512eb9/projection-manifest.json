@@ -1,0 +1,29 @@
+{
+  "contract": "act-teaching-projection-manifest/v1",
+  "builderVersion": "act-teaching-projection-builder/v1",
+  "scopeId": "course-package:cruise-comfort-boppps",
+  "authoringRevision": "ce83c7770d65d12cf808c2f1fc9cb79f89476574",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.9",
+  "authorityReleaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+  "authoritySnapshotId": "snap-1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+  "authoritySnapshotHash": "1b84945e793dca0d99a25aafc26cffe91d0c9a0910281f78b67abceac28131f2",
+  "sourceHashes": {
+    "resources": "e3b1f7b8973e9426bb6fce8a4cf15f9edf19ac2c678c3f262494400a52d4208b",
+    "bindings": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "prerequisites": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "coreNodes": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "cards": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "authorityNodes": "8bbd80424b55f217a43c6da760d3dc0a0dfa80dd80c352ca1a15da96955bc885",
+    "authoringBody": "291a4191dba90e1bafdca6be847395093e2208b6d8b4b8d163d6376ec8a2debd",
+    "gate": "562c1c0d46e080aa0c4169e886976eefb43e586617899e06c3155ac0646a9c09"
+  },
+  "resourceCount": 16,
+  "bindingCount": 0,
+  "prerequisiteCount": 0,
+  "coreNodeCount": 0,
+  "cardCount": 0,
+  "gateStatus": "REVIEW_REQUIRED",
+  "gatePassed": false,
+  "projectionId": "proj-c7ed0a5d4e346212f289512d68aea41108ab63a6a10fc096b1be529aa0512eb9",
+  "projectionHash": "c7ed0a5d4e346212f289512d68aea41108ab63a6a10fc096b1be529aa0512eb9"
+}

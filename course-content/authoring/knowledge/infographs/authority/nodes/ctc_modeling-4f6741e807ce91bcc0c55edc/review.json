@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T07:53:30+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-4f6741e807ce91bcc0c55edc",
+  "safe_id": "ctc_modeling-4f6741e807ce91bcc0c55edc",
+  "node_name": "描述系统内部每个时刻所处状况的…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "W1 r9 accept"
+}

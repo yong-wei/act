@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T14:54:46+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-9496aabdf225c6359c6ca1cc",
+  "safe_id": "ctc_modeling-9496aabdf225c6359c6ca1cc",
+  "node_name": "feedback loop where the",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack0014"
+}

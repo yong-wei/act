@@ -10,12 +10,16 @@ import {
   type CompetencyDimension,
 } from './competency-model';
 import {
+  isLearningFactEligibleForPersonalization,
+  resolveLearningFactProfileWeight,
+} from './learning-fact-quality-weight';
+import {
   PORTRAIT_V2_PAYLOAD_VERSION,
   validatePortraitV2Payload,
   type PortraitV2PayloadShape,
 } from './portrait-v2-model';
 
-export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v5';
+export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v6';
 export const STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS = 30;
 
@@ -480,7 +484,9 @@ export function buildStudentEvidenceFeaturePayload(
 ): StudentEvidenceFeaturePayload {
   const now = input.now ?? new Date();
   const staleAfterDays = input.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS;
-  const facts = [...input.facts].sort(compareFacts);
+  const facts = input.facts
+    .filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson))
+    .sort(compareFacts);
   const factsWithSource = facts.filter((item) => Boolean(item.sourceEventId || item.sourceLogId));
   const recentFacts = filterRecentFacts(facts, now, STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS);
   const firstFact = facts[0] ?? null;
@@ -710,8 +716,8 @@ export async function refreshStudentEvidenceFeatureCache(
     staleAfterDays: options.staleAfterDays,
   });
   const refreshedAt = now;
-  const lastSourceFactAt = facts.length > 0 && facts[facts.length - 1].startedAt
-    ? new Date(facts[facts.length - 1].startedAt)
+  const lastSourceFactAt = payload.sourceWindows.activityAll.lastStartedAt
+    ? new Date(payload.sourceWindows.activityAll.lastStartedAt)
     : null;
   const create = {
     userId,
@@ -728,7 +734,7 @@ export async function refreshStudentEvidenceFeatureCache(
     },
     confidenceMarkers: payload.confidence,
     statusMarkers: payload.statusMarkers,
-    sourceFactCount: facts.length,
+    sourceFactCount: payload.sourceCounts.LearningFact,
     lastSourceFactAt,
     refreshedAt,
     rebuiltAt: refreshedAt,
@@ -836,11 +842,12 @@ export async function readStudentEvidenceFeatures(
     ? (options.now ?? new Date()).getTime() - refreshedAt.getTime() > staleAfterDays * DAY_MS
     : true;
   const markers = Array.isArray(compatibleCache.statusMarkers) ? compatibleCache.statusMarkers : [];
+  const staleByVersion = compatibleCache.payloadVersion !== STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION;
   const staleBySchema = !hasCurrentFeaturePayloadSchema(compatibleCache);
 
   return {
     state: staleByAge || markers.includes('stale') || staleBySchema ? 'stale' : 'ready',
-    cache: compatibleCache,
+    cache: staleByVersion ? null : compatibleCache,
     rawReadExceptions: [...STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS],
   };
 }
@@ -1490,7 +1497,9 @@ function buildCompetencyContributions(
   for (const dimension of COMPETENCY_DIMENSIONS) {
     const dimensionValues = facts
       .map((item) => ({
-        value: numberValue(isObject(item.competencyContribution) ? item.competencyContribution[dimension] : undefined),
+        value: numberValue(
+          isObject(item.competencyContribution) ? item.competencyContribution[dimension] : undefined,
+        ) * resolveLearningFactProfileWeight(item.contextJson),
         startedAt: item.startedAt,
       }))
       .filter((item) => item.value !== 0);
@@ -1997,6 +2006,7 @@ function filterRecentFacts(
 
 function filterContributionFacts(facts: StudentEvidenceFeatureLearningFact[]): StudentEvidenceFeatureLearningFact[] {
   return facts.filter((fact) => {
+    if (resolveLearningFactProfileWeight(fact.contextJson) <= 0) return false;
     const contribution = isObject(fact.competencyContribution) ? fact.competencyContribution : {};
     return COMPETENCY_DIMENSIONS.some((dimension) => numberValue(contribution[dimension]) !== 0);
   });

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-e00aa88647adaaf1c5d57462",
+  "safe_id": "ctc_v11g-e00aa88647adaaf1c5d57462",
+  "node": {
+    "name": "asymptote centroid",
+    "name_en": "asymptote_centroid",
+    "concept_kind": "mathematical_object",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "asymptote centroid：The center of the linear asymptotes, σ_A.",
+  "intuition": null,
+  "explanation": "The center of the linear asymptotes, σ_A.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "asymptote c…",
+    "asymptote ce"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-e00aa88647adaaf1c5d57462.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -437,6 +437,30 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).not.toContain('data-knowledge-local-panel="layout-controls"');
   });
 
+  it('keeps the mobile Legacy toolbar below the global mode switch and captures its direct pointer triggers', () => {
+    const systemSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
+      'utf8',
+    );
+    const workspaceSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'),
+      'utf8',
+    );
+    const captureSource = readFileSync(
+      path.join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'),
+      'utf8',
+    );
+
+    expect(workspaceSource).toContain('right-3 top-3 z-50');
+    expect(systemSource).toContain('left-3 right-3 top-16 lg:top-3');
+    expect(systemSource).toContain('data-knowledge-mobile-command-toolbar="true"');
+    expect(captureSource).toContain(
+      '[data-knowledge-mobile-command-surface] > [data-knowledge-mobile-command-toolbar="true"]',
+    );
+    expect(captureSource).toContain("getByRole('button', { name: label, exact: true })");
+    expect(captureSource).toContain('await mobileButton.click({ timeout: 5000 });');
+  });
+
   it('registers the knowledge route with the shared AI floating dock inventory', () => {
     const navigationSource = readFileSync(
       path.join(process.cwd(), 'src/lib/platform-role-navigation.ts'),

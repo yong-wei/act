@@ -1,0 +1,670 @@
+{
+  "wave_id": "W20",
+  "batch": "C",
+  "title": "Batch C slice 3",
+  "offset": 100,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_a09e623edf21b6aaa676b0a5",
+      "entity_id": "ctkg:domainconcept:a09e623edf21b6aaa676b0a5",
+      "name": "Lyapunov Function",
+      "name_en": "Lyapunov Function",
+      "definition": "Lyapunov Function是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov Fu…",
+        "Lyapunov Fun",
+        "一种·Positi…",
+        "用于分析·Lyap…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a183d0a0001c3553cc638558",
+      "entity_id": "ctkg:domainconcept:a183d0a0001c3553cc638558",
+      "name": "Discrete Models",
+      "name_en": "Discrete Models",
+      "definition": "Discrete Models是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete Mo…",
+        "Discrete Mod"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a3186afbaab04b331226cdc9",
+      "entity_id": "ctkg:domainconcept:a3186afbaab04b331226cdc9",
+      "name": "Instability",
+      "name_en": "Instability",
+      "definition": "Instability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Instability"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a45eae6f2246a7b9b35bf444",
+      "entity_id": "ctkg:domainconcept:a45eae6f2246a7b9b35bf444",
+      "name": "连续到离散等效设计方法",
+      "name_en": null,
+      "definition": "连续到离散等效设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "连续到离散等效设计方法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a55a1dccfb81a726e05539cc",
+      "entity_id": "ctkg:domainconcept:a55a1dccfb81a726e05539cc",
+      "name": "G c(s)-to-D(z) conversion method",
+      "name_en": "G_c(s)-to-D(z) conversion method",
+      "definition": "G c(s)-to-D(z) conversion method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "G c(s)-to-D…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a85bf0c53a7d633a260a63d7",
+      "entity_id": "ctkg:domainconcept:a85bf0c53a7d633a260a63d7",
+      "name": "单位反馈线性定常离散系统（例7…",
+      "name_en": null,
+      "definition": "单位反馈线性定常离散系统（例7…是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位反馈线性定常离散系…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_a9db9c0d98a9759008f3c37b",
+      "entity_id": "ctkg:domainconcept:a9db9c0d98a9759008f3c37b",
+      "name": "题7-17闭环离散系统模型",
+      "name_en": null,
+      "definition": "题7-17闭环离散系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-17闭环离散系统…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_aa8ea79b87e1a61e5f117b98",
+      "entity_id": "ctkg:domainconcept:aa8ea79b87e1a61e5f117b98",
+      "name": "数字控制器 D(z)",
+      "name_en": null,
+      "definition": "数字控制器 D(z)是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字控制器 D(z)"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ad75410e5a16550ce25a6d8a",
+      "entity_id": "ctkg:domainconcept:ad75410e5a16550ce25a6d8a",
+      "name": "一拍系统",
+      "name_en": null,
+      "definition": "一拍系统是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一拍系统"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_adbc098775012a91ff4207e3",
+      "entity_id": "ctkg:domainconcept:adbc098775012a91ff4207e3",
+      "name": "无纹波最少拍系统设计方法",
+      "name_en": null,
+      "definition": "无纹波最少拍系统设计方法是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "无纹波最少拍系统设计方法"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b00a275496bb3493dc1436b9",
+      "entity_id": "ctkg:domainconcept:b00a275496bb3493dc1436b9",
+      "name": "Lyapunov's second method",
+      "name_en": "Lyapunov's second method",
+      "definition": "Lyapunov's second method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov's …",
+        "Lyapunov's s"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b33901638cba88f3f2ea5a20",
+      "entity_id": "ctkg:domainconcept:b33901638cba88f3f2ea5a20",
+      "name": "Discrete Integral Control",
+      "name_en": "Discrete Integral Control",
+      "definition": "Discrete Integral Control是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete In…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b35807c25dd0d822dda119c8",
+      "entity_id": "ctkg:domainconcept:b35807c25dd0d822dda119c8",
+      "name": "不稳定性",
+      "name_en": null,
+      "definition": "不稳定性是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "不稳定性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b4252232f738d2575767fd6b",
+      "entity_id": "ctkg:domainconcept:b4252232f738d2575767fd6b",
+      "name": "Entry point in z-plane root locus",
+      "name_en": "Entry point in z-plane root locus",
+      "definition": "Entry point in z-plane root locus是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Entry point…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b4aa88340e051572c027eb23",
+      "entity_id": "ctkg:domainconcept:b4aa88340e051572c027eb23",
+      "name": "Lyapunov Indirect Method",
+      "name_en": "Lyapunov Indirect Method",
+      "definition": "Lyapunov Indirect Method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov In…",
+        "Lyapunov Ind"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b59579e9d355b2e2d44352b0",
+      "entity_id": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+      "name": "根轨迹",
+      "name_en": null,
+      "definition": "根轨迹是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "根轨迹"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b621a897dafceaba35cce329",
+      "entity_id": "ctkg:domainconcept:b621a897dafceaba35cce329",
+      "name": "题7-26闭环离散系统模型",
+      "name_en": null,
+      "definition": "题7-26闭环离散系统模型是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-26闭环离散系统…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b6aa705c3bcc3630a4c1962b",
+      "entity_id": "ctkg:domainconcept:b6aa705c3bcc3630a4c1962b",
+      "name": "采样周期",
+      "name_en": null,
+      "definition": "采样周期是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样周期"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b7b9b4cd76509c25cf2b5b28",
+      "entity_id": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+      "name": "z 特征方程",
+      "name_en": null,
+      "definition": "z 特征方程是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "z 特征方程"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b7fc2ba69b902e77c74aea53",
+      "entity_id": "ctkg:domainconcept:b7fc2ba69b902e77c74aea53",
+      "name": "Lyapunov stability",
+      "name_en": "Lyapunov stability",
+      "definition": "Lyapunov stability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov st…",
+        "Lyapunov sta"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b9e17d7d49dcfcec06ee70e7",
+      "entity_id": "ctkg:domainconcept:b9e17d7d49dcfcec06ee70e7",
+      "name": "题7-17系统结构图",
+      "name_en": null,
+      "definition": "题7-17系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-17系统结构图"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bb073f59e79dbee61e794fa1",
+      "entity_id": "ctkg:domainconcept:bb073f59e79dbee61e794fa1",
+      "name": "Discrete Derivative Control",
+      "name_en": "Discrete Derivative Control",
+      "definition": "Discrete Derivative Control是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete De…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bbb77635a4753e2de17d81ca",
+      "entity_id": "ctkg:domainconcept:bbb77635a4753e2de17d81ca",
+      "name": "典型输入",
+      "name_en": null,
+      "definition": "典型输入是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "典型输入"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bca773190d368f3faaaab995",
+      "entity_id": "ctkg:domainconcept:bca773190d368f3faaaab995",
+      "name": "数字控制器脉冲传递函数",
+      "name_en": null,
+      "definition": "数字控制器脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字控制器脉冲传递函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bcb4481c7a310fb698ee71fb",
+      "entity_id": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+      "name": "Positive Definite Function",
+      "name_en": "Positive Definite Function",
+      "definition": "Positive Definite Function是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Positive De…",
+        "一种·Lyapun…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bcb984982bdc0a405f967351",
+      "entity_id": "ctkg:domainconcept:bcb984982bdc0a405f967351",
+      "name": "Lyapunov's indirect method",
+      "name_en": "Lyapunov's indirect method",
+      "definition": "Lyapunov's indirect method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov's …"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bdae7eeb9e64719b93446a14",
+      "entity_id": "ctkg:domainconcept:bdae7eeb9e64719b93446a14",
+      "name": "backward difference rule",
+      "name_en": "backward difference rule",
+      "definition": "backward difference rule是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "backward di…",
+        "backward dif"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_be726bac049cf9cd8b4c2324",
+      "entity_id": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+      "name": "稳态误差",
+      "name_en": null,
+      "definition": "稳态误差是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳态误差"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_bf027d00f4e69d3198aefe23",
+      "entity_id": "ctkg:domainconcept:bf027d00f4e69d3198aefe23",
+      "name": "Exact Discrete Equivalent",
+      "name_en": "Exact Discrete Equivalent",
+      "definition": "Exact Discrete Equivalent是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Exact Discr…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_c762d9e6b65175bba817ef32",
+      "entity_id": "ctkg:domainconcept:c762d9e6b65175bba817ef32",
+      "name": "具有数字控制器的离散系统结构图",
+      "name_en": null,
+      "definition": "具有数字控制器的离散系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "具有数字控制器的离散系…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_c7cc2f616bfb2c6cdd6333bc",
+      "entity_id": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+      "name": "阻尼比",
+      "name_en": null,
+      "definition": "阻尼比是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阻尼比"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_c8c9bf27db6d626df6437323",
+      "entity_id": "ctkg:domainconcept:c8c9bf27db6d626df6437323",
+      "name": "Mixed Continuous-Discrete System",
+      "name_en": "Mixed Continuous-Discrete System",
+      "definition": "Mixed Continuous-Discrete System是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Mixed Conti…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_cd1a5e4071f81f8cf97f7eb7",
+      "entity_id": "ctkg:domainconcept:cd1a5e4071f81f8cf97f7eb7",
+      "name": "Discrete Lead Compensation",
+      "name_en": "Discrete Lead Compensation",
+      "definition": "Discrete Lead Compensation是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete Le…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_cddf1c071aa52e4f1dece3ee",
+      "entity_id": "ctkg:domainconcept:cddf1c071aa52e4f1dece3ee",
+      "name": "Closed-loop samp",
+      "name_en": "Closed-loop sampled system with digital computer compensation",
+      "definition": "Closed-loop samp是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Closed-loop…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ce58ea6e6a7dad56e9b4a8cd",
+      "entity_id": "ctkg:domainconcept:ce58ea6e6a7dad56e9b4a8cd",
+      "name": "零阶保持器",
+      "name_en": null,
+      "definition": "零阶保持器是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "零阶保持器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ce5faebdf847052fdb481b31",
+      "entity_id": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+      "name": "asymptotic stability",
+      "name_en": "asymptotic stability",
+      "definition": "asymptotic stability是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "asymptotic …",
+        "asymptotic s"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_ceba1e9ff71d5f284ca106d9",
+      "entity_id": "ctkg:domainconcept:ceba1e9ff71d5f284ca106d9",
+      "name": "闭环脉冲传递函数",
+      "name_en": null,
+      "definition": "闭环脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "闭环脉冲传递函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_cec53f7d2e39cb58f30ccc8a",
+      "entity_id": "ctkg:domainconcept:cec53f7d2e39cb58f30ccc8a",
+      "name": "题7-19系统结构图",
+      "name_en": null,
+      "definition": "题7-19系统结构图是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "题7-19系统结构图"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d071dec567505ce641aa9b15",
+      "entity_id": "ctkg:domainconcept:d071dec567505ce641aa9b15",
+      "name": "一致渐近稳定性",
+      "name_en": null,
+      "definition": "一致渐近稳定性是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "一致渐近稳定性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d0ce721957a07ee537d1a149",
+      "entity_id": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+      "name": "超调量",
+      "name_en": null,
+      "definition": "超调量是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "超调量"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d128c3dba70d4cc962b3e854",
+      "entity_id": "ctkg:domainconcept:d128c3dba70d4cc962b3e854",
+      "name": "Digital lead-lag compensation",
+      "name_en": "Digital lead-lag compensation",
+      "definition": "Digital lead-lag compensation是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital lea…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d1afe8495e77510fc5846c95",
+      "entity_id": "ctkg:domainconcept:d1afe8495e77510fc5846c95",
+      "name": "PID 数字控制器",
+      "name_en": null,
+      "definition": "PID 数字控制器是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "PID 数字控制器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d39faa7168016a381956c62d",
+      "entity_id": "ctkg:domainconcept:d39faa7168016a381956c62d",
+      "name": "相角裕度 γ",
+      "name_en": null,
+      "definition": "相角裕度 γ是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "相角裕度 γ"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d526b90368de52c39e27ffe6",
+      "entity_id": "ctkg:domainconcept:d526b90368de52c39e27ffe6",
+      "name": "Digital lead compensation",
+      "name_en": "Digital lead compensation",
+      "definition": "Digital lead compensation是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Digital lea…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d53f007c903cb2a964bacf4d",
+      "entity_id": "ctkg:domainconcept:d53f007c903cb2a964bacf4d",
+      "name": "广义对象脉冲传递函数",
+      "name_en": null,
+      "definition": "广义对象脉冲传递函数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "广义对象脉冲传递函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d5c2a895fabd5e94f4be1d92",
+      "entity_id": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "name": "李雅普诺夫意义下的稳定性",
+      "name_en": null,
+      "definition": "李雅普诺夫意义下的稳定性是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "李雅普诺夫意义下的稳定性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d896c1f43c2ff7a05c1543b4",
+      "entity_id": "ctkg:domainconcept:d896c1f43c2ff7a05c1543b4",
+      "name": "零阶保持器",
+      "name_en": null,
+      "definition": "零阶保持器是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "零阶保持器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_da1326600f3311fd52008dd3",
+      "entity_id": "ctkg:domainconcept:da1326600f3311fd52008dd3",
+      "name": "Breakaway point in z-plane root locus",
+      "name_en": "Breakaway point in z-plane root locus",
+      "definition": "Breakaway point in z-plane root locus是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Breakaway p…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_dbcf19cd7faa70a7b71ba715",
+      "entity_id": "ctkg:domainconcept:dbcf19cd7faa70a7b71ba715",
+      "name": "Lyapunov's direct method",
+      "name_en": "Lyapunov's direct method",
+      "definition": "Lyapunov's direct method是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Lyapunov's …",
+        "Lyapunov's d"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_dd4c15f1669f9b04911032e5",
+      "entity_id": "ctkg:domainconcept:dd4c15f1669f9b04911032e5",
+      "name": "不定性（标量函数）",
+      "name_en": null,
+      "definition": "不定性（标量函数）是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "不定性（标量函数）"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

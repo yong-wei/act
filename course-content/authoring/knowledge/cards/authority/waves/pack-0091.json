@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0091",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-542c371afb4374a5f7b7be5f",
+      "name": "矩阵指数函数",
+      "definition": "由幂级数 \\sum_{k=0}^{\\infty} \\frac{1}{k。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-548b056b7b4bc0e10290af72",
+      "name": "平衡状态",
+      "definition": "按照平衡状态的定义，在无外作用且系统输出的各阶导数等于零时，系统处于平衡状态。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-54aa39858b6bf59ab61d64b6",
+      "name": "部分分式法",
+      "definition": "先求出已知连续时间函数e(t)的拉氏变换E(s)，然后将有理分式函数E(s)展成部分分式之和的形式，使每一部分分式对应简单的时间函数，因其相应的z变换是已知的，于是可方便地求出E(s)对应的z变换E(z)。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-551346c07dd0adc110d95089",
+      "name": "不稳定节点",
+      "definition": "当特征根为两个正实根时，奇点为不稳定节点。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-56e0945e8704fa9f3c1dc356",
+      "name": "低频段",
+      "definition": "记 ω_min 为最小交接频率，称 ω<ω_min 的频率范围为低频段。"
+    }
+  ],
+  "created_at": "2026-08-05T16:32:45.641001+00:00"
+}

@@ -396,6 +396,48 @@ describe('attributeWrongAnswerEvidence', () => {
     });
   });
 
+  it('uses the single immutable KAQ knowledge node for remediation attribution', async () => {
+    const multiObjective = answer();
+    const metadata = multiObjective.questionRef.metadata as any;
+    metadata.kaq.knowledgeNodeIds = ['kn:autocontrol:stability-margin'];
+    metadata.adaptiveAssessmentItemRef.semanticRefs.learningGoalIds = [
+      'stability-margin-frequency-analysis',
+    ];
+    metadata.adaptiveAssessmentItemRef.semanticRefs.graphNodeIds = [
+      'cap:autocontrol:trade-off-engineering-constraints',
+      'qual:autocontrol:safety-responsibility',
+    ];
+    metadata.adaptiveAssessmentItemRef.reviewDecision.selectedGraphNodeIds = [
+      'cap:autocontrol:trade-off-engineering-constraints',
+      'qual:autocontrol:safety-responsibility',
+    ];
+    rehashReviewDecision(metadata.adaptiveAssessmentItemRef);
+    rehashItemContent(multiObjective);
+    const db = dbFor(multiObjective, persisted({
+      knowledgeNodeIds: ['kn:autocontrol:stability-margin'],
+    }));
+
+    const result = await attributeWrongAnswerEvidence({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: 'answer-1',
+    });
+
+    expect(db.wrongAnswerAttribution.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        state: 'ATTRIBUTED',
+        knowledgeNodeIds: ['kn:autocontrol:stability-margin'],
+      }),
+    }));
+    expect(result).toMatchObject({
+      state: 'ATTRIBUTED',
+      attribution: {
+        knowledgeNodeId: 'kn:autocontrol:stability-margin',
+        misconceptionTag: 'confuses-low-and-high-frequency',
+      },
+    });
+  });
+
   it('persists missing semantic evidence as uncertain and directs repeated practice', async () => {
     const incomplete = answer();
     const metadata = incomplete.questionRef.metadata as any;

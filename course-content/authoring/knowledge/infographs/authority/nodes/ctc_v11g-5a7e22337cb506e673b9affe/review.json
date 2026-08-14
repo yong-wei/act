@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T12:02:14+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:v11g-5a7e22337cb506e673b9affe",
+  "safe_id": "ctc_v11g-5a7e22337cb506e673b9affe",
+  "node_name": "控制系统中包含有正反馈内回路的…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch16 A accept"
+}

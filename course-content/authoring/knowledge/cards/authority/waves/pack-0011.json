@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0011",
+  "offset": 55,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-31596a5fab1911f024a4b8db",
+      "batch": "B",
+      "name": "Symmetric Root Locus (SRL)",
+      "definition": "Symmetric Root Locus (SRL)：A root-locus problem with respect to the parameter ρ, which weighs the relative cost of tracking error z^2 with respect…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Symmetric R…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Symmetric Root Locus (SRL)\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Symmetric Root Locus (SRL)：A root-locus problem with respect to the parameter ρ, which weighs the relative cost of tracking error z^2 with respect…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Symmetric 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5353a18bed51a9273ba59709",
+      "batch": "B",
+      "name": "Describing Function Method",
+      "definition": "Describing Function Method：A frequency-response-based method where a describing function is defined for nonlinear elements, including those with m…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Describing …",
+        "属于·Descri…",
+        "包含组件·Freq…",
+        "用于分析·Limi…",
+        "用于分析·Nonl…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Describing Function Method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Describing Function Method：A frequency-response-based method where a describing function is defined for nonlinear elements, including those with m…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Describing」、「属于·Descri…」、「包含组件·Freq…」、「用于分析·Limi…」、「用于分析·Nonl…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-73858eee00fb3199420afaf9",
+      "batch": "B",
+      "name": "Constant that relates the",
+      "definition": "Constant that relates the：Constant K_b that relates the back electromotive-force voltage to the angular speed of the motor: V_b(s) = K_b * omega(…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Constant th…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Constant that relates the\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Constant that relates the：Constant K_b that relates the back electromotive-force voltage to the angular speed of the motor: V_b(s) = K_b * omega(…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Constant t」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-c2650bdf6df39c39c8ac378c",
+      "batch": "B",
+      "name": "variable that is measured",
+      "definition": "variable that is measured：A variable that is measured at a single point in a system element, such as torque, force, current, or heat flow rate, a…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "variable th…",
+        "关联·variab…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: variable that is measured\nSOURCE DEFINITION (fail-closed, do not invent beyond this): variable that is measured：A variable that is measured at a single point in a system element, such as torque, force, current, or heat flow rate, a…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「variable t」、「关联·variab…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-cf35c2ab1653eb95eecdb745",
+      "batch": "B",
+      "name": "An integral transform that",
+      "definition": "An integral transform that：An integral transform that converts a time-domain function f(t) into a complex frequency-domain function F(s), defined…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "An integral…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: An integral transform that\nSOURCE DEFINITION (fail-closed, do not invent beyond this): An integral transform that：An integral transform that converts a time-domain function f(t) into a complex frequency-domain function F(s), defined…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「An integra」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

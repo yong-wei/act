@@ -1,0 +1,69 @@
+{
+  "pack_id": "P0108",
+  "offset": 540,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-376c29d091d24239e88fc4c4",
+      "batch": "B",
+      "name": "极限环",
+      "definition": "非线性系统中出现的一条孤立的封闭曲线，曲线附近的相轨迹都渐近地趋向这条封闭的曲线，或者从这条封闭的曲线离开。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "极限环",
+        "是一种·半稳定极限环",
+        "是一种·稳定极限环",
+        "是一种·分隔线",
+        "是一种·奇线",
+        "是一种·不稳定极限环"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 极限环\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 非线性系统中出现的一条孤立的封闭曲线，曲线附近的相轨迹都渐近地趋向这条封闭的曲线，或者从这条封闭的曲线离开。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「极限环」、「是一种·半稳定极限环」、「是一种·稳定极限环」、「是一种·分隔线」、「是一种·奇线」、「是一种·不稳定极限环」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b3598aaee3272eb677b2c47e",
+      "batch": "B",
+      "name": "离散系统的可控性矩阵 (dis…",
+      "definition": "离散系统的可控性矩阵 (discrete-time controllability matrix S1')。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散系统的可控性矩阵 …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 离散系统的可控性矩阵 (dis…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 离散系统的可控性矩阵 (discrete-time controllability matrix S1')。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「离散系统的可控性矩阵」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fbebd7b09546031f82f974ed",
+      "batch": "B",
+      "name": "前置滤波器",
+      "definition": "前馈校正装置的一种形式，接在系统给定值之后及主反馈作用点之前的前向通道上，相当于对给定值信号进行整形或滤波。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "前置滤波器",
+        "是一种·前馈校正",
+        "关联·前馈校正"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 前置滤波器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 前馈校正装置的一种形式，接在系统给定值之后及主反馈作用点之前的前向通道上，相当于对给定值信号进行整形或滤波。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「前置滤波器」、「是一种·前馈校正」、「关联·前馈校正」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ff560d5d53d578d0bc57baeb",
+      "batch": "B",
+      "name": "输出可控性",
+      "definition": "若在有限时间间隔内，存在无约束分段连续控制函数，能使任意初始输出转移到任意最终输出，则称此系统输出完全可控。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "输出可控性"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 输出可控性\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 若在有限时间间隔内，存在无约束分段连续控制函数，能使任意初始输出转移到任意最终输出，则称此系统输出完全可控。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「输出可控性」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-a2b2e4c67cee79eef87f3b81",
+      "batch": "B",
+      "name": "forward path",
+      "definition": "forward path：v3T accepted candidate for forward path.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "forward path",
+        "属于·signal…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: forward path\nSOURCE DEFINITION (fail-closed, do not invent beyond this): forward path：v3T accepted candidate for forward path.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「forward pa」、「属于·signal…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

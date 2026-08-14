@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T07:41:42+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-352b9bfe27ba1ab6b9c9672e",
+  "safe_id": "ctc_modeling-352b9bfe27ba1ab6b9c9672e",
+  "node_name": "When the sensor and",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "W0 round2 accept"
+}

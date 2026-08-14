@@ -1,25 +1,36 @@
 # 知识工作区产品 QA 独立视觉复核
 
-最终结果：通过（approved=true）。
+最终结论：PASS（`finalResult=passed`，`blockingFindings=[]`）。
 
-- reviewer：use-grok
-- session：`c54bd755-63a1-4b36-96c8-ab3717281565`
-- provider：`grok-4.5-build`
-- permission：`read`
-- independence：fresh session；未读取旧 `visual-review.md` 或旧 `independentVisualReview`。
-- capture revision：`12cfa8e9cbe32dcb386899238a3754b81bc7566f`（stateEvidenceDigest：`6df4dc719c487c85bc1cfd41d7e3ef9f174dfc0529fb5a17c928776b1b27db0b`）。
+## 审查范围与绑定
 
-逐图复核当前 29 个受管状态，核验全部 PNG 字节与哈希、DOM markers、键盘焦点、handoff、当前 17 个 source hash 及归档 acceptance spec。29/29 状态通过，0 个 P0/P1，blocking findings 为 0。responsive、legibility、interactionMarkers、focus、handoff、noClippingOrOverlap 均为 true。
+- 审查范围：提交 `25517a51efa55c6395115d0f3d259d7481c492cd`，树 `24842b063cfcf3f00c9102a385d6a1b00d25fd56`。
+- 复核对象：29 项产品状态矩阵、4 项 active Authority 响应式矩阵、三种已认证角色的交互与焦点记录。
+- 绑定：33/33 截图 SHA-256、宽高与当前 `browser-evidence.json` 一致；32/32 受管源码 SHA-256 同时匹配捕获提交 blob 与当前工作树。精确 `reviewedStateSha256` 与 `reviewedSourceSha256` 由同文件的 `independentVisualReview` 字段承载。
+- 审查者：`independent-reviewer (gpt-5.6-sol medium)`，只读复核；未修改项目文件、暂存区或 Git 历史。
+- 使用 Grok 4.6 的专项只读审查未在限定窗口内生成可验证终态，未作为通过证据。
 
-14 个复核维度全部通过：handoff alignment、concept adoption/rejection、AppShell continuity、local tools、semantic map、inspector hierarchy、Konling dock、interaction stability、keyboard focus、theme parity、mobile behavior、tablet breakpoint、stress non-overlap、canvas geometry。
+## 结论
 
-## 非阻断观察
+| 维度 | 结果 |
+| --- | --- |
+| handoffAlignment | PASS |
+| conceptAdoptionRejection | PASS |
+| appShellContinuity | PASS |
+| localTools | PASS |
+| semanticMap | PASS |
+| inspectorHierarchy | PASS |
+| konlingDock | PASS |
+| interactionStability | PASS |
+| keyboardFocus | PASS |
+| themeParity | PASS |
+| mobileBehavior | PASS |
+| tabletBreakpoint | PASS |
+| stressNonOverlap | PASS |
+| canvasGeometry | PASS |
 
-- mobile tools 与 inspector 存在轻微交叠，但文字仍可读。
-- desktop stress 状态的 chips 有部分截断，但 overlaps 为 false。
-- Konling 展开遮盖右侧 canvas 属预期 surface 行为。
-- adaptive practice 状态存在既存的临时不可加载内容，但 handoff 捕获有效。
-- 默认右侧 bubble 有部分越界，可通过 pan/fit 调整。
-- 目录末行在可滚动面板中部分裁切。
+`active-desktop-dark`、`active-desktop-light`、`active-tablet` 与 `active-mobile` 均通过。当前发布数据的教学关系为 unavailable：四态均如实记录 1 个对象、0 条关系，并展示“教学关系暂不可用”及“该对象暂无已发布关系”；未绘制或推断任何关系边。desktop detail 与三种角色的 detail 记录同样显示零邻接和零边，但详情 API、身份校验、焦点和安全表面扫描均通过。
 
-以上观察均未构成阻断问题；未发现具体的文字适配、重叠、溢出、敏感诊断泄露或布局缺陷。
+学生、教师和管理员各自新增一张 320×800 active mobile 证据，分别绑定角色安全 API 记录。管理员可见受控候选诊断入口；学生和教师仅可见当前 Authority 与历史 Legacy。
+
+本轮增量审查未发现新的 P0/P1 重大问题。残余风险：当前证据只能覆盖教学关系 unavailable 的诚实降级，尚未覆盖存在真实 active 教学边时的密集关系布局；320px 首屏标题空间偏紧，但控件仍可操作。

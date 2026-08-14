@@ -8,6 +8,7 @@ const root = process.cwd();
 const helperPath = path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs');
 const helperSource = fs.readFileSync(helperPath, 'utf8');
 const revision = 'a'.repeat(40);
+const appRevision = 'b'.repeat(40);
 const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-streaming-'));
 const runtimeRoot = path.join(fixtureRoot, 'runtime');
 const indexRoot = path.join(fixtureRoot, 'index');
@@ -113,11 +114,15 @@ try {
     '--runtime-root', runtimeRoot,
     '--index-dir', indexRoot,
     '--image-tar', imageTar,
-    '--app-revision', revision,
+    '--app-revision', appRevision,
     '--output', sidecar,
   ]);
   assert.equal(writeSidecarResult.status, 0, writeSidecarResult.stderr);
   const sidecarPayload = JSON.parse(fs.readFileSync(sidecar, 'utf8'));
+  assert.equal(sidecarPayload.appRevision, appRevision);
+  assert.equal(sidecarPayload.runtimeSourceRevision, revision);
+  assert.equal(sidecarPayload.indexSourceRevision, revision);
+  assert.notEqual(sidecarPayload.appRevision, sidecarPayload.runtimeSourceRevision);
   assert.match(sidecarPayload.imageTarSha256, /^[0-9a-f]{64}$/u);
 
   const verifyImageResult = run('verify-image', [

@@ -1,0 +1,85 @@
+{
+  "contract": "actkg-to-act-cutover-preparation-phase-0/v1",
+  "status": "PASS",
+  "captureRevision": "7cf10253884e0c5188b4b1b471d0efd5af36f087",
+  "worktree": {
+    "role": "resource",
+    "branch": "resource",
+    "pathScope": "repository-root",
+    "nestedWorktreeCreated": false,
+    "dirtyOwnershipAtVerification": "CLEAN"
+  },
+  "integrationAlignment": {
+    "remote": "origin/integration",
+    "before": {
+      "head": "4d104631c59be6374715101c1d9fd33a244dfee8",
+      "remoteHead": "7cf10253884e0c5188b4b1b471d0efd5af36f087",
+      "ahead": 0,
+      "behind": 10
+    },
+    "operation": "git merge --ff-only origin/integration",
+    "after": {
+      "head": "7cf10253884e0c5188b4b1b471d0efd5af36f087",
+      "ahead": 0,
+      "behind": 0,
+      "dirtyOwnership": "CLEAN"
+    }
+  },
+  "configuredRootOverrides": {
+    "ACT_AUTHORITY_STORE_ROOT": "UNSET",
+    "AUTHORITY_STORE_ROOT": "UNSET",
+    "ACT_TEACHING_PROJECTION_STORE_ROOT": "UNSET",
+    "TEACHING_PROJECTION_STORE_ROOT": "UNSET",
+    "ACT_CONSUMER_ACTIVATION_ROOT": "UNSET",
+    "CONSUMER_ACTIVATION_ROOT": "UNSET",
+    "ACT_LEGACY_RETIREMENT_ROOT": "UNSET",
+    "LEGACY_RETIREMENT_ROOT": "UNSET"
+  },
+  "pointerObservations": [
+    {
+      "domain": "engineering-authority",
+      "defaultPointer": "course-content/authoring/knowledge/authority/current.json",
+      "state": "ABSENT",
+      "sha256": null
+    },
+    {
+      "domain": "teaching-projection",
+      "defaultPointer": "course-content/runtime/knowledge/projection/current.json",
+      "state": "ABSENT",
+      "sha256": null
+    },
+    {
+      "domain": "consumer-activation",
+      "defaultPointer": "course-content/runtime/knowledge/consumer-activation/current.json",
+      "state": "ABSENT",
+      "sha256": null
+    },
+    {
+      "domain": "legacy-retirement",
+      "defaultPointer": "course-content/runtime/knowledge/legacy-retirement/current.json",
+      "state": "ABSENT",
+      "sha256": null
+    }
+  ],
+  "historicalCourseCoverageAudit": {
+    "path": "course-content/authoring/knowledge/legacy-course-coverage-audit/legacy-audit-manifest.json",
+    "sha256": "49fdda62692c52c5681c24cca033c0a66014be8163f683c17ba107b081ec18ea",
+    "immutable": true,
+    "authority": "AUDIT_ONLY",
+    "batchCount": 34,
+    "memberCount": 4891,
+    "included": 11,
+    "deferred": 4880,
+    "releaseDeltaDenominator": false,
+    "consumerSelectorBlocking": false
+  },
+  "prohibitedOperations": [
+    "default-current-pointer-write",
+    "active-consumer-selector-write",
+    "legacy-retirement-current-write",
+    "database-authority-write",
+    "remote-server-operation",
+    "deployment",
+    "docker-publication"
+  ]
+}

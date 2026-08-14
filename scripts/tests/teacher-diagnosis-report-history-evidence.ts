@@ -7,7 +7,9 @@ export const TEACHER_DIAGNOSIS_REPORT_HISTORY_SOURCE_PATHS = [
   'src/features/adaptive/diagnosis-surface-panel.tsx',
   'src/features/teacher/teacher-diagnosis-report-history.tsx',
   'src/app/api/teacher/classes/[classId]/diagnosis-reports/route.ts',
+  'src/app/api/teacher/diagnosis-generation-jobs/[jobId]/route.ts',
   'src/lib/auth.ts',
+  'src/lib/diagnosis-generation.ts',
   'src/lib/diagnosis-persistence.ts',
 ] as const;
 
@@ -43,6 +45,10 @@ export interface TeacherDiagnosisReportHistoryEvidenceManifest {
     multipleHistorySelection: boolean;
     serverPreparationLink: boolean;
     rawEvidenceIdentifiersHidden: boolean;
+    generationQueued: boolean;
+    generationCompleted: boolean;
+    generationTimedOut: boolean;
+    generationRetry: boolean;
   };
   captures: EvidenceCapture[];
 }
@@ -73,6 +79,10 @@ const REQUIRED_ASSERTIONS = [
   'multipleHistorySelection',
   'serverPreparationLink',
   'rawEvidenceIdentifiersHidden',
+  'generationQueued',
+  'generationCompleted',
+  'generationTimedOut',
+  'generationRetry',
 ] as const;
 
 export function teacherDiagnosisReportHistoryEvidenceProblems(
@@ -127,6 +137,18 @@ export function teacherDiagnosisReportHistoryEvidenceProblems(
     name: 'student-history-320-dark',
     route: /^\/teacher\/classes\/[^/]+\/students\/[^/]+$/,
     width: 320,
+  });
+  verifyCapture(problems, manifest.captures.find((capture) => capture.name === 'class-generation-queued-1440-light'), context, {
+    name: 'class-generation-queued-1440-light', route: /^\/teacher\/classes\/[^/]+$/, width: 1440,
+  });
+  verifyCapture(problems, manifest.captures.find((capture) => capture.name === 'class-generation-completed-1440-light'), context, {
+    name: 'class-generation-completed-1440-light', route: /^\/teacher\/classes\/[^/]+$/, width: 1440,
+  });
+  verifyCapture(problems, manifest.captures.find((capture) => capture.name === 'student-generation-timeout-320-dark'), context, {
+    name: 'student-generation-timeout-320-dark', route: /^\/teacher\/classes\/[^/]+\/students\/[^/]+$/, width: 320,
+  });
+  verifyCapture(problems, manifest.captures.find((capture) => capture.name === 'student-generation-retry-320-dark'), context, {
+    name: 'student-generation-retry-320-dark', route: /^\/teacher\/classes\/[^/]+\/students\/[^/]+$/, width: 320,
   });
 
   return problems;

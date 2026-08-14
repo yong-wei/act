@@ -1,0 +1,15 @@
+{
+  "contract": "act-versioned-knowledge-consumer-activation-stage-receipt/v1",
+  "receiptId": "stage-2026-08-10T13-41-03-000Z",
+  "activationId": "activation-89294a6cb16997e407f84383",
+  "activationHash": "63262130b8b29cb9123751189c4c920d1db566de1a146f7d8350e0c2668e5f2d",
+  "stagedAt": "2026-08-10T13:41:03.000Z",
+  "status": "staged",
+  "reasons": [
+    "complete-staged-materialization"
+  ],
+  "artifactHashes": {
+    "manifest.json": "f8ee9ab2400aad6ca14010096b9046e9dca9e864982b68c17a33126338377bc4",
+    "engineering.json": "bf25630617d97ffd1b3353b23c51f0e8e7227546d346818f7f1abc6019e4ea57"
+  }
+}

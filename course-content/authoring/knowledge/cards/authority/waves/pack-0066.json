@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0066",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "name": "性能指标",
+      "definition": "进行控制系统的校正设计，除了应已知系统不可变部分的特性与参数外，还需要已知对系统提出的全部性能指标。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-14b61e56571539bbfb630ae7",
+      "name": "小偏差线性化法",
+      "definition": "当系统方程解析且工作在某一数值附近的较小范围内时，可运用小偏差法将非线性模型线性化。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-14c49cc217ebff19a8763b5b",
+      "name": "z变换算子",
+      "definition": "z是在复数平面上定义的一个复变量，通常称为z变换算子。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-17f97568592a217c1d332948",
+      "name": "Compensated system",
+      "definition": "Compensated system：The system after adding the phase-lag compensator."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "name": "穿越频率",
+      "definition": "开环相频特性为-180°时的频率，记为ω_x。"
+    }
+  ],
+  "created_at": "2026-08-05T15:59:36.909824+00:00"
+}

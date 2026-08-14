@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-d36def50dedc036b5c5db035",
+  "safe_id": "ctkg_v3e-object-d36def50dedc036b5c5db035",
+  "node": {
+    "name": "Pole placement",
+    "name_en": "Pole placement",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Pole placement：A full-state feedback design technique that places closed-loop system poles at desired locations, requiring complete co…",
+  "intuition": "在图谱邻接中可把握：后续 → Observability。",
+  "explanation": "A full-state feedback design technique that places closed-loop system poles at desired locations, requiring complete controllability and observability.",
+  "relation_head": "后续 → Observability",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Observability",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Pole placem…",
+    "Pole placeme",
+    "用于分析·Obse…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-d36def50dedc036b5c5db035.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -275,7 +275,7 @@ function materializationFixture(input: {
 function learningFact(id: string, overrides: Record<string, unknown> = {}) {
   return {
     id,
-    sourceEventId: `governed-event:${id}`,
+    sourceEventId: `adaptive-assessment:${id}`,
     sourceLogId: `governed-log:${id}`,
     knowledgeRevisionRef: null,
     factType: 'question',
@@ -283,7 +283,14 @@ function learningFact(id: string, overrides: Record<string, unknown> = {}) {
     outcome: 'success',
     score: 1,
     competencyContribution: { controlModeling: 1 },
-    contextJson: {},
+    contextJson: {
+      evidenceGovernance: {
+        evidenceQuality: 'rich',
+        profileWeight: 1,
+        skipProfileContribution: false,
+        policyReason: 'adaptive_assessment_evidence',
+      },
+    },
     createdAt: baseAt,
     ...overrides,
   };

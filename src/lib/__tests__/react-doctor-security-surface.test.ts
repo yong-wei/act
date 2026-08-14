@@ -3,8 +3,6 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { buildThemeInitScript } from '@/lib/theme-config';
-
 const repoRoot = process.cwd();
 
 function readProjectFile(path: string) {
@@ -22,13 +20,13 @@ function extractTemplateConstant(source: string, name: string) {
 }
 
 describe('React Doctor security surface policy', () => {
-  it('initializes theme without raw HTML injection in the root layout', () => {
+  it('keeps root layout free of script elements during client navigation', () => {
     const layoutSource = readProjectFile('src/app/layout.tsx');
-    const themeScript = buildThemeInitScript('dark');
 
     expect(layoutSource).not.toContain('dangerouslySetInnerHTML');
-    expect(layoutSource).toContain('<script id="theme-init">{buildThemeInitScript()}</script>');
-    expect(themeScript).not.toMatch(/<\/script/i);
+    expect(layoutSource).not.toContain("from 'next/script'");
+    expect(layoutSource).not.toMatch(/<Script\b|<script\b/i);
+    expect(layoutSource).toContain('<ThemeProvider>');
   });
 
   it('keeps handout print styles as trusted static project CSS', () => {

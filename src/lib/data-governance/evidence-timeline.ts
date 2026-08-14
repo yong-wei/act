@@ -90,6 +90,78 @@ export type EvidenceTimelineLearnerRecordSourceScope =
   | 'simulation-workbench-completion'
   | 'adaptive-practice-submission';
 
+export interface StudentSafeEvidenceSourceProjection {
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope;
+  summary: string;
+  nextAction: {
+    href: string;
+    label: string;
+  };
+}
+
+export interface StudentSafeEvidenceEventReference extends StudentSafeEvidenceSourceProjection {
+  occurredAt: string;
+}
+
+export interface EvidenceTimelineSourceRecord {
+  factType?: string | null;
+  moduleId?: string | null;
+  lessonId?: string | null;
+  sourceEventId?: string | null;
+  contextJson?: unknown;
+  hasInteractiveResponse?: boolean;
+}
+
+export function projectStudentSafeEvidenceSource(input: {
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope;
+  lessonId?: string | null;
+}): StudentSafeEvidenceSourceProjection {
+  const { sourceScope } = input;
+  if (sourceScope === 'interactive-lesson-submission') {
+    const lessonSuffix = input.lessonId ? `?lessonId=${encodeURIComponent(input.lessonId)}` : '';
+    return {
+      sourceScope,
+      summary: '课堂作答记录参与了该项能力判断。',
+      nextAction: { href: `/profile/evidence${lessonSuffix}`, label: '复盘课堂作答' },
+    };
+  }
+  if (sourceScope === 'arena-preview-result') {
+    return {
+      sourceScope,
+      summary: 'Arena 预览结果参与了该项能力判断。',
+      nextAction: { href: '/arena', label: '提交官方评测' },
+    };
+  }
+  if (sourceScope === 'arena-official-result') {
+    return {
+      sourceScope,
+      summary: 'Arena 官方评测结果参与了该项能力判断。',
+      nextAction: { href: '/arena', label: '查看 Arena 结果' },
+    };
+  }
+  if (sourceScope === 'simulation-workbench-completion') {
+    return {
+      sourceScope,
+      summary: '控制工作台仿真记录参与了该项能力判断。',
+      nextAction: { href: '/interactive-learning/control-workbench', label: '继续工作台验证' },
+    };
+  }
+  return {
+    sourceScope,
+    summary: '自适应练习记录参与了该项能力判断。',
+    nextAction: { href: '/assessment/adaptive-practice?intent=practice', label: '继续自适应练习' },
+  };
+}
+
+export function inferStudentSafeEvidenceSource(
+  record: EvidenceTimelineSourceRecord,
+): StudentSafeEvidenceSourceProjection | undefined {
+  const sourceScope = inferLearnerRecordSourceScope(record);
+  return sourceScope
+    ? projectStudentSafeEvidenceSource({ sourceScope, lessonId: record.lessonId })
+    : undefined;
+}
+
 export interface EvidenceTimelineLearnerRecord {
   sourceScope: EvidenceTimelineLearnerRecordSourceScope;
   freshness: 'fresh' | 'recent' | 'stale' | 'unknown';
@@ -433,10 +505,14 @@ function deriveLearnerRecordMetadata(
   viewerRole: EvidenceTimelineViewerRole,
   restrictedFallbackAction: EvidenceTimelineLearnerRecord['nextAction'],
 ): EvidenceTimelineLearnerRecord | undefined {
-  const sourceScope = inferLearnerRecordSourceScope(fact, response);
-  if (!sourceScope) {
+  const sourceProjection = inferStudentSafeEvidenceSource({
+    ...fact,
+    hasInteractiveResponse: Boolean(response),
+  });
+  if (!sourceProjection) {
     return undefined;
   }
+  const { sourceScope } = sourceProjection;
 
   return readLearnerRecordMetadata({
     sourceScope,
@@ -444,7 +520,9 @@ function deriveLearnerRecordMetadata(
     confidence: inferLearnerRecordConfidence(fact, quality, sourceScope),
     missingSourceState: inferLearnerRecordMissingSourceState(fact, quality, sourceScope),
     privacyScope: 'student-visible',
-    nextAction: inferLearnerRecordNextAction(fact, sourceScope, viewerRole, restrictedFallbackAction),
+    nextAction: viewerRole === 'student'
+      ? sourceProjection.nextAction
+      : restrictedFallbackAction,
   }, viewerRole, restrictedFallbackAction);
 }
 
@@ -505,27 +583,26 @@ function readLearnerRecordConfidence(value: unknown): EvidenceTimelineLearnerRec
 }
 
 function inferLearnerRecordSourceScope(
-  fact: LearningFactTimelineRecord,
-  response: StudentStepResponseTimelineRecord | undefined,
+  fact: EvidenceTimelineSourceRecord,
 ): EvidenceTimelineLearnerRecordSourceScope | undefined {
   const arenaSourceScope = inferArenaLearnerRecordSourceScope(fact);
   if (arenaSourceScope) {
     return arenaSourceScope;
   }
-  if (fact.factType === 'question' && (response || fact.lessonId || fact.moduleId?.startsWith('step-'))) {
+  if (fact.factType === 'adaptive_practice' || fact.moduleId === 'adaptive-practice' || fact.moduleId === 'adaptive-assessment') {
+    return 'adaptive-practice-submission';
+  }
+  if (fact.factType === 'question' && (fact.hasInteractiveResponse || fact.lessonId || fact.moduleId?.startsWith('step-'))) {
     return 'interactive-lesson-submission';
   }
   if (fact.factType === 'simulation' || fact.moduleId?.includes('workbench')) {
     return 'simulation-workbench-completion';
   }
-  if (fact.factType === 'adaptive_practice' || fact.moduleId === 'adaptive-practice' || fact.moduleId === 'adaptive-assessment') {
-    return 'adaptive-practice-submission';
-  }
   return undefined;
 }
 
 function inferArenaLearnerRecordSourceScope(
-  fact: LearningFactTimelineRecord,
+  fact: EvidenceTimelineSourceRecord,
 ): EvidenceTimelineLearnerRecordSourceScope | undefined {
   const context = readRecord(fact.contextJson);
   const arena = readRecord(context.arena);
@@ -591,34 +668,6 @@ function inferLearnerRecordMissingSourceState(
   if (quality === 'missing' || fact.outcome === 'abandoned') return 'low-confidence';
   if (quality === 'partial' || quality === 'legacy') return 'partial';
   return 'complete';
-}
-
-function inferLearnerRecordNextAction(
-  fact: LearningFactTimelineRecord,
-  sourceScope: EvidenceTimelineLearnerRecordSourceScope,
-  viewerRole: EvidenceTimelineViewerRole,
-  reviewerFallbackAction: EvidenceTimelineLearnerRecord['nextAction'],
-): EvidenceTimelineLearnerRecord['nextAction'] {
-  if (viewerRole !== 'student') {
-    return {
-      href: reviewerFallbackAction.href,
-      label: reviewerFallbackAction.label,
-    };
-  }
-  if (sourceScope === 'interactive-lesson-submission') {
-    const lessonSuffix = fact.lessonId ? `?lessonId=${encodeURIComponent(fact.lessonId)}` : '';
-    return { href: `/profile/evidence${lessonSuffix}`, label: '复盘课堂作答' };
-  }
-  if (sourceScope === 'arena-preview-result') {
-    return { href: '/arena', label: '提交官方评测' };
-  }
-  if (sourceScope === 'arena-official-result') {
-    return { href: '/arena', label: '查看 Arena 结果' };
-  }
-  if (sourceScope === 'simulation-workbench-completion') {
-    return { href: '/interactive-learning/control-workbench', label: '继续工作台验证' };
-  }
-  return { href: '/assessment/adaptive-practice?intent=practice', label: '继续自适应练习' };
 }
 
 function readLearnerRecordPrivacyScope(value: unknown): EvidenceTimelineLearnerRecord['privacyScope'] {

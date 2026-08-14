@@ -1,0 +1,80 @@
+{
+  "capturedAt": "2026-08-12T06:54:01.168Z",
+  "gitRevision": "ce40d20577c4705fc48c39e58cf209491a134a5c",
+  "route": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
+  "fixtureAuthority": "Authenticated local demo learner with a real persisted incorrect adaptive answer. Remediation endpoints are Playwright route fixtures so each commercial state is deterministic; route and component tests cover their server contracts.",
+  "evidence": [
+    {
+      "file": "available-full-loop-1440.png",
+      "screenshotSha256": "a1976ff42ab7ca0337ab9082e086f063081ce643b62bf57aa9029947c2398e06",
+      "width": 1440,
+      "state": "validated",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "focusVisibleBeforeActivation": true,
+        "validationTerminal": "passed"
+      }
+    },
+    {
+      "file": "reference-drift-unavailable-1440.png",
+      "screenshotSha256": "071d4ebae14cf1e05e329b7e361af2f4c1eeb68880f621ecb7078c950245a364",
+      "width": 1440,
+      "state": "reference-drift",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "retryAvailable": true,
+        "staleTaskHidden": true,
+        "unavailableReason": "REFERENCE_DRIFT"
+      }
+    },
+    {
+      "file": "reference-drift-recovered-1440.png",
+      "screenshotSha256": "b05b6d2cf07032e71fc11d1b672cea6b82bc2709342a38b09b5930149dd0df45",
+      "width": 1440,
+      "state": "recovered",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "createAttempts": 2,
+        "freshOrchestrationRequest": true,
+        "retryAvailable": true,
+        "startActionRestored": true
+      }
+    },
+    {
+      "file": "available-full-loop-320.png",
+      "screenshotSha256": "c2942198d4c3ccbdd5da47558afd320c5391f23edbdb41ced03ef1d44ca4a418",
+      "width": 320,
+      "state": "validated",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "focusVisibleBeforeActivation": true,
+        "validationTerminal": "passed"
+      }
+    },
+    {
+      "file": "reference-drift-unavailable-320.png",
+      "screenshotSha256": "e2aed1dc5903047015b8ebede416340ba94c9585e5d87f4bf001e4d8c22128de",
+      "width": 320,
+      "state": "reference-drift",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "retryAvailable": true,
+        "staleTaskHidden": true,
+        "unavailableReason": "REFERENCE_DRIFT"
+      }
+    },
+    {
+      "file": "reference-drift-recovered-320.png",
+      "screenshotSha256": "a91910e908fe159bd599bfa0e8c41b554ac681468d8f388c5b20934821b1cf75",
+      "width": 320,
+      "state": "recovered",
+      "noHorizontalOverflow": true,
+      "assertions": {
+        "createAttempts": 2,
+        "freshOrchestrationRequest": true,
+        "retryAvailable": true,
+        "startActionRestored": true
+      }
+    }
+  ]
+}

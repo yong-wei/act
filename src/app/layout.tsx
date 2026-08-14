@@ -4,7 +4,6 @@ import { SessionProvider } from '@/components/providers/session-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { PageFloatingControlsProvider } from '@/components/shared/page-floating-controls'
 import { getServerAuthSession } from '@/lib/auth'
-import { buildThemeInitScript } from '@/lib/theme-config'
 import { GlobalAIProvider } from '@/components/providers/global-ai-provider'
 import { GlobalAIFloatingButton } from '@/components/ai/global-ai-button'
 import { GlobalAISidebar } from '@/components/ai/global-ai-sidebar'
@@ -27,9 +26,6 @@ export default async function RootLayout({
 
   return (
     <html lang="zh-CN" className="dark" suppressHydrationWarning>
-      <head>
-        <script id="theme-init">{buildThemeInitScript()}</script>
-      </head>
       <body>
         <ThemeProvider>
           <SessionProvider session={session}>

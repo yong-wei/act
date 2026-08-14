@@ -4,52 +4,52 @@
 contract: act-teaching-core-nodes/v1
 scopeId: act-control-theory-core
 nodes:
-  - canonicalId: node.laplace-transform
+  - canonicalId: ctkg:v3e-object-8c4354096b719a1d5e090da4
     scopeId: act-control-theory-core
     pathEligible: true
     cardPolicy: REQUIRED
     moduleId: module-1-modeling
-    rationale: Formal objective — students must master Laplace transforms before system modeling.
+    rationale: 当前建模蓝图要求学生以拉普拉斯变换建立可分析的动态模型。
     sourceKind: OBJECTIVE
     sourceEvidence:
-      - authoring/objectives/module-1-laplace.md
+      - course-content/authoring/lessons/1-2/design/1-2-boppps.md
 
-  - canonicalId: node.transfer-function
+  - canonicalId: ctc:modeling-865eb1c8824e157c2f05a903
     scopeId: act-control-theory-core
     pathEligible: true
     cardPolicy: REQUIRED
     moduleId: module-1-modeling
-    rationale: Primary COVERS binding from unit 1-1 interactive package.
+    rationale: 当前 1-2 互动课程将传递函数作为由真实对象走向统一分析对象的主绑定。
     sourceKind: PRIMARY_COVERS
     sourceEvidence:
-      - act:step:unit-1-1:transfer-function-practice
+      - course-content/authoring/lessons/1-2/design/1-2-boppps.md
 
-  - canonicalId: node.block-diagram
+  - canonicalId: ctc:modeling-2088bbde171b2e9ef66070d5
     scopeId: act-control-theory-core
     pathEligible: true
     cardPolicy: REQUIRED
     moduleId: module-1-modeling
-    rationale: Teacher-curated backbone node for modeling path.
-    sourceKind: TEACHER_CURATION
+    rationale: 当前 2-1 蓝图以方框图化简连接建模语言与闭环分析。
+    sourceKind: PRIMARY_COVERS
     sourceEvidence:
-      - curator:teacher-backbone-v1
+      - course-content/authoring/lessons/2-1/design/2-1-boppps.md
 
-  - canonicalId: node.stability-concept
+  - canonicalId: ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b
     scopeId: act-control-theory-core
     pathEligible: true
     cardPolicy: OPTIONAL
     moduleId: module-2-stability
-    rationale: Prerequisite endpoint for stability analysis path.
+    rationale: 当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。
     sourceKind: PREREQUISITE_ENDPOINT
     sourceEvidence:
-      - prerequisite-endpoint:node.stability-concept
+      - course-content/authoring/lessons/3-1/design/3-1-boppps.md
 
-  - canonicalId: node.feedback-control
+  - canonicalId: ctc:modeling-e442dacbfef4a0d7ea3c4c15
     scopeId: act-control-theory-core
     pathEligible: true
     cardPolicy: REQUIRED
     moduleId: module-2-stability
-    rationale: Formal objective for closed-loop feedback.
+    rationale: 当前 1-1 蓝图以反馈连接建立全课程控制视角。
     sourceKind: OBJECTIVE
     sourceEvidence:
-      - authoring/objectives/module-2-feedback.md
+      - course-content/authoring/lessons/1-1/design/1-1-boppps.md

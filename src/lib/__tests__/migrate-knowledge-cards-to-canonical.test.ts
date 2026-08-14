@@ -38,6 +38,7 @@ import {
   isLegacyLocalGraphNodeId,
   LegacyGraphIdAuthoringError,
   mergeCardCrosswalkSources,
+  loadCardCrosswalk,
   optionalCardAbsenceBlocks,
   parseCardCrosswalkDocument,
   parseCardFrontmatter,
@@ -760,6 +761,25 @@ describe('migrate-knowledge-cards-to-canonical (#1271)', () => {
       );
       expect(doc.entries).toHaveLength(2);
       expect(doc.contract).toBe('act-knowledge-card-crosswalk/v1');
+    });
+
+    it('pins every required active teaching core card to audited local authoring', () => {
+      const doc = loadCardCrosswalk(path.join(
+        repoRoot,
+        'course-content/authoring/knowledge/teaching-projection/cards/card-crosswalk.jsonl',
+      ));
+      const required = [
+        'ctkg:v3e-object-8c4354096b719a1d5e090da4',
+        'ctc:modeling-865eb1c8824e157c2f05a903',
+        'ctc:modeling-2088bbde171b2e9ef66070d5',
+        'ctc:modeling-e442dacbfef4a0d7ea3c4c15',
+      ];
+      for (const canonicalId of required) {
+        const entry = doc.entries.find((row) => row.canonicalId === canonicalId);
+        expect(entry?.cardId).toBeTruthy();
+        expect(entry?.stale).not.toBe(true);
+        expect(entry?.sourceEvidence).toMatch(/^course-content\/authoring\/knowledge\/cards\/authority\/nodes\/.+\.md$/u);
+      }
     });
 
     it('writes and inventories a temp card file with source hash', () => {

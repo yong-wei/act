@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-110792a593c8f23f058bf750",
+  "safe_id": "ctc_v11g-110792a593c8f23f058bf750",
+  "node": {
+    "name": "I型系统",
+    "name_en": "type_one_system",
+    "concept_kind": "system_kind",
+    "release_tier": "gold",
+    "batch": "A",
+    "coverage_role": "formal_objective"
+  },
+  "definition": "开环系统在坐标原点有一个极点的系统类型。",
+  "intuition": null,
+  "explanation": "开环系统在坐标原点有一个极点的系统类型。",
+  "relation_head": "后续 → 静态速度误差系数",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "静态速度误差系数",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "I型系统",
+    "type one sys",
+    "关联·静态速度误差…"
+  ],
+  "visual_archetype": "s 平面机理板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-110792a593c8f23f058bf750.md",
+  "provider_policy": "grok-image_gen"
+}
