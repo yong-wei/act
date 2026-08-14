@@ -243,6 +243,60 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             self.assertEqual(replaced["desired"]["releaseId"], "runtime-c")
             self.assertNotIn("runtime-b", self.call("protected-set", "--state-dir", str(state))["releaseIds"])
 
+    def test_generation_fenced_publishing_cleanup_only_removes_exact_candidate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            active = self.write_identity(root, "runtime-a", "a")
+            candidate_b = self.write_identity(root, "runtime-b", "b")
+            candidate_c = self.write_identity(root, "runtime-c", "c")
+            candidate_d = self.write_identity(root, "runtime-d", "d")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(candidate_b))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(candidate_c))
+
+            # A stale cleanup attempt must fail closed and leave every root
+            # untouched, including another publisher's candidate.
+            stale = self.call(
+                "cancel-publishing", "--state-dir", str(state),
+                "--expected-generation", "2", "--identity", str(candidate_b), expect_ok=False,
+            )
+            self.assertIn("generation", stale.stderr)
+            inspected = self.call("inspect", "--state-dir", str(state))
+            self.assertEqual([item["releaseId"] for item in inspected["publishing"]], ["runtime-b", "runtime-c"])
+
+            cancelled = self.call(
+                "cancel-publishing", "--state-dir", str(state),
+                "--expected-generation", "3", "--identity", str(candidate_b),
+            )
+            self.assertEqual([item["releaseId"] for item in cancelled["publishing"]], ["runtime-c"])
+
+            # A different candidate can proceed after the failed publication
+            # root is explicitly cancelled, while the other publisher remains.
+            continued = self.call(
+                "begin-publish", "--state-dir", str(state),
+                "--expected-generation", "4", "--identity", str(candidate_d),
+            )
+            self.assertEqual(
+                [item["releaseId"] for item in continued["publishing"]],
+                ["runtime-c", "runtime-d"],
+            )
+
+            # Cancellation cannot remove a candidate after it has become a
+            # desired root, even when the identity file is still available.
+            self.call(
+                "set-desired", "--state-dir", str(state),
+                "--expected-generation", "5", "--identity", str(candidate_c),
+            )
+            protected = self.call(
+                "cancel-publishing", "--state-dir", str(state),
+                "--expected-generation", "6", "--identity", str(candidate_c), expect_ok=False,
+            )
+            self.assertIn("publishing identity", protected.stderr)
+            final_state = self.call("inspect", "--state-dir", str(state))
+            self.assertEqual(final_state["desired"]["releaseId"], "runtime-c")
+            self.assertEqual([item["releaseId"] for item in final_state["publishing"]], ["runtime-d"])
+
     def test_persists_v1_rollback_marker_instead_of_deleting_v2_authority_history(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

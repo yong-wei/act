@@ -522,6 +522,14 @@ def mutate(args: argparse.Namespace, operation: str) -> Dict[str, Any]:
             if candidate["releaseId"] in occupied:
                 fail("publishing candidate overlaps an existing lifecycle identity")
             after["publishing"] = sorted(current["publishing"] + [candidate], key=lambda item: item["releaseId"])
+        elif operation == "cancel-publishing":
+            candidate = read_identity_file(args.identity)
+            if not any(item == candidate for item in current["publishing"]):
+                fail("only an exact publishing identity may be cancelled")
+            after["publishing"] = [
+                item for item in current["publishing"]
+                if item["releaseId"] != candidate["releaseId"]
+            ]
         elif operation == "set-desired":
             candidate = read_identity_file(args.identity)
             if candidate["releaseId"] == current["active"]["releaseId"]:
@@ -863,7 +871,7 @@ def main() -> None:
     import_parser.add_argument("--active-identity-file", required=True)
     import_parser.add_argument("--v1-desired-selection-file")
     import_parser.add_argument("--desired-identity-file")
-    for name in ("begin-publish", "set-desired", "retain", "release-retained"):
+    for name in ("begin-publish", "cancel-publishing", "set-desired", "retain", "release-retained"):
         command = commands.add_parser(name)
         command.add_argument("--state-dir", required=True)
         command.add_argument("--expected-generation", required=True, type=int)
@@ -921,7 +929,7 @@ def main() -> None:
         result = initialize(args)
     elif args.command == "initialize-v2-from-v1":
         result = initialize_from_v1(args)
-    elif args.command in {"begin-publish", "set-desired", "cancel-desired", "retire-rollback", "retain", "release-retained"}:
+    elif args.command in {"begin-publish", "cancel-publishing", "set-desired", "cancel-desired", "retire-rollback", "retain", "release-retained"}:
         result = mutate(args, args.command)
     elif args.command == "protected-set":
         result = protected(args)

@@ -92,7 +92,11 @@ for (const invariant of [
   'timingMilliseconds',
   'lifecycle-identity.json',
   'runtime-blob-release-lifecycle.py',
+  'runtime-blob-activation-transaction.py',
   'begin-publish',
+  'cancel-publishing',
+  'publishing_identity_started',
+  'publishing root cleanup failed',
   'activate-runtime-blob-release.sh',
   'remote path is unsafe',
   'treeSha256',
@@ -127,6 +131,19 @@ assert.ok(
 assert.ok(
   runtimeDeploy.indexOf('copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py"') < runtimeDeploy.indexOf('begin-publish'),
   'the lifecycle authority must be synchronized before it records the candidate root',
+);
+assert.ok(
+  runtimeDeploy.indexOf('copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py"') < runtimeDeploy.indexOf('begin-publish'),
+  'the activation transaction helper must be synchronized before it records the candidate root',
+);
+assert.ok(
+  runtimeDeploy.indexOf('cancel-publishing') > runtimeDeploy.indexOf('publish-streaming'),
+  'a failed local publication must clean up only after publish-streaming returns',
+);
+assert.match(
+  runtimeDeploy,
+  /publishing root cleanup failed[^\n]*remains protected/,
+  'cleanup failure must preserve the publishing root and report the original failure',
 );
 
 assert.equal(packageJson.scripts['deploy:runtime'], 'bash ./scripts/deploy-runtime-blob-release.sh');

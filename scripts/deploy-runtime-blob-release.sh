@@ -16,6 +16,7 @@ REMOTE_ARTIFACT_ROOT="${REMOTE_RUNTIME_ARTIFACT_ROOT:-$REMOTE_PROJECT_DIR/data/r
 REMOTE_HOST_STATE="${REMOTE_RUNTIME_HOST_STATE_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/runtime-release-host-state.py}"
 REMOTE_MATERIALIZER="${REMOTE_RUNTIME_BLOB_MATERIALIZER:-$REMOTE_PROJECT_DIR/scripts/materialize-runtime-blob-release.py}"
 REMOTE_LIFECYCLE="${REMOTE_RUNTIME_BLOB_LIFECYCLE_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py}"
+REMOTE_ACTIVATION_TRANSACTION="${REMOTE_RUNTIME_BLOB_ACTIVATION_TRANSACTION:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py}"
 REMOTE_ACTIVATOR="${REMOTE_RUNTIME_BLOB_ACTIVATOR:-$REMOTE_PROJECT_DIR/scripts/activate-runtime-blob-release.sh}"
 REMOTE_APP_DEPLOY="${REMOTE_APP_DEPLOY_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/4-deploy.sh}"
 BUCKET="${ACT_OSS_BUCKET:-act-course-assets}"
@@ -26,6 +27,8 @@ artifact_dir=""
 expected_active_release=""
 matching_parent_release_id=""
 ram_role="${ACT_RUNTIME_OSS_RAM_ROLE:-act-runtime-oss-read}"
+publishing_identity_started=0
+publishing_generation=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -52,6 +55,7 @@ for remote_path in \
   "$REMOTE_HOST_STATE" \
   "$REMOTE_MATERIALIZER" \
   "$REMOTE_LIFECYCLE" \
+  "$REMOTE_ACTIVATION_TRANSACTION" \
   "$REMOTE_ACTIVATOR" \
   "$REMOTE_APP_DEPLOY"; do
   [[ "$remote_path" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "ERROR: remote path is unsafe: $remote_path" >&2; exit 1; }
@@ -194,8 +198,10 @@ fi
 # prevents a concurrent GC from collecting unique candidate blobs between the
 # local publish and the later host materialization step.
 remote_lifecycle_identity="$REMOTE_ARTIFACT_ROOT/$release_id/lifecycle-identity.json"
-remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_LIFECYCLE")'"
+remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATION_TRANSACTION")' '$(dirname "$REMOTE_ACTIVATOR")'"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py" "$REMOTE_LIFECYCLE"
+copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py" "$REMOTE_ACTIVATION_TRANSACTION"
+copy_atomic "$ROOT_DIR/scripts/runtime-release/activate-runtime-blob-release.sh" "$REMOTE_ACTIVATOR"
 scp -q -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$lifecycle_identity" "$SSH_TARGET:$remote_lifecycle_identity.tmp"
 remote "chmod 0600 '$remote_lifecycle_identity.tmp' && mv '$remote_lifecycle_identity.tmp' '$remote_lifecycle_identity'"
 pre_publish_lifecycle="$(remote "python3 '$REMOTE_LIFECYCLE' inspect --state-dir '$REMOTE_PROJECT_DIR/data/runtime'")"
@@ -227,7 +233,10 @@ print("begin:%d" % state["generation"])
 if [[ "$pre_publish_action" == begin:* ]]; then
   pre_publish_generation="${pre_publish_action#begin:}"
   [[ "$pre_publish_generation" =~ ^[1-9][0-9]*$ ]] || { echo "ERROR: invalid lifecycle generation" >&2; exit 1; }
-  remote "python3 '$REMOTE_LIFECYCLE' begin-publish --state-dir '$REMOTE_PROJECT_DIR/data/runtime' --expected-generation '$pre_publish_generation' --identity '$remote_lifecycle_identity' >/dev/null"
+  begin_publish_result="$(remote "python3 '$REMOTE_LIFECYCLE' begin-publish --state-dir '$REMOTE_PROJECT_DIR/data/runtime' --expected-generation '$pre_publish_generation' --identity '$remote_lifecycle_identity'")"
+  publishing_generation="$(printf '%s' "$begin_publish_result" | python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])')"
+  [[ "$publishing_generation" =~ ^[1-9][0-9]*$ ]] || { echo "ERROR: invalid lifecycle generation after begin-publish; publishing root ownership is uncertain" >&2; exit 1; }
+  publishing_identity_started=1
 elif [[ "$pre_publish_action" != protected:* ]]; then
   echo "ERROR: invalid lifecycle publication state" >&2
   exit 1
@@ -248,13 +257,31 @@ fi
 if [[ -n "${ACT_RUNTIME_CREDENTIAL_PROFILE:-}" ]]; then
   publish_args+=(--credential-profile "$ACT_RUNTIME_CREDENTIAL_PROFILE")
 fi
+set +e
 npx tsx "$CLI" "${publish_args[@]}" >/dev/null
+publish_status=$?
+set -e
+if (( publish_status != 0 )); then
+  if [[ "${publishing_identity_started:-0}" == "1" ]]; then
+    cleanup_status=0
+    if cleanup_output="$(remote "python3 '$REMOTE_LIFECYCLE' cancel-publishing --state-dir '$REMOTE_PROJECT_DIR/data/runtime' --expected-generation '$publishing_generation' --identity '$remote_lifecycle_identity'")"; then
+      echo "ERROR: publish-streaming failed (status=$publish_status); publishing root cancelled for $release_id" >&2
+    else
+      cleanup_status=$?
+      echo "ERROR: publish-streaming failed (status=$publish_status); publishing root cleanup failed (status=$cleanup_status) and remains protected: $release_id" >&2
+    fi
+  else
+    echo "ERROR: publish-streaming failed (status=$publish_status); no owned publishing root was cancelled" >&2
+  fi
+  exit "$publish_status"
+fi
 publish_elapsed_milliseconds=$(( (SECONDS - publish_started_seconds) * 1000 ))
 
-remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_HOST_STATE")' '$(dirname "$REMOTE_MATERIALIZER")' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATOR")' '$(dirname "$REMOTE_APP_DEPLOY")'"
+remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_HOST_STATE")' '$(dirname "$REMOTE_MATERIALIZER")' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATION_TRANSACTION")' '$(dirname "$REMOTE_ACTIVATOR")' '$(dirname "$REMOTE_APP_DEPLOY")'"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-release-host-state.py" "$REMOTE_HOST_STATE"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/materialize-runtime-blob-release.py" "$REMOTE_MATERIALIZER"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py" "$REMOTE_LIFECYCLE"
+copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py" "$REMOTE_ACTIVATION_TRANSACTION"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/activate-runtime-blob-release.sh" "$REMOTE_ACTIVATOR"
 copy_atomic "$ROOT_DIR/deploy/podman/deploy.sh" "$REMOTE_APP_DEPLOY"
 for name in manifest.json release-receipt.json publisher-verification.json; do
