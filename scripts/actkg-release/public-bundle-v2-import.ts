@@ -280,12 +280,18 @@ function resultShape(
   };
 }
 
-async function acquireV2ImportLocks(tx: Tx, bundle: ValidatedActKGBundleV2): Promise<void> {
+export async function acquireV2ImportLocks(tx: Tx, bundle: ValidatedActKGBundleV2): Promise<void> {
   const releaseToken = `actkg-v2-import:release:${bundle.releaseIdentity.releaseId}`;
   const bundleToken = `actkg-v2-import:bundle:${bundle.bundleIdentity.bundleDigest}`;
-  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext('actkg-v2-import:global'))`;
-  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${releaseToken}))`;
-  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${bundleToken}))`;
+  await tx.$queryRaw`
+    SELECT (pg_advisory_xact_lock(hashtext('actkg-v2-import:global')) IS NULL) AS "acquired"
+  `;
+  await tx.$queryRaw`
+    SELECT (pg_advisory_xact_lock(hashtext(${releaseToken})) IS NULL) AS "acquired"
+  `;
+  await tx.$queryRaw`
+    SELECT (pg_advisory_xact_lock(hashtext(${bundleToken})) IS NULL) AS "acquired"
+  `;
 }
 
 function componentPayload(component: ValidatedComponentReferenceV2): Prisma.InputJsonValue {

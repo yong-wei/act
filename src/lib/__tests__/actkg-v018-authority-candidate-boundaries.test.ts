@@ -13,6 +13,7 @@ import {
 } from '../../../scripts/actkg-release/capture-revision';
 import { loadAndValidatePublicBundleV2 } from '../../../scripts/actkg-release/public-bundle-v2';
 import { V018_ACT_CONTROLLED_PATH } from '../../../scripts/actkg-release/actkg-v018-release-mirror';
+import { acquireV2ImportLocks } from '../../../scripts/actkg-release/public-bundle-v2-import';
 import {
   assertV018CandidateBundleCounts,
   V018_CANDIDATE_CAPTURE_PATHS,
@@ -125,6 +126,29 @@ describe('ActKG v0.18 candidate capture boundaries', () => {
     } finally {
       await rm(capture.root, { recursive: true, force: true });
     }
+  });
+
+  it('projects V2 advisory locks to a supported boolean result while preserving order and bindings', async () => {
+    const queries: unknown[][] = [];
+    const tx = {
+      $queryRaw: async (...args: unknown[]) => {
+        queries.push(args);
+        return [{ acquired: true }];
+      },
+    };
+    await acquireV2ImportLocks(tx as unknown as Parameters<typeof acquireV2ImportLocks>[0], {
+      releaseIdentity: { releaseId: 'release-v018' },
+      bundleIdentity: { bundleDigest: 'b'.repeat(64) },
+    } as ValidatedActKGBundleV2);
+
+    expect(queries).toHaveLength(3);
+    const sql = queries.map(([template]) => (
+      Array.isArray(template) ? (template as readonly string[]).join('?') : ''
+    ));
+    expect(sql).toHaveLength(3);
+    expect(sql.every((statement) => statement.includes('IS NULL) AS "acquired"'))).toBe(true);
+    expect(queries[1]?.[1]).toBe('actkg-v2-import:release:release-v018');
+    expect(queries[2]?.[1]).toBe(`actkg-v2-import:bundle:${'b'.repeat(64)}`);
   });
 
   it('protects the complete v0.9 and implementation dependency closure', () => {
