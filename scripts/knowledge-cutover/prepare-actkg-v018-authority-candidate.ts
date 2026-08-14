@@ -249,18 +249,20 @@ function assertPointersUnchanged(before: readonly PointerState[], after: readonl
   }
 }
 
-function assertCounts(bundle: ValidatedActKGBundleV2): void {
-  const expected = {
-    releaseNodes: 7061,
-    runtimeProjectionNodes: 6843,
-    publishedRuntimeRelations: 2811,
-    terminologyAssertions: 1909,
-  };
-  for (const [key, value] of Object.entries(expected)) {
-    if (bundle.statistics[key] !== value) fail(`registered v0.18 count ${key}=${bundle.statistics[key]} != ${value}`);
+export function assertV018CandidateBundleCounts(bundle: ValidatedActKGBundleV2): void {
+  const counts = [
+    { name: 'releaseNodes', expected: 7061, actual: bundle.statistics.releaseNodes },
+    { name: 'projectionNodes', expected: 6843, actual: bundle.statistics.projectionNodes },
+    { name: 'publishedRelations', expected: 2811, actual: bundle.statistics.publishedRelations },
+    { name: 'terminologyAssertions', expected: 1909, actual: bundle.statistics.terminologyAssertions },
+  ] as const;
+  for (const count of counts) {
+    if (count.actual !== count.expected) {
+      fail(`registered v0.18 count ${count.name}=${count.actual} != ${count.expected}`);
+    }
   }
   if (bundle.projectionProfiles.length !== 3) fail('v0.18 must retain all three typed projection profiles');
-  if (bundle.multilingualLabels.length !== expected.terminologyAssertions) fail('v0.18 multilingual labels are incomplete');
+  if (bundle.multilingualLabels.length !== 1909) fail('v0.18 multilingual labels are incomplete');
   if (bundle.rawArtifacts.length < 2) fail('v0.18 raw Artifact evidence is incomplete');
 }
 
@@ -385,7 +387,7 @@ export async function prepareV018AuthorityCandidate(input: {
     gitRoot: repoRoot,
     captureRevision,
   });
-  assertCounts(bundle);
+  assertV018CandidateBundleCounts(bundle);
 
   const sourceUrl = process.env.DATABASE_URL?.trim();
   if (!sourceUrl) fail('DATABASE_URL is not configured');

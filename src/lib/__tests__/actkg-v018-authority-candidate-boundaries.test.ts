@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -8,9 +8,13 @@ import { describe, expect, it } from 'vitest';
 import { computeV018ImpactReport } from '../../../scripts/actkg-release/actkg-v018-impact';
 import {
   assertGitDirectoryMatchesWorkingTree,
+  PUBLIC_BUNDLE_V2_ADAPTER_CAPTURE_PATHS,
   resolveTrustedCaptureRevision,
 } from '../../../scripts/actkg-release/capture-revision';
+import { loadAndValidatePublicBundleV2 } from '../../../scripts/actkg-release/public-bundle-v2';
+import { V018_ACT_CONTROLLED_PATH } from '../../../scripts/actkg-release/actkg-v018-release-mirror';
 import {
+  assertV018CandidateBundleCounts,
   V018_CANDIDATE_CAPTURE_PATHS,
   V018_CANDIDATE_MIGRATIONS_PATH,
 } from '../../../scripts/knowledge-cutover/prepare-actkg-v018-authority-candidate';
@@ -18,6 +22,22 @@ import type { ValidatedActKGBundleV2 } from '../../../scripts/actkg-release/publ
 
 const V09_PATH = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.9';
 const HASH = 'a'.repeat(64);
+
+async function createRegisteredBundleCaptureFixture(): Promise<{ root: string; head: string }> {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'actkg-v018-counts-capture-'));
+  for (const capturePath of PUBLIC_BUNDLE_V2_ADAPTER_CAPTURE_PATHS) {
+    const source = path.join(process.cwd(), capturePath);
+    const destination = path.join(root, capturePath);
+    await mkdir(path.dirname(destination), { recursive: true });
+    await cp(source, destination, { recursive: true });
+  }
+  git(root, ['init', '-q']);
+  git(root, ['config', 'user.email', 'actkg-v018-counts@example.invalid']);
+  git(root, ['config', 'user.name', 'actkg-v018-counts']);
+  git(root, ['add', '.']);
+  git(root, ['commit', '-qm', 'registered v0.18 count capture']);
+  return { root, head: git(root, ['rev-parse', 'HEAD']) };
+}
 
 function git(root: string, args: string[]): string {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
@@ -84,6 +104,29 @@ async function createV09CaptureFixture(): Promise<{ root: string; head: string }
 const emptyCandidate = {} as ValidatedActKGBundleV2;
 
 describe('ActKG v0.18 candidate capture boundaries', () => {
+  it('accepts the registered V2 bundle statistics and rejects a projection count drift', async () => {
+    const capture = await createRegisteredBundleCaptureFixture();
+    try {
+      const bundle = await loadAndValidatePublicBundleV2({
+        root: process.cwd(),
+        bundlePath: V018_ACT_CONTROLLED_PATH,
+        gitRoot: capture.root,
+        captureRevision: capture.head,
+      });
+      expect(() => assertV018CandidateBundleCounts(bundle)).not.toThrow();
+      const tampered = {
+        ...bundle,
+        statistics: {
+          ...bundle.statistics,
+          projectionNodes: bundle.statistics.projectionNodes - 1,
+        },
+      };
+      expect(() => assertV018CandidateBundleCounts(tampered)).toThrow(/projectionNodes=6842 != 6843/u);
+    } finally {
+      await rm(capture.root, { recursive: true, force: true });
+    }
+  });
+
   it('protects the complete v0.9 and implementation dependency closure', () => {
     expect(V018_CANDIDATE_CAPTURE_PATHS).toEqual(expect.arrayContaining([
       V09_PATH,
