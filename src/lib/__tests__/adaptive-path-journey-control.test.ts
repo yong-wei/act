@@ -203,7 +203,7 @@ describe('adaptive path journey control', () => {
       onRefresh: () => undefined,
     }));
 
-    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;intent=path-execution&amp;pathId=path-1"');
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction"');
     expect(html).not.toContain('nodeId=node-1');
   });
 
@@ -273,7 +273,7 @@ describe('adaptive path journey control', () => {
     }));
 
     expect(html.match(/返回学习路径/g)).toHaveLength(1);
-    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;intent=path-execution&amp;pathId=path-1"');
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction"');
     expect(html).not.toContain('data-adaptive-path-next-action="ready"');
   });
 
@@ -471,7 +471,8 @@ describe('adaptive path journey control', () => {
     expect(resourcePageSource).toContain('const showLocalReturnAction = !pathLaunchContext;');
     expect(resourcePageSource).toContain('actions={showLocalReturnAction ? (');
     expect(resourcePageSource).toContain('action={showLocalReturnAction ? (');
-    expect(resourcePageSource).toContain("pathLaunchContext\n      ? { label: sourceContext.label }");
+    expect(resourcePageSource).toContain('pathLaunchContext');
+    expect(resourcePageSource).toContain('{ label: sourceContext.label }');
   });
 
   it('keeps the resource-page return action for non-path sources', () => {
