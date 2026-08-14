@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import Image from 'next/image';
 import {
   AlertTriangle,
   ChevronDown,
@@ -890,9 +891,13 @@ function ActiveNodeDetail({
 }) {
   const { detail, failure, loading } = useActiveNodeDetail(nodeKey, envelope, onShard, onIdentityFailure);
   const panelRef = useRef<HTMLElement>(null);
+  const [infographFailed, setInfographFailed] = useState(false);
   useEffect(() => {
     panelRef.current?.focus();
   }, [nodeKey]);
+  useEffect(() => {
+    setInfographFailed(false);
+  }, [nodeKey, detail?.node.learningContent?.infograph.state]);
   const node = detail?.node;
   const type = presentActiveNodeType(node?.canonicalType ?? fallbackNode?.type.canonicalType ?? '');
   const summaries = node && node.adjacency.length > 0
@@ -965,6 +970,31 @@ function ActiveNodeDetail({
             <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">参考来源</h3>
             <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources)}</p>
           </section>
+          {node?.learningContent?.card.state === 'available' ? (
+            <section aria-labelledby="active-detail-card" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
+              <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">知识卡</h3>
+              <div className="mt-2 space-y-2 text-sm leading-6 text-platform-fg-secondary">
+                <p>{node.learningContent.card.summary}</p>
+                {node.learningContent.card.insight ? <p>{node.learningContent.card.insight}</p> : null}
+                {node.learningContent.card.explanation ? <p>{node.learningContent.card.explanation}</p> : null}
+              </div>
+            </section>
+          ) : null}
+          {node?.learningContent?.infograph.state === 'available' && !infographFailed ? (
+            <section aria-labelledby="active-detail-infograph" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
+              <h3 id="active-detail-infograph" className="text-sm font-semibold text-platform-fg-primary">信息图</h3>
+              <Image
+                src={`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`}
+                alt={node.learningContent.infograph.alternativeText}
+                width={1200}
+                height={675}
+                sizes="(max-width: 640px) 100vw, 30rem"
+                unoptimized
+                onError={() => setInfographFailed(true)}
+                className="mt-3 h-auto w-full rounded-md border border-platform-border bg-platform-surface object-contain"
+              />
+            </section>
+          ) : null}
           {node?.governance ? (
             <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
               <h3 className="font-semibold text-platform-fg-primary">内容状态</h3>

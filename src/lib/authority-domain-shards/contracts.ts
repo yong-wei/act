@@ -229,8 +229,41 @@ export interface AuthorityNodeDetailShard {
       cardAvailable: false;
       infographAvailable: false;
     };
+    /**
+     * Filled only by the authenticated node-detail API. Immutable shard bytes
+     * deliberately contain no card body or media locator.
+     */
+    learningContent?: AuthorityNodeLearningContent;
     semanticSupport: { supported: boolean; readOnly: true };
   };
+}
+
+export type AuthorityLearningCard =
+  | {
+    state: 'available';
+    summary: string;
+    insight: string | null;
+    explanation: string | null;
+  }
+  | {
+    state: 'missing' | 'blocked' | 'unavailable';
+    message: string;
+  };
+
+export type AuthorityLearningInfograph =
+  | {
+    state: 'available';
+    alternativeText: string;
+  }
+  | {
+    state: 'missing' | 'unavailable';
+    message: string;
+  };
+
+/** Learner-safe, selection-bound supplement to a sealed node-detail shard. */
+export interface AuthorityNodeLearningContent {
+  card: AuthorityLearningCard;
+  infograph: AuthorityLearningInfograph;
 }
 
 export type AuthorityLearnerShard =
