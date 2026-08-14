@@ -23,6 +23,7 @@ source_revision=""
 parent_manifest=""
 artifact_dir=""
 expected_active_release=""
+matching_parent_release_id=""
 ram_role="${ACT_RUNTIME_OSS_RAM_ROLE:-act-runtime-oss-read}"
 
 while [[ $# -gt 0 ]]; do
@@ -59,6 +60,11 @@ done
 for file in "$CLI" "$LOCAL_BRIDGE"; do
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required local tool is missing: $file" >&2; exit 1; }
 done
+
+remote() {
+  ssh -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$SSH_TARGET" "$@"
+}
+
 for variable in \
   ACT_RUNTIME_LOCAL_PYTHON \
   ACT_RUNTIME_LOCAL_OSSUTIL \
@@ -91,7 +97,7 @@ PY
 )"
 
 if [[ -n "$parent_manifest" ]]; then
-  parent_release_id="$(python3 - "$manifest" "$parent_manifest" <<'PY'
+  matching_parent_release_id="$(python3 - "$manifest" "$parent_manifest" <<'PY'
 import json
 import sys
 
@@ -105,8 +111,25 @@ for field in ("treeSha256", "fileCount", "totalBytes"):
 print(parent["releaseId"])
 PY
   )"
-  if [[ -n "$parent_release_id" ]]; then
-    printf '{"releaseId":"%s","noRuntimeChange":true}\n' "$parent_release_id"
+  if [[ -n "$matching_parent_release_id" && "$matching_parent_release_id" == "$expected_active_release" ]]; then
+    remote_active="$(remote "python3 '$REMOTE_HOST_STATE' active --state-dir '$REMOTE_PROJECT_DIR/data/runtime'")"
+    python3 - "$parent_manifest" "$expected_active_release" "$remote_active" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    parent = json.load(handle)
+active = json.loads(sys.argv[3])
+selection = active.get("selection")
+if not isinstance(selection, dict):
+    raise SystemExit("active runtime selection is missing")
+for field in ("releaseId", "manifestSha256", "treeSha256"):
+    if selection.get(field) != parent.get(field):
+        raise SystemExit("active runtime selection does not match the unchanged parent manifest")
+if selection.get("releaseId") != sys.argv[2]:
+    raise SystemExit("active runtime selection does not match --expected-active-release")
+PY
+    printf '{"releaseId":"%s","noRuntimeChange":true}\n' "$matching_parent_release_id"
     exit 0
   fi
 fi
@@ -127,9 +150,6 @@ if [[ -n "${ACT_RUNTIME_CREDENTIAL_PROFILE:-}" ]]; then
 fi
 npx tsx "$CLI" "${publish_args[@]}" >/dev/null
 
-remote() {
-  ssh -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$SSH_TARGET" "$@"
-}
 copy_atomic() {
   local local_path="$1"
   local remote_path="$2"

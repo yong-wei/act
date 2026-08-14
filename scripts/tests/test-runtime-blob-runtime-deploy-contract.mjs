@@ -79,6 +79,16 @@ assert.match(
   /publish_args\+=\(--parent-manifest "\$parent_manifest"\)/,
   'runtime deploy must pass the parent manifest to publish-streaming so inherited Git blobs remain body-read and HEAD free',
 );
+assert.match(
+  runtimeDeploy,
+  /matching_parent_release_id" && "\$matching_parent_release_id" == "\$expected_active_release"/,
+  'unchanged runtime may bypass publication only when its parent is the expected active release',
+);
+assert.match(
+  runtimeDeploy,
+  /active runtime selection does not match the unchanged parent manifest/,
+  'unchanged runtime must validate the active identity before returning no-op',
+);
 
 assert.equal(packageJson.scripts['deploy:runtime'], 'bash ./scripts/deploy-runtime-blob-release.sh');
 assert.equal(packageJson.scripts['deploy:app'], 'bash ./scripts/remote-deploy.sh --app-only');

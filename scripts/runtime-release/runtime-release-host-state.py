@@ -426,7 +426,10 @@ def mark_active(args: argparse.Namespace):
 
 def active(args: argparse.Namespace):
     receipt = read_json(Path(args.state_dir) / ACTIVE_RECEIPT_FILE, require_active_receipt)
-    return {"activeReleaseId": receipt["selection"]["releaseId"] if receipt else None}
+    return {
+        "activeReleaseId": receipt["selection"]["releaseId"] if receipt else None,
+        "selection": receipt["selection"] if receipt else None,
+    }
 
 
 def verify_mounted(args: argparse.Namespace):
