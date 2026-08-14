@@ -1,12 +1,12 @@
 {
   "schemaVersion": "commercial-ui-evidence.v1",
   "status": "passed",
-  "capturedAt": "2026-08-14T09:28:14.772Z",
-  "sourceRevision": "0104095050c8b50f7a5f85ed1c39cc074cb626e7",
-  "treeSha": "06fb5a93fd92b81e12d27536f0e81cb762d11b6e",
+  "capturedAt": "2026-08-14T10:33:02.721Z",
+  "sourceRevision": "6b8db0c252214d8ac32788150e3c18b6e1cac8c5",
+  "treeSha": "b83e229f68104830b65ac6c01f59b506b0bc74ac",
   "serviceRevisionProof": {
-    "commitSha": "0104095050c8b50f7a5f85ed1c39cc074cb626e7",
-    "treeSha": "06fb5a93fd92b81e12d27536f0e81cb762d11b6e",
+    "commitSha": "6b8db0c252214d8ac32788150e3c18b6e1cac8c5",
+    "treeSha": "b83e229f68104830b65ac6c01f59b506b0bc74ac",
     "sourceFingerprint": "35480d1e97b168534e6af495828cf75d0439d0fb30f487069a0e508864933ea3",
     "clean": true
   },
@@ -43,14 +43,16 @@
     },
     {
       "file": "artifacts/commercial-ui/pr-1387-return-center/capture-evidence.mjs",
-      "gitBlobId": "935e37332fcbe93ff8dd00cb671df66fc5f40ac8",
-      "sha256": "6adb27c1b111d4ba569262401b09d206204fd205aeb52c7650393188ec2e59a7"
+      "gitBlobId": "2847c613456316fd81a06ec87275f70b8e32e2fd",
+      "sha256": "2ac14b7dbdd1c598ef585336726a14ffce6c391c1ad14b87e2f744c274ee6f48"
     }
   ],
   "baseUrl": "http://localhost:3002",
   "flow": "path execution -> blocked journey resource -> deduplicated return -> path center",
   "fixtureBoundary": "The resource body, blocked journey payload, and unauthenticated AI conversation list are deterministic browser fixtures; the journey-control rendering, return href, click navigation, and path-center landing are production code from the bound source revision.",
   "assertions": {
+    "blockedJourneyFixtureRendered": true,
+    "resourceFixtureRendered": true,
     "oneVisibleReturnAction": true,
     "duplicateRecoverySuppressed": true,
     "goalOnlyReturnHref": true,
@@ -65,6 +67,9 @@
         "height": 1100
       },
       "resourceUrl": "http://localhost:3002/interactive-learning/resources/lesson13-cruise-bridge?demo=1&source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction%3Acandidate_0c39810885f0a7c9f8de713f&nodeId=registry%3Alesson13-cruise-bridge&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dadaptive-path%253Acmma7hfvd0061g9q2jqfd291i%253Acontrol-correction%253Acandidate_0c39810885f0a7c9f8de713f%26nodeId%3Dregistry%253Alesson13-cruise-bridge&resourceType=knowledge_card",
+      "journeyControlState": "blocked",
+      "blockedReasonText": "当前结果未通过路径验证",
+      "resourceFixtureText": "此页面用于验证学习路径返回控制。",
       "returnActionCount": 1,
       "returnHref": "/assessment/adaptive-practice?goal=control-correction",
       "recoveryActionCount": 0,
@@ -84,6 +89,9 @@
         "height": 1200
       },
       "resourceUrl": "http://localhost:3002/interactive-learning/resources/lesson13-cruise-bridge?demo=1&source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction%3Acandidate_0c39810885f0a7c9f8de713f&nodeId=registry%3Alesson13-cruise-bridge&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dadaptive-path%253Acmma7hfvd0061g9q2jqfd291i%253Acontrol-correction%253Acandidate_0c39810885f0a7c9f8de713f%26nodeId%3Dregistry%253Alesson13-cruise-bridge&resourceType=knowledge_card",
+      "journeyControlState": "blocked",
+      "blockedReasonText": "当前结果未通过路径验证",
+      "resourceFixtureText": "此页面用于验证学习路径返回控制。",
       "returnActionCount": 1,
       "returnHref": "/assessment/adaptive-practice?goal=control-correction",
       "recoveryActionCount": 0,
@@ -92,7 +100,7 @@
       "consoleErrors": [],
       "responseFailures": [],
       "resourceScreenshot": "resource-mobile-320.png",
-      "resourceScreenshotSha256": "5bc5af8e968da48a03925580e062a24aa9b383aaabfa2b7a5022a9e2d3c56d00",
+      "resourceScreenshotSha256": "c02f076d01fc0664110f521632e7d43373f94feb5e2afb50da761f004d3d2503",
       "centerScreenshot": "center-after-return-mobile-320.png",
       "centerScreenshotSha256": "047b28345a8a9eae047798e2319b7c9a86c2d09d11a66e4038d1fc54b0ddf611"
     }
