@@ -32,6 +32,10 @@ rollback_app_image=""
 candidate_deploy_attempted=0
 lifecycle_identity=""
 lifecycle_generation=""
+candidate_media_runtime_path=""
+activation_attempted=0
+post_activation_media_smoke_passed=0
+activation_generation=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -109,59 +113,140 @@ wait_for_readyz() {
   return 1
 }
 
-run_candidate_runtime_smoke() {
-  local smoke_path kind encoded_path smoke_selections
-  if ! smoke_selections="$(python3 - "$manifest" <<'PY'
+run_candidate_consumer_smoke() {
+  local candidate_result
+  [[ -f "$candidate_view/lessons/1-1/lesson.json" && ! -L "$candidate_view/lessons/1-1/lesson.json" ]] || {
+    echo "ERROR: candidate canonical course runtime is missing" >&2
+    return 1
+  }
+  curl --connect-timeout 2 --max-time 20 --fail --silent --show-error --location --max-redirs 3 \
+    "http://127.0.0.1:${APP_PORT}/interactive-learning/courses/unit-1-1-see-the-full-picture" >/dev/null || {
+      echo "ERROR: candidate course runtime consumer smoke failed" >&2
+      return 1
+    }
+  if ! candidate_result="$(podman exec -i --workdir /app "$APP_CONTAINER" ./node_modules/.bin/tsx - <<'TS'
+import { readdir, readFile, stat } from 'node:fs/promises';
+import path from 'node:path';
+
+import { parseRuntimeLessonMediaDocument } from './src/lib/runtime-lesson-media-document';
+import { loadTextbookCatalog, loadTextbookReaderProjection } from './src/lib/textbook-reader';
+import { loadStructuredTextbookBook } from './src/lib/structured-textbook-runtime';
+import { selectRelationsForDb, validateRuntimeNodes } from './scripts/db/seed-all-knowledge.mjs';
+
+const runtimeRoot = path.join(process.cwd(), 'course-content', 'runtime');
+const lessonsRoot = path.join(runtimeRoot, 'lessons');
+let mediaPath = '';
+for (const lesson of await readdir(lessonsRoot, { withFileTypes: true })) {
+  if (!lesson.isDirectory()) continue;
+  const mediaDirectory = path.join(lessonsRoot, lesson.name, 'media');
+  let mediaIndexes: string[];
+  try {
+    mediaIndexes = (await readdir(mediaDirectory))
+      .filter((entry) => entry.endsWith('-media.md'))
+      .sort();
+  } catch {
+    continue;
+  }
+  for (const mediaIndex of mediaIndexes) {
+    const document = parseRuntimeLessonMediaDocument(
+      await readFile(path.join(mediaDirectory, mediaIndex), 'utf8'),
+    );
+    for (const resource of document.mediaResources) {
+      if (path.posix.basename(resource.filename) !== resource.filename || resource.filename.includes('\\')) {
+        continue;
+      }
+      try {
+        if (!(await stat(path.join(mediaDirectory, resource.filename))).isFile()) continue;
+      } catch {
+        continue;
+      }
+      mediaPath = `lessons/${lesson.name}/media/${resource.filename}`;
+      break;
+    }
+    if (mediaPath) break;
+  }
+  if (mediaPath) break;
+}
+if (!mediaPath) throw new Error('candidate runtime has no parser-resolved media object');
+
+const knowledgeRoot = path.join(runtimeRoot, 'knowledge', 'graph');
+const nodes = JSON.parse(await readFile(path.join(knowledgeRoot, 'nodes.json'), 'utf8'));
+const relations = (await readFile(path.join(knowledgeRoot, 'relations.jsonl'), 'utf8'))
+  .split(/\r?\n/)
+  .filter(Boolean)
+  .map((line) => JSON.parse(line));
+validateRuntimeNodes(nodes);
+const relationSelection = selectRelationsForDb(
+  relations,
+  new Set(nodes.map((node: { id: string }) => node.id)),
+);
+if (relationSelection.selectedRelations.size === 0) {
+  throw new Error('candidate runtime has no database-ready knowledge relations');
+}
+
+const textbookRoot = path.join(runtimeRoot, 'resources', 'textbooks-v2');
+const catalog = await loadTextbookCatalog({ userId: 'candidate-runtime-smoke', runtimeRoot: textbookRoot });
+const catalogEntry = catalog[0];
+if (!catalogEntry) throw new Error('candidate runtime has no textbook catalog entry');
+const book = await loadStructuredTextbookBook(catalogEntry.bookId, textbookRoot);
+const unit = book.units.find((entry) => entry.structuralPath.length > 0);
+if (!unit) throw new Error('candidate textbook has no readable structural unit');
+const textbookProjection = await loadTextbookReaderProjection({
+  userId: 'candidate-runtime-smoke',
+  bookId: catalogEntry.bookId,
+  edition: catalogEntry.edition,
+  unitPath: unit.structuralPath,
+  runtimeRoot: textbookRoot,
+});
+if (!textbookProjection.unit.markdown.trim() || textbookProjection.hierarchy.length === 0) {
+  throw new Error('candidate textbook reader projection is incomplete');
+}
+
+console.log(JSON.stringify({ mediaPath }));
+TS
+  )"; then
+    echo "ERROR: candidate media, knowledge, or textbook consumer smoke failed" >&2
+    return 1
+  fi
+  if ! candidate_media_runtime_path="$(python3 -c '
 import json
 import re
 import sys
-from urllib.parse import quote
-
-with open(sys.argv[1], encoding="utf-8") as handle:
-    manifest = json.load(handle)
-files = manifest.get("files")
-if not isinstance(files, list):
-    raise SystemExit("ERROR: candidate manifest files are invalid")
-paths = []
-for entry in files:
-    if not isinstance(entry, dict) or not isinstance(entry.get("path"), str):
-        raise SystemExit("ERROR: candidate manifest entry is invalid")
-    paths.append(entry["path"])
-
-def first(label, predicate):
-    for candidate in paths:
-        if predicate(candidate):
-            return label, candidate
-    raise SystemExit("ERROR: candidate %s runtime smoke representative is missing" % label)
-
-checks = [
-    first("course", lambda candidate: re.fullmatch(r"lessons/[^/]+/(?:lesson\.json|interactive-manifest\.json)", candidate) is not None),
-    first("media", lambda candidate: re.fullmatch(r"lessons/[^/]+/media/[^/]+\.(?:mp4|webm|m4a|mp3|wav|pdf|png|jpe?g|webp|svg|gif)", candidate, re.IGNORECASE) is not None),
-    first("knowledge", lambda candidate: candidate == "knowledge/graph/nodes.json"),
-    first("textbook", lambda candidate: re.fullmatch(r"resources/textbooks/[a-z0-9][a-z0-9-]{0,95}/assets/[^/]+/[^/]+", candidate) is not None),
-]
-for label, candidate in checks:
-    print("%s\t%s" % (label, quote(candidate, safe="/")))
-PY
-  )"; then
-    echo "ERROR: candidate runtime smoke selection failed" >&2
+value = json.load(sys.stdin).get("mediaPath")
+if not isinstance(value, str) or not re.fullmatch(r"lessons/[A-Za-z0-9][A-Za-z0-9._-]*/media/[A-Za-z0-9][A-Za-z0-9._-]*", value):
+    raise SystemExit(1)
+print(value)
+' <<<"$candidate_result")"; then
+    echo "ERROR: candidate media consumer smoke returned an invalid runtime path" >&2
     return 1
   fi
-  [[ -n "$smoke_selections" ]] || {
-    echo "ERROR: candidate runtime smoke selection is empty" >&2
+}
+
+run_active_media_resolver_smoke() {
+  local encoded_path response_status resolver_url
+  [[ "$candidate_media_runtime_path" =~ ^lessons/[A-Za-z0-9][A-Za-z0-9._-]*/media/[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || {
+    echo "ERROR: candidate media resolver smoke path is invalid" >&2
     return 1
   }
-  while IFS=$'\t' read -r kind encoded_path; do
-    [[ -n "$kind" && -n "$encoded_path" ]] || {
-      echo "ERROR: candidate runtime smoke selection is malformed" >&2
+  [[ "${ACT_RUNTIME_BLOB_MEDIA_SMOKE_FAIL:-0}" != "1" ]] || {
+    echo "ERROR: candidate media resolver smoke was fault-injected to fail" >&2
+    return 1
+  }
+  encoded_path="$(python3 -c 'import sys; from urllib.parse import quote; print(quote(sys.argv[1], safe="/"))' "$candidate_media_runtime_path")"
+  resolver_url="http://127.0.0.1:${APP_PORT}/api/course-runtime/assets/${encoded_path}"
+  response_status="$(curl --connect-timeout 2 --max-time 20 --range 0-0 --silent --show-error --output /dev/null --write-out '%{http_code}' --max-redirs 0 "$resolver_url")" || {
+    echo "ERROR: active media resolver smoke request failed" >&2
+    return 1
+  }
+  [[ "$response_status" == "307" ]] || {
+    echo "ERROR: active media resolver did not return a private signed redirect" >&2
+    return 1
+  }
+  curl --connect-timeout 2 --max-time 20 --range 0-0 --fail --silent --show-error --location --max-redirs 3 \
+    --output /dev/null "$resolver_url" || {
+      echo "ERROR: active media signed redirect smoke failed" >&2
       return 1
     }
-    smoke_path="http://127.0.0.1:${APP_PORT}/course-runtime/${encoded_path}"
-    curl --connect-timeout 2 --max-time 20 --fail --silent --show-error "$smoke_path" >/dev/null || {
-      echo "ERROR: candidate ${kind} runtime smoke failed" >&2
-      return 1
-    }
-  done <<<"$smoke_selections"
 }
 
 capture_rollback_image() {
@@ -259,6 +344,20 @@ restore_runtime_consumers() {
   local lifecycle_state lifecycle_active_release
   lifecycle_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR" 2>/dev/null || true)"
   lifecycle_active_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$lifecycle_state" 2>/dev/null || true)"
+  if [[ "$candidate_deploy_attempted" == "1" && "$activation_attempted" == "1" && "$post_activation_media_smoke_passed" != "1" && "$lifecycle_active_release" == "$release_id" ]]; then
+    local rollback_generation
+    rollback_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$lifecycle_state" 2>/dev/null || true)"
+    if [[ "$rollback_generation" =~ ^[0-9]+$ ]]; then
+      python3 "$ACTIVATION_TRANSACTION" rollback \
+        --state-dir "$STATE_DIR" \
+        --lifecycle-script "$LIFECYCLE_SCRIPT" \
+        --host-state-script "$HOST_STATE_SCRIPT" \
+        --expected-generation "$rollback_generation" >/dev/null 2>&1 || \
+        echo "ERROR: candidate media smoke failed and lifecycle rollback could not complete" >&2
+      lifecycle_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR" 2>/dev/null || true)"
+      lifecycle_active_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$lifecycle_state" 2>/dev/null || true)"
+    fi
+  fi
   if [[ "$candidate_deploy_attempted" == "1" ]]; then
     if [[ "$lifecycle_active_release" != "$release_id" && -n "$parent_view" ]]; then
       python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null
@@ -330,13 +429,23 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   "$DEPLOY_SCRIPT" --runtime-cutover-app-only
 source "$ENV_FILE"
 wait_for_readyz
-run_candidate_runtime_smoke
+run_candidate_consumer_smoke
+activation_attempted=1
 python3 "$ACTIVATION_TRANSACTION" activate \
   --state-dir "$STATE_DIR" \
   --lifecycle-script "$LIFECYCLE_SCRIPT" \
   --host-state-script "$HOST_STATE_SCRIPT" \
   --expected-generation "$lifecycle_generation" \
   --identity "$lifecycle_identity" >/dev/null
+activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
+activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
+activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
+[[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
+  echo "ERROR: lifecycle activation did not commit the candidate release" >&2
+  exit 1
+}
+run_active_media_resolver_smoke
+post_activation_media_smoke_passed=1
 trap - ERR
 cleanup_lifecycle_identity
 printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$old_active"

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -35,13 +36,16 @@ for (const invariant of [
   'lifecycle_generation',
   'restore_runtime_consumers()',
   'ACT_RUNTIME_ACTIVE_RECEIPT_PATH',
-  'run_candidate_runtime_smoke()',
-  'first("course"',
-  'first("media"',
-  'first("knowledge"',
-  'first("textbook"',
-  'candidate ${kind} runtime smoke failed',
-  'candidate runtime smoke selection failed',
+  'run_candidate_consumer_smoke()',
+  'run_active_media_resolver_smoke()',
+  '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+  "./src/lib/runtime-lesson-media-document",
+  "./scripts/db/seed-all-knowledge.mjs",
+  "./src/lib/textbook-reader",
+  'candidate media, knowledge, or textbook consumer smoke failed',
+  'active media resolver did not return a private signed redirect',
+  'candidate media smoke failed and lifecycle rollback could not complete',
+  'ACT_RUNTIME_BLOB_MEDIA_SMOKE_FAIL',
 ]) {
   assert.ok(activation.includes(invariant), `runtime-only activation must include ${invariant}`);
 }
@@ -59,18 +63,63 @@ assert.ok(
   'v2 cross-state activation must complete before clearing rollback handling',
 );
 assert.ok(
-  activation.indexOf('run_candidate_runtime_smoke') < activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate'),
-  'candidate course, media, knowledge, and textbook smoke must pass before lifecycle activation',
+  activation.indexOf('run_candidate_consumer_smoke') < activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate'),
+  'candidate course, media, knowledge, and textbook consumers must pass before lifecycle activation',
 );
 assert.match(
   activation,
-  /if ! smoke_selections="\$\(python3 - "\$manifest"/,
-  'candidate smoke selection must propagate a missing representative failure before lifecycle activation',
+  /podman exec -i --workdir \/app "\$APP_CONTAINER" \.\/node_modules\/\.bin\/tsx -/,
+  'candidate consumer smoke must execute the deployed application consumer modules',
 );
 assert.doesNotMatch(
   activation,
-  /done < <\(python3 - "\$manifest"/,
-  'candidate smoke selection must not hide Python failures in process substitution',
+  /course-runtime\/\$\{encoded_path\}/,
+  'candidate validation must not reduce all consumers to raw runtime file reads',
+);
+const activationCommitIndex = activation.lastIndexOf('python3 "$ACTIVATION_TRANSACTION" activate');
+const activeMediaSmokeIndex = activation.lastIndexOf('run_active_media_resolver_smoke');
+const activationAttemptIndex = activation.lastIndexOf('activation_attempted=1');
+assert.ok(
+  activationCommitIndex < activeMediaSmokeIndex,
+  'the normal private media resolver must be verified only after the active receipt is committed',
+);
+assert.ok(
+  activationAttemptIndex < activationCommitIndex,
+  'post-activation rollback eligibility must be durable in the shell before the lifecycle transaction starts',
+);
+assert.match(
+  activation,
+  /activation_attempted" == "1"[\s\S]*post_activation_media_smoke_passed" != "1"[\s\S]*lifecycle_active_release" == "\$release_id"/,
+  'ERR recovery must roll back a committed candidate even when activate exits before its caller returns',
+);
+assert.doesNotMatch(
+  activation,
+  /activation_committed/,
+  'ERR recovery must not depend on a flag set only after activate returns',
+);
+assert.ok(
+  activeMediaSmokeIndex < activation.lastIndexOf('post_activation_media_smoke_passed=1'),
+  'a successful private media resolver smoke must fence completion',
+);
+assert.match(
+  activation,
+  /ACTIVATION_TRANSACTION" rollback[\s\S]*--expected-generation "\$rollback_generation"/,
+  'a failed post-activation private media resolver smoke must roll back the lifecycle candidate',
+);
+const consumerModule = activation.match(
+  /podman exec -i --workdir \/app "\$APP_CONTAINER" \.\/node_modules\/\.bin\/tsx - <<'TS'\n([\s\S]+?)\nTS\n  \)"; then/,
+);
+assert.ok(consumerModule, 'candidate consumer module must remain extractable for a local regression run');
+const consumerOutput = execFileSync(
+  path.join(root, 'node_modules', '.bin', 'tsx'),
+  ['-'],
+  { cwd: root, encoding: 'utf8', input: consumerModule[1] },
+).trim();
+const consumerResult = JSON.parse(consumerOutput);
+assert.match(
+  consumerResult.mediaPath,
+  /^lessons\/[A-Za-z0-9][A-Za-z0-9._-]*\/media\/[A-Za-z0-9][A-Za-z0-9._-]*$/,
+  'candidate consumer module must resolve a parser-declared local media object',
 );
 assert.match(activation, /LIFECYCLE_SCRIPT=.*runtime-blob-release-lifecycle\.py/, 'activation must invoke the v2 lifecycle authority');
 assert.match(activation, /ACTIVATION_TRANSACTION=.*runtime-blob-activation-transaction\.py/, 'activation must invoke the cross-state transaction helper');

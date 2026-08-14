@@ -108,6 +108,12 @@ V2 lifecycle state remains journaled and generation-fenced. `desired`, `active`,
 
 The v2 lifecycle `active` record is the single authority for an activation. The legacy host active receipt is a deterministic compatibility projection, never an authority from which lifecycle state is reconstructed. Every transition that can change `active`, including activation, rollback and recovery, is lifecycle-owned and holds the lifecycle lock through lifecycle commit, receipt persistence, receipt readback and transaction completion. Recovery first repairs the lifecycle journal and then either completes or recreates the receipt from the committed lifecycle identity. A crash at any boundary therefore leaves the prior lifecycle identity or a recoverable projection of the committed identity; it never silently rolls a committed lifecycle state back to an older receipt.
 
+### 7. Candidate consumers and private media smoke
+
+Candidate validation uses existing consumer code against the candidate-mounted view: the canonical interactive course route loads its lesson runtime, the media-index parser resolves one local media object, the knowledge importer validates nodes and database-ready relations, and the textbook reader builds a catalog and reader projection. It does not add a candidate-only public route or write a temporary active receipt.
+
+The private media resolver is verified only after the lifecycle transaction has committed the candidate identity and projected the regular active receipt. The check requires the normal asset route to produce a short-lived redirect and successfully fetches byte range `0-0` without logging the signed URL. A failure at this point, including a transaction command that exits after lifecycle commit but before returning to the shell, invokes the generation-fenced lifecycle rollback and restores the prior application view; an unsuccessful rollback is reported as a failed activation, never as a completed cutover. This decision accepts the short transactional candidate-active interval because the normal resolver cannot be proven without its authoritative receipt.
+
 ## Migration Plan
 
 1. Keep the current fixed v1→v2 candidate and its complete equivalence proof as the baseline; do not regenerate it for daily delivery.
