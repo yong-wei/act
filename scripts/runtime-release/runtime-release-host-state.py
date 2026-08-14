@@ -11,7 +11,7 @@ import stat
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
@@ -233,12 +233,17 @@ def verify_v2_receipt(path: Path, manifest: dict, manifest_wire: bytes, release_
     fail("v2 verification receipt schema is unsupported")
 
 
-def verify_mounted_v2(runtime_root: Path, blob_root: Path, verification_receipt: Path, release_id: str):
+def verify_mounted_v2(runtime_root: Path, verification_receipt: Path, release_id: str, blob_root: Optional[Path] = None):
     materializer = load_v2_materializer()
     root = materializer.require_real_directory(Path(runtime_root), "mounted runtime root")
-    blobs = materializer.require_real_directory(Path(blob_root), "blob root")
-    if blobs == root or root in blobs.parents:
-        fail("blob root must not be inside the mounted runtime root")
+    helper = materializer.require_helper_directory(root)
+    if blob_root not in {None, ""}:
+        provided = materializer.require_real_directory(Path(blob_root), "blob root")
+        if provided != helper:
+            fail(
+                "v2 mounted verification requires the helper root at runtime_root/%s"
+                % materializer.RUNTIME_BLOB_HELPER_NAME
+            )
     manifest_path = root / materializer.LOCAL_MANIFEST
     manifest, manifest_wire = materializer.parse_manifest(manifest_path)
     if manifest["releaseId"] != release_id:
@@ -248,7 +253,7 @@ def verify_mounted_v2(runtime_root: Path, blob_root: Path, verification_receipt:
     if materializer.canonical(manifest) + b"\n" != manifest_wire:
         fail("mounted runtime manifest wire bytes are not canonical")
     receipt_identity = verify_v2_receipt(Path(verification_receipt), manifest, manifest_wire, release_id, materializer)
-    view_receipt = materializer.verify_view(root, blobs, release_id)
+    view_receipt = materializer.verify_view(root, release_id, require_helper_contents=True)
     verification_value, _ = read_regular_json(Path(verification_receipt), "v2 verification receipt")
     if (
         verification_value.get("schemaVersion") in {V2_MATERIALIZATION_SCHEMA, materializer.MATERIALIZATION_CACHE_SCHEMA}
@@ -264,8 +269,11 @@ def verify_mounted_v2(runtime_root: Path, blob_root: Path, verification_receipt:
         expected_directories.update("/".join(parts[:index]) for index in range(1, len(parts) + 1))
     actual_paths = set()
     actual_directories = set()
+    helper_name = materializer.RUNTIME_BLOB_HELPER_NAME
     for current, directories, filenames in os.walk(root, followlinks=False):
         current_path = Path(current)
+        if current_path == root:
+            directories[:] = [directory for directory in directories if directory != helper_name]
         for directory in directories:
             candidate = current_path / directory
             details = os.lstat(candidate)
@@ -294,9 +302,10 @@ def verify_mounted_v2(runtime_root: Path, blob_root: Path, verification_receipt:
             continue
         if not stat.S_ISLNK(details.st_mode):
             fail(f"mounted runtime logical file is not a symlink: {entry['path']}")
+        materializer.require_relative_helper_link(logical, entry["path"], entry["sha256"])
         target = Path(os.path.realpath(logical))
-        expected_blob = (blobs / entry["sha256"]).resolve()
-        if target != expected_blob or target.parent != blobs or target.name != entry["sha256"]:
+        expected_blob = materializer.blob_path(helper, entry["sha256"])
+        if target != expected_blob or target.parent != helper or target.name != entry["sha256"]:
             fail(f"mounted runtime logical file points outside its manifest blob: {entry['path']}")
         blob_details = os.lstat(target)
         if stat.S_ISLNK(blob_details.st_mode) or not stat.S_ISREG(blob_details.st_mode):
@@ -358,13 +367,11 @@ def active(args: argparse.Namespace):
 
 def verify_mounted(args: argparse.Namespace):
     if getattr(args, "format", "v1") == "v2":
-        if not args.blob_root:
-            fail("--blob-root is required for v2 mounted verification")
         return verify_mounted_v2(
             Path(args.runtime_root),
-            Path(args.blob_root),
             Path(args.verification_receipt),
             require_release_id(args.release_id),
+            Path(args.blob_root) if args.blob_root else None,
         )
     root_path = Path(args.runtime_root)
     try:

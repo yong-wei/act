@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
+HELPER_NAME = ".act-runtime-blobs"
 TEXTBOOK_CACHE_PATHS = (
     "resources/textbook-retrieval/bodies.utf8",
     "resources/textbook-retrieval/lexical-postings.bin",
@@ -88,6 +89,10 @@ def make_view_writable(view: Path):
     os.chmod(view, 0o755)
 
 
+def relative_helper_link(logical_path: str, file_sha: str) -> str:
+    return ("%s%s/%s" % ("../" * logical_path.count("/"), HELPER_NAME, file_sha))
+
+
 def no_cache_materialization_receipt(manifest_path: Path):
     wire = manifest_path.read_bytes()
     manifest = json.loads(wire.decode("utf-8"))
@@ -113,6 +118,15 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         return result
 
+    def attach_helper(self, view_root: Path, release_id: str, blob_root: Path):
+        return self.call(
+            "attach-helper",
+            "--view-root", str(view_root),
+            "--release-id", release_id,
+            "--blob-root", str(blob_root),
+            "--test-fixture",
+        )
+
     def test_materializes_duplicate_blobs_as_read_only_logical_symlinks_and_selects_atomically(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -126,9 +140,17 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertTrue(prepared["prepared"])
             self.assertFalse(prepared["reused"])
             view = view_root / "views" / release_id
+            helper = view / HELPER_NAME
+            self.assertTrue(helper.is_dir())
+            self.assertFalse(helper.is_symlink())
             self.assertTrue((view / "lessons/1-1").is_dir())
             self.assertTrue((view / "lessons/1-1/lesson.json").is_symlink())
             self.assertTrue((view / "lessons/1-1/media/copy.json").is_symlink())
+            lesson_sha = hashlib.sha256(b'{"lesson":"1-1"}\n').hexdigest()
+            self.assertEqual(os.readlink(view / "lessons/1-1/lesson.json"), relative_helper_link("lessons/1-1/lesson.json", lesson_sha))
+            self.assertEqual(os.readlink(view / "lessons/1-1/media/copy.json"), relative_helper_link("lessons/1-1/media/copy.json", lesson_sha))
+            self.assertFalse(os.path.isabs(os.readlink(view / "lessons/1-1/lesson.json")))
+            self.assertNotIn("/app", os.readlink(view / "lessons/1-1/lesson.json"))
             self.assertFalse((view / ".act-runtime-release.v2.json").is_symlink())
             self.assertEqual(stat.S_IMODE((view / ".act-runtime-release.v2.json").stat().st_mode), 0o444)
             local_receipt = json.loads((view / LOCAL_RECEIPT).read_text(encoding="utf-8"))
@@ -137,9 +159,21 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertNotIn("cachedLogicalPaths", local_receipt)
             reused = self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
             self.assertTrue(reused["reused"])
-            verified = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root))
+            missing_helper = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
+            self.assertTrue("helper target is missing" in missing_helper.stderr or "blob must be a regular" in missing_helper.stderr)
+            fixture_only = self.call(
+                "attach-helper", "--release-id", release_id, "--view-root", str(view_root),
+                "--blob-root", str(blob_root), expect_ok=False,
+            )
+            self.assertIn("fixture-only", fixture_only.stderr)
+            external = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            self.assertIn("helper root", external.stderr)
+            attached = self.attach_helper(view_root, release_id, blob_root)
+            self.assertTrue(attached["attached"])
+            self.assertEqual(len(list(helper.iterdir())), 2)
+            verified = self.call("verify", "--release-id", release_id, "--view-root", str(view_root))
             self.assertEqual(verified["releaseId"], release_id)
-            selected = self.call("select", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root))
+            selected = self.call("select", "--release-id", release_id, "--view-root", str(view_root))
             self.assertTrue(selected["selected"])
             self.assertEqual(os.readlink(view_root / "current"), "views/" + release_id)
             self.assertEqual(self.call("active", "--view-root", str(view_root))["activeReleaseId"], release_id)
@@ -156,12 +190,13 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertIn("wire identity", rejected.stderr)
             blob_root, manifest, receipt, release_id = write_release(root / "valid", {"lessons/1-1/lesson.json": b"ok\n"})
             self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.attach_helper(view_root, release_id, blob_root)
             logical = view_root / "views" / release_id / "lessons/1-1/lesson.json"
             os.chmod(logical.parent, 0o755)
             logical.unlink()
             logical.symlink_to(root / "outside")
-            rejected = self.call("select", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
-            self.assertIn("manifest blob", rejected.stderr)
+            rejected = self.call("select", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
+            self.assertIn("relative helper-root link", rejected.stderr)
 
     def test_default_prepare_keeps_textbook_retrieval_files_as_symlinks(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -178,7 +213,8 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertTrue((view / "lessons/1-1/lesson.json").is_symlink())
             local_receipt = json.loads((view / LOCAL_RECEIPT).read_text(encoding="utf-8"))
             self.assertEqual(local_receipt, no_cache_materialization_receipt(manifest))
-            verified = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.attach_helper(view_root, release_id, blob_root)
+            verified = self.call("verify", "--release-id", release_id, "--view-root", str(view_root))
             self.assertEqual(verified["schemaVersion"], "runtime-blob-materialization.v1")
 
     def test_cache_textbook_retrieval_copies_only_the_hot_set(self):
@@ -204,7 +240,8 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             local_receipt = json.loads((view / LOCAL_RECEIPT).read_text(encoding="utf-8"))
             self.assertEqual(local_receipt["schemaVersion"], "runtime-blob-materialization.v2")
             self.assertEqual(local_receipt["cachedLogicalPaths"], list(TEXTBOOK_CACHE_PATHS))
-            verified = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.attach_helper(view_root, release_id, blob_root)
+            verified = self.call("verify", "--release-id", release_id, "--view-root", str(view_root))
             self.assertEqual(verified["cachedLogicalPaths"], list(TEXTBOOK_CACHE_PATHS))
             reused = self.call(
                 "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
@@ -229,12 +266,13 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
                 "--blob-root", str(blob_root), "--view-root", str(view_root),
                 "--cache-textbook-retrieval",
             )
+            self.attach_helper(view_root, release_id, blob_root)
             view = view_root / "views" / release_id
             make_view_writable(view)
             cached = view / "resources/textbook-retrieval/vectors.f32"
             os.chmod(cached, 0o644)
             cached.write_bytes(b"tampered-vector\n")
-            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            rejected = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
             self.assertIn("does not match manifest content", rejected.stderr)
 
         with tempfile.TemporaryDirectory() as directory:
@@ -246,12 +284,13 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
                 "--blob-root", str(blob_root), "--view-root", str(view_root),
                 "--cache-textbook-retrieval",
             )
+            self.attach_helper(view_root, release_id, blob_root)
             view = view_root / "views" / release_id
             make_view_writable(view)
             cached = view / "resources/textbook-retrieval/bodies.utf8"
             cached.unlink()
             os.symlink(str(blob_root / hashlib.sha256(TEXTBOOK_CACHE_CONTENTS["resources/textbook-retrieval/bodies.utf8"]).hexdigest()), str(cached))
-            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            rejected = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
             self.assertIn("declared cache entry is not a regular file", rejected.stderr)
 
     def test_rejects_cache_receipt_mismatch(self):
@@ -264,12 +303,13 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
                 "--blob-root", str(blob_root), "--view-root", str(view_root),
                 "--cache-textbook-retrieval",
             )
+            self.attach_helper(view_root, release_id, blob_root)
             view = view_root / "views" / release_id
             make_view_writable(view)
             receipt_path = view / LOCAL_RECEIPT
             os.chmod(receipt_path, 0o644)
             receipt_path.write_bytes(canonical(no_cache_materialization_receipt(manifest)) + b"\n")
-            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            rejected = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
             self.assertIn("non-symlink logical file", rejected.stderr)
 
         with tempfile.TemporaryDirectory() as directory:
@@ -293,7 +333,7 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             receipt_path = view / LOCAL_RECEIPT
             os.chmod(receipt_path, 0o644)
             receipt_path.write_bytes(canonical(damaged) + b"\n")
-            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            rejected = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
             self.assertIn("materialization receipt does not match manifest", rejected.stderr)
 
     def test_rejects_arbitrary_regular_file_in_default_and_cache_views(self):
@@ -302,10 +342,11 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
             view_root = root / "views-root"
             self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.attach_helper(view_root, release_id, blob_root)
             view = view_root / "views" / release_id
             make_view_writable(view)
             (view / "extra.txt").write_text("extra", encoding="utf-8")
-            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            rejected = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
             self.assertIn("non-symlink logical file", rejected.stderr)
 
         with tempfile.TemporaryDirectory() as directory:
@@ -317,11 +358,44 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
                 "--blob-root", str(blob_root), "--view-root", str(view_root),
                 "--cache-textbook-retrieval",
             )
+            self.attach_helper(view_root, release_id, blob_root)
             view = view_root / "views" / release_id
             make_view_writable(view)
             (view / "resources/textbook-retrieval/extra.bin").write_bytes(b"extra\n")
-            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            rejected = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
             self.assertIn("non-symlink logical file", rejected.stderr)
+
+    def test_rejects_reserved_helper_path_in_manifest_and_excludes_helper_from_file_set(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, {"lessons/1-1/lesson.json": b"ok\n"})
+            payload = json.loads(manifest.read_text(encoding="utf-8"))
+            payload["files"][0]["path"] = HELPER_NAME + "/lesson.json"
+            payload.pop("manifestSha256")
+            payload["manifestSha256"] = digest(payload)
+            manifest.write_bytes(canonical(payload) + b"\n")
+            rejected = self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(root / "views-root"),
+                expect_ok=False,
+            )
+            self.assertIn("safe logical runtime path", rejected.stderr)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, {
+                "lessons/1-1/lesson.json": b"ok\n",
+                "resources/textbook-retrieval/manifest.json": b"{}\n",
+            })
+            view_root = root / "views-root"
+            self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
+            attached = self.attach_helper(view_root, release_id, blob_root)
+            view = view_root / "views" / release_id
+            self.assertGreater(attached["blobCount"], 0)
+            self.assertTrue((view / HELPER_NAME / hashlib.sha256(b"ok\n").hexdigest()).is_file())
+            verified = self.call("verify", "--release-id", release_id, "--view-root", str(view_root))
+            self.assertEqual(verified["fileCount"], 2)
+            self.assertNotIn(HELPER_NAME, verified)
 
 
 if __name__ == "__main__":

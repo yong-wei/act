@@ -6,6 +6,8 @@ import { parseRuntimeLessonMediaDocument, type RuntimeLessonMediaKind } from '@/
 import type { ActRuntimeBlobReleaseManifest } from '@/lib/runtime-release';
 import { stableStringify } from '@/lib/aggregate-governance/hash';
 
+export const RUNTIME_BLOB_HELPER_NAME = '.act-runtime-blobs';
+
 const MEDIA_EXTENSIONS = new Set(['.mp4', '.webm', '.m4a', '.mp3', '.wav', '.pdf', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif']);
 
 export interface RuntimeMediaInventoryEntry {
@@ -46,6 +48,11 @@ function compareCodePoints(left: string, right: string) {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
+function isReservedRuntimeBlobHelperPath(relativePath: string) {
+  const normalized = relativePath.replace(/\\/g, '/');
+  return normalized === RUNTIME_BLOB_HELPER_NAME || normalized.startsWith(`${RUNTIME_BLOB_HELPER_NAME}/`);
+}
+
 async function walkFiles(
   root: string,
   current = root,
@@ -57,6 +64,12 @@ async function walkFiles(
   for (const entry of entries) {
     const absolutePath = path.join(current, entry.name);
     const relativePath = path.relative(root, absolutePath).replace(/\\/g, '/');
+    if (current === root && entry.name === RUNTIME_BLOB_HELPER_NAME) {
+      continue;
+    }
+    if (isReservedRuntimeBlobHelperPath(relativePath)) {
+      throw new RuntimeMediaInventoryError('runtime-media-inventory-reserved-path', `Reserved helper path is not a logical runtime path: ${relativePath}`);
+    }
     if (entry.isSymbolicLink()) {
       const expected = blobBackedFiles?.get(relativePath);
       if (!expected || !blobRoot) throw new RuntimeMediaInventoryError('runtime-media-inventory-symlink', `Symlink is not allowed: ${relativePath}`);
@@ -120,6 +133,13 @@ export async function buildRuntimeMediaInventory(input: {
   const blobBackedFiles = input.blobManifest
     ? new Map(input.blobManifest.files.map((file) => [file.path, { sizeBytes: file.sizeBytes, sha256: file.sha256 }]))
     : null;
+  if (blobBackedFiles) {
+    for (const logicalPath of blobBackedFiles.keys()) {
+      if (logicalPath.split('/').includes(RUNTIME_BLOB_HELPER_NAME) || isReservedRuntimeBlobHelperPath(logicalPath)) {
+        throw new RuntimeMediaInventoryError('runtime-media-inventory-reserved-path', `Reserved helper path is not a logical runtime path: ${logicalPath}`);
+      }
+    }
+  }
   const allRuntimeFiles = await walkFiles(input.runtimeRoot, input.runtimeRoot, blobBackedFiles, blobRoot);
   const runtimeMediaFiles = allRuntimeFiles.filter((file) => MEDIA_EXTENSIONS.has(path.extname(file).toLowerCase()));
   const runtimeMediaByExtension = Object.fromEntries([...new Set(runtimeMediaFiles.map((file) => path.extname(file).toLowerCase()))]

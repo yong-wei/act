@@ -55,11 +55,11 @@ describe('runtime media inventory', () => {
     const media = path.join(runtime, 'lessons', '1-1', 'media', 'local.mp4');
     const bytes = Buffer.from([1, 2, 3]);
     const sha256 = createHash('sha256').update(bytes).digest('hex');
-    const blobRoot = path.join(path.dirname(runtime), 'blobs');
+    const blobRoot = path.join(runtime, '.act-runtime-blobs');
     await mkdir(blobRoot);
     await writeFile(path.join(blobRoot, sha256), bytes);
     await rm(media);
-    await symlink(path.join(blobRoot, sha256), media);
+    await symlink(path.join('..', '..', '..', '.act-runtime-blobs', sha256), media);
     const blobManifest: ActRuntimeBlobReleaseManifest = {
       schemaVersion: 'act-runtime-release.v2',
       releaseId: 'runtime-a',
@@ -72,10 +72,39 @@ describe('runtime media inventory', () => {
     };
     const inventory = await buildRuntimeMediaInventory({ runtimeRoot: runtime, authoringLessonsRoot: authoring, sourceRevision: revision, blobManifest, blobRoot });
     expect(inventory.runtimePresent).toBe(1);
+    expect(inventory.runtimeMediaFiles).toBe(1);
 
     await rm(media);
     await symlink(path.join(path.dirname(runtime), 'outside.mp4'), media);
     await expect(buildRuntimeMediaInventory({ runtimeRoot: runtime, authoringLessonsRoot: authoring, sourceRevision: revision, blobManifest, blobRoot }))
       .rejects.toMatchObject({ code: 'runtime-media-inventory-symlink' });
+  });
+
+  it('prunes the reserved helper directory and rejects it as a logical input', async () => {
+    const { runtime, authoring } = await fixture();
+    const helper = path.join(runtime, '.act-runtime-blobs');
+    await mkdir(helper);
+    await writeFile(path.join(helper, 'hidden.mp4'), Buffer.from([9, 9, 9]));
+    const inventory = await buildRuntimeMediaInventory({ runtimeRoot: runtime, authoringLessonsRoot: authoring, sourceRevision: revision });
+    expect(inventory.runtimeMediaFiles).toBe(1);
+
+    const sha256 = 'c'.repeat(64);
+    const reservedManifest: ActRuntimeBlobReleaseManifest = {
+      schemaVersion: 'act-runtime-release.v2',
+      releaseId: 'runtime-a',
+      sourceRevision: revision,
+      fileCount: 1,
+      totalBytes: 3,
+      treeSha256: 'a'.repeat(64),
+      manifestSha256: 'b'.repeat(64),
+      files: [{ path: '.act-runtime-blobs/hidden.mp4', objectKey: `runtime/blobs/sha256/${sha256}`, sizeBytes: 3, sha256 }],
+    };
+    await expect(buildRuntimeMediaInventory({
+      runtimeRoot: runtime,
+      authoringLessonsRoot: authoring,
+      sourceRevision: revision,
+      blobManifest: reservedManifest,
+      blobRoot: helper,
+    })).rejects.toMatchObject({ code: 'runtime-media-inventory-reserved-path' });
   });
 });

@@ -54,6 +54,12 @@ A symlink forest is the first candidate because it avoids copying file bytes. It
 
 No OSS directory rename, object symlink, custom FUSE, writable container bind, or application-visible blob path is permitted.
 
+### 3a. Container-visible materialization topology (accepted 2026-08-14)
+
+The first ECS candidate proved that an external absolute leaf symlink passes host verification but resolves to `ENOENT` in a Podman container that receives only the selected view bind. The v2 symlink forest therefore uses one fixed reserved direct child of each selected view, `.act-runtime-blobs`, as a host-managed read-only helper mount for the shared blob namespace. Every logical leaf link is relative and resolves only within that selected view.
+
+The helper mount is not a logical runtime path: it is excluded from manifest tree enumeration and host file-set validation, and every public route, readable-content resolver, media resolver and inventory walk must reject or prune it. Podman still receives exactly one read-only bind of the selected view; the helper is prepared on the host before container creation and is never a second Podman volume. The mount may expose the shared blob namespace to the kernel inside that bind, but no application API, route or signed URL may expose its name or contents.
+
 ### 4. Durable lifecycle state distinguishes desired, active and rollback
 
 V2 introduces one local durable lifecycle record, updated under the existing host lock and recovery journal. It holds a normalized identity for `desired`, `active`, `rollback` and `publishing`, plus retention leases for releases that have left the active/rollback protection set. Every lease records its immutable identity, UTC retention time, signed-media maximum lifetime, the derived UTC release deadline and a policy version. The lifecycle has a monotonic generation and transaction ID. An identity includes release ID, manifest version, semantic/wire digest and logical tree digest. A persistent authority marker defines exactly one recovery mode:

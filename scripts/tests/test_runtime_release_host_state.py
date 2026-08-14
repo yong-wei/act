@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/runtime-release/runtime-release-host-state.py"
 MATERIALIZER = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
+HELPER_NAME = ".act-runtime-blobs"
 TEXTBOOK_CACHE_PATHS = (
     "resources/textbook-retrieval/bodies.utf8",
     "resources/textbook-retrieval/lexical-postings.bin",
@@ -133,9 +134,18 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
         if cache_textbook_retrieval:
             prepare_args.append("--cache-textbook-retrieval")
         self.call_materializer(*prepare_args)
+        view = view_root / "views" / release_id
+        self.call_materializer(
+            "attach-helper",
+            "--view-root", str(view_root),
+            "--release-id", release_id,
+            "--blob-root", str(blob_root),
+            "--test-fixture",
+        )
         return {
             "blob_root": blob_root,
-            "view": view_root / "views" / release_id,
+            "view": view,
+            "helper": view / HELPER_NAME,
             "release_id": release_id,
             "release_receipt": release_receipt,
             "verification_receipt": verification_receipt,
@@ -300,18 +310,57 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             verified = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]),
             )
             self.assertEqual(verified["releaseId"], fixture["release_id"])
             self.assertEqual(verified["fileCount"], 2)
             self.assertGreater(verified["wireSizeBytes"], 0)
+            helper_verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["helper"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]),
+            )
+            self.assertEqual(helper_verified["treeSha256"], verified["treeSha256"])
             release_verified = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["release_receipt"]),
             )
             self.assertEqual(release_verified["treeSha256"], verified["treeSha256"])
+            external = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]),
+                expect_ok=False,
+            )
+            self.assertIn("helper root", external.stderr)
+
+    def test_v2_rejects_missing_helper_targets_and_ignores_helper_namespace_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), {"lessons/1-1/lesson.json": b"ok\n"})
+            self.make_view_writable(fixture["view"])
+            extra = fixture["helper"] / ("f" * 64)
+            extra.write_bytes(b"not-a-manifest-blob\n")
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]),
+            )
+            self.assertEqual(verified["fileCount"], 1)
+            for child in fixture["helper"].iterdir():
+                if child.name != extra.name:
+                    child.unlink()
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]),
+                expect_ok=False,
+            )
+            self.assertTrue(
+                "helper target is missing" in rejected.stderr
+                or "blob must be a regular" in rejected.stderr
+            )
 
     def test_v2_rejects_blob_escape_and_directory_symlink(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -324,10 +373,10 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             logical.symlink_to(outside)
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
-            self.assertIn("outside its manifest blob", rejected.stderr)
+            self.assertIn("relative helper-root link", rejected.stderr)
 
         with tempfile.TemporaryDirectory() as directory:
             fixture = self.v2_release(Path(directory), {"lessons/1-1/lesson.json": b"ok\n"})
@@ -339,7 +388,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             (Path(directory) / "outside-dir").mkdir()
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertTrue("symlinked directory" in rejected.stderr or "file set differs" in rejected.stderr)
@@ -351,7 +400,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             (fixture["view"] / "extra.txt").write_text("extra", encoding="utf-8")
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertIn("non-symlink logical file", rejected.stderr)
@@ -363,7 +412,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             fixture["verification_receipt"].write_text(json.dumps(damaged), encoding="utf-8")
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertIn("identity does not match", rejected.stderr)
@@ -378,7 +427,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             self.assertTrue((fixture["view"] / "lessons/1-1/lesson.json").is_symlink())
             verified = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]),
             )
             self.assertEqual(verified["releaseId"], fixture["release_id"])
@@ -386,7 +435,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             local_receipt = fixture["view"] / LOCAL_RECEIPT
             receipt_verified = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(local_receipt),
             )
             self.assertEqual(receipt_verified["treeSha256"], verified["treeSha256"])
@@ -397,18 +446,18 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             self.assertTrue((fixture["view"] / TEXTBOOK_CACHE_PATHS[0]).is_symlink())
             verified = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]),
             )
             self.assertEqual(verified["fileCount"], 4)
             self.make_view_writable(fixture["view"])
             cached = fixture["view"] / TEXTBOOK_CACHE_PATHS[2]
-            target = Path(os.readlink(cached))
+            target = (cached.parent / os.readlink(cached)).resolve()
             cached.unlink()
             cached.write_bytes(target.read_bytes())
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertIn("non-symlink logical file", rejected.stderr)
@@ -422,7 +471,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             cached.write_bytes(b"tampered-vector\n")
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertIn("does not match manifest content", rejected.stderr)
@@ -436,7 +485,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             cached.symlink_to(fixture["blob_root"] / hashlib.sha256(body).hexdigest())
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertIn("declared cache entry is not a regular file", rejected.stderr)
@@ -464,7 +513,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             mismatched.write_bytes(json.dumps(no_cache, separators=(",", ":"), sort_keys=True, ensure_ascii=False).encode("utf-8") + b"\n")
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(mismatched), expect_ok=False,
             )
             self.assertIn("does not match the mounted view", rejected.stderr)
@@ -474,7 +523,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             receipt_path.write_bytes(json.dumps(no_cache, separators=(",", ":"), sort_keys=True, ensure_ascii=False).encode("utf-8") + b"\n")
             rejected_view = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertIn("non-symlink logical file", rejected_view.stderr)
@@ -486,7 +535,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             (fixture["view"] / "resources/textbook-retrieval/extra.bin").write_bytes(b"extra\n")
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
-                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--release-id", fixture["release_id"],
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertIn("non-symlink logical file", rejected.stderr)

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Materialize a verified v2 runtime manifest into a host-owned symlink view.
 
-The blob mount is never exposed to the application.  This helper only creates
-real logical directories and validated leaf symlinks, then atomically changes
-one local ``current`` pointer under an exclusive host lock.
+Each selected view owns one reserved real directory ``.act-runtime-blobs``.
+The host bind-mounts the shared blob namespace there; this helper never
+embeds host or ``/app`` paths in leaf links.  ``prepare`` may wait for that
+attachment, and ``select`` moves ``current`` only after helper verification.
 """
 
 import argparse
@@ -26,6 +27,7 @@ MATERIALIZATION_SCHEMA = "runtime-blob-materialization.v1"
 MATERIALIZATION_CACHE_SCHEMA = "runtime-blob-materialization.v2"
 LOCAL_MANIFEST = ".act-runtime-release.v2.json"
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
+RUNTIME_BLOB_HELPER_NAME = ".act-runtime-blobs"
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 GIT_REVISION = re.compile(r"^[a-f0-9]{40}$")
@@ -110,7 +112,13 @@ def require_exact_keys(value: Any, keys: List[str], label: str) -> Dict[str, Any
 
 def require_relative_path(value: Any, label: str) -> str:
     value = require_string(value, label)
-    if not value or value.startswith("/") or "\\" in value or any(part in {"", ".", ".."} for part in value.split("/")):
+    parts = value.split("/")
+    if (
+        not value
+        or value.startswith("/")
+        or "\\" in value
+        or any(part in {"", ".", "..", RUNTIME_BLOB_HELPER_NAME} for part in parts)
+    ):
         fail("%s is not a safe logical runtime path" % label)
     return value
 
@@ -220,6 +228,40 @@ def blob_path(blob_root: Path, file_sha: str) -> Path:
     return candidate
 
 
+def helper_root(view: Path) -> Path:
+    return view / RUNTIME_BLOB_HELPER_NAME
+
+
+def require_helper_directory(view: Path) -> Path:
+    helper = helper_root(view)
+    require_real_directory(helper, "runtime helper root")
+    if helper.resolve() != view.resolve() / RUNTIME_BLOB_HELPER_NAME:
+        fail("runtime helper root escaped the materialized view")
+    return helper.resolve()
+
+
+def relative_helper_link(logical_path: str, file_sha: str) -> str:
+    require_digest(file_sha, "helper blob digest")
+    return ("%s%s/%s" % ("../" * logical_path.count("/"), RUNTIME_BLOB_HELPER_NAME, file_sha))
+
+
+def require_relative_helper_link(logical: Path, logical_path: str, file_sha: str) -> str:
+    raw = os.readlink(str(logical))
+    if (
+        os.path.isabs(raw)
+        or raw.startswith("/")
+        or "\\" in raw
+        or raw == "/app"
+        or raw.startswith("/app/")
+        or "/app/" in raw
+    ):
+        fail("logical leaf symlink must be a relative helper-root link: %s" % logical_path)
+    expected = relative_helper_link(logical_path, file_sha)
+    if raw != expected:
+        fail("logical leaf symlink must be a relative helper-root link: %s" % logical_path)
+    return raw
+
+
 def textbook_retrieval_cache_paths() -> Tuple[str, ...]:
     return TEXTBOOK_RETRIEVAL_CACHE_PATHS
 
@@ -297,8 +339,9 @@ def write_regular(path: Path, value: bytes) -> None:
     os.chmod(path, 0o444)
 
 
-def verify_view(view: Path, blob_root: Path, release_id: str) -> Dict[str, Any]:
+def verify_view(view: Path, release_id: str, *, require_helper_contents: bool = True) -> Dict[str, Any]:
     require_real_directory(view, "materialized view")
+    helper = require_helper_directory(view)
     manifest, wire = parse_manifest(view / LOCAL_MANIFEST)
     if manifest["releaseId"] != release_id:
         fail("materialized view manifest release does not match requested release")
@@ -311,6 +354,8 @@ def verify_view(view: Path, blob_root: Path, release_id: str) -> Dict[str, Any]:
     actual_paths = set()
     for current, directories, filenames in os.walk(str(view), followlinks=False):
         current_path = Path(current)
+        if current_path == view:
+            directories[:] = [directory for directory in directories if directory != RUNTIME_BLOB_HELPER_NAME]
         for directory in directories:
             if os.path.islink(str(current_path / directory)):
                 fail("materialized view contains a symlinked directory")
@@ -336,14 +381,30 @@ def verify_view(view: Path, blob_root: Path, release_id: str) -> Dict[str, Any]:
             if details.st_size != entry["sizeBytes"] or hash_file(logical) != entry["sha256"]:
                 fail("materialized logical file does not match manifest content: %s" % entry["path"])
             continue
+        require_relative_helper_link(logical, entry["path"], entry["sha256"])
+        if not require_helper_contents:
+            continue
+        try:
+            expected_blob = blob_path(helper, entry["sha256"])
+        except OSError as error:
+            fail("runtime helper target is missing: %s (%s)" % (entry["path"], error))
         target = Path(os.path.realpath(str(logical)))
-        expected_blob = blob_path(blob_root, entry["sha256"]).resolve()
         if target != expected_blob:
             fail("materialized logical file points outside its manifest blob: %s" % entry["path"])
         details = target.stat()
         if details.st_size != entry["sizeBytes"] or hash_file(target) != entry["sha256"]:
             fail("materialized logical file does not match manifest content: %s" % entry["path"])
     return expected_receipt
+
+
+def require_optional_helper_blob_root(view: Path, blob_root: Any) -> Path:
+    helper = require_helper_directory(view)
+    if blob_root in {None, ""}:
+        return helper
+    provided = require_real_directory(Path(blob_root), "blob root")
+    if provided != helper:
+        fail("v2 verification requires the helper root at %s" % helper_root(view))
+    return helper
 
 
 def with_lock(view_root: Path):
@@ -371,11 +432,13 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         require_real_directory(views, "view collection")
         final = views / manifest["releaseId"]
         if final.exists():
-            result = verify_view(final, blob_root, manifest["releaseId"])
+            result = verify_view(final, manifest["releaseId"], require_helper_contents=False)
             if (result.get("textbookRetrievalCacheEnabled") is True) != cache_enabled:
                 fail("materialization receipt cache binding does not match prepare request")
             return dict(result, prepared=True, reused=True, viewPath=str(final))
         temporary = Path(tempfile.mkdtemp(prefix=".%s." % manifest["releaseId"], dir=str(views)))
+        helper = temporary / RUNTIME_BLOB_HELPER_NAME
+        helper.mkdir(mode=0o755)
         for entry in manifest["files"]:
             blob = blob_path(blob_root, entry["sha256"])
             if blob.stat().st_size != entry["sizeBytes"] or hash_file(blob) != entry["sha256"]:
@@ -387,7 +450,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
                 if logical.stat().st_size != entry["sizeBytes"] or hash_file(logical) != entry["sha256"]:
                     fail("cached logical file does not match manifest: %s" % entry["path"])
             else:
-                os.symlink(str(blob), str(logical))
+                os.symlink(relative_helper_link(entry["path"], entry["sha256"]), str(logical))
         write_regular(temporary / LOCAL_MANIFEST, manifest_wire)
         materialization = materialization_payload(manifest, receipt, cache_enabled=cache_enabled)
         write_regular(temporary / LOCAL_RECEIPT, canonical(materialization) + b"\n")
@@ -395,7 +458,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
             for directory in directories:
                 os.chmod(str(Path(current) / directory), 0o555)
         os.chmod(str(temporary), 0o555)
-        result = verify_view(temporary, blob_root, manifest["releaseId"])
+        result = verify_view(temporary, manifest["releaseId"], require_helper_contents=False)
         os.replace(str(temporary), str(final))
         temporary = None
         directory = os.open(str(views), os.O_DIRECTORY)
@@ -410,14 +473,61 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         lock.close()
 
 
+def attach_helper(args: argparse.Namespace) -> Dict[str, Any]:
+    if not args.test_fixture:
+        fail("attach-helper is fixture-only; production must use a read-only host bind mount")
+    view_root = Path(args.view_root)
+    release_id = require_release_id(args.release_id)
+    source = require_real_directory(Path(args.blob_root), "blob root")
+    lock = with_lock(view_root)
+    try:
+        view = require_real_directory(view_root / "views" / release_id, "materialized view")
+        helper = require_helper_directory(view)
+        if source == helper:
+            receipt = verify_view(view, release_id, require_helper_contents=True)
+            return dict(receipt, attached=True, reused=True, helperPath=str(helper))
+        if helper in source.parents or source in helper.parents:
+            fail("helper source must be an external blob root")
+        manifest, _ = parse_manifest(view / LOCAL_MANIFEST)
+        if manifest["releaseId"] != release_id:
+            fail("materialized view manifest release does not match requested release")
+        os.chmod(helper, 0o755)
+        attached = set()
+        for entry in manifest["files"]:
+            blob = blob_path(source, entry["sha256"])
+            if blob.stat().st_size != entry["sizeBytes"] or hash_file(blob) != entry["sha256"]:
+                fail("mounted blob does not match manifest: %s" % entry["path"])
+            dest = helper / entry["sha256"]
+            if dest.exists() or dest.is_symlink():
+                existing = blob_path(helper, entry["sha256"])
+                if existing.stat().st_size != entry["sizeBytes"] or hash_file(existing) != entry["sha256"]:
+                    fail("helper blob does not match manifest: %s" % entry["sha256"])
+            else:
+                try:
+                    os.link(str(blob), str(dest))
+                except OSError:
+                    copy_regular_readonly(blob, dest)
+            attached.add(entry["sha256"])
+        os.chmod(helper, 0o555)
+        return {
+            "attached": True,
+            "reused": False,
+            "releaseId": release_id,
+            "helperPath": str(helper),
+            "blobCount": len(attached),
+        }
+    finally:
+        lock.close()
+
+
 def select(args: argparse.Namespace) -> Dict[str, Any]:
     view_root = Path(args.view_root)
-    blob_root = require_real_directory(Path(args.blob_root), "blob root")
     release_id = require_release_id(args.release_id)
     lock = with_lock(view_root)
     try:
         view = view_root / "views" / release_id
-        receipt = verify_view(view, blob_root, release_id)
+        require_optional_helper_blob_root(view, getattr(args, "blob_root", None))
+        receipt = verify_view(view, release_id, require_helper_contents=True)
         current = view_root / "current"
         temporary = view_root / (".current.%d" % os.getpid())
         if temporary.exists() or temporary.is_symlink():
@@ -447,9 +557,10 @@ def active(args: argparse.Namespace) -> Dict[str, Any]:
 
 def verify(args: argparse.Namespace) -> Dict[str, Any]:
     view_root = require_real_directory(Path(args.view_root), "view root")
-    blob_root = require_real_directory(Path(args.blob_root), "blob root")
     release_id = require_release_id(args.release_id)
-    return verify_view(view_root / "views" / release_id, blob_root, release_id)
+    view = view_root / "views" / release_id
+    require_optional_helper_blob_root(view, getattr(args, "blob_root", None))
+    return verify_view(view, release_id, require_helper_contents=True)
 
 
 def main() -> None:
@@ -464,17 +575,24 @@ def main() -> None:
         command.add_argument("--cache-textbook-retrieval", action="store_true")
     selector = commands.add_parser("select")
     selector.add_argument("--release-id", required=True)
-    selector.add_argument("--blob-root", required=True)
     selector.add_argument("--view-root", required=True)
+    selector.add_argument("--blob-root")
     active_parser = commands.add_parser("active")
     active_parser.add_argument("--view-root", required=True)
     verifier = commands.add_parser("verify")
     verifier.add_argument("--release-id", required=True)
-    verifier.add_argument("--blob-root", required=True)
     verifier.add_argument("--view-root", required=True)
+    verifier.add_argument("--blob-root")
+    attacher = commands.add_parser("attach-helper")
+    attacher.add_argument("--release-id", required=True)
+    attacher.add_argument("--view-root", required=True)
+    attacher.add_argument("--blob-root", required=True)
+    attacher.add_argument("--test-fixture", action="store_true")
     args = parser.parse_args()
     if args.command == "prepare":
         result = prepare(args)
+    elif args.command == "attach-helper":
+        result = attach_helper(args)
     elif args.command == "select":
         result = select(args)
     elif args.command == "active":
