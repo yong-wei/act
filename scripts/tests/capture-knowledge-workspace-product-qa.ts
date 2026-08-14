@@ -1144,10 +1144,35 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
   };
 }
 
+async function locatePublishedAuthorityLearningNode(page: Page): Promise<ReturnType<Page['locator']>> {
+  const selector = `[data-active-authority-node="${ACCEPTED_AUTHORITY_LEARNING_NODE_ID}"]`;
+  const visibleNode = page.locator(selector);
+  if (await visibleNode.count()) return visibleNode;
+
+  async function returnToRoot() {
+    const reset = page.getByRole('button', { name: '返回领域' });
+    if (await reset.count()) await reset.click({ timeout: 10000 });
+    await page.waitForSelector('[data-authority-shard-root="true"]', { timeout: 30000 });
+  }
+
+  await returnToRoot();
+  const domainCount = await page.locator('[data-authority-domain-entry]').count();
+  for (let index = 0; index < domainCount; index += 1) {
+    await page.locator('[data-authority-domain-entry]').nth(index).click({ timeout: 10000 });
+    await page.waitForSelector('[data-active-graph-stage="authority"]', { timeout: 30000 });
+    await page.waitForFunction(() => (
+      document.querySelectorAll('[data-active-authority-node]').length > 0
+      || Boolean(document.querySelector('[data-active-authority-graph="true"] [role="alert"]'))
+    ), undefined, { timeout: 30000 });
+    if (await visibleNode.count()) return visibleNode;
+    await returnToRoot();
+  }
+
+  throw new Error('published Authority learning-content node is unavailable in every reviewed domain');
+}
+
 async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiProbe) {
-  const node = page.locator(
-    `[data-active-authority-node="${ACCEPTED_AUTHORITY_LEARNING_NODE_ID}"]`,
-  );
+  const node = await locatePublishedAuthorityLearningNode(page);
   const originKey = await node.getAttribute('data-active-authority-node');
   if (!originKey) {
     throw new Error('published Authority learning-content node is unavailable for detail interaction');
