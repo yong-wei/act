@@ -519,6 +519,36 @@ describe('policy bundle core diversity fixture', () => {
     ]);
   });
 
+  it('rejects a policy option whose core refs are new but pairwise core overlap still exceeds the threshold', () => {
+    const registry = buildAlternativeCoreFixtureRegistry();
+    const input = buildDiversityFixtureInput(registry);
+    const plan = buildAdaptiveLearningPathPlan({
+      ...input,
+      policyBundle: {
+        ...input.policyBundle!,
+        overlapThreshold: 0.2,
+      },
+    });
+    const paths = plan.policyBundle?.paths ?? [];
+
+    expect(paths.map((path) => path.policyFamily)).toEqual([
+      'foundation-remediation',
+      'simulation-driven',
+    ]);
+    expect(paths.every((path) => path.nodeIds.includes('registry:correction-precheck'))).toBe(true);
+    expect(paths.every((path) => path.nodeIds.includes('arena-task:task-second-order-lead-pid'))).toBe(true);
+    expect(plan.policyBundle?.status).toBe('low-resource-fallback');
+    expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-diversity-unavailable');
+    expect(plan.policyBundle?.fallbackReasons).not.toContain('path-diversity-insufficient');
+    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([
+      expect.objectContaining({
+        left: 'foundation-remediation',
+        right: 'simulation-driven',
+        overlap: 0,
+      }),
+    ]);
+  });
+
   it('does not count teaching-resource and registry resources with the same canonical sourceRef as distinct core options', () => {
     const registry = buildCanonicalDuplicateFixtureRegistry();
     const plan = buildAdaptiveLearningPathPlan(buildDiversityFixtureInput(registry));

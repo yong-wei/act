@@ -4700,6 +4700,16 @@ function buildPolicyBundle(
       omittedPolicyReasons.push('policy-option-diversity-unavailable');
       return paths;
     }
+    const pairwiseCoreOverlapExceedsThreshold = paths.some((existingPath) =>
+      resourceOverlap(
+        coreRefs,
+        differentiablePolicyCoreRefs(existingPath.planNodes ?? [], input.registry),
+      ) > overlapThreshold,
+    );
+    if (pairwiseCoreOverlapExceedsThreshold) {
+      omittedPolicyReasons.push('policy-option-diversity-unavailable');
+      return paths;
+    }
     coreRefs.forEach((ref) => {
       retainedCoreRefs.add(ref);
       avoidedDifferentiableCoreRefs.add(ref);
