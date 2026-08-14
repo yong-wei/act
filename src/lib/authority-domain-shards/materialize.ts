@@ -44,6 +44,11 @@ import {
 import { engineeringFamilyForPredicate } from './families';
 import { shardDigest, shardSha256 } from './hash';
 import {
+  createAuthorityLabelResolverContext,
+  resolveAuthorityLabel,
+  type AuthorityLabelResolverContext,
+} from './labels';
+import {
   canonicalIdFileToken,
   shardRelativePaths,
   shardSetDir,
@@ -163,12 +168,21 @@ function membershipsFor(
 export function projectAuthorityObject(
   object: AuthorityEngineeringObject,
   catalog: AuthorityDomainCatalogRuntime,
+  labels?: AuthorityLabelResolverContext,
 ): AuthorityShardObject {
   const payload = asObject(object.payload);
+  const resolved = labels ? resolveAuthorityLabel(labels, object.canonicalId) : null;
+  if (labels && (!resolved || resolved.status !== 'available' || !resolved.label)) {
+    throw new AuthorityShardMaterializeError(
+      'label-unavailable',
+      'Authority object label is unavailable for the selected snapshot.',
+    );
+  }
   return {
     id: object.canonicalId,
     canonicalType: object.canonicalType,
-    label: safeLabel(payload),
+    label: resolved?.label ?? safeLabel(payload),
+    aliases: resolved?.aliases ?? [],
     description: stringOrNull(payload.description),
     governance: {
       reviewStatus: object.reviewStatus,
@@ -241,10 +255,13 @@ function compareId(left: { id: string }, right: { id: string }): number {
 function boundaryFor(
   object: AuthorityEngineeringObject,
   catalog: AuthorityDomainCatalogRuntime,
+  labels?: AuthorityLabelResolverContext,
 ): AuthorityShardBoundaryRef {
+  const presentation = projectAuthorityObject(object, catalog, labels);
   return {
     canonicalId: object.canonicalId,
-    label: projectAuthorityObject(object, catalog).label,
+    label: presentation.label,
+    aliases: presentation.aliases,
     canonicalType: object.canonicalType,
     adjacentDomainIds: membershipsFor(catalog, object.canonicalId).map((item) => item.domainId),
   };
@@ -266,6 +283,11 @@ export function buildAuthorityDomainShards(
 ): MaterializedAuthorityDomainShards {
   const teaching = input.teaching ?? createTeachingOverlay(null);
   const limit = input.neighborhoodLimit ?? AUTHORITY_SHARD_NEIGHBORHOOD_LIMIT;
+  const labels = createAuthorityLabelResolverContext({
+    snapshot: input.envelope.authority,
+    objects: input.engineering.objects,
+    v2Evidence: input.engineering.v2Evidence,
+  });
   const objectsById = new Map(
     input.engineering.objects.map((object) => [object.canonicalId, object]),
   );
@@ -301,7 +323,7 @@ export function buildAuthorityDomainShards(
   for (const domainId of REGISTERED_PEER_DOMAIN_IDS) {
     const members = domainMembers(input.catalog, domainId);
     const objects = [...members]
-      .map((id) => projectAuthorityObject(objectsById.get(id)!, input.catalog))
+      .map((id) => projectAuthorityObject(objectsById.get(id)!, input.catalog, labels))
       .sort(compareId);
     const teachingRelations = teaching.relations(domainId).slice().sort(compareId);
     const domainDefault: AuthorityDomainDefaultShard = {
@@ -338,7 +360,7 @@ export function buildAuthorityDomainShards(
       const familyObjects = [...extraIds]
         .map((id) => objectsById.get(id))
         .filter((object): object is AuthorityEngineeringObject => Boolean(object))
-        .map((object) => projectAuthorityObject(object, input.catalog))
+        .map((object) => projectAuthorityObject(object, input.catalog, labels))
         .sort(compareId);
       const familyShard: AuthorityRelationFamilyShard = {
         shardClass: 'relation-family',
@@ -352,6 +374,7 @@ export function buildAuthorityDomainShards(
           .map((object) => ({
             canonicalId: object.id,
             label: object.label,
+            aliases: object.aliases,
             canonicalType: object.canonicalType,
             adjacentDomainIds: object.memberships.map((item) => item.domainId),
           }))
@@ -418,11 +441,11 @@ export function buildAuthorityDomainShards(
       nodeId,
       limit,
       truncated,
-      objects: neighborObjects.map((object) => projectAuthorityObject(object, input.catalog)).sort(compareId),
+      objects: neighborObjects.map((object) => projectAuthorityObject(object, input.catalog, labels)).sort(compareId),
       relations: kept.map(projectAuthorityRelation).sort(compareId),
       boundaries: neighborObjects
         .filter((object) => object.canonicalId !== nodeId && !memberIds.has(object.canonicalId))
-        .map((object) => boundaryFor(object, input.catalog))
+        .map((object) => boundaryFor(object, input.catalog, labels))
         .sort((left, right) => left.canonicalId.localeCompare(right.canonicalId)),
     };
     assertBudget('node-neighborhood', neighborhood);
@@ -430,13 +453,15 @@ export function buildAuthorityDomainShards(
 
     const payload = asObject(center.payload);
     const nested = asObject(payload.payload);
+    const presentation = projectAuthorityObject(center, input.catalog, labels);
     const detail: AuthorityNodeDetailShard = {
       shardClass: 'node-detail',
       envelope: input.envelope,
       node: {
         id: center.canonicalId,
         canonicalType: center.canonicalType,
-        label: safeLabel(payload),
+        label: presentation.label,
+        aliases: presentation.aliases,
         description: stringOrNull(payload.description) ?? stringOrNull(nested.description),
         teachingFields: teachingFields(payload),
         governance: {

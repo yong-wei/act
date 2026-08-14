@@ -56,6 +56,15 @@ Root, domain, family, neighborhood, search, node detail, knowledge-card, and
 infograph views consume the same resolved presentation record. Card and media
 association remains keyed by canonical identity, never localized text.
 
+### 6. Sol DECIDE=A (2026-08-14)
+
+The accepted direction is a pure, immutable resolver context bound to the
+captured snapshot and one admitted runtime profile. Shards carry the resolved
+primary label and aliases as presentation-only fields; the store rejects any
+same-envelope canonical-id label drift before merge. v0.9 snapshots without
+v2 evidence retain their existing `preferred_labels` projection and expose no
+aliases.
+
 ## Risks / Trade-offs
 
 - Some v0.18 nodes will retain reviewed English or mathematical display names;

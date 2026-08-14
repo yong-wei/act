@@ -947,6 +947,9 @@ function ActiveNodeDetail({
             <p className="mt-3 text-sm leading-6 text-platform-fg-secondary">
               {presentActiveHumanText(node?.description ?? fallbackNode?.description, '该对象暂无公开说明。')}
             </p>
+            {node?.aliases && node.aliases.length > 0 ? (
+              <p className="mt-2 text-xs text-platform-fg-muted">别名：{node.aliases.join('、')}</p>
+            ) : null}
           </div>
           <section aria-labelledby="active-detail-relations">
             <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">一跳关系</h3>

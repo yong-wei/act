@@ -16,11 +16,12 @@ import {
   visibleActiveGraph,
 } from '../active-authority-presentation';
 
-function node(id: string, canonicalType: string, label = id): ActiveCanvasNode {
+function node(id: string, canonicalType: string, label = id, aliases: readonly string[] = []): ActiveCanvasNode {
   return {
     id,
     canonicalType,
     label,
+    aliases,
     description: null,
     governance: { reviewStatus: null, publicationStatus: null, lifecycleStatus: null },
     semanticSupport: { supported: true, readOnly: true },
@@ -87,6 +88,19 @@ describe('active Authority presentation adapter', () => {
     expect(activeNodeSearch(model, '', 'Formula').map((item) => item.key)).toEqual(['b']);
     expect([...expandActiveAuthorityOneHop(model, new Set(['a']), 'a', 3)]).toEqual(['a', 'b']);
     expect(visibleActiveGraph(model, new Set(['a', 'missing'])).relations).toEqual([]);
+  });
+
+  it('searches localized aliases while retaining canonical id selection', () => {
+    const model = createActiveAuthorityGraphModel({
+      nodes: [node('stable-id', 'DomainConcept', '稳定性', ['系统稳定', 'stability'])],
+      relations: [],
+    });
+    expect(activeNodeSearch(model, '系统稳定').map((item) => item.key)).toEqual(['stable-id']);
+    expect(activeNodeSearch(model, 'stability')[0]).toMatchObject({
+      key: 'stable-id',
+      label: '稳定性',
+      aliases: ['系统稳定', 'stability'],
+    });
   });
 
   it('keeps Formula and KnowledgeStatement out of the initial domain layer while retaining them for explicit disclosure', () => {

@@ -19,6 +19,7 @@ import {
   type DomainTeachingComposedArtifacts,
 } from '@/lib/teaching-projection/domain-fragments';
 import type { AuthorityEngineeringBody } from '@/lib/authoritative-knowledge/authority-snapshot';
+import type { AuthoritativeV2Evidence } from '@/lib/authoritative-knowledge/contracts';
 import {
   AUTHORITY_SHARD_ENVELOPE_CONTRACT,
   AUTHORITY_SHARD_PAYLOAD_BUDGETS,
@@ -35,6 +36,9 @@ import {
   loadOptionalDomainTeachingProjection,
   projectAuthorityLearnerShard,
   projectAuthorityObject,
+  createAuthorityLabelResolverContext,
+  isSafeAuthorityLabel,
+  resolveAuthorityLabel,
   teachingCoverageFromState,
   writeAuthorityDomainShards,
   type AuthorityShardEnvelope,
@@ -213,6 +217,56 @@ function engineeringBody(): AuthorityEngineeringBody {
   };
 }
 
+function v2Evidence(
+  labels: Array<{
+    entityId: string;
+    label: string;
+    labelType: 'canonical_preferred' | 'alternative';
+  }>,
+  releaseId = RELEASE_ID,
+): AuthoritativeV2Evidence {
+  const profiles = ['runtime', 'domain', 'review'].map((profileKey) => ({
+    releaseId,
+    profileKey,
+    manifestProfile: profileKey,
+    profileId: `${profileKey}-profile`,
+    profileSha256: 'd'.repeat(64),
+    projectionKind: profileKey,
+    profileVersion: 'v1',
+    mappingContractVersion: 'actkg-map/v2',
+    aggregationPolicy: 'preserve-all',
+    payload: { profileKey },
+  }));
+  return {
+    protocol: 'actkg-public-bundle/2',
+    profiles,
+    multilingualLabels: labels.map((row, ordinal) => ({
+      releaseId,
+      ordinal,
+      entityId: row.entityId,
+      language: 'zh-CN',
+      label: row.label,
+      labelType: row.labelType,
+      terminologyAssertionId: `term-${ordinal}`,
+      payload: {},
+    })),
+    admissionBinding: {
+      releaseId,
+      bundleReceiptId: 'bundle-receipt:test',
+      protocol: 'actkg-public-bundle/2',
+      provenance: 'registry',
+      verificationScope: 'admission-time',
+      verifiedDuringLoad: false,
+      registryIdentity: {},
+      upstreamRepository: {},
+      publicationRevision: {},
+      sourceRevision: {},
+      bundleIdentity: {},
+      bindingDigest: 'e'.repeat(64),
+    },
+  };
+}
+
 function publishedTeachingArtifacts(): {
   artifacts: DomainTeachingComposedArtifacts;
   pointer: {
@@ -359,6 +413,162 @@ describe('authority domain shard delivery', () => {
     }, catalogRuntime());
     expect(projected.label).toBe('名称暂不可用');
     expect(projected.label).not.toBe('positive_feedback_inner_loop');
+  });
+
+  it('resolves one preferred zh-CN label and deterministic safe aliases', () => {
+    const objects = engineeringBody().objects;
+    const context = createAuthorityLabelResolverContext({
+      snapshot: {
+        snapshotId: SNAPSHOT_ID,
+        snapshotHash: SNAPSHOT_HASH,
+        releaseId: RELEASE_ID,
+      },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '系统建模', labelType: 'canonical_preferred' },
+        { entityId: MODELING, label: '建模', labelType: 'alternative' },
+        { entityId: MODELING, label: '对象到系统', labelType: 'alternative' },
+        { entityId: MODELING, label: '建模', labelType: 'alternative' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING)).toEqual({
+      status: 'available',
+      label: '系统建模',
+      aliases: ['对象到系统', '建模'],
+    });
+    expect(isSafeAuthorityLabel('系统建模')).toBe(true);
+    expect(isSafeAuthorityLabel('positive_feedback_inner_loop')).toBe(false);
+  });
+
+  it('uses the runtime displayName only when no preferred row exists', () => {
+    const objects = engineeringBody().objects.map((object) => (
+      object.canonicalId === MODELING
+        ? { ...object, payload: { displayName: '运行时模型' } }
+        : object
+    ));
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '模型别名', labelType: 'alternative' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING)).toEqual({
+      status: 'available',
+      label: '运行时模型',
+      aliases: ['模型别名'],
+    });
+  });
+
+  it('detaches resolver payloads from mutable engineering input', () => {
+    const payload = { displayName: '初始运行时名称', nested: { source: 'fixture' } };
+    const objects = engineeringBody().objects.map((object) => (
+      object.canonicalId === MODELING ? { ...object, payload } : object
+    ));
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([]),
+    });
+    payload.displayName = '被外部改写的名称';
+    payload.nested.source = '被外部改写';
+    expect(resolveAuthorityLabel(context, MODELING)).toMatchObject({
+      status: 'available',
+      label: '初始运行时名称',
+      aliases: [],
+    });
+    expect(Object.isFrozen(context.objects[0]!.payload)).toBe(true);
+  });
+
+  it('fails closed for unsafe candidates, duplicate preferred rows, and profile drift', () => {
+    const objects = engineeringBody().objects;
+    const unsafePreferred = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: 'node:internal', labelType: 'canonical_preferred' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(unsafePreferred, MODELING).status).toBe('unavailable');
+
+    const unsafeAlias = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '系统建模', labelType: 'canonical_preferred' },
+        { entityId: MODELING, label: '', labelType: 'alternative' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(unsafeAlias, MODELING).status).toBe('unavailable');
+
+    expect(() => createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '一个主标签', labelType: 'canonical_preferred' },
+        { entityId: MODELING, label: '另一个主标签', labelType: 'canonical_preferred' },
+      ]),
+    })).toThrow(/duplicate preferred/u);
+
+    expect(() => createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '一个标签', labelType: 'canonical_preferred' },
+      ], 'other-release'),
+    })).toThrow(/profile|admission|label row identity drifted/u);
+
+    const bindingDrift = v2Evidence([
+      { entityId: MODELING, label: '一个标签', labelType: 'canonical_preferred' },
+    ]);
+    bindingDrift.admissionBinding = { ...bindingDrift.admissionBinding, releaseId: 'other-release' };
+    expect(() => createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: bindingDrift,
+    })).toThrow(/admission binding/u);
+  });
+
+  it('materializes v2 label aliases without changing identity or relation endpoints', () => {
+    const catalog = catalogRuntime();
+    const built = envelope({
+      catalog: { catalogId: catalog.catalogId, catalogHash: catalog.catalogHash, catalogVersion: catalog.catalogVersion },
+    });
+    const engineering = engineeringBody();
+    const materialized = buildAuthorityDomainShards({
+      envelope: built,
+      catalog,
+      engineering: {
+        ...engineering,
+        v2Evidence: v2Evidence([
+          { entityId: MODELING, label: '系统建模', labelType: 'canonical_preferred' },
+          { entityId: MODELING, label: '建模', labelType: 'alternative' },
+          { entityId: NEIGHBOR, label: '邻域对象', labelType: 'canonical_preferred' },
+          { entityId: NEIGHBOR, label: '邻域别名', labelType: 'alternative' },
+        ]),
+      },
+    });
+    expect(materialized.domainDefaults['system-modeling'].objects.find((object) => object.id === MODELING)).toMatchObject({
+      id: MODELING,
+      label: '系统建模',
+      aliases: ['建模'],
+    });
+    expect(materialized.families['system-modeling:association'].relations[0]).toMatchObject({
+      sourceId: MODELING,
+      targetId: NEIGHBOR,
+    });
+    const family = materialized.families['system-modeling:association'];
+    expect(family.boundaries.find((boundary) => boundary.canonicalId === NEIGHBOR)).toMatchObject({
+      canonicalId: NEIGHBOR,
+      aliases: ['邻域别名'],
+    });
+    let state = createEmptyAuthorityShardWorkspace();
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.root));
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.domainDefaults['system-modeling']));
+    const mergedFamily = mergeAuthorityShard(state, projectAuthorityLearnerShard(family));
+    expect(mergedFamily.rejectedShardKeys).not.toContain('relation-family:system-modeling:association');
+    expect(mergedFamily.boundaryRefsByCanonicalId[NEIGHBOR]?.aliases).toEqual(['邻域别名']);
+    expect(materialized.details[MODELING]?.node.aliases).toEqual(['建模']);
   });
 
   it('loads root and domain-default without opening engineering.json', () => {
@@ -625,6 +835,34 @@ describe('authority domain shard delivery', () => {
     expect(rejected.rejectedShardKeys.some((key) => key.includes('relation-family'))).toBe(true);
     expect(rejected.selectedCanonicalId).toBe(SHARED);
     expect(rejected.objectsByCanonicalId[SHARED]).toBe(afterTime.objectsByCanonicalId[SHARED]);
+  });
+
+  it('rejects same-envelope label drift before overwriting the shard-store object', () => {
+    const { materialized } = writeShards();
+    let state = createEmptyAuthorityShardWorkspace();
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.root));
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.domainDefaults['system-modeling']));
+    const original = state.objectsByCanonicalId[MODELING];
+    const drifted = projectAuthorityLearnerShard({
+      ...materialized.neighborhoods[MODELING],
+      objects: materialized.neighborhoods[MODELING]!.objects.map((object) => (
+        object.id === MODELING ? { ...object, label: '漂移名称' } : object
+      )),
+    });
+    const rejected = mergeAuthorityShard(state, drifted);
+    expect(rejected.rejectedShardKeys).toContain('node-neighborhood:ctc:modeling-test-object');
+    expect(rejected.objectsByCanonicalId[MODELING]).toBe(original);
+    expect(rejected.objectsByCanonicalId[MODELING]?.label).not.toBe('漂移名称');
+
+    const aliasDrifted = projectAuthorityLearnerShard({
+      ...materialized.neighborhoods[MODELING],
+      objects: materialized.neighborhoods[MODELING]!.objects.map((object) => (
+        object.id === MODELING ? { ...object, aliases: ['漂移别名'] } : object
+      )),
+    });
+    const aliasRejected = mergeAuthorityShard(state, aliasDrifted);
+    expect(aliasRejected.rejectedShardKeys).toContain('node-neighborhood:ctc:modeling-test-object');
+    expect(aliasRejected.objectsByCanonicalId[MODELING]).toBe(original);
   });
 
   it('uses collision-resistant file tokens for opaque node ids', () => {

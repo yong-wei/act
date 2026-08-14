@@ -30,6 +30,7 @@ const sourceFiles = [
   'src/lib/authority-domain-shards/envelope.ts',
   'src/lib/authority-domain-shards/loader.ts',
   'src/lib/authority-domain-shards/materialize.ts',
+  'src/lib/authority-domain-shards/labels.ts',
   'src/app/api/knowledge/_active-authority.ts',
   'src/app/api/knowledge/shards/active/route.ts',
   'src/app/api/knowledge/shards/active/domains/[domain]/route.ts',
