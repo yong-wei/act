@@ -6,6 +6,10 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import {
+  computeCanonicalReleaseHash,
+  computeProjectionVersionDigest,
+} from '../../../scripts/actkg-release/actkg-canonical-digests';
 import { canonicalJson, sha256 } from '../../../scripts/actkg-release/authoritative-release';
 import {
   CTKG_SCHEMA_V2_RAW_SHA256,
@@ -618,6 +622,142 @@ describe('ActKG public Bundle v2 semantic validation', () => {
         });
         expect(raw?.bytes.byteLength).toBe(raw?.descriptor.byteLength);
       }
+    } finally {
+      await rm(workspace.dir, { recursive: true, force: true });
+    }
+  });
+
+  it('filters shared link metadata to the selected runtime relation set', async () => {
+    const workspace = await prepareMiniWorkspace();
+    try {
+      const releasePath = path.join(workspace.bundleDir, 'release.json');
+      const release = JSON.parse(await readFile(releasePath, 'utf8')) as JsonObject;
+      const relationDomain = 'ctkg:mini-relation-domain-only';
+      const relationReview = 'ctkg:mini-relation-review-only';
+      const releaseEntries = release.entries as JsonObject[];
+      const relationEntry = releaseEntries.find((entry) => entry.entity === MINI_ENTITIES.relation)!;
+      release.entries = [
+        ...releaseEntries,
+        { ...relationEntry, entity: relationDomain },
+        { ...relationEntry, entity: relationReview },
+      ];
+      release.included_entities = [
+        ...(release.included_entities as string[]),
+        relationDomain,
+        relationReview,
+      ];
+      const releaseHash = computeCanonicalReleaseHash(release);
+      release.release_hash = releaseHash;
+      await writeJson(releasePath, release);
+
+      const profilePaths = {
+        runtime: 'act-projection.json',
+        domain: 'domain-projection.json',
+        review: 'review-projection.json',
+      } as const;
+      const runtimeLink = {
+        id: 'ctr:projection-link:mini:runtime',
+        relation_id: MINI_ENTITIES.relation,
+        source_id: MINI_ENTITIES.nodeA,
+        target_id: MINI_ENTITIES.nodeB,
+        relation_type: 'association',
+        relation_family: 'domain_semantic',
+        direction: 'unordered',
+        evidence_state: 'available',
+      };
+      const domainLink = { ...runtimeLink, id: 'ctr:projection-link:mini:domain', relation_id: relationDomain };
+      const reviewLink = { ...runtimeLink, id: 'ctr:projection-link:mini:review', relation_id: relationReview };
+      const profileLinks = {
+        runtime: [runtimeLink],
+        domain: [runtimeLink, domainLink],
+        review: [reviewLink],
+      } as const;
+      const profileManifest = JSON.parse(
+        await readFile(path.join(workspace.bundleDir, 'projection-profiles.json'), 'utf8'),
+      ) as JsonObject;
+      const profileKinds = {
+        runtime: 'act_runtime_graph',
+        domain: 'domain_graph',
+        review: 'review_graph',
+      } as const;
+      for (const profile of ['runtime', 'domain', 'review'] as const) {
+        const projectionPath = path.join(workspace.bundleDir, profilePaths[profile]);
+        const projection = JSON.parse(await readFile(projectionPath, 'utf8')) as JsonObject;
+        projection.links = profileLinks[profile];
+        projection.source_release_hash = releaseHash;
+        const profileRecord = (profileManifest.profiles as JsonObject[]).find(
+          (candidate) => candidate.projection_kind === profileKinds[profile],
+        )!;
+        projection.version_digest = computeProjectionVersionDigest(projection, profileRecord, profile);
+        await writeJson(projectionPath, projection);
+      }
+
+      const metadataPath = path.join(workspace.bundleDir, 'projection-link-metadata.jsonl');
+      const metadataRows = (await readFile(metadataPath, 'utf8'))
+        .split(/\r?\n/u)
+        .filter(Boolean)
+        .map((line) => JSON.parse(line) as JsonObject);
+      const baseMetadata = metadataRows[0]!;
+      for (const relationId of [relationDomain, relationReview]) {
+        metadataRows.push({ ...baseMetadata, relation_id: relationId });
+      }
+      for (const row of metadataRows) row.source_release_hash = releaseHash;
+      await writeFile(metadataPath, `${metadataRows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+
+      const manifestPath = path.join(workspace.bundleDir, 'bundle-manifest.json');
+      const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as JsonObject & {
+        artifacts: JsonObject[];
+      };
+      (manifest.release as JsonObject).release_hash = releaseHash;
+      const refreshArtifact = async (relativePath: string): Promise<void> => {
+        const artifact = manifest.artifacts.find((item) => item.path === relativePath)!;
+        const bytes = await readFile(path.join(workspace.bundleDir, relativePath));
+        artifact.sha256 = sha256(bytes);
+        artifact.byte_length = bytes.byteLength;
+        if (String(artifact.media_type).includes('ndjson')) {
+          artifact.record_count = bytes.toString('utf8').split(/\r?\n/u).filter(Boolean).length;
+        }
+      };
+      for (const relativePath of [
+        'release.json',
+        ...Object.values(profilePaths),
+        'projection-link-metadata.jsonl',
+      ]) {
+        await refreshArtifact(relativePath);
+      }
+
+      const reportPath = path.join(workspace.bundleDir, 'validation-report.json');
+      const report = JSON.parse(await readFile(reportPath, 'utf8')) as JsonObject;
+      (report.release as JsonObject).release_hash = releaseHash;
+      (report.statistics as JsonObject).release_entries = (release.entries as JsonObject[]).length;
+      report.artifact_validation = manifest.artifacts
+        .filter((artifact) => artifact.role !== 'validation_report')
+        .map((artifact) => ({
+          path: artifact.path,
+          sha256: artifact.sha256,
+          byte_length: artifact.byte_length,
+          record_count: artifact.record_count ?? null,
+          result: 'PASS',
+        }));
+      await writeJson(reportPath, report);
+      await refreshArtifact('validation-report.json');
+      await writeJson(manifestPath, manifest);
+      await rewriteManifestDigest(workspace.bundleDir);
+
+      const registry = {
+        ...await registryForCurrentManifest(workspace),
+        releaseHash,
+      };
+      const validated = await loadAndValidateRegisteredPublicBundleV2({
+        root: workspace.dir,
+        bundlePath: workspace.bundlePath,
+        gitRoot: workspace.captureRoot,
+        captureRevision: workspace.captureRevision,
+        registry,
+      });
+      expect(validated.preservedProjections.map((entry) => entry.identity.linkCount)).toEqual([1, 2, 1]);
+      expect(validated.allLinkMetadata[0]?.rows).toHaveLength(3);
+      expect(validated.runtimeLinkMetadata.map((row) => row.relationId)).toEqual([MINI_ENTITIES.relation]);
     } finally {
       await rm(workspace.dir, { recursive: true, force: true });
     }

@@ -346,7 +346,7 @@ def manifest_integer(value: Any, label: str) -> int:
     return value
 
 
-def parse_blob_manifest_source(source: Any, label: str) -> Dict[str, str]:
+def parse_blob_manifest_source(source: Any, label: str, allow_legacy: bool = True) -> Dict[str, str]:
     if not isinstance(source, dict):
         fail(f"{label} is invalid")
     keys = set(source)
@@ -358,7 +358,29 @@ def parse_blob_manifest_source(source: Any, label: str) -> Dict[str, str]:
         if not SOURCE_OBJECT_ID_PATTERN.fullmatch(normalized):
             fail(f"{label}.gitObjectId is invalid")
         return {"gitObjectId": normalized}
-    if keys == {"externalInputId", "externalInputManifestObjectId"}:
+    if keys == {"externalInputId", "externalInputManifestObjectId", "bundleSemanticSha256", "bundleWireSha256"}:
+        input_id = source.get("externalInputId")
+        manifest_object_id = source.get("externalInputManifestObjectId")
+        semantic_digest = source.get("bundleSemanticSha256")
+        wire_digest = source.get("bundleWireSha256")
+        if (
+            not isinstance(input_id, str)
+            or not EXTERNAL_INPUT_ID_PATTERN.fullmatch(input_id)
+            or not isinstance(manifest_object_id, str)
+            or not isinstance(semantic_digest, str)
+            or not isinstance(wire_digest, str)
+            or not SOURCE_OBJECT_ID_PATTERN.fullmatch(manifest_object_id.lower())
+            or not SHA256_PATTERN.fullmatch(semantic_digest)
+            or not SHA256_PATTERN.fullmatch(wire_digest)
+        ):
+            fail(f"{label} is invalid")
+        return {
+            "externalInputId": input_id,
+            "externalInputManifestObjectId": manifest_object_id.lower(),
+            "bundleSemanticSha256": semantic_digest,
+            "bundleWireSha256": wire_digest,
+        }
+    if allow_legacy and keys == {"externalInputId", "externalInputManifestObjectId"}:
         input_id = source.get("externalInputId")
         manifest_object_id = source.get("externalInputManifestObjectId")
         if (
@@ -720,7 +742,7 @@ def expected_manifest_files(manifest: Dict[str, Any], release_id: str) -> List[D
     return expected
 
 
-def expected_blob_manifest_files(manifest: Dict[str, Any]) -> List[Dict[str, Any]]:
+def expected_blob_manifest_files(manifest: Dict[str, Any], strict_sources: bool = False) -> List[Dict[str, Any]]:
     files = manifest.get("files")
     if not isinstance(files, list) or not files:
         fail("blob manifest.files is invalid")
@@ -754,7 +776,9 @@ def expected_blob_manifest_files(manifest: Dict[str, Any]) -> List[Dict[str, Any
             fail("blob manifest object key is not SHA-256 addressed")
         source = item.get("source")
         if source is not None:
-            source = parse_blob_manifest_source(source, f"blob manifest file source for {relative_path}")
+            source = parse_blob_manifest_source(source, f"blob manifest file source for {relative_path}", allow_legacy=not strict_sources)
+        elif strict_sources:
+            fail("strict bundle manifest files must carry a source identity")
         size = manifest_integer(size, f"blob manifest file size for {relative_path}")
         if size > MAX_FRAME_BYTES:
             fail("blob manifest file exceeds the maximum runtime frame size")
@@ -862,6 +886,9 @@ def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str,
     semantic_sha = header.get("manifestSha256")
     receipt_encoded = header.get("receiptWireBase64")
     receipt_wire_sha = header.get("receiptWireSha256")
+    source_identity_mode = header.get("sourceIdentityMode")
+    if source_identity_mode not in (None, "strict-bundle"):
+        fail("blob publish source identity mode is invalid")
     if not isinstance(release_id, str) or not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", release_id):
         fail("blob release id is invalid")
     if prefix != f"{BLOB_RELEASE_KEY_PREFIX}{release_id}/":
@@ -896,7 +923,7 @@ def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str,
     tree_sha = manifest.get("treeSha256")
     if not isinstance(source_revision, str) or not re.fullmatch(r"[0-9a-f]{40}", source_revision) or not isinstance(tree_sha, str) or not SHA256_PATTERN.fullmatch(tree_sha):
         fail("blob manifest source identity is invalid")
-    expected = expected_blob_manifest_files(manifest)
+    expected = expected_blob_manifest_files(manifest, strict_sources=source_identity_mode == "strict-bundle")
     calculated_tree_sha = hashlib.sha256(canonical_json([{"path": entry["path"], "sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]} for entry in expected])).hexdigest()
     if tree_sha != calculated_tree_sha:
         fail("blob manifest tree digest does not match its files")
@@ -927,8 +954,8 @@ def validate_blob_parent_reference(header: Dict[str, Any]) -> Optional[Dict[str,
         "protocol", "releaseId", "prefix", "manifestSha256", "wireSha256", "manifestWireBase64",
         "receiptWireSha256", "receiptWireBase64",
     }
-    allowed_fields = required_fields | {"parentRelease"}
-    if set(header) not in (required_fields, allowed_fields):
+    allowed_fields = required_fields | {"parentRelease", "sourceIdentityMode"}
+    if not required_fields.issubset(set(header)) or not set(header).issubset(allowed_fields):
         fail("blob publish header has unsupported or missing fields")
     parent = header.get("parentRelease")
     if parent is None:

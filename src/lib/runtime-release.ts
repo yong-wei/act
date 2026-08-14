@@ -43,9 +43,22 @@ export interface ActRuntimeBlobReleaseFileExternalSource {
   externalInputManifestObjectId: string;
 }
 
+/**
+ * Source identity emitted for a prepared external bundle.  The declaration
+ * object id and both bundle digests are required so a generated path cannot be
+ * inherited from a different declaration or a different bundle wire.
+ */
+export interface ActRuntimeBlobReleaseFileExternalBundleSource {
+  externalInputId: string;
+  externalInputManifestObjectId: string;
+  bundleSemanticSha256: string;
+  bundleWireSha256: string;
+}
+
 export type ActRuntimeBlobReleaseFileSource =
   | ActRuntimeBlobReleaseFileGitSource
-  | ActRuntimeBlobReleaseFileExternalSource;
+  | ActRuntimeBlobReleaseFileExternalSource
+  | ActRuntimeBlobReleaseFileExternalBundleSource;
 
 export interface ActRuntimeBlobReleaseFile extends ActRuntimeReleaseFile {
   source?: ActRuntimeBlobReleaseFileSource;
@@ -255,6 +268,28 @@ function parseRuntimeBlobReleaseFileSource(value: unknown, context: string): Act
       throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `${context}.gitObjectId is invalid.`);
     }
     return { gitObjectId };
+  }
+  if (Object.hasOwn(raw, 'bundleSemanticSha256') || Object.hasOwn(raw, 'bundleWireSha256')) {
+    assertExactKeys(raw, ['externalInputId', 'externalInputManifestObjectId', 'bundleSemanticSha256', 'bundleWireSha256'], context);
+    const externalInputId = string(raw.externalInputId, `${context}.externalInputId`);
+    const externalInputManifestObjectId = string(raw.externalInputManifestObjectId, `${context}.externalInputManifestObjectId`).toLowerCase();
+    const bundleSemanticSha256 = string(raw.bundleSemanticSha256, `${context}.bundleSemanticSha256`).toLowerCase();
+    const bundleWireSha256 = string(raw.bundleWireSha256, `${context}.bundleWireSha256`).toLowerCase();
+    if (!/^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$/u.test(externalInputId)) {
+      throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `${context}.externalInputId is invalid.`);
+    }
+    if (![externalInputManifestObjectId, bundleSemanticSha256, bundleWireSha256].every((digest) => /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(digest))) {
+      throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `${context} bundle source identity is invalid.`);
+    }
+    if (![bundleSemanticSha256, bundleWireSha256].every((digest) => /^[0-9a-f]{64}$/.test(digest))) {
+      throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `${context} bundle digest is invalid.`);
+    }
+    return {
+      externalInputId,
+      externalInputManifestObjectId,
+      bundleSemanticSha256,
+      bundleWireSha256,
+    };
   }
   assertExactKeys(raw, ['externalInputId', 'externalInputManifestObjectId'], context);
   const externalInputId = string(raw.externalInputId, `${context}.externalInputId`);
