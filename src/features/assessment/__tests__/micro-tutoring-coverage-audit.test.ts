@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -56,6 +57,7 @@ function report(input: Partial<Parameters<typeof buildMicroTutoringCoverageAudit
     reviewDecisions,
     baseline,
     optionAttributions: [],
+    activeLearningGoalIds: ['learning-goal-1'],
     activeKnowledgeNodeIds: ['node-1'],
     resolveResources: () => [{ id: 'resource-1', version: 'resource.v1', estimatedMinutes: 3, actionPath: '/resources/1' }],
     resolveValidationItems: (sourceQuestionId) => [{
@@ -95,6 +97,32 @@ describe('micro tutoring coverage audit', () => {
     expect(result.baselineIssues).toEqual(expect.arrayContaining([
       expect.objectContaining({ reason: 'BASELINE_ITEM_DUPLICATE', catalogItemId: baseline.entries[0].catalogItemId }),
       expect.objectContaining({ reason: 'CONTENT_HASH_DRIFT', catalogItemId: baseline.entries[0].catalogItemId }),
+    ]));
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
+  it('rejects duplicate catalog identifiers before practice eligibility filtering', () => {
+    const sourceItem = catalogItems.find((item) => item.catalogItemId === baseline.entries[0].catalogItemId)!;
+    const duplicateCatalogItem: AdaptiveAssessmentCatalogItem = {
+      ...sourceItem,
+      contentHash: 'd'.repeat(64),
+      lineage: {
+        ...sourceItem.lineage,
+        sourceHash: 'd'.repeat(64),
+      },
+    };
+    const result = report({
+      catalogItems: [...catalogItems, duplicateCatalogItem],
+      optionAttributions: buildAttributions(),
+    });
+
+    expect(result.qualifiedPracticeItemCount).toBe(54);
+    expect(result.gapOptionCount).toBe(0);
+    expect(result.baselineIssues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        reason: 'BASELINE_ITEM_DUPLICATE',
+        catalogItemId: sourceItem.catalogItemId,
+      }),
     ]));
     expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
   });
@@ -228,6 +256,55 @@ describe('micro tutoring coverage audit', () => {
     expect(accessDeniedResult.rows.every((row) => row.reasons.includes('ACCESS_REVOKED'))).toBe(true);
   });
 
+  it('requires nonempty and registered option-attribution fields before resolving dependencies', () => {
+    const attributions = buildAttributions();
+    const invalidFields = [
+      { learningGoalId: '' },
+      { learningGoalId: 'unknown-learning-goal' },
+      { misconceptionTag: '' },
+      { knowledgeNodeId: '' },
+      { version: '' },
+    ];
+
+    for (const invalidField of invalidFields) {
+      const result = report({
+        optionAttributions: attributions.map((attribution, index) =>
+          index === 0 ? { ...attribution, ...invalidField } : attribution),
+      });
+      const affectedRows = result.rows.filter((row) =>
+        row.catalogItemId === attributions[0].catalogItemId &&
+        row.reasons.includes('ATTRIBUTION_UNCERTAIN'));
+
+      expect(affectedRows).toHaveLength(1);
+      expect(affectedRows[0]).toMatchObject({
+        learningGoalId: null,
+        misconceptionTag: null,
+        knowledgeNodeId: null,
+        attributionVersion: null,
+        resources: [],
+        validationItems: [],
+      });
+      expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+    }
+  });
+
+  it('does not derive resource or validation gaps from an unavailable knowledge node', () => {
+    const result = report({
+      optionAttributions: buildAttributions(),
+      activeKnowledgeNodeIds: [],
+      resolveResources: () => {
+        throw new Error('resource resolution must be skipped');
+      },
+      resolveValidationItems: () => {
+        throw new Error('validation resolution must be skipped');
+      },
+    });
+
+    expect(result.rows.every((row) =>
+      row.reasons.length === 1 && row.reasons[0] === 'CANONICAL_NODE_UNAVAILABLE')).toBe(true);
+    expect(result.rows.every((row) => row.resources.length === 0 && row.validationItems.length === 0)).toBe(true);
+  });
+
   it('produces deterministically sorted complete records without question or answer material', () => {
     const complete = report({ optionAttributions: buildAttributions() });
     const repeated = report({ optionAttributions: [...buildAttributions()].reverse() });
@@ -239,5 +316,12 @@ describe('micro tutoring coverage audit', () => {
     expect(serialized).not.toContain('正确');
     expect(serialized).not.toContain('isCorrect');
     expect(microTutoringCoverageAuditMarkdown(complete)).not.toContain('isCorrect');
+    const sourceItem = catalogItems.find((item) => item.catalogItemId === complete.rows[0].catalogItemId)!;
+    const enumerableReferences = (sourceItem.questionRefs.options ?? []).map((option) =>
+      `sha256:${createHash('sha256')
+        .update(`${sourceItem.catalogItemId}:${sourceItem.contentHash}:${option.key ?? 'missing-option-key'}`)
+        .digest('hex')}`);
+    expect(complete.rows.map((row) => row.errorOptionRef))
+      .not.toEqual(expect.arrayContaining(enumerableReferences));
   });
 });

@@ -20,6 +20,7 @@ import {
   type RemediationValidationItemRow,
 } from '@/features/assessment/remediation-orchestration';
 import { AUTOCONTROL_KAQ_GRAPH_CATALOG } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
 import { prisma } from '@/lib/prisma';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
@@ -129,6 +130,7 @@ async function main() {
   ]);
   const baseline: MicroTutoringPracticeBaseline = {
     version: baselineSource.version,
+    optionReferenceSalt: baselineSource.optionReferenceSalt,
     entries: sourceEntries<MicroTutoringPracticeBaseline['entries'][number]>(baselineSource, 'practice baseline'),
   };
   const optionAttributions = sourceEntries<MicroTutoringOptionAttribution>(
@@ -140,6 +142,11 @@ async function main() {
     reviewDecisions,
     baseline,
     optionAttributions,
+    activeLearningGoalIds: Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
+      .flatMap((definition) =>
+        definition.learningGoal && definition.learningGoal.status !== 'draft'
+          ? [definition.learningGoal.id]
+          : []),
     activeKnowledgeNodeIds: AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes
       .filter((node) => node.status === 'active')
       .map((node) => node.id),

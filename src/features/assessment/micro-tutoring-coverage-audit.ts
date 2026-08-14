@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHmac } from 'node:crypto';
 
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import { evaluateAssessmentEvidenceAuthority } from '@/features/adaptive-assessment/assessment-evidence-authority';
@@ -26,6 +26,7 @@ export type MicroTutoringCoverageBaselineIssue =
 
 export interface MicroTutoringPracticeBaseline {
   version: string;
+  optionReferenceSalt: string;
   entries: Array<{
     catalogItemId: string;
     contentHash: string;
@@ -63,6 +64,7 @@ export interface MicroTutoringCoverageAuditInput {
   reviewDecisions: AssessmentItemSemanticReviewDecision[];
   baseline: MicroTutoringPracticeBaseline;
   optionAttributions: MicroTutoringOptionAttribution[];
+  activeLearningGoalIds: Iterable<string>;
   activeKnowledgeNodeIds: Iterable<string>;
   resolveResources: (knowledgeNodeId: string, misconceptionTag: string) => GovernedMicroTutoringResource[];
   resolveValidationItems: (
@@ -117,8 +119,16 @@ function uniqueSorted(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))].sort();
 }
 
-function stableHash(value: string): string {
-  return `sha256:${createHash('sha256').update(value).digest('hex')}`;
+function stableOptionReference(value: string, salt: string): string {
+  return `sha256:${createHmac('sha256', salt).update(value).digest('hex')}`;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function isOptionAttribution(value: unknown): value is MicroTutoringOptionAttribution {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
 function practiceItems(
@@ -138,6 +148,7 @@ function practiceItems(
 function baselineIssues(
   baseline: MicroTutoringPracticeBaseline,
   qualifiedItems: AdaptiveAssessmentCatalogItem[],
+  catalogItems: AdaptiveAssessmentCatalogItem[],
 ): MicroTutoringCoverageAuditReport['baselineIssues'] {
   const issues: MicroTutoringCoverageAuditReport['baselineIssues'] = [];
   if (baseline.version !== MICRO_TUTORING_PRACTICE_BASELINE_VERSION) {
@@ -170,6 +181,15 @@ function baselineIssues(
     baselineById.set(entry.catalogItemId, entry.contentHash);
   }
   for (const catalogItemId of duplicateIds) {
+    issues.push({ reason: 'BASELINE_ITEM_DUPLICATE', catalogItemId });
+  }
+  const catalogItemIds = new Set<string>();
+  const duplicateCatalogItemIds = new Set<string>();
+  for (const item of catalogItems) {
+    if (catalogItemIds.has(item.catalogItemId)) duplicateCatalogItemIds.add(item.catalogItemId);
+    catalogItemIds.add(item.catalogItemId);
+  }
+  for (const catalogItemId of duplicateCatalogItemIds) {
     issues.push({ reason: 'BASELINE_ITEM_DUPLICATE', catalogItemId });
   }
   const itemById = new Map<string, AdaptiveAssessmentCatalogItem>();
@@ -214,10 +234,18 @@ function attributionRows(
 ): MicroTutoringOptionAttribution[] {
   if (!optionKey) return [];
   return optionAttributions.filter((entry) =>
+    isOptionAttribution(entry) &&
     entry.catalogItemId === catalogItemId &&
     entry.contentHash === contentHash &&
     entry.optionKey === optionKey,
   );
+}
+
+function attributionHasRequiredFields(attribution: MicroTutoringOptionAttribution): boolean {
+  return isNonEmptyString(attribution.learningGoalId) &&
+    isNonEmptyString(attribution.misconceptionTag) &&
+    isNonEmptyString(attribution.knowledgeNodeId) &&
+    isNonEmptyString(attribution.version);
 }
 
 function validValidationItems(
@@ -234,6 +262,7 @@ export function buildMicroTutoringCoverageAuditReport(
   input: MicroTutoringCoverageAuditInput,
 ): MicroTutoringCoverageAuditReport {
   const qualifiedItems = practiceItems(input.catalogItems, input.reviewDecisions);
+  const activeLearningGoalIds = new Set(input.activeLearningGoalIds);
   const activeKnowledgeNodeIds = new Set(input.activeKnowledgeNodeIds);
   const dependencyIssues = uniqueSorted(input.dependencyIssues ?? []) as MicroTutoringCoverageGapReason[];
   const rows: MicroTutoringCoverageRow[] = [];
@@ -247,24 +276,30 @@ export function buildMicroTutoringCoverageAuditReport(
         item.contentHash,
         option.key,
       );
-      const attribution = candidateAttributions.length === 1 ? candidateAttributions[0] : null;
+      const candidateAttribution = candidateAttributions.length === 1 ? candidateAttributions[0] : null;
+      const attribution = candidateAttribution &&
+        attributionHasRequiredFields(candidateAttribution) &&
+        activeLearningGoalIds.has(candidateAttribution.learningGoalId)
+        ? candidateAttribution
+        : null;
+      const hasActiveKnowledgeNode = attribution && activeKnowledgeNodeIds.has(attribution.knowledgeNodeId);
       const reasons = [...dependencyIssues];
       if (!attribution) {
         reasons.push('ATTRIBUTION_UNCERTAIN');
-      } else if (!activeKnowledgeNodeIds.has(attribution.knowledgeNodeId)) {
+      } else if (!hasActiveKnowledgeNode) {
         reasons.push('CANONICAL_NODE_UNAVAILABLE');
       }
-      const resources = attribution && !reasons.includes('CANONICAL_NODE_UNAVAILABLE')
+      const resources = attribution && hasActiveKnowledgeNode
         ? input.resolveResources(attribution.knowledgeNodeId, attribution.misconceptionTag)
           .sort((left, right) => left.id.localeCompare(right.id))
         : [];
-      if (attribution && resources.length === 0) {
+      if (attribution && hasActiveKnowledgeNode && resources.length === 0) {
         reasons.push(input.resolveResourceAccessDenied?.(
           attribution.knowledgeNodeId,
           attribution.misconceptionTag,
         ) ? 'ACCESS_REVOKED' : 'RESOURCE_UNAVAILABLE');
       }
-      const validationItems = attribution && !reasons.includes('CANONICAL_NODE_UNAVAILABLE')
+      const validationItems = attribution && hasActiveKnowledgeNode
         ? validValidationItems(
           input.resolveValidationItems(
             item.sourceId,
@@ -276,7 +311,7 @@ export function buildMicroTutoringCoverageAuditReport(
           item.contentHash,
         )
         : [];
-      if (attribution && validationItems.length === 0) {
+      if (attribution && hasActiveKnowledgeNode && validationItems.length === 0) {
         reasons.push(input.resolveValidationAccessDenied?.(
           item.sourceId,
           attribution.knowledgeNodeId,
@@ -287,7 +322,10 @@ export function buildMicroTutoringCoverageAuditReport(
       rows.push({
         catalogItemId: item.catalogItemId,
         contentHash: item.contentHash,
-        errorOptionRef: stableHash(`${item.catalogItemId}:${item.contentHash}:${option.key ?? 'missing-option-key'}`),
+        errorOptionRef: stableOptionReference(
+          `${item.catalogItemId}:${item.contentHash}:${option.key ?? 'missing-option-key'}`,
+          input.baseline.optionReferenceSalt,
+        ),
         learningGoalId: attribution?.learningGoalId ?? null,
         misconceptionTag: attribution?.misconceptionTag ?? null,
         knowledgeNodeId: attribution?.knowledgeNodeId ?? null,
@@ -321,7 +359,7 @@ export function buildMicroTutoringCoverageAuditReport(
     errorOptionCount: rows.length,
     completeOptionCount,
     gapOptionCount: rows.length - completeOptionCount,
-    baselineIssues: baselineIssues(input.baseline, qualifiedItems),
+    baselineIssues: baselineIssues(input.baseline, qualifiedItems, input.catalogItems),
     gapReasonCounts,
     rows,
   };

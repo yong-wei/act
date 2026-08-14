@@ -31,8 +31,13 @@ try {
   assert.equal(report.errorOptionCount, 108);
   assert.equal(report.gapOptionCount, 108);
   assert.equal(report.baselineIssues.length, 0);
+  const baseline = JSON.parse(readFileSync(
+    path.join(repoRoot, 'course-content/runtime/resource-governance/micro-tutoring-practice-baseline.json'),
+    'utf8',
+  ));
   assert.equal(JSON.stringify(report).includes('isCorrect'), false);
   assert.equal(JSON.stringify(report).includes('answerKey'), false);
+  assert.equal(JSON.stringify(report).includes(baseline.optionReferenceSalt), false);
   assert.equal(markdown.includes('isCorrect'), false);
 
   const strictResult = run(['--strict']);

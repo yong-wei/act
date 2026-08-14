@@ -1,5 +1,6 @@
 {
   "version": "micro-tutoring-practice-baseline.v1",
+  "optionReferenceSalt": "eba7e268cfc51e85a7805eb645cf6f50b04ea535821bd323932a86b306f55ec6",
   "entries": [
     { "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-01", "contentHash": "6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57eb59f40def07cb43297" },
     { "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-02", "contentHash": "f184c9a8250cb7cb067558c66d55e3bbba0843f93bd9f4b1c58c8b09d8edccf7" },
