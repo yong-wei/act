@@ -206,6 +206,334 @@ describe('adaptive path recommendation provenance', () => {
   });
 });
 
+describe('policy bundle core diversity fixture', () => {
+  function buildAlternativeCoreFixtureRegistry() {
+    return buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'correction-precheck',
+          label: '校正目标前测',
+          type: 'ADAPTIVE_QUIZ',
+          renderTarget: '/interactive-learning/resources/lesson09-correction-precheck',
+          knowledgeNodeIds: ['control-correction:root-locus-design'],
+          planningOverride: {
+            estimatedTimeMinutes: 5,
+            evidenceInstrumentation: ['answer_submit'],
+            abilityImpact: { parameterDesign: 0.15 },
+          },
+        },
+      ],
+      knowledgeCards: [
+        {
+          id: 'core-card',
+          title: '校正核心知识卡',
+          sourceRef: 'correction-card',
+          renderTarget: '/interactive-learning/resources/correction-card',
+          knowledgeNodeIds: ['control-correction:time-domain-targets'],
+          prerequisiteNodeIds: ['registry:correction-precheck'],
+          planningOverride: {
+            estimatedTimeMinutes: 24,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['knowledge_card_open'],
+            abilityImpact: { controlModeling: 0.2, parameterDesign: 0.2 },
+          },
+        },
+        {
+          id: 'preference-card',
+          title: '偏好匹配知识卡',
+          sourceRef: 'preference-card',
+          renderTarget: '/interactive-learning/resources/preference-card',
+          knowledgeNodeIds: ['control-correction:time-domain-targets'],
+          prerequisiteNodeIds: ['registry:correction-precheck'],
+          planningOverride: {
+            estimatedTimeMinutes: 24,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['knowledge_card_open'],
+            abilityImpact: { controlModeling: 0.2, parameterDesign: 0.2 },
+          },
+        },
+      ],
+      textbookSections: [
+        {
+          bookId: 'dorf-modern-control-systems',
+          sectionId: 'correction-textbook',
+          title: '校正教材章节',
+          citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/correction-textbook.md',
+          knowledgeNodeIds: ['control-correction:time-domain-targets'],
+          prerequisiteNodeIds: ['registry:correction-precheck'],
+          estimatedTimeMinutes: 24,
+          planningOverride: {
+            cognitiveLoad: 'medium',
+            evidenceInstrumentation: ['textbook_section_open'],
+            abilityImpact: { controlModeling: 0.2, parameterDesign: 0.2 },
+          },
+        },
+      ],
+      simulations: [
+        {
+          id: 'correction-sim',
+          title: '校正仿真验证',
+          launchTarget: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+          knowledgeNodeIds: [
+            'control-correction:root-locus-design',
+            'control-correction:simulation-validation',
+          ],
+          prerequisiteNodeIds: ['registry:correction-precheck'],
+          planningOverride: {
+            estimatedTimeMinutes: 20,
+            cognitiveLoad: 'high',
+            terminalConstraints: ['transfer-validation'],
+            evidenceInstrumentation: ['simulation_run'],
+            abilityImpact: { parameterDesign: 0.35, engineeringDecision: 0.25 },
+            readiness: {
+              minimumCompetency: {},
+              minimumEvidenceCount: 0,
+              requiredCompletedNodeIds: ['registry:correction-precheck'],
+              requiredOutcomeRefs: [],
+              unlockMessage: '完成前测后进入仿真验证',
+              fallbackNodeIds: ['registry:correction-precheck'],
+            },
+          },
+        },
+      ],
+      arenaTasks: [
+        {
+          id: 'task-second-order-lead-pid',
+          title: '校正 Arena',
+          launchTarget: '/arena/challenges/task-second-order-lead-pid',
+          knowledgeNodeIds: [
+            'control-correction:simulation-validation',
+            'control-correction:arena-transfer',
+          ],
+          prerequisiteNodeIds: ['registry:correction-precheck'],
+          official: true,
+          planningOverride: {
+            estimatedTimeMinutes: 18,
+            cognitiveLoad: 'high',
+            terminalConstraints: ['terminal-node', 'terminal-validation'],
+            evidenceInstrumentation: ['arena_evaluation_complete'],
+            abilityImpact: {
+              parameterDesign: 0.35,
+              engineeringDecision: 0.25,
+              crossDomainTransfer: 0.2,
+            },
+            readiness: {
+              minimumCompetency: {},
+              minimumEvidenceCount: 0,
+              requiredCompletedNodeIds: ['registry:correction-precheck'],
+              requiredOutcomeRefs: [],
+              unlockMessage: '完成前测后进入 Arena',
+              fallbackNodeIds: ['registry:correction-precheck'],
+            },
+          },
+        },
+      ],
+    });
+  }
+
+  function buildCanonicalDuplicateFixtureRegistry() {
+    return buildResourceNodeRegistry({
+      teachingResources: [
+        {
+          id: 'teacher-core',
+          title: '教师同源核心资源',
+          registryId: 'shared-core',
+          type: 'INTERACTIVE_COMP',
+          knowledgeNodeIds: ['control-correction:time-domain-targets'],
+          config: {
+            estimatedTimeMinutes: 24,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['TeachingResource.interactionLogs'],
+            abilityImpact: { controlModeling: 0.2, parameterDesign: 0.2 },
+          },
+        },
+      ],
+      registeredResources: [
+        {
+          id: 'shared-core',
+          label: '注册表同源核心资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/shared-core',
+          knowledgeNodeIds: ['control-correction:time-domain-targets'],
+          planningOverride: {
+            estimatedTimeMinutes: 24,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['InteractionLog'],
+            abilityImpact: { controlModeling: 0.2, parameterDesign: 0.2 },
+          },
+        },
+        {
+          id: 'correction-precheck',
+          label: '校正目标前测',
+          type: 'ADAPTIVE_QUIZ',
+          renderTarget: '/interactive-learning/resources/lesson09-correction-precheck',
+          knowledgeNodeIds: ['control-correction:root-locus-design'],
+          planningOverride: {
+            estimatedTimeMinutes: 5,
+            evidenceInstrumentation: ['answer_submit'],
+            abilityImpact: { parameterDesign: 0.15 },
+          },
+        },
+      ],
+      arenaTasks: [
+        {
+          id: 'task-second-order-lead-pid',
+          title: '校正 Arena',
+          launchTarget: '/arena/challenges/task-second-order-lead-pid',
+          knowledgeNodeIds: [
+            'control-correction:simulation-validation',
+            'control-correction:arena-transfer',
+          ],
+          prerequisiteNodeIds: ['registry:correction-precheck'],
+          official: true,
+          planningOverride: {
+            estimatedTimeMinutes: 18,
+            cognitiveLoad: 'high',
+            terminalConstraints: ['terminal-node', 'terminal-validation'],
+            evidenceInstrumentation: ['arena_evaluation_complete'],
+            abilityImpact: {
+              parameterDesign: 0.35,
+              engineeringDecision: 0.25,
+              crossDomainTransfer: 0.2,
+            },
+            readiness: {
+              minimumCompetency: {},
+              minimumEvidenceCount: 0,
+              requiredCompletedNodeIds: ['registry:correction-precheck'],
+              requiredOutcomeRefs: [],
+              unlockMessage: '完成前测后进入 Arena',
+              fallbackNodeIds: ['registry:correction-precheck'],
+            },
+          },
+        },
+      ],
+    });
+  }
+
+  function buildDiversityFixtureInput(registry: ReturnType<typeof buildResourceNodeRegistry>): AdaptiveLearningPathPlannerInput {
+    return {
+      studentId: 'student-1',
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': {
+              posteriorMastery: 0.3,
+              confidence: 0.7,
+              evidenceCount: 2,
+            },
+            'control-correction:root-locus-design': {
+              posteriorMastery: 0.25,
+              confidence: 0.65,
+              evidenceCount: 2,
+            },
+            'control-correction:simulation-validation': {
+              posteriorMastery: 0.2,
+              confidence: 0.6,
+              evidenceCount: 1,
+            },
+            'control-correction:arena-transfer': {
+              posteriorMastery: 0.1,
+              confidence: 0.5,
+              evidenceCount: 0,
+            },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 4 },
+            engineeringDecision: { score: 0.42, confidence: 0.6, evidenceCount: 3 },
+            crossDomainTransfer: { score: 0.28, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        resourcePreference: { preferredModalities: ['knowledge_card'] },
+        evidence: {
+          confidence: { level: 'medium', score: 0.68, evidenceCount: 8, sourceCompleteness: 0.7 },
+          sourceCoverage: { LearningFact: 'available', ArenaSubmission: 'partial' },
+        },
+      },
+      registry,
+      constraints: {
+        timeBudgetMinutes: 180,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      policyFamily: 'foundation-remediation',
+      policyBundle: {
+        families: ['simulation-driven', 'preference-matched'],
+        overlapThreshold: 0.6,
+      },
+      now: new Date('2026-05-27T08:00:00.000Z'),
+    };
+  }
+
+  it('keeps three policy options meaningfully distinct when alternative core teaching resources exist', () => {
+    const registry = buildAlternativeCoreFixtureRegistry();
+    const plan = buildAdaptiveLearningPathPlan(buildDiversityFixtureInput(registry));
+    const paths = plan.policyBundle?.paths ?? [];
+
+    expect(plan.policyBundle?.status).toBe('ready');
+    expect(paths.map((path) => path.policyFamily)).toEqual([
+      'foundation-remediation',
+      'simulation-driven',
+      'preference-matched',
+    ]);
+    expect(paths.every((path) => path.nodeIds.includes('registry:correction-precheck'))).toBe(true);
+    expect(paths.every((path) => path.nodeIds.includes('arena-task:task-second-order-lead-pid'))).toBe(true);
+
+    const foundationPath = paths.find((path) => path.policyFamily === 'foundation-remediation');
+    const simulationPath = paths.find((path) => path.policyFamily === 'simulation-driven');
+    const preferencePath = paths.find((path) => path.policyFamily === 'preference-matched');
+    expect(foundationPath?.nodeIds).toContain('knowledge-card:core-card');
+    expect(foundationPath?.nodeIds).not.toContain('textbook-section:dorf-modern-control-systems:correction-textbook');
+    expect(simulationPath?.nodeIds).toContain('simulation:correction-sim');
+    expect(simulationPath?.nodeIds).toContain('knowledge-card:preference-card');
+    expect(preferencePath?.nodeIds).toContain('textbook-section:dorf-modern-control-systems:correction-textbook');
+    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([
+      expect.objectContaining({
+        left: 'foundation-remediation',
+        right: 'simulation-driven',
+        overlap: 0,
+      }),
+      expect.objectContaining({
+        left: 'foundation-remediation',
+        right: 'preference-matched',
+        overlap: 0,
+      }),
+      expect.objectContaining({
+        left: 'simulation-driven',
+        right: 'preference-matched',
+        overlap: 0.333,
+      }),
+    ]);
+  });
+
+  it('does not count teaching-resource and registry resources with the same canonical sourceRef as distinct core options', () => {
+    const registry = buildCanonicalDuplicateFixtureRegistry();
+    const plan = buildAdaptiveLearningPathPlan(buildDiversityFixtureInput(registry));
+
+    const teachingNode = registry.nodes.find((node) => node.id === 'teaching-resource:teacher-core');
+    expect(teachingNode?.sourceRefs).toEqual(expect.arrayContaining([
+      { kind: 'resource_registry', ref: 'shared-core' },
+      { kind: 'teaching_resource', ref: 'teacher-core' },
+    ]));
+    expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual(['foundation-remediation']);
+    expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-diversity-unavailable');
+    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([]);
+  });
+});
+
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
   const registry = buildResourceNodeRegistry({
     registeredResources: [
@@ -3623,7 +3951,6 @@ describe('adaptive learning path planner', () => {
     expect(bundle.fallbackReasons).toContain('policy-option-diversity-unavailable');
     expect(bundle.paths.map((path) => path.styleId)).toEqual([
       'foundation-remediation',
-      'preference-matched-route',
     ]);
     expect(bundle.paths).toEqual(expect.arrayContaining([
       expect.objectContaining({
@@ -3638,14 +3965,8 @@ describe('adaptive learning path planner', () => {
           nodeIds: expect.arrayContaining(['arena-task:task-second-order-lead-pid']),
         }),
       }),
-      expect.objectContaining({
-        styleId: 'preference-matched-route',
-        policyFamily: 'preference-matched',
-        effort: expect.objectContaining({ estimatedMinutes: expect.any(Number) }),
-        limitations: expect.any(Array),
-      }),
     ]));
-    expect(bundle.diversity.pairwiseResourceOverlap.length).toBe(1);
+    expect(bundle.diversity.pairwiseResourceOverlap.length).toBe(0);
     expect(JSON.stringify(bundle.paths)).not.toContain('external-resource:control-ocw');
   });
 
@@ -7390,67 +7711,7 @@ describe('adaptive learning path planner', () => {
     expect(option?.lockedNodeIds).toContain('simulation:ungated-sim');
   });
 
-  it('evaluates readiness for policy support nodes before marking them active', () => {
-    const registry = buildResourceNodeRegistry({
-      registeredResources: [
-        {
-          id: 'foundation-card',
-          label: '基础知识卡',
-          type: 'INTERACTIVE_COMP',
-          renderTarget: '/interactive-learning/resources/foundation-card',
-          knowledgeNodeIds: ['kn-foundation'],
-        },
-      ],
-      simulations: [
-        {
-          id: 'support-sim',
-          title: '缺 readiness 的偏好仿真',
-          launchTarget: '/simulations/support',
-          knowledgeNodeIds: ['kn-foundation', 'kn-support'],
-        },
-      ],
-      knowledgeNodes: [
-        { id: 'kn-foundation', name: '基础知识' },
-        { id: 'kn-support', name: '支持仿真' },
-      ],
-    });
-
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
-      registry,
-      goal: {
-        id: 'control-correction',
-        title: '控制校正',
-        knowledgeTargets: ['kn-foundation'],
-        competencyTargets: ['parameterDesign'],
-      },
-      learnerState: {
-        ...plannerInput().learnerState!,
-        resourcePreference: {
-          preferredModalities: ['simulation'],
-        },
-      },
-      constraints: {
-        timeBudgetMinutes: 80,
-        privacyScopes: ['student-visible'],
-      },
-      policyBundle: {
-        families: ['preference-matched'],
-        overlapThreshold: 0.6,
-      },
-    }));
-
-    const preferenceOption = plan.policyBundle?.paths.find((path) => path.policyFamily === 'preference-matched');
-
-    expect(preferenceOption?.nodeIds).toContain('simulation:support-sim');
-    expect(preferenceOption?.activeNodeIds).not.toContain('simulation:support-sim');
-    expect(preferenceOption?.lockedNodeIds).toContain('simulation:support-sim');
-    expect(preferenceOption?.readinessSummary).toContainEqual(expect.objectContaining({
-      nodeId: 'simulation:support-sim',
-      state: 'locked',
-    }));
-  });
-
-  it('uses the current explicit resource preference for preference-matched support nodes', () => {
+  it('does not accept support-only preference as a distinct policy option', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       registry: buildControlCorrectionResourceNodeRegistry(),
       goal: {
@@ -7481,15 +7742,10 @@ describe('adaptive learning path planner', () => {
     }));
 
     const preferenceOption = plan.policyBundle?.paths.find((path) => path.policyFamily === 'preference-matched');
-    const supportNodes = preferenceOption?.planNodes?.filter((node) =>
-      node.reasonCodes.includes('policy-preference-matched-support')
-    ) ?? [];
 
-    expect(preferenceOption).toBeDefined();
-    expect(supportNodes).not.toContainEqual(expect.objectContaining({
-      nodeId: 'runtime-media:3-6:design-map-video',
-    }));
-    expect(preferenceOption?.nodeIds).toContain('knowledge-card:control-correction-time-domain-targets');
+    expect(preferenceOption).toBeUndefined();
+    expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-diversity-unavailable');
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:control-correction-time-domain-targets');
   });
 
   it('stops policy active node collection at locked readiness gates', () => {
