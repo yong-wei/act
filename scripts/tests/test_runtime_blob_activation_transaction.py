@@ -102,6 +102,12 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
             self.assertEqual(recovered["active"]["releaseId"], candidate["releaseId"])
             self.assert_projected(state, candidate)
 
+    def test_recovery_preserves_v1_fallback_without_v2_authority(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory) / "state"
+            recovered = self.call(*self.transaction_args(state, "recover"))
+            self.assertEqual(recovered, {"mode": "v1", "recovered": False})
+
     def test_crash_boundaries_recover_lifecycle_and_receipt_projection(self):
         boundaries = [
             ("after-lifecycle", None),
@@ -144,9 +150,17 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
             with self.subTest(damaged=damaged):
                 with tempfile.TemporaryDirectory() as directory:
                     state, _, candidate, _, candidate_path = self.setup_transaction(Path(directory))
-                    self.call(LIFECYCLE, "activate", "--state-dir", str(state), "--expected-generation", "3", "--identity", str(candidate_path))
+                    self.call(
+                        LIFECYCLE, "activate-and-project", "--state-dir", str(state),
+                        "--expected-generation", "3", "--identity", str(candidate_path),
+                        "--host-state-script", str(HOST_STATE),
+                        env={"ACT_RUNTIME_BLOB_ACTIVATION_CRASH_AT": "after-lifecycle-journal"},
+                        expect_ok=False,
+                    )
                     journal = state / JOURNAL
-                    if damaged == "invalid":
+                    if damaged == "missing":
+                        journal.unlink()
+                    else:
                         journal.write_text("{", encoding="utf-8")
                     self.call(*self.transaction_args(state, "recover"))
                     self.assert_projected(state, candidate)
@@ -182,6 +196,38 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
             stale = self.call(*self.activate_args(state, self.write_identity(Path(directory), candidate), expected_generation="2"), expect_ok=False)
             self.assertIn("generation", stale.stderr)
             self.assert_projected(state, active)
+
+    def test_lifecycle_owned_activation_serializes_same_generation_and_rollback_projects(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state, _, candidate, _, candidate_path = self.setup_transaction(root)
+            command = [
+                "python3", str(TRANSACTION), "activate",
+                "--state-dir", str(state),
+                "--lifecycle-script", str(LIFECYCLE),
+                "--host-state-script", str(HOST_STATE),
+                "--expected-generation", "3",
+                "--identity", str(candidate_path),
+            ]
+            first = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            second = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            first_result = first.communicate()
+            second_result = second.communicate()
+            self.assertEqual(sorted([first.returncode, second.returncode]), [0, 1])
+            self.assert_projected(state, candidate)
+            rollback_command = [
+                "python3", str(TRANSACTION), "rollback",
+                "--state-dir", str(state),
+                "--lifecycle-script", str(LIFECYCLE),
+                "--host-state-script", str(HOST_STATE),
+                "--expected-generation", "4",
+            ]
+            rollback_first = subprocess.Popen(rollback_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            rollback_second = subprocess.Popen(rollback_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            rollback_first_result = rollback_first.communicate()
+            rollback_second_result = rollback_second.communicate()
+            self.assertEqual(sorted([rollback_first.returncode, rollback_second.returncode]), [0, 1])
+            self.assert_projected(state, identity("runtime-a"))
 
 
 if __name__ == "__main__":

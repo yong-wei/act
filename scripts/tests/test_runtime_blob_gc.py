@@ -9,6 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/runtime-release/runtime-blob-release-gc.py"
+LIFECYCLE = ROOT / "scripts/runtime-release/runtime-blob-release-lifecycle.py"
+HOST_STATE = ROOT / "scripts/runtime-release/runtime-release-host-state.py"
 MATERIALIZATION_TEST = ROOT / "scripts/tests/test_runtime_blob_materialization.py"
 
 
@@ -66,7 +68,7 @@ class RuntimeBlobGcTests(unittest.TestCase):
             desired_identity = root / "desired.json"
             active_identity.write_text(json.dumps(active), encoding="utf-8")
             desired_identity.write_text(json.dumps(desired), encoding="utf-8")
-            lifecycle = ROOT / "scripts/runtime-release/runtime-blob-release-lifecycle.py"
+            lifecycle = LIFECYCLE
             initialized = subprocess.run(["python3", str(lifecycle), "initialize-v2", "--state-dir", str(state), "--active-identity", str(active_identity), "--desired-identity", str(desired_identity)], text=True, capture_output=True)
             self.assertEqual(initialized.returncode, 0, initialized.stderr)
             protected = subprocess.run(["python3", str(lifecycle), "protected-set", "--state-dir", str(state)], text=True, capture_output=True)
@@ -96,7 +98,7 @@ class RuntimeBlobGcTests(unittest.TestCase):
             self.assertFalse((mirror / stale_blob["sha256"]).exists())
             self.assertTrue((mirror / active_blob["sha256"]).exists())
             self.assertTrue((mirror / desired_blob["sha256"]).exists())
-            advanced = subprocess.run(["python3", str(lifecycle), "activate", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(desired_identity)], text=True, capture_output=True)
+            advanced = subprocess.run(["python3", str(lifecycle), "activate-and-project", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(desired_identity), "--host-state-script", str(HOST_STATE)], text=True, capture_output=True)
             self.assertEqual(advanced.returncode, 0, advanced.stderr)
             stale = self.call("execute", "--state-dir", str(state), "--manifests-root", str(manifests), "--object-index", str(index_path), "--plan", str(plan_path), "--delete-root", str(mirror), "--receipt-output", str(root / "stale-receipt.json"), expect_ok=False)
             self.assertIn("fenced", stale.stderr)
@@ -117,11 +119,11 @@ class RuntimeBlobGcTests(unittest.TestCase):
                 path = root / (name + "-identity.json")
                 path.write_text(json.dumps(releases[name][0]), encoding="utf-8")
                 identities[name] = path
-            lifecycle = ROOT / "scripts/runtime-release/runtime-blob-release-lifecycle.py"
+            lifecycle = LIFECYCLE
             self.assertEqual(subprocess.run(["python3", str(lifecycle), "initialize-v2", "--state-dir", str(state), "--active-identity", str(identities["active"])], text=True, capture_output=True).returncode, 0)
             self.assertEqual(subprocess.run(["python3", str(lifecycle), "begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(identities["candidate"])], text=True, capture_output=True).returncode, 0)
             self.assertEqual(subprocess.run(["python3", str(lifecycle), "set-desired", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(identities["candidate"])], text=True, capture_output=True).returncode, 0)
-            self.assertEqual(subprocess.run(["python3", str(lifecycle), "activate", "--state-dir", str(state), "--expected-generation", "3", "--identity", str(identities["candidate"])], text=True, capture_output=True).returncode, 0)
+            self.assertEqual(subprocess.run(["python3", str(lifecycle), "activate-and-project", "--state-dir", str(state), "--expected-generation", "3", "--identity", str(identities["candidate"]), "--host-state-script", str(HOST_STATE)], text=True, capture_output=True).returncode, 0)
             self.assertEqual(subprocess.run(["python3", str(lifecycle), "begin-publish", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(identities["publishing"])], text=True, capture_output=True).returncode, 0)
             self.assertEqual(subprocess.run(["python3", str(lifecycle), "begin-publish", "--state-dir", str(state), "--expected-generation", "5", "--identity", str(identities["desired"])], text=True, capture_output=True).returncode, 0)
             self.assertEqual(subprocess.run(["python3", str(lifecycle), "set-desired", "--state-dir", str(state), "--expected-generation", "6", "--identity", str(identities["desired"])], text=True, capture_output=True).returncode, 0)
@@ -166,7 +168,7 @@ class RuntimeBlobGcTests(unittest.TestCase):
             desired_path = root / "desired.json"
             active_path.write_text(json.dumps(active), encoding="utf-8")
             desired_path.write_text(json.dumps(desired), encoding="utf-8")
-            lifecycle = ROOT / "scripts/runtime-release/runtime-blob-release-lifecycle.py"
+            lifecycle = LIFECYCLE
             self.assertEqual(subprocess.run(["python3", str(lifecycle), "initialize-v2", "--state-dir", str(state), "--active-identity", str(active_path), "--desired-identity", str(desired_path)], text=True, capture_output=True).returncode, 0)
             protected = json.loads(subprocess.run(["python3", str(lifecycle), "protected-set", "--state-dir", str(state)], text=True, capture_output=True).stdout)
             index = {
@@ -179,7 +181,7 @@ class RuntimeBlobGcTests(unittest.TestCase):
             index_path.write_text(json.dumps(index), encoding="utf-8")
             plan_path = root / "plan.json"
             self.call("plan", "--state-dir", str(state), "--manifests-root", str(manifests), "--object-index", str(index_path), "--output", str(plan_path))
-            advanced = subprocess.run(["python3", str(lifecycle), "activate", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(desired_path)], text=True, capture_output=True)
+            advanced = subprocess.run(["python3", str(lifecycle), "activate-and-project", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(desired_path), "--host-state-script", str(HOST_STATE)], text=True, capture_output=True)
             self.assertEqual(advanced.returncode, 0, advanced.stderr)
             rejected = self.call("execute", "--state-dir", str(state), "--manifests-root", str(manifests), "--object-index", str(index_path), "--plan", str(plan_path), "--delete-root", str(mirror), "--receipt-output", str(root / "receipt.json"), expect_ok=False)
             self.assertIn("fenced", rejected.stderr)

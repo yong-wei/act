@@ -209,11 +209,13 @@ restore_runtime_consumers() {
       python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null
       RUNTIME_DELIVERY_MODE=ossfs-blob-view \
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
+        ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
         RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
         APP_IMAGE="$rollback_app_image" \
         "$DEPLOY_SCRIPT" --runtime-cutover-app-only
     elif [[ "$lifecycle_active_release" != "$release_id" ]]; then
       RUNTIME_DELIVERY_MODE=legacy-rsync \
+        ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
         RUNTIME_CONTENT_DIR="$LEGACY_RUNTIME_ROOT" \
         APP_IMAGE="$rollback_app_image" \
         "$DEPLOY_SCRIPT" --runtime-cutover-app-only
@@ -267,6 +269,7 @@ trap restore_runtime_consumers ERR
 candidate_deploy_attempted=1
 RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
+  ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
   RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
   APP_IMAGE="$rollback_app_image" \
   "$DEPLOY_SCRIPT" --runtime-cutover-app-only

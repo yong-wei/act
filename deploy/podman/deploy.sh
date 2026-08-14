@@ -88,6 +88,12 @@ if [ "${ACT_RUNTIME_OSS_REGION+x}" = "x" ]; then
   operator_runtime_oss_region_was_set=1
   operator_runtime_oss_region="$ACT_RUNTIME_OSS_REGION"
 fi
+operator_runtime_active_receipt_path_was_set=0
+operator_runtime_active_receipt_path=""
+if [ "${ACT_RUNTIME_ACTIVE_RECEIPT_PATH+x}" = "x" ]; then
+  operator_runtime_active_receipt_path_was_set=1
+  operator_runtime_active_receipt_path="$ACT_RUNTIME_ACTIVE_RECEIPT_PATH"
+fi
 file_knowledge_mode_was_set=0
 file_knowledge_mode=""
 if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
@@ -135,6 +141,9 @@ if [ "$operator_runtime_oss_bucket_was_set" = "1" ]; then
 fi
 if [ "$operator_runtime_oss_region_was_set" = "1" ]; then
   ACT_RUNTIME_OSS_REGION="$operator_runtime_oss_region"
+fi
+if [ "$operator_runtime_active_receipt_path_was_set" = "1" ]; then
+  ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$operator_runtime_active_receipt_path"
 fi
 if [ "$runtime_knowledge_mode_was_set" = "1" ]; then
   if [ "$runtime_knowledge_mode" = "cutover" ]; then
@@ -281,6 +290,13 @@ RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-legacy-rsync}"
 ACT_RUNTIME_OSS_RAM_ROLE="${ACT_RUNTIME_OSS_RAM_ROLE:-}"
 ACT_RUNTIME_OSS_BUCKET="${ACT_RUNTIME_OSS_BUCKET:-act-course-assets}"
 ACT_RUNTIME_OSS_REGION="${ACT_RUNTIME_OSS_REGION:-oss-cn-hangzhou}"
+RUNTIME_ACTIVE_RECEIPT_PATH="${ACT_RUNTIME_ACTIVE_RECEIPT_PATH:-${PROJECT_DIR}/data/runtime/act-runtime-active-receipt.json}"
+RUNTIME_ACTIVE_RECEIPT_CONTAINER_PATH="/app/act-runtime-state/act-runtime-active-receipt.json"
+RUNTIME_ACTIVE_RECEIPT_HOST_DIR="${RUNTIME_ACTIVE_RECEIPT_PATH%/*}"
+if [ "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" = "$RUNTIME_ACTIVE_RECEIPT_PATH" ]; then
+  echo "ERROR: ACT_RUNTIME_ACTIVE_RECEIPT_PATH 必须包含父目录。" >&2
+  exit 1
+fi
 # Activation-gate Authority / Teaching Projection stores (#1274).
 # Projection lives under the host runtime mount so the whole-runtime volume
 # overlay does not hide image-packaged empty scaffolds.
@@ -389,6 +405,16 @@ require_runtime_delivery_mount() {
       exit 1
       ;;
   esac
+}
+
+require_active_receipt_mount_dir() {
+  if [ ! -e "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" ]; then
+    mkdir -p "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR"
+  fi
+  if [ ! -d "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" ] || [ -L "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" ]; then
+    echo "ERROR: active runtime receipt mount directory must be a real directory: $RUNTIME_ACTIVE_RECEIPT_HOST_DIR" >&2
+    exit 1
+  fi
 }
 
 require_actkg_activation_store_pointers() {
@@ -790,7 +816,7 @@ write_runtime_env() {
     fi
     awk -F= '
       BEGIN {
-        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
+        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR RUNTIME_ACTIVE_RECEIPT_PATH AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
         for (key_index in keys) managed[keys[key_index]] = 1;
       }
       !managed[$1] { print }
@@ -823,6 +849,7 @@ RUNTIME_DELIVERY_MODE=$RUNTIME_DELIVERY_MODE
 ACT_RUNTIME_OSS_RAM_ROLE=$ACT_RUNTIME_OSS_RAM_ROLE
 ACT_RUNTIME_OSS_BUCKET=$ACT_RUNTIME_OSS_BUCKET
 ACT_RUNTIME_OSS_REGION=$ACT_RUNTIME_OSS_REGION
+RUNTIME_ACTIVE_RECEIPT_PATH=$RUNTIME_ACTIVE_RECEIPT_PATH
 AUTHORITY_STORE_DIR=$AUTHORITY_STORE_DIR
 TEACHING_PROJECTION_STORE_DIR=$TEACHING_PROJECTION_STORE_DIR
 ACT_AUTHORITY_STORE_ROOT=$ACT_AUTHORITY_STORE_ROOT
@@ -914,6 +941,7 @@ run_scheduler_once() {
 
 require_cmd podman
 require_cmd ss
+require_active_receipt_mount_dir
 
 echo "[4-deploy] 开始部署..."
 
@@ -1125,6 +1153,7 @@ APP_ENV_ARGS=(
   -e ACT_RUNTIME_OSS_RAM_ROLE="$ACT_RUNTIME_OSS_RAM_ROLE"
   -e ACT_RUNTIME_OSS_BUCKET="$ACT_RUNTIME_OSS_BUCKET"
   -e ACT_RUNTIME_OSS_REGION="$ACT_RUNTIME_OSS_REGION"
+  -e ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$RUNTIME_ACTIVE_RECEIPT_CONTAINER_PATH"
   -e SMART_COURSEWARE_ORDERING_SECRET="$SMART_COURSEWARE_ORDERING_SECRET"
   -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
   -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
@@ -1239,6 +1268,7 @@ run_detached_container "$APP_CONTAINER" podman run -d \
   --entrypoint /bin/sh \
   -p "${APP_PORT}:${APP_CONTAINER_PORT}" \
   -v "${RUNTIME_CONTENT_DIR}:/app/course-content/runtime:ro" \
+  -v "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}:/app/act-runtime-state:ro" \
   -v "${AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}:ro" \
   -v "${TEACHING_PROJECTION_STORE_DIR}:${ACT_TEACHING_PROJECTION_STORE_ROOT}:ro" \
   -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" \

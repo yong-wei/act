@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/runtime-release/runtime-blob-release-lifecycle.py"
+HOST_STATE = ROOT / "scripts/runtime-release/runtime-release-host-state.py"
 MODULE_SPEC = importlib.util.spec_from_file_location("runtime_blob_lifecycle_test_module", str(SCRIPT))
 LIFECYCLE = importlib.util.module_from_spec(MODULE_SPEC)
 MODULE_SPEC.loader.exec_module(LIFECYCLE)
@@ -108,6 +109,19 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             journal["status"] = "committed"
             (state / "act-runtime-blob-lifecycle.journal.json").write_text(json.dumps(journal), encoding="utf-8")
 
+    def active_transition(self, command, state, expected_generation, identity_path=None, now=None):
+        args = [
+            command, "--state-dir", str(state),
+            "--expected-generation", str(expected_generation),
+            "--host-state-script", str(HOST_STATE),
+        ]
+        if identity_path is not None:
+            args.extend(["--identity", str(identity_path)])
+        if now is not None:
+            args.extend(["--now", now])
+        result = self.call(*args)
+        return result["active"]
+
     def test_preserves_desired_active_divergence_and_protects_all_lifecycle_roots(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -123,7 +137,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             self.assertEqual(inspected["desired"]["releaseId"], "runtime-b")
             protected = self.call("protected-set", "--state-dir", str(state))
             self.assertEqual(protected["releaseIds"], ["runtime-a", "runtime-b"])
-            activated = self.call("activate", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(b))
+            activated = self.active_transition("activate", state, 1, b)
             self.assertEqual(activated["active"]["releaseId"], "runtime-b")
             self.assertEqual(activated["rollback"]["releaseId"], "runtime-a")
             publishing = self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(c))
@@ -132,7 +146,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             self.assertEqual(candidate["desired"]["releaseId"], "runtime-c")
             protected = self.call("protected-set", "--state-dir", str(state))
             self.assertEqual(protected["releaseIds"], ["runtime-a", "runtime-b", "runtime-c"])
-            rollback = self.call("rollback", "--state-dir", str(state), "--expected-generation", "4")
+            rollback = self.active_transition("rollback", state, 4)
             self.assertEqual(rollback["active"]["releaseId"], "runtime-a")
             self.assertEqual(rollback["rollback"]["releaseId"], "runtime-b")
             self.assertEqual(rollback["desired"]["releaseId"], "runtime-c")
@@ -297,13 +311,13 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active))
             self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(candidate_b))
             self.call("set-desired", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(candidate_b))
-            self.call("activate", "--state-dir", str(state), "--expected-generation", "3", "--identity", str(candidate_b), "--now", "2030-01-01T00:00:00Z")
+            self.active_transition("activate", state, 3, candidate_b, "2030-01-01T00:00:00Z")
             self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(candidate_c))
             self.call("set-desired", "--state-dir", str(state), "--expected-generation", "5", "--identity", str(candidate_c))
-            activated = self.call("activate", "--state-dir", str(state), "--expected-generation", "6", "--identity", str(candidate_c), "--now", "2030-01-01T00:00:00Z")
+            activated = self.active_transition("activate", state, 6, candidate_c, "2030-01-01T00:00:00Z")
             self.assertEqual([item["identity"]["releaseId"] for item in activated["retained"]], ["runtime-a"])
             self.assertEqual(activated["retained"][0]["notBeforeReleaseAt"], "2030-01-01T00:05:00Z")
-            swapped = self.call("rollback", "--state-dir", str(state), "--expected-generation", "7")
+            swapped = self.active_transition("rollback", state, 7)
             self.assertEqual([item["identity"]["releaseId"] for item in swapped["retained"]], ["runtime-a"])
             retired = self.call("retire-rollback", "--state-dir", str(state), "--expected-generation", "8", "--now", "2030-01-01T00:10:00Z", "--signed-url-max-seconds", "600")
             self.assertEqual([item["identity"]["releaseId"] for item in retired["retained"]], ["runtime-a", "runtime-c"])

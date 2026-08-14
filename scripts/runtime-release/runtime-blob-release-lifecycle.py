@@ -13,11 +13,12 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import tempfile
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 LIFECYCLE_SCHEMA = "runtime-blob-release-lifecycle.v2"
@@ -30,6 +31,8 @@ LIFECYCLE_FILE = "act-runtime-blob-lifecycle.v2.json"
 MARKER_FILE = "act-runtime-authority.v2.json"
 JOURNAL_FILE = "act-runtime-blob-lifecycle.journal.json"
 LOCK_FILE = ".act-runtime-blob-lifecycle.lock"
+ACTIVATION_SCHEMA = "runtime-blob-activation-journal.v1"
+ACTIVATION_FILE = ".act-runtime-blob-activation.journal.json"
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 RFC3339_UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
@@ -255,6 +258,44 @@ def journal(value: Any) -> Dict[str, Any]:
     return {"schemaVersion": JOURNAL_SCHEMA, "status": value["status"], "transactionId": transaction_id, "afterLifecycle": after, "afterLifecycleSha256": after_sha, "afterMarker": marker(value["afterMarker"])}
 
 
+def activation_journal(value: Any) -> Dict[str, Any]:
+    value = exact(value, [
+        "schemaVersion", "status", "transactionId", "expectedGeneration",
+        "targetGeneration", "previousIdentity", "targetIdentity",
+        "targetLifecycleSha256",
+    ], "activation journal")
+    if value["schemaVersion"] != ACTIVATION_SCHEMA or value["status"] not in {"prepared", "lifecycle-committed", "receipt-committed", "complete"}:
+        fail("activation journal is invalid")
+    transaction_id = string(value["transactionId"], "activation journal.transactionId")
+    if not re.fullmatch(r"[a-f0-9]{32}", transaction_id):
+        fail("activation journal.transactionId is invalid")
+    expected = integer(value["expectedGeneration"], "activation journal.expectedGeneration", 1)
+    target_generation = integer(value["targetGeneration"], "activation journal.targetGeneration", 1)
+    if target_generation != expected + 1:
+        fail("activation journal.targetGeneration is invalid")
+    previous = identity(value["previousIdentity"], "activation journal.previousIdentity")
+    target = identity(value["targetIdentity"], "activation journal.targetIdentity")
+    if previous["releaseId"] == target["releaseId"]:
+        fail("activation journal target must differ from previous active")
+    lifecycle_sha = value["targetLifecycleSha256"]
+    if lifecycle_sha != "" and not SHA256.fullmatch(string(lifecycle_sha, "activation journal.targetLifecycleSha256")):
+        fail("activation journal.targetLifecycleSha256 is invalid")
+    if value["status"] == "prepared" and lifecycle_sha != "":
+        fail("prepared activation journal must not claim a committed lifecycle")
+    if value["status"] != "prepared" and lifecycle_sha == "":
+        fail("committed activation journal must bind a lifecycle digest")
+    return {
+        "schemaVersion": ACTIVATION_SCHEMA,
+        "status": value["status"],
+        "transactionId": transaction_id,
+        "expectedGeneration": expected,
+        "targetGeneration": target_generation,
+        "previousIdentity": previous,
+        "targetIdentity": target,
+        "targetLifecycleSha256": lifecycle_sha,
+    }
+
+
 def transaction(state_dir: Path, after: Dict[str, Any]) -> Dict[str, Any]:
     after = lifecycle(after)
     marker_value = {"schemaVersion": MARKER_SCHEMA, "mode": "v2", "generation": after["generation"], "lifecycleSha256": digest(after)}
@@ -314,6 +355,108 @@ def read_v2(state_dir: Path) -> Dict[str, Any]:
     if not current or current["generation"] != marker_value["generation"] or digest(current) != marker_value["lifecycleSha256"]:
         fail("v2 lifecycle does not match its authority marker")
     return current
+
+
+def read_activation_journal(state_dir: Path) -> Tuple[Optional[Dict[str, Any]], bool]:
+    path = state_dir / ACTIVATION_FILE
+    if path.is_symlink():
+        fail("activation journal must not be a symlink")
+    if not path.exists():
+        return None, False
+    try:
+        return activation_journal(json.loads(path.read_text(encoding="utf-8"))), False
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+        return None, True
+
+
+def remove_activation_journal(state_dir: Path) -> None:
+    path = state_dir / ACTIVATION_FILE
+    if path.exists() or path.is_symlink():
+        path.unlink()
+
+
+def activation_crash(stage: str) -> None:
+    if os.environ.get("ACT_RUNTIME_BLOB_ACTIVATION_CRASH_AT") == stage:
+        os._exit(86)
+
+
+def require_runtime_script(path_value: str, label: str) -> Path:
+    path = Path(path_value)
+    if path.is_symlink() or not path.is_file():
+        fail("%s is unavailable: %s" % (label, path))
+    return path
+
+
+def host_active(state_dir: Path, host_script: Path) -> Optional[Dict[str, Any]]:
+    result = subprocess.run(
+        [sys.executable, str(host_script), "active", "--state-dir", str(state_dir)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    if result.returncode != 0:
+        return None
+    try:
+        value = json.loads(result.stdout)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def project_host_active(state_dir: Path, host_script: Path, target: Dict[str, Any]) -> Dict[str, Any]:
+    result = subprocess.run(
+        [
+            sys.executable, str(host_script), "mark-active-v2",
+            "--state-dir", str(state_dir),
+            "--release-id", target["releaseId"],
+            "--manifest-sha256", target["manifestSha256"],
+            "--tree-sha256", target["treeSha256"],
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    if result.returncode != 0:
+        fail(result.stderr.strip() or result.stdout.strip() or "host active receipt projection failed")
+    active = host_active(state_dir, host_script)
+    selection = active.get("selection") if active else None
+    if (
+        not active
+        or active.get("activeReleaseId") != target["releaseId"]
+        or not isinstance(selection, dict)
+        or selection.get("manifestSha256") != target["manifestSha256"]
+        or selection.get("treeSha256") != target["treeSha256"]
+    ):
+        fail("host active receipt does not match the v2 lifecycle active identity")
+    try:
+        return json.loads(result.stdout)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        fail("host active receipt projection returned invalid JSON")
+
+
+def active_after(current: Dict[str, Any], operation: str, args: argparse.Namespace) -> Dict[str, Any]:
+    after = dict(current)
+    after["generation"] += 1
+    after["transactionId"] = uuid.uuid4().hex
+    if operation == "activate":
+        candidate = read_identity_file(args.identity)
+        if current["desired"] != candidate:
+            fail("only the exact desired candidate may be activated")
+        previous_rollback = current["rollback"]
+        after["active"] = candidate
+        after["rollback"] = current["active"]
+        after["desired"] = None
+        after["publishing"] = [item for item in current["publishing"] if item["releaseId"] != candidate["releaseId"]]
+        if previous_rollback:
+            after["retained"] = merge_retention_lease(current["retained"], previous_rollback, effective_now(getattr(args, "now", None)), MIN_SIGNED_URL_MAX_SECONDS)
+    elif operation == "rollback":
+        if current["rollback"] is None:
+            fail("there is no verified rollback release")
+        after["active"] = current["rollback"]
+        after["rollback"] = current["active"]
+    else:
+        fail("unsupported active transition")
+    return after
 
 
 def read_recoverable_lifecycle(path: Path) -> Optional[Dict[str, Any]]:
@@ -391,22 +534,6 @@ def mutate(args: argparse.Namespace, operation: str) -> Dict[str, Any]:
             if current["desired"] is None:
                 fail("there is no desired candidate to cancel")
             after["desired"] = None
-        elif operation == "activate":
-            candidate = read_identity_file(args.identity)
-            if current["desired"] != candidate:
-                fail("only the exact desired candidate may be activated")
-            previous_rollback = current["rollback"]
-            after["active"] = candidate
-            after["rollback"] = current["active"]
-            after["desired"] = None
-            after["publishing"] = [item for item in current["publishing"] if item["releaseId"] != candidate["releaseId"]]
-            if previous_rollback:
-                after["retained"] = merge_retention_lease(current["retained"], previous_rollback, effective_now(getattr(args, "now", None)), MIN_SIGNED_URL_MAX_SECONDS)
-        elif operation == "rollback":
-            if current["rollback"] is None:
-                fail("there is no verified rollback release")
-            after["active"] = current["rollback"]
-            after["rollback"] = current["active"]
         elif operation == "retire-rollback":
             if current["rollback"] is None:
                 fail("there is no verified rollback release")
@@ -461,46 +588,150 @@ def inspect(args: argparse.Namespace) -> Dict[str, Any]:
         lock.close()
 
 
+def recover_unlocked(state_dir: Path) -> Dict[str, Any]:
+    marker_value = read_json(state_dir / MARKER_FILE, marker)
+    current = read_recoverable_lifecycle(state_dir / LIFECYCLE_FILE)
+    journal_value = read_json(state_dir / JOURNAL_FILE, journal)
+    if marker_value is None:
+        if current is None and journal_value is None:
+            return {"mode": "v1", "recovered": False}
+        lifecycle_path = state_dir / LIFECYCLE_FILE
+        if journal_value and journal_value["status"] == "prepared" and journal_value["afterMarker"]["mode"] in {"v2", "v1-rollback"}:
+            if lifecycle_path.exists() and current is None:
+                fail("marker is absent and the interrupted lifecycle record is invalid")
+            if current is not None and current != journal_value["afterLifecycle"]:
+                fail("marker is absent and the interrupted lifecycle record does not match its journal")
+            for path in (state_dir / LIFECYCLE_FILE, state_dir / JOURNAL_FILE):
+                if path.exists():
+                    path.unlink()
+            return {"mode": "v1", "recovered": True}
+        fail("marker is absent but lifecycle state cannot be safely discarded")
+    if marker_value["mode"] == "v1-rollback":
+        recovered = False
+        if journal_value is not None:
+            if journal_value["afterMarker"] != marker_value:
+                fail("v1 rollback marker does not match its journal")
+            recovered = finish_prepared_journal(state_dir, journal_value)
+        return {"mode": "v1-rollback", "generation": marker_value["generation"], "recovered": recovered}
+    if current and current["generation"] == marker_value["generation"] and digest(current) == marker_value["lifecycleSha256"]:
+        recovered = False
+        if journal_value is not None:
+            if journal_value["afterMarker"] != marker_value or journal_value["afterLifecycleSha256"] != marker_value["lifecycleSha256"]:
+                fail("v2 lifecycle and its journal disagree with the authority marker")
+            recovered = finish_prepared_journal(state_dir, journal_value)
+        return {"mode": "v2", "generation": current["generation"], "recovered": recovered}
+    if journal_value and journal_value["afterMarker"] == marker_value and journal_value["afterLifecycleSha256"] == marker_value["lifecycleSha256"]:
+        write_atomic(state_dir / LIFECYCLE_FILE, journal_value["afterLifecycle"])
+        finish_prepared_journal(state_dir, journal_value)
+        return {"mode": "v2", "generation": journal_value["afterLifecycle"]["generation"], "recovered": True}
+    fail("v2 lifecycle is invalid and no matching committed journal can recover it")
+
+
 def recover(args: argparse.Namespace) -> Dict[str, Any]:
     state_dir = Path(args.state_dir)
     lock = locked(state_dir)
     try:
-        marker_value = read_json(state_dir / MARKER_FILE, marker)
-        current = read_recoverable_lifecycle(state_dir / LIFECYCLE_FILE)
-        journal_value = read_json(state_dir / JOURNAL_FILE, journal)
-        if marker_value is None:
-            if current is None and journal_value is None:
-                return {"mode": "v1", "recovered": False}
-            lifecycle_path = state_dir / LIFECYCLE_FILE
-            if journal_value and journal_value["status"] == "prepared" and journal_value["afterMarker"]["mode"] in {"v2", "v1-rollback"}:
-                if lifecycle_path.exists() and current is None:
-                    fail("marker is absent and the interrupted lifecycle record is invalid")
-                if current is not None and current != journal_value["afterLifecycle"]:
-                    fail("marker is absent and the interrupted lifecycle record does not match its journal")
-                for path in (state_dir / LIFECYCLE_FILE, state_dir / JOURNAL_FILE):
-                    if path.exists():
-                        path.unlink()
-                return {"mode": "v1", "recovered": True}
-            fail("marker is absent but lifecycle state cannot be safely discarded")
-        if marker_value["mode"] == "v1-rollback":
-            recovered = False
-            if journal_value is not None:
-                if journal_value["afterMarker"] != marker_value:
-                    fail("v1 rollback marker does not match its journal")
-                recovered = finish_prepared_journal(state_dir, journal_value)
-            return {"mode": "v1-rollback", "generation": marker_value["generation"], "recovered": recovered}
-        if current and current["generation"] == marker_value["generation"] and digest(current) == marker_value["lifecycleSha256"]:
-            recovered = False
-            if journal_value is not None:
-                if journal_value["afterMarker"] != marker_value or journal_value["afterLifecycleSha256"] != marker_value["lifecycleSha256"]:
-                    fail("v2 lifecycle and its journal disagree with the authority marker")
-                recovered = finish_prepared_journal(state_dir, journal_value)
-            return {"mode": "v2", "generation": current["generation"], "recovered": recovered}
-        if journal_value and journal_value["afterMarker"] == marker_value and journal_value["afterLifecycleSha256"] == marker_value["lifecycleSha256"]:
-            write_atomic(state_dir / LIFECYCLE_FILE, journal_value["afterLifecycle"])
-            finish_prepared_journal(state_dir, journal_value)
-            return {"mode": "v2", "generation": journal_value["afterLifecycle"]["generation"], "recovered": True}
-        fail("v2 lifecycle is invalid and no matching committed journal can recover it")
+        return recover_unlocked(state_dir)
+    finally:
+        lock.close()
+
+
+def recover_and_project_unlocked(state_dir: Path, host_script: Path) -> Dict[str, Any]:
+    recovery = recover_unlocked(state_dir)
+    if recovery.get("mode") != "v2":
+        return recovery
+    current = read_v2(state_dir)
+    journal_value, malformed = read_activation_journal(state_dir)
+    current_digest = digest(current)
+    if journal_value is not None and journal_value["targetLifecycleSha256"] and journal_value["targetLifecycleSha256"] != current_digest:
+        journal_value = None
+        malformed = True
+    # Recovery itself must be able to repair the receipt even when a test seam
+    # injected a crash into the interrupted activation's receipt write.
+    host_crash = os.environ.pop("ACT_RUNTIME_HOST_STATE_CRASH_AT", None)
+    try:
+        project_host_active(state_dir, host_script, current["active"])
+    finally:
+        if host_crash is not None:
+            os.environ["ACT_RUNTIME_HOST_STATE_CRASH_AT"] = host_crash
+    if journal_value is not None:
+        if current["active"] == journal_value["targetIdentity"] and current["generation"] == journal_value["targetGeneration"]:
+            completed = dict(journal_value)
+            completed["status"] = "complete"
+            completed["targetLifecycleSha256"] = current_digest
+            write_atomic(state_dir / ACTIVATION_FILE, completed)
+        elif current["active"] == journal_value["previousIdentity"]:
+            remove_activation_journal(state_dir)
+        else:
+            remove_activation_journal(state_dir)
+    elif malformed:
+        remove_activation_journal(state_dir)
+    if (state_dir / ACTIVATION_FILE).exists():
+        remove_activation_journal(state_dir)
+    return {
+        "active": current["active"],
+        "generation": current["generation"],
+        "recovered": bool(recovery.get("recovered") or journal_value or malformed),
+    }
+
+
+def recover_and_project(args: argparse.Namespace) -> Dict[str, Any]:
+    state_dir = Path(args.state_dir)
+    host_script = require_runtime_script(args.host_state_script, "host state script")
+    lock = locked(state_dir)
+    try:
+        return recover_and_project_unlocked(state_dir, host_script)
+    finally:
+        lock.close()
+
+
+def activate_and_project(args: argparse.Namespace, operation: str) -> Dict[str, Any]:
+    state_dir = Path(args.state_dir)
+    host_script = require_runtime_script(args.host_state_script, "host state script")
+    lock = locked(state_dir)
+    try:
+        recover_and_project_unlocked(state_dir, host_script)
+        current = read_v2(state_dir)
+        if args.expected_generation != current["generation"]:
+            fail("expected lifecycle generation does not match current authority")
+        candidate = read_identity_file(args.identity) if operation == "activate" else current["rollback"]
+        if candidate is None:
+            fail("there is no verified rollback release")
+        if operation == "activate" and current["desired"] != candidate:
+            fail("only the exact desired candidate may be activated")
+        journal_value = {
+            "schemaVersion": ACTIVATION_SCHEMA,
+            "status": "prepared",
+            "transactionId": uuid.uuid4().hex,
+            "expectedGeneration": current["generation"],
+            "targetGeneration": current["generation"] + 1,
+            "previousIdentity": current["active"],
+            "targetIdentity": candidate,
+            "targetLifecycleSha256": "",
+        }
+        write_atomic(state_dir / ACTIVATION_FILE, journal_value)
+        activation_crash("after-intent")
+        after = active_after(current, operation, args)
+        committed = transaction(state_dir, after)
+        activation_crash("after-lifecycle")
+        committed = read_v2(state_dir)
+        if committed["generation"] != journal_value["targetGeneration"] or committed["active"] != candidate:
+            fail("lifecycle active transition did not commit the requested identity")
+        journal_value = dict(journal_value)
+        journal_value["status"] = "lifecycle-committed"
+        journal_value["targetLifecycleSha256"] = digest(committed)
+        write_atomic(state_dir / ACTIVATION_FILE, journal_value)
+        activation_crash("after-lifecycle-journal")
+        project_host_active(state_dir, host_script, committed["active"])
+        activation_crash("after-receipt-readback")
+        journal_value["status"] = "receipt-committed"
+        write_atomic(state_dir / ACTIVATION_FILE, journal_value)
+        activation_crash("after-receipt-committed")
+        journal_value["status"] = "complete"
+        write_atomic(state_dir / ACTIVATION_FILE, journal_value)
+        activation_crash("after-complete")
+        remove_activation_journal(state_dir)
+        return {"active": committed, "generation": committed["generation"], "completed": True}
     finally:
         lock.close()
 
@@ -632,13 +863,24 @@ def main() -> None:
     import_parser.add_argument("--active-identity-file", required=True)
     import_parser.add_argument("--v1-desired-selection-file")
     import_parser.add_argument("--desired-identity-file")
-    for name in ("begin-publish", "set-desired", "activate", "retain", "release-retained"):
+    for name in ("begin-publish", "set-desired", "retain", "release-retained"):
         command = commands.add_parser(name)
         command.add_argument("--state-dir", required=True)
         command.add_argument("--expected-generation", required=True, type=int)
         command.add_argument("--identity", required=True)
-    for name in ("activate", "retain", "release-retained"):
+    for name in ("retain", "release-retained"):
         commands.choices[name].add_argument("--now", help=argparse.SUPPRESS)
+    activate_parser = commands.add_parser("activate")
+    activate_parser.add_argument("--state-dir", required=True)
+    activate_parser.add_argument("--expected-generation", required=True, type=int)
+    activate_parser.add_argument("--identity", required=True)
+    activate_parser.add_argument("--host-state-script", required=True)
+    activate_parser.add_argument("--now", help=argparse.SUPPRESS)
+    rollback_parser = commands.add_parser("rollback")
+    rollback_parser.add_argument("--state-dir", required=True)
+    rollback_parser.add_argument("--expected-generation", required=True, type=int)
+    rollback_parser.add_argument("--host-state-script", required=True)
+    rollback_parser.add_argument("--now", help=argparse.SUPPRESS)
     for name in ("retain", "retire-rollback"):
         if name == "retire-rollback":
             command = commands.add_parser(name)
@@ -646,7 +888,7 @@ def main() -> None:
             command.add_argument("--expected-generation", required=True, type=int)
         commands.choices[name].add_argument("--signed-url-max-seconds", type=int, default=MIN_SIGNED_URL_MAX_SECONDS, help=argparse.SUPPRESS)
     commands.choices["retire-rollback"].add_argument("--now", help=argparse.SUPPRESS)
-    for name in ("cancel-desired", "rollback"):
+    for name in ("cancel-desired",):
         command = commands.add_parser(name)
         command.add_argument("--state-dir", required=True)
         command.add_argument("--expected-generation", required=True, type=int)
@@ -665,12 +907,21 @@ def main() -> None:
     inspect_parser.add_argument("--state-dir", required=True)
     recover_parser = commands.add_parser("recover")
     recover_parser.add_argument("--state-dir", required=True)
+    project_recover_parser = commands.add_parser("recover-and-project")
+    project_recover_parser.add_argument("--state-dir", required=True)
+    project_recover_parser.add_argument("--host-state-script", required=True)
+    for name in ("activate-and-project", "rollback-and-project"):
+        command = commands.add_parser(name)
+        command.add_argument("--state-dir", required=True)
+        command.add_argument("--expected-generation", required=True, type=int)
+        command.add_argument("--host-state-script", required=True)
+    commands.choices["activate-and-project"].add_argument("--identity", required=True)
     args = parser.parse_args()
     if args.command == "initialize-v2":
         result = initialize(args)
     elif args.command == "initialize-v2-from-v1":
         result = initialize_from_v1(args)
-    elif args.command in {"begin-publish", "set-desired", "activate", "cancel-desired", "rollback", "retire-rollback", "retain", "release-retained"}:
+    elif args.command in {"begin-publish", "set-desired", "cancel-desired", "retire-rollback", "retain", "release-retained"}:
         result = mutate(args, args.command)
     elif args.command == "protected-set":
         result = protected(args)
@@ -678,6 +929,16 @@ def main() -> None:
         result = inspect(args)
     elif args.command == "recover":
         result = recover(args)
+    elif args.command == "recover-and-project":
+        result = recover_and_project(args)
+    elif args.command == "activate":
+        result = activate_and_project(args, "activate")
+    elif args.command == "rollback":
+        result = activate_and_project(args, "rollback")
+    elif args.command == "activate-and-project":
+        result = activate_and_project(args, "activate")
+    elif args.command == "rollback-and-project":
+        result = activate_and_project(args, "rollback")
     elif args.command == "rollback-to-v1":
         result = rollback_to_v1(args)
     elif args.command == "verify-v1-rollback":

@@ -5,6 +5,7 @@ import path from 'node:path';
 const root = process.cwd();
 const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-blob-release.sh'), 'utf8');
 const activationTransaction = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-activation-transaction.py'), 'utf8');
+const lifecycle = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-release-lifecycle.py'), 'utf8');
 const runtimeDeploy = fs.readFileSync(path.join(root, 'scripts/deploy-runtime-blob-release.sh'), 'utf8');
 const appDeploy = fs.readFileSync(path.join(root, 'scripts/remote-deploy.sh'), 'utf8');
 const deployAll = fs.readFileSync(path.join(root, 'scripts/deploy-all-with-runtime-blobs.sh'), 'utf8');
@@ -33,10 +34,15 @@ for (const invariant of [
   'expected-generation',
   'lifecycle_generation',
   'restore_runtime_consumers()',
+  'ACT_RUNTIME_ACTIVE_RECEIPT_PATH',
 ]) {
   assert.ok(activation.includes(invariant), `runtime-only activation must include ${invariant}`);
 }
-assert.ok(activationTransaction.includes('mark-active-v2'), 'activation transaction must project lifecycle identity with mark-active-v2');
+assert.ok(lifecycle.includes('mark-active-v2'), 'lifecycle-owned activation must project identity with mark-active-v2');
+assert.ok(lifecycle.includes('activate-and-project'), 'lifecycle-owned activation primitive is required');
+assert.match(podmanDeploy, /ACT_RUNTIME_ACTIVE_RECEIPT_PATH/, 'container must receive the active receipt path');
+assert.match(podmanDeploy, /act-runtime-state:ro/, 'container must receive the host active receipt directory read-only');
+assert.match(podmanDeploy, /RUNTIME_ACTIVE_RECEIPT_HOST_DIR/, 'deployment must bind the receipt parent directory, not an atomic-renamed inode');
 assert.ok(
   activation.indexOf('stage_lifecycle_desired') < activation.indexOf('python3 "$HOST_STATE_SCRIPT" select'),
   'v2 desired lifecycle state must be staged before the legacy selector changes',
