@@ -6,6 +6,8 @@
  * projection fields and adds a small, role-safe activation provenance block.
  */
 
+import type { AuthorityNodeLearningContent } from '@/lib/authority-domain-shards/contracts';
+
 export interface ActiveAuthoritySource {
   authorityState: 'active';
   releaseSetId: string;
@@ -149,6 +151,7 @@ export interface ActiveNodeDetailResponse {
       publicationStatus: string | null;
       lifecycleStatus: string | null;
     };
+    learningContent?: AuthorityNodeLearningContent;
     coverage?: {
       sourceMappingCount: number;
       evidenceCount: number;

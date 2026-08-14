@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   activeProjectionResponse: vi.fn(),
   activeUnavailableResponse: vi.fn(),
   readActiveDetailShard: vi.fn(),
+  readActiveDetailInfograph: vi.fn(),
   activeShardResponse: vi.fn(),
 }));
 
@@ -17,6 +18,7 @@ import { NextResponse } from 'next/server';
 import { GET as getCanvas } from '@/app/api/knowledge/graph/active/route';
 import { GET as getNode } from '@/app/api/knowledge/nodes/active/[id]/route';
 import { GET as getShardNode } from '@/app/api/knowledge/shards/active/nodes/[id]/route';
+import { GET as getShardInfograph } from '@/app/api/knowledge/shards/active/nodes/[id]/infograph/route';
 
 const available = { status: 'available', projection: { source: { authorityState: 'active' } } } as const;
 
@@ -27,6 +29,7 @@ beforeEach(() => {
   mocks.readActiveCanvas.mockReturnValue(available);
   mocks.readActiveNode.mockReturnValue(available);
   mocks.readActiveDetailShard.mockReturnValue({ shardClass: 'node-detail' });
+  mocks.readActiveDetailInfograph.mockReturnValue(Buffer.from([1, 2, 3]));
   mocks.activeShardResponse.mockImplementation((read, role) => {
     read();
     return NextResponse.json({ role });
@@ -101,5 +104,29 @@ describe('active Authority graph routes', () => {
     expect(response.status).toBe(200);
     expect(mocks.readActiveDetailShard).toHaveBeenCalledWith('node-1');
     expect(mocks.activeShardResponse).toHaveBeenCalledWith(expect.any(Function), 'STUDENT');
+  });
+
+  it('serves only the selected authorized infograph without exposing a source locator', async () => {
+    const response = await getShardInfograph(
+      new Request('http://localhost/api/knowledge/shards/active/nodes/node-1/infograph'),
+      { params: Promise.resolve({ id: 'node-1' }) },
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('image/png');
+    expect(response.headers.get('cache-control')).toBe('private, max-age=300');
+    expect(mocks.readActiveDetailInfograph).toHaveBeenCalledWith('node-1');
+  });
+
+  it('returns a controlled response when selected infograph bytes are unavailable', async () => {
+    mocks.readActiveDetailInfograph.mockReturnValueOnce(null);
+    const response = await getShardInfograph(
+      new Request('http://localhost/api/knowledge/shards/active/nodes/node-1/infograph'),
+      { params: Promise.resolve({ id: 'node-1' }) },
+    );
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({
+      error: '当前信息图暂时不可用。',
+      code: 'ACTIVE_INFOGRAPH_UNAVAILABLE',
+    });
   });
 });

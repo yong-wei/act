@@ -16,7 +16,12 @@ if str(AUTHORITY_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(AUTHORITY_SCRIPTS))
 
 from common import AUTHORING_CARDS, authority_card_status  # noqa: E402
-from export_authority_cards_and_infographs import card_export_status  # noqa: E402
+from export_authority_cards_and_infographs import (  # noqa: E402
+    _authority_identity,
+    _merge_partial_learning_nodes,
+    _read_matching_existing_learning_manifest,
+    card_export_status,
+)
 from export_domainconcept_inventory import infograph_status  # noqa: E402
 from normalize_authority_infograph_metadata import normalize  # noqa: E402
 
@@ -28,6 +33,29 @@ CARDS_ROOT = REPO / "course-content" / "authoring" / "knowledge" / "cards" / "au
 INVENTORY_JSON = CARDS_ROOT / "inventory.json"
 INVENTORY_CSV = CARDS_ROOT / "inventory.csv"
 STATUS_JSON = CARDS_ROOT / "status.json"
+V012_PROJECTION = (
+    REPO / "course-content" / "authoring" / "knowledge" / "releases" / "control-theory-engineering-v0.12" / "domain-projection.json"
+)
+
+
+def _authority_shard_manifest(path: Path, release_id: str = "ctr:release:control-theory-engineering-v0.12") -> Path:
+    path.write_text(
+        json.dumps(
+            {
+                "contract": "act-authority-domain-shard-set/v1",
+                "envelope": {
+                    "authority": {
+                        "releaseId": release_id,
+                        "releaseSetId": "set-test-1",
+                        "snapshotId": "snap-test-1",
+                        "snapshotHash": "a" * 64,
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path
 
 
 def _assert_repo_reference(value: object, *, must_exist: bool = True) -> None:
@@ -137,7 +165,7 @@ def test_inventory_status_matches_cards_infographs_and_status_report():
     assert Counter(row["infograph_status"] for row in csv_rows) == image_counts
 
 
-def test_default_export_gate_skips_draft_blocked_cards_without_runtime_writes():
+def test_default_export_gate_skips_draft_blocked_cards_without_runtime_writes(tmp_path: Path):
     """The default export reports accepted cards only and leaves images independent."""
     card_counts = Counter(
         card_export_status(AUTHORING_CARDS / f"{path.stem}.md")
@@ -147,7 +175,13 @@ def test_default_export_gate_skips_draft_blocked_cards_without_runtime_writes():
 
     script = AUTHORITY_SCRIPTS / "export_authority_cards_and_infographs.py"
     result = subprocess.run(
-        [sys.executable, str(script), "--dry-run"],
+        [
+            sys.executable,
+            str(script),
+            "--authority-shard-manifest",
+            str(_authority_shard_manifest(tmp_path / "shards.json")),
+            "--dry-run",
+        ],
         cwd=REPO,
         check=True,
         capture_output=True,
@@ -156,3 +190,108 @@ def test_default_export_gate_skips_draft_blocked_cards_without_runtime_writes():
     assert "cards_exported=952" in result.stdout
     assert "cards_skipped=284" in result.stdout
     assert "images_exported=1236" in result.stdout
+
+
+def test_selective_export_keeps_the_runtime_scope_on_requested_authority_nodes(tmp_path: Path):
+    """A consumer can export its selected Authority card set without copying the full catalog."""
+    script = AUTHORITY_SCRIPTS / "export_authority_cards_and_infographs.py"
+    projection = V012_PROJECTION
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--projection",
+            str(projection),
+            "--authority-shard-manifest",
+            str(_authority_shard_manifest(tmp_path / "shards.json")),
+            "--entity-id",
+            "ctc:modeling-865eb1c8824e157c2f05a903",
+            "--entity-id",
+            "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+            "--dry-run",
+        ],
+        cwd=REPO,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "cards_exported=1" in result.stdout
+    assert "cards_skipped=1" in result.stdout
+    assert "images_exported=2" in result.stdout
+
+
+def test_export_identity_requires_a_matching_sealed_authority_source(tmp_path: Path):
+    projection = json.loads(V012_PROJECTION.read_text(encoding="utf-8"))
+    manifest = _authority_shard_manifest(tmp_path / "shards.json")
+
+    identity = _authority_identity(manifest, V012_PROJECTION, projection)
+
+    assert identity == {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.12",
+        "authorityReleaseSetId": "set-test-1",
+        "authoritySnapshotId": "snap-test-1",
+        "authoritySnapshotHash": "a" * 64,
+        "authorityReleaseVersion": "control-theory-engineering-v0.12",
+    }
+
+    mismatched = _authority_shard_manifest(
+        tmp_path / "wrong-shards.json",
+        "ctr:release:control-theory-engineering-v0.9",
+    )
+    try:
+        _authority_identity(mismatched, V012_PROJECTION, projection)
+    except ValueError as exc:
+        assert "does not match" in str(exc)
+    else:
+        raise AssertionError("mismatched Authority source must fail closed")
+
+
+def test_partial_export_preserves_the_unprocessed_asset_state_only_for_same_identity(tmp_path: Path):
+    identity = {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.12",
+        "authorityReleaseSetId": "set-test-1",
+        "authoritySnapshotId": "snap-test-1",
+        "authoritySnapshotHash": "a" * 64,
+        "authorityReleaseVersion": "control-theory-engineering-v0.12",
+    }
+    existing = {
+        "contract": "act-authority-learning-content-manifest/v2",
+        **{key: identity[key] for key in identity if key != "authorityReleaseVersion"},
+        "nodes": [
+            {
+                "canonicalId": "ctc:test",
+                "safeId": "ctc_test",
+                "card": {"state": "available", "sha256": "b" * 64},
+                "infograph": {"state": "available", "sha256": "c" * 64},
+            }
+        ],
+    }
+    existing_path = tmp_path / "learning.json"
+    existing_path.write_text(json.dumps(existing), encoding="utf-8")
+    existing_nodes = _read_matching_existing_learning_manifest(existing_path, identity)
+
+    merged = _merge_partial_learning_nodes(
+        existing_nodes,
+        [{
+            "canonicalId": "ctc:test",
+            "safeId": "ctc_test",
+            "card": {"state": "blocked", "sha256": None},
+            "infograph": {"state": "missing", "sha256": None},
+        }],
+        do_cards=True,
+        do_images=False,
+    )
+    assert merged == [{
+        "canonicalId": "ctc:test",
+        "safeId": "ctc_test",
+        "card": {"state": "blocked", "sha256": None},
+        "infograph": {"state": "available", "sha256": "c" * 64},
+    }]
+
+    wrong_identity = {**identity, "authoritySnapshotHash": "d" * 64}
+    try:
+        _read_matching_existing_learning_manifest(existing_path, wrong_identity)
+    except ValueError as exc:
+        assert "another Authority identity" in str(exc)
+    else:
+        raise AssertionError("partial export must not merge a different Authority identity")
