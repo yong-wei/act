@@ -1,7 +1,9 @@
 import { readFile } from 'node:fs/promises';
-import { join, normalize, extname } from 'node:path';
+import { extname, join, posix } from 'node:path';
 
 import { NextResponse } from 'next/server';
+
+import { RUNTIME_BLOB_HELPER_NAME } from '@/lib/runtime-content-path';
 
 const RUNTIME_ROOT = join(process.cwd(), 'course-content', 'runtime');
 
@@ -51,14 +53,20 @@ export async function GET(_request: Request, props: { params: Promise<{ assetPat
     return NextResponse.json({ error: 'Missing asset path' }, { status: 400 });
   }
 
-  const relativePath = normalize(segments.join('/'))
-    .replace(/^(\.\.(\/|\\|$))+/, '')
-    .replace(/^[\\/]+/, '');
-  const absolutePath = join(RUNTIME_ROOT, relativePath);
-
-  if (isPrivateRuntimeGovernancePath(relativePath)) {
+  const relativePath = posix.normalize(segments.join('/').replaceAll('\\', '/').replace(/^\/+/, ''));
+  const firstSegment = relativePath.split('/')[0];
+  if (
+    !relativePath
+    || relativePath === '.'
+    || relativePath === '..'
+    || relativePath.startsWith('../')
+    || firstSegment === RUNTIME_BLOB_HELPER_NAME
+    || isPrivateRuntimeGovernancePath(relativePath)
+  ) {
     return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
   }
+
+  const absolutePath = join(RUNTIME_ROOT, relativePath);
 
   if (!absolutePath.startsWith(RUNTIME_ROOT)) {
     return NextResponse.json({ error: 'Invalid asset path' }, { status: 400 });

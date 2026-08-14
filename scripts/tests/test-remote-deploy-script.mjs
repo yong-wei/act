@@ -238,12 +238,13 @@ function verifyCutoverFailureGate() {
 
 function verifyLegacyRemoteTransactionQuoting(script) {
   const start = script.indexOf(`remote "bash -lc 'set -euo pipefail`);
-  const end = script.indexOf('\n\nlog\nif [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]', start);
+  const end = script.indexOf('\n\nlog\nif [[ "${DEPLOY_SCOPE}" == "all" && "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]', start);
   assert.ok(start >= 0 && end > start, 'Legacy deployment must retain a single remote Step 4 transaction');
   const transaction = script.slice(start, end);
   const result = spawnSync('bash', ['-c', `
 set -euo pipefail
 remote() { printf 'argc=%s\\n' "$#"; printf '%s\\n' "$1" | bash -n; }
+DEPLOY_SCOPE=all
 RUNTIME_DELIVERY_MODE=legacy-rsync
 REMOTE_PROJECT_DIR=/tmp/act
 REMOTE_RUNTIME_SELECTION_LOCK=/tmp/act/data/runtime/.act-runtime-selection.lock
@@ -388,8 +389,8 @@ function main() {
   );
   assert.ok(
     script.includes('guard_no_committed_production_cutover')
-      && script.indexOf('guard_no_committed_production_cutover')
-        < script.indexOf('[2/5] 同步运行时资源与部署脚本'),
+      && script.lastIndexOf('guard_no_committed_production_cutover')
+        < script.indexOf('rsync "${runtime_rsync_args[@]}"'),
     'Legacy 部署必须在远端 runtime 同步和停止消费者之前拒绝已提交切换',
   );
   assert.ok(

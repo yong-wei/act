@@ -17,7 +17,7 @@
 - [x] 3.2 Add ossfs 2.0 systemd template and host activation/rollback commands that use fixed release prefixes, read-only mounts and a host-local lock.
 - [x] 3.3 Replace production runtime rsync/staging/previous behavior in `scripts/remote-deploy.sh` with release verification, selection and container restart while retaining explicit legacy fallback until activation is authorized.
 - [x] 3.4 Add deployment contract, concurrent selection, failed candidate/health-check, rollback and runtime-role least-privilege tests.
-- [ ] 3.5 Add and verify a zero-database-mutation production cutover orchestration path that builds only an integration commit, loads one verified image digest, replaces runtime consumers through a fixed app-only callback, and proves rollback on mount/container/readyz failures.
+- [x] 3.5 Add and verify a zero-database-mutation production cutover orchestration path that builds only an integration commit, loads one verified image digest, replaces runtime consumers through a fixed app-only callback, and proves rollback on mount/container/readyz failures.
 
 ## 4. Media resolver and runtime compatibility
 
@@ -31,4 +31,4 @@
 - [x] 5.2 Add migration and rollback checklists, Phase 0 disk/media/role evidence, estimated reclaim calculation and unresolved-risk report.
 - [x] 5.3 Update `server-ops` skill with verified OSS/RAM-role/ossfs operational lessons and extend its contract test when needed.
 - [x] 5.4 Run targeted tests, typecheck, lint, runtime/deploy tests and build; record production-only evidence still pending RAM Role, ossfs candidate mount and user-authorized cutover.
-- [ ] 5.5 Commit a credential-free release locator and published-media closure report before activation; verify the final integration image, mount, selector, containers and active receipt bind the same Release.
+- [x] 5.5 Commit a credential-free release locator and published-media closure report before activation; verify the final integration image, mount, selector, containers and active receipt bind the same Release.

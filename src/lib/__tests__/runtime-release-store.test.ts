@@ -1,15 +1,28 @@
 import { Readable } from 'node:stream';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildRuntimeReleaseManifest, computeRuntimeReleaseManifestWireSha256, deriveRuntimeReleaseId, runtimeReleaseManifestObjectKey } from '../runtime-release';
+import {
+  buildRuntimeBlobReleaseReceipt,
+  buildRuntimeBlobReleaseManifest,
+  buildRuntimeReleaseManifest,
+  computeRuntimeReleaseManifestWireSha256,
+  deriveRuntimeReleaseId,
+  runtimeBlobReleaseManifestObjectKey,
+  runtimeBlobReleaseReceiptObjectKey,
+  serializeRuntimeBlobReleaseReceipt,
+  serializeRuntimeBlobReleaseManifest,
+  runtimeReleaseManifestObjectKey,
+} from '../runtime-release';
 import {
   type RuntimeReleaseObjectStore,
   publishRuntimeRelease,
+  inspectPublishedRuntimeBlobRelease,
   RuntimeReleaseStoreError,
+  verifyPublishedRuntimeBlobRelease,
   verifyPublishedRuntimeRelease,
 } from '../runtime-release-store';
 
@@ -196,5 +209,29 @@ describe('immutable runtime release publishing', () => {
 
     expect(changed.treeSha256).not.toBe(initial.treeSha256);
     expect(changed.releaseId).not.toBe(initial.releaseId);
+  });
+
+  it('inspects and verifies a blob release through its logical manifest without a release-prefix copy of each file', async () => {
+    const root = await fixture();
+    const manifest = await buildRuntimeBlobReleaseManifest(root, { sourceRevision: revision });
+    const store = new MemoryStore();
+    for (const file of manifest.files) {
+      store.objects.set(file.objectKey, await readFile(path.join(root, file.path)));
+    }
+    const manifestKey = runtimeBlobReleaseManifestObjectKey(manifest.releaseId);
+    const receipt = buildRuntimeBlobReleaseReceipt(manifest);
+    store.objects.set(manifestKey, Buffer.from(serializeRuntimeBlobReleaseManifest(manifest)));
+    store.objects.set(runtimeBlobReleaseReceiptObjectKey(manifest.releaseId), Buffer.from(serializeRuntimeBlobReleaseReceipt(receipt)));
+
+    await expect(inspectPublishedRuntimeBlobRelease(store, manifest.releaseId)).resolves.toEqual(manifest);
+    await expect(verifyPublishedRuntimeBlobRelease(store, manifest.releaseId)).resolves.toMatchObject({
+      releaseId: manifest.releaseId,
+      manifestObjectKey: manifestKey,
+      manifestSha256: manifest.manifestSha256,
+    });
+
+    store.objects.set(manifest.files[0].objectKey, Buffer.from('mismatch'));
+    await expect(verifyPublishedRuntimeBlobRelease(store, manifest.releaseId))
+      .rejects.toMatchObject({ code: 'runtime-release-remote-object-invalid' } satisfies Partial<RuntimeReleaseStoreError>);
   });
 });
