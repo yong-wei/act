@@ -1,11 +1,12 @@
 import { createHash } from 'node:crypto';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
   buildRuntimeBlobReleaseManifest,
   buildRuntimeReleaseManifest,
   deriveRuntimeReleaseId,
+  parseRuntimeBlobReleaseManifest,
   serializeRuntimeBlobReleaseManifest,
   serializeRuntimeReleaseManifest,
 } from '@/lib/runtime-release';
@@ -36,8 +37,8 @@ function required(name: string) {
 function usage() {
   return [
     'Usage:',
-    '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2',
-    '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 --output <manifest.json>',
+    '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>]',
+    '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] --output <manifest.json>',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--format v1|v2] [--output <closure.json>]',
     '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release import-v1 --source-release-id <immutable-v1-release-id> --source-manifest-sha256 <sha256> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
@@ -82,6 +83,12 @@ async function buildManifestForFormat(runtimeRoot: string, sourceRevision: strin
     : await buildRuntimeBlobReleaseManifest(runtimeRoot, { sourceRevision });
 }
 
+async function readParentBlobManifest() {
+  const parentManifestPath = argument('--parent-manifest');
+  if (!parentManifestPath) return undefined;
+  return parseRuntimeBlobReleaseManifest(JSON.parse(await readFile(parentManifestPath, 'utf8')));
+}
+
 async function buildGitManifest(sourceRevision: string) {
   if (process.argv.includes('--integration-ref')) {
     throw new Error('Production v2 CLI fixes the ancestry authority to origin/integration; --integration-ref is not supported.');
@@ -90,6 +97,7 @@ async function buildGitManifest(sourceRevision: string) {
     repoRoot: required('--repo-root'),
     sourceRevision,
     integrationRef: 'origin/integration',
+    parentManifest: await readParentBlobManifest(),
   });
 }
 
@@ -113,6 +121,7 @@ async function main() {
       releaseId: deriveRuntimeReleaseId(manifest.sourceRevision, manifest.treeSha256),
       sourceRevision: manifest.sourceRevision,
       treeSha256: manifest.treeSha256,
+      ...(snapshot ? { parentReuse: snapshot.stats } : {}),
     });
     return;
   }

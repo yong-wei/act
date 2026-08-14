@@ -22,6 +22,20 @@ export interface ActRuntimeReleaseFile {
   sha256: string;
 }
 
+/**
+ * Immutable source identity for a logical v2 runtime file.  It is optional so
+ * the verified v1-import candidate remains readable; Git-backed publications
+ * always provide it and can therefore reuse a parent blob without rereading
+ * its body.
+ */
+export interface ActRuntimeBlobReleaseFileSource {
+  gitObjectId: string;
+}
+
+export interface ActRuntimeBlobReleaseFile extends ActRuntimeReleaseFile {
+  source?: ActRuntimeBlobReleaseFileSource;
+}
+
 export interface ActRuntimeReleaseManifest {
   schemaVersion: typeof ACT_RUNTIME_RELEASE_SCHEMA_VERSION;
   releaseId: string;
@@ -41,7 +55,7 @@ export interface ActRuntimeBlobReleaseManifest {
   totalBytes: number;
   treeSha256: string;
   manifestSha256: string;
-  files: ActRuntimeReleaseFile[];
+  files: ActRuntimeBlobReleaseFile[];
 }
 
 export interface ActRuntimeBlobReleaseReceiptBlob {
@@ -80,6 +94,7 @@ export interface RuntimeBlobReleaseFileMetadata {
   path: string;
   sizeBytes: number;
   sha256: string;
+  source?: ActRuntimeBlobReleaseFileSource;
 }
 
 export class RuntimeReleaseValidationError extends Error {
@@ -214,6 +229,16 @@ function manifestDigestBody(manifest: Omit<ActRuntimeReleaseManifest, 'manifestS
 
 function treeDigest(files: readonly Pick<ActRuntimeReleaseFile, 'path' | 'sizeBytes' | 'sha256'>[]) {
   return sha256(stableStringify(files.map(({ path: relativePath, sizeBytes, sha256: fileSha256 }) => ({ path: relativePath, sizeBytes, sha256: fileSha256 }))));
+}
+
+function parseRuntimeBlobReleaseFileSource(value: unknown, context: string): ActRuntimeBlobReleaseFileSource {
+  const raw = object(value, context);
+  assertExactKeys(raw, ['gitObjectId'], context);
+  const gitObjectId = string(raw.gitObjectId, `${context}.gitObjectId`).toLowerCase();
+  if (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(gitObjectId)) {
+    throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `${context}.gitObjectId is invalid.`);
+  }
+  return { gitObjectId };
 }
 
 export function serializeRuntimeReleaseManifest(manifest: ActRuntimeReleaseManifest) {
@@ -369,11 +394,15 @@ export function buildRuntimeBlobReleaseManifestFromFiles(
     if (!SHA256_PATTERN.test(entry.sha256)) {
       throw new RuntimeReleaseValidationError('runtime-release-file-hash-invalid', `Runtime source SHA-256 is invalid: ${paths[index]}`);
     }
+    const source = entry.source === undefined
+      ? undefined
+      : parseRuntimeBlobReleaseFileSource(entry.source, `runtime source metadata for ${paths[index]}`);
     return {
       path: paths[index],
       objectKey: runtimeBlobObjectKey(entry.sha256),
       sizeBytes,
       sha256: entry.sha256,
+      ...(source ? { source } : {}),
     };
   });
   if (files.length === 0) {
@@ -476,14 +505,24 @@ export function parseRuntimeBlobReleaseManifest(value: unknown): ActRuntimeBlobR
   if (!Array.isArray(raw.files)) throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', 'manifest.files must be an array.');
   const files = raw.files.map((entry, index) => {
     const item = object(entry, `manifest.files[${index}]`);
-    assertExactKeys(item, ['path', 'objectKey', 'sizeBytes', 'sha256'], `manifest.files[${index}]`);
+    const hasSource = Object.hasOwn(item, 'source');
+    assertExactKeys(item, hasSource ? ['path', 'objectKey', 'sizeBytes', 'sha256', 'source'] : ['path', 'objectKey', 'sizeBytes', 'sha256'], `manifest.files[${index}]`);
     const relativePath = normalizedRelativePath(string(item.path, `manifest.files[${index}].path`));
     const sizeBytes = nonNegativeInteger(item.sizeBytes, `manifest.files[${index}].sizeBytes`);
     const fileSha256 = string(item.sha256, `manifest.files[${index}].sha256`);
     if (!SHA256_PATTERN.test(fileSha256)) throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `manifest.files[${index}].sha256 is invalid.`);
     const objectKey = string(item.objectKey, `manifest.files[${index}].objectKey`);
     if (objectKey !== runtimeBlobObjectKey(fileSha256)) throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `manifest.files[${index}].objectKey is not blob-addressed.`);
-    return { path: relativePath, objectKey, sizeBytes, sha256: fileSha256 };
+    const source = hasSource
+      ? parseRuntimeBlobReleaseFileSource(item.source, `manifest.files[${index}].source`)
+      : undefined;
+    return {
+      path: relativePath,
+      objectKey,
+      sizeBytes,
+      sha256: fileSha256,
+      ...(source ? { source } : {}),
+    };
   });
   if (files.some((file, index) => index > 0 && compareCodePoints(files[index - 1].path, file.path) >= 0)) throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', 'manifest.files must be strictly code-point sorted.');
   const blobBindings = new Map<string, { sizeBytes: number; sha256: string }>();

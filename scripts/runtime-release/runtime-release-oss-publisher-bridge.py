@@ -523,7 +523,7 @@ def expected_blob_manifest_files(manifest: Dict[str, Any]) -> List[Dict[str, Any
     total = 0
     previous_path: Optional[str] = None
     for item in files:
-        if not isinstance(item, dict) or set(item) != {"path", "objectKey", "sizeBytes", "sha256"}:
+        if not isinstance(item, dict) or set(item) not in ({"path", "objectKey", "sizeBytes", "sha256"}, {"path", "objectKey", "sizeBytes", "sha256", "source"}):
             fail("blob manifest file entry is invalid")
         relative_path = item.get("path")
         key = item.get("objectKey")
@@ -543,6 +543,13 @@ def expected_blob_manifest_files(manifest: Dict[str, Any]) -> List[Dict[str, Any
             fail("blob manifest file digest is invalid")
         if not isinstance(key, str) or key != f"{BLOB_KEY_PREFIX}{digest}":
             fail("blob manifest object key is not SHA-256 addressed")
+        source = item.get("source")
+        if source is not None:
+            if not isinstance(source, dict) or set(source) != {"gitObjectId"}:
+                fail("blob manifest file source is invalid")
+            source_object_id = source.get("gitObjectId")
+            if not isinstance(source_object_id, str) or source_object_id.lower() != source_object_id or not re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", source_object_id):
+                fail("blob manifest file source Git object id is invalid")
         size = manifest_integer(size, f"blob manifest file size for {relative_path}")
         if size > MAX_FRAME_BYTES:
             fail("blob manifest file exceeds the maximum runtime frame size")
@@ -559,7 +566,10 @@ def expected_blob_manifest_files(manifest: Dict[str, Any]) -> List[Dict[str, Any
         total += size
         if total > MAX_SAFE_INTEGER:
             fail("blob manifest totalBytes exceeds the maximum safe integer")
-        expected.append({"path": relative_path, "key": key, "sizeBytes": size, "sha256": digest})
+        entry = {"path": relative_path, "key": key, "sizeBytes": size, "sha256": digest}
+        if source is not None:
+            entry["source"] = {"gitObjectId": source_object_id}
+        expected.append(entry)
     if manifest_integer(manifest.get("totalBytes"), "blob manifest.totalBytes") != total:
         fail("blob manifest.totalBytes does not match blob manifest.files")
     return expected
@@ -697,7 +707,7 @@ def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str,
         "fileCount": manifest["fileCount"],
         "totalBytes": manifest["totalBytes"],
         "treeSha256": tree_sha,
-        "files": [{"path": entry["path"], "objectKey": entry["key"], "sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]} for entry in expected],
+        "files": [dict({"path": entry["path"], "objectKey": entry["key"], "sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]}, **({"source": entry["source"]} if "source" in entry else {})) for entry in expected],
     }
     if hashlib.sha256(canonical_json(without_digest)).hexdigest() != semantic_sha:
         fail("blob manifest semantic digest does not match canonical content")

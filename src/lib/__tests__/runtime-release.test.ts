@@ -1,8 +1,11 @@
+import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
+
+import { stableStringify } from '../aggregate-governance/hash';
 
 import {
   ACT_RUNTIME_RELEASE_MANIFEST_FILENAME,
@@ -165,5 +168,29 @@ describe('act runtime release manifest', () => {
       .toThrow(/file summary is inconsistent/);
     await expect(verifyRuntimeBlobReleaseManifestBlobs(manifest, async () => Buffer.from([0]))).rejects
       .toMatchObject({ code: 'runtime-release-blob-mismatch' } satisfies Partial<RuntimeReleaseValidationError>);
+  });
+
+  it('accepts an immutable Git source identity while preserving legacy v2 readability', async () => {
+    const root = await fixture();
+    const legacy = await buildRuntimeBlobReleaseManifest(root, { sourceRevision: revision });
+    const sourced = {
+      ...legacy,
+      files: legacy.files.map((file, index) => ({
+        ...file,
+        source: { gitObjectId: `${index === 0 ? 'b' : 'c'}`.repeat(40) },
+      })),
+    };
+    const { manifestSha256: _legacyDigest, ...withoutDigest } = sourced;
+    const manifest = {
+      ...sourced,
+      manifestSha256: createHash('sha256').update(stableStringify(withoutDigest)).digest('hex'),
+    };
+
+    expect(parseRuntimeBlobReleaseManifest(legacy)).toEqual(legacy);
+    expect(parseRuntimeBlobReleaseManifest(manifest)).toEqual(manifest);
+    expect(() => parseRuntimeBlobReleaseManifest({
+      ...manifest,
+      files: [{ ...manifest.files[0], source: { gitObjectId: 'invalid' } }, ...manifest.files.slice(1)],
+    })).toThrow(/source.gitObjectId is invalid/);
   });
 });

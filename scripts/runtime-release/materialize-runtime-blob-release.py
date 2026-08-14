@@ -31,6 +31,7 @@ RUNTIME_BLOB_HELPER_NAME = ".act-runtime-blobs"
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 GIT_REVISION = re.compile(r"^[a-f0-9]{40}$")
+GIT_OBJECT_ID = re.compile(r"^(?:[a-f0-9]{40}|[a-f0-9]{64})$")
 BLOB_PREFIX = "runtime/blobs/sha256/"
 TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
     "resources/textbook-retrieval/bodies.utf8",
@@ -147,13 +148,20 @@ def parse_manifest(path: Path) -> Tuple[Dict[str, Any], bytes]:
         fail("manifest.files must be a non-empty array")
     files = []
     for index, item in enumerate(raw["files"]):
-        item = require_exact_keys(item, ["path", "objectKey", "sizeBytes", "sha256"], "manifest.files[%d]" % index)
+        item = require_exact_keys(item, ["path", "objectKey", "sizeBytes", "sha256", "source"] if "source" in item else ["path", "objectKey", "sizeBytes", "sha256"], "manifest.files[%d]" % index)
         relative = require_relative_path(item["path"], "manifest.files[%d].path" % index)
         file_sha = require_digest(item["sha256"], "manifest.files[%d].sha256" % index)
         object_key = require_string(item["objectKey"], "manifest.files[%d].objectKey" % index)
         if object_key != BLOB_PREFIX + file_sha:
             fail("manifest.files[%d].objectKey is not blob-addressed" % index)
-        files.append({"path": relative, "objectKey": object_key, "sizeBytes": require_integer(item["sizeBytes"], "manifest.files[%d].sizeBytes" % index), "sha256": file_sha})
+        parsed = {"path": relative, "objectKey": object_key, "sizeBytes": require_integer(item["sizeBytes"], "manifest.files[%d].sizeBytes" % index), "sha256": file_sha}
+        if "source" in item:
+            source = require_exact_keys(item["source"], ["gitObjectId"], "manifest.files[%d].source" % index)
+            git_object_id = require_string(source["gitObjectId"], "manifest.files[%d].source.gitObjectId" % index).lower()
+            if source["gitObjectId"] != git_object_id or not GIT_OBJECT_ID.fullmatch(git_object_id):
+                fail("manifest.files[%d].source.gitObjectId is invalid" % index)
+            parsed["source"] = {"gitObjectId": git_object_id}
+        files.append(parsed)
     if files != sorted(files, key=lambda item: item["path"]):
         fail("manifest.files must be strictly code-point sorted")
     if len({item["path"] for item in files}) != len(files):

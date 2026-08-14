@@ -17,11 +17,19 @@ export interface GitRuntimeBlobSnapshotFile extends RuntimeBlobReleaseFileMetada
   mode: '100644' | '100755';
 }
 
+export interface GitRuntimeBlobReleaseSnapshotStats {
+  reusedFileCount: number;
+  reusedBytes: number;
+  hashedFileCount: number;
+  hashedBytes: number;
+}
+
 export interface GitRuntimeBlobReleaseSnapshot {
   repoRoot: string;
   sourceRevision: string;
   integrationRef: string;
   manifest: ActRuntimeBlobReleaseManifest;
+  stats: GitRuntimeBlobReleaseSnapshotStats;
   filesByPath: ReadonlyMap<string, GitRuntimeBlobSnapshotFile>;
   openFile: (relativePath: string) => Promise<Readable>;
 }
@@ -196,28 +204,69 @@ async function inspectBlob(repoRoot: string, blobObjectId: string) {
   return { sizeBytes, sha256: hash.digest('hex') };
 }
 
-async function buildSnapshotFiles(repoRoot: string, entries: GitRuntimeBlobSnapshotFile[]) {
+function parentFilesByGitObjectId(parentManifest: ActRuntimeBlobReleaseManifest | undefined) {
+  const parent = new Map<string, { sizeBytes: number; sha256: string }>();
+  if (!parentManifest) return parent;
+  for (const file of parentManifest.files) {
+    const gitObjectId = file.source?.gitObjectId;
+    if (!gitObjectId) continue;
+    const current = { sizeBytes: file.sizeBytes, sha256: file.sha256 };
+    const existing = parent.get(gitObjectId);
+    if (existing && (existing.sizeBytes !== current.sizeBytes || existing.sha256 !== current.sha256)) {
+      throw gitError('runtime-release-git-parent-source-inconsistent', `Parent release maps Git object ${gitObjectId} to incompatible blob identities.`);
+    }
+    parent.set(gitObjectId, current);
+  }
+  return parent;
+}
+
+async function buildSnapshotFiles(
+  repoRoot: string,
+  entries: GitRuntimeBlobSnapshotFile[],
+  parentManifest: ActRuntimeBlobReleaseManifest | undefined,
+) {
   const metadata: RuntimeBlobReleaseFileMetadata[] = [];
+  const parent = parentFilesByGitObjectId(parentManifest);
+  const stats: GitRuntimeBlobReleaseSnapshotStats = {
+    reusedFileCount: 0,
+    reusedBytes: 0,
+    hashedFileCount: 0,
+    hashedBytes: 0,
+  };
   for (const entry of entries) {
-    const digest = await inspectBlob(repoRoot, entry.blobObjectId);
+    const reused = parent.get(entry.blobObjectId);
+    const digest = reused ?? await inspectBlob(repoRoot, entry.blobObjectId);
     entry.sizeBytes = digest.sizeBytes;
     entry.sha256 = digest.sha256;
-    metadata.push({ path: entry.path, sizeBytes: digest.sizeBytes, sha256: digest.sha256 });
+    if (reused) {
+      stats.reusedFileCount += 1;
+      stats.reusedBytes += digest.sizeBytes;
+    } else {
+      stats.hashedFileCount += 1;
+      stats.hashedBytes += digest.sizeBytes;
+    }
+    metadata.push({
+      path: entry.path,
+      sizeBytes: digest.sizeBytes,
+      sha256: digest.sha256,
+      source: { gitObjectId: entry.blobObjectId },
+    });
   }
-  return metadata;
+  return { metadata, stats };
 }
 
 export async function buildGitRuntimeBlobReleaseSnapshot(input: {
   repoRoot: string;
   sourceRevision: string;
   integrationRef?: string;
+  parentManifest?: ActRuntimeBlobReleaseManifest;
 }): Promise<GitRuntimeBlobReleaseSnapshot> {
   assertRepoRoot(input.repoRoot);
   const sourceRevision = await resolveGitCommit(input.repoRoot, input.sourceRevision, 'Source revision');
   const integrationRef = input.integrationRef ?? 'origin/integration';
   await assertIntegrationAncestor(input.repoRoot, sourceRevision, integrationRef);
   const entries = await listRuntimeTree(input.repoRoot, sourceRevision);
-  const metadata = await buildSnapshotFiles(input.repoRoot, entries);
+  const { metadata, stats } = await buildSnapshotFiles(input.repoRoot, entries, input.parentManifest);
   const manifest = buildRuntimeBlobReleaseManifestFromFiles(sourceRevision, metadata);
   const filesByPath = new Map(entries.map((entry) => [entry.path, entry] as const));
   return {
@@ -225,6 +274,7 @@ export async function buildGitRuntimeBlobReleaseSnapshot(input: {
     sourceRevision,
     integrationRef,
     manifest,
+    stats,
     filesByPath,
     openFile: async (relativePath: string) => {
       const file = filesByPath.get(relativePath);

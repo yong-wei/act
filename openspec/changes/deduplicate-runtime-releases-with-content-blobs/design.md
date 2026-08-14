@@ -29,11 +29,17 @@ A v2 semantic manifest remains the authority for one logical runtime tree and li
 ```json
 {
   "path": "lessons/1-2/lesson.json",
-  "mode": "100644",
-  "source": { "kind": "git-blob", "objectFormat": "sha1", "oid": "..." },
-  "blob": { "sha256": "...", "size": 123, "key": "runtime/blobs/sha256/..." }
+  "source": { "gitObjectId": "..." },
+  "objectKey": "runtime/blobs/sha256/...",
+  "sizeBytes": 123,
+  "sha256": "..."
 }
 ```
+
+The established v2 candidate did not contain source identities. It remains a
+valid immutable import baseline, but the first Git-source publication hashes
+its tree once to establish those identities. Each later Git-bound release can
+reuse matching parent `gitObjectId` entries without a body read.
 
 The publisher reads the target `origin/integration`-reachable Git tree metadata first. It builds an inverse `git OID → blob` map from the declared parent manifest.
 

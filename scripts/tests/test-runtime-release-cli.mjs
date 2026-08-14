@@ -113,6 +113,18 @@ try {
   });
   assert.equal(buildManifest.status, 0, buildManifest.stderr);
   assert.equal(JSON.parse(fs.readFileSync(output, 'utf8')).schemaVersion, 'act-runtime-release.v2');
+  assert.match(JSON.stringify(JSON.parse(fs.readFileSync(output, 'utf8'))), /gitObjectId/, 'Git-backed v2 manifests must bind each logical file to its Git blob identity');
+  const parentPlan = spawnSync('npx', ['tsx', script, 'plan', '--repo-root', temporary, '--source-revision', sourceRevision, '--format', 'v2', '--parent-manifest', output], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.equal(parentPlan.status, 0, parentPlan.stderr);
+  assert.deepEqual(JSON.parse(parentPlan.stdout).parentReuse, {
+    reusedFileCount: 1,
+    reusedBytes: Buffer.byteLength('{"id":"1-1"}\n'),
+    hashedFileCount: 0,
+    hashedBytes: 0,
+  }, 'a matching parent manifest must avoid a second Git blob body hash');
 
   result = spawnSync('git', ['checkout', '-b', 'unpublished'], { cwd: temporary, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);

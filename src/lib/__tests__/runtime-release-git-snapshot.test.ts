@@ -45,11 +45,49 @@ describe('Git-backed runtime release snapshots', () => {
     const second = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
     expect(second.manifest).toEqual(first.manifest);
     expect(first.manifest.files.map((file) => file.path)).toEqual(['lessons/lesson.json']);
+    expect(first.manifest.files[0]?.source).toEqual({ gitObjectId: first.filesByPath.get('lessons/lesson.json')?.blobObjectId });
+    expect(first.stats).toEqual({ reusedFileCount: 0, reusedBytes: 0, hashedFileCount: 1, hashedBytes: 23 });
     const source = await first.openFile('lessons/lesson.json');
     const chunks: Buffer[] = [];
     for await (const chunk of source) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     expect(Buffer.concat(chunks).toString('utf8')).toBe('{"id":"commit-source"}\n');
     await expect(first.openFile('lessons/untracked.json')).rejects.toThrow(/absent from the snapshot/);
+  });
+
+  it('reuses a parent Git object identity without rereading its blob body', async () => {
+    const { root, sourceRevision } = await fixture();
+    const parent = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+    const target = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision,
+      integrationRef: 'integration',
+      parentManifest: parent.manifest,
+    });
+
+    expect(target.manifest).toEqual(parent.manifest);
+    expect(target.stats).toEqual({ reusedFileCount: 1, reusedBytes: 23, hashedFileCount: 0, hashedBytes: 0 });
+  });
+
+  it('hashes only target Git objects absent from the parent manifest', async () => {
+    const { root, sourceRevision } = await fixture();
+    const parent = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+    await writeFile(path.join(root, 'course-content', 'runtime', 'lessons', 'changed.json'), 'changed\n');
+    await git(root, 'add', '.');
+    await git(root, 'commit', '-m', 'one runtime delta');
+    const targetRevision = await git(root, 'rev-parse', 'HEAD');
+    const target = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: targetRevision,
+      integrationRef: 'integration',
+      parentManifest: parent.manifest,
+    });
+
+    expect(target.stats).toEqual({
+      reusedFileCount: 1,
+      reusedBytes: 23,
+      hashedFileCount: 1,
+      hashedBytes: Buffer.byteLength('changed\n'),
+    });
   });
 
   it('rejects symlink entries from the Git runtime tree', async () => {
