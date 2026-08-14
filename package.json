@@ -121,6 +121,7 @@
     "verify:canonical-learning-fact-identity": "tsx ./scripts/data-governance/verify-canonical-learning-fact-identity.mjs",
     "db:backfill-cumulative-attainment": "tsx ./scripts/db/backfill-cumulative-attainment.ts",
     "db:reconcile-teacher-default-classes": "tsx ./scripts/db/reconcile-teacher-default-classes.ts",
+    "db:set-ai-provider-qwen-default": "tsx ./scripts/db/set-ai-provider-qwen-default.ts",
     "test:teacher-default-class-postgres": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=react-server\" tsx ./scripts/tests/test-teacher-default-class-postgres.ts",
     "test:smart-lesson-real-e2e": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=react-server\" tsx ./scripts/tests/run-smart-lesson-real-e2e.ts",
     "test:teacher-launch-producer-inventory": "vitest run src/features/teacher/__tests__/teacher-launch-producer-inventory.test.ts",

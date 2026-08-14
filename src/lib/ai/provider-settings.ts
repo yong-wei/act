@@ -399,6 +399,21 @@ export function getModelRuntimeOptions(settings: AIProviderSettings, providerId:
     ?.options;
 }
 
+export function withSiliconFlowQwenDefault(settings: AIProviderSettings): AIProviderSettings {
+  return {
+    ...settings,
+    providers: settings.providers.map((provider) => {
+      if (
+        provider.id !== SILICONFLOW_PROVIDER_ID
+        || (provider.selectedModel !== '' && provider.selectedModel !== 'deepseek-ai/DeepSeek-V4-Flash')
+      ) {
+        return provider;
+      }
+      return { ...provider, selectedModel: DEFAULT_SILICONFLOW_MODEL };
+    }),
+  };
+}
+
 export function redactAIProviderSettings(settings: AIProviderSettings): AIProviderSettings {
   return {
     activeProvider: settings.activeProvider,
