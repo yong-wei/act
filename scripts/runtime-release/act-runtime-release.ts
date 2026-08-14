@@ -15,7 +15,7 @@ import { inspectPublishedRuntimeBlobRelease, inspectPublishedRuntimeRelease } fr
 import {
   createSshRuntimeReleaseObjectStore,
   importV1RuntimeBlobReleaseViaSsh,
-  publishRuntimeBlobReleaseLocally,
+  publishRuntimeBlobReleaseLocallyWithMetrics,
   publishRuntimeReleaseViaSsh,
   verifyPublishedRuntimeBlobReleaseViaSsh,
   verifyPublishedRuntimeReleaseViaSsh,
@@ -39,9 +39,9 @@ function usage() {
   return [
     'Usage:',
     '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>]',
-    '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] --output <manifest.json> [--receipt-output <receipt.json>]',
+    '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] --output <manifest.json> [--receipt-output <receipt.json>] [--daily-report-output <report.json>]',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--format v1|v2] [--output <closure.json>]',
-    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --manifest <manifest.json> --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--parent-manifest <manifest.json>] [--credential-profile <profile>] [--output <receipt.json>]',
+    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --manifest <manifest.json> --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--parent-manifest <manifest.json>] [--credential-profile <profile>] [--daily-report-output <report.json>] [--output <receipt.json>]',
     '  act-runtime-release import-v1 --source-release-id <immutable-v1-release-id> --source-manifest-sha256 <sha256> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <manifest.json>]',
@@ -59,6 +59,59 @@ async function writeOutput(output: string | undefined, value: unknown) {
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, serialized, 'utf8');
   process.stdout.write(`${JSON.stringify({ output })}\n`);
+}
+
+async function writeJsonFile(output: string, value: unknown) {
+  await mkdir(path.dirname(output), { recursive: true });
+  await writeFile(output, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+}
+
+function reportIdentity(manifest: ReturnType<typeof parseRuntimeBlobReleaseManifest>) {
+  return {
+    releaseId: manifest.releaseId,
+    sourceRevision: manifest.sourceRevision,
+    manifestSha256: manifest.manifestSha256,
+    treeSha256: manifest.treeSha256,
+    fileCount: manifest.fileCount,
+    totalBytes: manifest.totalBytes,
+  };
+}
+
+function dailyPublicationPlan(snapshot: Awaited<ReturnType<typeof buildGitRuntimeBlobReleaseSnapshot>>) {
+  return {
+    schemaVersion: 'runtime-blob-daily-publication-report.v1',
+    phase: 'planned',
+    release: reportIdentity(snapshot.manifest),
+    parent: snapshot.parentManifest ? reportIdentity(snapshot.parentManifest) : null,
+    deltaProof: {
+      inheritedLogicalFileCount: snapshot.stats.reusedFileCount,
+      inheritedLogicalBytes: snapshot.stats.reusedBytes,
+      bodyHashedUniqueGitBlobCount: snapshot.stats.hashedFileCount,
+      bodyHashedBytes: snapshot.stats.hashedBytes,
+    },
+    capacityProjection: {
+      logicalReleaseBytes: snapshot.manifest.totalBytes,
+      estimatedNewBlobBytes: snapshot.stats.hashedBytes,
+    },
+  };
+}
+
+async function readDailyPublicationPlan(output: string, manifest: ReturnType<typeof parseRuntimeBlobReleaseManifest>) {
+  const value: unknown = JSON.parse(await readFile(output, 'utf8'));
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Daily publication report is invalid.');
+  }
+  const report = value as { schemaVersion?: unknown; phase?: unknown; release?: Record<string, unknown> };
+  if (
+    report.schemaVersion !== 'runtime-blob-daily-publication-report.v1'
+    || report.phase !== 'planned'
+    || report.release?.releaseId !== manifest.releaseId
+    || report.release?.manifestSha256 !== manifest.manifestSha256
+    || report.release?.treeSha256 !== manifest.treeSha256
+  ) {
+    throw new Error('Daily publication report does not bind the planned immutable manifest.');
+  }
+  return value as Record<string, unknown>;
 }
 
 function sshBridgeOptions() {
@@ -166,6 +219,8 @@ async function main() {
     if (receiptOutput) {
       await writeOutput(receiptOutput, buildRuntimeBlobReleaseReceipt(snapshot.manifest));
     }
+    const dailyReportOutput = argument('--daily-report-output');
+    if (dailyReportOutput) await writeJsonFile(dailyReportOutput, dailyPublicationPlan(snapshot));
     return;
   }
   if (command === 'verify-media-closure') {
@@ -239,7 +294,13 @@ async function main() {
         const snapshot = await openPlannedGitManifest(sourceRevision);
         const expectedReleaseId = deriveRuntimeReleaseId(snapshot.manifest.sourceRevision, snapshot.manifest.treeSha256);
         if (releaseId !== expectedReleaseId) throw new Error(`Release id does not bind this runtime source identity. Run plan and use: ${expectedReleaseId}`);
-        return publishRuntimeBlobReleaseLocally({ snapshot, manifest: snapshot.manifest, local: localPublisherOptions() });
+        const outcome = await publishRuntimeBlobReleaseLocallyWithMetrics({ snapshot, manifest: snapshot.manifest, local: localPublisherOptions() });
+        const dailyReportOutput = argument('--daily-report-output');
+        if (dailyReportOutput) {
+          const planned = await readDailyPublicationPlan(dailyReportOutput, snapshot.manifest);
+          await writeJsonFile(dailyReportOutput, { ...planned, phase: 'published', transfer: outcome.metrics });
+        }
+        return outcome.receipt;
       })();
     await writeOutput(argument('--output'), receipt);
     return;

@@ -26,6 +26,7 @@ assert.match(source, /publishRuntimeReleaseViaSsh/, 'streaming publish must use 
 assert.match(source, /publishRuntimeBlobReleaseLocally/, 'v2 streaming publish must use the local operator transport');
 assert.match(source, /openPlannedGitManifest/, 'v2 streaming publish must reuse the already planned manifest rather than rebuild and rehash it');
 assert.match(source, /--manifest <manifest\.json>/, 'v2 streaming publish must require an immutable planned manifest');
+assert.match(source, /--daily-report-output <report\.json>/, 'v2 CLI must emit a separately mutable operational report without extending the immutable receipt');
 assert.doesNotMatch(source, /publishRuntimeBlobReleaseViaSsh/, 'daily v2 publishing must not retain the ECS SSH writer path');
 assert.match(source, /importV1RuntimeBlobReleaseViaSsh/, 'the one-time v1 import must use the SSH source-authoritative transport');
 assert.match(source, /--source-release-id <immutable-v1-release-id>/, 'v1 import must require an immutable source release rather than a selector alias');
@@ -110,6 +111,7 @@ const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-release-cli
 try {
   const output = path.join(temporary, 'manifest.json');
   const receiptOutput = path.join(temporary, 'release-receipt.json');
+  const dailyReportOutput = path.join(temporary, 'daily-publication-report.json');
   const gitRuntimeRoot = path.join(temporary, 'course-content', 'runtime');
   fs.mkdirSync(path.join(gitRuntimeRoot, 'lessons', '1-1'), { recursive: true });
   fs.writeFileSync(path.join(gitRuntimeRoot, 'lessons', '1-1', 'lesson.json'), '{"id":"1-1"}\n');
@@ -126,13 +128,23 @@ try {
   const sourceRevision = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: temporary, encoding: 'utf8' }).stdout.trim();
   let result = spawnSync('git', ['update-ref', 'refs/remotes/origin/integration', sourceRevision], { cwd: temporary, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
-  const buildManifest = spawnSync('npx', ['tsx', script, 'build-manifest', '--repo-root', temporary, '--source-revision', sourceRevision, '--format', 'v2', '--output', output, '--receipt-output', receiptOutput], {
+  const buildManifest = spawnSync('npx', ['tsx', script, 'build-manifest', '--repo-root', temporary, '--source-revision', sourceRevision, '--format', 'v2', '--output', output, '--receipt-output', receiptOutput, '--daily-report-output', dailyReportOutput], {
     cwd: root,
     encoding: 'utf8',
   });
   assert.equal(buildManifest.status, 0, buildManifest.stderr);
   assert.equal(JSON.parse(fs.readFileSync(output, 'utf8')).schemaVersion, 'act-runtime-release.v2');
   assert.equal(JSON.parse(fs.readFileSync(receiptOutput, 'utf8')).schemaVersion, 'act-runtime-release-receipt.v2');
+  const dailyReport = JSON.parse(fs.readFileSync(dailyReportOutput, 'utf8'));
+  assert.equal(dailyReport.schemaVersion, 'runtime-blob-daily-publication-report.v1');
+  assert.equal(dailyReport.phase, 'planned');
+  assert.equal(dailyReport.release.sourceRevision, sourceRevision);
+  assert.deepEqual(dailyReport.deltaProof, {
+    inheritedLogicalFileCount: 0,
+    inheritedLogicalBytes: 0,
+    bodyHashedUniqueGitBlobCount: 1,
+    bodyHashedBytes: Buffer.byteLength('{"id":"1-1"}\n'),
+  });
   assert.match(JSON.stringify(JSON.parse(fs.readFileSync(output, 'utf8'))), /gitObjectId/, 'Git-backed v2 manifests must bind each logical file to its Git blob identity');
   const parentPlan = spawnSync('npx', ['tsx', script, 'plan', '--repo-root', temporary, '--source-revision', sourceRevision, '--format', 'v2', '--parent-manifest', output], {
     cwd: root,

@@ -14,6 +14,7 @@ import {
   importV1RuntimeBlobReleaseViaSsh,
   publishRuntimeBlobReleaseViaSsh,
   publishRuntimeBlobReleaseLocally,
+  publishRuntimeBlobReleaseLocallyWithMetrics,
   publishRuntimeReleaseViaSsh,
   verifyPublishedRuntimeBlobReleaseViaSsh,
   verifyPublishedRuntimeReleaseViaSsh,
@@ -109,7 +110,7 @@ function consume() {
       const frame = buffer.subarray(0, newline).toString();
       if (frame === 'DONE') {
         buffer = buffer.subarray(newline + 1);
-        process.stdout.write(JSON.stringify({ status: 'complete', releaseId: manifest.releaseId, manifestSha256: manifest.manifestSha256, wireSha256, receiptWireSha256, treeSha256: manifest.treeSha256, fileCount: manifest.fileCount, totalBytes: manifest.totalBytes }) + '\\n');
+        process.stdout.write(JSON.stringify({ status: 'complete', releaseId: manifest.releaseId, manifestSha256: manifest.manifestSha256, wireSha256, receiptWireSha256, treeSha256: manifest.treeSha256, fileCount: manifest.fileCount, totalBytes: manifest.totalBytes, putCount: missingFiles.length + 2, inheritedBlobCount: 0, metadataCheckCount: missingFiles.length }) + '\\n');
         process.exit(0);
       }
       const header = JSON.parse(frame);
@@ -396,6 +397,34 @@ describe('source-authoritative SSH runtime release transport', () => {
     expect(calls[0]?.command).toBe('/usr/bin/python3');
     expect(calls[0]?.args).toContain('--credential-mode');
     expect(calls[0]?.args).toContain('local');
+  });
+
+  it('returns transfer metrics separately from the immutable verification receipt', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-release-local-metrics-'));
+    roots.push(root);
+    await mkdir(path.join(root, 'course-content', 'runtime', 'lessons'), { recursive: true });
+    await writeFile(path.join(root, 'course-content', 'runtime', 'lessons', 'lesson.json'), '{"id":"metrics"}\\n');
+    await execFile('git', ['init', '-b', 'integration'], { cwd: root });
+    await execFile('git', ['config', 'user.email', 'test@example.invalid'], { cwd: root });
+    await execFile('git', ['config', 'user.name', 'Test'], { cwd: root });
+    await execFile('git', ['add', '.'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'fixture'], { cwd: root });
+    const commit = (await execFile('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const snapshot = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision: commit, integrationRef: 'integration' });
+    const calls: Array<{ command: string; args: readonly string[] }> = [];
+    const outcome = await publishRuntimeBlobReleaseLocallyWithMetrics({
+      snapshot,
+      manifest: snapshot.manifest,
+      local: localConfig,
+      dependencies: { spawn: streamingBridgeSpawnFactory(calls) },
+    });
+    expect(outcome.receipt).toMatchObject({ releaseId: snapshot.manifest.releaseId });
+    expect(outcome.metrics).toEqual({
+      putCount: 3,
+      inheritedBlobCount: 0,
+      metadataCheckCount: 1,
+      uploadedBlobBytes: Buffer.byteLength('{"id":"metrics"}\\n'),
+    });
   });
 
   it('binds a delta publication to the immutable parent identity without sending a local proof cache', async () => {

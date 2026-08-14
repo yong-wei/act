@@ -512,7 +512,22 @@ type PublishControlMessage = {
   treeSha256?: unknown;
   fileCount?: unknown;
   totalBytes?: unknown;
+  putCount?: unknown;
+  inheritedBlobCount?: unknown;
+  metadataCheckCount?: unknown;
 };
+
+export interface RuntimeBlobReleasePublishMetrics {
+  putCount: number;
+  inheritedBlobCount: number;
+  metadataCheckCount: number;
+  uploadedBlobBytes: number;
+}
+
+export interface RuntimeBlobReleasePublishOutcome {
+  receipt: RuntimeBlobReleaseVerificationReceipt;
+  metrics: RuntimeBlobReleasePublishMetrics;
+}
 
 function parsePublishControlLine(line: string, context: string): PublishControlMessage {
   let value: unknown;
@@ -644,6 +659,27 @@ function parseBlobPublishReceipt(message: PublishControlMessage, manifest: ActRu
     treeSha256: manifest.treeSha256,
     fileCount: manifest.fileCount,
     totalBytes: manifest.totalBytes,
+  };
+}
+
+function parseBlobPublishOutcome(
+  message: PublishControlMessage,
+  manifest: ActRuntimeBlobReleaseManifest,
+  uploadedBlobBytes: number,
+): RuntimeBlobReleasePublishOutcome {
+  const receipt = parseBlobPublishReceipt(message, manifest);
+  const metricValues = [message.putCount, message.inheritedBlobCount, message.metadataCheckCount];
+  if (metricValues.some((value) => !Number.isSafeInteger(value) || (value as number) < 0)) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publisher bridge completion metrics are invalid.');
+  }
+  return {
+    metrics: {
+      putCount: message.putCount as number,
+      inheritedBlobCount: message.inheritedBlobCount as number,
+      metadataCheckCount: message.metadataCheckCount as number,
+      uploadedBlobBytes,
+    },
+    receipt,
   };
 }
 
@@ -794,7 +830,8 @@ async function publishRuntimeBlobReleaseStream(input: {
     }
     if (!existing) sourcesByKey.set(file.objectKey, file);
   }
-  let published: RuntimeBlobReleaseVerificationReceipt;
+  let published: RuntimeBlobReleasePublishOutcome;
+  let uploadedBlobBytes = 0;
   try {
     await writeChild(child, `${JSON.stringify(header)}\n`, 'blob publish');
     const first = await lines.next();
@@ -804,7 +841,7 @@ async function publishRuntimeBlobReleaseStream(input: {
     const control = parsePublishControlLine(first.value, 'Blob publish');
     if (control.status === 'complete') {
       child.stdin.end();
-      published = parseBlobPublishReceipt(control, input.manifest);
+      published = parseBlobPublishOutcome(control, input.manifest, uploadedBlobBytes);
     } else {
       if (control.status !== 'stream' || !Array.isArray(control.missingKeys) || control.missingKeys.some((key) => typeof key !== 'string')) {
         throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge returned an invalid release state.');
@@ -816,6 +853,7 @@ async function publishRuntimeBlobReleaseStream(input: {
           throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge requested an unexpected or duplicate source blob.');
         }
         missing.add(key);
+        uploadedBlobBytes += sourcesByKey.get(key)?.sizeBytes ?? 0;
       }
       for (const requestedKey of control.missingKeys) {
         const key = requestedKey as string;
@@ -836,7 +874,7 @@ async function publishRuntimeBlobReleaseStream(input: {
       if (finalLine.done || typeof finalLine.value !== 'string') {
         throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge closed before returning a completion receipt.');
       }
-      published = parseBlobPublishReceipt(parsePublishControlLine(finalLine.value, 'Blob publish'), input.manifest);
+      published = parseBlobPublishOutcome(parsePublishControlLine(finalLine.value, 'Blob publish'), input.manifest, uploadedBlobBytes);
     }
   } catch (error) {
     if (child.exitCode === null && child.signalCode === null) child.kill();
@@ -861,7 +899,7 @@ export async function publishRuntimeBlobReleaseViaSsh(input: {
   ssh: RuntimeReleaseSshPublisherConfig;
   dependencies?: RuntimeReleaseSshPublisherDependencies;
 }) {
-  return publishRuntimeBlobReleaseStream({
+  return (await publishRuntimeBlobReleaseStream({
     snapshot: input.snapshot,
     manifest: input.manifest,
     bridge: {
@@ -871,10 +909,27 @@ export async function publishRuntimeBlobReleaseViaSsh(input: {
       }),
     },
     spawn: input.dependencies?.spawn,
-  });
+  })).receipt;
 }
 
 export async function publishRuntimeBlobReleaseLocally(input: {
+  snapshot: GitRuntimeBlobReleaseSnapshot;
+  manifest: ActRuntimeBlobReleaseManifest;
+  local: RuntimeReleaseLocalPublisherConfig;
+  dependencies?: RuntimeReleaseSshPublisherDependencies;
+}) {
+  return (await publishRuntimeBlobReleaseStream({
+    snapshot: input.snapshot,
+    manifest: input.manifest,
+    bridge: {
+      command: input.local.pythonBinary,
+      args: buildRuntimeReleaseLocalPublisherArgv(input.local, runtimeBlobReleasePrefix(input.manifest.releaseId)),
+    },
+    spawn: input.dependencies?.spawn,
+  })).receipt;
+}
+
+export async function publishRuntimeBlobReleaseLocallyWithMetrics(input: {
   snapshot: GitRuntimeBlobReleaseSnapshot;
   manifest: ActRuntimeBlobReleaseManifest;
   local: RuntimeReleaseLocalPublisherConfig;

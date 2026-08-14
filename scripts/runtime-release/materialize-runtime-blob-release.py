@@ -17,6 +17,7 @@ import shutil
 import stat
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple
 
@@ -686,6 +687,7 @@ def audit(args: argparse.Namespace) -> Dict[str, Any]:
 
     This command is deliberately separate from daily prepare/select paths.
     """
+    started = time.monotonic()
     view_root = require_real_directory(Path(args.view_root), "view root")
     release_id = require_release_id(args.release_id)
     view = view_root / "views" / release_id
@@ -725,6 +727,7 @@ def audit(args: argparse.Namespace) -> Dict[str, Any]:
         "auditedBlobCount": len(selected),
         "auditedBytes": audited_bytes,
         "materializationSha256": receipt["materializationSha256"],
+        "elapsedMilliseconds": round((time.monotonic() - started) * 1000, 3),
     }
 
 

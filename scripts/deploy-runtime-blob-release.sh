@@ -82,11 +82,15 @@ mkdir -p "$artifact_dir"
 manifest="$artifact_dir/manifest.json"
 release_receipt="$artifact_dir/release-receipt.json"
 verification_receipt="$artifact_dir/publisher-verification.json"
+daily_report="$artifact_dir/daily-publication-report.json"
+build_started_seconds=$SECONDS
 build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_revision" --format v2 --output "$manifest" --receipt-output "$release_receipt")
+build_args+=(--daily-report-output "$daily_report")
 if [[ -n "$parent_manifest" ]]; then
   build_args+=(--parent-manifest "$parent_manifest")
 fi
 npx tsx "$CLI" "${build_args[@]}" >/dev/null
+build_elapsed_milliseconds=$(( (SECONDS - build_started_seconds) * 1000 ))
 release_id="$(python3 - "$manifest" <<'PY'
 import json
 import sys
@@ -129,10 +133,27 @@ for field in ("releaseId", "manifestSha256", "treeSha256"):
 if selection.get("releaseId") != sys.argv[2]:
     raise SystemExit("active runtime selection does not match --expected-active-release")
 PY
+    python3 - "$daily_report" "$build_elapsed_milliseconds" <<'PY'
+import json
+import sys
+
+path, build_ms = sys.argv[1:]
+with open(path, encoding="utf-8") as handle:
+    report = json.load(handle)
+if report.get("phase") != "planned":
+    raise SystemExit("daily publication report is not in the planned phase")
+report["phase"] = "no-runtime-change"
+report["transfer"] = {"putCount": 0, "inheritedBlobCount": 0, "metadataCheckCount": 0, "uploadedBlobBytes": 0}
+report["timingMilliseconds"] = {"manifestPlanning": int(build_ms), "publication": 0, "materializationAndSmoke": 0}
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(report, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+PY
     printf '{"releaseId":"%s","noRuntimeChange":true}\n' "$matching_parent_release_id"
     exit 0
   fi
 fi
+publish_started_seconds=$SECONDS
 
 publish_args=(
   publish-streaming --repo-root "$ROOT_DIR" --source-revision "$source_revision" --release-id "$release_id" --format v2 --manifest "$manifest" --bucket "$BUCKET"
@@ -140,7 +161,7 @@ publish_args=(
   --ossutil-path "$ACT_RUNTIME_LOCAL_OSSUTIL" --ossutil-sha256 "$ACT_RUNTIME_LOCAL_OSSUTIL_SHA256"
   --identity-command-path "$ACT_RUNTIME_LOCAL_IDENTITY_COMMAND" --identity-command-sha256 "$ACT_RUNTIME_LOCAL_IDENTITY_COMMAND_SHA256"
   --operator-account-id "$ACT_RUNTIME_OPERATOR_ACCOUNT_ID" --operator-principal-arn "$ACT_RUNTIME_OPERATOR_PRINCIPAL_ARN"
-  --lock-dir "$ACT_RUNTIME_PUBLISH_LOCK_DIR" --spool-dir "$ACT_RUNTIME_PUBLISH_SPOOL_DIR" --output "$verification_receipt"
+  --lock-dir "$ACT_RUNTIME_PUBLISH_LOCK_DIR" --spool-dir "$ACT_RUNTIME_PUBLISH_SPOOL_DIR" --daily-report-output "$daily_report" --output "$verification_receipt"
 )
 if [[ -n "$parent_manifest" ]]; then
   publish_args+=(--parent-manifest "$parent_manifest")
@@ -149,6 +170,7 @@ if [[ -n "${ACT_RUNTIME_CREDENTIAL_PROFILE:-}" ]]; then
   publish_args+=(--credential-profile "$ACT_RUNTIME_CREDENTIAL_PROFILE")
 fi
 npx tsx "$CLI" "${publish_args[@]}" >/dev/null
+publish_elapsed_milliseconds=$(( (SECONDS - publish_started_seconds) * 1000 ))
 
 copy_atomic() {
   local local_path="$1"
@@ -167,5 +189,25 @@ for name in manifest.json release-receipt.json publisher-verification.json; do
   remote "chmod 0600 '$REMOTE_ARTIFACT_ROOT/$release_id/$name.tmp' && mv '$REMOTE_ARTIFACT_ROOT/$release_id/$name.tmp' '$REMOTE_ARTIFACT_ROOT/$release_id/$name'"
 done
 
+activation_started_seconds=$SECONDS
 remote "'$REMOTE_ACTIVATOR' --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'"
+activation_elapsed_milliseconds=$(( (SECONDS - activation_started_seconds) * 1000 ))
+python3 - "$daily_report" "$build_elapsed_milliseconds" "$publish_elapsed_milliseconds" "$activation_elapsed_milliseconds" <<'PY'
+import json
+import sys
+
+path, build_ms, publish_ms, activation_ms = sys.argv[1:]
+with open(path, encoding="utf-8") as handle:
+    report = json.load(handle)
+if report.get("phase") != "published" or not isinstance(report.get("transfer"), dict):
+    raise SystemExit("daily publication report is not a completed local publication")
+report["timingMilliseconds"] = {
+    "manifestPlanning": int(build_ms),
+    "publication": int(publish_ms),
+    "materializationAndSmoke": int(activation_ms),
+}
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(report, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+PY
 printf '{"releaseId":"%s","artifactDir":"%s","runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$artifact_dir"
