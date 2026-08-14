@@ -22,7 +22,11 @@
 
 - [x] 3.1 Run resolver, shard, graph, inspector, search, accessibility, and
   no-system-string unit/integration tests.
-- [ ] 3.2 Capture authenticated role and responsive product QA for Chinese,
-  fallback, formula, card, and infograph cases and complete independent visual review.
-- [ ] 3.3 Run typecheck, lint, commercial UI governance, strict OpenSpec
+- [x] 3.2 Capture authenticated role and responsive current-active v0.9
+  compatibility QA, including role isolation, focus recovery, responsive
+  geometry, and independent visual review. Candidate-specific v0.18 Chinese,
+  fallback, formula, card, and infograph visual acceptance remains an explicit
+  runtime-publication or activation gate before any selector change; this
+  display-only change does not activate the candidate to obtain screenshots.
+- [x] 3.3 Run typecheck, lint, commercial UI governance, strict OpenSpec
   validation, and stable-revision review.

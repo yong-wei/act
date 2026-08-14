@@ -65,6 +65,16 @@ same-envelope canonical-id label drift before merge. v0.9 snapshots without
 v2 evidence retain their existing `preferred_labels` projection and expose no
 aliases.
 
+### 7. QA timing boundary (2026-08-15)
+
+Current authenticated product QA verifies the active v0.9 compatibility
+surface, role isolation, responsive geometry, focus recovery, and no-system-
+string boundary. It does not claim visual acceptance of the non-activated
+v0.18 candidate. Candidate-specific Chinese labels, fallback formulae, cards,
+and infographs remain an explicit runtime-publication or activation gate before
+any Authority selector changes; this display-only change must not switch an
+Active pointer merely to obtain screenshots.
+
 ## Risks / Trade-offs
 
 - Some v0.18 nodes will retain reviewed English or mathematical display names;
