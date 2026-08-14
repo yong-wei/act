@@ -13,15 +13,20 @@ SCRIPT = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
 HELPER_NAME = ".act-runtime-blobs"
 TEXTBOOK_CACHE_PATHS = (
+    "resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8",
+    "resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin",
+    "resources/textbook-hybrid-retrieval/bge-m3/vectors.f32",
+)
+LEGACY_TEXTBOOK_CACHE_PATHS = (
     "resources/textbook-retrieval/bodies.utf8",
     "resources/textbook-retrieval/lexical-postings.bin",
     "resources/textbook-retrieval/vectors.f32",
 )
 TEXTBOOK_CACHE_CONTENTS = {
     "lessons/1-1/lesson.json": b'{"lesson":"1-1"}\n',
-    "resources/textbook-retrieval/bodies.utf8": b"body-one\n",
-    "resources/textbook-retrieval/lexical-postings.bin": b"postings\n",
-    "resources/textbook-retrieval/vectors.f32": b"vector\n",
+    "resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8": b"body-one\n",
+    "resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin": b"postings\n",
+    "resources/textbook-hybrid-retrieval/bge-m3/vectors.f32": b"vector\n",
 }
 
 
@@ -113,6 +118,24 @@ def no_cache_materialization_receipt(manifest_path: Path):
     return dict(base, materializationSha256=digest(base))
 
 
+def legacy_cache_materialization_receipt(manifest_path: Path):
+    wire = manifest_path.read_bytes()
+    manifest = json.loads(wire.decode("utf-8"))
+    base = {
+        "schemaVersion": "runtime-blob-materialization.v2",
+        "releaseId": manifest["releaseId"],
+        "manifestVersion": "act-runtime-release.v2",
+        "manifestSha256": manifest["manifestSha256"],
+        "manifestWireSha256": hashlib.sha256(wire).hexdigest(),
+        "treeSha256": manifest["treeSha256"],
+        "fileCount": manifest["fileCount"],
+        "totalBytes": manifest["totalBytes"],
+        "cachedLogicalPaths": list(LEGACY_TEXTBOOK_CACHE_PATHS),
+        "textbookRetrievalCacheEnabled": True,
+    }
+    return dict(base, materializationSha256=digest(base))
+
+
 class RuntimeBlobMaterializationTests(unittest.TestCase):
     def call(self, *args, expect_ok=True):
         result = subprocess.run(["python3", str(SCRIPT), *args], text=True, capture_output=True)
@@ -137,7 +160,7 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             blob_root, manifest, receipt, release_id = write_release(root, {
                 "lessons/1-1/lesson.json": b'{"lesson":"1-1"}\n',
                 "lessons/1-1/media/copy.json": b'{"lesson":"1-1"}\n',
-                "resources/textbook-retrieval/manifest.json": b'{"version":1}\n',
+                "resources/textbook-hybrid-retrieval/bge-m3/manifest.json": b'{"version":1}\n',
             })
             view_root = root / "views-root"
             prepared = self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
@@ -347,6 +370,38 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             )
             self.assertIn("cache binding", mismatched.stderr)
 
+    def test_accepts_legacy_cache_receipt_for_existing_materialized_view(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy_contents = {
+                "lessons/1-1/lesson.json": TEXTBOOK_CACHE_CONTENTS["lessons/1-1/lesson.json"],
+                LEGACY_TEXTBOOK_CACHE_PATHS[0]: b"body-one\n",
+                LEGACY_TEXTBOOK_CACHE_PATHS[1]: b"postings\n",
+                LEGACY_TEXTBOOK_CACHE_PATHS[2]: b"vector\n",
+            }
+            blob_root, manifest, receipt, release_id = write_release(root, legacy_contents)
+            view_root = root / "views-root"
+            self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+            )
+            self.attach_helper(view_root, release_id, blob_root)
+            view = view_root / "views" / release_id
+            make_view_writable(view)
+            for relative in LEGACY_TEXTBOOK_CACHE_PATHS:
+                logical = view / relative
+                body = (blob_root / hashlib.sha256(legacy_contents[relative]).hexdigest()).read_bytes()
+                logical.unlink()
+                logical.write_bytes(body)
+                os.chmod(logical, 0o444)
+            receipt_path = view / LOCAL_RECEIPT
+            os.chmod(receipt_path, 0o644)
+            receipt_path.write_bytes(canonical(legacy_cache_materialization_receipt(manifest)) + b"\n")
+            verified = self.call("verify", "--release-id", release_id, "--view-root", str(view_root))
+            self.assertEqual(verified["cachedLogicalPaths"], list(LEGACY_TEXTBOOK_CACHE_PATHS))
+            full = self.call("audit", "--release-id", release_id, "--view-root", str(view_root), "--mode", "full")
+            self.assertEqual(full["auditedBlobCount"], 4)
+
     def test_rejects_altered_textbook_cache_file(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -360,7 +415,7 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.attach_helper(view_root, release_id, blob_root)
             view = view_root / "views" / release_id
             make_view_writable(view)
-            cached = view / "resources/textbook-retrieval/vectors.f32"
+            cached = view / "resources/textbook-hybrid-retrieval/bge-m3/vectors.f32"
             os.chmod(cached, 0o644)
             cached.write_bytes(b"tampered-vector\n")
             rejected = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
@@ -378,9 +433,9 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.attach_helper(view_root, release_id, blob_root)
             view = view_root / "views" / release_id
             make_view_writable(view)
-            cached = view / "resources/textbook-retrieval/bodies.utf8"
+            cached = view / "resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8"
             cached.unlink()
-            os.symlink(str(blob_root / hashlib.sha256(TEXTBOOK_CACHE_CONTENTS["resources/textbook-retrieval/bodies.utf8"]).hexdigest()), str(cached))
+            os.symlink(str(blob_root / hashlib.sha256(TEXTBOOK_CACHE_CONTENTS["resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8"]).hexdigest()), str(cached))
             rejected = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
             self.assertIn("declared cache entry is not a regular file", rejected.stderr)
 
@@ -452,7 +507,7 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.attach_helper(view_root, release_id, blob_root)
             view = view_root / "views" / release_id
             make_view_writable(view)
-            (view / "resources/textbook-retrieval/extra.bin").write_bytes(b"extra\n")
+            (view / "resources/textbook-hybrid-retrieval/bge-m3/extra.bin").write_bytes(b"extra\n")
             rejected = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
             self.assertIn("non-symlink logical file", rejected.stderr)
 
@@ -476,7 +531,7 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             root = Path(directory)
             blob_root, manifest, receipt, release_id = write_release(root, {
                 "lessons/1-1/lesson.json": b"ok\n",
-                "resources/textbook-retrieval/manifest.json": b"{}\n",
+                "resources/textbook-hybrid-retrieval/bge-m3/manifest.json": b"{}\n",
             })
             view_root = root / "views-root"
             self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
@@ -509,6 +564,28 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             damaged = view_root / "views" / release_id / HELPER_NAME / hashlib.sha256(b"b\n").hexdigest()
             os.chmod(damaged, 0o644)
             damaged.write_bytes(b"broken\n")
+            rejected = self.call("audit", "--release-id", release_id, "--view-root", str(view_root), "--mode", "full", expect_ok=False)
+            self.assertIn("audit content", rejected.stderr)
+
+    def test_verify_checks_blob_topology_without_rehashing_every_logical_blob(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, {
+                "lessons/1-1/a.json": b"a\\n",
+                "lessons/1-1/b.json": b"b\\n",
+                "lessons/1-1/c.json": b"c\\n",
+            })
+            view_root = root / "views-root"
+            self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.attach_helper(view_root, release_id, blob_root)
+
+            damaged = view_root / "views" / release_id / HELPER_NAME / hashlib.sha256(b"b\\n").hexdigest()
+            os.chmod(damaged, 0o644)
+            damaged.write_bytes(b"x\\n")
+            os.chmod(damaged, 0o444)
+
+            verified = self.call("verify", "--release-id", release_id, "--view-root", str(view_root))
+            self.assertEqual(verified["releaseId"], release_id)
             rejected = self.call("audit", "--release-id", release_id, "--view-root", str(view_root), "--mode", "full", expect_ok=False)
             self.assertIn("audit content", rejected.stderr)
 

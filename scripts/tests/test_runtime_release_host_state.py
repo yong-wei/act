@@ -13,15 +13,15 @@ MATERIALIZER = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
 HELPER_NAME = ".act-runtime-blobs"
 TEXTBOOK_CACHE_PATHS = (
-    "resources/textbook-retrieval/bodies.utf8",
-    "resources/textbook-retrieval/lexical-postings.bin",
-    "resources/textbook-retrieval/vectors.f32",
+    "resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8",
+    "resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin",
+    "resources/textbook-hybrid-retrieval/bge-m3/vectors.f32",
 )
 TEXTBOOK_CACHE_CONTENTS = {
     "lessons/1-1/lesson.json": b'{"lesson":"1-1"}\n',
-    "resources/textbook-retrieval/bodies.utf8": b"body-one\n",
-    "resources/textbook-retrieval/lexical-postings.bin": b"postings\n",
-    "resources/textbook-retrieval/vectors.f32": b"vector\n",
+    "resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8": b"body-one\n",
+    "resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin": b"postings\n",
+    "resources/textbook-hybrid-retrieval/bge-m3/vectors.f32": b"vector\n",
 }
 
 
@@ -577,7 +577,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
             self.make_view_writable(fixture["view"])
-            (fixture["view"] / "resources/textbook-retrieval/extra.bin").write_bytes(b"extra\n")
+            (fixture["view"] / "resources/textbook-hybrid-retrieval/bge-m3/extra.bin").write_bytes(b"extra\n")
             rejected = self.call(
                 "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
                 "--release-id", fixture["release_id"],
