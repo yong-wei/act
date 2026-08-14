@@ -133,6 +133,15 @@ export const PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS = [
   'scripts/actkg-release/schemas/public-bundle',
 ] as const;
 
+/** Independent adapter / schema paths bound only for public Bundle v2 intake. */
+export const PUBLIC_BUNDLE_V2_ADAPTER_CAPTURE_PATHS = [
+  ...PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS,
+  'scripts/actkg-release/public-bundle-v2.ts',
+  'scripts/actkg-release/public-bundle-v2-admission.ts',
+  'scripts/actkg-release/bundle-compatibility-registry-v2.ts',
+  'scripts/actkg-release/schemas/public-bundle-v2',
+] as const;
+
 /** Frozen historical adapter paths bound for legacy-exact routing. */
 export const LEGACY_V02_ADAPTER_CAPTURE_PATHS = [
   'scripts/actkg-release/ctkg-0-2-aggregate-release.ts',
