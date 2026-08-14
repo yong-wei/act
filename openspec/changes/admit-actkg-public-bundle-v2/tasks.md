@@ -19,11 +19,16 @@
 
 ## 3. Verification
 
-- [ ] 3.1 Run v2 positive and negative adapter tests plus the complete v1 bundle suite,
+- [x] 3.1 Run v2 positive and negative adapter tests plus the complete v1 bundle suite,
   including raw upstream export loading without `.git`, source tag/commit drift,
   missing source revision, raw Manifest/SHA256SUMS pins, and admission-time
   publication/source tag target checks.
-- [ ] 3.2 Run import compile/type checks, lint, and affected database-backed bundle tests.
+- [x] 3.2 Run import compile/type checks, lint, and affected database-backed bundle tests.
+  - The v2 change has no database importer by design. The unchanged v1 candidate-import
+    PostgreSQL harness was inspected after two concurrent-write failures: its importer,
+    test, v1 loader, Prisma schema, and migrations are byte-identical to the integration
+    base and it cannot receive a v2 Bundle. Record that existing #1131 follow-up separately;
+    it is not an affected v2 admission path.
 - [x] 3.3 Validate this OpenSpec change strictly; hand the stable working-tree
   revision to the parent for review without committing or pushing here.
 
