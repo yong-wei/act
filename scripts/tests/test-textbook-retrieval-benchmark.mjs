@@ -8,7 +8,7 @@ const root = process.cwd();
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'act-textbook-benchmark-'));
 const runtimeRoot = path.join(temporary, 'runtime');
 const output = path.join(temporary, 'benchmark.json');
-const indexRoot = path.join(runtimeRoot, 'resources', 'textbook-retrieval');
+const indexRoot = path.join(runtimeRoot, 'resources', 'textbook-hybrid-retrieval', 'bge-m3');
 
 try {
   fs.mkdirSync(indexRoot, { recursive: true });
