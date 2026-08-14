@@ -18,7 +18,7 @@ import stat
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 
 MANIFEST_SCHEMA = "act-runtime-release.v2"
@@ -339,6 +339,26 @@ def copy_regular_readonly(source: Path, dest: Path) -> None:
     os.chmod(dest, 0o444)
 
 
+def copy_regular_readonly_verified(source: Path, dest: Path, entry: Dict[str, Any]) -> None:
+    value = hashlib.sha256()
+    total = 0
+    try:
+        with source.open("rb") as src, dest.open("wb") as dst:
+            for chunk in iter(lambda: src.read(1024 * 1024), b""):
+                total += len(chunk)
+                value.update(chunk)
+                dst.write(chunk)
+            dst.flush()
+            os.fsync(dst.fileno())
+        if total != entry["sizeBytes"] or value.hexdigest() != entry["sha256"]:
+            fail("cached logical file does not match manifest: %s" % entry["path"])
+        os.chmod(dest, 0o444)
+    except Exception:
+        if dest.exists() or dest.is_symlink():
+            dest.unlink()
+        raise
+
+
 def write_regular(path: Path, value: bytes) -> None:
     with path.open("wb") as handle:
         handle.write(value)
@@ -348,8 +368,34 @@ def write_regular(path: Path, value: bytes) -> None:
 
 
 def verify_view(view: Path, release_id: str, *, require_helper_contents: bool = True) -> Dict[str, Any]:
-    require_real_directory(view, "materialized view")
+    receipt, manifest = verify_view_structure(view, release_id)
+    cached_paths = set(cached_logical_paths(receipt))
+    if not require_helper_contents:
+        return receipt
     helper = require_helper_directory(view)
+    for entry in manifest["files"]:
+        logical = view / entry["path"]
+        if entry["path"] in cached_paths:
+            details = os.lstat(logical)
+            if details.st_size != entry["sizeBytes"] or hash_file(logical) != entry["sha256"]:
+                fail("materialized logical file does not match manifest content: %s" % entry["path"])
+            continue
+        try:
+            expected_blob = blob_path(helper, entry["sha256"])
+        except OSError as error:
+            fail("runtime helper target is missing: %s (%s)" % (entry["path"], error))
+        target = Path(os.path.realpath(str(logical)))
+        if target != expected_blob:
+            fail("materialized logical file points outside its manifest blob: %s" % entry["path"])
+        details = target.stat()
+        if details.st_size != entry["sizeBytes"] or hash_file(target) != entry["sha256"]:
+            fail("materialized logical file does not match manifest content: %s" % entry["path"])
+    return receipt
+
+
+def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    require_real_directory(view, "materialized view")
+    require_helper_directory(view)
     manifest, wire = parse_manifest(view / LOCAL_MANIFEST)
     if manifest["releaseId"] != release_id:
         fail("materialized view manifest release does not match requested release")
@@ -386,23 +432,11 @@ def verify_view(view: Path, release_id: str, *, require_helper_contents: bool = 
         if entry["path"] in cached_paths:
             require_regular(logical, "declared cache entry %s" % entry["path"])
             details = os.lstat(logical)
-            if details.st_size != entry["sizeBytes"] or hash_file(logical) != entry["sha256"]:
-                fail("materialized logical file does not match manifest content: %s" % entry["path"])
+            if details.st_size != entry["sizeBytes"]:
+                fail("materialized logical file size does not match manifest content: %s" % entry["path"])
             continue
         require_relative_helper_link(logical, entry["path"], entry["sha256"])
-        if not require_helper_contents:
-            continue
-        try:
-            expected_blob = blob_path(helper, entry["sha256"])
-        except OSError as error:
-            fail("runtime helper target is missing: %s (%s)" % (entry["path"], error))
-        target = Path(os.path.realpath(str(logical)))
-        if target != expected_blob:
-            fail("materialized logical file points outside its manifest blob: %s" % entry["path"])
-        details = target.stat()
-        if details.st_size != entry["sizeBytes"] or hash_file(target) != entry["sha256"]:
-            fail("materialized logical file does not match manifest content: %s" % entry["path"])
-    return expected_receipt
+    return expected_receipt, manifest
 
 
 def require_optional_helper_blob_root(view: Path, blob_root: Any) -> Path:
@@ -421,6 +455,41 @@ def with_lock(view_root: Path):
     handle = (view_root / ".runtime-blob-materialization.lock").open("a+")
     fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
     return handle
+
+
+def parent_entries(view: Path) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, Any]]:
+    receipt, manifest = verify_view_structure(view, manifest_release_id(view))
+    return {entry["path"]: entry for entry in manifest["files"]}, receipt
+
+
+def manifest_release_id(view: Path) -> str:
+    manifest, _ = parse_manifest(view / LOCAL_MANIFEST)
+    return manifest["releaseId"]
+
+
+def verify_changed_blob(blob_root: Path, entry: Dict[str, Any]) -> None:
+    blob = blob_path(blob_root, entry["sha256"])
+    if blob.stat().st_size != entry["sizeBytes"] or hash_file(blob) != entry["sha256"]:
+        fail("mounted changed blob does not match manifest: %s" % entry["path"])
+
+
+def copy_parent_cached_file(parent_view: Path, temporary: Path, relative: str, entry: Dict[str, Any]) -> bool:
+    source = parent_view / relative
+    try:
+        require_regular(source, "parent cached logical file %s" % relative)
+        details = os.lstat(source)
+    except (OSError, ValueError):
+        return False
+    if details.st_size != entry["sizeBytes"]:
+        return False
+    destination = temporary / relative
+    destination.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
+    try:
+        os.link(str(source), str(destination))
+    except OSError:
+        return False
+    os.chmod(destination, 0o444)
+    return True
 
 
 def prepare(args: argparse.Namespace) -> Dict[str, Any]:
@@ -444,21 +513,50 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
             if (result.get("textbookRetrievalCacheEnabled") is True) != cache_enabled:
                 fail("materialization receipt cache binding does not match prepare request")
             return dict(result, prepared=True, reused=True, viewPath=str(final))
+        parent_view = Path(args.parent_view) if getattr(args, "parent_view", None) else None
+        parent_by_path: Dict[str, Dict[str, Any]] = {}
+        parent_cache_enabled = False
+        if parent_view is not None:
+            parent_view = require_real_directory(parent_view, "parent materialized view")
+            parent_by_path, parent_receipt = parent_entries(parent_view)
+            parent_cache_enabled = parent_receipt.get("textbookRetrievalCacheEnabled") is True
         temporary = Path(tempfile.mkdtemp(prefix=".%s." % manifest["releaseId"], dir=str(views)))
         helper = temporary / RUNTIME_BLOB_HELPER_NAME
         helper.mkdir(mode=0o755)
+        inherited_path_count = 0
+        verified_changed_paths: List[str] = []
+        verified_changed_blobs: Set[str] = set()
+        verified_changed_blob_sizes: Dict[str, int] = {}
         for entry in manifest["files"]:
-            blob = blob_path(blob_root, entry["sha256"])
-            if blob.stat().st_size != entry["sizeBytes"] or hash_file(blob) != entry["sha256"]:
-                fail("mounted blob does not match manifest: %s" % entry["path"])
             logical = temporary / entry["path"]
             logical.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
+            parent_entry = parent_by_path.get(entry["path"])
+            inherited = parent_entry is not None and (
+                parent_entry["sizeBytes"] == entry["sizeBytes"]
+                and parent_entry["sha256"] == entry["sha256"]
+            )
+            if inherited:
+                inherited_path_count += 1
             if entry["path"] in cached_paths:
-                copy_regular_readonly(blob, logical)
-                if logical.stat().st_size != entry["sizeBytes"] or hash_file(logical) != entry["sha256"]:
-                    fail("cached logical file does not match manifest: %s" % entry["path"])
+                reused_cache = False
+                if inherited and parent_view is not None and parent_cache_enabled:
+                    reused_cache = copy_parent_cached_file(parent_view, temporary, entry["path"], entry)
+                if not reused_cache:
+                    if entry["sha256"] not in verified_changed_blobs:
+                        copy_regular_readonly_verified(blob_path(blob_root, entry["sha256"]), logical, entry)
+                        verified_changed_blobs.add(entry["sha256"])
+                        verified_changed_blob_sizes[entry["sha256"]] = entry["sizeBytes"]
+                    else:
+                        copy_regular_readonly(blob_path(blob_root, entry["sha256"]), logical)
+                    verified_changed_paths.append(entry["path"])
             else:
                 os.symlink(relative_helper_link(entry["path"], entry["sha256"]), str(logical))
+                if not inherited and entry["sha256"] not in verified_changed_blobs:
+                    verify_changed_blob(blob_root, entry)
+                    verified_changed_blobs.add(entry["sha256"])
+                    verified_changed_blob_sizes[entry["sha256"]] = entry["sizeBytes"]
+                if not inherited:
+                    verified_changed_paths.append(entry["path"])
         write_regular(temporary / LOCAL_MANIFEST, manifest_wire)
         materialization = materialization_payload(manifest, receipt, cache_enabled=cache_enabled)
         write_regular(temporary / LOCAL_RECEIPT, canonical(materialization) + b"\n")
@@ -474,7 +572,18 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
             os.fsync(directory)
         finally:
             os.close(directory)
-        return dict(result, prepared=True, reused=False, viewPath=str(final))
+        changed_paths = set(verified_changed_paths)
+        return dict(
+            result,
+            prepared=True,
+            reused=False,
+            viewPath=str(final),
+            inheritedPathCount=inherited_path_count,
+            verifiedChangedPathCount=len(verified_changed_paths),
+            verifiedChangedBytes=sum(item["sizeBytes"] for item in manifest["files"] if item["path"] in changed_paths),
+            verifiedChangedBlobCount=len(verified_changed_blobs),
+            verifiedChangedBodyBytes=sum(verified_changed_blob_sizes.values()),
+        )
     finally:
         if temporary and temporary.exists():
             shutil.rmtree(str(temporary))
@@ -535,7 +644,7 @@ def select(args: argparse.Namespace) -> Dict[str, Any]:
     try:
         view = view_root / "views" / release_id
         require_optional_helper_blob_root(view, getattr(args, "blob_root", None))
-        receipt = verify_view(view, release_id, require_helper_contents=True)
+        receipt, _ = verify_view_structure(view, release_id)
         current = view_root / "current"
         temporary = view_root / (".current.%d" % os.getpid())
         if temporary.exists() or temporary.is_symlink():
@@ -580,6 +689,7 @@ def main() -> None:
         command.add_argument("--receipt", required=True)
         command.add_argument("--blob-root", required=True)
         command.add_argument("--view-root", required=True)
+        command.add_argument("--parent-view")
         command.add_argument("--cache-textbook-retrieval", action="store_true")
     selector = commands.add_parser("select")
     selector.add_argument("--release-id", required=True)

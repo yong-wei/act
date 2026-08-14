@@ -362,6 +362,48 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
                 or "blob must be a regular" in rejected.stderr
             )
 
+    def test_v2_mounted_verification_reads_changed_paths_and_representative_samples_only(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent_root = root / "parent"
+            candidate_root = root / "candidate"
+            parent_root.mkdir()
+            candidate_root.mkdir()
+            parent = self.v2_release(parent_root, {
+                "lessons/1-1/a.json": b"a\n",
+                "lessons/1-1/b.json": b"b\n",
+                "lessons/1-1/c.json": b"c\n",
+                "lessons/1-1/d.json": b"d\n",
+                "lessons/1-1/e.json": b"e\n",
+            })
+            candidate = self.v2_release(candidate_root, {
+                "lessons/1-1/a.json": b"a\n",
+                "lessons/1-1/b.json": b"changed\n",
+                "lessons/1-1/c.json": b"c\n",
+                "lessons/1-1/d.json": b"d\n",
+                "lessons/1-1/e.json": b"e\n",
+            })
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(candidate["view"]),
+                "--parent-runtime-root", str(parent["view"]),
+                "--release-id", candidate["release_id"],
+                "--verification-receipt", str(candidate["verification_receipt"]),
+            )
+            self.assertEqual(verified["inheritedPathCount"], 4)
+            self.assertEqual(verified["changedPathCount"], 1)
+            self.assertEqual(verified["changedBodyReadCount"], 1)
+            self.assertEqual(verified["representativeSampleCount"], 3)
+
+    def test_v2_verification_receipt_can_fence_host_selection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), {"lessons/1-1/lesson.json": b"ok\n"})
+            selection = self.call(
+                "select", "--state-dir", str(Path(directory) / "state"),
+                "--expected-active-release", "none",
+                "--verification-receipt", str(fixture["verification_receipt"]),
+            )
+            self.assertEqual(selection["releaseId"], fixture["release_id"])
+
     def test_v2_rejects_blob_escape_and_directory_symlink(self):
         with tempfile.TemporaryDirectory() as directory:
             fixture = self.v2_release(Path(directory), {"lessons/1-1/lesson.json": b"ok\n"})

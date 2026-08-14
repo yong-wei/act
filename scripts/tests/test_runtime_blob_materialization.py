@@ -139,6 +139,9 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             prepared = self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
             self.assertTrue(prepared["prepared"])
             self.assertFalse(prepared["reused"])
+            self.assertEqual(prepared["verifiedChangedPathCount"], 3)
+            self.assertEqual(prepared["verifiedChangedBlobCount"], 2)
+            self.assertEqual(prepared["verifiedChangedBodyBytes"], len(b'{"lesson":"1-1"}\n') + len(b'{"version":1}\n'))
             view = view_root / "views" / release_id
             helper = view / HELPER_NAME
             self.assertTrue(helper.is_dir())
@@ -216,6 +219,33 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.attach_helper(view_root, release_id, blob_root)
             verified = self.call("verify", "--release-id", release_id, "--view-root", str(view_root))
             self.assertEqual(verified["schemaVersion"], "runtime-blob-materialization.v1")
+
+    def test_parent_view_delta_reuses_unchanged_paths_without_reading_their_blob(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent_blob_root, parent_manifest, parent_receipt, parent_release_id = write_release(root / "parent", {
+                "lessons/1-1/unchanged.json": b'{"stable":true}\n',
+                "lessons/1-1/changed.json": b'{"version":1}\n',
+            })
+            view_root = root / "views-root"
+            self.call(
+                "prepare", "--manifest", str(parent_manifest), "--receipt", str(parent_receipt),
+                "--blob-root", str(parent_blob_root), "--view-root", str(view_root),
+            )
+            target_blob_root, target_manifest, target_receipt, _ = write_release(root / "target", {
+                "lessons/1-1/unchanged.json": b'{"stable":true}\n',
+                "lessons/1-1/changed.json": b'{"version":2}\n',
+            })
+            unchanged_sha = hashlib.sha256(b'{"stable":true}\n').hexdigest()
+            (target_blob_root / unchanged_sha).unlink()
+            prepared = self.call(
+                "prepare", "--manifest", str(target_manifest), "--receipt", str(target_receipt),
+                "--blob-root", str(target_blob_root), "--view-root", str(view_root),
+                "--parent-view", str(view_root / "views" / parent_release_id),
+            )
+            self.assertEqual(prepared["inheritedPathCount"], 1)
+            self.assertEqual(prepared["verifiedChangedPathCount"], 1)
+            self.assertEqual(prepared["verifiedChangedBytes"], len(b'{"version":2}\n'))
 
     def test_cache_textbook_retrieval_copies_only_the_hot_set(self):
         with tempfile.TemporaryDirectory() as directory:

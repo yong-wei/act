@@ -131,7 +131,28 @@ def write_atomic(path: Path, value: Any) -> None:
 def read_verified_receipt(path: Path):
     with path.open("r", encoding="utf-8") as handle:
         value = json.load(handle)
-    if not isinstance(value, dict) or value.get("schemaVersion") != "runtime-release-verification.v1":
+    if not isinstance(value, dict) or not isinstance(value.get("schemaVersion"), str):
+        fail("verification receipt is invalid")
+    if value["schemaVersion"] == "runtime-release-verification.v2":
+        required = {
+            "schemaVersion", "releaseId", "manifestObjectKey", "manifestSha256", "wireSha256",
+            "wireSizeBytes", "treeSha256", "fileCount", "totalBytes",
+        }
+        if set(value) != required:
+            fail("v2 verification receipt is invalid")
+        release_id = require_release_id(value.get("releaseId"))
+        if value.get("manifestObjectKey") != f"{V2_MANIFEST_OBJECT_PREFIX}{release_id}/{V2_MANIFEST_FILENAME}":
+            fail("v2 verification receipt manifest object key is invalid")
+        require_digest(value.get("wireSha256"), "v2 verification.wireSha256")
+        require_non_negative_integer(value.get("wireSizeBytes"), "v2 verification.wireSizeBytes")
+        require_non_negative_integer(value.get("fileCount"), "v2 verification.fileCount", positive=True)
+        require_non_negative_integer(value.get("totalBytes"), "v2 verification.totalBytes")
+        return {
+            "releaseId": release_id,
+            "manifestSha256": require_digest(value.get("manifestSha256"), "v2 verification.manifestSha256"),
+            "treeSha256": require_digest(value.get("treeSha256"), "v2 verification.treeSha256"),
+        }
+    if value["schemaVersion"] != "runtime-release-verification.v1":
         fail("verification receipt is invalid")
     return {
         "releaseId": require_release_id(value.get("releaseId")),
@@ -233,7 +254,29 @@ def verify_v2_receipt(path: Path, manifest: dict, manifest_wire: bytes, release_
     fail("v2 verification receipt schema is unsupported")
 
 
-def verify_mounted_v2(runtime_root: Path, verification_receipt: Path, release_id: str, blob_root: Optional[Path] = None):
+def inherited_v2_paths(parent_runtime_root: Optional[Path], manifest: dict, materializer):
+    if parent_runtime_root in {None, ""}:
+        return set()
+    parent_root = materializer.require_real_directory(Path(parent_runtime_root), "parent mounted runtime root")
+    parent_manifest, _ = materializer.parse_manifest(parent_root / materializer.LOCAL_MANIFEST)
+    materializer.verify_view_structure(parent_root, parent_manifest["releaseId"])
+    parent_by_path = {entry["path"]: entry for entry in parent_manifest["files"]}
+    return {
+        entry["path"]
+        for entry in manifest["files"]
+        if entry["path"] in parent_by_path
+        and parent_by_path[entry["path"]]["sizeBytes"] == entry["sizeBytes"]
+        and parent_by_path[entry["path"]]["sha256"] == entry["sha256"]
+    }
+
+
+def verify_mounted_v2(
+    runtime_root: Path,
+    verification_receipt: Path,
+    release_id: str,
+    blob_root: Optional[Path] = None,
+    parent_runtime_root: Optional[Path] = None,
+):
     materializer = load_v2_materializer()
     root = materializer.require_real_directory(Path(runtime_root), "mounted runtime root")
     helper = materializer.require_helper_directory(root)
@@ -253,7 +296,7 @@ def verify_mounted_v2(runtime_root: Path, verification_receipt: Path, release_id
     if materializer.canonical(manifest) + b"\n" != manifest_wire:
         fail("mounted runtime manifest wire bytes are not canonical")
     receipt_identity = verify_v2_receipt(Path(verification_receipt), manifest, manifest_wire, release_id, materializer)
-    view_receipt = materializer.verify_view(root, release_id, require_helper_contents=True)
+    view_receipt, _ = materializer.verify_view_structure(root, release_id)
     verification_value, _ = read_regular_json(Path(verification_receipt), "v2 verification receipt")
     if (
         verification_value.get("schemaVersion") in {V2_MATERIALIZATION_SCHEMA, materializer.MATERIALIZATION_CACHE_SCHEMA}
@@ -261,6 +304,8 @@ def verify_mounted_v2(runtime_root: Path, verification_receipt: Path, release_id
     ):
         fail("v2 materialization receipt does not match the mounted view")
     cached_paths = set(materializer.cached_logical_paths(view_receipt))
+    inherited_paths = inherited_v2_paths(parent_runtime_root, manifest, materializer)
+    changed_paths = {entry["path"] for entry in manifest["files"]} - inherited_paths
 
     expected_paths = {entry["path"] for entry in manifest["files"]}
     expected_directories = set()
@@ -291,30 +336,46 @@ def verify_mounted_v2(runtime_root: Path, verification_receipt: Path, release_id
     if actual_directories != expected_directories:
         fail("mounted runtime directory set differs from manifest")
 
+    representative_candidates = [entry for entry in manifest["files"] if entry["sizeBytes"] <= REPRESENTATIVE_MAX_BYTES]
+    if not representative_candidates:
+        fail("mounted runtime has no bounded representative file for content smoke")
+    representative_indexes = sorted({0, len(representative_candidates) // 2, len(representative_candidates) - 1})
+    representative_paths = {representative_candidates[index]["path"] for index in representative_indexes}
+    verified_body_paths = changed_paths | representative_paths
     for entry in manifest["files"]:
         logical = root / entry["path"]
         details = os.lstat(logical)
         if entry["path"] in cached_paths:
             if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
                 fail(f"mounted runtime cache entry is not a regular file: {entry['path']}")
-            if details.st_size != entry["sizeBytes"] or materializer.hash_file(logical) != entry["sha256"]:
+            if details.st_size != entry["sizeBytes"]:
+                fail(f"mounted runtime logical file does not match manifest content: {entry['path']}")
+            if entry["path"] in verified_body_paths and materializer.hash_file(logical) != entry["sha256"]:
                 fail(f"mounted runtime logical file does not match manifest content: {entry['path']}")
             continue
         if not stat.S_ISLNK(details.st_mode):
             fail(f"mounted runtime logical file is not a symlink: {entry['path']}")
         materializer.require_relative_helper_link(logical, entry["path"], entry["sha256"])
         target = Path(os.path.realpath(logical))
-        expected_blob = materializer.blob_path(helper, entry["sha256"])
+        try:
+            expected_blob = materializer.blob_path(helper, entry["sha256"])
+        except OSError as error:
+            fail(f"mounted runtime helper target is missing: {entry['path']} ({error})")
         if target != expected_blob or target.parent != helper or target.name != entry["sha256"]:
             fail(f"mounted runtime logical file points outside its manifest blob: {entry['path']}")
         blob_details = os.lstat(target)
         if stat.S_ISLNK(blob_details.st_mode) or not stat.S_ISREG(blob_details.st_mode):
             fail(f"mounted runtime blob is not a regular file: {entry['path']}")
-        if blob_details.st_size != entry["sizeBytes"] or materializer.hash_file(target) != entry["sha256"]:
+        if blob_details.st_size != entry["sizeBytes"]:
+            fail(f"mounted runtime logical file does not match manifest content: {entry['path']}")
+        if entry["path"] in verified_body_paths and materializer.hash_file(target) != entry["sha256"]:
             fail(f"mounted runtime logical file does not match manifest content: {entry['path']}")
     return {
         **receipt_identity,
-        "representativeSampleCount": len(manifest["files"]),
+        "inheritedPathCount": len(inherited_paths),
+        "changedPathCount": len(changed_paths),
+        "changedBodyReadCount": len(changed_paths),
+        "representativeSampleCount": len(representative_paths),
     }
 
 
@@ -372,6 +433,7 @@ def verify_mounted(args: argparse.Namespace):
             Path(args.verification_receipt),
             require_release_id(args.release_id),
             Path(args.blob_root) if args.blob_root else None,
+            Path(args.parent_runtime_root) if args.parent_runtime_root else None,
         )
     root_path = Path(args.runtime_root)
     try:
@@ -491,6 +553,7 @@ def main() -> None:
     mounted.add_argument("--verification-receipt", required=True)
     mounted.add_argument("--format", choices=("v1", "v2"), default="v1")
     mounted.add_argument("--blob-root")
+    mounted.add_argument("--parent-runtime-root")
     args = parser.parse_args()
     if args.command is None:
         parser.error("a command is required")

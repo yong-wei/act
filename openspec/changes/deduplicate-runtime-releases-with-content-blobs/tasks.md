@@ -15,7 +15,7 @@
 
 ## 3. Fast materialization and runtime-only deployment
 
-- [ ] 3.1 Implement parent-view clone plus manifest-delta application, receipt-bound idempotent view reuse, local atomic rename and changed hot-cache update.
+- [x] 3.1 Implement parent-view clone plus manifest-delta application, receipt-bound idempotent view reuse, local atomic rename and changed hot-cache update.
 - [ ] 3.2 Replace repeated prepare/select/host body verification with manifest/receipt, topology, helper mount, changed-blob and representative-read checks; keep `audit --sample` and `audit --full` as independent read-only commands.
 - [ ] 3.3 Implement `deploy:runtime`, `deploy:app` and `deploy:all`; ensure runtime-only deployment cannot build images, transfer image tar, manipulate database, Prisma, Nginx/systemd or copy a full runtime tree.
 - [ ] 3.4 Prove candidate filesystem/route/media/knowledge/textbook/worker compatibility, helper-path 404, one runtime bind, cold/warm/concurrent index behavior and rollback from a small v2 increment.
