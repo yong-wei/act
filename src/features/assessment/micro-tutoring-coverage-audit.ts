@@ -11,6 +11,7 @@ export type MicroTutoringCoverageGapReason =
   | 'CANONICAL_NODE_UNAVAILABLE'
   | 'RESOURCE_UNAVAILABLE'
   | 'VALIDATION_QUESTION_UNAVAILABLE'
+  | 'ACCESS_REVOKED'
   | 'REFERENCE_DRIFT';
 
 export type MicroTutoringCoverageBaselineIssue =
@@ -66,6 +67,12 @@ export interface MicroTutoringCoverageAuditInput {
     knowledgeNodeId: string,
     misconceptionTag: string,
   ) => GovernedMicroTutoringValidationItem[];
+  resolveResourceAccessDenied?: (knowledgeNodeId: string, misconceptionTag: string) => boolean;
+  resolveValidationAccessDenied?: (
+    sourceQuestionId: string,
+    knowledgeNodeId: string,
+    misconceptionTag: string,
+  ) => boolean;
   dependencyIssues?: MicroTutoringCoverageGapReason[];
 }
 
@@ -222,7 +229,12 @@ export function buildMicroTutoringCoverageAuditReport(
         ? input.resolveResources(attribution.knowledgeNodeId, attribution.misconceptionTag)
           .sort((left, right) => left.id.localeCompare(right.id))
         : [];
-      if (attribution && resources.length === 0) reasons.push('RESOURCE_UNAVAILABLE');
+      if (attribution && resources.length === 0) {
+        reasons.push(input.resolveResourceAccessDenied?.(
+          attribution.knowledgeNodeId,
+          attribution.misconceptionTag,
+        ) ? 'ACCESS_REVOKED' : 'RESOURCE_UNAVAILABLE');
+      }
       const validationItems = attribution && !reasons.includes('CANONICAL_NODE_UNAVAILABLE')
         ? validValidationItems(
           input.resolveValidationItems(
@@ -235,7 +247,13 @@ export function buildMicroTutoringCoverageAuditReport(
           item.contentHash,
         )
         : [];
-      if (attribution && validationItems.length === 0) reasons.push('VALIDATION_QUESTION_UNAVAILABLE');
+      if (attribution && validationItems.length === 0) {
+        reasons.push(input.resolveValidationAccessDenied?.(
+          item.sourceId,
+          attribution.knowledgeNodeId,
+          attribution.misconceptionTag,
+        ) ? 'ACCESS_REVOKED' : 'VALIDATION_QUESTION_UNAVAILABLE');
+      }
       const normalizedReasons = uniqueSorted(reasons) as MicroTutoringCoverageGapReason[];
       rows.push({
         catalogItemId: item.catalogItemId,
@@ -260,6 +278,7 @@ export function buildMicroTutoringCoverageAuditReport(
     CANONICAL_NODE_UNAVAILABLE: 0,
     RESOURCE_UNAVAILABLE: 0,
     VALIDATION_QUESTION_UNAVAILABLE: 0,
+    ACCESS_REVOKED: 0,
     REFERENCE_DRIFT: 0,
   } satisfies Record<MicroTutoringCoverageGapReason, number>;
   for (const row of rows) {

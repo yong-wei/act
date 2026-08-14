@@ -63,6 +63,35 @@ function sourceEntries<T>(value: unknown, label: string): T[] {
   return (value as { entries: T[] }).entries;
 }
 
+function record(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : [];
+}
+
+function resourceAccessDenied(rows: RemediationResourceRow[], knowledgeNodeId: string): boolean {
+  return rows.some((row) => {
+    const remediation = record(record(row.config)?.remediation);
+    const referencesNode = row.knowledgeNodes.some((node) => node.id === knowledgeNodeId) ||
+      stringArray(remediation?.prerequisiteKnowledgeNodeIds).includes(knowledgeNodeId);
+    return referencesNode && row.teacherOnly;
+  });
+}
+
+function validationAccessDenied(rows: RemediationValidationItemRow[], knowledgeNodeId: string): boolean {
+  return rows.some((row) => {
+    const metadata = record(row.metadata);
+    const snapshot = record(metadata?.adaptiveAssessmentItemRef);
+    const semanticRefs = record(snapshot?.semanticRefs);
+    const validation = record(metadata?.remediationValidation);
+    return stringArray(semanticRefs?.graphNodeIds).includes(knowledgeNodeId) && validation?.learnerVisible === false;
+  });
+}
+
 async function loadGovernedRows(offline: boolean): Promise<{
   resources: RemediationResourceRow[];
   validations: RemediationValidationItemRow[];
@@ -126,6 +155,10 @@ async function main() {
         knowledgeNodeId,
         misconceptionTag,
       }),
+    resolveResourceAccessDenied: (knowledgeNodeId) =>
+      resourceAccessDenied(governedRows.resources, knowledgeNodeId),
+    resolveValidationAccessDenied: (_sourceQuestionId, knowledgeNodeId) =>
+      validationAccessDenied(governedRows.validations, knowledgeNodeId),
     dependencyIssues: governedRows.dependencyIssues,
   });
 

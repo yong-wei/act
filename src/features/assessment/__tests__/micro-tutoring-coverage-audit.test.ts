@@ -127,6 +127,13 @@ describe('micro tutoring coverage audit', () => {
       resolveResources: () => [],
     });
     expect(noResourceResult.rows.every((row) => row.reasons.includes('RESOURCE_UNAVAILABLE'))).toBe(true);
+
+    const accessDeniedResult = report({
+      optionAttributions: attributions,
+      resolveResources: () => [],
+      resolveResourceAccessDenied: () => true,
+    });
+    expect(accessDeniedResult.rows.every((row) => row.reasons.includes('ACCESS_REVOKED'))).toBe(true);
   });
 
   it('produces deterministically sorted complete records without question or answer material', () => {

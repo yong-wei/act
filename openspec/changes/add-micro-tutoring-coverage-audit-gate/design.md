@@ -37,7 +37,7 @@
 
 将 `remediation-orchestration` 中对资源和验证题的纯解析、可达性与独立性判断提取为可复用的只读资格模块。运行时编排和审计器共同调用该模块；数据库访问仍留在各自适配层。
 
-审计器接收受限投影后的资源、知识节点和验证题候选。输出仅保留 IDs、版本、内容哈希、时长和动作地址；无合格资源或独立验证题分别记录 `RESOURCE_UNAVAILABLE` 与 `VALIDATION_QUESTION_UNAVAILABLE`。
+审计器接收受限投影后的资源、知识节点和验证题候选。输出仅保留 IDs、版本、内容哈希、时长和动作地址；访问撤销与无合格资源或独立验证题分别记录 `ACCESS_REVOKED`、`RESOURCE_UNAVAILABLE` 与 `VALIDATION_QUESTION_UNAVAILABLE`。
 
 ### 4. 产物按可公开治理信息设计
 
