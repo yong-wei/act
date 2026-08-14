@@ -193,6 +193,7 @@ export function AdaptivePathJourneyControl({
     href: buildAdaptivePathOverviewHref(launchContext),
       };
   const nextAction = journey?.nextAction ?? null;
+  const sourceReturnAction = journey?.return ?? returnAction;
   const correction = journey?.correction ?? null;
   const correctionHistory = correction?.history ?? [];
   const correctionCanBeDecided = Boolean(
@@ -201,7 +202,7 @@ export function AdaptivePathJourneyControl({
   const [correctionDecisionPending, setCorrectionDecisionPending] = useState(false);
   const [correctionDecisionError, setCorrectionDecisionError] = useState<string | null>(null);
   const nextActionDuplicatesReturn = nextAction?.href
-    ? areEquivalentJourneyActions(returnAction, { label: nextAction.title, href: nextAction.href })
+    ? areEquivalentJourneyActions(sourceReturnAction, { label: nextAction.title, href: nextAction.href })
     : false;
   const nextActionIsCurrentNodeSelfLink = nextAction?.state === 'ready'
     && Boolean(nextAction.href)
@@ -209,7 +210,7 @@ export function AdaptivePathJourneyControl({
   const navigationActionDuplicatesReturn = nextActionDuplicatesReturn &&
     (nextAction?.state === 'ready' || nextAction?.state === 'path-complete');
   const recoveryDuplicatesReturn = nextAction?.recovery
-    ? areEquivalentJourneyActions(returnAction, nextAction.recovery)
+    ? areEquivalentJourneyActions(sourceReturnAction, nextAction.recovery)
     : false;
   const recoveryIsCurrentNodeSelfLink = Boolean(nextAction?.recovery)
     && normalizeJourneyActionTarget(nextAction?.recovery?.href ?? '') === normalizeJourneyActionTarget(launchContext.returnHref);
