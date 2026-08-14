@@ -119,8 +119,14 @@ try {
   ]) {
     const page = await browser.newPage({ viewport });
     const consoleErrors = [];
+    const responseFailures = [];
     page.on('console', (message) => {
       if (message.type() === 'error') consoleErrors.push(message.text());
+    });
+    page.on('response', (response) => {
+      if (response.status() >= 400) {
+        responseFailures.push({ status: response.status(), url: response.url() });
+      }
     });
     await page.route('**/api/learning-paths/**/journey?**', async (route) => {
       await route.fulfill({
@@ -164,6 +170,7 @@ try {
       returnedUrl,
       horizontalOverflow,
       consoleErrors,
+      responseFailures,
       resourceScreenshot,
       resourceScreenshotSha256: sha256(resourceBytes),
       resourceScreenshotBytes: resourceBytes.toString('base64'),
