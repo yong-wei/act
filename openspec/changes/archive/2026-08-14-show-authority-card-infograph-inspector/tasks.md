@@ -15,4 +15,4 @@
 
 - [x] 3.1 Add accepted, omitted-content, stale-selection and media-failure unit/integration tests.
 - [x] 3.2 Run forbidden-system-string and accessibility checks over text, ARIA, tooltip, image alternative and copy surfaces.
-- [ ] 3.3 Capture authenticated desktop/mobile product evidence from a user-visible current-domain node, assert selection-bound detail/media requests and omission of unavailable optional content, and run UI governance, typecheck, lint and strict OpenSpec validation.
+- [x] 3.3 Capture authenticated desktop/mobile product evidence from a user-visible current-domain node, assert selection-bound detail/media requests and omission of unavailable optional content, and run UI governance, typecheck, lint and strict OpenSpec validation.
