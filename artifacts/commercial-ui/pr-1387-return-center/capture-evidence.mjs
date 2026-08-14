@@ -165,11 +165,18 @@ try {
     });
 
     await page.goto(`${baseUrl}${resourceRoute}`, { waitUntil: 'domcontentloaded' });
-    const returnLink = page.getByRole('link', { name: '返回学习路径', exact: true });
+    const journeyControl = page.locator('[data-adaptive-path-journey-control="blocked"]');
+    await journeyControl.waitFor({ state: 'visible' });
+    const blockedReason = journeyControl.getByText('当前结果未通过路径验证', { exact: true });
+    await blockedReason.waitFor({ state: 'visible' });
+    const resourceFixture = page.getByText('此页面用于验证学习路径返回控制。', { exact: true });
+    await resourceFixture.waitFor({ state: 'visible' });
+
+    const returnLink = journeyControl.getByRole('link', { name: '返回学习路径', exact: true });
     await returnLink.waitFor({ state: 'visible' });
     const returnActionCount = await returnLink.count();
     const returnHref = await returnLink.getAttribute('href');
-    const recoveryActionCount = await page.getByRole('link', { name: '恢复学习路径', exact: true }).count();
+    const recoveryActionCount = await journeyControl.getByRole('link', { name: '恢复学习路径', exact: true }).count();
     if (returnActionCount !== 1 || returnHref !== expectedReturnHref || recoveryActionCount !== 0) {
       throw new Error(`unexpected journey actions at ${viewport.width}px: return=${returnActionCount}, href=${returnHref}, recovery=${recoveryActionCount}`);
     }
@@ -192,6 +199,9 @@ try {
     results.push({
       viewport,
       resourceUrl: `${baseUrl}${resourceRoute}`,
+      journeyControlState: await journeyControl.getAttribute('data-adaptive-path-journey-control'),
+      blockedReasonText: await blockedReason.textContent(),
+      resourceFixtureText: await resourceFixture.textContent(),
       returnActionCount,
       returnHref,
       recoveryActionCount,
@@ -236,6 +246,8 @@ await writeFile(path.join(outputDir, 'return-flow-evidence.json'), `${JSON.strin
   flow: 'path execution -> blocked journey resource -> deduplicated return -> path center',
   fixtureBoundary: 'The resource body, blocked journey payload, and unauthenticated AI conversation list are deterministic browser fixtures; the journey-control rendering, return href, click navigation, and path-center landing are production code from the bound source revision.',
   assertions: {
+    blockedJourneyFixtureRendered: true,
+    resourceFixtureRendered: true,
     oneVisibleReturnAction: true,
     duplicateRecoverySuppressed: true,
     goalOnlyReturnHref: true,
