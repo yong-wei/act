@@ -20,7 +20,7 @@ import {
   verifyPublishedRuntimeBlobReleaseViaSsh,
   verifyPublishedRuntimeReleaseViaSsh,
 } from '@/lib/runtime-release-streaming-publisher';
-import { buildGitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
+import { buildGitRuntimeBlobReleaseSnapshot, openGitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
 import { buildRuntimeReleaseMediaClosure, serializeRuntimeReleaseMediaClosure } from '@/lib/runtime-release-media-closure';
 import { stableStringify } from '@/lib/aggregate-governance/hash';
 
@@ -41,7 +41,7 @@ function usage() {
     '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>]',
     '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] --output <manifest.json> [--receipt-output <receipt.json>]',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--format v1|v2] [--output <closure.json>]',
-    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--parent-manifest <manifest.json>] [--credential-profile <profile>] [--output <receipt.json>]',
+    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --manifest <manifest.json> --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--parent-manifest <manifest.json>] [--credential-profile <profile>] [--output <receipt.json>]',
     '  act-runtime-release import-v1 --source-release-id <immutable-v1-release-id> --source-manifest-sha256 <sha256> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <manifest.json>]',
@@ -116,6 +116,20 @@ async function buildGitManifest(sourceRevision: string) {
     sourceRevision,
     integrationRef: 'origin/integration',
     parentManifest: await readParentBlobManifest(),
+  });
+}
+
+async function openPlannedGitManifest(sourceRevision: string) {
+  if (process.argv.includes('--integration-ref')) {
+    throw new Error('Production v2 CLI fixes the ancestry authority to origin/integration; --integration-ref is not supported.');
+  }
+  const manifest = parseRuntimeBlobReleaseManifest(JSON.parse(await readFile(required('--manifest'), 'utf8')));
+  return openGitRuntimeBlobReleaseSnapshot({
+    repoRoot: required('--repo-root'),
+    sourceRevision,
+    integrationRef: 'origin/integration',
+    parentManifest: await readParentBlobManifest(),
+    manifest,
   });
 }
 
@@ -222,7 +236,7 @@ async function main() {
         return publishRuntimeReleaseViaSsh({ runtimeRoot, manifest, ssh: sshBridgeOptions() });
       })()
       : await (async () => {
-        const snapshot = await buildGitManifest(sourceRevision);
+        const snapshot = await openPlannedGitManifest(sourceRevision);
         const expectedReleaseId = deriveRuntimeReleaseId(snapshot.manifest.sourceRevision, snapshot.manifest.treeSha256);
         if (releaseId !== expectedReleaseId) throw new Error(`Release id does not bind this runtime source identity. Run plan and use: ${expectedReleaseId}`);
         return publishRuntimeBlobReleaseLocally({ snapshot, manifest: snapshot.manifest, local: localPublisherOptions() });

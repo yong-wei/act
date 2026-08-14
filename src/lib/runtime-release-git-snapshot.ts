@@ -297,6 +297,66 @@ export async function buildGitRuntimeBlobReleaseSnapshot(input: {
   };
 }
 
+/**
+ * Reopen a manifest that was just planned from the immutable Git tree without
+ * hashing its source blobs again.  The publisher still hashes a source while
+ * it streams each blob that the remote reports missing; immutable Git object
+ * identities make a second preflight body pass unnecessary.
+ */
+export async function openGitRuntimeBlobReleaseSnapshot(input: {
+  repoRoot: string;
+  sourceRevision: string;
+  integrationRef?: string;
+  parentManifest?: ActRuntimeBlobReleaseManifest;
+  manifest: ActRuntimeBlobReleaseManifest;
+}): Promise<GitRuntimeBlobReleaseSnapshot> {
+  assertRepoRoot(input.repoRoot);
+  const sourceRevision = await resolveGitCommit(input.repoRoot, input.sourceRevision, 'Source revision');
+  const integrationRef = input.integrationRef ?? 'origin/integration';
+  await assertIntegrationAncestor(input.repoRoot, sourceRevision, integrationRef);
+  if (input.manifest.sourceRevision !== sourceRevision) {
+    throw gitError('runtime-release-git-source-mismatch', 'Planned runtime blob manifest source revision does not match the requested Git revision.');
+  }
+  const entries = await listRuntimeTree(input.repoRoot, sourceRevision);
+  if (entries.length !== input.manifest.files.length) {
+    throw gitError('runtime-release-git-source-mismatch', 'Planned runtime blob manifest file count does not match the requested Git tree.');
+  }
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index];
+    const manifestFile = input.manifest.files[index];
+    if (
+      !entry
+      || !manifestFile
+      || entry.path !== manifestFile.path
+      || entry.blobObjectId !== manifestFile.source?.gitObjectId
+    ) {
+      throw gitError('runtime-release-git-source-mismatch', 'Planned runtime blob manifest source identities do not match the requested Git tree.');
+    }
+    entry.sizeBytes = manifestFile.sizeBytes;
+    entry.sha256 = manifestFile.sha256;
+  }
+  const filesByPath = new Map(entries.map((entry) => [entry.path, entry] as const));
+  return {
+    repoRoot: input.repoRoot,
+    sourceRevision,
+    integrationRef,
+    parentManifest: input.parentManifest,
+    manifest: input.manifest,
+    stats: {
+      reusedFileCount: 0,
+      reusedBytes: 0,
+      hashedFileCount: 0,
+      hashedBytes: 0,
+    },
+    filesByPath,
+    openFile: async (relativePath: string) => {
+      const file = filesByPath.get(relativePath);
+      if (!file) throw gitError('runtime-release-git-path-missing', `Git runtime path is absent from the snapshot: ${relativePath}`);
+      return openGitBlobStream(input.repoRoot, file.blobObjectId);
+    },
+  };
+}
+
 export async function verifyGitRuntimeSnapshotFile(input: {
   snapshot: GitRuntimeBlobReleaseSnapshot;
   file: RuntimeBlobReleaseFileMetadata;

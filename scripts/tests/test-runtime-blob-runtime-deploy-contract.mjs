@@ -71,6 +71,11 @@ for (const invariant of [
 }
 assert.match(
   runtimeDeploy,
+  /publish-streaming[^\n]*--manifest "\$manifest"/,
+  'runtime deploy must publish the already planned manifest without a second Git body-hash pass',
+);
+assert.match(
+  runtimeDeploy,
   /publish_args\+=\(--parent-manifest "\$parent_manifest"\)/,
   'runtime deploy must pass the parent manifest to publish-streaming so inherited Git blobs remain body-read and HEAD free',
 );

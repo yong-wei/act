@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildGitRuntimeBlobReleaseSnapshot } from '../runtime-release-git-snapshot';
+import { buildGitRuntimeBlobReleaseSnapshot, openGitRuntimeBlobReleaseSnapshot } from '../runtime-release-git-snapshot';
 
 const execFile = promisify(execFileCallback);
 const roots: string[] = [];
@@ -67,6 +67,21 @@ describe('Git-backed runtime release snapshots', () => {
     expect(target.manifest).toEqual(parent.manifest);
     expect(target.parentManifest).toEqual(parent.manifest);
     expect(target.stats).toEqual({ reusedFileCount: 1, reusedBytes: 23, hashedFileCount: 0, hashedBytes: 0 });
+  });
+
+  it('reopens a planned manifest from Git tree metadata without another body-hash pass', async () => {
+    const { root, sourceRevision } = await fixture();
+    const planned = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+    const reopened = await openGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision,
+      integrationRef: 'integration',
+      manifest: planned.manifest,
+    });
+
+    expect(reopened.manifest).toEqual(planned.manifest);
+    expect(reopened.stats).toEqual({ reusedFileCount: 0, reusedBytes: 0, hashedFileCount: 0, hashedBytes: 0 });
+    expect(reopened.filesByPath.get('lessons/lesson.json')?.blobObjectId).toBe(planned.filesByPath.get('lessons/lesson.json')?.blobObjectId);
   });
 
   it('hashes only target Git objects absent from the parent manifest', async () => {

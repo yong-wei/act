@@ -24,6 +24,8 @@ assert.match(source, /inspectPublishedRuntimeRelease/, 'inspect must read the pu
 assert.match(source, /deriveRuntimeReleaseId/, 'plan and publish must derive the content-addressed release identity');
 assert.match(source, /publishRuntimeReleaseViaSsh/, 'streaming publish must use the SSH source-authoritative transport');
 assert.match(source, /publishRuntimeBlobReleaseLocally/, 'v2 streaming publish must use the local operator transport');
+assert.match(source, /openPlannedGitManifest/, 'v2 streaming publish must reuse the already planned manifest rather than rebuild and rehash it');
+assert.match(source, /--manifest <manifest\.json>/, 'v2 streaming publish must require an immutable planned manifest');
 assert.doesNotMatch(source, /publishRuntimeBlobReleaseViaSsh/, 'daily v2 publishing must not retain the ECS SSH writer path');
 assert.match(source, /importV1RuntimeBlobReleaseViaSsh/, 'the one-time v1 import must use the SSH source-authoritative transport');
 assert.match(source, /--source-release-id <immutable-v1-release-id>/, 'v1 import must require an immutable source release rather than a selector alias');
