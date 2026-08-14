@@ -5,7 +5,10 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { computeV018ImpactReport } from '../../../scripts/actkg-release/actkg-v018-impact';
+import {
+  buildV018DeltaProjections,
+  computeV018ImpactReport,
+} from '../../../scripts/actkg-release/actkg-v018-impact';
 import {
   assertGitDirectoryMatchesWorkingTree,
   PUBLIC_BUNDLE_V2_ADAPTER_CAPTURE_PATHS,
@@ -38,6 +41,21 @@ async function createRegisteredBundleCaptureFixture(): Promise<{ root: string; h
   git(root, ['add', '.']);
   git(root, ['commit', '-qm', 'registered v0.18 count capture']);
   return { root, head: git(root, ['rev-parse', 'HEAD']) };
+}
+
+async function withRegisteredBundle<T>(run: (bundle: ValidatedActKGBundleV2) => T | Promise<T>): Promise<T> {
+  const capture = await createRegisteredBundleCaptureFixture();
+  try {
+    const bundle = await loadAndValidatePublicBundleV2({
+      root: process.cwd(),
+      bundlePath: V018_ACT_CONTROLLED_PATH,
+      gitRoot: capture.root,
+      captureRevision: capture.head,
+    });
+    return await run(bundle);
+  } finally {
+    await rm(capture.root, { recursive: true, force: true });
+  }
 }
 
 function git(root: string, args: string[]): string {
@@ -126,6 +144,135 @@ describe('ActKG v0.18 candidate capture boundaries', () => {
     } finally {
       await rm(capture.root, { recursive: true, force: true });
     }
+  });
+
+  it('merges the selected runtime already present in preserved V2 projections', async () => {
+    await withRegisteredBundle((bundle) => {
+      expect(bundle.preservedProjections.some(
+        (row) => row.identity.profile === bundle.selectedRuntimeProjection.identity.profile,
+      )).toBe(true);
+      const projections = buildV018DeltaProjections(bundle);
+      expect(projections).toHaveLength(new Set(
+        bundle.preservedProjections.map((row) => row.identity.profile),
+      ).size);
+      expect(new Set(projections.map((row) => row.profile)).size).toBe(projections.length);
+      expect(projections.filter((row) => row.isRuntime)).toHaveLength(1);
+      expect(projections.find((row) => row.isRuntime)).toMatchObject({
+        profile: bundle.selectedRuntimeProjection.identity.profile,
+        projectionId: bundle.selectedRuntimeProjection.identity.projectionId,
+        versionDigest: bundle.selectedRuntimeProjection.identity.versionDigest,
+      });
+    });
+  });
+
+  it('computes the impact report for the registered Bundle without a duplicate runtime identity', async () => {
+    await withRegisteredBundle(async (bundle) => {
+      const baseline = await createV09CaptureFixture();
+      try {
+        const report = await computeV018ImpactReport({
+          repoRoot: baseline.root,
+          captureGitRoot: baseline.root,
+          candidate: bundle,
+          candidateReleaseSetId: 'candidate-v018',
+          captureRevision: baseline.head,
+        });
+        const runtimeProfile = bundle.selectedRuntimeProjection.identity.profile;
+        expect(report.direct.details.projections.addedProfiles).toEqual(
+          expect.arrayContaining(
+            bundle.preservedProjections
+              .map((row) => row.identity.profile)
+              .filter((profile) => profile !== runtimeProfile),
+          ),
+        );
+        expect(report.direct.details.projections.addedProfiles).not.toContain(runtimeProfile);
+        expect(report.direct.details.projections.digestChanged).not.toContain(
+          expect.objectContaining({ profile: runtimeProfile }),
+        );
+      } finally {
+        await rm(baseline.root, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it('adds the selected runtime exactly once when preserved V2 projections omit it', async () => {
+    await withRegisteredBundle((bundle) => {
+      const runtimeProfile = bundle.selectedRuntimeProjection.identity.profile;
+      const withoutRuntime = {
+        ...bundle,
+        preservedProjections: bundle.preservedProjections.filter(
+          (row) => row.identity.profile !== runtimeProfile,
+        ),
+      };
+      const projections = buildV018DeltaProjections(withoutRuntime);
+      expect(projections.filter((row) => row.profile === runtimeProfile)).toHaveLength(1);
+      expect(projections.filter((row) => row.isRuntime)).toHaveLength(1);
+      expect(projections).toEqual(expect.arrayContaining([{
+        profile: runtimeProfile,
+        projectionId: bundle.selectedRuntimeProjection.identity.projectionId,
+        versionDigest: bundle.selectedRuntimeProjection.identity.versionDigest,
+        isRuntime: true,
+      }]));
+    });
+  });
+
+  it('rejects a selected-runtime identity conflict under the same profile', async () => {
+    await withRegisteredBundle((bundle) => {
+      const runtimeProfile = bundle.selectedRuntimeProjection.identity.profile;
+      const preservedRuntime = bundle.preservedProjections.find(
+        (row) => row.identity.profile === runtimeProfile,
+      );
+      if (!preservedRuntime) throw new Error('registered bundle is missing preserved runtime projection');
+      const conflict = {
+        ...bundle,
+        preservedProjections: bundle.preservedProjections.map((row) => (
+          row === preservedRuntime
+            ? { ...row, identity: { ...row.identity, projectionId: `${row.identity.projectionId}-conflict` } }
+            : row
+        )),
+      };
+      expect(() => buildV018DeltaProjections(conflict)).toThrow(
+        /conflicting normalized projection identity.*runtime/u,
+      );
+    });
+  });
+
+  it('rejects conflicting duplicate preserved identities for one profile', async () => {
+    await withRegisteredBundle((bundle) => {
+      const preserved = bundle.preservedProjections.find(
+        (row) => row.identity.profile !== bundle.selectedRuntimeProjection.identity.profile,
+      );
+      if (!preserved) throw new Error('registered bundle is missing a non-runtime projection');
+      const conflict = {
+        ...bundle,
+        preservedProjections: [
+          ...bundle.preservedProjections,
+          { ...preserved, identity: { ...preserved.identity, versionDigest: 'f'.repeat(64) } },
+        ],
+      };
+      expect(() => buildV018DeltaProjections(conflict)).toThrow(
+        new RegExp(`conflicting normalized projection identity.*${preserved.identity.profile}`, 'u'),
+      );
+    });
+  });
+
+  it('deterministically merges identical duplicate identities regardless of order', async () => {
+    await withRegisteredBundle((bundle) => {
+      const preservedRuntime = bundle.preservedProjections.find(
+        (row) => row.identity.profile === bundle.selectedRuntimeProjection.identity.profile,
+      );
+      if (!preservedRuntime) throw new Error('registered bundle is missing preserved runtime projection');
+      const baseline = buildV018DeltaProjections(bundle);
+      const duplicated = {
+        ...bundle,
+        preservedProjections: [preservedRuntime, ...bundle.preservedProjections],
+      };
+      const reversed = {
+        ...bundle,
+        preservedProjections: [...bundle.preservedProjections].reverse(),
+      };
+      expect(buildV018DeltaProjections(duplicated)).toEqual(baseline);
+      expect(buildV018DeltaProjections(reversed)).toEqual(baseline);
+    });
   });
 
   it('projects V2 advisory locks to a supported boolean result while preserving order and bindings', async () => {

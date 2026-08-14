@@ -84,6 +84,17 @@ therefore fails closed even when ordinary Git status path filtering would miss
 it. `--v09-root` is only an assertion of that captured path; it cannot select
 an external working tree.
 
+### 7. Merge V2 projection evidence by normalized profile identity
+
+The V2 preserved-projection list may already contain the selected runtime
+projection, while the impact snapshot must index projections by profile. Sol
+DECIDE=A therefore requires a deterministic profile-keyed merge: duplicate
+normalized `(profile, projectionId, versionDigest)` identities may be merged,
+but any conflict fails closed. The selected runtime identity must agree with
+an existing row when present and mark that row as runtime; otherwise it is
+added once. The resulting candidate has one row per profile and exactly one
+runtime row. V1 import and the generic delta calculator remain unchanged.
+
 ## Risks / Trade-offs
 
 - The complete package and snapshot are larger than an incremental patch, but

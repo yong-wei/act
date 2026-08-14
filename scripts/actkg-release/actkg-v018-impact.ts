@@ -21,6 +21,7 @@ import {
 import type {
   ComputedReleaseSetDelta,
   DeltaEvidenceRef,
+  DeltaProjectionRecord,
   DeltaSemanticSnapshot,
   UpstreamReleaseDiffV1,
 } from './release-set-delta-types';
@@ -124,6 +125,68 @@ function snapshotDigest(snapshot: Omit<DeltaSemanticSnapshot, 'semanticCollectio
   return { ...snapshot, semanticCollectionDigest: computeSemanticCollectionDigest(snapshot) };
 }
 
+function projectionIdentityKey(row: Pick<DeltaProjectionRecord, 'profile' | 'projectionId' | 'versionDigest'>): string {
+  return canonicalJson({
+    profile: row.profile,
+    projectionId: row.projectionId,
+    versionDigest: row.versionDigest,
+  });
+}
+
+/**
+ * Build the candidate projection collection from the V2 normalized identities.
+ *
+ * V2 preserves every published projection, including the selected runtime
+ * projection. The delta calculator indexes projections by profile, so merge
+ * only exact normalized identity duplicates and reject any conflicting
+ * identity rather than silently replacing one publication with another.
+ */
+export function buildV018DeltaProjections(bundle: ValidatedActKGBundleV2): DeltaProjectionRecord[] {
+  const byProfile = new Map<string, DeltaProjectionRecord>();
+
+  const merge = (
+    identity: ValidatedActKGBundleV2['selectedRuntimeProjection']['identity'],
+    isRuntime: boolean,
+    source: string,
+  ): void => {
+    const candidate: DeltaProjectionRecord = {
+      profile: identity.profile,
+      projectionId: identity.projectionId,
+      versionDigest: identity.versionDigest,
+      isRuntime,
+    };
+    const existing = byProfile.get(candidate.profile);
+    if (!existing) {
+      byProfile.set(candidate.profile, candidate);
+      return;
+    }
+    if (projectionIdentityKey(existing) !== projectionIdentityKey(candidate)) {
+      fail(
+        `conflicting normalized projection identity for profile ${candidate.profile} while merging ${source}`,
+      );
+    }
+    existing.isRuntime = existing.isRuntime || candidate.isRuntime;
+  };
+
+  for (const row of bundle.preservedProjections) {
+    merge(row.identity, false, 'preserved projections');
+  }
+
+  const selectedRuntime = bundle.selectedRuntimeProjection.identity;
+  merge(selectedRuntime, true, 'selected runtime projection');
+
+  const projections = [...byProfile.values()].sort((left, right) => (
+    left.profile.localeCompare(right.profile)
+  ));
+  if (projections.filter((row) => row.isRuntime).length !== 1) {
+    fail('V2 projection evidence must contain exactly one runtime projection');
+  }
+  if (!projections.some((row) => row.profile === selectedRuntime.profile && row.isRuntime)) {
+    fail(`selected runtime profile ${selectedRuntime.profile} was not retained as runtime`);
+  }
+  return projections;
+}
+
 function snapshotFromV2(bundle: ValidatedActKGBundleV2, releaseSetId: string): DeltaSemanticSnapshot {
   const runtimeNodes = array(bundle.selectedRuntimeProjection.payload.nodes, 'v0.18 runtime nodes');
   const runtimeLinks = array(bundle.selectedRuntimeProjection.payload.links, 'v0.18 runtime links');
@@ -160,18 +223,7 @@ function snapshotFromV2(bundle: ValidatedActKGBundleV2, releaseSetId: string): D
       payloadDigest: digestPayload(link),
     };
   });
-  const projections = bundle.preservedProjections.map((row) => ({
-    profile: row.identity.profile,
-    projectionId: row.identity.projectionId,
-    versionDigest: row.identity.versionDigest,
-    isRuntime: false,
-  }));
-  projections.push({
-    profile: bundle.selectedRuntimeProjection.identity.profile,
-    projectionId: bundle.selectedRuntimeProjection.identity.projectionId,
-    versionDigest: bundle.selectedRuntimeProjection.identity.versionDigest,
-    isRuntime: true,
-  });
+  const projections = buildV018DeltaProjections(bundle);
   const components = bundle.components.map((row) => ({
     componentReleaseId: row.releaseId,
     releaseHash: row.releaseHash,

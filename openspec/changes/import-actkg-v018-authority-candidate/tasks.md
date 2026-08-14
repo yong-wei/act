@@ -13,7 +13,10 @@
 - [ ] 2.2 Materialize the 6,843-node / 2,811-relation staged Authority snapshot
   and preserve profiles, labels, components, metadata, and package evidence.
 - [ ] 2.3 Compute the complete v0.9 to v0.18 object, type, relation, endpoint, and
-  identity impact report directly from both full snapshots.
+  identity impact report directly from both full snapshots. Accepted Sol
+  DECIDE=A: V2 projection evidence is merged by normalized profile identity;
+  only identical `(profile, projectionId, versionDigest)` duplicates merge,
+  conflicts fail closed, and the selected runtime is retained exactly once.
 - [ ] 2.4 Retain and cross-check the upstream release diff without using it as the
   migration denominator.
 
