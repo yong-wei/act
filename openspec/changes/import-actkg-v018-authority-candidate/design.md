@@ -49,11 +49,40 @@ same package returns the same snapshot identity and does not duplicate rows or
 rewrite immutable files. Any database-backed proof uses a disposable local
 schema and leaves shared schemas and all current pointers unchanged.
 
-### 5. Prove deterministic reconstruction twice
+### 5. Use a dedicated V2 persistence adapter
+
+The accepted Sol decision is implemented as option A: the candidate write
+boundary accepts only `ValidatedActKGBundleV2` and persists protocol
+`actkg-public-bundle/2` through an explicit adapter. The adapter reuses the
+existing transaction, advisory-lock, idempotency, receipt, and reconstruction
+infrastructure, but never delegates to or structurally casts into the V1
+importer. V2 projection profiles, multilingual labels, raw Artifacts, and the
+registered admission binding use dedicated evidence records; none are encoded
+as V1 semantic fields. The public V1 importer and its CLI/file behavior remain
+unchanged, and the V2 identity namespace includes the protocol in both the
+receipt key and persistence path. The Bundle receipt natural key is
+`(bundleContractVersion, bundleDigest)`, so a coincident raw digest cannot
+cross the V1/V2 idempotency boundary; existing V1 queries remain explicitly
+scoped to the V1 protocol.
+
+### 6. Prove deterministic reconstruction twice
 
 Two clean materializations from the mirrored package must produce identical
 snapshot bytes, hashes, counts, label-index identity, and impact report. A
-mixed revision or untracked source is rejected before output publication.
+mixed revision or untracked source is rejected before output publication. The
+capture closure explicitly includes the complete `prisma/migrations/` tree,
+`prisma.config.ts`, package lock/config inputs, the disposable-database helper
+(`admit-latest-actkg-aggregate.ts`) and its Prisma client/config seams, the
+complete v0.9 audit inputs, and every implementation dependency that can
+change the result (V2 loader/admission schemas/importer, impact calculator,
+capture resolver, Authority snapshot/contracts/repository, schema migration,
+and candidate runner). The
+runner additionally compares every migration Git blob and mode with the
+current filesystem, including ignored and untracked files, because Prisma
+reads the directory directly. A changed, deleted, added, or ignored migration
+therefore fails closed even when ordinary Git status path filtering would miss
+it. `--v09-root` is only an assertion of that captured path; it cannot select
+an external working tree.
 
 ## Risks / Trade-offs
 
