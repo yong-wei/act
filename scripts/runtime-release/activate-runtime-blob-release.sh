@@ -13,6 +13,7 @@ BLOB_OSSFS_CONFIG="${ACT_RUNTIME_BLOB_OSSFS_CONFIG:-/etc/act-runtime-blob-ossfs/
 HOST_STATE_SCRIPT="${ACT_RUNTIME_HOST_STATE_SCRIPT:-/home/projects/act/scripts/runtime-release-host-state.py}"
 MATERIALIZER="${ACT_RUNTIME_BLOB_MATERIALIZER:-/home/projects/act/scripts/materialize-runtime-blob-release.py}"
 LIFECYCLE_SCRIPT="${ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT:-/home/projects/act/scripts/runtime-release/runtime-blob-release-lifecycle.py}"
+ACTIVATION_TRANSACTION="${ACT_RUNTIME_BLOB_ACTIVATION_TRANSACTION:-/home/projects/act/scripts/runtime-release/runtime-blob-activation-transaction.py}"
 DEPLOY_SCRIPT="${ACT_RUNTIME_DEPLOY_SCRIPT:-/home/projects/act/scripts/4-deploy.sh}"
 ENV_FILE="${ACT_RUNTIME_ENV_FILE:-/home/projects/act/data/runtime/act-obe.env}"
 LEGACY_RUNTIME_ROOT="${ACT_RUNTIME_LEGACY_ROOT:-/home/projects/act/course-content/runtime}"
@@ -31,7 +32,6 @@ rollback_app_image=""
 candidate_deploy_attempted=0
 lifecycle_identity=""
 lifecycle_generation=""
-lifecycle_activated=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -56,7 +56,7 @@ done
 for command in flock podman python3 findmnt mount curl mktemp; do
   command -v "$command" >/dev/null 2>&1 || { echo "ERROR: missing command: $command" >&2; exit 1; }
 done
-for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$LIFECYCLE_SCRIPT" "$DEPLOY_SCRIPT"; do
+for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$LIFECYCLE_SCRIPT" "$ACTIVATION_TRANSACTION" "$DEPLOY_SCRIPT"; do
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required runtime tool is missing: $file" >&2; exit 1; }
 done
 
@@ -186,14 +186,6 @@ stage_lifecycle_desired() {
   lifecycle_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
 }
 
-activate_lifecycle() {
-  python3 "$LIFECYCLE_SCRIPT" activate \
-    --state-dir "$STATE_DIR" \
-    --expected-generation "$lifecycle_generation" \
-    --identity "$lifecycle_identity" >/dev/null
-  lifecycle_activated=1
-}
-
 cleanup_lifecycle_identity() {
   if [[ -n "$lifecycle_identity" && -f "$lifecycle_identity" ]]; then
     rm -f -- "$lifecycle_identity"
@@ -205,25 +197,22 @@ trap cleanup_lifecycle_identity EXIT
 restore_runtime_consumers() {
   local status=$?
   set +e
-  if [[ "$lifecycle_activated" == "1" ]]; then
-    local lifecycle_state lifecycle_current_generation
-    lifecycle_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR" 2>/dev/null || true)"
-    lifecycle_current_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$lifecycle_state" 2>/dev/null || true)"
-    if [[ -n "$lifecycle_current_generation" ]]; then
-      python3 "$LIFECYCLE_SCRIPT" rollback \
-        --state-dir "$STATE_DIR" \
-        --expected-generation "$lifecycle_current_generation" >/dev/null 2>&1 || true
-    fi
-  fi
+  python3 "$ACTIVATION_TRANSACTION" recover \
+    --state-dir "$STATE_DIR" \
+    --lifecycle-script "$LIFECYCLE_SCRIPT" \
+    --host-state-script "$HOST_STATE_SCRIPT" >/dev/null 2>&1 || true
+  local lifecycle_state lifecycle_active_release
+  lifecycle_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR" 2>/dev/null || true)"
+  lifecycle_active_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$lifecycle_state" 2>/dev/null || true)"
   if [[ "$candidate_deploy_attempted" == "1" ]]; then
-    if [[ -n "$parent_view" ]]; then
+    if [[ "$lifecycle_active_release" != "$release_id" && -n "$parent_view" ]]; then
       python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null
       RUNTIME_DELIVERY_MODE=ossfs-blob-view \
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
         RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
         APP_IMAGE="$rollback_app_image" \
         "$DEPLOY_SCRIPT" --runtime-cutover-app-only
-    else
+    elif [[ "$lifecycle_active_release" != "$release_id" ]]; then
       RUNTIME_DELIVERY_MODE=legacy-rsync \
         RUNTIME_CONTENT_DIR="$LEGACY_RUNTIME_ROOT" \
         APP_IMAGE="$rollback_app_image" \
@@ -238,6 +227,10 @@ mkdir -p "$STATE_DIR"
 exec 9>"$STATE_DIR/.act-runtime-selection.lock"
 flock -x 9
 
+python3 "$ACTIVATION_TRANSACTION" recover \
+  --state-dir "$STATE_DIR" \
+  --lifecycle-script "$LIFECYCLE_SCRIPT" \
+  --host-state-script "$HOST_STATE_SCRIPT" >/dev/null
 require_read_only_blob_mount
 old_active="$(python3 "$HOST_STATE_SCRIPT" active --state-dir "$STATE_DIR" | python3 -c 'import json,sys; print(json.load(sys.stdin)["activeReleaseId"] or "none")')"
 if [[ "$old_active" != "none" && -d "$VIEW_ROOT/views/$old_active" && ! -L "$VIEW_ROOT/views/$old_active" ]]; then
@@ -279,8 +272,12 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   "$DEPLOY_SCRIPT" --runtime-cutover-app-only
 source "$ENV_FILE"
 wait_for_readyz
-activate_lifecycle
-python3 "$HOST_STATE_SCRIPT" mark-active --state-dir "$STATE_DIR" --release-id "$release_id" >/dev/null
+python3 "$ACTIVATION_TRANSACTION" activate \
+  --state-dir "$STATE_DIR" \
+  --lifecycle-script "$LIFECYCLE_SCRIPT" \
+  --host-state-script "$HOST_STATE_SCRIPT" \
+  --expected-generation "$lifecycle_generation" \
+  --identity "$lifecycle_identity" >/dev/null
 trap - ERR
 cleanup_lifecycle_identity
 printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$old_active"

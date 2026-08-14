@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-blob-release.sh'), 'utf8');
+const activationTransaction = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-activation-transaction.py'), 'utf8');
 const runtimeDeploy = fs.readFileSync(path.join(root, 'scripts/deploy-runtime-blob-release.sh'), 'utf8');
 const appDeploy = fs.readFileSync(path.join(root, 'scripts/remote-deploy.sh'), 'utf8');
 const deployAll = fs.readFileSync(path.join(root, 'scripts/deploy-all-with-runtime-blobs.sh'), 'utf8');
@@ -23,27 +24,29 @@ for (const invariant of [
   'mount -o remount,bind,ro "$helper"',
   'RUNTIME_DELIVERY_MODE=ossfs-blob-view',
   '--runtime-cutover-app-only',
-  'mark-active',
   'ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT',
   'begin-publish',
   'set-desired',
-  'activate_lifecycle()',
+  'ACT_RUNTIME_BLOB_ACTIVATION_TRANSACTION',
+  'ACTIVATION_TRANSACTION',
+  'recover',
   'expected-generation',
   'lifecycle_generation',
   'restore_runtime_consumers()',
 ]) {
   assert.ok(activation.includes(invariant), `runtime-only activation must include ${invariant}`);
 }
+assert.ok(activationTransaction.includes('mark-active-v2'), 'activation transaction must project lifecycle identity with mark-active-v2');
 assert.ok(
   activation.indexOf('stage_lifecycle_desired') < activation.indexOf('python3 "$HOST_STATE_SCRIPT" select'),
   'v2 desired lifecycle state must be staged before the legacy selector changes',
 );
 assert.ok(
-  activation.indexOf('activate_lifecycle') < activation.indexOf('python3 "$HOST_STATE_SCRIPT" mark-active'),
-  'v2 lifecycle activation must precede the legacy active receipt projection',
+  activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate') < activation.indexOf('trap - ERR'),
+  'v2 cross-state activation must complete before clearing rollback handling',
 );
 assert.match(activation, /LIFECYCLE_SCRIPT=.*runtime-blob-release-lifecycle\.py/, 'activation must invoke the v2 lifecycle authority');
-assert.ok(activation.includes('"$LIFECYCLE_SCRIPT" rollback'), 'failed post-activation work must roll back the v2 lifecycle');
+assert.match(activation, /ACTIVATION_TRANSACTION=.*runtime-blob-activation-transaction\.py/, 'activation must invoke the cross-state transaction helper');
 for (const forbidden of [
   'scripts/build.sh',
   'act-obe.tar',

@@ -117,7 +117,11 @@ def write_atomic(path: Path, value: Any) -> None:
             handle.write(payload)
             handle.flush()
             os.fsync(handle.fileno())
+        if path.name == ACTIVE_RECEIPT_FILE and os.environ.get("ACT_RUNTIME_HOST_STATE_CRASH_AT") == "active-receipt-before-rename":
+            os._exit(86)
         os.replace(temporary, path)
+        if path.name == ACTIVE_RECEIPT_FILE and os.environ.get("ACT_RUNTIME_HOST_STATE_CRASH_AT") == "active-receipt-after-rename":
+            os._exit(87)
         directory = os.open(path.parent, os.O_DIRECTORY)
         try:
             os.fsync(directory)
@@ -424,6 +428,52 @@ def mark_active(args: argparse.Namespace):
     return receipt
 
 
+def mark_active_v2(args: argparse.Namespace):
+    """Project one committed v2 lifecycle identity into the v1 files.
+
+    The v2 transaction helper owns the cross-file fence. This command keeps
+    the old selector/receipt schema for existing consumers while allowing
+    recovery to rebuild a missing, damaged, or stale active receipt from the
+    v2 authority.
+    """
+    state_dir = Path(args.state_dir)
+    release = require_release_id(args.release_id)
+    manifest_sha = require_digest(args.manifest_sha256, "manifestSha256")
+    tree_sha = require_digest(args.tree_sha256, "treeSha256")
+    previous_selection = None
+    previous_receipt = None
+    try:
+        previous_selection = read_json(state_dir / SELECTION_FILE, require_selection)
+    except (OSError, ValueError, json.JSONDecodeError):
+        previous_selection = None
+    try:
+        previous_receipt = read_json(state_dir / ACTIVE_RECEIPT_FILE, require_active_receipt)
+    except (OSError, ValueError, json.JSONDecodeError):
+        previous_receipt = None
+    current_generation = 0
+    for value in (previous_selection, previous_receipt.get("selection") if previous_receipt else None):
+        if value and value.get("generation", 0) > current_generation:
+            current_generation = value["generation"]
+    if previous_selection and previous_selection["releaseId"] == release and previous_selection["manifestSha256"] == manifest_sha and previous_selection["treeSha256"] == tree_sha:
+        selection = previous_selection
+    else:
+        selection = {
+            "schemaVersion": "runtime-release-selection.v1",
+            "generation": current_generation + 1,
+            "releaseId": release,
+            "manifestSha256": manifest_sha,
+            "treeSha256": tree_sha,
+        }
+        write_atomic(state_dir / SELECTION_FILE, selection)
+    receipt = {
+        "schemaVersion": "runtime-release-active-receipt.v1",
+        "selection": selection,
+        "healthCheck": "readyz",
+    }
+    write_atomic(state_dir / ACTIVE_RECEIPT_FILE, receipt)
+    return receipt
+
+
 def active(args: argparse.Namespace):
     receipt = read_json(Path(args.state_dir) / ACTIVE_RECEIPT_FILE, require_active_receipt)
     return {
@@ -551,6 +601,11 @@ def main() -> None:
     marker.add_argument("--app-revision")
     marker.add_argument("--image-digest")
     marker.add_argument("--release-locator-sha256")
+    marker_v2 = subcommands.add_parser("mark-active-v2")
+    marker_v2.add_argument("--state-dir", required=True)
+    marker_v2.add_argument("--release-id", required=True)
+    marker_v2.add_argument("--manifest-sha256", required=True)
+    marker_v2.add_argument("--tree-sha256", required=True)
     active_parser = subcommands.add_parser("active")
     active_parser.add_argument("--state-dir", required=True)
     mounted = subcommands.add_parser("verify-mounted")
@@ -563,7 +618,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.command is None:
         parser.error("a command is required")
-    result = {"select": select, "mark-active": mark_active, "active": active, "verify-mounted": verify_mounted}[args.command](args)
+    result = {"select": select, "mark-active": mark_active, "mark-active-v2": mark_active_v2, "active": active, "verify-mounted": verify_mounted}[args.command](args)
     print(json.dumps(result, separators=(",", ":"), sort_keys=True))
 
 
