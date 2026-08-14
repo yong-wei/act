@@ -1,0 +1,43 @@
+{
+  "captureRevision": "f22c04748",
+  "capturedAt": "2026-08-14T04:48:49.433Z",
+  "flow": "path execution -> resource -> return -> path center",
+  "results": [
+    {
+      "viewport": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 1100
+      },
+      "resourceUrl": "http://127.0.0.1:3002/interactive-learning/resources/lesson13-cruise-bridge?demo=1&source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction%3Acandidate_0c39810885f0a7c9f8de713f&nodeId=registry%3Alesson13-cruise-bridge&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dadaptive-path%253Acmma7hfvd0061g9q2jqfd291i%253Acontrol-correction%253Acandidate_0c39810885f0a7c9f8de713f%26nodeId%3Dregistry%253Alesson13-cruise-bridge&resourceType=knowledge_card",
+      "returnHref": "/assessment/adaptive-practice?goal=control-correction",
+      "returnedUrl": "http://127.0.0.1:3002/assessment/adaptive-practice?goal=control-correction",
+      "consoleErrors": [
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=22RzpgTUzoqMwRIITHN2B' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=zy2pZawwroo7k_sfSKqiA' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ]
+    },
+    {
+      "viewport": {
+        "name": "mobile-320",
+        "width": 320,
+        "height": 1200
+      },
+      "resourceUrl": "http://127.0.0.1:3002/interactive-learning/resources/lesson13-cruise-bridge?demo=1&source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=adaptive-path%3Acmma7hfvd0061g9q2jqfd291i%3Acontrol-correction%3Acandidate_0c39810885f0a7c9f8de713f&nodeId=registry%3Alesson13-cruise-bridge&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dadaptive-path%253Acmma7hfvd0061g9q2jqfd291i%253Acontrol-correction%253Acandidate_0c39810885f0a7c9f8de713f%26nodeId%3Dregistry%253Alesson13-cruise-bridge&resourceType=knowledge_card",
+      "returnHref": "/assessment/adaptive-practice?goal=control-correction",
+      "returnedUrl": "http://127.0.0.1:3002/assessment/adaptive-practice?goal=control-correction",
+      "consoleErrors": [
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=JSX4MhRJF8oTcCHT5jA_W' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE",
+        "WebSocket connection to 'ws://127.0.0.1:3002/_next/webpack-hmr?id=SAy9gDKr_rkmzGMJF5BA-' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE"
+      ]
+    }
+  ]
+}
