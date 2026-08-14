@@ -64,6 +64,7 @@ assert.match(bridge, /--ecs-role-name|EXPECTED_ECS_ROLE_NAME/, 'ECS bridge must 
 assert.match(bridge, /DEFAULT_IMDS_ROLE_URL|current_ecs_role_name/, 'ECS bridge must validate the current ECS RAM role through IMDS');
 assert.match(bridge, /configure_local_publisher|current_local_principal/, 'the bridge must provide a separately preflighted local publisher mode');
 assert.match(bridge, /GetCallerIdentity/, 'the local publisher must verify the configured operator principal before OSS writes');
+assert.doesNotMatch(bridge, /GetCallerIdentity", "--output", "json"/, 'the local publisher identity preflight must remain compatible with the installed Alibaba Cloud CLI output contract');
 assert.match(bridge, /--credential-mode/, 'the bridge must require an explicit credential-mode boundary');
 assert.match(bridge, /return \[ossutil_command\(version\)\] \+ arguments \+ \["--endpoint", LOCAL_OSS_ENDPOINT, "--region", OSS_REGION\]/, 'local publishing must use the configured local credential provider without an ECS RAM role flag');
 assert.match(bridge, /ECS_OSS_ENDPOINT\s*=\s*["']oss-cn-hangzhou-internal\.aliyuncs\.com["']/, 'ECS bridge must use the internal OSS endpoint');

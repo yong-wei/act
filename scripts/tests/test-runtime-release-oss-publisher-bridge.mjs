@@ -161,6 +161,7 @@ if (operation === 'api') {
 `);
 await chmod(fakeOssutil, 0o755);
 await writeFile(fakeIdentity, `#!/usr/bin/env node
+if (JSON.stringify(process.argv.slice(2)) !== JSON.stringify(['sts', 'GetCallerIdentity'])) process.exit(14);
 process.stdout.write(JSON.stringify({ AccountId: '1444654551628953', Arn: 'acs:ram::1444654551628953:role/act-runtime-oss-release-operator' }));
 `);
 await chmod(fakeIdentity, 0o755);

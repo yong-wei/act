@@ -152,7 +152,7 @@ def current_local_principal() -> None:
     command = [_LOCAL_IDENTITY_COMMAND_PATH]
     if _LOCAL_CREDENTIAL_PROFILE is not None:
         command += ["--profile", _LOCAL_CREDENTIAL_PROFILE]
-    command += ["sts", "GetCallerIdentity", "--output", "json"]
+    command += ["sts", "GetCallerIdentity"]
     process = subprocess.run(command, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if process.returncode != 0:
         fail("local publisher identity preflight command failed")
