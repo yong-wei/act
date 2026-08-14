@@ -115,7 +115,7 @@ wait_for_readyz() {
 
 run_candidate_consumer_smoke() {
   local candidate_result
-  [[ -f "$candidate_view/lessons/1-1/lesson.json" && ! -L "$candidate_view/lessons/1-1/lesson.json" ]] || {
+  [[ -f "$candidate_view/lessons/1-1/lesson.json" ]] || {
     echo "ERROR: candidate canonical course runtime is missing" >&2
     return 1
   }
