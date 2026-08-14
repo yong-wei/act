@@ -451,6 +451,16 @@ def protected(args: argparse.Namespace) -> Dict[str, Any]:
         lock.close()
 
 
+def inspect(args: argparse.Namespace) -> Dict[str, Any]:
+    """Read the v2 lifecycle under its lock without changing its generation."""
+    state_dir = Path(args.state_dir)
+    lock = locked(state_dir)
+    try:
+        return read_v2(state_dir)
+    finally:
+        lock.close()
+
+
 def recover(args: argparse.Namespace) -> Dict[str, Any]:
     state_dir = Path(args.state_dir)
     lock = locked(state_dir)
@@ -651,6 +661,8 @@ def main() -> None:
     verify_v1_parser.add_argument("--v1-active-receipt-file", required=True)
     protected_parser = commands.add_parser("protected-set")
     protected_parser.add_argument("--state-dir", required=True)
+    inspect_parser = commands.add_parser("inspect")
+    inspect_parser.add_argument("--state-dir", required=True)
     recover_parser = commands.add_parser("recover")
     recover_parser.add_argument("--state-dir", required=True)
     args = parser.parse_args()
@@ -662,6 +674,8 @@ def main() -> None:
         result = mutate(args, args.command)
     elif args.command == "protected-set":
         result = protected(args)
+    elif args.command == "inspect":
+        result = inspect(args)
     elif args.command == "recover":
         result = recover(args)
     elif args.command == "rollback-to-v1":

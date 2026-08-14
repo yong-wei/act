@@ -24,10 +24,26 @@ for (const invariant of [
   'RUNTIME_DELIVERY_MODE=ossfs-blob-view',
   '--runtime-cutover-app-only',
   'mark-active',
+  'ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT',
+  'begin-publish',
+  'set-desired',
+  'activate_lifecycle()',
+  'expected-generation',
+  'lifecycle_generation',
   'restore_runtime_consumers()',
 ]) {
   assert.ok(activation.includes(invariant), `runtime-only activation must include ${invariant}`);
 }
+assert.ok(
+  activation.indexOf('stage_lifecycle_desired') < activation.indexOf('python3 "$HOST_STATE_SCRIPT" select'),
+  'v2 desired lifecycle state must be staged before the legacy selector changes',
+);
+assert.ok(
+  activation.indexOf('activate_lifecycle') < activation.indexOf('python3 "$HOST_STATE_SCRIPT" mark-active'),
+  'v2 lifecycle activation must precede the legacy active receipt projection',
+);
+assert.match(activation, /LIFECYCLE_SCRIPT=.*runtime-blob-release-lifecycle\.py/, 'activation must invoke the v2 lifecycle authority');
+assert.ok(activation.includes('"$LIFECYCLE_SCRIPT" rollback'), 'failed post-activation work must roll back the v2 lifecycle');
 for (const forbidden of [
   'scripts/build.sh',
   'act-obe.tar',

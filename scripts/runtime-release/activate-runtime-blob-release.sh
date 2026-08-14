@@ -12,6 +12,7 @@ BLOB_ROOT="${ACT_RUNTIME_BLOB_ROOT:-/home/projects/act/data/runtime/ossfs/blobs}
 BLOB_OSSFS_CONFIG="${ACT_RUNTIME_BLOB_OSSFS_CONFIG:-/etc/act-runtime-blob-ossfs/blobs.conf}"
 HOST_STATE_SCRIPT="${ACT_RUNTIME_HOST_STATE_SCRIPT:-/home/projects/act/scripts/runtime-release-host-state.py}"
 MATERIALIZER="${ACT_RUNTIME_BLOB_MATERIALIZER:-/home/projects/act/scripts/materialize-runtime-blob-release.py}"
+LIFECYCLE_SCRIPT="${ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT:-/home/projects/act/scripts/runtime-release/runtime-blob-release-lifecycle.py}"
 DEPLOY_SCRIPT="${ACT_RUNTIME_DEPLOY_SCRIPT:-/home/projects/act/scripts/4-deploy.sh}"
 ENV_FILE="${ACT_RUNTIME_ENV_FILE:-/home/projects/act/data/runtime/act-obe.env}"
 LEGACY_RUNTIME_ROOT="${ACT_RUNTIME_LEGACY_ROOT:-/home/projects/act/course-content/runtime}"
@@ -28,6 +29,9 @@ old_active="none"
 parent_view=""
 rollback_app_image=""
 candidate_deploy_attempted=0
+lifecycle_identity=""
+lifecycle_generation=""
+lifecycle_activated=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -49,10 +53,10 @@ done
 [[ "$ram_role" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role name" >&2; exit 1; }
 [[ "$READYZ_TIMEOUT_SECONDS" =~ ^[1-9][0-9]{0,2}$ && "$READYZ_TIMEOUT_SECONDS" -le 600 ]] || { echo "ERROR: runtime readiness timeout is invalid" >&2; exit 1; }
 
-for command in flock podman python3 findmnt mount curl; do
+for command in flock podman python3 findmnt mount curl mktemp; do
   command -v "$command" >/dev/null 2>&1 || { echo "ERROR: missing command: $command" >&2; exit 1; }
 done
-for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$DEPLOY_SCRIPT"; do
+for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$LIFECYCLE_SCRIPT" "$DEPLOY_SCRIPT"; do
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required runtime tool is missing: $file" >&2; exit 1; }
 done
 
@@ -112,9 +116,105 @@ capture_rollback_image() {
   rollback_app_image="sha256:${BASH_REMATCH[2]}"
 }
 
+write_lifecycle_identity() {
+  local mounted_manifest="$1"
+  lifecycle_identity="$(mktemp "$STATE_DIR/.act-runtime-blob-identity.XXXXXX")"
+  python3 - "$mounted_manifest" "$release_id" > "$lifecycle_identity" <<'PY'
+import hashlib
+import json
+import re
+import sys
+
+manifest_path, expected_release_id = sys.argv[1:]
+wire = open(manifest_path, "rb").read()
+manifest = json.loads(wire.decode("utf-8"))
+if manifest.get("schemaVersion") != "act-runtime-release.v2":
+    raise SystemExit("ERROR: mounted manifest is not v2")
+if manifest.get("releaseId") != expected_release_id:
+    raise SystemExit("ERROR: mounted manifest release does not match activation candidate")
+for field in ("manifestSha256", "treeSha256"):
+    value = manifest.get(field)
+    if not isinstance(value, str) or not re.fullmatch(r"[a-f0-9]{64}", value):
+        raise SystemExit("ERROR: mounted manifest %s is invalid" % field)
+identity = {
+    "schemaVersion": "runtime-blob-release-identity.v1",
+    "releaseId": expected_release_id,
+    "manifestVersion": "act-runtime-release.v2",
+    "manifestSha256": manifest["manifestSha256"],
+    "manifestWireSha256": hashlib.sha256(wire).hexdigest(),
+    "manifestWireSizeBytes": len(wire),
+    "treeSha256": manifest["treeSha256"],
+}
+print(json.dumps(identity, separators=(",", ":"), sort_keys=True))
+PY
+  chmod 0600 "$lifecycle_identity"
+}
+
+stage_lifecycle_desired() {
+  local snapshot active_id desired_id publishing_has_candidate next_generation
+  snapshot="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
+  active_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$snapshot")"
+  [[ "$active_id" == "$old_active" ]] || {
+    echo "ERROR: v2 lifecycle active release does not match the v1 active receipt" >&2
+    exit 1
+  }
+  lifecycle_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
+  desired_id="$(python3 -c 'import json,sys; print((json.load(sys.stdin)["desired"] or {}).get("releaseId", ""))' <<<"$snapshot")"
+  if [[ -n "$desired_id" && "$desired_id" != "$release_id" ]]; then
+    echo "ERROR: v2 lifecycle already records a different desired release" >&2
+    exit 1
+  fi
+  if [[ "$desired_id" != "$release_id" ]]; then
+    publishing_has_candidate="$(python3 -c 'import json,sys; state=json.load(sys.stdin); print("1" if any(item["releaseId"] == sys.argv[1] for item in state["publishing"]) else "0")' "$release_id" <<<"$snapshot")"
+    if [[ "$publishing_has_candidate" == "1" ]]; then
+      snapshot="$(python3 "$LIFECYCLE_SCRIPT" set-desired \
+        --state-dir "$STATE_DIR" \
+        --expected-generation "$lifecycle_generation" \
+        --identity "$lifecycle_identity")"
+    else
+      snapshot="$(python3 "$LIFECYCLE_SCRIPT" begin-publish \
+        --state-dir "$STATE_DIR" \
+        --expected-generation "$lifecycle_generation" \
+        --identity "$lifecycle_identity")"
+      next_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
+      snapshot="$(python3 "$LIFECYCLE_SCRIPT" set-desired \
+        --state-dir "$STATE_DIR" \
+        --expected-generation "$next_generation" \
+        --identity "$lifecycle_identity")"
+    fi
+  fi
+  lifecycle_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
+}
+
+activate_lifecycle() {
+  python3 "$LIFECYCLE_SCRIPT" activate \
+    --state-dir "$STATE_DIR" \
+    --expected-generation "$lifecycle_generation" \
+    --identity "$lifecycle_identity" >/dev/null
+  lifecycle_activated=1
+}
+
+cleanup_lifecycle_identity() {
+  if [[ -n "$lifecycle_identity" && -f "$lifecycle_identity" ]]; then
+    rm -f -- "$lifecycle_identity"
+  fi
+}
+
+trap cleanup_lifecycle_identity EXIT
+
 restore_runtime_consumers() {
   local status=$?
   set +e
+  if [[ "$lifecycle_activated" == "1" ]]; then
+    local lifecycle_state lifecycle_current_generation
+    lifecycle_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR" 2>/dev/null || true)"
+    lifecycle_current_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$lifecycle_state" 2>/dev/null || true)"
+    if [[ -n "$lifecycle_current_generation" ]]; then
+      python3 "$LIFECYCLE_SCRIPT" rollback \
+        --state-dir "$STATE_DIR" \
+        --expected-generation "$lifecycle_current_generation" >/dev/null 2>&1 || true
+    fi
+  fi
   if [[ "$candidate_deploy_attempted" == "1" ]]; then
     if [[ -n "$parent_view" ]]; then
       python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null
@@ -130,6 +230,7 @@ restore_runtime_consumers() {
         "$DEPLOY_SCRIPT" --runtime-cutover-app-only
     fi
   fi
+  cleanup_lifecycle_identity
   exit "$status"
 }
 
@@ -161,6 +262,8 @@ if [[ -n "$parent_view" ]]; then
   verify_args+=(--parent-runtime-root "$parent_view")
 fi
 python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}" >/dev/null
+write_lifecycle_identity "$candidate_view/.act-runtime-release.v2.json"
+stage_lifecycle_desired
 python3 "$HOST_STATE_SCRIPT" select \
   --state-dir "$STATE_DIR" \
   --expected-active-release "$expected_active_release" \
@@ -176,6 +279,8 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   "$DEPLOY_SCRIPT" --runtime-cutover-app-only
 source "$ENV_FILE"
 wait_for_readyz
+activate_lifecycle
 python3 "$HOST_STATE_SCRIPT" mark-active --state-dir "$STATE_DIR" --release-id "$release_id" >/dev/null
 trap - ERR
+cleanup_lifecycle_identity
 printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$old_active"
