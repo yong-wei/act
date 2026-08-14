@@ -10,6 +10,7 @@ owner.
 import argparse
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -35,10 +36,10 @@ def script_path(value, default_name):
 
 
 def run(command):
-    result = LIFECYCLE.subprocess.run(
+    result = subprocess.run(
         [sys.executable] + [str(item) for item in command],
-        stdout=LIFECYCLE.subprocess.PIPE,
-        stderr=LIFECYCLE.subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         universal_newlines=True,
     )
     if result.returncode != 0:
