@@ -15,6 +15,7 @@ import {
   resolveActiveTeachingProjection,
   resolveTeachingProjectionStorePaths,
 } from '@/lib/teaching-projection/store';
+import { resolveConfiguredTeachingProjectionRoot } from '@/lib/layered-graph/course-page-context';
 
 import type {
   AuthorityNodeDetailShard,
@@ -22,7 +23,7 @@ import type {
 } from './contracts';
 
 const LEARNING_CONTENT_MANIFEST_CONTRACT =
-  'act-authority-learning-content-manifest/v1' as const;
+  'act-authority-learning-content-manifest/v2' as const;
 
 const CARD_ROOT_RELATIVE =
   'course-content/runtime/knowledge/cards/authority/nodes' as const;
@@ -30,14 +31,15 @@ const INFOGRAPH_ROOT_RELATIVE =
   'course-content/runtime/knowledge/infographs/authority/nodes' as const;
 const MANIFEST_RELATIVE =
   'course-content/runtime/knowledge/authority-learning-content-manifest.json' as const;
-const PROJECTION_ROOT_RELATIVE =
-  'course-content/runtime/knowledge/projection' as const;
-
 type ManifestCardState = 'available' | 'blocked' | 'missing';
 type ManifestInfographState = 'available' | 'missing';
 
 interface AuthorityLearningContentManifest {
   contract: typeof LEARNING_CONTENT_MANIFEST_CONTRACT;
+  authorityReleaseId: string;
+  authorityReleaseSetId: string;
+  authoritySnapshotId: string;
+  authoritySnapshotHash: string;
   nodes: Array<{
     canonicalId: string;
     safeId: string;
@@ -50,7 +52,6 @@ interface RuntimePaths {
   cardRoot: string;
   infographRoot: string;
   manifestPath: string;
-  projectionRoot: string;
 }
 
 interface ResolvedLearningContent {
@@ -63,7 +64,6 @@ function runtimePaths(repoRoot = process.cwd()): RuntimePaths {
     cardRoot: join(repoRoot, CARD_ROOT_RELATIVE),
     infographRoot: join(repoRoot, INFOGRAPH_ROOT_RELATIVE),
     manifestPath: join(repoRoot, MANIFEST_RELATIVE),
-    projectionRoot: join(repoRoot, PROJECTION_ROOT_RELATIVE),
   };
 }
 
@@ -86,11 +86,22 @@ function isSha256(value: unknown): value is string {
   return typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 }
 
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
 function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | null {
   if (!existsSync(paths.manifestPath)) return null;
   try {
     const parsed = JSON.parse(readFileSync(paths.manifestPath, 'utf8')) as Partial<AuthorityLearningContentManifest>;
-    if (parsed.contract !== LEARNING_CONTENT_MANIFEST_CONTRACT || !Array.isArray(parsed.nodes)) return null;
+    if (
+      parsed.contract !== LEARNING_CONTENT_MANIFEST_CONTRACT
+      || !isNonEmptyString(parsed.authorityReleaseId)
+      || !isNonEmptyString(parsed.authorityReleaseSetId)
+      || !isNonEmptyString(parsed.authoritySnapshotId)
+      || !isSha256(parsed.authoritySnapshotHash)
+      || !Array.isArray(parsed.nodes)
+    ) return null;
     const nodes = parsed.nodes.filter((node): node is AuthorityLearningContentManifest['nodes'][number] => (
       Boolean(node)
       && typeof node.canonicalId === 'string'
@@ -100,8 +111,18 @@ function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | n
       && (node.infograph?.state === 'available' || node.infograph?.state === 'missing')
       && (node.infograph.sha256 === null || isSha256(node.infograph.sha256))
     ));
-    if (nodes.length !== parsed.nodes.length) return null;
-    return { contract: LEARNING_CONTENT_MANIFEST_CONTRACT, nodes };
+    if (
+      nodes.length !== parsed.nodes.length
+      || new Set(nodes.map((node) => node.canonicalId)).size !== nodes.length
+    ) return null;
+    return {
+      contract: LEARNING_CONTENT_MANIFEST_CONTRACT,
+      authorityReleaseId: parsed.authorityReleaseId,
+      authorityReleaseSetId: parsed.authorityReleaseSetId,
+      authoritySnapshotId: parsed.authoritySnapshotId,
+      authoritySnapshotHash: parsed.authoritySnapshotHash,
+      nodes,
+    };
   } catch {
     return null;
   }
@@ -175,7 +196,7 @@ function activeProjectionCardIds(
   }
 
   const active = resolveActiveTeachingProjection(
-    resolveTeachingProjectionStorePaths(paths.projectionRoot),
+    resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
   );
   if (active.status !== 'available' || !active.staged?.artifacts.gate.passed) return null;
   if (
@@ -197,6 +218,19 @@ function activeProjectionCardIds(
   );
 }
 
+function matchesShardAuthority(
+  manifest: AuthorityLearningContentManifest,
+  shard: AuthorityNodeDetailShard,
+): boolean {
+  const authority = shard.envelope.authority;
+  return (
+    manifest.authorityReleaseId === authority.releaseId
+    && manifest.authorityReleaseSetId === authority.releaseSetId
+    && manifest.authoritySnapshotId === authority.snapshotId
+    && manifest.authoritySnapshotHash === authority.snapshotHash
+  );
+}
+
 function resolveNodeLearningContent(
   shard: AuthorityNodeDetailShard,
   paths = runtimePaths(),
@@ -213,7 +247,10 @@ function resolveNodeLearningContent(
     };
   }
   const manifest = readManifest(paths);
-  const entry = manifest?.nodes.find((node) => node.canonicalId === shard.node.id);
+  if (!manifest || !matchesShardAuthority(manifest, shard)) {
+    return { content: unavailableContent(), infograph: null };
+  }
+  const entry = manifest.nodes.find((node) => node.canonicalId === shard.node.id);
   if (!entry) return { content: unavailableContent(), infograph: null };
 
   const card = (() => {

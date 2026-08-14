@@ -17,12 +17,14 @@ Authority knowledge cards and accepted infographs are tracked and exported, but 
 5. **Keep graph topology primary.** The Knowledge Card and infograph are detail content, not replacement cards on the canvas.
 6. **Bind exported learning content through the active Teaching Projection.** A node can use an exported card only when the active, passed Teaching Projection selects that canonical object and its Authority release-set/snapshot identity exactly matches the sealed node-detail shard. Runtime hashes verify the selected card and infograph bytes; the product never falls back to authoring files or constructs asset paths from client input.
 7. **Optional media requires a valid composite envelope binding.** The selected object must be present in the current Authority UI model and in a Teaching Projection that the same Authority shard envelope binds as available and passed. A detail-only route response or a separately current card index is insufficient; when that binding is unavailable, the inspector and capture must not read or display independently current projection/card inputs.
+8. **Learning-content exports seal Authority identity.** The runtime manifest uses `act-authority-learning-content-manifest/v2` and stores Authority release, release-set, snapshot and snapshot-hash values derived from an immutable Authority shard-set envelope. The resolver compares all four values to the selected shard before it reads any card or infograph asset. Legacy, malformed or duplicate-entry manifests are wholly unavailable. Partial card-only or infograph-only exports may preserve the other asset state only from an existing v2 manifest with the exact same sealed identity.
 
 ## Risks / Trade-offs
 
 - [Large images delay interaction] → Return responsive media metadata and load the selected image lazily with bounded dimensions.
 - [Stale detail races after rapid selection] → Bind responses to the current selection token and discard stale responses.
 - [Card availability differs by review state] → Test accepted content and omission for missing, blocked and media-error paths separately without leaking internal status.
+- [Assets and Authority shards are built from different revisions] → Reject mixed identity manifests before reading assets; keep semantic detail visible and omit only optional media.
 
 ## Migration Plan
 
