@@ -1,4 +1,5 @@
 import { execFile as execFileCallback } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -7,6 +8,7 @@ import { promisify } from 'node:util';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { buildGitRuntimeBlobReleaseSnapshot, openGitRuntimeBlobReleaseSnapshot } from '../runtime-release-git-snapshot';
+import { buildRuntimeBlobReleaseManifestFromFiles } from '../runtime-release';
 
 const execFile = promisify(execFileCallback);
 const roots: string[] = [];
@@ -22,6 +24,14 @@ async function fixture() {
   const runtimeRoot = path.join(root, 'course-content', 'runtime', 'lessons');
   await mkdir(runtimeRoot, { recursive: true });
   await writeFile(path.join(runtimeRoot, 'lesson.json'), '{"id":"commit-source"}\n');
+  await mkdir(path.join(root, 'course-content', 'authoring'), { recursive: true });
+  await writeFile(path.join(root, 'course-content', 'authoring', 'runtime-external-inputs.v1.json'), `${JSON.stringify({
+    schemaVersion: 'act-runtime-external-inputs.v1',
+    inputs: [{
+      pathPrefix: 'resources/textbooks-v2/',
+      externalInputId: 'textbook-runtime-v2-generated-v1',
+    }],
+  }, null, 2)}\n`);
   await git(root, 'init', '-b', 'integration');
   await git(root, 'config', 'user.email', 'test@example.invalid');
   await git(root, 'config', 'user.name', 'Test');
@@ -165,6 +175,87 @@ describe('Git-backed runtime release snapshots', () => {
 
     expect(target.manifest.files.map((file) => file.path)).toEqual(['lessons/renamed.json']);
     expect(target.stats).toEqual({ reusedFileCount: 1, reusedBytes: 23, hashedFileCount: 0, hashedBytes: 0 });
+  });
+
+  it('preserves declared external parent entries while rejecting undeclared parent entries', async () => {
+    const { root, sourceRevision } = await fixture();
+    const gitSnapshot = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+    const externalBytes = Buffer.from('{"generated":true}\n');
+    const parent = buildRuntimeBlobReleaseManifestFromFiles(sourceRevision, [
+      ...gitSnapshot.manifest.files,
+      {
+        path: 'resources/textbooks-v2/manifest.json',
+        sizeBytes: externalBytes.byteLength,
+        sha256: createHash('sha256').update(externalBytes).digest('hex'),
+      },
+    ]);
+
+    const target = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision,
+      integrationRef: 'integration',
+      parentManifest: parent,
+    });
+    expect(target.manifest.files).toHaveLength(2);
+    expect(target.manifest.files.find((file) => file.path === 'resources/textbooks-v2/manifest.json')?.source).toMatchObject({
+      externalInputId: 'textbook-runtime-v2-generated-v1',
+    });
+    expect(target.stats).toEqual({ reusedFileCount: 2, reusedBytes: 23 + externalBytes.byteLength, hashedFileCount: 0, hashedBytes: 0 });
+
+    const reopened = await openGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision,
+      integrationRef: 'integration',
+      parentManifest: parent,
+      manifest: target.manifest,
+    });
+    expect(reopened.manifest).toEqual(target.manifest);
+
+    const undeclaredParent = buildRuntimeBlobReleaseManifestFromFiles(sourceRevision, [
+      ...gitSnapshot.manifest.files,
+      {
+        path: 'resources/untracked-generated.json',
+        sizeBytes: externalBytes.byteLength,
+        sha256: createHash('sha256').update(externalBytes).digest('hex'),
+      },
+    ]);
+    await expect(buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision,
+      integrationRef: 'integration',
+      parentManifest: undeclaredParent,
+    })).rejects.toMatchObject({ code: 'runtime-release-external-source-missing' });
+  });
+
+  it('rejects an external declaration identity change until its generated source is revalidated', async () => {
+    const { root, sourceRevision } = await fixture();
+    const gitSnapshot = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+    const externalBytes = Buffer.from('{"generated":true}\n');
+    const parent = buildRuntimeBlobReleaseManifestFromFiles(sourceRevision, [
+      ...gitSnapshot.manifest.files,
+      {
+        path: 'resources/textbooks-v2/manifest.json',
+        sizeBytes: externalBytes.byteLength,
+        sha256: createHash('sha256').update(externalBytes).digest('hex'),
+      },
+    ]);
+    const first = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration', parentManifest: parent });
+    await writeFile(path.join(root, 'course-content', 'authoring', 'runtime-external-inputs.v1.json'), `${JSON.stringify({
+      schemaVersion: 'act-runtime-external-inputs.v1',
+      inputs: [{
+        pathPrefix: 'resources/textbooks-v2/',
+        externalInputId: 'textbook-runtime-v2-generated-v2',
+      }],
+    }, null, 2)}\n`);
+    await git(root, 'add', '.');
+    await git(root, 'commit', '-m', 'change external generated source identity');
+    const changedRevision = await git(root, 'rev-parse', 'HEAD');
+    await expect(buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: changedRevision,
+      integrationRef: 'integration',
+      parentManifest: first.manifest,
+    })).rejects.toMatchObject({ code: 'runtime-release-external-source-changed' });
   });
 
   it('rejects symlink entries from the Git runtime tree', async () => {

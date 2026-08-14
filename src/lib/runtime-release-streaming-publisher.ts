@@ -19,6 +19,7 @@ import {
   runtimeBlobReleasePrefix,
 } from '@/lib/runtime-release-store';
 import {
+  type ActRuntimeBlobReleaseFile,
   type ActRuntimeBlobReleaseManifest,
   type ActRuntimeReleaseFile,
   assertContentAddressedRuntimeReleaseId,
@@ -821,7 +822,7 @@ async function publishRuntimeBlobReleaseStream(input: {
       },
     } : {}),
   };
-  const sourcesByKey = new Map<string, ActRuntimeReleaseFile>();
+  const sourcesByKey = new Map<string, ActRuntimeBlobReleaseFile>();
   for (const file of input.manifest.files) {
     assertBlobObjectKey(file.objectKey);
     const existing = sourcesByKey.get(file.objectKey);
@@ -864,6 +865,12 @@ async function publishRuntimeBlobReleaseStream(input: {
         await writeChild(child, `${JSON.stringify({ key, sizeBytes: file.sizeBytes, sha256: file.sha256 })}\n`, file.path);
         const snapshotFile = input.snapshot.filesByPath.get(file.path);
         if (!snapshotFile || snapshotFile.sizeBytes !== file.sizeBytes || snapshotFile.sha256 !== file.sha256) {
+          if (file.source && 'externalInputId' in file.source) {
+            throw new RuntimeReleaseStreamingPublisherError(
+              'runtime-release-external-parent-blob-missing',
+              `Declared external runtime input is absent from the verified parent blob set: ${file.path}.`,
+            );
+          }
           throw new RuntimeReleaseStreamingPublisherError('runtime-release-git-source-mismatch', `Git snapshot source differs from the blob manifest for ${file.path}.`);
         }
         await streamSourceFrame(child, () => input.snapshot.openFile(file.path), file);

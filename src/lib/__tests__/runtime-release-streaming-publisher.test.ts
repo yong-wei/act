@@ -1,4 +1,5 @@
 import { execFile as execFileCallback, spawn, type SpawnOptions } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { Readable } from 'node:stream';
 import { promisify } from 'node:util';
@@ -21,6 +22,7 @@ import {
 } from '../runtime-release-streaming-publisher';
 import {
   buildRuntimeReleaseManifest,
+  buildRuntimeBlobReleaseManifestFromFiles,
   computeRuntimeReleaseManifestWireSha256,
   deriveRuntimeReleaseId,
   serializeRuntimeReleaseManifest,
@@ -372,6 +374,47 @@ describe('source-authoritative SSH runtime release transport', () => {
     });
     expect(new Set(manifest.files.map((file) => file.objectKey))).toHaveLength(2);
     expect(calls).toHaveLength(1);
+  });
+
+  it('fails closed when the bridge asks for a declared external parent blob', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-release-external-parent-'));
+    roots.push(root);
+    await mkdir(path.join(root, 'course-content', 'runtime', 'lessons'), { recursive: true });
+    await mkdir(path.join(root, 'course-content', 'authoring'), { recursive: true });
+    await writeFile(path.join(root, 'course-content', 'runtime', 'lessons', 'lesson.json'), '{"id":"external-parent"}\n');
+    await writeFile(path.join(root, 'course-content', 'authoring', 'runtime-external-inputs.v1.json'), `${JSON.stringify({
+      schemaVersion: 'act-runtime-external-inputs.v1',
+      inputs: [{ pathPrefix: 'resources/textbooks-v2/', externalInputId: 'textbook-runtime-v2-generated-v1' }],
+    })}\n`);
+    await execFile('git', ['init', '-b', 'integration'], { cwd: root });
+    await execFile('git', ['config', 'user.email', 'test@example.invalid'], { cwd: root });
+    await execFile('git', ['config', 'user.name', 'Test'], { cwd: root });
+    await execFile('git', ['add', '.'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'fixture'], { cwd: root });
+    const commit = (await execFile('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const initial = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision: commit, integrationRef: 'integration' });
+    const externalBytes = Buffer.from('{"generated":true}\n');
+    const parent = buildRuntimeBlobReleaseManifestFromFiles(commit, [
+      ...initial.manifest.files,
+      {
+        path: 'resources/textbooks-v2/manifest.json',
+        sizeBytes: externalBytes.byteLength,
+        sha256: createHash('sha256').update(externalBytes).digest('hex'),
+      },
+    ]);
+    const snapshot = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: commit,
+      integrationRef: 'integration',
+      parentManifest: parent,
+    });
+    const calls: Array<{ command: string; args: readonly string[] }> = [];
+    await expect(publishRuntimeBlobReleaseViaSsh({
+      snapshot,
+      manifest: snapshot.manifest,
+      ssh: config,
+      dependencies: { spawn: streamingBridgeSpawnFactory(calls, { releaseId: parent.releaseId, manifestSha256: parent.manifestSha256 }) },
+    })).rejects.toMatchObject({ code: 'runtime-release-external-parent-blob-missing' });
   });
 
   it('uses the same manifest-last stream protocol for a local operator publisher', async () => {

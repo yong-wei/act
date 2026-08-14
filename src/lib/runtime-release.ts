@@ -28,9 +28,24 @@ export interface ActRuntimeReleaseFile {
  * always provide it and can therefore reuse a parent blob without rereading
  * its body.
  */
-export interface ActRuntimeBlobReleaseFileSource {
+export interface ActRuntimeBlobReleaseFileGitSource {
   gitObjectId: string;
 }
+
+/**
+ * A Git-tracked declaration can preserve an externally generated runtime
+ * entry from a verified parent release without reading an ignored worktree
+ * file.  The declaration blob OID is part of the source identity, so changing
+ * the declaration cannot silently inherit an older generated payload.
+ */
+export interface ActRuntimeBlobReleaseFileExternalSource {
+  externalInputId: string;
+  externalInputManifestObjectId: string;
+}
+
+export type ActRuntimeBlobReleaseFileSource =
+  | ActRuntimeBlobReleaseFileGitSource
+  | ActRuntimeBlobReleaseFileExternalSource;
 
 export interface ActRuntimeBlobReleaseFile extends ActRuntimeReleaseFile {
   source?: ActRuntimeBlobReleaseFileSource;
@@ -233,12 +248,24 @@ function treeDigest(files: readonly Pick<ActRuntimeReleaseFile, 'path' | 'sizeBy
 
 function parseRuntimeBlobReleaseFileSource(value: unknown, context: string): ActRuntimeBlobReleaseFileSource {
   const raw = object(value, context);
-  assertExactKeys(raw, ['gitObjectId'], context);
-  const gitObjectId = string(raw.gitObjectId, `${context}.gitObjectId`).toLowerCase();
-  if (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(gitObjectId)) {
-    throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `${context}.gitObjectId is invalid.`);
+  if (Object.hasOwn(raw, 'gitObjectId')) {
+    assertExactKeys(raw, ['gitObjectId'], context);
+    const gitObjectId = string(raw.gitObjectId, `${context}.gitObjectId`).toLowerCase();
+    if (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(gitObjectId)) {
+      throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `${context}.gitObjectId is invalid.`);
+    }
+    return { gitObjectId };
   }
-  return { gitObjectId };
+  assertExactKeys(raw, ['externalInputId', 'externalInputManifestObjectId'], context);
+  const externalInputId = string(raw.externalInputId, `${context}.externalInputId`);
+  const externalInputManifestObjectId = string(raw.externalInputManifestObjectId, `${context}.externalInputManifestObjectId`).toLowerCase();
+  if (!/^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$/u.test(externalInputId)) {
+    throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `${context}.externalInputId is invalid.`);
+  }
+  if (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(externalInputManifestObjectId)) {
+    throw new RuntimeReleaseValidationError('runtime-release-manifest-invalid', `${context}.externalInputManifestObjectId is invalid.`);
+  }
+  return { externalInputId, externalInputManifestObjectId };
 }
 
 export function serializeRuntimeReleaseManifest(manifest: ActRuntimeReleaseManifest) {
