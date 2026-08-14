@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -135,6 +136,10 @@ try {
   assert.equal(buildManifest.status, 0, buildManifest.stderr);
   assert.equal(JSON.parse(fs.readFileSync(output, 'utf8')).schemaVersion, 'act-runtime-release.v2');
   assert.equal(JSON.parse(fs.readFileSync(receiptOutput, 'utf8')).schemaVersion, 'act-runtime-release-receipt.v2');
+  const manifestWire = fs.readFileSync(output);
+  const releaseReceipt = JSON.parse(fs.readFileSync(receiptOutput, 'utf8'));
+  assert.equal(releaseReceipt.manifestWireSha256, createHash('sha256').update(manifestWire).digest('hex'));
+  assert.equal(releaseReceipt.manifestWireSizeBytes, manifestWire.byteLength);
   const dailyReport = JSON.parse(fs.readFileSync(dailyReportOutput, 'utf8'));
   assert.equal(dailyReport.schemaVersion, 'runtime-blob-daily-publication-report.v1');
   assert.equal(dailyReport.phase, 'planned');

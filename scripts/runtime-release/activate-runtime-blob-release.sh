@@ -109,6 +109,61 @@ wait_for_readyz() {
   return 1
 }
 
+run_candidate_runtime_smoke() {
+  local smoke_path kind encoded_path smoke_selections
+  if ! smoke_selections="$(python3 - "$manifest" <<'PY'
+import json
+import re
+import sys
+from urllib.parse import quote
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    manifest = json.load(handle)
+files = manifest.get("files")
+if not isinstance(files, list):
+    raise SystemExit("ERROR: candidate manifest files are invalid")
+paths = []
+for entry in files:
+    if not isinstance(entry, dict) or not isinstance(entry.get("path"), str):
+        raise SystemExit("ERROR: candidate manifest entry is invalid")
+    paths.append(entry["path"])
+
+def first(label, predicate):
+    for candidate in paths:
+        if predicate(candidate):
+            return label, candidate
+    raise SystemExit("ERROR: candidate %s runtime smoke representative is missing" % label)
+
+checks = [
+    first("course", lambda candidate: re.fullmatch(r"lessons/[^/]+/(?:lesson\.json|interactive-manifest\.json)", candidate) is not None),
+    first("media", lambda candidate: re.fullmatch(r"lessons/[^/]+/media/[^/]+\.(?:mp4|webm|m4a|mp3|wav|pdf|png|jpe?g|webp|svg|gif)", candidate, re.IGNORECASE) is not None),
+    first("knowledge", lambda candidate: candidate == "knowledge/graph/nodes.json"),
+    first("textbook", lambda candidate: re.fullmatch(r"resources/textbooks/[a-z0-9][a-z0-9-]{0,95}/assets/[^/]+/[^/]+", candidate) is not None),
+]
+for label, candidate in checks:
+    print("%s\t%s" % (label, quote(candidate, safe="/")))
+PY
+  )"; then
+    echo "ERROR: candidate runtime smoke selection failed" >&2
+    return 1
+  fi
+  [[ -n "$smoke_selections" ]] || {
+    echo "ERROR: candidate runtime smoke selection is empty" >&2
+    return 1
+  }
+  while IFS=$'\t' read -r kind encoded_path; do
+    [[ -n "$kind" && -n "$encoded_path" ]] || {
+      echo "ERROR: candidate runtime smoke selection is malformed" >&2
+      return 1
+    }
+    smoke_path="http://127.0.0.1:${APP_PORT}/course-runtime/${encoded_path}"
+    curl --connect-timeout 2 --max-time 20 --fail --silent --show-error "$smoke_path" >/dev/null || {
+      echo "ERROR: candidate ${kind} runtime smoke failed" >&2
+      return 1
+    }
+  done <<<"$smoke_selections"
+}
+
 capture_rollback_image() {
   local image
   image="$(podman inspect --format '{{.Image}}' "$APP_CONTAINER")"
@@ -275,6 +330,7 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   "$DEPLOY_SCRIPT" --runtime-cutover-app-only
 source "$ENV_FILE"
 wait_for_readyz
+run_candidate_runtime_smoke
 python3 "$ACTIVATION_TRANSACTION" activate \
   --state-dir "$STATE_DIR" \
   --lifecycle-script "$LIFECYCLE_SCRIPT" \

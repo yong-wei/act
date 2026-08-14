@@ -35,6 +35,13 @@ for (const invariant of [
   'lifecycle_generation',
   'restore_runtime_consumers()',
   'ACT_RUNTIME_ACTIVE_RECEIPT_PATH',
+  'run_candidate_runtime_smoke()',
+  'first("course"',
+  'first("media"',
+  'first("knowledge"',
+  'first("textbook"',
+  'candidate ${kind} runtime smoke failed',
+  'candidate runtime smoke selection failed',
 ]) {
   assert.ok(activation.includes(invariant), `runtime-only activation must include ${invariant}`);
 }
@@ -50,6 +57,20 @@ assert.ok(
 assert.ok(
   activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate') < activation.indexOf('trap - ERR'),
   'v2 cross-state activation must complete before clearing rollback handling',
+);
+assert.ok(
+  activation.indexOf('run_candidate_runtime_smoke') < activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate'),
+  'candidate course, media, knowledge, and textbook smoke must pass before lifecycle activation',
+);
+assert.match(
+  activation,
+  /if ! smoke_selections="\$\(python3 - "\$manifest"/,
+  'candidate smoke selection must propagate a missing representative failure before lifecycle activation',
+);
+assert.doesNotMatch(
+  activation,
+  /done < <\(python3 - "\$manifest"/,
+  'candidate smoke selection must not hide Python failures in process substitution',
 );
 assert.match(activation, /LIFECYCLE_SCRIPT=.*runtime-blob-release-lifecycle\.py/, 'activation must invoke the v2 lifecycle authority');
 assert.match(activation, /ACTIVATION_TRANSACTION=.*runtime-blob-activation-transaction\.py/, 'activation must invoke the cross-state transaction helper');

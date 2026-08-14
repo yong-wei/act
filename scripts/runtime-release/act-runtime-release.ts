@@ -66,6 +66,12 @@ async function writeJsonFile(output: string, value: unknown) {
   await writeFile(output, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
+async function writeCanonicalManifest(output: string, serialized: string) {
+  await mkdir(path.dirname(output), { recursive: true });
+  await writeFile(output, serialized, 'utf8');
+  process.stdout.write(`${JSON.stringify({ output })}\n`);
+}
+
 function reportIdentity(manifest: ReturnType<typeof parseRuntimeBlobReleaseManifest>) {
   return {
     releaseId: manifest.releaseId,
@@ -214,7 +220,7 @@ async function main() {
     const format = releaseFormat();
     if (format !== 'v2') throw new Error('build-manifest is reserved for the v2 candidate materialization contract.');
     const snapshot = await buildGitManifest(required('--source-revision'));
-    await writeOutput(required('--output'), JSON.parse(serializeRuntimeBlobReleaseManifest(snapshot.manifest)));
+    await writeCanonicalManifest(required('--output'), serializeRuntimeBlobReleaseManifest(snapshot.manifest));
     const receiptOutput = argument('--receipt-output');
     if (receiptOutput) {
       await writeOutput(receiptOutput, buildRuntimeBlobReleaseReceipt(snapshot.manifest));
