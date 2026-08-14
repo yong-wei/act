@@ -356,6 +356,7 @@ interface WorkingCandidateEntry {
 async function workingCandidateEntries(
   repoRoot: string,
   roots: readonly string[],
+  allowMissingRoots = false,
 ): Promise<Map<string, WorkingCandidateEntry>> {
   const entries = new Map<string, WorkingCandidateEntry>();
   const visit = async (absolutePath: string, relative: string): Promise<void> => {
@@ -387,6 +388,20 @@ async function workingCandidateEntries(
   };
 
   for (const root of roots) {
+    try {
+      await lstat(path.join(repoRoot, root));
+    } catch (error) {
+      if (
+        allowMissingRoots
+        && error instanceof Error
+        && 'code' in error
+        && (error as NodeJS.ErrnoException).code === 'ENOENT'
+      ) continue;
+      if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
+        fail(`candidate source path is missing from the working tree: ${root}`);
+      }
+      throw error;
+    }
     await visit(path.join(repoRoot, root), root);
   }
   return entries;
@@ -483,9 +498,10 @@ function assertWorkingTreeChangesBounded(repoRoot: string, derivedRoots: readonl
 async function candidateOutputSummaries(
   repoRoot: string,
   derivedRoots: readonly string[],
+  allowEmpty = false,
 ): Promise<V018CandidateOutputSummary[]> {
-  const entries = await workingCandidateEntries(repoRoot, derivedRoots);
-  if (entries.size === 0) fail('candidate derived output roots contain no files');
+  const entries = await workingCandidateEntries(repoRoot, derivedRoots, allowEmpty);
+  if (entries.size === 0 && !allowEmpty) fail('candidate derived output roots contain no files');
   return Promise.all([...entries.values()]
     .sort((left, right) => left.path.localeCompare(right.path))
     .map(async (entry) => {
@@ -529,7 +545,10 @@ export async function assertV018CandidateEvidenceCaptureContract(options: {
   generationRevision?: string;
   sourcePaths?: readonly string[];
   derivedPaths: readonly string[];
-  /** Generation-time replay may be writing an output root before commit F. */
+  /**
+   * Generation preflight/publication may replace the derived output tree.
+   * Verification omits this flag and therefore requires the complete F tree.
+   */
   allowUncommittedDerived?: boolean;
 }): Promise<V018CandidateEvidenceCaptureContract> {
   const repoRoot = path.resolve(options.repoRoot);
@@ -564,23 +583,19 @@ export async function assertV018CandidateEvidenceCaptureContract(options: {
   // still proven by the explicit tree/worktree collections above.
   assertWorkingTreeChangesBounded(repoRoot, derivedPaths);
   const derivedAtGeneration = contractGitEntries(repoRoot, generationRevision, derivedPaths, true);
-  const derivedInWorkingTree = await workingCandidateEntries(repoRoot, derivedPaths);
-  if (options.allowUncommittedDerived) {
-    for (const [relativePath, expectedEntry] of derivedAtGeneration) {
-      const actualEntry = derivedInWorkingTree.get(relativePath);
-      if (!actualEntry) fail(`candidate derived output is missing from the working tree: ${relativePath}`);
-      if (
-        actualEntry.mode !== expectedEntry.mode
-        || actualEntry.objectType !== expectedEntry.objectType
-        || actualEntry.gitObject !== expectedEntry.gitObject
-      ) {
-        fail(`candidate derived output drift at ${relativePath}`);
-      }
-    }
-  } else {
+  const derivedInWorkingTree = await workingCandidateEntries(
+    repoRoot,
+    derivedPaths,
+    options.allowUncommittedDerived,
+  );
+  if (!options.allowUncommittedDerived) {
     assertEntryMapsEqual(derivedAtGeneration, derivedInWorkingTree, 'candidate derived output');
   }
-  const outputs = await candidateOutputSummaries(repoRoot, derivedPaths);
+  const outputs = await candidateOutputSummaries(
+    repoRoot,
+    derivedPaths,
+    options.allowUncommittedDerived,
+  );
 
   return {
     contract: V018_CANDIDATE_EVIDENCE_CONTRACT,
@@ -1040,6 +1055,16 @@ export async function prepareV018AuthorityCandidate(input: {
     captureRevision,
   });
   assertV018CandidateBundleCounts(bundle);
+  // `requireAbsent` above owns the output-root precondition. This generation
+  // preflight must still bind every source input, but it cannot require stale
+  // E-derived files to exist while the candidate is about to be rebuilt.
+  await assertV018CandidateEvidenceCaptureContract({
+    repoRoot,
+    captureRevision,
+    generationRevision: captureRevision,
+    derivedPaths: [relativePath(repoRoot, outputRoot)],
+    allowUncommittedDerived: true,
+  });
 
   const sourceUrl = process.env.DATABASE_URL?.trim();
   if (!sourceUrl) fail('DATABASE_URL is not configured');

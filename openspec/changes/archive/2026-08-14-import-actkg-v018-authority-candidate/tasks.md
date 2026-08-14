@@ -46,9 +46,12 @@
   persist every source entry (including the complete controlled Bundle root),
   and reject an ignored extra member added there after F. Record
   every derived output summary (including the receipt's mode and self-excluded
-  body digest). Keep the generation-time receipt revision equal to E, and
-  provide a read-only `--verify-derived` closeout against commit F; the
-  disposable PostgreSQL replay remains a required real-run gate.
+  body digest). Require the output root to be absent for generation preflight,
+  allow stale E-derived files to be missing or replaced during regeneration,
+  keep the generation-time receipt revision equal to E, and make
+  `--verify-derived` require the complete committed output tree and receipt
+  manifest at F; the disposable PostgreSQL replay remains a required real-run
+  gate.
 - [x] 3.2 Prove idempotent re-import and disposable-schema cleanup on success and failure.
 - [x] 3.3 Assert Authority, Teaching Projection, prerequisite, Authority
   domain-shard, consumer, and production marker pointers remain byte-identical

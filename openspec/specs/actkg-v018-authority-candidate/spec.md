@@ -87,6 +87,13 @@ generation revision is the stable generator revision (equal to E); the
 derived-only verification of F is a
 separate read-only closeout.
 
+Before generation, the runner MUST require the declared candidate output root
+to be absent. Generation preflight MAY tolerate missing or replaced derived
+entries that were present in E because those files are rebuilt; it MUST still
+enforce the source, ancestor, overlap, and working-tree boundaries above. The
+read-only `--verify-derived` path MUST disable that allowance and reject any
+missing committed output or receipt manifest.
+
 #### Scenario: The final evidence commit contains only derived outputs
 
 - **WHEN** E is an ancestor of current HEAD F and all E..F paths are under the
@@ -112,6 +119,14 @@ separate read-only closeout.
   root and hidden with `.git/info/exclude`
 - **THEN** the explicit source walk used by `--verify-derived` MUST reject the
   evidence even though Git status reports no untracked path
+
+#### Scenario: Generation rebuilds a previously tracked derived tree
+
+- **WHEN** E still contains prior derived files but the declared output root is
+  absent from the worktree before generation
+- **THEN** generation preflight SHALL validate the source closure without
+  requiring those stale derived files, while `--verify-derived` SHALL reject
+  the same missing output tree
 
 ### Requirement: Candidate import never activates knowledge consumers
 

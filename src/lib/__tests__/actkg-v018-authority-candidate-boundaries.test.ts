@@ -292,6 +292,36 @@ describe('ActKG v0.18 candidate capture boundaries', () => {
     }
   });
 
+  it('allows generation preflight to rebuild missing E-derived outputs but keeps verification strict', async () => {
+    const fixture = await createEvidenceContractFixture();
+    const derivedRoot = path.join(fixture.root, 'derived');
+    try {
+      await rm(derivedRoot, { recursive: true, force: true });
+      await expect(stat(derivedRoot)).rejects.toBeDefined();
+      await expect(assertV018CandidateEvidenceCaptureContract({
+        repoRoot: fixture.root,
+        captureRevision: fixture.generation,
+        generationRevision: fixture.generation,
+        sourcePaths: ['source'],
+        derivedPaths: ['derived'],
+        allowUncommittedDerived: true,
+      })).resolves.toMatchObject({
+        captureRevision: fixture.generation,
+        generationRevision: fixture.generation,
+        outputs: [],
+      });
+      await expect(verifyV018CandidateEvidence({
+        repoRoot: fixture.root,
+        captureRevision: fixture.generation,
+        generationRevision: fixture.generation,
+        outputRoot: derivedRoot,
+        sourcePaths: ['source'],
+      })).rejects.toThrow(/missing from the working tree/u);
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
   it('uses the default controlled Bundle source root and rejects ignored extras after F', async () => {
     const fixture = await createDefaultEvidenceContractFixture();
     const controlledFile = path.join(fixture.root, V018_ACT_CONTROLLED_PATH, 'bundle-manifest.json');

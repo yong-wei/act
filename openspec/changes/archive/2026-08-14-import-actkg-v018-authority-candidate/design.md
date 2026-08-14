@@ -123,8 +123,13 @@ SHA.
 The runner's `--verify-derived` path is read-only with respect to candidate
 evidence: after the generated files are committed as F, it replays the source
 contract and receipt/output summaries without rerunning or rewriting the
-candidate. The full PostgreSQL disposable-schema replay remains a real-run
-gate; unit tests cover the Git boundary and receipt closeout only.
+candidate. Generation preflight first requires the output root to be absent,
+then permits E's old derived tree entries to be missing or replaced while it
+checks the complete source closure; output summaries are recomputed after the
+new files are written. `--verify-derived` leaves that generation allowance off
+and therefore requires every committed F output and the receipt manifest. The
+full PostgreSQL disposable-schema replay remains a real-run gate; unit tests
+cover the Git boundary and receipt closeout only.
 
 ### 7. Merge V2 projection evidence by normalized profile identity
 
