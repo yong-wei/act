@@ -81,6 +81,9 @@ for (const invariant of [
   'daily-publication-report.json',
   '--daily-report-output',
   'timingMilliseconds',
+  'lifecycle-identity.json',
+  'runtime-blob-release-lifecycle.py',
+  'begin-publish',
   'activate-runtime-blob-release.sh',
   'remote path is unsafe',
   'treeSha256',
@@ -107,6 +110,14 @@ assert.match(
   runtimeDeploy,
   /active runtime selection does not match the unchanged parent manifest/,
   'unchanged runtime must validate the active identity before returning no-op',
+);
+assert.ok(
+  runtimeDeploy.indexOf('begin-publish') < runtimeDeploy.indexOf('publish_started_seconds=$SECONDS'),
+  'candidate lifecycle protection must be recorded before local blob publication starts',
+);
+assert.ok(
+  runtimeDeploy.indexOf('copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py"') < runtimeDeploy.indexOf('begin-publish'),
+  'the lifecycle authority must be synchronized before it records the candidate root',
 );
 
 assert.equal(packageJson.scripts['deploy:runtime'], 'bash ./scripts/deploy-runtime-blob-release.sh');

@@ -15,6 +15,7 @@ REMOTE_RUNTIME_RELEASE_DIR="${REMOTE_RUNTIME_RELEASE_DIR:-$REMOTE_PROJECT_DIR/sc
 REMOTE_ARTIFACT_ROOT="${REMOTE_RUNTIME_ARTIFACT_ROOT:-$REMOTE_PROJECT_DIR/data/runtime/releases}"
 REMOTE_HOST_STATE="${REMOTE_RUNTIME_HOST_STATE_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/runtime-release-host-state.py}"
 REMOTE_MATERIALIZER="${REMOTE_RUNTIME_BLOB_MATERIALIZER:-$REMOTE_PROJECT_DIR/scripts/materialize-runtime-blob-release.py}"
+REMOTE_LIFECYCLE="${REMOTE_RUNTIME_BLOB_LIFECYCLE_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py}"
 REMOTE_ACTIVATOR="${REMOTE_RUNTIME_BLOB_ACTIVATOR:-$REMOTE_PROJECT_DIR/scripts/activate-runtime-blob-release.sh}"
 REMOTE_APP_DEPLOY="${REMOTE_APP_DEPLOY_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/4-deploy.sh}"
 BUCKET="${ACT_OSS_BUCKET:-act-course-assets}"
@@ -50,6 +51,7 @@ for remote_path in \
   "$REMOTE_ARTIFACT_ROOT" \
   "$REMOTE_HOST_STATE" \
   "$REMOTE_MATERIALIZER" \
+  "$REMOTE_LIFECYCLE" \
   "$REMOTE_ACTIVATOR" \
   "$REMOTE_APP_DEPLOY"; do
   [[ "$remote_path" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "ERROR: remote path is unsafe: $remote_path" >&2; exit 1; }
@@ -63,6 +65,13 @@ done
 
 remote() {
   ssh -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$SSH_TARGET" "$@"
+}
+
+copy_atomic() {
+  local local_path="$1"
+  local remote_path="$2"
+  scp -q -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$local_path" "$SSH_TARGET:${remote_path}.tmp"
+  remote "chmod 0755 '${remote_path}.tmp' && mv '${remote_path}.tmp' '${remote_path}'"
 }
 
 for variable in \
@@ -99,6 +108,32 @@ with open(sys.argv[1], encoding='utf-8') as handle:
     print(json.load(handle)['releaseId'])
 PY
 )"
+lifecycle_identity="$artifact_dir/lifecycle-identity.json"
+python3 - "$manifest" "$release_id" > "$lifecycle_identity" <<'PY'
+import hashlib
+import json
+import re
+import sys
+
+manifest_path, expected_release_id = sys.argv[1:]
+wire = open(manifest_path, "rb").read()
+manifest = json.loads(wire.decode("utf-8"))
+if manifest.get("schemaVersion") != "act-runtime-release.v2" or manifest.get("releaseId") != expected_release_id:
+    raise SystemExit("planned manifest does not bind the candidate release")
+for field in ("manifestSha256", "treeSha256"):
+    if not isinstance(manifest.get(field), str) or not re.fullmatch(r"[a-f0-9]{64}", manifest[field]):
+        raise SystemExit("planned manifest %s is invalid" % field)
+print(json.dumps({
+    "schemaVersion": "runtime-blob-release-identity.v1",
+    "releaseId": expected_release_id,
+    "manifestVersion": "act-runtime-release.v2",
+    "manifestSha256": manifest["manifestSha256"],
+    "manifestWireSha256": hashlib.sha256(wire).hexdigest(),
+    "manifestWireSizeBytes": len(wire),
+    "treeSha256": manifest["treeSha256"],
+}, separators=(",", ":"), sort_keys=True))
+PY
+chmod 0600 "$lifecycle_identity"
 
 if [[ -n "$parent_manifest" ]]; then
   matching_parent_release_id="$(python3 - "$manifest" "$parent_manifest" <<'PY'
@@ -153,6 +188,50 @@ PY
     exit 0
   fi
 fi
+
+# A successful terminal manifest makes a release selectable, but its blobs
+# must become a lifecycle root before local publication can write them.  This
+# prevents a concurrent GC from collecting unique candidate blobs between the
+# local publish and the later host materialization step.
+remote_lifecycle_identity="$REMOTE_ARTIFACT_ROOT/$release_id/lifecycle-identity.json"
+remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_LIFECYCLE")'"
+copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py" "$REMOTE_LIFECYCLE"
+scp -q -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$lifecycle_identity" "$SSH_TARGET:$remote_lifecycle_identity.tmp"
+remote "chmod 0600 '$remote_lifecycle_identity.tmp' && mv '$remote_lifecycle_identity.tmp' '$remote_lifecycle_identity'"
+pre_publish_lifecycle="$(remote "python3 '$REMOTE_LIFECYCLE' inspect --state-dir '$REMOTE_PROJECT_DIR/data/runtime'")"
+pre_publish_action="$(printf '%s' "$pre_publish_lifecycle" | python3 -c '
+import json
+import sys
+
+candidate = json.load(open(sys.argv[1], encoding="utf-8"))
+state = json.load(sys.stdin)
+expected_active = sys.argv[2]
+if expected_active == "none" or state.get("active", {}).get("releaseId") != expected_active:
+    raise SystemExit("v2 lifecycle active release does not match --expected-active-release")
+desired = state.get("desired")
+publishing = state.get("publishing")
+if not isinstance(publishing, list) or not isinstance(state.get("generation"), int):
+    raise SystemExit("v2 lifecycle inspection is malformed")
+if desired is not None and desired != candidate:
+    raise SystemExit("v2 lifecycle already records a different desired release")
+if desired == candidate:
+    print("protected:%d" % state["generation"])
+    raise SystemExit(0)
+if any(item == candidate for item in publishing):
+    print("protected:%d" % state["generation"])
+    raise SystemExit(0)
+if publishing:
+    raise SystemExit("v2 lifecycle already records another publishing release")
+print("begin:%d" % state["generation"])
+' "$lifecycle_identity" "$expected_active_release")"
+if [[ "$pre_publish_action" == begin:* ]]; then
+  pre_publish_generation="${pre_publish_action#begin:}"
+  [[ "$pre_publish_generation" =~ ^[1-9][0-9]*$ ]] || { echo "ERROR: invalid lifecycle generation" >&2; exit 1; }
+  remote "python3 '$REMOTE_LIFECYCLE' begin-publish --state-dir '$REMOTE_PROJECT_DIR/data/runtime' --expected-generation '$pre_publish_generation' --identity '$remote_lifecycle_identity' >/dev/null"
+elif [[ "$pre_publish_action" != protected:* ]]; then
+  echo "ERROR: invalid lifecycle publication state" >&2
+  exit 1
+fi
 publish_started_seconds=$SECONDS
 
 publish_args=(
@@ -172,16 +251,10 @@ fi
 npx tsx "$CLI" "${publish_args[@]}" >/dev/null
 publish_elapsed_milliseconds=$(( (SECONDS - publish_started_seconds) * 1000 ))
 
-copy_atomic() {
-  local local_path="$1"
-  local remote_path="$2"
-  scp -q -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$local_path" "$SSH_TARGET:${remote_path}.tmp"
-  remote "chmod 0755 '${remote_path}.tmp' && mv '${remote_path}.tmp' '${remote_path}'"
-}
-
-remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_HOST_STATE")' '$(dirname "$REMOTE_MATERIALIZER")' '$(dirname "$REMOTE_ACTIVATOR")' '$(dirname "$REMOTE_APP_DEPLOY")'"
+remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_HOST_STATE")' '$(dirname "$REMOTE_MATERIALIZER")' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATOR")' '$(dirname "$REMOTE_APP_DEPLOY")'"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-release-host-state.py" "$REMOTE_HOST_STATE"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/materialize-runtime-blob-release.py" "$REMOTE_MATERIALIZER"
+copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py" "$REMOTE_LIFECYCLE"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/activate-runtime-blob-release.sh" "$REMOTE_ACTIVATOR"
 copy_atomic "$ROOT_DIR/deploy/podman/deploy.sh" "$REMOTE_APP_DEPLOY"
 for name in manifest.json release-receipt.json publisher-verification.json; do
@@ -190,7 +263,7 @@ for name in manifest.json release-receipt.json publisher-verification.json; do
 done
 
 activation_started_seconds=$SECONDS
-remote "'$REMOTE_ACTIVATOR' --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'"
+remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' '$REMOTE_ACTIVATOR' --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'"
 activation_elapsed_milliseconds=$(( (SECONDS - activation_started_seconds) * 1000 ))
 python3 - "$daily_report" "$build_elapsed_milliseconds" "$publish_elapsed_milliseconds" "$activation_elapsed_milliseconds" <<'PY'
 import json
