@@ -484,6 +484,23 @@ describe('ActKG public Bundle v2 semantic validation', () => {
         terminologyAssertions: 1909,
       });
       expect(validated.multilingualLabels).toHaveLength(1909);
+      expect(validated.multilingualLabels[0]).toMatchObject({
+        entityId: 'ctc:modeling-00d2998755974a1329049aac',
+        language: 'zh-CN',
+        label: '增益',
+        labelType: 'canonical_preferred',
+        terminologyAssertionId: 'ctt:zh-cn-assertion-8db4ed0140ed5313f26035c0',
+      });
+      expect(validated.multilingualLabels.at(-1)).toMatchObject({
+        entityId: 'ctkg:v3e-object-fffc8da83a5258ec01126edc',
+        language: 'zh-CN',
+        label: '全维状态观测器设计中的被控对象动态方程',
+        labelType: 'alternative',
+        terminologyAssertionId: 'ctt:zh-cn-assertion-a7023afbbfc881b3a93d67a8',
+      });
+      expect(sha256(canonicalJson(validated.multilingualLabels))).toBe(
+        '896a13b1f03cdc738472805526489aa52f69b08fa99b3dafe804cb6d0cd2f9cf',
+      );
       expect(validated.components).toHaveLength(17);
     } finally {
       await rm(workspace.dir, { recursive: true, force: true });
