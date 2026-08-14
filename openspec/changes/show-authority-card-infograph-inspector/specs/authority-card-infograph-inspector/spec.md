@@ -9,7 +9,7 @@ Selecting a presentable Authority object SHALL open or update a stable desktop s
 - **AND** the canvas SHALL not be replaced by a card grid
 
 ### Requirement: Accepted Knowledge Cards and infographs load on demand
-The inspector SHALL request eligible Knowledge Card content and accepted infograph metadata only after node selection. Accepted cards and infographs SHALL be presented as learning content; missing cards, blocked drafts and unavailable media SHALL use controlled human-readable states.
+The inspector SHALL request eligible Knowledge Card content and accepted infograph metadata only after node selection. Accepted cards and infographs SHALL be presented as learning content; missing cards, blocked drafts and unavailable media SHALL be omitted without a placeholder panel.
 
 #### Scenario: Node has an accepted card and infograph
 - **WHEN** the selected node resolves to an authorized published card and accepted infograph
@@ -19,12 +19,17 @@ The inspector SHALL request eligible Knowledge Card content and accepted infogra
 #### Scenario: Card is draft-blocked
 - **WHEN** the selected node's card is not eligible for publication
 - **THEN** the product SHALL not display the draft as reviewed knowledge
-- **AND** it SHALL use controlled availability wording without exposing the raw review state
+- **AND** it SHALL omit the Knowledge Card panel without exposing the raw review state
 
 #### Scenario: Infograph fails to load
 - **WHEN** an otherwise eligible infograph cannot be retrieved
 - **THEN** the card and semantic node detail SHALL remain usable
-- **AND** the media error SHALL not expose a path, object key or hash
+- **AND** the infograph panel SHALL be omitted without exposing a path, object key or hash
+
+#### Scenario: Teaching binding is unavailable
+- **WHEN** the current Authority shard envelope does not report a passed, matching Teaching Projection
+- **THEN** the inspector SHALL not read independently current projection or card inputs
+- **AND** it SHALL keep semantic detail usable while omitting card and infograph panels
 
 ### Requirement: Inspector content hides system identity
 Visible text, accessible names and descriptions, tooltips, media alternatives, errors and copy payloads SHALL NOT expose Authority object or relation identifiers, release or projection identifiers, hashes, raw enum values, internal source locators or filesystem paths.

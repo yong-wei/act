@@ -136,10 +136,6 @@ const ACTIVE_CANVAS_SOURCE_IDENTITY_FIELDS: readonly ActiveSourceIdentityField[]
   'sourceDatasetHash',
 ];
 
-// The frozen active Teaching Projection selects this published Authority card.
-// Capture must exercise it rather than an arbitrary node whose governed
-// learning content can correctly be absent.
-const ACCEPTED_AUTHORITY_LEARNING_NODE_ID = 'ctc:modeling-865eb1c8824e157c2f05a903';
 const ACTIVE_NODE_SOURCE_IDENTITY_FIELDS: readonly ActiveSourceIdentityField[] = [
   'authorityState',
   'releaseSetId',
@@ -1145,12 +1141,17 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
 }
 
 async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiProbe) {
-  const node = page.locator(
-    `[data-active-authority-node="${ACCEPTED_AUTHORITY_LEARNING_NODE_ID}"]`,
-  );
+  await page.waitForSelector('[data-active-graph-stage="authority"] [data-active-authority-node]:visible', { timeout: 10000 });
+  const beforeSelectionLog = await probe.readLog();
+  const preSelectionDetailRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node').length;
+  const preSelectionMediaRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node/infograph').length;
+  if (preSelectionDetailRequests > 0 || preSelectionMediaRequests > 0) {
+    throw new Error('active Authority detail or media was requested before a visible node selection');
+  }
+  const node = page.locator('[data-active-graph-stage="authority"] [data-active-authority-node]:visible').first();
   const originKey = await node.getAttribute('data-active-authority-node');
   if (!originKey) {
-    throw new Error('published Authority learning-content node is unavailable for detail interaction');
+    throw new Error('current Authority domain has no visible node for detail interaction');
   }
   await page.evaluate((key) => {
     const qaWindow = window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA_EXPECTED_ACTIVE_NODE__?: string | null };
@@ -1162,11 +1163,15 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   await page.waitForSelector('[data-active-node-detail]', { timeout: 10000 });
   await probe.waitForPath('/api/knowledge/shards/active/nodes/:node');
   await page.waitForTimeout(50);
+  const afterSelectionLog = await probe.readLog();
+  const detailRequests = afterSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node').length;
+  const mediaRequests = afterSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node/infograph').length;
   const detailEvidence = await page.evaluate(() => ({
     detailPanelFocusedAfterOpen: document.activeElement?.matches('[data-active-node-detail]') ?? false,
     semanticDetailVisible: Boolean(document.querySelector('[data-active-node-detail]')),
     learningCardVisible: Boolean(document.querySelector('[data-active-node-detail] [aria-labelledby="active-detail-card"]')),
     learningInfographVisible: Boolean(document.querySelector('[data-active-node-detail] img[alt$="信息图"]')),
+    optionalLearningContentOmitted: !document.querySelector('[data-active-node-detail] [aria-labelledby="active-detail-card"], [data-active-node-detail] [aria-labelledby="active-detail-infograph"]'),
     adjacencyInteraction: document.querySelectorAll('[data-active-authority-relation]').length > 0,
     renderedEdgeCount: document.querySelectorAll('[data-active-authority-relation]').length,
     teachingRelationsUnavailable: document.querySelector('[data-authority-teaching-coverage="true"]')?.textContent?.trim() === '教学关系暂不可用',
@@ -1183,6 +1188,10 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   const focusReturnedToSemanticCanvas = await page.evaluate(() => document.activeElement?.matches('[data-active-graph-stage]') ?? false);
   const overviewSurfaceScan = await captureActiveSurfaceScan(page, probe);
   return {
+    detailRequestBeforeSelection: preSelectionDetailRequests > 0,
+    mediaRequestBeforeSelection: preSelectionMediaRequests > 0,
+    detailRequestObservedAfterSelection: detailRequests > preSelectionDetailRequests,
+    mediaRequestObservedAfterSelection: mediaRequests > preSelectionMediaRequests,
     semanticNodeFocusedBeforeClick,
     ...detailEvidence,
     detailSurfaceScan,
@@ -2119,12 +2128,15 @@ async function captureAuthenticatedRoleEvidence(
       }
       const activeInteractionEvidence = await captureActiveInteractionEvidence(page, probe);
       if (
-        activeInteractionEvidence.learningCardVisible !== true
-        || activeInteractionEvidence.learningInfographVisible !== true
+        activeInteractionEvidence.detailRequestBeforeSelection !== false
+        || activeInteractionEvidence.mediaRequestBeforeSelection !== false
+        || activeInteractionEvidence.detailRequestObservedAfterSelection !== true
+        || activeInteractionEvidence.optionalLearningContentOmitted !== true
+        || activeInteractionEvidence.mediaRequestObservedAfterSelection !== false
         || objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
         || objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed !== true
       ) {
-        throw new Error(`active Authority learning-content evidence failed in role:${role}`);
+        throw new Error(`active Authority optional-learning evidence failed in role:${role}`);
       }
       const initialLog = await probe.readLog();
       const activeApiEvidence = projectSafeApiEvidence(
@@ -2256,8 +2268,11 @@ async function captureAuthenticatedRoleEvidence(
         );
         if (
           activeSurfaceScan.passed !== true
-          || activeInteractionEvidence.learningCardVisible !== true
-          || activeInteractionEvidence.learningInfographVisible !== true
+          || activeInteractionEvidence.detailRequestBeforeSelection !== false
+          || activeInteractionEvidence.mediaRequestBeforeSelection !== false
+          || activeInteractionEvidence.detailRequestObservedAfterSelection !== true
+          || activeInteractionEvidence.optionalLearningContentOmitted !== true
+          || activeInteractionEvidence.mediaRequestObservedAfterSelection !== false
           || objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
           || objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed !== true
           || activeMarkers.viewport !== 'compact'

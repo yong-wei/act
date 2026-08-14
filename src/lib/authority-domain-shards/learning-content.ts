@@ -1,9 +1,10 @@
 /**
  * Selection-bound Authority learning-content resolver.
  *
- * The active Teaching Projection is the cross-domain authorization boundary:
- * it selects the published card identities and seals its Authority identity.
- * This module only reads exported runtime copies, never authoring sources.
+ * The composite shard envelope is the cross-domain authorization boundary:
+ * it binds a passed Teaching Projection that selects the published card
+ * identities and seals its Authority identity. This module only reads
+ * exported runtime copies, never authoring sources.
  */
 
 import { createHash } from 'node:crypto';
@@ -163,10 +164,24 @@ function activeProjectionCardIds(
   shard: AuthorityNodeDetailShard,
   paths: RuntimePaths,
 ): ReadonlySet<string> | null {
+  const teaching = shard.envelope.teaching;
+  if (
+    shard.envelope.match.teaching !== true
+    || teaching.status !== 'available'
+    || !teaching.projectionId
+    || !teaching.projectionHash
+  ) {
+    return null;
+  }
+
   const active = resolveActiveTeachingProjection(
     resolveTeachingProjectionStorePaths(paths.projectionRoot),
   );
   if (active.status !== 'available' || !active.staged?.artifacts.gate.passed) return null;
+  if (
+    active.staged.projectionId !== teaching.projectionId
+    || active.staged.projectionHash !== teaching.projectionHash
+  ) return null;
   const manifest = active.staged.artifacts.manifest;
   const authority = shard.envelope.authority;
   if (!(

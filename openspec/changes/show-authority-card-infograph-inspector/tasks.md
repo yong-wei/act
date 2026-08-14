@@ -7,12 +7,12 @@
 ## 2. Inspector UI
 
 - [x] 2.1 Present semantic identity, explanation and relations first, followed by eligible Knowledge Card and infograph content.
-- [x] 2.2 Add controlled missing, draft-blocked and media-error states that keep semantic detail usable.
+- [x] 2.2 Omit missing, draft-blocked and media-error card/infograph panels while keeping semantic detail usable.
 - [x] 2.3 Preserve desktop sidebar and mobile sheet focus entry, Escape/close and origin-focus return behavior.
 - [x] 2.4 Keep graph domain, layout, filters, selected neighborhood and cached shards stable during detail loading and close.
 
 ## 3. Verification
 
-- [x] 3.1 Add accepted, missing, blocked, stale-selection and media-failure unit/integration tests.
+- [x] 3.1 Add accepted, omitted-content, stale-selection and media-failure unit/integration tests.
 - [x] 3.2 Run forbidden-system-string and accessibility checks over text, ARIA, tooltip, image alternative and copy surfaces.
-- [ ] 3.3 Capture authenticated desktop/mobile product evidence and run UI governance, typecheck, lint and strict OpenSpec validation.
+- [ ] 3.3 Capture authenticated desktop/mobile product evidence from a user-visible current-domain node, assert selection-bound detail/media requests and omission of unavailable optional content, and run UI governance, typecheck, lint and strict OpenSpec validation.

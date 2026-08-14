@@ -335,12 +335,14 @@ describe('active Authority knowledge workspace client boundary', () => {
   let container: HTMLDivElement;
   let root: Root;
   let fetchMock: ReturnType<typeof vi.fn>;
+  let detailLearningContentMode: 'available' | 'unavailable';
 
   beforeEach(() => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
+    detailLearningContentMode = 'available';
     fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
@@ -367,7 +369,12 @@ describe('active Authority knowledge workspace client boundary', () => {
             ...nodeDetail(nodeId).node,
             teachingFields: {},
             media: { cardAvailable: false, infographAvailable: false },
-            learningContent: nodeId === 'node-formula'
+            learningContent: detailLearningContentMode === 'unavailable'
+              ? {
+                card: { state: 'missing', message: '当前节点暂无已发布学习卡片。' },
+                infograph: { state: 'missing', message: '当前节点暂无可用信息图。' },
+              }
+              : nodeId === 'node-formula'
               ? {
                 card: { state: 'blocked', message: '该学习卡片仍在完善中。' },
                 infograph: { state: 'missing', message: '当前节点暂无可用信息图。' },
@@ -940,8 +947,31 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     const image = container.querySelector<HTMLImageElement>('img[alt="稳定性 信息图"]');
     await act(async () => image?.dispatchEvent(new Event('error')));
-    expect(container.textContent).toContain('当前信息图暂时不可用。');
+    expect(container.textContent).not.toContain('当前信息图暂时不可用。');
     expect(container.textContent).toContain('稳定性反映系统在扰动后的响应趋势。');
+    expect(container.querySelector('[aria-labelledby="active-detail-infograph"]')).toBeNull();
+  });
+
+  it('omits optional learning panels when the current Teaching envelope is unavailable', async () => {
+    detailLearningContentMode = 'unavailable';
+    await act(async () => {
+      root.render(createElement(KnowledgeGraphWorkspace, {
+        viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+      }));
+    });
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+
+    expect(container.querySelector('[data-active-node-detail="node-concept"]')).not.toBeNull();
+    expect(container.querySelector('[aria-labelledby="active-detail-card"]')).toBeNull();
+    expect(container.querySelector('[aria-labelledby="active-detail-infograph"]')).toBeNull();
+    const requested = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(requested).toContain('/api/knowledge/shards/active/nodes/node-concept');
+    expect(requested.some((url) => url.includes('/infograph'))).toBe(false);
   });
 
   it('renders the aggregate entry and keeps secondary objects behind explicit disclosure', async () => {

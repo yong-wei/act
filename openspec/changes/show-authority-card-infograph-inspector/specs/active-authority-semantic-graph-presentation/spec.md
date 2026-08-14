@@ -9,6 +9,6 @@ The current Authority node detail SHALL include eligible Knowledge Card content 
 - **AND** the canvas SHALL remain the primary graph representation
 
 #### Scenario: Governed media is unavailable
-- **WHEN** the selected object has no eligible card or infograph
+- **WHEN** the selected object has no eligible card or infograph, or the current shard Teaching binding is unavailable
 - **THEN** semantic detail and published relation summaries SHALL remain available
-- **AND** the UI SHALL not expose internal asset or review identity
+- **AND** the UI SHALL omit the unavailable media panels and not expose internal asset or review identity
