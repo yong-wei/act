@@ -24,6 +24,7 @@ export const EXTERNAL_INPUT_BUNDLE_PREFIXES = [
 export const EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES = [
   'resources/textbooks-v2/',
   'resources/textbook-retrieval/',
+  'resources/textbook-hybrid-retrieval/bge-m3/',
   'resources/textbooks/',
 ] as const;
 export const TEXTBOOK_EXTERNAL_INPUT_ID = 'textbook-runtime-generated-v2';
@@ -481,6 +482,15 @@ async function collectFiles(current: string, result: ExternalInputBundleFile[], 
   }
 }
 
+/** Whether a captured base-runtime path is replaced by the generated overlay. */
+export function isExternalInputBundleBasePathIncluded(
+  relativePath: string,
+  gitPaths: ReadonlySet<string> | ReadonlyMap<string, unknown>,
+) {
+  return !EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES.some((prefix) => isUnderPrefix(relativePath, prefix))
+    && !gitPaths.has(relativePath);
+}
+
 async function listGitRuntimeTree(repoRoot: string, sourceRevision: string) {
   const execFile = promisify(execFileCallback);
   const { stdout } = await execFile('git', ['ls-tree', '-r', '-z', '--full-tree', sourceRevision, '--', 'course-content/runtime'], { cwd: repoRoot, maxBuffer: 64 * 1024 * 1024 });
@@ -506,8 +516,7 @@ export async function verifyExternalInputBundleFilesystem(bundle: ExternalInputB
   await collectFiles(bundle.root, baseCollected);
   const observed = new Map<string, ExternalInputBundleFile>();
   for (const file of baseCollected) {
-    if ([...EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES].some((prefix) => isUnderPrefix(file.path, prefix))) continue;
-    if (gitPaths.has(file.path)) continue;
+    if (!isExternalInputBundleBasePathIncluded(file.path, gitPaths)) continue;
     observed.set(file.path, file);
   }
   const overlayCollected: ExternalInputBundleFile[] = [];
@@ -550,7 +559,7 @@ function isUnderPrefix(relativePath: string, prefix: string) {
  * physical course-content/runtime root. `generatedResourcesRoot` is the fresh
  * generated `resources/` directory; its three textbook prefixes are the only
  * overlay inputs. Git-tracked paths are excluded from the base walk, while
- * the three replaced prefixes are removed before the overlay is added.
+ * the replaced prefixes are removed before the overlay is added.
  */
 export async function prepareTextbookExternalInputBundle(input: {
   repoRoot: string;
@@ -579,8 +588,7 @@ export async function prepareTextbookExternalInputBundle(input: {
   const baseCollected: ExternalInputBundleFile[] = [];
   await collectFiles(runtimeRoot, baseCollected);
   for (const file of baseCollected) {
-    if ([...EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES].some((prefix) => isUnderPrefix(file.path, prefix))) continue;
-    if (gitTree.has(file.path)) continue;
+    if (!isExternalInputBundleBasePathIncluded(file.path, gitTree)) continue;
     baseFiles.push(file);
   }
 

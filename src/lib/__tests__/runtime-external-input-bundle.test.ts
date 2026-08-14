@@ -10,6 +10,7 @@ import {
   EXTERNAL_INPUT_BUNDLE_PREFIXES,
   EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES,
   externalInputBundleWireSha256,
+  isExternalInputBundleBasePathIncluded,
   parseExternalInputBundleWire,
   serializeExternalInputBundle,
   verifyExternalInputBundleFilesystem,
@@ -88,6 +89,14 @@ describe('external runtime input bundle v1', () => {
     expect(valid.provenance.inputDigest).toBe('b'.repeat(64));
     const wire = serializeExternalInputBundle(valid);
     expect(() => parseExternalInputBundleWire(Buffer.from(wire.replace('current-production-runtime-v1', 'drifted')))).toThrow(/semantic digest/);
+  });
+
+  it('drops baseline-only files under the generated hybrid overlay prefix', () => {
+    const baselineHybridPath = 'resources/textbook-hybrid-retrieval/bge-m3/stale-index.bin';
+    expect(EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES).toContain('resources/textbook-retrieval/');
+    expect(EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES).toContain('resources/textbook-hybrid-retrieval/bge-m3/');
+    expect(isExternalInputBundleBasePathIncluded(baselineHybridPath, new Set())).toBe(false);
+    expect(isExternalInputBundleBasePathIncluded('resources/other-runtime.json', new Set())).toBe(true);
   });
 
   it('rejects .DS_Store and symlink entries during source-set verification', async () => {
