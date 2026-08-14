@@ -410,6 +410,7 @@ The adaptive learning center SHALL provide a path-aware launch and return contra
 #### Scenario: Resource is opened outside a path
 - **WHEN** the same resource is opened from Interactive Learning, a course entry, or another non-path surface
 - **THEN** the resource SHALL keep its normal contextual return target
+- **AND** it SHALL NOT fabricate a path return when no path launch context exists.
 
 ### Requirement: Adaptive path center restores the learner's current journey
 The adaptive path center SHALL treat the learner's selected path as the default journey object when the student returns to the center.

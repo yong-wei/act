@@ -40,4 +40,5 @@ The adaptive learning center SHALL provide a path-aware launch and return contra
 #### Scenario: Resource is opened outside a path
 - **WHEN** the same resource is opened from Interactive Learning, a course entry, or another non-path surface
 - **THEN** the resource SHALL keep its normal contextual return target
+- **AND** it SHALL NOT fabricate a path return when no path launch context exists.
 
