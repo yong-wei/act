@@ -124,16 +124,25 @@ run_candidate_consumer_smoke() {
       echo "ERROR: candidate course runtime consumer smoke failed" >&2
       return 1
     }
-  if ! candidate_result="$(podman exec -i --workdir /app "$APP_CONTAINER" ./node_modules/.bin/tsx - <<'TS'
+  if ! candidate_result="$(podman exec -i --workdir /app "$APP_CONTAINER" /bin/sh -eu -c '
+    smoke_file="$(mktemp /tmp/act-runtime-blob-candidate-smoke.XXXXXX.ts)"
+    trap "rm -f -- \"$smoke_file\"" EXIT HUP INT TERM
+    cat > "$smoke_file"
+    ./node_modules/.bin/tsx "$smoke_file"
+  ' <<'TS'
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-import { parseRuntimeLessonMediaDocument } from './src/lib/runtime-lesson-media-document';
-import { loadTextbookCatalog, loadTextbookReaderProjection } from './src/lib/textbook-reader';
-import { loadStructuredTextbookBook } from './src/lib/structured-textbook-runtime';
-import { selectRelationsForDb, validateRuntimeNodes } from './scripts/db/seed-all-knowledge.mjs';
-
+async function main() {
 const runtimeRoot = path.join(process.cwd(), 'course-content', 'runtime');
+const importFromApp = (relativePath: string) => import(
+  pathToFileURL(path.join(process.cwd(), relativePath)).href,
+);
+const { parseRuntimeLessonMediaDocument } = await importFromApp('src/lib/runtime-lesson-media-document.ts');
+const { loadTextbookCatalog, loadTextbookReaderProjection } = await importFromApp('src/lib/textbook-reader.ts');
+const { loadStructuredTextbookBook } = await importFromApp('src/lib/structured-textbook-runtime.ts');
+const { selectRelationsForDb, validateRuntimeNodes } = await importFromApp('scripts/db/seed-all-knowledge.mjs');
 const lessonsRoot = path.join(runtimeRoot, 'lessons');
 let mediaPath = '';
 for (const lesson of await readdir(lessonsRoot, { withFileTypes: true })) {
@@ -203,6 +212,12 @@ if (!textbookProjection.unit.markdown.trim() || textbookProjection.hierarchy.len
 }
 
 console.log(JSON.stringify({ mediaPath }));
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
 TS
   )"; then
     echo "ERROR: candidate media, knowledge, or textbook consumer smoke failed" >&2

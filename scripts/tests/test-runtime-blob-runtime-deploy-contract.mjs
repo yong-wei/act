@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -39,9 +40,9 @@ for (const invariant of [
   'run_candidate_consumer_smoke()',
   'run_active_media_resolver_smoke()',
   '/interactive-learning/courses/unit-1-1-see-the-full-picture',
-  "./src/lib/runtime-lesson-media-document",
-  "./scripts/db/seed-all-knowledge.mjs",
-  "./src/lib/textbook-reader",
+  "src/lib/runtime-lesson-media-document.ts",
+  "scripts/db/seed-all-knowledge.mjs",
+  "src/lib/textbook-reader.ts",
   'candidate media, knowledge, or textbook consumer smoke failed',
   'active media resolver did not return a private signed redirect',
   'candidate media smoke failed and lifecycle rollback could not complete',
@@ -68,8 +69,8 @@ assert.ok(
 );
 assert.match(
   activation,
-  /podman exec -i --workdir \/app "\$APP_CONTAINER" \.\/node_modules\/\.bin\/tsx -/,
-  'candidate consumer smoke must execute the deployed application consumer modules',
+  /podman exec -i --workdir \/app "\$APP_CONTAINER" \/bin\/sh -eu -c '[\s\S]*mktemp \/tmp\/act-runtime-blob-candidate-smoke\.XXXXXX\.ts[\s\S]*\.\/node_modules\/\.bin\/tsx "\$smoke_file"/,
+  'candidate consumer smoke must execute a temporary TypeScript file through the deployed application runtime',
 );
 assert.doesNotMatch(
   activation,
@@ -107,14 +108,22 @@ assert.match(
   'a failed post-activation private media resolver smoke must roll back the lifecycle candidate',
 );
 const consumerModule = activation.match(
-  /podman exec -i --workdir \/app "\$APP_CONTAINER" \.\/node_modules\/\.bin\/tsx - <<'TS'\n([\s\S]+?)\nTS\n  \)"; then/,
+  /podman exec -i --workdir \/app "\$APP_CONTAINER" \/bin\/sh -eu -c '[\s\S]*' <<'TS'\n([\s\S]+?)\nTS\n  \)"; then/,
 );
 assert.ok(consumerModule, 'candidate consumer module must remain extractable for a local regression run');
-const consumerOutput = execFileSync(
-  path.join(root, 'node_modules', '.bin', 'tsx'),
-  ['-'],
-  { cwd: root, encoding: 'utf8', input: consumerModule[1] },
-).trim();
+const consumerDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-blob-candidate-smoke-'));
+const consumerPath = path.join(consumerDirectory, 'candidate-smoke.ts');
+fs.writeFileSync(consumerPath, consumerModule[1], { encoding: 'utf8', mode: 0o600 });
+let consumerOutput;
+try {
+  consumerOutput = execFileSync(
+    path.join(root, 'node_modules', '.bin', 'tsx'),
+    [consumerPath],
+    { cwd: root, encoding: 'utf8' },
+  ).trim();
+} finally {
+  fs.rmSync(consumerDirectory, { recursive: true, force: true });
+}
 const consumerResult = JSON.parse(consumerOutput);
 assert.match(
   consumerResult.mediaPath,
