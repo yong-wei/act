@@ -60,3 +60,20 @@ The foundation teaching increment MUST limit its denominator and publication to 
 - **WHEN** the Authority contains a foundation-domain object not selected by an ACT objective, binding, prerequisite endpoint or curator
 - **THEN** it SHALL remain not projected
 - **AND** it SHALL not block publication of the reviewed increment
+
+### Requirement: Modern-control prerequisite increment is scope-bounded
+The modern-control teaching increment MUST limit its denominator to explicitly selected core nodes in discrete-time and state-space control domains. Objects shared with another domain MAY retain multiple reviewed memberships but SHALL retain one canonical prerequisite endpoint identity.
+
+#### Scenario: Core node belongs to two domains
+- **WHEN** one selected Authority object is reviewed into a modern domain and another domain
+- **THEN** prerequisite publication SHALL reference the same canonical endpoint
+- **AND** domain membership SHALL not duplicate the teaching edge
+
+### Requirement: Cross-domain publication validates the full required graph
+Cross-domain prerequisite publication MUST validate the full composed REQUIRED-edge graph, including unchanged foundation, classical and modern fragments, while limiting review to new or changed cross-domain records.
+
+#### Scenario: Unchanged published edge is composed
+- **WHEN** an unchanged prior edge participates in the global DAG check
+- **THEN** its immutable evidence SHALL be reused without re-review
+- **AND** only a demonstrated composition conflict SHALL block the new candidate projection
+

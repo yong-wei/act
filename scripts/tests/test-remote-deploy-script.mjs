@@ -16,6 +16,21 @@ function writeExecutable(directory, name, content) {
   return filePath;
 }
 
+function toBashPath(filePath) {
+  if (process.platform !== 'win32') {
+    return filePath;
+  }
+  const converted = spawnSync(
+    'bash',
+    ['-lc', `cygpath -u '${filePath.replace(/'/g, "'\\''")}'`],
+    { encoding: 'utf8' },
+  );
+  if (converted.status !== 0 || !converted.stdout.trim()) {
+    throw new Error(`cannot convert Windows path to bash path: ${filePath}`);
+  }
+  return converted.stdout.trim();
+}
+
 function verifyCutoverFailureGate() {
   const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'remote-deploy-cutover-gate-'));
   try {
@@ -23,6 +38,12 @@ function verifyCutoverFailureGate() {
     const sshLog = path.join(fixtureRoot, 'ssh.log');
     const rsyncLog = path.join(fixtureRoot, 'rsync.log');
     fs.mkdirSync(fakeBin);
+    const bashEnvFile = path.join(fixtureRoot, 'bash-env.sh');
+    fs.writeFileSync(
+      bashEnvFile,
+      `export PATH="${toBashPath(fakeBin)}:$PATH"\n`,
+      'utf8',
+    );
     writeExecutable(fakeBin, 'ssh', [
       '#!/usr/bin/env bash',
       `printf '%s\\n' "$*" >> ${JSON.stringify(sshLog)}`,
@@ -56,6 +77,7 @@ function verifyCutoverFailureGate() {
     const baseEnv = {
       ...process.env,
       PATH: `${fakeBin}:${process.env.PATH}`,
+      BASH_ENV: bashEnvFile,
       SKIP_BUILD: '1',
       SSH_TARGET: 'fixture.invalid',
       REMOTE_PROJECT_DIR: '/tmp/act-remote-deploy-fixture',
@@ -86,11 +108,11 @@ function verifyCutoverFailureGate() {
     const runtimeRoot = path.join(fixtureRoot, 'runtime');
     fs.writeFileSync(imageTar, 'fixture-image');
     fs.writeFileSync(provenance, '{}\n');
-    fs.mkdirSync(path.join(runtimeRoot, 'resources', 'textbook-retrieval'), {
+    fs.mkdirSync(path.join(runtimeRoot, 'resources', 'textbook-hybrid-retrieval', 'bge-m3'), {
       recursive: true,
     });
     fs.writeFileSync(
-      path.join(runtimeRoot, 'resources', 'textbook-retrieval', 'manifest.json'),
+      path.join(runtimeRoot, 'resources', 'textbook-hybrid-retrieval', 'bge-m3', 'manifest.json'),
       '{}\n',
     );
     writeExecutable(fakeBin, 'rsync', [
@@ -119,6 +141,7 @@ function verifyCutoverFailureGate() {
       'knowledge/consumer-activation/current.json',
       'knowledge/projection/current.json',
       'knowledge/prerequisites/current.json',
+      'knowledge/authority-domain-shards/current.json',
     ]) {
       assert.match(
         rsyncArgs,
@@ -215,12 +238,13 @@ function verifyCutoverFailureGate() {
 
 function verifyLegacyRemoteTransactionQuoting(script) {
   const start = script.indexOf(`remote "bash -lc 'set -euo pipefail`);
-  const end = script.indexOf('\n\nlog\nif [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]', start);
+  const end = script.indexOf('\n\nlog\nif [[ "${DEPLOY_SCOPE}" == "all" && "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]', start);
   assert.ok(start >= 0 && end > start, 'Legacy deployment must retain a single remote Step 4 transaction');
   const transaction = script.slice(start, end);
   const result = spawnSync('bash', ['-c', `
 set -euo pipefail
 remote() { printf 'argc=%s\\n' "$#"; printf '%s\\n' "$1" | bash -n; }
+DEPLOY_SCOPE=all
 RUNTIME_DELIVERY_MODE=legacy-rsync
 REMOTE_PROJECT_DIR=/tmp/act
 REMOTE_RUNTIME_SELECTION_LOCK=/tmp/act/data/runtime/.act-runtime-selection.lock
@@ -231,7 +255,7 @@ REMOTE_RUNTIME_DIR=/tmp/act/course-content/runtime
 REMOTE_RUNTIME_STAGING_DIR=/tmp/act/course-content/runtime.staging.sha
 REMOTE_PROVENANCE_HELPER=/tmp/act/provenance.mjs
 REMOTE_TEXTBOOK_V2_RUNTIME_DIR=/tmp/act/course-content/runtime/resources/textbooks-v2
-REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR=/tmp/act/course-content/runtime/resources/textbook-retrieval
+REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR=/tmp/act/course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3
 REMOTE_PROVENANCE_FILE=/tmp/act/provenance.json
 REMOTE_EXPORT_DB_SCRIPT=/tmp/act/export-db.sh
 REMOTE_LOAD_IMAGES_SCRIPT=/tmp/act/load-images.sh
@@ -335,6 +359,7 @@ function main() {
     'knowledge/consumer-activation/current.json',
     'knowledge/projection/current.json',
     'knowledge/prerequisites/current.json',
+    'knowledge/authority-domain-shards/current.json',
   ]) {
     assert.match(
       script,
@@ -364,8 +389,8 @@ function main() {
   );
   assert.ok(
     script.includes('guard_no_committed_production_cutover')
-      && script.indexOf('guard_no_committed_production_cutover')
-        < script.indexOf('[2/5] 同步运行时资源与部署脚本'),
+      && script.lastIndexOf('guard_no_committed_production_cutover')
+        < script.indexOf('rsync "${runtime_rsync_args[@]}"'),
     'Legacy 部署必须在远端 runtime 同步和停止消费者之前拒绝已提交切换',
   );
   assert.ok(

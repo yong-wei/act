@@ -11,6 +11,7 @@ import {
   presentActiveRelation,
   presentGovernanceLabel,
   presentSourceCitation,
+  selectInitialPrimaryDomainScope,
   selectInitialScope,
   visibleActiveGraph,
 } from '../active-authority-presentation';
@@ -86,6 +87,24 @@ describe('active Authority presentation adapter', () => {
     expect(activeNodeSearch(model, '', 'Formula').map((item) => item.key)).toEqual(['b']);
     expect([...expandActiveAuthorityOneHop(model, new Set(['a']), 'a', 3)]).toEqual(['a', 'b']);
     expect(visibleActiveGraph(model, new Set(['a', 'missing'])).relations).toEqual([]);
+  });
+
+  it('keeps Formula and KnowledgeStatement out of the initial domain layer while retaining them for explicit disclosure', () => {
+    const model = createActiveAuthorityGraphModel({
+      nodes: [
+        node('concept', 'DomainConcept', '概念'),
+        node('model', 'SystemModel', '模型'),
+        node('formula', 'Formula', '公式'),
+        node('statement', 'KnowledgeStatement', '陈述'),
+      ],
+      relations: [
+        relation('teaching', 'association', 'concept', 'model', 'unordered'),
+        relation('formula-link', 'association', 'concept', 'formula', 'unordered'),
+      ],
+    });
+    expect([...selectInitialPrimaryDomainScope(model, 8)]).toEqual(['concept', 'model']);
+    expect(activeNodeSearch(model, '', 'Formula').map((item) => item.key)).toEqual(['formula']);
+    expect([...materializeActiveNodeScope(model, 'formula', 4)]).toContain('formula');
   });
 
   it('slides a saturated scope to reveal the selected boundary node next hop', () => {

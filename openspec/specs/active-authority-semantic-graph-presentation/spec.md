@@ -134,3 +134,45 @@ The capture and gate SHALL share one deterministic `SensitiveValueMatcher` for r
 - **WHEN** the governance gate reads active visual or role evidence
 - **THEN** it SHALL require passing forbidden-surface scans and no visible copy entry for internal identity values
 - **AND** it SHALL reject evidence whose source revision does not match the current adapter, capture and gate source hashes
+
+### Requirement: Active Authority progressive exploration is server-bounded
+The current Authority workspace SHALL obtain root, active-domain, requested relation-family, selected one-hop and selected-detail data from bounded server responses. Client-side truncation of a previously fetched full graph SHALL NOT satisfy the progressive-loading requirement.
+
+#### Scenario: First active Authority response is measured
+- **WHEN** product QA opens the active Authority workspace with a cold client cache
+- **THEN** no ordinary product request SHALL return or parse the complete Authority object and relation sets
+- **AND** reviewed root navigation SHALL become usable before any domain member shard is required
+
+#### Scenario: User expands one node
+- **WHEN** a selected object requests a one-hop neighborhood
+- **THEN** the server SHALL return a deterministic bounded neighborhood using only published relations
+- **AND** expansion SHALL not require all graph objects to remain in browser memory
+
+### Requirement: Current Authority presentation separates navigation, teaching and engineering layers
+The current Authority canvas SHALL visibly distinguish presentation-only domain navigation, ACT-owned teaching relations and ActKG engineering relations. Product copy and accessibility descriptions SHALL use human-readable layer meaning and SHALL NOT expose internal layer enums, identifiers or version hashes.
+
+#### Scenario: Domain teaching and engineering edges are both visible
+- **WHEN** the user enables an engineering relation family while the default teaching skeleton is visible
+- **THEN** visual grammar and the legend SHALL distinguish teaching order from engineering semantics without relying on color alone
+- **AND** each edge SHALL retain its source layer and exact published relation meaning
+
+### Requirement: Current Authority default view avoids heterogeneous object overload
+The active domain's initial canvas SHALL prioritize DomainConcept and SystemModel objects. Formula and KnowledgeStatement objects SHALL remain available through explicit progressive interactions rather than appearing as an undifferentiated first-load set.
+
+#### Scenario: Dense domain is opened
+- **WHEN** a domain contains many Formula and KnowledgeStatement objects
+- **THEN** the first domain view SHALL remain bounded and readable
+- **AND** search and one-hop exploration SHALL still reach every human-presentable object
+
+### Requirement: Current Authority detail includes governed learning media
+The current Authority node detail SHALL include eligible Knowledge Card content and accepted infographs when available and authorized. Long-form learning media SHALL remain in the inspector and SHALL NOT replace semantic nodes or published relation topology on the canvas. Optional media SHALL be read only from a v2 learning-content manifest whose sealed Authority identity exactly matches the selected detail shard; an identity mismatch SHALL not suppress the semantic node detail.
+
+#### Scenario: Node detail has governed media
+- **WHEN** a selected Authority object has eligible card and infograph projections
+- **THEN** the inspector SHALL present them after semantic identity and explanation
+- **AND** the canvas SHALL remain the primary graph representation
+
+#### Scenario: Governed media is unavailable
+- **WHEN** the selected object has no eligible card or infograph, or the current shard Teaching binding is unavailable
+- **THEN** semantic detail and published relation summaries SHALL remain available
+- **AND** the UI SHALL omit the unavailable media panels and not expose internal asset or review identity

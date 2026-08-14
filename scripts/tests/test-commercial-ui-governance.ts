@@ -2318,12 +2318,24 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
   const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
   const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
+  const activeAuthorityShardStoreSourcePath = 'src/features/knowledge/active-authority-shard-store.ts';
   const activeAuthorityPresentationSourcePath = 'src/features/knowledge/active-authority-presentation.ts';
   const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
+  const authorityShardContractsSourcePath = 'src/lib/authority-domain-shards/contracts.ts';
+  const authorityShardEnvelopeSourcePath = 'src/lib/authority-domain-shards/envelope.ts';
+  const authorityShardLoaderSourcePath = 'src/lib/authority-domain-shards/loader.ts';
+  const authorityShardMaterializeSourcePath = 'src/lib/authority-domain-shards/materialize.ts';
+  const activeAuthorityApiSourcePath = 'src/app/api/knowledge/_active-authority.ts';
+  const authorityShardRootRouteSourcePath = 'src/app/api/knowledge/shards/active/route.ts';
+  const authorityShardDomainRouteSourcePath = 'src/app/api/knowledge/shards/active/domains/[domain]/route.ts';
+  const authorityShardFamilyRouteSourcePath = 'src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts';
+  const authorityShardNeighborhoodRouteSourcePath = 'src/app/api/knowledge/shards/active/neighborhoods/[id]/route.ts';
+  const authorityShardNodeRouteSourcePath = 'src/app/api/knowledge/shards/active/nodes/[id]/route.ts';
   const knowledgePageSourcePath = 'src/app/knowledge/page.tsx';
   const adaptivePracticePageSourcePath = 'src/app/assessment/adaptive-practice/page.tsx';
   const graph2dSourcePath = 'src/features/knowledge/graph/knowledge-graph-2d.tsx';
   const graph3dSourcePath = 'src/features/knowledge/graph/knowledge-graph-canvas.tsx';
+  const relationFamilyControlSourcePath = 'src/features/knowledge/graph/relation-family-control.tsx';
   const graphVisualConfigSourcePath = 'src/features/knowledge/graph/visual-config.ts';
   const resourcePanelSourcePath = 'src/features/knowledge/resource-panel/resource-panel.tsx';
   const globalAiButtonSourcePath = 'src/components/ai/global-ai-button.tsx';
@@ -2339,12 +2351,24 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     graphSourcePath,
     knowledgeWorkspaceSourcePath,
     activeAuthorityGraphSourcePath,
+    activeAuthorityShardStoreSourcePath,
     activeAuthorityPresentationSourcePath,
     activeAuthorityGraphContractsSourcePath,
+    authorityShardContractsSourcePath,
+    authorityShardEnvelopeSourcePath,
+    authorityShardLoaderSourcePath,
+    authorityShardMaterializeSourcePath,
+    activeAuthorityApiSourcePath,
+    authorityShardRootRouteSourcePath,
+    authorityShardDomainRouteSourcePath,
+    authorityShardFamilyRouteSourcePath,
+    authorityShardNeighborhoodRouteSourcePath,
+    authorityShardNodeRouteSourcePath,
     knowledgePageSourcePath,
     adaptivePracticePageSourcePath,
     graph2dSourcePath,
     graph3dSourcePath,
+    relationFamilyControlSourcePath,
     graphVisualConfigSourcePath,
     resourcePanelSourcePath,
     globalAiButtonSourcePath,
@@ -2446,6 +2470,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const api = parseSafeApiEvidenceV1(state?.api);
     const apiSequence = api?.sequence ?? [];
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
+    const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
+    const interactionEvidence = objectRecord(state?.interactionEvidence);
     const forbiddenAutomaticRequests = apiSequence.some((entry) => (
       entry.endpointClass === 'legacy' || entry.endpointClass === 'candidate'
     ));
@@ -2473,7 +2499,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : `${name}:responsive-active-node-must-be-unobserved`,
       forbiddenAutomaticRequests ? `${name}:automatic-legacy-or-candidate-request` : null,
       numberFromEvidence(activeMarkers.visibleNodeCount)! > 0 ? null : `${name}:dom-empty`,
-      numberFromEvidence(activeMarkers.relationCount)! > 0 ? null : `${name}:dom-no-real-edges`,
+      teachingRelationsUnavailable
+        ? (numberFromEvidence(activeMarkers.relationCount) === 0 ? null : `${name}:unavailable-teaching-must-not-draw-edges`)
+        : (numberFromEvidence(activeMarkers.relationCount)! > 0 ? null : `${name}:dom-no-real-edges`),
       numberFromEvidence(activeMarkers.resolvedEdgeEndpointCount) === numberFromEvidence(activeMarkers.relationCount)
         ? null
         : `${name}:dom-edge-endpoint-mismatch`,
@@ -2483,14 +2511,16 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
       safeActiveSurfaceScanPassed(state?.surfaceScan) ? null : `${name}:surface-scan-failed`,
       name === 'active-desktop-dark'
-        ? (objectRecord(state?.interactionEvidence).semanticNodeFocusedBeforeClick === true
-          && objectRecord(state?.interactionEvidence).detailPanelFocusedAfterOpen === true
-          && objectRecord(state?.interactionEvidence).semanticDetailVisible === true
-          && objectRecord(state?.interactionEvidence).adjacencyInteraction === true
-          && (objectRecord(state?.interactionEvidence).focusReturnedToOriginNode === true
-            || objectRecord(state?.interactionEvidence).focusReturnedToSemanticCanvas === true)
-          && safeActiveSurfaceScanPassed(objectRecord(state?.interactionEvidence).detailSurfaceScan)
-          && safeActiveSurfaceScanPassed(objectRecord(state?.interactionEvidence).overviewSurfaceScan)
+        ? (interactionEvidence.semanticNodeFocusedBeforeClick === true
+          && interactionEvidence.detailPanelFocusedAfterOpen === true
+          && interactionEvidence.semanticDetailVisible === true
+          && (teachingRelationsUnavailable
+            ? interactionEvidence.adjacencyInteraction === false && numberFromEvidence(interactionEvidence.renderedEdgeCount) === 0
+            : interactionEvidence.adjacencyInteraction === true)
+          && (interactionEvidence.focusReturnedToOriginNode === true
+            || interactionEvidence.focusReturnedToSemanticCanvas === true)
+          && safeActiveSurfaceScanPassed(interactionEvidence.detailSurfaceScan)
+          && safeActiveSurfaceScanPassed(interactionEvidence.overviewSurfaceScan)
             ? null
             : `${name}:detail-focus-adjacency-evidence-missing`)
         : null,
@@ -2508,6 +2538,10 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const evidenceForRole = roleEvidenceByName.get(role);
     const defaultEvidence = objectRecord(evidenceForRole?.default);
     const defaultApi = parseSafeApiEvidenceV1(defaultEvidence.api);
+    const defaultInteraction = objectRecord(defaultEvidence.activeInteractionEvidence);
+    const teachingRelationsUnavailable = defaultInteraction.teachingRelationsUnavailable === true;
+    const mobileEvidence = objectRecord(evidenceForRole?.mobile);
+    const mobileApi = parseSafeApiEvidenceV1(mobileEvidence.api);
     const legacyEvidence = objectRecord(evidenceForRole?.legacy);
     const legacyApi = parseSafeApiEvidenceV1(legacyEvidence.api);
     const candidateEvidence = evidenceForRole?.candidate === null
@@ -2530,26 +2564,44 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : `${role}:default-api-request-count`,
       safeApiHasHealthyActiveIsolation(defaultApi, true) ? null : `${role}:default-safe-api-checks`,
       safeActiveSurfaceScanPassed(defaultEvidence.activeSurfaceScan) ? null : `${role}:active-surface-scan-failed`,
-      objectRecord(defaultEvidence.activeInteractionEvidence).semanticNodeFocusedBeforeClick === true
+      mobileEvidence.mode === 'active' ? null : `${role}:mobile-not-active`,
+      numberFromEvidence(objectRecord(mobileEvidence.viewport).width) === 320 ? null : `${role}:mobile-viewport-width`,
+      numberFromEvidence(objectRecord(mobileEvidence.viewport).height) === 800 ? null : `${role}:mobile-viewport-height`,
+      mobileApi ? null : `${role}:mobile-safe-api-schema`,
+      mobileApi?.roleClass === role ? null : `${role}:mobile-role-class`,
+      safeApiSequenceEntry(mobileApi, 'active-canvas')?.status === 200
+        ? null
+        : `${role}:mobile-api-status`,
+      safeApiHasHealthyActiveIsolation(mobileApi, false) ? null : `${role}:mobile-safe-api-checks`,
+      safeActiveSurfaceScanPassed(mobileEvidence.activeSurfaceScan) ? null : `${role}:mobile-surface-scan-failed`,
+      mobileEvidence.graphVisible === true && mobileEvidence.nonEmptyCanvas === true
+        ? null
+        : `${role}:mobile-active-canvas-empty`,
+      simulationViewportArtifact(artifactPathFromEvidence(mobileEvidence.screenshotPath))?.sha256 === mobileEvidence.screenshotSha256
+        ? null
+        : `${role}:mobile-screenshot-sha-mismatch`,
+      defaultInteraction.semanticNodeFocusedBeforeClick === true
         ? null
         : `${role}:active-node-focus-missing`,
-      objectRecord(defaultEvidence.activeInteractionEvidence).detailPanelFocusedAfterOpen === true
+      defaultInteraction.detailPanelFocusedAfterOpen === true
         ? null
         : `${role}:active-detail-focus-missing`,
-      objectRecord(defaultEvidence.activeInteractionEvidence).semanticDetailVisible === true
+      defaultInteraction.semanticDetailVisible === true
         ? null
         : `${role}:active-detail-evidence-missing`,
-      objectRecord(defaultEvidence.activeInteractionEvidence).adjacencyInteraction === true
+      (teachingRelationsUnavailable
+        ? defaultInteraction.adjacencyInteraction === false && numberFromEvidence(defaultInteraction.renderedEdgeCount) === 0
+        : defaultInteraction.adjacencyInteraction === true)
         ? null
         : `${role}:active-adjacency-evidence-missing`,
-      safeActiveSurfaceScanPassed(objectRecord(defaultEvidence.activeInteractionEvidence).detailSurfaceScan)
+      safeActiveSurfaceScanPassed(defaultInteraction.detailSurfaceScan)
         ? null
         : `${role}:active-detail-surface-scan-failed`,
-      safeActiveSurfaceScanPassed(objectRecord(defaultEvidence.activeInteractionEvidence).overviewSurfaceScan)
+      safeActiveSurfaceScanPassed(defaultInteraction.overviewSurfaceScan)
         ? null
         : `${role}:active-overview-surface-scan-failed`,
-      (objectRecord(defaultEvidence.activeInteractionEvidence).focusReturnedToOriginNode === true
-        || objectRecord(defaultEvidence.activeInteractionEvidence).focusReturnedToSemanticCanvas === true)
+      (defaultInteraction.focusReturnedToOriginNode === true
+        || defaultInteraction.focusReturnedToSemanticCanvas === true)
         ? null
         : `${role}:active-focus-return-missing`,
       defaultEvidence.legacyApiRequestedBeforeExplicitSwitch === false

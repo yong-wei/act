@@ -34,6 +34,25 @@ import {
   type AuthorityDomainCatalogRuntime,
   type AuthorityDomainRootPresentation,
 } from '@/lib/authority-domain-catalog';
+import {
+  AuthorityShardIdentityError,
+  AuthorityShardStoreError,
+  loadDomainDefaultShard,
+  loadNodeDetailShard,
+  loadNodeNeighborhoodShard,
+  loadRelationFamilyShard,
+  loadRootShard,
+  readActiveAuthorityInfograph,
+  attachActiveAuthorityLearningContent,
+  projectAuthorityLearnerShard,
+  type AuthorityLearnerShard,
+  type AuthorityDomainDefaultShard,
+  type AuthorityNodeDetailShard,
+  type PublicAuthorityNodeDetailShard,
+  type AuthorityNodeNeighborhoodShard,
+  type AuthorityRelationFamilyShard,
+  type AuthorityRootShard,
+} from '@/lib/authority-domain-shards';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -64,6 +83,25 @@ export type ActiveAuthorization =
 function roleForSession(role: string | null | undefined): KnowledgeRole | null {
   if (role === 'STUDENT' || role === 'TEACHER' || role === 'ADMIN') return role;
   return null;
+}
+
+/** Full-canvas remains an authorized diagnostics path, not a product loader. */
+export async function authorizeActiveFullGraphDiagnostics(): Promise<ActiveAuthorization> {
+  const authorization = await authorizeActiveGraph();
+  if (!authorization.ok) return authorization;
+  if (authorization.role !== 'ADMIN') {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        {
+          error: '完整图谱仅供授权诊断使用。',
+          code: 'ACTIVE_GRAPH_DIAGNOSTICS_FORBIDDEN',
+        },
+        { status: 403 },
+      ),
+    };
+  }
+  return authorization;
 }
 
 /** Reuse the normal `/knowledge` session boundary; no candidate flag applies. */
@@ -416,4 +454,94 @@ export function activeProjectionResponse<T>(
     );
   }
   return activeUnavailableResponse(result.reason);
+}
+
+function shardFailureStatus(code: string): number {
+  if (code === 'node-id-invalid' || code === 'domain-unknown' || code === 'family-unknown') {
+    return 400;
+  }
+  if (code === 'shard-absent') return 404;
+  if (
+    code.includes('mismatch')
+    || code.includes('tamper')
+    || code === 'projection-must-be-null'
+  ) {
+    return 409;
+  }
+  return 503;
+}
+
+function shardFailureCode(error: unknown): { code: string; message: string; status: number } {
+  if (error instanceof AuthorityShardStoreError || error instanceof AuthorityShardIdentityError) {
+    return {
+      code: `ACTIVE_SHARD_${error.code.toUpperCase().replace(/-/g, '_')}`,
+      message: '当前 Authority 分片暂时无法加载。',
+      status: shardFailureStatus(error.code),
+    };
+  }
+  return {
+    code: 'ACTIVE_SHARD_UNAVAILABLE',
+    message: '当前 Authority 分片暂时无法加载。',
+    status: 503,
+  };
+}
+
+export function activeShardResponse<T extends AuthorityLearnerShard>(
+  read: () => T,
+  role?: KnowledgeRole,
+): NextResponse {
+  return activeShardResponseForRole(read, role);
+}
+
+/**
+ * Project the immutable shard source at the authenticated API boundary.
+ * Student node-detail responses must not carry the teaching-only field even
+ * though the sealed immutable artifact retains it for teacher/admin readers.
+ */
+export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
+  read: () => T,
+  role: KnowledgeRole | undefined,
+): NextResponse {
+  try {
+    const shard = projectAuthorityLearnerShard(read());
+    if (role === 'STUDENT' && shard.shardClass === 'node-detail') {
+      const { teachingFields: _teachingFields, ...node } = (shard as unknown as PublicAuthorityNodeDetailShard).node;
+      return NextResponse.json({ ...shard, node });
+    }
+    return NextResponse.json(shard);
+  } catch (error) {
+    const failure = shardFailureCode(error);
+    return NextResponse.json(
+      { error: failure.message, code: failure.code },
+      { status: failure.status },
+    );
+  }
+}
+
+export function readActiveRootShard(): AuthorityRootShard {
+  return loadRootShard();
+}
+
+export function readActiveDomainDefaultShard(domainKey: string): AuthorityDomainDefaultShard {
+  return loadDomainDefaultShard(domainKey);
+}
+
+export function readActiveRelationFamilyShard(
+  domainKey: string,
+  familyKey: string,
+): AuthorityRelationFamilyShard {
+  return loadRelationFamilyShard(domainKey, familyKey);
+}
+
+export function readActiveNeighborhoodShard(nodeId: string): AuthorityNodeNeighborhoodShard {
+  return loadNodeNeighborhoodShard(nodeId);
+}
+
+export function readActiveDetailShard(nodeId: string): AuthorityNodeDetailShard {
+  return attachActiveAuthorityLearningContent(loadNodeDetailShard(nodeId));
+}
+
+export function readActiveDetailInfograph(nodeId: string): Buffer | null {
+  const shard = loadNodeDetailShard(nodeId);
+  return readActiveAuthorityInfograph(shard);
 }

@@ -26,8 +26,8 @@ REMOTE_AUTHORITY_CURRENT_POINTER="${REMOTE_AUTHORITY_CURRENT_POINTER:-${REMOTE_P
 REMOTE_PRODUCTION_CUTOVER_MARKER="${REMOTE_PRODUCTION_CUTOVER_MARKER:-${REMOTE_RUNTIME_DIR}/knowledge/production-cutover-transactions/current.json}"
 LOCAL_TEXTBOOK_V2_RUNTIME_DIR="${LOCAL_RUNTIME_DIR}/resources/textbooks-v2"
 REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
-LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-retrieval"
-REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-retrieval"
+LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
+REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
 REMOTE_RUNTIME_STAGING_DIR="${REMOTE_RUNTIME_DIR}.staging"
 REMOTE_RUNTIME_SELECTION_LOCK="${REMOTE_RUNTIME_SELECTION_LOCK:-${REMOTE_PROJECT_DIR}/data/runtime/.act-runtime-selection.lock}"
 TEXTBOOK_V2_BOOK_IDS="control-encyclopedia dorf-modern-control-systems feedback-control-of-dynamic-systems hu-shousong-auto-control-7th hu-shousong-auto-control-8th hu-shousong-exercise-analysis-3rd liu-sheng-auto-control-2015"
@@ -142,7 +142,7 @@ check_remote_textbook_v2_files() {
   remote "bash -lc '
 set -euo pipefail
 runtime_root=\"${runtime_dir}/resources/textbooks-v2\"
-index_root=\"${runtime_dir}/resources/textbook-retrieval\"
+index_root=\"${runtime_dir}/resources/textbook-hybrid-retrieval/bge-m3\"
 found=0
 for candidate in \"\${runtime_root}\"/*; do
   [ -d \"\${candidate}\" ] || continue
@@ -177,7 +177,8 @@ runtime_root=\"${runtime_dir}\"
 for pointer in \
   knowledge/consumer-activation/current.json \
   knowledge/projection/current.json \
-  knowledge/prerequisites/current.json; do
+  knowledge/prerequisites/current.json \
+  knowledge/authority-domain-shards/current.json; do
   if [ -e \"\${runtime_root}/\${pointer}\" ]; then
     echo \"ERROR: production runtime pointer must be absent: \${pointer}\" >&2
     exit 1
@@ -241,7 +242,7 @@ check_container_textbook_v2_files() {
   remote "podman exec '${APP_NAME_HINT}' sh -lc '
 set -eu
 runtime_root=/app/course-content/runtime/resources/textbooks-v2
-index_root=/app/course-content/runtime/resources/textbook-retrieval
+index_root=/app/course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3
 found=0
 for candidate in \"\${runtime_root}\"/*; do
   [ -d \"\${candidate}\" ] || continue
@@ -542,7 +543,7 @@ fi
 [[ -f "${LOCAL_SERVICE_SCRIPT}" ]] || fail "本地 systemd 配置脚本不存在: ${LOCAL_SERVICE_SCRIPT}"
 [[ -f "${LOCAL_START_WRAPPER_SCRIPT}" ]] || fail "本地容器启动包装脚本不存在: ${LOCAL_START_WRAPPER_SCRIPT}"
 
-remote "mkdir -p '${REMOTE_IMAGES_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")'"
+remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_PARENT_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")'"
 if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
   check_remote_authority_current_pointer_absence
 fi
@@ -563,6 +564,7 @@ if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
         --exclude=knowledge/consumer-activation/current.json
         --exclude=knowledge/projection/current.json
         --exclude=knowledge/prerequisites/current.json
+        --exclude=knowledge/authority-domain-shards/current.json
         -e "ssh -o BatchMode=yes"
       )
       if remote "test -d '${REMOTE_RUNTIME_DIR}'"; then
@@ -574,7 +576,7 @@ if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
       remote "command -v node >/dev/null"
       remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
         --runtime-root '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbooks-v2' \
-        --index-dir '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbook-retrieval' \
+        --index-dir '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbook-hybrid-retrieval/bge-m3' \
         --sidecar '${REMOTE_PROVENANCE_FILE}'"
       ;;
     ossfs-release)
@@ -582,7 +584,7 @@ if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
       sync_oss_runtime_release_host_tools
       REMOTE_RUNTIME_DIR="${REMOTE_OSSFS_MOUNT_ROOT}/${RUNTIME_RELEASE_ID}"
       REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
-      REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-retrieval"
+      REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
       ;;
     *)
       fail "RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release"

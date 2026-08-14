@@ -1,0 +1,36 @@
+{
+  "contract": "act-domain-teaching-fragment/v1",
+  "builderVersion": "act-domain-teaching-fragment-builder/v1",
+  "fragmentId": "dtf-3fa18232755453f80562f4a0e98df2dac72d652c4b5351809ab6fcbcd2012a6a",
+  "fragmentKey": "modern-state-space-published-v3",
+  "fragmentVersion": "1",
+  "fragmentDigest": "3fa18232755453f80562f4a0e98df2dac72d652c4b5351809ab6fcbcd2012a6a",
+  "domainKeys": [
+    "state-space-control-analysis-and-design"
+  ],
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40"
+  },
+  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "sourceInventoryDigest": "3e15353f1af379e4291ef79a4a2ed581dc523d39ce385a0d05d89b70e4993368",
+  "authorityDigest": "bc5e41d86cd12ae44948a7dba8ab364370de7bdc92c91bf6e2be6fa0705c8ba9",
+  "evidenceRefs": [],
+  "coreNodes": [],
+  "relations": [],
+  "coreNodeCount": 0,
+  "relationCount": 0
+}

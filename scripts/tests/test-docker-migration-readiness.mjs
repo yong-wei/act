@@ -70,6 +70,25 @@ function main() {
     'Docker runner 必须在复制候选 authority/projection 工件后删除 production current pointer',
   );
   assert.ok(
+    dockerignore.includes('!course-content/runtime/knowledge/authority-domain-shards/**'),
+    'Docker ignore 必须放行 immutable Authority domain shard set',
+  );
+  for (const allowedRuntimeAsset of [
+    '!course-content/runtime/knowledge/authority-learning-content-manifest.json',
+    '!course-content/runtime/knowledge/cards/authority/**',
+    '!course-content/runtime/knowledge/infographs/authority/**',
+  ]) {
+    assert.ok(
+      dockerignore.includes(allowedRuntimeAsset),
+      `Docker ignore 必须放行 Authority 学习内容: ${allowedRuntimeAsset}`,
+    );
+  }
+  assert.match(
+    dockerfile,
+    /course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*COPY --from=builder \/app\/course-content\/runtime\/knowledge\/authority-domain-shards \.\/course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*course-content\/runtime\/knowledge\/authority-domain-shards\/current\.json/,
+    'Docker builder/runner 必须覆盖 Authority domain shard set，并删除 runtime current pointer',
+  );
+  assert.ok(
     runnerStage.indexOf('course-content/authoring/knowledge/releases') >= 0,
     'Docker runner 必须保留 authority candidate release assets',
   );
@@ -78,6 +97,16 @@ function main() {
       runnerStage.indexOf('COPY --from=builder /app/course-content/runtime/knowledge/projection'),
     'Docker runner 的 current pointer 删除必须发生在 projection COPY 之后',
   );
+  for (const requiredLearningCopy of [
+    '/app/course-content/runtime/knowledge/authority-learning-content-manifest.json ./course-content/runtime/knowledge/authority-learning-content-manifest.json',
+    '/app/course-content/runtime/knowledge/cards/authority ./course-content/runtime/knowledge/cards/authority',
+    '/app/course-content/runtime/knowledge/infographs/authority ./course-content/runtime/knowledge/infographs/authority',
+  ]) {
+    assert.ok(
+      runnerStage.includes(requiredLearningCopy),
+      `Docker runner 必须包含 Authority 学习内容: ${requiredLearningCopy}`,
+    );
+  }
   assert.match(
     remoteDeployScript,
     /REMOTE_AUTHORITY_CURRENT_POINTER="\$\{REMOTE_AUTHORITY_CURRENT_POINTER:-\$\{REMOTE_PROJECT_DIR\}\/course-content\/authoring\/knowledge\/authority\/current\.json\}"/,

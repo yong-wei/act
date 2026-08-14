@@ -1,0 +1,32 @@
+{
+  "contract": "act-domain-teaching-fragment/v1",
+  "fragmentKey": "modern-state-space-v1",
+  "fragmentVersion": "1",
+  "domainKeys": [
+    "state-space-control-analysis-and-design"
+  ],
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "4e33e24f49efe5f89822373b92a4f8cbba4730486037fb0e6c125c4040030426"
+  },
+  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+  "nodeIndexDigest": "4e33e24f49efe5f89822373b92a4f8cbba4730486037fb0e6c125c4040030426",
+  "evidenceRefs": [],
+  "coreNodes": [],
+  "relations": []
+}

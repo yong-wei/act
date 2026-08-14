@@ -156,6 +156,12 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
     directionLabel: '由前者指向后者',
     supported: true,
   },
+  PREREQUISITE: {
+    label: '先修',
+    kind: 'directed',
+    directionLabel: '由前者指向后者',
+    supported: true,
+  },
 };
 
 const GOVERNANCE_LABELS: Readonly<Record<string, string>> = {
@@ -421,6 +427,30 @@ export function selectInitialScope(
 
 export const selectActiveEntryScope = selectInitialScope;
 
+const PRIMARY_DOMAIN_OBJECT_TYPES = new Set(['DomainConcept', 'SystemModel']);
+
+/**
+ * Keep the first domain canvas readable. Formulae and knowledge statements
+ * remain in the model for explicit search, directory filtering and one-hop
+ * disclosure, but do not occupy the initial object layer.
+ */
+export function selectInitialPrimaryDomainScope(
+  model: ActiveAuthorityGraphModel,
+  limit = ACTIVE_GRAPH_NODE_LIMIT,
+): Set<string> {
+  const boundedLimit = Math.max(1, Math.floor(limit));
+  const primary = model.nodes
+    .filter((node) => PRIMARY_DOMAIN_OBJECT_TYPES.has(node.type.canonicalType))
+    .sort((left, right) => degree(model, right.key) - degree(model, left.key) || left.key.localeCompare(right.key));
+  return primary.length > 0
+    ? new Set(primary.slice(0, boundedLimit).map((node) => node.key))
+    : selectInitialScope(model, boundedLimit);
+}
+
+export function isPrimaryDomainObject(node: ActiveNodePresentation): boolean {
+  return PRIMARY_DOMAIN_OBJECT_TYPES.has(node.type.canonicalType);
+}
+
 export function buildActiveAdjacencyIndex(
   model: ActiveAuthorityGraphModel,
 ): ReadonlyMap<string, readonly ActiveRelationView[]> {
@@ -531,6 +561,30 @@ export function activeNodeRelationSummaries(
       };
     })
     .filter((value): value is NonNullable<typeof value> => Boolean(value))
+    .sort((left, right) => left.key.localeCompare(right.key));
+}
+
+export function activeModelRelationSummaries(
+  model: ActiveAuthorityGraphModel,
+  nodeKey: string,
+): Array<{
+  key: string;
+  relationLabel: string;
+  directionLabel: string;
+  neighborLabel: string;
+  traversal: ActiveNodeAdjacency['traversal'];
+}> {
+  return (model.adjacency.get(nodeKey) ?? [])
+    .map((relation) => {
+      const neighborKey = relation.sourceKey === nodeKey ? relation.targetKey : relation.sourceKey;
+      return {
+        key: relation.key,
+        relationLabel: relation.semantic.label,
+        directionLabel: relation.semantic.directionLabel,
+        neighborLabel: model.nodeByKey.get(neighborKey)?.label ?? '对象名称暂不可用',
+        traversal: (relation.sourceKey === nodeKey ? 'outgoing' : 'incoming') as ActiveNodeAdjacency['traversal'],
+      };
+    })
     .sort((left, right) => left.key.localeCompare(right.key));
 }
 

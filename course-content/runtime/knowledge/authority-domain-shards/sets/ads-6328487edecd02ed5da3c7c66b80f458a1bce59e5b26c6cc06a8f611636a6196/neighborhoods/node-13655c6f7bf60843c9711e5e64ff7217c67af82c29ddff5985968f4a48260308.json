@@ -1,0 +1,358 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "activationId": "first-cutover-7f4cdd1084af-769b1a832622",
+      "activationHash": "e1d353fd1b544b3115dec62f8206b027784e0f50b1c66406c8556049d9e7ecb5",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+      "catalogHash": "dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+      "catalogVersion": "1.0.0"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "nodeId": "ctc:modeling-00d2998755974a1329049aac",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctc:modeling-00d2998755974a1329049aac",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:v11g-3a468572771e0b54e23a6ef5",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctc:v11g-6c5064d654265c2b32389beb",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-daefb900250d1b7d86e36bdd",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "canonicalType": "Formula",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:m1e-bridge-relation-125e5a7c76a9c082319af337",
+      "predicate": "is_a",
+      "sourceId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "targetId": "ctc:modeling-00d2998755974a1329049aac",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-353833c813aa61a6948b11d1",
+      "predicate": "applies_to",
+      "sourceId": "ctc:v11g-6c5064d654265c2b32389beb",
+      "targetId": "ctc:modeling-00d2998755974a1329049aac",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-644bd564e1e7f0ccbc6b6879",
+      "predicate": "is_a",
+      "sourceId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+      "targetId": "ctc:modeling-00d2998755974a1329049aac",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-71d94bd18a18caf794f45c3e",
+      "predicate": "association",
+      "sourceId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "targetId": "ctc:modeling-00d2998755974a1329049aac",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-9ac21022bd0909c29a5b1c27",
+      "predicate": "applies_to",
+      "sourceId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+      "targetId": "ctc:modeling-00d2998755974a1329049aac",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-a4ab413432813e2c79d14848",
+      "predicate": "association",
+      "sourceId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "targetId": "ctc:modeling-00d2998755974a1329049aac",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-f521f2d723ad0768cc965dd3",
+      "predicate": "is_a",
+      "sourceId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "targetId": "ctc:modeling-00d2998755974a1329049aac",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-6c5064d654265c2b32389beb",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "label": "名称暂不可用",
+      "canonicalType": "Formula",
+      "adjacentDomainIds": []
+    }
+  ]
+}

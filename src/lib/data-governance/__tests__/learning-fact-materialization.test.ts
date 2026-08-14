@@ -117,7 +117,7 @@ describe('eventToLearningFactInput', () => {
     expect(fact).toBeNull();
   });
 
-  it('materializes sampled parameter exploration without a profile contribution', () => {
+  it('materializes sampled parameter exploration as auditable context-only evidence without a profile contribution', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'workspace-param-sampled-001',
       actionType: 'param_change',
@@ -138,6 +138,14 @@ describe('eventToLearningFactInput', () => {
       outcome: 'success',
     });
     expect(fact?.competencyContribution).toEqual({});
+    expect(fact?.contextJson).toMatchObject({
+      evidenceGovernance: {
+        evidenceQuality: 'missing',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'unmanaged_learning_fact_context_only',
+      },
+    });
   });
 
   it('keeps second-based duration payloads as seconds in canonical facts', () => {

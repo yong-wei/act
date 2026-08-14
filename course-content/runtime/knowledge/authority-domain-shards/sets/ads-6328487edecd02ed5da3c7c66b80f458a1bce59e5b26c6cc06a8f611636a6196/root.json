@@ -1,0 +1,118 @@
+{
+  "shardClass": "root",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "activationId": "first-cutover-7f4cdd1084af-769b1a832622",
+      "activationHash": "e1d353fd1b544b3115dec62f8206b027784e0f50b1c66406c8556049d9e7ecb5",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+      "catalogHash": "dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+      "catalogVersion": "1.0.0"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "root": {
+    "kind": "presentation-root-catalog",
+    "domains": [
+      {
+        "kind": "presentation-domain",
+        "order": 1,
+        "displayName": "系统建模",
+        "summary": "从物理对象到系统模型，建立可分析的输入输出与内部结构描述。",
+        "presentationRole": "domain",
+        "visualRole": "modeling",
+        "memberCount": 1
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 2,
+        "displayName": "时域分析",
+        "summary": "以时间响应刻画动态性能，理解过渡过程与稳态行为。",
+        "presentationRole": "domain",
+        "visualRole": "time",
+        "memberCount": 2
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 3,
+        "displayName": "稳定性分析",
+        "summary": "判断系统是否稳定，并给出可复核的稳定性判据与边界。",
+        "presentationRole": "domain",
+        "visualRole": "stability",
+        "memberCount": 2
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 4,
+        "displayName": "频域分析",
+        "summary": "用频率响应描述系统特性，连接幅相裕度与动态性能。",
+        "presentationRole": "domain",
+        "visualRole": "frequency",
+        "memberCount": 1
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 5,
+        "displayName": "根轨迹",
+        "summary": "在参数变化下追踪闭环极点轨迹，支持稳定性与动态设计。",
+        "presentationRole": "domain",
+        "visualRole": "root-locus",
+        "memberCount": 2
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 6,
+        "displayName": "经典控制设计",
+        "summary": "以串联校正与 PID 等方法完成性能指标驱动的控制器设计。",
+        "presentationRole": "domain",
+        "visualRole": "design",
+        "memberCount": 2
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 7,
+        "displayName": "离散时间控制分析",
+        "summary": "面向采样与数字实现，分析离散系统模型与动态特性。",
+        "presentationRole": "domain",
+        "visualRole": "discrete",
+        "memberCount": 1
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 8,
+        "displayName": "状态空间控制分析与设计",
+        "summary": "以状态空间模型进行能控能观分析与现代控制综合。",
+        "presentationRole": "domain",
+        "visualRole": "state-space",
+        "memberCount": 1
+      }
+    ],
+    "aggregate": {
+      "kind": "presentation-aggregate",
+      "order": 0,
+      "displayName": "控制理论综合",
+      "summary": "八大领域的全局汇总入口，帮助先建立知识版图再进入具体领域。",
+      "presentationRole": "aggregate",
+      "visualRole": "aggregate",
+      "domainCount": 8
+    }
+  }
+}

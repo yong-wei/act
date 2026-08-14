@@ -10,6 +10,18 @@ import {
 } from '../competency-engine';
 import type { CompetencyVector } from '../competency-model';
 
+function governedContext(context: Record<string, unknown> = {}) {
+  return {
+    ...context,
+    evidenceGovernance: {
+      evidenceQuality: 'rich',
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'rich_objective_evidence',
+    },
+  };
+}
+
 // Helper function to create mock LearningFact
 function createMockFact(overrides: Partial<LearningFact> = {}): LearningFact {
   return {
@@ -28,7 +40,7 @@ function createMockFact(overrides: Partial<LearningFact> = {}): LearningFact {
     sourceLogId: null,
     courseId: null,
     lessonId: null,
-    contextJson: {},
+    contextJson: governedContext(),
     knowledgeIdentityNamespace: null,
     canonicalObjectId: null,
     aggregateReleaseSetId: null,
@@ -44,8 +56,8 @@ describe('calculateCompetencyVector', () => {
   it('uses rubricWeight as the within-dimension denominator without treating it as performance', () => {
     const startedAt = new Date();
     const facts: any[] = [
-      { id: 'heavy-half', startedAt, outcome: 'partial', timeSpent: 300, competencyContribution: { controlModeling: 0.5 }, contextJson: { rubricWeight: 0.9 } },
-      { id: 'light-full', startedAt, outcome: 'success', timeSpent: 300, competencyContribution: { controlModeling: 1 }, contextJson: { rubricWeight: 0.1 } },
+      { id: 'heavy-half', startedAt, outcome: 'partial', timeSpent: 300, competencyContribution: { controlModeling: 0.5 }, contextJson: governedContext({ rubricWeight: 0.9 }) },
+      { id: 'light-full', startedAt, outcome: 'success', timeSpent: 300, competencyContribution: { controlModeling: 1 }, contextJson: governedContext({ rubricWeight: 0.1 }) },
     ];
     expect(calculateCompetencyVector(facts, 'all').controlModeling.score).toBe(55);
     expect(calculateCompetencyVector([facts[1]], 'all').controlModeling.score).toBe(100);
@@ -53,11 +65,11 @@ describe('calculateCompetencyVector', () => {
   it('keeps zero and partial normalized rubric performances in weighted competency aggregation', () => {
     const startedAt = new Date();
     const facts: any[] = [
-      { id: 'zero-heavy', factType: 'document_rubric_grading', startedAt, outcome: 'failure', timeSpent: 0, competencyContribution: { controlModeling: 0 }, contextJson: { rubricWeight: 0.9 } },
-      { id: 'full-light', factType: 'document_rubric_grading', startedAt, outcome: 'success', timeSpent: 0, competencyContribution: { controlModeling: 1 }, contextJson: { rubricWeight: 0.1 } },
+      { id: 'zero-heavy', factType: 'document_rubric_grading', startedAt, outcome: 'failure', timeSpent: 0, competencyContribution: { controlModeling: 0 }, contextJson: governedContext({ rubricWeight: 0.9 }) },
+      { id: 'full-light', factType: 'document_rubric_grading', startedAt, outcome: 'success', timeSpent: 0, competencyContribution: { controlModeling: 1 }, contextJson: governedContext({ rubricWeight: 0.1 }) },
     ];
     expect(calculateCompetencyVector(facts, 'all').controlModeling.score).toBe(10);
-    expect(calculateCompetencyVector([{ ...facts[0], id: 'half', outcome: 'partial', competencyContribution: { controlModeling: 0.5 }, contextJson: { rubricWeight: 1 } }], 'all').controlModeling.score).toBe(50);
+    expect(calculateCompetencyVector([{ ...facts[0], id: 'half', outcome: 'partial', competencyContribution: { controlModeling: 0.5 }, contextJson: governedContext({ rubricWeight: 1 }) }], 'all').controlModeling.score).toBe(50);
   });
   it('should return empty vector when no facts provided', () => {
     const vector = calculateCompetencyVector([], '1m');
@@ -128,6 +140,7 @@ describe('calculateCompetencyVector', () => {
             profileWeight: 0,
             skipProfileContribution: true,
             evidenceQuality: 'legacy',
+            policyReason: 'legacy_evidence_context_only',
           },
         },
       }),
@@ -151,6 +164,7 @@ describe('calculateCompetencyVector', () => {
             profileWeight: 0.25,
             skipProfileContribution: false,
             evidenceQuality: 'partial',
+            policyReason: 'partial_evidence_low_weight',
           },
         },
       }),
@@ -160,6 +174,18 @@ describe('calculateCompetencyVector', () => {
 
     expect(vector.controlModeling.score).toBe(20);
     expect(vector.controlModeling.evidenceCount).toBe(1);
+  });
+
+  it('should exclude facts without complete evidence governance from competency profiles', () => {
+    const vector = calculateCompetencyVector([
+      createMockFact({
+        competencyContribution: { controlModeling: 1 },
+        contextJson: {},
+      }),
+    ], '1m');
+
+    expect(vector.controlModeling.score).toBe(0);
+    expect(vector.controlModeling.evidenceCount).toBe(0);
   });
 
   it('should filter facts by time window', () => {

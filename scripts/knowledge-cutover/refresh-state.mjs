@@ -80,9 +80,22 @@ function validate(root) {
   if (marker.status !== 'COMMITTED') fail('production marker is not committed');
   const transactionId = assertString(marker.transactionId, 'transaction id');
   const planHash = assertHash(marker.planHash, 'production plan hash');
-  const markerImageRevision = assertString(marker.imageRevision, 'marker image revision', /^[a-f0-9]{40}$/u);
+  const markerImageRevision = assertString(
+    marker.applicationSourceRevision ?? marker.imageRevision,
+    'marker application source revision',
+    COMMIT,
+  );
   const markerImageConfigDigest = assertString(marker.imageConfigDigest, 'marker image config digest', OCI_DIGEST);
   const markerImageTarSha256 = assertHash(marker.imageTarSha256, 'marker image tar hash');
+  const markerImageProvenanceSha256 = marker.imageProvenanceSha256 === undefined
+    ? null
+    : assertHash(marker.imageProvenanceSha256, 'marker image provenance hash');
+  const markerOperatorSourceRevision = marker.operatorSourceRevision === undefined
+    ? null
+    : assertString(marker.operatorSourceRevision, 'marker operator source revision', COMMIT);
+  const markerOperatorSourceTree = marker.operatorSourceTree === undefined
+    ? null
+    : assertString(marker.operatorSourceTree, 'marker operator source tree', COMMIT);
   const markerCaptureRevision = assertString(marker.captureRevision, 'marker capture revision', COMMIT);
 
   const receiptPath = path.join(transactionRoot, `${transactionId}.json`);
@@ -92,9 +105,12 @@ function validate(root) {
     firstReceipt.status !== 'COMMITTED'
     || firstReceipt.transactionId !== transactionId
     || firstReceipt.planHash !== planHash
-    || firstReceipt.imageRevision !== markerImageRevision
+    || (firstReceipt.applicationSourceRevision ?? firstReceipt.imageRevision) !== markerImageRevision
     || firstReceipt.imageConfigDigest !== markerImageConfigDigest
     || firstReceipt.imageTarSha256 !== markerImageTarSha256
+    || (markerImageProvenanceSha256 !== null && firstReceipt.imageProvenanceSha256 !== markerImageProvenanceSha256)
+    || (markerOperatorSourceRevision !== null && firstReceipt.operatorSourceRevision !== markerOperatorSourceRevision)
+    || (markerOperatorSourceTree !== null && firstReceipt.operatorSourceTree !== markerOperatorSourceTree)
     || firstReceipt.captureRevision !== markerCaptureRevision
   ) {
     fail('first activation receipt does not match the committed marker');
@@ -216,9 +232,13 @@ function validate(root) {
   const result = {
     transactionId,
     planHash,
-    imageRevision: assertString(marker.imageRevision, 'marker image revision', /^[a-f0-9]{40}$/u),
+    applicationSourceRevision: markerImageRevision,
+    imageRevision: markerImageRevision,
     markerImageConfigDigest,
     markerImageRevision,
+    markerImageProvenanceSha256,
+    markerOperatorSourceRevision,
+    markerOperatorSourceTree,
     protected: protectedFiles,
     protectedDigest: protectedDigest(protectedFiles),
     identities: {

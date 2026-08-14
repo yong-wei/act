@@ -45,6 +45,7 @@ import {
   projectStudentSafeEvidenceSource,
   type StudentSafeEvidenceEventReference,
 } from './evidence-timeline';
+import { isLearningFactEligibleForPersonalization } from './learning-fact-quality-weight';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -97,8 +98,7 @@ const CONTROL_CORRECTION_ARENA_TASK_ID_VALUES = [
 const CONTROL_CORRECTION_COURSE_IDS = new Set<string>(CONTROL_CORRECTION_COURSE_ID_VALUES);
 const CONTROL_CORRECTION_ARENA_TASK_IDS = new Set<string>(CONTROL_CORRECTION_ARENA_TASK_ID_VALUES);
 const CONTROL_CORRECTION_FACT_TAKE = 500;
-const CONTROL_CORRECTION_LEGACY_FACT_SCAN_MAX_PAGES = 10;
-const CONTROL_CORRECTION_EXPLICIT_FACT_SCAN_MAX_PAGES = 10;
+const LEARNER_STATE_FACT_TAKE = 100;
 export const CONTROL_CORRECTION_TARGET_LEVELS: ControlCorrectionTargetLevel[] = [
   'foundation',
   'developing',
@@ -727,6 +727,36 @@ export function isAdaptiveLearnerStateServiceEnabled(
   return env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED === 'true';
 }
 
+async function readEligibleLearnerStateFacts(
+  db: AdaptiveLearnerStateDb,
+  userId: string,
+): Promise<Array<Record<string, unknown>>> {
+  const findMany = db.learningFact?.findMany;
+  if (!findMany) return [];
+
+  const facts: Array<Record<string, unknown>> = [];
+  let cursorId: string | null = null;
+  while (facts.length < LEARNER_STATE_FACT_TAKE) {
+    const rows = await findMany({
+      where: { userId },
+      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+      take: LEARNER_STATE_FACT_TAKE,
+      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+    });
+    facts.push(...rows
+      .filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson))
+      .slice(0, LEARNER_STATE_FACT_TAKE - facts.length));
+
+    const nextCursorId = readString(rows.at(-1)?.id);
+    if (rows.length < LEARNER_STATE_FACT_TAKE || !nextCursorId || nextCursorId === cursorId) {
+      break;
+    }
+    cursorId = nextCursorId;
+  }
+
+  return facts;
+}
+
 export async function readAdaptiveLearnerState(
   db: AdaptiveLearnerStateDb,
   input: AdaptiveLearnerStateInput,
@@ -743,7 +773,7 @@ export async function readAdaptiveLearnerState(
   const [
     latestSnapshot,
     profileSummary,
-    facts,
+    personalizationFacts,
     masteryUpdates,
     latestAbility,
     riskFlags,
@@ -760,11 +790,7 @@ export async function readAdaptiveLearnerState(
     db.studentProfileSummary?.findUnique?.({
       where: { userId: input.userId },
     }) ?? Promise.resolve(null),
-    db.learningFact?.findMany?.({
-      where: { userId: input.userId },
-      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
-      take: 100,
-    }) ?? Promise.resolve([]),
+    readEligibleLearnerStateFacts(db, input.userId),
     db.adaptiveMasteryUpdate?.findMany?.({
       where: { userId: input.userId },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -843,7 +869,7 @@ export async function readAdaptiveLearnerState(
   ]);
 
   const masteryFacts = uniqueFactsById([
-    ...facts,
+    ...personalizationFacts,
     ...await readAdaptiveMasteryLearningFacts(db, input.userId, masteryUpdates),
   ]);
 
@@ -973,8 +999,8 @@ export async function readAdaptiveLearnerState(
     secondaryDimensions,
     knowledgeMastery,
     masteryTraceability,
-    resourcePreference: buildResourcePreference(facts),
-    mediaAbsorption: buildMediaAbsorption(facts),
+    resourcePreference: buildResourcePreference(personalizationFacts),
+    mediaAbsorption: buildMediaAbsorption(personalizationFacts),
     pathContext: buildPathContext(paths, activeControlCorrectionPaths[0] ?? null),
     risks: buildRiskState(profileSummary, riskFlags, input.role),
     assessmentState: {
@@ -1674,7 +1700,7 @@ async function readAdaptiveMasteryLearningFacts(
     return [];
   }
 
-  return db.learningFact.findMany({
+  const facts = await db.learningFact.findMany({
     where: {
       userId,
       sourceEventId: {
@@ -1683,6 +1709,7 @@ async function readAdaptiveMasteryLearningFacts(
     },
     orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
   });
+  return facts.filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson));
 }
 
 function latestMasteryAnswerIds(rows: Array<Record<string, unknown>>): string[] {
@@ -2487,7 +2514,6 @@ async function readControlCorrectionLearningFacts(
       findMany: db.learningFact.findMany,
       where: buildExplicitControlCorrectionLearningFactWhere(userId),
       filter: isControlCorrectionFact,
-      maxPages: CONTROL_CORRECTION_EXPLICIT_FACT_SCAN_MAX_PAGES,
     }),
     readLegacyControlCorrectionLearningFacts(db, userId),
   ]);
@@ -2508,7 +2534,6 @@ async function readLegacyControlCorrectionLearningFacts(
     findMany,
     where: buildLegacyControlCorrectionLearningFactWhere(userId),
     filter: (fact) => !hasExplicitAdaptiveGoal(fact) && isLegacyControlCorrectionFact(fact, getObject(fact.contextJson)),
-    maxPages: CONTROL_CORRECTION_LEGACY_FACT_SCAN_MAX_PAGES,
   });
 }
 
@@ -2516,23 +2541,24 @@ async function readPagedControlCorrectionLearningFacts(input: {
   findMany: (args: any) => Promise<Array<Record<string, unknown>>>;
   where: Record<string, unknown>;
   filter: (fact: Record<string, unknown>) => boolean;
-  maxPages: number;
 }): Promise<Array<Record<string, unknown>>> {
   const facts: Array<Record<string, unknown>> = [];
   let cursorId: string | null = null;
-  for (let page = 0; page < input.maxPages; page += 1) {
+  while (facts.length < CONTROL_CORRECTION_FACT_TAKE) {
     const rows = await input.findMany({
       where: input.where,
       orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
       take: CONTROL_CORRECTION_FACT_TAKE,
       ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
     });
-    facts.push(...rows.filter(input.filter));
+    facts.push(...rows.filter((fact) =>
+      input.filter(fact) && isLearningFactEligibleForPersonalization(fact.contextJson),
+    ));
     if (facts.length >= CONTROL_CORRECTION_FACT_TAKE || rows.length < CONTROL_CORRECTION_FACT_TAKE) {
       break;
     }
     const lastId = readString(rows.at(-1)?.id);
-    if (!lastId) {
+    if (!lastId || lastId === cursorId) {
       break;
     }
     cursorId = lastId;

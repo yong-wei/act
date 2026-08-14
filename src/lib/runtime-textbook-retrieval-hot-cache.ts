@@ -12,9 +12,9 @@ import {
 } from '@/lib/runtime-release';
 
 const HOT_CACHE_PATHS = [
-  'resources/textbook-retrieval/vectors.f32',
-  'resources/textbook-retrieval/bodies.utf8',
-  'resources/textbook-retrieval/lexical-postings.bin',
+  'resources/textbook-hybrid-retrieval/bge-m3/vectors.f32',
+  'resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8',
+  'resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin',
 ] as const;
 
 export const ACT_RUNTIME_TEXTBOOK_HOT_CACHE_SCHEMA_VERSION = 'act-runtime-textbook-hot-cache.v1';

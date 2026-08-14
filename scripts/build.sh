@@ -36,7 +36,7 @@ CACHE_FROM_DIR="${CACHE_FROM_DIR:-${CACHE_ROOT}/cache}"
 CACHE_TO_DIR="${CACHE_TO_DIR:-${CACHE_ROOT}/cache-new}"
 EXTERNAL_RUNTIME_DIR="${EXTERNAL_RUNTIME_DIR:-course-content/runtime}"
 TEXTBOOK_V2_RUNTIME_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbooks-v2"
-TEXTBOOK_RETRIEVAL_INDEX_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbook-retrieval"
+TEXTBOOK_RETRIEVAL_INDEX_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
 PROVENANCE_FILE="${OUTPUT_TAR}.provenance.json"
 DATABASE_URL_FOR_BUILD="${DATABASE_URL:-}"
 if [[ -z "${DATABASE_URL_FOR_BUILD}" && -f .env ]]; then

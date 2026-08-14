@@ -1,4 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import path from 'node:path';
+
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
@@ -108,7 +110,87 @@ function response(): TextbookRetrievalResponse {
   };
 }
 
+const canonicalIndexRoot = path.join(
+  process.cwd(),
+  'course-content',
+  'runtime',
+  'resources',
+  'textbook-hybrid-retrieval',
+  'bge-m3',
+);
+
+async function captureNormalIndexRoot(overrides: Record<string, unknown> = {}) {
+  const loadIndex = vi.fn().mockResolvedValue({
+    manifest: { sourcePriority: [] },
+  } as unknown as LoadedTextbookRetrievalIndex);
+  await retrieveTextbookSourcePackV2({
+    query: 'unit-step response',
+    retrieve: vi.fn().mockResolvedValue(response()),
+    loadIndex,
+    loadUnits: vi.fn().mockResolvedValue([]),
+    ...overrides,
+  } as Parameters<typeof retrieveTextbookSourcePackV2>[0]);
+  return loadIndex.mock.calls[0][0] as string;
+}
+
+async function captureProgressiveIndexRoot(overrides: Record<string, unknown> = {}) {
+  const loadIndex = vi.fn().mockResolvedValue({
+    manifest: { sourcePriority: [] },
+  } as unknown as LoadedTextbookRetrievalIndex);
+  await retrieveTextbookSourcePackV2Progressive({
+    query: 'unit-step response',
+    retrieveProgressive: vi.fn().mockResolvedValue({
+      foreground: response(),
+      optimizationPending: false,
+      continuation: null,
+    }),
+    loadIndex,
+    loadUnits: vi.fn().mockResolvedValue([]),
+    ...overrides,
+  } as Parameters<typeof retrieveTextbookSourcePackV2Progressive>[0]);
+  return loadIndex.mock.calls[0][0] as string;
+}
+
 describe('v2 textbook Source Pack adapter', () => {
+  afterEach(() => {
+    delete process.env.ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT;
+  });
+
+  it('resolves the canonical default index root for normal and progressive retrieval', async () => {
+    const [normalRoot, progressiveRoot] = await Promise.all([
+      captureNormalIndexRoot(),
+      captureProgressiveIndexRoot(),
+    ]);
+
+    expect(normalRoot).toBe(canonicalIndexRoot);
+    expect(progressiveRoot).toBe(canonicalIndexRoot);
+    expect(normalRoot).not.toContain('textbook-retrieval');
+  });
+
+  it('uses ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT when explicit indexRoot is absent', async () => {
+    process.env.ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT = '/env/index';
+
+    const [normalRoot, progressiveRoot] = await Promise.all([
+      captureNormalIndexRoot(),
+      captureProgressiveIndexRoot(),
+    ]);
+
+    expect(normalRoot).toBe('/env/index');
+    expect(progressiveRoot).toBe('/env/index');
+  });
+
+  it('gives explicit indexRoot priority over environment and default', async () => {
+    process.env.ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT = '/env/index';
+
+    const [normalRoot, progressiveRoot] = await Promise.all([
+      captureNormalIndexRoot({ indexRoot: '/explicit/index' }),
+      captureProgressiveIndexRoot({ indexRoot: '/explicit/index' }),
+    ]);
+
+    expect(normalRoot).toBe('/explicit/index');
+    expect(progressiveRoot).toBe('/explicit/index');
+  });
+
   it('deduplicates owning units, never cites windows, and applies source priority after direct support', async () => {
     const result = await retrieveTextbookSourcePackV2({
       query: '单位阶跃响应',
