@@ -69,6 +69,16 @@ assert.ok(
 );
 assert.match(
   activation,
+  /\[\[ -f "\$candidate_view\/lessons\/1-1\/lesson\.json" \]\]/,
+  'candidate course smoke must accept the logical symlink leaf exposed by the blob view',
+);
+assert.doesNotMatch(
+  activation,
+  /candidate_view\/lessons\/1-1\/lesson\.json" && ! -L/,
+  'candidate course smoke must not reject the blob view because its logical files are symlinks',
+);
+assert.match(
+  activation,
   /podman exec -i --workdir \/app "\$APP_CONTAINER" \/bin\/sh -eu -c '[\s\S]*mktemp \/tmp\/act-runtime-blob-candidate-smoke\.XXXXXX\.ts[\s\S]*\.\/node_modules\/\.bin\/tsx "\$smoke_file"/,
   'candidate consumer smoke must execute a temporary TypeScript file through the deployed application runtime',
 );
