@@ -177,6 +177,9 @@ try {
     const returnActionCount = await returnLink.count();
     const returnHref = await returnLink.getAttribute('href');
     const recoveryActionCount = await journeyControl.getByRole('link', { name: '恢复学习路径', exact: true }).count();
+    const journeyControlState = await journeyControl.getAttribute('data-adaptive-path-journey-control');
+    const blockedReasonText = await blockedReason.textContent();
+    const resourceFixtureText = await resourceFixture.textContent();
     if (returnActionCount !== 1 || returnHref !== expectedReturnHref || recoveryActionCount !== 0) {
       throw new Error(`unexpected journey actions at ${viewport.width}px: return=${returnActionCount}, href=${returnHref}, recovery=${recoveryActionCount}`);
     }
@@ -199,9 +202,9 @@ try {
     results.push({
       viewport,
       resourceUrl: `${baseUrl}${resourceRoute}`,
-      journeyControlState: await journeyControl.getAttribute('data-adaptive-path-journey-control'),
-      blockedReasonText: await blockedReason.textContent(),
-      resourceFixtureText: await resourceFixture.textContent(),
+      journeyControlState,
+      blockedReasonText,
+      resourceFixtureText,
       returnActionCount,
       returnHref,
       recoveryActionCount,
