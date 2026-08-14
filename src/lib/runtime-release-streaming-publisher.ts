@@ -58,6 +58,21 @@ export interface RuntimeReleaseSshPublisherDependencies {
   spawn?: (command: string, args: readonly string[], options: SpawnOptions) => ChildProcess;
 }
 
+export interface RuntimeReleaseLocalPublisherConfig {
+  bucket: string;
+  bridgePath: string;
+  pythonBinary: string;
+  ossutilPath: string;
+  ossutilSha256: string;
+  identityCommandPath: string;
+  identityCommandSha256: string;
+  operatorAccountId: string;
+  operatorPrincipalArn: string;
+  lockDir: string;
+  spoolDir: string;
+  credentialProfile?: string;
+}
+
 export interface RuntimeReleaseRemoteObjectReceipt {
   sizeBytes: number;
   sha256: string;
@@ -124,6 +139,33 @@ function assertConfig(config: RuntimeReleaseSshPublisherConfig) {
   if (config.connectTimeoutSeconds !== undefined && (!Number.isInteger(config.connectTimeoutSeconds) || config.connectTimeoutSeconds < 1 || config.connectTimeoutSeconds > 300)) invalid('SSH connect timeout must be between 1 and 300 seconds.');
 }
 
+function assertAbsoluteLocalPath(value: string, context: string) {
+  assertNoControlCharacters(value, context);
+  if (!value.startsWith('/')) invalid(`${context} must be an absolute path.`);
+}
+
+function assertLocalPublisherConfig(config: RuntimeReleaseLocalPublisherConfig) {
+  assertNoControlCharacters(config.bucket, 'OSS bucket');
+  if (!BUCKET_PATTERN.test(config.bucket)) invalid('OSS bucket name is invalid.');
+  for (const [value, context] of [
+    [config.bridgePath, 'Local publisher bridge path'],
+    [config.pythonBinary, 'Local Python binary'],
+    [config.ossutilPath, 'Local ossutil binary'],
+    [config.identityCommandPath, 'Local identity command'],
+    [config.lockDir, 'Local lock directory'],
+    [config.spoolDir, 'Local spool directory'],
+  ] as const) assertAbsoluteLocalPath(value, context);
+  if (!SHA256_PATTERN.test(config.ossutilSha256) || !SHA256_PATTERN.test(config.identityCommandSha256)) {
+    invalid('Local publisher binary SHA-256 pins are invalid.');
+  }
+  if (!/^[0-9]{12,32}$/.test(config.operatorAccountId) || !config.operatorPrincipalArn.startsWith('acs:ram::')) {
+    invalid('Local publisher account or principal is invalid.');
+  }
+  if (config.credentialProfile !== undefined && !TARGET_PATTERN.test(config.credentialProfile)) {
+    invalid('Local credential profile is invalid.');
+  }
+}
+
 type SshOperation = 'list' | 'get' | 'put' | 'publish' | 'import-v1' | 'verify';
 
 export function buildRuntimeReleaseSshArgv(
@@ -167,6 +209,30 @@ export function buildRuntimeReleaseSshArgv(
     }
   }
   return args;
+}
+
+export function buildRuntimeReleaseLocalPublisherArgv(
+  config: RuntimeReleaseLocalPublisherConfig,
+  prefix: string,
+) {
+  assertLocalPublisherConfig(config);
+  assertPrefix(prefix);
+  return [
+    config.bridgePath,
+    '--bucket', config.bucket,
+    '--operation', 'publish',
+    '--prefix-b64', encodeArgument(prefix),
+    '--credential-mode', 'local',
+    '--ossutil-path', config.ossutilPath,
+    '--ossutil-sha256', config.ossutilSha256,
+    '--identity-command-path', config.identityCommandPath,
+    '--identity-command-sha256', config.identityCommandSha256,
+    '--operator-account-id', config.operatorAccountId,
+    '--operator-principal-arn', config.operatorPrincipalArn,
+    '--lock-dir', config.lockDir,
+    '--spool-dir', config.spoolDir,
+    ...(config.credentialProfile ? ['--credential-profile', config.credentialProfile] : []),
+  ];
 }
 
 class CountingTransform extends Transform {
@@ -677,7 +743,7 @@ export async function publishRuntimeReleaseViaSsh(input: {
 async function publishRuntimeBlobReleaseStream(input: {
   snapshot: GitRuntimeBlobReleaseSnapshot;
   manifest: ActRuntimeBlobReleaseManifest;
-  config: RuntimeReleaseSshPublisherConfig;
+  bridge: { command: string; args: readonly string[] };
   spawn?: RuntimeReleaseSshPublisherDependencies['spawn'];
 }) {
   try {
@@ -692,9 +758,7 @@ async function publishRuntimeBlobReleaseStream(input: {
   ) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-git-source-mismatch', 'Git snapshot identity does not match the submitted blob manifest.');
   }
-  const child = spawnChild(input.spawn, input.config.sshBinary ?? 'ssh', buildRuntimeReleaseSshArgv(input.config, 'publish', {
-    prefix: runtimeBlobReleasePrefix(input.manifest.releaseId),
-  }));
+  const child = spawnChild(input.spawn, input.bridge.command, input.bridge.args);
   if (!child.stdin || !child.stdout) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'Blob publish bridge did not provide bidirectional streams.');
   }
@@ -714,6 +778,12 @@ async function publishRuntimeBlobReleaseStream(input: {
     manifestWireBase64: manifestWireBytes.toString('base64url'),
     receiptWireSha256: createHash('sha256').update(receiptWireBytes).digest('hex'),
     receiptWireBase64: receiptWireBytes.toString('base64url'),
+    ...(input.snapshot.parentManifest ? {
+      parentRelease: {
+        releaseId: input.snapshot.parentManifest.releaseId,
+        manifestSha256: input.snapshot.parentManifest.manifestSha256,
+      },
+    } : {}),
   };
   const sourcesByKey = new Map<string, ActRuntimeReleaseFile>();
   for (const file of input.manifest.files) {
@@ -794,7 +864,29 @@ export async function publishRuntimeBlobReleaseViaSsh(input: {
   return publishRuntimeBlobReleaseStream({
     snapshot: input.snapshot,
     manifest: input.manifest,
-    config: input.ssh,
+    bridge: {
+      command: input.ssh.sshBinary ?? 'ssh',
+      args: buildRuntimeReleaseSshArgv(input.ssh, 'publish', {
+        prefix: runtimeBlobReleasePrefix(input.manifest.releaseId),
+      }),
+    },
+    spawn: input.dependencies?.spawn,
+  });
+}
+
+export async function publishRuntimeBlobReleaseLocally(input: {
+  snapshot: GitRuntimeBlobReleaseSnapshot;
+  manifest: ActRuntimeBlobReleaseManifest;
+  local: RuntimeReleaseLocalPublisherConfig;
+  dependencies?: RuntimeReleaseSshPublisherDependencies;
+}) {
+  return publishRuntimeBlobReleaseStream({
+    snapshot: input.snapshot,
+    manifest: input.manifest,
+    bridge: {
+      command: input.local.pythonBinary,
+      args: buildRuntimeReleaseLocalPublisherArgv(input.local, runtimeBlobReleasePrefix(input.manifest.releaseId)),
+    },
     spawn: input.dependencies?.spawn,
   });
 }

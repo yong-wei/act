@@ -65,6 +65,7 @@ describe('Git-backed runtime release snapshots', () => {
     });
 
     expect(target.manifest).toEqual(parent.manifest);
+    expect(target.parentManifest).toEqual(parent.manifest);
     expect(target.stats).toEqual({ reusedFileCount: 1, reusedBytes: 23, hashedFileCount: 0, hashedBytes: 0 });
   });
 

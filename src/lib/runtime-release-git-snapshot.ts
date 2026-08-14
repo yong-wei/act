@@ -28,6 +28,12 @@ export interface GitRuntimeBlobReleaseSnapshot {
   repoRoot: string;
   sourceRevision: string;
   integrationRef: string;
+  /**
+   * The immutable parent used to prove reused Git objects.  Publishing passes
+   * only this identity to the bridge, which rereads the small remote parent
+   * documents before it trusts inherited blobs.
+   */
+  parentManifest?: ActRuntimeBlobReleaseManifest;
   manifest: ActRuntimeBlobReleaseManifest;
   stats: GitRuntimeBlobReleaseSnapshotStats;
   filesByPath: ReadonlyMap<string, GitRuntimeBlobSnapshotFile>;
@@ -273,6 +279,7 @@ export async function buildGitRuntimeBlobReleaseSnapshot(input: {
     repoRoot: input.repoRoot,
     sourceRevision,
     integrationRef,
+    parentManifest: input.parentManifest,
     manifest,
     stats,
     filesByPath,

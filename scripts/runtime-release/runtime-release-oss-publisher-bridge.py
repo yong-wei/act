@@ -39,7 +39,8 @@ SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 ROLE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 ECS_ROLE_NAME = "act-runtime-oss-release-operator-ecs"
 EXPECTED_ECS_ROLE_NAME = ECS_ROLE_NAME
-OSS_ENDPOINT = "oss-cn-hangzhou-internal.aliyuncs.com"
+ECS_OSS_ENDPOINT = "oss-cn-hangzhou-internal.aliyuncs.com"
+LOCAL_OSS_ENDPOINT = "https://oss-cn-hangzhou.aliyuncs.com"
 OSS_REGION = "cn-hangzhou"
 DEFAULT_OSSUTIL_PATH = "/opt/act-ops/ossutil-2.3.0/ossutil"
 DEFAULT_V1_OSSUTIL_PATH = "/usr/local/bin/ossutil"
@@ -57,6 +58,17 @@ ELAPSED_SUMMARY = re.compile(r"^[0-9]+(?:\.[0-9]+)?\(s\) elapsed$")
 _CURRENT_ROLE_NAME: Optional[str] = None
 _V2_WRITER_VALIDATED = False
 _IMDS_OPENER = build_opener(ProxyHandler({}))
+_CREDENTIAL_MODE = "ecs"
+_LOCAL_OSSUTIL_PATH: Optional[str] = None
+_LOCAL_OSSUTIL_SHA256: Optional[str] = None
+_LOCAL_IDENTITY_COMMAND_PATH: Optional[str] = None
+_LOCAL_IDENTITY_COMMAND_SHA256: Optional[str] = None
+_LOCAL_EXPECTED_ACCOUNT_ID: Optional[str] = None
+_LOCAL_EXPECTED_PRINCIPAL_ARN: Optional[str] = None
+_LOCAL_CREDENTIAL_PROFILE: Optional[str] = None
+_LOCAL_LOCK_DIR: Optional[str] = None
+_LOCAL_SPOOL_DIR: Optional[str] = None
+_LOCAL_PRINCIPAL_VALIDATED = False
 
 
 def fail(message: str) -> NoReturn:
@@ -65,6 +77,90 @@ def fail(message: str) -> NoReturn:
 
 def test_mode() -> bool:
     return os.environ.get("ACT_RUNTIME_RELEASE_TEST_MODE") == "1"
+
+
+def safe_absolute_path(value: str, label: str) -> str:
+    if not value.startswith("/") or any(ord(char) < 0x20 or ord(char) == 0x7F for char in value):
+        fail(f"{label} must be an absolute path without control characters")
+    return value
+
+
+def sha256_file(path: str, label: str) -> str:
+    try:
+        details = os.lstat(path)
+    except OSError as error:
+        fail(f"unable to stat {label}: {error}")
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode) or stat.S_IMODE(details.st_mode) & 0o022:
+        fail(f"{label} must be a non-symlink regular file without group/other write permissions")
+    digest = hashlib.sha256()
+    try:
+        with open(path, "rb") as binary:
+            for chunk in iter(lambda: binary.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError as error:
+        fail(f"unable to hash {label}: {error}")
+    return digest.hexdigest()
+
+
+def configure_local_publisher(arguments: argparse.Namespace) -> None:
+    global _CREDENTIAL_MODE, _LOCAL_OSSUTIL_PATH, _LOCAL_OSSUTIL_SHA256
+    global _LOCAL_IDENTITY_COMMAND_PATH, _LOCAL_IDENTITY_COMMAND_SHA256
+    global _LOCAL_EXPECTED_ACCOUNT_ID, _LOCAL_EXPECTED_PRINCIPAL_ARN, _LOCAL_CREDENTIAL_PROFILE
+    global _LOCAL_LOCK_DIR, _LOCAL_SPOOL_DIR
+    _CREDENTIAL_MODE = arguments.credential_mode
+    local_values = [
+        arguments.ossutil_path, arguments.ossutil_sha256, arguments.identity_command_path,
+        arguments.identity_command_sha256, arguments.operator_account_id,
+        arguments.operator_principal_arn, arguments.lock_dir, arguments.spool_dir,
+    ]
+    if _CREDENTIAL_MODE == "ecs":
+        if any(value is not None for value in local_values) or arguments.credential_profile is not None:
+            fail("local publisher options are invalid in ECS credential mode")
+        return
+    if any(value is None for value in local_values):
+        fail("local publisher requires pinned ossutil and identity binaries, expected principal, lock directory and spool directory")
+    _LOCAL_OSSUTIL_PATH = safe_absolute_path(arguments.ossutil_path, "local ossutil path")
+    _LOCAL_IDENTITY_COMMAND_PATH = safe_absolute_path(arguments.identity_command_path, "local identity command path")
+    _LOCAL_LOCK_DIR = safe_absolute_path(arguments.lock_dir, "local lock directory")
+    _LOCAL_SPOOL_DIR = safe_absolute_path(arguments.spool_dir, "local spool directory")
+    _LOCAL_OSSUTIL_SHA256 = arguments.ossutil_sha256
+    _LOCAL_IDENTITY_COMMAND_SHA256 = arguments.identity_command_sha256
+    if not SHA256_PATTERN.fullmatch(_LOCAL_OSSUTIL_SHA256) or not SHA256_PATTERN.fullmatch(_LOCAL_IDENTITY_COMMAND_SHA256):
+        fail("local publisher binary SHA-256 pins are invalid")
+    if sha256_file(_LOCAL_OSSUTIL_PATH, "local ossutil") != _LOCAL_OSSUTIL_SHA256:
+        fail("local ossutil SHA-256 does not match its configured pin")
+    if sha256_file(_LOCAL_IDENTITY_COMMAND_PATH, "local identity command") != _LOCAL_IDENTITY_COMMAND_SHA256:
+        fail("local identity command SHA-256 does not match its configured pin")
+    _LOCAL_EXPECTED_ACCOUNT_ID = arguments.operator_account_id
+    _LOCAL_EXPECTED_PRINCIPAL_ARN = arguments.operator_principal_arn
+    if not re.fullmatch(r"[0-9]{12,32}", _LOCAL_EXPECTED_ACCOUNT_ID) or not _LOCAL_EXPECTED_PRINCIPAL_ARN.startswith("acs:ram::"):
+        fail("local publisher expected account or principal is invalid")
+    if arguments.credential_profile is not None:
+        if not ROLE_NAME_PATTERN.fullmatch(arguments.credential_profile):
+            fail("local credential profile is invalid")
+        _LOCAL_CREDENTIAL_PROFILE = arguments.credential_profile
+
+
+def current_local_principal() -> None:
+    global _LOCAL_PRINCIPAL_VALIDATED
+    if _LOCAL_PRINCIPAL_VALIDATED:
+        return
+    if _LOCAL_IDENTITY_COMMAND_PATH is None or _LOCAL_EXPECTED_ACCOUNT_ID is None or _LOCAL_EXPECTED_PRINCIPAL_ARN is None:
+        fail("local publisher identity configuration is incomplete")
+    command = [_LOCAL_IDENTITY_COMMAND_PATH]
+    if _LOCAL_CREDENTIAL_PROFILE is not None:
+        command += ["--profile", _LOCAL_CREDENTIAL_PROFILE]
+    command += ["sts", "GetCallerIdentity", "--output", "json"]
+    process = subprocess.run(command, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if process.returncode != 0:
+        fail("local publisher identity preflight command failed")
+    try:
+        payload = json.loads(process.stdout.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail(f"local publisher identity preflight returned invalid JSON: {error}")
+    if not isinstance(payload, dict) or payload.get("AccountId") != _LOCAL_EXPECTED_ACCOUNT_ID or payload.get("Arn") != _LOCAL_EXPECTED_PRINCIPAL_ARN:
+        fail("local publisher identity does not match the configured operator principal")
+    _LOCAL_PRINCIPAL_VALIDATED = True
 
 
 def decode_value(value: str, label: str) -> str:
@@ -141,6 +237,12 @@ def destination(bucket: str, key: str) -> str:
 
 def ossutil_command(version: str = "v2") -> str:
     global _V2_WRITER_VALIDATED
+    if _CREDENTIAL_MODE == "local":
+        if _LOCAL_OSSUTIL_PATH is None or _LOCAL_OSSUTIL_SHA256 is None:
+            fail("local publisher ossutil configuration is incomplete")
+        if sha256_file(_LOCAL_OSSUTIL_PATH, "local ossutil") != _LOCAL_OSSUTIL_SHA256:
+            fail("local ossutil SHA-256 changed after preflight")
+        return _LOCAL_OSSUTIL_PATH
     override = os.environ.get("ACT_RUNTIME_RELEASE_OSSUTIL")
     if override is not None:
         if not test_mode():
@@ -201,11 +303,14 @@ def current_ecs_role_name() -> str:
 
 
 def ossutil_argv(version: str, arguments: List[str]) -> List[str]:
+    if _CREDENTIAL_MODE == "local":
+        current_local_principal()
+        return [ossutil_command(version)] + arguments + ["--endpoint", LOCAL_OSS_ENDPOINT, "--region", OSS_REGION]
     role = current_ecs_role_name()
     if version == "v1":
-        auth = ["--mode", "EcsRamRole", "--ecs-role-name", role, "--endpoint", OSS_ENDPOINT]
+        auth = ["--mode", "EcsRamRole", "--ecs-role-name", role, "--endpoint", ECS_OSS_ENDPOINT]
     else:
-        auth = ["--mode", "EcsRamRole", "--endpoint", OSS_ENDPOINT, "--region", OSS_REGION]
+        auth = ["--mode", "EcsRamRole", "--endpoint", ECS_OSS_ENDPOINT, "--region", OSS_REGION]
     return [ossutil_command(version)] + arguments + auth
 
 
@@ -256,6 +361,71 @@ def remote_digest(bucket: str, key: str) -> Dict[str, Any]:
     if return_code != 0:
         fail(f"ossutil v2 get-object failed for {key}: {stderr.strip()}")
     return {"sizeBytes": size, "sha256": digest.hexdigest()}
+
+
+def metadata_field(payload: Dict[str, Any], names: List[str], label: str) -> Any:
+    normalized_names = {re.sub(r"[^a-z0-9]", "", name.lower()) for name in names}
+    candidates: List[Any] = []
+    sources = [payload]
+    for metadata_name in ("Metadata", "metadata", "Headers", "headers"):
+        metadata_map = payload.get(metadata_name)
+        if isinstance(metadata_map, dict):
+            sources.append(metadata_map)
+    for source in sources:
+        for key, value in source.items():
+            if isinstance(key, str) and re.sub(r"[^a-z0-9]", "", key.lower()) in normalized_names:
+                candidates.append(value)
+    if not candidates:
+        return None
+    rendered = {json.dumps(value, ensure_ascii=False, sort_keys=True) for value in candidates}
+    if len(rendered) != 1:
+        fail(f"ossutil v2 head-object returned conflicting {label} metadata")
+    return candidates[0]
+
+
+def remote_blob_metadata(bucket: str, key: str) -> Optional[Dict[str, Any]]:
+    key = validate_key(key)
+    process = subprocess.run(
+        ossutil_argv("v2", ["api", "head-object", "--bucket", bucket, "--key", key, "--output-format", "json", "-q"]),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if process.returncode != 0:
+        detail = process.stderr.decode("utf-8", errors="replace")
+        if "NoSuchKey" in detail or "404" in detail:
+            return None
+        fail(f"ossutil v2 head-object failed for {key}: {detail.strip()}")
+    if process.stderr.strip():
+        fail(f"ossutil v2 head-object emitted unexpected stderr for {key}: {process.stderr.decode('utf-8', errors='replace').strip()}")
+    try:
+        payload = json.loads(process.stdout.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail(f"ossutil v2 head-object returned invalid JSON for {key}: {error}")
+    if not isinstance(payload, dict):
+        fail(f"ossutil v2 head-object returned an invalid response for {key}")
+    size = metadata_field(payload, ["ContentLength", "Content-Length"], "Content-Length")
+    schema = metadata_field(payload, ["x-oss-meta-schema", "schema"], "schema")
+    digest = metadata_field(payload, ["x-oss-meta-sha256", "sha256"], "SHA-256")
+    declared_size = metadata_field(payload, ["x-oss-meta-size", "size"], "declared size")
+    if not isinstance(schema, str) or schema != "act-runtime-blob.v1":
+        fail(f"ossutil v2 head-object is missing the runtime blob schema metadata for {key}")
+    if not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
+        fail(f"ossutil v2 head-object is missing the runtime blob SHA-256 metadata for {key}")
+    return {
+        "sizeBytes": parse_decimal(size, f"Content-Length for {key}"),
+        "sha256": digest,
+        "declaredSizeBytes": parse_decimal(declared_size, f"runtime blob declared size for {key}"),
+    }
+
+
+def assert_remote_blob_metadata(bucket: str, key: str, expected_size: int, expected_sha: str) -> Dict[str, Any]:
+    metadata = remote_blob_metadata(bucket, key)
+    if metadata is None:
+        fail(f"remote runtime blob is missing after publication: {key}")
+    if metadata != {"sizeBytes": expected_size, "sha256": expected_sha, "declaredSizeBytes": expected_size}:
+        fail(f"remote runtime blob metadata differs from the immutable manifest: {key}")
+    return metadata
 
 
 def read_manifest_wire(bucket: str, key: str) -> bytes:
@@ -387,7 +557,7 @@ def write_json(value: Any) -> None:
 
 
 def lock_path(prefix: str) -> str:
-    lock_dir = os.environ.get("ACT_RUNTIME_RELEASE_LOCK_DIR", DEFAULT_LOCK_DIR)
+    lock_dir = _LOCAL_LOCK_DIR if _CREDENTIAL_MODE == "local" else os.environ.get("ACT_RUNTIME_RELEASE_LOCK_DIR", DEFAULT_LOCK_DIR)
     if not lock_dir.startswith("/") or any(ord(char) < 0x20 or ord(char) == 0x7F for char in lock_dir):
         fail("runtime release lock directory must be an absolute path")
     os.makedirs(lock_dir, mode=0o700, exist_ok=True)
@@ -396,6 +566,10 @@ def lock_path(prefix: str) -> str:
 
 
 def spool_root() -> str:
+    if _CREDENTIAL_MODE == "local":
+        if _LOCAL_SPOOL_DIR is None:
+            fail("local publisher spool directory is not configured")
+        return _LOCAL_SPOOL_DIR
     override = os.environ.get("ACT_RUNTIME_RELEASE_SPOOL_DIR")
     if override is not None and not test_mode():
         fail("runtime release spool directory override is restricted to the explicit test mode")
@@ -414,8 +588,9 @@ def checked_directory(path: str, mode: int, label: str) -> None:
         fail(f"unable to stat {label}: {error}")
     if not stat.S_ISDIR(details.st_mode) or stat.S_IMODE(details.st_mode) != mode:
         fail(f"{label} must be a directory with mode {mode:04o}")
-    if not test_mode() and details.st_uid != 0:
-        fail(f"{label} must be owned by root")
+    expected_owner = os.geteuid() if _CREDENTIAL_MODE == "local" else 0
+    if not test_mode() and details.st_uid != expected_owner:
+        fail(f"{label} has an unexpected owner")
 
 
 def release_spool_directory(prefix: str) -> str:
@@ -454,7 +629,8 @@ def new_spool_file(directory: str, expected_size: int) -> Tuple[int, str]:
     fd, path = tempfile.mkstemp(prefix=".frame-", suffix=".part", dir=directory)
     os.chmod(path, 0o600)
     details = os.stat(path)
-    if stat.S_IMODE(details.st_mode) != 0o600 or (not test_mode() and details.st_uid != 0):
+    expected_owner = os.geteuid() if _CREDENTIAL_MODE == "local" else 0
+    if stat.S_IMODE(details.st_mode) != 0o600 or (not test_mode() and details.st_uid != expected_owner):
         remove_temp(path)
         fail("runtime release spool file has unsafe ownership or mode")
     return fd, path
@@ -717,6 +893,43 @@ def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str,
     return prefix, manifest, wire, wire_sha, receipt_wire, receipt_wire_sha, expected
 
 
+def validate_blob_parent_reference(header: Dict[str, Any]) -> Optional[Dict[str, str]]:
+    required_fields = {
+        "protocol", "releaseId", "prefix", "manifestSha256", "wireSha256", "manifestWireBase64",
+        "receiptWireSha256", "receiptWireBase64",
+    }
+    allowed_fields = required_fields | {"parentRelease"}
+    if set(header) not in (required_fields, allowed_fields):
+        fail("blob publish header has unsupported or missing fields")
+    parent = header.get("parentRelease")
+    if parent is None:
+        return None
+    if not isinstance(parent, dict) or set(parent) != {"releaseId", "manifestSha256"}:
+        fail("blob publish parent release is invalid")
+    release_id = parent.get("releaseId")
+    manifest_sha = parent.get("manifestSha256")
+    if (
+        not isinstance(release_id, str)
+        or not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", release_id)
+        or not isinstance(manifest_sha, str)
+        or not SHA256_PATTERN.fullmatch(manifest_sha)
+    ):
+        fail("blob publish parent release identity is invalid")
+    return {"releaseId": release_id, "manifestSha256": manifest_sha}
+
+
+def parent_blob_bindings(bucket: str, candidate_release_id: str, parent: Optional[Dict[str, str]]) -> Dict[str, Dict[str, Any]]:
+    if parent is None:
+        return {}
+    if parent["releaseId"] == candidate_release_id:
+        fail("blob publish parent release must differ from the candidate release")
+    parent_prefix = f"{BLOB_RELEASE_KEY_PREFIX}{parent['releaseId']}/"
+    manifest, _, _, _, _, files = read_validated_blob_release(bucket, parent_prefix)
+    if manifest["manifestSha256"] != parent["manifestSha256"]:
+        fail("blob publish parent release differs from the locally planned immutable identity")
+    return {entry["objectKey"]: entry for entry in expected_blob_receipt_files(files)}
+
+
 def find_exact_object(bucket: str, key: str) -> Optional[Dict[str, Any]]:
     objects = list_objects_v2(bucket, validate_key(key))
     if not objects:
@@ -871,6 +1084,31 @@ def put_spooled_file(bucket: str, key: str, path: str, expected_size: int, expec
     return remote
 
 
+def put_blob_spooled_file(bucket: str, key: str, path: str, expected_size: int, expected_sha: str) -> Dict[str, Any]:
+    key = validate_key(key)
+    arguments = [
+        "api", "put-object", "--bucket", bucket, "--key", key,
+        "--body", f"file://{path}", "--forbid-overwrite", "true",
+        "--metadata", "x-oss-meta-schema=act-runtime-blob.v1",
+        "--metadata", f"x-oss-meta-sha256={expected_sha}",
+        "--metadata", f"x-oss-meta-size={expected_size}",
+        "-q",
+    ]
+    process = subprocess.run(
+        ossutil_argv("v2", arguments),
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+    )
+    if process.returncode != 0:
+        try:
+            return assert_remote_blob_metadata(bucket, key, expected_size, expected_sha)
+        except RuntimeError:
+            detail = process.stderr.decode("utf-8", errors="replace").strip()
+            fail(f"ossutil v2 conditional blob put failed for {key}: {detail}")
+    return assert_remote_blob_metadata(bucket, key, expected_size, expected_sha)
+
+
 def put_payload(bucket: str, key: str, payload: bytes, expected_sha: str, directory: str) -> Dict[str, Any]:
     if len(payload) > MAX_FRAME_BYTES:
         fail("payload exceeds the maximum runtime frame size")
@@ -920,6 +1158,7 @@ def publish_blob_release(
     header: Dict[str, Any],
 ) -> None:
     prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files = validate_blob_publish_header(header)
+    parent_reference = validate_blob_parent_reference(header)
     if prefix != requested_prefix:
         fail("blob publish stream prefix does not match the SSH argument")
     manifest_key = f"{prefix}{BLOB_MANIFEST_NAME}"
@@ -943,9 +1182,6 @@ def publish_blob_release(
                 fail("existing blob completion manifest differs from the submitted immutable identity")
             if remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
                 fail("existing blob receipt differs from the submitted immutable identity")
-            for entry in expected_blobs:
-                if remote_digest(bucket, entry["objectKey"]) != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]}:
-                    fail(f"remote blob differs from manifest for {entry['objectKey']}")
             write_json({
                 "status": "complete",
                 "releaseId": manifest["releaseId"],
@@ -956,23 +1192,31 @@ def publish_blob_release(
                 "fileCount": manifest["fileCount"],
                 "totalBytes": manifest["totalBytes"],
                 "putCount": 0,
+                "inheritedBlobCount": len(expected_blobs),
+                "metadataCheckCount": 0,
             })
             return
         partial_expected = {receipt_key: len(receipt_wire)}
         assert_object_set(release_objects, partial_expected, allow_manifest=False)
         if receipt_key in existing_release and remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
             fail("partial blob receipt differs from the submitted immutable identity")
-        available_blobs = {
-            str(entry["key"]): entry
-            for entry in list_objects_v2(bucket, BLOB_KEY_PREFIX)
-        }
+        parent_blobs = parent_blob_bindings(bucket, manifest["releaseId"], parent_reference)
         missing: List[Dict[str, Any]] = []
+        inherited_blob_count = 0
+        metadata_check_count = 0
         for entry in expected_blobs:
-            remote = available_blobs.get(entry["objectKey"])
+            parent_entry = parent_blobs.get(entry["objectKey"])
+            if parent_entry is not None:
+                if parent_entry["sizeBytes"] != entry["sizeBytes"] or parent_entry["sha256"] != entry["sha256"]:
+                    fail(f"parent release blob differs from candidate manifest for {entry['objectKey']}")
+                inherited_blob_count += 1
+                continue
+            metadata_check_count += 1
+            remote = remote_blob_metadata(bucket, entry["objectKey"])
             if remote is None:
                 missing.append(entry)
                 continue
-            if remote["sizeBytes"] != entry["sizeBytes"] or remote_digest(bucket, entry["objectKey"]) != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]}:
+            if remote != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"], "declaredSizeBytes": entry["sizeBytes"]}:
                 fail(f"pre-existing blob differs from manifest for {entry['objectKey']}")
         write_json({"status": "stream", "missingKeys": [entry["objectKey"] for entry in missing]})
         put_count = 0
@@ -993,15 +1237,12 @@ def publish_blob_release(
                 fail(f"blob frame does not match the manifest for {entry['objectKey']}")
             temp_path = receive_frame(spool_directory, entry["sizeBytes"], entry["sha256"])
             try:
-                put_spooled_file(bucket, entry["objectKey"], temp_path, entry["sizeBytes"], entry["sha256"])
+                put_blob_spooled_file(bucket, entry["objectKey"], temp_path, entry["sizeBytes"], entry["sha256"])
             finally:
                 remove_temp(temp_path)
             put_count += 1
         if sys.stdin.buffer.readline().strip() != b"DONE":
             fail("publisher stream did not terminate its blob frames with DONE")
-        for entry in expected_blobs:
-            if remote_digest(bucket, entry["objectKey"]) != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"]}:
-                fail(f"remote blob failed final verification for {entry['objectKey']}")
         if receipt_key not in existing_release:
             put_payload(bucket, receipt_key, receipt_wire, receipt_wire_sha, spool_directory)
             put_count += 1
@@ -1024,6 +1265,8 @@ def publish_blob_release(
             "fileCount": manifest["fileCount"],
             "totalBytes": manifest["totalBytes"],
             "putCount": put_count,
+            "inheritedBlobCount": inherited_blob_count,
+            "metadataCheckCount": metadata_check_count,
         })
     finally:
         if spool_directory is not None:
@@ -1413,7 +1656,18 @@ def main() -> None:
     parser.add_argument("--operation", choices=("list", "get", "publish", "import-v1", "verify"), required=True)
     parser.add_argument("--prefix-b64")
     parser.add_argument("--key-b64")
+    parser.add_argument("--credential-mode", choices=("ecs", "local"), default="ecs")
+    parser.add_argument("--ossutil-path")
+    parser.add_argument("--ossutil-sha256")
+    parser.add_argument("--identity-command-path")
+    parser.add_argument("--identity-command-sha256")
+    parser.add_argument("--operator-account-id")
+    parser.add_argument("--operator-principal-arn")
+    parser.add_argument("--credential-profile")
+    parser.add_argument("--lock-dir")
+    parser.add_argument("--spool-dir")
     arguments = parser.parse_args()
+    configure_local_publisher(arguments)
     bucket = validate_bucket(arguments.bucket)
     if arguments.operation == "list":
         if not arguments.prefix_b64:

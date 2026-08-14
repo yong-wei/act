@@ -9,8 +9,8 @@
 
 - [x] 2.1 Extend v2 semantic manifest entries with Git blob source identity, validate Git/object format identity and build parent-manifest OID-to-blob lookup.
 - [x] 2.2 Implement a delta planner that reads only the target Git tree metadata and rejects non-Git or generated runtime inputs lacking a Git-tracked stable source identity.
-- [ ] 2.3 Implement changed/unknown-only body hashing, SHA/size de-duplication, no-overwrite blob upload, metadata HEAD verification, terminal receipt/manifest publication and exact resumability.
-- [ ] 2.4 Implement the local `act-runtime-oss-release-operator` publisher adapter with principal/Bucket/Region/prefix preflight, local single-publisher lock and credential-redacting diagnostics; remove ECS writer authority from the daily path.
+- [x] 2.3 Implement changed/unknown-only body hashing, SHA/size de-duplication, no-overwrite blob upload, metadata HEAD verification, terminal receipt/manifest publication and exact resumability.
+- [x] 2.4 Implement the local `act-runtime-oss-release-operator` publisher adapter with principal/Bucket/Region/prefix preflight, local single-publisher lock and credential-redacting diagnostics; remove ECS writer authority from the daily path.
 - [ ] 2.5 Add no-op, rename, repeated OID, three-file delta, identical-different-OID, clean-clone-without-cache, missing identity, existing-metadata-mismatch, interrupted upload and manifest-last tests with exact body/HEAD/upload counters.
 
 ## 3. Fast materialization and runtime-only deployment

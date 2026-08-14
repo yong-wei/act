@@ -14,7 +14,7 @@ import { inspectPublishedRuntimeBlobRelease, inspectPublishedRuntimeRelease } fr
 import {
   createSshRuntimeReleaseObjectStore,
   importV1RuntimeBlobReleaseViaSsh,
-  publishRuntimeBlobReleaseViaSsh,
+  publishRuntimeBlobReleaseLocally,
   publishRuntimeReleaseViaSsh,
   verifyPublishedRuntimeBlobReleaseViaSsh,
   verifyPublishedRuntimeReleaseViaSsh,
@@ -40,12 +40,12 @@ function usage() {
     '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>]',
     '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] --output <manifest.json>',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--format v1|v2] [--output <closure.json>]',
-    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
+    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--credential-profile <profile>] [--output <receipt.json>]',
     '  act-runtime-release import-v1 --source-release-id <immutable-v1-release-id> --source-manifest-sha256 <sha256> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <manifest.json>]',
     '',
-    'Streaming publish delegates credentials to the restricted ECS bridge. No AccessKey or Secret arguments are accepted.',
+    'Daily v2 publishing uses a local operator credential provider; verification remains on the ECS read bridge. No AccessKey or Secret arguments are accepted.',
   ].join('\n');
 }
 
@@ -68,6 +68,23 @@ function sshBridgeOptions() {
     knownHostsFile: required('--known-hosts-file'),
     identityFile: argument('--identity-file'),
     port: argument('--port') ? Number(required('--port')) : undefined,
+  };
+}
+
+function localPublisherOptions() {
+  return {
+    bucket: required('--bucket'),
+    bridgePath: required('--local-bridge-path'),
+    pythonBinary: required('--python-binary'),
+    ossutilPath: required('--ossutil-path'),
+    ossutilSha256: required('--ossutil-sha256'),
+    identityCommandPath: required('--identity-command-path'),
+    identityCommandSha256: required('--identity-command-sha256'),
+    operatorAccountId: required('--operator-account-id'),
+    operatorPrincipalArn: required('--operator-principal-arn'),
+    lockDir: required('--lock-dir'),
+    spoolDir: required('--spool-dir'),
+    credentialProfile: argument('--credential-profile'),
   };
 }
 
@@ -203,7 +220,7 @@ async function main() {
         const snapshot = await buildGitManifest(sourceRevision);
         const expectedReleaseId = deriveRuntimeReleaseId(snapshot.manifest.sourceRevision, snapshot.manifest.treeSha256);
         if (releaseId !== expectedReleaseId) throw new Error(`Release id does not bind this runtime source identity. Run plan and use: ${expectedReleaseId}`);
-        return publishRuntimeBlobReleaseViaSsh({ snapshot, manifest: snapshot.manifest, ssh: sshBridgeOptions() });
+        return publishRuntimeBlobReleaseLocally({ snapshot, manifest: snapshot.manifest, local: localPublisherOptions() });
       })();
     await writeOutput(argument('--output'), receipt);
     return;

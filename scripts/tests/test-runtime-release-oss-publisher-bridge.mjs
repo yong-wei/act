@@ -12,9 +12,11 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const bridge = path.join(root, 'scripts/runtime-release/runtime-release-oss-publisher-bridge.py');
 const temporary = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-release-bridge-contract-'));
 const ossRoot = path.join(temporary, 'oss');
+const ossMetadata = path.join(temporary, 'oss-metadata.json');
 const spoolRoot = path.join(temporary, 'spool');
 const lockRoot = path.join(temporary, 'locks');
 const fakeOssutil = path.join(temporary, 'fake-ossutil.mjs');
+const fakeIdentity = path.join(temporary, 'fake-identity.mjs');
 await mkdir(ossRoot, { recursive: true });
 await mkdir(spoolRoot, { recursive: true });
 await mkdir(lockRoot, { recursive: true });
@@ -32,6 +34,7 @@ await writeFile(fakeOssutil, `#!/usr/bin/env node
 import { copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 const root = process.env.FAKE_OSS_ROOT;
+const metadataFile = process.env.FAKE_OSS_METADATA;
 const bucket = 'test-bucket';
 const objectPath = (key) => path.join(root, key.replace('runtime/releases/', 'runtime/releases/'));
 const args = process.argv.slice(2);
@@ -39,8 +42,13 @@ const has = (flag, value) => args.includes(flag) && (!value || args[args.indexOf
 const mode = process.env.FAKE_V2_MODE || '';
 const v1Mode = process.env.FAKE_V1_MODE || '';
 const operation = args[0];
+const readMetadata = async () => {
+  try { return JSON.parse(await readFile(metadataFile, 'utf8')); } catch { return {}; }
+};
+const writeMetadata = async (value) => writeFile(metadataFile, JSON.stringify(value));
 if (operation === 'api') {
-  if (!has('--mode', 'EcsRamRole') || args.includes('--role-arn') || !has('--endpoint', 'oss-cn-hangzhou-internal.aliyuncs.com') || !has('--region', 'cn-hangzhou')) process.exit(10);
+  const endpoint = process.env.FAKE_LOCAL === '1' ? 'https://oss-cn-hangzhou.aliyuncs.com' : 'oss-cn-hangzhou-internal.aliyuncs.com';
+  if ((process.env.FAKE_LOCAL === '1' ? args.includes('--mode') : !has('--mode', 'EcsRamRole')) || args.includes('--role-arn') || !has('--endpoint', endpoint) || !has('--region', 'cn-hangzhou')) process.exit(10);
   const api = args[1];
   if (api === 'list-objects-v2') {
     if (mode === 'nonzero') process.exit(12);
@@ -82,7 +90,19 @@ if (operation === 'api') {
     process.stdout.write(JSON.stringify(payload));
   } else if (api === 'get-object') {
     const key = args[args.indexOf('--key') + 1];
+    if (process.env.FAKE_GET_LOG) await writeFile(process.env.FAKE_GET_LOG, key + '\\n', { flag: 'a' });
     try { process.stdout.write(await readFile(objectPath(key))); } catch { process.exit(4); }
+  } else if (api === 'head-object') {
+    const key = args[args.indexOf('--key') + 1];
+    if (process.env.FAKE_HEAD_LOG) await writeFile(process.env.FAKE_HEAD_LOG, key + '\\n', { flag: 'a' });
+    try {
+      const details = await stat(objectPath(key));
+      const metadata = await readMetadata();
+      process.stdout.write(JSON.stringify({ ContentLength: String(details.size), Metadata: metadata[key] || {} }));
+    } catch {
+      process.stderr.write('NoSuchKey');
+      process.exit(4);
+    }
   } else if (api === 'put-object') {
     const key = args[args.indexOf('--key') + 1];
     const body = args[args.indexOf('--body') + 1];
@@ -102,6 +122,16 @@ if (operation === 'api') {
     }
     if (process.env.FAKE_LOG) await writeFile(process.env.FAKE_LOG, key + '\\n', { flag: 'a' });
     await copyFile(body.replace('file://', ''), target);
+    const metadata = await readMetadata();
+    for (let index = 0; index < args.length; index += 1) {
+      if (args[index] !== '--metadata') continue;
+      const pair = args[index + 1];
+      const delimiter = typeof pair === 'string' ? pair.indexOf('=') : -1;
+      if (delimiter <= 0) process.exit(13);
+      metadata[key] = metadata[key] || {};
+      metadata[key][pair.slice(0, delimiter)] = pair.slice(delimiter + 1);
+    }
+    await writeMetadata(metadata);
   } else process.exit(2);
 } else if (operation === 'ls') {
   if (args[2] !== '-s') process.exit(11);
@@ -130,6 +160,10 @@ if (operation === 'api') {
 } else process.exit(2);
 `);
 await chmod(fakeOssutil, 0o755);
+await writeFile(fakeIdentity, `#!/usr/bin/env node
+process.stdout.write(JSON.stringify({ AccountId: '1444654551628953', Arn: 'acs:ram::1444654551628953:role/act-runtime-oss-release-operator' }));
+`);
+await chmod(fakeIdentity, 0o755);
 
 const stable = (value) => value === null || typeof value !== 'object'
   ? JSON.stringify(value)
@@ -290,7 +324,7 @@ const buildBlobStateFromV1 = (source) => {
   const receiptWire = Buffer.from(`${stable(receipt)}\n`);
   return { files, manifest, wire, receiptWire, prefix, manifestKey, receiptKey: `${prefix}receipt.json` };
 };
-const blobHeaderFor = (data) => JSON.stringify({
+const blobHeaderFor = (data, parent) => JSON.stringify({
   protocol: 'act-runtime-blob-release-stream.v2',
   releaseId: data.manifest.releaseId,
   prefix: data.prefix,
@@ -299,6 +333,7 @@ const blobHeaderFor = (data) => JSON.stringify({
   manifestWireBase64: data.wire.toString('base64url'),
   receiptWireSha256: sha(data.receiptWire),
   receiptWireBase64: data.receiptWire.toString('base64url'),
+  ...(parent ? { parentRelease: { releaseId: parent.manifest.releaseId, manifestSha256: parent.manifest.manifestSha256 } } : {}),
 });
 const blobImportHeaderFor = (source, target) => JSON.stringify({
   protocol: 'act-runtime-blob-release-import.v1',
@@ -327,6 +362,7 @@ async function publish({ data = state, crashAfterFrame = false, frameBytes = byt
       ACT_RUNTIME_RELEASE_LOCK_DIR: lockRoot,
       ACT_RUNTIME_RELEASE_SPOOL_DIR: spoolRoot,
       FAKE_OSS_ROOT: ossRoot,
+      FAKE_OSS_METADATA: ossMetadata,
       FAKE_PAGE_SIZE: '1',
       ...env,
     },
@@ -374,8 +410,19 @@ async function publish({ data = state, crashAfterFrame = false, frameBytes = byt
   return JSON.parse(final.value);
 }
 
-async function publishBlob({ data = buildBlobState(), crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {} } = {}) {
-  const child = spawn('python3', [bridge, '--bucket', 'test-bucket', '--operation', 'publish', '--prefix-b64', Buffer.from(data.prefix).toString('base64url')], {
+async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {}, local = false } = {}) {
+  const localArguments = local ? [
+    '--credential-mode', 'local',
+    '--ossutil-path', fakeOssutil,
+    '--ossutil-sha256', sha(await readFile(fakeOssutil)),
+    '--identity-command-path', fakeIdentity,
+    '--identity-command-sha256', sha(await readFile(fakeIdentity)),
+    '--operator-account-id', '1444654551628953',
+    '--operator-principal-arn', 'acs:ram::1444654551628953:role/act-runtime-oss-release-operator',
+    '--lock-dir', lockRoot,
+    '--spool-dir', spoolRoot,
+  ] : [];
+  const child = spawn('python3', [bridge, '--bucket', 'test-bucket', '--operation', 'publish', '--prefix-b64', Buffer.from(data.prefix).toString('base64url'), ...localArguments], {
     env: {
       ...process.env,
       ACT_RUNTIME_RELEASE_TEST_MODE: '1',
@@ -384,7 +431,9 @@ async function publishBlob({ data = buildBlobState(), crashAfterFrame = false, c
       ACT_RUNTIME_RELEASE_LOCK_DIR: lockRoot,
       ACT_RUNTIME_RELEASE_SPOOL_DIR: spoolRoot,
       FAKE_OSS_ROOT: ossRoot,
+      FAKE_OSS_METADATA: ossMetadata,
       FAKE_PAGE_SIZE: '1',
+      ...(local ? { FAKE_LOCAL: '1' } : {}),
       ...env,
     },
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -393,7 +442,7 @@ async function publishBlob({ data = buildBlobState(), crashAfterFrame = false, c
   child.stderr.on('data', (chunk) => stderr.push(chunk));
   const reader = createInterface({ input: child.stdout });
   const lines = reader[Symbol.asyncIterator]();
-  child.stdin.write(`${blobHeaderFor(data)}\n`);
+  child.stdin.write(`${blobHeaderFor(data, parent)}\n`);
   const first = await lines.next();
   if (first.done) {
     const result = await close(child);
@@ -443,6 +492,7 @@ async function importBlobFromV1(source, target) {
       ACT_RUNTIME_RELEASE_LOCK_DIR: lockRoot,
       ACT_RUNTIME_RELEASE_SPOOL_DIR: spoolRoot,
       FAKE_OSS_ROOT: ossRoot,
+      FAKE_OSS_METADATA: ossMetadata,
       FAKE_PAGE_SIZE: '1',
     },
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -467,6 +517,7 @@ async function verify(data = state, { expectFailure = false } = {}) {
       ACT_RUNTIME_RELEASE_LOCK_DIR: lockRoot,
       ACT_RUNTIME_RELEASE_SPOOL_DIR: spoolRoot,
       FAKE_OSS_ROOT: ossRoot,
+      FAKE_OSS_METADATA: ossMetadata,
       FAKE_PAGE_SIZE: '1',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -544,16 +595,32 @@ try {
   assert.equal(puts.at(-1), state.manifestKey, 'completion manifest must be the final put');
 
   const blobState = buildBlobState();
-  const blobNextRevision = buildBlobState('e'.repeat(40));
+  const blobNextRevision = buildBlobState('e'.repeat(40), [bytes, Buffer.from('changed blob bytes')]);
   const blobLog = path.join(temporary, 'blob-put.log');
   const blobFirst = await publishBlob({ data: blobState, env: { FAKE_LOG: blobLog } });
   assert.equal(blobFirst.putCount, 3, 'the first blob release writes one shared blob, receipt, then manifest');
   const blobPuts = (await readFile(blobLog, 'utf8')).trim().split('\n');
   assert.deepEqual(blobPuts.slice(-2), [blobState.receiptKey, blobState.manifestKey], 'receipt precedes the terminal immutable manifest');
-  const blobSecond = await publishBlob({ data: blobNextRevision, env: { FAKE_LOG: blobLog } });
-  assert.equal(blobSecond.putCount, 2, 'a second logical release must reuse an already verified cross-release blob');
+  const blobGetLog = path.join(temporary, 'blob-get.log');
+  const blobHeadLog = path.join(temporary, 'blob-head.log');
+  const blobSecond = await publishBlob({
+    data: blobNextRevision,
+    parent: blobState,
+    env: { FAKE_LOG: blobLog, FAKE_GET_LOG: blobGetLog, FAKE_HEAD_LOG: blobHeadLog },
+  });
+  assert.equal(blobSecond.putCount, 3, 'a delta release writes only its changed blob, receipt, then manifest');
+  assert.equal(blobSecond.inheritedBlobCount, 1, 'the unchanged parent blob must be inherited without a remote metadata request');
+  assert.equal(blobSecond.metadataCheckCount, 1, 'only the changed blob receives a metadata lookup');
+  const blobGets = (await readFile(blobGetLog, 'utf8')).trim().split('\n').filter(Boolean);
+  assert.equal(blobGets.some((key) => key.startsWith('runtime/blobs/sha256/')), false, 'daily delta publication must not download inherited or changed blob bodies from OSS');
+  const blobHeads = (await readFile(blobHeadLog, 'utf8')).trim().split('\n').filter(Boolean);
+  assert.deepEqual(blobHeads, [blobNextRevision.files[1].objectKey, blobNextRevision.files[1].objectKey], 'only the changed blob is metadata-checked before and after its conditional upload');
   const blobReplay = await publishBlob({ data: blobState });
   assert.equal(blobReplay.putCount, 0, 'a completed blob release retry is verification-only');
+
+  const localBlobState = buildBlobState('8'.repeat(40));
+  const localBlobReceipt = await publishBlob({ data: localBlobState, local: true });
+  assert.equal(localBlobReceipt.status, 'complete', 'the local operator publisher must complete the same immutable manifest-last protocol without ECS IMDS');
 
   const multipleBlobState = buildBlobState('9'.repeat(40), [Buffer.from('unique blob a'), Buffer.from('unique blob b')]);
   const blobListLog = path.join(temporary, 'blob-list.log');
@@ -561,7 +628,7 @@ try {
   assert.equal(multipleBlobReceipt.putCount, 4, 'two distinct blobs, receipt, and manifest must be written');
   const blobListRequests = (await readFile(blobListLog, 'utf8')).trim().split('\n')
     .filter((prefix) => prefix === 'runtime/blobs/sha256/');
-  assert.equal(blobListRequests.length, 1, 'a publish must inventory the shared blob prefix once rather than issue one remote list per blob');
+  assert.equal(blobListRequests.length, 0, 'a publish must use exact object metadata lookups instead of inventorying the shared blob prefix');
 
   const interruptedBlob = buildBlobState('f'.repeat(40), Buffer.from('interrupted blob bytes'));
   const interruptedSpool = spoolFor(interruptedBlob.prefix);

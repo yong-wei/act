@@ -9,9 +9,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   buildRuntimeReleaseSshArgv,
+  buildRuntimeReleaseLocalPublisherArgv,
   createSshRuntimeReleaseObjectStore,
   importV1RuntimeBlobReleaseViaSsh,
   publishRuntimeBlobReleaseViaSsh,
+  publishRuntimeBlobReleaseLocally,
   publishRuntimeReleaseViaSsh,
   verifyPublishedRuntimeBlobReleaseViaSsh,
   verifyPublishedRuntimeReleaseViaSsh,
@@ -35,6 +37,20 @@ const config = {
   port: 22,
 };
 
+const localConfig = {
+  bucket: 'act-course-assets',
+  bridgePath: '/opt/act/bin/runtime-release-oss-publisher-bridge.py',
+  pythonBinary: '/usr/bin/python3',
+  ossutilPath: '/opt/act/bin/ossutil',
+  ossutilSha256: 'a'.repeat(64),
+  identityCommandPath: '/opt/act/bin/aliyun',
+  identityCommandSha256: 'b'.repeat(64),
+  operatorAccountId: '1444654551628953',
+  operatorPrincipalArn: 'acs:ram::1444654551628953:role/act-runtime-oss-release-operator',
+  lockDir: '/Users/test/.local/state/act/runtime-release-locks',
+  spoolDir: '/Users/test/.local/state/act/runtime-release-spool',
+};
+
 const roots: string[] = [];
 
 async function fixture() {
@@ -53,7 +69,10 @@ async function contentAddressedManifest(root: string) {
   });
 }
 
-function streamingBridgeSpawnFactory(calls: Array<{ command: string; args: readonly string[] }>) {
+function streamingBridgeSpawnFactory(
+  calls: Array<{ command: string; args: readonly string[] }>,
+  expectedParent?: { releaseId: string; manifestSha256: string },
+) {
   const script = `
 let buffer = Buffer.alloc(0);
 let state = 'header';
@@ -72,6 +91,7 @@ function consume() {
       const header = JSON.parse(buffer.subarray(0, newline).toString());
       buffer = buffer.subarray(newline + 1);
       if (header.prefix !== expectedPrefix) process.exit(19);
+      if (${JSON.stringify(expectedParent ?? null)} && JSON.stringify(header.parentRelease) !== JSON.stringify(${JSON.stringify(expectedParent ?? null)})) process.exit(20);
       manifest = JSON.parse(Buffer.from(header.manifestWireBase64, 'base64url').toString());
       wireSha256 = header.wireSha256;
       receiptWireSha256 = header.receiptWireSha256;
@@ -197,6 +217,15 @@ describe('source-authoritative SSH runtime release transport', () => {
     expect(() => buildRuntimeReleaseSshArgv({ ...config, remoteBridgePath: '/usr/local/../bridge.py' }, 'list', {
       prefix: 'runtime/releases/runtime-test/',
     })).toThrow(/absolute fixed executable path/);
+  });
+
+  it('publishes v2 blobs locally through a pinned operator bridge without static credentials or SSH', () => {
+    const args = buildRuntimeReleaseLocalPublisherArgv(localConfig, 'runtime/blob-releases/runtime-test/');
+    expect(args).toContain('--credential-mode');
+    expect(args).toContain('local');
+    expect(args).toContain('--operator-principal-arn');
+    expect(args).toContain(localConfig.operatorPrincipalArn);
+    expect(args.join(' ')).not.toMatch(/access[-_]?key|secret|ssh/i);
   });
 
   it('streams bytes through the child and verifies local and remote size/hash receipts', async () => {
@@ -341,6 +370,67 @@ describe('source-authoritative SSH runtime release transport', () => {
       fileCount: manifest.fileCount,
     });
     expect(new Set(manifest.files.map((file) => file.objectKey))).toHaveLength(2);
+    expect(calls).toHaveLength(1);
+  });
+
+  it('uses the same manifest-last stream protocol for a local operator publisher', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-release-local-stream-'));
+    roots.push(root);
+    await mkdir(path.join(root, 'course-content', 'runtime', 'lessons'), { recursive: true });
+    await writeFile(path.join(root, 'course-content', 'runtime', 'lessons', 'lesson.json'), '{"id":"local"}\n');
+    await execFile('git', ['init', '-b', 'integration'], { cwd: root });
+    await execFile('git', ['config', 'user.email', 'test@example.invalid'], { cwd: root });
+    await execFile('git', ['config', 'user.name', 'Test'], { cwd: root });
+    await execFile('git', ['add', '.'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'fixture'], { cwd: root });
+    const commit = (await execFile('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const snapshot = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision: commit, integrationRef: 'integration' });
+    const calls: Array<{ command: string; args: readonly string[] }> = [];
+    await expect(publishRuntimeBlobReleaseLocally({
+      snapshot,
+      manifest: snapshot.manifest,
+      local: localConfig,
+      dependencies: { spawn: streamingBridgeSpawnFactory(calls) },
+    })).resolves.toMatchObject({ releaseId: snapshot.manifest.releaseId });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.command).toBe('/usr/bin/python3');
+    expect(calls[0]?.args).toContain('--credential-mode');
+    expect(calls[0]?.args).toContain('local');
+  });
+
+  it('binds a delta publication to the immutable parent identity without sending a local proof cache', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-release-parent-stream-'));
+    roots.push(root);
+    const lesson = path.join(root, 'course-content', 'runtime', 'lessons', 'lesson.json');
+    await mkdir(path.dirname(lesson), { recursive: true });
+    await writeFile(lesson, '{"id":"parent"}\n');
+    await execFile('git', ['init', '-b', 'integration'], { cwd: root });
+    await execFile('git', ['config', 'user.email', 'test@example.invalid'], { cwd: root });
+    await execFile('git', ['config', 'user.name', 'Test'], { cwd: root });
+    await execFile('git', ['add', '.'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'parent'], { cwd: root });
+    const parentRevision = (await execFile('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const parent = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision: parentRevision, integrationRef: 'integration' });
+    await writeFile(lesson, '{"id":"delta"}\n');
+    await execFile('git', ['add', '.'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'delta'], { cwd: root });
+    const targetRevision = (await execFile('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const target = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: targetRevision,
+      integrationRef: 'integration',
+      parentManifest: parent.manifest,
+    });
+    const calls: Array<{ command: string; args: readonly string[] }> = [];
+    await expect(publishRuntimeBlobReleaseLocally({
+      snapshot: target,
+      manifest: target.manifest,
+      local: localConfig,
+      dependencies: { spawn: streamingBridgeSpawnFactory(calls, {
+        releaseId: parent.manifest.releaseId,
+        manifestSha256: parent.manifest.manifestSha256,
+      }) },
+    })).resolves.toMatchObject({ releaseId: target.manifest.releaseId });
     expect(calls).toHaveLength(1);
   });
 });
