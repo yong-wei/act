@@ -1,10 +1,10 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-08-14T02:52:51.863Z",
+  "capturedAt": "2026-08-14T03:07:55.377Z",
   "captureRevision": {
-    "commitSha": "f52393a3e1f8acc12159d207ef18e87b8d005932",
-    "treeSha": "2057471c47d02119c1a8ea362f629aa62a626ed2"
+    "commitSha": "bc78ac16f88754324cc6e7e469319035905461d3",
+    "treeSha": "17506712f8f5d44dbc3e4c7504ee9276898a15da"
   },
   "baseUrl": "http://localhost:3002",
   "selectedNodeConfigured": true,
@@ -38,7 +38,7 @@
   "currentSourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
     "src/features/knowledge/knowledge-graph-workspace.tsx": "b31ee8d30629484c5ea4a7a4b0dbf3641bfc36b36a741d5f465743af7f2f6087",
-    "src/features/knowledge/active-authority-graph.tsx": "71a60126ed003da273b4db666ec7a3aa45aed5e7a17f0830f773b7ccdb2312c3",
+    "src/features/knowledge/active-authority-graph.tsx": "2b6ff821b6ba4072855daf6bc02c39a642c04e5d8556d13a5438ebceaddac37a",
     "src/features/knowledge/active-authority-shard-store.ts": "a455e9d0b20b90b189f047f6cb61f308e9920c23d942c3f3fc2a58a965f0ab08",
     "src/features/knowledge/active-authority-presentation.ts": "581985de8c58380eacc1469994514469017dae1777aff1e3f4d1c08f4d3f9f1d",
     "src/features/knowledge/active-authority-graph-contracts.ts": "220c1978c996c1caecac3c22d83f01c32ebaae7bafec63998146e35ebcffd186",
@@ -1383,7 +1383,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "0c3f8f2f52a8a5f19b1346e82080ac7a5bf0e86ddb0066443c2c005ae090fa1b",
+      "screenshotSha256": "fe3b4afd1b7671ea12fa4de00de14a10b71b3d8cc3c747b72dcb6fc4e158a8d9",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4132,7 +4132,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "d62c8fba13ed5976c58442e1a0394cf231a25a1e3b4eaeff82ad8d9ab17b0245",
+      "screenshotSha256": "fbf0caffd6ddaffa4370c09dfcfd914f9ed1bedf20f9cc6a7b434300fd59d114",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5111,7 +5111,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "b2f43033886fc5e3bc3dd985d5d649652c1ef1089bc7ff7a957d89ba4155435a",
+      "screenshotSha256": "32aa7994c8022bab8973229c627b9286c290e00ce50364e0fa7b8184d90f2bde",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5272,7 +5272,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "3e436e12ecbe4b8fc6d482f5a99927db642f395d92d5689da3ce94ff71f383e2",
+      "screenshotSha256": "38726e16023449ce9361a524670221dbf460c2484dd1f9d1b510869ce0d3edac",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5440,7 +5440,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "d1c73349b9d7087d2d23c25eacb6bf4dc51a36bc4381269dcc23f70e86c5cded",
+      "screenshotSha256": "1cd75763a62a1ea00c6d16e33ec561ebbc9c4d2ed0e522bf35a5eea43de7d2aa",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -7013,7 +7013,7 @@
       },
       "teachingRelationsUnavailable": true,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-mobile.png",
-      "screenshotSha256": "cfb7150c579fd7634546f4567811d17e45969380375bad4e25b0dfbd6412658a"
+      "screenshotSha256": "5fdd1d87899363c289edf9fede90020b1a4e20356a65f336466631e80f4d0f59"
     }
   ],
   "authenticatedRoleEvidence": [
@@ -7114,7 +7114,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-default.png",
-        "screenshotSha256": "b41d55c7febb514d0b3bd38c328af7fa1a1a137f6aaea50d5262112b08d48d0c"
+        "screenshotSha256": "1087f5672b0cf8a5d5e493c20718725fc5b026904324d770aa6362084cc0628e"
       },
       "mobile": {
         "mode": "active",
@@ -7237,7 +7237,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-legacy.png",
-        "screenshotSha256": "7e064b4715956e4cab2c076a8ad4326e28a0a959ae9cccef7d7483ee42c1ce9c"
+        "screenshotSha256": "cd9a8897aff2e947eb4bf637b9c9afa403f2e17e5d4b787807b58043c7257204"
       },
       "candidate": null
     },
@@ -7461,7 +7461,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-legacy.png",
-        "screenshotSha256": "17f093c9d580d1b8f679abfa0fc034e572b92b1018b4ca5ed1182dc81de5b698"
+        "screenshotSha256": "725374b9e2e75169a9e5ba3bbbd6917b9b60ec3ed0e6b528f3b2a9c43563ccad"
       },
       "candidate": null
     },
@@ -7685,7 +7685,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-legacy.png",
-        "screenshotSha256": "8501b0b03d3bf6d205b864e9008320ef043cf88caec9c3dc628bfb546942ee24"
+        "screenshotSha256": "e9bb558f4ad6b1391a93534afaa1b1962c0bdfeca188189719a57c8061ac3449"
       },
       "candidate": {
         "mode": "candidate",
