@@ -36,6 +36,7 @@ BLOB_RECEIPT_NAME = "receipt.json"
 BLOB_RECEIPT_SCHEMA_VERSION = "act-runtime-release-receipt.v2"
 BUCKET_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$")
 SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
+ETAG_PATTERN = re.compile(r'^"?[0-9a-fA-F]{32}(?:-[0-9]+)?"?$')
 EXTERNAL_INPUT_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$")
 SOURCE_OBJECT_ID_PATTERN = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 ROLE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -399,9 +400,15 @@ def parse_blob_manifest_source(source: Any, label: str, allow_legacy: bool = Tru
     fail(f"{label} is invalid")
 
 
-def remote_digest(bucket: str, key: str) -> Dict[str, Any]:
+def remote_digest(bucket: str, key: str, if_match: Optional[str] = None) -> Dict[str, Any]:
+    arguments = ["api", "get-object", "--bucket", bucket, "--key", validate_key(key)]
+    if if_match is not None:
+        if not ETAG_PATTERN.fullmatch(if_match):
+            fail(f"ETag for {key} is invalid")
+        arguments += ["--if-match", if_match]
+    arguments += ["-q"]
     process = subprocess.Popen(
-        ossutil_argv("v2", ["api", "get-object", "--bucket", bucket, "--key", validate_key(key), "-q"]),
+        ossutil_argv("v2", arguments),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -418,11 +425,31 @@ def remote_digest(bucket: str, key: str) -> Dict[str, Any]:
     return {"sizeBytes": size, "sha256": digest.hexdigest()}
 
 
+def metadata_field_present(payload: Dict[str, Any], names: List[str]) -> bool:
+    normalized_names = {re.sub(r"[^a-z0-9]", "", name.lower()) for name in names}
+    sources = [payload]
+    for metadata_name in ("Header", "Metadata", "metadata", "Headers", "headers"):
+        metadata_map = payload.get(metadata_name)
+        if isinstance(metadata_map, dict):
+            sources.append(metadata_map)
+    return any(
+        isinstance(key, str) and re.sub(r"[^a-z0-9]", "", key.lower()) in normalized_names
+        for source in sources
+        for key in source
+    )
+
+
+def validate_etag(value: Any, key: str) -> str:
+    if not isinstance(value, str) or not ETAG_PATTERN.fullmatch(value):
+        fail(f"runtime blob ETag is missing or invalid for {key}")
+    return value
+
+
 def metadata_field(payload: Dict[str, Any], names: List[str], label: str) -> Any:
     normalized_names = {re.sub(r"[^a-z0-9]", "", name.lower()) for name in names}
     candidates: List[Any] = []
     sources = [payload]
-    for metadata_name in ("Metadata", "metadata", "Headers", "headers"):
+    for metadata_name in ("Header", "Metadata", "metadata", "Headers", "headers"):
         metadata_map = payload.get(metadata_name)
         if isinstance(metadata_map, dict):
             sources.append(metadata_map)
@@ -440,6 +467,8 @@ def metadata_field(payload: Dict[str, Any], names: List[str], label: str) -> Any
 
 def remote_blob_metadata(bucket: str, key: str) -> Optional[Dict[str, Any]]:
     key = validate_key(key)
+    if not key.startswith(BLOB_KEY_PREFIX):
+        fail(f"runtime blob metadata lookup requires a SHA-256 blob key: {key}")
     process = subprocess.run(
         ossutil_argv("v2", ["api", "head-object", "--bucket", bucket, "--key", key, "--output-format", "json", "-q"]),
         check=False,
@@ -463,14 +492,32 @@ def remote_blob_metadata(bucket: str, key: str) -> Optional[Dict[str, Any]]:
     schema = metadata_field(payload, ["x-oss-meta-schema", "schema"], "schema")
     digest = metadata_field(payload, ["x-oss-meta-sha256", "sha256"], "SHA-256")
     declared_size = metadata_field(payload, ["x-oss-meta-size", "size"], "declared size")
+    metadata_fields = [
+        metadata_field_present(payload, ["x-oss-meta-schema", "schema"]),
+        metadata_field_present(payload, ["x-oss-meta-sha256", "sha256"]),
+        metadata_field_present(payload, ["x-oss-meta-size", "size"]),
+    ]
+    etag = metadata_field(payload, ["ETag", "etag"], "ETag")
+    if not any(metadata_fields):
+        return {
+            "sizeBytes": parse_decimal(size, f"Content-Length for {key}"),
+            "legacy": True,
+            "etag": validate_etag(etag, key),
+        }
+    if not all(metadata_fields):
+        fail(f"ossutil v2 head-object has partial runtime blob metadata for {key}")
     if not isinstance(schema, str) or schema != "act-runtime-blob.v1":
-        fail(f"ossutil v2 head-object is missing the runtime blob schema metadata for {key}")
+        fail(f"ossutil v2 head-object has an invalid runtime blob schema metadata value for {key}")
     if not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
-        fail(f"ossutil v2 head-object is missing the runtime blob SHA-256 metadata for {key}")
+        fail(f"ossutil v2 head-object has an invalid runtime blob SHA-256 metadata value for {key}")
+    if not isinstance(declared_size, (int, str)):
+        fail(f"ossutil v2 head-object has an invalid runtime blob declared size for {key}")
     return {
         "sizeBytes": parse_decimal(size, f"Content-Length for {key}"),
         "sha256": digest,
         "declaredSizeBytes": parse_decimal(declared_size, f"runtime blob declared size for {key}"),
+        "etag": validate_etag(etag, key) if etag is not None else "",
+        "legacy": False,
     }
 
 
@@ -478,9 +525,43 @@ def assert_remote_blob_metadata(bucket: str, key: str, expected_size: int, expec
     metadata = remote_blob_metadata(bucket, key)
     if metadata is None:
         fail(f"remote runtime blob is missing after publication: {key}")
-    if metadata != {"sizeBytes": expected_size, "sha256": expected_sha, "declaredSizeBytes": expected_size}:
+    if metadata.get("legacy"):
+        fail(f"remote runtime blob is metadata-less where complete metadata is required after publication: {key}")
+    if (
+        metadata.get("sizeBytes") != expected_size
+        or metadata.get("sha256") != expected_sha
+        or metadata.get("declaredSizeBytes") != expected_size
+    ):
         fail(f"remote runtime blob metadata differs from the immutable manifest: {key}")
     return metadata
+
+
+def verify_existing_blob(
+    bucket: str,
+    key: str,
+    metadata: Dict[str, Any],
+    expected_size: int,
+    expected_sha: str,
+) -> Tuple[Dict[str, Any], bool]:
+    if key != f"{BLOB_KEY_PREFIX}{expected_sha}":
+        fail(f"runtime blob key is not bound to the expected SHA-256: {key}")
+    if metadata.get("legacy"):
+        if metadata.get("sizeBytes") != expected_size:
+            fail(f"metadata-less legacy blob size differs from the manifest: {key}")
+        etag = metadata.get("etag")
+        if not isinstance(etag, str):
+            fail(f"metadata-less legacy blob ETag is missing for {key}")
+        remote = remote_digest(bucket, key, if_match=etag)
+        if remote != {"sizeBytes": expected_size, "sha256": expected_sha}:
+            fail(f"metadata-less legacy blob readback differs from the manifest: {key}")
+        return metadata, True
+    if (
+        metadata.get("sizeBytes") != expected_size
+        or metadata.get("sha256") != expected_sha
+        or metadata.get("declaredSizeBytes") != expected_size
+    ):
+        fail(f"pre-existing blob differs from manifest for {key}")
+    return metadata, False
 
 
 def read_manifest_wire(bucket: str, key: str) -> bytes:
@@ -818,6 +899,22 @@ def expected_blob_receipt_files(files: List[Dict[str, Any]]) -> List[Dict[str, A
     return [by_key[key] for key in sorted(by_key)]
 
 
+def verified_blob_audit(entries: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], str]:
+    normalized = [
+        {
+            "key": entry["key"],
+            "expectedSize": entry["expectedSize"],
+            "verifiedSha256": entry["verifiedSha256"],
+            "etag": entry["etag"],
+        }
+        for entry in entries
+    ]
+    normalized.sort(key=lambda entry: (
+        entry["key"], entry["expectedSize"], entry["verifiedSha256"], entry["etag"],
+    ))
+    return normalized, hashlib.sha256(canonical_json(normalized)).hexdigest()
+
+
 def validate_blob_receipt(
     receipt: Dict[str, Any],
     release_id: str,
@@ -1140,7 +1237,13 @@ def put_spooled_file(bucket: str, key: str, path: str, expected_size: int, expec
     return remote
 
 
-def put_blob_spooled_file(bucket: str, key: str, path: str, expected_size: int, expected_sha: str) -> Dict[str, Any]:
+def put_blob_spooled_file(
+    bucket: str,
+    key: str,
+    path: str,
+    expected_size: int,
+    expected_sha: str,
+) -> Tuple[Dict[str, Any], bool]:
     key = validate_key(key)
     arguments = [
         "api", "put-object", "--bucket", bucket, "--key", key,
@@ -1158,11 +1261,15 @@ def put_blob_spooled_file(bucket: str, key: str, path: str, expected_size: int, 
     )
     if process.returncode != 0:
         try:
-            return assert_remote_blob_metadata(bucket, key, expected_size, expected_sha)
+            metadata = remote_blob_metadata(bucket, key)
+            if metadata is None:
+                fail(f"remote runtime blob is missing after a failed conditional put: {key}")
+            verified, _legacy = verify_existing_blob(bucket, key, metadata, expected_size, expected_sha)
+            return verified, False
         except RuntimeError:
             detail = process.stderr.decode("utf-8", errors="replace").strip()
             fail(f"ossutil v2 conditional blob put failed for {key}: {detail}")
-    return assert_remote_blob_metadata(bucket, key, expected_size, expected_sha)
+    return assert_remote_blob_metadata(bucket, key, expected_size, expected_sha), True
 
 
 def put_payload(bucket: str, key: str, payload: bytes, expected_sha: str, directory: str) -> Dict[str, Any]:
@@ -1238,6 +1345,7 @@ def publish_blob_release(
                 fail("existing blob completion manifest differs from the submitted immutable identity")
             if remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
                 fail("existing blob receipt differs from the submitted immutable identity")
+            verified_blob_entries, verified_blob_set_sha256 = verified_blob_audit([])
             write_json({
                 "status": "complete",
                 "releaseId": manifest["releaseId"],
@@ -1250,6 +1358,13 @@ def publish_blob_release(
                 "putCount": 0,
                 "inheritedBlobCount": len(expected_blobs),
                 "metadataCheckCount": 0,
+                "metadataReuseCount": 0,
+                "newUploadCount": 0,
+                "legacyReadbackCount": 0,
+                "legacyReadbackBytes": 0,
+                "verifiedBlobSetAlgorithm": "sha256",
+                "verifiedBlobSetSha256": verified_blob_set_sha256,
+                "verifiedBlobEntries": verified_blob_entries,
             })
             return
         partial_expected = {receipt_key: len(receipt_wire)}
@@ -1260,6 +1375,11 @@ def publish_blob_release(
         missing: List[Dict[str, Any]] = []
         inherited_blob_count = 0
         metadata_check_count = 0
+        metadata_reuse_count = 0
+        new_upload_count = 0
+        legacy_readback_count = 0
+        legacy_readback_bytes = 0
+        verified_blob_entries: List[Dict[str, Any]] = []
         for entry in expected_blobs:
             parent_entry = parent_blobs.get(entry["objectKey"])
             if parent_entry is not None:
@@ -1272,8 +1392,20 @@ def publish_blob_release(
             if remote is None:
                 missing.append(entry)
                 continue
-            if remote != {"sizeBytes": entry["sizeBytes"], "sha256": entry["sha256"], "declaredSizeBytes": entry["sizeBytes"]}:
-                fail(f"pre-existing blob differs from manifest for {entry['objectKey']}")
+            verified, legacy = verify_existing_blob(
+                bucket, entry["objectKey"], remote, entry["sizeBytes"], entry["sha256"],
+            )
+            if legacy:
+                legacy_readback_count += 1
+                legacy_readback_bytes += entry["sizeBytes"]
+            else:
+                metadata_reuse_count += 1
+            verified_blob_entries.append({
+                "key": entry["objectKey"],
+                "expectedSize": entry["sizeBytes"],
+                "verifiedSha256": entry["sha256"],
+                "etag": verified.get("etag", ""),
+            })
         write_json({"status": "stream", "missingKeys": [entry["objectKey"] for entry in missing]})
         put_count = 0
         for entry in missing:
@@ -1293,10 +1425,25 @@ def publish_blob_release(
                 fail(f"blob frame does not match the manifest for {entry['objectKey']}")
             temp_path = receive_frame(spool_directory, entry["sizeBytes"], entry["sha256"])
             try:
-                put_blob_spooled_file(bucket, entry["objectKey"], temp_path, entry["sizeBytes"], entry["sha256"])
+                verified, uploaded = put_blob_spooled_file(
+                    bucket, entry["objectKey"], temp_path, entry["sizeBytes"], entry["sha256"],
+                )
             finally:
                 remove_temp(temp_path)
             put_count += 1
+            if verified.get("legacy"):
+                legacy_readback_count += 1
+                legacy_readback_bytes += entry["sizeBytes"]
+            elif uploaded:
+                new_upload_count += 1
+            else:
+                metadata_reuse_count += 1
+            verified_blob_entries.append({
+                "key": entry["objectKey"],
+                "expectedSize": entry["sizeBytes"],
+                "verifiedSha256": entry["sha256"],
+                "etag": verified.get("etag", ""),
+            })
         if sys.stdin.buffer.readline().strip() != b"DONE":
             fail("publisher stream did not terminate its blob frames with DONE")
         if receipt_key not in existing_release:
@@ -1311,6 +1458,7 @@ def publish_blob_release(
             fail("remote blob receipt failed final verification")
         if remote_digest(bucket, manifest_key) != {"sizeBytes": len(manifest_wire), "sha256": manifest_wire_sha}:
             fail("remote blob completion manifest failed final verification")
+        verified_blob_entries, verified_blob_set_sha256 = verified_blob_audit(verified_blob_entries)
         write_json({
             "status": "complete",
             "releaseId": manifest["releaseId"],
@@ -1323,6 +1471,13 @@ def publish_blob_release(
             "putCount": put_count,
             "inheritedBlobCount": inherited_blob_count,
             "metadataCheckCount": metadata_check_count,
+            "metadataReuseCount": metadata_reuse_count,
+            "newUploadCount": new_upload_count,
+            "legacyReadbackCount": legacy_readback_count,
+            "legacyReadbackBytes": legacy_readback_bytes,
+            "verifiedBlobSetAlgorithm": "sha256",
+            "verifiedBlobSetSha256": verified_blob_set_sha256,
+            "verifiedBlobEntries": verified_blob_entries,
         })
     finally:
         if spool_directory is not None:
