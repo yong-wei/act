@@ -989,6 +989,7 @@ function ActiveNodeDetail({
                 width={1200}
                 height={675}
                 sizes="(max-width: 640px) 100vw, 30rem"
+                unoptimized
                 onError={() => setInfographFailed(true)}
                 className="mt-3 h-auto w-full rounded-md border border-platform-border bg-platform-surface object-contain"
               />

@@ -946,6 +946,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).not.toContain('internal-snapshot');
 
     const image = container.querySelector<HTMLImageElement>('img[alt="稳定性 信息图"]');
+    expect(image).not.toBeNull();
+    const imageUrl = new URL(image!.src);
+    expect(imageUrl.pathname).toBe('/api/knowledge/shards/active/nodes/node-concept/infograph');
+    expect(imageUrl.searchParams.has('url')).toBe(false);
+    expect(image?.getAttribute('srcset')).toBeNull();
+    expect(imageUrl.pathname).not.toBe('/_next/image');
     await act(async () => image?.dispatchEvent(new Event('error')));
     expect(container.textContent).not.toContain('当前信息图暂时不可用。');
     expect(container.textContent).toContain('稳定性反映系统在扰动后的响应趋势。');
