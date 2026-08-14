@@ -10,6 +10,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
+LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
+TEXTBOOK_CACHE_PATHS = (
+    "resources/textbook-retrieval/bodies.utf8",
+    "resources/textbook-retrieval/lexical-postings.bin",
+    "resources/textbook-retrieval/vectors.f32",
+)
+TEXTBOOK_CACHE_CONTENTS = {
+    "lessons/1-1/lesson.json": b'{"lesson":"1-1"}\n',
+    "resources/textbook-retrieval/bodies.utf8": b"body-one\n",
+    "resources/textbook-retrieval/lexical-postings.bin": b"postings\n",
+    "resources/textbook-retrieval/vectors.f32": b"vector\n",
+}
 
 
 def canonical(value):
@@ -69,6 +81,29 @@ def write_release(root: Path, contents):
     return blob_root, manifest_path, receipt_path, release_id
 
 
+def make_view_writable(view: Path):
+    for candidate in sorted(view.rglob("*"), key=lambda path: len(path.parts), reverse=True):
+        if candidate.is_dir() and not candidate.is_symlink():
+            os.chmod(candidate, 0o755)
+    os.chmod(view, 0o755)
+
+
+def no_cache_materialization_receipt(manifest_path: Path):
+    wire = manifest_path.read_bytes()
+    manifest = json.loads(wire.decode("utf-8"))
+    base = {
+        "schemaVersion": "runtime-blob-materialization.v1",
+        "releaseId": manifest["releaseId"],
+        "manifestVersion": "act-runtime-release.v2",
+        "manifestSha256": manifest["manifestSha256"],
+        "manifestWireSha256": hashlib.sha256(wire).hexdigest(),
+        "treeSha256": manifest["treeSha256"],
+        "fileCount": manifest["fileCount"],
+        "totalBytes": manifest["totalBytes"],
+    }
+    return dict(base, materializationSha256=digest(base))
+
+
 class RuntimeBlobMaterializationTests(unittest.TestCase):
     def call(self, *args, expect_ok=True):
         result = subprocess.run(["python3", str(SCRIPT), *args], text=True, capture_output=True)
@@ -96,6 +131,10 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertTrue((view / "lessons/1-1/media/copy.json").is_symlink())
             self.assertFalse((view / ".act-runtime-release.v2.json").is_symlink())
             self.assertEqual(stat.S_IMODE((view / ".act-runtime-release.v2.json").stat().st_mode), 0o444)
+            local_receipt = json.loads((view / LOCAL_RECEIPT).read_text(encoding="utf-8"))
+            self.assertEqual(local_receipt["schemaVersion"], "runtime-blob-materialization.v1")
+            self.assertNotIn("textbookRetrievalCacheEnabled", local_receipt)
+            self.assertNotIn("cachedLogicalPaths", local_receipt)
             reused = self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
             self.assertTrue(reused["reused"])
             verified = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root))
@@ -123,6 +162,166 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             logical.symlink_to(root / "outside")
             rejected = self.call("select", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
             self.assertIn("manifest blob", rejected.stderr)
+
+    def test_default_prepare_keeps_textbook_retrieval_files_as_symlinks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            prepared = self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.assertTrue(prepared["prepared"])
+            self.assertNotIn("textbookRetrievalCacheEnabled", prepared)
+            view = view_root / "views" / release_id
+            for relative in TEXTBOOK_CACHE_PATHS:
+                logical = view / relative
+                self.assertTrue(logical.is_symlink(), relative)
+            self.assertTrue((view / "lessons/1-1/lesson.json").is_symlink())
+            local_receipt = json.loads((view / LOCAL_RECEIPT).read_text(encoding="utf-8"))
+            self.assertEqual(local_receipt, no_cache_materialization_receipt(manifest))
+            verified = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.assertEqual(verified["schemaVersion"], "runtime-blob-materialization.v1")
+
+    def test_cache_textbook_retrieval_copies_only_the_hot_set(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            prepared = self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                "--cache-textbook-retrieval",
+            )
+            self.assertTrue(prepared["textbookRetrievalCacheEnabled"])
+            self.assertEqual(prepared["cachedLogicalPaths"], list(TEXTBOOK_CACHE_PATHS))
+            view = view_root / "views" / release_id
+            for relative in TEXTBOOK_CACHE_PATHS:
+                logical = view / relative
+                self.assertFalse(logical.is_symlink(), relative)
+                self.assertTrue(logical.is_file(), relative)
+                self.assertEqual(stat.S_IMODE(logical.stat().st_mode), 0o444)
+                self.assertEqual(logical.read_bytes(), TEXTBOOK_CACHE_CONTENTS[relative])
+            self.assertTrue((view / "lessons/1-1/lesson.json").is_symlink())
+            local_receipt = json.loads((view / LOCAL_RECEIPT).read_text(encoding="utf-8"))
+            self.assertEqual(local_receipt["schemaVersion"], "runtime-blob-materialization.v2")
+            self.assertEqual(local_receipt["cachedLogicalPaths"], list(TEXTBOOK_CACHE_PATHS))
+            verified = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.assertEqual(verified["cachedLogicalPaths"], list(TEXTBOOK_CACHE_PATHS))
+            reused = self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                "--cache-textbook-retrieval",
+            )
+            self.assertTrue(reused["reused"])
+            mismatched = self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                expect_ok=False,
+            )
+            self.assertIn("cache binding", mismatched.stderr)
+
+    def test_rejects_altered_textbook_cache_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                "--cache-textbook-retrieval",
+            )
+            view = view_root / "views" / release_id
+            make_view_writable(view)
+            cached = view / "resources/textbook-retrieval/vectors.f32"
+            os.chmod(cached, 0o644)
+            cached.write_bytes(b"tampered-vector\n")
+            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            self.assertIn("does not match manifest content", rejected.stderr)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                "--cache-textbook-retrieval",
+            )
+            view = view_root / "views" / release_id
+            make_view_writable(view)
+            cached = view / "resources/textbook-retrieval/bodies.utf8"
+            cached.unlink()
+            os.symlink(str(blob_root / hashlib.sha256(TEXTBOOK_CACHE_CONTENTS["resources/textbook-retrieval/bodies.utf8"]).hexdigest()), str(cached))
+            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            self.assertIn("declared cache entry is not a regular file", rejected.stderr)
+
+    def test_rejects_cache_receipt_mismatch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                "--cache-textbook-retrieval",
+            )
+            view = view_root / "views" / release_id
+            make_view_writable(view)
+            receipt_path = view / LOCAL_RECEIPT
+            os.chmod(receipt_path, 0o644)
+            receipt_path.write_bytes(canonical(no_cache_materialization_receipt(manifest)) + b"\n")
+            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            self.assertIn("non-symlink logical file", rejected.stderr)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            prepared = self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                "--cache-textbook-retrieval",
+            )
+            view = view_root / "views" / release_id
+            make_view_writable(view)
+            damaged = dict(prepared)
+            damaged.pop("prepared", None)
+            damaged.pop("reused", None)
+            damaged.pop("viewPath", None)
+            damaged["cachedLogicalPaths"] = [TEXTBOOK_CACHE_PATHS[0]]
+            damaged.pop("materializationSha256")
+            damaged["materializationSha256"] = digest(damaged)
+            receipt_path = view / LOCAL_RECEIPT
+            os.chmod(receipt_path, 0o644)
+            receipt_path.write_bytes(canonical(damaged) + b"\n")
+            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            self.assertIn("materialization receipt does not match manifest", rejected.stderr)
+
+    def test_rejects_arbitrary_regular_file_in_default_and_cache_views(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
+            view = view_root / "views" / release_id
+            make_view_writable(view)
+            (view / "extra.txt").write_text("extra", encoding="utf-8")
+            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            self.assertIn("non-symlink logical file", rejected.stderr)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                "--cache-textbook-retrieval",
+            )
+            view = view_root / "views" / release_id
+            make_view_writable(view)
+            (view / "resources/textbook-retrieval/extra.bin").write_bytes(b"extra\n")
+            rejected = self.call("verify", "--release-id", release_id, "--blob-root", str(blob_root), "--view-root", str(view_root), expect_ok=False)
+            self.assertIn("non-symlink logical file", rejected.stderr)
 
 
 if __name__ == "__main__":

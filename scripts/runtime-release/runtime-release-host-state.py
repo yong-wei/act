@@ -223,10 +223,8 @@ def verify_v2_receipt(path: Path, manifest: dict, manifest_wire: bytes, release_
             "wireSha256": wire_sha256,
             "wireSizeBytes": len(manifest_wire),
         }
-    if value["schemaVersion"] == V2_MATERIALIZATION_SCHEMA:
-        expected = materializer.materialization_payload(manifest, {"manifestWireSha256": wire_sha256})
-        if value != expected:
-            fail("v2 materialization receipt identity does not match the mounted manifest")
+    if value["schemaVersion"] in {V2_MATERIALIZATION_SCHEMA, materializer.MATERIALIZATION_CACHE_SCHEMA}:
+        materializer.parse_materialization_receipt(value, manifest, wire_sha256)
         return {
             **expected_identity,
             "wireSha256": wire_sha256,
@@ -250,7 +248,14 @@ def verify_mounted_v2(runtime_root: Path, blob_root: Path, verification_receipt:
     if materializer.canonical(manifest) + b"\n" != manifest_wire:
         fail("mounted runtime manifest wire bytes are not canonical")
     receipt_identity = verify_v2_receipt(Path(verification_receipt), manifest, manifest_wire, release_id, materializer)
-    materializer.verify_view(root, blobs, release_id)
+    view_receipt = materializer.verify_view(root, blobs, release_id)
+    verification_value, _ = read_regular_json(Path(verification_receipt), "v2 verification receipt")
+    if (
+        verification_value.get("schemaVersion") in {V2_MATERIALIZATION_SCHEMA, materializer.MATERIALIZATION_CACHE_SCHEMA}
+        and verification_value != view_receipt
+    ):
+        fail("v2 materialization receipt does not match the mounted view")
+    cached_paths = set(materializer.cached_logical_paths(view_receipt))
 
     expected_paths = {entry["path"] for entry in manifest["files"]}
     expected_directories = set()
@@ -281,6 +286,12 @@ def verify_mounted_v2(runtime_root: Path, blob_root: Path, verification_receipt:
     for entry in manifest["files"]:
         logical = root / entry["path"]
         details = os.lstat(logical)
+        if entry["path"] in cached_paths:
+            if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+                fail(f"mounted runtime cache entry is not a regular file: {entry['path']}")
+            if details.st_size != entry["sizeBytes"] or materializer.hash_file(logical) != entry["sha256"]:
+                fail(f"mounted runtime logical file does not match manifest content: {entry['path']}")
+            continue
         if not stat.S_ISLNK(details.st_mode):
             fail(f"mounted runtime logical file is not a symlink: {entry['path']}")
         target = Path(os.path.realpath(logical))

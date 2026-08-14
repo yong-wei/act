@@ -10,6 +10,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/runtime-release/runtime-release-host-state.py"
 MATERIALIZER = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
+LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
+TEXTBOOK_CACHE_PATHS = (
+    "resources/textbook-retrieval/bodies.utf8",
+    "resources/textbook-retrieval/lexical-postings.bin",
+    "resources/textbook-retrieval/vectors.f32",
+)
+TEXTBOOK_CACHE_CONTENTS = {
+    "lessons/1-1/lesson.json": b'{"lesson":"1-1"}\n',
+    "resources/textbook-retrieval/bodies.utf8": b"body-one\n",
+    "resources/textbook-retrieval/lexical-postings.bin": b"postings\n",
+    "resources/textbook-retrieval/vectors.f32": b"vector\n",
+}
 
 
 class RuntimeReleaseHostStateTests(unittest.TestCase):
@@ -39,7 +51,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
         }), encoding="utf-8")
         return path
 
-    def v2_release(self, root: Path, contents):
+    def v2_release(self, root: Path, contents, cache_textbook_retrieval: bool = False):
         blob_root = root / "blob-root"
         blob_root.mkdir()
         files = []
@@ -114,16 +126,20 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             "totalBytes": manifest["totalBytes"],
         }, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n")
         view_root = root / "view-root"
-        self.call_materializer(
+        prepare_args = [
             "prepare", "--manifest", str(manifest_path), "--receipt", str(release_receipt),
             "--blob-root", str(blob_root), "--view-root", str(view_root),
-        )
+        ]
+        if cache_textbook_retrieval:
+            prepare_args.append("--cache-textbook-retrieval")
+        self.call_materializer(*prepare_args)
         return {
             "blob_root": blob_root,
             "view": view_root / "views" / release_id,
             "release_id": release_id,
             "release_receipt": release_receipt,
             "verification_receipt": verification_receipt,
+            "manifest_path": manifest_path,
         }
 
     def make_view_writable(self, view: Path):
@@ -351,6 +367,129 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertIn("identity does not match", rejected.stderr)
+
+    def test_v2_accepts_textbook_retrieval_hot_cache_view(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            for relative in TEXTBOOK_CACHE_PATHS:
+                logical = fixture["view"] / relative
+                self.assertFalse(logical.is_symlink(), relative)
+                self.assertTrue(logical.is_file(), relative)
+            self.assertTrue((fixture["view"] / "lessons/1-1/lesson.json").is_symlink())
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]),
+            )
+            self.assertEqual(verified["releaseId"], fixture["release_id"])
+            self.assertEqual(verified["fileCount"], 4)
+            local_receipt = fixture["view"] / LOCAL_RECEIPT
+            receipt_verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(local_receipt),
+            )
+            self.assertEqual(receipt_verified["treeSha256"], verified["treeSha256"])
+
+    def test_v2_rejects_regular_textbook_file_when_cache_disabled(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS)
+            self.assertTrue((fixture["view"] / TEXTBOOK_CACHE_PATHS[0]).is_symlink())
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]),
+            )
+            self.assertEqual(verified["fileCount"], 4)
+            self.make_view_writable(fixture["view"])
+            cached = fixture["view"] / TEXTBOOK_CACHE_PATHS[2]
+            target = Path(os.readlink(cached))
+            cached.unlink()
+            cached.write_bytes(target.read_bytes())
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("non-symlink logical file", rejected.stderr)
+
+    def test_v2_rejects_altered_textbook_cache_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(fixture["view"])
+            cached = fixture["view"] / TEXTBOOK_CACHE_PATHS[2]
+            os.chmod(cached, 0o644)
+            cached.write_bytes(b"tampered-vector\n")
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("does not match manifest content", rejected.stderr)
+
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(fixture["view"])
+            cached = fixture["view"] / TEXTBOOK_CACHE_PATHS[0]
+            body = TEXTBOOK_CACHE_CONTENTS[TEXTBOOK_CACHE_PATHS[0]]
+            cached.unlink()
+            cached.symlink_to(fixture["blob_root"] / hashlib.sha256(body).hexdigest())
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("declared cache entry is not a regular file", rejected.stderr)
+
+    def test_v2_rejects_textbook_cache_receipt_mismatch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(fixture["view"])
+            wire = fixture["manifest_path"].read_bytes()
+            manifest = json.loads(wire.decode("utf-8"))
+            base = {
+                "schemaVersion": "runtime-blob-materialization.v1",
+                "releaseId": manifest["releaseId"],
+                "manifestVersion": "act-runtime-release.v2",
+                "manifestSha256": manifest["manifestSha256"],
+                "manifestWireSha256": hashlib.sha256(wire).hexdigest(),
+                "treeSha256": manifest["treeSha256"],
+                "fileCount": manifest["fileCount"],
+                "totalBytes": manifest["totalBytes"],
+            }
+            no_cache = dict(base, materializationSha256=hashlib.sha256(json.dumps(
+                base, separators=(",", ":"), sort_keys=True, ensure_ascii=False,
+            ).encode("utf-8")).hexdigest())
+            mismatched = Path(directory) / "no-cache-materialization.json"
+            mismatched.write_bytes(json.dumps(no_cache, separators=(",", ":"), sort_keys=True, ensure_ascii=False).encode("utf-8") + b"\n")
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(mismatched), expect_ok=False,
+            )
+            self.assertIn("does not match the mounted view", rejected.stderr)
+
+            receipt_path = fixture["view"] / LOCAL_RECEIPT
+            os.chmod(receipt_path, 0o644)
+            receipt_path.write_bytes(json.dumps(no_cache, separators=(",", ":"), sort_keys=True, ensure_ascii=False).encode("utf-8") + b"\n")
+            rejected_view = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("non-symlink logical file", rejected_view.stderr)
+
+    def test_v2_rejects_arbitrary_regular_file_with_textbook_cache(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(fixture["view"])
+            (fixture["view"] / "resources/textbook-retrieval/extra.bin").write_bytes(b"extra\n")
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--blob-root", str(fixture["blob_root"]), "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("non-symlink logical file", rejected.stderr)
 
 
 if __name__ == "__main__":

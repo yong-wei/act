@@ -23,12 +23,18 @@ from typing import Any, Dict, List, Tuple
 MANIFEST_SCHEMA = "act-runtime-release.v2"
 RECEIPT_SCHEMA = "act-runtime-release-receipt.v2"
 MATERIALIZATION_SCHEMA = "runtime-blob-materialization.v1"
+MATERIALIZATION_CACHE_SCHEMA = "runtime-blob-materialization.v2"
 LOCAL_MANIFEST = ".act-runtime-release.v2.json"
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 GIT_REVISION = re.compile(r"^[a-f0-9]{40}$")
 BLOB_PREFIX = "runtime/blobs/sha256/"
+TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
+    "resources/textbook-retrieval/bodies.utf8",
+    "resources/textbook-retrieval/lexical-postings.bin",
+    "resources/textbook-retrieval/vectors.f32",
+)
 
 
 def fail(message: str) -> None:
@@ -214,9 +220,26 @@ def blob_path(blob_root: Path, file_sha: str) -> Path:
     return candidate
 
 
-def materialization_payload(manifest: Dict[str, Any], receipt: Dict[str, Any]) -> Dict[str, Any]:
+def textbook_retrieval_cache_paths() -> Tuple[str, ...]:
+    return TEXTBOOK_RETRIEVAL_CACHE_PATHS
+
+
+def require_textbook_retrieval_cache(manifest: Dict[str, Any]) -> List[str]:
+    manifest_paths = {item["path"] for item in manifest["files"]}
+    missing = [path for path in TEXTBOOK_RETRIEVAL_CACHE_PATHS if path not in manifest_paths]
+    if missing:
+        fail("textbook retrieval cache path is absent from manifest: %s" % missing[0])
+    return list(TEXTBOOK_RETRIEVAL_CACHE_PATHS)
+
+
+def materialization_payload(
+    manifest: Dict[str, Any],
+    receipt: Dict[str, Any],
+    cache_enabled: bool = False,
+) -> Dict[str, Any]:
+    cached_paths = require_textbook_retrieval_cache(manifest) if cache_enabled else []
     base = {
-        "schemaVersion": MATERIALIZATION_SCHEMA,
+        "schemaVersion": MATERIALIZATION_CACHE_SCHEMA if cache_enabled else MATERIALIZATION_SCHEMA,
         "releaseId": manifest["releaseId"],
         "manifestVersion": MANIFEST_SCHEMA,
         "manifestSha256": manifest["manifestSha256"],
@@ -225,7 +248,45 @@ def materialization_payload(manifest: Dict[str, Any], receipt: Dict[str, Any]) -
         "fileCount": manifest["fileCount"],
         "totalBytes": manifest["totalBytes"],
     }
+    if cache_enabled:
+        base["cachedLogicalPaths"] = cached_paths
+        base["textbookRetrievalCacheEnabled"] = True
     return dict(base, materializationSha256=digest(base))
+
+
+def parse_materialization_receipt(
+    raw: Any,
+    manifest: Dict[str, Any],
+    wire_sha256: str,
+) -> Dict[str, Any]:
+    if not isinstance(raw, dict) or not isinstance(raw.get("schemaVersion"), str):
+        fail("materialization receipt is invalid")
+    schema = raw["schemaVersion"]
+    if schema == MATERIALIZATION_SCHEMA:
+        expected = materialization_payload(manifest, {"manifestWireSha256": wire_sha256}, cache_enabled=False)
+        if raw != expected:
+            fail("materialization receipt does not match manifest")
+        return expected
+    if schema == MATERIALIZATION_CACHE_SCHEMA:
+        expected = materialization_payload(manifest, {"manifestWireSha256": wire_sha256}, cache_enabled=True)
+        if raw != expected:
+            fail("materialization receipt does not match manifest")
+        return expected
+    fail("materialization receipt has an unsupported version")
+
+
+def cached_logical_paths(receipt: Dict[str, Any]) -> List[str]:
+    if receipt.get("textbookRetrievalCacheEnabled") is True:
+        return list(receipt["cachedLogicalPaths"])
+    return []
+
+
+def copy_regular_readonly(source: Path, dest: Path) -> None:
+    with source.open("rb") as src, dest.open("wb") as dst:
+        shutil.copyfileobj(src, dst)
+        dst.flush()
+        os.fsync(dst.fileno())
+    os.chmod(dest, 0o444)
 
 
 def write_regular(path: Path, value: bytes) -> None:
@@ -244,11 +305,8 @@ def verify_view(view: Path, blob_root: Path, release_id: str) -> Dict[str, Any]:
     receipt_path = view / LOCAL_RECEIPT
     require_regular(receipt_path, "materialization receipt")
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
-    expected_receipt = materialization_payload(manifest, {
-        "manifestWireSha256": hashlib.sha256(wire).hexdigest(),
-    })
-    if receipt != expected_receipt:
-        fail("materialization receipt does not match manifest")
+    expected_receipt = parse_materialization_receipt(receipt, manifest, hashlib.sha256(wire).hexdigest())
+    cached_paths = set(cached_logical_paths(expected_receipt))
     expected_paths = set(item["path"] for item in manifest["files"])
     actual_paths = set()
     for current, directories, filenames in os.walk(str(view), followlinks=False):
@@ -261,13 +319,23 @@ def verify_view(view: Path, blob_root: Path, release_id: str) -> Dict[str, Any]:
             relative = absolute.relative_to(view).as_posix()
             if relative in {LOCAL_MANIFEST, LOCAL_RECEIPT}:
                 continue
-            if not os.path.islink(str(absolute)):
+            if relative in cached_paths:
+                details = os.lstat(absolute)
+                if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+                    fail("declared cache entry is not a regular file: %s" % relative)
+            elif not os.path.islink(str(absolute)):
                 fail("materialized view contains a non-symlink logical file: %s" % relative)
             actual_paths.add(relative)
     if actual_paths != expected_paths:
         fail("materialized view file set differs from manifest")
     for entry in manifest["files"]:
         logical = view / entry["path"]
+        if entry["path"] in cached_paths:
+            require_regular(logical, "declared cache entry %s" % entry["path"])
+            details = os.lstat(logical)
+            if details.st_size != entry["sizeBytes"] or hash_file(logical) != entry["sha256"]:
+                fail("materialized logical file does not match manifest content: %s" % entry["path"])
+            continue
         target = Path(os.path.realpath(str(logical)))
         expected_blob = blob_path(blob_root, entry["sha256"]).resolve()
         if target != expected_blob:
@@ -275,7 +343,7 @@ def verify_view(view: Path, blob_root: Path, release_id: str) -> Dict[str, Any]:
         details = target.stat()
         if details.st_size != entry["sizeBytes"] or hash_file(target) != entry["sha256"]:
             fail("materialized logical file does not match manifest content: %s" % entry["path"])
-    return materialization_payload(manifest, {"manifestWireSha256": hashlib.sha256(wire).hexdigest()})
+    return expected_receipt
 
 
 def with_lock(view_root: Path):
@@ -291,6 +359,10 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
     blob_root = require_real_directory(Path(args.blob_root), "blob root")
     manifest, manifest_wire = parse_manifest(Path(args.manifest))
     receipt = parse_receipt(Path(args.receipt), manifest, manifest_wire)
+    cache_enabled = bool(getattr(args, "cache_textbook_retrieval", False))
+    if cache_enabled:
+        require_textbook_retrieval_cache(manifest)
+    cached_paths = set(TEXTBOOK_RETRIEVAL_CACHE_PATHS) if cache_enabled else set()
     views = view_root / "views"
     lock = with_lock(view_root)
     temporary = None
@@ -300,6 +372,8 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         final = views / manifest["releaseId"]
         if final.exists():
             result = verify_view(final, blob_root, manifest["releaseId"])
+            if (result.get("textbookRetrievalCacheEnabled") is True) != cache_enabled:
+                fail("materialization receipt cache binding does not match prepare request")
             return dict(result, prepared=True, reused=True, viewPath=str(final))
         temporary = Path(tempfile.mkdtemp(prefix=".%s." % manifest["releaseId"], dir=str(views)))
         for entry in manifest["files"]:
@@ -308,9 +382,14 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
                 fail("mounted blob does not match manifest: %s" % entry["path"])
             logical = temporary / entry["path"]
             logical.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
-            os.symlink(str(blob), str(logical))
+            if entry["path"] in cached_paths:
+                copy_regular_readonly(blob, logical)
+                if logical.stat().st_size != entry["sizeBytes"] or hash_file(logical) != entry["sha256"]:
+                    fail("cached logical file does not match manifest: %s" % entry["path"])
+            else:
+                os.symlink(str(blob), str(logical))
         write_regular(temporary / LOCAL_MANIFEST, manifest_wire)
-        materialization = materialization_payload(manifest, receipt)
+        materialization = materialization_payload(manifest, receipt, cache_enabled=cache_enabled)
         write_regular(temporary / LOCAL_RECEIPT, canonical(materialization) + b"\n")
         for current, directories, _ in os.walk(str(temporary), topdown=False, followlinks=False):
             for directory in directories:
@@ -382,6 +461,7 @@ def main() -> None:
         command.add_argument("--receipt", required=True)
         command.add_argument("--blob-root", required=True)
         command.add_argument("--view-root", required=True)
+        command.add_argument("--cache-textbook-retrieval", action="store_true")
     selector = commands.add_parser("select")
     selector.add_argument("--release-id", required=True)
     selector.add_argument("--blob-root", required=True)
