@@ -193,4 +193,30 @@ describe('act runtime release manifest', () => {
       files: [{ ...manifest.files[0], source: { gitObjectId: 'invalid' } }, ...manifest.files.slice(1)],
     })).toThrow(/source.gitObjectId is invalid/);
   });
+
+  it('accepts the strict external bundle source union and rejects partial identities', async () => {
+    const root = await fixture();
+    const legacy = await buildRuntimeBlobReleaseManifest(root, { sourceRevision: revision });
+    const strict = {
+      ...legacy,
+      files: legacy.files.map((file, index) => ({
+        ...file,
+        source: index === 0
+          ? {
+              externalInputId: 'current-production-runtime-v1',
+              externalInputManifestObjectId: 'd'.repeat(40),
+              bundleSemanticSha256: 'e'.repeat(64),
+              bundleWireSha256: 'f'.repeat(64),
+            }
+          : { gitObjectId: 'c'.repeat(40) },
+      })),
+    };
+    const { manifestSha256: _ignored, ...withoutDigest } = strict;
+    const manifest = { ...strict, manifestSha256: createHash('sha256').update(stableStringify(withoutDigest)).digest('hex') };
+    expect(parseRuntimeBlobReleaseManifest(manifest)).toEqual(manifest);
+    expect(() => parseRuntimeBlobReleaseManifest({
+      ...manifest,
+      files: [{ ...manifest.files[0], source: { externalInputId: 'current-production-runtime-v1', externalInputManifestObjectId: 'd'.repeat(40), bundleSemanticSha256: 'e'.repeat(64) } }, ...manifest.files.slice(1)],
+    })).toThrow(/source has unsupported or missing fields/);
+  });
 });

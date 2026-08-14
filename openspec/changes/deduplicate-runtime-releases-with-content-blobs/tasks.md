@@ -22,6 +22,8 @@
 
 ## 4. Operational safety and handoff
 
+- [x] 4.5 Record Sol DECIDE B: admit a current-runtime external bundle only when a precise Git declaration and output source identity bind it; keep this change candidate-only with no selection or deletion.
+
 - [ ] 4.1 Keep ECS on `act-runtime-oss-read` for normal serving; verify its Put/Delete/Abort denial and record the separate local publisher credential-provider setup without committing credentials.
 - [x] 4.2 Produce daily, sample and full audit reports with release identity, parent identity, changed counts, body bytes hashed, metadata requests, uploaded bytes, materialization/smoke timing and capacity projection.
 - [x] 4.3 Update runtime deployment and server-ops runbooks with local-publisher/ECS-reader separation, recovery, GC, audit and rollback evidence.

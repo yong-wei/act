@@ -145,6 +145,22 @@ def parse_manifest_source(source: Any, label: str) -> Dict[str, str]:
         if not GIT_OBJECT_ID.fullmatch(git_object_id):
             fail("%s.gitObjectId is invalid" % label)
         return {"gitObjectId": git_object_id}
+    if keys == {"externalInputId", "externalInputManifestObjectId", "bundleSemanticSha256", "bundleWireSha256"}:
+        external_input_id = require_string(source["externalInputId"], "%s.externalInputId" % label)
+        manifest_object_id = require_string(
+            source["externalInputManifestObjectId"],
+            "%s.externalInputManifestObjectId" % label,
+        ).lower()
+        bundle_semantic = require_digest(source["bundleSemanticSha256"], "%s.bundleSemanticSha256" % label)
+        bundle_wire = require_digest(source["bundleWireSha256"], "%s.bundleWireSha256" % label)
+        if not EXTERNAL_INPUT_ID.fullmatch(external_input_id) or not GIT_OBJECT_ID.fullmatch(manifest_object_id):
+            fail("%s is invalid" % label)
+        return {
+            "externalInputId": external_input_id,
+            "externalInputManifestObjectId": manifest_object_id,
+            "bundleSemanticSha256": bundle_semantic,
+            "bundleWireSha256": bundle_wire,
+        }
     if keys == {"externalInputId", "externalInputManifestObjectId"}:
         external_input_id = require_string(source["externalInputId"], "%s.externalInputId" % label)
         manifest_object_id = require_string(

@@ -238,6 +238,29 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             )
             self.assertEqual(materialized_manifest["files"][0]["source"], external_source)
 
+        strict_source = {
+            **external_source,
+            "bundleSemanticSha256": "c" * 64,
+            "bundleWireSha256": "d" * 64,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(
+                root,
+                {"resources/textbooks-v2/book.json": b"generated\n"},
+                {"resources/textbooks-v2/book.json": strict_source},
+            )
+            view_root = root / "views-root"
+            prepared = self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+            )
+            self.assertTrue(prepared["prepared"])
+            materialized_manifest = json.loads(
+                (view_root / "views" / release_id / ".act-runtime-release.v2.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(materialized_manifest["files"][0]["source"], strict_source)
+
         invalid_sources = [
             {
                 "gitObjectId": "a" * 40,
@@ -248,6 +271,11 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
                 "externalInputId": "textbook-runtime-generated-v1",
                 "externalInputManifestObjectId": "b" * 40,
                 "extra": True,
+            },
+            {
+                "externalInputId": "textbook-runtime-generated-v1",
+                "externalInputManifestObjectId": "b" * 40,
+                "bundleSemanticSha256": "c" * 64,
             },
         ]
         for index, invalid_source in enumerate(invalid_sources):

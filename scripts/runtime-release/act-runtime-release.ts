@@ -23,6 +23,10 @@ import {
 import { buildGitRuntimeBlobReleaseSnapshot, openGitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
 import { buildRuntimeReleaseMediaClosure, serializeRuntimeReleaseMediaClosure } from '@/lib/runtime-release-media-closure';
 import { stableStringify } from '@/lib/aggregate-governance/hash';
+import {
+  parseExternalInputBundleWire,
+  prepareTextbookExternalInputBundle,
+} from '@/lib/runtime-external-input-bundle';
 
 function argument(name: string) {
   const index = process.argv.indexOf(name);
@@ -38,10 +42,11 @@ function required(name: string) {
 function usage() {
   return [
     'Usage:',
-    '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>]',
-    '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] --output <manifest.json> [--receipt-output <receipt.json>] [--daily-report-output <report.json>]',
+    '  act-runtime-release prepare-external-bundle --repo-root <git-repo> --runtime-root <course-content/runtime> --generated-resources-root <resources> --source-revision <40-sha> --output <bundle.json>',
+    '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] [--external-bundle <bundle.json>] [--external-bundle-root <course-content/runtime>] [--generated-resources-root <resources>]',
+    '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] [--external-bundle <bundle.json>] [--external-bundle-root <course-content/runtime>] [--generated-resources-root <resources>] --output <manifest.json> [--receipt-output <receipt.json>] [--daily-report-output <report.json>]',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--format v1|v2] [--output <closure.json>]',
-    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --manifest <manifest.json> --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--parent-manifest <manifest.json>] [--credential-profile <profile>] [--daily-report-output <report.json>] [--output <receipt.json>]',
+    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --manifest <manifest.json> --external-bundle <bundle.json> --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--external-bundle-root <course-content/runtime>] [--generated-resources-root <resources>] [--parent-manifest <manifest.json>] [--credential-profile <profile>] [--daily-report-output <report.json>] [--output <receipt.json>]',
     '  act-runtime-release import-v1 --source-release-id <immutable-v1-release-id> --source-manifest-sha256 <sha256> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <manifest.json>]',
@@ -166,6 +171,19 @@ async function readParentBlobManifest() {
   return parseRuntimeBlobReleaseManifest(JSON.parse(await readFile(parentManifestPath, 'utf8')));
 }
 
+async function readExternalBundle() {
+  const bundlePath = argument('--external-bundle');
+  if (!bundlePath) return undefined;
+  const bundle = parseExternalInputBundleWire(await readFile(bundlePath));
+  const root = argument('--external-bundle-root') ?? argument('--runtime-root');
+  const generatedRoot = argument('--generated-resources-root');
+  return {
+    ...bundle,
+    ...(root ? { root: path.resolve(root) } : {}),
+    ...(generatedRoot ? { generatedRoot: path.resolve(generatedRoot) } : {}),
+  };
+}
+
 async function buildGitManifest(sourceRevision: string) {
   if (process.argv.includes('--integration-ref')) {
     throw new Error('Production v2 CLI fixes the ancestry authority to origin/integration; --integration-ref is not supported.');
@@ -175,6 +193,7 @@ async function buildGitManifest(sourceRevision: string) {
     sourceRevision,
     integrationRef: 'origin/integration',
     parentManifest: await readParentBlobManifest(),
+    externalBundle: await readExternalBundle(),
   });
 }
 
@@ -189,6 +208,7 @@ async function openPlannedGitManifest(sourceRevision: string) {
     integrationRef: 'origin/integration',
     parentManifest: await readParentBlobManifest(),
     manifest,
+    externalBundle: await readExternalBundle(),
   });
 }
 
@@ -196,6 +216,27 @@ async function main() {
   const command = process.argv[2];
   if (!command || command === '--help' || command === '-h') {
     process.stdout.write(`${usage()}\n`);
+    return;
+  }
+  if (command === 'prepare-external-bundle' || command === 'prepare-textbook-bundle') {
+    const bundle = await prepareTextbookExternalInputBundle({
+      repoRoot: required('--repo-root'),
+      runtimeRoot: required('--runtime-root'),
+      generatedResourcesRoot: required('--generated-resources-root'),
+      sourceRevision: required('--source-revision'),
+      output: required('--output'),
+      externalInputId: argument('--external-input-id'),
+    });
+    await writeOutput(undefined, {
+      externalInputId: bundle.externalInputId,
+      sourceRevision: bundle.sourceRevision,
+      baseSourceRevision: bundle.baseSourceRevision,
+      fileCount: bundle.fileCount,
+      totalBytes: bundle.totalBytes,
+      manifestSha256: bundle.manifestSha256,
+      wireSha256: bundle.wireSha256,
+      output: argument('--output'),
+    });
     return;
   }
   if (!['plan', 'build-manifest', 'verify-media-closure', 'publish-streaming', 'import-v1', 'verify', 'inspect'].includes(command)) throw new Error(usage());
