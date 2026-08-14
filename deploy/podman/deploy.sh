@@ -291,7 +291,7 @@ ACT_TEACHING_PROJECTION_STORE_ROOT="${ACT_TEACHING_PROJECTION_STORE_ROOT:-/app/c
 # An ossfs release is the complete runtime source.  A path persisted by the
 # legacy runtime environment would otherwise create a nested bind mount from
 # the retired local tree and mask this release's projection subtree.
-if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-release" ]; then
+if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-release" ] || [ "$RUNTIME_DELIVERY_MODE" = "ossfs-blob-view" ]; then
   TEACHING_PROJECTION_STORE_DIR="${RUNTIME_CONTENT_DIR}/knowledge/projection"
 fi
 START_WRAPPER_PATH="${START_WRAPPER_PATH:-${PROJECT_DIR}/scripts/container-start-wrapper.sh}"
@@ -357,8 +357,35 @@ require_runtime_delivery_mount() {
         exit 1
       fi
       ;;
+    ossfs-blob-view)
+      if [ "$MODE" = "--db-only" ]; then
+        return 0
+      fi
+      if [ -z "$ACT_RUNTIME_OSS_RAM_ROLE" ]; then
+        echo "ERROR: ossfs-blob-view 模式缺少 ACT_RUNTIME_OSS_RAM_ROLE。" >&2
+        exit 1
+      fi
+      require_cmd findmnt
+      if [ ! -f "$RUNTIME_CONTENT_DIR/.act-runtime-release.v2.json" ] || [ ! -f "$RUNTIME_CONTENT_DIR/.act-runtime-release-materialization.v1.json" ]; then
+        echo "ERROR: ossfs-blob-view 缺少已物化的 v2 runtime 身份工件: $RUNTIME_CONTENT_DIR" >&2
+        exit 1
+      fi
+      local helper_root="$RUNTIME_CONTENT_DIR/.act-runtime-blobs"
+      if [ ! -d "$helper_root" ] || [ -L "$helper_root" ]; then
+        echo "ERROR: ossfs-blob-view 缺少真实 blob helper 目录: $helper_root" >&2
+        exit 1
+      fi
+      if ! findmnt -rn -M "$helper_root" -o FSTYPE | grep -Eq '^fuse(\.|$)'; then
+        echo "ERROR: ossfs-blob-view helper 目录不是 FUSE 挂载: $helper_root" >&2
+        exit 1
+      fi
+      if ! findmnt -rn -M "$helper_root" -o OPTIONS | grep -Eq '(^|,)ro(,|$)'; then
+        echo "ERROR: ossfs-blob-view helper 挂载必须只读: $helper_root" >&2
+        exit 1
+      fi
+      ;;
     *)
-      echo "ERROR: RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release，实际为: $RUNTIME_DELIVERY_MODE" >&2
+      echo "ERROR: RUNTIME_DELIVERY_MODE 必须为 legacy-rsync、ossfs-release 或 ossfs-blob-view，实际为: $RUNTIME_DELIVERY_MODE" >&2
       exit 1
       ;;
   esac

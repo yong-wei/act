@@ -233,6 +233,10 @@ async function buildSnapshotFiles(
 ) {
   const metadata: RuntimeBlobReleaseFileMetadata[] = [];
   const parent = parentFilesByGitObjectId(parentManifest);
+  // A target tree can reference one new Git blob from more than one logical
+  // path. Keep the first streamed result for the duration of this snapshot so
+  // the daily proof boundary is unique source objects, not logical entries.
+  const resolved = new Map(parent);
   const stats: GitRuntimeBlobReleaseSnapshotStats = {
     reusedFileCount: 0,
     reusedBytes: 0,
@@ -240,14 +244,16 @@ async function buildSnapshotFiles(
     hashedBytes: 0,
   };
   for (const entry of entries) {
-    const reused = parent.get(entry.blobObjectId);
-    const digest = reused ?? await inspectBlob(repoRoot, entry.blobObjectId);
+    const parentDigest = parent.get(entry.blobObjectId);
+    const cachedDigest = resolved.get(entry.blobObjectId);
+    const digest = cachedDigest ?? await inspectBlob(repoRoot, entry.blobObjectId);
+    if (!cachedDigest) resolved.set(entry.blobObjectId, digest);
     entry.sizeBytes = digest.sizeBytes;
     entry.sha256 = digest.sha256;
-    if (reused) {
+    if (parentDigest) {
       stats.reusedFileCount += 1;
       stats.reusedBytes += digest.sizeBytes;
-    } else {
+    } else if (!cachedDigest) {
       stats.hashedFileCount += 1;
       stats.hashedBytes += digest.sizeBytes;
     }

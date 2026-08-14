@@ -11,18 +11,18 @@
 - [x] 2.2 Implement a delta planner that reads only the target Git tree metadata and rejects non-Git or generated runtime inputs lacking a Git-tracked stable source identity.
 - [x] 2.3 Implement changed/unknown-only body hashing, SHA/size de-duplication, no-overwrite blob upload, metadata HEAD verification, terminal receipt/manifest publication and exact resumability.
 - [x] 2.4 Implement the local `act-runtime-oss-release-operator` publisher adapter with principal/Bucket/Region/prefix preflight, local single-publisher lock and credential-redacting diagnostics; remove ECS writer authority from the daily path.
-- [ ] 2.5 Add no-op, rename, repeated OID, three-file delta, identical-different-OID, clean-clone-without-cache, missing identity, existing-metadata-mismatch, interrupted upload and manifest-last tests with exact body/HEAD/upload counters.
+- [x] 2.5 Add no-op, rename, repeated OID, three-file delta, identical-different-OID, clean-clone-without-cache, missing identity, existing-metadata-mismatch, interrupted upload and manifest-last tests with exact body/HEAD/upload counters.
 
 ## 3. Fast materialization and runtime-only deployment
 
 - [x] 3.1 Implement parent-view clone plus manifest-delta application, receipt-bound idempotent view reuse, local atomic rename and changed hot-cache update.
-- [ ] 3.2 Replace repeated prepare/select/host body verification with manifest/receipt, topology, helper mount, changed-blob and representative-read checks; keep `audit --sample` and `audit --full` as independent read-only commands.
-- [ ] 3.3 Implement `deploy:runtime`, `deploy:app` and `deploy:all`; ensure runtime-only deployment cannot build images, transfer image tar, manipulate database, Prisma, Nginx/systemd or copy a full runtime tree.
+- [x] 3.2 Replace repeated prepare/select/host body verification with manifest/receipt, topology, helper mount, changed-blob and representative-read checks; keep `audit --sample` and `audit --full` as independent read-only commands.
+- [x] 3.3 Implement `deploy:runtime`, `deploy:app` and `deploy:all`; ensure runtime-only deployment cannot build images, transfer image tar, manipulate database, Prisma, Nginx/systemd or copy a full runtime tree.
 - [ ] 3.4 Prove candidate filesystem/route/media/knowledge/textbook/worker compatibility, helper-path 404, one runtime bind, cold/warm/concurrent index behavior and rollback from a small v2 increment.
 
 ## 4. Operational safety and handoff
 
 - [ ] 4.1 Keep ECS on `act-runtime-oss-read` for normal serving; verify its Put/Delete/Abort denial and record the separate local publisher credential-provider setup without committing credentials.
 - [ ] 4.2 Produce daily, sample and full audit reports with release identity, parent identity, changed counts, body bytes hashed, metadata requests, uploaded bytes, materialization/smoke timing and capacity projection.
-- [ ] 4.3 Update runtime deployment and server-ops runbooks with local-publisher/ECS-reader separation, recovery, GC, audit and rollback evidence.
+- [x] 4.3 Update runtime deployment and server-ops runbooks with local-publisher/ECS-reader separation, recovery, GC, audit and rollback evidence.
 - [ ] 4.4 Run targeted tests, typecheck, lint, runtime/deploy suites and build; prepare a separate production-selection and v1-retirement checklist for explicit authorization.

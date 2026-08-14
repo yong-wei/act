@@ -91,6 +91,67 @@ describe('Git-backed runtime release snapshots', () => {
     });
   });
 
+  it('streams one new Git object once when multiple logical paths reference it', async () => {
+    const { root } = await fixture();
+    const runtimeRoot = path.join(root, 'course-content', 'runtime', 'lessons');
+    await writeFile(path.join(runtimeRoot, 'copy.json'), '{"id":"commit-source"}\n');
+    await git(root, 'add', '.');
+    await git(root, 'commit', '-m', 'duplicate runtime blob');
+    const sourceRevision = await git(root, 'rev-parse', 'HEAD');
+
+    const target = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+
+    expect(target.manifest.files).toHaveLength(2);
+    expect(target.manifest.files[0]?.sha256).toBe(target.manifest.files[1]?.sha256);
+    expect(target.stats).toEqual({ reusedFileCount: 0, reusedBytes: 0, hashedFileCount: 1, hashedBytes: 23 });
+  });
+
+  it('keeps a three-file delta proportional to the three new source objects', async () => {
+    const { root, sourceRevision } = await fixture();
+    const parent = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+    const runtimeRoot = path.join(root, 'course-content', 'runtime', 'lessons');
+    await Promise.all([
+      writeFile(path.join(runtimeRoot, 'delta-one.json'), 'one\n'),
+      writeFile(path.join(runtimeRoot, 'delta-two.json'), 'two\n'),
+      writeFile(path.join(runtimeRoot, 'delta-three.json'), 'three\n'),
+    ]);
+    await git(root, 'add', '.');
+    await git(root, 'commit', '-m', 'three runtime delta files');
+    const targetRevision = await git(root, 'rev-parse', 'HEAD');
+
+    const target = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: targetRevision,
+      integrationRef: 'integration',
+      parentManifest: parent.manifest,
+    });
+
+    expect(target.stats).toEqual({
+      reusedFileCount: 1,
+      reusedBytes: 23,
+      hashedFileCount: 3,
+      hashedBytes: Buffer.byteLength('one\n') + Buffer.byteLength('two\n') + Buffer.byteLength('three\n'),
+    });
+  });
+
+  it('reuses a parent Git object after a logical path rename without rereading it', async () => {
+    const { root, sourceRevision } = await fixture();
+    const parent = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+    await git(root, 'mv', 'course-content/runtime/lessons/lesson.json', 'course-content/runtime/lessons/renamed.json');
+    await git(root, 'commit', '-m', 'rename runtime blob');
+    const sourceRevisionAfterRename = await git(root, 'rev-parse', 'HEAD');
+
+    const target = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: sourceRevisionAfterRename,
+      integrationRef: 'integration',
+      parentManifest: parent.manifest,
+    });
+
+    expect(target.manifest.files.map((file) => file.path)).toEqual(['lessons/renamed.json']);
+    expect(target.stats).toEqual({ reusedFileCount: 1, reusedBytes: 23, hashedFileCount: 0, hashedBytes: 0 });
+  });
+
   it('rejects symlink entries from the Git runtime tree', async () => {
     const { root } = await fixture();
     const runtimeRoot = path.join(root, 'course-content', 'runtime');

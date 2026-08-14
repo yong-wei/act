@@ -427,6 +427,30 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertEqual(verified["fileCount"], 2)
             self.assertNotIn(HELPER_NAME, verified)
 
+    def test_audit_keeps_sample_and_full_body_reads_outside_daily_selection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, {
+                "lessons/1-1/a.json": b"a\n",
+                "lessons/1-1/b.json": b"b\n",
+                "lessons/1-1/c.json": b"c\n",
+            })
+            view_root = root / "views-root"
+            self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.attach_helper(view_root, release_id, blob_root)
+            sampled = self.call("audit", "--release-id", release_id, "--view-root", str(view_root), "--mode", "sample", "--sample-size", "2")
+            self.assertEqual(sampled["schemaVersion"], "runtime-blob-audit.v1")
+            self.assertEqual(sampled["uniqueBlobCount"], 3)
+            self.assertEqual(sampled["auditedBlobCount"], 2)
+            full = self.call("audit", "--release-id", release_id, "--view-root", str(view_root), "--mode", "full")
+            self.assertEqual(full["auditedBlobCount"], 3)
+
+            damaged = view_root / "views" / release_id / HELPER_NAME / hashlib.sha256(b"b\n").hexdigest()
+            os.chmod(damaged, 0o644)
+            damaged.write_bytes(b"broken\n")
+            rejected = self.call("audit", "--release-id", release_id, "--view-root", str(view_root), "--mode", "full", expect_ok=False)
+            self.assertIn("audit content", rejected.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

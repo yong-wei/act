@@ -356,6 +356,8 @@ def verify_mounted_v2(
         if not stat.S_ISLNK(details.st_mode):
             fail(f"mounted runtime logical file is not a symlink: {entry['path']}")
         materializer.require_relative_helper_link(logical, entry["path"], entry["sha256"])
+        if entry["path"] not in verified_body_paths:
+            continue
         target = Path(os.path.realpath(logical))
         try:
             expected_blob = materializer.blob_path(helper, entry["sha256"])
@@ -376,6 +378,7 @@ def verify_mounted_v2(
         "changedPathCount": len(changed_paths),
         "changedBodyReadCount": len(changed_paths),
         "representativeSampleCount": len(representative_paths),
+        "helperLookupCount": len(verified_body_paths - cached_paths),
     }
 
 

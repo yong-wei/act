@@ -176,7 +176,10 @@
     "worker:dev": "npx tsx scripts/workers/data-governance-worker.ts",
     "worker:math-document-grading": "npx tsx scripts/workers/math-document-grading-worker.ts",
     "worker:scheduler": "npx tsx scripts/workers/scheduler.ts",
-    "wasm:build:control-engine": "node ./scripts/wasm/build-control-engine.mjs"
+    "wasm:build:control-engine": "node ./scripts/wasm/build-control-engine.mjs",
+    "deploy:runtime": "bash ./scripts/deploy-runtime-blob-release.sh",
+    "deploy:app": "bash ./scripts/remote-deploy.sh --app-only",
+    "deploy:all": "bash ./scripts/deploy-all-with-runtime-blobs.sh"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.67",

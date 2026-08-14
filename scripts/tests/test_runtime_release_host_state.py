@@ -393,6 +393,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             self.assertEqual(verified["changedPathCount"], 1)
             self.assertEqual(verified["changedBodyReadCount"], 1)
             self.assertEqual(verified["representativeSampleCount"], 3)
+            self.assertEqual(verified["helperLookupCount"], 4)
 
     def test_v2_verification_receipt_can_fence_host_selection(self):
         with tempfile.TemporaryDirectory() as directory:

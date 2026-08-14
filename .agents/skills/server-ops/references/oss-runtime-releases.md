@@ -6,7 +6,7 @@
 
 - 先以只读方式检查 ECS 的磁盘、容器挂载、现有 runtime 体积、RAM Role metadata、`ossfs` 与 `ossutil` 可用性。没有可用 ECS RAM Role 时，停止 OSS 写入、挂载和切换，只提交所需最小 RAM policy；不得改用长期 AccessKey 或把密钥写入仓库、`.env`、脚本或主机配置文件。
 - 需要通过 ECS 控制台投予实例的角色，必须按“云服务 → 云服务器 ECS / ECS”创建，并在信任策略中使用 `ecs.aliyuncs.com`。信任当前云账号的普通 RAM 角色不能由 ECS 扮演；为实例角色创建前应复用已审计的最小 OSS 自定义策略，而不是授予 OSS 全权限。
-- 当生产 ECS 使用单一受限 operator role 时，bridge 必须通过 IMDS 精确匹配已审计的角色名，并且角色策略只覆盖 `runtime/` 前缀；ossfs 和 Podman runtime bind 仍必须只读。bridge 的 publish、verify 与 future GC adapter 仍由独立不可变协议约束，浏览器不获得永久 OSS URL，也不得在容器或脚本中保存永久凭据。
+- 常规服务 ECS 只持有 `act-runtime-oss-read`，只读 ossfs 与 Podman runtime bind 仍必须只读。日常 v2 发布由本机受限 publisher 身份完成：启动时用 caller identity 校验账户、principal、Bucket、Region、endpoint 与前缀，并以本机 `flock` 串行。凭据只来自本机受管 credential provider；不得写入仓库、`.env`、脚本、release manifest 或日志。ECS 只执行只读物化、应用 smoke 和受锁的本地选择；浏览器不获得永久 OSS URL。
 - Bucket 保持私有、阻止公共访问和服务器端加密。需要浏览器访问的媒体由服务端根据 allowlist 生成短时下载重定向；不得把 OSS 签名 URL 固化到 runtime 文件或长期配置。
 - 若 Next.js standalone 应用使用 `ali-oss` 与 `@alicloud/credentials` 生成该重定向，二者必须列为 `serverExternalPackages`，避免 Turbopack 进入 `urllib` 的动态 `proxy-agent` 分支并在生产构建失败；以生产所需 Node heap 完成一次 standalone build 验证。
 
@@ -15,21 +15,28 @@
 - v1 release 只使用不可变的 `runtime/releases/<release-id>/` 前缀；v2 blob release 只使用独立的 `runtime/blob-releases/<release-id>/` 前缀。两个格式允许同一 `{sourceRevision, treeSha256}` 推导出相同 release ID，完整身份必须包含 format、namespace、release ID 与 manifest SHA-256；不得借路径冲突篡改 source identity，也不得在共享前缀中混合读取、验证或删除。
 - `ossutil sync` 的增量比较只适合同一可变目标前缀，不能减少不同不可变 Release 前缀之间的上传或存储；在同一 release id 的中断重试中，由发布桥按对象 key、大小和 SHA-256 精确续传即可。若要跨 Release 复用对象，必须单独设计内容寻址 blob、Release manifest 与可验证的运行态 materialization，不能以 `sync` 覆盖或删除现有 Release。
 - 发布前必须先在声明的内容真源目录计算完整 manifest；仅有相同 Git revision 不足以证明 ECS 既有 runtime 与该真源字节相同。若准备直接以 ECS 本地 runtime 为上传源，必须独立重算其 file count、total bytes 与 tree SHA-256，并与真源 manifest 完全一致；不一致时不得上传 ECS 旧树、不得覆盖正在服务的 legacy runtime，也不得在接近满盘的主机上复制完整 staging 目录。此时应使用经审计的流式本地→ECS publisher transport，或另行准备有容量的发布执行环境。
-- 完整上传后必须从 OSS 重新读取并校验 manifest 与所有对象的大小和哈希；任一缺失或不匹配均不得选择该 Release。不得复用、覆盖或原地修复已经发布的 Release。
-- 完整内容校验由 publisher bridge 的 upload/readback receipt 承担一次。后续验证必须通过 ECS 上的受限 IMDS bridge，而不是在本机伪造角色身份；它只需严格读取 manifest、精确比对对象 key 集合、检查全部元数据并读取有上限的代表性对象。不要在每次切换前重复读取整个 Release；全量 body-hash 审计属于独立周期性诊断。
+- 首次导入、协议升级、存储异常后和人工触发的 full audit 必须从 OSS 重新读取并校验 manifest 与所有唯一 Blob 的大小和哈希；任一缺失或不匹配均不得选择该 Release。不得复用、覆盖或原地修复已经发布的 Release。
+- 日常 v2 发布以 immutable parent manifest 作为证明缓存：只读取、哈希、HEAD 和上传 changed/unknown Git Blob；同 Git OID 的 rename 直接继承，继承 Blob 不得再次下载、重新哈希或逐项 HEAD。Blob 条件写入后立即以大小和 metadata 复核，receipt 先于 terminal manifest 写入。ECS 后续验证只需校验 manifest/receipt、view receipt、只读挂载、拓扑、变更 Blob 与代表性读取；全量 body-hash 审计属于独立周期性诊断。
 - OSS `PutObject` 不具备条件写入语义，不能把对象存储中的可变 `current.json` 当作并发安全的生产指针。单 ECS 的运行时选择使用宿主机 ext4 上受权限保护的 state directory：固定 `flock` 锁、期望 active release、单调 generation、临时文件 `fsync`、原子 rename、目录 `fsync`。desired selection 与 health 后写入的 active receipt 分开保存。
 - 任何仍会替换 Legacy runtime 目录或重建其消费者的部署路径，也必须在远端实际变更脚本内持有同一 `.act-runtime-selection.lock`，覆盖停止消费者、目录提升、容器重建、readiness 与失败恢复；本地调用器或多次 SSH 连接不能构成锁。OSS active receipt 已存在时，Legacy 路径必须失败关闭。
 - 回滚仅选择一个已完整复核的旧 Release；先写 desired，再重新挂载并重启容器，健康检查成功后才更新 active receipt。失败的候选不得覆盖此前 active receipt。
 
 ## ossfs 与 Podman
 
-- 使用 ossfs 2.0、ECS RAM Role 与同地域内网 endpoint。将固定 Release 前缀挂载到独立的宿主机目录，并以只读 bind mount 提供给容器中的 `/app/course-content/runtime`。
-- ossfs 配置中的 `--ram_role` 必须与 ECS IMDS 当前唯一角色名完全一致；角色具备 `GetObject` 并不足够，名称不一致时 FUSE 仍可能显示为 `ro`，但目录无法读取。迁移期间可令只读 ossfs 挂载使用已审计的 operator role；完成后必须将 ECS 实例角色和 `--ram_role` 同步切回 read role。角色切换或 ossfs 重挂载会使已存在的 Podman bind 挂载变为 `Socket not connected`，必须通过受管 stack 的正常启动路径重建 app/worker 容器，再核验容器内 runtime 条目、release manifest 与 `/api/readyz`。
+- 使用 ossfs 2.0、ECS read RAM Role 与同地域内网 endpoint。v2 只读挂载 `runtime/blobs/sha256/` 到独立 blob 根，由本地目录与相对符号链接组成 release view，再以一个只读 bind mount 提供给容器中的 `/app/course-content/runtime`。
+- ossfs 配置中的 `--ram_role` 必须与 ECS IMDS 当前唯一 read role 名完全一致；角色具备 `GetObject` 并不足够，名称不一致时 FUSE 仍可能显示为 `ro`，但目录无法读取。角色切换或 ossfs 重挂载会使已存在的 Podman bind 挂载变为 `Socket not connected`，必须通过受管 stack 的正常启动路径重建 app/worker 容器，再核验容器内 runtime 条目、release manifest 与 `/api/readyz`。
 - ossfs 2.0 的配置文件使用 `ossfs2 mount <mount-root>/<release-id> -c <release-id>.conf`；必须显式写入 `--ro=true`、`--allow_other=true`、目标 uid/gid、`--file_mode=0644` 与 `--dir_mode=0755`。不要依赖 ossfs 默认权限，也不要在配置文件中写 AccessKey/Secret。
 - 不得将现有 `.staging`、`current`、`previous` 的 rsync/rename 发布算法直接运行在 ossfs 挂载点；OSS runtime Release 永远不依赖目录 rename 原子性。
 - 当 ECS 无法同时容纳完整 image tar 与 Podman 解包层时，不得以磁盘 staging、手工管道或删除现有镜像绕过容量。受控流式导入必须先从本地已验证 tar 固定 config image ID、OCI revision 与 layer 字节总量；远端 `GraphRoot` 可用空间必须不少于 layer 总量加 1 GiB。通过该门禁后，同一 SSH stdin 只能同时送入 SHA-256 与 `podman load`，二者结束并精确核对 tar 摘要、image ID 和 revision 后才能激活；空间不足时停止并先扩容。
 - 挂载或切换前后都用 `findmnt -T <mount-root>/<release-id>` 确认 FUSE 与 `ro` 选项，并确认容器 bind mount 的只读状态、容器内目录可遍历性，以及应用实际读取 runtime 与教材热索引的 smoke。保留一个已验证 previous release 与其 rollback receipt。
 - `resources/textbook-retrieval` 的向量和倒排索引必须在 ossfs 挂载后的实际读取基准下评估。只有可重复的明显退化才允许保留有上限、带哈希和失效策略的本地热缓存；不以形式上的全量对象化牺牲检索性能。
+
+## v2 日常增量发布
+
+- `deploy:runtime` 只处理 Git-tree 增量规划、本机发布、ECS view 物化、runtime consumer restart 与 smoke；不得构建镜像、传输 image tar、处理数据库、Prisma、Nginx、systemd 或完整 runtime `rsync`。
+- `deploy:app` 只处理应用镜像与应用部署，保留当前 runtime selection；`deploy:all` 仅在两者都变化时按顺序组合。不要让 runtime-only 修改进入 image/database 发布链路。
+- 目标 revision 必须可从 `origin/integration` 到达。Git tree 中同 OID 的 entry 复用父 manifest 的 SHA/size；没有 stable Git 或显式 external/generated source identity 的文件拒绝发布。运行时未变时返回 parent release 并停止，不创建新 Release。
+- sample/full audit 是独立只读命令。sample 采用稳定样本，full 读取所有唯一 Blob；失败冻结发布和 GC。日常 selection 不得将这两类 audit 重新纳入部署关键路径。
 
 ## 发布与删除顺序
 

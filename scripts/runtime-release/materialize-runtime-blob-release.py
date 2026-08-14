@@ -25,6 +25,7 @@ MANIFEST_SCHEMA = "act-runtime-release.v2"
 RECEIPT_SCHEMA = "act-runtime-release-receipt.v2"
 MATERIALIZATION_SCHEMA = "runtime-blob-materialization.v1"
 MATERIALIZATION_CACHE_SCHEMA = "runtime-blob-materialization.v2"
+AUDIT_SCHEMA = "runtime-blob-audit.v1"
 LOCAL_MANIFEST = ".act-runtime-release.v2.json"
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
 RUNTIME_BLOB_HELPER_NAME = ".act-runtime-blobs"
@@ -680,6 +681,53 @@ def verify(args: argparse.Namespace) -> Dict[str, Any]:
     return verify_view(view, release_id, require_helper_contents=True)
 
 
+def audit(args: argparse.Namespace) -> Dict[str, Any]:
+    """Read a bounded deterministic sample or every unique mounted blob.
+
+    This command is deliberately separate from daily prepare/select paths.
+    """
+    view_root = require_real_directory(Path(args.view_root), "view root")
+    release_id = require_release_id(args.release_id)
+    view = view_root / "views" / release_id
+    receipt, manifest = verify_view_structure(view, release_id)
+    helper = require_helper_directory(view)
+    unique = {}
+    for entry in manifest["files"]:
+        existing = unique.get(entry["sha256"])
+        if existing is not None and existing["sizeBytes"] != entry["sizeBytes"]:
+            fail("manifest uses one blob digest with conflicting sizes")
+        unique[entry["sha256"]] = entry
+    ordered = [unique[key] for key in sorted(unique)]
+    if args.mode == "full":
+        selected = ordered
+    else:
+        sample_size = args.sample_size
+        if sample_size < 1 or sample_size > 64:
+            fail("sample size must be between 1 and 64")
+        if len(ordered) <= sample_size:
+            selected = ordered
+        else:
+            indexes = sorted({(index * (len(ordered) - 1)) // (sample_size - 1) for index in range(sample_size)}) if sample_size > 1 else [0]
+            selected = [ordered[index] for index in indexes]
+    audited_bytes = 0
+    for entry in selected:
+        blob = blob_path(helper, entry["sha256"])
+        if blob.stat().st_size != entry["sizeBytes"] or hash_file(blob) != entry["sha256"]:
+            fail("runtime blob audit content does not match manifest: %s" % entry["sha256"])
+        audited_bytes += entry["sizeBytes"]
+    return {
+        "schemaVersion": AUDIT_SCHEMA,
+        "mode": args.mode,
+        "releaseId": manifest["releaseId"],
+        "manifestSha256": manifest["manifestSha256"],
+        "treeSha256": manifest["treeSha256"],
+        "uniqueBlobCount": len(ordered),
+        "auditedBlobCount": len(selected),
+        "auditedBytes": audited_bytes,
+        "materializationSha256": receipt["materializationSha256"],
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     commands = parser.add_subparsers(dest="command")
@@ -701,6 +749,11 @@ def main() -> None:
     verifier.add_argument("--release-id", required=True)
     verifier.add_argument("--view-root", required=True)
     verifier.add_argument("--blob-root")
+    auditor = commands.add_parser("audit")
+    auditor.add_argument("--release-id", required=True)
+    auditor.add_argument("--view-root", required=True)
+    auditor.add_argument("--mode", choices=("sample", "full"), required=True)
+    auditor.add_argument("--sample-size", type=int, default=3)
     attacher = commands.add_parser("attach-helper")
     attacher.add_argument("--release-id", required=True)
     attacher.add_argument("--view-root", required=True)
@@ -717,6 +770,8 @@ def main() -> None:
         result = active(args)
     elif args.command == "verify":
         result = verify(args)
+    elif args.command == "audit":
+        result = audit(args)
     else:
         parser.error("a command is required")
     print(json.dumps(result, separators=(",", ":"), sort_keys=True))

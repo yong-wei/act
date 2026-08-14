@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import {
   buildRuntimeBlobReleaseManifest,
+  buildRuntimeBlobReleaseReceipt,
   buildRuntimeReleaseManifest,
   deriveRuntimeReleaseId,
   parseRuntimeBlobReleaseManifest,
@@ -38,9 +39,9 @@ function usage() {
   return [
     'Usage:',
     '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>]',
-    '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] --output <manifest.json>',
+    '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] --output <manifest.json> [--receipt-output <receipt.json>]',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--format v1|v2] [--output <closure.json>]',
-    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--credential-profile <profile>] [--output <receipt.json>]',
+    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--parent-manifest <manifest.json>] [--credential-profile <profile>] [--output <receipt.json>]',
     '  act-runtime-release import-v1 --source-release-id <immutable-v1-release-id> --source-manifest-sha256 <sha256> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <manifest.json>]',
@@ -147,6 +148,10 @@ async function main() {
     if (format !== 'v2') throw new Error('build-manifest is reserved for the v2 candidate materialization contract.');
     const snapshot = await buildGitManifest(required('--source-revision'));
     await writeOutput(required('--output'), JSON.parse(serializeRuntimeBlobReleaseManifest(snapshot.manifest)));
+    const receiptOutput = argument('--receipt-output');
+    if (receiptOutput) {
+      await writeOutput(receiptOutput, buildRuntimeBlobReleaseReceipt(snapshot.manifest));
+    }
     return;
   }
   if (command === 'verify-media-closure') {
