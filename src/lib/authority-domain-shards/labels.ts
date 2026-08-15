@@ -19,8 +19,8 @@ const PLAIN_PATH_DIRECTORY = /^[A-Za-z0-9][A-Za-z0-9 ._\-]*$/u;
 const PLAIN_PATH_FILE = /^[A-Za-z0-9][A-Za-z0-9 ._(){}=\-]*$/u;
 const PATH_EXTENSION = /\.[A-Za-z][A-Za-z0-9]{0,15}$/u;
 const RELATIVE_PATH_SEGMENT = /^[A-Za-z0-9._-]+$/u;
-const RELATIVE_PATH_CANDIDATE = /[A-Za-z0-9._-]+(?:[\\/][A-Za-z0-9._-]+)+/gu;
-const PATH_CANDIDATE_BOUNDARY = /[\s=()[\]{}'"`,;:!?，；：！？（）【】「」『』]/u;
+const RELATIVE_PATH_CANDIDATE = /(?<![A-Za-z0-9._-])[A-Za-z0-9._-]+(?:[\\/][A-Za-z0-9._-]+)+(?![A-Za-z0-9._-])/gu;
+const PATH_CANDIDATE_BOUNDARY = /[^A-Za-z0-9._-]/u;
 const EMBEDDED_URI = /(?:^|[^A-Za-z0-9])(?:[A-Za-z][A-Za-z0-9+.-]*:)(?:\/\/|\/|[A-Za-z0-9][A-Za-z0-9+.-]*[/#?])/u;
 const EMBEDDED_DRIVE_PATH = /(?:^|[^A-Za-z0-9])[A-Za-z]:[\\/]/u;
 const EMBEDDED_POSIX_PATH = /(?:^|[^A-Za-z0-9)])\/(?:[A-Za-z0-9._-]+(?:[\\/]|$))/u;
@@ -138,7 +138,10 @@ function isPathCandidateBoundary(value: string, index: number): boolean {
 /**
  * Classify only bounded, ordinary relative candidates. Formula separators are
  * intentionally left alone unless the candidate has enough path structure to
- * be meaningful: three non-atomic segments or a two-segment filename.
+ * be meaningful: three non-atomic segments or a two-segment filename. The
+ * candidate regex consumes the maximal ASCII path-shaped span; its outer
+ * checks use every non-ASCII character as a boundary without enumerating
+ * punctuation.
  */
 function hasBoundedRelativePathStructure(value: string): boolean {
   for (const match of value.matchAll(RELATIVE_PATH_CANDIDATE)) {

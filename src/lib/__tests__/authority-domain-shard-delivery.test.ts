@@ -534,24 +534,48 @@ describe('authority domain shard delivery', () => {
     }
   });
 
-  it('keeps bounded single-character mathematical atoms while rejecting ordinary path structure', () => {
-    for (const label of ['A/B/C', 'a/b/c', 'x/y/z', 'x=A/B/C', '(a/b/c)', '"A/B/C"']) {
-      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(true);
-      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
-      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
-    }
-    for (const label of [
-      'folder/subdir/file',
-      'foo\\bar\\baz',
-      '(folder/subdir/file)',
-      '"foo\\bar\\baz"',
-      'folder/file.txt',
-      'foo\\bar.ext',
-    ]) {
-      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
-      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
-      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
-    }
+  it.each([
+    ['ASCII candidate', 'folder/subdir/file'],
+    ['ASCII quotes', '"folder/subdir/file"'],
+    ['Unicode double quotes', '“folder/subdir/file”'],
+    ['Unicode single quotes', '‘foo\\bar\\baz’'],
+    ['book-title brackets', '《folder/subdir/file》'],
+    ['em dash context', '—folder/subdir/file—'],
+    ['Chinese adjacency', '前folder/subdir/file后'],
+    ['maximal candidate with an atomic suffix trap', 'folder/subdir/fileA/B/C'],
+    ['reverse maximal candidate context', 'A/B/Cfolder/subdir/file'],
+  ])('rejects a bounded relative path with %s', (_case, label) => {
+    expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+  });
+
+  it.each([
+    ['A/B/C', 'A/B/C'],
+    ['a/b/c', 'a/b/c'],
+    ['x/y/z', 'x/y/z'],
+    ['Chinese adjacency around atomic segments', '中文A/B/C中文'],
+    ['non-leading reviewed formula', 'G(s)=K/(s(s+1))'],
+    ['assignment context around atomic segments', 'x=A/B/C'],
+    ['parenthesized atomic segments', '(a/b/c)'],
+    ['quoted atomic segments', '"A/B/C"'],
+  ])('keeps bounded single-character mathematical atoms: %s', (_case, label) => {
+    expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+  });
+
+  it.each([
+    ['ordinary path', 'folder/subdir/file'],
+    ['backslash path', 'foo\\bar\\baz'],
+    ['parenthesized path', '(folder/subdir/file)'],
+    ['quoted path', '"foo\\bar\\baz"'],
+    ['two-segment filename', 'folder/file.txt'],
+    ['backslash filename', 'foo\\bar.ext'],
+  ])('rejects ordinary relative path structure: %s', (_case, label) => {
+    expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
   });
 
   it('requires a trusted Formula profile for leading-backslash formulas', () => {

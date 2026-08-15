@@ -64,10 +64,12 @@ release tokens, and slugs before a trusted Formula receives its narrow `/` and
 `\\` notation exception. Path recognition MUST apply at any position in the
 label and MUST NOT depend on a command whitelist or a TeX parser. A bounded
 ordinary relative candidate consists of segments matching
-`[A-Za-z0-9._-]+` joined by `/` or `\\`, with a string boundary or obvious
-separator on both sides. Three or more such segments MUST be rejected unless
-all segments are single-character mathematical atoms; a two-segment candidate
-MUST be rejected when its final segment has an alphabetic extension. Non-Formula
+`[A-Za-z0-9._-]+` joined by `/` or `\\`. The candidate MUST cover the maximal
+continuous ASCII path-shaped span, and each side MUST be a string boundary or
+any character outside `[A-Za-z0-9._-]`; it MUST NOT be reduced to a merely
+safe-looking subspan. Three or more such segments MUST be rejected unless all
+segments are single-character mathematical atoms; a two-segment candidate MUST
+be rejected when its final segment has an alphabetic extension. Non-Formula
 objects and untrusted runtime profiles MUST continue to reject all slash and
 backslash labels.
 
@@ -116,6 +118,20 @@ backslash labels.
 - **AND WHEN** the same candidate is evaluated without the trusted Formula
   context
 - **THEN** the resolver SHALL fail closed regardless of its structure
+
+#### Scenario: Unicode context forms a candidate boundary
+
+- **WHEN** a trusted Formula contains `“folder/subdir/file”`,
+  `‘foo\\bar\\baz’`, `《folder/subdir/file》`, `—folder/subdir/file—`, or
+  `前folder/subdir/file后`
+- **THEN** the resolver SHALL fail closed
+- **AND WHEN** a trusted Formula contains `中文A/B/C中文`
+- **THEN** the resolver SHALL retain the reviewed value because all extracted
+  segments are single-character mathematical atoms
+- **AND WHEN** a path-shaped value uses Unicode filename segments rather than
+  the ASCII candidate grammar
+- **THEN** this candidate-boundary rule SHALL NOT be interpreted as a Unicode
+  filename parser or a new Unicode path acceptance feature
 
 #### Scenario: Two-segment rooted and UNC forms are distinguished
 

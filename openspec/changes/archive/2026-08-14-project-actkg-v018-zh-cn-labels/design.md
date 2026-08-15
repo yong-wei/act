@@ -162,6 +162,23 @@ non-Formula and untrusted contexts continue to reject every slash or
 backslash. No command whitelist,
 TeX parser, or positive formula-feature allowlist is introduced.
 
+### 12. Unicode candidate boundaries (2026-08-15)
+
+The second Sol DECIDE=A root-cause repair replaces the finite punctuation
+allowlist with one boundary rule: a candidate is bounded by the string edge or
+any character outside `[A-Za-z0-9._-]`. The candidate extractor consumes the
+maximal continuous ASCII path-shaped span joined by `/` or `\\`; it must not
+accept a merely safe-looking subspan. Unicode quotes, book-title brackets,
+em dashes, and Chinese text therefore all form boundaries around an ASCII
+candidate, so `“folder/subdir/file”`, `《folder/subdir/file》`, and
+`前folder/subdir/file后` remain unavailable. `中文A/B/C中文` remains available
+because every extracted segment is a single-character mathematical atom.
+
+Unicode filename paths are explicitly outside this change's target: candidate
+segments remain ASCII and no Unicode filename parser or punctuation category
+(`\\p{P}`) is introduced. Existing URI, drive/POSIX, dot/home, UNC, known
+directory, identity, and trusted Formula gates remain unchanged.
+
 ## Risks / Trade-offs
 
 - Some v0.18 nodes will retain reviewed English or mathematical display names;
