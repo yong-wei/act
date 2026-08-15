@@ -14,6 +14,7 @@ import {
   V09_PREREQUISITE,
   V09_PROJECTION,
   V09_RELEASE_ID,
+  V09_SHARD_SET,
   V09_SNAPSHOT,
   asRecord,
   readJson,
@@ -54,6 +55,7 @@ export interface BuildRunner {
   (input: { repoRoot: string; imageTag: string }): Promise<{
     imageTag: string;
     provenancePath: string | null;
+    imageTarPath: string | null;
   }>;
 }
 
@@ -85,7 +87,11 @@ function assertV09Pointers(pointers: ReturnType<typeof snapshotCurrentPointers>,
   }
   if (projection.projectionId !== V09_PROJECTION) blockers.push('production-projection-not-v09');
   if (prerequisites.publicationId !== V09_PREREQUISITE) blockers.push('production-prerequisite-not-v09');
-  if (shards.releaseId !== V09_RELEASE_ID || shards.snapshotId !== V09_SNAPSHOT) {
+  if (
+    shards.releaseId !== V09_RELEASE_ID
+    || shards.snapshotId !== V09_SNAPSHOT
+    || shards.shardSetId !== V09_SHARD_SET
+  ) {
     blockers.push('production-shards-not-v09');
   }
   if (activation.activationId !== V09_ACTIVATION) blockers.push('production-activation-not-v09');
@@ -110,27 +116,52 @@ function verifyQualificationBinding(qualification: Record<string, unknown>): str
   }
   const authority = asRecord(qualification.authority);
   const teaching = asRecord(qualification.teaching);
+  if (String(qualification.captureRevision ?? '') !== '34e4d9da22b68957371bd2ba760ba9f85b886f3e') {
+    blockers.push('qualification-capture-revision-drift');
+  }
+  if (authority.releaseId !== 'ctr:release:control-theory-engineering-v0.18') {
+    blockers.push('qualification-authority-release-drift');
+  }
   if (authority.snapshotId !== 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed') {
     blockers.push('qualification-authority-identity-drift');
   }
-  if (!String(teaching.projectionId ?? '').startsWith('proj-') || !String(teaching.publicationId ?? '').startsWith('proj-')) {
-    blockers.push('qualification-teaching-identity-incomplete');
+  if (authority.snapshotHash !== '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed') {
+    blockers.push('qualification-authority-hash-drift');
+  }
+  if (teaching.projectionId !== 'proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9') {
+    blockers.push('qualification-projection-identity-drift');
+  }
+  if (teaching.projectionHash !== '17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9') {
+    blockers.push('qualification-projection-hash-drift');
+  }
+  if (teaching.publicationId !== 'proj-0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7') {
+    blockers.push('qualification-publication-identity-drift');
+  }
+  if (teaching.publicationHash !== '0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7') {
+    blockers.push('qualification-publication-hash-drift');
   }
   return blockers;
 }
 
-function verifyProvenance(provenancePath: string | null | undefined, applicationRevision: string): string[] {
-  if (!provenancePath || !existsSync(provenancePath)) {
+function verifyProvenance(
+  built: { provenancePath: string | null; imageTarPath: string | null },
+  applicationRevision: string,
+): string[] {
+  if (!built.provenancePath || !existsSync(built.provenancePath)) {
     return ['provenance-missing'];
   }
-  const provenance = asRecord(readJson(provenancePath));
+  if (!built.imageTarPath || !existsSync(built.imageTarPath)) {
+    return ['image-tar-missing'];
+  }
+  const provenance = asRecord(readJson(built.provenancePath));
   const blockers: string[] = [];
   if (String(provenance.appRevision ?? '') !== applicationRevision) {
     blockers.push('provenance-revision-mismatch');
   }
-  if (!/^[a-f0-9]{64}$/.test(String(provenance.imageTarSha256 ?? ''))) {
-    blockers.push('provenance-image-digest-invalid');
-  }
+  const declared = String(provenance.imageTarSha256 ?? '');
+  const actual = shaFile(built.imageTarPath);
+  if (!/^[a-f0-9]{64}$/.test(declared)) blockers.push('provenance-image-digest-invalid');
+  else if (declared !== actual) blockers.push('provenance-image-digest-mismatch');
   return blockers;
 }
 
@@ -194,7 +225,7 @@ export async function publishActKgV018CutoverRuntime(input: {
     } else {
       const built = await input.runBuild({ repoRoot, imageTag });
       imageTag = built.imageTag;
-      const provenanceBlockers = verifyProvenance(built.provenancePath, applicationRevision);
+      const provenanceBlockers = verifyProvenance(built, applicationRevision);
       if (provenanceBlockers.length === 0) imageBuilt = true;
       else blockers.push(...provenanceBlockers);
     }
@@ -229,6 +260,7 @@ export async function publishActKgV018CutoverRuntime(input: {
       authoritySnapshotId: V09_SNAPSHOT,
       projectionId: V09_PROJECTION,
       publicationId: V09_PREREQUISITE,
+      shardSetId: V09_SHARD_SET,
       activationId: V09_ACTIVATION,
     },
     nextAction: uniqueBlockers.length === 0 ? 'activate-actkg-v018-production-cutover' : 'blocked',

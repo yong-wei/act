@@ -75,8 +75,9 @@ describe('v0.18 runtime publication', () => {
       qualificationReport: mutatedPath,
       runBuild: async () => {
         built = true;
-        return { imageTag: 'should-not-build', provenancePath: null };
+        return { imageTag: 'should-not-build', provenancePath: null, imageTarPath: null };
       },
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
     });
     expect(built).toBe(false);
     expect(result.blockers).toContain('qualification-digest-drift');
@@ -98,9 +99,11 @@ describe('v0.18 runtime publication', () => {
       repoRoot: REPO_ROOT,
       outputRoot,
       qualificationReport: readyPath,
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
       runBuild: async () => ({
         imageTag: 'localhost/act-obe-platform:test',
         provenancePath: path.join(outputRoot, 'missing-provenance.json'),
+        imageTarPath: path.join(outputRoot, 'missing-image.tar'),
       }),
     });
     expect(result.status).toBe('BLOCKED');

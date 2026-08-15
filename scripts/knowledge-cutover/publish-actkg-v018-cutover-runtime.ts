@@ -46,7 +46,11 @@ export async function prepareActKgV018RuntimeRelease(
         },
         stdio: 'inherit',
       });
-      return { imageTag: tag, provenancePath: path.join(root, 'deploy/images/act-obe.tar.provenance.json') };
+      return {
+        imageTag: tag,
+        provenancePath: path.join(root, 'deploy/images/act-obe.tar.provenance.json'),
+        imageTarPath: path.join(root, 'deploy/images/act-obe.tar'),
+      };
     },
   });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
