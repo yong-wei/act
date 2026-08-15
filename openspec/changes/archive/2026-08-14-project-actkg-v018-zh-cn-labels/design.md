@@ -102,6 +102,25 @@ reviewed Formula presentation. That residual case remains bounded by the
 immutable Authority `canonicalType` and admitted runtime profile; it is not a
 fallback for payload text.
 
+### 10. Current-active mobile QA repair (2026-08-15)
+
+Sol DECIDE=B: authenticated QA found that the pre-existing 320px active
+Authority surface allowed the workspace mode controls to overlap the graph
+title and placed no semantic node geometry in the initial viewport. The
+affected screenshot bytes matched the parent revision, so this is not a
+Formula-label regression; it is nevertheless a real current-active QA failure
+and must be corrected before this delivery can honestly pass the visual gate.
+
+The repair remains limited to the active graph presentation at widths below
+640px: reserve header space for the workspace controls, keep the graph toolbar
+and supporting rows horizontally reachable, and require a visible SVG plus at
+least one semantic node in the initial viewport. The product-QA capture fails
+closed on title/control overlap or absent first-viewport graph geometry. It
+does not alter Authority identity, Legacy/candidate routing, activation,
+release selection, or the governance gate's acceptance policy. The repaired
+revision requires a new authenticated capture and independent visual review
+bound to that exact source and screenshot set.
+
 ## Risks / Trade-offs
 
 - Some v0.18 nodes will retain reviewed English or mathematical display names;

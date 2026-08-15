@@ -1531,6 +1531,14 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(labels.every((label) => Number(label.getAttribute('font-size')) >= 13)).toBe(true);
     const typeLabels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-type-label]')];
     expect(typeLabels.every((label) => Number(label.getAttribute('font-size')) >= 11)).toBe(true);
+    expect(container.querySelector('[data-active-authority-header="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-title="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
+
+    const graphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
+    expect(graphSource).toContain('max-[639px]:pt-14');
+    expect(graphSource).toContain('max-[639px]:flex-nowrap');
+    expect(graphSource).toContain('max-[639px]:overflow-x-auto');
   });
 
   it('keeps the desktop layout deterministic and inside the 960x520 viewBox for one to 24 nodes', () => {
@@ -1664,6 +1672,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('activeSvgGeometryRectValid');
     expect(captureSource).toContain('rectWithinActiveSvg');
     expect(captureSource).toContain("state.name === 'active-mobile'");
+    expect(captureSource).toContain('titleControlsOverlap');
+    expect(captureSource).toContain('nodeGeometryWithinViewportCount');
+    expect(captureSource).toContain('active mobile first-viewport geometry contract failed');
     const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
   });

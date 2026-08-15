@@ -38,3 +38,6 @@
   strict archived-change and spec validation.
 - [x] 3.5 Reject the two-segment rooted filename and UNC server/share forms
   while retaining the documented Formula-only no-extension ambiguity.
+- [ ] 3.6 Restore the 320px current-active graph's title/control separation and
+  initial SVG/node visibility; fail closed in product QA and refresh the
+  authenticated visual-review evidence for the repaired revision.

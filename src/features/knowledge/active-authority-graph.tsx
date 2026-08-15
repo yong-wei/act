@@ -1336,11 +1336,14 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph">
-      <header className="border-b border-platform-border bg-platform-surface/95 px-4 py-3">
+      <header
+        className="border-b border-platform-border bg-platform-surface/95 px-4 py-3 max-[639px]:pt-14 max-[639px]:pb-2"
+        data-active-authority-header="true"
+      >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-semibold">当前知识图谱</h2>
+              <h2 className="text-base font-semibold" data-active-authority-title="true">当前知识图谱</h2>
               <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100">工程知识</span>
             </div>
             <p className="mt-1 text-xs text-platform-fg-secondary">先选择知识领域，再按需加载教学骨架与工程关系族。</p>
@@ -1404,16 +1407,16 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
       ) : (
         <div className={`grid min-h-0 flex-1 ${selectedNodeKey ? 'grid-cols-[minmax(0,1fr)_minmax(19rem,27rem)] max-lg:grid-cols-1' : 'grid-cols-1'}`}>
           <main className="min-h-0 overflow-y-auto p-4" aria-label="当前 Authority 知识图谱">
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-3" data-active-authority-toolbar="true">
               <div className="min-w-[15rem] flex-1">
                 <label className="sr-only" htmlFor="active-authority-search">搜索当前 Authority 对象</label>
-                <div className="relative">
+                <div className="relative max-[639px]:shrink-0">
                   <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
                   <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder="搜索对象名称或类型" className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
                 </div>
                 {query || typeFilter ? <SearchResults key={`${typeFilter}\u0000${query}`} results={searchResults} onSelect={focusSearchResult} /> : null}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 max-[639px]:w-full max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
                 <label className="sr-only" htmlFor="active-authority-type-filter">按对象类型筛选</label>
                 <div className="relative">
                   <select
@@ -1439,7 +1442,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                 </div>
                 <span
                   data-authority-relation-family="teaching-order"
-                  className="rounded-md border border-sky-300/50 bg-sky-400/10 px-2.5 py-2 text-xs text-sky-100"
+                  className="rounded-md border border-sky-300/50 bg-sky-400/10 px-2.5 py-2 text-xs text-sky-100 max-[639px]:shrink-0"
                 >
                   教学顺序（默认）
                 </span>
@@ -1447,7 +1450,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                   const enabled = workspace.enabledFamilies.includes(family);
                   const failure = familyFailures[family];
                   return (
-                    <div key={family} className="flex items-center gap-1">
+                    <div key={family} className="flex items-center gap-1 max-[639px]:shrink-0">
                     <button
                       type="button"
                       data-authority-relation-family={family}
@@ -1479,11 +1482,11 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                     </div>
                   );
                 })}
-                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />返回领域</button>
+                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />返回领域</button>
               </div>
             </div>
 
-            <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-platform-fg-secondary" data-authority-relation-legend="true">
+            <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-platform-fg-secondary max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1" data-authority-relation-legend="true">
               <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 bg-sky-300" />教学顺序</span>
               <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 border-t border-dashed border-slate-400" />工程关系</span>
               <span data-authority-teaching-coverage="true">{teachingCoverage?.note ?? '教学关系暂不可用'}</span>
@@ -1507,7 +1510,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
               </section>
             ) : null}
 
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
               <span>{scopedGraph.nodes.length} 个对象 · {scopedGraph.relations.length} 条关系 · 可见范围</span>
               <span>总覆盖 {model.totalNodeCount} 个对象 · {model.totalRelationCount} 条关系</span>
             </div>
