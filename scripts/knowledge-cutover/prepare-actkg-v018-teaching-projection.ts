@@ -152,6 +152,35 @@ export function assertV018AdmittedAuthorityCandidate(input: {
 }): void {
   const outputs = Array.isArray(input.receipt.outputs) ? input.receipt.outputs : [];
   if (outputs.length === 0) fail('v0.18 Authority candidate receipt is missing sealed outputs');
+  const outputPaths = new Set(outputs.map((raw) => String(asRecord(raw).path ?? '')));
+  const required = new Set<string>([path.relative(input.repoRoot, input.receiptPath).split(path.sep).join('/')]);
+  const replays = Array.isArray(input.receipt.replays) ? input.receipt.replays : [];
+  if (replays.length !== 2) fail('v0.18 Authority candidate requires exactly two replay receipts');
+  const replayNames = replays.map((raw) => String(asRecord(raw).name ?? '')).sort();
+  if (replayNames[0] !== 'replay-1' || replayNames[1] !== 'replay-2') {
+    fail('v0.18 Authority candidate requires distinct replay-1 and replay-2 admissions');
+  }
+  const replayRoots = new Set<string>();
+  for (const raw of replays) {
+    const replay = asRecord(raw);
+    const name = String(replay.name ?? '');
+    const marker = `/${name}/`;
+    for (const key of ['manifestPath', 'engineeringPath', 'stageReceiptPath'] as const) {
+      const replayPath = String(replay[key] ?? '');
+      if (!replayPath) fail(`v0.18 Authority replay is missing ${key}`);
+      if (!replayPath.includes(marker)) {
+        fail(`v0.18 Authority ${name} path is not under its own sealed replay root: ${replayPath}`);
+      }
+      required.add(replayPath);
+    }
+    replayRoots.add(name);
+  }
+  if (replayRoots.size !== 2) fail('v0.18 Authority candidate replay roots are not independent');
+  for (const requiredPath of [...required].sort()) {
+    if (!outputPaths.has(requiredPath)) {
+      fail(`v0.18 Authority sealed output list is missing ${requiredPath}`);
+    }
+  }
   for (const raw of outputs) {
     const output = asRecord(raw);
     const relativePath = String(output.path ?? '');
@@ -167,23 +196,6 @@ export function assertV018AdmittedAuthorityCandidate(input: {
       ? sha256(canonicalJson({ ...JSON.parse(bytes.toString('utf8')) as JsonObject, outputs: [] }))
       : sha256(bytes);
     if (actual !== expected) fail(`v0.18 Authority sealed output drifted: ${relativePath}`);
-  }
-  const outputPaths = new Set(outputs.map((raw) => String(asRecord(raw).path ?? '')));
-  const required = new Set<string>([path.relative(input.repoRoot, input.receiptPath).split(path.sep).join('/')]);
-  const replays = Array.isArray(input.receipt.replays) ? input.receipt.replays : [];
-  if (replays.length !== 2) fail('v0.18 Authority candidate requires exactly two replay receipts');
-  for (const raw of replays) {
-    const replay = asRecord(raw);
-    for (const key of ['manifestPath', 'engineeringPath', 'stageReceiptPath'] as const) {
-      const replayPath = String(replay[key] ?? '');
-      if (!replayPath) fail(`v0.18 Authority replay is missing ${key}`);
-      required.add(replayPath);
-    }
-  }
-  for (const requiredPath of [...required].sort()) {
-    if (!outputPaths.has(requiredPath)) {
-      fail(`v0.18 Authority sealed output list is missing ${requiredPath}`);
-    }
   }
 }
 

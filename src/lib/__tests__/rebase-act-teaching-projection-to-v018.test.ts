@@ -230,24 +230,34 @@ describe('v0.18 capture-bound input', () => {
   it('rejects an admitted Authority candidate whose sealed outputs drifted', () => {
     const root = tempRoot();
     const receiptRel = 'course-content/authoring/knowledge/authority/candidates/v018/candidate-receipt.json';
-    const engineeringRel = 'course-content/authoring/knowledge/authority/candidates/v018/engineering.json';
-    mkdirSync(path.join(root, path.dirname(receiptRel)), { recursive: true });
-    writeFileSync(path.join(root, engineeringRel), '{"objects":[]}\n');
+    const replay1 = 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/engineering.json';
+    const replay2 = 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/engineering.json';
+    mkdirSync(path.join(root, path.dirname(replay1)), { recursive: true });
+    mkdirSync(path.join(root, path.dirname(replay2)), { recursive: true });
+    writeFileSync(path.join(root, replay1), '{"objects":[]}\n');
+    writeFileSync(path.join(root, replay2), '{"objects":[]}\n');
+    writeFileSync(path.join(root, receiptRel), '{}\n');
     const receipt = {
       status: 'staged',
-      outputs: [{
-        path: engineeringRel,
-        sha256: '0'.repeat(64),
-        digestScope: 'bytes',
-        byteLength: 1,
-      }],
+      replays: [
+        { name: 'replay-1', manifestPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/manifest.json', engineeringPath: replay1, stageReceiptPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/stage-receipt.json' },
+        { name: 'replay-2', manifestPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/manifest.json', engineeringPath: replay2, stageReceiptPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/stage-receipt.json' },
+      ],
+      outputs: [
+        { path: receiptRel, sha256: '0'.repeat(64), digestScope: 'receipt-body-without-outputs' },
+        { path: replay1, sha256: '0'.repeat(64), digestScope: 'bytes' },
+        { path: replay2, sha256: '0'.repeat(64), digestScope: 'bytes' },
+        { path: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/manifest.json', sha256: '0'.repeat(64), digestScope: 'bytes' },
+        { path: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/manifest.json', sha256: '0'.repeat(64), digestScope: 'bytes' },
+        { path: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/stage-receipt.json', sha256: '0'.repeat(64), digestScope: 'bytes' },
+        { path: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/stage-receipt.json', sha256: '0'.repeat(64), digestScope: 'bytes' },
+      ],
     };
-    writeFileSync(path.join(root, receiptRel), `${JSON.stringify(receipt)}\n`);
     expect(() => assertV018AdmittedAuthorityCandidate({
       repoRoot: root,
       receipt,
       receiptPath: path.join(root, receiptRel),
-    })).toThrow('sealed output drifted');
+    })).toThrow(/sealed output (drifted|is missing)/);
   });
 
   it('rejects an admitted Authority candidate whose sealed output list dropped replay artifacts', () => {
@@ -257,10 +267,12 @@ describe('v0.18 capture-bound input', () => {
     const receipt = {
       status: 'staged',
       replays: [{
+        name: 'replay-1',
         manifestPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/manifest.json',
         engineeringPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/engineering.json',
         stageReceiptPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/stage-receipt.json',
       }, {
+        name: 'replay-2',
         manifestPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/manifest.json',
         engineeringPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/engineering.json',
         stageReceiptPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/stage-receipt.json',
@@ -277,6 +289,46 @@ describe('v0.18 capture-bound input', () => {
       receipt,
       receiptPath: path.join(root, receiptRel),
     })).toThrow(/sealed output (drifted|list is missing)/);
+  });
+
+  it('rejects a cloned first replay counted as the second admission', () => {
+    const root = tempRoot();
+    const receiptRel = 'course-content/authoring/knowledge/authority/candidates/v018/candidate-receipt.json';
+    const clone = 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/engineering.json';
+    mkdirSync(path.join(root, path.dirname(clone)), { recursive: true });
+    writeFileSync(path.join(root, clone), '{"ok":true}\n');
+    writeFileSync(path.join(root, receiptRel), '{}\n');
+    const receipt = {
+      status: 'staged',
+      replays: [
+        {
+          name: 'replay-1',
+          manifestPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/manifest.json',
+          engineeringPath: clone,
+          stageReceiptPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/stage-receipt.json',
+        },
+        {
+          name: 'replay-2',
+          manifestPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/manifest.json',
+          engineeringPath: clone,
+          stageReceiptPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/stage-receipt.json',
+        },
+      ],
+      outputs: [{
+        path: receiptRel,
+        sha256: '0'.repeat(64),
+        digestScope: 'receipt-body-without-outputs',
+      }, {
+        path: clone,
+        sha256: '0'.repeat(64),
+        digestScope: 'bytes',
+      }],
+    };
+    expect(() => assertV018AdmittedAuthorityCandidate({
+      repoRoot: root,
+      receipt,
+      receiptPath: path.join(root, receiptRel),
+    })).toThrow('not under its own sealed replay root');
   });
 });
 
