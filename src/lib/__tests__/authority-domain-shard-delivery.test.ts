@@ -503,6 +503,21 @@ describe('authority domain shard delivery', () => {
     const embeddedPaths = [
       'x=folder/file.txt',
       'x=folder\\file.txt',
+      'x=folder/subdir/file',
+      'x=foo\\bar\\baz',
+      '(folder/subdir/file)',
+      '[folder/subdir/file]',
+      '"folder/subdir/file"',
+      '\'foo\\bar\\baz\'',
+      ' folder/subdir/file ',
+      'folder/subdir/file,',
+      'folder/subdir/file;',
+      'folder/subdir/file:',
+      'x=(folder/subdir/file)',
+      'x="foo\\bar\\baz"',
+      'x= foo/bar/baz ;',
+      'folder/file.txt',
+      'foo\\bar.ext',
       'f=C:\\Users\\a.txt',
       'x=/runtime/formula',
       'x=../runtime/formula',
@@ -516,6 +531,26 @@ describe('authority domain shard delivery', () => {
       expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
       expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
       expect(isSafeAuthorityLabel(label)).toBe(false);
+    }
+  });
+
+  it('keeps bounded single-character mathematical atoms while rejecting ordinary path structure', () => {
+    for (const label of ['A/B/C', 'a/b/c', 'x/y/z', 'x=A/B/C', '(a/b/c)', '"A/B/C"']) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(true);
+      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+    }
+    for (const label of [
+      'folder/subdir/file',
+      'foo\\bar\\baz',
+      '(folder/subdir/file)',
+      '"foo\\bar\\baz"',
+      'folder/file.txt',
+      'foo\\bar.ext',
+    ]) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
     }
   });
 

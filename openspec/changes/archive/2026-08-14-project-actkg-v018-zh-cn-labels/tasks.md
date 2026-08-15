@@ -44,3 +44,6 @@
 - [x] 3.7 Re-qualify the controlled v0.18 Formula display set after allowing
   non-leading LaTeX separators; check complete-string embedded path rejection,
   trusted Formula scoping, and strict archived-change/spec validation.
+- [x] 3.8 Repair the #1408 Formula path recurrence with bounded candidate
+  extraction and structural classification; cover boundary, punctuation,
+  single-atom, and reverse-context regressions without expanding scope.

@@ -62,7 +62,14 @@ the remaining text. The complete original label MUST be checked for unsafe IDs,
 URI and drive/POSIX/relative path forms, known system directories, hashes,
 release tokens, and slugs before a trusted Formula receives its narrow `/` and
 `\\` notation exception. Path recognition MUST apply at any position in the
-label and MUST NOT depend on a command whitelist or a TeX parser.
+label and MUST NOT depend on a command whitelist or a TeX parser. A bounded
+ordinary relative candidate consists of segments matching
+`[A-Za-z0-9._-]+` joined by `/` or `\\`, with a string boundary or obvious
+separator on both sides. Three or more such segments MUST be rejected unless
+all segments are single-character mathematical atoms; a two-segment candidate
+MUST be rejected when its final segment has an alphabetic extension. Non-Formula
+objects and untrusted runtime profiles MUST continue to reject all slash and
+backslash labels.
 
 #### Scenario: A trusted Formula contains reviewed line breaks
 
@@ -94,6 +101,21 @@ label and MUST NOT depend on a command whitelist or a TeX parser.
   mathematical token resembles a filename extension
 - **THEN** the resolver SHALL retain the original reviewed value; a suffix
   alone MUST NOT classify the Formula as a path
+
+#### Scenario: Bounded relative candidates are structurally classified
+
+- **WHEN** a trusted Formula contains a bounded candidate such as
+  `x=folder/subdir/file`, `x=foo\\bar\\baz`, or a parenthesized, quoted,
+  whitespace-delimited, comma-delimited, or semicolon-delimited equivalent
+- **THEN** the resolver SHALL fail closed
+- **AND WHEN** the candidate is `A/B/C`, `a/b/c`, or another sequence whose
+  segments are all single-character mathematical atoms
+- **THEN** the resolver SHALL retain the original reviewed value
+- **AND WHEN** a two-segment candidate ends in an alphabetic extension
+- **THEN** the resolver SHALL fail closed
+- **AND WHEN** the same candidate is evaluated without the trusted Formula
+  context
+- **THEN** the resolver SHALL fail closed regardless of its structure
 
 #### Scenario: Two-segment rooted and UNC forms are distinguished
 

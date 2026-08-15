@@ -18,11 +18,13 @@ const DISALLOWED_CONTROL = /[\u0000-\u0009\u000b-\u000c\u000e-\u001f\u007f]/u;
 const PLAIN_PATH_DIRECTORY = /^[A-Za-z0-9][A-Za-z0-9 ._\-]*$/u;
 const PLAIN_PATH_FILE = /^[A-Za-z0-9][A-Za-z0-9 ._(){}=\-]*$/u;
 const PATH_EXTENSION = /\.[A-Za-z][A-Za-z0-9]{0,15}$/u;
+const RELATIVE_PATH_SEGMENT = /^[A-Za-z0-9._-]+$/u;
+const RELATIVE_PATH_CANDIDATE = /[A-Za-z0-9._-]+(?:[\\/][A-Za-z0-9._-]+)+/gu;
+const PATH_CANDIDATE_BOUNDARY = /[\s=()[\]{}'"`,;:!?，；：！？（）【】「」『』]/u;
 const EMBEDDED_URI = /(?:^|[^A-Za-z0-9])(?:[A-Za-z][A-Za-z0-9+.-]*:)(?:\/\/|\/|[A-Za-z0-9][A-Za-z0-9+.-]*[/#?])/u;
 const EMBEDDED_DRIVE_PATH = /(?:^|[^A-Za-z0-9])[A-Za-z]:[\\/]/u;
 const EMBEDDED_POSIX_PATH = /(?:^|[^A-Za-z0-9)])\/(?:[A-Za-z0-9._-]+(?:[\\/]|$))/u;
-const EMBEDDED_RELATIVE_PATH = /(?:^|[^A-Za-z0-9.])\.\.[\\/]|(?:^|[=:([{])\.[\\/]|(?:^|[=:([{])~[\\/]/u;
-const EMBEDDED_PLAIN_FILE_PATH = /(?:^|[^A-Za-z0-9_.-])(?:[A-Za-z0-9][A-Za-z0-9 ._\-]*[\\/])+[A-Za-z0-9][A-Za-z0-9 ._(){}=\-]*\.[A-Za-z][A-Za-z0-9]{0,15}(?=$|[^A-Za-z0-9_.-])/u;
+const EMBEDDED_RELATIVE_PATH = /(?:^|[^A-Za-z0-9.])\.{1,2}[\\/]|(?:^|[^A-Za-z0-9])~[\\/]/u;
 const EMBEDDED_UNC_PATH = /(?:^|[^A-Za-z0-9])\\\\([^\s\\/]+)[\\/]([^\s\\/]+)(?:[\\/]|$)/u;
 const KNOWN_PATH_DIRECTORY = /(?:^|[^A-Za-z0-9])(?:course-content|src|runtime|releases?|snapshots?|bundles?|artifacts?)(?:[\\/]|$)/iu;
 
@@ -118,6 +120,7 @@ function hasPathStructure(value: string): boolean {
     segments.length >= 3
     && segments.slice(0, -1).every((segment) => PLAIN_PATH_DIRECTORY.test(segment))
     && PLAIN_PATH_FILE.test(last)
+    && !segments.every((segment) => /^[A-Za-z0-9]$/u.test(segment))
   ) return true;
 
   // A double-leading separator has unambiguous UNC server/share structure
@@ -127,6 +130,31 @@ function hasPathStructure(value: string): boolean {
     && segments.every((segment) => PLAIN_PATH_DIRECTORY.test(segment));
 }
 
+function isPathCandidateBoundary(value: string, index: number): boolean {
+  const boundary = value[index];
+  return boundary === undefined || PATH_CANDIDATE_BOUNDARY.test(boundary);
+}
+
+/**
+ * Classify only bounded, ordinary relative candidates. Formula separators are
+ * intentionally left alone unless the candidate has enough path structure to
+ * be meaningful: three non-atomic segments or a two-segment filename.
+ */
+function hasBoundedRelativePathStructure(value: string): boolean {
+  for (const match of value.matchAll(RELATIVE_PATH_CANDIDATE)) {
+    const candidate = match[0]!;
+    const start = match.index;
+    const end = start + candidate.length;
+    if (!isPathCandidateBoundary(value, start - 1) || !isPathCandidateBoundary(value, end)) continue;
+
+    const segments = candidate.split(/[\\/]/u);
+    if (segments.some((segment) => !RELATIVE_PATH_SEGMENT.test(segment))) continue;
+    if (segments.length >= 3 && !segments.every((segment) => /^[A-Za-z0-9]$/u.test(segment))) return true;
+    if (segments.length === 2 && PATH_EXTENSION.test(segments[1]!)) return true;
+  }
+  return false;
+}
+
 function hasEmbeddedPathStructure(value: string): boolean {
   const unc = EMBEDDED_UNC_PATH.exec(value);
   return EMBEDDED_URI.test(value)
@@ -134,8 +162,8 @@ function hasEmbeddedPathStructure(value: string): boolean {
     || EMBEDDED_POSIX_PATH.test(value)
     || EMBEDDED_RELATIVE_PATH.test(value)
     || KNOWN_PATH_DIRECTORY.test(value)
-    || EMBEDDED_PLAIN_FILE_PATH.test(value)
     || (unc !== null && PLAIN_PATH_DIRECTORY.test(unc[1]!) && PLAIN_PATH_DIRECTORY.test(unc[2]!))
+    || hasBoundedRelativePathStructure(value)
     || hasPathStructure(value);
 }
 

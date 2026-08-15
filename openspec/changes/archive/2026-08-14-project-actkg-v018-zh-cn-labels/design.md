@@ -137,6 +137,31 @@ non-shrinking and reachable; the role capture records and fails closed on the
 same title overlap, visible SVG, and visible semantic-node checks for all three
 authenticated roles.
 
+### 11. Formula path recurrence repair (2026-08-15)
+
+The accepted P1 recurrence was caused by classifying only the complete value
+after splitting on separators. A prefix such as `x=` became part of the first
+segment, so `x=folder/subdir/file` and `x=foo\bar\baz` were no longer
+recognized as paths; the same bypass applied when parentheses or quotes
+surrounded the candidate. The prior extension-oriented embedded check also
+missed ordinary three-segment candidates without a filename suffix.
+
+Sol DECIDE=A keeps the existing complete-string fail-closed checks for URI,
+drive/POSIX, dot/home, UNC, known directories, IDs, release/hash tokens, and
+slugs. It adds one bounded candidate extraction for ordinary relative segments
+`[A-Za-z0-9._-]+` joined by `/` or `\\`. A candidate is considered only when
+both sides are a string boundary or an obvious separator (whitespace, =,
+brackets, quotes, comma, semicolon, or colon). Three or more ordinary
+segments are rejected unless every segment is a single-character mathematical
+atom; two
+segments are rejected when the last segment has an alphabetic extension. Thus
+A/B/C and a/b/c remain reviewed Formula values, while
+`folder/subdir/file` and `foo\bar\baz` fail closed. The trusted Formula
+canonical type and admitted runtime profile remain the only exception gate;
+non-Formula and untrusted contexts continue to reject every slash or
+backslash. No command whitelist,
+TeX parser, or positive formula-feature allowlist is introduced.
+
 ## Risks / Trade-offs
 
 - Some v0.18 nodes will retain reviewed English or mathematical display names;
