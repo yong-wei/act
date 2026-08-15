@@ -38,7 +38,7 @@ def digest(value):
     return hashlib.sha256(canonical(value)).hexdigest()
 
 
-def write_release(root: Path, contents, sources=None):
+def write_release(root: Path, contents, sources=None, source_provenance_proof_sha256=None):
     sources = sources or {}
     blob_root = root / "blobs"
     blob_root.mkdir(parents=True)
@@ -83,6 +83,8 @@ def write_release(root: Path, contents, sources=None):
         "blobs": sorted({(item["objectKey"], item["sizeBytes"], item["sha256"]) for item in files}),
     }
     receipt["blobs"] = [{"objectKey": key, "sizeBytes": size, "sha256": sha} for key, size, sha in receipt["blobs"]]
+    if source_provenance_proof_sha256 is not None:
+        receipt["sourceProvenanceProofSha256"] = source_provenance_proof_sha256
     receipt["receiptSha256"] = digest(receipt)
     manifest_path = root / "manifest.json"
     receipt_path = root / "receipt.json"
@@ -214,6 +216,35 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertTrue(selected["selected"])
             self.assertEqual(os.readlink(view_root / "current"), "views/" + release_id)
             self.assertEqual(self.call("active", "--view-root", str(view_root))["activeReleaseId"], release_id)
+
+    def test_materializes_receipt_with_source_provenance_proof_and_rejects_invalid_proof(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            proof = "f" * 64
+            blob_root, manifest, receipt, release_id = write_release(
+                root,
+                {"lessons/1-1/lesson.json": b'{"lesson":"1-1"}\n'},
+                source_provenance_proof_sha256=proof,
+            )
+            view_root = root / "views-root"
+            prepared = self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+            )
+            self.assertTrue(prepared["prepared"])
+            self.assertEqual(json.loads(receipt.read_text(encoding="utf-8"))["sourceProvenanceProofSha256"], proof)
+
+            invalid = json.loads(receipt.read_text(encoding="utf-8"))
+            invalid["sourceProvenanceProofSha256"] = "not-a-sha256"
+            invalid["receiptSha256"] = digest({key: value for key, value in invalid.items() if key != "receiptSha256"})
+            invalid_path = root / "invalid-receipt.json"
+            invalid_path.write_bytes(canonical(invalid) + b"\n")
+            rejected = self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(invalid_path),
+                "--blob-root", str(blob_root), "--view-root", str(root / "invalid-view"),
+                expect_ok=False,
+            )
+            self.assertIn("sourceProvenanceProofSha256 must be a SHA-256 digest", rejected.stderr)
 
     def test_accepts_external_input_source_identity_and_rejects_mixed_or_extra_shapes(self):
         external_source = {
