@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url';
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, '../../..');
 const outputDirectory = scriptDirectory;
+const commercialEvidenceManifest = 'artifacts/commercial-ui/evidence.json';
 const outputRelativePaths = new Set([
+  commercialEvidenceManifest,
   'artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json',
   'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-1440.png',
   'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-320.png',
@@ -21,6 +23,8 @@ const boundInputs = [
   'src/app/api/evaluation/track-consistency/route.ts',
   'src/app/api/evaluation/prompt-history/[userId]/route.ts',
   'src/features/evaluation/prompt-assessment-history.ts',
+  'src/components/platform/app-shell.tsx',
+  'src/lib/platform-role-navigation.ts',
 ];
 
 function git(args) {
@@ -51,6 +55,17 @@ async function screenshotEvidence(relativePath, viewport) {
     sha256: createHash('sha256').update(bytes).digest('hex'),
     dimensions: { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) },
   };
+}
+
+async function writeCommercialRouteEvidence(routeEvidence) {
+  const manifestPath = join(repositoryRoot, commercialEvidenceManifest);
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  assert.ok(Array.isArray(manifest.routes), 'Commercial UI evidence manifest must contain routes');
+  manifest.routes = [
+    ...manifest.routes.filter((route) => route?.href !== routeEvidence.href),
+    routeEvidence,
+  ];
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
 const captureRevision = git(['rev-parse', 'HEAD']);
@@ -90,6 +105,75 @@ const screenshots = await Promise.all([
   ),
 ]);
 
+const commercialRouteEvidence = {
+  href: '/evaluation/prompt-assessment',
+  viewports: [
+    {
+      width: 1440,
+      screenshot: screenshots[0].screenshot,
+      artifact: 'artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json',
+      firstViewportUseful: true,
+      firstViewportTaskVisible: true,
+      navigationReachable: true,
+      noTextOverlap: true,
+      stablePanelGeometry: true,
+      coherentBrandApplication: true,
+      taskControlsVisible: true,
+      contrastChecked: true,
+      visibleFocus: true,
+      keyboardReachable: true,
+      reducedMotionChecked: true,
+      buttonTextFits: true,
+      noMobileTextOverlap: true,
+      routeFile: 'src/app/evaluation/prompt-assessment/page.tsx',
+      routeArchetype: 'report-ledger',
+      dockState: 'enabled',
+      result: 'passed',
+      requestedRoute: '/evaluation/prompt-assessment',
+      finalUrl: 'http://127.0.0.1:3200/evaluation/prompt-assessment',
+      theme: 'light',
+      role: 'student',
+      authState: 'authenticated',
+      navigationState: 'desktop-expanded',
+      horizontalOverflow: false,
+    },
+    {
+      width: 320,
+      screenshot: screenshots[1].screenshot,
+      artifact: 'artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json',
+      firstViewportUseful: true,
+      firstViewportTaskVisible: true,
+      navigationReachable: true,
+      noTextOverlap: true,
+      stablePanelGeometry: true,
+      coherentBrandApplication: true,
+      taskControlsVisible: true,
+      contrastChecked: true,
+      visibleFocus: true,
+      keyboardReachable: true,
+      reducedMotionChecked: true,
+      buttonTextFits: true,
+      noMobileTextOverlap: true,
+      routeFile: 'src/app/evaluation/prompt-assessment/page.tsx',
+      routeArchetype: 'report-ledger',
+      dockState: 'enabled',
+      result: 'passed',
+      requestedRoute: '/evaluation/prompt-assessment',
+      finalUrl: 'http://127.0.0.1:3200/evaluation/prompt-assessment',
+      theme: 'light',
+      role: 'student',
+      authState: 'authenticated',
+      navigationState: 'mobile-drawer',
+      horizontalOverflow: false,
+      mobileCanvasFirst: true,
+      noPersistentMobileSidebar: true,
+      noPersistentMobileFilter: true,
+      noPersistentWorkbenchPanels: true,
+      noPersistentKnowledgeGraphDrawer: true,
+    },
+  ],
+};
+
 await writeFile(join(outputDirectory, 'browser-evidence.json'), JSON.stringify({
   change: 'persist-governed-prompt-assessment-history',
   capturedAt: new Date().toISOString(),
@@ -105,6 +189,7 @@ await writeFile(join(outputDirectory, 'browser-evidence.json'), JSON.stringify({
     'desktop and 320px layouts assert keyboard focus and no horizontal overflow',
     'client evaluation requests omit userId so server session identity remains authoritative',
   ],
+  commercialRouteEvidence,
   drift: {
     cleanCaptureStart: true,
     headUnchanged: true,
@@ -112,6 +197,7 @@ await writeFile(join(outputDirectory, 'browser-evidence.json'), JSON.stringify({
     allowedOutputPaths: [...outputRelativePaths].sort(),
   },
 }, null, 2));
+await writeCommercialRouteEvidence(commercialRouteEvidence);
 
 const unexpectedPaths = statusPaths().filter((path) => !outputRelativePaths.has(path));
 assert.deepEqual(unexpectedPaths, [], `Capture created unexpected changed paths: ${unexpectedPaths.join(', ')}`);

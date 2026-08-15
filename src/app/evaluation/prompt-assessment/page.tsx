@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { ActionStatusPanel } from '@/components/platform/action-status';
+import { AppShell } from '@/components/platform/app-shell';
 import { buildAiAuditTaskState, getAiAuditTaskContract } from '@/lib/ai-task-boundary-contracts';
 
 interface AssessResponse {
@@ -545,22 +546,26 @@ export default function PromptAssessmentPage() {
   }, [autoDemo, autoSeeded, seedDemoHistory]);
 
   return (
-    <div
-      className="surface-page px-4 py-6 md:px-8"
-      data-ai-local-task-surface="prompt-evaluation"
-      data-ai-task-focus-mode="local-first"
-      data-task-workspace-archetype="ai-local-task"
+    <AppShell
+      viewerRole="student"
+      title="学习过程陪伴"
+      subtitle="通过结构化提示词评价和过程一致性校验，支持控制策略的迭代反思。"
+      activeHref="/evaluation/prompt-assessment"
+      sidebarMode="collapsible"
+      breadcrumbs={[
+        { label: '首页', href: '/' },
+        { label: '学习过程陪伴' },
+      ]}
+      className="surface-page"
     >
-      <div className="space-y-6">
+      <div
+        className="space-y-6"
+        data-ai-local-task-surface="prompt-evaluation"
+        data-ai-task-focus-mode="local-first"
+        data-task-workspace-archetype="ai-local-task"
+      >
         <header className="surface-card bg-gradient-to-br from-card via-card to-accent/35 p-5">
-          <p className="text-xs uppercase tracking-[0.28em] text-amber-400">Structure Evaluated</p>
-          <h1 className="mt-1 text-2xl font-semibold">元提示词评价与过程一致性</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。
-          </p>
-          <div className="mt-4">
-            <ActionStatusPanel state={promptTaskState} />
-          </div>
+          <ActionStatusPanel state={promptTaskState} />
           <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-slate-400">
             模式：{mode} · 来源：{promptAuditTaskContext.source ?? 'page-local'} · 任务：{promptAuditTaskContext.assignment ?? 'prompt-assessment'} · 意图：{promptAuditTaskContext.intent} · 输出：{promptTaskContract.outputTarget} · 写回：{promptTaskContract.writebackBehavior}
           </div>
@@ -852,6 +857,6 @@ export default function PromptAssessmentPage() {
           </main>
         </section>
       </div>
-    </div>
+    </AppShell>
   );
 }
