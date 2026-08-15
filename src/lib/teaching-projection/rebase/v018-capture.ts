@@ -473,6 +473,21 @@ export function expectedV018AdmissionSchemaIdentity(input: {
   }).slice(0, 32)}`;
 }
 
+export function environmentIdentityFromObservationParameters(
+  parameters: Record<string, string | number | boolean | null>,
+): string {
+  return `local-loopback:${projectionSha256(JSON.stringify({
+    protocol: String(parameters.databaseProtocol ?? ''),
+    hostname: String(parameters.databaseHost ?? '').toLowerCase(),
+    port: parameters.databasePort == null || parameters.databasePort === ''
+      ? null
+      : String(parameters.databasePort),
+    databaseName: parameters.databaseName == null || parameters.databaseName === ''
+      ? null
+      : String(parameters.databaseName),
+  }))}`;
+}
+
 export interface V018DatabaseUrlSafety {
   accepted: true;
   protocol: 'postgres:' | 'postgresql:';
@@ -591,15 +606,20 @@ export function validateV018DatabaseObservation(input: {
     }
   }
   if (input.requireLoopbackEnvironment) {
-    if (!/^local-loopback:[a-f0-9]{64}$/u.test(observation.environmentIdentity)) {
-      findings.push('database-environment-identity-drift');
-    }
     const host = String(observation.parameters.databaseHost ?? '');
     const protocol = String(observation.parameters.databaseProtocol ?? '');
-    if (host && !['localhost', '127.0.0.1', '::1', '[::1]'].includes(host)) {
+    const port = observation.parameters.databasePort;
+    const databaseName = observation.parameters.databaseName;
+    if (!host || !protocol || port == null || port === '' || databaseName == null || databaseName === '') {
+      findings.push('database-environment-parameters-missing');
+    }
+    if (!['localhost', '127.0.0.1', '::1', '[::1]'].includes(host)) {
       findings.push('database-environment-identity-drift');
     }
-    if (protocol && protocol !== 'postgres:' && protocol !== 'postgresql:') {
+    if (protocol !== 'postgres:' && protocol !== 'postgresql:') {
+      findings.push('database-environment-identity-drift');
+    }
+    if (observation.environmentIdentity !== environmentIdentityFromObservationParameters(observation.parameters)) {
       findings.push('database-environment-identity-drift');
     }
   }

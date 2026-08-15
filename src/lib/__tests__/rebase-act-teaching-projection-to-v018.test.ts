@@ -20,6 +20,7 @@ import {
   buildV018CaptureManifest,
   buildV018ReferenceDenominator,
   collectOverlayInfographReferences,
+  environmentIdentityFromObservationParameters,
   expectedV018AdmissionSchemaIdentity,
   validateV018DatabaseObservation,
   V018_DATABASE_QUERY_CONTRACT_HASH,
@@ -248,6 +249,35 @@ describe('v0.18 capture-bound input', () => {
       receiptPath: path.join(root, receiptRel),
     })).toThrow('sealed output drifted');
   });
+
+  it('rejects an admitted Authority candidate whose sealed output list dropped replay artifacts', () => {
+    const root = tempRoot();
+    const receiptRel = 'course-content/authoring/knowledge/authority/candidates/v018/candidate-receipt.json';
+    mkdirSync(path.join(root, path.dirname(receiptRel)), { recursive: true });
+    const receipt = {
+      status: 'staged',
+      replays: [{
+        manifestPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/manifest.json',
+        engineeringPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/engineering.json',
+        stageReceiptPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-1/stage-receipt.json',
+      }, {
+        manifestPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/manifest.json',
+        engineeringPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/engineering.json',
+        stageReceiptPath: 'course-content/authoring/knowledge/authority/candidates/v018/replay-2/stage-receipt.json',
+      }],
+      outputs: [{
+        path: receiptRel,
+        sha256: '0'.repeat(64),
+        digestScope: 'receipt-body-without-outputs',
+      }],
+    };
+    writeFileSync(path.join(root, receiptRel), `${JSON.stringify(receipt)}\n`);
+    expect(() => assertV018AdmittedAuthorityCandidate({
+      repoRoot: root,
+      receipt,
+      receiptPath: path.join(root, receiptRel),
+    })).toThrow(/sealed output (drifted|list is missing)/);
+  });
 });
 
 describe('v0.18 candidate safety and deterministic evidence', () => {
@@ -330,6 +360,49 @@ describe('v0.18 candidate safety and deterministic evidence', () => {
       bundleDigest: 'b'.repeat(64),
       prerequisiteInputDigest: 'c'.repeat(64),
     })).toMatch(/^actkg_admission_v018_[a-f0-9]{32}$/u);
+
+    const envParameters = {
+      releaseId: 'release-a',
+      snapshotId: 'snap-a',
+      databaseProtocol: 'postgresql:',
+      databaseHost: 'localhost',
+      databasePort: '5432',
+      databaseName: 'act_obe',
+      isolation: 'schema-only-disposable',
+    };
+    const boundObservation = {
+      ...observation,
+      parameters: envParameters,
+      environmentIdentity: environmentIdentityFromObservationParameters(envParameters),
+    };
+    expect(validateV018DatabaseObservation({
+      observation: boundObservation,
+      authoritySnapshotId: 'snap-a',
+      expectedCanonicalIds: new Set(['ctc:a\u001fDomainConcept', 'ctc:b\u001fDomainConcept']),
+      expectedPrerequisiteKeys: new Set(['ctc:a\u001fctc:b\u001fPREREQUISITE']),
+      expectedObjectRowCount: 2,
+      expectedPrerequisiteRowCount: 1,
+      requireLoopbackEnvironment: true,
+    }).accepted).toBe(true);
+    const stripped = {
+      ...boundObservation,
+      parameters: { releaseId: 'release-a', snapshotId: 'snap-a' },
+      environmentIdentity: `local-loopback:${'f'.repeat(64)}`,
+    };
+    const strippedCheck = validateV018DatabaseObservation({
+      observation: stripped,
+      authoritySnapshotId: 'snap-a',
+      expectedCanonicalIds: new Set(['ctc:a\u001fDomainConcept', 'ctc:b\u001fDomainConcept']),
+      expectedPrerequisiteKeys: new Set(['ctc:a\u001fctc:b\u001fPREREQUISITE']),
+      expectedObjectRowCount: 2,
+      expectedPrerequisiteRowCount: 1,
+      requireLoopbackEnvironment: true,
+    });
+    expect(strippedCheck.accepted).toBe(false);
+    expect(strippedCheck.findingCodes).toEqual(expect.arrayContaining([
+      'database-environment-parameters-missing',
+      'database-environment-identity-drift',
+    ]));
   });
 
   it('rejects candidate output that can be consumed by selectors', () => {

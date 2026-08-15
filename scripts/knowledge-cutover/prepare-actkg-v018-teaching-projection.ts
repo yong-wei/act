@@ -168,6 +168,23 @@ export function assertV018AdmittedAuthorityCandidate(input: {
       : sha256(bytes);
     if (actual !== expected) fail(`v0.18 Authority sealed output drifted: ${relativePath}`);
   }
+  const outputPaths = new Set(outputs.map((raw) => String(asRecord(raw).path ?? '')));
+  const required = new Set<string>([path.relative(input.repoRoot, input.receiptPath).split(path.sep).join('/')]);
+  const replays = Array.isArray(input.receipt.replays) ? input.receipt.replays : [];
+  if (replays.length !== 2) fail('v0.18 Authority candidate requires exactly two replay receipts');
+  for (const raw of replays) {
+    const replay = asRecord(raw);
+    for (const key of ['manifestPath', 'engineeringPath', 'stageReceiptPath'] as const) {
+      const replayPath = String(replay[key] ?? '');
+      if (!replayPath) fail(`v0.18 Authority replay is missing ${key}`);
+      required.add(replayPath);
+    }
+  }
+  for (const requiredPath of [...required].sort()) {
+    if (!outputPaths.has(requiredPath)) {
+      fail(`v0.18 Authority sealed output list is missing ${requiredPath}`);
+    }
+  }
 }
 
 function loadCandidateAuthority(repoRoot: string): {
@@ -466,6 +483,7 @@ async function generateDatabaseObservation(input: {
         databaseProtocol: safety.protocol,
         databaseHost: safety.hostname,
         databasePort: safety.port,
+        databaseName: safety.databaseName,
         isolation: safety.isolation,
       },
       objectRows: rows.objectRows.map((row) => ({
