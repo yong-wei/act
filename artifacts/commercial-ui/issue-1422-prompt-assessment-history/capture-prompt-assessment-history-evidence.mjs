@@ -17,6 +17,7 @@ const outputRelativePaths = new Set([
 ]);
 const boundInputs = [
   'artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs',
+  'playwright.config.ts',
   'tests/prompt-assessment-history-1422.spec.ts',
   'src/app/evaluation/prompt-assessment/page.tsx',
   'src/app/api/evaluation/assess-prompt/route.ts',
