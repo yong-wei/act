@@ -1,10 +1,10 @@
 /** Publish a cutover-capable runtime only after READY qualification. */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { projectionDigest } from '../hash';
+import { projectionDigest, projectionSha256 } from '../hash';
 import {
   assertV018ProductionPointersUnchanged,
   snapshotCurrentPointers,
@@ -108,10 +108,10 @@ function assertV09Pointers(pointers: ReturnType<typeof snapshotCurrentPointers>,
 
 function verifyQualificationBinding(
   qualification: Record<string, unknown>,
-  qualificationPath: string,
+  qualificationBytes: Buffer,
 ): string[] {
   const blockers: string[] = [];
-  if (shaFile(qualificationPath) !== V018_SEALED_QUALIFICATION_SHA256) {
+  if (projectionSha256(qualificationBytes) !== V018_SEALED_QUALIFICATION_SHA256) {
     blockers.push('qualification-file-hash-drift');
   }
   if (qualification.contract !== V018_QUALIFICATION_CONTRACT) {
@@ -216,11 +216,20 @@ export async function publishActKgV018CutoverRuntime(input: {
     input.qualificationReport
     ?? path.join(repoRoot, 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18/qualification-readiness.json'),
   );
-  const qualification = existsSync(qualificationPath) ? readJson(qualificationPath) : {};
+  const qualificationBytes = existsSync(qualificationPath) ? readFileSync(qualificationPath) : null;
+  let qualification: Record<string, unknown> = {};
+  if (qualificationBytes) {
+    try {
+      qualification = asRecord(JSON.parse(qualificationBytes.toString('utf8')));
+    } catch {
+      qualification = {};
+      blockers.push('qualification-report-unreadable');
+    }
+  }
   const qualificationStatus = String(qualification.status ?? '');
-  const qualificationDigest = existsSync(qualificationPath) ? shaFile(qualificationPath) : '';
-  if (!existsSync(qualificationPath)) blockers.push('qualification-report-missing');
-  else blockers.push(...verifyQualificationBinding(qualification, qualificationPath));
+  const qualificationDigest = qualificationBytes ? projectionSha256(qualificationBytes) : '';
+  if (!qualificationBytes) blockers.push('qualification-report-missing');
+  else blockers.push(...verifyQualificationBinding(qualification, qualificationBytes));
   if (qualificationStatus !== 'READY') blockers.push('qualification-not-ready');
   if (qualification.publicationOnly !== true) blockers.push('qualification-not-publication-only');
   if (qualification.productionCutoverAuthorized === true) blockers.push('qualification-claimed-cutover');
