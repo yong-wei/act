@@ -10,6 +10,8 @@ export const CURRENT_AGGREGATE_RELEASE_ID = 'control-theory-engineering-v0.2';
 export const CTKG_0_2_AGGREGATE_PROTOCOL = 'ctkg-0.2-aggregate-engineering-release-v1';
 /** Standard public Bundle protocol persisted by the compatible-import path. */
 export const STANDARD_PUBLIC_BUNDLE_PROTOCOL = 'actkg-public-bundle/1';
+/** Typed public Bundle protocol persisted by the v0.18 candidate adapter. */
+export const STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL = 'actkg-public-bundle/2';
 export const STAGED_CANDIDATE_STATE = 'STAGED';
 export const ACCEPTED_CANDIDATE_STATE = 'ACCEPTED_CANDIDATE';
 export const CTKG_0_2_SCHEMA_VERSION = '0.2.0';
@@ -92,12 +94,18 @@ export function isStandardPublicBundleProtocol(protocol: string): boolean {
   return protocol === STANDARD_PUBLIC_BUNDLE_PROTOCOL;
 }
 
+export function isStandardPublicBundleV2Protocol(protocol: string): boolean {
+  return protocol === STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL;
+}
+
 /**
  * True for any candidate that stores runtime Projection rows in the aggregate
  * public tables (exact #1125 or standard Bundle). Historical CTKG 0.1 is false.
  */
 export function isAggregateReleaseProtocol(protocol: string): boolean {
-  return isExactAggregateReleaseProtocol(protocol) || isStandardPublicBundleProtocol(protocol);
+  return isExactAggregateReleaseProtocol(protocol)
+    || isStandardPublicBundleProtocol(protocol)
+    || isStandardPublicBundleV2Protocol(protocol);
 }
 
 export type AuthoritySelector =
@@ -453,6 +461,53 @@ export interface AuthoritativeProjectionLinkMetadataRecord {
   bundleReceiptId: string | null;
 }
 
+/** Typed evidence carried only by the V2 candidate protocol. */
+export interface AuthoritativeV2ProjectionProfileRecord {
+  releaseId: string;
+  profileKey: string;
+  manifestProfile: string;
+  profileId: string;
+  profileSha256: string;
+  projectionKind: string;
+  profileVersion: string;
+  mappingContractVersion: string;
+  aggregationPolicy: string;
+  payload: unknown;
+}
+
+export interface AuthoritativeV2MultilingualLabelRecord {
+  releaseId: string;
+  ordinal: number;
+  entityId: string;
+  language: string;
+  label: string;
+  labelType: string;
+  terminologyAssertionId: string;
+  payload: unknown;
+}
+
+export interface AuthoritativeV2AdmissionBindingRecord {
+  releaseId: string;
+  bundleReceiptId: string;
+  protocol: string;
+  provenance: string;
+  verificationScope: string;
+  verifiedDuringLoad: boolean;
+  registryIdentity: unknown;
+  upstreamRepository: unknown;
+  publicationRevision: unknown;
+  sourceRevision: unknown;
+  bundleIdentity: unknown;
+  bindingDigest: string;
+}
+
+export interface AuthoritativeV2Evidence {
+  protocol: 'actkg-public-bundle/2';
+  profiles: AuthoritativeV2ProjectionProfileRecord[];
+  multilingualLabels: AuthoritativeV2MultilingualLabelRecord[];
+  admissionBinding: AuthoritativeV2AdmissionBindingRecord;
+}
+
 export interface AuthoritativeKnowledgeSnapshot {
   /**
    * Repository authority state for this view.
@@ -487,6 +542,8 @@ export interface AuthoritativeKnowledgeSnapshot {
   bundleArtifacts?: AuthoritativeBundleArtifactRecord[];
   projectionIdentities?: AuthoritativeProjectionIdentityRecord[];
   linkMetadata?: AuthoritativeProjectionLinkMetadataRecord[];
+  /** Present only for the dedicated V2 candidate protocol. */
+  v2Evidence?: AuthoritativeV2Evidence | null;
 }
 
 export type RepositoryResult =

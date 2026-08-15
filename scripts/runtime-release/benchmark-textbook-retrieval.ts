@@ -4,9 +4,9 @@ import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 
 const indexPaths = [
-  'resources/textbook-retrieval/vectors.f32',
-  'resources/textbook-retrieval/bodies.utf8',
-  'resources/textbook-retrieval/lexical-postings.bin',
+  'resources/textbook-hybrid-retrieval/bge-m3/vectors.f32',
+  'resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8',
+  'resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin',
 ];
 
 function argument(name: string) {
@@ -27,33 +27,56 @@ function repetitions() {
   return value;
 }
 
+function concurrency() {
+  const raw = argument('--concurrency') ?? '4';
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 2 || value > 16) throw new Error('--concurrency must be an integer from 2 to 16');
+  return value;
+}
+
+async function readAndHash(absolutePath: string) {
+  const started = performance.now();
+  const source = await readFile(absolutePath);
+  return {
+    elapsedMilliseconds: Number((performance.now() - started).toFixed(3)),
+    sha256: createHash('sha256').update(source).digest('hex'),
+  };
+}
+
 async function main() {
   const runtimeRoot = required('--runtime-root');
   const sourceRevision = required('--source-revision');
   if (!/^[0-9a-f]{40}$/u.test(sourceRevision)) throw new Error('--source-revision must be a 40-character Git revision');
   const output = argument('--output');
   const runs = repetitions();
+  const concurrentReaders = concurrency();
   const files = [];
   for (const relativePath of indexPaths) {
     const absolutePath = path.join(runtimeRoot, ...relativePath.split('/'));
     const expected = await stat(absolutePath);
-    const measurements: number[] = [];
-    let sha256 = '';
+    const cold = await readAndHash(absolutePath);
+    const warm = [];
     for (let run = 0; run < runs; run += 1) {
-      const started = performance.now();
-      const source = await readFile(absolutePath);
-      measurements.push(Number((performance.now() - started).toFixed(3)));
-      const digest = createHash('sha256').update(source).digest('hex');
-      if (sha256 && sha256 !== digest) throw new Error(`File changed while benchmarking: ${relativePath}`);
-      sha256 = digest;
+      warm.push(await readAndHash(absolutePath));
     }
-    files.push({ relativePath, sizeBytes: expected.size, sha256, readMilliseconds: measurements });
+    const concurrent = await Promise.all(Array.from({ length: concurrentReaders }, () => readAndHash(absolutePath)));
+    const hashes = [cold.sha256, ...warm.map((measurement) => measurement.sha256), ...concurrent.map((measurement) => measurement.sha256)];
+    if (new Set(hashes).size !== 1) throw new Error(`File changed while benchmarking: ${relativePath}`);
+    files.push({
+      relativePath,
+      sizeBytes: expected.size,
+      sha256: cold.sha256,
+      coldReadMilliseconds: [cold.elapsedMilliseconds],
+      warmReadMilliseconds: warm.map((measurement) => measurement.elapsedMilliseconds),
+      concurrentReadMilliseconds: concurrent.map((measurement) => measurement.elapsedMilliseconds),
+    });
   }
   const result = {
     schemaVersion: 'runtime-textbook-retrieval-benchmark.v1',
     sourceRevision,
     runtimeRootKind: argument('--runtime-root-kind') ?? 'unspecified',
     repetitions: runs,
+    concurrency: concurrentReaders,
     files,
   };
   if (output) {

@@ -146,7 +146,7 @@ function createDb(overrides: Record<string, unknown> = {}) {
           outcome: 'success',
           score: 86,
           timeSpent: 180,
-          contextJson: { adaptiveAssessment: { knowledgeTags: ['root-locus'] } },
+          contextJson: governedContext({ adaptiveAssessment: { knowledgeTags: ['root-locus'] } }),
         },
         {
           id: 'fact-media',
@@ -158,7 +158,7 @@ function createDb(overrides: Record<string, unknown> = {}) {
           outcome: 'partial',
           score: 55,
           timeSpent: 600,
-          contextJson: { media: { mediaType: 'video', progress: 0.58 } },
+          contextJson: governedContext({ media: { mediaType: 'video', progress: 0.58 } }),
         },
         {
           id: 'fact-sim',
@@ -170,7 +170,7 @@ function createDb(overrides: Record<string, unknown> = {}) {
           outcome: 'success',
           score: 72,
           timeSpent: 720,
-          contextJson: { simulation: { launchMode: 'course-resource' } },
+          contextJson: governedContext({ simulation: { launchMode: 'course-resource' } }),
         },
       ],
     },
@@ -324,19 +324,42 @@ function pathExecutionFeature(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function governedContext(context: Record<string, unknown> = {}) {
+  const declaredGovernance = context.evidenceGovernance;
+  const evidenceGovernance = declaredGovernance && typeof declaredGovernance === 'object' && !Array.isArray(declaredGovernance)
+    ? declaredGovernance
+    : {};
+  return {
+    ...context,
+    evidenceGovernance: {
+      evidenceQuality: 'rich',
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'rich_objective_evidence',
+      ...evidenceGovernance,
+    },
+  };
+}
+
 function controlCorrectionFact(
   factType: string,
   startedAt: string,
   score: number,
   overrides: Record<string, unknown> = {},
 ) {
+  const { contextJson, ...rest } = overrides;
   return {
     id: `fact-${factType}-${startedAt}`,
     factType,
     startedAt: new Date(startedAt),
     score,
-    contextJson: { goalId: 'control-correction' },
-    ...overrides,
+    contextJson: governedContext({
+      goalId: 'control-correction',
+      ...(contextJson && typeof contextJson === 'object' && !Array.isArray(contextJson)
+        ? contextJson as Record<string, unknown>
+        : {}),
+    }),
+    ...rest,
   };
 }
 
@@ -542,6 +565,118 @@ describe('adaptive learner state service', () => {
       privacyScope: 'student-visible',
       confidencePolicy: 'assessment-backed-mastery',
     });
+  });
+
+  it('excludes ungoverned facts from resource preference and media absorption', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [{
+          id: 'unmanaged-media', factType: 'media', moduleId: 'unit-3-4',
+          startedAt: new Date('2026-05-19T00:00:00.000Z'), finishedAt: new Date('2026-05-19T00:10:00.000Z'),
+          outcome: 'success', score: 80, timeSpent: 600,
+          contextJson: { media: { mediaType: 'video', progress: 0.9 } },
+        }],
+      },
+    }), { userId: 'student-1', role: 'student', now: new Date('2026-05-20T03:00:00.000Z') });
+
+    expect(state.resourcePreference.preferredModalities).toEqual([]);
+    expect(state.mediaAbsorption.mediaFactCount).toBe(0);
+  });
+
+  it('excludes zero-weight and skipped facts from resource preference and media absorption', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [
+          {
+            id: 'context-only-media', factType: 'media', moduleId: 'unit-3-4',
+            startedAt: new Date('2026-05-19T00:00:00.000Z'), finishedAt: new Date('2026-05-19T00:10:00.000Z'),
+            outcome: 'success', score: 80, timeSpent: 600,
+            contextJson: {
+              media: { mediaType: 'video', progress: 0.9 },
+              evidenceGovernance: {
+                evidenceQuality: 'context-only', profileWeight: 0,
+                skipProfileContribution: false, policyReason: 'context-only-source',
+              },
+            },
+          },
+          {
+            id: 'skipped-simulation', factType: 'simulation', moduleId: 'unit-3-4',
+            startedAt: new Date('2026-05-19T00:00:00.000Z'), finishedAt: new Date('2026-05-19T00:10:00.000Z'),
+            outcome: 'success', score: 80, timeSpent: 600,
+            contextJson: {
+              evidenceGovernance: {
+                evidenceQuality: 'context-only', profileWeight: 1,
+                skipProfileContribution: true, policyReason: 'context-only-source',
+              },
+            },
+          },
+        ],
+      },
+    }), { userId: 'student-1', role: 'student', now: new Date('2026-05-20T03:00:00.000Z') });
+
+    expect(state.resourcePreference.preferredModalities).toEqual([]);
+    expect(state.mediaAbsorption.mediaFactCount).toBe(0);
+  });
+
+  it('pages past context-only facts before deriving resource and media preferences', async () => {
+    const contextOnlyFacts = Array.from({ length: 101 }, (_, index) => ({
+      id: `context-only-${index}`,
+      factType: 'simulation',
+      moduleId: 'unit-3-4',
+      startedAt: new Date('2026-05-19T00:00:00.000Z'),
+      finishedAt: new Date('2026-05-19T00:10:00.000Z'),
+      outcome: 'success',
+      score: 80,
+      timeSpent: 600,
+      contextJson: {
+        evidenceGovernance: {
+          evidenceQuality: 'context-only',
+          profileWeight: 0,
+          skipProfileContribution: true,
+          policyReason: 'context-only-source',
+        },
+      },
+    }));
+    const rows = [...contextOnlyFacts, {
+      id: 'eligible-media',
+      factType: 'media',
+      moduleId: 'unit-3-4',
+      startedAt: new Date('2026-05-18T00:00:00.000Z'),
+      finishedAt: new Date('2026-05-18T00:10:00.000Z'),
+      outcome: 'success',
+      score: 90,
+      timeSpent: 600,
+      contextJson: {
+        media: { mediaType: 'video', progress: 0.9 },
+        evidenceGovernance: {
+          evidenceQuality: 'governed',
+          profileWeight: 1,
+          skipProfileContribution: false,
+          policyReason: 'approved-source',
+        },
+      },
+    }];
+    const calls: Array<{ cursor?: { id: string } }> = [];
+    const findMany = async (args: { cursor?: { id: string }; take?: number }) => {
+      calls.push(args);
+      const start = args.cursor
+        ? rows.findIndex((fact) => fact.id === args.cursor?.id) + 1
+        : 0;
+      return rows.slice(start, start + (args.take ?? 100));
+    };
+
+    const state = await readAdaptiveLearnerState(createDb({ learningFact: { findMany } }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(state.resourcePreference).toMatchObject({
+      preferredModalities: ['media'],
+      sourceCounts: { media: 1 },
+    });
+    expect(state.mediaAbsorption).toMatchObject({ mediaFactCount: 1, averageCompletion: 0.9 });
+    expect(calls).toContainEqual(expect.objectContaining({ cursor: { id: 'context-only-99' } }));
   });
 
   it.each([
@@ -750,7 +885,10 @@ describe('adaptive learner state service', () => {
               },
             },
           },
-        ],
+        ].map((fact) => ({
+          ...fact,
+          contextJson: governedContext(fact.contextJson),
+        })),
       },
     }), {
       userId: 'student-1',
@@ -1625,7 +1763,7 @@ describe('adaptive learner state service', () => {
     });
   });
 
-  it('counts approved materialized AgentToolRun learning facts from the simulation agent materializer', async () => {
+  it('keeps approved materialized AgentToolRun facts out of personalized goal evidence', async () => {
     const materialized = buildSimulationAgentEvidenceMaterialization({
       agentToolRuns: [
         {
@@ -1662,6 +1800,13 @@ describe('adaptive learner state service', () => {
     expect(materialized.learningFacts).toHaveLength(1);
 
     const fact = materialized.learningFacts[0] as Record<string, unknown>;
+    expect(fact.contextJson).toMatchObject({
+      evidenceGovernance: {
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'unmanaged_learning_fact_context_only',
+      },
+    });
     const state = await readAdaptiveLearnerState(createDb({
       learningFact: {
         findMany: async () => [
@@ -1683,9 +1828,9 @@ describe('adaptive learner state service', () => {
     expect(slice).toBeDefined();
     if (!slice) throw new Error('expected control-correction goal slice');
     expect(slice.dimensions.find((dimension) => dimension.id === 'ai-collaboration')).toMatchObject({
-      evidenceCount: 1,
-      sourceCoverage: expect.objectContaining({ aiCollaboration: 'available' }),
-      evidenceProvenance: expect.objectContaining({ aiCollaboration: 'governed-ai-collaboration' }),
+      evidenceCount: 0,
+      sourceCoverage: expect.objectContaining({ aiCollaboration: 'missing' }),
+      evidenceProvenance: expect.objectContaining({ aiCollaboration: 'missing' }),
     });
   });
 
@@ -1834,6 +1979,61 @@ describe('adaptive learner state service', () => {
       sourceCoverage: expect.objectContaining({ reflection: 'available' }),
     });
     expect(explicitPage).toBe(2);
+  });
+
+  it('scans beyond ten context-only pages for an eligible control-correction fact', async () => {
+    let explicitPage = 0;
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async (args: any) => {
+          if (args.take === 100) {
+            return [];
+          }
+          const goals = (args.where?.OR ?? [])
+            .map((condition: any) => condition.contextJson?.path?.join('.'))
+            .filter(Boolean);
+          if (!(goals.includes('goalId') && goals.includes('learningGoal') && args.where.OR.length === 4)) {
+            return [];
+          }
+          explicitPage += 1;
+          if (explicitPage <= 11) {
+            return Array.from({ length: 500 }, (_, index) => ({
+              id: `context-only-page-${explicitPage}-fact-${index}`,
+              factType: 'reflection',
+              startedAt: new Date('2026-05-19T00:00:00.000Z'),
+              score: 90,
+              contextJson: {
+                goalId: 'control-correction',
+                evidenceGovernance: {
+                  evidenceQuality: 'context-only',
+                  profileWeight: 0,
+                  skipProfileContribution: true,
+                  policyReason: 'audit-only-source',
+                },
+              },
+            }));
+          }
+          return [
+            controlCorrectionFact('reflection', '2026-04-01T00:00:00.000Z', 86, {
+              id: 'eligible-after-eleven-pages',
+              contextJson: { goalId: 'control-correction' },
+            }),
+          ];
+        },
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'reflection')).toMatchObject({
+      evidenceCount: 1,
+      sourceCoverage: expect.objectContaining({ reflection: 'available' }),
+    });
+    expect(explicitPage).toBe(12);
   });
 
   it('counts Arena-context design facts as preview Arena evidence for control-correction', async () => {
@@ -2227,6 +2427,23 @@ describe('adaptive learner state service', () => {
                 adaptiveAssessmentRef: { answerId: 'answer-unresolvable' },
               },
             },
+          }),
+          controlCorrectionFact('assessment', '2026-05-17T00:00:00.000Z', 70, {
+            id: 'context-only-answer-fact',
+            moduleId: 'adaptive-assessment',
+            sourceEventId: 'adaptive-assessment:answer-missing',
+            contextJson: {
+              goalId: 'control-correction',
+              adaptiveAssessment: {
+                adaptiveAssessmentRef: { answerId: 'answer-missing' },
+              },
+              evidenceGovernance: {
+                evidenceQuality: 'context-only',
+                profileWeight: 0,
+                skipProfileContribution: true,
+                policyReason: 'audit-only-source',
+              },
+            },
           })];
         },
       },
@@ -2290,6 +2507,9 @@ describe('adaptive learner state service', () => {
     )?.eventReferences).toEqual([]);
     expect(state.knowledgeMastery.tags['control-correction:simulation-validation']?.eventReferences).toEqual([]);
     expect(state.knowledgeMastery.tags['control-correction:time-domain-targets']?.eventReferences).toEqual([]);
+    expect(JSON.stringify(state.knowledgeMastery.tags['control-correction:time-domain-targets'])).not.toContain(
+      'context-only-answer-fact',
+    );
     expect(plan.visualization.evidence.learnerStateDeficits.find((deficit) =>
       deficit.targetId === 'control-correction:simulation-validation'
     )?.eventReferences).toEqual([]);

@@ -6,6 +6,8 @@
  * projection fields and adds a small, role-safe activation provenance block.
  */
 
+import type { AuthorityNodeLearningContent } from '@/lib/authority-domain-shards/contracts';
+
 export interface ActiveAuthoritySource {
   authorityState: 'active';
   releaseSetId: string;
@@ -44,6 +46,7 @@ export interface ActiveCanvasNode {
   id: string;
   canonicalType: string;
   label: string;
+  aliases?: readonly string[];
   description: string | null;
   governance: {
     reviewStatus: string | null;
@@ -71,6 +74,8 @@ export interface ActiveCanvasRelation {
     publicationStatus: string | null;
   };
   relationFamily?: string;
+  /** Presentation grammar only; never rendered as a raw product string. */
+  layer?: 'ENGINEERING' | 'ACT_TEACHING';
   evidenceState?: string;
   releaseTier?: string | null;
   semanticSupport: { supported: boolean; readOnly: true };
@@ -147,6 +152,7 @@ export interface ActiveNodeDetailResponse {
       publicationStatus: string | null;
       lifecycleStatus: string | null;
     };
+    learningContent?: AuthorityNodeLearningContent;
     coverage?: {
       sourceMappingCount: number;
       evidenceCount: number;
@@ -162,4 +168,3 @@ export interface ActiveNodeDetailResponse {
   };
   provenance: ActiveAuthorityProvenance;
 }
-

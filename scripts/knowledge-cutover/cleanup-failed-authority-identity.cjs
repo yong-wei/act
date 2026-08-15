@@ -9,7 +9,7 @@ const archivePath = process.argv[3];
 const transactionId = process.argv[4];
 const authorityRoot = process.argv[5];
 const AUTHORITY_PREFIX = 'course-content/authoring/knowledge/authority/';
-const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v1';
+const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v2';
 if (!planPath || !archivePath || !transactionId || !authorityRoot) {
   process.stderr.write('ERROR: cleanup identity delete requires plan archive transactionId authorityRoot\n');
   process.exit(1);

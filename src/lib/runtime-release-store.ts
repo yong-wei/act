@@ -5,13 +5,23 @@ import path from 'node:path';
 import { Readable } from 'node:stream';
 
 import {
+  type ActRuntimeBlobReleaseReceipt,
+  type ActRuntimeBlobReleaseManifest,
   ACT_RUNTIME_RELEASE_MANIFEST_FILENAME,
+  assertRuntimeBlobReleaseReceiptMatchesManifest,
   assertContentAddressedRuntimeReleaseId,
   computeRuntimeReleaseManifestWireSha256,
   type ActRuntimeReleaseManifest,
+  parseRuntimeBlobReleaseManifest,
+  parseRuntimeBlobReleaseReceipt,
   parseRuntimeReleaseManifest,
+  runtimeBlobReleaseManifestObjectKey,
+  runtimeBlobReleaseReceiptObjectKey,
+  runtimeBlobReleaseManifestWireSha256,
   runtimeReleaseManifestObjectKey,
   runtimeReleaseObjectKey,
+  serializeRuntimeBlobReleaseManifest,
+  serializeRuntimeBlobReleaseReceipt,
   serializeRuntimeReleaseManifest,
   verifyRuntimeReleaseDirectory,
 } from '@/lib/runtime-release';
@@ -47,6 +57,18 @@ export interface RuntimeReleaseVerificationReceipt {
   totalBytes: number;
 }
 
+export interface RuntimeBlobReleaseVerificationReceipt {
+  schemaVersion: 'runtime-release-verification.v2';
+  releaseId: string;
+  manifestObjectKey: string;
+  manifestSha256: string;
+  wireSha256: string;
+  wireSizeBytes: number;
+  treeSha256: string;
+  fileCount: number;
+  totalBytes: number;
+}
+
 export class RuntimeReleaseStoreError extends Error {
   constructor(public readonly code: string, message: string, options?: ErrorOptions) {
     super(message, options);
@@ -56,6 +78,10 @@ export class RuntimeReleaseStoreError extends Error {
 
 export function runtimeReleasePrefix(releaseId: string) {
   return `runtime/releases/${releaseId}/`;
+}
+
+export function runtimeBlobReleasePrefix(releaseId: string) {
+  return `runtime/blob-releases/${releaseId}/`;
 }
 
 async function readStream(stream: Readable) {
@@ -156,6 +182,51 @@ export async function inspectPublishedRuntimeRelease(store: RuntimeReleaseObject
   return manifest;
 }
 
+export async function inspectPublishedRuntimeBlobRelease(store: RuntimeReleaseObjectReader, releaseId: string) {
+  const manifestKey = runtimeBlobReleaseManifestObjectKey(releaseId);
+  let raw: Buffer;
+  try {
+    raw = await readStream(await store.getObject(manifestKey));
+  } catch (error) {
+    throw new RuntimeReleaseStoreError('runtime-release-remote-manifest-missing', `Remote runtime blob release manifest is unavailable: ${manifestKey}`, { cause: error });
+  }
+  let manifest: ActRuntimeBlobReleaseManifest;
+  try {
+    manifest = parseRuntimeBlobReleaseManifest(JSON.parse(raw.toString('utf8')));
+  } catch (error) {
+    throw new RuntimeReleaseStoreError('runtime-release-remote-manifest-invalid', 'Remote runtime blob release manifest is invalid.', { cause: error });
+  }
+  if (manifest.releaseId !== releaseId || !raw.equals(Buffer.from(serializeRuntimeBlobReleaseManifest(manifest)))) {
+    throw new RuntimeReleaseStoreError('runtime-release-remote-manifest-invalid', 'Remote runtime blob release manifest is not canonical or is release-mismatched.');
+  }
+  return manifest;
+}
+
+export async function inspectPublishedRuntimeBlobReleaseReceipt(
+  store: RuntimeReleaseObjectReader,
+  releaseId: string,
+  manifest: ActRuntimeBlobReleaseManifest,
+): Promise<ActRuntimeBlobReleaseReceipt> {
+  const receiptKey = runtimeBlobReleaseReceiptObjectKey(releaseId);
+  let raw: Buffer;
+  try {
+    raw = await readStream(await store.getObject(receiptKey));
+  } catch (error) {
+    throw new RuntimeReleaseStoreError('runtime-release-remote-receipt-missing', `Remote runtime blob release receipt is unavailable: ${receiptKey}`, { cause: error });
+  }
+  let receipt: ActRuntimeBlobReleaseReceipt;
+  try {
+    receipt = parseRuntimeBlobReleaseReceipt(JSON.parse(raw.toString('utf8')));
+    assertRuntimeBlobReleaseReceiptMatchesManifest(receipt, manifest);
+  } catch (error) {
+    throw new RuntimeReleaseStoreError('runtime-release-remote-receipt-invalid', 'Remote runtime blob release receipt is invalid.', { cause: error });
+  }
+  if (!raw.equals(Buffer.from(serializeRuntimeBlobReleaseReceipt(receipt)))) {
+    throw new RuntimeReleaseStoreError('runtime-release-remote-receipt-invalid', 'Remote runtime blob release receipt is not canonical.');
+  }
+  return receipt;
+}
+
 export async function verifyPublishedRuntimeRelease(store: RuntimeReleaseObjectReader, releaseId: string): Promise<RuntimeReleaseVerificationReceipt> {
   const manifest = await inspectPublishedRuntimeRelease(store, releaseId);
   const objects = await store.listObjects(runtimeReleasePrefix(releaseId));
@@ -171,6 +242,49 @@ export async function verifyPublishedRuntimeRelease(store: RuntimeReleaseObjectR
     releaseId: manifest.releaseId,
     manifestSha256: manifest.manifestSha256,
     wireSha256: computeRuntimeReleaseManifestWireSha256(manifest),
+    treeSha256: manifest.treeSha256,
+    fileCount: manifest.fileCount,
+    totalBytes: manifest.totalBytes,
+  };
+}
+
+export async function verifyPublishedRuntimeBlobRelease(store: RuntimeReleaseObjectReader, releaseId: string): Promise<RuntimeBlobReleaseVerificationReceipt> {
+  const manifest = await inspectPublishedRuntimeBlobRelease(store, releaseId);
+  const manifestKey = runtimeBlobReleaseManifestObjectKey(releaseId);
+  const receiptKey = runtimeBlobReleaseReceiptObjectKey(releaseId);
+  const receipt = await inspectPublishedRuntimeBlobReleaseReceipt(store, releaseId, manifest);
+  const releaseObjects = await store.listObjects(runtimeBlobReleasePrefix(releaseId));
+  const expectedReleaseObjects = new Map([
+    [manifestKey, Buffer.byteLength(serializeRuntimeBlobReleaseManifest(manifest))],
+    [receiptKey, Buffer.byteLength(serializeRuntimeBlobReleaseReceipt(receipt))],
+  ]);
+  const actualReleaseObjects = new Map(releaseObjects.map((object) => [object.key, object.sizeBytes]));
+  if (
+    actualReleaseObjects.size !== releaseObjects.length
+    || actualReleaseObjects.size !== expectedReleaseObjects.size
+    || [...expectedReleaseObjects].some(([key, sizeBytes]) => actualReleaseObjects.get(key) !== sizeBytes)
+  ) {
+    throw new RuntimeReleaseStoreError('runtime-release-remote-object-set-invalid', 'Remote runtime blob release prefix must contain only its immutable manifest and receipt.');
+  }
+  const verified = new Map<string, { sizeBytes: number; sha256: string }>();
+  for (const file of manifest.files) {
+    let remote = verified.get(file.objectKey);
+    if (!remote) {
+      remote = await hashRemoteObject(store, file.objectKey);
+      verified.set(file.objectKey, remote);
+    }
+    if (remote.sizeBytes !== file.sizeBytes || remote.sha256 !== file.sha256) {
+      throw new RuntimeReleaseStoreError('runtime-release-remote-object-invalid', `Remote runtime blob does not match manifest: ${file.path}`);
+    }
+  }
+  const wireSha256 = runtimeBlobReleaseManifestWireSha256(manifest);
+  return {
+    schemaVersion: 'runtime-release-verification.v2',
+    releaseId: manifest.releaseId,
+    manifestObjectKey: manifestKey,
+    manifestSha256: manifest.manifestSha256,
+    wireSha256,
+    wireSizeBytes: Buffer.byteLength(serializeRuntimeBlobReleaseManifest(manifest)),
     treeSha256: manifest.treeSha256,
     fileCount: manifest.fileCount,
     totalBytes: manifest.totalBytes,

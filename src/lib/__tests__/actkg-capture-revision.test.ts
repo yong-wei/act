@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS,
+  PUBLIC_BUNDLE_V2_ADAPTER_CAPTURE_PATHS,
   resolveTrustedCaptureRevision,
 } from '../../../scripts/actkg-release/capture-revision';
 
@@ -130,6 +131,24 @@ describe('resolveTrustedCaptureRevision (isolated temp Git)', () => {
     // capture must fail closed when that shared implementation drifts.
     expect(PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS).toContain(
       'scripts/actkg-release/authoritative-release.ts',
+    );
+    expect(PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS).not.toContain(
+      'scripts/actkg-release/public-bundle-v2.ts',
+    );
+    expect(PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS).not.toContain(
+      'scripts/actkg-release/bundle-compatibility-registry-v2.ts',
+    );
+    expect(PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS).not.toContain(
+      'scripts/actkg-release/schemas/public-bundle-v2',
+    );
+    expect(PUBLIC_BUNDLE_V2_ADAPTER_CAPTURE_PATHS).toContain(
+      'scripts/actkg-release/public-bundle-v2.ts',
+    );
+    expect(PUBLIC_BUNDLE_V2_ADAPTER_CAPTURE_PATHS).toContain(
+      'scripts/actkg-release/bundle-compatibility-registry-v2.ts',
+    );
+    expect(PUBLIC_BUNDLE_V2_ADAPTER_CAPTURE_PATHS).toContain(
+      'scripts/actkg-release/schemas/public-bundle-v2',
     );
 
     const sharedDigestPath = 'scripts/actkg-release/authoritative-release.ts';

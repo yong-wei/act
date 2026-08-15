@@ -27,4 +27,18 @@ describe('runtime content path resolver', () => {
     expect(() => resolveReadableContentPath('/course-content/authoring/shared/lesson-id-map.json'))
       .toThrow(/Invalid readable content path/);
   });
+
+  it('rejects the reserved helper mount as a normalized first path component', async () => {
+    const { resolveRuntimeContentPath, resolveReadableContentPath, RUNTIME_BLOB_HELPER_NAME } = await import('@/lib/runtime-content-path');
+    const helperDigest = 'a'.repeat(64);
+
+    expect(() => resolveRuntimeContentPath(`${RUNTIME_BLOB_HELPER_NAME}/${helperDigest}`))
+      .toThrow(/Invalid runtime content path/);
+    expect(() => resolveRuntimeContentPath(`course-content/runtime/${RUNTIME_BLOB_HELPER_NAME}/${helperDigest}`))
+      .toThrow(/Invalid runtime content path/);
+    expect(() => resolveRuntimeContentPath(`lessons/../${RUNTIME_BLOB_HELPER_NAME}/${helperDigest}`))
+      .toThrow(/Invalid runtime content path/);
+    expect(() => resolveReadableContentPath(`course-content/runtime/${RUNTIME_BLOB_HELPER_NAME}/${helperDigest}`))
+      .toThrow(/Invalid readable content path|Invalid runtime content path/);
+  });
 });

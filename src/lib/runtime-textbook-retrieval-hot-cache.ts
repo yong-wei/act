@@ -5,15 +5,16 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 
 import {
+  ACT_RUNTIME_BLOB_MATERIALIZED_MANIFEST_FILENAME,
   ACT_RUNTIME_RELEASE_MANIFEST_FILENAME,
-  type ActRuntimeReleaseManifest,
-  parseRuntimeReleaseManifest,
+  type AnyActRuntimeReleaseManifest,
+  parseAnyRuntimeReleaseManifest,
 } from '@/lib/runtime-release';
 
 const HOT_CACHE_PATHS = [
-  'resources/textbook-retrieval/vectors.f32',
-  'resources/textbook-retrieval/bodies.utf8',
-  'resources/textbook-retrieval/lexical-postings.bin',
+  'resources/textbook-hybrid-retrieval/bge-m3/vectors.f32',
+  'resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8',
+  'resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin',
 ] as const;
 
 export const ACT_RUNTIME_TEXTBOOK_HOT_CACHE_SCHEMA_VERSION = 'act-runtime-textbook-hot-cache.v1';
@@ -61,17 +62,22 @@ async function copyAndVerify(source: string, destination: string, expected: { si
 }
 
 export async function readMountedRuntimeReleaseManifest(runtimeRoot: string) {
-  try {
-    return parseRuntimeReleaseManifest(JSON.parse(await readFile(path.join(runtimeRoot, ACT_RUNTIME_RELEASE_MANIFEST_FILENAME), 'utf8')));
-  } catch (error) {
-    throw new RuntimeTextbookHotCacheError('runtime-hot-cache-manifest-invalid', 'Mounted runtime release manifest is unavailable or invalid.', { cause: error });
+  const candidates = [ACT_RUNTIME_BLOB_MATERIALIZED_MANIFEST_FILENAME, ACT_RUNTIME_RELEASE_MANIFEST_FILENAME];
+  let firstError: unknown;
+  for (const filename of candidates) {
+    try {
+      return parseAnyRuntimeReleaseManifest(JSON.parse(await readFile(path.join(runtimeRoot, filename), 'utf8')));
+    } catch (error) {
+      firstError ??= error;
+    }
   }
+  throw new RuntimeTextbookHotCacheError('runtime-hot-cache-manifest-invalid', 'Mounted runtime release manifest is unavailable or invalid.', { cause: firstError });
 }
 
 export async function stageTextbookRetrievalHotCache(input: {
   runtimeRoot: string;
   cacheParent: string;
-  manifest?: ActRuntimeReleaseManifest;
+  manifest?: AnyActRuntimeReleaseManifest;
 }): Promise<RuntimeTextbookHotCacheReceipt> {
   await assertDirectory(input.runtimeRoot, 'runtime-hot-cache-runtime-root-invalid');
   await mkdir(input.cacheParent, { recursive: true, mode: 0o700 });

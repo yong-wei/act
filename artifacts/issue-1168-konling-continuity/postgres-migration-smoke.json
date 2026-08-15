@@ -1,0 +1,46 @@
+{
+  "issue": 1168,
+  "generatedAt": "2026-08-01T13:05:54.008Z",
+  "codeCommit": "702f23f4eeb17142e17602301d1348a3c3bf3380",
+  "postgresVersion": "18.4",
+  "database": "isolated temporary PostgreSQL cluster",
+  "migration": "prisma/migrations/20260801163000_add_adaptive_assessment_companion_metadata/migration.sql",
+  "migrationSha256": "994f421c3dec63e3033bd74006149b0c145cefc6c9ce2db924a00d1585d25cb6",
+  "generatorSha256": "d9e6f4f9ce115d863d7f10476923ecb77871e07568311093896a422f07b2b8d0",
+  "commands": {
+    "prismaValidate": [
+      "The schema at prisma\\schema.prisma is valid 🚀"
+    ],
+    "prismaGenerate": [
+      "✔ Generated Prisma Client (v7.8.0) to .\\node_modules\\@prisma\\client in 1.41s",
+      "Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)"
+    ],
+    "baselineDeploy": [
+      "Datasource \"db\": PostgreSQL database \"postgres\", schema \"public\" at \"127.0.0.1:55487\"",
+      "1 migration found in prisma/migrations",
+      "Applying migration `20260801160000_baseline`",
+      "The following migration(s) have been applied:",
+      "migrations/",
+      "  └─ 20260801160000_baseline/",
+      "    └─ migration.sql",
+      "All migrations have been successfully applied."
+    ],
+    "targetDeploy": [
+      "Datasource \"db\": PostgreSQL database \"postgres\", schema \"public\" at \"127.0.0.1:55487\"",
+      "2 migrations found in prisma/migrations",
+      "Applying migration `20260801163000_add_adaptive_assessment_companion_metadata`",
+      "The following migration(s) have been applied:",
+      "migrations/",
+      "  └─ 20260801163000_add_adaptive_assessment_companion_metadata/",
+      "    └─ migration.sql",
+      "All migrations have been successfully applied."
+    ]
+  },
+  "assertions": {
+    "metadataType": "jsonb",
+    "metadataNullable": "NO",
+    "metadataDefault": "'{}'::jsonb",
+    "legacyRowMetadata": "{}"
+  },
+  "passed": true
+}

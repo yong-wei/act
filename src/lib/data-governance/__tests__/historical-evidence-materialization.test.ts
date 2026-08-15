@@ -49,6 +49,11 @@ describe('historical evidence materialization', () => {
         moduleId: 'module-3',
         score: 82,
         timeSpent: 140,
+        competencyContribution: {
+          parameterDesign: 1,
+          engineeringDecision: 0.6,
+          selfDirectedLearning: 0.4,
+        },
         contextJson: {
           historicalMaterialization: {
             sourceId: 'SimulationLog',
@@ -139,6 +144,7 @@ describe('historical evidence materialization', () => {
         score: 75,
       },
     });
+    expect(plan.candidates[0]?.fact.competencyContribution).toEqual({});
   });
 
   it('uses InteractionLog wrapper fields to preserve classroom attribution', () => {

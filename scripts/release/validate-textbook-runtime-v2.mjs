@@ -39,7 +39,7 @@ function parseArgs(argv) {
     filesOnly,
     expectedSourceRevision,
     indexDir: path.resolve(
-      indexDir ?? path.join(path.dirname(runtimeRoot), 'textbook-retrieval'),
+      indexDir ?? path.join(path.dirname(runtimeRoot), 'textbook-hybrid-retrieval', 'bge-m3'),
     ),
     assetsRoot: assetsRoot ? path.resolve(assetsRoot) : undefined,
   };

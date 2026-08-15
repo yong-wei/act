@@ -2,7 +2,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { parseRuntimeLessonMediaDocument } from '@/lib/runtime-lesson-media-document';
-import type { ActRuntimeReleaseManifest } from '@/lib/runtime-release';
+import type { AnyActRuntimeReleaseManifest } from '@/lib/runtime-release';
 import { stableStringify } from '@/lib/aggregate-governance/hash';
 
 export interface RuntimeReleaseMediaClosureEntry {
@@ -58,7 +58,7 @@ async function isFile(absolutePath: string) {
 
 export async function buildRuntimeReleaseMediaClosure(input: {
   runtimeRoot: string;
-  manifest: ActRuntimeReleaseManifest;
+  manifest: AnyActRuntimeReleaseManifest;
 }): Promise<RuntimeReleaseMediaClosure> {
   const lessonsRoot = path.join(input.runtimeRoot, 'lessons');
   const manifestFiles = new Map(input.manifest.files.map((file) => [file.path, file]));

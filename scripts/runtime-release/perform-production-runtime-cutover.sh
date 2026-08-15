@@ -126,7 +126,7 @@ fi
 image_id="$(podman image inspect --format '{{.Id}}' "$image_reference")"
 [[ "$image_id" =~ ^(sha256:)?([a-f0-9]{64})$ ]] || { echo 'ERROR: loaded image does not have a valid image ID' >&2; exit 1; }
 image_digest="sha256:${BASH_REMATCH[2]}"
-image_revision="$(podman image inspect --format '{{ index .Labels \"org.opencontainers.image.revision\" }}' "$image_digest")"
+image_revision="$(podman image inspect --format '{{ index .Labels "org.opencontainers.image.revision" }}' "$image_digest")"
 [[ "$image_revision" == "$integration_revision" ]] || { echo 'ERROR: loaded image does not bind the required integration revision' >&2; exit 1; }
 [[ "$image_stdin" == '0' || "$image_digest" == "$expected_image_digest" ]] || { echo 'ERROR: streamed image ID does not match the verified local image' >&2; exit 1; }
 locator_sha256="$(sha256sum "$release_locator" | awk '{print $1}')"
@@ -153,11 +153,11 @@ import subprocess
 import sys
 
 script, release_id, revision, image_digest, locator_sha256, state_dir = sys.argv[1:]
-active = json.loads(subprocess.check_output(["python3", script, "active", "--state-dir", state_dir], text=True))
+active = json.loads(subprocess.check_output(["python3", script, "active", "--state-dir", state_dir], universal_newlines=True))
 if active.get('activeReleaseId') != release_id:
     raise SystemExit('active receipt does not select the required release')
 for container in ('act-obe-app', 'act-obe-worker'):
-    actual = subprocess.check_output(['podman', 'inspect', '--format', '{{.Image}}', container], text=True).strip()
+    actual = subprocess.check_output(['podman', 'inspect', '--format', '{{.Image}}', container], universal_newlines=True).strip()
     if re.fullmatch(r'(?:sha256:)?[a-f0-9]{64}', actual) and not actual.startswith('sha256:'):
         actual = 'sha256:' + actual
     if actual != image_digest:

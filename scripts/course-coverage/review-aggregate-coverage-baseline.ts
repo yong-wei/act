@@ -36,6 +36,7 @@ import {
   normalizeEvidenceText,
   sortNames,
 } from '../../src/lib/aggregate-governance/term-match';
+import { STANDARD_PUBLIC_BUNDLE_PROTOCOL } from '../../src/lib/authoritative-knowledge/contracts';
 import {
   AGGREGATE_COVERAGE_ACTIVE_PATH,
   AGGREGATE_COVERAGE_WORKLIST_PATH,
@@ -673,7 +674,12 @@ async function loadDynamicDatabaseAuthority(
         where: { releaseId: lock.releaseId },
       });
       const bundleReceipt = await tx.actkgBundleReceipt.findUnique({
-        where: { bundleDigest: lock.bundleDigest },
+        where: {
+          bundleContractVersion_bundleDigest: {
+            bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+            bundleDigest: lock.bundleDigest,
+          },
+        },
       });
       const projectionIdentity = await tx.actkgProjectionIdentity.findUnique({
         where: {

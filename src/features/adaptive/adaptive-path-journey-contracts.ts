@@ -244,7 +244,7 @@ export function buildAuthorizedAdaptivePathJourney(
       completed: mainPathNodeIds.filter((nodeId) => completedNodeIds.has(nodeId)).length,
       total: mainPathNodeIds.length,
     },
-    return: { label: '返回学习路径', href: returnHref },
+    return: { label: '返回学习路径', href: summaryHref },
     pathStatus: normalizedPathStatus,
     correction: projectedCorrection,
   };

@@ -24,6 +24,7 @@ import {
   emptyTeachingSelectorFingerprint,
   loadStagedAuthoritySnapshot,
   materializeAuthoritySnapshot,
+  verifyMaterializedSnapshot,
   proveEmptyTeachingProjectionActivation,
   readCurrentAuthorityPointer,
   resolveActiveAuthoritySnapshot,
@@ -40,6 +41,7 @@ import {
   stageAuthoritySnapshotArtifacts,
   stagedSnapshotNormalizedBytes,
   type AuthoritativeKnowledgeSnapshot,
+  type AuthoritativeV2Evidence,
   type AuthorityStorePaths,
   type StagedAuthoritySnapshotFiles,
   type TeachingSelectorFingerprint,
@@ -245,6 +247,58 @@ function baseSnapshot(overrides: Partial<AuthoritativeKnowledgeSnapshot> = {}): 
   };
 }
 
+function v2Evidence(): AuthoritativeV2Evidence {
+  const releaseId = 'ctr:release:control-theory-engineering-v0.18';
+  const profiles = [
+    ['runtime', 'runtime-profile', 'runtime'],
+    ['domain', 'domain-profile', 'domain'],
+    ['review', 'review-profile', 'review'],
+  ].map(([profileKey, profileId, projectionKind]) => ({
+    releaseId,
+    profileKey,
+    manifestProfile: profileKey,
+    profileId,
+    profileSha256: hash,
+    projectionKind,
+    profileVersion: 'v1',
+    mappingContractVersion: 'actkg-map/v2',
+    aggregationPolicy: 'preserve-all',
+    payload: { profileKey },
+  }));
+  const multilingualLabels = Array.from({ length: 1909 }, (_, ordinal) => ({
+    releaseId,
+    ordinal,
+    entityId: `node-${ordinal}`,
+    language: 'zh-CN',
+    label: `标签-${ordinal}`,
+    labelType: 'preferred',
+    terminologyAssertionId: `term-${ordinal}`,
+    payload: { ordinal, source: 'v2-fixture' },
+  }));
+  const bindingPayload = {
+    provenance: 'registry',
+    verificationScope: 'admission-time',
+    verifiedDuringLoad: false,
+    registryIdentity: { registryId: 'registry-v2', entry: 'control-theory-engineering-v0.18' },
+    upstreamRepository: { owner: 'yong-wei', name: 'ActKG' },
+    publicationRevision: { tag: 'control-theory-engineering-v0.18', commit },
+    sourceRevision: { tag: 'control-theory-engineering-v0.18-source-r1', commit },
+    bundleIdentity: { bundleId: 'bundle-v018', bundleRevision: 1, bundleDigest: hash },
+  };
+  return {
+    protocol: 'actkg-public-bundle/2',
+    profiles,
+    multilingualLabels,
+    admissionBinding: {
+      releaseId,
+      bundleReceiptId: 'bundle-receipt:v2:fixture',
+      protocol: 'actkg-public-bundle/2',
+      ...bindingPayload,
+      bindingDigest: authorityDigest(bindingPayload),
+    },
+  };
+}
+
 describe('Authority Snapshot materialization (#1266)', () => {
   it('materializes deterministic snapshotHash and identical bytes for identical input', () => {
     const first = materializeAuthoritySnapshot({
@@ -308,6 +362,53 @@ describe('Authority Snapshot materialization (#1266)', () => {
         ],
       }),
     })).toThrow(AuthoritySnapshotError);
+  });
+
+  it('retains all V2 typed evidence and rejects count or digest drift', () => {
+    const evidence = v2Evidence();
+    const snapshot = baseSnapshot({
+      release: {
+        ...baseSnapshot().release,
+        id: 'ctr:release:control-theory-engineering-v0.18',
+        releaseVersion: 'v0.18',
+        protocol: 'actkg-public-bundle/2',
+      },
+      v2Evidence: evidence,
+    });
+    const materialized = materializeAuthoritySnapshot({ snapshot });
+    expect(materialized.engineering.v2Evidence?.profiles).toHaveLength(3);
+    expect(materialized.engineering.v2Evidence?.multilingualLabels).toHaveLength(1909);
+    expect(materialized.manifest.provenance.v2ProfileCount).toBe(3);
+    expect(materialized.manifest.provenance.v2MultilingualLabelCount).toBe(1909);
+    expect(materialized.manifest.provenance.v2AdmissionBindingDigest).toBe(
+      evidence.admissionBinding.bindingDigest,
+    );
+    expect(authorityDigest(materialized.engineering.v2Evidence?.multilingualLabels)).toBe(
+      authorityDigest(evidence.multilingualLabels),
+    );
+
+    const tamperedEngineering = {
+      ...materialized.engineering,
+      v2Evidence: {
+        ...materialized.engineering.v2Evidence!,
+        multilingualLabels: materialized.engineering.v2Evidence!.multilingualLabels.map((row, index) => (
+          index === 1908 ? { ...row, label: '篡改标签' } : row
+        )),
+      },
+    };
+    expect(() => verifyMaterializedSnapshot({
+      manifest: materialized.manifest,
+      engineering: tamperedEngineering,
+    })).toThrow(AuthoritySnapshotError);
+    expect(() => materializeAuthoritySnapshot({
+      snapshot: {
+        ...snapshot,
+        v2Evidence: {
+          ...evidence,
+          multilingualLabels: evidence.multilingualLabels.slice(0, -1),
+        },
+      },
+    })).toThrow(/profiles=3 and multilingualLabels=1909/);
   });
 
   it('stages candidate-only without moving current pointer', () => {

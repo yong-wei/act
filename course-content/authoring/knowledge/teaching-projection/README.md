@@ -38,6 +38,14 @@ ACT-owned, file-based Teaching Projection authoring inputs for issues #1267 / #1
 - Builder/store: `src/lib/teaching-projection/prerequisites/`
 - Engineering relations, textbook order, and lesson order remain candidates only; publication requires ACT evidence or teacher-curation rationale plus one author decision bound to the Authority/Projection capture.
 
+## Incremental domain fragments (#1370)
+
+- Authoring/schemas: `domain-fragments/schemas/`, fixtures under `domain-fragments/fixtures/`
+- Builder: `src/lib/teaching-projection/domain-fragments/`
+- Immutable domain fragments compose into a deterministic Teaching Projection identity bound to Authority, evidence and digests.
+- Coverage states `available` / `partial` / `empty` / `unavailable` never block Engineering Authority.
+- Relation presentation is resolved from the registered runtime contract (no per-release frontend allowlist).
+
 ## Knowledge card migration (#1271)
 
 - Inventory: active + legacy card files under `course-content/authoring|runtime/knowledge/cards/nodes/`.

@@ -39,8 +39,9 @@ python3 course-content/scripts/authority-cards/batch_generate_runner.py --batch 
 python3 course-content/scripts/authority-cards/register_authority_infograph.py \
   --safe-id <safe_id> --image /path/to/image.png --accept
 
-# 5. Export runtime (draft-blocked cards are skipped by default)
-python3 course-content/scripts/authority-cards/export_authority_cards_and_infographs.py
+# 5. Export runtime from the exact sealed Authority shard-set (draft-blocked cards are skipped)
+python3 course-content/scripts/authority-cards/export_authority_cards_and_infographs.py \
+  --authority-shard-manifest course-content/runtime/knowledge/authority-domain-shards/sets/<shard-set-id>/manifest.json
 
 # 6. Status
 python3 course-content/scripts/authority-cards/status_report.py
@@ -58,3 +59,9 @@ python3 course-content/scripts/authority-cards/normalize_authority_infograph_met
 ## Content policy
 
 Fail-closed: definitions and relations only from domain-projection description + DomainConcept links. No invented engineering examples or misconceptions. Cards with `status: draft-blocked` are not exported to runtime; accepted infographs remain independently exportable.
+
+The combined runtime learning manifest is v2 and seals the Authority release,
+release-set and snapshot identity from the supplied immutable shard-set manifest.
+Its projection and release evidence must name that same Authority release. A
+partial `--cards-only` or `--infographs-only` export preserves the other asset
+state only when the existing v2 manifest has the same sealed identity.

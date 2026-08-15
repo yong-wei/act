@@ -37,6 +37,7 @@ export interface SubmitAnswerParams {
   questionId: string;
   selectedOption: string;
   timeSpent: number;
+  continuity?: CompanionPracticeMetadata;
   pathContext?: {
     pathId: string;
     nodeId: string;
@@ -44,6 +45,13 @@ export interface SubmitAnswerParams {
     routeIntent?: string | null;
     questionScope?: AdaptiveQuestionScope;
   };
+}
+
+export interface CompanionPracticeMetadata {
+  origin: 'konling-companion-practice';
+  snapshotId: string;
+  targetKnowledgeId: string;
+  structuredCauseId: string | null;
 }
 
 export interface SubmitAnswerResult {
@@ -61,6 +69,7 @@ export interface SubmittedAnswerDetails {
   selectedOptionKey: string;
   correctOptionKey: string;
   pathContext?: SubmitAnswerParams['pathContext'];
+  continuity?: CompanionPracticeMetadata;
 }
 
 interface SessionState {
@@ -130,6 +139,20 @@ function toPublicQuestion(question: CrossDomainQuestion): PublicQuestion {
       text: option.text,
       explanation: option.explanation,
     })),
+  };
+}
+
+export function getAdaptiveQuestionSelectionById(
+  params: { userId: string; sessionId: string; questionId: string },
+  answers: AdaptiveAnswerRecord[],
+): { question: PublicQuestion; estimatedAbility: number; confidenceInterval: [number, number] } {
+  const question = getQuestionForSession(params.questionId, params);
+  if (!question) throw new Error('Companion-practice question is unavailable.');
+  const theta = estimateAdaptiveAbility(answers);
+  return {
+    question: toPublicQuestion(question),
+    estimatedAbility: Number(theta.toFixed(2)),
+    confidenceInterval: estimateAdaptiveConfidence(answers, theta),
   };
 }
 
@@ -608,6 +631,7 @@ export function submitAnswerWithDetails(params: SubmitAnswerParams): SubmittedAn
     selectedOptionKey: selected.optionKey,
     correctOptionKey: correct.optionKey,
     pathContext: params.pathContext,
+    continuity: params.continuity,
   };
 
   return {
@@ -671,6 +695,7 @@ export function createSubmitAnswerDetails(params: SubmitAnswerParams): Submitted
     selectedOptionKey: selected.optionKey,
     correctOptionKey: correct.optionKey,
     pathContext: params.pathContext,
+    continuity: params.continuity,
   };
 
   return {

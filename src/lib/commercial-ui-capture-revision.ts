@@ -19,9 +19,21 @@ export const ADAPTIVE_PATH_QA_PRODUCT_OUTPUT_ROOT =
  */
 export const CAPTURE_REVISION_SOURCE_FILES = [
   'src/app/assessment/adaptive-practice/page.tsx',
+  'src/app/globals.css',
+  'src/app/api/ai/konling-continuity/route.ts',
+  'src/app/api/assessment/next-question/route.ts',
+  'src/app/api/assessment/submit-answer/route.ts',
+  'src/components/ai/global-ai-sidebar.tsx',
+  'src/components/ai/konling-continuity-card.tsx',
   'src/components/platform/app-shell.tsx',
+  'src/components/providers/global-ai-provider.tsx',
   'src/components/shared/page-floating-controls.tsx',
+  'src/features/assessment/adaptive-persistence.ts',
+  'src/lib/konling-continuity-assessment.ts',
+  'src/lib/konling-learning-continuity.ts',
   'scripts/tests/capture-adaptive-path-product-qa.ts',
+  'artifacts/issue-1168-konling-continuity/browser-acceptance.mjs',
+  'artifacts/issue-1168-konling-continuity/browser-evidence-provenance.mjs',
   'src/lib/commercial-ui-capture-revision.ts',
   'src/app/api/internal/local-qa/revision/route.ts',
 ] as const;

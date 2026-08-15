@@ -13,6 +13,7 @@ APP_CONTAINER="${ACT_RUNTIME_APP_CONTAINER:-act-obe-app}"
 WORKER_CONTAINER="${ACT_RUNTIME_WORKER_CONTAINER:-act-obe-worker}"
 APP_SERVICE_NAME="${ACT_RUNTIME_APP_SERVICE_NAME:-act-obe-stack.service}"
 APP_SERVICE_DROPIN_PATH="${ACT_RUNTIME_APP_SERVICE_DROPIN_PATH:-/etc/systemd/system/${APP_SERVICE_NAME}.d/20-runtime-ossfs.conf}"
+READYZ_TIMEOUT_SECONDS="${ACT_RUNTIME_READYZ_TIMEOUT_SECONDS:-180}"
 
 release_id=""
 expected_active_release=""
@@ -42,6 +43,7 @@ done
 [[ "$ram_role" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role name" >&2; exit 1; }
 [[ "$DEPLOY_MODE" == "--app-only" || "$DEPLOY_MODE" == "--runtime-cutover-app-only" ]] || { echo "ERROR: invalid runtime deploy mode" >&2; exit 1; }
 [[ "$APP_SERVICE_NAME" =~ ^[A-Za-z0-9_.@-]+\.service$ ]] || { echo "ERROR: invalid application service name" >&2; exit 1; }
+[[ "$READYZ_TIMEOUT_SECONDS" =~ ^[1-9][0-9]{0,2}$ && "$READYZ_TIMEOUT_SECONDS" -le 600 ]] || { echo "ERROR: runtime readiness timeout is invalid" >&2; exit 1; }
 [[ -x "$(command -v flock)" ]] || { echo "ERROR: flock is required" >&2; exit 1; }
 [[ -x "$(command -v podman)" ]] || { echo "ERROR: podman is required" >&2; exit 1; }
 [[ -x "$(command -v python3)" ]] || { echo "ERROR: python3 is required" >&2; exit 1; }
@@ -76,6 +78,13 @@ capture_rollback_image() {
   worker_image="sha256:${BASH_REMATCH[2]}"
   [[ "$worker_image" == "$app_image" ]] || { echo "ERROR: app and worker must use the same image before runtime cutover" >&2; exit 1; }
   rollback_app_image="$app_image"
+}
+
+run_without_selection_lock() {
+  (
+    exec 9>&-
+    "$@"
+  )
 }
 
 configure_startup_order() {
@@ -115,6 +124,59 @@ restore_startup_order() {
   systemctl disable "act-runtime-ossfs@${release_id}.service" >/dev/null 2>&1 || true
 }
 
+wait_for_readyz() {
+  local deadline_ms
+  local now_ms
+  local remaining_ms
+  local sleep_ms
+  local curl_timeout
+  local sleep_timeout
+  local readyz_url="http://127.0.0.1:${APP_PORT}/api/readyz"
+
+  deadline_ms="$(python3 - "$READYZ_TIMEOUT_SECONDS" <<'PY'
+import sys
+import time
+
+print(int(time.monotonic() * 1000) + (int(sys.argv[1]) * 1000))
+PY
+)"
+
+  while true; do
+    now_ms="$(python3 - <<'PY'
+import time
+
+print(int(time.monotonic() * 1000))
+PY
+)"
+    remaining_ms=$((deadline_ms - now_ms))
+    if [[ "$remaining_ms" -le 0 ]]; then
+      break
+    fi
+    printf -v curl_timeout '%d.%03d' "$((remaining_ms / 1000))" "$((remaining_ms % 1000))"
+    if curl --connect-timeout 2 --max-time "$curl_timeout" --fail --silent --show-error "$readyz_url" >/dev/null; then
+      return 0
+    fi
+    now_ms="$(python3 - <<'PY'
+import time
+
+print(int(time.monotonic() * 1000))
+PY
+)"
+    remaining_ms=$((deadline_ms - now_ms))
+    if [[ "$remaining_ms" -gt 0 ]]; then
+      sleep_ms=3000
+      if [[ "$remaining_ms" -lt "$sleep_ms" ]]; then
+        sleep_ms="$remaining_ms"
+      fi
+      printf -v sleep_timeout '%d.%03d' "$((sleep_ms / 1000))" "$((sleep_ms % 1000))"
+      sleep "$sleep_timeout"
+    fi
+  done
+
+  echo "ERROR: application readiness did not succeed within ${READYZ_TIMEOUT_SECONDS}s" >&2
+  return 1
+}
+
 rollback() {
   local failed_status=$?
   set +e
@@ -125,12 +187,12 @@ rollback() {
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
         RUNTIME_CONTENT_DIR="$MOUNT_ROOT/$old_active" \
         APP_IMAGE="$rollback_app_image" \
-        "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
+        run_without_selection_lock "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
     else
       RUNTIME_DELIVERY_MODE=legacy-rsync \
         RUNTIME_CONTENT_DIR="$LEGACY_RUNTIME_ROOT" \
         APP_IMAGE="$rollback_app_image" \
-        "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
+        run_without_selection_lock "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
     fi
   fi
   restore_startup_order
@@ -164,9 +226,9 @@ candidate_deploy_attempted=1
 RUNTIME_DELIVERY_MODE=ossfs-release \
   ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
   RUNTIME_CONTENT_DIR="$MOUNT_ROOT/$release_id" \
-  "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
+  run_without_selection_lock "$DEPLOY_SCRIPT" "$DEPLOY_MODE"
 source "$ENV_FILE"
-curl --fail --silent --show-error "http://127.0.0.1:${APP_PORT}/api/readyz" >/dev/null
+wait_for_readyz
 configure_startup_order
 python3 "$HOST_STATE_SCRIPT" mark-active --state-dir "$STATE_DIR" --release-id "$release_id" "${activation_proof_args[@]}" >/dev/null
 trap - ERR
