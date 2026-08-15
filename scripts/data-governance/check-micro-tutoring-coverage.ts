@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
@@ -9,7 +10,6 @@ import {
   buildMicroTutoringCoverageAuditReport,
   microTutoringCoverageAuditIsStrictlyComplete,
   microTutoringCoverageAuditMarkdown,
-  type MicroTutoringOptionAttribution,
   type MicroTutoringPracticeBaseline,
 } from '@/features/assessment/micro-tutoring-coverage-audit';
 import {
@@ -23,8 +23,20 @@ import { AUTOCONTROL_KAQ_GRAPH_CATALOG } from '@/lib/data-governance/autocontrol
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
 import { prisma } from '@/lib/prisma';
 
-const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
+const GOVERNANCE_DIR = 'course-content/runtime/resource-governance';
 const DEFAULT_OUTPUT_DIR = path.join(process.cwd(), '.reports/micro-tutoring-coverage');
+const GOVERNANCE_CAPTURE_PATHS = [
+  `${GOVERNANCE_DIR}/adaptive-assessment-item-catalog-items.jsonl`,
+  `${GOVERNANCE_DIR}/assessment-item-semantic-review-snapshots.jsonl`,
+  `${GOVERNANCE_DIR}/micro-tutoring-practice-baseline.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-option-attributions.json`,
+  'src/features/assessment/micro-tutoring-coverage-audit.ts',
+  'src/features/assessment/remediation-orchestration.ts',
+  'src/lib/adaptive-learning-path-planner.ts',
+  'src/lib/data-governance/autocontrol-kaq-graph-catalog.ts',
+  'scripts/data-governance/check-micro-tutoring-coverage.ts',
+] as const;
+const GIT_REVISION = /^[a-f0-9]{40}$/u;
 
 type Options = {
   strict: boolean;
@@ -45,12 +57,45 @@ function parseArgs(args: string[]): Options {
   };
 }
 
-async function readJson<T>(fileName: string): Promise<T> {
-  return JSON.parse(await readFile(path.join(GOVERNANCE_DIR, fileName), 'utf8')) as T;
+type GovernanceInputCapture = {
+  sourceRevision: string;
+  sourceInputsClean: boolean;
+};
+
+function git(args: string[]): string {
+  const result = spawnSync('git', args, {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  if (result.status !== 0) {
+    throw new Error(`微辅导覆盖审计无法执行 Git ${args.join(' ')}：${result.stderr.trim()}`);
+  }
+  return result.stdout;
 }
 
-async function readJsonl<T>(fileName: string): Promise<T[]> {
-  return (await readFile(path.join(GOVERNANCE_DIR, fileName), 'utf8'))
+function captureGovernanceInputs(): GovernanceInputCapture {
+  git(['ls-files', '--error-unmatch', '--', ...GOVERNANCE_CAPTURE_PATHS]);
+  const sourceRevision = git(['rev-parse', '--verify', 'HEAD']).trim();
+  if (!GIT_REVISION.test(sourceRevision)) {
+    throw new Error('微辅导覆盖审计无法解析有效的 Git 修订');
+  }
+  return {
+    sourceRevision,
+    sourceInputsClean: !git(['status', '--porcelain=v1', '--untracked-files=all']).trim(),
+  };
+}
+
+function readCommittedSource(capture: GovernanceInputCapture, fileName: string): string {
+  return git(['show', `${capture.sourceRevision}:${GOVERNANCE_DIR}/${fileName}`]);
+}
+
+function readJson<T>(capture: GovernanceInputCapture, fileName: string): T {
+  return JSON.parse(readCommittedSource(capture, fileName)) as T;
+}
+
+function readJsonl<T>(capture: GovernanceInputCapture, fileName: string): T[] {
+  return readCommittedSource(capture, fileName)
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
@@ -74,6 +119,51 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : [];
 }
 
+function nonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function resourceCaptureRevision(row: RemediationResourceRow): string | null {
+  return nonEmptyString(record(record(row.config)?.remediation)?.captureRevision);
+}
+
+function validationCaptureRevision(row: RemediationValidationItemRow): string | null {
+  const metadata = record(row.metadata);
+  return nonEmptyString(
+    record(metadata?.remediationValidation)?.captureRevision ??
+      record(metadata?.adaptiveAssessmentItemRef)?.captureRevision,
+  );
+}
+
+function governedProjectionCapture(input: {
+  sourceRevision: string;
+  resources: RemediationResourceRow[];
+  validations: RemediationValidationItemRow[];
+}): { governedProjectionRevision: string | null; dependencyIssues: Array<'REFERENCE_DRIFT'> } {
+  const revisions = [
+    ...input.resources
+      .filter((row) => record(record(row.config)?.remediation) !== null)
+      .map(resourceCaptureRevision),
+    ...input.validations
+      .filter((row) => record(row.metadata)?.adaptiveAssessmentItemRef !== undefined)
+      .map(validationCaptureRevision),
+  ];
+  if (revisions.length === 0) {
+    return { governedProjectionRevision: null, dependencyIssues: [] };
+  }
+  const validRevisions = revisions.filter((revision): revision is string =>
+    revision !== null && GIT_REVISION.test(revision));
+  const uniqueRevisions = [...new Set(validRevisions)];
+  if (
+    validRevisions.length !== revisions.length ||
+    uniqueRevisions.length !== 1 ||
+    uniqueRevisions[0] !== input.sourceRevision
+  ) {
+    return { governedProjectionRevision: uniqueRevisions[0] ?? null, dependencyIssues: ['REFERENCE_DRIFT'] };
+  }
+  return { governedProjectionRevision: input.sourceRevision, dependencyIssues: [] };
+}
+
 function resourceAccessDenied(rows: RemediationResourceRow[], knowledgeNodeId: string): boolean {
   return rows.some((row) => {
     const remediation = record(record(row.config)?.remediation);
@@ -93,13 +183,19 @@ function validationAccessDenied(rows: RemediationValidationItemRow[], knowledgeN
   });
 }
 
-async function loadGovernedRows(offline: boolean): Promise<{
+async function loadGovernedRows(offline: boolean, sourceRevision: string): Promise<{
   resources: RemediationResourceRow[];
   validations: RemediationValidationItemRow[];
   dependencyIssues: Array<'REFERENCE_DRIFT'>;
+  governedProjectionRevision: string | null;
 }> {
   if (offline) {
-    return { resources: [], validations: [], dependencyIssues: ['REFERENCE_DRIFT'] };
+    return {
+      resources: [],
+      validations: [],
+      dependencyIssues: ['REFERENCE_DRIFT'],
+      governedProjectionRevision: null,
+    };
   }
   try {
     const [resources, validations] = await Promise.all([
@@ -108,32 +204,49 @@ async function loadGovernedRows(offline: boolean): Promise<{
         select: { id: true, questionId: true, contentHash: true, metadata: true },
       }),
     ]);
+    const projectedResources = resources as RemediationResourceRow[];
+    const projectedValidations = validations as RemediationValidationItemRow[];
+    const capture = governedProjectionCapture({
+      sourceRevision,
+      resources: projectedResources,
+      validations: projectedValidations,
+    });
     return {
-      resources: resources as RemediationResourceRow[],
-      validations: validations as RemediationValidationItemRow[],
-      dependencyIssues: [],
+      resources: projectedResources,
+      validations: projectedValidations,
+      dependencyIssues: capture.dependencyIssues,
+      governedProjectionRevision: capture.governedProjectionRevision,
     };
   } catch (error) {
     console.error(`微辅导覆盖审计无法读取受治理资源或验证题：${error instanceof Error ? error.message : String(error)}`);
-    return { resources: [], validations: [], dependencyIssues: ['REFERENCE_DRIFT'] };
+    return {
+      resources: [],
+      validations: [],
+      dependencyIssues: ['REFERENCE_DRIFT'],
+      governedProjectionRevision: null,
+    };
   }
 }
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+  const inputCapture = captureGovernanceInputs();
+  const optionReferenceSecret = nonEmptyString(process.env.MICRO_TUTORING_COVERAGE_OPTION_REFERENCE_SECRET);
+  if (!optionReferenceSecret) {
+    throw new Error('MICRO_TUTORING_COVERAGE_OPTION_REFERENCE_SECRET is required');
+  }
   const [catalogItems, reviewDecisions, baselineSource, attributionSource, governedRows] = await Promise.all([
-    readJsonl<AdaptiveAssessmentCatalogItem>('adaptive-assessment-item-catalog-items.jsonl'),
-    readJsonl<AssessmentItemSemanticReviewDecision>('assessment-item-semantic-review-snapshots.jsonl'),
-    readJson<MicroTutoringPracticeBaseline>('micro-tutoring-practice-baseline.json'),
-    readJson<{ entries: MicroTutoringOptionAttribution[] }>('micro-tutoring-option-attributions.json'),
-    loadGovernedRows(options.offline),
+    readJsonl<AdaptiveAssessmentCatalogItem>(inputCapture, 'adaptive-assessment-item-catalog-items.jsonl'),
+    readJsonl<AssessmentItemSemanticReviewDecision>(inputCapture, 'assessment-item-semantic-review-snapshots.jsonl'),
+    readJson<MicroTutoringPracticeBaseline>(inputCapture, 'micro-tutoring-practice-baseline.json'),
+    readJson<{ entries: unknown[] }>(inputCapture, 'micro-tutoring-option-attributions.json'),
+    loadGovernedRows(options.offline, inputCapture.sourceRevision),
   ]);
   const baseline: MicroTutoringPracticeBaseline = {
     version: baselineSource.version,
-    optionReferenceSalt: baselineSource.optionReferenceSalt,
     entries: sourceEntries<MicroTutoringPracticeBaseline['entries'][number]>(baselineSource, 'practice baseline'),
   };
-  const optionAttributions = sourceEntries<MicroTutoringOptionAttribution>(
+  const optionAttributions = sourceEntries<unknown>(
     attributionSource,
     'option attributions',
   );
@@ -142,6 +255,7 @@ async function main() {
     reviewDecisions,
     baseline,
     optionAttributions,
+    optionReferenceSecret,
     activeLearningGoalIds: Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
       .flatMap((definition) =>
         definition.learningGoal && definition.learningGoal.status !== 'draft'
@@ -166,7 +280,14 @@ async function main() {
       resourceAccessDenied(governedRows.resources, knowledgeNodeId),
     resolveValidationAccessDenied: (_sourceQuestionId, knowledgeNodeId) =>
       validationAccessDenied(governedRows.validations, knowledgeNodeId),
-    dependencyIssues: governedRows.dependencyIssues,
+    dependencyIssues: [
+      ...(inputCapture.sourceInputsClean ? [] : ['REFERENCE_DRIFT' as const]),
+      ...governedRows.dependencyIssues,
+    ],
+    inputCapture: {
+      ...inputCapture,
+      governedProjectionRevision: governedRows.governedProjectionRevision,
+    },
   });
 
   await mkdir(options.outputDir, { recursive: true });
@@ -181,6 +302,10 @@ async function main() {
     completeOptionCount: report.completeOptionCount,
     gapOptionCount: report.gapOptionCount,
     baselineIssues: report.baselineIssues.length,
+    attributionIssues: report.attributionIssueCount,
+    sourceRevision: inputCapture.sourceRevision,
+    sourceInputsClean: inputCapture.sourceInputsClean,
+    governedProjectionRevision: governedRows.governedProjectionRevision,
   }, null, 2));
 
   if (options.strict && !microTutoringCoverageAuditIsStrictlyComplete(report)) {

@@ -24,9 +24,15 @@ export type MicroTutoringCoverageBaselineIssue =
   | 'BASELINE_ITEM_DUPLICATE'
   | 'CONTENT_HASH_DRIFT';
 
+export type MicroTutoringOptionAttributionIssueReason =
+  | 'ATTRIBUTION_RECORD_MALFORMED'
+  | 'ATTRIBUTION_RECORD_UNKNOWN_CATALOG_ITEM'
+  | 'ATTRIBUTION_RECORD_CONTENT_HASH_DRIFT'
+  | 'ATTRIBUTION_RECORD_NOT_AUDITED_ERROR_OPTION'
+  | 'ATTRIBUTION_RECORD_DUPLICATE';
+
 export interface MicroTutoringPracticeBaseline {
   version: string;
-  optionReferenceSalt: string;
   entries: Array<{
     catalogItemId: string;
     contentHash: string;
@@ -63,7 +69,8 @@ export interface MicroTutoringCoverageAuditInput {
   catalogItems: AdaptiveAssessmentCatalogItem[];
   reviewDecisions: AssessmentItemSemanticReviewDecision[];
   baseline: MicroTutoringPracticeBaseline;
-  optionAttributions: MicroTutoringOptionAttribution[];
+  optionAttributions: unknown[];
+  optionReferenceSecret: string;
   activeLearningGoalIds: Iterable<string>;
   activeKnowledgeNodeIds: Iterable<string>;
   resolveResources: (knowledgeNodeId: string, misconceptionTag: string) => GovernedMicroTutoringResource[];
@@ -80,6 +87,11 @@ export interface MicroTutoringCoverageAuditInput {
     misconceptionTag: string,
   ) => boolean;
   dependencyIssues?: MicroTutoringCoverageGapReason[];
+  inputCapture?: {
+    sourceRevision: string;
+    sourceInputsClean: boolean;
+    governedProjectionRevision: string | null;
+  };
 }
 
 export interface MicroTutoringCoverageRow {
@@ -103,6 +115,12 @@ export interface MicroTutoringCoverageAuditReport {
   errorOptionCount: number;
   completeOptionCount: number;
   gapOptionCount: number;
+  attributionIssueCount: number;
+  inputCapture?: {
+    sourceRevision: string;
+    sourceInputsClean: boolean;
+    governedProjectionRevision: string | null;
+  };
   baselineIssues: Array<{
     reason: MicroTutoringCoverageBaselineIssue;
     catalogItemId: string;
@@ -110,6 +128,10 @@ export interface MicroTutoringCoverageAuditReport {
     actualContentHash?: string;
     expectedItemCount?: number;
     actualItemCount?: number;
+  }>;
+  attributionIssues: Array<{
+    reason: MicroTutoringOptionAttributionIssueReason;
+    attributionRef: string;
   }>;
   gapReasonCounts: Record<MicroTutoringCoverageGapReason, number>;
   rows: MicroTutoringCoverageRow[];
@@ -119,16 +141,43 @@ function uniqueSorted(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))].sort();
 }
 
-function stableOptionReference(value: string, salt: string): string {
-  return `sha256:${createHmac('sha256', salt).update(value).digest('hex')}`;
+function stableOptionReference(value: string, secret: string): string {
+  return `hmac-sha256:${createHmac('sha256', secret).update(value).digest('hex')}`;
 }
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-function isOptionAttribution(value: unknown): value is MicroTutoringOptionAttribution {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+function attributionRecord(value: unknown): Partial<MicroTutoringOptionAttribution> | null {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+    ? value as Partial<MicroTutoringOptionAttribution>
+    : null;
+}
+
+function hasAttributionIdentity(value: Partial<MicroTutoringOptionAttribution>): value is Pick<
+  MicroTutoringOptionAttribution,
+  'catalogItemId' | 'contentHash' | 'optionKey'
+> {
+  return isNonEmptyString(value.catalogItemId) &&
+    isNonEmptyString(value.contentHash) &&
+    isNonEmptyString(value.optionKey);
+}
+
+function optionAttributionKey(
+  catalogItemId: string,
+  contentHash: string,
+  optionKey: string,
+): string {
+  return `${catalogItemId}\u0000${contentHash}\u0000${optionKey}`;
+}
+
+function attributionReference(value: unknown, index: number, secret: string): string {
+  const attribution = attributionRecord(value);
+  const identity = attribution && hasAttributionIdentity(attribution)
+    ? optionAttributionKey(attribution.catalogItemId, attribution.contentHash, attribution.optionKey)
+    : `malformed:${index}`;
+  return stableOptionReference(`attribution:${identity}`, secret);
 }
 
 function practiceItems(
@@ -226,26 +275,94 @@ function baselineIssues(
   return issues.sort((left, right) => `${left.reason}:${left.catalogItemId}`.localeCompare(`${right.reason}:${right.catalogItemId}`));
 }
 
-function attributionRows(
-  optionAttributions: MicroTutoringOptionAttribution[],
-  catalogItemId: string,
-  contentHash: string,
-  optionKey: string | null,
-): MicroTutoringOptionAttribution[] {
-  if (!optionKey) return [];
-  return optionAttributions.filter((entry) =>
-    isOptionAttribution(entry) &&
-    entry.catalogItemId === catalogItemId &&
-    entry.contentHash === contentHash &&
-    entry.optionKey === optionKey,
-  );
-}
-
-function attributionHasRequiredFields(attribution: MicroTutoringOptionAttribution): boolean {
+function attributionHasRequiredFields(
+  attribution: Partial<MicroTutoringOptionAttribution>,
+): attribution is MicroTutoringOptionAttribution {
   return isNonEmptyString(attribution.learningGoalId) &&
     isNonEmptyString(attribution.misconceptionTag) &&
     isNonEmptyString(attribution.knowledgeNodeId) &&
-    isNonEmptyString(attribution.version);
+    isNonEmptyString(attribution.version) &&
+    hasAttributionIdentity(attribution);
+}
+
+function auditOptionAttributions(input: {
+  optionAttributions: unknown[];
+  catalogItems: AdaptiveAssessmentCatalogItem[];
+  qualifiedItems: AdaptiveAssessmentCatalogItem[];
+  optionReferenceSecret: string;
+}): {
+  issues: MicroTutoringCoverageAuditReport['attributionIssues'];
+  rowsByOption: Map<string, MicroTutoringOptionAttribution[]>;
+} {
+  const catalogById = new Map<string, AdaptiveAssessmentCatalogItem[]>();
+  for (const item of input.catalogItems) {
+    const entries = catalogById.get(item.catalogItemId) ?? [];
+    entries.push(item);
+    catalogById.set(item.catalogItemId, entries);
+  }
+  const auditedOptionKeys = new Set(
+    input.qualifiedItems.flatMap((item) => (item.questionRefs.options ?? [])
+      .flatMap((option) => option.isCorrect === false && isNonEmptyString(option.key)
+        ? [optionAttributionKey(item.catalogItemId, item.contentHash, option.key)]
+        : [])),
+  );
+  const rowsByOption = new Map<string, MicroTutoringOptionAttribution[]>();
+  const issueByRecord = new Map<number, MicroTutoringOptionAttributionIssueReason[]>();
+  const recordIndexesByOption = new Map<string, number[]>();
+
+  input.optionAttributions.forEach((value, index) => {
+    const attribution = attributionRecord(value);
+    if (!attribution || !hasAttributionIdentity(attribution) || !attributionHasRequiredFields(attribution)) {
+      issueByRecord.set(index, ['ATTRIBUTION_RECORD_MALFORMED']);
+      return;
+    }
+    const catalogItems = catalogById.get(attribution.catalogItemId);
+    if (!catalogItems) {
+      issueByRecord.set(index, ['ATTRIBUTION_RECORD_UNKNOWN_CATALOG_ITEM']);
+      return;
+    }
+    if (!catalogItems.some((catalogItem) => catalogItem.contentHash === attribution.contentHash)) {
+      issueByRecord.set(index, ['ATTRIBUTION_RECORD_CONTENT_HASH_DRIFT']);
+      return;
+    }
+    const optionKey = optionAttributionKey(
+      attribution.catalogItemId,
+      attribution.contentHash,
+      attribution.optionKey,
+    );
+    if (!auditedOptionKeys.has(optionKey)) {
+      issueByRecord.set(index, ['ATTRIBUTION_RECORD_NOT_AUDITED_ERROR_OPTION']);
+      return;
+    }
+    const indexes = recordIndexesByOption.get(optionKey) ?? [];
+    indexes.push(index);
+    recordIndexesByOption.set(optionKey, indexes);
+    const rows = rowsByOption.get(optionKey) ?? [];
+    rows.push(attribution);
+    rowsByOption.set(optionKey, rows);
+  });
+
+  for (const indexes of recordIndexesByOption.values()) {
+    if (indexes.length < 2) continue;
+    for (const index of indexes) {
+      const reasons = issueByRecord.get(index) ?? [];
+      reasons.push('ATTRIBUTION_RECORD_DUPLICATE');
+      issueByRecord.set(index, reasons);
+    }
+  }
+
+  const issues = [...issueByRecord.entries()]
+    .flatMap(([index, reasons]) => reasons.map((reason) => ({
+      reason,
+      attributionRef: attributionReference(
+        input.optionAttributions[index],
+        index,
+        input.optionReferenceSecret,
+      ),
+    })))
+    .sort((left, right) =>
+      left.reason.localeCompare(right.reason) || left.attributionRef.localeCompare(right.attributionRef));
+  return { issues, rowsByOption };
 }
 
 function validValidationItems(
@@ -261,7 +378,16 @@ function validValidationItems(
 export function buildMicroTutoringCoverageAuditReport(
   input: MicroTutoringCoverageAuditInput,
 ): MicroTutoringCoverageAuditReport {
+  if (!isNonEmptyString(input.optionReferenceSecret)) {
+    throw new Error('micro tutoring coverage audit requires a non-empty option reference secret');
+  }
   const qualifiedItems = practiceItems(input.catalogItems, input.reviewDecisions);
+  const attributionAudit = auditOptionAttributions({
+    optionAttributions: input.optionAttributions,
+    catalogItems: input.catalogItems,
+    qualifiedItems,
+    optionReferenceSecret: input.optionReferenceSecret,
+  });
   const activeLearningGoalIds = new Set(input.activeLearningGoalIds);
   const activeKnowledgeNodeIds = new Set(input.activeKnowledgeNodeIds);
   const dependencyIssues = uniqueSorted(input.dependencyIssues ?? []) as MicroTutoringCoverageGapReason[];
@@ -270,12 +396,13 @@ export function buildMicroTutoringCoverageAuditReport(
   for (const item of qualifiedItems) {
     const options = item.questionRefs.options ?? [];
     for (const option of options.filter((candidate) => candidate.isCorrect === false)) {
-      const candidateAttributions = attributionRows(
-        input.optionAttributions,
-        item.catalogItemId,
-        item.contentHash,
-        option.key,
-      );
+      const candidateAttributions = option.key
+        ? attributionAudit.rowsByOption.get(optionAttributionKey(
+          item.catalogItemId,
+          item.contentHash,
+          option.key,
+        )) ?? []
+        : [];
       const candidateAttribution = candidateAttributions.length === 1 ? candidateAttributions[0] : null;
       const attribution = candidateAttribution &&
         attributionHasRequiredFields(candidateAttribution) &&
@@ -324,7 +451,7 @@ export function buildMicroTutoringCoverageAuditReport(
         contentHash: item.contentHash,
         errorOptionRef: stableOptionReference(
           `${item.catalogItemId}:${item.contentHash}:${option.key ?? 'missing-option-key'}`,
-          input.baseline.optionReferenceSalt,
+          input.optionReferenceSecret,
         ),
         learningGoalId: attribution?.learningGoalId ?? null,
         misconceptionTag: attribution?.misconceptionTag ?? null,
@@ -360,8 +487,11 @@ export function buildMicroTutoringCoverageAuditReport(
     completeOptionCount,
     gapOptionCount: rows.length - completeOptionCount,
     baselineIssues: baselineIssues(input.baseline, qualifiedItems, input.catalogItems),
+    attributionIssueCount: attributionAudit.issues.length,
+    attributionIssues: attributionAudit.issues,
     gapReasonCounts,
     rows,
+    ...(input.inputCapture ? { inputCapture: input.inputCapture } : {}),
   };
 }
 
@@ -375,6 +505,11 @@ export function microTutoringCoverageAuditMarkdown(report: MicroTutoringCoverage
     `- 错误选项：${report.errorOptionCount}`,
     `- 完整链路：${report.completeOptionCount}`,
     `- 缺口：${report.gapOptionCount}`,
+    ...(report.inputCapture ? [
+      `- 输入 Git 修订：${report.inputCapture.sourceRevision}`,
+      `- 输入工作树洁净：${report.inputCapture.sourceInputsClean ? '是' : '否'}`,
+      `- 数据库投影修订：${report.inputCapture.governedProjectionRevision ?? '未标记'}`,
+    ] : []),
     '',
     '## 缺口原因',
     '',
@@ -391,6 +526,12 @@ export function microTutoringCoverageAuditMarkdown(report: MicroTutoringCoverage
       })
       : ['- 无']),
     '',
+    '## 归因源异常',
+    '',
+    ...(report.attributionIssues.length
+      ? report.attributionIssues.map((issue) => `- ${issue.reason}: ${issue.attributionRef}`)
+      : ['- 无']),
+    '',
     '## 覆盖记录',
     '',
     '| 题目 | 错误选项引用 | 状态 | 原因 |',
@@ -405,5 +546,7 @@ export function microTutoringCoverageAuditMarkdown(report: MicroTutoringCoverage
 export function microTutoringCoverageAuditIsStrictlyComplete(
   report: MicroTutoringCoverageAuditReport,
 ): boolean {
-  return report.baselineIssues.length === 0 && report.gapOptionCount === 0;
+  return report.baselineIssues.length === 0 &&
+    report.attributionIssues.length === 0 &&
+    report.gapOptionCount === 0;
 }

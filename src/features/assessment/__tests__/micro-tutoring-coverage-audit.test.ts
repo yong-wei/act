@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -18,6 +17,7 @@ import {
 } from '../micro-tutoring-coverage-audit';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
+const OPTION_REFERENCE_SECRET = 'test-only-micro-tutoring-option-reference-secret';
 
 function readJson<T>(name: string): T {
   return JSON.parse(readFileSync(path.join(GOVERNANCE_DIR, name), 'utf8')) as T;
@@ -57,6 +57,7 @@ function report(input: Partial<Parameters<typeof buildMicroTutoringCoverageAudit
     reviewDecisions,
     baseline,
     optionAttributions: [],
+    optionReferenceSecret: OPTION_REFERENCE_SECRET,
     activeLearningGoalIds: ['learning-goal-1'],
     activeKnowledgeNodeIds: ['node-1'],
     resolveResources: () => [{ id: 'resource-1', version: 'resource.v1', estimatedMinutes: 3, actionPath: '/resources/1' }],
@@ -76,6 +77,7 @@ describe('micro tutoring coverage audit', () => {
   it('pins the 54-item practice denominator and exposes all 108 un-attributed error options', () => {
     const result = report();
 
+    expect(baseline).not.toHaveProperty('optionReferenceSalt');
     expect(result.baselineIssues).toEqual([]);
     expect(result.qualifiedPracticeItemCount).toBe(54);
     expect(result.errorOptionCount).toBe(108);
@@ -256,6 +258,60 @@ describe('micro tutoring coverage audit', () => {
     expect(accessDeniedResult.rows.every((row) => row.reasons.includes('ACCESS_REVOKED'))).toBe(true);
   });
 
+  it('audits the complete attribution source instead of only matched error options', () => {
+    const attributions = buildAttributions();
+    const sourceItem = catalogItems.find((item) => item.catalogItemId === attributions[0].catalogItemId)!;
+    const correctOption = (sourceItem.questionRefs.options ?? []).find((option) => option.isCorrect === true)!;
+    const result = report({
+      optionAttributions: [
+        ...attributions,
+        attributions[0],
+        {
+          ...attributions[0],
+          catalogItemId: 'adaptive-assessment-item:unknown',
+        },
+        {
+          ...attributions[0],
+          contentHash: 'e'.repeat(64),
+        },
+        {
+          ...attributions[0],
+          optionKey: correctOption.key!,
+        },
+        null,
+      ],
+    });
+
+    expect(result.attributionIssues.map((issue) => issue.reason)).toEqual(expect.arrayContaining([
+      'ATTRIBUTION_RECORD_DUPLICATE',
+      'ATTRIBUTION_RECORD_UNKNOWN_CATALOG_ITEM',
+      'ATTRIBUTION_RECORD_CONTENT_HASH_DRIFT',
+      'ATTRIBUTION_RECORD_NOT_AUDITED_ERROR_OPTION',
+      'ATTRIBUTION_RECORD_MALFORMED',
+    ]));
+    expect(result.attributionIssues.every((issue) => issue.attributionRef.startsWith('hmac-sha256:'))).toBe(true);
+    expect(result.attributionIssues.every((issue) => !issue.attributionRef.includes(correctOption.key!))).toBe(true);
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
+  it('fails strict mode for an orphan attribution even when all audited error options are complete', () => {
+    const attributions = buildAttributions();
+    const sourceItem = catalogItems.find((item) => item.catalogItemId === attributions[0].catalogItemId)!;
+    const correctOption = (sourceItem.questionRefs.options ?? []).find((option) => option.isCorrect === true)!;
+    const result = report({
+      optionAttributions: [
+        ...attributions,
+        { ...attributions[0], optionKey: correctOption.key! },
+      ],
+    });
+
+    expect(result.gapOptionCount).toBe(0);
+    expect(result.attributionIssues).toEqual([
+      expect.objectContaining({ reason: 'ATTRIBUTION_RECORD_NOT_AUDITED_ERROR_OPTION' }),
+    ]);
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
   it('requires nonempty and registered option-attribution fields before resolving dependencies', () => {
     const attributions = buildAttributions();
     const invalidFields = [
@@ -310,18 +366,18 @@ describe('micro tutoring coverage audit', () => {
     const repeated = report({ optionAttributions: [...buildAttributions()].reverse() });
 
     expect(complete.gapOptionCount).toBe(0);
+    expect(complete.attributionIssueCount).toBe(0);
     expect(microTutoringCoverageAuditIsStrictlyComplete(complete)).toBe(true);
     expect(complete).toEqual(repeated);
     const serialized = JSON.stringify(complete);
     expect(serialized).not.toContain('正确');
     expect(serialized).not.toContain('isCorrect');
     expect(microTutoringCoverageAuditMarkdown(complete)).not.toContain('isCorrect');
-    const sourceItem = catalogItems.find((item) => item.catalogItemId === complete.rows[0].catalogItemId)!;
-    const enumerableReferences = (sourceItem.questionRefs.options ?? []).map((option) =>
-      `sha256:${createHash('sha256')
-        .update(`${sourceItem.catalogItemId}:${sourceItem.contentHash}:${option.key ?? 'missing-option-key'}`)
-        .digest('hex')}`);
-    expect(complete.rows.map((row) => row.errorOptionRef))
-      .not.toEqual(expect.arrayContaining(enumerableReferences));
+    expect(serialized).not.toContain(OPTION_REFERENCE_SECRET);
+    expect(complete.rows.every((row) => row.errorOptionRef.startsWith('hmac-sha256:'))).toBe(true);
+  });
+
+  it('requires a private option reference secret', () => {
+    expect(() => report({ optionReferenceSecret: '' })).toThrow('option reference secret');
   });
 });
