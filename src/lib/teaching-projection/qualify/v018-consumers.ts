@@ -246,20 +246,23 @@ function runTeachingRagRead(input: CandidateConsumerReadInput): ConsumerShadowRe
   const selection = input.activationPaths
     ? resolveTeachingResourceRagProductionSelection({ activationPaths: input.activationPaths })
     : null;
+  const bound = boundResource(input.loadedProjection);
+  const teachingQueryText = String(bound?.resourceId ?? bound?.canonicalId ?? 'teaching');
+  const teachingScopeId = String(bound?.scopeId ?? input.loadedProjection.artifacts.manifest.scopeId ?? '');
   const query = applyTeachingResourceRagConsumerActivation({
     domain: 'teaching-resource',
-    query: 'course',
+    query: teachingQueryText,
     projectionId: input.loadedProjection.projectionId,
     projectionHash: input.loadedProjection.projectionHash,
     authorityReleaseId: input.authorityManifest.releaseId,
-    scopeId: input.loadedProjection.artifacts.manifest.scopeId ?? null,
+    scopeId: teachingScopeId || null,
+    canonicalIds: bound?.canonicalId ? [String(bound.canonicalId)] : null,
     mode: 'shadow',
   }, { activationSelection: selection ?? undefined });
   pushRead(reads, 'teaching-resource-rag-selection', Boolean(selection && selection.mode === 'use-combination' && selection.combination?.projectionId === input.loadedProjection.projectionId && !query.activationBlocked), {
     projectionId: query.projectionId ?? input.loadedProjection.projectionId,
     mode: selection?.mode ?? null,
   }, false, selection ? `mode=${selection.mode}` : 'selection-missing');
-  const bound = boundResource(input.loadedProjection);
   const leak = visibleLeak(bound?.title, bound?.rationale);
   const teachingQuery = runTeachingResourceRagQuery({
     query,
@@ -292,16 +295,22 @@ function runTeachingRagRead(input: CandidateConsumerReadInput): ConsumerShadowRe
       projectionId: input.loadedProjection.projectionId,
       projectionHash: input.loadedProjection.projectionHash,
       authorityReleaseId: input.authorityManifest.releaseId,
-      scopeId: input.loadedProjection.artifacts.manifest.scopeId ?? null,
+      scopeId: teachingScopeId || input.loadedProjection.artifacts.manifest.scopeId || null,
       status: 'ready',
     },
     activationSelection: selection ?? undefined,
   });
+  const teachingHit = teachingQuery.hits.find((hit) => (
+    hit.resourceId === bound?.resourceId
+    && hit.projectionId === input.loadedProjection.projectionId
+    && hit.authorityReleaseId === input.authorityManifest.releaseId
+  ));
   pushRead(reads, 'teaching-resource-rag', Boolean(
     bound
     && query.projectionId === input.loadedProjection.projectionId
     && teachingQuery.metadata.availability !== 'unavailable'
     && teachingQuery.metadata.projectionId === input.loadedProjection.projectionId
+    && teachingHit
   ), {
     projectionId: input.loadedProjection.projectionId,
     resourceId: bound ? String(bound.resourceId) : null,
@@ -339,22 +348,29 @@ function runCourseRead(input: CandidateConsumerReadInput): ConsumerShadowRead[] 
     ));
   const leak = visibleLeak(resource?.title, binding?.rationale);
   let courseGraphOk = false;
-  if (input.projectionPaths && selection) {
+  const courseScopeId = String(binding?.scopeId ?? resource?.scopeId ?? '');
+  if (input.projectionPaths && selection && courseScopeId.startsWith('course-package:')) {
     const course = resolveCoursePageLayeredGraphContext({
       scope: {
-        scopeId: input.loadedProjection.artifacts.manifest.scopeId,
+        scopeId: courseScopeId,
       },
       authorityPaths: input.authorityPaths,
       projectionPaths: input.projectionPaths,
       consumerActivationSelection: selection,
       allowLegacyFallback: false,
     });
+    const sameResource = Boolean(binding && course.payload.teachingResources.resources.some((row) => (
+      row.resourceId === binding.resourceId
+    )) && course.payload.teachingResources.bindings.some((row) => (
+      row.resourceId === binding.resourceId && row.canonicalId === binding.canonicalId
+    )));
     courseGraphOk = course.hasTeachingProjection
-      && course.payload.teachingResources.identity.projectionId === input.loadedProjection.projectionId;
+      && course.payload.teachingResources.identity.projectionId === input.loadedProjection.projectionId
+      && sameResource;
     pushRead(reads, 'course-runtime-graph', courseGraphOk, {
       projectionId: course.payload.teachingResources.identity.projectionId ?? input.loadedProjection.projectionId,
-      scopeId: input.loadedProjection.artifacts.manifest.scopeId,
-    }, false, `hasTeaching=${String(course.hasTeachingProjection)}`);
+      scopeId: courseScopeId,
+    }, false, `hasTeaching=${String(course.hasTeachingProjection)};scope=${courseScopeId}`);
   }
   pushRead(reads, 'course-runtime', Boolean(binding && selection?.combination?.authorityReleaseId === input.authorityManifest.releaseId && (courseGraphOk || !input.projectionPaths)), {
     projectionId: input.loadedProjection.projectionId,
