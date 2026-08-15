@@ -62,7 +62,7 @@ the remaining text. The complete original label MUST be checked for unsafe IDs,
 URI and drive/POSIX/relative path forms, known system directories, hashes,
 release tokens, and slugs before a trusted Formula receives its narrow `/` and
 `\\` notation exception. Path recognition MUST apply at any position in the
-label and MUST NOT depend on a command whitelist or a TeX parser. A bounded
+label and MUST NOT depend on a general command whitelist or a TeX parser. A bounded
 ordinary relative candidate consists of segments matching
 `[A-Za-z0-9._-]+` joined by `/` or `\\`. The candidate MUST cover the maximal
 continuous ASCII path-shaped span, and each side MUST be a string boundary or
@@ -71,7 +71,20 @@ safe-looking subspan. Three or more such segments MUST be rejected unless all
 segments are single-character mathematical atoms; a two-segment candidate MUST
 be rejected when its final segment has an alphabetic extension. Non-Formula
 objects and untrusted runtime profiles MUST continue to reject all slash and
-backslash labels.
+backslash labels. The generic safety API MUST reject every `./` and `.\\` token
+without a dotted-token exception, and MUST scan each token from its own dot
+regardless of the preceding character. The resolver MAY retain an original
+display name only through an explicit versioned, record-bound Formula fallback
+pin after classification as the sole ambiguous `.` + `\\` token failure. Such
+a pin MUST bind the admitted runtime profile ID and SHA-256, snapshot ID/hash,
+release ID, canonical Formula ID, and original displayName UTF-8 SHA-256. It
+MUST be considered only in the immutable object's display-name fallback branch;
+preferred or alternative rows, ordinary types, non-admitted evidence, and any
+binding or failure-class drift MUST fail closed. Unknown/case/spacing variants,
+missing delimiters, concatenated characters, additional commands or slashes,
+path/UNC tails, and hard URI, absolute, relative, identity, or control failures
+MUST remain unavailable. The resolver MUST continue scanning all other embedded
+path candidates.
 
 #### Scenario: A trusted Formula contains reviewed line breaks
 
@@ -103,6 +116,17 @@ backslash labels.
   mathematical token resembles a filename extension
 - **THEN** the resolver SHALL retain the original reviewed value; a suffix
   alone MUST NOT classify the Formula as a path
+
+#### Scenario: A v0.18 Formula fallback pin matches one admitted record
+
+- **WHEN** the immutable Formula fallback is one of the ten scanned v0.18
+  ambiguity records and its profile ID/SHA-256, snapshot ID/hash, release ID,
+  canonical ID, and original displayName UTF-8 SHA-256 match a versioned pin
+- **THEN** the resolver SHALL retain the original display name only in the
+  fallback branch
+- **AND WHEN** the generic API is called, or any binding, type/ID, displayName,
+  preferred/alternative row, admission state, or failure class differs
+- **THEN** the resolver SHALL fail closed without exposing the rejected value
 
 #### Scenario: Bounded relative candidates are structurally classified
 

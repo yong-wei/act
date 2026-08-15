@@ -159,8 +159,8 @@ A/B/C and a/b/c remain reviewed Formula values, while
 `folder/subdir/file` and `foo\bar\baz` fail closed. The trusted Formula
 canonical type and admitted runtime profile remain the only exception gate;
 non-Formula and untrusted contexts continue to reject every slash or
-backslash. No command whitelist,
-TeX parser, or positive formula-feature allowlist is introduced.
+backslash. No general command whitelist, TeX parser, or positive
+formula-feature allowlist is introduced.
 
 ### 12. Unicode candidate boundaries (2026-08-15)
 
@@ -178,6 +178,33 @@ Unicode filename paths are explicitly outside this change's target: candidate
 segments remain ASCII and no Unicode filename parser or punctuation category
 (`\\p{P}`) is introduced. Existing URI, drive/POSIX, dot/home, UNC, known
 directory, identity, and trusted Formula gates remain unchanged.
+
+### 13. Record-bound Formula fallback pins (DECIDE=C, 2026-08-15)
+
+The accepted Sol DECIDE=C remediation supersedes the earlier dotted-token
+allowlist. `isSafeAuthorityLabel` remains a generic fail-closed API: every
+`./` and `.\\` token is scanned from its own dot, regardless of the preceding
+character, and any such token rejects the value. No command whitelist, TeX
+parser, or general Formula exception is added.
+
+The immutable resolver may retain the original `displayName` only through an
+explicit versioned pin for an admitted runtime record. A pin binds the runtime
+profile ID and SHA-256, snapshot ID and hash, release ID, canonical Formula ID,
+and the original displayName UTF-8 SHA-256. It is considered only in the
+resolver's display-name fallback branch, only for `canonicalType === Formula`,
+and only when the sole classified failure is the ambiguous Formula `.` + `\\`
+token. Preferred and alternative rows, ordinary types, non-admitted evidence,
+all drifted bindings, and any other failure class remain unavailable.
+
+The v0.18 source scan covers 1,779 Formula records. Ten records have exactly
+the pinned ambiguity class (including `ctf:1ac3cc48c529fb9bb3fd0532`); five
+records also contain hard path evidence and are not pinned. The target record's
+pin is bound to release `ctr:release:control-theory-engineering-v0.18`, runtime
+profile `ctr:profile:control-theory-engineering-v0.18:runtime-v3`, and the
+candidate snapshot and hashes recorded in the implementation. Any URI,
+drive/POSIX/UNC, directory/relative path, identity/hash, control-character,
+unknown-command, malformed, concatenated, or multi-token failure remains
+fail-closed.
 
 ## Risks / Trade-offs
 

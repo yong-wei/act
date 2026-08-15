@@ -11,6 +11,7 @@ import type {
   AuthoritativeV2ProjectionProfileRecord,
 } from '@/lib/authoritative-knowledge/contracts';
 import type { AuthorityEngineeringObject } from '@/lib/authoritative-knowledge/authority-snapshot';
+import { sha256Text } from '@/lib/source-pack/sha256';
 
 const ZH_CN = 'zh-CN' as const;
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -24,9 +25,153 @@ const PATH_CANDIDATE_BOUNDARY = /[^A-Za-z0-9._-]/u;
 const EMBEDDED_URI = /(?:^|[^A-Za-z0-9])(?:[A-Za-z][A-Za-z0-9+.-]*:)(?:\/\/|\/|[A-Za-z0-9][A-Za-z0-9+.-]*[/#?])/u;
 const EMBEDDED_DRIVE_PATH = /(?:^|[^A-Za-z0-9])[A-Za-z]:[\\/]/u;
 const EMBEDDED_POSIX_PATH = /(?:^|[^A-Za-z0-9)])\/(?:[A-Za-z0-9._-]+(?:[\\/]|$))/u;
-const EMBEDDED_RELATIVE_PATH = /(?:^|[^A-Za-z0-9.])\.{1,2}[\\/]|(?:^|[^A-Za-z0-9])~[\\/]/u;
+const EMBEDDED_RELATIVE_PATH = /\.{1,2}[\\/]|~[\\/]/u;
 const EMBEDDED_UNC_PATH = /(?:^|[^A-Za-z0-9])\\\\([^\s\\/]+)[\\/]([^\s\\/]+)(?:[\\/]|$)/u;
 const KNOWN_PATH_DIRECTORY = /(?:^|[^A-Za-z0-9])(?:course-content|src|runtime|releases?|snapshots?|bundles?|artifacts?)(?:[\\/]|$)/iu;
+
+const FORMULA_FALLBACK_PIN_VERSION = 'authority-formula-fallback-pin/v1' as const;
+const FORMULA_DOT_BACKSLASH_FAILURE = 'ambiguous-formula-dot-backslash' as const;
+
+type AuthorityLabelFailure =
+  | 'empty'
+  | 'control'
+  | 'line-break'
+  | 'identity'
+  | 'uri'
+  | 'known-directory'
+  | 'relative-path'
+  | 'absolute-path'
+  | 'unc-path'
+  | 'bounded-relative-path'
+  | 'path-structure'
+  | 'separator'
+  | 'machine-slug'
+  | 'ambiguous-formula-dot-backslash';
+
+interface AuthorityFormulaFallbackPin {
+  readonly version: typeof FORMULA_FALLBACK_PIN_VERSION;
+  readonly failureClass: typeof FORMULA_DOT_BACKSLASH_FAILURE;
+  readonly releaseId: string;
+  readonly snapshotId: string;
+  readonly snapshotHash: string;
+  readonly profileId: string;
+  readonly profileSha256: string;
+  readonly canonicalId: string;
+  readonly displayNameSha256: string;
+}
+
+const AUTHORITY_FORMULA_FALLBACK_PINS: readonly AuthorityFormulaFallbackPin[] = Object.freeze([
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctf:1ac3cc48c529fb9bb3fd0532',
+    displayNameSha256: 'cd94968600a453e1d80c30b820fe2c70fe44f51f7754eba28bc54e60097f29df',
+  },
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctf:224fe8007c92e0365df88c71',
+    displayNameSha256: 'f2b781f2b0d6e66592a7c3a2ab9288c2661b6c29bc07d2ba5dcd744d9e045150',
+  },
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctf:98056be65217199a1b9bfad7',
+    displayNameSha256: 'fbe598cf6dada43ec35a65c547aed1e5d51f1296cf177bcc2141bab1acc35b7b',
+  },
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctf:aeac8b41a8dfab7e5ea9be5f',
+    displayNameSha256: 'd262f0f4df05993ae339bc42647713f34b1a3a5d71a98dd9f978c71dccae3cf9',
+  },
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctkg:v3e-object-0796fedf8fa2a340f1d800ec',
+    displayNameSha256: '191fa7bbe463bfa8ab5ac466295e315d6e46b2abd40ca121cdfc16a43083637a',
+  },
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctkg:v3e-object-7e93787bebbb427bd59b0d98',
+    displayNameSha256: 'deebfa23fe8a6906620e8a7a7239f7b8a10006436e2ad408e517bf331f39f3c2',
+  },
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctkg:v3e-object-82b673b7659603ab09a48818',
+    displayNameSha256: '2778af2f5b8a0766c156b324ad6104066bb8453c4e2f4cca4b7cc9f0aba369a1',
+  },
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctkg:v3e-object-cfd98dee3afa5c44a0f0c44f',
+    displayNameSha256: 'e9e6b5af17afc5947262bd75c21e94a95701478b1f4aa0c6681d17c4c24199ad',
+  },
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctkg:v3e-object-093e69f52a564305cb43330f',
+    displayNameSha256: '7546ad5f64f1ce5889637afd86e603d7205df7ab557d3892b3afb63bb8b32dd3',
+  },
+  {
+    version: FORMULA_FALLBACK_PIN_VERSION,
+    failureClass: FORMULA_DOT_BACKSLASH_FAILURE,
+    releaseId: 'ctr:release:control-theory-engineering-v0.18',
+    snapshotId: 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    snapshotHash: '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed',
+    profileId: 'ctr:profile:control-theory-engineering-v0.18:runtime-v3',
+    profileSha256: 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7',
+    canonicalId: 'ctkg:v3e-object-a006a76a7e0bcccabddd6398',
+    displayNameSha256: '6a06fd3d9b37428327fc549be85f7cc19f804a2ecb1fc672851fba13da15bc6f',
+  },
+]);
 
 export interface AuthorityLabelSnapshotBinding {
   readonly snapshotId: string;
@@ -158,16 +303,63 @@ function hasBoundedRelativePathStructure(value: string): boolean {
   return false;
 }
 
+function hasEmbeddedRelativePathStructure(value: string): boolean {
+  // Every relative token is path evidence. Formula syntax is handled only by
+  // the resolver's record-bound pin after all hard path checks have passed.
+  return EMBEDDED_RELATIVE_PATH.test(value);
+}
+
 function hasEmbeddedPathStructure(value: string): boolean {
   const unc = EMBEDDED_UNC_PATH.exec(value);
   return EMBEDDED_URI.test(value)
     || EMBEDDED_DRIVE_PATH.test(value)
     || EMBEDDED_POSIX_PATH.test(value)
-    || EMBEDDED_RELATIVE_PATH.test(value)
+    || hasEmbeddedRelativePathStructure(value)
     || KNOWN_PATH_DIRECTORY.test(value)
     || (unc !== null && PLAIN_PATH_DIRECTORY.test(unc[1]!) && PLAIN_PATH_DIRECTORY.test(unc[2]!))
     || hasBoundedRelativePathStructure(value)
     || hasPathStructure(value);
+}
+
+function classifyAuthorityLabel(
+  value: string | null | undefined,
+  canonicalType?: string | null,
+  trustedRuntimeProfile = false,
+): AuthorityLabelFailure | null {
+  if (typeof value !== 'string' || value.length === 0) return 'empty';
+  if (DISALLOWED_CONTROL.test(value)) return 'control';
+  const trustedFormula = canonicalType === 'Formula' && trustedRuntimeProfile;
+  if (/\r(?!\n)/u.test(value) || (!trustedFormula && /[\r\n]/u.test(value))) return 'line-break';
+  const normalized = text(value);
+  if (!normalized) return 'empty';
+  if (/^[a-f0-9]{32,}$/iu.test(normalized)) return 'identity';
+  if (/^(?:[A-Za-z][A-Za-z0-9+.-]*:){1,2}[A-Za-z0-9:/._-]+$/u.test(normalized)) return 'uri';
+  if (/^(?:node|relation|source|target|release|release-set|snapshot|activation|projection|bundle|profile|assertion|term|edition|section|sha256|hash|commit|path)[-_/:\s]/iu.test(normalized)) return 'identity';
+  if (/(?:^|[/\\])(?:course-content|src|runtime|releases?|snapshots?|bundles?|artifacts?)(?:[/\\]|$)/iu.test(normalized)) return 'known-directory';
+  if (/^~(?:[/\\]|$)/u.test(normalized)) return 'relative-path';
+  if (/^(?:[A-Za-z]:[\\/]|\/)/u.test(normalized)) return 'absolute-path';
+  if (hasEmbeddedPathStructure(value)) {
+    if (EMBEDDED_URI.test(value)) return 'uri';
+    if (EMBEDDED_DRIVE_PATH.test(value)) return 'absolute-path';
+    if (EMBEDDED_POSIX_PATH.test(value)) return 'absolute-path';
+    if (KNOWN_PATH_DIRECTORY.test(value)) return 'known-directory';
+    const unc = EMBEDDED_UNC_PATH.exec(value);
+    if (unc !== null && PLAIN_PATH_DIRECTORY.test(unc[1]!) && PLAIN_PATH_DIRECTORY.test(unc[2]!)) return 'unc-path';
+    if (hasBoundedRelativePathStructure(value)) return 'bounded-relative-path';
+    if (hasPathStructure(value)) return 'path-structure';
+  }
+  for (const match of value.matchAll(/\.{1,2}[\\/]|~[\\/]/gu)) {
+    const token = match[0]!;
+    if (token === '.\\' && trustedFormula) return FORMULA_DOT_BACKSLASH_FAILURE;
+    return 'relative-path';
+  }
+  if (/^\\/u.test(normalized) || /[\\/]/u.test(normalized)) {
+    if (!trustedFormula) return 'separator';
+  }
+  if (/(?:sha256|hash|release|snapshot|bundle|profile|projection|activation|commit|path)[=:]/iu.test(normalized)) return 'identity';
+  if (/^[a-z0-9]+(?:[_-][a-z0-9]+)+$/iu.test(normalized)) return 'machine-slug';
+  if (/^(?:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-f0-9]{8}(?:-[a-f0-9]{8}){3,})$/iu.test(normalized)) return 'identity';
+  return null;
 }
 
 export function isSafeAuthorityLabel(
@@ -175,30 +367,7 @@ export function isSafeAuthorityLabel(
   canonicalType?: string | null,
   trustedRuntimeProfile = false,
 ): value is string {
-  if (typeof value !== 'string' || DISALLOWED_CONTROL.test(value)) return false;
-  const trustedFormula = canonicalType === 'Formula' && trustedRuntimeProfile;
-  if (/\r(?!\n)/u.test(value) || (!trustedFormula && /[\r\n]/u.test(value))) return false;
-  const normalized = text(value);
-  if (!normalized) return false;
-  if (/^[a-f0-9]{32,}$/iu.test(normalized)) return false;
-  if (/^(?:[A-Za-z][A-Za-z0-9+.-]*:){1,2}[A-Za-z0-9:/._-]+$/u.test(normalized)) return false;
-  if (/^(?:node|relation|source|target|release|release-set|snapshot|activation|projection|bundle|profile|assertion|term|edition|section|sha256|hash|commit|path)[-_/:\s]/iu.test(normalized)) return false;
-  if (/(?:^|[/\\])(?:course-content|src|runtime|releases?|snapshots?|bundles?|artifacts?)(?:[/\\]|$)/iu.test(normalized)) return false;
-  if (/^~(?:[/\\]|$)/u.test(normalized)) return false;
-  if (/(?:^|[/\\])\.{1,2}(?:[/\\]|$)/u.test(normalized)) return false;
-  if (/^(?:[A-Za-z]:[\\/]|\/|\.\.?(?:[/\\]))/u.test(normalized)) return false;
-  if (hasEmbeddedPathStructure(normalized)) return false;
-  if (/^\\/u.test(normalized)) {
-    if (!trustedFormula) return false;
-  } else if (/[\\/]/u.test(normalized)) {
-    if (!trustedFormula) return false;
-  }
-  if (/(?:sha256|hash|release|snapshot|bundle|profile|projection|activation|commit|path)[=:]/iu.test(normalized)) return false;
-  // Multi-token ASCII identifiers such as positive_feedback_inner_loop are
-  // machine slugs, while a normal phrase containing spaces remains valid.
-  if (/^[a-z0-9]+(?:[_-][a-z0-9]+)+$/iu.test(normalized)) return false;
-  if (/^(?:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-f0-9]{8}(?:-[a-f0-9]{8}){3,})$/iu.test(normalized)) return false;
-  return true;
+  return classifyAuthorityLabel(value, canonicalType, trustedRuntimeProfile) === null;
 }
 
 function cloneObject(
@@ -258,6 +427,40 @@ function runtimeProfile(
     throw new AuthorityLabelResolverError('profile-drift', 'Authority label runtime profile is not uniquely admitted.');
   }
   return runtime[0]!;
+}
+
+function pinnedFormulaFallbackLabel(
+  context: AuthorityLabelResolverContext,
+  object: Pick<AuthorityEngineeringObject, 'canonicalId' | 'canonicalType'>,
+  fallback: string | null,
+  failure: AuthorityLabelFailure | null,
+): string | null {
+  if (
+    object.canonicalType !== 'Formula'
+    || !fallback
+    || failure !== FORMULA_DOT_BACKSLASH_FAILURE
+  ) return null;
+
+  const profile = context.runtimeProfile;
+  if (
+    !profile
+    || profile.manifestProfile !== 'runtime'
+    || profile.releaseId !== context.snapshot.releaseId
+    || !SHA256.test(profile.profileSha256)
+  ) return null;
+
+  const pin = AUTHORITY_FORMULA_FALLBACK_PINS.find((candidate) => (
+    candidate.version === FORMULA_FALLBACK_PIN_VERSION
+    && candidate.failureClass === FORMULA_DOT_BACKSLASH_FAILURE
+    && candidate.releaseId === context.snapshot.releaseId
+    && candidate.snapshotId === context.snapshot.snapshotId
+    && candidate.snapshotHash === context.snapshot.snapshotHash
+    && candidate.profileId === profile.profileId
+    && candidate.profileSha256 === profile.profileSha256
+    && candidate.canonicalId === object.canonicalId
+    && candidate.displayNameSha256 === sha256Text(fallback)
+  ));
+  return pin ? fallback : null;
 }
 
 function preferredLabels(
@@ -393,8 +596,10 @@ export function resolveAuthorityLabel(
   }
 
   const fallback = projectionDisplayName(object, preserveFormulaWhitespace);
-  if (!isSafeAuthorityLabel(fallback, object.canonicalType, trustedRuntimeProfile)) return unavailable();
+  const failure = classifyAuthorityLabel(fallback, object.canonicalType, trustedRuntimeProfile);
+  const pinnedFallback = pinnedFormulaFallbackLabel(context, object, fallback, failure);
+  if (failure !== null && pinnedFallback === null) return unavailable();
   const aliases = resolvedAliases(context.labels, entityId, object.canonicalType, trustedRuntimeProfile);
   if (!aliases) return unavailable();
-  return Object.freeze({ status: 'available', label: fallback, aliases });
+  return Object.freeze({ status: 'available', label: pinnedFallback ?? fallback, aliases });
 }

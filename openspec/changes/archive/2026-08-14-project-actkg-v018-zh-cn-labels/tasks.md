@@ -49,3 +49,15 @@
   quote/book-title/em-dash/Chinese boundaries, maximal-candidate traps,
   single-atom positives, and reverse-context regressions without expanding
   scope.
+- [x] 3.9 Apply the accepted #1408 DECIDE=C remediation: keep the generic
+  `isSafeAuthorityLabel` scanner fail-closed for every `./` and `.\\` token,
+  then classify only an otherwise-clean trusted Formula as the ambiguous
+  dotted-token failure.
+- [x] 3.10 Add an explicit versioned, record-bound fallback pin for each of the
+  ten exact v0.18 Formula records in that ambiguity class. Bind profile ID and
+  SHA-256, snapshot ID and hash, release ID, canonical Formula ID, and original
+  displayName UTF-8 SHA-256; reject all hard path failures, ordinary types,
+  preferred/alternative rows, non-admitted input, and every binding drift.
+- [x] 3.11 Scan all 1,779 v0.18 Formula records, retain the five hard-failure
+  records outside the pin set, and verify the target `ctf:1ac3cc48c529fb9bb3fd0532`
+  through actual Authority shard materialization plus focused and strict gates.

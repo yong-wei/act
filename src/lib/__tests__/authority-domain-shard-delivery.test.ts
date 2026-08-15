@@ -62,6 +62,14 @@ const TIME = 'ctc:time-test-object';
 const SHARED = 'ctc:shared-test-object';
 const NEIGHBOR = 'ctc:neighbor-test-object';
 
+const V018_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.18';
+const V018_SNAPSHOT_ID = 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed';
+const V018_SNAPSHOT_HASH = '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed';
+const V018_PROFILE_ID = 'ctr:profile:control-theory-engineering-v0.18:runtime-v3';
+const V018_PROFILE_SHA256 = 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7';
+const V018_CTF_ID = 'ctf:1ac3cc48c529fb9bb3fd0532';
+const V018_CTF_DISPLAY_NAME = String.raw`m=\left.\frac{d g}{d x}\right|_{x(t)=x_{0}}`;
+
 const tempRoots: string[] = [];
 
 afterEach(() => {
@@ -193,6 +201,7 @@ const V018_FORMULA_DISPLAY_NAMES = [
   '\\frac{U_o(s)}{U_i(s)}=\\frac{1}{R_1 R_2 C_1 C_2 s^2 + (R_1 C_1 + R_2 C_2) s + 1}',
   'C(s)=\\frac{G(s)}{1 \\mp G(s) H(s)} R(s)=\\Phi(s) R(s)',
   'f(t)=\\sum_{i=1}^{n} C_{i} e^{p_{i} t} 1(t)',
+  String.raw`K_{e q}(a)=\left\{\begin{array}{cl}\frac{2}{\pi}\left(k \sin ^{-1}\left(\frac{N}{a k}\right)+\frac{N}{a} \sqrt{1-\left(\frac{N}{k a}\right)^{2}}\right), & \frac{k a}{N}>1,  \\k, & \frac{k a}{N} \leq 1 .\end{array}\right.`,
 ] as const;
 
 function relationRow(
@@ -236,6 +245,61 @@ function engineeringBody(): AuthorityEngineeringBody {
     releaseComponents: [],
     projectionIdentities: [],
     linkMetadata: [],
+  };
+}
+
+function v018FormulaCatalogRuntime() {
+  const catalog = catalogRuntime();
+  return {
+    ...catalog,
+    memberships: catalog.memberships.map((membership) => (
+      membership.canonicalId === MODELING
+        ? { ...membership, canonicalId: V018_CTF_ID }
+        : membership
+    )),
+  };
+}
+
+function v018FormulaEngineeringBody(): AuthorityEngineeringBody {
+  const engineering = engineeringBody();
+  const replaceId = (id: string) => (id === MODELING ? V018_CTF_ID : id);
+  return {
+    ...engineering,
+    objects: engineering.objects.map((object) => (
+      object.canonicalId === MODELING
+        ? {
+          ...object,
+          canonicalId: V018_CTF_ID,
+          canonicalType: 'Formula',
+          semanticName: V018_CTF_DISPLAY_NAME,
+          payload: { displayName: V018_CTF_DISPLAY_NAME },
+        }
+        : object
+    )),
+    relations: engineering.relations.map((relation) => ({
+      ...relation,
+      sourceId: replaceId(relation.sourceId),
+      targetId: replaceId(relation.targetId),
+    })),
+    v2Evidence: v018Evidence([]),
+  };
+}
+
+function v018FormulaEnvelope(catalog: ReturnType<typeof v018FormulaCatalogRuntime>): AuthorityShardEnvelope {
+  const base = envelope();
+  return {
+    ...base,
+    authority: {
+      ...base.authority,
+      snapshotId: V018_SNAPSHOT_ID,
+      snapshotHash: V018_SNAPSHOT_HASH,
+      releaseId: V018_RELEASE_ID,
+    },
+    catalog: {
+      catalogId: catalog.catalogId,
+      catalogHash: catalog.catalogHash,
+      catalogVersion: catalog.catalogVersion,
+    },
   };
 }
 
@@ -290,6 +354,24 @@ function v2Evidence(
       bundleIdentity: {},
       bindingDigest: 'e'.repeat(64),
     },
+  };
+}
+
+function v018Evidence(
+  labels: Array<{
+    entityId: string;
+    label: string;
+    labelType: 'canonical_preferred' | 'alternative';
+  }>,
+): AuthoritativeV2Evidence {
+  const evidence = v2Evidence(labels, V018_RELEASE_ID);
+  return {
+    ...evidence,
+    profiles: evidence.profiles.map((profile) => (
+      profile.profileKey === 'act'
+        ? { ...profile, profileId: V018_PROFILE_ID, profileSha256: V018_PROFILE_SHA256 }
+        : profile
+    )),
   };
 }
 
@@ -490,13 +572,242 @@ describe('authority domain shard delivery', () => {
     expect(isSafeAuthorityLabel('../runtime/formula')).toBe(false);
   });
 
-  it('accepts the controlled v0.18 Formula display set with non-leading LaTeX commands', () => {
-    expect(V018_FORMULA_DISPLAY_NAMES).toHaveLength(19);
-    for (const label of V018_FORMULA_DISPLAY_NAMES) {
+  it('keeps every grouped-array dotted token fail-closed without a generic exception', () => {
+    const formula = String.raw`1 .\end{array}\right.`;
+    const noSpaceFormula = String.raw`1.\end{array}\right.`;
+    const variableFormula = String.raw`x.\end{array}\right.`;
+    const leadingFormula = String.raw`.\end{array}\right.`;
+    for (const label of [formula, noSpaceFormula, variableFormula, leadingFormula]) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+    }
+
+    const object = {
+      ...objectRow(MODELING, formula),
+      canonicalType: 'Formula',
+      payload: { displayName: formula },
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects: [object],
+      v2Evidence: v2Evidence([]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING)).toEqual({
+      status: 'unavailable',
+      label: null,
+      aliases: [],
+    });
+
+    for (const path of [
+      String.raw`1 .\end{array}`,
+      String.raw`.\end{array}`,
+      String.raw`1 .\end{array}\file`,
+      String.raw`1 .\end{array}\right.\file`,
+      String.raw`x.\file`,
+      String.raw`x./file`,
+      String.raw`1 .\foo`,
+      String.raw`1 .\End{array}\right.`,
+      String.raw`1 .\end {array}\right.`,
+      String.raw`1 .\end{array} \right.`,
+      String.raw`1 .\end{array}\right. `,
+      String.raw`1 .\end{array}\right`,
+      String.raw`1 .\end{array}\right.X`,
+      String.raw`1 .\end{array}\right./file`,
+      String.raw`1 .\end{array}\right.\\server\share`,
+      String.raw`1 .\end{array}\right. + 2 .\end{array}\right.`,
+      String.raw`1 .\end\file`,
+      String.raw`x.\file 1 .\end{array}\right.`,
+      String.raw`x./file 1 .\end{array}\right.`,
+    ]) {
+      expect(isSafeAuthorityLabel(path, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(path, 'DomainConcept')).toBe(false);
+    }
+  });
+
+  it('keeps the controlled v0.18 Formula display set strict for dotted tokens', () => {
+    expect(V018_FORMULA_DISPLAY_NAMES).toHaveLength(20);
+    const dotted = V018_FORMULA_DISPLAY_NAMES.filter((label) => /\.\\/u.test(label));
+    expect(dotted).toHaveLength(2);
+    for (const label of dotted) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+    }
+    for (const label of V018_FORMULA_DISPLAY_NAMES.filter((item) => !dotted.includes(item))) {
       expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(true);
       expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
       expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
     }
+  });
+
+  it('anchors the fallback inventory to the real v0.18 Formula source scan', () => {
+    const projection = JSON.parse(readFileSync(path.join(
+      process.cwd(),
+      'course-content/authoring/knowledge/releases/control-theory-engineering-v0.18/act-projection.json',
+    ), 'utf8')) as {
+      nodes: Array<{ entity_id?: string; entity_type?: string; display_name?: string }>;
+    };
+    const formulas = projection.nodes.filter((node) => node.entity_type === 'Formula');
+    expect(formulas).toHaveLength(1779);
+    const dotted = formulas.filter((node) => node.display_name?.includes('.\\'));
+    expect(dotted).toHaveLength(11);
+    expect(dotted.find((node) => node.entity_id === V018_CTF_ID)?.display_name).toBe(V018_CTF_DISPLAY_NAME);
+    expect(dotted.find((node) => node.entity_id === 'ctkg:v3e-object-7c68147c796fde027aa88ac1')?.display_name).toContain('\\end{array}');
+
+    const pinnedIds = [
+      V018_CTF_ID,
+      'ctf:224fe8007c92e0365df88c71',
+      'ctf:98056be65217199a1b9bfad7',
+      'ctf:aeac8b41a8dfab7e5ea9be5f',
+      'ctkg:v3e-object-0796fedf8fa2a340f1d800ec',
+      'ctkg:v3e-object-7e93787bebbb427bd59b0d98',
+      'ctkg:v3e-object-82b673b7659603ab09a48818',
+      'ctkg:v3e-object-cfd98dee3afa5c44a0f0c44f',
+      'ctkg:v3e-object-093e69f52a564305cb43330f',
+      'ctkg:v3e-object-a006a76a7e0bcccabddd6398',
+    ];
+    expect(pinnedIds).toHaveLength(10);
+    for (const id of pinnedIds) {
+      const row = dotted.find((node) => node.entity_id === id);
+      expect(row?.display_name).toBeTypeOf('string');
+      const context = createAuthorityLabelResolverContext({
+        snapshot: {
+          snapshotId: V018_SNAPSHOT_ID,
+          snapshotHash: V018_SNAPSHOT_HASH,
+          releaseId: V018_RELEASE_ID,
+        },
+        objects: [{
+          ...objectRow(id, row?.display_name ?? ''),
+          canonicalType: 'Formula',
+          payload: { displayName: row?.display_name },
+        }],
+        v2Evidence: v018Evidence([]),
+      });
+      expect(resolveAuthorityLabel(context, id).status).toBe('available');
+    }
+    const hardRow = dotted.find((node) => node.entity_id === 'ctkg:v3e-object-7c68147c796fde027aa88ac1')!;
+    const hardContext = createAuthorityLabelResolverContext({
+      snapshot: {
+        snapshotId: V018_SNAPSHOT_ID,
+        snapshotHash: V018_SNAPSHOT_HASH,
+        releaseId: V018_RELEASE_ID,
+      },
+      objects: [{
+        ...objectRow(hardRow.entity_id!, hardRow.display_name!),
+        canonicalType: 'Formula',
+        payload: { displayName: hardRow.display_name },
+      }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(hardContext, hardRow.entity_id!).status).toBe('unavailable');
+  });
+
+  it('uses only the immutable record-bound v0.18 Formula fallback pin', () => {
+    expect(isSafeAuthorityLabel(V018_CTF_DISPLAY_NAME, 'Formula', true)).toBe(false);
+    const object = {
+      ...objectRow(V018_CTF_ID, V018_CTF_DISPLAY_NAME),
+      canonicalType: 'Formula',
+      payload: { displayName: V018_CTF_DISPLAY_NAME },
+    };
+    const snapshot = {
+      snapshotId: V018_SNAPSHOT_ID,
+      snapshotHash: V018_SNAPSHOT_HASH,
+      releaseId: V018_RELEASE_ID,
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [object],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(context, V018_CTF_ID)).toEqual({
+      status: 'available',
+      label: V018_CTF_DISPLAY_NAME,
+      aliases: [],
+    });
+
+    for (const driftedSnapshot of [
+      { ...snapshot, snapshotId: 'snap-drift' },
+      { ...snapshot, snapshotHash: 'f'.repeat(64) },
+    ]) {
+      expect(resolveAuthorityLabel(createAuthorityLabelResolverContext({
+        snapshot: driftedSnapshot,
+        objects: [object],
+        v2Evidence: v018Evidence([]),
+      }), V018_CTF_ID).status).toBe('unavailable');
+    }
+    expect(() => createAuthorityLabelResolverContext({
+      snapshot: { ...snapshot, releaseId: 'ctr:release:drift' },
+      objects: [object],
+      v2Evidence: v018Evidence([]),
+    })).toThrow(/profile|admission/u);
+
+    for (const profileDrift of [
+      { profileId: 'ctr:profile:drift', profileSha256: V018_PROFILE_SHA256 },
+      { profileId: V018_PROFILE_ID, profileSha256: 'f'.repeat(64) },
+    ]) {
+      const evidence = v018Evidence([]);
+      evidence.profiles = evidence.profiles.map((profile) => (
+        profile.profileKey === 'act' ? { ...profile, ...profileDrift } : profile
+      ));
+      expect(resolveAuthorityLabel(createAuthorityLabelResolverContext({
+        snapshot,
+        objects: [object],
+        v2Evidence: evidence,
+      }), V018_CTF_ID).status).toBe('unavailable');
+    }
+
+    const preferred = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [object],
+      v2Evidence: v018Evidence([
+        { entityId: V018_CTF_ID, label: V018_CTF_DISPLAY_NAME, labelType: 'canonical_preferred' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(preferred, V018_CTF_ID).status).toBe('unavailable');
+
+    const hardPath = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...object, payload: { displayName: 'm=folder/file.txt' } }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(hardPath, V018_CTF_ID).status).toBe('unavailable');
+
+    const changedType = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...object, canonicalType: 'DomainConcept' }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(changedType, V018_CTF_ID).status).toBe('unavailable');
+
+    const changedId = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...object, canonicalId: 'ctf:formula-drift' }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(changedId, 'ctf:formula-drift').status).toBe('unavailable');
+
+    const changedDisplayName = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...object, payload: { displayName: `${V018_CTF_DISPLAY_NAME} ` } }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(changedDisplayName, V018_CTF_ID).status).toBe('unavailable');
+  });
+
+  it('materializes the pinned v0.18 Formula record without weakening ordinary labels', () => {
+    const catalog = v018FormulaCatalogRuntime();
+    const materialized = buildAuthorityDomainShards({
+      envelope: v018FormulaEnvelope(catalog),
+      catalog,
+      engineering: v018FormulaEngineeringBody(),
+    });
+    expect(materialized.domainDefaults['system-modeling'].objects.find((object) => object.id === V018_CTF_ID)).toMatchObject({
+      id: V018_CTF_ID,
+      label: V018_CTF_DISPLAY_NAME,
+    });
+    expect(isSafeAuthorityLabel(V018_CTF_DISPLAY_NAME, 'DomainConcept', true)).toBe(false);
+    expect(materialized.domainDefaults['time-domain-analysis'].objects.find((object) => object.id === TIME)?.label).toBe('时域对象');
   });
 
   it('rejects path evidence embedded anywhere before allowing Formula separators', () => {
