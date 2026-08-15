@@ -1600,8 +1600,9 @@ async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
 async function reopenSelectedNodeInspectorForMobileFocus(page: Page, nodeId = selectedNodeId) {
   const inspectorSelector = '[data-knowledge-inspector="floating-right-edge"]';
   const inspector = page.locator(inspectorSelector);
+  await inspector.waitFor({ state: 'visible', timeout: 5000 }).catch(() => undefined);
   if (await inspector.isVisible().catch(() => false)) {
-    await page.keyboard.press('Escape');
+    await inspector.locator('[data-knowledge-inspector-close-priority]').click({ timeout: 5000 });
     await page.waitForSelector(inspectorSelector, { state: 'detached', timeout: 5000 });
   }
   await page.waitForFunction((expectedNodeId) => {
