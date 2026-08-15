@@ -1,72 +1,57 @@
 /** Compound v0.18 cutover qualification: inactive, publication-only. */
 
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { emptyTeachingSelectorFingerprint } from '../../authoritative-knowledge/authority-snapshot';
-import {
-  activateAuthoritySnapshot,
-  readCurrentAuthorityPointer,
-  resolveAuthorityStorePaths,
-} from '../../authoritative-knowledge/authority-store';
-import { projectionDigest, projectionSha256 } from '../hash';
-import {
-  activatePrerequisitePublication,
-  readCurrentPrerequisitePointer,
-  resolvePrerequisiteStorePaths,
-} from '../prerequisites/store';
+import type {
+  AuthorityEngineeringBody,
+  AuthoritySnapshotManifest,
+} from '../../authoritative-knowledge/authority-snapshot';
+import { projectionDigest } from '../hash';
 import { V018_CURRENT_POINTER_PATHS } from '../rebase/v018-contracts';
 import { readV018PointerSnapshots } from '../rebase/v018-receipt';
 import {
-  activateTeachingProjection,
   loadStagedTeachingProjection,
-  readCurrentTeachingProjectionPointer,
   resolveTeachingProjectionStorePaths,
 } from '../store';
 
-export const V018_QUALIFICATION_CONTRACT = 'actkg-v018-cutover-qualification/v1' as const;
-export const V018_NAMED_CONSUMERS = [
-  'course-runtime',
-  'engineering-graph',
-  'engineering-rag',
-  'konling',
-  'learning-path',
-  'teaching-resource-rag',
-] as const;
+import { runNamedConsumerShadowReads, type ConsumerShadowResult } from './v018-consumers';
+import {
+  collectDeclaredCandidateHashes,
+  compareDualReplayArtifactBytes,
+  verifyDeclaredCandidateHashes,
+  verifyTeachingArtifactHashes,
+} from './v018-hashes';
+import { rehearseIsolatedFiveSelectorActivation } from './v018-isolated';
+import {
+  V018_NAMED_CONSUMERS,
+  V018_QUALIFICATION_CONTRACT,
+} from './v018-qualify-contract';
+import { V018QualificationError } from './v018-qualify-error';
+import {
+  AUTHORITY_CANDIDATE_RELATIVE,
+  TEACHING_CANDIDATE_RELATIVE,
+  V018_RELEASE_RELATIVE,
+  V018_SNAPSHOT,
+  V09_ACTIVATION,
+  V09_PREREQUISITE,
+  V09_PROJECTION,
+  V09_SNAPSHOT,
+  asRecord,
+  leakInDisplay,
+  readJson,
+  shaFile,
+  writeCanonical,
+} from './v018-shared';
 
-const SYSTEM_STRING = /(?:snap-|proj-|ads-|ctr:release:|first-cutover-|sha256:|[a-f0-9]{64})/i;
-const V018_SNAPSHOT = 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed';
-const V09_SNAPSHOT = 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7';
-const V09_PROJECTION = 'proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d';
-const V09_PREREQUISITE = 'proj-b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b';
-
-export class V018QualificationError extends Error {
-  readonly code: string;
-  constructor(code: string, message: string) {
-    super(message);
-    this.name = 'V018QualificationError';
-    this.code = code;
-  }
-}
-
-function readJson(filePath: string): Record<string, unknown> {
-  return JSON.parse(readFileSync(filePath, 'utf8')) as Record<string, unknown>;
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
-}
-
-function writeCanonical(filePath: string, value: unknown): void {
-  mkdirSync(path.dirname(filePath), { recursive: true });
-  writeFileSync(filePath, `${JSON.stringify(value)}\n`, 'utf8');
-}
-
-function shaFile(filePath: string): string {
-  return projectionSha256(readFileSync(filePath));
-}
+export { V018_NAMED_CONSUMERS, V018_QUALIFICATION_CONTRACT };
+export { V018QualificationError };
+export {
+  collectDeclaredCandidateHashes,
+  compareDualReplayArtifactBytes,
+  verifyAbsoluteFileHash,
+  verifyDeclaredCandidateHashes,
+} from './v018-hashes';
 
 export function snapshotCurrentPointers(repoRoot: string) {
   return readV018PointerSnapshots(
@@ -107,26 +92,33 @@ export async function qualifyActKgV018CutoverCandidate(input: {
 
   const pointersBefore = snapshotCurrentPointers(repoRoot);
   const blockers: string[] = [];
-  const authorityReceiptPath = path.join(repoRoot, 'course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/candidate-receipt.json');
-  const teachingReceiptPath = path.join(repoRoot, 'course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18/candidate-receipt.json');
-  const labelPath = path.join(repoRoot, 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.18/multilingual-label-index.jsonl');
+  const authorityReceiptPath = path.join(repoRoot, AUTHORITY_CANDIDATE_RELATIVE, 'candidate-receipt.json');
+  const teachingReceiptPath = path.join(repoRoot, TEACHING_CANDIDATE_RELATIVE, 'candidate-receipt.json');
+  const labelPath = path.join(repoRoot, V018_RELEASE_RELATIVE, 'multilingual-label-index.jsonl');
   const authorityReceipt = readJson(authorityReceiptPath);
   const teachingReceipt = readJson(teachingReceiptPath);
   const authorityManifestPath = path.join(
     repoRoot,
-    `course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/replay-1/authority/releases/${V018_SNAPSHOT}/manifest.json`,
+    AUTHORITY_CANDIDATE_RELATIVE,
+    `replay-1/authority/releases/${V018_SNAPSHOT}/manifest.json`,
   );
   const authorityEngineeringPath = path.join(
     repoRoot,
-    `course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/replay-1/authority/releases/${V018_SNAPSHOT}/engineering.json`,
+    AUTHORITY_CANDIDATE_RELATIVE,
+    `replay-1/authority/releases/${V018_SNAPSHOT}/engineering.json`,
   );
-  const authorityManifest = readJson(authorityManifestPath);
-  const engineering = readJson(authorityEngineeringPath);
+  const authorityManifest = readJson(authorityManifestPath) as unknown as AuthoritySnapshotManifest;
+  const engineering = readJson(authorityEngineeringPath) as unknown as AuthorityEngineeringBody;
   const objects = Array.isArray(engineering.objects) ? engineering.objects : [];
   const relations = Array.isArray(engineering.relations) ? engineering.relations : [];
   const labels = existsSync(labelPath)
     ? readFileSync(labelPath, 'utf8').split('\n').filter((line) => line.trim())
     : [];
+
+  blockers.push(...verifyDeclaredCandidateHashes(repoRoot));
+  blockers.push(...verifyTeachingArtifactHashes(repoRoot));
+  const dualReplay = compareDualReplayArtifactBytes(repoRoot);
+  blockers.push(...dualReplay.blockers);
 
   const inputHashes = {
     authorityReceipt: shaFile(authorityReceiptPath),
@@ -135,40 +127,33 @@ export async function qualifyActKgV018CutoverCandidate(input: {
     authorityEngineering: shaFile(authorityEngineeringPath),
     labels: existsSync(labelPath) ? shaFile(labelPath) : '',
     captureRevision: String(authorityManifest.captureRevision ?? ''),
+    declaredHashCount: collectDeclaredCandidateHashes(repoRoot).length,
   };
-  const outputs = Array.isArray(authorityReceipt.outputs) ? authorityReceipt.outputs : [];
-  const outputByPath = new Map(outputs.map((row) => {
-    const rec = asRecord(row);
-    return [String(rec.path ?? ''), String(rec.sha256 ?? '')];
-  }));
-  const replay1Eng = `course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/replay-1/authority/releases/${V018_SNAPSHOT}/engineering.json`;
-  const replay2Eng = `course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/replay-2/authority/releases/${V018_SNAPSHOT}/engineering.json`;
-  if (outputByPath.get(replay1Eng) !== shaFile(path.join(repoRoot, replay1Eng))) blockers.push('authority-engineering-hash-drift');
-  if (outputByPath.get(replay2Eng) !== shaFile(path.join(repoRoot, replay2Eng))) blockers.push('authority-replay-2-hash-drift');
-  if (outputByPath.get(replay1Eng) !== outputByPath.get(replay2Eng)) blockers.push('authority-dual-replay-drift');
-  if (teachingReceipt.receiptDigest !== projectionDigest((({ receiptDigest: _ignored, ...rest }) => rest)(teachingReceipt))) {
-    blockers.push('teaching-receipt-digest-drift');
-  }
 
   if (authorityReceipt.status !== 'staged' || authorityReceipt.nonActivation !== true) blockers.push('authority-candidate-not-inactive');
   if (teachingReceipt.status !== 'READY' || teachingReceipt.nonActivation !== true) blockers.push('teaching-candidate-not-inactive');
   if (String(authorityManifest.snapshotId) !== V018_SNAPSHOT) blockers.push('authority-snapshot-drift');
 
   const mapping = asRecord(teachingReceipt.mapping);
+  const validated = asRecord(authorityReceipt.validated);
   const audit = {
     objectCount: objects.length,
     relationCount: relations.length,
     labelCount: labels.length,
+    releaseNodeCount: Number(validated.releaseNodes ?? -1),
     expectedObjectCount: 6843,
     expectedRelationCount: 2811,
     expectedLabelCount: 1909,
+    expectedReleaseNodeCount: 7061,
     reviewRequiredCount: Number(mapping.reviewRequiredCount ?? -1),
     infographCount: Number(asRecord(asRecord(teachingReceipt.denominator).referenceKindCounts).infograph ?? -1),
     inputHashes,
+    dualReplayComparedFiles: dualReplay.comparedFiles,
   };
   if (audit.objectCount !== 6843) blockers.push('object-count-drift');
   if (audit.relationCount !== 2811) blockers.push('relation-count-drift');
   if (audit.labelCount !== 1909) blockers.push('label-count-drift');
+  if (audit.releaseNodeCount !== 7061) blockers.push('release-node-count-drift');
   if (audit.reviewRequiredCount !== 0) blockers.push('teaching-references-unclosed');
   if (audit.infographCount < 1) blockers.push('infograph-denominator-missing');
 
@@ -186,10 +171,7 @@ export async function qualifyActKgV018CutoverCandidate(input: {
     publicationHash: String(teachingPrerequisite.publicationHash ?? ''),
   };
 
-  const candidateProjectionRoot = path.join(
-    repoRoot,
-    'course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18/projection',
-  );
+  const candidateProjectionRoot = path.join(repoRoot, TEACHING_CANDIDATE_RELATIVE, 'projection');
   const loadedProjection = loadStagedTeachingProjection(
     resolveTeachingProjectionStorePaths(candidateProjectionRoot),
     candidateTeaching.projectionId,
@@ -199,7 +181,7 @@ export async function qualifyActKgV018CutoverCandidate(input: {
     blockers.push('teaching-projection-authority-mix');
   }
 
-  const labelLeaks = labels.slice(0, 64).filter((line) => {
+  const labelLeaks = labels.filter((line) => {
     try {
       const rec = asRecord(JSON.parse(line));
       return [rec.localizedName, rec.displayName, rec.label, rec.zhCN, rec.text]
@@ -211,42 +193,55 @@ export async function qualifyActKgV018CutoverCandidate(input: {
   });
   if (labelLeaks.length > 0) blockers.push('label-presentation-leak');
 
-  const consumerResults = V018_NAMED_CONSUMERS.map((consumerId) => {
-    const requiresProjection = consumerId !== 'engineering-graph' && consumerId !== 'engineering-rag';
-    const projectionOk = !requiresProjection || loadedProjection.artifacts.gate.passed;
-    const authorityOk = candidateAuthority.snapshotId === V018_SNAPSHOT;
-    return {
-      consumerId,
-      status: projectionOk && authorityOk ? 'READY' : 'BLOCKED',
-      shadowCombination: {
-        authorityReleaseId: candidateAuthority.releaseId,
-        authoritySnapshotId: candidateAuthority.snapshotId,
-        projectionId: requiresProjection ? candidateTeaching.projectionId : null,
-      },
-      presentationLeak: labelLeaks.length > 0,
-    };
+  let consumerResults: ConsumerShadowResult[] = [];
+  const isolated = rehearseIsolatedFiveSelectorActivation({
+    repoRoot,
+    outputRoot,
+    authorityManifest,
+    engineering,
+    projectionId: candidateTeaching.projectionId,
+    publicationId: candidateTeaching.publicationId,
+    projectionHash: candidateTeaching.projectionHash,
+    publicationHash: candidateTeaching.publicationHash,
+    captureRevision: String(authorityManifest.captureRevision ?? ''),
+    projectionFileHashes: loadedProjection.fileHashes,
+    projectionReleaseDir: loadedProjection.releaseDir,
+    authorityArtifactPaths: {
+      'manifest.json': authorityManifestPath,
+      'engineering.json': authorityEngineeringPath,
+    },
+    authorityArtifactHashes: {
+      'manifest.json': shaFile(authorityManifestPath),
+      'engineering.json': shaFile(authorityEngineeringPath),
+    },
+    onAdvanced(context) {
+      consumerResults = runNamedConsumerShadowReads({
+        authorityManifest,
+        engineering,
+        loadedProjection,
+        catalog: context.catalog,
+        shardContext: context.shardContext,
+        shardPaths: context.shardPaths,
+        authorityPaths: context.authorityPaths,
+        activationPaths: context.activationPaths,
+        prerequisitePaths: context.prerequisitePaths,
+        publicationId: candidateTeaching.publicationId,
+        infographCount: audit.infographCount,
+      });
+    },
   });
+  blockers.push(...isolated.blockers);
+  if (consumerResults.length !== V018_NAMED_CONSUMERS.length) {
+    blockers.push('consumer-shadow-reads-incomplete');
+  }
   if (consumerResults.some((row) => row.status !== 'READY' || row.presentationLeak)) {
     blockers.push('consumer-or-presentation-blocked');
   }
-
-  const dual = asRecord(teachingReceipt.dualBuild);
-  const dualRebuild = {
-    firstProjectionId: String(dual.firstProjectionId ?? ''),
-    secondProjectionId: String(dual.secondProjectionId ?? ''),
-    firstPrerequisitePublicationId: String(dual.firstPrerequisitePublicationId ?? ''),
-    secondPrerequisitePublicationId: String(dual.secondPrerequisitePublicationId ?? ''),
-    authorityReplayEquivalent: outputByPath.get(replay1Eng) === outputByPath.get(replay2Eng),
-    byteEquivalent: dual.byteEquivalent === true
-      && String(dual.firstProjectionId) === String(dual.secondProjectionId)
-      && String(dual.firstPrerequisitePublicationId) === String(dual.secondPrerequisitePublicationId)
-      && outputByPath.get(replay1Eng) === outputByPath.get(replay2Eng),
-  };
-  if (!dualRebuild.byteEquivalent) blockers.push('dual-rebuild-drift');
-
-  const isolated = rehearseIsolatedActivation(repoRoot, outputRoot, candidateTeaching, candidateAuthority);
   if (!isolated.advanced) blockers.push('isolated-activation-failed');
   if (!isolated.restored) blockers.push('isolated-rollback-drift');
+  if (SELECTOR_KEYS.some((key) => !isolated.selectors[key]?.advanced || !isolated.selectors[key]?.restored)) {
+    blockers.push('isolated-five-selector-incomplete');
+  }
 
   const pointersAfter = snapshotCurrentPointers(repoRoot);
   try {
@@ -271,16 +266,25 @@ export async function qualifyActKgV018CutoverCandidate(input: {
       authoritySnapshotId: V09_SNAPSHOT,
       projectionId: V09_PROJECTION,
       publicationId: V09_PREREQUISITE,
-      activationId: 'first-cutover-7f4cdd1084af-769b1a832622',
+      activationId: V09_ACTIVATION,
     },
     inputHashes,
     audit,
     consumerResults,
-    dualRebuild,
+    dualRebuild: {
+      firstProjectionId: dualReplay.firstProjectionId,
+      secondProjectionId: dualReplay.secondProjectionId,
+      firstPrerequisitePublicationId: dualReplay.firstPrerequisitePublicationId,
+      secondPrerequisitePublicationId: dualReplay.secondPrerequisitePublicationId,
+      authorityReplayEquivalent: dualReplay.authorityReplayEquivalent,
+      comparedFiles: dualReplay.comparedFiles,
+      byteEquivalent: dualReplay.byteEquivalent,
+    },
     isolatedRollback: {
       advanced: isolated.advanced,
       restored: isolated.restored,
       realPointersUnchanged: !uniqueBlockers.includes('production-pointer-drift'),
+      selectors: isolated.selectors,
     },
     nextAction: uniqueBlockers.length === 0 ? 'publish-actkg-v018-cutover-runtime' : 'blocked',
     blockers: uniqueBlockers,
@@ -307,87 +311,10 @@ export async function qualifyActKgV018CutoverCandidate(input: {
   };
 }
 
-function leakInDisplay(value: string): boolean {
-  return SYSTEM_STRING.test(value);
-}
-
-function copyTree(fromPath: string, toPath: string): void {
-  if (!existsSync(fromPath)) {
-    throw new V018QualificationError('isolated-source-missing', `missing ${fromPath}`);
-  }
-  mkdirSync(path.dirname(toPath), { recursive: true });
-  cpSync(fromPath, toPath, { recursive: true });
-}
-
-function rehearseIsolatedActivation(
-  repoRoot: string,
-  outputRoot: string,
-  candidateTeaching: { projectionId: string; publicationId: string },
-  candidateAuthority: { snapshotId: string },
-): { advanced: boolean; restored: boolean } {
-  const isolated = path.join(outputRoot, 'isolated-control-root');
-  const authorityRoot = path.join(isolated, 'authority');
-  const projectionRoot = path.join(isolated, 'projection');
-  const prerequisiteRoot = path.join(isolated, 'prerequisites');
-  copyTree(path.join(repoRoot, 'course-content/authoring/knowledge/authority/current.json'), path.join(authorityRoot, 'current.json'));
-  copyTree(path.join(repoRoot, `course-content/authoring/knowledge/authority/releases/${V09_SNAPSHOT}`), path.join(authorityRoot, 'releases', V09_SNAPSHOT));
-  copyTree(
-    path.join(repoRoot, `course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/replay-1/authority/releases/${V018_SNAPSHOT}`),
-    path.join(authorityRoot, 'releases', V018_SNAPSHOT),
-  );
-  copyTree(path.join(repoRoot, 'course-content/runtime/knowledge/projection/current.json'), path.join(projectionRoot, 'current.json'));
-  copyTree(path.join(repoRoot, `course-content/runtime/knowledge/projection/releases/${V09_PROJECTION}`), path.join(projectionRoot, 'releases', V09_PROJECTION));
-  copyTree(
-    path.join(repoRoot, `course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18/projection/releases/${candidateTeaching.projectionId}`),
-    path.join(projectionRoot, 'releases', candidateTeaching.projectionId),
-  );
-  copyTree(path.join(repoRoot, 'course-content/runtime/knowledge/prerequisites/current.json'), path.join(prerequisiteRoot, 'current.json'));
-  copyTree(path.join(repoRoot, `course-content/runtime/knowledge/prerequisites/releases/${V09_PREREQUISITE}`), path.join(prerequisiteRoot, 'releases', V09_PREREQUISITE));
-  copyTree(
-    path.join(repoRoot, `course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18/prerequisites/releases/${candidateTeaching.publicationId}`),
-    path.join(prerequisiteRoot, 'releases', candidateTeaching.publicationId),
-  );
-
-  const authorityPaths = resolveAuthorityStorePaths(authorityRoot);
-  const projectionPaths = resolveTeachingProjectionStorePaths(projectionRoot);
-  const prerequisitePaths = resolvePrerequisiteStorePaths(prerequisiteRoot);
-  const advancedAuthority = activateAuthoritySnapshot(authorityPaths, {
-    snapshotId: candidateAuthority.snapshotId,
-    teachingSelectors: emptyTeachingSelectorFingerprint(),
-    activationReceiptId: 'qualification-isolated-v018-authority',
-  });
-  const advancedProjection = activateTeachingProjection(projectionPaths, {
-    projectionId: candidateTeaching.projectionId,
-  });
-  const advancedPrerequisite = activatePrerequisitePublication(prerequisitePaths, candidateTeaching.publicationId);
-  const advanced = advancedAuthority.status === 'activated'
-    && advancedProjection.status === 'activated'
-    && advancedPrerequisite.publicationId === candidateTeaching.publicationId
-    && readCurrentAuthorityPointer(authorityPaths)?.snapshotId === candidateAuthority.snapshotId
-    && readCurrentTeachingProjectionPointer(projectionPaths)?.projectionId === candidateTeaching.projectionId
-    && readCurrentPrerequisitePointer(prerequisitePaths)?.publicationId === candidateTeaching.publicationId;
-
-  const restoredAuthority = activateAuthoritySnapshot(authorityPaths, {
-    snapshotId: V09_SNAPSHOT,
-    teachingSelectors: emptyTeachingSelectorFingerprint(),
-    activationReceiptId: 'qualification-isolated-v09-authority',
-  });
-  const restoredProjection = activateTeachingProjection(projectionPaths, { projectionId: V09_PROJECTION });
-  const restoredPrerequisite = activatePrerequisitePublication(prerequisitePaths, V09_PREREQUISITE);
-  const restored = restoredAuthority.status === 'activated'
-    && restoredProjection.status === 'activated'
-    && restoredPrerequisite.publicationId === V09_PREREQUISITE
-    && readCurrentAuthorityPointer(authorityPaths)?.snapshotId === V09_SNAPSHOT
-    && readCurrentTeachingProjectionPointer(projectionPaths)?.projectionId === V09_PROJECTION
-    && readCurrentPrerequisitePointer(prerequisitePaths)?.publicationId === V09_PREREQUISITE;
-  writeCanonical(path.join(isolated, 'isolated-rollback.json'), {
-    advanced: Boolean(advanced),
-    restored: Boolean(restored),
-    v018SnapshotId: candidateAuthority.snapshotId,
-    v09SnapshotId: V09_SNAPSHOT,
-  });
-  rmSync(authorityRoot, { recursive: true, force: true });
-  rmSync(projectionRoot, { recursive: true, force: true });
-  rmSync(prerequisiteRoot, { recursive: true, force: true });
-  return { advanced: Boolean(advanced), restored: Boolean(restored) };
-}
+const SELECTOR_KEYS = [
+  'authority',
+  'projection',
+  'prerequisites',
+  'authority-domain-shards',
+  'consumer-activation',
+] as const;

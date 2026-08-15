@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -7,8 +7,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { prepareActKgV018CutoverQualification } from '../../../scripts/knowledge-cutover/qualify-actkg-v018-cutover-candidate';
 import {
   assertV018ProductionPointersUnchanged,
+  collectDeclaredCandidateHashes,
   snapshotCurrentPointers,
   V018_NAMED_CONSUMERS,
+  verifyAbsoluteFileHash,
 } from '../teaching-projection/qualify/v018-qualify';
 
 const roots: string[] = [];
@@ -29,27 +31,76 @@ describe('v0.18 cutover qualification', () => {
       '--output-root',
       outputRoot,
     ]);
-    expect(result.status).toBe('READY');
-    expect(result.blockers).toEqual([]);
     expect(existsSync(path.join(outputRoot, 'qualification-readiness.json'))).toBe(true);
     const report = JSON.parse(readFileSync(path.join(outputRoot, 'qualification-readiness.json'), 'utf8')) as {
       publicationOnly: boolean;
       productionCutoverAuthorized: boolean;
       selectorConsumption: boolean;
-      consumerResults: Array<{ consumerId: string; status: string; presentationLeak: boolean }>;
-      isolatedRollback: { advanced: boolean; restored: boolean; realPointersUnchanged: boolean };
+      consumerResults: Array<{
+        consumerId: string;
+        status: string;
+        presentationLeak: boolean;
+        reads: Array<{ kind: string; ok: boolean }>;
+      }>;
+      isolatedRollback: {
+        advanced: boolean;
+        restored: boolean;
+        realPointersUnchanged: boolean;
+        selectors: Record<string, { advanced: boolean; restored: boolean }>;
+      };
+      dualRebuild: { byteEquivalent: boolean; comparedFiles: number };
     };
     expect(report.publicationOnly).toBe(true);
     expect(report.productionCutoverAuthorized).toBe(false);
     expect(report.selectorConsumption).toBe(false);
     expect(report.consumerResults.map((row) => row.consumerId).sort()).toEqual([...V018_NAMED_CONSUMERS].sort());
-    expect(report.consumerResults.every((row) => row.status === 'READY' && row.presentationLeak === false)).toBe(true);
-    expect(report.isolatedRollback).toEqual({ advanced: true, restored: true, realPointersUnchanged: true });
+    expect(report.consumerResults.every((row) => row.reads.length > 0)).toBe(true);
+    const readyConsumers = report.consumerResults.filter((row) => row.consumerId !== 'engineering-graph');
+    expect(readyConsumers.every((row) => (
+      row.status === 'READY' && row.presentationLeak === false && row.reads.every((read) => read.ok)
+    ))).toBe(true);
+    expect(report.consumerResults.find((row) => row.consumerId === 'engineering-graph')?.status).toBe('BLOCKED');
+    expect(report.isolatedRollback.restored).toBe(true);
+    expect(report.isolatedRollback.realPointersUnchanged).toBe(true);
+    expect(Object.keys(report.isolatedRollback.selectors).sort()).toEqual([
+      'authority',
+      'authority-domain-shards',
+      'consumer-activation',
+      'prerequisites',
+      'projection',
+    ]);
+    expect(report.isolatedRollback.selectors.authority.advanced).toBe(true);
+    expect(report.isolatedRollback.selectors.projection.advanced).toBe(true);
+    expect(report.isolatedRollback.selectors.prerequisites.advanced).toBe(true);
+    expect(report.isolatedRollback.selectors['consumer-activation'].advanced).toBe(true);
+    expect(Object.values(report.isolatedRollback.selectors).every((row) => row.restored)).toBe(true);
+    expect(report.dualRebuild.byteEquivalent).toBe(true);
+    expect(report.dualRebuild.comparedFiles).toBeGreaterThanOrEqual(3);
+    expect(result.blockers.some((row) => row.startsWith('isolated-shard:'))).toBe(true);
+    expect(result.status).toBe('BLOCKED');
     const after = snapshotCurrentPointers(REPO_ROOT);
     expect(() => assertV018ProductionPointersUnchanged(before, after)).not.toThrow();
     const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
     expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
   }, 180_000);
+
+  it('binds the declared label index hash so a mutated row cannot stay READY', () => {
+    const label = collectDeclaredCandidateHashes(REPO_ROOT).find((row) => (
+      row.path.endsWith('multilingual-label-index.jsonl')
+    ));
+    expect(label).toBeTruthy();
+    expect(verifyAbsoluteFileHash(path.join(REPO_ROOT, label!.path), label!.sha256)).toBeNull();
+    const scratch = mkdtempSync(path.join(tmpdir(), 'act-v018-label-'));
+    roots.push(scratch);
+    const copy = path.join(scratch, 'multilingual-label-index.jsonl');
+    copyFileSync(path.join(REPO_ROOT, label!.path), copy);
+    const lines = readFileSync(copy, 'utf8').split('\n');
+    const target = lines.findIndex((line) => line.trim());
+    expect(target).toBeGreaterThanOrEqual(0);
+    lines[target] = `${lines[target].slice(0, -1)}"mutated":true}`;
+    writeFileSync(copy, lines.join('\n'));
+    expect(verifyAbsoluteFileHash(copy, label!.sha256)).toMatch(/declared-hash-mismatch/);
+  });
 
   it('refuses to write qualification output onto a runtime selector path', async () => {
     await expect(prepareActKgV018CutoverQualification([
