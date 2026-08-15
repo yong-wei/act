@@ -1598,6 +1598,13 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
     expect(container.textContent).toContain('受控候选诊断');
+    const modeSwitch = container.querySelector<HTMLElement>('[data-knowledge-mode-switch="true"]');
+    expect(modeSwitch).not.toBeNull();
+    expect(modeSwitch?.className).toContain('max-[639px]:flex-nowrap');
+    expect(modeSwitch?.className).toContain('max-[639px]:overflow-x-auto');
+    const modeButtons = [...container.querySelectorAll<HTMLButtonElement>('[data-knowledge-mode]')];
+    expect(modeButtons).toHaveLength(3);
+    expect(modeButtons.every((button) => button.className.includes('shrink-0') && button.className.includes('whitespace-nowrap'))).toBe(true);
     expect(fetchMock).toHaveBeenCalledWith('/api/knowledge/shards/active', expect.any(Object));
     expect(fetchMock.mock.calls.every(([url]) => !String(url).includes('/graph/active'))).toBe(true);
   });
@@ -1675,7 +1682,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('titleControlsOverlap');
     expect(captureSource).toContain('nodeGeometryWithinViewportCount');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed');
+    expect(captureSource).toContain('active mobile first-viewport geometry contract failed in role:${role}');
+    expect(captureSource).toContain('firstViewport: {');
     const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
+    expect(workspaceSource).toContain('data-knowledge-mode-switch="true"');
+    expect(workspaceSource).toContain('max-[639px]:overflow-x-auto');
+    expect(workspaceSource).toContain('shrink-0 whitespace-nowrap');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
   });
 

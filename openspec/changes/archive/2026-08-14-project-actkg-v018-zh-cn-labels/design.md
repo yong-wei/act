@@ -121,6 +121,16 @@ release selection, or the governance gate's acceptance policy. The repaired
 revision requires a new authenticated capture and independent visual review
 bound to that exact source and screenshot set.
 
+The same root cause was confirmed in the administrator
+`role-admin-active-mobile` capture: its three-button mode switch wrapped to a
+second line and reached the title, while the student and teacher two-button
+captures remained clear. The responsive contract therefore belongs to the
+shared workspace switch, not to a role-specific padding value. At widths below
+640px it remains one horizontal, scrollable row with every mode button
+non-shrinking and reachable; the role capture records and fails closed on the
+same title overlap, visible SVG, and visible semantic-node checks for all three
+authenticated roles.
+
 ## Risks / Trade-offs
 
 - Some v0.18 nodes will retain reviewed English or mathematical display names;
