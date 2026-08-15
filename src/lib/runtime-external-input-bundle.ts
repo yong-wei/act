@@ -482,6 +482,23 @@ async function collectFiles(current: string, result: ExternalInputBundleFile[], 
   }
 }
 
+async function collectFilesystemPaths(current: string, result: string[], pathPrefix = '') {
+  const entries = await readdir(current, { withFileTypes: true });
+  for (const entry of entries.sort((left, right) => compareCodePoints(left.name, right.name))) {
+    const absolutePath = path.join(current, entry.name);
+    const relativePath = `${pathPrefix}${entry.name}`;
+    const details = await lstat(absolutePath);
+    if (details.isSymbolicLink()) error(`bundle source contains a symlink: ${relativePath}`);
+    if (details.isDirectory()) {
+      await collectFilesystemPaths(absolutePath, result, `${relativePath}/`);
+      continue;
+    }
+    if (!details.isFile()) error(`bundle source contains a special file: ${relativePath}`);
+    if (path.posix.basename(relativePath) === '.DS_Store') error(`bundle source contains forbidden .DS_Store: ${relativePath}`);
+    result.push(relativePath);
+  }
+}
+
 /** Whether a captured base-runtime path is replaced by the generated overlay. */
 export function isExternalInputBundleBasePathIncluded(
   relativePath: string,
@@ -510,23 +527,46 @@ async function listGitRuntimeTree(repoRoot: string, sourceRevision: string) {
 }
 
 /** Verify that a local source still contains exactly the prepared external set. */
-export async function verifyExternalInputBundleFilesystem(bundle: ExternalInputBundle, gitPaths: ReadonlySet<string>) {
+export async function verifyExternalInputBundleFilesystem(
+  bundle: ExternalInputBundle,
+  gitPaths: ReadonlySet<string>,
+  options: { verifyBytes?: boolean } = {},
+) {
   if (!bundle.root || !bundle.generatedRoot) error('bundle local roots are required for source verification');
-  const baseCollected: ExternalInputBundleFile[] = [];
-  await collectFiles(bundle.root, baseCollected);
-  const observed = new Map<string, ExternalInputBundleFile>();
-  for (const file of baseCollected) {
-    if (!isExternalInputBundleBasePathIncluded(file.path, gitPaths)) continue;
-    observed.set(file.path, file);
+  const observed = new Map<string, ExternalInputBundleFile | true>();
+  if (options.verifyBytes === false) {
+    const basePaths: string[] = [];
+    await collectFilesystemPaths(bundle.root, basePaths);
+    for (const relativePath of basePaths) {
+      if (isExternalInputBundleBasePathIncluded(relativePath, gitPaths)) observed.set(relativePath, true);
+    }
+  } else {
+    const baseCollected: ExternalInputBundleFile[] = [];
+    await collectFiles(bundle.root, baseCollected);
+    for (const file of baseCollected) {
+      if (!isExternalInputBundleBasePathIncluded(file.path, gitPaths)) continue;
+      observed.set(file.path, file);
+    }
   }
-  const overlayCollected: ExternalInputBundleFile[] = [];
-  for (const prefix of EXTERNAL_INPUT_BUNDLE_PREFIXES) {
-    const prefixRoot = path.join(bundle.generatedRoot, ...prefix.slice('resources/'.length, -1).split('/'));
-    const details = await lstat(prefixRoot).catch(() => undefined);
-    if (!details || !details.isDirectory() || details.isSymbolicLink()) error(`required generated textbook prefix is missing or invalid: ${prefix}`);
-    await collectFiles(prefixRoot, overlayCollected, prefix);
+  if (options.verifyBytes === false) {
+    for (const prefix of EXTERNAL_INPUT_BUNDLE_PREFIXES) {
+      const prefixRoot = path.join(bundle.generatedRoot, ...prefix.slice('resources/'.length, -1).split('/'));
+      const details = await lstat(prefixRoot).catch(() => undefined);
+      if (!details || !details.isDirectory() || details.isSymbolicLink()) error(`required generated textbook prefix is missing or invalid: ${prefix}`);
+      const paths: string[] = [];
+      await collectFilesystemPaths(prefixRoot, paths, prefix);
+      for (const relativePath of paths) observed.set(relativePath, true);
+    }
+  } else {
+    const overlayCollected: ExternalInputBundleFile[] = [];
+    for (const prefix of EXTERNAL_INPUT_BUNDLE_PREFIXES) {
+      const prefixRoot = path.join(bundle.generatedRoot, ...prefix.slice('resources/'.length, -1).split('/'));
+      const details = await lstat(prefixRoot).catch(() => undefined);
+      if (!details || !details.isDirectory() || details.isSymbolicLink()) error(`required generated textbook prefix is missing or invalid: ${prefix}`);
+      await collectFiles(prefixRoot, overlayCollected, prefix);
+    }
+    for (const file of overlayCollected) observed.set(file.path, file);
   }
-  for (const file of overlayCollected) observed.set(file.path, file);
   const expected = new Set(bundle.files.map((file) => file.path));
   if (observed.size !== expected.size || [...observed.keys()].some((relativePath) => !expected.has(relativePath))) {
     error('bundle source file set drifted from the prepared manifest');

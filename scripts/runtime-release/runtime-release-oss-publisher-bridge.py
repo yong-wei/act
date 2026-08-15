@@ -932,8 +932,14 @@ def validate_blob_receipt(
         "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes",
         "treeSha256", "fileCount", "totalBytes", "blobs", "receiptSha256",
     }
-    if not isinstance(receipt, dict) or set(receipt) != required_fields:
+    allowed_fields = required_fields | {"sourceProvenanceProofSha256"}
+    if not isinstance(receipt, dict) or not required_fields.issubset(set(receipt)) or not set(receipt).issubset(allowed_fields):
         fail("blob receipt has unsupported or missing fields")
+    if "sourceProvenanceProofSha256" in receipt and (
+        not isinstance(receipt.get("sourceProvenanceProofSha256"), str)
+        or not SHA256_PATTERN.fullmatch(receipt["sourceProvenanceProofSha256"])
+    ):
+        fail("blob receipt source-provenance proof digest is invalid")
     manifest_key = f"{BLOB_RELEASE_KEY_PREFIX}{release_id}/{BLOB_MANIFEST_NAME}"
     if (
         receipt.get("schemaVersion") != BLOB_RECEIPT_SCHEMA_VERSION
@@ -1048,6 +1054,14 @@ def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str,
     if not isinstance(receipt, dict) or canonical_json(receipt) + b"\n" != receipt_wire:
         fail("blob receipt wire bytes are not canonical")
     validate_blob_receipt(receipt, release_id, manifest, wire, expected)
+    proof_digest = header.get("sourceProvenanceProofSha256")
+    receipt_proof_digest = receipt.get("sourceProvenanceProofSha256")
+    if proof_digest is not None and (
+        not isinstance(proof_digest, str)
+        or not SHA256_PATTERN.fullmatch(proof_digest)
+        or receipt_proof_digest != proof_digest
+    ):
+        fail("blob source-provenance proof digest does not match the planning receipt")
     return prefix, manifest, wire, wire_sha, receipt_wire, receipt_wire_sha, expected
 
 
@@ -1056,7 +1070,7 @@ def validate_blob_parent_reference(header: Dict[str, Any]) -> Optional[Dict[str,
         "protocol", "releaseId", "prefix", "manifestSha256", "wireSha256", "manifestWireBase64",
         "receiptWireSha256", "receiptWireBase64",
     }
-    allowed_fields = required_fields | {"parentRelease", "sourceIdentityMode"}
+    allowed_fields = required_fields | {"parentRelease", "sourceIdentityMode", "sourceProvenanceProofSha256"}
     if not required_fields.issubset(set(header)) or not set(header).issubset(allowed_fields):
         fail("blob publish header has unsupported or missing fields")
     parent = header.get("parentRelease")

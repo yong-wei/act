@@ -76,6 +76,10 @@ the candidate path only; it does not select the candidate or delete any v1/v2
 objects. Production selection and retirement require a later explicit
 authorization.
 
+#### Accepted Sol DECIDE A (daily planning proof) — source-provenance proof and single external snapshot
+
+Daily planning emits the versioned `act-runtime-release-source-provenance-proof.v1` artifact. The canonical v2 manifest, immutable planning receipt and proof are inseparably bound by the proof digest carried in the receipt. Publish reopens only immutable Git metadata and validates the fixed `origin/integration` ancestor, resolved integration revision, exact runtime-tree path/mode/blob-OID set, parent identity and every external source identity against the proof; it never reads Git blob bodies to repeat a SHA-256/size pass. A missing, unknown-version, non-canonical or tampered proof/receipt, manifest or tree drift, parent/source identity drift, or ancestry failure stops before any OSS operation and requires a new plan. External bundles are path-checked without hashing first, then each source is read once into a mode-0600 temporary snapshot; the same snapshot is streamed to the publisher, and any byte drift fails closed. The temporary snapshot is removed on every success or failure path. v1 import, selectors, activation and OSS IAM remain unchanged.
+
 The semantic projection excludes timestamps, machine identity, principal and transfer metrics. It therefore gives the same release identity for the same source revision and logical tree. The transport receipt carries wire hash, immutable manifest locator, parent identity, principal, and publication metrics.
 
 ### 2. New/unknown blobs are verified; inherited blobs are protected

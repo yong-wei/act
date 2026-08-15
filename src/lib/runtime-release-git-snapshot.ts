@@ -53,6 +53,8 @@ export interface GitRuntimeBlobReleaseSnapshot {
   repoRoot: string;
   sourceRevision: string;
   integrationRef: string;
+  integrationRevision: string;
+  gitTree: readonly Pick<GitRuntimeBlobSnapshotFile, 'path' | 'mode' | 'blobObjectId'>[];
   /**
    * The immutable parent used to prove reused Git objects.  Publishing passes
    * only this identity to the bridge, which rereads the small remote parent
@@ -62,6 +64,9 @@ export interface GitRuntimeBlobReleaseSnapshot {
   manifest: ActRuntimeBlobReleaseManifest;
   stats: GitRuntimeBlobReleaseSnapshotStats;
   filesByPath: ReadonlyMap<string, GitRuntimeBlobSnapshotSourceFile>;
+  /** Populated by the publisher after one external-byte snapshot validation. */
+  externalSnapshotFiles: Map<string, string>;
+  externalSnapshotRoot?: string;
   externalBundle?: ExternalInputBundle;
   openFile: (relativePath: string) => Promise<Readable>;
 }
@@ -213,6 +218,7 @@ async function assertIntegrationAncestor(repoRoot: string, sourceRevision: strin
   if (exit.code !== 0) {
     throw gitError('runtime-release-git-not-integration', `Source commit ${sourceRevision} is not an ancestor of ${integrationRef}${stderr ? `: ${stderr}` : '.'}`);
   }
+  return integrationRevision;
 }
 
 function decodeGitPath(bytes: Buffer) {
@@ -315,6 +321,28 @@ async function readGitExternalInputManifest(repoRoot: string, sourceRevision: st
   return inputs;
 }
 
+async function readGitExternalInputManifestObjectId(repoRoot: string, sourceRevision: string): Promise<string | undefined> {
+  const tree = await runGit(
+    repoRoot,
+    ['ls-tree', '-z', '--full-tree', sourceRevision, '--', EXTERNAL_INPUT_MANIFEST_PATH],
+    'Git runtime external-input listing',
+  );
+  if (tree.stdout.byteLength === 0) return undefined;
+  const entries = tree.stdout.toString('binary').split('\u0000').filter(Boolean);
+  if (entries.length !== 1) {
+    throw gitError('runtime-release-external-input-invalid', 'Git runtime external-input declaration must resolve to exactly one file.');
+  }
+  const entry = entries[0] as string;
+  const tab = entry.indexOf('\t');
+  const header = tab > 0 ? entry.slice(0, tab) : '';
+  const inputPath = tab > 0 ? entry.slice(tab + 1) : '';
+  const match = /^(100644|100755) blob ([0-9a-f]{40,64})$/u.exec(header);
+  if (!match || inputPath !== EXTERNAL_INPUT_MANIFEST_PATH) {
+    throw gitError('runtime-release-external-input-invalid', 'Git runtime external-input declaration is not a regular tracked file.');
+  }
+  return match[2];
+}
+
 async function readGitExternalInputBundleDeclaration(repoRoot: string, sourceRevision: string): Promise<RuntimeExternalInputBundleDeclaration | undefined> {
   const tree = await runGit(
     repoRoot,
@@ -350,6 +378,26 @@ async function readGitExternalInputBundleDeclaration(repoRoot: string, sourceRev
     throw gitError('runtime-release-external-input-bundle-invalid', cause instanceof Error ? cause.message : String(cause));
   }
   return { declaration, declarationObjectId };
+}
+
+async function readGitExternalInputBundleDeclarationObjectId(repoRoot: string, sourceRevision: string): Promise<string | undefined> {
+  const tree = await runGit(
+    repoRoot,
+    ['ls-tree', '-z', '--full-tree', sourceRevision, '--', EXTERNAL_INPUT_BUNDLE_DECLARATION_PATH],
+    'Git runtime external-input bundle declaration listing',
+  );
+  if (tree.stdout.byteLength === 0) return undefined;
+  const entries = tree.stdout.toString('binary').split('\u0000').filter(Boolean);
+  if (entries.length !== 1) throw gitError('runtime-release-external-input-bundle-invalid', 'Git external-input bundle declaration must resolve to exactly one file.');
+  const entry = entries[0] as string;
+  const tab = entry.indexOf('\t');
+  const header = tab > 0 ? entry.slice(0, tab) : '';
+  const inputPath = tab > 0 ? entry.slice(tab + 1) : '';
+  const match = /^(100644|100755) blob ([0-9a-f]{40,64})$/u.exec(header);
+  if (!match || inputPath !== EXTERNAL_INPUT_BUNDLE_DECLARATION_PATH) {
+    throw gitError('runtime-release-external-input-bundle-invalid', 'Git external-input bundle declaration is not a regular tracked file.');
+  }
+  return match[2];
 }
 
 function externalInputForPath(inputs: readonly RuntimeExternalInput[], relativePath: string) {
@@ -390,6 +438,36 @@ function inheritedExternalParentFiles(input: {
       sha256: file.sha256,
       source: externalInput.source,
     });
+  }
+  return inherited;
+}
+
+function inheritedExternalParentFilesFromManifest(input: {
+  parentManifest: ActRuntimeBlobReleaseManifest | undefined;
+  targetEntries: readonly GitRuntimeBlobSnapshotFile[];
+  manifest: ActRuntimeBlobReleaseManifest;
+}) {
+  if (!input.parentManifest) return [] as RuntimeBlobReleaseFileMetadata[];
+  const targetPaths = new Set(input.targetEntries.map((entry) => entry.path));
+  const manifestByPath = new Map(input.manifest.files.map((file) => [file.path, file] as const));
+  const inherited: RuntimeBlobReleaseFileMetadata[] = [];
+  for (const parentFile of input.parentManifest.files) {
+    if (targetPaths.has(parentFile.path) || isGitSource(parentFile.source)) continue;
+    const manifestFile = manifestByPath.get(parentFile.path);
+    if (!manifestFile || !manifestFile.source || isGitSource(manifestFile.source)) {
+      throw gitError('runtime-release-external-source-missing', `Planned runtime entry is missing its external source identity: ${parentFile.path}`);
+    }
+    if (manifestFile.sizeBytes !== parentFile.sizeBytes || manifestFile.sha256 !== parentFile.sha256) {
+      throw gitError('runtime-release-external-source-changed', `External runtime bytes changed without a new source validation: ${parentFile.path}`);
+    }
+    if (parentFile.source) {
+      if (!isExternalSource(parentFile.source) || !isExternalSource(manifestFile.source)
+        || parentFile.source.externalInputId !== manifestFile.source.externalInputId
+        || parentFile.source.externalInputManifestObjectId !== manifestFile.source.externalInputManifestObjectId) {
+        throw gitError('runtime-release-external-source-changed', `External runtime source identity changed without a new source validation: ${parentFile.path}`);
+      }
+    }
+    inherited.push(manifestFile);
   }
   return inherited;
 }
@@ -574,7 +652,7 @@ export async function buildGitRuntimeBlobReleaseSnapshot(input: {
   assertRepoRoot(input.repoRoot);
   const sourceRevision = await resolveGitCommit(input.repoRoot, input.sourceRevision, 'Source revision');
   const integrationRef = input.integrationRef ?? 'origin/integration';
-  await assertIntegrationAncestor(input.repoRoot, sourceRevision, integrationRef);
+  const integrationRevision = await assertIntegrationAncestor(input.repoRoot, sourceRevision, integrationRef);
   const entries = await listRuntimeTree(input.repoRoot, sourceRevision);
   const externalInputs = await readGitExternalInputManifest(input.repoRoot, sourceRevision);
   const bundleDeclaration = await readGitExternalInputBundleDeclaration(input.repoRoot, sourceRevision);
@@ -617,19 +695,26 @@ export async function buildGitRuntimeBlobReleaseSnapshot(input: {
   const filesByPath = new Map<string, GitRuntimeBlobSnapshotSourceFile>();
   for (const entry of entries) filesByPath.set(entry.path, entry);
   for (const file of bundleFiles) filesByPath.set(file.path, file);
+  const externalSnapshotFiles = new Map<string, string>();
   return {
     repoRoot: input.repoRoot,
     sourceRevision,
     integrationRef,
+    integrationRevision,
+    gitTree: entries.map(({ path: relativePath, mode, blobObjectId }) => ({ path: relativePath, mode, blobObjectId })),
     parentManifest: input.parentManifest,
     manifest,
     stats,
     filesByPath,
+    externalSnapshotFiles,
     ...(input.externalBundle ? { externalBundle: input.externalBundle } : {}),
     openFile: async (relativePath: string) => {
       const file = filesByPath.get(relativePath);
       if (!file) throw gitError('runtime-release-git-path-missing', `Git runtime path is absent from the snapshot: ${relativePath}`);
-      if (isExternalBundleSource(file.source)) return openExternalBundleFile(file as ExternalInputBundleSnapshotFile);
+      if (isExternalBundleSource(file.source)) {
+        const snapshotPath = externalSnapshotFiles.get(relativePath);
+        return snapshotPath ? createReadStream(snapshotPath) : openExternalBundleFile(file as ExternalInputBundleSnapshotFile);
+      }
       if (!('blobObjectId' in file)) throw gitError('runtime-release-git-source-mismatch', `Snapshot source identity is not a Git blob: ${relativePath}`);
       return openGitBlobStream(input.repoRoot, file.blobObjectId);
     },
@@ -653,19 +738,17 @@ export async function openGitRuntimeBlobReleaseSnapshot(input: {
   assertRepoRoot(input.repoRoot);
   const sourceRevision = await resolveGitCommit(input.repoRoot, input.sourceRevision, 'Source revision');
   const integrationRef = input.integrationRef ?? 'origin/integration';
-  await assertIntegrationAncestor(input.repoRoot, sourceRevision, integrationRef);
+  const integrationRevision = await assertIntegrationAncestor(input.repoRoot, sourceRevision, integrationRef);
   if (input.manifest.sourceRevision !== sourceRevision) {
     throw gitError('runtime-release-git-source-mismatch', 'Planned runtime blob manifest source revision does not match the requested Git revision.');
   }
   const entries = await listRuntimeTree(input.repoRoot, sourceRevision);
-  const externalInputs = await readGitExternalInputManifest(input.repoRoot, sourceRevision);
-  const bundleDeclaration = await readGitExternalInputBundleDeclaration(input.repoRoot, sourceRevision);
   let bundleFiles: ExternalInputBundleSnapshotFile[] = [];
   let inheritedExternalFiles: RuntimeBlobReleaseFileMetadata[] = [];
   if (input.externalBundle) {
-    if (!bundleDeclaration) throw gitError('runtime-release-external-input-bundle-undeclared', 'External bundle is not bound by a tracked declaration.');
+    const bundleDeclarationObjectId = await readGitExternalInputBundleDeclarationObjectId(input.repoRoot, sourceRevision);
+    if (!bundleDeclarationObjectId) throw gitError('runtime-release-external-input-bundle-undeclared', 'External bundle is not bound by a tracked declaration.');
     try {
-      declarationInputForBundle(bundleDeclaration.declaration, input.externalBundle);
       const baseEntries = await listRuntimeTree(input.repoRoot, input.externalBundle.overlay.baseSourceRevision);
       if (runtimeGitTreeDigest(baseEntries) !== input.externalBundle.overlay.baseRuntimeTreeSha256 || runtimeGitTreeDigest(entries) !== input.externalBundle.overlay.baseRuntimeTreeSha256) {
         throw new Error('external bundle base Git runtime capture drifted');
@@ -681,18 +764,24 @@ export async function openGitRuntimeBlobReleaseSnapshot(input: {
     } catch (cause) {
       throw gitError('runtime-release-external-input-bundle-mismatch', cause instanceof Error ? cause.message : String(cause));
     }
-    bundleFiles = externalBundleMetadata(input.externalBundle, bundleDeclaration.declarationObjectId);
+    bundleFiles = externalBundleMetadata(input.externalBundle, bundleDeclarationObjectId);
     const targetPaths = new Set(entries.map((entry) => entry.path));
     for (const file of bundleFiles) {
       if (targetPaths.has(file.path)) throw gitError('runtime-release-external-source-conflict', `Git and external bundle both provide ${file.path}.`);
     }
     inheritedExternalFiles = inheritedExternalBundleParentFiles({ parentManifest: input.parentManifest, targetEntries: entries, bundleFiles });
   } else {
-    inheritedExternalFiles = inheritedExternalParentFiles({
+    const externalInputManifestObjectId = await readGitExternalInputManifestObjectId(input.repoRoot, sourceRevision);
+    inheritedExternalFiles = inheritedExternalParentFilesFromManifest({
       parentManifest: input.parentManifest,
       targetEntries: entries,
-      externalInputs,
+      manifest: input.manifest,
     });
+    for (const file of inheritedExternalFiles) {
+      if (!isExternalSource(file.source) || !externalInputManifestObjectId || file.source.externalInputManifestObjectId !== externalInputManifestObjectId) {
+        throw gitError('runtime-release-external-source-changed', `External runtime declaration identity changed without a new source validation: ${file.path}`);
+      }
+    }
   }
   const expectedFiles = new Map<string, RuntimeBlobReleaseFileMetadata>();
   for (const externalFile of (bundleFiles.length > 0 ? bundleFiles : inheritedExternalFiles)) expectedFiles.set(externalFile.path, externalFile);
@@ -747,10 +836,13 @@ export async function openGitRuntimeBlobReleaseSnapshot(input: {
   const filesByPath = new Map<string, GitRuntimeBlobSnapshotSourceFile>();
   for (const entry of entries) filesByPath.set(entry.path, entry);
   for (const file of bundleFiles) filesByPath.set(file.path, file);
+  const externalSnapshotFiles = new Map<string, string>();
   return {
     repoRoot: input.repoRoot,
     sourceRevision,
     integrationRef,
+    integrationRevision,
+    gitTree: entries.map(({ path: relativePath, mode, blobObjectId }) => ({ path: relativePath, mode, blobObjectId })),
     parentManifest: input.parentManifest,
     manifest: input.manifest,
     stats: {
@@ -761,10 +853,14 @@ export async function openGitRuntimeBlobReleaseSnapshot(input: {
     },
     ...(input.externalBundle ? { externalBundle: input.externalBundle } : {}),
     filesByPath,
+    externalSnapshotFiles,
     openFile: async (relativePath: string) => {
       const file = filesByPath.get(relativePath);
       if (!file) throw gitError('runtime-release-git-path-missing', `Git runtime path is absent from the snapshot: ${relativePath}`);
-      if (isExternalBundleSource(file.source)) return openExternalBundleFile(file as ExternalInputBundleSnapshotFile);
+      if (isExternalBundleSource(file.source)) {
+        const snapshotPath = externalSnapshotFiles.get(relativePath);
+        return snapshotPath ? createReadStream(snapshotPath) : openExternalBundleFile(file as ExternalInputBundleSnapshotFile);
+      }
       if (!('blobObjectId' in file)) throw gitError('runtime-release-git-source-mismatch', `Snapshot source identity is not a Git blob: ${relativePath}`);
       return openGitBlobStream(input.repoRoot, file.blobObjectId);
     },

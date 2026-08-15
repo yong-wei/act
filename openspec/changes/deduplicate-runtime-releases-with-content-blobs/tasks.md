@@ -13,6 +13,7 @@
 - [x] 2.4 Implement the local `act-runtime-oss-release-operator` publisher adapter with principal/Bucket/Region/prefix preflight, local single-publisher lock and credential-redacting diagnostics; remove ECS writer authority from the daily path.
 - [x] 2.5 Add no-op, rename, repeated OID, three-file delta, identical-different-OID, clean-clone-without-cache, missing identity, existing-metadata-mismatch, interrupted upload and manifest-last tests with exact body/HEAD/upload counters.
 - [x] 2.6 Add fail-closed first compatibility reads for metadata-less legacy v2 blobs: require the SHA-addressed key, HEAD size and valid ETag, stream one `get-object --if-match` readback, forbid writes, and report metadata reuse, new uploads, legacy readback bytes and the deterministic verified-blob audit digest/entries.
+- [x] 2.7 Bind daily publish to a versioned source-provenance proof and canonical planning receipt; validate origin/integration ancestry, exact Git tree identities, parent/external bindings and metadata-only reopen; snapshot external bytes once for the transfer stream and cover proof, drift, missing/unknown-version and no-second-body-hash regressions.
 
 ## 3. Fast materialization and runtime-only deployment
 
