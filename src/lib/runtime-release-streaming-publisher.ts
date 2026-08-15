@@ -772,13 +772,18 @@ function parseBlobPublishReceipt(
   const receipt = buildRuntimeBlobReleaseReceipt(manifest, {
     sourceProvenanceProofSha256: planningReceipt?.sourceProvenanceProofSha256,
   });
+  const acceptableReceiptWireSha256 = new Set([
+    receipt,
+    buildRuntimeBlobReleaseReceipt(manifest),
+  ].map((candidate) => createHash('sha256').update(serializeRuntimeBlobReleaseReceipt(candidate)).digest('hex')));
   const expectedWireSha256 = runtimeBlobReleaseManifestWireSha256(manifest);
   if (
     message.status !== 'complete'
     || message.releaseId !== manifest.releaseId
     || message.manifestSha256 !== manifest.manifestSha256
     || message.wireSha256 !== expectedWireSha256
-    || message.receiptWireSha256 !== createHash('sha256').update(serializeRuntimeBlobReleaseReceipt(receipt)).digest('hex')
+    || typeof message.receiptWireSha256 !== 'string'
+    || !acceptableReceiptWireSha256.has(message.receiptWireSha256)
     || message.treeSha256 !== manifest.treeSha256
     || message.fileCount !== manifest.fileCount
     || message.totalBytes !== manifest.totalBytes

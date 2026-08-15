@@ -81,6 +81,7 @@ function planningReceiptFor(manifest: Awaited<ReturnType<typeof buildRuntimeBlob
 function streamingBridgeSpawnFactory(
   calls: Array<{ command: string; args: readonly string[] }>,
   expectedParent?: { releaseId: string; manifestSha256: string },
+  receiptMode: 'planned' | 'legacy-proofless' | 'invalid' = 'planned',
 ) {
   const script = `
 const { createHash } = require('node:crypto');
@@ -110,6 +111,15 @@ function consume() {
       manifest = JSON.parse(Buffer.from(header.manifestWireBase64, 'base64url').toString());
       wireSha256 = header.wireSha256;
       receiptWireSha256 = header.receiptWireSha256;
+      if (${JSON.stringify(receiptMode)} === 'legacy-proofless') {
+        const legacyReceipt = JSON.parse(Buffer.from(header.receiptWireBase64, 'base64url').toString());
+        delete legacyReceipt.sourceProvenanceProofSha256;
+        delete legacyReceipt.receiptSha256;
+        legacyReceipt.receiptSha256 = createHash('sha256').update(stable(legacyReceipt)).digest('hex');
+        receiptWireSha256 = createHash('sha256').update(stable(legacyReceipt) + '\\n').digest('hex');
+      } else if (${JSON.stringify(receiptMode)} === 'invalid') {
+        receiptWireSha256 = 'f'.repeat(64);
+      }
       filesByKey = [...new Map(manifest.files.map((file) => [file.objectKey, file])).values()];
       missingFiles = header.protocol === 'act-runtime-blob-release-stream.v2'
         ? [...filesByKey].sort((left, right) => right.objectKey.localeCompare(left.objectKey))
@@ -457,6 +467,50 @@ describe('source-authoritative SSH runtime release transport', () => {
       dependencies: { spawn: streamingBridgeSpawnFactory(calls) },
     })).rejects.toMatchObject({ code: 'runtime-release-receipt-invalid' });
     expect(calls).toHaveLength(0);
+  });
+
+  it('accepts a bridge completion bound to a matching legacy proofless receipt', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-release-legacy-receipt-'));
+    roots.push(root);
+    await mkdir(path.join(root, 'course-content', 'runtime', 'lessons'), { recursive: true });
+    await writeFile(path.join(root, 'course-content', 'runtime', 'lessons', 'lesson.json'), '{"id":"legacy-receipt"}\\n');
+    await execFile('git', ['init', '-b', 'integration'], { cwd: root });
+    await execFile('git', ['config', 'user.email', 'test@example.invalid'], { cwd: root });
+    await execFile('git', ['config', 'user.name', 'Test'], { cwd: root });
+    await execFile('git', ['add', '.'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'fixture'], { cwd: root });
+    const commit = (await execFile('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const snapshot = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision: commit, integrationRef: 'integration' });
+    const calls: Array<{ command: string; args: readonly string[] }> = [];
+    await expect(publishRuntimeBlobReleaseViaSsh({
+      snapshot,
+      manifest: snapshot.manifest,
+      planningReceipt: planningReceiptFor(snapshot.manifest),
+      ssh: config,
+      dependencies: { spawn: streamingBridgeSpawnFactory(calls, undefined, 'legacy-proofless') },
+    })).resolves.toMatchObject({ releaseId: snapshot.manifest.releaseId });
+  });
+
+  it('rejects a bridge completion with a receipt outside the planned or legacy identity', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-release-invalid-receipt-'));
+    roots.push(root);
+    await mkdir(path.join(root, 'course-content', 'runtime', 'lessons'), { recursive: true });
+    await writeFile(path.join(root, 'course-content', 'runtime', 'lessons', 'lesson.json'), '{"id":"invalid-receipt"}\\n');
+    await execFile('git', ['init', '-b', 'integration'], { cwd: root });
+    await execFile('git', ['config', 'user.email', 'test@example.invalid'], { cwd: root });
+    await execFile('git', ['config', 'user.name', 'Test'], { cwd: root });
+    await execFile('git', ['add', '.'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'fixture'], { cwd: root });
+    const commit = (await execFile('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const snapshot = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision: commit, integrationRef: 'integration' });
+    const calls: Array<{ command: string; args: readonly string[] }> = [];
+    await expect(publishRuntimeBlobReleaseViaSsh({
+      snapshot,
+      manifest: snapshot.manifest,
+      planningReceipt: planningReceiptFor(snapshot.manifest),
+      ssh: config,
+      dependencies: { spawn: streamingBridgeSpawnFactory(calls, undefined, 'invalid') },
+    })).rejects.toMatchObject({ code: 'runtime-release-remote-identity-mismatch' });
   });
 
   it('uses the same manifest-last stream protocol for a local operator publisher', async () => {

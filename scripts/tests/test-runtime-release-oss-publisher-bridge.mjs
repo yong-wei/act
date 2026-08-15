@@ -367,6 +367,19 @@ const blobHeaderFor = (data, parent, { strict = false, omitHeaderProof = false, 
     ...(parent ? { parentRelease: { releaseId: parent.manifest.releaseId, manifestSha256: parent.manifest.manifestSha256 } } : {}),
   });
 };
+const prooflessBlobReceipt = (data) => {
+  const body = Object.fromEntries(Object.entries(data.receipt).filter(([key]) => (
+    key !== 'sourceProvenanceProofSha256' && key !== 'receiptSha256'
+  )));
+  const receipt = { ...body, receiptSha256: sha(stable(body)) };
+  return { receipt, wire: Buffer.from(`${stable(receipt)}\n`) };
+};
+const receiptWireWithProof = (data, proof) => {
+  const body = Object.fromEntries(Object.entries(data.receipt).filter(([key]) => key !== 'receiptSha256'));
+  body.sourceProvenanceProofSha256 = proof;
+  const receipt = { ...body, receiptSha256: sha(stable(body)) };
+  return Buffer.from(`${stable(receipt)}\n`);
+};
 const blobImportHeaderFor = (source, target) => JSON.stringify({
   protocol: 'act-runtime-blob-release-import.v1',
   releaseId: target.manifest.releaseId,
@@ -668,6 +681,48 @@ try {
     );
     assert.equal(await readFile(missingProofLog, 'utf8').catch(() => ''), '', 'proof rejection must not write any OSS object');
   }
+
+  const legacyComplete = buildBlobState('0'.repeat(40), [Buffer.from('legacy complete bytes'), Buffer.from('legacy complete bytes')]);
+  const legacyCompleteReceipt = prooflessBlobReceipt(legacyComplete);
+  for (const file of new Map(legacyComplete.files.map((file) => [file.objectKey, file])).values()) {
+    await seedBlob(file, legacyComplete.frameBytesByKey.get(file.objectKey));
+  }
+  await mkdir(path.dirname(path.join(ossRoot, legacyComplete.receiptKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, legacyComplete.receiptKey), legacyCompleteReceipt.wire);
+  await writeFile(path.join(ossRoot, legacyComplete.manifestKey), legacyComplete.wire);
+  const legacyCompleteLog = path.join(temporary, 'legacy-complete-put.log');
+  const legacyCompleteResult = await publishBlob({ data: legacyComplete, env: { FAKE_LOG: legacyCompleteLog } });
+  assert.equal(legacyCompleteResult.putCount, 0, 'a matching legacy receipt must make a completed release idempotent');
+  assert.equal(legacyCompleteResult.receiptWireSha256, sha(legacyCompleteReceipt.wire));
+  assert.equal(await readFile(legacyCompleteLog, 'utf8').catch(() => ''), '', 'legacy completion must not overwrite immutable objects');
+  assert.equal((await verify(legacyComplete)).schemaVersion, 'runtime-release-verification.v2');
+
+  const legacyInterrupted = buildBlobState('1'.repeat(40), [Buffer.from('legacy interrupted bytes'), Buffer.from('legacy interrupted bytes')]);
+  const legacyInterruptedReceipt = prooflessBlobReceipt(legacyInterrupted);
+  for (const file of new Map(legacyInterrupted.files.map((file) => [file.objectKey, file])).values()) {
+    await seedBlob(file, legacyInterrupted.frameBytesByKey.get(file.objectKey));
+  }
+  await mkdir(path.dirname(path.join(ossRoot, legacyInterrupted.receiptKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, legacyInterrupted.receiptKey), legacyInterruptedReceipt.wire);
+  const legacyInterruptedLog = path.join(temporary, 'legacy-interrupted-put.log');
+  const legacyInterruptedResult = await publishBlob({ data: legacyInterrupted, env: { FAKE_LOG: legacyInterruptedLog } });
+  assert.equal(legacyInterruptedResult.putCount, 1, 'a receipt-only legacy release must retain its receipt and write only the terminal manifest');
+  assert.equal(legacyInterruptedResult.receiptWireSha256, sha(legacyInterruptedReceipt.wire));
+  assert.deepEqual((await readFile(legacyInterruptedLog, 'utf8')).trim().split('\n'), [legacyInterrupted.manifestKey]);
+  assert.deepEqual(await readFile(path.join(ossRoot, legacyInterrupted.receiptKey)), legacyInterruptedReceipt.wire, 'legacy receipt bytes must stay immutable');
+
+  const mismatchedLegacy = buildBlobState('2'.repeat(40), [Buffer.from('mismatched legacy bytes'), Buffer.from('mismatched legacy bytes')]);
+  const mismatchedLegacyReceipt = prooflessBlobReceipt(mismatchedLegacy);
+  mismatchedLegacyReceipt.receipt.blobs[0].sizeBytes += 1;
+  mismatchedLegacyReceipt.receipt.receiptSha256 = sha(stable(Object.fromEntries(Object.entries(mismatchedLegacyReceipt.receipt).filter(([key]) => key !== 'receiptSha256'))));
+  await mkdir(path.dirname(path.join(ossRoot, mismatchedLegacy.receiptKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, mismatchedLegacy.receiptKey), `${stable(mismatchedLegacyReceipt.receipt)}\n`);
+  await assert.rejects(() => publishBlob({ data: mismatchedLegacy }), /blob bridge failed before state/);
+
+  const differentProof = buildBlobState('3'.repeat(40), [Buffer.from('different proof bytes'), Buffer.from('different proof bytes')]);
+  await mkdir(path.dirname(path.join(ossRoot, differentProof.receiptKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, differentProof.receiptKey), receiptWireWithProof(differentProof, 'b'.repeat(64)));
+  await assert.rejects(() => publishBlob({ data: differentProof }), /blob bridge failed before state/);
 
   const legacyBlobState = buildBlobState('b'.repeat(40), [Buffer.from('legacy compatible bytes'), Buffer.from('legacy compatible bytes')]);
   const legacyPutLog = path.join(temporary, 'legacy-put.log');
