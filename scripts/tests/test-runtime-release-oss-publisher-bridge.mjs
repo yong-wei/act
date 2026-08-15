@@ -293,6 +293,7 @@ const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes, sou
       sizeBytes: file.sizeBytes,
       sha256: file.sha256,
     }])).values()].sort((left, right) => left.objectKey.localeCompare(right.objectKey)),
+    sourceProvenanceProofSha256: 'a'.repeat(64),
   };
   const receipt = { ...receiptBody, receiptSha256: sha(stable(receiptBody)) };
   const receiptWire = Buffer.from(`${stable(receipt)}\n`);
@@ -347,18 +348,25 @@ const buildBlobStateFromV1 = (source) => {
   const receiptWire = Buffer.from(`${stable(receipt)}\n`);
   return { files, manifest, wire, receiptWire, prefix, manifestKey, receiptKey: `${prefix}receipt.json` };
 };
-const blobHeaderFor = (data, parent, { strict = false } = {}) => JSON.stringify({
-  protocol: 'act-runtime-blob-release-stream.v2',
-  releaseId: data.manifest.releaseId,
-  prefix: data.prefix,
-  manifestSha256: data.manifest.manifestSha256,
-  wireSha256: sha(data.wire),
-  manifestWireBase64: data.wire.toString('base64url'),
-  receiptWireSha256: sha(data.receiptWire),
-  receiptWireBase64: data.receiptWire.toString('base64url'),
-  ...(strict ? { sourceIdentityMode: 'strict-bundle' } : {}),
-  ...(parent ? { parentRelease: { releaseId: parent.manifest.releaseId, manifestSha256: parent.manifest.manifestSha256 } } : {}),
-});
+const blobHeaderFor = (data, parent, { strict = false, omitHeaderProof = false, omitReceiptProof = false } = {}) => {
+  const receipt = omitReceiptProof
+    ? Object.fromEntries(Object.entries(data.receipt).filter(([key]) => key !== 'sourceProvenanceProofSha256'))
+    : data.receipt;
+  const receiptWire = omitReceiptProof ? Buffer.from(`${stable(receipt)}\n`) : data.receiptWire;
+  return JSON.stringify({
+    protocol: 'act-runtime-blob-release-stream.v2',
+    releaseId: data.manifest.releaseId,
+    prefix: data.prefix,
+    manifestSha256: data.manifest.manifestSha256,
+    wireSha256: sha(data.wire),
+    manifestWireBase64: data.wire.toString('base64url'),
+    receiptWireSha256: sha(receiptWire),
+    receiptWireBase64: receiptWire.toString('base64url'),
+    ...(omitHeaderProof ? {} : { sourceProvenanceProofSha256: data.receipt.sourceProvenanceProofSha256 }),
+    ...(strict ? { sourceIdentityMode: 'strict-bundle' } : {}),
+    ...(parent ? { parentRelease: { releaseId: parent.manifest.releaseId, manifestSha256: parent.manifest.manifestSha256 } } : {}),
+  });
+};
 const blobImportHeaderFor = (source, target) => JSON.stringify({
   protocol: 'act-runtime-blob-release-import.v1',
   releaseId: target.manifest.releaseId,
@@ -453,7 +461,7 @@ async function publish({ data = state, crashAfterFrame = false, frameBytes = byt
   return JSON.parse(final.value);
 }
 
-async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {}, local = false, strict = false } = {}) {
+async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {}, local = false, strict = false, omitHeaderProof = false, omitReceiptProof = false } = {}) {
   const localArguments = local ? [
     '--credential-mode', 'local',
     '--ossutil-path', fakeOssutil,
@@ -485,7 +493,7 @@ async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = 
   child.stderr.on('data', (chunk) => stderr.push(chunk));
   const reader = createInterface({ input: child.stdout });
   const lines = reader[Symbol.asyncIterator]();
-  child.stdin.write(`${blobHeaderFor(data, parent, { strict })}\n`);
+  child.stdin.write(`${blobHeaderFor(data, parent, { strict, omitHeaderProof, omitReceiptProof })}\n`);
   const first = await lines.next();
   if (first.done) {
     const result = await close(child);
@@ -645,6 +653,21 @@ try {
   assert.equal(blobFirst.putCount, 3, 'the first blob release writes one shared blob, receipt, then manifest');
   const blobPuts = (await readFile(blobLog, 'utf8')).trim().split('\n');
   assert.deepEqual(blobPuts.slice(-2), [blobState.receiptKey, blobState.manifestKey], 'receipt precedes the terminal immutable manifest');
+
+  for (const [index, missingProof] of [
+    { omitHeaderProof: true },
+    { omitReceiptProof: true },
+    { omitHeaderProof: true, omitReceiptProof: true },
+  ].entries()) {
+    const candidate = buildBlobState(`${'p'.repeat(39)}${index}`);
+    const missingProofLog = path.join(temporary, `missing-proof-${index}.log`);
+    await assert.rejects(
+      () => publishBlob({ data: candidate, ...missingProof, env: { FAKE_LOG: missingProofLog } }),
+      /blob bridge failed before state/,
+      'v2 publish must reject a missing planning proof before touching OSS',
+    );
+    assert.equal(await readFile(missingProofLog, 'utf8').catch(() => ''), '', 'proof rejection must not write any OSS object');
+  }
 
   const legacyBlobState = buildBlobState('b'.repeat(40), [Buffer.from('legacy compatible bytes'), Buffer.from('legacy compatible bytes')]);
   const legacyPutLog = path.join(temporary, 'legacy-put.log');

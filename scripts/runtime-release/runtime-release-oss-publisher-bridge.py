@@ -926,20 +926,29 @@ def validate_blob_receipt(
     manifest: Dict[str, Any],
     manifest_wire: bytes,
     files: List[Dict[str, Any]],
+    require_proof: bool = True,
 ) -> None:
     required_fields = {
         "schemaVersion", "releaseId", "manifestVersion", "manifestObjectKey",
         "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes",
         "treeSha256", "fileCount", "totalBytes", "blobs", "receiptSha256",
     }
+    if require_proof:
+        required_fields.add("sourceProvenanceProofSha256")
     allowed_fields = required_fields | {"sourceProvenanceProofSha256"}
     if not isinstance(receipt, dict) or not required_fields.issubset(set(receipt)) or not set(receipt).issubset(allowed_fields):
         fail("blob receipt has unsupported or missing fields")
+    proof_digest = receipt.get("sourceProvenanceProofSha256")
     if "sourceProvenanceProofSha256" in receipt and (
         not isinstance(receipt.get("sourceProvenanceProofSha256"), str)
         or not SHA256_PATTERN.fullmatch(receipt["sourceProvenanceProofSha256"])
     ):
         fail("blob receipt source-provenance proof digest is invalid")
+    if require_proof and (
+        not isinstance(proof_digest, str)
+        or not SHA256_PATTERN.fullmatch(proof_digest)
+    ):
+        fail("blob receipt source-provenance proof digest is required")
     manifest_key = f"{BLOB_RELEASE_KEY_PREFIX}{release_id}/{BLOB_MANIFEST_NAME}"
     if (
         receipt.get("schemaVersion") != BLOB_RECEIPT_SCHEMA_VERSION
@@ -984,7 +993,10 @@ def validate_blob_receipt(
         fail("blob receipt digest does not match canonical content")
 
 
-def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bytes, str, bytes, str, List[Dict[str, Any]]]:
+def validate_blob_publish_header(
+    header: Dict[str, Any],
+    require_proof: bool = True,
+) -> Tuple[str, Dict[str, Any], bytes, str, bytes, str, List[Dict[str, Any]]]:
     if header.get("protocol") != "act-runtime-blob-release-stream.v2":
         fail("unsupported blob publish protocol")
     release_id = header.get("releaseId")
@@ -1053,10 +1065,16 @@ def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str,
         fail("blob manifest semantic digest does not match canonical content")
     if not isinstance(receipt, dict) or canonical_json(receipt) + b"\n" != receipt_wire:
         fail("blob receipt wire bytes are not canonical")
-    validate_blob_receipt(receipt, release_id, manifest, wire, expected)
+    validate_blob_receipt(receipt, release_id, manifest, wire, expected, require_proof=require_proof)
     proof_digest = header.get("sourceProvenanceProofSha256")
     receipt_proof_digest = receipt.get("sourceProvenanceProofSha256")
-    if proof_digest is not None and (
+    if require_proof and (
+        not isinstance(proof_digest, str)
+        or not SHA256_PATTERN.fullmatch(proof_digest)
+        or receipt_proof_digest != proof_digest
+    ):
+        fail("blob source-provenance proof digest is required and must match the planning receipt")
+    if not require_proof and proof_digest is not None and (
         not isinstance(proof_digest, str)
         or not SHA256_PATTERN.fullmatch(proof_digest)
         or receipt_proof_digest != proof_digest
@@ -1068,9 +1086,9 @@ def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str,
 def validate_blob_parent_reference(header: Dict[str, Any]) -> Optional[Dict[str, str]]:
     required_fields = {
         "protocol", "releaseId", "prefix", "manifestSha256", "wireSha256", "manifestWireBase64",
-        "receiptWireSha256", "receiptWireBase64",
+        "receiptWireSha256", "receiptWireBase64", "sourceProvenanceProofSha256",
     }
-    allowed_fields = required_fields | {"parentRelease", "sourceIdentityMode", "sourceProvenanceProofSha256"}
+    allowed_fields = required_fields | {"parentRelease", "sourceIdentityMode"}
     if not required_fields.issubset(set(header)) or not set(header).issubset(allowed_fields):
         fail("blob publish header has unsupported or missing fields")
     parent = header.get("parentRelease")
@@ -1201,6 +1219,7 @@ def read_validated_blob_release(bucket: str, prefix: str) -> Tuple[Dict[str, Any
         fail(f"remote runtime blob release document is invalid: {error}")
     if not isinstance(manifest, dict) or not isinstance(receipt, dict):
         fail("remote runtime blob release document must be an object")
+    proof_digest = receipt.get("sourceProvenanceProofSha256")
     header = {
         "protocol": "act-runtime-blob-release-stream.v2",
         "releaseId": release_id,
@@ -1211,7 +1230,12 @@ def read_validated_blob_release(bucket: str, prefix: str) -> Tuple[Dict[str, Any
         "receiptWireSha256": hashlib.sha256(receipt_wire).hexdigest(),
         "receiptWireBase64": base64.urlsafe_b64encode(receipt_wire).decode("ascii").rstrip("="),
     }
-    verified_prefix, parsed_manifest, _, manifest_wire_sha, _, receipt_wire_sha, files = validate_blob_publish_header(header)
+    if proof_digest is not None:
+        header["sourceProvenanceProofSha256"] = proof_digest
+    verified_prefix, parsed_manifest, _, manifest_wire_sha, _, receipt_wire_sha, files = validate_blob_publish_header(
+        header,
+        require_proof=proof_digest is not None,
+    )
     if verified_prefix != prefix:
         fail("remote runtime blob release manifest prefix is invalid")
     return parsed_manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files
@@ -1536,7 +1560,7 @@ def validate_blob_import_header(header: Dict[str, Any]) -> Tuple[str, Dict[str, 
     del target_header["sourcePrefix"]
     del target_header["sourceManifestSha256"]
     del target_header["sourceManifestWireSha256"]
-    prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files = validate_blob_publish_header(target_header)
+    prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files = validate_blob_publish_header(target_header, require_proof=False)
     return (
         prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files,
         source_prefix, source_manifest_sha, source_manifest_wire_sha,
