@@ -104,6 +104,8 @@ export interface ActRuntimeBlobReleaseReceipt {
   fileCount: number;
   totalBytes: number;
   blobs: ActRuntimeBlobReleaseReceiptBlob[];
+  /** Digest of the immutable source-provenance proof used for planning. */
+  sourceProvenanceProofSha256?: string;
   receiptSha256: string;
 }
 
@@ -392,8 +394,14 @@ function blobReceiptDigestBody(receipt: Omit<ActRuntimeBlobReleaseReceipt, 'rece
   return stableStringify(receipt);
 }
 
-export function buildRuntimeBlobReleaseReceipt(manifest: ActRuntimeBlobReleaseManifest): ActRuntimeBlobReleaseReceipt {
+export function buildRuntimeBlobReleaseReceipt(
+  manifest: ActRuntimeBlobReleaseManifest,
+  options: { sourceProvenanceProofSha256?: string } = {},
+): ActRuntimeBlobReleaseReceipt {
   const parsed = parseRuntimeBlobReleaseManifest(manifest);
+  if (options.sourceProvenanceProofSha256 !== undefined && !SHA256_PATTERN.test(options.sourceProvenanceProofSha256)) {
+    throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'Source-provenance proof digest is invalid.');
+  }
   const withoutReceiptDigest = {
     schemaVersion: ACT_RUNTIME_BLOB_RELEASE_RECEIPT_SCHEMA_VERSION,
     releaseId: parsed.releaseId,
@@ -406,6 +414,7 @@ export function buildRuntimeBlobReleaseReceipt(manifest: ActRuntimeBlobReleaseMa
     fileCount: parsed.fileCount,
     totalBytes: parsed.totalBytes,
     blobs: blobReceiptBlobs(parsed),
+    ...(options.sourceProvenanceProofSha256 ? { sourceProvenanceProofSha256: options.sourceProvenanceProofSha256 } : {}),
   } satisfies Omit<ActRuntimeBlobReleaseReceipt, 'receiptSha256'>;
   return {
     ...withoutReceiptDigest,
@@ -620,6 +629,7 @@ export function parseRuntimeBlobReleaseManifest(value: unknown): ActRuntimeBlobR
 
 export function parseRuntimeBlobReleaseReceipt(value: unknown): ActRuntimeBlobReleaseReceipt {
   const raw = object(value, 'receipt');
+  const hasSourceProof = Object.hasOwn(raw, 'sourceProvenanceProofSha256');
   assertExactKeys(raw, [
     'schemaVersion',
     'releaseId',
@@ -632,6 +642,7 @@ export function parseRuntimeBlobReleaseReceipt(value: unknown): ActRuntimeBlobRe
     'fileCount',
     'totalBytes',
     'blobs',
+    ...(hasSourceProof ? ['sourceProvenanceProofSha256'] : []),
     'receiptSha256',
   ], 'receipt');
   if (raw.schemaVersion !== ACT_RUNTIME_BLOB_RELEASE_RECEIPT_SCHEMA_VERSION) {
@@ -656,6 +667,12 @@ export function parseRuntimeBlobReleaseReceipt(value: unknown): ActRuntimeBlobRe
   const manifestWireSizeBytes = nonNegativeInteger(raw.manifestWireSizeBytes, 'receipt.manifestWireSizeBytes');
   const fileCount = nonNegativeInteger(raw.fileCount, 'receipt.fileCount');
   const totalBytes = nonNegativeInteger(raw.totalBytes, 'receipt.totalBytes');
+  const sourceProvenanceProofSha256 = hasSourceProof
+    ? string(raw.sourceProvenanceProofSha256, 'receipt.sourceProvenanceProofSha256')
+    : undefined;
+  if (sourceProvenanceProofSha256 !== undefined && !SHA256_PATTERN.test(sourceProvenanceProofSha256)) {
+    throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'receipt.sourceProvenanceProofSha256 is invalid.');
+  }
   if (!Array.isArray(raw.blobs) || raw.blobs.length === 0) {
     throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'receipt.blobs must be a non-empty array.');
   }
@@ -687,6 +704,7 @@ export function parseRuntimeBlobReleaseReceipt(value: unknown): ActRuntimeBlobRe
     fileCount,
     totalBytes,
     blobs,
+    ...(sourceProvenanceProofSha256 ? { sourceProvenanceProofSha256 } : {}),
     receiptSha256,
   } satisfies ActRuntimeBlobReleaseReceipt;
   const { receiptSha256: _ignored, ...withoutReceiptDigest } = parsed;
@@ -700,7 +718,9 @@ export function assertRuntimeBlobReleaseReceiptMatchesManifest(
   receipt: ActRuntimeBlobReleaseReceipt,
   manifest: ActRuntimeBlobReleaseManifest,
 ) {
-  const expected = buildRuntimeBlobReleaseReceipt(manifest);
+  const expected = buildRuntimeBlobReleaseReceipt(manifest, {
+    sourceProvenanceProofSha256: receipt.sourceProvenanceProofSha256,
+  });
   if (serializeRuntimeBlobReleaseReceipt(receipt) !== serializeRuntimeBlobReleaseReceipt(expected)) {
     throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'Runtime blob release receipt does not match the manifest identity and reachable blobs.');
   }

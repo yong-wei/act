@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import { spawn as nodeSpawn, type ChildProcess, type SpawnOptions } from 'node:child_process';
-import { createReadStream } from 'node:fs';
-import { lstat } from 'node:fs/promises';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { lstat, mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { createInterface } from 'node:readline';
 import { PassThrough, Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
@@ -22,11 +23,13 @@ import { stableStringify } from '@/lib/aggregate-governance/hash';
 import {
   type ActRuntimeBlobReleaseFile,
   type ActRuntimeBlobReleaseManifest,
+  type ActRuntimeBlobReleaseReceipt,
   type ActRuntimeReleaseFile,
   assertContentAddressedRuntimeReleaseId,
   buildRuntimeBlobReleaseManifestFromFiles,
   buildRuntimeBlobReleaseReceipt,
   computeRuntimeReleaseManifestWireSha256,
+  parseRuntimeBlobReleaseReceipt,
   runtimeBlobReleaseManifestObjectKey,
   runtimeBlobReleaseManifestWireSha256,
   serializeRuntimeBlobReleaseManifest,
@@ -87,6 +90,38 @@ export class RuntimeReleaseStreamingPublisherError extends RuntimeReleaseStoreEr
     super(code, message, options);
     this.name = 'RuntimeReleaseStreamingPublisherError';
   }
+}
+
+export function assertRuntimeBlobPlanningReceipt(
+  manifest: ActRuntimeBlobReleaseManifest,
+  planningReceipt: ActRuntimeBlobReleaseReceipt | undefined,
+): ActRuntimeBlobReleaseReceipt {
+  if (!planningReceipt || typeof planningReceipt !== 'object' || !planningReceipt.sourceProvenanceProofSha256) {
+    throw new RuntimeReleaseStreamingPublisherError(
+      'runtime-release-receipt-invalid',
+      'V2 blob publication requires a canonical planning receipt bound to a source-provenance proof.',
+    );
+  }
+  let parsed: ActRuntimeBlobReleaseReceipt;
+  try {
+    parsed = parseRuntimeBlobReleaseReceipt(planningReceipt);
+  } catch (error) {
+    throw new RuntimeReleaseStreamingPublisherError(
+      'runtime-release-receipt-invalid',
+      'Planning receipt is not a canonical runtime blob release receipt.',
+      { cause: error },
+    );
+  }
+  const expected = buildRuntimeBlobReleaseReceipt(manifest, {
+    sourceProvenanceProofSha256: parsed.sourceProvenanceProofSha256,
+  });
+  if (serializeRuntimeBlobReleaseReceipt(parsed) !== serializeRuntimeBlobReleaseReceipt(expected)) {
+    throw new RuntimeReleaseStreamingPublisherError(
+      'runtime-release-receipt-invalid',
+      'Planning receipt does not match the submitted manifest or source-provenance proof.',
+    );
+  }
+  return parsed;
 }
 
 function invalid(message: string): never {
@@ -614,14 +649,20 @@ async function openVerifiedRuntimeSourceFile(root: string, relativePath: string)
   return createReadStream(absolutePath);
 }
 
-async function streamSourceFrame(child: ChildProcess, sourceFactory: () => Promise<Readable>, file: ActRuntimeReleaseFile) {
+async function streamSourceFrame(
+  child: ChildProcess,
+  sourceFactory: () => Promise<Readable>,
+  file: ActRuntimeReleaseFile,
+  options: { verifySource?: boolean } = {},
+) {
   const source = await sourceFactory();
   const hash = createHash('sha256');
   let sizeBytes = 0;
+  const verifySource = options.verifySource !== false;
   try {
     for await (const chunk of source) {
       const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-      hash.update(bytes);
+      if (verifySource) hash.update(bytes);
       sizeBytes += bytes.byteLength;
       await writeChild(child, bytes, file.path);
     }
@@ -629,7 +670,7 @@ async function streamSourceFrame(child: ChildProcess, sourceFactory: () => Promi
     if (error instanceof RuntimeReleaseStreamingPublisherError) throw error;
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-stream-source-failed', `Source stream failed for ${file.path}.`, { cause: error });
   }
-  if (sizeBytes !== file.sizeBytes || hash.digest('hex') !== file.sha256) {
+  if (sizeBytes !== file.sizeBytes || (verifySource && hash.digest('hex') !== file.sha256)) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-source-object-invalid', `Source bytes differ from the manifest for ${file.path}.`);
   }
 }
@@ -639,31 +680,64 @@ async function verifyExternalBundleBytes(snapshot: GitRuntimeBlobReleaseSnapshot
   const bundlePaths = new Set(snapshot.externalBundle.files.map((file) => file.path));
   const gitPaths = new Set([...snapshot.filesByPath.keys()].filter((relativePath) => !bundlePaths.has(relativePath)));
   try {
-    await verifyExternalInputBundleFilesystem(snapshot.externalBundle, gitPaths);
+    await verifyExternalInputBundleFilesystem(snapshot.externalBundle, gitPaths, { verifyBytes: false });
   } catch (error) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-external-source-changed', error instanceof Error ? error.message : String(error), { cause: error });
   }
-  for (const bundleFile of snapshot.externalBundle.files) {
-    const manifestFile = manifest.files.find((file) => file.path === bundleFile.path);
-    if (!manifestFile || !manifestFile.source || !('bundleSemanticSha256' in manifestFile.source)) {
-      throw new RuntimeReleaseStreamingPublisherError('runtime-release-external-source-missing', `External bundle path is not present with a strict source identity: ${bundleFile.path}.`);
-    }
-    const source = await snapshot.openFile(bundleFile.path);
-    const hash = createHash('sha256');
-    let sizeBytes = 0;
-    try {
-      for await (const chunk of source) {
-        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-        hash.update(bytes);
-        sizeBytes += bytes.byteLength;
+  const snapshotRoot = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-external-snapshot-'));
+  const cleanup = async () => {
+    snapshot.externalSnapshotFiles.clear();
+    await rm(snapshotRoot, { recursive: true, force: true });
+  };
+  try {
+    for (const bundleFile of snapshot.externalBundle.files) {
+      const manifestFile = manifest.files.find((file) => file.path === bundleFile.path);
+      if (!manifestFile || !manifestFile.source || !('bundleSemanticSha256' in manifestFile.source)) {
+        throw new RuntimeReleaseStreamingPublisherError('runtime-release-external-source-missing', `External bundle path is not present with a strict source identity: ${bundleFile.path}.`);
       }
-    } catch (error) {
-      throw new RuntimeReleaseStreamingPublisherError('runtime-release-stream-source-failed', `External bundle source stream failed for ${bundleFile.path}.`, { cause: error });
+      const source = await snapshot.openFile(bundleFile.path);
+      const snapshotPath = path.join(snapshotRoot, `${snapshot.externalSnapshotFiles.size}.bin`);
+      const output = createWriteStream(snapshotPath, { flags: 'wx', mode: 0o600 });
+      const hash = createHash('sha256');
+      let sizeBytes = 0;
+      try {
+        for await (const chunk of source) {
+          const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+          hash.update(bytes);
+          sizeBytes += bytes.byteLength;
+          if (!output.write(bytes)) await new Promise<void>((resolve, reject) => {
+            const onDrain = () => { output.off('error', onError); resolve(); };
+            const onError = (error: Error) => { output.off('drain', onDrain); reject(error); };
+            output.once('drain', onDrain);
+            output.once('error', onError);
+          });
+        }
+        await new Promise<void>((resolve, reject) => {
+          output.once('close', resolve);
+          output.once('error', reject);
+          output.end();
+        });
+      } catch (error) {
+        output.destroy();
+        throw new RuntimeReleaseStreamingPublisherError('runtime-release-stream-source-failed', `External bundle source stream failed for ${bundleFile.path}.`, { cause: error });
+      }
+      if (sizeBytes !== bundleFile.sizeBytes || hash.digest('hex') !== bundleFile.sha256 || manifestFile.sizeBytes !== bundleFile.sizeBytes || manifestFile.sha256 !== bundleFile.sha256) {
+        throw new RuntimeReleaseStreamingPublisherError('runtime-release-external-source-changed', `External bundle bytes differ from the prepared manifest for ${bundleFile.path}.`);
+      }
+      snapshot.externalSnapshotFiles.set(bundleFile.path, snapshotPath);
     }
-    if (sizeBytes !== bundleFile.sizeBytes || hash.digest('hex') !== bundleFile.sha256 || manifestFile.sizeBytes !== bundleFile.sizeBytes || manifestFile.sha256 !== bundleFile.sha256) {
-      throw new RuntimeReleaseStreamingPublisherError('runtime-release-external-source-changed', `External bundle bytes differ from the prepared manifest for ${bundleFile.path}.`);
-    }
+  } catch (error) {
+    await cleanup();
+    throw error;
   }
+  snapshot.externalSnapshotRoot = snapshotRoot;
+}
+
+async function cleanupExternalBundleSnapshot(snapshot: GitRuntimeBlobReleaseSnapshot) {
+  const root = snapshot.externalSnapshotRoot;
+  snapshot.externalSnapshotRoot = undefined;
+  snapshot.externalSnapshotFiles.clear();
+  if (root) await rm(root, { recursive: true, force: true });
 }
 
 function parsePublishReceipt(message: PublishControlMessage, manifest: ActRuntimeReleaseManifest): RuntimeReleaseVerificationReceipt {
@@ -690,15 +764,26 @@ function parsePublishReceipt(message: PublishControlMessage, manifest: ActRuntim
   };
 }
 
-function parseBlobPublishReceipt(message: PublishControlMessage, manifest: ActRuntimeBlobReleaseManifest): RuntimeBlobReleaseVerificationReceipt {
-  const receipt = buildRuntimeBlobReleaseReceipt(manifest);
+function parseBlobPublishReceipt(
+  message: PublishControlMessage,
+  manifest: ActRuntimeBlobReleaseManifest,
+  planningReceipt?: ActRuntimeBlobReleaseReceipt,
+): RuntimeBlobReleaseVerificationReceipt {
+  const receipt = buildRuntimeBlobReleaseReceipt(manifest, {
+    sourceProvenanceProofSha256: planningReceipt?.sourceProvenanceProofSha256,
+  });
+  const acceptableReceiptWireSha256 = new Set([
+    receipt,
+    buildRuntimeBlobReleaseReceipt(manifest),
+  ].map((candidate) => createHash('sha256').update(serializeRuntimeBlobReleaseReceipt(candidate)).digest('hex')));
   const expectedWireSha256 = runtimeBlobReleaseManifestWireSha256(manifest);
   if (
     message.status !== 'complete'
     || message.releaseId !== manifest.releaseId
     || message.manifestSha256 !== manifest.manifestSha256
     || message.wireSha256 !== expectedWireSha256
-    || message.receiptWireSha256 !== createHash('sha256').update(serializeRuntimeBlobReleaseReceipt(receipt)).digest('hex')
+    || typeof message.receiptWireSha256 !== 'string'
+    || !acceptableReceiptWireSha256.has(message.receiptWireSha256)
     || message.treeSha256 !== manifest.treeSha256
     || message.fileCount !== manifest.fileCount
     || message.totalBytes !== manifest.totalBytes
@@ -722,8 +807,9 @@ function parseBlobPublishOutcome(
   message: PublishControlMessage,
   manifest: ActRuntimeBlobReleaseManifest,
   uploadedBlobBytes: number,
+  planningReceipt: ActRuntimeBlobReleaseReceipt,
 ): RuntimeBlobReleasePublishOutcome {
-  const receipt = parseBlobPublishReceipt(message, manifest);
+  const receipt = parseBlobPublishReceipt(message, manifest, planningReceipt);
   const metricValues = [
     message.putCount,
     message.inheritedBlobCount,
@@ -924,6 +1010,7 @@ export async function publishRuntimeReleaseViaSsh(input: {
 async function publishRuntimeBlobReleaseStream(input: {
   snapshot: GitRuntimeBlobReleaseSnapshot;
   manifest: ActRuntimeBlobReleaseManifest;
+  planningReceipt: ActRuntimeBlobReleaseReceipt;
   bridge: { command: string; args: readonly string[] };
   spawn?: RuntimeReleaseSshPublisherDependencies['spawn'];
 }) {
@@ -939,6 +1026,8 @@ async function publishRuntimeBlobReleaseStream(input: {
   ) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-git-source-mismatch', 'Git snapshot identity does not match the submitted blob manifest.');
   }
+  try {
+  const planningReceipt = assertRuntimeBlobPlanningReceipt(input.manifest, input.planningReceipt);
   await verifyExternalBundleBytes(input.snapshot, input.manifest);
   const child = spawnChild(input.spawn, input.bridge.command, input.bridge.args);
   if (!child.stdin || !child.stdout) {
@@ -949,8 +1038,7 @@ async function publishRuntimeBlobReleaseStream(input: {
   const reader = createInterface({ input: child.stdout });
   const lines = reader[Symbol.asyncIterator]();
   const manifestWireBytes = Buffer.from(serializeRuntimeBlobReleaseManifest(input.manifest), 'utf8');
-  const receipt = buildRuntimeBlobReleaseReceipt(input.manifest);
-  const receiptWireBytes = Buffer.from(serializeRuntimeBlobReleaseReceipt(receipt), 'utf8');
+  const receiptWireBytes = Buffer.from(serializeRuntimeBlobReleaseReceipt(planningReceipt), 'utf8');
   const header = {
     protocol: 'act-runtime-blob-release-stream.v2',
     releaseId: input.manifest.releaseId,
@@ -960,6 +1048,7 @@ async function publishRuntimeBlobReleaseStream(input: {
     manifestWireBase64: manifestWireBytes.toString('base64url'),
     receiptWireSha256: createHash('sha256').update(receiptWireBytes).digest('hex'),
     receiptWireBase64: receiptWireBytes.toString('base64url'),
+    sourceProvenanceProofSha256: planningReceipt.sourceProvenanceProofSha256,
     ...(input.snapshot.externalBundle ? { sourceIdentityMode: 'strict-bundle' } : {}),
     ...(input.snapshot.parentManifest ? {
       parentRelease: {
@@ -988,7 +1077,7 @@ async function publishRuntimeBlobReleaseStream(input: {
     const control = parsePublishControlLine(first.value, 'Blob publish');
     if (control.status === 'complete') {
       child.stdin.end();
-      published = parseBlobPublishOutcome(control, input.manifest, uploadedBlobBytes);
+      published = parseBlobPublishOutcome(control, input.manifest, uploadedBlobBytes, planningReceipt);
     } else {
       if (control.status !== 'stream' || !Array.isArray(control.missingKeys) || control.missingKeys.some((key) => typeof key !== 'string')) {
         throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge returned an invalid release state.');
@@ -1019,7 +1108,9 @@ async function publishRuntimeBlobReleaseStream(input: {
           }
           throw new RuntimeReleaseStreamingPublisherError('runtime-release-git-source-mismatch', `Git snapshot source differs from the blob manifest for ${file.path}.`);
         }
-        await streamSourceFrame(child, () => input.snapshot.openFile(file.path), file);
+        await streamSourceFrame(child, () => input.snapshot.openFile(file.path), file, {
+          verifySource: !input.snapshot.externalSnapshotFiles.has(file.path),
+        });
       }
       await writeChild(child, 'DONE\n', 'blob publish');
       child.stdin.end();
@@ -1027,7 +1118,7 @@ async function publishRuntimeBlobReleaseStream(input: {
       if (finalLine.done || typeof finalLine.value !== 'string') {
         throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publish bridge closed before returning a completion receipt.');
       }
-      published = parseBlobPublishOutcome(parsePublishControlLine(finalLine.value, 'Blob publish'), input.manifest, uploadedBlobBytes);
+      published = parseBlobPublishOutcome(parsePublishControlLine(finalLine.value, 'Blob publish'), input.manifest, uploadedBlobBytes, planningReceipt);
     }
   } catch (error) {
     if (child.exitCode === null && child.signalCode === null) child.kill();
@@ -1044,17 +1135,22 @@ async function publishRuntimeBlobReleaseStream(input: {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', `Blob publish bridge exited unsuccessfully: ${stderr.toString('utf8').trim()}`);
   }
   return published;
+  } finally {
+    await cleanupExternalBundleSnapshot(input.snapshot);
+  }
 }
 
 export async function publishRuntimeBlobReleaseViaSsh(input: {
   snapshot: GitRuntimeBlobReleaseSnapshot;
   manifest: ActRuntimeBlobReleaseManifest;
+  planningReceipt: ActRuntimeBlobReleaseReceipt;
   ssh: RuntimeReleaseSshPublisherConfig;
   dependencies?: RuntimeReleaseSshPublisherDependencies;
 }) {
   return (await publishRuntimeBlobReleaseStream({
     snapshot: input.snapshot,
     manifest: input.manifest,
+    planningReceipt: input.planningReceipt,
     bridge: {
       command: input.ssh.sshBinary ?? 'ssh',
       args: buildRuntimeReleaseSshArgv(input.ssh, 'publish', {
@@ -1068,12 +1164,14 @@ export async function publishRuntimeBlobReleaseViaSsh(input: {
 export async function publishRuntimeBlobReleaseLocally(input: {
   snapshot: GitRuntimeBlobReleaseSnapshot;
   manifest: ActRuntimeBlobReleaseManifest;
+  planningReceipt: ActRuntimeBlobReleaseReceipt;
   local: RuntimeReleaseLocalPublisherConfig;
   dependencies?: RuntimeReleaseSshPublisherDependencies;
 }) {
   return (await publishRuntimeBlobReleaseStream({
     snapshot: input.snapshot,
     manifest: input.manifest,
+    planningReceipt: input.planningReceipt,
     bridge: {
       command: input.local.pythonBinary,
       args: buildRuntimeReleaseLocalPublisherArgv(input.local, runtimeBlobReleasePrefix(input.manifest.releaseId)),
@@ -1085,12 +1183,14 @@ export async function publishRuntimeBlobReleaseLocally(input: {
 export async function publishRuntimeBlobReleaseLocallyWithMetrics(input: {
   snapshot: GitRuntimeBlobReleaseSnapshot;
   manifest: ActRuntimeBlobReleaseManifest;
+  planningReceipt: ActRuntimeBlobReleaseReceipt;
   local: RuntimeReleaseLocalPublisherConfig;
   dependencies?: RuntimeReleaseSshPublisherDependencies;
 }) {
   return publishRuntimeBlobReleaseStream({
     snapshot: input.snapshot,
     manifest: input.manifest,
+    planningReceipt: input.planningReceipt,
     bridge: {
       command: input.local.pythonBinary,
       args: buildRuntimeReleaseLocalPublisherArgv(input.local, runtimeBlobReleasePrefix(input.manifest.releaseId)),

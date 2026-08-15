@@ -926,14 +926,29 @@ def validate_blob_receipt(
     manifest: Dict[str, Any],
     manifest_wire: bytes,
     files: List[Dict[str, Any]],
+    require_proof: bool = True,
 ) -> None:
     required_fields = {
         "schemaVersion", "releaseId", "manifestVersion", "manifestObjectKey",
         "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes",
         "treeSha256", "fileCount", "totalBytes", "blobs", "receiptSha256",
     }
-    if not isinstance(receipt, dict) or set(receipt) != required_fields:
+    if require_proof:
+        required_fields.add("sourceProvenanceProofSha256")
+    allowed_fields = required_fields | {"sourceProvenanceProofSha256"}
+    if not isinstance(receipt, dict) or not required_fields.issubset(set(receipt)) or not set(receipt).issubset(allowed_fields):
         fail("blob receipt has unsupported or missing fields")
+    proof_digest = receipt.get("sourceProvenanceProofSha256")
+    if "sourceProvenanceProofSha256" in receipt and (
+        not isinstance(receipt.get("sourceProvenanceProofSha256"), str)
+        or not SHA256_PATTERN.fullmatch(receipt["sourceProvenanceProofSha256"])
+    ):
+        fail("blob receipt source-provenance proof digest is invalid")
+    if require_proof and (
+        not isinstance(proof_digest, str)
+        or not SHA256_PATTERN.fullmatch(proof_digest)
+    ):
+        fail("blob receipt source-provenance proof digest is required")
     manifest_key = f"{BLOB_RELEASE_KEY_PREFIX}{release_id}/{BLOB_MANIFEST_NAME}"
     if (
         receipt.get("schemaVersion") != BLOB_RECEIPT_SCHEMA_VERSION
@@ -978,7 +993,10 @@ def validate_blob_receipt(
         fail("blob receipt digest does not match canonical content")
 
 
-def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bytes, str, bytes, str, List[Dict[str, Any]]]:
+def validate_blob_publish_header(
+    header: Dict[str, Any],
+    require_proof: bool = True,
+) -> Tuple[str, Dict[str, Any], bytes, str, bytes, str, List[Dict[str, Any]]]:
     if header.get("protocol") != "act-runtime-blob-release-stream.v2":
         fail("unsupported blob publish protocol")
     release_id = header.get("releaseId")
@@ -1047,14 +1065,28 @@ def validate_blob_publish_header(header: Dict[str, Any]) -> Tuple[str, Dict[str,
         fail("blob manifest semantic digest does not match canonical content")
     if not isinstance(receipt, dict) or canonical_json(receipt) + b"\n" != receipt_wire:
         fail("blob receipt wire bytes are not canonical")
-    validate_blob_receipt(receipt, release_id, manifest, wire, expected)
+    validate_blob_receipt(receipt, release_id, manifest, wire, expected, require_proof=require_proof)
+    proof_digest = header.get("sourceProvenanceProofSha256")
+    receipt_proof_digest = receipt.get("sourceProvenanceProofSha256")
+    if require_proof and (
+        not isinstance(proof_digest, str)
+        or not SHA256_PATTERN.fullmatch(proof_digest)
+        or receipt_proof_digest != proof_digest
+    ):
+        fail("blob source-provenance proof digest is required and must match the planning receipt")
+    if not require_proof and proof_digest is not None and (
+        not isinstance(proof_digest, str)
+        or not SHA256_PATTERN.fullmatch(proof_digest)
+        or receipt_proof_digest != proof_digest
+    ):
+        fail("blob source-provenance proof digest does not match the planning receipt")
     return prefix, manifest, wire, wire_sha, receipt_wire, receipt_wire_sha, expected
 
 
 def validate_blob_parent_reference(header: Dict[str, Any]) -> Optional[Dict[str, str]]:
     required_fields = {
         "protocol", "releaseId", "prefix", "manifestSha256", "wireSha256", "manifestWireBase64",
-        "receiptWireSha256", "receiptWireBase64",
+        "receiptWireSha256", "receiptWireBase64", "sourceProvenanceProofSha256",
     }
     allowed_fields = required_fields | {"parentRelease", "sourceIdentityMode"}
     if not required_fields.issubset(set(header)) or not set(header).issubset(allowed_fields):
@@ -1187,6 +1219,7 @@ def read_validated_blob_release(bucket: str, prefix: str) -> Tuple[Dict[str, Any
         fail(f"remote runtime blob release document is invalid: {error}")
     if not isinstance(manifest, dict) or not isinstance(receipt, dict):
         fail("remote runtime blob release document must be an object")
+    proof_digest = receipt.get("sourceProvenanceProofSha256")
     header = {
         "protocol": "act-runtime-blob-release-stream.v2",
         "releaseId": release_id,
@@ -1197,7 +1230,12 @@ def read_validated_blob_release(bucket: str, prefix: str) -> Tuple[Dict[str, Any
         "receiptWireSha256": hashlib.sha256(receipt_wire).hexdigest(),
         "receiptWireBase64": base64.urlsafe_b64encode(receipt_wire).decode("ascii").rstrip("="),
     }
-    verified_prefix, parsed_manifest, _, manifest_wire_sha, _, receipt_wire_sha, files = validate_blob_publish_header(header)
+    if proof_digest is not None:
+        header["sourceProvenanceProofSha256"] = proof_digest
+    verified_prefix, parsed_manifest, _, manifest_wire_sha, _, receipt_wire_sha, files = validate_blob_publish_header(
+        header,
+        require_proof=proof_digest is not None,
+    )
     if verified_prefix != prefix:
         fail("remote runtime blob release manifest prefix is invalid")
     return parsed_manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files
@@ -1320,6 +1358,52 @@ def receive_frame(directory: str, expected_size: int, expected_sha: str) -> str:
         raise
 
 
+def compatible_existing_blob_receipt(
+    bucket: str,
+    receipt_key: str,
+    release_id: str,
+    manifest: Dict[str, Any],
+    manifest_wire: bytes,
+    files: List[Dict[str, Any]],
+    submitted_receipt_wire: bytes,
+    submitted_receipt_wire_sha: str,
+) -> Tuple[bytes, str]:
+    existing_wire = read_manifest_wire(bucket, receipt_key)
+    existing_wire_sha = hashlib.sha256(existing_wire).hexdigest()
+    if (
+        len(existing_wire) == len(submitted_receipt_wire)
+        and existing_wire_sha == submitted_receipt_wire_sha
+    ):
+        return submitted_receipt_wire, submitted_receipt_wire_sha
+    try:
+        existing_receipt = json.loads(existing_wire.decode("utf-8"))
+        submitted_receipt = json.loads(submitted_receipt_wire.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail(f"existing blob receipt is invalid: {error}")
+    if not isinstance(existing_receipt, dict) or canonical_json(existing_receipt) + b"\n" != existing_wire:
+        fail("existing blob receipt wire bytes are not canonical")
+    if not isinstance(submitted_receipt, dict):
+        fail("submitted blob receipt is invalid")
+    if "sourceProvenanceProofSha256" in existing_receipt:
+        fail("existing blob receipt differs from the submitted immutable identity")
+    validate_blob_receipt(
+        existing_receipt,
+        release_id,
+        manifest,
+        manifest_wire,
+        files,
+        require_proof=False,
+    )
+    expected_legacy_body = dict(submitted_receipt)
+    expected_legacy_body.pop("sourceProvenanceProofSha256", None)
+    expected_legacy_body.pop("receiptSha256", None)
+    expected_legacy_receipt = dict(expected_legacy_body)
+    expected_legacy_receipt["receiptSha256"] = hashlib.sha256(canonical_json(expected_legacy_body)).hexdigest()
+    if existing_receipt != expected_legacy_receipt:
+        fail("existing blob receipt differs from the submitted immutable identity")
+    return existing_wire, existing_wire_sha
+
+
 def publish_blob_release(
     bucket: str,
     requested_prefix: str,
@@ -1331,10 +1415,6 @@ def publish_blob_release(
         fail("blob publish stream prefix does not match the SSH argument")
     manifest_key = f"{prefix}{BLOB_MANIFEST_NAME}"
     receipt_key = f"{prefix}{BLOB_RECEIPT_NAME}"
-    expected_release_sizes = {
-        manifest_key: len(manifest_wire),
-        receipt_key: len(receipt_wire),
-    }
     expected_blobs = expected_blob_receipt_files(files)
     lock_file = open(lock_path(prefix), "a+b")
     spool_directory: Optional[str] = None
@@ -1343,12 +1423,29 @@ def publish_blob_release(
         spool_directory = release_spool_directory(prefix)
         release_objects = list_objects(bucket, prefix)
         existing_release = {str(entry["key"]): int(entry["sizeBytes"]) for entry in release_objects}
+        effective_receipt_wire = receipt_wire
+        effective_receipt_wire_sha = receipt_wire_sha
+        if receipt_key in existing_release:
+            effective_receipt_wire, effective_receipt_wire_sha = compatible_existing_blob_receipt(
+                bucket,
+                receipt_key,
+                manifest["releaseId"],
+                manifest,
+                manifest_wire,
+                files,
+                receipt_wire,
+                receipt_wire_sha,
+            )
+        expected_release_sizes = {
+            manifest_key: len(manifest_wire),
+            receipt_key: len(effective_receipt_wire),
+        }
         if manifest_key in existing_release:
             assert_object_set(release_objects, expected_release_sizes, allow_manifest=True)
             cross_check_v1_keys(bucket, prefix, release_objects)
             if remote_digest(bucket, manifest_key) != {"sizeBytes": len(manifest_wire), "sha256": manifest_wire_sha}:
                 fail("existing blob completion manifest differs from the submitted immutable identity")
-            if remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
+            if remote_digest(bucket, receipt_key) != {"sizeBytes": len(effective_receipt_wire), "sha256": effective_receipt_wire_sha}:
                 fail("existing blob receipt differs from the submitted immutable identity")
             verified_blob_entries, verified_blob_set_sha256 = verified_blob_audit([])
             write_json({
@@ -1356,7 +1453,7 @@ def publish_blob_release(
                 "releaseId": manifest["releaseId"],
                 "manifestSha256": manifest["manifestSha256"],
                 "wireSha256": manifest_wire_sha,
-                "receiptWireSha256": receipt_wire_sha,
+                "receiptWireSha256": effective_receipt_wire_sha,
                 "treeSha256": manifest["treeSha256"],
                 "fileCount": manifest["fileCount"],
                 "totalBytes": manifest["totalBytes"],
@@ -1372,9 +1469,9 @@ def publish_blob_release(
                 "verifiedBlobEntries": verified_blob_entries,
             })
             return
-        partial_expected = {receipt_key: len(receipt_wire)}
+        partial_expected = {receipt_key: len(effective_receipt_wire)}
         assert_object_set(release_objects, partial_expected, allow_manifest=False)
-        if receipt_key in existing_release and remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
+        if receipt_key in existing_release and remote_digest(bucket, receipt_key) != {"sizeBytes": len(effective_receipt_wire), "sha256": effective_receipt_wire_sha}:
             fail("partial blob receipt differs from the submitted immutable identity")
         parent_blobs = parent_blob_bindings(bucket, manifest["releaseId"], parent_reference)
         missing: List[Dict[str, Any]] = []
@@ -1459,7 +1556,7 @@ def publish_blob_release(
         final_objects = list_objects(bucket, prefix)
         assert_object_set(final_objects, expected_release_sizes, allow_manifest=True)
         cross_check_v1_keys(bucket, prefix, final_objects)
-        if remote_digest(bucket, receipt_key) != {"sizeBytes": len(receipt_wire), "sha256": receipt_wire_sha}:
+        if remote_digest(bucket, receipt_key) != {"sizeBytes": len(effective_receipt_wire), "sha256": effective_receipt_wire_sha}:
             fail("remote blob receipt failed final verification")
         if remote_digest(bucket, manifest_key) != {"sizeBytes": len(manifest_wire), "sha256": manifest_wire_sha}:
             fail("remote blob completion manifest failed final verification")
@@ -1469,7 +1566,7 @@ def publish_blob_release(
             "releaseId": manifest["releaseId"],
             "manifestSha256": manifest["manifestSha256"],
             "wireSha256": manifest_wire_sha,
-            "receiptWireSha256": receipt_wire_sha,
+            "receiptWireSha256": effective_receipt_wire_sha,
             "treeSha256": manifest["treeSha256"],
             "fileCount": manifest["fileCount"],
             "totalBytes": manifest["totalBytes"],
@@ -1522,7 +1619,7 @@ def validate_blob_import_header(header: Dict[str, Any]) -> Tuple[str, Dict[str, 
     del target_header["sourcePrefix"]
     del target_header["sourceManifestSha256"]
     del target_header["sourceManifestWireSha256"]
-    prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files = validate_blob_publish_header(target_header)
+    prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files = validate_blob_publish_header(target_header, require_proof=False)
     return (
         prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files,
         source_prefix, source_manifest_sha, source_manifest_wire_sha,

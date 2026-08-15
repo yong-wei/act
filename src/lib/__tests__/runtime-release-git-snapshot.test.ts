@@ -115,6 +115,66 @@ describe('Git-backed runtime release snapshots', () => {
     expect(reopenedSource && 'blobObjectId' in reopenedSource ? reopenedSource.blobObjectId : undefined).toBe(plannedSource && 'blobObjectId' in plannedSource ? plannedSource.blobObjectId : undefined);
   });
 
+  it('does not invoke Git blob body reads while reopening a first publication plan', async () => {
+    const { root, sourceRevision } = await fixture();
+    const tracePath = path.join(root, 'git-trace.log');
+    const previousTrace = process.env.GIT_TRACE;
+    try {
+      process.env.GIT_TRACE = tracePath;
+      const planned = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+      const planningTrace = await readFile(tracePath, 'utf8');
+      await writeFile(tracePath, '');
+      await openGitRuntimeBlobReleaseSnapshot({
+        repoRoot: root,
+        sourceRevision,
+        integrationRef: 'integration',
+        manifest: planned.manifest,
+      });
+      const publishTrace = await readFile(tracePath, 'utf8');
+      expect((planningTrace.match(/cat-file blob/g) ?? []).length).toBeGreaterThan(0);
+      expect(publishTrace).not.toContain('cat-file blob');
+    } finally {
+      if (previousTrace === undefined) delete process.env.GIT_TRACE;
+      else process.env.GIT_TRACE = previousTrace;
+    }
+  });
+
+  it('does not invoke Git blob body reads while reopening a changed publication plan', async () => {
+    const { root, sourceRevision } = await fixture();
+    const parent = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });
+    await writeFile(path.join(root, 'course-content', 'runtime', 'lessons', 'lesson.json'), '{"id":"changed"}\n');
+    await git(root, 'add', '.');
+    await git(root, 'commit', '-m', 'changed runtime source');
+    const targetRevision = await git(root, 'rev-parse', 'HEAD');
+    const tracePath = path.join(root, 'git-trace-changed.log');
+    const previousTrace = process.env.GIT_TRACE;
+    try {
+      process.env.GIT_TRACE = tracePath;
+      const target = await buildGitRuntimeBlobReleaseSnapshot({
+        repoRoot: root,
+        sourceRevision: targetRevision,
+        integrationRef: 'integration',
+        parentManifest: parent.manifest,
+      });
+      const planningTrace = await readFile(tracePath, 'utf8');
+      await writeFile(tracePath, '');
+      const reopened = await openGitRuntimeBlobReleaseSnapshot({
+        repoRoot: root,
+        sourceRevision: targetRevision,
+        integrationRef: 'integration',
+        parentManifest: parent.manifest,
+        manifest: target.manifest,
+      });
+      const publishTrace = await readFile(tracePath, 'utf8');
+      expect(reopened.manifest).toEqual(target.manifest);
+      expect((planningTrace.match(/cat-file blob/g) ?? []).length).toBeGreaterThan(0);
+      expect(publishTrace).not.toContain('cat-file blob');
+    } finally {
+      if (previousTrace === undefined) delete process.env.GIT_TRACE;
+      else process.env.GIT_TRACE = previousTrace;
+    }
+  });
+
   it('hashes only target Git objects absent from the parent manifest', async () => {
     const { root, sourceRevision } = await fixture();
     const parent = await buildGitRuntimeBlobReleaseSnapshot({ repoRoot: root, sourceRevision, integrationRef: 'integration' });

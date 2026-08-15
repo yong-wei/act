@@ -293,6 +293,7 @@ const buildBlobState = (sourceRevision = 'd'.repeat(40), frameBytes = bytes, sou
       sizeBytes: file.sizeBytes,
       sha256: file.sha256,
     }])).values()].sort((left, right) => left.objectKey.localeCompare(right.objectKey)),
+    sourceProvenanceProofSha256: 'a'.repeat(64),
   };
   const receipt = { ...receiptBody, receiptSha256: sha(stable(receiptBody)) };
   const receiptWire = Buffer.from(`${stable(receipt)}\n`);
@@ -347,18 +348,38 @@ const buildBlobStateFromV1 = (source) => {
   const receiptWire = Buffer.from(`${stable(receipt)}\n`);
   return { files, manifest, wire, receiptWire, prefix, manifestKey, receiptKey: `${prefix}receipt.json` };
 };
-const blobHeaderFor = (data, parent, { strict = false } = {}) => JSON.stringify({
-  protocol: 'act-runtime-blob-release-stream.v2',
-  releaseId: data.manifest.releaseId,
-  prefix: data.prefix,
-  manifestSha256: data.manifest.manifestSha256,
-  wireSha256: sha(data.wire),
-  manifestWireBase64: data.wire.toString('base64url'),
-  receiptWireSha256: sha(data.receiptWire),
-  receiptWireBase64: data.receiptWire.toString('base64url'),
-  ...(strict ? { sourceIdentityMode: 'strict-bundle' } : {}),
-  ...(parent ? { parentRelease: { releaseId: parent.manifest.releaseId, manifestSha256: parent.manifest.manifestSha256 } } : {}),
-});
+const blobHeaderFor = (data, parent, { strict = false, omitHeaderProof = false, omitReceiptProof = false } = {}) => {
+  const receipt = omitReceiptProof
+    ? Object.fromEntries(Object.entries(data.receipt).filter(([key]) => key !== 'sourceProvenanceProofSha256'))
+    : data.receipt;
+  const receiptWire = omitReceiptProof ? Buffer.from(`${stable(receipt)}\n`) : data.receiptWire;
+  return JSON.stringify({
+    protocol: 'act-runtime-blob-release-stream.v2',
+    releaseId: data.manifest.releaseId,
+    prefix: data.prefix,
+    manifestSha256: data.manifest.manifestSha256,
+    wireSha256: sha(data.wire),
+    manifestWireBase64: data.wire.toString('base64url'),
+    receiptWireSha256: sha(receiptWire),
+    receiptWireBase64: receiptWire.toString('base64url'),
+    ...(omitHeaderProof ? {} : { sourceProvenanceProofSha256: data.receipt.sourceProvenanceProofSha256 }),
+    ...(strict ? { sourceIdentityMode: 'strict-bundle' } : {}),
+    ...(parent ? { parentRelease: { releaseId: parent.manifest.releaseId, manifestSha256: parent.manifest.manifestSha256 } } : {}),
+  });
+};
+const prooflessBlobReceipt = (data) => {
+  const body = Object.fromEntries(Object.entries(data.receipt).filter(([key]) => (
+    key !== 'sourceProvenanceProofSha256' && key !== 'receiptSha256'
+  )));
+  const receipt = { ...body, receiptSha256: sha(stable(body)) };
+  return { receipt, wire: Buffer.from(`${stable(receipt)}\n`) };
+};
+const receiptWireWithProof = (data, proof) => {
+  const body = Object.fromEntries(Object.entries(data.receipt).filter(([key]) => key !== 'receiptSha256'));
+  body.sourceProvenanceProofSha256 = proof;
+  const receipt = { ...body, receiptSha256: sha(stable(body)) };
+  return Buffer.from(`${stable(receipt)}\n`);
+};
 const blobImportHeaderFor = (source, target) => JSON.stringify({
   protocol: 'act-runtime-blob-release-import.v1',
   releaseId: target.manifest.releaseId,
@@ -453,7 +474,7 @@ async function publish({ data = state, crashAfterFrame = false, frameBytes = byt
   return JSON.parse(final.value);
 }
 
-async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {}, local = false, strict = false } = {}) {
+async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {}, local = false, strict = false, omitHeaderProof = false, omitReceiptProof = false } = {}) {
   const localArguments = local ? [
     '--credential-mode', 'local',
     '--ossutil-path', fakeOssutil,
@@ -485,7 +506,7 @@ async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = 
   child.stderr.on('data', (chunk) => stderr.push(chunk));
   const reader = createInterface({ input: child.stdout });
   const lines = reader[Symbol.asyncIterator]();
-  child.stdin.write(`${blobHeaderFor(data, parent, { strict })}\n`);
+  child.stdin.write(`${blobHeaderFor(data, parent, { strict, omitHeaderProof, omitReceiptProof })}\n`);
   const first = await lines.next();
   if (first.done) {
     const result = await close(child);
@@ -645,6 +666,63 @@ try {
   assert.equal(blobFirst.putCount, 3, 'the first blob release writes one shared blob, receipt, then manifest');
   const blobPuts = (await readFile(blobLog, 'utf8')).trim().split('\n');
   assert.deepEqual(blobPuts.slice(-2), [blobState.receiptKey, blobState.manifestKey], 'receipt precedes the terminal immutable manifest');
+
+  for (const [index, missingProof] of [
+    { omitHeaderProof: true },
+    { omitReceiptProof: true },
+    { omitHeaderProof: true, omitReceiptProof: true },
+  ].entries()) {
+    const candidate = buildBlobState(`${'9'.repeat(39)}${index}`);
+    const missingProofLog = path.join(temporary, `missing-proof-${index}.log`);
+    await assert.rejects(
+      () => publishBlob({ data: candidate, ...missingProof, env: { FAKE_LOG: missingProofLog } }),
+      /blob bridge failed before state/,
+      'v2 publish must reject a missing planning proof before touching OSS',
+    );
+    assert.equal(await readFile(missingProofLog, 'utf8').catch(() => ''), '', 'proof rejection must not write any OSS object');
+  }
+
+  const legacyComplete = buildBlobState('0'.repeat(40), [Buffer.from('legacy complete bytes'), Buffer.from('legacy complete bytes')]);
+  const legacyCompleteReceipt = prooflessBlobReceipt(legacyComplete);
+  for (const file of new Map(legacyComplete.files.map((file) => [file.objectKey, file])).values()) {
+    await seedBlob(file, legacyComplete.frameBytesByKey.get(file.objectKey));
+  }
+  await mkdir(path.dirname(path.join(ossRoot, legacyComplete.receiptKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, legacyComplete.receiptKey), legacyCompleteReceipt.wire);
+  await writeFile(path.join(ossRoot, legacyComplete.manifestKey), legacyComplete.wire);
+  const legacyCompleteLog = path.join(temporary, 'legacy-complete-put.log');
+  const legacyCompleteResult = await publishBlob({ data: legacyComplete, env: { FAKE_LOG: legacyCompleteLog } });
+  assert.equal(legacyCompleteResult.putCount, 0, 'a matching legacy receipt must make a completed release idempotent');
+  assert.equal(legacyCompleteResult.receiptWireSha256, sha(legacyCompleteReceipt.wire));
+  assert.equal(await readFile(legacyCompleteLog, 'utf8').catch(() => ''), '', 'legacy completion must not overwrite immutable objects');
+  assert.equal((await verify(legacyComplete)).schemaVersion, 'runtime-release-verification.v2');
+
+  const legacyInterrupted = buildBlobState('1'.repeat(40), [Buffer.from('legacy interrupted bytes'), Buffer.from('legacy interrupted bytes')]);
+  const legacyInterruptedReceipt = prooflessBlobReceipt(legacyInterrupted);
+  for (const file of new Map(legacyInterrupted.files.map((file) => [file.objectKey, file])).values()) {
+    await seedBlob(file, legacyInterrupted.frameBytesByKey.get(file.objectKey));
+  }
+  await mkdir(path.dirname(path.join(ossRoot, legacyInterrupted.receiptKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, legacyInterrupted.receiptKey), legacyInterruptedReceipt.wire);
+  const legacyInterruptedLog = path.join(temporary, 'legacy-interrupted-put.log');
+  const legacyInterruptedResult = await publishBlob({ data: legacyInterrupted, env: { FAKE_LOG: legacyInterruptedLog } });
+  assert.equal(legacyInterruptedResult.putCount, 1, 'a receipt-only legacy release must retain its receipt and write only the terminal manifest');
+  assert.equal(legacyInterruptedResult.receiptWireSha256, sha(legacyInterruptedReceipt.wire));
+  assert.deepEqual((await readFile(legacyInterruptedLog, 'utf8')).trim().split('\n'), [legacyInterrupted.manifestKey]);
+  assert.deepEqual(await readFile(path.join(ossRoot, legacyInterrupted.receiptKey)), legacyInterruptedReceipt.wire, 'legacy receipt bytes must stay immutable');
+
+  const mismatchedLegacy = buildBlobState('2'.repeat(40), [Buffer.from('mismatched legacy bytes'), Buffer.from('mismatched legacy bytes')]);
+  const mismatchedLegacyReceipt = prooflessBlobReceipt(mismatchedLegacy);
+  mismatchedLegacyReceipt.receipt.blobs[0].sizeBytes += 1;
+  mismatchedLegacyReceipt.receipt.receiptSha256 = sha(stable(Object.fromEntries(Object.entries(mismatchedLegacyReceipt.receipt).filter(([key]) => key !== 'receiptSha256'))));
+  await mkdir(path.dirname(path.join(ossRoot, mismatchedLegacy.receiptKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, mismatchedLegacy.receiptKey), `${stable(mismatchedLegacyReceipt.receipt)}\n`);
+  await assert.rejects(() => publishBlob({ data: mismatchedLegacy }), /blob bridge failed before state/);
+
+  const differentProof = buildBlobState('3'.repeat(40), [Buffer.from('different proof bytes'), Buffer.from('different proof bytes')]);
+  await mkdir(path.dirname(path.join(ossRoot, differentProof.receiptKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, differentProof.receiptKey), receiptWireWithProof(differentProof, 'b'.repeat(64)));
+  await assert.rejects(() => publishBlob({ data: differentProof }), /blob bridge failed before state/);
 
   const legacyBlobState = buildBlobState('b'.repeat(40), [Buffer.from('legacy compatible bytes'), Buffer.from('legacy compatible bytes')]);
   const legacyPutLog = path.join(temporary, 'legacy-put.log');

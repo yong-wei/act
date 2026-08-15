@@ -236,9 +236,12 @@ def parse_receipt(path: Path, manifest: Dict[str, Any], manifest_wire: bytes) ->
         raw = json.loads(path.read_text(encoding="utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         fail("release receipt is not valid JSON: %s" % error)
-    raw = require_exact_keys(raw, [
+    receipt_keys = [
         "schemaVersion", "releaseId", "manifestVersion", "manifestObjectKey", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256", "fileCount", "totalBytes", "blobs", "receiptSha256",
-    ], "release receipt")
+    ]
+    if "sourceProvenanceProofSha256" in raw:
+        receipt_keys.insert(-1, "sourceProvenanceProofSha256")
+    raw = require_exact_keys(raw, receipt_keys, "release receipt")
     release_id = manifest["releaseId"]
     if raw["schemaVersion"] != RECEIPT_SCHEMA or raw["manifestVersion"] != MANIFEST_SCHEMA:
         fail("release receipt has an unsupported version")
@@ -264,6 +267,8 @@ def parse_receipt(path: Path, manifest: Dict[str, Any], manifest_wire: bytes) ->
         actual.append((key, require_integer(item["sizeBytes"], "release receipt.blobs[%d].sizeBytes" % index), sha))
     if actual != sorted(actual) or actual != expected:
         fail("release receipt blob set does not match manifest")
+    if "sourceProvenanceProofSha256" in raw:
+        require_digest(raw["sourceProvenanceProofSha256"], "release receipt.sourceProvenanceProofSha256")
     receipt_sha = require_digest(raw["receiptSha256"], "release receipt.receiptSha256")
     without_digest = dict(raw)
     without_digest.pop("receiptSha256")

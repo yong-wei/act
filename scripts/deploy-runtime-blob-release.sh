@@ -94,10 +94,11 @@ done
 mkdir -p "$artifact_dir"
 manifest="$artifact_dir/manifest.json"
 release_receipt="$artifact_dir/release-receipt.json"
+source_provenance_proof="$artifact_dir/source-provenance-proof.json"
 verification_receipt="$artifact_dir/publisher-verification.json"
 daily_report="$artifact_dir/daily-publication-report.json"
 build_started_seconds=$SECONDS
-build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_revision" --format v2 --output "$manifest" --receipt-output "$release_receipt")
+build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_revision" --format v2 --output "$manifest" --receipt-output "$release_receipt" --source-provenance-proof-output "$source_provenance_proof")
 build_args+=(--daily-report-output "$daily_report")
 if [[ -n "$parent_manifest" ]]; then
   build_args+=(--parent-manifest "$parent_manifest")
@@ -244,7 +245,7 @@ fi
 publish_started_seconds=$SECONDS
 
 publish_args=(
-  publish-streaming --repo-root "$ROOT_DIR" --source-revision "$source_revision" --release-id "$release_id" --format v2 --manifest "$manifest" --bucket "$BUCKET"
+  publish-streaming --repo-root "$ROOT_DIR" --source-revision "$source_revision" --release-id "$release_id" --format v2 --manifest "$manifest" --receipt "$release_receipt" --source-provenance-proof "$source_provenance_proof" --bucket "$BUCKET"
   --local-bridge-path "$LOCAL_BRIDGE" --python-binary "$ACT_RUNTIME_LOCAL_PYTHON"
   --ossutil-path "$ACT_RUNTIME_LOCAL_OSSUTIL" --ossutil-sha256 "$ACT_RUNTIME_LOCAL_OSSUTIL_SHA256"
   --identity-command-path "$ACT_RUNTIME_LOCAL_IDENTITY_COMMAND" --identity-command-sha256 "$ACT_RUNTIME_LOCAL_IDENTITY_COMMAND_SHA256"
@@ -284,7 +285,7 @@ copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py" "$REMOTE_ACTIVATION_TRANSACTION"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/activate-runtime-blob-release.sh" "$REMOTE_ACTIVATOR"
 copy_atomic "$ROOT_DIR/deploy/podman/deploy.sh" "$REMOTE_APP_DEPLOY"
-for name in manifest.json release-receipt.json publisher-verification.json; do
+for name in manifest.json release-receipt.json source-provenance-proof.json publisher-verification.json; do
   scp -q -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$artifact_dir/$name" "$SSH_TARGET:$REMOTE_ARTIFACT_ROOT/$release_id/$name.tmp"
   remote "chmod 0600 '$REMOTE_ARTIFACT_ROOT/$release_id/$name.tmp' && mv '$REMOTE_ARTIFACT_ROOT/$release_id/$name.tmp' '$REMOTE_ARTIFACT_ROOT/$release_id/$name'"
 done
