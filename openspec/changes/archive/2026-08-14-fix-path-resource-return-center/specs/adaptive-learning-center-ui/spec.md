@@ -1,5 +1,18 @@
 ## MODIFIED Requirements
 
+### Requirement: Adaptive path center preserves path context across states
+The adaptive learning center SHALL preserve saved path state while students move between generation, selection, execution, launched resources, the center landing, and evidence review.
+
+#### Scenario: Student selects a generated option
+- **WHEN** the student selects a path option
+- **THEN** the generation panel SHALL close
+- **AND** the route SHALL enter path execution with the selected path id, selected option, current node, and alternatives available for later switching or review.
+
+#### Scenario: Student returns from a resource
+- **WHEN** a launched knowledge, exercise, simulation, workbench, Arena, or Konling activity returns to the path center
+- **THEN** the route SHALL return to the center landing with the learning goal preserved and without path-execution, node, or candidate-batch parameters
+- **AND** the saved path id, current node, and progress SHALL remain available for `继续原路径` without entering candidate comparison.
+
 ### Requirement: Path-launched resources return to the path center
 The adaptive learning center SHALL provide a path-aware launch and return contract for every resource opened from a selected path. A resource return action SHALL return to the path center entry point, where the saved path can be continued or a new path can be created.
 
@@ -27,4 +40,5 @@ The adaptive learning center SHALL provide a path-aware launch and return contra
 #### Scenario: Resource is opened outside a path
 - **WHEN** the same resource is opened from Interactive Learning, a course entry, or another non-path surface
 - **THEN** the resource SHALL keep its normal contextual return target
+- **AND** it SHALL NOT fabricate a path return when no path launch context exists.
 
