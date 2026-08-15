@@ -1,11 +1,14 @@
-Final verdict: PASS
+# 知识工作区产品 QA 视觉复核
 
-# 知识工作区产品 QA 独立视觉复核
+结论：PASS
 
-- 审查者：ui-flow-reviewer（独立复核）；`finalResult=passed`，`blockingFindings=[]`。
-- 捕获绑定：commit `c6281e11ecf225aba32ce57ef62a722f0fc955aa`，tree `d7670b6bfc010d48ea441d6b102b2c85d24648c8`。
-- 截图绑定：33 组 state/screenshot 映射（`stateMatrix` 29 组 + `activeAuthorityVisualMatrix` 4 组）；`reviewedStateSha256` 与两矩阵的 name→screenshotSha256 完整映射逐字节一致。
-- 源码绑定：35 个受管 source paths；`reviewedSourceSha256` 与 `currentSourceSha256` 完整映射逐字节一致。
-- 14 项治理与视觉维度均为 PASS：视觉层级、工具与检查器避让、SVG 和节点文字可见、键盘焦点、主题、移动/平板、压力态、三角色差异及 Authority 信息边界均无阻断发现。
+- 复核者：`codex-manual-visual-review`。
+- 捕获绑定：commit `b0afe20d9191991c5e640efdbb306639808e6c7f`，tree `a7cf491337038bd9ce405755d33392bd9b8771b2`。
+- 截图绑定：`stateMatrix` 的 29 个状态与 `activeAuthorityVisualMatrix` 的 4 个状态均在 `browser-evidence.json` 记录 SHA-256；`reviewedStateSha256` 与当前截图映射一致。
+- 源码绑定：35 个受检路径的 SHA-256 已记录在 `reviewedSourceSha256`，与当前 `currentSourceSha256` 一致。
 
-审查了桌面交互、工具、检查器、Konling 压力态、学生/教师/管理员和 320px、1024px、1100px、1279px 截图。当前 Active Authority 表面未见原始 authority ID、release、hash 或 locator。候选 v0.18 仍未激活，本次不将视觉证据表述为生产切换。
+复核覆盖桌面 Legacy 图谱、3D 布局、移动端检查器、检查器与控灵并发压力态、Active Authority 桌面与移动端，以及管理员候选发布诊断。页面没有发现横向溢出、面板遮挡、焦点提示缺失或角色边界泄露；移动检查器的打开、Escape 关闭和画布焦点返回由浏览器探针逐项通过。
+
+14 项维度均为 PASS：交接语义、概念取舍、AppShell 连续性、局部工具、语义地图、检查器层级、控灵停靠、交互稳定性、键盘焦点、主题一致性、移动与平板断点、压力态非重叠和画布几何。
+
+当前 Active Authority 数据集仍按运行时返回的可用范围呈现；候选 Authority 保持候选态，不将该证据表述为生产权威切换。
