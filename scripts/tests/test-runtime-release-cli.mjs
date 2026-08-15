@@ -12,6 +12,20 @@ const bridge = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-
 const blobPublish = bridge.slice(bridge.indexOf('def publish_blob_release('), bridge.indexOf('def validate_blob_import_header('));
 const resolverRoute = fs.readFileSync(path.join(root, 'src/app/api/course-runtime/assets/[...assetPath]/route.ts'), 'utf8');
 
+function stableStringify(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map((item) => stableStringify(item)).join(',')}]`;
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
+}
+
+function digest(value) {
+  return createHash('sha256').update(stableStringify(value)).digest('hex');
+}
+
+function wire(value) {
+  return `${stableStringify(value)}\n`;
+}
+
 assert.match(source, /\['plan', 'build-manifest', 'verify-media-closure', 'publish-streaming', 'import-v1', 'verify', 'inspect'\]/, 'CLI must expose only Git streaming publish and the fixed v1 import write commands');
 assert.doesNotMatch(source, /command === ['"]publish['"]|\bpublish --runtime-root/, 'CLI must not expose a direct mutating publish command');
 assert.match(source, /verifyPublishedRuntimeReleaseViaSsh/, 'verify must run through the ECS read-role bridge instead of local IMDS');
@@ -25,7 +39,7 @@ assert.match(source, /inspectPublishedRuntimeRelease/, 'inspect must read the pu
 assert.match(source, /deriveRuntimeReleaseId/, 'plan and publish must derive the content-addressed release identity');
 assert.match(source, /publishRuntimeReleaseViaSsh/, 'streaming publish must use the SSH source-authoritative transport');
 assert.match(source, /publishRuntimeBlobReleaseLocally/, 'v2 streaming publish must use the local operator transport');
-assert.match(source, /openPlannedGitManifest/, 'v2 streaming publish must reuse the already planned manifest rather than rebuild and rehash it');
+assert.match(source, /openPlannedGitManifest/, 'v2 streaming publish must validate the already planned manifest against the source-authoritative snapshot before publishing');
 assert.match(source, /--manifest <manifest\.json>/, 'v2 streaming publish must require an immutable planned manifest');
 assert.match(source, /--daily-report-output <report\.json>/, 'v2 CLI must emit a separately mutable operational report without extending the immutable receipt');
 assert.doesNotMatch(source, /publishRuntimeBlobReleaseViaSsh/, 'daily v2 publishing must not retain the ECS SSH writer path');
@@ -41,6 +55,9 @@ assert.match(source, /--local-bridge-path/, 'v2 publishing must require an expli
 assert.match(source, /--ossutil-sha256/, 'v2 publishing must pin the local ossutil binary');
 assert.match(source, /--identity-command-sha256/, 'v2 publishing must pin the local identity command');
 assert.match(source, /--operator-principal-arn/, 'v2 publishing must require the expected local operator principal');
+assert.match(source, /runtimeBlobReleaseManifestWireSha256/, 'v2 publish must compare the submitted manifest wire identity with the rebuilt snapshot');
+assert.match(source, /Submitted v2 runtime manifest is not canonical/, 'v2 publish must reject non-canonical manifest bytes before local publication');
+assert.match(source, /source-authoritative Git and external-input snapshot/, 'v2 publish must fail closed on a manifest identity mismatch before local publication');
 assert.match(bridge, /api", "put-object"/, 'ECS bridge must use the ossutil v2 PutObject API');
 assert.match(bridge, /"--forbid-overwrite", "true"/, 'v2 blob publication must use conditional no-overwrite semantics');
 assert.match(bridge, /api", "head-object"/, 'v2 blob publication must use object metadata reads for unknown blobs');
@@ -207,6 +224,176 @@ try {
   assert.match(bypassAttempt.stderr, /--integration-ref is not supported/);
 } finally {
   fs.rmSync(temporary, { recursive: true, force: true });
+}
+
+const externalTemporary = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-release-cli-external-'));
+try {
+  const runtimeRoot = path.join(externalTemporary, 'course-content', 'runtime');
+  const generatedRoot = path.join(externalTemporary, 'resources');
+  const generatedPrefixes = [
+    'textbooks-v2',
+    path.join('textbook-hybrid-retrieval', 'bge-m3'),
+    'textbooks',
+  ];
+  fs.mkdirSync(path.join(runtimeRoot, 'lessons'), { recursive: true });
+  fs.writeFileSync(path.join(runtimeRoot, 'lessons', 'lesson.json'), '{"id":"git-source"}\n');
+  for (const prefix of generatedPrefixes) fs.mkdirSync(path.join(generatedRoot, prefix), { recursive: true });
+  const externalPath = path.join(generatedRoot, 'textbooks-v2', 'generated.json');
+  const externalBytes = Buffer.from('{"generated":true}\n');
+  fs.writeFileSync(externalPath, externalBytes);
+
+  for (const args of [
+    ['init', '-b', 'integration'],
+    ['config', 'user.email', 'test@example.invalid'],
+    ['config', 'user.name', 'Test'],
+    ['add', '.'],
+    ['commit', '-m', 'external base'],
+  ]) {
+    const result = spawnSync('git', args, { cwd: externalTemporary, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+  }
+  const baseRevision = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: externalTemporary, encoding: 'utf8' }).stdout.trim();
+  const tree = spawnSync('git', ['ls-tree', '-r', '--full-tree', baseRevision, '--', 'course-content/runtime'], { cwd: externalTemporary, encoding: 'utf8' });
+  assert.equal(tree.status, 0, tree.stderr);
+  const baseRuntimeTree = tree.stdout.split('\n').filter(Boolean).map((entry) => {
+    const tab = entry.indexOf('\t');
+    const header = entry.slice(0, tab).split(' ');
+    return { path: entry.slice(tab + 1).slice('course-content/runtime/'.length), objectId: header[2] };
+  }).sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+  const baseRuntimeTreeSha256 = digest(baseRuntimeTree);
+  const externalFile = {
+    path: 'resources/textbooks-v2/generated.json',
+    sizeBytes: externalBytes.byteLength,
+    sha256: createHash('sha256').update(externalBytes).digest('hex'),
+  };
+  const prefixes = [
+    'resources/textbooks-v2/',
+    'resources/textbook-hybrid-retrieval/bge-m3/',
+    'resources/textbooks/',
+  ];
+  const replacedPrefixes = [
+    'resources/textbooks-v2/',
+    'resources/textbook-retrieval/',
+    'resources/textbook-hybrid-retrieval/bge-m3/',
+    'resources/textbooks/',
+  ];
+  const overlay = {
+    baseSourceRevision: baseRevision,
+    baseRuntimeTreeSha256,
+    replacedPrefixes,
+    generatedPrefixes: prefixes,
+    generatedTreeSha256: digest([externalFile]),
+  };
+  const inputDigest = 'a'.repeat(64);
+  const provenance = {
+    schemaVersion: 'act.textbook-runtime-input-provenance.v1',
+    sourceRevision: baseRevision,
+    inputDigest,
+    inputFileCount: 1,
+  };
+  const bundleBody = {
+    schemaVersion: 'act-runtime-external-input-bundle.v1',
+    externalInputId: 'external-fixture-v1',
+    sourceRevision: baseRevision,
+    prefixes,
+    baseSourceRevision: baseRevision,
+    overlay,
+    overlaySha256: digest(overlay),
+    provenance,
+    generator: { id: 'test-generator', version: '1' },
+    fileCount: 1,
+    totalBytes: externalFile.sizeBytes,
+    treeSha256: digest([externalFile]),
+    files: [externalFile],
+  };
+  const bundleManifestSha256 = digest(bundleBody);
+  const bundleWire = wire({ ...bundleBody, manifestSha256: bundleManifestSha256 });
+  const bundlePath = path.join(externalTemporary, 'external-bundle.json');
+  fs.writeFileSync(bundlePath, bundleWire);
+  const declaration = {
+    schemaVersion: 'act-runtime-external-input-bundles.v1',
+    inputs: [{
+      externalInputId: bundleBody.externalInputId,
+      prefixes,
+      bundleSemanticSha256: bundleManifestSha256,
+      bundleWireSha256: createHash('sha256').update(bundleWire).digest('hex'),
+      sourceRevision: baseRevision,
+      baseSourceRevision: baseRevision,
+      overlaySha256: bundleBody.overlaySha256,
+      inputDigest,
+      inputFileCount: 1,
+    }],
+  };
+  const declarationPath = path.join(externalTemporary, 'course-content', 'authoring', 'runtime-external-input-bundles.v1.json');
+  fs.mkdirSync(path.dirname(declarationPath), { recursive: true });
+  fs.writeFileSync(declarationPath, wire(declaration));
+  let result = spawnSync('git', ['add', '.'], { cwd: externalTemporary, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  result = spawnSync('git', ['commit', '-m', 'declare external bundle'], { cwd: externalTemporary, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const sourceRevision = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: externalTemporary, encoding: 'utf8' }).stdout.trim();
+  result = spawnSync('git', ['update-ref', 'refs/remotes/origin/integration', sourceRevision], { cwd: externalTemporary, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+
+  const manifestPath = path.join(externalTemporary, 'manifest.json');
+  const build = spawnSync('npx', ['tsx', script, 'build-manifest', '--repo-root', externalTemporary, '--source-revision', sourceRevision, '--format', 'v2', '--external-bundle', bundlePath, '--external-bundle-root', runtimeRoot, '--generated-resources-root', generatedRoot, '--output', manifestPath], { cwd: root, encoding: 'utf8' });
+  assert.equal(build.status, 0, build.stderr);
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  assert.equal(manifest.files.some((file) => file.path === externalFile.path && file.source.bundleSemanticSha256 === bundleManifestSha256), true);
+
+  const fakeBridge = path.join(externalTemporary, 'fake-publisher.py');
+  fs.writeFileSync(fakeBridge, [
+    'import hashlib, json, sys',
+    'header = json.loads(sys.stdin.readline())',
+    'print(json.dumps({',
+    "  'status': 'complete',",
+    "  'releaseId': header['releaseId'],",
+    "  'manifestSha256': header['manifestSha256'],",
+    "  'wireSha256': header['wireSha256'],",
+    "  'receiptWireSha256': header['receiptWireSha256'],",
+    "  'treeSha256': json.loads(__import__('base64').urlsafe_b64decode(header['manifestWireBase64'] + '=='))['treeSha256'],",
+    "  'fileCount': json.loads(__import__('base64').urlsafe_b64decode(header['manifestWireBase64'] + '=='))['fileCount'],",
+    "  'totalBytes': json.loads(__import__('base64').urlsafe_b64decode(header['manifestWireBase64'] + '=='))['totalBytes'],",
+    "  'putCount': 0, 'inheritedBlobCount': 0, 'metadataCheckCount': 0,",
+    "  'metadataReuseCount': 0, 'newUploadCount': 0, 'legacyReadbackCount': 0, 'legacyReadbackBytes': 0,",
+    "  'verifiedBlobSetAlgorithm': 'sha256', 'verifiedBlobSetSha256': hashlib.sha256(b'[]').hexdigest(), 'verifiedBlobEntries': [],",
+    '}), flush=True)',
+  ].join('\n'));
+  const pythonBinary = spawnSync('which', ['python3'], { encoding: 'utf8' }).stdout.trim();
+  assert.ok(pythonBinary, 'python3 is required for the local publisher fixture');
+  const localPublisherArgs = [
+    '--bucket', 'test-bucket', '--local-bridge-path', fakeBridge, '--python-binary', pythonBinary,
+    '--ossutil-path', '/bin/true', '--ossutil-sha256', '0'.repeat(64), '--identity-command-path', '/bin/true', '--identity-command-sha256', '0'.repeat(64),
+    '--operator-account-id', '123456789012', '--operator-principal-arn', 'acs:ram::123456789012:user/test',
+    '--lock-dir', path.join(externalTemporary, 'locks'), '--spool-dir', path.join(externalTemporary, 'spool'),
+  ];
+  const receiptPath = path.join(externalTemporary, 'publish-receipt.json');
+  const publishArgs = ['publish-streaming', '--repo-root', externalTemporary, '--source-revision', sourceRevision, '--release-id', manifest.releaseId, '--format', 'v2', '--manifest', manifestPath, '--external-bundle', bundlePath, '--external-bundle-root', runtimeRoot, '--generated-resources-root', generatedRoot, ...localPublisherArgs, '--output', receiptPath];
+  const publish = spawnSync('npx', ['tsx', script, ...publishArgs], { cwd: root, encoding: 'utf8' });
+  assert.equal(publish.status, 0, publish.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(receiptPath, 'utf8')).releaseId, manifest.releaseId, 'external-input v2 manifest must reach the local publisher');
+
+  const missingBundle = path.join(externalTemporary, 'missing-bundle-receipt.json');
+  result = spawnSync('npx', ['tsx', script, 'publish-streaming', '--repo-root', externalTemporary, '--source-revision', sourceRevision, '--release-id', manifest.releaseId, '--format', 'v2', '--manifest', manifestPath, ...localPublisherArgs, '--output', missingBundle], { cwd: root, encoding: 'utf8' });
+  assert.notEqual(result.status, 0, 'a bundle-backed manifest must not publish from a Git-only snapshot');
+  assert.match(result.stderr, /source-authoritative|source identity|file count/i);
+  assert.equal(fs.existsSync(missingBundle), false);
+
+  const tamperedManifest = path.join(externalTemporary, 'tampered-manifest.json');
+  const tampered = JSON.parse(JSON.stringify(manifest));
+  const tamperedExternal = tampered.files.find((file) => file.path === externalFile.path);
+  tamperedExternal.source.bundleSemanticSha256 = 'f'.repeat(64);
+  fs.writeFileSync(tamperedManifest, wire(tampered));
+  result = spawnSync('npx', ['tsx', script, 'publish-streaming', '--repo-root', externalTemporary, '--source-revision', sourceRevision, '--release-id', manifest.releaseId, '--format', 'v2', '--manifest', tamperedManifest, '--external-bundle', bundlePath, '--external-bundle-root', runtimeRoot, '--generated-resources-root', generatedRoot, ...localPublisherArgs, '--output', path.join(externalTemporary, 'tampered-receipt.json')], { cwd: root, encoding: 'utf8' });
+  assert.notEqual(result.status, 0, 'a tampered canonical manifest must fail before local publication');
+  assert.match(result.stderr, /canonical content|manifest|source-authoritative/i);
+
+  fs.writeFileSync(externalPath, '{"generated":false}\n');
+  result = spawnSync('npx', ['tsx', script, 'publish-streaming', '--repo-root', externalTemporary, '--source-revision', sourceRevision, '--release-id', manifest.releaseId, '--format', 'v2', '--manifest', manifestPath, '--external-bundle', bundlePath, '--external-bundle-root', runtimeRoot, '--generated-resources-root', generatedRoot, ...localPublisherArgs, '--output', path.join(externalTemporary, 'drifted-receipt.json')], { cwd: root, encoding: 'utf8' });
+  assert.notEqual(result.status, 0, 'external source bytes drifting from the declared bundle must fail closed');
+  assert.match(result.stderr, /external.*changed|prepared manifest/i);
+} finally {
+  fs.rmSync(externalTemporary, { recursive: true, force: true });
 }
 
 console.log('runtime release CLI contract passed');

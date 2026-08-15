@@ -10,6 +10,7 @@ import {
   parseRuntimeBlobReleaseManifest,
   serializeRuntimeBlobReleaseManifest,
   serializeRuntimeReleaseManifest,
+  runtimeBlobReleaseManifestWireSha256,
 } from '@/lib/runtime-release';
 import { inspectPublishedRuntimeBlobRelease, inspectPublishedRuntimeRelease } from '@/lib/runtime-release-store';
 import {
@@ -20,7 +21,7 @@ import {
   verifyPublishedRuntimeBlobReleaseViaSsh,
   verifyPublishedRuntimeReleaseViaSsh,
 } from '@/lib/runtime-release-streaming-publisher';
-import { buildGitRuntimeBlobReleaseSnapshot, openGitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
+import { buildGitRuntimeBlobReleaseSnapshot } from '@/lib/runtime-release-git-snapshot';
 import { buildRuntimeReleaseMediaClosure, serializeRuntimeReleaseMediaClosure } from '@/lib/runtime-release-media-closure';
 import { stableStringify } from '@/lib/aggregate-governance/hash';
 import {
@@ -224,15 +225,44 @@ async function openPlannedGitManifest(sourceRevision: string) {
   if (process.argv.includes('--integration-ref')) {
     throw new Error('Production v2 CLI fixes the ancestry authority to origin/integration; --integration-ref is not supported.');
   }
-  const manifest = parseRuntimeBlobReleaseManifest(JSON.parse(await readFile(required('--manifest'), 'utf8')));
-  return openGitRuntimeBlobReleaseSnapshot({
-    repoRoot: required('--repo-root'),
-    sourceRevision,
-    integrationRef: 'origin/integration',
-    parentManifest: await readParentBlobManifest(),
-    manifest,
-    externalBundle: await readExternalBundle(),
-  });
+  const manifestPath = required('--manifest');
+  const manifestWire = await readFile(manifestPath, 'utf8');
+  const manifest = parseRuntimeBlobReleaseManifest(JSON.parse(manifestWire));
+  if (manifestWire !== serializeRuntimeBlobReleaseManifest(manifest)) {
+    throw new Error('Submitted v2 runtime manifest is not canonical.');
+  }
+
+  // Rebuild through the exact same Git + declared external-input path as
+  // build-manifest.  The submitted manifest is only an immutable claim; no
+  // local publisher may run until every release, semantic, wire, tree, file
+  // and source-identity field matches the source-authoritative snapshot.
+  const snapshot = await buildGitManifest(sourceRevision);
+  const submittedIdentity = {
+    schemaVersion: manifest.schemaVersion,
+    releaseId: manifest.releaseId,
+    sourceRevision: manifest.sourceRevision,
+    fileCount: manifest.fileCount,
+    totalBytes: manifest.totalBytes,
+    semanticSha256: manifest.manifestSha256,
+    wireSha256: runtimeBlobReleaseManifestWireSha256(manifest),
+    treeSha256: manifest.treeSha256,
+    files: manifest.files,
+  };
+  const rebuiltIdentity = {
+    schemaVersion: snapshot.manifest.schemaVersion,
+    releaseId: snapshot.manifest.releaseId,
+    sourceRevision: snapshot.manifest.sourceRevision,
+    fileCount: snapshot.manifest.fileCount,
+    totalBytes: snapshot.manifest.totalBytes,
+    semanticSha256: snapshot.manifest.manifestSha256,
+    wireSha256: runtimeBlobReleaseManifestWireSha256(snapshot.manifest),
+    treeSha256: snapshot.manifest.treeSha256,
+    files: snapshot.manifest.files,
+  };
+  if (stableStringify(submittedIdentity) !== stableStringify(rebuiltIdentity)) {
+    throw new Error('Submitted v2 runtime manifest identity does not match the source-authoritative Git and external-input snapshot.');
+  }
+  return snapshot;
 }
 
 async function main() {
