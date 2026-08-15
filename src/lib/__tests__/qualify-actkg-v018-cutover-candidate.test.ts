@@ -37,14 +37,14 @@ describe('v0.18 cutover qualification', () => {
       productionCutoverAuthorized: boolean;
       selectorConsumption: boolean;
       consumerResults: Array<{ consumerId: string; status: string; presentationLeak: boolean }>;
-      isolatedRollback: { restored: boolean; realPointersUnchanged: boolean };
+      isolatedRollback: { advanced: boolean; restored: boolean; realPointersUnchanged: boolean };
     };
     expect(report.publicationOnly).toBe(true);
     expect(report.productionCutoverAuthorized).toBe(false);
     expect(report.selectorConsumption).toBe(false);
     expect(report.consumerResults.map((row) => row.consumerId).sort()).toEqual([...V018_NAMED_CONSUMERS].sort());
     expect(report.consumerResults.every((row) => row.status === 'READY' && row.presentationLeak === false)).toBe(true);
-    expect(report.isolatedRollback).toEqual({ restored: true, realPointersUnchanged: true });
+    expect(report.isolatedRollback).toEqual({ advanced: true, restored: true, realPointersUnchanged: true });
     const after = snapshotCurrentPointers(REPO_ROOT);
     expect(() => assertV018ProductionPointersUnchanged(before, after)).not.toThrow();
     const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
