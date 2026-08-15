@@ -70,3 +70,48 @@ is independently present in the captured active-reference set.
 
 - **WHEN** the builder uses it as context
 - **THEN** it SHALL remain read-only and SHALL NOT create a mapping task by itself
+
+### Requirement: Candidate admission and database observation are fail-closed
+
+The rebase MUST bind its output to the candidate-admitted inactive v0.18
+release, release-set, bundle, snapshot, capture revision, and admission receipt.
+The builder MUST obtain its database observation through the existing v0.18
+candidate-import helper when a local loopback development `DATABASE_URL` is
+available. The helper MUST create and drop a schema-only disposable candidate
+database, import the pinned Bundle, and execute the frozen object/prerequisite
+queries in a repeatable read-only transaction. An explicit observation file MAY
+be supplied for replay. Every observation MUST freeze logical
+schema/environment identity, query-contract hash, parameters, deterministic
+object/prerequisite rows, result digest, and counts. Missing, unsafe, or
+drifting observation evidence MUST block readiness and MUST NOT be replaced by
+an invented live result.
+
+#### Scenario: Candidate is generated without database credentials
+
+- **WHEN** no disposable candidate-admission observation is supplied
+- **THEN** the command SHALL attempt the local disposable observation path;
+  if no safe loopback credentials are available, it SHALL emit a blocking
+  receipt with `database-observation-unavailable` (or the specific fail-closed
+  source/query finding), while any staged output remains explicitly
+  `unqualified` and `nonActivation`.
+
+#### Scenario: Local disposable candidate-admission observation succeeds
+
+- **WHEN** the configured URL targets a loopback PostgreSQL development
+  service and the candidate Bundle imports into a disposable schema
+- **THEN** the command SHALL record sorted object and prerequisite endpoint
+  rows, their query-contract and result digests, and a READY observation check
+  without persisting the physical disposable schema or changing any selector
+
+### Requirement: Existing selectors remain byte-stable
+
+The candidate builder MUST write only a scoped content-addressed output root.
+It MUST snapshot all current v0.9 pointer bytes before and after generation and
+reject any change; qualification, activation, consumer, and production
+selectors MUST NOT consume the candidate output.
+
+#### Scenario: Inactive candidate is staged
+
+- **WHEN** complete projection and prerequisite releases are generated twice
+- **THEN** their identities and bytes SHALL match, all current pointer bytes
+  SHALL remain unchanged, and the receipt SHALL retain `nonActivation: true`.
