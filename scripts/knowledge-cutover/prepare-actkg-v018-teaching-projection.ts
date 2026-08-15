@@ -145,6 +145,19 @@ function readEngineering(repoRoot: string, manifest: JsonObject): AuthorityEngin
   return readJson(pathForEngineering) as unknown as AuthorityEngineeringBody;
 }
 
+function sealedAuthorityRelativePath(repoRoot: string, value: string): string {
+  if (!value || path.isAbsolute(value) || value.includes('\\') || /(^|\/)\.\.(\/|$)/u.test(value)) {
+    fail(`v0.18 Authority sealed path is unsafe: ${value || '<missing>'}`);
+  }
+  const normalized = value.split('/').filter((part) => part && part !== '.').join('/');
+  const resolved = path.resolve(repoRoot, normalized);
+  const root = path.resolve(repoRoot);
+  if (resolved === root || !resolved.startsWith(`${root}${path.sep}`)) {
+    fail(`v0.18 Authority sealed path escapes repository: ${value}`);
+  }
+  return path.relative(root, resolved).split(path.sep).join('/');
+}
+
 export function assertV018AdmittedAuthorityCandidate(input: {
   repoRoot: string;
   receipt: JsonObject;
@@ -164,11 +177,10 @@ export function assertV018AdmittedAuthorityCandidate(input: {
   for (const raw of replays) {
     const replay = asRecord(raw);
     const name = String(replay.name ?? '');
-    const marker = `/${name}/`;
+    const expectedPrefix = `course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/${name}/`;
     for (const key of ['manifestPath', 'engineeringPath', 'stageReceiptPath'] as const) {
-      const replayPath = String(replay[key] ?? '');
-      if (!replayPath) fail(`v0.18 Authority replay is missing ${key}`);
-      if (!replayPath.includes(marker)) {
+      const replayPath = sealedAuthorityRelativePath(input.repoRoot, String(replay[key] ?? ''));
+      if (!replayPath.startsWith(expectedPrefix)) {
         fail(`v0.18 Authority ${name} path is not under its own sealed replay root: ${replayPath}`);
       }
       required.add(replayPath);
