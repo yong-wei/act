@@ -659,7 +659,7 @@ try {
     { omitReceiptProof: true },
     { omitHeaderProof: true, omitReceiptProof: true },
   ].entries()) {
-    const candidate = buildBlobState(`${'p'.repeat(39)}${index}`);
+    const candidate = buildBlobState(`${'9'.repeat(39)}${index}`);
     const missingProofLog = path.join(temporary, `missing-proof-${index}.log`);
     await assert.rejects(
       () => publishBlob({ data: candidate, ...missingProof, env: { FAKE_LOG: missingProofLog } }),
