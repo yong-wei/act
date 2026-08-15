@@ -24,6 +24,8 @@ import {
 
 export const V018_RUNTIME_RELEASE_CONTRACT = 'actkg-v018-runtime-release/v1' as const;
 export const V018_QUALIFICATION_CONTRACT = 'actkg-v018-cutover-qualification/v1' as const;
+export const V018_SEALED_QUALIFICATION_SHA256 =
+  'fafdcf2a0644971f67881975eb367c712b81eeaa85d76aff94b3a023fa8b4704';
 export const DOCKER_MIN_MEMORY_BYTES = 20 * 1024 * 1024 * 1024;
 export const V09_POINTER_HASHES = {
   'course-content/authoring/knowledge/authority/current.json':
@@ -104,10 +106,28 @@ function assertV09Pointers(pointers: ReturnType<typeof snapshotCurrentPointers>,
   return blockers;
 }
 
-function verifyQualificationBinding(qualification: Record<string, unknown>): string[] {
+function verifyQualificationBinding(
+  qualification: Record<string, unknown>,
+  qualificationPath: string,
+): string[] {
   const blockers: string[] = [];
+  if (shaFile(qualificationPath) !== V018_SEALED_QUALIFICATION_SHA256) {
+    blockers.push('qualification-file-hash-drift');
+  }
   if (qualification.contract !== V018_QUALIFICATION_CONTRACT) {
     blockers.push('qualification-contract-invalid');
+  }
+  const reportBlockers = Array.isArray(qualification.blockers) ? qualification.blockers : ['qualification-blockers-missing'];
+  if (reportBlockers.length > 0) blockers.push('qualification-has-blockers');
+  const isolated = asRecord(qualification.isolatedRollback);
+  const dual = asRecord(qualification.dualRebuild);
+  if (isolated.advanced !== true || isolated.restored !== true) {
+    blockers.push('qualification-isolated-rollback-incomplete');
+  }
+  if (dual.byteEquivalent !== true) blockers.push('qualification-dual-rebuild-incomplete');
+  const consumers = Array.isArray(qualification.consumerResults) ? qualification.consumerResults : [];
+  if (!consumers.length || consumers.some((row) => asRecord(row).status !== 'READY')) {
+    blockers.push('qualification-consumers-not-ready');
   }
   const declaredDigest = String(qualification.receiptDigest ?? '');
   const actualDigest = projectionDigest((({ receiptDigest: _ignored, ...rest }) => rest)(qualification));
@@ -200,7 +220,7 @@ export async function publishActKgV018CutoverRuntime(input: {
   const qualificationStatus = String(qualification.status ?? '');
   const qualificationDigest = existsSync(qualificationPath) ? shaFile(qualificationPath) : '';
   if (!existsSync(qualificationPath)) blockers.push('qualification-report-missing');
-  else blockers.push(...verifyQualificationBinding(qualification));
+  else blockers.push(...verifyQualificationBinding(qualification, qualificationPath));
   if (qualificationStatus !== 'READY') blockers.push('qualification-not-ready');
   if (qualification.publicationOnly !== true) blockers.push('qualification-not-publication-only');
   if (qualification.productionCutoverAuthorized === true) blockers.push('qualification-claimed-cutover');

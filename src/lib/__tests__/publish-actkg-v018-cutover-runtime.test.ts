@@ -81,11 +81,12 @@ describe('v0.18 runtime publication', () => {
     });
     expect(built).toBe(false);
     expect(result.blockers).toContain('qualification-digest-drift');
+    expect(result.blockers).toContain('qualification-file-hash-drift');
     expect(result.imageBuilt).toBe(false);
   });
 
-  it('does not mark READY when the build runner omits provenance', async () => {
-    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-prov-'));
+  it('does not accept a rewritten READY qualification as a build input', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-rewrite-'));
     roots.push(outputRoot);
     const readyPath = path.join(outputRoot, 'qualification-readiness.json');
     const original = JSON.parse(readFileSync(path.join(
@@ -93,21 +94,27 @@ describe('v0.18 runtime publication', () => {
       'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18/qualification-readiness.json',
     ), 'utf8')) as Record<string, unknown>;
     original.status = 'READY';
+    original.blockers = [];
     const { receiptDigest: _ignored, ...rest } = original;
     writeFileSync(readyPath, `${JSON.stringify({ ...rest, receiptDigest: projectionDigest(rest) })}\n`);
+    let built = false;
     const result = await publishActKgV018CutoverRuntime({
       repoRoot: REPO_ROOT,
       outputRoot,
       qualificationReport: readyPath,
       readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
-      runBuild: async () => ({
-        imageTag: 'localhost/act-obe-platform:test',
-        provenancePath: path.join(outputRoot, 'missing-provenance.json'),
-        imageTarPath: path.join(outputRoot, 'missing-image.tar'),
-      }),
+      runBuild: async () => {
+        built = true;
+        return {
+          imageTag: 'localhost/act-obe-platform:test',
+          provenancePath: path.join(outputRoot, 'missing-provenance.json'),
+          imageTarPath: path.join(outputRoot, 'missing-image.tar'),
+        };
+      },
     });
+    expect(built).toBe(false);
     expect(result.status).toBe('BLOCKED');
-    expect(result.blockers).toContain('provenance-missing');
+    expect(result.blockers).toContain('qualification-file-hash-drift');
     expect(result.imageBuilt).toBe(false);
   });
 
