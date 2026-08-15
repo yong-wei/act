@@ -18,6 +18,7 @@ import {
   inspectPublishedRuntimeRelease,
   runtimeBlobReleasePrefix,
 } from '@/lib/runtime-release-store';
+import { stableStringify } from '@/lib/aggregate-governance/hash';
 import {
   type ActRuntimeBlobReleaseFile,
   type ActRuntimeBlobReleaseManifest,
@@ -517,13 +518,34 @@ type PublishControlMessage = {
   putCount?: unknown;
   inheritedBlobCount?: unknown;
   metadataCheckCount?: unknown;
+  metadataReuseCount?: unknown;
+  newUploadCount?: unknown;
+  legacyReadbackCount?: unknown;
+  legacyReadbackBytes?: unknown;
+  verifiedBlobSetAlgorithm?: unknown;
+  verifiedBlobSetSha256?: unknown;
+  verifiedBlobEntries?: unknown;
 };
+
+export interface RuntimeBlobVerifiedObject {
+  key: string;
+  expectedSize: number;
+  verifiedSha256: string;
+  etag: string;
+}
 
 export interface RuntimeBlobReleasePublishMetrics {
   putCount: number;
   inheritedBlobCount: number;
   metadataCheckCount: number;
   uploadedBlobBytes: number;
+  metadataReuseCount: number;
+  newUploadCount: number;
+  legacyReadbackCount: number;
+  legacyReadbackBytes: number;
+  verifiedBlobSetAlgorithm: 'sha256';
+  verifiedBlobSetSha256: string;
+  verifiedBlobEntries: RuntimeBlobVerifiedObject[];
 }
 
 export interface RuntimeBlobReleasePublishOutcome {
@@ -702,9 +724,91 @@ function parseBlobPublishOutcome(
   uploadedBlobBytes: number,
 ): RuntimeBlobReleasePublishOutcome {
   const receipt = parseBlobPublishReceipt(message, manifest);
-  const metricValues = [message.putCount, message.inheritedBlobCount, message.metadataCheckCount];
+  const metricValues = [
+    message.putCount,
+    message.inheritedBlobCount,
+    message.metadataCheckCount,
+    message.metadataReuseCount,
+    message.newUploadCount,
+    message.legacyReadbackCount,
+    message.legacyReadbackBytes,
+  ];
   if (metricValues.some((value) => !Number.isSafeInteger(value) || (value as number) < 0)) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publisher bridge completion metrics are invalid.');
+  }
+  if (
+    (message.metadataReuseCount as number) + (message.legacyReadbackCount as number) + (message.newUploadCount as number)
+      !== (message.metadataCheckCount as number)
+  ) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publisher bridge completion metrics do not reconcile.');
+  }
+  if (message.verifiedBlobSetAlgorithm !== 'sha256' || typeof message.verifiedBlobSetSha256 !== 'string' || !SHA256_PATTERN.test(message.verifiedBlobSetSha256)) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publisher bridge verification audit metadata is invalid.');
+  }
+  if (!Array.isArray(message.verifiedBlobEntries)) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publisher bridge verification audit entries are invalid.');
+  }
+  const expectedByKey = new Map(manifest.files.map((file) => [file.objectKey, file]));
+  const seenVerifiedKeys = new Set<string>();
+  const verifiedBlobEntries = message.verifiedBlobEntries.map((entry, index): RuntimeBlobVerifiedObject => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', `Blob publisher verification entry ${index} is invalid.`);
+    }
+    const candidate = entry as Record<string, unknown>;
+    if (
+      Object.keys(candidate).length !== 4
+      || typeof candidate.key !== 'string'
+      || !candidate.key.startsWith(BLOB_KEY_PREFIX)
+      || !SHA256_PATTERN.test(candidate.key.slice(BLOB_KEY_PREFIX.length))
+      || !Number.isSafeInteger(candidate.expectedSize)
+      || (candidate.expectedSize as number) < 0
+      || typeof candidate.verifiedSha256 !== 'string'
+      || !SHA256_PATTERN.test(candidate.verifiedSha256)
+      || typeof candidate.etag !== 'string'
+      || candidate.etag.length > 256
+      || /[\u0000-\u001f\u007f]/u.test(candidate.etag)
+      || (candidate.etag !== '' && !/^"?[0-9a-fA-F]{32}(?:-[0-9]+)?"?$/u.test(candidate.etag))
+    ) {
+      throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', `Blob publisher verification entry ${index} is invalid.`);
+    }
+    const expected = expectedByKey.get(candidate.key);
+    if (
+      !expected
+      || seenVerifiedKeys.has(candidate.key)
+      || expected.sizeBytes !== candidate.expectedSize
+      || expected.sha256 !== candidate.verifiedSha256
+    ) {
+      throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', `Blob publisher verification entry ${index} is not bound to the submitted manifest.`);
+    }
+    seenVerifiedKeys.add(candidate.key);
+    return {
+      key: candidate.key,
+      expectedSize: candidate.expectedSize as number,
+      verifiedSha256: candidate.verifiedSha256,
+      etag: candidate.etag,
+    };
+  });
+  const compareVerifiedEntries = (left: RuntimeBlobVerifiedObject, right: RuntimeBlobVerifiedObject) => {
+    if (left.key < right.key) return -1;
+    if (left.key > right.key) return 1;
+    if (left.expectedSize < right.expectedSize) return -1;
+    if (left.expectedSize > right.expectedSize) return 1;
+    if (left.verifiedSha256 < right.verifiedSha256) return -1;
+    if (left.verifiedSha256 > right.verifiedSha256) return 1;
+    if (left.etag < right.etag) return -1;
+    if (left.etag > right.etag) return 1;
+    return 0;
+  };
+  const sortedEntries = [...verifiedBlobEntries].sort(compareVerifiedEntries);
+  if (verifiedBlobEntries.length !== (message.metadataReuseCount as number) + (message.legacyReadbackCount as number) + (message.newUploadCount as number)) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publisher verification entries do not reconcile with completion metrics.');
+  }
+  if (stableStringify(verifiedBlobEntries) !== stableStringify(sortedEntries)) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publisher verification entries are not deterministically sorted.');
+  }
+  const computedSetSha256 = createHash('sha256').update(stableStringify(verifiedBlobEntries)).digest('hex');
+  if (computedSetSha256 !== message.verifiedBlobSetSha256) {
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-response-invalid', 'Blob publisher verification audit digest does not match its entries.');
   }
   return {
     metrics: {
@@ -712,6 +816,13 @@ function parseBlobPublishOutcome(
       inheritedBlobCount: message.inheritedBlobCount as number,
       metadataCheckCount: message.metadataCheckCount as number,
       uploadedBlobBytes,
+      metadataReuseCount: message.metadataReuseCount as number,
+      newUploadCount: message.newUploadCount as number,
+      legacyReadbackCount: message.legacyReadbackCount as number,
+      legacyReadbackBytes: message.legacyReadbackBytes as number,
+      verifiedBlobSetAlgorithm: 'sha256',
+      verifiedBlobSetSha256: message.verifiedBlobSetSha256,
+      verifiedBlobEntries,
     },
     receipt,
   };

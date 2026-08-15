@@ -88,6 +88,28 @@ function reportIdentity(manifest: ReturnType<typeof parseRuntimeBlobReleaseManif
   };
 }
 
+function emptyPublicationMetrics() {
+  const verifiedBlobEntries: Array<{
+    key: string;
+    expectedSize: number;
+    verifiedSha256: string;
+    etag: string;
+  }> = [];
+  return {
+    putCount: 0,
+    inheritedBlobCount: 0,
+    metadataCheckCount: 0,
+    uploadedBlobBytes: 0,
+    metadataReuseCount: 0,
+    newUploadCount: 0,
+    legacyReadbackCount: 0,
+    legacyReadbackBytes: 0,
+    verifiedBlobSetAlgorithm: 'sha256' as const,
+    verifiedBlobSetSha256: createHash('sha256').update(stableStringify(verifiedBlobEntries)).digest('hex'),
+    verifiedBlobEntries,
+  };
+}
+
 function dailyPublicationPlan(snapshot: Awaited<ReturnType<typeof buildGitRuntimeBlobReleaseSnapshot>>) {
   return {
     schemaVersion: 'runtime-blob-daily-publication-report.v1',
@@ -104,6 +126,7 @@ function dailyPublicationPlan(snapshot: Awaited<ReturnType<typeof buildGitRuntim
       logicalReleaseBytes: snapshot.manifest.totalBytes,
       estimatedNewBlobBytes: snapshot.stats.hashedBytes,
     },
+    transfer: emptyPublicationMetrics(),
   };
 }
 

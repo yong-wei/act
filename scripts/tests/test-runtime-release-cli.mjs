@@ -47,6 +47,12 @@ assert.match(bridge, /api", "head-object"/, 'v2 blob publication must use object
 assert.match(bridge, /x-oss-meta-sha256=.*expected_sha/, 'v2 blob publication must persist the source SHA-256 in immutable object metadata');
 assert.match(bridge, /def parent_blob_bindings\(/, 'v2 publication must load the immutable parent receipt before reusing blobs');
 assert.match(bridge, /inherited_blob_count/, 'v2 publication must report inherited blobs independently from metadata checks');
+assert.match(bridge, /metadata_reuse_count/, 'v2 publication must report metadata-compliant blob reuse');
+assert.match(bridge, /new_upload_count/, 'v2 publication must report newly uploaded blob count');
+assert.match(bridge, /legacy_readback_count/, 'v2 publication must report metadata-less legacy readback count');
+assert.match(bridge, /legacy_readback_bytes/, 'v2 publication must report metadata-less legacy readback bytes');
+assert.match(bridge, /verified_blob_set_sha256/, 'v2 publication must report a deterministic verified blob set digest');
+assert.match(bridge, /--if-match/, 'legacy blob compatibility must bind the readback to the observed ETag');
 assert.match(bridge, /api", "list-objects-v2"/, 'ECS bridge must use the ossutil v2 JSON listing API');
 assert.match(bridge, /DEFAULT_OSSUTIL_PATH\s*=\s*["']\/opt\/act-ops\/ossutil-2\.3\.0\/ossutil["']/, 'ECS bridge must use the fixed v2 ossutil writer path by default');
 assert.match(bridge, /EXPECTED_OSSUTIL_SHA256\s*=\s*["']1a0b6d3f955d464a6dec9d7c3f81c036781619f012311d20a4c69a4c626ed356["']/, 'ECS bridge must pin the v2 ossutil writer SHA-256');
@@ -150,6 +156,19 @@ try {
     inheritedLogicalBytes: 0,
     bodyHashedUniqueGitBlobCount: 1,
     bodyHashedBytes: Buffer.byteLength('{"id":"1-1"}\n'),
+  });
+  assert.deepEqual(dailyReport.transfer, {
+    putCount: 0,
+    inheritedBlobCount: 0,
+    metadataCheckCount: 0,
+    uploadedBlobBytes: 0,
+    metadataReuseCount: 0,
+    newUploadCount: 0,
+    legacyReadbackCount: 0,
+    legacyReadbackBytes: 0,
+    verifiedBlobSetAlgorithm: 'sha256',
+    verifiedBlobSetSha256: createHash('sha256').update('[]').digest('hex'),
+    verifiedBlobEntries: [],
   });
   assert.match(JSON.stringify(JSON.parse(fs.readFileSync(output, 'utf8'))), /gitObjectId/, 'Git-backed v2 manifests must bind each logical file to its Git blob identity');
   const parentPlan = spawnSync('npx', ['tsx', script, 'plan', '--repo-root', temporary, '--source-revision', sourceRevision, '--format', 'v2', '--parent-manifest', output], {

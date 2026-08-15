@@ -77,6 +77,12 @@ function streamingBridgeSpawnFactory(
   expectedParent?: { releaseId: string; manifestSha256: string },
 ) {
   const script = `
+const { createHash } = require('node:crypto');
+const stable = (value) => value === null || typeof value !== 'object'
+  ? JSON.stringify(value)
+  : Array.isArray(value)
+    ? '[' + value.map(stable).join(',') + ']'
+    : '{' + Object.keys(value).sort().map((key) => JSON.stringify(key) + ':' + stable(value[key])).join(',') + '}';
 let buffer = Buffer.alloc(0);
 let state = 'header';
 let manifest;
@@ -112,7 +118,11 @@ function consume() {
       const frame = buffer.subarray(0, newline).toString();
       if (frame === 'DONE') {
         buffer = buffer.subarray(newline + 1);
-        process.stdout.write(JSON.stringify({ status: 'complete', releaseId: manifest.releaseId, manifestSha256: manifest.manifestSha256, wireSha256, receiptWireSha256, treeSha256: manifest.treeSha256, fileCount: manifest.fileCount, totalBytes: manifest.totalBytes, putCount: missingFiles.length + 2, inheritedBlobCount: 0, metadataCheckCount: missingFiles.length }) + '\\n');
+        const verifiedBlobEntries = [...filesByKey]
+          .sort((left, right) => left.objectKey < right.objectKey ? -1 : left.objectKey > right.objectKey ? 1 : 0)
+          .map((file) => ({ key: file.objectKey, expectedSize: file.sizeBytes, verifiedSha256: file.sha256, etag: '"' + '0'.repeat(32) + '"' }));
+        const verifiedBlobSetSha256 = createHash('sha256').update(stable(verifiedBlobEntries)).digest('hex');
+        process.stdout.write(JSON.stringify({ status: 'complete', releaseId: manifest.releaseId, manifestSha256: manifest.manifestSha256, wireSha256, receiptWireSha256, treeSha256: manifest.treeSha256, fileCount: manifest.fileCount, totalBytes: manifest.totalBytes, putCount: missingFiles.length + 2, inheritedBlobCount: 0, metadataCheckCount: missingFiles.length, metadataReuseCount: 0, newUploadCount: missingFiles.length, legacyReadbackCount: 0, legacyReadbackBytes: 0, verifiedBlobSetAlgorithm: 'sha256', verifiedBlobSetSha256, verifiedBlobEntries }) + '\\n');
         process.exit(0);
       }
       const header = JSON.parse(frame);
@@ -462,12 +472,24 @@ describe('source-authoritative SSH runtime release transport', () => {
       dependencies: { spawn: streamingBridgeSpawnFactory(calls) },
     });
     expect(outcome.receipt).toMatchObject({ releaseId: snapshot.manifest.releaseId });
-    expect(outcome.metrics).toEqual({
+    expect(outcome.metrics).toMatchObject({
       putCount: 3,
       inheritedBlobCount: 0,
       metadataCheckCount: 1,
       uploadedBlobBytes: Buffer.byteLength('{"id":"metrics"}\\n'),
+      metadataReuseCount: 0,
+      newUploadCount: 1,
+      legacyReadbackCount: 0,
+      legacyReadbackBytes: 0,
+      verifiedBlobSetAlgorithm: 'sha256',
+      verifiedBlobEntries: [{
+        key: expect.stringMatching(/^runtime\/blobs\/sha256\/[a-f0-9]{64}$/),
+        expectedSize: Buffer.byteLength('{"id":"metrics"}\\n'),
+        verifiedSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+        etag: '"' + '0'.repeat(32) + '"',
+      }],
     });
+    expect(outcome.metrics.verifiedBlobSetSha256).toMatch(/^[a-f0-9]{64}$/);
   });
 
   it('binds a delta publication to the immutable parent identity without sending a local proof cache', async () => {

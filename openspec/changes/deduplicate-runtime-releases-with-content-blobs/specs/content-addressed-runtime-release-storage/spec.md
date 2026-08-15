@@ -43,7 +43,7 @@ The system SHALL permit one explicit `v1-release-import` source mode only for in
 - **THEN** the importer SHALL fail before writing a v2 terminal manifest or changing any production selection state
 
 ### Requirement: Blob publication is append-only and manifest-last
-The local production release writer SHALL upload only a changed or otherwise unknown blob through a conditional no-overwrite operation after verifying the source stream's exact size and SHA-256. A changed or unknown pre-existing blob SHALL be reused only after one remote metadata read verifies exact size and SHA-256 metadata. A validated parent-manifest binding SHALL be inherited without a body read or remote metadata read while that parent remains protected by lifecycle reachability. The writer SHALL verify every changed or unknown reachable blob before it writes the immutable receipt and terminal manifest, and SHALL not update selectors for an incomplete release.
+The local production release writer SHALL upload only a changed or otherwise unknown blob through a conditional no-overwrite operation after verifying the source stream's exact size and SHA-256. A changed or unknown pre-existing blob SHALL be reused only after one remote metadata read verifies exact size and SHA-256 metadata, except for a legacy blob whose schema, SHA-256 and declared-size metadata fields are all absent: that exception SHALL require its SHA-addressed key, HEAD size and valid ETag, followed by one `get-object --if-match <etag>` readback whose observed size and SHA-256 exactly match the manifest. Partial metadata, invalid metadata, an unsafe key, a missing or invalid ETag, a failed conditional read, or a size or SHA-256 mismatch SHALL fail closed. The legacy exception SHALL not PUT, COPY, rewrite metadata or DELETE the object. A validated parent-manifest binding SHALL be inherited without a body read or remote metadata read while that parent remains protected by lifecycle reachability. The writer SHALL verify every changed or unknown reachable blob before it writes the immutable receipt and terminal manifest, record the metadata reuse, new uploads and legacy conditional-read evidence, and SHALL not update selectors for an incomplete release.
 
 #### Scenario: Interrupted publish leaves no selectable release
 - **WHEN** a blob upload, remote verification or manifest upload fails
@@ -52,6 +52,14 @@ The local production release writer SHALL upload only a changed or otherwise unk
 #### Scenario: Repeated publish reuses inherited blobs
 - **WHEN** a later publication has the same source identity as its validated parent entry
 - **THEN** the system SHALL not rewrite, read or remotely inspect that blob during daily publication
+
+#### Scenario: Metadata-less legacy blob is proved before reuse
+- **WHEN** an exact SHA-addressed pre-existing blob has all three immutable metadata fields absent
+- **THEN** the publisher SHALL conditionally read it against its HEAD ETag, require the manifest size and SHA-256, record the legacy readback evidence, and write no mutation for that blob
+
+#### Scenario: Partial legacy metadata is rejected
+- **WHEN** a pre-existing blob has only some immutable metadata fields, invalid metadata, or a conditional read that cannot prove the HEAD ETag version
+- **THEN** the publisher SHALL fail before receipt or terminal manifest publication
 
 ### Requirement: Materialized runtime preserves the selected logical release
 The system SHALL build a temporary host-owned materialized runtime view only from blobs reachable in one verified manifest. When a matching parent view is available, it SHALL derive the candidate from local directory/symlink topology plus manifest delta and write a receipt binding manifest identity, path set, blob set, helper mount and hot-cache identities. Before selection it SHALL validate path topology, changed links and the receipt rather than rehashing every inherited blob, require the blob mount and materialized view to be read-only to application consumers, and atomically select the view under the host lifecycle lock. The application SHALL continue to receive exactly one read-only bind at `/app/course-content/runtime`.

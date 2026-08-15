@@ -31,6 +31,7 @@ await new Promise((resolve) => imds.listen(0, '127.0.0.1', resolve));
 const imdsRoleUrl = `http://127.0.0.1:${imds.address().port}/latest/meta-data/ram/security-credentials/`;
 
 await writeFile(fakeOssutil, `#!/usr/bin/env node
+import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 const root = process.env.FAKE_OSS_ROOT;
@@ -91,14 +92,34 @@ if (operation === 'api') {
   } else if (api === 'get-object') {
     const key = args[args.indexOf('--key') + 1];
     if (process.env.FAKE_GET_LOG) await writeFile(process.env.FAKE_GET_LOG, key + '\\n', { flag: 'a' });
-    try { process.stdout.write(await readFile(objectPath(key))); } catch { process.exit(4); }
+    try {
+      const body = await readFile(objectPath(key));
+      if (args.includes('--if-match')) {
+        const expected = args[args.indexOf('--if-match') + 1];
+        const actual = \`"\${createHash('md5').update(body).digest('hex')}"\`;
+        if (process.env.FAKE_IF_MATCH_MODE === 'fail' || expected !== actual) {
+          process.stderr.write('PreconditionFailed');
+          process.exit(8);
+        }
+      }
+      process.stdout.write(body);
+    } catch { process.exit(4); }
   } else if (api === 'head-object') {
     const key = args[args.indexOf('--key') + 1];
     if (process.env.FAKE_HEAD_LOG) await writeFile(process.env.FAKE_HEAD_LOG, key + '\\n', { flag: 'a' });
     try {
       const details = await stat(objectPath(key));
       const metadata = await readMetadata();
-      process.stdout.write(JSON.stringify({ ContentLength: String(details.size), Metadata: metadata[key] || {} }));
+      const body = await readFile(objectPath(key));
+      const etag = process.env.FAKE_ETAG_VALUE || \`"\${createHash('md5').update(body).digest('hex')}"\`;
+      const objectMetadata = Object.fromEntries(Object.entries(metadata[key] || {}).map(([name, value]) => [name, [value]]));
+      process.stdout.write(JSON.stringify({
+        Header: {
+          'Content-Length': [String(details.size)],
+          Etag: [etag],
+          ...objectMetadata,
+        },
+      }));
     } catch {
       process.stderr.write('NoSuchKey');
       process.exit(4);
@@ -354,6 +375,25 @@ const blobImportHeaderFor = (source, target) => JSON.stringify({
 });
 const close = (child) => new Promise((resolve) => child.once('close', (code, signal) => resolve({ code, signal })));
 const spoolFor = (prefix) => path.join(spoolRoot, sha(prefix));
+const readMetadataState = async () => {
+  try { return JSON.parse(await readFile(ossMetadata, 'utf8')); } catch { return {}; }
+};
+const writeMetadataState = async (value) => writeFile(ossMetadata, JSON.stringify(value));
+const removeMetadataFor = async (key) => {
+  const metadata = await readMetadataState();
+  delete metadata[key];
+  await writeMetadataState(metadata);
+};
+const seedBlob = async (file, body, metadata = undefined) => {
+  await mkdir(path.dirname(path.join(ossRoot, file.objectKey)), { recursive: true });
+  await writeFile(path.join(ossRoot, file.objectKey), body);
+  await removeMetadataFor(file.objectKey);
+  if (metadata !== undefined) {
+    const state = await readMetadataState();
+    state[file.objectKey] = metadata;
+    await writeMetadataState(state);
+  }
+};
 
 async function publish({ data = state, crashAfterFrame = false, frameBytes = bytes, env = {} } = {}) {
   const child = spawn('python3', [bridge, '--bucket', 'test-bucket', '--operation', 'publish', '--prefix-b64', Buffer.from(data.prefix).toString('base64url')], {
@@ -510,7 +550,7 @@ async function importBlobFromV1(source, target) {
   return JSON.parse(Buffer.concat(stdout).toString('utf8'));
 }
 
-async function verify(data = state, { expectFailure = false } = {}) {
+async function verify(data = state, { expectFailure = false, env = {} } = {}) {
   const child = spawn('python3', [bridge, '--bucket', 'test-bucket', '--operation', 'verify', '--prefix-b64', Buffer.from(data.prefix).toString('base64url')], {
     env: {
       ...process.env,
@@ -522,6 +562,7 @@ async function verify(data = state, { expectFailure = false } = {}) {
       FAKE_OSS_ROOT: ossRoot,
       FAKE_OSS_METADATA: ossMetadata,
       FAKE_PAGE_SIZE: '1',
+      ...env,
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -604,6 +645,64 @@ try {
   assert.equal(blobFirst.putCount, 3, 'the first blob release writes one shared blob, receipt, then manifest');
   const blobPuts = (await readFile(blobLog, 'utf8')).trim().split('\n');
   assert.deepEqual(blobPuts.slice(-2), [blobState.receiptKey, blobState.manifestKey], 'receipt precedes the terminal immutable manifest');
+
+  const legacyBlobState = buildBlobState('b'.repeat(40), [Buffer.from('legacy compatible bytes'), Buffer.from('legacy compatible bytes')]);
+  const legacyPutLog = path.join(temporary, 'legacy-put.log');
+  const legacyGetLog = path.join(temporary, 'legacy-get.log');
+  await seedBlob(legacyBlobState.files[0], Buffer.from('legacy compatible bytes'));
+  const legacyReceipt = await publishBlob({ data: legacyBlobState, env: { FAKE_LOG: legacyPutLog, FAKE_GET_LOG: legacyGetLog } });
+  assert.equal(legacyReceipt.putCount, 2, 'metadata-less legacy reuse must only write the receipt and manifest');
+  assert.equal(legacyReceipt.metadataCheckCount, 1);
+  assert.equal(legacyReceipt.metadataReuseCount, 0);
+  assert.equal(legacyReceipt.newUploadCount, 0);
+  assert.equal(legacyReceipt.legacyReadbackCount, 1);
+  assert.equal(legacyReceipt.legacyReadbackBytes, Buffer.byteLength('legacy compatible bytes'));
+  assert.equal(legacyReceipt.verifiedBlobSetAlgorithm, 'sha256');
+  assert.equal(legacyReceipt.verifiedBlobEntries.length, 1);
+  assert.equal(legacyReceipt.verifiedBlobEntries[0].key, legacyBlobState.files[0].objectKey);
+  assert.equal((await readFile(legacyPutLog, 'utf8')).includes(legacyBlobState.files[0].objectKey), false, 'legacy reuse must not PUT or rewrite metadata');
+  assert.equal((await readFile(legacyGetLog, 'utf8')).split('\n').filter(Boolean).includes(legacyBlobState.files[0].objectKey), true, 'legacy reuse must read back with if-match');
+  const legacyVerifyGetLog = path.join(temporary, 'legacy-verify-get.log');
+  const legacyVerification = await verify(legacyBlobState, { env: { FAKE_GET_LOG: legacyVerifyGetLog } });
+  assert.equal(legacyVerification.schemaVersion, 'runtime-release-verification.v2');
+  assert.equal((await readFile(legacyVerifyGetLog, 'utf8')).split('\n').filter(Boolean).includes(legacyBlobState.files[0].objectKey), true, 'remote verify must read every legacy blob body');
+
+  const rejectLegacyCandidate = async (revision, body, metadata, env = {}) => {
+    const candidate = buildBlobState(revision, [body, body]);
+    await seedBlob(candidate.files[0], body, metadata);
+    await assert.rejects(
+      () => publishBlob({ data: candidate, env }),
+      /blob bridge (failed before state|publish failed)/,
+    );
+    await rm(path.join(ossRoot, candidate.prefix), { recursive: true, force: true });
+  };
+  await rejectLegacyCandidate('c'.repeat(40), Buffer.from('partial metadata'), { 'x-oss-meta-schema': 'act-runtime-blob.v1' });
+  await rejectLegacyCandidate('d'.repeat(40), Buffer.from('invalid schema'), {
+    'x-oss-meta-schema': 'act-runtime-blob.v999',
+    'x-oss-meta-sha256': sha(Buffer.from('invalid schema')),
+    'x-oss-meta-size': String(Buffer.byteLength('invalid schema')),
+  });
+  await rejectLegacyCandidate('0'.repeat(40), Buffer.from('invalid sha'), {
+    'x-oss-meta-schema': 'act-runtime-blob.v1',
+    'x-oss-meta-sha256': 'not-a-sha',
+    'x-oss-meta-size': String(Buffer.byteLength('invalid sha')),
+  });
+  await rejectLegacyCandidate('1'.repeat(40), Buffer.from('invalid size'), {
+    'x-oss-meta-schema': 'act-runtime-blob.v1',
+    'x-oss-meta-sha256': sha(Buffer.from('invalid size')),
+    'x-oss-meta-size': 'not-a-size',
+  });
+  await rejectLegacyCandidate('2'.repeat(40), Buffer.from('wrong legacy body'), undefined, { FAKE_IF_MATCH_MODE: 'fail' });
+  await rejectLegacyCandidate('4'.repeat(40), Buffer.from('invalid ETag'), undefined, { FAKE_ETAG_VALUE: 'invalid-etag' });
+  const wrongContent = buildBlobState('5'.repeat(40), [Buffer.from('expected legacy body'), Buffer.from('expected legacy body')]);
+  await seedBlob(wrongContent.files[0], Buffer.alloc(wrongContent.files[0].sizeBytes, 0x78));
+  await assert.rejects(() => publishBlob({ data: wrongContent }), /blob bridge (failed before state|publish failed)/);
+  await rm(path.join(ossRoot, wrongContent.prefix), { recursive: true, force: true });
+  const wrongLength = buildBlobState('3'.repeat(40), [Buffer.from('expected legacy body'), Buffer.from('expected legacy body')]);
+  await seedBlob(wrongLength.files[0], Buffer.from('different length'));
+  await assert.rejects(() => publishBlob({ data: wrongLength }), /blob bridge (failed before state|publish failed)/);
+  await rm(path.join(ossRoot, wrongLength.prefix), { recursive: true, force: true });
+
   const externalSource = {
     externalInputId: 'textbook-runtime-generated-v1',
     externalInputManifestObjectId: 'a'.repeat(40),
@@ -667,6 +766,9 @@ try {
   const localBlobState = buildBlobState('8'.repeat(40));
   const localBlobReceipt = await publishBlob({ data: localBlobState, local: true });
   assert.equal(localBlobReceipt.status, 'complete', 'the local operator publisher must complete the same immutable manifest-last protocol without ECS IMDS');
+  assert.equal(localBlobReceipt.metadataReuseCount, 1, 'metadata-complete blobs must retain the fast HEAD-only reuse path');
+  assert.equal(localBlobReceipt.legacyReadbackCount, 0);
+  assert.equal(localBlobReceipt.newUploadCount, 0);
 
   const multipleBlobState = buildBlobState('9'.repeat(40), [Buffer.from('unique blob a'), Buffer.from('unique blob b')]);
   const blobListLog = path.join(temporary, 'blob-list.log');

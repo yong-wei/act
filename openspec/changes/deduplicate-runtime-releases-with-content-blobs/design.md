@@ -92,6 +92,12 @@ It is rechecked by size and metadata after upload. An existing object is reused 
 
 Daily verification validates manifest/receipt identity, changed/unknown bodies, changed/unknown object metadata, view receipt, mount state, topology and application smoke. Sample audit and full audit are separate read-only commands. A full audit is mandatory for initial import, protocol change, suspected storage fault and an explicit low-frequency schedule; it reads every unique blob body. Audit failure freezes publish and GC.
 
+#### Sol DECIDE A — first compatibility read for metadata-less legacy v2 blobs
+
+The candidate publisher admits an existing `runtime/blobs/sha256/<expectedSha>` object as a legacy candidate only when all three immutable blob metadata fields (`x-oss-meta-schema`, `x-oss-meta-sha256` and `x-oss-meta-size`) are absent. A partial metadata set, an invalid schema, an invalid or mismatched SHA/size, an unsafe key, a missing or invalid ETag, or a failed conditional read is rejected fail-closed. The bridge first checks the HEAD size and ETag, then streams one `get-object --if-match <etag>` readback and requires the observed byte count and SHA-256 to equal the submitted manifest. It performs no PUT, COPY, metadata rewrite or DELETE for that object. Metadata-complete objects retain the existing fast HEAD-only reuse path, while new objects still use conditional create with the complete metadata set.
+
+This is a one-time compatibility cost per legacy blob encountered by a candidate publication. The transfer audit records metadata-compliant reuse, new uploads, legacy readback count/bytes, the `sha256` algorithm, and a SHA-256 over the deterministically sorted `(key, expectedSize, verifiedSha256, etag)` entries (including the entries themselves when available). The remote `verify` operation remains a full readback of every reachable blob, so compatibility reuse never weakens the independent audit boundary.
+
 ### 3. Publisher and serving identities are separate
 
 The publisher runs on the local maintenance host under the user-provisioned `act-runtime-oss-release-operator` principal. Its startup gate checks caller account/principal and the expected Bucket, Region, endpoint and permitted runtime prefixes before any write. Credentials are supplied only by the host's configured credential provider; no AccessKey, Secret or STS token is written to repository files, `.env`, release artifacts or logs.

@@ -12,6 +12,7 @@
 - [x] 2.3 Implement changed/unknown-only body hashing, SHA/size de-duplication, no-overwrite blob upload, metadata HEAD verification, terminal receipt/manifest publication and exact resumability.
 - [x] 2.4 Implement the local `act-runtime-oss-release-operator` publisher adapter with principal/Bucket/Region/prefix preflight, local single-publisher lock and credential-redacting diagnostics; remove ECS writer authority from the daily path.
 - [x] 2.5 Add no-op, rename, repeated OID, three-file delta, identical-different-OID, clean-clone-without-cache, missing identity, existing-metadata-mismatch, interrupted upload and manifest-last tests with exact body/HEAD/upload counters.
+- [x] 2.6 Add fail-closed first compatibility reads for metadata-less legacy v2 blobs: require the SHA-addressed key, HEAD size and valid ETag, stream one `get-object --if-match` readback, forbid writes, and report metadata reuse, new uploads, legacy readback bytes and the deterministic verified-blob audit digest/entries.
 
 ## 3. Fast materialization and runtime-only deployment
 
