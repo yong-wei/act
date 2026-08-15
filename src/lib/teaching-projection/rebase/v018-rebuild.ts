@@ -262,6 +262,17 @@ export function buildV018IdentityRebase(input: BuildV018RebaseInput): V018Rebase
     upstreamImpactEvidence: input.upstreamImpactEvidence,
   });
   assertV018MappingsResolved(mapping);
+  for (const reference of input.references) {
+    if (reference.kind !== 'infograph') continue;
+    if (reference.canonicalIds.length > 0) {
+      for (const canonicalId of reference.canonicalIds) resolveV018CanonicalId(canonicalId, mapping);
+    } else if (!reference.reviewedNonSemanticDisposition) {
+      throw new V018RebuildError(
+        'reference-unclosed',
+        `captured infograph ${reference.referenceId} has no identity successor or reviewed non-semantic disposition`,
+      );
+    }
+  }
   const prerequisite = mapPrerequisitePublication(
     input.prerequisiteInput,
     mapping,

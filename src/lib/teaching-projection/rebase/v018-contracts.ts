@@ -79,6 +79,11 @@ export interface V018ReferenceRecord {
   captureRevision: string;
   /** These records are produced from the capture-bound denominator only. */
   captureEvidence: string[];
+  /**
+   * Explicit non-semantic closure for captured teaching artifacts that are not
+   * Authority identities, such as overlay-bound infograph media.
+   */
+  reviewedNonSemanticDisposition?: string;
 }
 
 export interface V018CaptureFile {

@@ -248,16 +248,76 @@ function sourceDigest(sourcePath: string): string {
   return projectionSha256(sourcePath);
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+export function collectOverlayInfographReferences(input: {
+  repoRoot: string;
+  inventory: ActiveCourseInventory;
+  captureRevision: string;
+}): V018ReferenceRecord[] {
+  const records: V018ReferenceRecord[] = [];
+  for (const pkg of input.inventory.packages) {
+    const overlayPath = pkg.sourcePaths.find((sourcePath) => sourcePath.endsWith('/graph-overlay.json') || sourcePath === 'graph-overlay.json');
+    if (!overlayPath) continue;
+    const abs = resolve(input.repoRoot, overlayPath);
+    if (!existsSync(abs)) {
+      throw new V018CaptureError('infograph-overlay-missing', `captured graph overlay is missing: ${overlayPath}`);
+    }
+    const overlay = JSON.parse(readFileSync(abs, 'utf8')) as unknown;
+    const seen = new Set<string>();
+    const visit = (value: unknown) => {
+      if (Array.isArray(value)) {
+        for (const item of value) visit(item);
+        return;
+      }
+      if (!value || typeof value !== 'object') return;
+      const rec = asRecord(value);
+      if (rec.type === 'infograph') {
+        const mediaPath = typeof rec.path === 'string' ? rec.path : overlayPath;
+        const nodeId = typeof rec.sourceNodeId === 'string'
+          ? rec.sourceNodeId
+          : typeof rec.nodeId === 'string' ? rec.nodeId : mediaPath;
+        const key = `${mediaPath}\u001f${nodeId}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          records.push({
+            referenceId: `infograph:${nodeId}:${mediaPath}`,
+            kind: 'infograph',
+            sourcePath: mediaPath,
+            sourceDigest: existsSync(resolve(input.repoRoot, mediaPath))
+              ? projectionSha256(readFileSync(resolve(input.repoRoot, mediaPath)))
+              : projectionSha256(readFileSync(abs)),
+            scopeId: pkg.scopeId,
+            canonicalIds: [],
+            active: true,
+            captureRevision: input.captureRevision,
+            captureEvidence: [overlayPath, mediaPath, 'reviewed-non-semantic:overlay-infograph-media'],
+            reviewedNonSemanticDisposition: 'overlay-infograph-media',
+          });
+        }
+      }
+      for (const child of Object.values(rec)) visit(child);
+    };
+    visit(overlay);
+  }
+  return records;
+}
+
 /**
  * Build the denominator from active inventory plus all resources already
  * referenced by the current published projection.  This includes explicit
- * textbook/prerequisite/path/Konling/RAG references while excluding Authority
- * additions and historical records.
+ * textbook/prerequisite/path/Konling/RAG/infograph references while excluding
+ * Authority additions and historical records.
  */
 export function buildV018ReferenceDenominator(input: {
   inventory: ActiveCourseInventory;
   priorArtifacts: TeachingProjectionArtifacts;
   captureRevision: string;
+  repoRoot?: string;
 }): V018ReferenceRecord[] {
   const records = new Map<string, V018ReferenceRecord>();
   const add = (record: V018ReferenceRecord) => {
@@ -352,6 +412,15 @@ export function buildV018ReferenceDenominator(input: {
       captureEvidence: [edge.evidenceRef ?? edge.prerequisiteId],
     });
   }
+  if (input.repoRoot) {
+    for (const infograph of collectOverlayInfographReferences({
+      repoRoot: input.repoRoot,
+      inventory: input.inventory,
+      captureRevision: input.captureRevision,
+    })) {
+      add(infograph);
+    }
+  }
   return [...records.values()].sort((a, b) => {
     const ak = `${a.kind}\u001f${a.referenceId}`;
     const bk = `${b.kind}\u001f${b.referenceId}`;
@@ -389,6 +458,20 @@ export const V018_DATABASE_QUERY_CONTRACT = {
 } as const;
 
 export const V018_DATABASE_QUERY_CONTRACT_HASH = projectionDigest(V018_DATABASE_QUERY_CONTRACT);
+
+export function expectedV018AdmissionSchemaIdentity(input: {
+  snapshotId: string;
+  releaseId: string;
+  bundleDigest: string;
+  prerequisiteInputDigest: string;
+}): string {
+  return `actkg_admission_v018_${projectionDigest({
+    snapshotId: input.snapshotId,
+    releaseId: input.releaseId,
+    bundleDigest: input.bundleDigest,
+    prerequisiteInputDigest: input.prerequisiteInputDigest,
+  }).slice(0, 32)}`;
+}
 
 export interface V018DatabaseUrlSafety {
   accepted: true;
@@ -476,6 +559,10 @@ export function validateV018DatabaseObservation(input: {
   expectedPrerequisiteKeys: ReadonlySet<string>;
   expectedObjectRowCount?: number;
   expectedPrerequisiteRowCount?: number;
+  expectedParameters?: Record<string, string | number | boolean | null>;
+  expectedSchemaIdentity?: string;
+  expectedEnvironmentIdentity?: string;
+  requireLoopbackEnvironment?: boolean;
 }): V018DatabaseObservationCheck {
   if (!input.observation) {
     return {
@@ -492,6 +579,30 @@ export function validateV018DatabaseObservation(input: {
   if (!observation.schemaIdentity || !observation.environmentIdentity) findings.push('database-environment-identity-missing');
   if (observation.queryContractHash !== V018_DATABASE_QUERY_CONTRACT_HASH) findings.push('database-query-contract-drift');
   if (observation.parameters.snapshotId !== input.authoritySnapshotId) findings.push('database-parameters-drift');
+  if (input.expectedSchemaIdentity && observation.schemaIdentity !== input.expectedSchemaIdentity) {
+    findings.push('database-schema-identity-drift');
+  }
+  if (input.expectedEnvironmentIdentity && observation.environmentIdentity !== input.expectedEnvironmentIdentity) {
+    findings.push('database-environment-identity-drift');
+  }
+  if (input.expectedParameters) {
+    for (const [key, expected] of Object.entries(input.expectedParameters)) {
+      if (observation.parameters[key] !== expected) findings.push('database-parameters-drift');
+    }
+  }
+  if (input.requireLoopbackEnvironment) {
+    if (!/^local-loopback:[a-f0-9]{64}$/u.test(observation.environmentIdentity)) {
+      findings.push('database-environment-identity-drift');
+    }
+    const host = String(observation.parameters.databaseHost ?? '');
+    const protocol = String(observation.parameters.databaseProtocol ?? '');
+    if (host && !['localhost', '127.0.0.1', '::1', '[::1]'].includes(host)) {
+      findings.push('database-environment-identity-drift');
+    }
+    if (protocol && protocol !== 'postgres:' && protocol !== 'postgresql:') {
+      findings.push('database-environment-identity-drift');
+    }
+  }
   if (observation.objectRows.some((row) => row.snapshotId !== input.authoritySnapshotId)) findings.push('database-object-snapshot-drift');
   if (observation.prerequisiteRows.some((row) => row.snapshotId !== input.authoritySnapshotId)) findings.push('database-prerequisite-snapshot-drift');
   if (observation.objectRowCount !== observation.objectRows.length || observation.prerequisiteRowCount !== observation.prerequisiteRows.length) findings.push('database-result-count-drift');

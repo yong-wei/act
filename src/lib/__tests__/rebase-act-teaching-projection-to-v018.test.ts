@@ -5,7 +5,10 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { prepareActKgV018TeachingProjection } from '../../../scripts/knowledge-cutover/prepare-actkg-v018-teaching-projection';
+import {
+  assertV018AdmittedAuthorityCandidate,
+  prepareActKgV018TeachingProjection,
+} from '../../../scripts/knowledge-cutover/prepare-actkg-v018-teaching-projection';
 import { buildTeachingProjection } from '../teaching-projection/builder';
 import type { TeachingProjectionAuthoringInput } from '../teaching-projection/contracts';
 import { projectionDigest } from '../teaching-projection/hash';
@@ -15,6 +18,9 @@ import {
   assertV018DisposableDatabaseUrl,
   buildV018DatabaseObservation,
   buildV018CaptureManifest,
+  buildV018ReferenceDenominator,
+  collectOverlayInfographReferences,
+  expectedV018AdmissionSchemaIdentity,
   validateV018DatabaseObservation,
   V018_DATABASE_QUERY_CONTRACT_HASH,
 } from '../teaching-projection/rebase/v018-capture';
@@ -160,6 +166,88 @@ describe('v0.18 capture-bound input', () => {
     });
     expect(() => assertV018CaptureBound(root, executionDrift)).toThrow('capture execution set drifted');
   });
+
+  it('captures overlay infograph associations as reviewed non-semantic references', () => {
+    const root = tempRoot();
+    const overlayRel = 'course-content/runtime/lessons/4-2/graph-overlay.json';
+    mkdirSync(path.join(root, path.dirname(overlayRel)), { recursive: true });
+    writeFileSync(path.join(root, overlayRel), `${JSON.stringify({
+      nodes: [{
+        id: '三频段闭环性能回读_3_38003',
+        infograph: {
+          type: 'infograph',
+          path: 'course-content/runtime/knowledge/infographs/nodes/demo.png',
+          nodeId: '三频段闭环性能回读_3_38003',
+          sourceNodeId: '三频段闭环性能回读_3_38003',
+        },
+        resources: [{
+          type: 'infograph',
+          path: 'course-content/runtime/knowledge/infographs/nodes/demo.png',
+          sourceNodeId: '三频段闭环性能回读_3_38003',
+        }],
+      }],
+    })}\n`);
+    const inventory = {
+      contract: 'act-active-course-inventory/v1' as const,
+      authoringRevision: 'a'.repeat(40),
+      capturedAt: null,
+      packageCount: 1,
+      resourceCount: 0,
+      inventoryDigest: '0'.repeat(64),
+      packages: [{
+        packageId: '4-2',
+        scopeId: 'fixture-v018-rebase',
+        routeSegment: null,
+        runtimeLessonDir: '4-2',
+        lessonKey: '4-2',
+        title: 'fixture',
+        sourcePaths: [overlayRel],
+        resources: [],
+      }],
+    };
+    const refs = collectOverlayInfographReferences({
+      repoRoot: root,
+      inventory,
+      captureRevision: 'a'.repeat(40),
+    });
+    expect(refs).toHaveLength(1);
+    expect(refs[0]).toMatchObject({
+      kind: 'infograph',
+      reviewedNonSemanticDisposition: 'overlay-infograph-media',
+      canonicalIds: [],
+    });
+    const prior = buildTeachingProjection(fixtureProjectionAuthoring());
+    const denominator = buildV018ReferenceDenominator({
+      inventory,
+      priorArtifacts: prior,
+      captureRevision: 'a'.repeat(40),
+      repoRoot: root,
+    });
+    expect(denominator.filter((row) => row.kind === 'infograph')).toHaveLength(1);
+  });
+
+  it('rejects an admitted Authority candidate whose sealed outputs drifted', () => {
+    const root = tempRoot();
+    const receiptRel = 'course-content/authoring/knowledge/authority/candidates/v018/candidate-receipt.json';
+    const engineeringRel = 'course-content/authoring/knowledge/authority/candidates/v018/engineering.json';
+    mkdirSync(path.join(root, path.dirname(receiptRel)), { recursive: true });
+    writeFileSync(path.join(root, engineeringRel), '{"objects":[]}\n');
+    const receipt = {
+      status: 'staged',
+      outputs: [{
+        path: engineeringRel,
+        sha256: '0'.repeat(64),
+        digestScope: 'bytes',
+        byteLength: 1,
+      }],
+    };
+    writeFileSync(path.join(root, receiptRel), `${JSON.stringify(receipt)}\n`);
+    expect(() => assertV018AdmittedAuthorityCandidate({
+      repoRoot: root,
+      receipt,
+      receiptPath: path.join(root, receiptRel),
+    })).toThrow('sealed output drifted');
+  });
 });
 
 describe('v0.18 candidate safety and deterministic evidence', () => {
@@ -208,8 +296,40 @@ describe('v0.18 candidate safety and deterministic evidence', () => {
       expectedPrerequisiteKeys: new Set(['ctc:a\u001fctc:b\u001fPREREQUISITE']),
       expectedObjectRowCount: 2,
       expectedPrerequisiteRowCount: 1,
+      expectedParameters: { releaseId: 'release-a', snapshotId: 'snap-a' },
+      expectedSchemaIdentity: 'actkg_admission_test',
+      expectedEnvironmentIdentity: 'local-loopback:test',
     });
     expect(check).toMatchObject({ available: true, accepted: true });
+    const drifted = validateV018DatabaseObservation({
+      observation: {
+        ...observation,
+        schemaIdentity: 'other-schema',
+        environmentIdentity: 'other-env',
+        parameters: { ...observation.parameters, releaseId: 'other-release' },
+      },
+      authoritySnapshotId: 'snap-a',
+      expectedCanonicalIds: new Set(['ctc:a\u001fDomainConcept', 'ctc:b\u001fDomainConcept']),
+      expectedPrerequisiteKeys: new Set(['ctc:a\u001fctc:b\u001fPREREQUISITE']),
+      expectedObjectRowCount: 2,
+      expectedPrerequisiteRowCount: 1,
+      expectedParameters: { releaseId: 'release-a', snapshotId: 'snap-a' },
+      expectedSchemaIdentity: 'actkg_admission_test',
+      expectedEnvironmentIdentity: 'local-loopback:test',
+      requireLoopbackEnvironment: true,
+    });
+    expect(drifted.accepted).toBe(false);
+    expect(drifted.findingCodes).toEqual(expect.arrayContaining([
+      'database-parameters-drift',
+      'database-schema-identity-drift',
+      'database-environment-identity-drift',
+    ]));
+    expect(expectedV018AdmissionSchemaIdentity({
+      snapshotId: 'snap-a',
+      releaseId: 'release-a',
+      bundleDigest: 'b'.repeat(64),
+      prerequisiteInputDigest: 'c'.repeat(64),
+    })).toMatch(/^actkg_admission_v018_[a-f0-9]{32}$/u);
   });
 
   it('rejects candidate output that can be consumed by selectors', () => {

@@ -30,6 +30,7 @@ import {
   buildV018ReferenceDenominator,
   assertV018DisposableDatabaseUrl,
   assertV018CaptureBound,
+  expectedV018AdmissionSchemaIdentity,
   validateV018DatabaseObservation,
   V018CaptureError,
   V018_DATABASE_QUERY_CONTRACT_HASH,
@@ -67,12 +68,13 @@ import type {
   PrerequisiteAuthorDecision,
   PrerequisiteEdgeAuthoring,
 } from '../../src/lib/teaching-projection/prerequisites/contracts';
-import type { AuthorityEngineeringBody } from '../../src/lib/authoritative-knowledge/authority-snapshot';
+import { authorityDigest, type AuthorityEngineeringBody } from '../../src/lib/authoritative-knowledge/authority-snapshot';
 import { projectionCanonicalJson, projectionDigest, projectionSha256 } from '../../src/lib/teaching-projection/hash';
 import { assertCandidateOutputRoot } from './prepare-actkg-cutover-teaching-projection';
 import { importValidatedActKGBundleV2 } from '../actkg-release/public-bundle-v2-import';
 import { loadAndValidatePublicBundleV2 } from '../actkg-release/public-bundle-v2';
 import { PUBLIC_BUNDLE_V2_ADAPTER_CAPTURE_PATHS } from '../actkg-release/capture-revision';
+import { canonicalJson, sha256 } from '../actkg-release/authoritative-release';
 import { createIsolatedAdmissionDatabase } from './admit-latest-actkg-aggregate';
 
 const SHA = /^[a-f0-9]{40}$/u;
@@ -143,6 +145,31 @@ function readEngineering(repoRoot: string, manifest: JsonObject): AuthorityEngin
   return readJson(pathForEngineering) as unknown as AuthorityEngineeringBody;
 }
 
+export function assertV018AdmittedAuthorityCandidate(input: {
+  repoRoot: string;
+  receipt: JsonObject;
+  receiptPath: string;
+}): void {
+  const outputs = Array.isArray(input.receipt.outputs) ? input.receipt.outputs : [];
+  if (outputs.length === 0) fail('v0.18 Authority candidate receipt is missing sealed outputs');
+  for (const raw of outputs) {
+    const output = asRecord(raw);
+    const relativePath = String(output.path ?? '');
+    const expected = String(output.sha256 ?? '');
+    const scope = String(output.digestScope ?? 'bytes');
+    if (!relativePath || !/^[a-f0-9]{64}$/u.test(expected)) {
+      fail(`v0.18 Authority sealed output is malformed: ${relativePath || '<missing>'}`);
+    }
+    const abs = path.join(input.repoRoot, relativePath);
+    if (!existsSync(abs)) fail(`v0.18 Authority sealed output is missing: ${relativePath}`);
+    const bytes = readFileSync(abs);
+    const actual = scope === 'receipt-body-without-outputs'
+      ? sha256(canonicalJson({ ...JSON.parse(bytes.toString('utf8')) as JsonObject, outputs: [] }))
+      : sha256(bytes);
+    if (actual !== expected) fail(`v0.18 Authority sealed output drifted: ${relativePath}`);
+  }
+}
+
 function loadCandidateAuthority(repoRoot: string): {
   receipt: JsonObject;
   manifest: JsonObject;
@@ -156,6 +183,7 @@ function loadCandidateAuthority(repoRoot: string): {
   if (receipt.status !== 'staged' || receipt.nonActivation !== true || receipt.mode !== 'local-disposable-non-activation') {
     fail('v0.18 Authority candidate receipt is not staged/nonActivation');
   }
+  assertV018AdmittedAuthorityCandidate({ repoRoot, receipt, receiptPath });
   const replays = Array.isArray(receipt.replays) ? receipt.replays : [];
   if (replays.length !== 2) fail('v0.18 Authority candidate requires exactly two replay receipts');
   const first = asRecord(replays[0]);
@@ -172,7 +200,19 @@ function loadCandidateAuthority(repoRoot: string): {
   const manifestPath = path.join(repoRoot, String(first.manifestPath));
   const manifest = readJson(manifestPath);
   const engineering = readEngineering(repoRoot, manifest);
-  const stageReceiptPath = path.join(path.dirname(manifestPath), 'stage-receipt.json');
+  if (authorityDigest(engineering) !== String(manifest.engineeringDigest ?? '')) {
+    fail('v0.18 Authority engineeringDigest does not match engineering body');
+  }
+  if (String(manifest.snapshotId) !== String(first.snapshotId) || String(manifest.snapshotHash) !== String(first.snapshotHash)) {
+    fail('v0.18 Authority manifest snapshot identity drifted from sealed replay');
+  }
+  if (String(manifest.snapshotId) !== `snap-${String(manifest.snapshotHash)}`) {
+    fail('v0.18 Authority snapshotId does not match snapshotHash');
+  }
+  const stageReceiptPath = path.join(
+    repoRoot,
+    String(first.stageReceiptPath ?? path.join(path.dirname(String(first.manifestPath)), 'stage-receipt.json')),
+  );
   if (!existsSync(stageReceiptPath)) fail('v0.18 Authority stage receipt is missing');
   return {
     receipt,
@@ -410,12 +450,12 @@ async function generateDatabaseObservation(input: {
       // after the read.  Persist a logical identity derived only from bound
       // inputs so replayed candidate receipts remain byte deterministic while
       // still proving schema-only disposable isolation.
-      schemaIdentity: `actkg_admission_v018_${projectionDigest({
+      schemaIdentity: expectedV018AdmissionSchemaIdentity({
         snapshotId: input.authority.snapshotId,
         releaseId: input.authority.releaseId,
         bundleDigest: input.authority.bundleDigest,
         prerequisiteInputDigest: projectionDigest(input.prerequisiteEdges),
-      }).slice(0, 32)}`,
+      }),
       environmentIdentity: localEnvironmentIdentity(sourceUrl),
       authoritySnapshotId: input.authority.snapshotId,
       parameters: {
@@ -504,7 +544,12 @@ export async function prepareActKgV018TeachingProjection(
   const inventory = buildActiveCourseInventory({ repoRoot, authoringRevision: authority.captureRevision });
   if (inventory.packageCount !== 32 || inventory.resourceCount !== 551) fail(`active inventory drift: expected 32/551, got ${inventory.packageCount}/${inventory.resourceCount}`);
   const captureManifest = loadOrBuildCaptureManifest(repoRoot, inventory, authority.captureRevision);
-  const references = buildV018ReferenceDenominator({ inventory, priorArtifacts: priorProjection, captureRevision: authority.captureRevision });
+  const references = buildV018ReferenceDenominator({
+    inventory,
+    priorArtifacts: priorProjection,
+    captureRevision: authority.captureRevision,
+    repoRoot,
+  });
   const capture = buildV018CaptureReceipt({ manifest: captureManifest, inventory, references, excludedHistoricalCount: 4880 });
   const referencedIds = new Set<string>();
   for (const binding of priorProjection.bindings) referencedIds.add(binding.canonicalId);
@@ -585,7 +630,33 @@ export async function prepareActKgV018TeachingProjection(
   const expectedCanonicalIds = new Set(targetNodes.map((node) => `${node.canonicalId}\u001f${node.canonicalType}`));
   const candidatePrerequisiteEdges = first.prerequisiteInput?.edges ?? [];
   const expectedPrerequisiteKeys = new Set(candidatePrerequisiteEdges.map((edge) => `${edge.sourceNodeId}\u001f${edge.targetNodeId}\u001fPREREQUISITE`));
-  const databaseObservation = validateV018DatabaseObservation({ observation, authoritySnapshotId: authority.snapshotId, expectedCanonicalIds, expectedPrerequisiteKeys, expectedObjectRowCount: targetNodes.length, expectedPrerequisiteRowCount: candidatePrerequisiteEdges.length });
+  const prerequisiteInputDigest = projectionDigest(candidatePrerequisiteEdges.map((edge) => ({
+    sourceNodeId: edge.sourceNodeId,
+    targetNodeId: edge.targetNodeId,
+  })));
+  const databaseObservation = validateV018DatabaseObservation({
+    observation,
+    authoritySnapshotId: authority.snapshotId,
+    expectedCanonicalIds,
+    expectedPrerequisiteKeys,
+    expectedObjectRowCount: targetNodes.length,
+    expectedPrerequisiteRowCount: candidatePrerequisiteEdges.length,
+    expectedParameters: {
+      releaseId: authority.releaseId,
+      snapshotId: authority.snapshotId,
+      objectSource: 'ActkgProjectionNode',
+      prerequisiteSource: 'capture-bound-prerequisite-jsonb',
+      prerequisiteInputDigest,
+      isolation: 'schema-only-disposable',
+    },
+    expectedSchemaIdentity: expectedV018AdmissionSchemaIdentity({
+      snapshotId: authority.snapshotId,
+      releaseId: authority.releaseId,
+      bundleDigest: authority.bundleDigest,
+      prerequisiteInputDigest,
+    }),
+    requireLoopbackEnvironment: true,
+  });
   const referenceKindCounts = Object.fromEntries(V018_REFERENCE_KINDS.map((kind) => [kind, references.filter((reference) => reference.kind === kind).length])) as Record<(typeof V018_REFERENCE_KINDS)[number], number>;
   const receipt = buildV018RebaseReceipt({
     authority,
