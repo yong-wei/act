@@ -57,6 +57,7 @@
 - `rtk` 会为节约输出截断长文本行，不能用于判断 OSS object key 是否完整。需要核对协议输出、路径或摘要时，使用不经输出压缩的 `rtk proxy` 或在 bridge 子进程内直接解析；不得把工具展示层的省略号当作远端返回值。
 - 当前 ECS 的 `/usr/local/bin/ossutil` 1.7.19 不能可靠处理 stdin，且其 `cat` 会把耗时摘要写到 stdout；它只用于 `ls <prefix> -s` 的独立只读 key-set 交叉检查，不能作为 writer。固定 writer 是经官方下载 ZIP SHA-256 校验的 `/opt/act-ops/ossutil-2.3.0/ossutil`：bridge 每次先从 IMDS 证明唯一 `act-runtime-oss-release-operator-ecs` role，再显式传入 `--mode EcsRamRole --endpoint oss-cn-hangzhou-internal.aliyuncs.com --region cn-hangzhou`；普通 `cp -` 会覆盖同名对象，不能用于 immutable Release。为得到 OSS 服务端的禁止覆盖保证，单对象流先写入 root 0700 spool 目录中 0600、不可预测的临时文件（最大 256 MiB、至少保留 1 GiB 磁盘空间），随后仅通过 `api put-object --body file://… --forbid-overwrite true` 写入并立刻重读校验和删除。绝不建立完整 runtime staging。
 - ossutil 2 的 `api list-objects-v2 --output-format json` 在单对象页会把 `Contents` 输出为 object 而非 array，bridge 必须规范化缺失、object 与 array 三种形态，并使用 continuation token 完整分页；不得从被截断的 v1 `ls` 行推导 object key。
+- ossutil 2 的真实 `api head-object --output-format json` 会在 `Header` 内将 `Content-Length`、`Etag` 与自定义元数据表示为单元素数组；桥接须在读取前把单元素数组规范化为标量，而多元素数组必须失败关闭，不能把数组直接传入大小、ETag 或摘要校验。
 - 不在远端源码构建，不通过 ECS 代理大型视频，不开启 public-read，也不为排障降低 Bucket 私有访问策略。
 
 ## 内容寻址 Blob Release（v2，候选资格）
