@@ -444,39 +444,36 @@ export async function setAIProviderSettings(
 ): Promise<AIProviderSettings> {
   const normalized = normalizeAIProviderSettings(settings);
   const value = normalized as unknown as Prisma.InputJsonValue;
-  await db.platformSetting.upsert({
-    where: { key: AI_PROVIDER_SETTINGS_KEY },
-    create: { key: AI_PROVIDER_SETTINGS_KEY, value },
-    update: { value },
-  });
-  await db.platformSetting.upsert({
-    where: { key: AI_PROVIDER_SETTINGS_AUDIT_KEY },
-    create: {
-      key: AI_PROVIDER_SETTINGS_AUDIT_KEY,
-      value: {
-        updatedAt: new Date().toISOString(),
-        providerIds: normalized.providers.map((provider) => provider.id),
-        activeProvider: normalized.activeProvider,
-        secretRefSchemes: normalized.providers.map((provider) => ({
-          providerId: provider.id,
-          scheme: provider.secretRef.split(':')[0] ?? 'unknown',
-          configured: Boolean(provider.secretRef),
-        })),
-      } as Prisma.InputJsonValue,
-    },
-    update: {
-      value: {
-        updatedAt: new Date().toISOString(),
-        providerIds: normalized.providers.map((provider) => provider.id),
-        activeProvider: normalized.activeProvider,
-        secretRefSchemes: normalized.providers.map((provider) => ({
-          providerId: provider.id,
-          scheme: provider.secretRef.split(':')[0] ?? 'unknown',
-          configured: Boolean(provider.secretRef),
-        })),
-      } as Prisma.InputJsonValue,
-    },
-  });
+  const auditValue = {
+    updatedAt: new Date().toISOString(),
+    providerIds: normalized.providers.map((provider) => provider.id),
+    activeProvider: normalized.activeProvider,
+    secretRefSchemes: normalized.providers.map((provider) => ({
+      providerId: provider.id,
+      scheme: provider.secretRef.split(':')[0] ?? 'unknown',
+      configured: Boolean(provider.secretRef),
+    })),
+  } as Prisma.InputJsonValue;
+  const write = async (tx: Pick<typeof prisma, 'platformSetting'>) => {
+    await tx.platformSetting.upsert({
+      where: { key: AI_PROVIDER_SETTINGS_KEY },
+      create: { key: AI_PROVIDER_SETTINGS_KEY, value },
+      update: { value },
+    });
+    await tx.platformSetting.upsert({
+      where: { key: AI_PROVIDER_SETTINGS_AUDIT_KEY },
+      create: { key: AI_PROVIDER_SETTINGS_AUDIT_KEY, value: auditValue },
+      update: { value: auditValue },
+    });
+  };
+  const transactionDb = db as Pick<typeof prisma, 'platformSetting'> & {
+    $transaction?: (operation: (tx: Pick<typeof prisma, 'platformSetting'>) => Promise<unknown>) => Promise<unknown>;
+  };
+  if (transactionDb.$transaction) {
+    await transactionDb.$transaction(write);
+  } else {
+    await write(db);
+  }
   return normalized;
 }
 

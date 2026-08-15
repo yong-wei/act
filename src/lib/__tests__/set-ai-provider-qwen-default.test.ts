@@ -47,6 +47,14 @@ const qwenSettings = {
   }],
 };
 
+const emptySelectedModelSettings = {
+  ...deepSeekSettings,
+  providers: [{
+    ...deepSeekSettings.providers[0],
+    selectedModel: '',
+  }],
+};
+
 describe('set-ai-provider-qwen-default sync', () => {
   it('switches DeepSeek to Qwen and is idempotent on the next run', async () => {
     const { db, upsert, current } = fakeDb(deepSeekSettings);
@@ -70,5 +78,34 @@ describe('set-ai-provider-qwen-default sync', () => {
     const result = await syncSiliconFlowQwenDefault(db as never, () => undefined);
     expect(result).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
     expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it('writes an empty persisted selection once and is idempotent on the next run', async () => {
+    const { db, upsert, current } = fakeDb(emptySelectedModelSettings);
+    const messages: string[] = [];
+    const logger = (message: string) => messages.push(message);
+
+    const first = await syncSiliconFlowQwenDefault(db as never, logger);
+    expect(first).toEqual({ changed: true, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(upsert).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(current())).toContain('"selectedModel":"Qwen/Qwen3.6-35B-A3B"');
+
+    const second = await syncSiliconFlowQwenDefault(db as never, logger);
+    expect(second).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(upsert).toHaveBeenCalledTimes(2);
+    expect(messages[1]).toContain('already');
+  });
+
+  it('writes a missing settings row once and is idempotent on the next run', async () => {
+    const { db, upsert, current } = fakeDb(null);
+
+    const first = await syncSiliconFlowQwenDefault(db as never, () => undefined);
+    expect(first).toEqual({ changed: true, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(upsert).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(current())).toContain('"selectedModel":"Qwen/Qwen3.6-35B-A3B"');
+
+    const second = await syncSiliconFlowQwenDefault(db as never, () => undefined);
+    expect(second).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(upsert).toHaveBeenCalledTimes(2);
   });
 });
