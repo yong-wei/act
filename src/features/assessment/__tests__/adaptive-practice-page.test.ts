@@ -355,12 +355,51 @@ describe('adaptive practice page entry states', () => {
     expect(source).not.toContain('setActivePathRound(loadedBatch');
   });
 
+  it('synchronizes a generated candidate batch through the app router', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const generationBlock = source.slice(
+      source.indexOf("const generatedBatchId = operation === 'generate'"),
+      source.indexOf('await refreshLatestLearningPathAfterKonling()', source.indexOf("const generatedBatchId = operation === 'generate'")),
+    );
+
+    expect(source).toContain("import { useRouter, useSearchParams } from 'next/navigation'");
+    expect(source).toContain('const router = useRouter()');
+    expect(generationBlock).toContain("setCandidateBatchLoadState('loading')");
+    expect(generationBlock).toContain('synchronizedCandidateBatchRef.current = {');
+    expect(generationBlock).toContain("nextUrl.searchParams.set('batch', generatedBatchId)");
+    expect(generationBlock.indexOf('await fetchCandidateBatch(activeGoal, generatedBatchId)')).toBeLessThan(
+      generationBlock.indexOf("nextUrl.searchParams.set('batch', generatedBatchId)"),
+    );
+    expect(generationBlock.indexOf("setCandidateBatchLoadState('ready')")).toBeLessThan(
+      generationBlock.indexOf("nextUrl.searchParams.set('batch', generatedBatchId)"),
+    );
+    expect(generationBlock).toContain("nextUrl.searchParams.delete('candidate')");
+    expect(generationBlock).toContain('router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false })');
+    expect(generationBlock).not.toContain('window.history.replaceState');
+  });
+
+  it('reuses the authorized batch after synchronizing its route', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const candidateBatchEffect = source.slice(
+      source.indexOf("useEffect(() => {\n    if (!activeGoal || (!isDemoMode && authStatus !== 'authenticated')"),
+      source.indexOf("useEffect(() => {\n    if (activeGoal || !pathAdvisorContextGoal", source.indexOf("useEffect(() => {\n    if (!activeGoal || (!isDemoMode && authStatus !== 'authenticated')")),
+    );
+
+    expect(candidateBatchEffect).toContain('const synchronizedBatch = synchronizedCandidateBatchRef.current');
+    expect(candidateBatchEffect).toContain('synchronizedBatch.batchId === requestedBatchId');
+    expect(candidateBatchEffect).toContain('synchronizedBatch.candidateId === requestedCandidateId');
+    expect(candidateBatchEffect).toContain('setActiveCandidateBatch(synchronizedBatch.batch)');
+    expect(candidateBatchEffect.indexOf('setActiveCandidateBatch(synchronizedBatch.batch)')).toBeLessThan(
+      candidateBatchEffect.indexOf('fetchCandidateBatch(activeGoal, requestedBatchId, requestedCandidateId)'),
+    );
+  });
+
   it('keeps candidate selection visible while its batch is loading independently', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
     expect(source).toContain("const shouldShowCandidateComparison = (showGenerationWorkspace || showSelectionWorkspace) && Boolean(requestedBatchId)");
-    expect(source).toContain("const showCandidateBatchRecovery = shouldShowCandidateComparison &&");
-    expect(source).toContain("const canRenderCandidateComparison = shouldShowCandidateComparison && !showCandidateBatchRecovery");
+    expect(source).toContain("const showCandidateBatchRecovery = (shouldShowCandidateComparison || generatedCandidateBatchFailure) &&");
+    expect(source).toContain("const canRenderCandidateComparison = shouldShowCandidateComparison && candidateBatchLoadState === 'ready'");
     expect(source).toContain("workspaceIntent !== 'generation' && workspaceIntent !== 'selection'");
     expect(source).toContain("requestedBatchId ?? 'batch:none'");
     expect(source).toContain("const hasCandidateBatchContext = shouldShowCandidateComparison");
