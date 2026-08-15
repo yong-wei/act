@@ -456,7 +456,12 @@ def metadata_field(payload: Dict[str, Any], names: List[str], label: str) -> Any
     for source in sources:
         for key, value in source.items():
             if isinstance(key, str) and re.sub(r"[^a-z0-9]", "", key.lower()) in normalized_names:
-                candidates.append(value)
+                if isinstance(value, list):
+                    if len(value) != 1:
+                        fail(f"ossutil v2 head-object returned ambiguous {label} metadata")
+                    candidates.append(value[0])
+                else:
+                    candidates.append(value)
     if not candidates:
         return None
     rendered = {json.dumps(value, ensure_ascii=False, sort_keys=True) for value in candidates}

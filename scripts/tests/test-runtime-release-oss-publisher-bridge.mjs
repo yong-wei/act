@@ -112,11 +112,12 @@ if (operation === 'api') {
       const metadata = await readMetadata();
       const body = await readFile(objectPath(key));
       const etag = process.env.FAKE_ETAG_VALUE || \`"\${createHash('md5').update(body).digest('hex')}"\`;
+      const objectMetadata = Object.fromEntries(Object.entries(metadata[key] || {}).map(([name, value]) => [name, [value]]));
       process.stdout.write(JSON.stringify({
         Header: {
-          'Content-Length': String(details.size),
-          Etag: etag,
-          ...(metadata[key] || {}),
+          'Content-Length': [String(details.size)],
+          Etag: [etag],
+          ...objectMetadata,
         },
       }));
     } catch {
