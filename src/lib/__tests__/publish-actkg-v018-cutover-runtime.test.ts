@@ -1,0 +1,83 @@
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
+import { afterEach, describe, expect, it } from 'vitest';
+
+import { prepareActKgV018RuntimeRelease } from '../../../scripts/knowledge-cutover/publish-actkg-v018-cutover-runtime';
+import {
+  DOCKER_MIN_MEMORY_BYTES,
+  publishActKgV018CutoverRuntime,
+} from '../teaching-projection/publish/v018-runtime-release';
+import {
+  assertV018ProductionPointersUnchanged,
+  snapshotCurrentPointers,
+} from '../teaching-projection/qualify/v018-qualify';
+
+const roots: string[] = [];
+const REPO_ROOT = path.resolve(__dirname, '../../..');
+
+afterEach(() => {
+  while (roots.length > 0) rmSync(roots.pop()!, { recursive: true, force: true });
+});
+
+describe('v0.18 runtime publication', () => {
+  it('refuses to build when the sealed qualification report is not READY', async () => {
+    const before = snapshotCurrentPointers(REPO_ROOT);
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-'));
+    roots.push(outputRoot);
+    let built = false;
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      runBuild: async () => {
+        built = true;
+        throw new Error('build must not run for an unqualified candidate');
+      },
+    });
+    expect(built).toBe(false);
+    expect(result.imageBuilt).toBe(false);
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('qualification-not-ready');
+    expect(existsSync(path.join(outputRoot, 'runtime-release-receipt.json'))).toBe(true);
+    const report = JSON.parse(readFileSync(path.join(outputRoot, 'runtime-release-receipt.json'), 'utf8')) as {
+      productionCutoverAuthorized: boolean;
+      selectorConsumption: boolean;
+      imageBuilt: boolean;
+      applicationRevision: string;
+      qualificationStatus: string;
+    };
+    expect(report.productionCutoverAuthorized).toBe(false);
+    expect(report.selectorConsumption).toBe(false);
+    expect(report.imageBuilt).toBe(false);
+    expect(report.qualificationStatus).toBe('BLOCKED');
+    expect(report.applicationRevision).toMatch(/^[0-9a-f]{40}$/);
+    const after = snapshotCurrentPointers(REPO_ROOT);
+    expect(() => assertV018ProductionPointersUnchanged(before, after)).not.toThrow();
+  });
+
+  it('fails closed when Docker VM memory is below 20 GiB', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-mem-'));
+    roots.push(outputRoot);
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES - 1,
+      runBuild: async () => {
+        throw new Error('build must not run below the Docker memory gate');
+      },
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('docker-memory-below-20gib');
+    expect(result.imageBuilt).toBe(false);
+  });
+
+  it('refuses to write a runtime release onto a selector path', async () => {
+    await expect(prepareActKgV018RuntimeRelease([
+      '--repo-root',
+      REPO_ROOT,
+      '--output-root',
+      path.join(REPO_ROOT, 'course-content/runtime/knowledge/projection'),
+    ])).rejects.toThrow('runtime selector');
+  });
+});
