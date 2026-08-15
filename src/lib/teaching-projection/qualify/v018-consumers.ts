@@ -14,6 +14,10 @@ import {
   resolveEngineeringGraphAuthority,
   resolveEngineeringRagAuthority,
 } from '@/lib/authoritative-knowledge/engineering-authority-consumers';
+import {
+  applyTeachingResourceRagConsumerActivation,
+  runEngineeringRagQuery,
+} from '@/lib/canonical-rag/domain-composition';
 import type { AuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 import {
   ENGINEERING_RELATION_FAMILIES,
@@ -33,6 +37,10 @@ import { loadPrerequisitePublication, type PrerequisiteStorePaths } from '../pre
 import type { StagedTeachingProjectionFiles } from '../store';
 import {
   resolveConsumerActivation,
+  resolveCourseRuntimeProductionSelection,
+  resolveEngineeringRagProductionSelection,
+  resolveKonlingProductionSelection,
+  resolveTeachingResourceRagProductionSelection,
   type ConsumerActivationStorePaths,
 } from '@/lib/versioned-knowledge-activation';
 
@@ -191,26 +199,66 @@ function runGraphReads(input: CandidateConsumerReadInput): ConsumerShadowRead[] 
 
 function runEngineeringRagRead(input: CandidateConsumerReadInput): ConsumerShadowRead[] {
   const reads: ConsumerShadowRead[] = [];
+  const selection = input.activationPaths
+    ? resolveEngineeringRagProductionSelection({ activationPaths: input.activationPaths })
+    : null;
+  pushRead(reads, 'engineering-rag-selection', Boolean(selection && selection.mode === 'use-combination' && selection.combination?.authoritySnapshotId === input.authorityManifest.snapshotId), {
+    authoritySnapshotId: selection?.combination?.authoritySnapshotId ?? input.authorityManifest.snapshotId,
+    mode: selection?.mode ?? null,
+  }, false, selection ? `mode=${selection.mode}` : 'selection-missing');
+  const queryObject = input.engineering.objects.find((row) => row.semanticName)
+    ?? input.engineering.objects[0];
+  const rag = runEngineeringRagQuery({
+    query: {
+      domain: 'engineering',
+      query: String(queryObject?.semanticName ?? queryObject?.canonicalId ?? 'authority'),
+      authorityReleaseId: input.authorityManifest.releaseId,
+      mode: 'shadow',
+    },
+    corpus: queryObject
+      ? [{
+          canonicalId: queryObject.canonicalId,
+          label: queryObject.semanticName ?? null,
+          predicates: [],
+          relationIds: [],
+          authorityReleaseId: input.authorityManifest.releaseId,
+        }]
+      : [],
+    activationSelection: selection ?? undefined,
+  });
+  pushRead(reads, 'engineering-rag-query', rag.metadata.availability !== 'unavailable' && rag.metadata.authorityReleaseId === input.authorityManifest.releaseId, {
+    authoritySnapshotId: input.authorityManifest.snapshotId,
+    canonicalId: queryObject?.canonicalId ?? null,
+  }, visibleLeak(queryObject?.semanticName), rag.metadata.availability);
   const resolved = resolveEngineeringRagAuthority(input.authorityPaths);
-  const engineering = resolved.status === 'ready' ? resolved.engineering : null;
-  const queryObject = engineering?.objects.find((row) => row.semanticName)
-    ?? input.engineering.objects.find((row) => row.canonicalType === 'DomainConcept');
-  const hit = engineering?.objects.find((row) => (
-    queryObject && row.canonicalId === queryObject.canonicalId
-  )) ?? null;
-  const leak = visibleLeak(queryObject?.semanticName, hit?.semanticName);
-  pushRead(reads, 'engineering-rag', Boolean(engineering && hit && resolved.snapshotId === input.authorityManifest.snapshotId), {
+  pushRead(reads, 'engineering-rag', resolved.status === 'ready' && resolved.snapshotId === input.authorityManifest.snapshotId, {
     authoritySnapshotId: resolved.snapshotId ?? input.authorityManifest.snapshotId,
-    canonicalId: hit?.canonicalId ?? null,
-  }, leak, resolved.status === 'ready' ? `hit=${hit?.canonicalId ?? 'none'}` : resolved.reason ?? resolved.status);
+    canonicalId: queryObject?.canonicalId ?? null,
+  }, false, resolved.status === 'ready' ? `objects=${resolved.objectCount}` : resolved.reason ?? resolved.status);
   return reads;
 }
 
 function runTeachingRagRead(input: CandidateConsumerReadInput): ConsumerShadowRead[] {
   const reads: ConsumerShadowRead[] = [];
+  const selection = input.activationPaths
+    ? resolveTeachingResourceRagProductionSelection({ activationPaths: input.activationPaths })
+    : null;
+  const query = applyTeachingResourceRagConsumerActivation({
+    domain: 'teaching-resource',
+    query: 'course',
+    projectionId: input.loadedProjection.projectionId,
+    projectionHash: input.loadedProjection.projectionHash,
+    authorityReleaseId: input.authorityManifest.releaseId,
+    scopeId: input.loadedProjection.artifacts.manifest.scopeId ?? null,
+    mode: 'shadow',
+  }, { activationSelection: selection ?? undefined });
+  pushRead(reads, 'teaching-resource-rag-selection', Boolean(selection && selection.mode === 'use-combination' && selection.combination?.projectionId === input.loadedProjection.projectionId && !query.activationBlocked), {
+    projectionId: query.projectionId ?? input.loadedProjection.projectionId,
+    mode: selection?.mode ?? null,
+  }, false, selection ? `mode=${selection.mode}` : 'selection-missing');
   const bound = boundResource(input.loadedProjection);
   const leak = visibleLeak(bound?.title, bound?.rationale);
-  pushRead(reads, 'teaching-resource-rag', Boolean(bound), {
+  pushRead(reads, 'teaching-resource-rag', Boolean(bound && query.projectionId === input.loadedProjection.projectionId), {
     projectionId: input.loadedProjection.projectionId,
     resourceId: bound ? String(bound.resourceId) : null,
     canonicalId: bound ? String(bound.canonicalId) : null,
@@ -230,6 +278,13 @@ function runTeachingRagRead(input: CandidateConsumerReadInput): ConsumerShadowRe
 
 function runCourseRead(input: CandidateConsumerReadInput): ConsumerShadowRead[] {
   const reads: ConsumerShadowRead[] = [];
+  const selection = input.activationPaths
+    ? resolveCourseRuntimeProductionSelection({ activationPaths: input.activationPaths })
+    : null;
+  pushRead(reads, 'course-runtime-selection', Boolean(selection && selection.mode === 'use-combination' && selection.combination?.projectionId === input.loadedProjection.projectionId), {
+    projectionId: selection?.combination?.projectionId ?? input.loadedProjection.projectionId,
+    mode: selection?.mode ?? null,
+  }, false, selection ? `mode=${selection.mode}` : 'selection-missing');
   const binding = input.loadedProjection.artifacts.bindings.find((row) => (
     String(row.scopeId ?? '').startsWith('course-package:') && Boolean(row.canonicalId)
   ));
@@ -239,7 +294,7 @@ function runCourseRead(input: CandidateConsumerReadInput): ConsumerShadowRead[] 
       String(row.scopeId ?? '').startsWith('course-package:') && row.bindingStatus === 'BOUND'
     ));
   const leak = visibleLeak(resource?.title, binding?.rationale);
-  pushRead(reads, 'course-runtime', Boolean(binding && input.loadedProjection.artifacts.manifest.authorityReleaseId === input.authorityManifest.releaseId), {
+  pushRead(reads, 'course-runtime', Boolean(binding && selection?.combination?.authorityReleaseId === input.authorityManifest.releaseId), {
     projectionId: input.loadedProjection.projectionId,
     resourceId: resource?.resourceId ?? binding?.resourceId ?? null,
     scopeId: resource?.scopeId ?? binding?.scopeId ?? null,
@@ -249,13 +304,20 @@ function runCourseRead(input: CandidateConsumerReadInput): ConsumerShadowRead[] 
 
 function runKonlingRead(input: CandidateConsumerReadInput): ConsumerShadowRead[] {
   const reads: ConsumerShadowRead[] = [];
+  const selection = input.activationPaths
+    ? resolveKonlingProductionSelection({ activationPaths: input.activationPaths })
+    : null;
+  pushRead(reads, 'konling-selection', Boolean(selection && selection.mode === 'use-combination' && selection.combination?.projectionId === input.loadedProjection.projectionId), {
+    projectionId: selection?.combination?.projectionId ?? input.loadedProjection.projectionId,
+    mode: selection?.mode ?? null,
+  }, false, selection ? `mode=${selection.mode}` : 'selection-missing');
   const card = input.loadedProjection.artifacts.cardsIndex.cards.find((row) => row.active)
     ?? input.loadedProjection.artifacts.cardsIndex.cards[0];
   const binding = card
     ? input.loadedProjection.artifacts.bindings.find((row) => row.canonicalId === card.canonicalId)
     : null;
   const leak = visibleLeak(card?.title, binding?.rationale);
-  pushRead(reads, 'konling', Boolean(card && card.canonicalId), {
+  pushRead(reads, 'konling', Boolean(card && card.canonicalId && selection?.combination?.projectionId === input.loadedProjection.projectionId), {
     projectionId: input.loadedProjection.projectionId,
     cardId: card?.cardId ?? null,
     canonicalId: card?.canonicalId ?? null,

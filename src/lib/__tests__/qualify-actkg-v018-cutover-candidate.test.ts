@@ -11,6 +11,7 @@ import {
   snapshotCurrentPointers,
   V018_NAMED_CONSUMERS,
   verifyAbsoluteFileHash,
+  verifyDeclaredCandidateHashes,
 } from '../teaching-projection/qualify/v018-qualify';
 
 const roots: string[] = [];
@@ -74,8 +75,9 @@ describe('v0.18 cutover qualification', () => {
     expect(report.isolatedRollback.selectors.prerequisites.advanced).toBe(true);
     expect(report.isolatedRollback.selectors['consumer-activation'].advanced).toBe(true);
     expect(Object.values(report.isolatedRollback.selectors).every((row) => row.restored)).toBe(true);
-    expect(report.dualRebuild.byteEquivalent).toBe(true);
     expect(report.dualRebuild.comparedFiles).toBeGreaterThanOrEqual(3);
+    expect(result.blockers).toContain('teaching-dual-replay-trees-absent');
+    expect(report.dualRebuild.byteEquivalent).toBe(false);
     expect(result.blockers.some((row) => row.startsWith('isolated-shard:'))).toBe(true);
     expect(result.status).toBe('BLOCKED');
     const after = snapshotCurrentPointers(REPO_ROOT);
@@ -83,6 +85,15 @@ describe('v0.18 cutover qualification', () => {
     const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
     expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
   }, 180_000);
+
+  it('binds the authority receipt body hash without trusting the file self-hash', () => {
+    const declared = collectDeclaredCandidateHashes(REPO_ROOT).find((row) => (
+      row.path.endsWith('/candidate-receipt.json') && row.digestScope === 'receipt-body-without-outputs'
+    ));
+    expect(declared).toBeTruthy();
+    const blockers = verifyDeclaredCandidateHashes(REPO_ROOT);
+    expect(blockers.some((row) => row.includes('receipt-body-hash-mismatch'))).toBe(false);
+  });
 
   it('binds the declared label index hash so a mutated row cannot stay READY', () => {
     const label = collectDeclaredCandidateHashes(REPO_ROOT).find((row) => (

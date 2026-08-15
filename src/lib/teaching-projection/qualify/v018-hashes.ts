@@ -3,6 +3,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
+import { authorityCanonicalJson, authoritySha256 } from '../../authoritative-knowledge/authority-snapshot';
 import { projectionDigest } from '../hash';
 import {
   AUTHORITY_CANDIDATE_RELATIVE,
@@ -18,6 +19,7 @@ export interface DeclaredCandidateHash {
   path: string;
   sha256: string;
   source: string;
+  digestScope?: string;
 }
 
 const TEACHING_RELEASE_FILES = [
@@ -80,11 +82,12 @@ export function collectDeclaredCandidateHashes(repoRoot: string): DeclaredCandid
   for (const row of outputs) {
     const rec = asRecord(row);
     const relative = String(rec.path ?? '');
-    if (!relative || relative.endsWith('/candidate-receipt.json')) continue;
+    if (!relative) continue;
     declared.push({
       path: relative,
       sha256: String(rec.sha256 ?? ''),
       source: 'authority-receipt.outputs',
+      digestScope: String(rec.digestScope ?? 'bytes'),
     });
   }
 
@@ -144,8 +147,21 @@ export function verifyDeclaredCandidateHashes(repoRoot: string): string[] {
       blockers.push(`declared-hash-unsafe-path:${row.path}`);
       continue;
     }
-    const failure = verifyAbsoluteFileHash(path.join(repoRoot, row.path), row.sha256);
+    const abs = path.join(repoRoot, row.path);
+    if (row.digestScope === 'receipt-body-without-outputs') {
+      const parsed = readJson(abs);
+      const actual = authoritySha256(authorityCanonicalJson({ ...parsed, outputs: [] }));
+      if (actual !== row.sha256) blockers.push(`${row.source}:receipt-body-hash-mismatch:${row.path}`);
+      continue;
+    }
+    const failure = verifyAbsoluteFileHash(abs, row.sha256);
     if (failure) blockers.push(`${row.source}:${failure}`);
+  }
+  const teachingReceipt = readJson(path.join(repoRoot, TEACHING_CANDIDATE_RELATIVE, 'candidate-receipt.json'));
+  const declaredAuthorityDigest = String(asRecord(teachingReceipt.authority).candidateReceiptDigest ?? '');
+  const actualAuthorityDigest = shaFile(path.join(repoRoot, AUTHORITY_CANDIDATE_RELATIVE, 'candidate-receipt.json'));
+  if (declaredAuthorityDigest !== actualAuthorityDigest) {
+    blockers.push('teaching-authority-candidate-receipt-digest-drift');
   }
   return blockers;
 }
@@ -249,16 +265,24 @@ export function compareDualReplayArtifactBytes(repoRoot: string): {
   ) {
     blockers.push('teaching-dual-prerequisite-id-drift');
   }
-  const projectionHash = shaFile(path.join(
-    repoRoot,
-    TEACHING_CANDIDATE_RELATIVE,
-    `projection/releases/${firstProjectionId}/projection-manifest.json`,
-  ));
-  const publicationHash = shaFile(path.join(
-    repoRoot,
-    TEACHING_CANDIDATE_RELATIVE,
-    `prerequisites/releases/${firstPrerequisitePublicationId}/publication-manifest.json`,
-  ));
+  const teachingReplay1 = path.join(repoRoot, TEACHING_CANDIDATE_RELATIVE, 'replay-1');
+  const teachingReplay2 = path.join(repoRoot, TEACHING_CANDIDATE_RELATIVE, 'replay-2');
+  if (!existsSync(teachingReplay1) || !existsSync(teachingReplay2)) {
+    blockers.push('teaching-dual-replay-trees-absent');
+  } else {
+    const teach1 = collectRelativeFiles(teachingReplay1);
+    const teach2 = collectRelativeFiles(teachingReplay2);
+    const teachSet2 = new Set(teach2);
+    for (const relative of teach1) {
+      if (!teachSet2.has(relative)) blockers.push(`teaching-dual-replay-missing-in-replay-2:${relative}`);
+      else {
+        const left = readFileSync(path.join(teachingReplay1, relative));
+        const right = readFileSync(path.join(teachingReplay2, relative));
+        comparedFiles += 1;
+        if (!left.equals(right)) blockers.push(`teaching-dual-replay-byte-drift:${relative}`);
+      }
+    }
+  }
   if (!firstProjectionId || !existsSync(path.join(
     repoRoot,
     TEACHING_CANDIDATE_RELATIVE,
@@ -278,11 +302,9 @@ export function compareDualReplayArtifactBytes(repoRoot: string): {
   if (String(dual.secondPrerequisitePublicationHash ?? '') !== String(dual.firstPrerequisitePublicationHash ?? '')) {
     blockers.push('teaching-dual-prerequisite-rebuild-drift');
   }
-  void projectionHash;
-  void publicationHash;
   void V018_SNAPSHOT;
 
-  const authorityReplayEquivalent = blockers.every((row) => !row.startsWith('dual-replay-'));
+  const authorityReplayEquivalent = !blockers.some((row) => row.startsWith('dual-replay-'));
   const byteEquivalent = blockers.length === 0;
   return {
     blockers,
