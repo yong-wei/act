@@ -43,6 +43,7 @@ import {
   activateTeachingProjection,
   readCurrentTeachingProjectionPointer,
   resolveTeachingProjectionStorePaths,
+  type TeachingProjectionStorePaths,
 } from '../store';
 import {
   activateConsumerActivation,
@@ -146,6 +147,7 @@ export function rehearseIsolatedFiveSelectorActivation(input: {
     shardPaths: AuthorityDomainShardPaths;
     authorityPaths: AuthorityStorePaths;
     activationPaths: ConsumerActivationStorePaths;
+    projectionPaths: TeachingProjectionStorePaths;
     prerequisitePaths: PrerequisiteStorePaths;
   }) => void;
 }): IsolatedRehearsal {
@@ -407,6 +409,7 @@ export function rehearseIsolatedFiveSelectorActivation(input: {
       shardPaths,
       authorityPaths,
       activationPaths,
+      projectionPaths,
       prerequisitePaths,
     });
   } catch (error) {

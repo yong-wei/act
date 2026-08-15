@@ -17,6 +17,7 @@ import {
 import {
   applyTeachingResourceRagConsumerActivation,
   runEngineeringRagQuery,
+  runTeachingResourceRagQuery,
 } from '@/lib/canonical-rag/domain-composition';
 import type { AuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 import {
@@ -34,7 +35,8 @@ import {
   resolveAuthorityLabel,
 } from '@/lib/authority-domain-shards/labels';
 import { loadPrerequisitePublication, type PrerequisiteStorePaths } from '../prerequisites/store';
-import type { StagedTeachingProjectionFiles } from '../store';
+import type { StagedTeachingProjectionFiles, TeachingProjectionStorePaths } from '../store';
+import { resolveCoursePageLayeredGraphContext } from '@/lib/layered-graph/course-page-context';
 import {
   resolveConsumerActivation,
   resolveCourseRuntimeProductionSelection,
@@ -76,6 +78,7 @@ export interface CandidateConsumerReadInput {
   shardPaths: AuthorityDomainShardPaths | null;
   authorityPaths: AuthorityStorePaths;
   activationPaths: ConsumerActivationStorePaths | null;
+  projectionPaths: TeachingProjectionStorePaths | null;
   prerequisitePaths: PrerequisiteStorePaths;
   publicationId: string;
   infographCount: number;
@@ -258,11 +261,52 @@ function runTeachingRagRead(input: CandidateConsumerReadInput): ConsumerShadowRe
   }, false, selection ? `mode=${selection.mode}` : 'selection-missing');
   const bound = boundResource(input.loadedProjection);
   const leak = visibleLeak(bound?.title, bound?.rationale);
-  pushRead(reads, 'teaching-resource-rag', Boolean(bound && query.projectionId === input.loadedProjection.projectionId), {
+  const teachingQuery = runTeachingResourceRagQuery({
+    query,
+    corpus: {
+      resources: input.loadedProjection.artifacts.resources.map((row) => ({
+        resourceId: row.resourceId,
+        resourceType: row.resourceType,
+        title: row.title,
+        scopeId: row.scopeId,
+        canonicalIds: input.loadedProjection.artifacts.bindings
+          .filter((item) => item.resourceId === row.resourceId)
+          .map((item) => item.canonicalId),
+        roles: input.loadedProjection.artifacts.bindings
+          .filter((item) => item.resourceId === row.resourceId)
+          .map((item) => item.role),
+      })),
+      bindings: input.loadedProjection.artifacts.bindings.map((row) => ({
+        bindingId: row.bindingId,
+        resourceId: row.resourceId,
+        canonicalId: row.canonicalId,
+        role: row.role,
+        scopeId: row.scopeId,
+        primary: row.primary,
+        resourceType: input.loadedProjection.artifacts.resources.find((item) => item.resourceId === row.resourceId)?.resourceType ?? null,
+        resourceTitle: input.loadedProjection.artifacts.resources.find((item) => item.resourceId === row.resourceId)?.title ?? null,
+        projectionMode: input.loadedProjection.artifacts.resources.find((item) => item.resourceId === row.resourceId)?.projectionMode ?? null,
+        sourcePath: row.sourcePath,
+      })),
+      cards: input.loadedProjection.artifacts.cardsIndex.cards,
+      projectionId: input.loadedProjection.projectionId,
+      projectionHash: input.loadedProjection.projectionHash,
+      authorityReleaseId: input.authorityManifest.releaseId,
+      scopeId: input.loadedProjection.artifacts.manifest.scopeId ?? null,
+      status: 'ready',
+    },
+    activationSelection: selection ?? undefined,
+  });
+  pushRead(reads, 'teaching-resource-rag', Boolean(
+    bound
+    && query.projectionId === input.loadedProjection.projectionId
+    && teachingQuery.metadata.availability !== 'unavailable'
+    && teachingQuery.metadata.projectionId === input.loadedProjection.projectionId
+  ), {
     projectionId: input.loadedProjection.projectionId,
     resourceId: bound ? String(bound.resourceId) : null,
     canonicalId: bound ? String(bound.canonicalId) : null,
-  }, leak, bound ? `resource=${String(bound.resourceId)}` : 'no-bound-resource');
+  }, leak, bound ? `resource=${String(bound.resourceId)};availability=${teachingQuery.metadata.availability}` : 'no-bound-resource');
   const card = input.loadedProjection.artifacts.cardsIndex.cards[0];
   pushRead(reads, 'card', Boolean(card?.canonicalId && card.active), {
     projectionId: input.loadedProjection.projectionId,
@@ -294,7 +338,25 @@ function runCourseRead(input: CandidateConsumerReadInput): ConsumerShadowRead[] 
       String(row.scopeId ?? '').startsWith('course-package:') && row.bindingStatus === 'BOUND'
     ));
   const leak = visibleLeak(resource?.title, binding?.rationale);
-  pushRead(reads, 'course-runtime', Boolean(binding && selection?.combination?.authorityReleaseId === input.authorityManifest.releaseId), {
+  let courseGraphOk = false;
+  if (input.projectionPaths && selection) {
+    const course = resolveCoursePageLayeredGraphContext({
+      scope: {
+        scopeId: input.loadedProjection.artifacts.manifest.scopeId,
+      },
+      authorityPaths: input.authorityPaths,
+      projectionPaths: input.projectionPaths,
+      consumerActivationSelection: selection,
+      allowLegacyFallback: false,
+    });
+    courseGraphOk = course.hasTeachingProjection
+      && course.payload.teachingResources.identity.projectionId === input.loadedProjection.projectionId;
+    pushRead(reads, 'course-runtime-graph', courseGraphOk, {
+      projectionId: course.payload.teachingResources.identity.projectionId ?? input.loadedProjection.projectionId,
+      scopeId: input.loadedProjection.artifacts.manifest.scopeId,
+    }, false, `hasTeaching=${String(course.hasTeachingProjection)}`);
+  }
+  pushRead(reads, 'course-runtime', Boolean(binding && selection?.combination?.authorityReleaseId === input.authorityManifest.releaseId && (courseGraphOk || !input.projectionPaths)), {
     projectionId: input.loadedProjection.projectionId,
     resourceId: resource?.resourceId ?? binding?.resourceId ?? null,
     scopeId: resource?.scopeId ?? binding?.scopeId ?? null,

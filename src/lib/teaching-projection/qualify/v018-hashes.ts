@@ -272,6 +272,10 @@ export function compareDualReplayArtifactBytes(repoRoot: string): {
   } else {
     const teach1 = collectRelativeFiles(teachingReplay1);
     const teach2 = collectRelativeFiles(teachingReplay2);
+    if (teach1.length === 0 || teach2.length === 0) {
+      blockers.push('teaching-dual-replay-trees-empty');
+    }
+    const teachSet1 = new Set(teach1);
     const teachSet2 = new Set(teach2);
     for (const relative of teach1) {
       if (!teachSet2.has(relative)) blockers.push(`teaching-dual-replay-missing-in-replay-2:${relative}`);
@@ -281,6 +285,9 @@ export function compareDualReplayArtifactBytes(repoRoot: string): {
         comparedFiles += 1;
         if (!left.equals(right)) blockers.push(`teaching-dual-replay-byte-drift:${relative}`);
       }
+    }
+    for (const relative of teach2) {
+      if (!teachSet1.has(relative)) blockers.push(`teaching-dual-replay-missing-in-replay-1:${relative}`);
     }
   }
   if (!firstProjectionId || !existsSync(path.join(

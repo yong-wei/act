@@ -224,6 +224,7 @@ export async function qualifyActKgV018CutoverCandidate(input: {
         shardPaths: context.shardPaths,
         authorityPaths: context.authorityPaths,
         activationPaths: context.activationPaths,
+        projectionPaths: context.projectionPaths,
         prerequisitePaths: context.prerequisitePaths,
         publicationId: candidateTeaching.publicationId,
         infographCount: audit.infographCount,
