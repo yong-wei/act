@@ -22,7 +22,20 @@ import {
 } from '../qualify/v018-shared';
 
 export const V018_RUNTIME_RELEASE_CONTRACT = 'actkg-v018-runtime-release/v1' as const;
+export const V018_QUALIFICATION_CONTRACT = 'actkg-v018-cutover-qualification/v1' as const;
 export const DOCKER_MIN_MEMORY_BYTES = 20 * 1024 * 1024 * 1024;
+export const V09_POINTER_HASHES = {
+  'course-content/authoring/knowledge/authority/current.json':
+    '086f14793fbf2aa3afc8fba471503042242645122425c3018b6526e8ab2835f2',
+  'course-content/runtime/knowledge/projection/current.json':
+    'cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703',
+  'course-content/runtime/knowledge/prerequisites/current.json':
+    'a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e',
+  'course-content/runtime/knowledge/authority-domain-shards/current.json':
+    '9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c',
+  'course-content/runtime/knowledge/consumer-activation/current.json':
+    'e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b',
+} as const;
 
 export class V018RuntimeReleaseError extends Error {
   readonly code: string;
@@ -77,6 +90,47 @@ function assertV09Pointers(pointers: ReturnType<typeof snapshotCurrentPointers>,
   }
   if (activation.activationId !== V09_ACTIVATION) blockers.push('production-activation-not-v09');
   if (pointers.length < 5) blockers.push('production-pointer-set-incomplete');
+  const pointerHash = new Map(pointers.map((row) => [row.path, row.sha256]));
+  for (const [relative, expected] of Object.entries(V09_POINTER_HASHES)) {
+    const actual = pointerHash.get(relative) ?? shaFile(path.join(repoRoot, relative));
+    if (actual !== expected) blockers.push(`production-pointer-hash-drift:${relative}`);
+  }
+  return blockers;
+}
+
+function verifyQualificationBinding(qualification: Record<string, unknown>): string[] {
+  const blockers: string[] = [];
+  if (qualification.contract !== V018_QUALIFICATION_CONTRACT) {
+    blockers.push('qualification-contract-invalid');
+  }
+  const declaredDigest = String(qualification.receiptDigest ?? '');
+  const actualDigest = projectionDigest((({ receiptDigest: _ignored, ...rest }) => rest)(qualification));
+  if (!declaredDigest || declaredDigest !== actualDigest) {
+    blockers.push('qualification-digest-drift');
+  }
+  const authority = asRecord(qualification.authority);
+  const teaching = asRecord(qualification.teaching);
+  if (authority.snapshotId !== 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed') {
+    blockers.push('qualification-authority-identity-drift');
+  }
+  if (!String(teaching.projectionId ?? '').startsWith('proj-') || !String(teaching.publicationId ?? '').startsWith('proj-')) {
+    blockers.push('qualification-teaching-identity-incomplete');
+  }
+  return blockers;
+}
+
+function verifyProvenance(provenancePath: string | null | undefined, applicationRevision: string): string[] {
+  if (!provenancePath || !existsSync(provenancePath)) {
+    return ['provenance-missing'];
+  }
+  const provenance = asRecord(readJson(provenancePath));
+  const blockers: string[] = [];
+  if (String(provenance.appRevision ?? '') !== applicationRevision) {
+    blockers.push('provenance-revision-mismatch');
+  }
+  if (!/^[a-f0-9]{64}$/.test(String(provenance.imageTarSha256 ?? ''))) {
+    blockers.push('provenance-image-digest-invalid');
+  }
   return blockers;
 }
 
@@ -115,6 +169,7 @@ export async function publishActKgV018CutoverRuntime(input: {
   const qualificationStatus = String(qualification.status ?? '');
   const qualificationDigest = existsSync(qualificationPath) ? shaFile(qualificationPath) : '';
   if (!existsSync(qualificationPath)) blockers.push('qualification-report-missing');
+  else blockers.push(...verifyQualificationBinding(qualification));
   if (qualificationStatus !== 'READY') blockers.push('qualification-not-ready');
   if (qualification.publicationOnly !== true) blockers.push('qualification-not-publication-only');
   if (qualification.productionCutoverAuthorized === true) blockers.push('qualification-claimed-cutover');
@@ -138,8 +193,10 @@ export async function publishActKgV018CutoverRuntime(input: {
       blockers.push('build-runner-required');
     } else {
       const built = await input.runBuild({ repoRoot, imageTag });
-      imageBuilt = true;
       imageTag = built.imageTag;
+      const provenanceBlockers = verifyProvenance(built.provenancePath, applicationRevision);
+      if (provenanceBlockers.length === 0) imageBuilt = true;
+      else blockers.push(...provenanceBlockers);
     }
   }
 
