@@ -4,6 +4,8 @@ import path from 'node:path';
 
 import { chromium, type Browser, type Page } from 'playwright';
 
+import { toRepositoryArtifactPath } from '../../src/lib/evidence-artifact-path';
+
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/simulation-command-deck-535');
 const fullMatrixOutputDir = path.join(repoRoot, 'artifacts/commercial-ui/simulation-full-matrix-qa-537');
@@ -423,7 +425,7 @@ async function captureRouteViewport(
     });
     writeFileSync(screenshotPath, Buffer.from(cdpScreenshot.data, 'base64'));
     await waitForFile(screenshotPath, 12000);
-    const screenshot = path.relative(repoRoot, screenshotPath);
+    const screenshot = toRepositoryArtifactPath(repoRoot, screenshotPath);
     return {
       width: viewport.width,
       theme,
