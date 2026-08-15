@@ -134,8 +134,12 @@ const commercialRouteEvidence = {
       theme: 'light',
       role: 'student',
       authState: 'authenticated',
-      navigationState: 'desktop-expanded',
+      navigationState: 'desktop-collapsed',
       horizontalOverflow: false,
+      appShellNavigationContract: 'collapsed-icon-rail',
+      gridTemplateColumns: '72px 1368px',
+      sidebarWidth: 72,
+      contentWidth: 1368,
     },
     {
       width: 320,

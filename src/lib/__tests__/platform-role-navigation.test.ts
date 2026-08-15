@@ -962,6 +962,7 @@ describe('platform role navigation', () => {
       frame: 'report-ledger',
       roleScope: ['guest', 'student'],
       authState: 'mixed',
+      desktopNavigation: 'collapsible',
       mobileNavigation: 'drawer',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')).toMatchObject({

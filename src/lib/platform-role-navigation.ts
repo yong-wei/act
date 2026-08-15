@@ -1163,6 +1163,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     mobileNavigation: 'drawer',

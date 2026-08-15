@@ -161,6 +161,15 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(metrics.documentScrollWidth).toBeLessThanOrEqual(metrics.innerWidth);
 }
 
+async function expectButtonTextFits(page: Page) {
+  const overflowingButtonLabels = await page.getByRole('button').evaluateAll((buttons) => buttons
+    .filter((button) => button instanceof HTMLElement && button.offsetParent !== null)
+    .filter((button) => Boolean(button.textContent?.trim()))
+    .filter((button) => button.scrollWidth > button.clientWidth + 1)
+    .map((button) => button.textContent?.trim() ?? 'unnamed-button'));
+  expect(overflowingButtonLabels).toEqual([]);
+}
+
 async function captureEvidenceScreenshot(page: Page, filename: string) {
   const outputDirectory = process.env.PROMPT_ASSESSMENT_HISTORY_EVIDENCE_DIR;
   if (!outputDirectory) return;
@@ -175,9 +184,11 @@ test('Issue 1422 shows authenticated prompt evaluation history and consistency a
 }) => {
   await addStudentSession(context);
   await installPromptAssessmentFixture(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/evaluation/prompt-assessment?source=prompt-assessment&assignment=PID%20%E5%8F%82%E6%95%B0%E6%95%B4%E5%AE%9A&intent=prompt-history-review');
+  expect(await page.evaluate(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
   const authSession = await page.evaluate(() => fetch('/api/auth/session').then((response) => response.json()));
   expect(authSession).toMatchObject({
     user: { id: 'prompt-assessment-browser-student' },
@@ -197,6 +208,7 @@ test('Issue 1422 shows authenticated prompt evaluation history and consistency a
   await expect(page.getByText(/一致性得分：\s*88/)).toBeVisible();
   await expect(page.getByText('一致性：88', { exact: true })).toBeVisible();
   await expectNoHorizontalOverflow(page);
+  await expectButtonTextFits(page);
   await captureEvidenceScreenshot(page, 'prompt-assessment-history-1440.png');
 
   await page.setViewportSize({ width: 320, height: 900 });
@@ -204,7 +216,9 @@ test('Issue 1422 shows authenticated prompt evaluation history and consistency a
   const mobileControlObject = page.getByLabel('Prompt 评价主输入：控制对象');
   await mobileControlObject.focus();
   await expect(mobileControlObject).toBeFocused();
+  await expect(page.getByRole('button', { name: '打开平台导航', exact: true })).toBeVisible();
   await expect(page.getByText('V1', { exact: true })).toBeVisible();
   await expectNoHorizontalOverflow(page);
+  await expectButtonTextFits(page);
   await captureEvidenceScreenshot(page, 'prompt-assessment-history-320.png');
 });
