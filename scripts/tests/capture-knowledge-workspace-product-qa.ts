@@ -1597,6 +1597,28 @@ async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
   await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 15000 });
 }
 
+async function reopenSelectedNodeInspectorForMobileFocus(page: Page, nodeId = selectedNodeId) {
+  const inspectorSelector = '[data-knowledge-inspector="floating-right-edge"]';
+  const inspector = page.locator(inspectorSelector);
+  if (await inspector.isVisible().catch(() => false)) {
+    await page.keyboard.press('Escape');
+    await page.waitForSelector(inspectorSelector, { state: 'detached', timeout: 5000 });
+  }
+  await page.waitForFunction((expectedNodeId) => {
+    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+    const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
+    const control = selectedNodeId
+      ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
+      : null;
+    return selectedNodeId === expectedNodeId
+      && control?.getAttribute('aria-busy') === 'false';
+  }, nodeId, { timeout: 20000 });
+  const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
+  await control.focus();
+  await control.click({ timeout: 5000 });
+  await page.waitForSelector(inspectorSelector, { timeout: 15000 });
+}
+
 async function activeElementWithin(page: Page, selector: string) {
   return page.evaluate((targetSelector) => {
     const target = document.querySelector(targetSelector);
@@ -1753,7 +1775,7 @@ async function captureFocusEvidence(browser: Browser, storageState: RoleSession[
         query: `?node=${encodeURIComponent(selectedNodeId)}`,
       }),
       storageState,
-      (page) => openSelectedNodeInspector(page),
+      (page) => reopenSelectedNodeInspectorForMobileFocus(page),
       '[data-knowledge-inspector="floating-right-edge"]',
       (page) => page.keyboard.press('Escape'),
       '[data-knowledge-canvas-primary="true"]',
