@@ -140,6 +140,32 @@ export function validateIncomingShard(
   if (isTeachingBearingShard(shard) && !publicTeachingIdentityMatches(current.envelope, shard.envelope)) {
     return 'reject';
   }
+  const incomingObjects = shard.shardClass === 'domain-default'
+    || shard.shardClass === 'relation-family'
+    || shard.shardClass === 'node-neighborhood'
+    ? shard.objects
+    : shard.shardClass === 'node-detail'
+      ? [shard.node]
+      : [];
+  const incomingBoundaries = shard.shardClass === 'relation-family' || shard.shardClass === 'node-neighborhood'
+    ? shard.boundaries
+    : [];
+  const seen = new Map<string, { label: string; aliases: readonly string[] }>();
+  const checkPresentation = (id: string, label: string, aliases: readonly string[]): boolean => {
+    const prior = seen.get(id);
+    if (prior && (prior.label !== label || !sameStringArray(prior.aliases, aliases))) return false;
+    seen.set(id, { label, aliases });
+    const existing = current.objectsByCanonicalId[id]
+      ?? current.detailsByCanonicalId[id]
+      ?? current.boundaryRefsByCanonicalId[id];
+    return !existing || (existing.label === label && sameStringArray(existing.aliases ?? [], aliases));
+  };
+  for (const object of incomingObjects) {
+    if (!checkPresentation(object.id, object.label, object.aliases ?? [])) return 'reject';
+  }
+  for (const boundary of incomingBoundaries) {
+    if (!checkPresentation(boundary.canonicalId, boundary.label, boundary.aliases ?? [])) return 'reject';
+  }
   if (
     current.activeDomainId
     && (shard.shardClass === 'domain-default' || shard.shardClass === 'relation-family')
@@ -163,8 +189,13 @@ function mergeObject(
   }
   return {
     ...current,
+    aliases: current.aliases ?? [],
     memberships,
   };
+}
+
+function sameStringArray(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
 export function mergeAuthorityShard(

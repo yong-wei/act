@@ -65,28 +65,28 @@ const canvas = {
   teachingSemantics: { status: 'unavailable' as const, message: '教学关系尚未发布' as const },
   nodes: [
     {
-      id: 'node-concept', canonicalType: 'DomainConcept', label: '稳定性', description: '稳定性描述',
+      id: 'node-concept', canonicalType: 'DomainConcept', label: '稳定性', aliases: [], description: '稳定性描述',
       governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
       semanticSupport: { supported: true, readOnly: true as const },
     },
     {
-      id: 'node-formula', canonicalType: 'Formula', label: '特征方程', description: null,
+      id: 'node-formula', canonicalType: 'Formula', label: '特征方程', aliases: [], description: null,
       governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
       semanticSupport: { supported: true, readOnly: true as const },
     },
     {
-      id: 'node-model', canonicalType: 'SystemModel', label: '闭环模型', description: null,
+      id: 'node-model', canonicalType: 'SystemModel', label: '闭环模型', aliases: [], description: null,
       governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
       semanticSupport: { supported: true, readOnly: true as const },
     },
     {
-      id: 'node-isolated', canonicalType: 'KnowledgeStatement', label: '孤立陈述', description: null,
+      id: 'node-isolated', canonicalType: 'KnowledgeStatement', label: '孤立陈述', aliases: [], description: null,
       governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
       semanticSupport: { supported: true, readOnly: true as const },
     },
     // Unsupported data is not displayed and must not leak its raw values.
     {
-      id: 'node-unknown', canonicalType: 'future_internal_type', label: 'future_internal_type', description: null,
+      id: 'node-unknown', canonicalType: 'future_internal_type', label: 'future_internal_type', aliases: [], description: null,
       governance: { reviewStatus: 'future_internal_status', publicationStatus: null, lifecycleStatus: null },
       semanticSupport: { supported: true, readOnly: true as const },
     },
@@ -1384,6 +1384,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       id: `search-node-${index + 1}`,
       canonicalType: 'Formula',
       label: `可读公式 ${String(index + 1).padStart(2, '0')}`,
+      aliases: [],
       description: null,
       governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
       semanticSupport: { supported: true, readOnly: true as const },
@@ -1454,6 +1455,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       id: `thousand-node-${index + 1}`,
       canonicalType: 'Formula',
       label: `千级对象 ${String(index + 1).padStart(4, '0')}`,
+      aliases: [],
       description: null,
       governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
       semanticSupport: { supported: true, readOnly: true as const },
@@ -1529,6 +1531,14 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(labels.every((label) => Number(label.getAttribute('font-size')) >= 13)).toBe(true);
     const typeLabels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-type-label]')];
     expect(typeLabels.every((label) => Number(label.getAttribute('font-size')) >= 11)).toBe(true);
+    expect(container.querySelector('[data-active-authority-header="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-title="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
+
+    const graphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
+    expect(graphSource).toContain('max-[639px]:pt-14');
+    expect(graphSource).toContain('max-[639px]:flex-nowrap');
+    expect(graphSource).toContain('max-[639px]:overflow-x-auto');
   });
 
   it('keeps the desktop layout deterministic and inside the 960x520 viewBox for one to 24 nodes', () => {
@@ -1588,6 +1598,13 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
     expect(container.textContent).toContain('受控候选诊断');
+    const modeSwitch = container.querySelector<HTMLElement>('[data-knowledge-mode-switch="true"]');
+    expect(modeSwitch).not.toBeNull();
+    expect(modeSwitch?.className).toContain('max-[639px]:flex-nowrap');
+    expect(modeSwitch?.className).toContain('max-[639px]:overflow-x-auto');
+    const modeButtons = [...container.querySelectorAll<HTMLButtonElement>('[data-knowledge-mode]')];
+    expect(modeButtons).toHaveLength(3);
+    expect(modeButtons.every((button) => button.className.includes('shrink-0') && button.className.includes('whitespace-nowrap'))).toBe(true);
     expect(fetchMock).toHaveBeenCalledWith('/api/knowledge/shards/active', expect.any(Object));
     expect(fetchMock.mock.calls.every(([url]) => !String(url).includes('/graph/active'))).toBe(true);
   });
@@ -1602,6 +1619,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(presentationSource).not.toContain('node:fs');
     expect(captureSource).toContain('source.releaseSetId === authorityRecord.releaseSetId');
     expect(captureSource).toContain('source.releaseId === authorityRecord.releaseId');
+    expect(captureSource).toContain("'src/lib/authority-domain-shards/labels.ts'");
     expect(captureSource).toContain("'/api/knowledge/shards/active/nodes/:node'");
     expect(captureSource).toContain("'/api/knowledge/nodes/:node'");
     expect(captureSource).toContain("if (method !== 'GET') return null;");
@@ -1661,7 +1679,15 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('activeSvgGeometryRectValid');
     expect(captureSource).toContain('rectWithinActiveSvg');
     expect(captureSource).toContain("state.name === 'active-mobile'");
+    expect(captureSource).toContain('titleControlsOverlap');
+    expect(captureSource).toContain('nodeGeometryWithinViewportCount');
+    expect(captureSource).toContain('active mobile first-viewport geometry contract failed');
+    expect(captureSource).toContain('active mobile first-viewport geometry contract failed in role:${role}');
+    expect(captureSource).toContain('firstViewport: {');
     const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
+    expect(workspaceSource).toContain('data-knowledge-mode-switch="true"');
+    expect(workspaceSource).toContain('max-[639px]:overflow-x-auto');
+    expect(workspaceSource).toContain('shrink-0 whitespace-nowrap');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
   });
 

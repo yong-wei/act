@@ -59,3 +59,34 @@ change. Missing Chinese coverage alone MUST NOT invalidate Authority identity.
 - **WHEN** the newly selected snapshot passes admission and contains a new valid row
 - **THEN** the next materialized presentation SHALL expose it without modifying
   node or relation identity
+
+## ACCEPTED Remediation
+
+Sol DECIDE=C (2026-08-15) supersedes the earlier dotted-token allowlist. The
+generic `isSafeAuthorityLabel` remains fail-closed: it scans every `./` and
+`.\\` token from its own dot, independently of the preceding character, and
+rejects all of them. No general Formula exception, command whitelist, or TeX
+parser is introduced.
+
+Only the immutable resolver's display-name fallback may use an explicit
+versioned pin when the admitted runtime profile, snapshot, release, canonical
+Formula ID, and original displayName UTF-8 SHA-256 all match. The pin is
+considered only when the sole failure class is the ambiguous Formula `.` + `\\`
+token. Preferred and alternative rows, ordinary or untrusted objects,
+non-admitted evidence, any drift, and URI, absolute/UNC/relative path,
+identity/hash, control, malformed, unknown-command, or additional-token
+failures remain unavailable. The v0.18 scan records ten exact pin candidates
+among 1,779 Formula records and excludes the five records with additional hard
+path evidence.
+
+#### Scenario: A pinned Formula fallback is bound to one admitted record
+
+- **WHEN** an immutable `Formula` object's fallback `displayName` is one of
+  the ten v0.18 ambiguity records and its runtime profile ID/SHA-256, snapshot
+  ID/hash, release ID, canonical ID, and original UTF-8 displayName SHA-256 all
+  match the versioned pin
+- **THEN** the resolver SHALL retain the original displayName only in its
+  fallback branch
+- **AND WHEN** any binding, canonical type/ID, displayName bytes, preferred or
+  alternative row, admission state, or failure class differs
+- **THEN** the resolver SHALL fail closed without exposing the rejected value

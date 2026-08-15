@@ -19,6 +19,7 @@ import {
   type DomainTeachingComposedArtifacts,
 } from '@/lib/teaching-projection/domain-fragments';
 import type { AuthorityEngineeringBody } from '@/lib/authoritative-knowledge/authority-snapshot';
+import type { AuthoritativeV2Evidence } from '@/lib/authoritative-knowledge/contracts';
 import {
   AUTHORITY_SHARD_ENVELOPE_CONTRACT,
   AUTHORITY_SHARD_PAYLOAD_BUDGETS,
@@ -35,6 +36,9 @@ import {
   loadOptionalDomainTeachingProjection,
   projectAuthorityLearnerShard,
   projectAuthorityObject,
+  createAuthorityLabelResolverContext,
+  isSafeAuthorityLabel,
+  resolveAuthorityLabel,
   teachingCoverageFromState,
   writeAuthorityDomainShards,
   type AuthorityShardEnvelope,
@@ -57,6 +61,14 @@ const MODELING = 'ctc:modeling-test-object';
 const TIME = 'ctc:time-test-object';
 const SHARED = 'ctc:shared-test-object';
 const NEIGHBOR = 'ctc:neighbor-test-object';
+
+const V018_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.18';
+const V018_SNAPSHOT_ID = 'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed';
+const V018_SNAPSHOT_HASH = '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed';
+const V018_PROFILE_ID = 'ctr:profile:control-theory-engineering-v0.18:runtime-v3';
+const V018_PROFILE_SHA256 = 'a442adfc5a73d9bacba53ce33016238be148917084e057ab979340279737bfe7';
+const V018_CTF_ID = 'ctf:1ac3cc48c529fb9bb3fd0532';
+const V018_CTF_DISPLAY_NAME = String.raw`m=\left.\frac{d g}{d x}\right|_{x(t)=x_{0}}`;
 
 const tempRoots: string[] = [];
 
@@ -169,6 +181,29 @@ function objectRow(canonicalId: string, label: string) {
   };
 }
 
+const V018_FORMULA_DISPLAY_NAMES = [
+  'y(t)=\\frac{A}{2}\\left[H(j \\omega) e^{j \\omega t}+H(-j \\omega) e^{-j \\omega t}\\right]',
+  'P=\\frac{1}{\\Delta} \\sum_{k=1}^{n} p_{k} \\Delta_{k}',
+  '\\text{DC gain} = \\lim_{s \\rightarrow 0} G(s)',
+  '\\ddot{\\theta} + \\frac{g}{l} \\theta = \\frac{T_c}{m l^2}',
+  'G(s)=\\frac{b_{m} s^{-(n-m)}+b_{m-1} s^{-(n-m+1)}+\\cdots+b_{1} s^{-(n-1)}+b_{0} s^{-n}}{1+a_{n-1} s^{-1}+\\cdots+a_{1} s^{-(n-1)}+a_{0} s^{-n}}',
+  'G(s)=\\frac{U(s)}{\\Omega(s)}=K_t',
+  'G(s)=G_{1}(s) \\pm G_{2}(s)',
+  '\\int u d v=u v-\\int v d u',
+  '\\dot{x}(t)=a x(t)+b u(t)',
+  'H(s)=\\frac{1}{s+k}',
+  'm=\\left.\\frac{d g}{d x}\\right|_{x(t)=x_{0}}',
+  '\\frac{V_{2}(s)}{V_{1}(s)}=-R C s',
+  'G(s)=\\frac{U(s)}{\\Theta(s)}=K_1',
+  'Y(s)=\\frac{k_{1}}{s-s_{1}}+\\frac{k_{2}}{s-s_{2}}',
+  '\\dot{\\mathbf{x}}(t)=\\mathbf{A x}(t)+\\mathbf{B u}(t)',
+  'T_{L}(s) = J s^{2} \\theta(s) + b s \\theta(s)',
+  '\\frac{U_o(s)}{U_i(s)}=\\frac{1}{R_1 R_2 C_1 C_2 s^2 + (R_1 C_1 + R_2 C_2) s + 1}',
+  'C(s)=\\frac{G(s)}{1 \\mp G(s) H(s)} R(s)=\\Phi(s) R(s)',
+  'f(t)=\\sum_{i=1}^{n} C_{i} e^{p_{i} t} 1(t)',
+  String.raw`K_{e q}(a)=\left\{\begin{array}{cl}\frac{2}{\pi}\left(k \sin ^{-1}\left(\frac{N}{a k}\right)+\frac{N}{a} \sqrt{1-\left(\frac{N}{k a}\right)^{2}}\right), & \frac{k a}{N}>1,  \\k, & \frac{k a}{N} \leq 1 .\end{array}\right.`,
+] as const;
+
 function relationRow(
   relationId: string,
   relationType: string,
@@ -210,6 +245,133 @@ function engineeringBody(): AuthorityEngineeringBody {
     releaseComponents: [],
     projectionIdentities: [],
     linkMetadata: [],
+  };
+}
+
+function v018FormulaCatalogRuntime() {
+  const catalog = catalogRuntime();
+  return {
+    ...catalog,
+    memberships: catalog.memberships.map((membership) => (
+      membership.canonicalId === MODELING
+        ? { ...membership, canonicalId: V018_CTF_ID }
+        : membership
+    )),
+  };
+}
+
+function v018FormulaEngineeringBody(): AuthorityEngineeringBody {
+  const engineering = engineeringBody();
+  const replaceId = (id: string) => (id === MODELING ? V018_CTF_ID : id);
+  return {
+    ...engineering,
+    objects: engineering.objects.map((object) => (
+      object.canonicalId === MODELING
+        ? {
+          ...object,
+          canonicalId: V018_CTF_ID,
+          canonicalType: 'Formula',
+          semanticName: V018_CTF_DISPLAY_NAME,
+          payload: { displayName: V018_CTF_DISPLAY_NAME },
+        }
+        : object
+    )),
+    relations: engineering.relations.map((relation) => ({
+      ...relation,
+      sourceId: replaceId(relation.sourceId),
+      targetId: replaceId(relation.targetId),
+    })),
+    v2Evidence: v018Evidence([]),
+  };
+}
+
+function v018FormulaEnvelope(catalog: ReturnType<typeof v018FormulaCatalogRuntime>): AuthorityShardEnvelope {
+  const base = envelope();
+  return {
+    ...base,
+    authority: {
+      ...base.authority,
+      snapshotId: V018_SNAPSHOT_ID,
+      snapshotHash: V018_SNAPSHOT_HASH,
+      releaseId: V018_RELEASE_ID,
+    },
+    catalog: {
+      catalogId: catalog.catalogId,
+      catalogHash: catalog.catalogHash,
+      catalogVersion: catalog.catalogVersion,
+    },
+  };
+}
+
+function v2Evidence(
+  labels: Array<{
+    entityId: string;
+    label: string;
+    labelType: 'canonical_preferred' | 'alternative';
+  }>,
+  releaseId = RELEASE_ID,
+): AuthoritativeV2Evidence {
+  const profiles = [
+    { profileKey: 'act', manifestProfile: 'runtime', projectionKind: 'act_runtime_graph' },
+    { profileKey: 'domain', manifestProfile: 'domain', projectionKind: 'domain_graph' },
+    { profileKey: 'review', manifestProfile: 'review', projectionKind: 'review_graph' },
+  ].map(({ profileKey, manifestProfile, projectionKind }) => ({
+    releaseId,
+    profileKey,
+    manifestProfile,
+    profileId: `${profileKey}-profile`,
+    profileSha256: 'd'.repeat(64),
+    projectionKind,
+    profileVersion: 'v1',
+    mappingContractVersion: 'actkg-map/v2',
+    aggregationPolicy: 'preserve-all',
+    payload: { profileKey },
+  }));
+  return {
+    protocol: 'actkg-public-bundle/2',
+    profiles,
+    multilingualLabels: labels.map((row, ordinal) => ({
+      releaseId,
+      ordinal,
+      entityId: row.entityId,
+      language: 'zh-CN',
+      label: row.label,
+      labelType: row.labelType,
+      terminologyAssertionId: `term-${ordinal}`,
+      payload: {},
+    })),
+    admissionBinding: {
+      releaseId,
+      bundleReceiptId: 'bundle-receipt:test',
+      protocol: 'actkg-public-bundle/2',
+      provenance: 'registry',
+      verificationScope: 'admission-time',
+      verifiedDuringLoad: false,
+      registryIdentity: {},
+      upstreamRepository: {},
+      publicationRevision: {},
+      sourceRevision: {},
+      bundleIdentity: {},
+      bindingDigest: 'e'.repeat(64),
+    },
+  };
+}
+
+function v018Evidence(
+  labels: Array<{
+    entityId: string;
+    label: string;
+    labelType: 'canonical_preferred' | 'alternative';
+  }>,
+): AuthoritativeV2Evidence {
+  const evidence = v2Evidence(labels, V018_RELEASE_ID);
+  return {
+    ...evidence,
+    profiles: evidence.profiles.map((profile) => (
+      profile.profileKey === 'act'
+        ? { ...profile, profileId: V018_PROFILE_ID, profileSha256: V018_PROFILE_SHA256 }
+        : profile
+    )),
   };
 }
 
@@ -359,6 +521,643 @@ describe('authority domain shard delivery', () => {
     }, catalogRuntime());
     expect(projected.label).toBe('名称暂不可用');
     expect(projected.label).not.toBe('positive_feedback_inner_loop');
+  });
+
+  it('resolves one preferred zh-CN label and deterministic safe aliases', () => {
+    const objects = engineeringBody().objects;
+    const context = createAuthorityLabelResolverContext({
+      snapshot: {
+        snapshotId: SNAPSHOT_ID,
+        snapshotHash: SNAPSHOT_HASH,
+        releaseId: RELEASE_ID,
+      },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '系统建模', labelType: 'canonical_preferred' },
+        { entityId: MODELING, label: '建模', labelType: 'alternative' },
+        { entityId: MODELING, label: '对象到系统', labelType: 'alternative' },
+        { entityId: MODELING, label: '建模', labelType: 'alternative' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING)).toEqual({
+      status: 'available',
+      label: '系统建模',
+      aliases: ['对象到系统', '建模'],
+    });
+    expect(isSafeAuthorityLabel('系统建模')).toBe(true);
+    expect(isSafeAuthorityLabel('positive_feedback_inner_loop')).toBe(false);
+  });
+
+  it('accepts explicit leading LaTeX formulas but keeps path labels unsafe', () => {
+    expect(isSafeAuthorityLabel('\\Phi(s)=...', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\\\Phi(\\\\omega)=...', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\(G(s)=1\\)', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\\\begin{aligned} G(s)=1 \\\\end{aligned}', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\frac{1}{s+1}', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\alpha.ext', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\sin\\omega', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\dir\\file', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('/runtime/formula')).toBe(false);
+    expect(isSafeAuthorityLabel('C:\\runtime\\formula')).toBe(false);
+    expect(isSafeAuthorityLabel('\\server\\share\\formula')).toBe(false);
+    expect(isSafeAuthorityLabel('\\\\server\\share\\formula')).toBe(false);
+    expect(isSafeAuthorityLabel('\\Users\\admin\\file(1)')).toBe(false);
+    expect(isSafeAuthorityLabel('\\Windows\\System32\\file=1')).toBe(false);
+    expect(isSafeAuthorityLabel('folder name\\file.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('folder\\file(1).txt')).toBe(false);
+    expect(isSafeAuthorityLabel('\\Program Files\\app\\file.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('\\Users\\admin\\file{1}.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('\\\\server name\\share\\file.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('folder name/file.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('../runtime/formula')).toBe(false);
+  });
+
+  it('keeps every grouped-array dotted token fail-closed without a generic exception', () => {
+    const formula = String.raw`1 .\end{array}\right.`;
+    const noSpaceFormula = String.raw`1.\end{array}\right.`;
+    const variableFormula = String.raw`x.\end{array}\right.`;
+    const leadingFormula = String.raw`.\end{array}\right.`;
+    for (const label of [formula, noSpaceFormula, variableFormula, leadingFormula]) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+    }
+
+    const object = {
+      ...objectRow(MODELING, formula),
+      canonicalType: 'Formula',
+      payload: { displayName: formula },
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects: [object],
+      v2Evidence: v2Evidence([]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING)).toEqual({
+      status: 'unavailable',
+      label: null,
+      aliases: [],
+    });
+
+    for (const path of [
+      String.raw`1 .\end{array}`,
+      String.raw`.\end{array}`,
+      String.raw`1 .\end{array}\file`,
+      String.raw`1 .\end{array}\right.\file`,
+      String.raw`x.\file`,
+      String.raw`x./file`,
+      String.raw`1 .\foo`,
+      String.raw`1 .\End{array}\right.`,
+      String.raw`1 .\end {array}\right.`,
+      String.raw`1 .\end{array} \right.`,
+      String.raw`1 .\end{array}\right. `,
+      String.raw`1 .\end{array}\right`,
+      String.raw`1 .\end{array}\right.X`,
+      String.raw`1 .\end{array}\right./file`,
+      String.raw`1 .\end{array}\right.\\server\share`,
+      String.raw`1 .\end{array}\right. + 2 .\end{array}\right.`,
+      String.raw`1 .\end\file`,
+      String.raw`x.\file 1 .\end{array}\right.`,
+      String.raw`x./file 1 .\end{array}\right.`,
+    ]) {
+      expect(isSafeAuthorityLabel(path, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(path, 'DomainConcept')).toBe(false);
+    }
+  });
+
+  it('keeps the controlled v0.18 Formula display set strict for dotted tokens', () => {
+    expect(V018_FORMULA_DISPLAY_NAMES).toHaveLength(20);
+    const dotted = V018_FORMULA_DISPLAY_NAMES.filter((label) => /\.\\/u.test(label));
+    expect(dotted).toHaveLength(2);
+    for (const label of dotted) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+    }
+    for (const label of V018_FORMULA_DISPLAY_NAMES.filter((item) => !dotted.includes(item))) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(true);
+      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+    }
+  });
+
+  it('anchors the fallback inventory to the real v0.18 Formula source scan', () => {
+    const projection = JSON.parse(readFileSync(path.join(
+      process.cwd(),
+      'course-content/authoring/knowledge/releases/control-theory-engineering-v0.18/act-projection.json',
+    ), 'utf8')) as {
+      nodes: Array<{ entity_id?: string; entity_type?: string; display_name?: string }>;
+    };
+    const formulas = projection.nodes.filter((node) => node.entity_type === 'Formula');
+    expect(formulas).toHaveLength(1779);
+    const dotted = formulas.filter((node) => node.display_name?.includes('.\\'));
+    expect(dotted).toHaveLength(11);
+    expect(dotted.find((node) => node.entity_id === V018_CTF_ID)?.display_name).toBe(V018_CTF_DISPLAY_NAME);
+    expect(dotted.find((node) => node.entity_id === 'ctkg:v3e-object-7c68147c796fde027aa88ac1')?.display_name).toContain('\\end{array}');
+
+    const pinnedIds = [
+      V018_CTF_ID,
+      'ctf:224fe8007c92e0365df88c71',
+      'ctf:98056be65217199a1b9bfad7',
+      'ctf:aeac8b41a8dfab7e5ea9be5f',
+      'ctkg:v3e-object-0796fedf8fa2a340f1d800ec',
+      'ctkg:v3e-object-7e93787bebbb427bd59b0d98',
+      'ctkg:v3e-object-82b673b7659603ab09a48818',
+      'ctkg:v3e-object-cfd98dee3afa5c44a0f0c44f',
+      'ctkg:v3e-object-093e69f52a564305cb43330f',
+      'ctkg:v3e-object-a006a76a7e0bcccabddd6398',
+    ];
+    expect(pinnedIds).toHaveLength(10);
+    for (const id of pinnedIds) {
+      const row = dotted.find((node) => node.entity_id === id);
+      expect(row?.display_name).toBeTypeOf('string');
+      const context = createAuthorityLabelResolverContext({
+        snapshot: {
+          snapshotId: V018_SNAPSHOT_ID,
+          snapshotHash: V018_SNAPSHOT_HASH,
+          releaseId: V018_RELEASE_ID,
+        },
+        objects: [{
+          ...objectRow(id, row?.display_name ?? ''),
+          canonicalType: 'Formula',
+          payload: { displayName: row?.display_name },
+        }],
+        v2Evidence: v018Evidence([]),
+      });
+      expect(resolveAuthorityLabel(context, id).status).toBe('available');
+    }
+    const hardRow = dotted.find((node) => node.entity_id === 'ctkg:v3e-object-7c68147c796fde027aa88ac1')!;
+    const hardContext = createAuthorityLabelResolverContext({
+      snapshot: {
+        snapshotId: V018_SNAPSHOT_ID,
+        snapshotHash: V018_SNAPSHOT_HASH,
+        releaseId: V018_RELEASE_ID,
+      },
+      objects: [{
+        ...objectRow(hardRow.entity_id!, hardRow.display_name!),
+        canonicalType: 'Formula',
+        payload: { displayName: hardRow.display_name },
+      }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(hardContext, hardRow.entity_id!).status).toBe('unavailable');
+  });
+
+  it('uses only the immutable record-bound v0.18 Formula fallback pin', () => {
+    expect(isSafeAuthorityLabel(V018_CTF_DISPLAY_NAME, 'Formula', true)).toBe(false);
+    const object = {
+      ...objectRow(V018_CTF_ID, V018_CTF_DISPLAY_NAME),
+      canonicalType: 'Formula',
+      payload: { displayName: V018_CTF_DISPLAY_NAME },
+    };
+    const snapshot = {
+      snapshotId: V018_SNAPSHOT_ID,
+      snapshotHash: V018_SNAPSHOT_HASH,
+      releaseId: V018_RELEASE_ID,
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [object],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(context, V018_CTF_ID)).toEqual({
+      status: 'available',
+      label: V018_CTF_DISPLAY_NAME,
+      aliases: [],
+    });
+
+    for (const driftedSnapshot of [
+      { ...snapshot, snapshotId: 'snap-drift' },
+      { ...snapshot, snapshotHash: 'f'.repeat(64) },
+    ]) {
+      expect(resolveAuthorityLabel(createAuthorityLabelResolverContext({
+        snapshot: driftedSnapshot,
+        objects: [object],
+        v2Evidence: v018Evidence([]),
+      }), V018_CTF_ID).status).toBe('unavailable');
+    }
+    expect(() => createAuthorityLabelResolverContext({
+      snapshot: { ...snapshot, releaseId: 'ctr:release:drift' },
+      objects: [object],
+      v2Evidence: v018Evidence([]),
+    })).toThrow(/profile|admission/u);
+
+    for (const profileDrift of [
+      { profileId: 'ctr:profile:drift', profileSha256: V018_PROFILE_SHA256 },
+      { profileId: V018_PROFILE_ID, profileSha256: 'f'.repeat(64) },
+    ]) {
+      const evidence = v018Evidence([]);
+      evidence.profiles = evidence.profiles.map((profile) => (
+        profile.profileKey === 'act' ? { ...profile, ...profileDrift } : profile
+      ));
+      expect(resolveAuthorityLabel(createAuthorityLabelResolverContext({
+        snapshot,
+        objects: [object],
+        v2Evidence: evidence,
+      }), V018_CTF_ID).status).toBe('unavailable');
+    }
+
+    const preferred = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [object],
+      v2Evidence: v018Evidence([
+        { entityId: V018_CTF_ID, label: V018_CTF_DISPLAY_NAME, labelType: 'canonical_preferred' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(preferred, V018_CTF_ID).status).toBe('unavailable');
+
+    const hardPath = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...object, payload: { displayName: 'm=folder/file.txt' } }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(hardPath, V018_CTF_ID).status).toBe('unavailable');
+
+    const changedType = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...object, canonicalType: 'DomainConcept' }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(changedType, V018_CTF_ID).status).toBe('unavailable');
+
+    const changedId = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...object, canonicalId: 'ctf:formula-drift' }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(changedId, 'ctf:formula-drift').status).toBe('unavailable');
+
+    const changedDisplayName = createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...object, payload: { displayName: `${V018_CTF_DISPLAY_NAME} ` } }],
+      v2Evidence: v018Evidence([]),
+    });
+    expect(resolveAuthorityLabel(changedDisplayName, V018_CTF_ID).status).toBe('unavailable');
+  });
+
+  it('materializes the pinned v0.18 Formula record without weakening ordinary labels', () => {
+    const catalog = v018FormulaCatalogRuntime();
+    const materialized = buildAuthorityDomainShards({
+      envelope: v018FormulaEnvelope(catalog),
+      catalog,
+      engineering: v018FormulaEngineeringBody(),
+    });
+    expect(materialized.domainDefaults['system-modeling'].objects.find((object) => object.id === V018_CTF_ID)).toMatchObject({
+      id: V018_CTF_ID,
+      label: V018_CTF_DISPLAY_NAME,
+    });
+    expect(isSafeAuthorityLabel(V018_CTF_DISPLAY_NAME, 'DomainConcept', true)).toBe(false);
+    expect(materialized.domainDefaults['time-domain-analysis'].objects.find((object) => object.id === TIME)?.label).toBe('时域对象');
+  });
+
+  it('rejects path evidence embedded anywhere before allowing Formula separators', () => {
+    const embeddedPaths = [
+      'x=folder/file.txt',
+      'x=folder\\file.txt',
+      'x=folder/subdir/file',
+      'x=foo\\bar\\baz',
+      '(folder/subdir/file)',
+      '[folder/subdir/file]',
+      '"folder/subdir/file"',
+      '\'foo\\bar\\baz\'',
+      ' folder/subdir/file ',
+      'folder/subdir/file,',
+      'folder/subdir/file;',
+      'folder/subdir/file:',
+      'x=(folder/subdir/file)',
+      'x="foo\\bar\\baz"',
+      'x= foo/bar/baz ;',
+      'folder/file.txt',
+      'foo\\bar.ext',
+      'f=C:\\Users\\a.txt',
+      'x=/runtime/formula',
+      'x=../runtime/formula',
+      'x=~/runtime/formula',
+      'x=https://example.test/formula',
+      'x=file:///runtime/formula',
+      'x=\\\\server\\share\\file.txt',
+      'x=\\\\server\\share',
+    ];
+    for (const label of embeddedPaths) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+      expect(isSafeAuthorityLabel(label)).toBe(false);
+    }
+  });
+
+  it.each([
+    ['ASCII candidate', 'folder/subdir/file'],
+    ['ASCII quotes', '"folder/subdir/file"'],
+    ['Unicode double quotes', '“folder/subdir/file”'],
+    ['Unicode single quotes', '‘foo\\bar\\baz’'],
+    ['book-title brackets', '《folder/subdir/file》'],
+    ['em dash context', '—folder/subdir/file—'],
+    ['Chinese adjacency', '前folder/subdir/file后'],
+    ['maximal candidate with an atomic suffix trap', 'folder/subdir/fileA/B/C'],
+    ['reverse maximal candidate context', 'A/B/Cfolder/subdir/file'],
+  ])('rejects a bounded relative path with %s', (_case, label) => {
+    expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+  });
+
+  it.each([
+    ['A/B/C', 'A/B/C'],
+    ['a/b/c', 'a/b/c'],
+    ['x/y/z', 'x/y/z'],
+    ['Chinese adjacency around atomic segments', '中文A/B/C中文'],
+    ['non-leading reviewed formula', 'G(s)=K/(s(s+1))'],
+    ['assignment context around atomic segments', 'x=A/B/C'],
+    ['parenthesized atomic segments', '(a/b/c)'],
+    ['quoted atomic segments', '"A/B/C"'],
+  ])('keeps bounded single-character mathematical atoms: %s', (_case, label) => {
+    expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+  });
+
+  it.each([
+    ['ordinary path', 'folder/subdir/file'],
+    ['backslash path', 'foo\\bar\\baz'],
+    ['parenthesized path', '(folder/subdir/file)'],
+    ['quoted path', '"foo\\bar\\baz"'],
+    ['two-segment filename', 'folder/file.txt'],
+    ['backslash filename', 'foo\\bar.ext'],
+  ])('rejects ordinary relative path structure: %s', (_case, label) => {
+    expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+    expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+  });
+
+  it('requires a trusted Formula profile for leading-backslash formulas', () => {
+    const formulaSamples = [
+      '\\Phi(s)=G(s)/(1+G(s)H(s))',
+      '\\\\begin{aligned} G(s)=1 \\\\end{aligned}',
+      '\\mathcal{L}\\{\\sin \\omega t\\}=\\int_{0}^{\\infty}(\\sin \\omega t)e^{-st}dt',
+      '\\omega_{r}=\\omega_{n} \\sqrt{1-2 \\zeta^{2}}, \\quad \\zeta<0.707',
+    ];
+    for (const sample of formulaSamples) {
+      expect(isSafeAuthorityLabel(sample, 'Formula', true)).toBe(true);
+      expect(isSafeAuthorityLabel(sample, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(sample, 'DomainConcept')).toBe(false);
+      expect(isSafeAuthorityLabel(sample, 'Unknown')).toBe(false);
+      expect(isSafeAuthorityLabel(sample)).toBe(false);
+    }
+  });
+
+  it('allows only original LF and CRLF in trusted Formula runtime labels', () => {
+    const lf = '\\begin{aligned}\nG(s)=1\n\\end{aligned}';
+    const crlf = '\\begin{aligned}\r\nG(s)=1\r\n\\end{aligned}';
+    expect(isSafeAuthorityLabel(lf, 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel(crlf, 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel(lf, 'Formula')).toBe(false);
+    expect(isSafeAuthorityLabel(crlf, 'Formula')).toBe(false);
+
+    const object = {
+      ...objectRow(MODELING, crlf),
+      canonicalType: 'Formula',
+      payload: { displayName: crlf },
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects: [object],
+      v2Evidence: v2Evidence([]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING)).toMatchObject({
+      status: 'available',
+      label: crlf,
+      aliases: [],
+    });
+  });
+
+  it('rejects tabs, NUL, isolated CR, other C0 controls, and DEL', () => {
+    const unsafe = [
+      '\\Phi(s)=1\t',
+      '\\Phi(s)=1\u0000',
+      '\\Phi(s)=1\rnext',
+      '\\Phi(s)=1\u0001',
+      '\\Phi(s)=1\u000b',
+      '\\Phi(s)=1\u000c',
+      '\\Phi(s)=1\u001f',
+      '\\Phi(s)=1\u007f',
+    ];
+    for (const label of unsafe) expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+  });
+
+  it('rejects rooted and UNC path-shaped labels even when Formula is claimed', () => {
+    const pathLabels = [
+      '\\Users{old}\\admin\\file.txt',
+      '\\sin\\share\\file.txt',
+    ];
+    for (const label of pathLabels) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'Unknown')).toBe(false);
+      expect(isSafeAuthorityLabel(label)).toBe(false);
+    }
+    for (const label of ['\\\\server name\\share\\file.txt', '\\Program Files\\app\\file.txt']) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+    }
+    expect(isSafeAuthorityLabel('\\\\server\\share\\formula', 'Formula', true)).toBe(false);
+    expect(isSafeAuthorityLabel('\\Users\\file.txt', 'Formula', true)).toBe(false);
+    expect(isSafeAuthorityLabel('\\\\server\\share', 'Formula', true)).toBe(false);
+    for (const label of [
+      'folder name\\file.txt',
+      'folder\\file(1).txt',
+      '\\Program Files\\app\\file.txt',
+      '\\Users\\admin\\file{1}.txt',
+      '\\\\server name\\share\\file.txt',
+      'folder name/file.txt',
+    ]) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+    }
+  });
+
+  it('rejects path syntax and control characters for Formula labels', () => {
+    const unsafe = [
+      '/runtime/formula',
+      '~/runtime/formula',
+      './runtime/formula',
+      '../runtime/formula',
+      'C:\\runtime\\formula',
+      'file:/runtime/formula',
+      'https://example.test/formula',
+      'folder name\\file.txt',
+      'folder name/file.txt',
+      'formula\u0000value',
+    ];
+    for (const label of unsafe) expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+  });
+
+  it('fails closed without leaking identity or payload for rejected labels', () => {
+    const secretId = 'ctf:formula-path-secret';
+    const secretPayload = 'payload-secret-not-for-display';
+    const pathLabel = '\\Users{old}\\admin\\file.txt';
+    const object = {
+      ...objectRow(secretId, pathLabel),
+      canonicalType: 'Formula',
+      payload: { displayName: pathLabel, secret: secretPayload },
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects: [object],
+      v2Evidence: v2Evidence([]),
+    });
+    const resolved = resolveAuthorityLabel(context, secretId);
+    expect(resolved).toEqual({ status: 'unavailable', label: null, aliases: [] });
+    expect(JSON.stringify(resolved)).not.toContain(secretId);
+    expect(JSON.stringify(resolved)).not.toContain(secretPayload);
+  });
+
+  it('does not infer Formula type from payload text', () => {
+    const object = {
+      ...objectRow(MODELING, '\\Phi(s)=G(s)/(1+G(s)H(s))'),
+      canonicalType: 'DomainConcept',
+      payload: {
+        displayName: '\\Phi(s)=G(s)/(1+G(s)H(s))',
+        entityType: 'Formula',
+        canonicalType: 'Formula',
+      },
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects: [object],
+      v2Evidence: v2Evidence([]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING).status).toBe('unavailable');
+  });
+
+  it('uses the runtime displayName only when no preferred row exists', () => {
+    const objects = engineeringBody().objects.map((object) => (
+      object.canonicalId === MODELING
+        ? { ...object, payload: { displayName: '运行时模型' } }
+        : object
+    ));
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '模型别名', labelType: 'alternative' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING)).toEqual({
+      status: 'available',
+      label: '运行时模型',
+      aliases: ['模型别名'],
+    });
+  });
+
+  it('detaches resolver payloads from mutable engineering input', () => {
+    const payload = { displayName: '初始运行时名称', nested: { source: 'fixture' } };
+    const objects = engineeringBody().objects.map((object) => (
+      object.canonicalId === MODELING ? { ...object, payload } : object
+    ));
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([]),
+    });
+    payload.displayName = '被外部改写的名称';
+    payload.nested.source = '被外部改写';
+    expect(resolveAuthorityLabel(context, MODELING)).toMatchObject({
+      status: 'available',
+      label: '初始运行时名称',
+      aliases: [],
+    });
+    expect(context.objects[0]!.canonicalType).toBe('DomainConcept');
+    expect(Object.isFrozen(context.objects[0]!.payload)).toBe(true);
+  });
+
+  it('fails closed for unsafe candidates, duplicate preferred rows, and profile drift', () => {
+    const objects = engineeringBody().objects;
+    const unsafePreferred = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: 'node:internal', labelType: 'canonical_preferred' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(unsafePreferred, MODELING).status).toBe('unavailable');
+
+    const unsafeAlias = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '系统建模', labelType: 'canonical_preferred' },
+        { entityId: MODELING, label: '', labelType: 'alternative' },
+      ]),
+    });
+    expect(resolveAuthorityLabel(unsafeAlias, MODELING).status).toBe('unavailable');
+
+    expect(() => createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '一个主标签', labelType: 'canonical_preferred' },
+        { entityId: MODELING, label: '另一个主标签', labelType: 'canonical_preferred' },
+      ]),
+    })).toThrow(/duplicate preferred/u);
+
+    expect(() => createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: v2Evidence([
+        { entityId: MODELING, label: '一个标签', labelType: 'canonical_preferred' },
+      ], 'other-release'),
+    })).toThrow(/profile|admission|label row identity drifted/u);
+
+    const bindingDrift = v2Evidence([
+      { entityId: MODELING, label: '一个标签', labelType: 'canonical_preferred' },
+    ]);
+    bindingDrift.admissionBinding = { ...bindingDrift.admissionBinding, releaseId: 'other-release' };
+    expect(() => createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects,
+      v2Evidence: bindingDrift,
+    })).toThrow(/admission binding/u);
+  });
+
+  it('materializes v2 label aliases without changing identity or relation endpoints', () => {
+    const catalog = catalogRuntime();
+    const built = envelope({
+      catalog: { catalogId: catalog.catalogId, catalogHash: catalog.catalogHash, catalogVersion: catalog.catalogVersion },
+    });
+    const engineering = engineeringBody();
+    const materialized = buildAuthorityDomainShards({
+      envelope: built,
+      catalog,
+      engineering: {
+        ...engineering,
+        v2Evidence: v2Evidence([
+          { entityId: MODELING, label: '系统建模', labelType: 'canonical_preferred' },
+          { entityId: MODELING, label: '建模', labelType: 'alternative' },
+          { entityId: NEIGHBOR, label: '邻域对象', labelType: 'canonical_preferred' },
+          { entityId: NEIGHBOR, label: '邻域别名', labelType: 'alternative' },
+        ]),
+      },
+    });
+    expect(materialized.domainDefaults['system-modeling'].objects.find((object) => object.id === MODELING)).toMatchObject({
+      id: MODELING,
+      label: '系统建模',
+      aliases: ['建模'],
+    });
+    expect(materialized.families['system-modeling:association'].relations[0]).toMatchObject({
+      sourceId: MODELING,
+      targetId: NEIGHBOR,
+    });
+    const family = materialized.families['system-modeling:association'];
+    expect(family.boundaries.find((boundary) => boundary.canonicalId === NEIGHBOR)).toMatchObject({
+      canonicalId: NEIGHBOR,
+      aliases: ['邻域别名'],
+    });
+    let state = createEmptyAuthorityShardWorkspace();
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.root));
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.domainDefaults['system-modeling']));
+    const mergedFamily = mergeAuthorityShard(state, projectAuthorityLearnerShard(family));
+    expect(mergedFamily.rejectedShardKeys).not.toContain('relation-family:system-modeling:association');
+    expect(mergedFamily.boundaryRefsByCanonicalId[NEIGHBOR]?.aliases).toEqual(['邻域别名']);
+    expect(materialized.details[MODELING]?.node.aliases).toEqual(['建模']);
   });
 
   it('loads root and domain-default without opening engineering.json', () => {
@@ -625,6 +1424,34 @@ describe('authority domain shard delivery', () => {
     expect(rejected.rejectedShardKeys.some((key) => key.includes('relation-family'))).toBe(true);
     expect(rejected.selectedCanonicalId).toBe(SHARED);
     expect(rejected.objectsByCanonicalId[SHARED]).toBe(afterTime.objectsByCanonicalId[SHARED]);
+  });
+
+  it('rejects same-envelope label drift before overwriting the shard-store object', () => {
+    const { materialized } = writeShards();
+    let state = createEmptyAuthorityShardWorkspace();
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.root));
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.domainDefaults['system-modeling']));
+    const original = state.objectsByCanonicalId[MODELING];
+    const drifted = projectAuthorityLearnerShard({
+      ...materialized.neighborhoods[MODELING],
+      objects: materialized.neighborhoods[MODELING]!.objects.map((object) => (
+        object.id === MODELING ? { ...object, label: '漂移名称' } : object
+      )),
+    });
+    const rejected = mergeAuthorityShard(state, drifted);
+    expect(rejected.rejectedShardKeys).toContain('node-neighborhood:ctc:modeling-test-object');
+    expect(rejected.objectsByCanonicalId[MODELING]).toBe(original);
+    expect(rejected.objectsByCanonicalId[MODELING]?.label).not.toBe('漂移名称');
+
+    const aliasDrifted = projectAuthorityLearnerShard({
+      ...materialized.neighborhoods[MODELING],
+      objects: materialized.neighborhoods[MODELING]!.objects.map((object) => (
+        object.id === MODELING ? { ...object, aliases: ['漂移别名'] } : object
+      )),
+    });
+    const aliasRejected = mergeAuthorityShard(state, aliasDrifted);
+    expect(aliasRejected.rejectedShardKeys).toContain('node-neighborhood:ctc:modeling-test-object');
+    expect(aliasRejected.objectsByCanonicalId[MODELING]).toBe(original);
   });
 
   it('uses collision-resistant file tokens for opaque node ids', () => {

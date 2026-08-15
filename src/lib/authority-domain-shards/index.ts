@@ -4,6 +4,7 @@ export * from './families';
 export * from './hash';
 export * from './identity';
 export * from './learning-content';
+export * from './labels';
 export * from './loader';
 export * from './materialize';
 export * from './store';
