@@ -1,6 +1,6 @@
 ## 1. Freeze and verify release inputs
 
-- [ ] 1.1 Select one clean application revision and bind its tree, qualified
+- [x] 1.1 Select one clean application revision and bind its tree, qualified
   candidate manifest, runtime identity, image tag, and intended release version.
 - [ ] 1.2 Verify local PostgreSQL migrations deploy from empty/current states and
   report schema up to date before remote work.

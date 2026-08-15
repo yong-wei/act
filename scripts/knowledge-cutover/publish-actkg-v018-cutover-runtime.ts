@@ -1,0 +1,65 @@
+#!/usr/bin/env tsx
+
+/**
+ * Publish a cutover-capable v0.18 runtime only after READY qualification
+ * and without changing production selectors (#1411).
+ */
+
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+import {
+  publishActKgV018CutoverRuntime,
+} from '../../src/lib/teaching-projection/publish/v018-runtime-release';
+
+function option(argv: readonly string[], name: string): string | undefined {
+  const index = argv.indexOf(name);
+  return index >= 0 ? argv[index + 1] : undefined;
+}
+
+export async function prepareActKgV018RuntimeRelease(
+  argv: readonly string[] = process.argv.slice(2),
+): Promise<{
+  status: 'READY' | 'BLOCKED';
+  reportPath: string;
+  blockers: string[];
+  receiptDigest: string;
+  imageBuilt: boolean;
+}> {
+  const repoRoot = option(argv, '--repo-root') ?? process.cwd();
+  const outputRoot = option(argv, '--output-root');
+  const qualificationReport = option(argv, '--qualification-report');
+  const imageTag = option(argv, '--image-tag');
+  const result = await publishActKgV018CutoverRuntime({
+    repoRoot,
+    outputRoot,
+    qualificationReport,
+    imageTag,
+    runBuild: async ({ repoRoot: root, imageTag: tag }) => {
+      execFileSync('bash', [path.join(root, 'scripts/build.sh')], {
+        cwd: root,
+        env: {
+          ...process.env,
+          IMAGE_TAG: tag,
+          NODE_MAX_OLD_SPACE_SIZE: process.env.NODE_MAX_OLD_SPACE_SIZE ?? '12288',
+        },
+        stdio: 'inherit',
+      });
+      return {
+        imageTag: tag,
+        provenancePath: path.join(root, 'deploy/images/act-obe.tar.provenance.json'),
+        imageTarPath: path.join(root, 'deploy/images/act-obe.tar'),
+      };
+    },
+  });
+  process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  return result;
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  prepareActKgV018RuntimeRelease().catch((error: unknown) => {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  });
+}
