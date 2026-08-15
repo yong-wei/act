@@ -378,6 +378,7 @@ describe('platform role navigation', () => {
       '/profile/portfolio',
       '/profile/evidence',
       '/assessment/document-feedback',
+      '/evaluation/prompt-assessment',
       '/data-center',
       '/classroom/join',
       '/classroom/student/[sessionId]',
@@ -954,6 +955,14 @@ describe('platform role navigation', () => {
       frame: 'report-ledger',
       roleScope: ['student'],
       mobileNavigation: 'role-route-tabs',
+    });
+    expect(
+      PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/evaluation/prompt-assessment'),
+    ).toMatchObject({
+      frame: 'report-ledger',
+      roleScope: ['guest', 'student'],
+      authState: 'mixed',
+      mobileNavigation: 'drawer',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')).toMatchObject({
       frame: 'knowledge-data-map',

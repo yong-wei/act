@@ -551,7 +551,7 @@ export default function PromptAssessmentPage() {
       data-ai-task-focus-mode="local-first"
       data-task-workspace-archetype="ai-local-task"
     >
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="space-y-6">
         <header className="surface-card bg-gradient-to-br from-card via-card to-accent/35 p-5">
           <p className="text-xs uppercase tracking-[0.28em] text-amber-400">Structure Evaluated</p>
           <h1 className="mt-1 text-2xl font-semibold">元提示词评价与过程一致性</h1>
