@@ -92,6 +92,7 @@
     "react-doctor:owned-warnings": "node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=warnings",
     "capture:simulation-command-deck-qa": "npx --yes tsx ./scripts/tests/capture-simulation-command-deck-qa.ts",
     "capture:adaptive-path-unlock-chain-evidence": "node ./scripts/tests/capture-adaptive-path-unlock-chain-evidence.mjs",
+    "capture:prompt-assessment-history-evidence": "node ./artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs",
     "test:control-correction-demo": "npx --yes tsx ./scripts/tests/control-correction-demo-acceptance.ts",
     "test:intelligent-teaching-assistant-demo": "npx --yes tsx ./scripts/tests/intelligent-teaching-assistant-demo-acceptance.ts",
     "test:competition-baseline": "npx --yes tsx ./scripts/tests/competition-baseline-acceptance.ts",

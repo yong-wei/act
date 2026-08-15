@@ -4354,6 +4354,8 @@ model PromptAssessment {
   structurizationScore Float
   executabilityScore   Float
   suggestions          Json[]
+  auditTaskContext     Json?
+  consistencyResult    Json?
   version              Int
   createdAt            DateTime @default(now())
 
@@ -4361,6 +4363,7 @@ model PromptAssessment {
 
   @@index([userId, createdAt])
   @@index([sessionId, version])
+  @@unique([userId, sessionId, version])
 }
 
 model DesignSession {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getPromptHistory } from '@/features/evaluation/prompt-quality';
+import { listPromptAssessmentHistory } from '@/features/evaluation/prompt-assessment-history';
+import { getServerAuthSession } from '@/lib/auth';
 
 interface RouteContext {
   params: Promise<{
@@ -9,7 +10,16 @@ interface RouteContext {
 
 export async function GET(_: Request, context: RouteContext) {
   try {
-    const history = getPromptHistory((await context.params).userId);
+    const session = await getServerAuthSession();
+    const sessionUserId = session?.user?.id;
+    if (!sessionUserId) {
+      return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    }
+    const { userId } = await context.params;
+    if (userId !== sessionUserId) {
+      return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
+    }
+    const history = await listPromptAssessmentHistory(sessionUserId);
     return NextResponse.json({
       history,
       total: history.length,

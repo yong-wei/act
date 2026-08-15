@@ -248,6 +248,11 @@ export default function PromptAssessmentPage() {
       setAbilityReport(null);
       return;
     }
+    if (!currentUserId) {
+      setHistoryRecords([]);
+      setAbilityReport(null);
+      return;
+    }
 
     setTrendLoading(true);
 
@@ -304,6 +309,10 @@ export default function PromptAssessmentPage() {
       ].slice(-6));
       return;
     }
+    if (!currentUserId) {
+      setError('请先登录后再使用提示词评价。');
+      return;
+    }
 
     const controller = new AbortController();
     requestAbortRef.current = controller;
@@ -316,7 +325,6 @@ export default function PromptAssessmentPage() {
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: activeUserId,
           sessionId: activeSessionId,
           prompt: compiledPrompt,
           structuredData: structured,
@@ -371,6 +379,14 @@ export default function PromptAssessmentPage() {
       ].slice(-6));
       return;
     }
+    if (!currentUserId) {
+      setError('请先登录后再使用过程一致性校验。');
+      return;
+    }
+    if (!latestRecord) {
+      setError('请先完成一次提示词评价，再进行过程一致性校验。');
+      return;
+    }
 
     const controller = new AbortController();
     requestAbortRef.current = controller;
@@ -384,9 +400,8 @@ export default function PromptAssessmentPage() {
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: activeUserId,
           designSessionId: activeSessionId,
-          promptVersion: latestRecord?.version ?? 1,
+          promptVersion: latestRecord.version,
           promptContent: compiledPrompt,
           auditTaskContext: promptAuditTaskContext,
           designActions: [

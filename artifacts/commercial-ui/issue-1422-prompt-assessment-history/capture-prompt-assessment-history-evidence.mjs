@@ -1,0 +1,119 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { dirname, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = resolve(scriptDirectory, '../../..');
+const outputDirectory = scriptDirectory;
+const outputRelativePaths = new Set([
+  'artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json',
+  'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-1440.png',
+  'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-320.png',
+]);
+const boundInputs = [
+  'artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs',
+  'tests/prompt-assessment-history-1422.spec.ts',
+  'src/app/evaluation/prompt-assessment/page.tsx',
+  'src/app/api/evaluation/assess-prompt/route.ts',
+  'src/app/api/evaluation/track-consistency/route.ts',
+  'src/app/api/evaluation/prompt-history/[userId]/route.ts',
+  'src/features/evaluation/prompt-assessment-history.ts',
+];
+
+function git(args) {
+  return execFileSync('git', args, { cwd: repositoryRoot, encoding: 'utf8' }).trim();
+}
+
+function statusPaths() {
+  const output = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+  });
+  return output.split(/\r?\n/).filter(Boolean).map((line) => line.slice(3));
+}
+
+async function sourceHashes() {
+  return Object.fromEntries(await Promise.all(boundInputs.map(async (input) => {
+    const bytes = await readFile(join(repositoryRoot, input));
+    return [input, createHash('sha256').update(bytes).digest('hex')];
+  })));
+}
+
+async function screenshotEvidence(relativePath, viewport) {
+  const bytes = await readFile(join(repositoryRoot, relativePath));
+  assert.equal(bytes.readUInt32BE(0), 0x89504e47, `${relativePath} is not a PNG`);
+  return {
+    screenshot: relativePath,
+    viewport,
+    sha256: createHash('sha256').update(bytes).digest('hex'),
+    dimensions: { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) },
+  };
+}
+
+const captureRevision = git(['rev-parse', 'HEAD']);
+assert.deepEqual(statusPaths(), [], 'Commercial UI capture must start from a clean worktree');
+const initialSourceHashes = await sourceHashes();
+
+await mkdir(outputDirectory, { recursive: true });
+await Promise.all([
+  rm(join(outputDirectory, 'browser-evidence.json'), { force: true }),
+  rm(join(outputDirectory, 'prompt-assessment-history-1440.png'), { force: true }),
+  rm(join(outputDirectory, 'prompt-assessment-history-320.png'), { force: true }),
+]);
+
+const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+execFileSync(npx, ['playwright', 'test', 'tests/prompt-assessment-history-1422.spec.ts', '--workers=1'], {
+  cwd: repositoryRoot,
+  shell: true,
+  env: {
+    ...process.env,
+    PLAYWRIGHT_PORT: '3200',
+    PROMPT_ASSESSMENT_HISTORY_EVIDENCE_DIR: outputDirectory,
+  },
+  stdio: 'inherit',
+});
+
+assert.equal(git(['rev-parse', 'HEAD']), captureRevision, 'Capture changed Git HEAD');
+assert.deepEqual(await sourceHashes(), initialSourceHashes, 'Capture changed a bound source file');
+
+const screenshots = await Promise.all([
+  screenshotEvidence(
+    'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-1440.png',
+    { width: 1440, height: 1000 },
+  ),
+  screenshotEvidence(
+    'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-320.png',
+    { width: 320, height: 900 },
+  ),
+]);
+
+await writeFile(join(outputDirectory, 'browser-evidence.json'), JSON.stringify({
+  change: 'persist-governed-prompt-assessment-history',
+  capturedAt: new Date().toISOString(),
+  captureRevision,
+  generator: 'artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs',
+  sourceHashes: initialSourceHashes,
+  route: '/evaluation/prompt-assessment',
+  fixtures: 'Authenticated NextAuth student session with browser-local evaluation API fixtures; database persistence is verified separately by scripts/tests/test-prompt-assessment-history-postgres.ts.',
+  screenshots,
+  assertions: [
+    'authenticated student evaluates a prompt and sees V1 history',
+    'consistency result attaches to the displayed persisted version',
+    'desktop and 320px layouts assert keyboard focus and no horizontal overflow',
+    'client evaluation requests omit userId so server session identity remains authoritative',
+  ],
+  drift: {
+    cleanCaptureStart: true,
+    headUnchanged: true,
+    boundSourcesUnchanged: true,
+    allowedOutputPaths: [...outputRelativePaths].sort(),
+  },
+}, null, 2));
+
+const unexpectedPaths = statusPaths().filter((path) => !outputRelativePaths.has(path));
+assert.deepEqual(unexpectedPaths, [], `Capture created unexpected changed paths: ${unexpectedPaths.join(', ')}`);
+await stat(join(outputDirectory, 'browser-evidence.json'));
+console.log(`Prompt assessment history evidence captured at ${captureRevision}`);
