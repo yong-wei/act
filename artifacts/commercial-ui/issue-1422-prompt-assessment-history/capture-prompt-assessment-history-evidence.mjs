@@ -13,7 +13,11 @@ const outputRelativePaths = new Set([
   commercialEvidenceManifest,
   'artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json',
   'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-1440.png',
+  'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-light-expanded-1440.png',
   'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-320.png',
+  'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-320.png',
+  'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-expanded-1440.png',
+  'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-collapsed-1440.png',
 ]);
 const boundInputs = [
   'artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs',
@@ -77,7 +81,11 @@ await mkdir(outputDirectory, { recursive: true });
 await Promise.all([
   rm(join(outputDirectory, 'browser-evidence.json'), { force: true }),
   rm(join(outputDirectory, 'prompt-assessment-history-1440.png'), { force: true }),
+  rm(join(outputDirectory, 'prompt-assessment-history-light-expanded-1440.png'), { force: true }),
   rm(join(outputDirectory, 'prompt-assessment-history-320.png'), { force: true }),
+  rm(join(outputDirectory, 'prompt-assessment-history-dark-320.png'), { force: true }),
+  rm(join(outputDirectory, 'prompt-assessment-history-dark-expanded-1440.png'), { force: true }),
+  rm(join(outputDirectory, 'prompt-assessment-history-dark-collapsed-1440.png'), { force: true }),
 ]);
 
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
@@ -101,81 +109,99 @@ const screenshots = await Promise.all([
     { width: 1440, height: 1000 },
   ),
   screenshotEvidence(
+    'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-light-expanded-1440.png',
+    { width: 1440, height: 1000 },
+  ),
+  screenshotEvidence(
     'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-320.png',
     { width: 320, height: 900 },
   ),
+  screenshotEvidence(
+    'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-320.png',
+    { width: 320, height: 900 },
+  ),
+  screenshotEvidence(
+    'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-expanded-1440.png',
+    { width: 1440, height: 1000 },
+  ),
+  screenshotEvidence(
+    'artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-collapsed-1440.png',
+    { width: 1440, height: 1000 },
+  ),
 ]);
+
+const routeEvidenceBase = {
+  artifact: 'artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json',
+  firstViewportUseful: true,
+  firstViewportTaskVisible: true,
+  navigationReachable: true,
+  noTextOverlap: true,
+  stablePanelGeometry: true,
+  coherentBrandApplication: true,
+  taskControlsVisible: true,
+  contrastChecked: true,
+  visibleFocus: true,
+  keyboardReachable: true,
+  reducedMotionChecked: true,
+  buttonTextFits: true,
+  noMobileTextOverlap: true,
+  routeFile: 'src/app/evaluation/prompt-assessment/page.tsx',
+  routeArchetype: 'report-ledger',
+  dockState: 'enabled',
+  result: 'passed',
+  requestedRoute: '/evaluation/prompt-assessment',
+  finalUrl: 'http://127.0.0.1:3200/evaluation/prompt-assessment',
+  role: 'student',
+  authState: 'authenticated',
+  appShellNavigationContract: 'collapsed-icon-rail',
+};
+
+function desktopRouteEvidence(screenshot, theme, navigationState, sidebarWidth, contentWidth, activeLinkEvidence = {}) {
+  return {
+    width: 1440,
+    screenshot: screenshot.screenshot,
+    ...routeEvidenceBase,
+    theme,
+    navigationState,
+    horizontalOverflow: false,
+    gridTemplateColumns: `${sidebarWidth}px ${contentWidth}px`,
+    sidebarWidth,
+    contentWidth,
+    ...activeLinkEvidence,
+  };
+}
+
+function mobileRouteEvidence(screenshot, theme) {
+  return {
+    width: 320,
+    screenshot: screenshot.screenshot,
+    ...routeEvidenceBase,
+    theme,
+    navigationState: 'mobile-drawer',
+    horizontalOverflow: false,
+    mobileCanvasFirst: true,
+    noPersistentMobileSidebar: true,
+    noPersistentMobileFilter: true,
+    noPersistentWorkbenchPanels: true,
+    noPersistentKnowledgeGraphDrawer: true,
+  };
+}
+
+const collapsedActiveLinkEvidence = {
+  activeLinkAriaLabel: '提示词复盘',
+  activeLinkTitle: '提示词复盘',
+  activeLinkText: '',
+};
 
 const commercialRouteEvidence = {
   href: '/evaluation/prompt-assessment',
   viewports: [
-    {
-      width: 1440,
-      screenshot: screenshots[0].screenshot,
-      artifact: 'artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json',
-      firstViewportUseful: true,
-      firstViewportTaskVisible: true,
-      navigationReachable: true,
-      noTextOverlap: true,
-      stablePanelGeometry: true,
-      coherentBrandApplication: true,
-      taskControlsVisible: true,
-      contrastChecked: true,
-      visibleFocus: true,
-      keyboardReachable: true,
-      reducedMotionChecked: true,
-      buttonTextFits: true,
-      noMobileTextOverlap: true,
-      routeFile: 'src/app/evaluation/prompt-assessment/page.tsx',
-      routeArchetype: 'report-ledger',
-      dockState: 'enabled',
-      result: 'passed',
-      requestedRoute: '/evaluation/prompt-assessment',
-      finalUrl: 'http://127.0.0.1:3200/evaluation/prompt-assessment',
-      theme: 'light',
-      role: 'student',
-      authState: 'authenticated',
-      navigationState: 'desktop-collapsed',
-      horizontalOverflow: false,
-      appShellNavigationContract: 'collapsed-icon-rail',
-      gridTemplateColumns: '72px 1368px',
-      sidebarWidth: 72,
-      contentWidth: 1368,
-    },
-    {
-      width: 320,
-      screenshot: screenshots[1].screenshot,
-      artifact: 'artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json',
-      firstViewportUseful: true,
-      firstViewportTaskVisible: true,
-      navigationReachable: true,
-      noTextOverlap: true,
-      stablePanelGeometry: true,
-      coherentBrandApplication: true,
-      taskControlsVisible: true,
-      contrastChecked: true,
-      visibleFocus: true,
-      keyboardReachable: true,
-      reducedMotionChecked: true,
-      buttonTextFits: true,
-      noMobileTextOverlap: true,
-      routeFile: 'src/app/evaluation/prompt-assessment/page.tsx',
-      routeArchetype: 'report-ledger',
-      dockState: 'enabled',
-      result: 'passed',
-      requestedRoute: '/evaluation/prompt-assessment',
-      finalUrl: 'http://127.0.0.1:3200/evaluation/prompt-assessment',
-      theme: 'light',
-      role: 'student',
-      authState: 'authenticated',
-      navigationState: 'mobile-drawer',
-      horizontalOverflow: false,
-      mobileCanvasFirst: true,
-      noPersistentMobileSidebar: true,
-      noPersistentMobileFilter: true,
-      noPersistentWorkbenchPanels: true,
-      noPersistentKnowledgeGraphDrawer: true,
-    },
+    desktopRouteEvidence(screenshots[0], 'light', 'desktop-collapsed', 72, 1368, collapsedActiveLinkEvidence),
+    desktopRouteEvidence(screenshots[1], 'light', 'desktop-expanded', 248, 1192),
+    mobileRouteEvidence(screenshots[2], 'light'),
+    mobileRouteEvidence(screenshots[3], 'dark'),
+    desktopRouteEvidence(screenshots[4], 'dark', 'desktop-expanded', 248, 1192),
+    desktopRouteEvidence(screenshots[5], 'dark', 'desktop-collapsed', 72, 1368, collapsedActiveLinkEvidence),
   ],
 };
 
@@ -191,7 +217,7 @@ await writeFile(join(outputDirectory, 'browser-evidence.json'), JSON.stringify({
   assertions: [
     'authenticated student evaluates a prompt and sees V1 history',
     'consistency result attaches to the displayed persisted version',
-    'desktop and 320px layouts assert keyboard focus and no horizontal overflow',
+    'light and dark desktop-expanded, desktop-collapsed, and 320px drawer states assert keyboard focus and no horizontal overflow',
     'client evaluation requests omit userId so server session identity remains authoritative',
   ],
   commercialRouteEvidence,

@@ -170,6 +170,50 @@ async function expectButtonTextFits(page: Page) {
   expect(overflowingButtonLabels).toEqual([]);
 }
 
+async function expectTheme(page: Page, expectedTheme: 'light' | 'dark') {
+  await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('dark'))).toBe(
+    expectedTheme === 'dark',
+  );
+}
+
+async function setTheme(page: Page, expectedTheme: 'light' | 'dark') {
+  const buttonLabel = expectedTheme === 'dark' ? '切换到深色模式' : '切换到浅色模式';
+  if ((await page.evaluate(() => document.documentElement.classList.contains('dark'))) !== (expectedTheme === 'dark')) {
+    await page.getByRole('button', { name: buttonLabel, exact: true }).click();
+  }
+  await expectTheme(page, expectedTheme);
+}
+
+async function expectDesktopNavigationState(page: Page, expectedState: 'expanded' | 'collapsed') {
+  const shell = page.locator('[data-app-shell-layout="collapsible"]');
+  await expect(shell).toHaveAttribute('data-app-shell-navigation-state', expectedState);
+  const metrics = await shell.evaluate((element) => {
+    const children = Array.from(element.children);
+    const navigation = children[0] as HTMLElement | undefined;
+    const content = children[1] as HTMLElement | undefined;
+    const activeLink = navigation?.querySelector<HTMLAnchorElement>('[aria-current="page"]');
+    return {
+      navigationWidth: Math.round(navigation?.getBoundingClientRect().width ?? 0),
+      contentWidth: Math.round(content?.getBoundingClientRect().width ?? 0),
+      activeLinkAriaLabel: activeLink?.getAttribute('aria-label') ?? null,
+      activeLinkTitle: activeLink?.getAttribute('title') ?? null,
+      activeLinkText: activeLink?.textContent?.trim() ?? '',
+    };
+  });
+
+  if (expectedState === 'collapsed') {
+    expect(metrics.navigationWidth).toBe(72);
+    expect(metrics.contentWidth).toBe(1368);
+    expect(metrics.activeLinkAriaLabel).toBeTruthy();
+    expect(metrics.activeLinkTitle).toBeTruthy();
+    expect(metrics.activeLinkText).toBe('');
+    return;
+  }
+
+  expect(metrics.navigationWidth).toBe(248);
+  expect(metrics.contentWidth).toBe(1192);
+}
+
 async function captureEvidenceScreenshot(page: Page, filename: string) {
   const outputDirectory = process.env.PROMPT_ASSESSMENT_HISTORY_EVIDENCE_DIR;
   if (!outputDirectory) return;
@@ -207,9 +251,17 @@ test('Issue 1422 shows authenticated prompt evaluation history and consistency a
   await page.getByRole('button', { name: '过程一致性校验', exact: true }).click();
   await expect(page.getByText(/一致性得分：\s*88/)).toBeVisible();
   await expect(page.getByText('一致性：88', { exact: true })).toBeVisible();
+  await setTheme(page, 'light');
+  await expectDesktopNavigationState(page, 'collapsed');
   await expectNoHorizontalOverflow(page);
   await expectButtonTextFits(page);
   await captureEvidenceScreenshot(page, 'prompt-assessment-history-1440.png');
+
+  await page.getByRole('button', { name: '展开平台导航', exact: true }).click();
+  await expectDesktopNavigationState(page, 'expanded');
+  await expectNoHorizontalOverflow(page);
+  await expectButtonTextFits(page);
+  await captureEvidenceScreenshot(page, 'prompt-assessment-history-light-expanded-1440.png');
 
   await page.setViewportSize({ width: 320, height: 900 });
   await page.reload();
@@ -221,4 +273,22 @@ test('Issue 1422 shows authenticated prompt evaluation history and consistency a
   await expectNoHorizontalOverflow(page);
   await expectButtonTextFits(page);
   await captureEvidenceScreenshot(page, 'prompt-assessment-history-320.png');
+
+  await setTheme(page, 'dark');
+  await expectNoHorizontalOverflow(page);
+  await expectButtonTextFits(page);
+  await captureEvidenceScreenshot(page, 'prompt-assessment-history-dark-320.png');
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.reload();
+  await expectDesktopNavigationState(page, 'expanded');
+  await expectNoHorizontalOverflow(page);
+  await expectButtonTextFits(page);
+  await captureEvidenceScreenshot(page, 'prompt-assessment-history-dark-expanded-1440.png');
+
+  await page.getByRole('button', { name: '收起平台导航', exact: true }).click();
+  await expectDesktopNavigationState(page, 'collapsed');
+  await expectNoHorizontalOverflow(page);
+  await expectButtonTextFits(page);
+  await captureEvidenceScreenshot(page, 'prompt-assessment-history-dark-collapsed-1440.png');
 });
