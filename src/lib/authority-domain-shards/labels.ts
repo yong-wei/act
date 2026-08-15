@@ -14,6 +14,11 @@ import type { AuthorityEngineeringObject } from '@/lib/authoritative-knowledge/a
 
 const ZH_CN = 'zh-CN' as const;
 const SHA256 = /^[a-f0-9]{64}$/u;
+const DISALLOWED_CONTROL = /[\u0000-\u0009\u000b-\u000c\u000e-\u001f\u007f]/u;
+const LEADING_FORMULA_NOTATION = /^\\{1,2}\S/u;
+const PLAIN_PATH_DIRECTORY = /^[A-Za-z0-9][A-Za-z0-9 ._\-]*$/u;
+const PLAIN_PATH_FILE = /^[A-Za-z0-9][A-Za-z0-9 ._(){}=\-]*$/u;
+const PATH_EXTENSION = /\.[A-Za-z][A-Za-z0-9]{0,15}$/u;
 
 export interface AuthorityLabelSnapshotBinding {
   readonly snapshotId: string;
@@ -23,14 +28,14 @@ export interface AuthorityLabelSnapshotBinding {
 
 export interface AuthorityLabelResolverInput {
   readonly snapshot: AuthorityLabelSnapshotBinding;
-  readonly objects: readonly Pick<AuthorityEngineeringObject, 'canonicalId' | 'semanticName' | 'payload'>[];
+  readonly objects: readonly Pick<AuthorityEngineeringObject, 'canonicalId' | 'canonicalType' | 'semanticName' | 'payload'>[];
   readonly v2Evidence?: AuthoritativeV2Evidence | null;
 }
 
 export interface AuthorityLabelResolverContext {
   readonly snapshot: AuthorityLabelSnapshotBinding;
   readonly runtimeProfile: Readonly<AuthoritativeV2ProjectionProfileRecord> | null;
-  readonly objects: readonly Pick<AuthorityEngineeringObject, 'canonicalId' | 'semanticName' | 'payload'>[];
+  readonly objects: readonly Pick<AuthorityEngineeringObject, 'canonicalId' | 'canonicalType' | 'semanticName' | 'payload'>[];
   readonly labels: readonly AuthoritativeV2MultilingualLabelRecord[];
 }
 
@@ -59,10 +64,11 @@ function record(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function text(value: unknown): string | null {
+function text(value: unknown, preserveWhitespace = false): string | null {
   if (typeof value !== 'string') return null;
   const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
+  if (normalized.length === 0) return null;
+  return preserveWhitespace ? value : normalized;
 }
 
 function immutableClone(value: unknown, seen = new WeakMap<object, unknown>()): unknown {
@@ -85,15 +91,58 @@ function immutableClone(value: unknown, seen = new WeakMap<object, unknown>()): 
  * Human labels may contain Chinese, mathematical notation, or normal prose,
  * but never an opaque identifier, path, digest, release token, or system slug.
  */
-export function isSafeAuthorityLabel(value: string | null | undefined): value is string {
+function rootedPathSegments(value: string): readonly string[] {
+  return value.replace(/^\\{1,2}/u, '').split(/[\\/]/u).filter(Boolean);
+}
+
+function hasFormulaPathStructure(value: string): boolean {
+  const segments = rootedPathSegments(value);
+  if (segments.length < 2) return false;
+  const last = segments[segments.length - 1]!;
+  const penultimate = segments[segments.length - 2]!;
+
+  // A filename-like tail alone is not enough: it becomes path evidence only
+  // with a preceding ordinary directory segment. This retains labels such as
+  // `\\alpha.ext`, which are valid reviewed Formula presentation values.
+  if (PLAIN_PATH_DIRECTORY.test(penultimate) && PATH_EXTENSION.test(last)) {
+    return true;
+  }
+
+  if (
+    segments.length >= 3
+    && segments.slice(0, -1).every((segment) => PLAIN_PATH_DIRECTORY.test(segment))
+    && PLAIN_PATH_FILE.test(last)
+  ) return true;
+
+  // A double-leading separator has unambiguous UNC server/share structure
+  // once all of its three components are ordinary path segments.
+  return /^\\\\/u.test(value)
+    && segments.length >= 2
+    && segments.every((segment) => PLAIN_PATH_DIRECTORY.test(segment));
+}
+
+export function isSafeAuthorityLabel(
+  value: string | null | undefined,
+  canonicalType?: string | null,
+  trustedRuntimeProfile = false,
+): value is string {
+  if (typeof value !== 'string' || DISALLOWED_CONTROL.test(value)) return false;
+  const trustedFormula = canonicalType === 'Formula' && trustedRuntimeProfile;
+  if (/\r(?!\n)/u.test(value) || (!trustedFormula && /[\r\n]/u.test(value))) return false;
   const normalized = text(value);
   if (!normalized) return false;
   if (/^[a-f0-9]{32,}$/iu.test(normalized)) return false;
   if (/^(?:[A-Za-z][A-Za-z0-9+.-]*:){1,2}[A-Za-z0-9:/._-]+$/u.test(normalized)) return false;
   if (/^(?:node|relation|source|target|release|release-set|snapshot|activation|projection|bundle|profile|assertion|term|edition|section|sha256|hash|commit|path)[-_/:\s]/iu.test(normalized)) return false;
   if (/(?:^|[/\\])(?:course-content|src|runtime|releases?|snapshots?|bundles?|artifacts?)(?:[/\\]|$)/iu.test(normalized)) return false;
-  if (/^(?:[A-Za-z]:[\\/]|[/\\]|\.\.?(?:[/\\]))/u.test(normalized)) return false;
-  if (/^[A-Za-z0-9._-]+(?:[\\/][A-Za-z0-9._-]+)+$/u.test(normalized)) return false;
+  if (/^~(?:[/\\]|$)/u.test(normalized)) return false;
+  if (/(?:^|[/\\])\.{1,2}(?:[/\\]|$)/u.test(normalized)) return false;
+  if (/^(?:[A-Za-z]:[\\/]|\/|\.\.?(?:[/\\]))/u.test(normalized)) return false;
+  if (/^\\/u.test(normalized)) {
+    if (!trustedFormula || !LEADING_FORMULA_NOTATION.test(normalized) || hasFormulaPathStructure(normalized)) return false;
+  } else if (/[\\/]/u.test(normalized)) {
+    return false;
+  }
   if (/(?:sha256|hash|release|snapshot|bundle|profile|projection|activation|commit|path)[=:]/iu.test(normalized)) return false;
   // Multi-token ASCII identifiers such as positive_feedback_inner_loop are
   // machine slugs, while a normal phrase containing spaces remains valid.
@@ -103,10 +152,11 @@ export function isSafeAuthorityLabel(value: string | null | undefined): value is
 }
 
 function cloneObject(
-  object: Pick<AuthorityEngineeringObject, 'canonicalId' | 'semanticName' | 'payload'>,
-): Pick<AuthorityEngineeringObject, 'canonicalId' | 'semanticName' | 'payload'> {
+  object: Pick<AuthorityEngineeringObject, 'canonicalId' | 'canonicalType' | 'semanticName' | 'payload'>,
+): Pick<AuthorityEngineeringObject, 'canonicalId' | 'canonicalType' | 'semanticName' | 'payload'> {
   return Object.freeze({
     canonicalId: object.canonicalId,
+    canonicalType: object.canonicalType,
     semanticName: object.semanticName,
     payload: immutableClone(object.payload),
   });
@@ -147,11 +197,10 @@ function runtimeProfile(
     profileKeys.add(profileKey);
   }
   const runtime = evidence.profiles.filter((profile) => (
-    profile.profileKey === 'runtime' || profile.manifestProfile === 'runtime'
+    profile.manifestProfile === 'runtime'
   ));
   if (
     runtime.length !== 1
-    || runtime[0]!.profileKey !== 'runtime'
     || runtime[0]!.manifestProfile !== 'runtime'
     || !text(runtime[0]!.profileId)
     || !SHA256.test(runtime[0]!.profileSha256)
@@ -178,11 +227,14 @@ function alternativeLabels(
 function resolvedAliases(
   labels: readonly AuthoritativeV2MultilingualLabelRecord[],
   entityId: string,
+  canonicalType: string | null | undefined,
+  trustedRuntimeProfile: boolean,
 ): readonly string[] | null {
-  const values = alternativeLabels(labels, entityId).map((row) => text(row.label));
+  const preserveWhitespace = canonicalType === 'Formula' && trustedRuntimeProfile;
+  const values = alternativeLabels(labels, entityId).map((row) => text(row.label, preserveWhitespace));
   if (values.some((value) => value === null)) return null;
   const safeValues = values as string[];
-  if (safeValues.some((value) => !isSafeAuthorityLabel(value))) return null;
+  if (safeValues.some((value) => !isSafeAuthorityLabel(value, canonicalType, trustedRuntimeProfile))) return null;
   return Object.freeze(
     safeValues
       .slice()
@@ -204,13 +256,16 @@ function legacyPreferredLabel(payload: unknown): string | null {
     : null;
 }
 
-function projectionDisplayName(object: Pick<AuthorityEngineeringObject, 'semanticName' | 'payload'>): string | null {
+function projectionDisplayName(
+  object: Pick<AuthorityEngineeringObject, 'semanticName' | 'payload'>,
+  preserveWhitespace = false,
+): string | null {
   const payload = record(object.payload);
   const nested = record(payload.payload);
-  return text(payload.displayName)
-    ?? text(payload.display_name)
-    ?? text(nested.displayName)
-    ?? text(nested.display_name);
+  return text(payload.displayName, preserveWhitespace)
+    ?? text(payload.display_name, preserveWhitespace)
+    ?? text(nested.displayName, preserveWhitespace)
+    ?? text(nested.display_name, preserveWhitespace);
 }
 
 function unavailable(): AuthorityResolvedLabel {
@@ -270,24 +325,26 @@ export function resolveAuthorityLabel(
     // it is not a new machine-identity fallback.
     return Object.freeze({
       status: 'available',
-      label: legacy ?? '名称暂不可用',
+      label: legacy && isSafeAuthorityLabel(legacy, object.canonicalType) ? legacy : '名称暂不可用',
       aliases: Object.freeze([]),
     });
   }
 
   const preferred = preferredLabels(context.labels, entityId);
   if (preferred.length > 1) return unavailable();
+  const trustedRuntimeProfile = context.runtimeProfile !== null;
+  const preserveFormulaWhitespace = object.canonicalType === 'Formula' && trustedRuntimeProfile;
   if (preferred.length === 1) {
-    const label = text(preferred[0]!.label);
-    if (!isSafeAuthorityLabel(label)) return unavailable();
-    const aliases = resolvedAliases(context.labels, entityId);
+    const label = text(preferred[0]!.label, preserveFormulaWhitespace);
+    if (!isSafeAuthorityLabel(label, object.canonicalType, trustedRuntimeProfile)) return unavailable();
+    const aliases = resolvedAliases(context.labels, entityId, object.canonicalType, trustedRuntimeProfile);
     if (!aliases) return unavailable();
     return Object.freeze({ status: 'available', label, aliases });
   }
 
-  const fallback = projectionDisplayName(object);
-  if (!isSafeAuthorityLabel(fallback)) return unavailable();
-  const aliases = resolvedAliases(context.labels, entityId);
+  const fallback = projectionDisplayName(object, preserveFormulaWhitespace);
+  if (!isSafeAuthorityLabel(fallback, object.canonicalType, trustedRuntimeProfile)) return unavailable();
+  const aliases = resolvedAliases(context.labels, entityId, object.canonicalType, trustedRuntimeProfile);
   if (!aliases) return unavailable();
   return Object.freeze({ status: 'available', label: fallback, aliases });
 }

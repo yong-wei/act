@@ -51,6 +51,52 @@ text, accessible names, titles, URLs, analytics labels, or errors.
 - **THEN** the affected presentation response SHALL fail closed with a bounded
   human message and SHALL NOT reveal the rejected value
 
+### Requirement: Formula display labels preserve only trusted reviewed structure
+
+The resolver MUST use the immutable Authority object's trusted `canonicalType`
+and the validated runtime profile when qualifying a Formula display label. It
+MUST NOT infer Formula status from payload fields or label text. Raw LF and CRLF
+MUST be preserved only for a Formula under a trusted runtime profile. TAB, NUL,
+isolated CR, all other C0 controls, and DEL MUST be rejected without rewriting
+the remaining text.
+
+#### Scenario: A trusted Formula contains reviewed line breaks
+
+- **WHEN** an admitted runtime profile resolves an object whose `canonicalType`
+  is exactly `Formula` and whose display name contains LF or CRLF
+- **THEN** the resolver SHALL return the original label bytes unchanged
+
+#### Scenario: A path-shaped or untrusted formula candidate is supplied
+
+- **WHEN** a label is POSIX, drive-qualified, URL/file-URI, dot-segment,
+  home-relative, or an ordinary relative multi-segment path; when a rooted or
+  UNC value lacks the trusted Formula context; or when that Formula value has
+  explicit directory structure and an ordinary filename
+- **THEN** the resolver SHALL fail closed without exposing the rejected value
+
+#### Scenario: A reviewed Formula has an extension-like mathematical tail
+
+- **WHEN** a trusted Formula value has no explicit path structure but one
+  mathematical token resembles a filename extension
+- **THEN** the resolver SHALL retain the original reviewed value; a suffix
+  alone MUST NOT classify the Formula as a path
+
+#### Scenario: Two-segment rooted and UNC forms are distinguished
+
+- **WHEN** a trusted Formula value has a rooted ordinary filename with an
+  alphabetic extension, or a double-rooted ordinary UNC server/share pair
+- **THEN** the resolver SHALL fail closed
+- **AND WHEN** a trusted Formula has a single command segment with an
+  extension-like tail, or a single-root two-segment expression without a
+  filename structure
+- **THEN** the resolver SHALL retain the reviewed value
+
+#### Scenario: Formula-looking payload text cannot grant an exception
+
+- **WHEN** payload fields claim `Formula` while the trusted object
+  `canonicalType` is missing, unknown, or non-Formula
+- **THEN** the resolver SHALL apply the non-Formula safety policy
+
 ### Requirement: Terminology coverage remains additive
 
 The renderer MUST consume the versioned label projection generically so a later
@@ -62,4 +108,3 @@ change. Missing Chinese coverage alone MUST NOT invalidate Authority identity.
 - **WHEN** the newly selected snapshot passes admission and contains a new valid row
 - **THEN** the next materialized presentation SHALL expose it without modifying
   node or relation identity
-

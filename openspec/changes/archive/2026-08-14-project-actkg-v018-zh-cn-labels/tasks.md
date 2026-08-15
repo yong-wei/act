@@ -6,6 +6,9 @@
   admitted runtime profile with primary-label, alias, and fallback separation.
 - [x] 1.3 Add negative tests proving labels cannot change identity, relations,
   teaching mappings, card/media association, or hashes.
+- [x] 1.4 Bind Formula display qualification to the trusted runtime profile and
+  immutable `canonicalType`; preserve reviewed LF/CRLF bytes, reject forbidden
+  controls and path structures, and never infer type from payload or text.
 
 ## 2. Progressive presentation integration
 
@@ -30,3 +33,8 @@
   display-only change does not activate the candidate to obtain screenshots.
 - [x] 3.3 Run typecheck, lint, commercial UI governance, strict OpenSpec
   validation, and stable-revision review.
+- [x] 3.4 Scan the v0.18 Formula display set, including multiline and
+  extension-like numeric tails, and verify focused safety regressions plus
+  strict archived-change and spec validation.
+- [x] 3.5 Reject the two-segment rooted filename and UNC server/share forms
+  while retaining the documented Formula-only no-extension ambiguity.

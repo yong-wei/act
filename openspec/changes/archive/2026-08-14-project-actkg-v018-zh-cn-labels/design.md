@@ -75,6 +75,33 @@ and infographs remain an explicit runtime-publication or activation gate before
 any Authority selector changes; this display-only change must not switch an
 Active pointer merely to obtain screenshots.
 
+### 8. Formula display and path boundary (2026-08-15)
+
+Sol DECIDE=A: a raw LF or CRLF is preserved only when the resolver is bound to
+the validated runtime profile and the immutable Authority object's trusted
+`canonicalType` is exactly `Formula`. TAB, NUL, an isolated CR, every other C0
+control, and DEL remain unsafe; no newline normalization is performed. Formula
+display qualification is a narrow structure check, not a command whitelist or
+TeX parser. POSIX, drive-qualified, URL/file-URI, dot-segment, home-relative,
+UNC, and ordinary relative multi-segment paths remain unavailable. A path is
+identified from its directory structure and ordinary filename, so a mathematical
+formula whose final numeric token resembles an extension is not rejected by an
+independent suffix rule. Canonical type is never inferred from payload or text,
+and rejected labels remain bounded and cannot expose IDs or payloads.
+
+### 9. Two-segment Formula ambiguity (2026-08-15)
+
+Sol DECIDE=A: `\\Users\\file.txt` is rejected because the rooted second
+segment has an ordinary alphabetic filename extension, and
+`\\\\server\\share` is rejected as an explicit UNC server/share structure.
+Neither rule applies to a single Formula command segment such as
+`\\alpha.ext`. A single-root two-segment value without an ordinary filename,
+such as `\\sin\\omega`, remains an explicitly accepted string-level ambiguity:
+rejecting it would require a command whitelist or TeX parser and would break
+reviewed Formula presentation. That residual case remains bounded by the
+immutable Authority `canonicalType` and admitted runtime profile; it is not a
+fallback for payload text.
+
 ## Risks / Trade-offs
 
 - Some v0.18 nodes will retain reviewed English or mathematical display names;

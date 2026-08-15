@@ -225,13 +225,17 @@ function v2Evidence(
   }>,
   releaseId = RELEASE_ID,
 ): AuthoritativeV2Evidence {
-  const profiles = ['runtime', 'domain', 'review'].map((profileKey) => ({
+  const profiles = [
+    { profileKey: 'act', manifestProfile: 'runtime', projectionKind: 'act_runtime_graph' },
+    { profileKey: 'domain', manifestProfile: 'domain', projectionKind: 'domain_graph' },
+    { profileKey: 'review', manifestProfile: 'review', projectionKind: 'review_graph' },
+  ].map(({ profileKey, manifestProfile, projectionKind }) => ({
     releaseId,
     profileKey,
-    manifestProfile: profileKey,
+    manifestProfile,
     profileId: `${profileKey}-profile`,
     profileSha256: 'd'.repeat(64),
-    projectionKind: profileKey,
+    projectionKind,
     profileVersion: 'v1',
     mappingContractVersion: 'actkg-map/v2',
     aggregationPolicy: 'preserve-all',
@@ -440,6 +444,169 @@ describe('authority domain shard delivery', () => {
     expect(isSafeAuthorityLabel('positive_feedback_inner_loop')).toBe(false);
   });
 
+  it('accepts explicit leading LaTeX formulas but keeps path labels unsafe', () => {
+    expect(isSafeAuthorityLabel('\\Phi(s)=...', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\\\Phi(\\\\omega)=...', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\(G(s)=1\\)', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\\\begin{aligned} G(s)=1 \\\\end{aligned}', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\frac{1}{s+1}', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\alpha.ext', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\sin\\omega', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('\\dir\\file', 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel('/runtime/formula')).toBe(false);
+    expect(isSafeAuthorityLabel('C:\\runtime\\formula')).toBe(false);
+    expect(isSafeAuthorityLabel('\\server\\share\\formula')).toBe(false);
+    expect(isSafeAuthorityLabel('\\\\server\\share\\formula')).toBe(false);
+    expect(isSafeAuthorityLabel('\\Users\\admin\\file(1)')).toBe(false);
+    expect(isSafeAuthorityLabel('\\Windows\\System32\\file=1')).toBe(false);
+    expect(isSafeAuthorityLabel('folder name\\file.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('folder\\file(1).txt')).toBe(false);
+    expect(isSafeAuthorityLabel('\\Program Files\\app\\file.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('\\Users\\admin\\file{1}.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('\\\\server name\\share\\file.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('folder name/file.txt')).toBe(false);
+    expect(isSafeAuthorityLabel('../runtime/formula')).toBe(false);
+  });
+
+  it('requires a trusted Formula profile for leading-backslash formulas', () => {
+    const formulaSamples = [
+      '\\Phi(s)=G(s)/(1+G(s)H(s))',
+      '\\\\begin{aligned} G(s)=1 \\\\end{aligned}',
+      '\\mathcal{L}\\{\\sin \\omega t\\}=\\int_{0}^{\\infty}(\\sin \\omega t)e^{-st}dt',
+      '\\omega_{r}=\\omega_{n} \\sqrt{1-2 \\zeta^{2}}, \\quad \\zeta<0.707',
+    ];
+    for (const sample of formulaSamples) {
+      expect(isSafeAuthorityLabel(sample, 'Formula', true)).toBe(true);
+      expect(isSafeAuthorityLabel(sample, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(sample, 'DomainConcept')).toBe(false);
+      expect(isSafeAuthorityLabel(sample, 'Unknown')).toBe(false);
+      expect(isSafeAuthorityLabel(sample)).toBe(false);
+    }
+  });
+
+  it('allows only original LF and CRLF in trusted Formula runtime labels', () => {
+    const lf = '\\begin{aligned}\nG(s)=1\n\\end{aligned}';
+    const crlf = '\\begin{aligned}\r\nG(s)=1\r\n\\end{aligned}';
+    expect(isSafeAuthorityLabel(lf, 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel(crlf, 'Formula', true)).toBe(true);
+    expect(isSafeAuthorityLabel(lf, 'Formula')).toBe(false);
+    expect(isSafeAuthorityLabel(crlf, 'Formula')).toBe(false);
+
+    const object = {
+      ...objectRow(MODELING, crlf),
+      canonicalType: 'Formula',
+      payload: { displayName: crlf },
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects: [object],
+      v2Evidence: v2Evidence([]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING)).toMatchObject({
+      status: 'available',
+      label: crlf,
+      aliases: [],
+    });
+  });
+
+  it('rejects tabs, NUL, isolated CR, other C0 controls, and DEL', () => {
+    const unsafe = [
+      '\\Phi(s)=1\t',
+      '\\Phi(s)=1\u0000',
+      '\\Phi(s)=1\rnext',
+      '\\Phi(s)=1\u0001',
+      '\\Phi(s)=1\u000b',
+      '\\Phi(s)=1\u000c',
+      '\\Phi(s)=1\u001f',
+      '\\Phi(s)=1\u007f',
+    ];
+    for (const label of unsafe) expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+  });
+
+  it('rejects rooted and UNC path-shaped labels even when Formula is claimed', () => {
+    const pathLabels = [
+      '\\Users{old}\\admin\\file.txt',
+      '\\sin\\share\\file.txt',
+    ];
+    for (const label of pathLabels) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'Unknown')).toBe(false);
+      expect(isSafeAuthorityLabel(label)).toBe(false);
+    }
+    for (const label of ['\\\\server name\\share\\file.txt', '\\Program Files\\app\\file.txt']) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+    }
+    expect(isSafeAuthorityLabel('\\\\server\\share\\formula', 'Formula', true)).toBe(false);
+    expect(isSafeAuthorityLabel('\\Users\\file.txt', 'Formula', true)).toBe(false);
+    expect(isSafeAuthorityLabel('\\\\server\\share', 'Formula', true)).toBe(false);
+    for (const label of [
+      'folder name\\file.txt',
+      'folder\\file(1).txt',
+      '\\Program Files\\app\\file.txt',
+      '\\Users\\admin\\file{1}.txt',
+      '\\\\server name\\share\\file.txt',
+      'folder name/file.txt',
+    ]) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+    }
+  });
+
+  it('rejects path syntax and control characters for Formula labels', () => {
+    const unsafe = [
+      '/runtime/formula',
+      '~/runtime/formula',
+      './runtime/formula',
+      '../runtime/formula',
+      'C:\\runtime\\formula',
+      'file:/runtime/formula',
+      'https://example.test/formula',
+      'folder name\\file.txt',
+      'folder name/file.txt',
+      'formula\u0000value',
+    ];
+    for (const label of unsafe) expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+  });
+
+  it('fails closed without leaking identity or payload for rejected labels', () => {
+    const secretId = 'ctf:formula-path-secret';
+    const secretPayload = 'payload-secret-not-for-display';
+    const pathLabel = '\\Users{old}\\admin\\file.txt';
+    const object = {
+      ...objectRow(secretId, pathLabel),
+      canonicalType: 'Formula',
+      payload: { displayName: pathLabel, secret: secretPayload },
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects: [object],
+      v2Evidence: v2Evidence([]),
+    });
+    const resolved = resolveAuthorityLabel(context, secretId);
+    expect(resolved).toEqual({ status: 'unavailable', label: null, aliases: [] });
+    expect(JSON.stringify(resolved)).not.toContain(secretId);
+    expect(JSON.stringify(resolved)).not.toContain(secretPayload);
+  });
+
+  it('does not infer Formula type from payload text', () => {
+    const object = {
+      ...objectRow(MODELING, '\\Phi(s)=G(s)/(1+G(s)H(s))'),
+      canonicalType: 'DomainConcept',
+      payload: {
+        displayName: '\\Phi(s)=G(s)/(1+G(s)H(s))',
+        entityType: 'Formula',
+        canonicalType: 'Formula',
+      },
+    };
+    const context = createAuthorityLabelResolverContext({
+      snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
+      objects: [object],
+      v2Evidence: v2Evidence([]),
+    });
+    expect(resolveAuthorityLabel(context, MODELING).status).toBe('unavailable');
+  });
+
   it('uses the runtime displayName only when no preferred row exists', () => {
     const objects = engineeringBody().objects.map((object) => (
       object.canonicalId === MODELING
@@ -477,6 +644,7 @@ describe('authority domain shard delivery', () => {
       label: '初始运行时名称',
       aliases: [],
     });
+    expect(context.objects[0]!.canonicalType).toBe('DomainConcept');
     expect(Object.isFrozen(context.objects[0]!.payload)).toBe(true);
   });
 
